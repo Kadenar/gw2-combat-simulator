@@ -38,7 +38,7 @@ function nextBlightAt(runtime: NecromancerRuntime): number {
 
 /** One replaceable wake owns the next actual accrual, expiry, or Meltdown deadline. */
 function refreshBlight(runtime: NecromancerRuntime): void {
-  const state = harbingerState.from(runtime);
+  const state = harbingerState.from(runtime.profession);
   runtime.cancelOwner({ id: BLIGHT, generation: state.blightGeneration });
   state.blightGeneration++;
   const at = Math.min(state.nextBlightAt ?? Infinity, ...state.blightExpiries, state.meltdownUntil || Infinity);
@@ -48,7 +48,7 @@ function refreshBlight(runtime: NecromancerRuntime): void {
 
 /** Reports current Blight without replaying a state snapshot into the combat world. */
 export function publishBlight(runtime: NecromancerRuntime): void {
-  const state = harbingerState.from(runtime);
+  const state = harbingerState.from(runtime.profession);
   runtime.effects.emit({
     kind: 'packet',
     event: {
@@ -68,7 +68,7 @@ export function publishBlight(runtime: NecromancerRuntime): void {
 
 /** Spending counts once at commitment; only the delayed explosion can damage the target. */
 export function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): boolean {
-  const state = harbingerState.from(runtime);
+  const state = harbingerState.from(runtime.profession);
   const cost = skillNumber(cast.skill, 'blightCost');
   const empowered = state.blightExpiries.length >= cost;
   const consumed = empowered ? consumeBlight(state, cost, runtime.time, harbingerBlightMaximum(runtime)) : 0;
@@ -84,12 +84,12 @@ function initializeHarbingerBlight(runtime: NecromancerRuntime): void {
     onEnter(skill) {
       if (skill.shroudEntry !== 'harbinger') return;
 
-      harbingerState.from(runtime).nextBlightAt = nextBlightAt(runtime);
+      harbingerState.from(runtime.profession).nextBlightAt = nextBlightAt(runtime);
       runtime.fireTrigger(harbingerShroudEntered, { skill });
       refreshBlight(runtime);
     },
     onExit() {
-      harbingerState.from(runtime).nextBlightAt = Infinity;
+      harbingerState.from(runtime.profession).nextBlightAt = Infinity;
       refreshBlight(runtime);
     }
   });
@@ -99,7 +99,7 @@ function initializeHarbingerBlight(runtime: NecromancerRuntime): void {
 /** Accrual and expiry share one replaceable wake so spending observes settled Blight. */
 const harbingerBlightTasks = {
   [BLIGHT](runtime) {
-    const state = harbingerState.from(runtime);
+    const state = harbingerState.from(runtime.profession);
     purgeHarbingerTimedState(state, runtime.time, harbingerBlightMaximum(runtime));
 
     if (state.meltdownUntil && state.meltdownUntil <= runtime.time) state.meltdownUntil = 0;

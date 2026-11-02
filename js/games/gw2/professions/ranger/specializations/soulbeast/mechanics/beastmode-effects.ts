@@ -52,13 +52,13 @@ export function activeSoulbeastBuff(context: RangerResolverContext, kind: string
 // Beast Ability is always the last skill in beastmodeSkillIds; traits like Live Fast and Go for the Eyes
 // should fire only on the first hit of a multi-hit Beast Ability, not once per packet.
 function firstBeastAbilityHit(context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
-  const activePet = rangerPetForState(professionCoreState(context));
+  const activePet = rangerPetForState(professionCoreState(context.profession));
   const beastSkillId = activePet.beastmodeSkillIds.at(-1);
 
   if (event.skillId !== beastSkillId || !event.activationId) return false;
 
   return claimActivation(
-    soulbeastState.from(context).soulbeastActivationClaims,
+    soulbeastState.from(context.profession).soulbeastActivationClaims,
     'ranger.beast-ability',
     event.activationId
   );
@@ -262,7 +262,7 @@ function scheduleSharedStance(context: RangerResolverContext, event: Gw2Resolver
 // Winter's Bite fires once per weapon skill hit via the ranger core flag; the flag is cleared here
 // and is reset by the ranger core when a new weapon cycle begins, not on cooldown expiry.
 export function reactToRangerWinterBite(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const core = professionCoreState(context);
+  const core = professionCoreState(context.profession);
 
   if (
     !core.winterBiteReady ||
@@ -290,10 +290,10 @@ export function soulbeastCastAvailability(
   context: MechanicQueriesOf<RangerRuntime>,
   skill: RangerSkill
 ): AvailabilityResult {
-  const state = soulbeastState.from(context);
+  const state = soulbeastState.from(context.profession);
   const toggle = skill.id === ID.BEASTMODE || skill.id === ID.LEAVE_BEASTMODE;
   // Swapping while unmerged changes which pet grants merged skills on reentry.
-  const pet = rangerPetForState(professionCoreState(context));
+  const pet = rangerPetForState(professionCoreState(context.profession));
 
   if (skill.beastmodeSkill && !toggle && !pet.beastmodeSkillIds.includes(skill.id)) {
     return deny(skill, 'ranger.inactive-merged-pet-skill', 'select the pet that grants this merged Beast skill.');
@@ -321,7 +321,7 @@ export const beastmodeChanged = defineTriggerPoint<{ readonly skill: RangerSkill
 
 /** Keep merge, pet lifetime, and Unstoppable Union in one ordered transition. */
 export function setBeastmode(runtime: RangerRuntime, skill: Skill, active: boolean): void {
-  soulbeastState.from(runtime).beastmodeActive = active;
+  soulbeastState.from(runtime.profession).beastmodeActive = active;
   setRangerPetActive(runtime, !active, skill.id);
   runtime.fireTrigger(beastmodeChanged, { skill });
 }
@@ -330,14 +330,14 @@ export function setBeastmode(runtime: RangerRuntime, skill: Skill, active: boole
 export const beastmodeLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
-    soulbeastState.from(runtime).beastmodeActive = Boolean(skill?.beastmodeSkill || inputs.merged);
+    soulbeastState.from(runtime.profession).beastmodeActive = Boolean(skill?.beastmodeSkill || inputs.merged);
   },
   initialize(runtime) {
-    setRangerPetActive(runtime, !soulbeastState.from(runtime).beastmodeActive, ID.BEASTMODE);
+    setRangerPetActive(runtime, !soulbeastState.from(runtime.profession).beastmodeActive, ID.BEASTMODE);
   },
   availability: soulbeastCastAvailability,
   onCastCommit(runtime, cast) {
-    const state = soulbeastState.from(runtime);
+    const state = soulbeastState.from(runtime.profession);
     const skill = cast.skill;
 
     if (!state.beastmodeActive) return;

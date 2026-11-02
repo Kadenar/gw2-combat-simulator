@@ -22,7 +22,12 @@ import {
 import { landedChannelRefundLifecycle } from '#gw2/professions/thief/core/mechanics/channel-refund.js';
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
 import { activateTrap, prepareTrap } from '#gw2/professions/thief/core/mechanics/preparations.js';
-import { setThiefKneeling, thiefEndurance, thiefInitiative } from '#gw2/professions/thief/core/mechanics/resources.js';
+import {
+  setThiefKneeling,
+  thiefEndurance,
+  thiefInitiative,
+  thiefInitiativeCost
+} from '#gw2/professions/thief/core/mechanics/resources.js';
 import {
   expireThiefScepterChain,
   THIEF_SCEPTER_CHAIN_EXPIRY,
@@ -81,7 +86,7 @@ const THIEF_CORE_COMPLETE = 'thief.core-complete';
 /** Shared swap and completion traits retain their post-packet order after intrinsic skill actions commit. */
 function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, initiativeCost: number): void {
   const skill = cast.skill;
-  const committed = !cast.cancelled;
+  const committed = !cast.cancelledBeforeCommit;
   pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
 
   if (committed && skill.stealthAttack) runtime.fireTrigger(stealthAttackCompleted, { cast });
@@ -200,7 +205,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   onCastCommit(runtime, cast) {
     // Capture the accepted cost before the deferred task resolves its skill from the live catalog.
     deferThiefCompletion(runtime, THIEF_CORE_COMPLETE, cast, {
-      initiativeCost: Math.max(0, cast.skill.initiativeCost || 0)
+      initiativeCost: thiefInitiativeCost(cast.skill)
     });
   },
   onAutoattackChainTransition: transitionThiefScepterChain,

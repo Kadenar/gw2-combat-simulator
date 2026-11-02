@@ -15,11 +15,9 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Canonical Core guardian skill definitions grouped by their GW2 owner. */
 
-export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.ZEALOTS_FLAME]: {
     name: "Zealot's Flame",
-    description:
-      'Set yourself alight, periodically burning up to three nearby foes. The final pulse applies additional burning.',
     icon: 'https://render.guildwars2.com/file/3CB42772DD937ACF48EF5FE4615EF33F49035450/103231.png',
     type: 'Weapon',
     weapon: 'Torch',
@@ -51,7 +49,6 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.ZEALOTS_FIRE]: {
     name: "Zealot's Fire",
-    description: "Throw your Zealot's Flame to damage the targeted foe.",
     icon: 'https://render.guildwars2.com/file/537D1557E29B42B95D07A1DB01493C7B63C4E402/103637.png',
     type: 'Weapon',
     weapon: 'Torch',
@@ -85,8 +82,6 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.CLEANSING_FLAME]: {
     name: 'Cleansing Flame',
-    description:
-      'Remove conditions from yourself then breathe magical flames that damage foes and cure conditions on allies. Inflicts burning on the final attack.',
     icon: 'https://render.guildwars2.com/file/FC0E030F7E67C4C62F0A6717B9F1B80012A6F1C7/103127.png',
     type: 'Weapon',
     weapon: 'Torch',
@@ -108,7 +103,7 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ])
   }
-});
+};
 
 /** Torch activation owns its flip duration and lockout; later eligible skills clear the shared lockout. */
 const guardianTorchActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {

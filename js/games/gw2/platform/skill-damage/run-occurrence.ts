@@ -18,7 +18,7 @@ import type { DamageInputs, SkillDamageOccurrence } from '#gw2/platform/skill-da
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
 
 /** Content declarations identify damaging effects even when the selected inputs resolve to zero. */
-export function hasDamage(effects: readonly SkillEffect[] | undefined): boolean {
+function hasDamage(effects: readonly SkillEffect[] | undefined): boolean {
   return (effects ?? []).some(
     (effect) =>
       effect.type === 'strike' ||

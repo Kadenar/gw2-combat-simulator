@@ -6,7 +6,8 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Exercise the registered family with one live Core and specialization owner.
@@ -23,7 +24,6 @@ function run(rotation, overrides = {}, source = warriorProfession, output = 'det
   return observeGw2Runtime({ profession: source.runtimeFor(config), config, rotation, output });
 }
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const state = (result) => observedRuntime(result).profession.specialization.state;
 
 test('Berserk entry spends once, changes the cap, and expiry restores the Core cap', () => {
@@ -312,4 +312,43 @@ test('Heat the Soul selects its own Decapitate variant and tooltip independently
   const context = source.resolvePatch({ id: 'heat-duration' }).balanceContext;
   const tooltip = warriorTooltips.traits[TRAIT.HEAT_THE_SOUL](context, { id: TRAIT.HEAT_THE_SOUL });
   assert.ok(tooltip.facts.some((fact) => /Decapitate/.test(fact.detail) && /3s/.test(fact.detail)));
+});
+
+// Catalog membership, rather than a copied primal-skill list, controls which recharges the completed heal clears.
+test('Blood Reckoning resets live primal skills after its adrenaline grant and leaves other recharges intact', () => {
+  const config = {
+    specialization: 'Berserker',
+    primaryWeapon: 'Greatsword',
+    initialResource: 0,
+    selectedTraitIds: [],
+    selectedSkillIds: [30189]
+  };
+  const native = warriorProfession.runtimeFor(config);
+  let adrenalineAtReset;
+  const result = observeGw2Runtime({
+    config,
+    rotation: [ID.BLOOD_RECKONING],
+    profession: {
+      ...native,
+      catalog: withSkill(native.catalog, ID.EVISCERATE, { primalBurst: true }),
+      initialize(runtime) {
+        native.initialize(runtime);
+        for (const id of [ID.DECAPITATE, ID.EVISCERATE, ID.WHIRLWIND_ATTACK])
+          runtime.cooldownController.startRecharge(runtime.helpers.skillsById.get(id), 0, 60);
+      },
+      sideEffectHandlers: {
+        ...native.sideEffectHandlers,
+        'warrior.reset-primal-bursts'(runtime, cast, action) {
+          adrenalineAtReset = runtime.profession.core.adrenaline.value;
+          native.sideEffectHandlers['warrior.reset-primal-bursts'](runtime, cast, action);
+        }
+      }
+    }
+  });
+  assert.deepEqual(result.warnings, []);
+  const runtime = observedRuntime(result);
+  assert.equal(adrenalineAtReset, 10);
+  assert.equal(runtime.cooldownController.hasCooldown(ID.DECAPITATE), false);
+  assert.equal(runtime.cooldownController.hasCooldown(ID.EVISCERATE), false);
+  assert.ok(runtime.cooldownController.readyAt(ID.WHIRLWIND_ATTACK) > runtime.time);
 });

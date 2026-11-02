@@ -16,6 +16,7 @@ export type ResolvedEffectTrigger<Stage extends EffectReactionStage = EffectReac
   } & (On extends 'damage.resolved' ? { readonly details: NativeResolvedDamageDetails } : object);
 }[Stage];
 
+/** Resolved effects execute a nonempty ordered action list; cast side effects retain their singular action contract. */
 export type EffectReaction = {
   [On in EffectReactionStage]: {
     readonly on: On;
@@ -23,7 +24,7 @@ export type EffectReaction = {
     readonly packets: 'each' | 'first';
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Reaction declarations and handler registries erase profession state at the shared dispatch boundary.
     readonly when?: (runtime: MechanicQueryContext<any>, trigger: ResolvedEffectTrigger<On>) => boolean;
-    readonly do: SideEffectAction | readonly SideEffectAction[];
+    readonly do: readonly SideEffectAction[];
   };
 }[EffectReactionStage];
 

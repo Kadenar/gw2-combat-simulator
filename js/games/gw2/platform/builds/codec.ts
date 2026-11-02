@@ -496,7 +496,7 @@ function selectableSlotSkill(
   return Boolean(
     skill &&
     skill.slotSelectable !== false &&
-    !skill.simulatorExcluded &&
+    !skill.rotationInputExcluded &&
     skill.type === type &&
     // Exclude flip/chain skills (e.g. the follow-up hit of a two-stage
     // attack); only the root skill can appear in the loadout panel.

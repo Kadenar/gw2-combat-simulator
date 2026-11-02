@@ -467,7 +467,7 @@ test('Rifle Butt completion restores ammo and clears burst recharge while cancel
     );
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.ammoBySkillId[ID.VOLLEY].charges, cancelled ? 1 : 2);
-    assert.equal(result.planningState.cooldowns[ID.KILL_SHOT] != null, cancelled);
+    assert.equal(result.planningState.cooldownsBySkillId[ID.KILL_SHOT] != null, cancelled);
   }
 });
 
@@ -483,7 +483,9 @@ test('weapon recharge resets belong to completed activations independently of ho
       });
       assert.deepEqual(result.warnings, []);
       assert.equal(
-        result.planningState.cooldowns[warriorCatalog.skills.find((candidate) => candidate.name === first).id] != null,
+        result.planningState.cooldownsBySkillId[
+          warriorCatalog.skills.find((candidate) => candidate.name === first).id
+        ] != null,
         cancelled,
         reset
       );

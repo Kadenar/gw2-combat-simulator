@@ -2,9 +2,13 @@ import {
   fromProfile,
   outsideScopeTooltip,
   profileFact,
+  simulationEffectFacts,
   tooltipDecimal,
   tooltipFactorChange,
+  tooltipNumber,
   tooltipPercent,
+  tooltipPercentValue,
+  tooltipProfile,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
@@ -37,7 +41,7 @@ export const elementalistFireTooltips = {
   [TRAIT.BURNING_PRECISION]: traitTooltip(
     'Eligible critical hits have a chance to burn the target. Burning lasts longer.',
     [
-      ['procChance', 'Chance on critical hit', tooltipPercent],
+      ['procChance', 'Chance on critical hit', tooltipPercentValue],
       ['internalCooldown', 'Internal cooldown', tooltipSeconds],
       ['durationMultiplier', 'Burning duration', percentagePoints]
     ]
@@ -67,17 +71,56 @@ export const elementalistFireTooltips = {
       ['durationPerTier', 'Additional weapon field duration', tooltipSeconds]
     ]
   ),
-  [TRAIT.PYROMANCERS_PUISSANCE]: traitTooltip(
-    'Using skills in Fire grants might. Leaving Fire or completing Overload Fire triggers Flame Expulsion: snapshot your capped might, scale its strike and burning, and grant that many might stacks to other allies.',
-    // The scheduler owns delivery timing; the selected profile still supplies might scaling.
-    (context, id) => [
-      { name: 'Flame Expulsion delay', detail: tooltipSeconds(FLAME_EXPULSION_DELAY_SECONDS) },
-      profileFact(context, id, 'maximumStacks', 'Maximum might counted'),
-      profileFact(context, id, 'damageIncreasePerStack', 'Additional strike coefficient per might'),
-      profileFact(context, id, 'durationPerTier', 'Additional burning duration per might', tooltipSeconds)
-    ],
-    'listed Flame Expulsion damage is before might scaling'
-  ),
+  [TRAIT.PYROMANCERS_PUISSANCE]: (context, trait) => {
+    const profile = tooltipProfile(context, trait.id);
+    // Keep each reward's trigger distinct and combine base values with their selected Might scaling.
+    const factsFor = (effects: NonNullable<typeof profile.effects>) =>
+      effects.flatMap((effect) =>
+        simulationEffectFacts([{ ...effect, name: undefined }]).facts.map((fact) => {
+          if (effect.type === 'boon' && effect.name === 'Attunement Might')
+            return { ...fact, name: 'Might on Fire skill' };
+
+          if (effect.type === 'boon' && effect.name === 'Flame Expulsion Might')
+            return {
+              ...fact,
+              name: 'Might to other allies',
+              detail: `counted stacks · ${fact.detail}`,
+              stacks: undefined
+            };
+
+          if (effect.name === 'Flame Expulsion' && effect.type === 'strike')
+            return {
+              ...fact,
+              detail: `${fact.detail} + ${tooltipDecimal(tooltipNumber(profile, 'damageIncreasePerStack'))} per Might`
+            };
+
+          if (effect.name === 'Flame Expulsion' && effect.type === 'condition')
+            return {
+              ...fact,
+              detail: `${fact.detail} + ${tooltipSeconds(tooltipNumber(profile, 'durationPerTier'))} per Might`
+            };
+
+          return fact;
+        })
+      );
+
+    return {
+      description:
+        'Using skills in Fire grants Might. Leaving Fire or completing Overload Fire triggers Flame Expulsion, which counts your Might when triggered, scales its damage, and shares the counted stacks with other allies.',
+      facts: [
+        ...factsFor((profile.effects ?? []).filter((effect) => effect.name === 'Attunement Might')),
+        { name: 'Flame Expulsion delay', detail: tooltipSeconds(FLAME_EXPULSION_DELAY_SECONDS) },
+        profileFact(
+          context,
+          trait.id,
+          'maximumStacks',
+          'Might counted',
+          (value) => `up to ${tooltipDecimal(value)} stacks`
+        ),
+        ...factsFor((profile.effects ?? []).filter((effect) => effect.name !== 'Attunement Might'))
+      ]
+    };
+  },
   [TRAIT.INFERNO]: traitTooltip(
     'Burning scales with power instead of condition damage, retaining the shared burning base damage.',
     [

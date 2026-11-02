@@ -8,11 +8,10 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   // Natural Bite uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.SMOKESCALE_BITE]: definePetSkill({
     name: 'Bite',
-    description: 'Bite your target.',
     icon: new URL('@images/wiki/bite-smokescale.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -43,7 +42,6 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
   // Natural Takedown uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.SMOKESCALE_TAKEDOWN]: definePetSkill({
     name: 'Takedown',
-    description: 'Cripple your target with a powerful strike.',
     icon: 'https://render.guildwars2.com/file/1B7A03496B93AEC937923F229E062F2AD14DFA24/1128611.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -74,7 +72,6 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
   // Natural Smoke Assault uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.SMOKESCALE_SMOKE_ASSAULT]: definePetSkill({
     name: 'Smoke Assault',
-    description: 'Conceal yourself and lash out at nearby foes. Gain might each time you damage a foe.',
     icon: 'https://render.guildwars2.com/file/9B9A0403F90E7C7C2367F2995923477F67B0077F/1128612.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -109,7 +106,6 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
   }),
   [ID.SMOKE_CLOUD]: definePetSkill({
     name: 'Smoke Cloud',
-    description: 'Beast. Create a cloud of smoke for the smokescale to hide in.',
     icon: 'https://render.guildwars2.com/file/B4AF20E830E205E81027A50663C275F2F920C32F/1128613.png',
     petNames: ['Smokescale'],
     type: 'Profession',
@@ -129,4 +125,4 @@ export const RANGER_CORE_SMOKESCALE_PET_SKILL_MECHANICS: Readonly<Record<number,
     ],
     effects: []
   })
-});
+};

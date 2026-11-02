@@ -9,10 +9,7 @@ import { createNecromancerCoreState } from '#gw2/professions/necromancer/core/in
 import { bindNecromancerCoreUi } from '#gw2/professions/necromancer/core/presentation.js';
 import { necromancerPassiveAttributes } from '#gw2/professions/necromancer/core/skills/attribute-passives.js';
 import { NECROMANCER_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/necromancer/core/skills/autoattack-chains.js';
-import {
-  NECROMANCER_CORE_BASE_SKILL_MECHANICS,
-  NECROMANCER_CORE_EXTRA_SKILLS
-} from '#gw2/professions/necromancer/core/skills/index.js';
+import { NECROMANCER_CORE_SKILLS } from '#gw2/professions/necromancer/core/skills/index.js';
 import { NECROMANCER_CORE_SKILL_FLIPS } from '#gw2/professions/necromancer/core/skills/skill-flips.js';
 import { ghastlyClawsVulnerabilityModifier } from '#gw2/professions/necromancer/core/skills/weapons/axe.js';
 import { lifeSiphonBleedingModifier } from '#gw2/professions/necromancer/core/skills/weapons/dagger.js';
@@ -48,8 +45,8 @@ export const necromancerCoreModule = defineNativeModule({
     skillFlips: NECROMANCER_CORE_SKILL_FLIPS,
     profileFields: NECROMANCER_CORE_PROFILE_FIELDS,
     skillFields: NECROMANCER_CORE_SKILL_FIELDS,
-    skillMechanics: NECROMANCER_CORE_BASE_SKILL_MECHANICS,
-    extraSkills: NECROMANCER_CORE_EXTRA_SKILLS,
+    skills: NECROMANCER_CORE_SKILLS,
+
     autoattackChains: NECROMANCER_CORE_AUTOATTACK_CHAINS
   }),
   state: {

@@ -71,10 +71,20 @@ export interface NecromancerSkill
   readonly shroud?: string;
   readonly shroudEntry?: string;
   readonly shroudExit?: string;
+  /** Shroud entries explicitly select skill-owned Core tuning or elite minor-trait tuning. */
   readonly shroudTuning?: { readonly kind: 'skill' | 'trait'; readonly id: SkillId };
+  /** Remains castable while a shroud is active. */
   readonly usableInShroud?: boolean;
+  /** Shroud bar slot this skill occupies. */
   readonly shroudSlot?: number;
-  readonly slotSelectable?: boolean;
+  /** Summon activations select their canonical autonomous attack skill; actor tuning stays with that attack. */
+  readonly summonAttackId?: SkillId;
+  /** Command skill a summoned minion unlocks. */
+  readonly commandId?: SkillId;
+  /** Minion state this skill summons or commands. */
+  readonly minionKey?: string;
+  /** Starts recharging when its minion dies. */
+  readonly rechargeOnMinionDeath?: boolean;
 }
 
 export type NecromancerResolverEvent = Gw2ResolverEvent & {
@@ -105,4 +115,4 @@ export interface NecromancerUiContext extends Omit<ProfessionUiCallbackContext<N
 }
 
 /** UI slice whose callbacks read Necromancer end-state projections. */
-export type NecromancerUiSlice = Partial<ProfessionUiContract<NecromancerUiState>>;
+export type NecromancerUiSlice = Partial<ProfessionUiContract<NecromancerUiState, NecromancerSkill>>;

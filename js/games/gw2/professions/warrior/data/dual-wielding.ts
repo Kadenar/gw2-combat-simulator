@@ -1,5 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { WEAPON } from '#gw2/platform/constants.js';
+import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -20,9 +21,21 @@ export function resolveWarriorDualWieldSkill<TSkill extends WarriorSkill>(
   config: Gw2Config | undefined,
   activeWeaponSet: number
 ): TSkill {
-  if (!warriorDualWieldingActive(config, activeWeaponSet)) return skill;
-
   const offsets = skill.dualWieldEffectOffsetsMs;
+
+  // Warrior validates its measured map before selecting it; numeric scalar bounds come from its catalog fields.
+  if (
+    offsets != null &&
+    (typeof offsets !== 'object' ||
+      Array.isArray(offsets) ||
+      Object.entries(offsets).some(
+        ([from, to]) =>
+          !Number.isFinite(Number(from)) || Number(from) < 0 || typeof to !== 'number' || !Number.isFinite(to) || to < 0
+      ))
+  )
+    throw new TypeError(`Skill ${skill.id} has invalid dualWieldEffectOffsetsMs.`);
+
+  if (!warriorDualWieldingActive(config, activeWeaponSet)) return skill;
 
   if (!offsets && skill.dualWieldInterruptCommitMs == null) return skill;
 
@@ -43,10 +56,10 @@ export function resolveWarriorDualWieldSkill<TSkill extends WarriorSkill>(
           ...effect,
           timingScale: 'fixed' as const,
           ...(effect.atMs == null ? {} : { atMs: measured(effect.atMs) }),
-          ...(Array.isArray(effect.ticks)
-            ? { ticks: effect.ticks.map((tick) => ({ ...tick, atMs: measured(tick.atMs) })) }
+          ...(effectTicks(effect)
+            ? { ticks: effectTicks(effect)!.map((tick) => ({ ...tick, atMs: measured(tick.atMs) })) }
             : {})
-        };
+        } as SkillEffect;
       })
     : skill.effects;
   return {

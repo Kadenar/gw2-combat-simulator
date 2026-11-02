@@ -11,10 +11,9 @@ function resourceGrantActions(actions: readonly SideEffectAction[]): readonly Re
   );
 }
 
+/** Project grants from ordered reaction action lists while retaining their editable identities. */
 export function effectResourceGrants(effect: Pick<SkillEffect, 'reactions'>): readonly ResourceGrantAction[] {
-  return resourceGrantActions(
-    (effect.reactions ?? []).flatMap((rule) => (Array.isArray(rule.do) ? rule.do : [rule.do]))
-  );
+  return resourceGrantActions((effect.reactions ?? []).flatMap((rule) => rule.do));
 }
 
 export function castResourceGrants(skill: Skill | BalanceProfile): readonly ResourceGrantAction[] {

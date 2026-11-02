@@ -7,6 +7,8 @@ import {
   displayedSkillTiles,
   displayedWeaponSkills,
   paletteActionSkills,
+  queryPaletteActions,
+  queryPaletteContext,
   weaponPaletteRows,
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
@@ -466,6 +468,7 @@ test('shared palettes reject supplemental effects from weapon and action rows', 
       alternateWeapons: ['', '']
     },
     activeCatalog: {
+      weaponHands: new Map([['Rifle', '2h']]),
       skills: [
         {
           id: 1,
@@ -539,7 +542,7 @@ test("weaponmaster palettes keep the active spec's weapon-skill variant", () => 
   const makeApp = (specialization) => ({
     profession: { catalog: { weaponHands: new Map([['Dagger', 'mh']]) } },
     build: { weapons: ['Dagger', ''], alternateWeapons: ['', ''] },
-    activeCatalog: { skills },
+    activeCatalog: { skills, weaponHands: new Map([['Dagger', 'mh']]) },
     adapter: {
       eliteSpecialization: () => specialization,
       isSkillAvailable: () => true
@@ -554,4 +557,47 @@ test("weaponmaster palettes keep the active spec's weapon-skill variant", () => 
     weaponSkills(makeApp('Troubadour')).map((skill) => skill.id),
     [62560]
   );
+});
+
+// One query can be observed at a cursor without changing the build-start inputs used by isolated previews.
+test('explicit palette queries keep build-start state separate from supplied planning observations', async () => {
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const build = adapter.toApplicationBuild({
+    ...createMesmerBuildDefaults(),
+    specializations: [],
+    weapons: ['Sword', 'Focus'],
+    initialResource: 3
+  });
+  const result = simulateMesmer(['Mind Slash'], {
+    ...createDefaultConfig(),
+    specialization: 'Core',
+    primaryWeapon: 'Sword',
+    secondaryWeapon: 'Focus'
+  });
+  const traitId = mesmerProfession.catalog.traits[0].id;
+  const query = {
+    build,
+    catalog: adapter.profession.catalog,
+    specialization: 'Core',
+    weaponData: adapter.weaponData,
+    isSkillAvailable: adapter.isSkillAvailable,
+    weaponSkillMatchesSet: adapter.weaponSkillMatchesSet,
+    selectedTraitIds: [traitId],
+    projectActions(context, skills) {
+      assert.equal(context.catalog, query.catalog);
+      assert.equal(context.build.initialResource, 3);
+      assert.ok(context.traits.has(traitId));
+      assert.equal(context.activeAutoattack.name, 'Mind Gash');
+      return skills;
+    }
+  };
+  const observed = { ...query, planning: result.planningState };
+  assert.equal(queryPaletteContext(query).activeAutoattack.name, 'Mind Slash');
+  const context = queryPaletteContext(observed);
+  assert.equal(context.activeAutoattack.name, 'Mind Gash');
+  assert.equal(context.professionState, result.planningState.profession);
+  assert.equal(context.cooldownsBySkillId, result.planningState.cooldownsBySkillId);
+  assert.equal(context.time, result.planningState.atSeconds);
+  queryPaletteActions(observed);
+  assert.equal(queryPaletteContext(query).activeAutoattack.name, 'Mind Slash');
 });

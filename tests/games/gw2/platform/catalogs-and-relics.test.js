@@ -53,7 +53,7 @@ test('Mesmer test scenarios use the registered live runtime', () => {
       'atSeconds',
       'availability',
       'combatActive',
-      'cooldowns',
+      'cooldownsBySkillId',
       'effects',
       'profession'
     ].sort()
@@ -202,30 +202,8 @@ test('summon-owned cooldowns use received Alacrity until it expires', () => {
     config: { boons: { alacrity: true } }
   });
 
-  assert.equal(playerAlacrity.planningState.cooldowns[930041].readyAt, 20000);
-  assert.equal(summonAlacrity.planningState.cooldowns[930041].readyAt, 17520);
-});
-
-test('the shared effect contract rejects undeclared simulation fields', () => {
-  assert.throws(
-    () =>
-      createCanonicalCatalog({
-        skills: [
-          {
-            id: 930033,
-            name: 'Drifting Effect',
-            effects: [
-              {
-                type: 'strike',
-                coefficient: 1,
-                necromancerOnlyCoefficient: 2
-              }
-            ]
-          }
-        ]
-      }),
-    /unsupported field.*necromancerOnlyCoefficient/
-  );
+  assert.equal(playerAlacrity.planningState.cooldownsBySkillId[930041].readyAtMs, 20000);
+  assert.equal(summonAlacrity.planningState.cooldownsBySkillId[930041].readyAtMs, 17520);
 });
 
 test('the shared effect contract rejects recipient fields nested in metadata', () => {

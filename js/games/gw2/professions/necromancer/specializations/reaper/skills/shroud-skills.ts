@@ -7,12 +7,12 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Supplies Reaper Shroud definitions to specialization composition. */
-export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<NecromancerSkill>>> = {
   [ID.LIFE_REND]: {
     name: 'Life Rend',
-    description: 'Chain. Shroud. Cleave foes in front of you. This skill inherits traits from Life Blast.',
     icon: 'https://render.guildwars2.com/file/59F9500BD4CABD990B6C4E68A458805268A1941A/1012933.png',
     cooldown: 0,
     skillWeapon: 'Hammer',
@@ -34,7 +34,6 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.LIFE_SLASH]: {
     name: 'Life Slash',
-    description: 'Chain. Shroud. Cleave foes in front of you again. This skill inherits traits from Life Blast.',
     icon: 'https://render.guildwars2.com/file/37FF121D3DF16CA847D1163CACBC673F575C927E/1012931.png',
     cooldown: 0,
     skillWeapon: 'Hammer',
@@ -57,8 +56,6 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.LIFE_REAP]: {
     name: 'Life Reap',
-    description:
-      'Shroud. Cleave foes around you, gaining life force for each foe struck. This skill inherits traits from Life Blast.',
     icon: 'https://render.guildwars2.com/file/6DD6D4C7E7B62A75629D260279CC570BCD33C6AA/1012932.png',
     cooldown: 0,
     skillWeapon: 'Hammer',
@@ -82,7 +79,7 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1.5 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1.5 } })]
           }
         ],
         ticks: [{ atMs: 280, coefficient: 1.8 }],
@@ -93,8 +90,6 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.DEATHS_CHARGE]: {
     name: "Death's Charge",
-    description:
-      'Shroud. Slide forward, destroying projectiles in your path. Blind foes at your destination. This skill inherits traits from Dark Path.',
     icon: 'https://render.guildwars2.com/file/B83E6592FE92D10FF73CEB6F4FF5A5F0907F7D4F/1012934.png',
     cooldown: 6,
     skillWeapon: 'Hammer',
@@ -140,8 +135,6 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.INFUSING_TERROR]: {
     name: 'Infusing Terror',
-    description:
-      'Shroud. Shroud yourself with dark armor that grants stability and reduces incoming damage. While the armor is active, you may reactivate this skill to inflict fear on foes around you.',
     icon: 'https://render.guildwars2.com/file/9D599AB94261527E79969E35AB6519D9C0396102/1012935.png',
     cooldown: 25,
     skillWeapon: 'Hammer',
@@ -157,7 +150,6 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.TERRIFY]: {
     name: 'Terrify',
-    description: 'Shroud. Make foes around you flee in fear.',
     icon: 'https://render.guildwars2.com/file/780206747069014A400CE6D9922AF5E81EAAA52C/1012936.png',
     skillWeapon: 'Hammer',
     type: 'Profession',
@@ -179,7 +171,6 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.SOUL_SPIRAL]: {
     name: 'Soul Spiral',
-    description: 'Shroud. Spin and damage nearby foes, and inflict a condition each strike.',
     icon: 'https://render.guildwars2.com/file/4BFAEBD27404BDCB3A0255F1441560D3772F0CF5/1012937.png',
     cooldown: 30,
     skillWeapon: 'Hammer',
@@ -220,7 +211,6 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.REAPERS_SHROUD]: {
     name: "Reaper's Shroud",
-    description: 'Assume the form of a reaper and gain new skills, turning your life force into health.',
     icon: 'https://render.guildwars2.com/file/795CD8A855B81908E6D37DFE039DE25762DAAAE9/1012930.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -237,8 +227,6 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.EXECUTIONERS_SCYTHE]: {
     name: "Executioner's Scythe",
-    description:
-      'Shroud. Deliver a powerful overhand strike to stun a single target, dealing increased damage the lower their health. Leaves behind an ice field.',
     icon: 'https://render.guildwars2.com/file/3C3D986465B49F38A6DCB560E0E855A75D075EB6/1012938.png',
     cooldown: 30,
     skillWeapon: 'Hammer',
@@ -281,7 +269,6 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.EXIT_REAPERS_SHROUD]: {
     name: "Exit Reaper's Shroud",
-    description: "Leave Reaper's Shroud and return to your normal form.",
     icon: 'https://render.guildwars2.com/file/7D70A5084CD7BE0F90A016E159AAF1A2F8BD0AB4/1024104.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -294,4 +281,4 @@ export const REAPER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
     // The skill owns this transaction; its shared helper retains state and lifetime rules.
     sideEffects: [{ on: 'castCommit', do: { type: 'necromancer.exit-shroud' } }]
   }
-});
+};

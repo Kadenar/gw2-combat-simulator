@@ -2,9 +2,9 @@
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import { BOON } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { announceRelic, defineRelic, relicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
@@ -34,9 +34,7 @@ function mistburnGrant(state: Gw2RelicState, event: SimulationEvent): Simulation
     kind: boonKey(BOON.MIGHT),
     duration: 8,
     stacks: 1,
-    source: 'Relic',
-    sourceId: `relic.${RELIC_IDS.MISTBURN}`,
-    actorType: ACTOR.EFFECT
+    ...relicSource(RELIC_IDS.MISTBURN)
   };
 }
 
@@ -51,15 +49,7 @@ export const mistburn = defineRelic({
       return;
     }
 
-    ctx.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'relic',
-        name: 'Relic of Mistburn',
-        at: event.at,
-        sourceSkill: event.triggeredBy || event.skillName
-      }
-    });
+    announceRelic(ctx, event, 'Relic of Mistburn', { sourceSkill: event.triggeredBy || event.skillName });
   },
   criticalChanceBonus(_ctx, _state, event, mightStacks) {
     return isGw2PlayerActorEvent(event) && mightStacks >= 10 ? 0.1 : 0;

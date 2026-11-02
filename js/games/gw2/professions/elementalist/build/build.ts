@@ -5,23 +5,26 @@
  * from, and the codec that migrates, validates, and adapts stored builds for the
  * application shell. Schema-version bumps and field additions belong here.
  */
+import { SelectedSkillMigrationError } from '#gw2/platform/builds/codec.js';
 import type { UnvalidatedBuildRecord } from '#gw2/platform/builds/types.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
+import { migrateElementalistGlyphSelections } from '#gw2/professions/elementalist/build/glyph-migration.js';
+import { migrateElementalistStance } from '#gw2/professions/elementalist/build/primordial-stance-migration.js';
 import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
+import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
+import { elementalistGlyphRoot } from '#gw2/professions/elementalist/data/glyphs.js';
 import { ELEMENTALIST_SKILL_IDS as SKILL } from '#gw2/professions/elementalist/data/ids.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
 
 /** Bumped whenever the persisted build shape changes, so older saves are migrated on load. */
-export const ELEMENTALIST_BUILD_SCHEMA_VERSION = 5;
+const ELEMENTALIST_BUILD_SCHEMA_VERSION = 6;
 /** Canonical profession key stamped into saved builds and used for registry lookups. */
 const ELEMENTALIST_PROFESSION_ID = 'elementalist';
-
-const ATTUNEMENT_VALUES = Object.freeze(['Fire', 'Water', 'Air', 'Earth'] as const);
 
 /** The complete starting Elementalist build: gear, traits, skills, and starting resources. */
 // Initialize every persisted profession field so migrations can safely overlay
@@ -101,12 +104,12 @@ const elementalistBuildCodec = createProfessionBuildCodec<ElementalistCanonicalB
   extraFields: {
     startAttunement: {
       type: 'enum',
-      values: ATTUNEMENT_VALUES,
+      values: ELEMENTALIST_ATTUNEMENTS,
       validationMessage: 'startAttunement must be Fire, Water, Air, or Earth.'
     },
     secondaryAttunement: {
       type: 'enum',
-      values: ATTUNEMENT_VALUES,
+      values: ELEMENTALIST_ATTUNEMENTS,
       validationMessage: 'secondaryAttunement must be Fire, Water, Air, or Earth.'
     },
     initialCatalystEnergy: {
@@ -116,7 +119,7 @@ const elementalistBuildCodec = createProfessionBuildCodec<ElementalistCanonicalB
     },
     evokerElement: {
       type: 'enum',
-      values: ATTUNEMENT_VALUES,
+      values: ELEMENTALIST_ATTUNEMENTS,
       validationMessage: 'evokerElement must be Fire, Water, Air, or Earth.'
     },
     initialEvokerCharges: {
@@ -161,13 +164,56 @@ function record(value: unknown): UnvalidatedBuildRecord {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as UnvalidatedBuildRecord) : {};
 }
 
+/** One version boundary upgrades both skill families before shared normalization can repair duplicate slots. */
+function upgradeSavedBuild(candidate: unknown): unknown {
+  const saved = record(candidate);
+  const version = Number(saved.schemaVersion ?? 0);
+
+  // Leave invalid and future versions to the codec's schema error handling.
+  if (!Number.isInteger(version) || version < 0 || version > ELEMENTALIST_BUILD_SCHEMA_VERSION) return candidate;
+
+  const upgraded =
+    version < ELEMENTALIST_BUILD_SCHEMA_VERSION
+      ? record(migrateElementalistStance(migrateElementalistGlyphSelections(candidate, elementalistCatalog)))
+      : saved;
+  const selected = upgraded.selectedSkillIds ?? upgraded.selectedSkills;
+
+  if (selected && typeof selected === 'object' && !Array.isArray(selected)) {
+    const seen = new Set<unknown>();
+    for (const value of Object.values(selected)) {
+      if (value == null) continue;
+
+      const id =
+        upgraded.selectedSkillIds != null
+          ? value
+          : elementalistCatalog.skills.find((skill) => skill.name === value)?.id;
+
+      if (id == null) continue;
+
+      if ((typeof id === 'number' || typeof id === 'string') && elementalistGlyphRoot(id) !== id)
+        throw new SelectedSkillMigrationError(
+          'Current Elementalist builds must equip glyph roots, not elemental variants.'
+        );
+
+      if (seen.has(id))
+        throw new SelectedSkillMigrationError('Duplicate selected skill after Elementalist migration: ' + String(id));
+
+      seen.add(id);
+    }
+  }
+
+  return upgraded;
+}
+
 /** Upgrades any stored or partial build to the current canonical shape, filling defaults. */
 export function migrateElementalistBuild(candidate?: unknown): ElementalistCanonicalBuild {
-  return elementalistBuildCodec.migrateBuild(candidate);
+  return elementalistBuildCodec.migrateBuild(upgradeSavedBuild(candidate));
 }
 
 /** Checks an already-canonical build, reporting `{ valid, errors }` without migrating it. */
 export const validateElementalistBuild = elementalistBuildCodec.validateBuild;
 
 /** Migrates and adapts a build into the shape the browser application shell consumes. */
-export const toApplicationBuild = elementalistBuildCodec.toApplicationBuild;
+export function toApplicationBuild(candidate?: unknown): ElementalistCanonicalBuild {
+  return elementalistBuildCodec.toApplicationBuild(upgradeSavedBuild(candidate));
+}

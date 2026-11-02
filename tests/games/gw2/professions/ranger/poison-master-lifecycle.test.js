@@ -5,9 +5,9 @@ import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/
 import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { setBeastmode } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const config = {
   specialization: 'Untamed',
   initialUntamedState: 'Ranger',

@@ -23,10 +23,9 @@ export const hammerLifecycle = {
 } satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
-export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.HAMMER_STRIKE]: {
     name: 'Hammer Strike',
-    description: 'Chain. Strike your foe.',
     icon: 'https://render.guildwars2.com/file/0BE1C91A2CDD0ECF2073B3FC3CCCE8AD7E16F85D/2503713.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -47,7 +46,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.HAMMER_SLAM]: {
     name: 'Hammer Slam',
-    description: 'Chain. Strike your foe again.',
     icon: 'https://render.guildwars2.com/file/CD6B25EDED5CEE9476681D59F438EC1D0522D561/2503714.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -68,7 +66,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.HEAVY_SMASH]: {
     name: 'Heavy Smash',
-    description: 'Smash the ground and damage nearby foes.',
     icon: 'https://render.guildwars2.com/file/1A02B377F59E6D0B0EB90AA6FBD13D01EFCA7A3B/2503715.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -89,8 +86,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.WILD_SWING]: {
     name: 'Wild Swing',
-    description:
-      'Strike nearby enemies, inflicting cripple. Gain barrier for each target struck. Barrier is reduced for each target struck beyond the first.',
     icon: 'https://render.guildwars2.com/file/F5ED6F31ABE93ED6E2DD7D13A3111CB192B0F69C/2503716.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -112,8 +107,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.UNLEASHED_WILD_SWING]: {
     name: 'Unleashed Wild Swing',
-    description:
-      'Strike nearby enemies, inflicting damage. Deals increased damage to disabled or defiant enemies.\nDisables include stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.',
     icon: 'https://render.guildwars2.com/file/7369B820749874C1F15A4B02AD2F18B94A6AB84C/2503717.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -133,8 +126,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.OVERBEARING_SMASH]: {
     name: 'Overbearing Smash',
-    description:
-      'Quickly strike the ground, dazing nearby enemies. If this strikes an enemy, follow up with a leaping strike that dazes enemies again. If you strike an enemy that is using a skill, gain barrier.',
     icon: 'https://render.guildwars2.com/file/452819BCB027F1273491DF1706CFF15BEEE49466/2503718.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -169,8 +160,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.UNLEASHED_OVERBEARING_SMASH]: {
     name: 'Unleashed Overbearing Smash',
-    description:
-      'Quickly strike the ground, blinding nearby enemies. If this strikes an enemy, follow up with a leaping strike that removes boons.',
     icon: 'https://render.guildwars2.com/file/7BA2A9B41EEEB1E1BF61FD7BF108BE0C05932080/2503719.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -204,7 +193,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.SAVAGE_SHOCK_WAVE]: {
     name: 'Savage Shock Wave',
-    description: 'Smash the ground, creating three expanding shock waves that apply conditions.',
     icon: 'https://render.guildwars2.com/file/6BC544E523349525271332C60867ECE5126848ED/2503720.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -248,8 +236,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.UNLEASHED_SAVAGE_SHOCK_WAVE]: {
     name: 'Unleashed Savage Shock Wave',
-    description:
-      'Smash the ground, creating three shock waves that deal damage. Deal increased damage to disabled enemies, defiant enemies, and enemies with conditions.\nDisables include stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.',
     icon: 'https://render.guildwars2.com/file/2939557FFA0BDF9C4D0B7FD1A19AA57DE9C49FDD/2503721.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -273,7 +259,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.THUMP]: {
     name: 'Thump',
-    description: 'Leap forward and slam the ground with your hammer, knocking down nearby enemies.',
     icon: 'https://render.guildwars2.com/file/B50D7DA590A8593098B1326FE951D9156CA0C25C/2503722.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -293,7 +278,6 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.UNLEASHED_THUMP]: {
     name: 'Unleashed Thump',
-    description: 'Leap forward and slam the ground with your hammer, gaining boons for each target struck.',
     icon: 'https://render.guildwars2.com/file/0CA1B13856E838595833F90B4C22A62FBEFBB39F/2503723.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -320,7 +304,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
       }
     ])
   }
-});
+};
 
 /** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
 export const rangerHammerDisabledModifier: Gw2ModifierRule = {

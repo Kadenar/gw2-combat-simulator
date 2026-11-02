@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -19,6 +20,31 @@ test("Assassin's Signet separates its active buff from passive eligibility durin
   assert.equal(power(runThief([], config)), 1180);
   assert.equal(power(runThief([ID.ASSASSINS_SIGNET, wait(1)], config)), 1540);
   assert.equal(power(runThief([ID.ASSASSINS_SIGNET, wait(7)], config)), 1000);
+});
+
+// Shared attribute leaves remain independently patchable and every active grant follows the signet's buff window.
+test("Assassin's Signet applies patched active attribute maps independently of its passive", () => {
+  const options = {
+    catalog: (catalog) =>
+      applySkillPatch(catalog, {
+        skills: {
+          [ID.ASSASSINS_SIGNET]: {
+            fields: {
+              'attributeBonuses.power': 250,
+              'activeAttributeBonuses.power': 600
+            }
+          }
+        }
+      })
+  };
+  for (const [rotation, expectedPower] of [
+    [[], 1250],
+    [[ID.ASSASSINS_SIGNET, wait(1)], 1600],
+    [[ID.ASSASSINS_SIGNET, wait(7)], 1000]
+  ]) {
+    const result = runThief(rotation, config, options);
+    assert.equal(power(result), expectedPower);
+  }
 });
 
 test("Assassin's Signet's passive returns at natural cooldown expiry", () => {

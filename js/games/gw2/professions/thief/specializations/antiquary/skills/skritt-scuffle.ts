@@ -14,7 +14,7 @@ export function skrittScufflePilfer(runtime: ThiefRuntime, data: unknown): void 
 
   if (!(interval > 0) || runtime.time > expiresAt) return;
 
-  const state = antiquaryState.from(runtime);
+  const state = antiquaryState.from(runtime.profession);
   const next = canonicalTime(runtime.time + interval);
   // The public value is a retry and display projection; the queued pulse owns scheduling.
   state.nextSkrittScufflePilferAt = next <= expiresAt ? next : 0;
@@ -25,7 +25,7 @@ export function skrittScufflePilfer(runtime: ThiefRuntime, data: unknown): void 
 
 /** The scheduled pilfer carries its assistant's lifetime, including the final pulse. */
 export function completeSkrittScuffle(runtime: ThiefRuntime): void {
-  const state = antiquaryState.from(runtime);
+  const state = antiquaryState.from(runtime.profession);
   const profile = requireSkillFromContext(runtime, ID.SKRITT_SCUFFLE);
   const interval = skillNumber(profile, 'pulseInterval');
   const expiresAt = canonicalTime(runtime.time + skillNumber(profile, 'duration'));

@@ -8,10 +8,10 @@ import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/p
 import { swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const cast = (name) => guardianCatalog.skills.find((candidate) => candidate.name === name).id;
 const state = (runtime) => runtime.profession.specialization.state;
 const buffs = (result, name) => result.resolvedEvents.filter((event) => event.type === 'buff' && event.name === name);

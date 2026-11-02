@@ -206,7 +206,7 @@ function grantAngsiyansTrustEnergy(runtime: RevenantRuntime): void {
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 function armReaversCurse(runtime: RevenantRuntime): void {
-  const state = vindicatorState.from(runtime);
+  const state = vindicatorState.from(runtime.profession);
   {
     const curse = requireBalanceProfileFromContext(runtime, TRAIT.REAVERS_CURSE);
     const effect = requireEffect(curse, 'buff', 'reavers-curse');

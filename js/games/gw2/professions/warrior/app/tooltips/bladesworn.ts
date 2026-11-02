@@ -13,8 +13,10 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { type StatusEffect } from '#gw2/platform/effects/types.js';
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 const artillerySlashTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const sharp = entity.id === ID.SHARP_ARTILLERY_SLASH;
@@ -39,7 +41,7 @@ const artillerySlashTooltip: DescribeSimulationTooltip = (balanceContext, entity
 };
 
 const dragonSlashTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
-  const selected = balanceContext.catalog.skillsById.get(entity.id);
+  const selected: WarriorSkill | undefined = balanceContext.catalog.skillsById.get(entity.id);
 
   if (!selected) throw new Error(`Missing tooltip skill: ${entity.id}`);
 
@@ -120,7 +122,7 @@ export const bladeswornTooltips = {
             'supercharged; replaces ordinary cartridges'
           ).facts,
           ...selected.effects
-            .filter((effect) => effect.type === 'buff')
+            .filter((effect): effect is StatusEffect => effect.type === 'buff')
             .map((effect) => ({
               name: `${effect.kind === 'supercharged-cartridges' ? 'Supercharged' : 'Ordinary'} explosion damage`,
               detail: tooltipPercent(tooltipNumber(effect, 'damageIncreasePerStack'))
@@ -151,7 +153,7 @@ export const bladeswornTooltips = {
       ]
     ),
     [TRAIT.UNSEEN_SWORD]: traitTooltip(
-      'Entering gunsaber in combat strikes the target and opens a positive-flow window.',
+      'Entering gunsaber in combat strikes the target and temporarily increases flow generation.',
       [['internalCooldown', 'Entry-trait cooldown', tooltipSeconds]]
     ),
     [TRAIT.SHARP_AS_THE_WIND]: traitTooltip(
@@ -159,7 +161,7 @@ export const bladeswornTooltips = {
       [['internalCooldown', 'Entry-trait cooldown', tooltipSeconds]]
     ),
     [TRAIT.RIVERS_FLOW]: traitTooltip(
-      'Entering gunsaber in combat grants might to the party and opens a positive-flow window.',
+      'Entering gunsaber in combat grants might to the party and temporarily increases flow generation.',
       [['internalCooldown', 'Entry-trait cooldown', tooltipSeconds]]
     ),
     [TRAIT.UNSHAKABLE_MOUNTAIN]: outsideScopeTooltip,
@@ -173,7 +175,7 @@ export const bladeswornTooltips = {
     ),
     [TRAIT.IMMORTAL_DRAGON]: outsideScopeTooltip,
     [TRAIT.UNYIELDING_DRAGON]: traitTooltip(
-      'Dragon Slash applies a stun control event, triggering supported control-dependent traits.'
+      'Dragon Slash stuns the target and triggers traits that activate when you disable an enemy.'
     ),
     [TRAIT.DARING_DRAGON]: traitTooltip(
       'Dragon Trigger charges with fewer bullets and spends more flow per bullet. Releasing Dragon Slash grants alacrity to the party. Force uses a provisional maximum damage coefficient estimated from the power alacrity benchmark; its partial-charge curve and the other Slash variants remain unverified.',

@@ -5,11 +5,11 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Minimal charge scenarios isolate holds from saved rotations, weapon rolls, and benchmark damage.
 const combat = { type: 'combat-start' };
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const slash = (releaseAtCharges, releaseDelayMs) => ({
   type: 'cast',
   skillId: ID.DRAGON_SLASH_FORCE,

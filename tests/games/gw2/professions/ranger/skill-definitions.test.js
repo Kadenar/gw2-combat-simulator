@@ -7,10 +7,9 @@ import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Removing a declaration must remove its intrinsic transition, rather than leave a second skill-ID dispatcher.
 test('Ranger activation declarations are the sole owners of their grants and transitions', () => {

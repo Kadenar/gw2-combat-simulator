@@ -5,6 +5,7 @@ import {
   tooltipDecimal,
   tooltipNumber,
   tooltipPercent,
+  tooltipPercentValue,
   tooltipProfile,
   tooltipSeconds,
   traitTooltip,
@@ -17,7 +18,7 @@ export const engineerFirearmsTooltips = {
   [TRAIT.SERRATED_STEEL]: traitTooltip(
     'Eligible critical hits can inflict bleeding. Bleeding lasts longer; the mech maintains its own critical-proc progress.',
     [
-      ['procChance', 'Chance on critical hit', tooltipPercent],
+      ['procChance', 'Chance on critical hit', tooltipPercentValue],
       ['durationMultiplier', 'Bleeding duration', tooltipPercent]
     ]
   ),

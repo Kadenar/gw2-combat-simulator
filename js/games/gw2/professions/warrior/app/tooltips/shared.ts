@@ -1,8 +1,9 @@
 import { skillTooltip, type DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Share tooltip formatting and descriptions used by multiple profession owners. */
 
-export const resourceTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
+export const resourceTooltip: DescribeSimulationTooltip = (balanceContext, entity: WarriorSkill) =>
   skillTooltip(
     entity.burst
       ? entity.primalBurst

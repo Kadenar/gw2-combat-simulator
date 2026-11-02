@@ -140,20 +140,20 @@ test('activation hit counts exclude cast-triggered procs credited to another ski
 
 test('timeline dead time includes explicit waits and excludes concurrent casts and gap-fill attacks', () => {
   const markers = timelineDeadTimeMarkers([
-    { ri: 0, skill: 'Long Cast', start: 0, end: 1000 },
-    { ri: 1, skill: 'Instant Cast', start: 200, end: 200 },
-    { ri: 2, skill: 'Wait', start: 1000, end: 1400, type: 'wait' },
-    { ri: 3, skill: 'Next Cast', start: 1400, end: 1800 },
+    { rotationCommandIndex: 0, skillName: 'Long Cast', start: 0, end: 1000 },
+    { rotationCommandIndex: 1, skillName: 'Instant Cast', start: 200, end: 200 },
+    { rotationCommandIndex: 2, skillName: 'Wait', start: 1000, end: 1400, type: 'wait' },
+    { rotationCommandIndex: 3, skillName: 'Next Cast', start: 1400, end: 1800 },
     {
-      ri: 4,
-      skill: 'Gap-filled Cast',
+      rotationCommandIndex: 4,
+      skillName: 'Gap-filled Cast',
       start: 2000,
       end: 2400,
       partialFill: { startMs: 1800, durationMs: 150 }
     },
     {
-      ri: 5,
-      skill: 'Invalid Cast',
+      rotationCommandIndex: 5,
+      skillName: 'Invalid Cast',
       start: 3000,
       end: 3200,
       invalid: true
@@ -178,8 +178,8 @@ test('Dragon Trigger excludes only its charge window from timeline gaps and tota
       const start = Math.round(1000 + chargingSeconds * 1000);
       const result = {
         steps: [
-          { ri: 0, skill: 'Dragon Trigger', start: 1000, end: 1000 },
-          { ri: 1, skill: 'Dragon Slash', activationId: 'slash', start, end: start + 500 }
+          { rotationCommandIndex: 0, skillName: 'Dragon Trigger', start: 1000, end: 1000 },
+          { rotationCommandIndex: 1, skillName: 'Dragon Slash', activationId: 'slash', start, end: start + 500 }
         ],
         events: [
           {
@@ -209,9 +209,9 @@ test('Dragon Trigger excludes only its charge window from timeline gaps and tota
 
 test('timeline dead time precedes simultaneous instant and non-instant casts', () => {
   const markers = timelineDeadTimeMarkers([
-    { ri: 0, skill: 'Previous Cast', start: 0, end: 1000 },
-    { ri: 1, skill: 'Instant Cast', start: 1500, end: 1500 },
-    { ri: 2, skill: 'Following Cast', start: 1500, end: 1900 }
+    { rotationCommandIndex: 0, skillName: 'Previous Cast', start: 0, end: 1000 },
+    { rotationCommandIndex: 1, skillName: 'Instant Cast', start: 1500, end: 1500 },
+    { rotationCommandIndex: 2, skillName: 'Following Cast', start: 1500, end: 1900 }
   ]);
 
   assert.deepEqual(markers, [{ insertionIndex: 1, start: 1000, end: 1500, durationMs: 500 }]);
@@ -220,9 +220,9 @@ test('timeline dead time precedes simultaneous instant and non-instant casts', (
 test('timeline overlays suppress wait shapes and retain only excess dead time', () => {
   const markers = timelineDeadTimeMarkers(
     [
-      { ri: 0, skill: 'First Cast', start: 0, end: 1000 },
-      { ri: 1, skill: 'Wait', start: 1000, end: 1400, type: 'wait' },
-      { ri: 2, skill: 'Next Cast', start: 1500, end: 1900 }
+      { rotationCommandIndex: 0, skillName: 'First Cast', start: 0, end: 1000 },
+      { rotationCommandIndex: 1, skillName: 'Wait', start: 1000, end: 1400, type: 'wait' },
+      { rotationCommandIndex: 2, skillName: 'Next Cast', start: 1500, end: 1900 }
     ],
     [],
     { includeExplicitWaits: false }
@@ -233,14 +233,14 @@ test('timeline overlays suppress wait shapes and retain only excess dead time', 
 
 test('timeline skill tooltips include matching and global cast ordinals', () => {
   const steps = [
-    { ri: 0, skill: 'Well of Darkness', start: 1000, end: 1481 },
-    { ri: 1, skill: 'Wait', start: 1481, end: 2000 },
-    { ri: 2, skill: 'Nightfall', start: 2000, end: 2750 },
-    { ri: 3, skill: 'Well of Darkness', start: 3000, end: 3481 },
-    { ri: 4, skill: 'Well of Darkness', start: 2500, end: 2981 },
+    { rotationCommandIndex: 0, skillName: 'Well of Darkness', start: 1000, end: 1481 },
+    { rotationCommandIndex: 1, skillName: 'Wait', start: 1481, end: 2000 },
+    { rotationCommandIndex: 2, skillName: 'Nightfall', start: 2000, end: 2750 },
+    { rotationCommandIndex: 3, skillName: 'Well of Darkness', start: 3000, end: 3481 },
+    { rotationCommandIndex: 4, skillName: 'Well of Darkness', start: 2500, end: 2981 },
     {
-      ri: 5,
-      skill: 'Well of Darkness',
+      rotationCommandIndex: 5,
+      skillName: 'Well of Darkness',
       start: 4000,
       end: 4481,
       invalid: true
@@ -249,10 +249,10 @@ test('timeline skill tooltips include matching and global cast ordinals', () => 
   const ordinals = timelineSkillCastOrdinals(steps);
 
   assert.deepEqual(ordinals.get(4), {
-    matchingIndex: 2,
-    matchingTotal: 3,
-    skillIndex: 3,
-    skillTotal: 4
+    skillUseNumber: 2,
+    skillUseCount: 3,
+    rotationCastNumber: 3,
+    rotationCastCount: 4
   });
   assert.match(
     formatTimelineSkillTooltip(
@@ -653,9 +653,9 @@ test('rotation skill highlights group occurrences by displayed skill', () => {
 test('target-health timeline markers are inserted after the crossing hit', () => {
   const result = {
     steps: [
-      { ri: 0, start: 0 },
-      { ri: 1, start: 1000 },
-      { ri: 2, start: 2000 }
+      { rotationCommandIndex: 0, start: 0 },
+      { rotationCommandIndex: 1, start: 1000 },
+      { rotationCommandIndex: 2, start: 2000 }
     ],
     resolvedEvents: [
       { type: 'damage', at: 0.5, damage: 400 },

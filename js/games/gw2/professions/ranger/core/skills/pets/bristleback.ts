@@ -16,11 +16,10 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
-export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   // Natural Spike Shoot uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.BRISTLEBACK_SPIKE_SHOOT]: definePetSkill({
     name: 'Spike Shoot',
-    description: 'Shoot a spike at your target.',
     icon: new URL('@images/wiki/spike-shoot.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -44,7 +43,6 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
   // Natural Sharpen Spines uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.BRISTLEBACK_SHARPEN_SPINES]: definePetSkill({
     name: 'Sharpen Spines',
-    description: 'The next several hits apply extra bleeding stacks.',
     icon: 'https://render.guildwars2.com/file/D99AA4CC69C7D510A6632D9FC87852A13524BA7F/1128607.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -65,13 +63,15 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
             on: 'buff.applied',
             actor: ACTOR.SUMMON,
             packets: 'first',
-            do: {
-              type: 'ranger.sharpen-spines',
-              id: 'sharpen-spines',
-              effects: [
-                { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5 }
-              ]
-            }
+            do: [
+              {
+                type: 'ranger.sharpen-spines',
+                id: 'sharpen-spines',
+                effects: [
+                  { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 5 }
+                ]
+              }
+            ]
           }
         ],
         duration: 30,
@@ -87,7 +87,6 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
   // Natural Rain of Spikes uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.BRISTLEBACK_RAIN_OF_SPIKES]: definePetSkill({
     name: 'Rain of Spikes',
-    description: 'Launch spikes at all nearby foes.',
     icon: 'https://render.guildwars2.com/file/081DA91623067F55251BA496B2BDB91E98CDC667/1128606.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -118,7 +117,6 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
   }),
   [ID.SPIKE_BARRAGE]: definePetSkill({
     name: 'Spike Barrage',
-    description: 'Beast. Fire a barrage of spikes at your target.',
     icon: 'https://render.guildwars2.com/file/D81C6616CA68357713C8CFEDB63E11AFF405ABAB/1128608.png',
     petNames: ['Bristleback'],
     type: 'Profession',
@@ -145,7 +143,7 @@ export const RANGER_CORE_BRISTLEBACK_PET_SKILL_MECHANICS: Readonly<Record<number
       }
     ]
   })
-});
+};
 
 /** Only the active Bristleback can arm its follow-up; retired pets cannot grant it to their replacement. */
 export function armPetSharpenSpines(runtime: RangerRuntime, event: Gw2ResolverEvent): void {

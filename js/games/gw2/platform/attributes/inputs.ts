@@ -124,7 +124,7 @@ export function validateAttributeInputs(value: unknown): asserts value is Gw2Att
         typeof source !== 'object' ||
         Array.isArray(source) ||
         Object.values(source).some((value) => typeof value !== 'number' || !Number.isFinite(value)) ||
-        ['final', 'base', 'gear', 'runes', 'food', 'utility', 'jbc', 'traits', 'sigils', 'infusions'].some(
+        ['final', 'base', 'gear', 'runes', 'food', 'utility', 'jadeBotCore', 'traits', 'sigils', 'infusions'].some(
           (key) => !Number.isFinite((source as Record<string, unknown>)[key])
         )
       )
@@ -191,7 +191,7 @@ export function attributeSourcePool(
       Object.entries(ATTRIBUTE_NAMES).map(([key, name]) => {
         const source = seed.sources[name];
         const amount = source
-          ? ['base', 'gear', 'runes', 'infusions', 'food', 'jbc'].reduce(
+          ? ['base', 'gear', 'runes', 'infusions', 'food', 'jadeBotCore'].reduce(
               (sum, part) => sum + (source[part as keyof typeof source] ?? 0),
               0
             ) + (key === 'conditionDamage' ? source.utility : 0)

@@ -8,6 +8,7 @@ import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
+import { cast, wait } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Native fixtures exercise the same state and hook composition that profession waves will migrate to.
@@ -75,8 +76,6 @@ const config = {
   target: { armor: 1000, health: 0, conditions: {} },
   randomness: { mode: 'expected', seed: 919 }
 };
-const cast = (skillId) => ({ type: 'cast', skillId });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 // Each fixture owns fresh resource clocks and hook observations for an isolated runtime.
 function native(hooks = {}, modifiers = {}) {
   const core = defineNativeModule({
@@ -86,7 +85,7 @@ function native(hooks = {}, modifiers = {}) {
       create: () => ({
         energy: createResourceClock(),
         pages: createDiscreteResourceClock(),
-        endurancePool: { value: 0, maximum: 100, updatedAt: 0, rate: 0 },
+        endurancePool: { value: 0, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
         starts: [],
         grants: 0
       })
@@ -347,7 +346,11 @@ test('live recharge anchors compose once per cast and reject nonfinite results',
           return at - 0.25;
         },
         onCastCommit(runtime, cast) {
-          completions.push([id, cast.rechargeStart, runtime.cooldownController.rechargeFor(cast.skill.id).startedAt]);
+          completions.push([
+            id,
+            cast.rechargeStart,
+            runtime.cooldownController.rechargeFor(cast.skill.id).workAnchorAt
+          ]);
         }
       }
     });
@@ -420,7 +423,7 @@ test('live public projections observe planning after death without exposing cont
   const result = run(rotation, options, profession);
   // Planning includes self commands after death; combat counters stop when the target dies.
   assert.deepEqual(result.planningState.profession.counts, { uses: 2, hits: 1 });
-  assert.equal(result.planningState.cooldowns[991002].readyAt, 5200);
+  assert.equal(result.planningState.cooldownsBySkillId[991002].readyAtMs, 5200);
   assert.equal('privateGeneration' in result.planningState.profession, false);
   result.planningState.profession.counts.uses = 999;
   assert.equal(owner.profession.core.uses, 2);

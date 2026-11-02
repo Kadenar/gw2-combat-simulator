@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { mesmerCoreHooks } from '#gw2/professions/mesmer/core/hooks.js';
@@ -12,6 +13,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+type NotKey<T, K extends PropertyKey> = K extends keyof T ? false : true;
 
 const first = mesmerProfession.runtimeFor({ specialization: 'Chronomancer' });
 const second = mesmerProfession.resolveProfession({ specialization: 'Troubadour' });
@@ -35,8 +37,8 @@ export type MesmerSkillFlowAssertions = [
   Assert<Equal<Parameters<TraitCast>[1]['skill'], MesmerSkill>>,
   Assert<Equal<Parameters<TraitTask>[0]['helpers']['skills'][number], MesmerSkill>>,
   Assert<Equal<(typeof mesmerCatalog.skills)[number]['id'], number>>,
-  Assert<Equal<Skill['parentCooldownIncrease'], unknown>>,
-  Assert<Equal<MesmerSkill['dragonSlash'], unknown>>
+  Assert<NotKey<Skill, 'parentCooldownIncrease'>>,
+  Assert<NotKey<MesmerSkill, 'dragonSlash'>>
 ];
 
 // Casts and ID/name/list lookups expose the same typed mechanics to runtime helpers.
@@ -53,7 +55,6 @@ export function mesmerHookSkillReads(runtime: MesmerRuntime, cast: Parameters<El
 const invalidDefinitions: Record<string, SkillDefinition<MesmerSkill>> = {
   1: {
     name: 'Fixture',
-    description: 'Fixture skill.',
     icon: 'fixture.png',
     // @ts-expect-error Known profession fields reject invalid authored values.
     parentCooldownIncrease: 'invalid'
@@ -62,5 +63,5 @@ const invalidDefinitions: Record<string, SkillDefinition<MesmerSkill>> = {
 createNativeModuleData<MesmerSkill>({
   id: 'Core',
   traitLines: TRAIT_LINES,
-  skillMechanics: invalidDefinitions
+  skills: materializeSkillDefinitions(invalidDefinitions)
 });

@@ -7,11 +7,9 @@ import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.RENDING_CLAWS]: {
     name: 'Rending Claws',
-    description:
-      'Slash your foe twice with ghostly claws to make them vulnerable. Vulnerability applied increases against foes below the health threshold.',
     icon: 'https://render.guildwars2.com/file/9D1757C3D6ACA4727ECDE0049771C55FC250A81F/103811.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -33,7 +31,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
             actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.axe-health' }
+            do: [{ type: 'necromancer.axe-health' }]
           }
         ],
         ticks: [400, 640].map((atMs) => ({ atMs, coefficient: 1.4 / 2 }))
@@ -46,8 +44,6 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.GHASTLY_CLAWS]: {
     name: 'Ghastly Claws',
-    description:
-      'Summon spectral claws to slash your foe in a quick flurry of strikes, gaining life force per strike. This attack deals increased damage per stack of vulnerability on your target.',
     icon: 'https://render.guildwars2.com/file/96100F58946716DF6E23E975287AA9680BD144FA/103799.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -65,7 +61,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
             actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 / 8 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 / 8 } })]
           }
         ],
         // The supplied Quickness logs resolve eight individual hits; interruptions preserve only reached packets.
@@ -77,8 +73,6 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.UNHOLY_FEAST]: {
     name: 'Unholy Feast',
-    description:
-      'Cripple nearby foes and remove their boons. Release an Unholy Burst on foes below the health threshold.',
     icon: 'https://render.guildwars2.com/file/2A1707BB93BBF8B1A414D37BBFC5CAC90105D5DF/103567.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -98,7 +92,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
             actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.axe-health' }
+            do: [{ type: 'necromancer.axe-health' }]
           }
         ],
         coefficient: 2.5,
@@ -107,17 +101,16 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
       { type: 'condition', condition: CONDITION.CRIPPLED, duration: 5, stacks: 1 }
     ])
   }
-});
+};
 
 // The log's separate burst identity is a triggered strike, with a fixed delay after Feast's qualifying impact.
-export const NECROMANCER_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+export const NECROMANCER_AXE_EXTRA_SKILLS: readonly Skill[] = [
   {
     name: 'Unholy Burst',
-    description: 'Automatically triggered Unholy Burst effect.',
     icon: 'https://render.guildwars2.com/file/2A1707BB93BBF8B1A414D37BBFC5CAC90105D5DF/103567.png',
     id: ID.UNHOLY_BURST,
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     parentId: ID.UNHOLY_FEAST,
     castTimeMs: 0,
     effects: [
@@ -131,7 +124,7 @@ export const NECROMANCER_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       }
     ]
   }
-]);
+];
 
 /** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
 export const ghastlyClawsVulnerabilityModifier: Gw2ModifierRule = {

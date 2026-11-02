@@ -36,46 +36,45 @@ function assertKnownStages(value: object, label: string): void {
   }
 }
 
-/** Module and registry composition share patch propagation; notifications never forward returned objects. */
-export function composeGw2Reactions<TContext>(
-  sources: readonly Gw2ResolverReactions<TContext>[]
-): Gw2ResolverReactions<TContext> {
-  for (const source of sources) assertKnownStages(source, 'GW2 reactions');
+/** Compile ordered handlers once; only pre-hit transforms forward patches, while notifications discard results. */
+function composeStage<TContext>(
+  stage: Gw2ResolverStage,
+  handlers: readonly NonNullable<Gw2ResolverReactions<TContext>[Gw2ResolverStage]>[]
+): Gw2ResolverReactions<TContext>[Gw2ResolverStage] {
+  if (!handlers.length) return undefined;
 
-  const notifications = Object.fromEntries(
-    GW2_RESOLVER_STAGES.flatMap((stage) => {
-      if (stage === 'damage.resolving') return [];
-
-      const handlers = sources.flatMap((source) => (source[stage] ? [source[stage]] : []));
-      return handlers.length
-        ? [
-            [
-              stage,
-              (context: TContext, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
-                for (const handler of handlers) handler(context, event, details);
-              }
-            ]
-          ]
-        : [];
-    })
-  );
-  const transforms = sources.flatMap((source) => (source['damage.resolving'] ? [source['damage.resolving']] : []));
-
-  if (!transforms.length) return Object.freeze(notifications);
-
-  return Object.freeze({
-    ...notifications,
-    'damage.resolving'(context: TContext, event: Gw2ResolverEvent, details: Record<string, unknown>) {
+  if (stage === 'damage.resolving')
+    return (context: TContext, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
       let updates: Record<string, unknown> | undefined;
-      for (const transform of transforms) {
+      for (const transform of handlers) {
         const next = transform(context, updates ? { ...event, ...updates } : event, details);
 
         if (next) updates = { ...updates, ...next };
       }
 
       return updates;
-    }
-  });
+    };
+
+  return (context: TContext, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
+    for (const handler of handlers) handler(context, event, details);
+  };
+}
+
+/** Modules contribute independent stage sets; gather each stage before sharing the dispatch compiler. */
+export function composeGw2Reactions<TContext>(
+  sources: readonly Gw2ResolverReactions<TContext>[]
+): Gw2ResolverReactions<TContext> {
+  for (const source of sources) assertKnownStages(source, 'GW2 reactions');
+
+  return Object.freeze(
+    Object.fromEntries(
+      GW2_RESOLVER_STAGES.flatMap((stage) => {
+        const handlers = sources.flatMap((source) => (source[stage] ? [source[stage]] : []));
+        const dispatcher = composeStage(stage, handlers);
+        return dispatcher ? [[stage, dispatcher]] : [];
+      })
+    )
+  );
 }
 
 /** Composes profession and common GW2 hooks into one immutable dispatcher. */
@@ -89,31 +88,34 @@ export function createGw2ResolverReactionRegistry({
   assertKnownStages(professionReactions, 'GW2 profession reactions');
   assertKnownStages(contributions, 'GW2 reaction contributions');
 
-  const sources = GW2_RESOLVER_STAGES.flatMap((stage) => {
-    const hooks = [...(contributions[stage] || [])];
-    const profession = professionReactions[stage];
+  const dispatchers: Gw2ResolverReactions = Object.fromEntries(
+    GW2_RESOLVER_STAGES.flatMap((stage) => {
+      const hooks = [...(contributions[stage] || [])];
+      const profession = professionReactions[stage];
 
-    if (profession) {
-      hooks.push({
-        id: `profession.${stage}`,
-        order: 0,
-        handler: profession
-      });
-    }
+      if (profession) {
+        hooks.push({
+          id: `profession.${stage}`,
+          order: 0,
+          handler: profession
+        });
+      }
 
-    const ids = new Set<string>();
-    for (const hook of hooks) {
-      if (ids.has(hook.id)) throw new TypeError(`Duplicate reaction ${stage} hook id: ${hook.id}.`);
+      const ids = new Set<string>();
+      for (const hook of hooks) {
+        if (ids.has(hook.id)) throw new TypeError(`Duplicate reaction ${stage} hook id: ${hook.id}.`);
 
-      if (typeof hook.handler !== 'function') throw new TypeError(`Invalid reaction ${stage} handler: ${hook.id}.`);
+        if (typeof hook.handler !== 'function') throw new TypeError(`Invalid reaction ${stage} handler: ${hook.id}.`);
 
-      ids.add(hook.id);
-    }
+        ids.add(hook.id);
+      }
 
-    // Stable sorting preserves declaration order on ties, including the profession's position.
-    return hooks.sort((left, right) => left.order - right.order).map((hook) => ({ [stage]: hook.handler }));
-  });
-  const dispatchers = composeGw2Reactions<Gw2ResolverRuntime>(sources);
+      // Stable sorting preserves declaration order on ties, including the profession's position.
+      const handlers = hooks.sort((left, right) => left.order - right.order).map((hook) => hook.handler);
+      const dispatcher = composeStage<Gw2ResolverRuntime>(stage, handlers);
+      return dispatcher ? [[stage, dispatcher]] : [];
+    })
+  );
 
   return Object.freeze({
     dispatch(stage: Gw2ResolverStage, context: Gw2ResolverRuntime, event: Gw2ResolverEvent, details = {}) {

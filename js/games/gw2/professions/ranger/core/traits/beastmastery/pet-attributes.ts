@@ -11,7 +11,7 @@ import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/rang
 
 /** Snapshot the family-specific strike bonus so launched pet attacks retain it across swaps. */
 export function beastlyWardenPetDamageMultiplier(context: RangerRuntime | RangerResolverContext): number {
-  const family = rangerPetForState(professionCoreState(context)).family;
+  const family = rangerPetForState(professionCoreState(context.profession)).family;
   return hasTrait(context, TRAIT.BEASTLY_WARDEN) && (family === 'ursine' || family === 'porcine')
     ? balanceNumberFromContext(context, TRAIT.BEASTLY_WARDEN, 'damageMultiplier')
     : 1;

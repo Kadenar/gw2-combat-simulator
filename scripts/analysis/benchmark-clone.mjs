@@ -1,6 +1,6 @@
 /** Compare the clone hot path and complete simulations without changing production files or native clone callers. */
 import assert from 'node:assert/strict';
-import { readFile, writeFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import { registerHooks } from 'node:module';
 import { cpus } from 'node:os';
 import path from 'node:path';
@@ -44,42 +44,19 @@ registerHooks({
   }
 });
 const { customCloneData, useClone } = await import(cloneUrl);
-const { loadBuildContext } = await import('#gw2/build-context/load.js');
+// Import shared preparation only after installing the clone hook so all consumers see the instrumented module.
+const { benchmarkProfessionIds, loadBenchmarkPresets, prepareBenchmarkPreset } =
+  await import('../lib/benchmark-presets.mjs');
 const { deterministicSimulationConfig } = await import('#gw2/build-context/simulation-config.js');
-const { normalizeTransitionDelays } = await import('#gw2/platform/execution/transition-lockouts.js');
-const { professionOptions } = await import('#gw2/profession-registry.js');
 const { simulateGw2 } = await import('#gw2/platform/simulation/simulate.js');
-const readJson = async (file) => JSON.parse(await readFile(path.join(root, file), 'utf8'));
 const cases = [];
-for (const { id: profession } of professionOptions) {
-  const adapter = await loadBuildContext(profession);
-  const manifest = await readJson(`data/gw2/builds/${profession}/manifest.json`);
-  for (const section of manifest) {
-    for (const preset of section.presets) {
-      if (!preset.rotation) continue;
-
-      const id = `${profession}|${section.section || ''}|${preset.label}`;
-
-      if (!id.toLowerCase().includes(values.filter.toLowerCase())) continue;
-
-      const [savedBuild, savedRotation] = await Promise.all([readJson(preset.build), readJson(preset.rotation)]);
-      const build = adapter.toApplicationBuild({ ...savedBuild, rotation: savedRotation.rotation ?? savedRotation });
-      const context = adapter.createBuildContext({
-        build,
-        transitionDelays: normalizeTransitionDelays(),
-        patch: adapter.profession.resolvePatch({ id: 'current' })
-      });
-      cases.push({
-        id,
-        profession,
-        options: {
-          profession: context.profession,
-          rotation: build.rotation,
-          config: deterministicSimulationConfig(context.simulationConfig())
-        }
-      });
-    }
-  }
+for await (const preset of loadBenchmarkPresets(undefined, { filter: values.filter })) {
+  const { identity, profession, rotation, config } = prepareBenchmarkPreset(preset);
+  cases.push({
+    id: identity.id,
+    profession: identity.profession,
+    options: { profession, rotation, config: deterministicSimulationConfig(config) }
+  });
 }
 
 assert.ok(cases.length, 'No matching presets.');
@@ -172,7 +149,7 @@ function summarize(samples) {
 }
 
 // Time the first and last matching manifest presets per profession, covering all professions without timing every preset.
-const selected = professionOptions.flatMap(({ id }) => {
+const selected = benchmarkProfessionIds.flatMap((id) => {
   const entries = cases.filter((entry) => entry.profession === id);
   return [...new Set([entries[0], entries.at(-1)])].filter(Boolean);
 });

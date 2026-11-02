@@ -24,7 +24,7 @@ export const troubadourHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSki
   {
     /** Hold the selected preview state while evaluating detached damage queries. */
     prepareDamageState(runtime, _skill, inputs) {
-      const state = troubadourState.from(runtime);
+      const state = troubadourState.from(runtime.profession);
       for (const instrument of ['Lute', 'Flute', 'Harp', 'Drum'].slice(0, Number(inputs.instruments ?? 0))) {
         state.instruments[instrument] = Infinity;
         runtime.observations.record({
@@ -43,7 +43,7 @@ export const troubadourHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSki
     resources: {
       notes: {
         kind: 'continuous',
-        state: (context) => troubadourState.from(context).notes,
+        state: (context) => troubadourState.from(context.profession).notes,
         maximum: (context) => mesmerResourceDefinition('Troubadour', context).maximum,
         initial: (context, maximum) => boundedNumber(context.config.initialResource ?? 0, 0, 0, maximum),
         recovery: () => 0
@@ -81,13 +81,13 @@ export const troubadourHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSki
         if (context.kind === 'cast') completeTroubadourPerformance(runtime, context.cast, context.skill);
       },
       'mesmer.troubadour.schedule-lute-playing'(runtime, context) {
-        if (context.kind !== 'cast' || context.cast.cancelled) return;
+        if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
 
         // The power benchmark applies Lute Playing at wave launch (~360 ms), before the first impact.
         runtime.scheduleForCast('mesmer.troubadour.lute-playing', context.cast.start + 0.36, context.cast);
       },
       'mesmer.troubadour.schedule-crescendo'(runtime, context) {
-        if (context.kind !== 'cast' || context.cast.cancelled) return;
+        if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
 
         runtime.scheduleForCast(
           'mesmer.crescendo',

@@ -199,7 +199,7 @@ for (const impact of [false, true]) {
                         actor: 'player',
                         packets: 'each',
                         when: () => true,
-                        do: { type: 'fixture.reward', id: 'first', effects: [effect] }
+                        do: [{ type: 'fixture.reward', id: 'first', effects: [effect] }]
                       }
                     ]
                   }

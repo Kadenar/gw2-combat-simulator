@@ -99,7 +99,7 @@ export const boilingPoint = defineTrait({
 });
 
 /** Healing toolbelt activations create one player-owned blast, including issuance of F1 mech commands. */
-export const blastZone = defineTrait({
+export const blastZone = defineTrait<EngineerSkill>({
   id: TRAIT.BLAST_ZONE,
   balance: {
     effects: [

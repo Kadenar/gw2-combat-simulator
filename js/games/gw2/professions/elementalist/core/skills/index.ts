@@ -1,8 +1,8 @@
-import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 /**
  * Composes owner-local Core Elementalist skill catalogs without owning behavior.
  * Runtime execution and persistent state live in `execution/` and `mechanics/` modules.
  */
+import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS } from '#gw2/professions/elementalist/core/skills/actions.js';
 import { ELEMENTALIST_CONJURE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/conjure-skills.js';
@@ -25,7 +25,7 @@ import { ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS } from '#gw2/professions/elem
  *
  * Each keyed entry contributes its complete definition through the Core module.
  */
-export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
+const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
   ELEMENTALIST_CONJURE_SKILL_MECHANICS,
   ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS,
   ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS,
@@ -42,7 +42,9 @@ export const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
 );
 
 /** Preserves the catalog's existing declaration order while families own their entries. */
-export const ELEMENTALIST_CORE_EXTRA_SKILLS = Object.freeze([
+/** One complete module collection includes authored skills, generated attacks, and simulator actions. */
+export const ELEMENTALIST_CORE_SKILLS = Object.freeze([
+  ...materializeSkillDefinitions(ELEMENTALIST_CORE_SKILL_MECHANICS),
   ...ELEMENTALIST_CORE_ELEMENTAL_EXTRA_SKILLS,
   ...ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS
 ]);

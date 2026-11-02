@@ -1,4 +1,4 @@
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 
 /** Bound authored expansion separately from scheduler iterations, which cannot stop an in-progress allocation. */
 export const MAX_EFFECT_EXPANSION = 100_000;
@@ -14,13 +14,14 @@ export function requireEffectExpansionCount(count: number, label: string): numbe
 
 /** Count the packets one effect will create without materializing them, including explicit tick timelines. */
 export function effectApplicationCount(effect: SkillEffect, label: string): number {
+  const ticks = effectTicks(effect);
   return requireEffectExpansionCount(
-    Array.isArray(effect.ticks)
-      ? effect.ticks.length
+    ticks
+      ? ticks.length
       : effect.type === 'strike'
         ? (effect.hits ?? 1) * (effect.applications ?? 1)
         : (effect.applications ?? 1),
-    Array.isArray(effect.ticks) ? `${label} ticks` : label
+    ticks ? `${label} ticks` : label
   );
 }
 

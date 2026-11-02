@@ -154,7 +154,7 @@ test('skill-owned Rock Barrier expiry releases held recharge at the patched dead
           at: 3.1,
           run(runtime) {
             assert.equal(elementalistCoreAvailability(runtime, hurl).ready, false);
-            assert.equal(runtime.cooldownController.rechargeFor(ID.ROCK_BARRIER).startedAt, 3);
+            assert.equal(runtime.cooldownController.rechargeFor(ID.ROCK_BARRIER).workAnchorAt, 3);
           }
         }
       ]
@@ -217,11 +217,11 @@ test('Weave Self owns its form and Perfect Weave windows and starts recharge at 
   );
   assert.deepEqual(result.warnings, []);
   const runtime = observedRuntime(result);
-  const state = weaverState.from(runtime);
+  const state = weaverState.from(runtime.profession);
   const firstBuff = result.events.find((event) => event.type === 'buff' && event.kind === 'weave self fire');
   assert.equal(firstBuff.duration, 30);
   // The form and its recharge share the skill's partial-cast boundary.
-  assert.ok(Math.abs(runtime.cooldownController.rechargeFor(ID.WEAVE_SELF).startedAt - firstBuff.at) < 1e-9);
+  assert.ok(Math.abs(runtime.cooldownController.rechargeFor(ID.WEAVE_SELF).workAnchorAt - firstBuff.at) < 1e-9);
   const swaps = result.events.filter((event) => event.type === 'elementalist.attunement');
   const lastSwap = swaps.at(-1);
   assert.equal(lastSwap.to, 'Earth');

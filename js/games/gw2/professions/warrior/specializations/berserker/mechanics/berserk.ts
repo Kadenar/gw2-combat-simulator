@@ -42,7 +42,7 @@ const berserkerAdrenalinePolicy: typeof coreAdrenalinePolicy = {
   ...coreAdrenalinePolicy,
   // Build-only resource views have catalog/config but no live mode; they use the starting Core cap.
   maximum: (runtime) =>
-    'profession' in runtime && berserkerState.from(runtime).berserkUntil != null
+    'profession' in runtime && berserkerState.from(runtime.profession).berserkUntil != null
       ? balanceNumberFromContext(runtime, TRAIT.PRIMAL_RAGE, 'maximumStacks')
       : coreAdrenalinePolicy.maximum(runtime)
 };
@@ -71,7 +71,7 @@ function publishBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>
 
 /** Completed activation opens or extends the current mode; expiring during a cast cannot revive it. */
 function completeBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
-  const state = berserkerState.from(runtime);
+  const state = berserkerState.from(runtime.profession);
   const skill = cast.skill;
 
   if (skill.id === ID.BERSERK) {
@@ -102,7 +102,7 @@ const berserkActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['side
     if (context.kind !== 'cast') return;
 
     const cast = context.cast;
-    const state = berserkerState.from(runtime);
+    const state = berserkerState.from(runtime.profession);
     const profile = cast.skill;
     const action = requireSkillAction(profile, 'berserk');
     const effect = requireEffect(profile, 'buff', 'berserk', action);
@@ -126,11 +126,11 @@ export const berserkLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> =
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
     // Primal bursts require Berserk; ordinary attacks can inspect either form without a prerequisite cast.
-    const state = berserkerState.from(runtime);
+    const state = berserkerState.from(runtime.profession);
     state.berserkUntil = skill?.primalBurst || inputs.berserk ? Infinity : null;
   },
   availability(runtime, skill) {
-    const state = berserkerState.from(runtime);
+    const state = berserkerState.from(runtime.profession);
 
     if (skill.primalBurst && state.berserkUntil == null)
       return { ready: false, retryAt: null, code: 'warrior.berserk', reason: 'Primal bursts require berserk mode.' };
@@ -158,7 +158,7 @@ export const berserkLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> =
   },
   tasks: {
     [BERSERK_EXPIRE](runtime, deadline) {
-      const state = berserkerState.from(runtime);
+      const state = berserkerState.from(runtime.profession);
 
       if (state.berserkUntil !== deadline) return;
 

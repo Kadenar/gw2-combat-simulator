@@ -7,10 +7,7 @@ import {
 import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
 import { bindEngineerCoreUi } from '#gw2/professions/engineer/core/presentation.js';
 import { ENGINEER_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/engineer/core/skills/autoattack-chains.js';
-import {
-  ENGINEER_CORE_EXTRA_SKILLS,
-  ENGINEER_CORE_SKILL_MECHANICS
-} from '#gw2/professions/engineer/core/skills/index.js';
+import { ENGINEER_CORE_SKILLS } from '#gw2/professions/engineer/core/skills/index.js';
 import { ENGINEER_CORE_SKILL_FLIPS } from '#gw2/professions/engineer/core/skills/skill-flips.js';
 import { createEngineerCoreState, projectEngineerCorePlanningState } from '#gw2/professions/engineer/core/state.js';
 import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
@@ -41,8 +38,8 @@ export const engineerCoreModule = defineNativeModule({
     skillFlips: ENGINEER_CORE_SKILL_FLIPS,
     profileFields: ENGINEER_CORE_PROFILE_FIELDS,
     skillFields: ENGINEER_CORE_SKILL_FIELDS,
-    skillMechanics: ENGINEER_CORE_SKILL_MECHANICS,
-    extraSkills: ENGINEER_CORE_EXTRA_SKILLS,
+    skills: ENGINEER_CORE_SKILLS,
+
     autoattackChains: ENGINEER_CORE_AUTOATTACK_CHAINS
   }),
   state: {

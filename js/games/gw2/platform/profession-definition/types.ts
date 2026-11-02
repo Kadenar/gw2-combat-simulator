@@ -3,12 +3,8 @@ import type { Gw2AttributeContributions } from '#gw2/platform/attributes/types.j
 import type { Gw2DamageBucketPolicies, Gw2ModifierContext, Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import type { Gw2SpecializationData } from '#gw2/platform/profession-definition/specialization-data-types.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import type { AutoattackChains } from '#gw2/platform/skills/catalog.js';
-import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
-import type { SkillFlips } from '#gw2/platform/skills/skill-flip-definitions.js';
-import type { BalanceProfile, CanonicalCatalog, CatalogEntity, Skill } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 
 /** Defines runtime capabilities and composition inputs; display and build callback types have separate owners. */
 
@@ -68,23 +64,21 @@ export interface ProfessionDefinition<TProfessionState extends object = object, 
   readonly modifiers?: ProfessionModifierDefinition;
 }
 
-export interface ProfessionModuleCatalogFragment<TSkill extends Skill = Skill> {
-  readonly skills?: readonly TSkill[];
-  /**
-   * The profession-wide table of profession-owned skill fields. Every fragment carries the full vocabulary so selected
-   * catalogs and patched skill declarations validate against the same contract.
-   */
-  readonly skillFields?: FieldSpecs;
-  /** Profession-owned profile vocabulary contributed by this module. */
-  readonly profileFields?: FieldSpecs;
-  readonly balanceProfiles?: readonly BalanceProfile[];
-  readonly traits?: readonly CatalogEntity[];
-  readonly specializations?: readonly Gw2SpecializationData[];
-  readonly weapons?: readonly string[];
-  readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
-  readonly autoattackChains?: AutoattackChains;
-  readonly skillFlips?: SkillFlips;
-}
+/** Validated module selections retain canonical records, complete field tables, and already compiled chain positions. */
+export type ProfessionModuleCatalogFragment<TSkill extends Skill = Skill> = Pick<
+  CanonicalCatalog<TSkill>,
+  | 'skills'
+  | 'skillFields'
+  | 'profileFields'
+  | 'balanceProfiles'
+  | 'traits'
+  | 'specializations'
+  | 'weapons'
+  | 'weaponHands'
+  | 'autoattackChains'
+  | 'autoattackChainPositions'
+  | 'skillFlips'
+>;
 
 /** Keeps scheduler contracts resolver-neutral while typed resolver layers supply their own registries. */
 export interface NormalizedProfessionContract<TProfessionState extends object = object, TSkill extends Skill = Skill> {

@@ -75,15 +75,15 @@ export function createProfessionRuntime({
 
   /** Uses the on-screen equipped relic as the baseline for an explicitly selected alternative. */
   function relicComparisonRequest(app: ProfessionAppState, comparisonRelic?: string): RelicComparisonRequest | null {
-    const opponentRelic = String(app.build.relic || '');
+    const equippedRelic = String(app.build.relic || '');
     const targetRelic = String(comparisonRelic || '');
 
-    if (!app.relicNames.includes(targetRelic) || !relicComparisonAvailable(opponentRelic, targetRelic)) return null;
+    if (!app.relicNames.includes(targetRelic) || !relicComparisonAvailable(equippedRelic, targetRelic)) return null;
 
     return {
       rotation: app.build.rotation,
       baseConfig: baselineSimulationConfig(app),
-      opponentRelic,
+      equippedRelic,
       comparisonRelic: targetRelic
     };
   }

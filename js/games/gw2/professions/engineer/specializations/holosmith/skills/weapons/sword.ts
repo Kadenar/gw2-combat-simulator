@@ -26,6 +26,7 @@ import {
   holosmithHeatTier,
   snapshotHolosmithHeat
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
+import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import type {
   HolosmithSkill,
   HolosmithSkillFragment
@@ -43,10 +44,9 @@ const swordHeatFactors = { highStrikeFactor: 1.2, enhancedStrikeFactor: 1.3 };
 const REFRACTION_CUTTER_BLADE_DELAY = 0.36;
 
 /** Supplies Holosmith sword definitions to Holosmith module composition. */
-export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
+export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = {
   [ID.SUN_EDGE]: {
     name: 'Sun Edge',
-    description: 'Strike your foe and inflict vulnerability. This attack deals more damage based on your heat level.',
     icon: 'https://render.guildwars2.com/file/136E9A23E326BE1D67FAD6793A6253024204A6E5/1770405.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -76,8 +76,6 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
   },
   [ID.SUN_RIPPER]: {
     name: 'Sun Ripper',
-    description:
-      'Strike your foe again and inflict vulnerability. This attack deals more damage based on your heat level.',
     icon: 'https://render.guildwars2.com/file/004244480A0828CE033FB575C8FA3A566A016C58/1770406.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -109,8 +107,6 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
   },
   [ID.GLEAM_SABER]: {
     name: 'Gleam Saber',
-    description:
-      'Unleash a burst of stored energy with your sword and recharge your other sword skills. This attack deals more damage based on your heat level.',
     icon: 'https://render.guildwars2.com/file/DA9AC63DCF633A5D2806C37EB5C0E105C01DD7AC/1770407.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -138,12 +134,11 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
   },
   [ID.REFRACTION_CUTTER_BLADE]: {
     name: 'Refraction Cutter Blade',
-    description: 'Launch a blade of light that bleeds your target.',
     icon: 'https://render.guildwars2.com/file/C571A742D055DCA81F6FD70D38C0409DDC9ABEE5/1770408.png',
     type: 'Weapon',
     slot: 'Action',
 
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     cooldown: 0,
     castTimeMs: 0,
     effects: [
@@ -173,8 +168,6 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
   },
   [ID.REFRACTION_CUTTER]: {
     name: 'Refraction Cutter',
-    description:
-      'Strike at foes in front of you and launch a blade of light at your target. Launch extra blades based on your heat level. Each blade inflicts conditions.',
     icon: 'https://render.guildwars2.com/file/C571A742D055DCA81F6FD70D38C0409DDC9ABEE5/1770408.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -253,8 +246,6 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
   // Holosmith owns the original sword IDs; Core owns the non-heat Weaponmaster variants.
   [ID.RADIANT_ARC]: {
     name: 'Radiant Arc',
-    description:
-      'Leap to your target and create an arc of light that strikes nearby foes. Gain quickness based on your heat level.',
     icon: 'https://render.guildwars2.com/file/A57A38790F3B7AE905B60AB2E172DC0C437125EA/1770409.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -296,7 +287,7 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
       }
     ]
   }
-});
+};
 
 /** Resolves the heat-scaled Quickness packet emitted by Holosmith's Radiant Arc variant. */
 function handleRadiantArcQuickness(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
@@ -386,7 +377,7 @@ export function prepareHolosmithSwordEvent(
   event: SimulationEventBase
 ): SimulationEventBase {
   if (event.type === 'engineer.radiant-arc-quickness' || event.type === 'engineer.refraction-cutter-extra-blades') {
-    const snapshot = snapshotHolosmithHeat(context);
+    const snapshot = snapshotHolosmithHeat(holosmithState.from(context.profession), context.config);
     const tier = holosmithHeatTier(snapshot, context);
     const arc = event.type === 'engineer.radiant-arc-quickness';
     const field = arc

@@ -2,12 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
-  cloneStateFields,
   composePlanningState,
   defineProfessionSpecializationState,
+  professionCoreState,
   readProfessionCoreState,
   readProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
+import { thiefRuntimeSpecializationState, thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 
 // The shared accessor preserves the owning state identity and rejects a different active specialization.
@@ -15,12 +16,11 @@ test('specialization accessors retain factory state and validate the active kind
   const definition = defineProfessionSpecializationState('Example', (charge) => ({ charge }));
   const state = definition.create(2);
   const profession = { core: {}, specialization: { kind: 'Example', state } };
-  for (const context of [{ profession }, { state: { profession } }, { runtime: { profession } }]) {
-    assert.equal(definition.from(context), state);
-  }
+  assert.equal(definition.from(profession), state);
+  assert.equal(professionCoreState(profession), profession.core);
 
   assert.throws(
-    () => definition.from({ profession: { ...profession, specialization: { kind: 'Other', state } } }),
+    () => definition.from({ ...profession, specialization: { kind: 'Other', state } }),
     /Expected active specialization Example, received Other/
   );
 });
@@ -54,22 +54,16 @@ test('profession-state reads require nested ownership and cannot cross specializ
   assert.deepEqual(readProfessionCoreState(null), {});
 });
 
-// Projection normalization must neither traverse private fields nor retain mutable owner references.
-test('selected state fields are detached without copying private bookkeeping', () => {
-  const state = {
-    active: { stacks: 2 },
-    explicit: undefined,
-    get private() {
-      throw new Error('private read');
-    }
-  };
-  const projected = cloneStateFields(state, ['active', 'explicit']);
-  assert.deepEqual(Object.keys(projected), ['active', 'explicit']);
-  assert.equal(projected.explicit, undefined);
-  state.active.stacks = 3;
-  assert.equal(projected.active.stacks, 2);
-  projected.active.stacks = 4;
-  assert.equal(state.active.stacks, 3);
+// Preview modifiers may lack runtime state; an active sibling must never supply the requested specialization fields.
+test('Thief optional queries use explicit ownership and keep specialization kinds separate', () => {
+  const core = { leadAttackExpirations: [2] };
+  const state = { markedTargetId: 1, markExpiresAt: 5 };
+  const profession = { core, specialization: { kind: 'Deadeye', state } };
+  assert.equal(thiefRuntimeState(profession), core);
+  assert.equal(thiefRuntimeSpecializationState(profession, 'Deadeye'), state);
+  assert.deepEqual(thiefRuntimeSpecializationState(profession, 'Antiquary'), {});
+  assert.deepEqual(thiefRuntimeSpecializationState(undefined, 'Deadeye'), {});
+  assert.deepEqual(thiefRuntimeState(undefined), {});
 });
 
 // Duplicate IDs are an assembly error even when both projections happen to publish the same value.

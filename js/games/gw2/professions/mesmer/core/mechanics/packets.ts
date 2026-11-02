@@ -8,7 +8,7 @@ import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { MESMER_CORE_WEAPON_STRENGTH } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
-import type { MesmerEventExtra, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerEventExtra, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Player events are the default; explicit summon metadata keeps ownership independent of display labels. */
@@ -95,7 +95,8 @@ export function buildMesmerConditions(
 /** Plan strike timing and summon strength independently of queue admission and later combat resolution. */
 export function buildMesmerStrikes(
   context: MesmerRuntime,
-  skill: Skill,
+  // Illusion and trait strikes pass synthetic skill identities; only the blade flag comes from Mesmer vocabulary.
+  skill: Skill & Pick<MesmerSkill, 'blade'>,
   at: number,
   group: Partial<MesmerStrikeEffect>,
   extra: MesmerEventExtra = {}

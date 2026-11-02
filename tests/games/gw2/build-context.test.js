@@ -86,13 +86,17 @@ test('a selected preview supplies both the attribute catalog and balance context
   });
   let seen;
   const factory = bindBuildContext(
-    withoutPresentation(profession),
-    {
-      attributeContributions: (facts) => {
-        seen = facts;
-        return profession.attributeContributions(facts);
-      }
-    },
+    // Inherit the real profession without evaluating its lazy presentation getter while installing the spy.
+    withoutPresentation(
+      Object.create(profession, {
+        attributeContributions: {
+          value(facts) {
+            seen = facts;
+            return profession.attributeContributions(facts);
+          }
+        }
+      })
+    ),
     () => ({}),
     { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
   );
@@ -137,12 +141,10 @@ test('headless fixed loadouts retain both bars while attribute skills follow the
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DWARF],
     startingLegend: LEGEND.DWARF
   });
-  const factory = bindBuildContext(
-    withoutPresentation(module.profession),
-    { attributeContributions: module.profession.attributeContributions },
-    () => ({}),
-    { assumptionControls: REVENANT_ASSUMPTION_CONTROLS, resolveSkillLoadout: resolveRevenantSkillLoadout }
-  );
+  const factory = bindBuildContext(withoutPresentation(module.profession), () => ({}), {
+    assumptionControls: REVENANT_ASSUMPTION_CONTROLS,
+    resolveSkillLoadout: resolveRevenantSkillLoadout
+  });
   const context = factory(input(module.profession, build));
   const config = context.simulationConfig();
   assert.ok(context.selectedSkillIds.includes(REVENANT.SOOTHING_STONE));
@@ -164,12 +166,10 @@ test('headless ordinary loadouts preserve empty slots and specialization-scoped 
   assert.ok(utility != null);
   build.selectedSkillIds = { Heal: null, Utility1: null, Utility2: utility, Utility3: null, Elite: null };
   delete build.assumptions.inDamagingField;
-  const factory = bindBuildContext(
-    withoutPresentation(module.profession),
-    { attributeContributions: module.profession.attributeContributions },
-    () => ({}),
-    { assumptionControls: ENGINEER_ASSUMPTION_CONTROLS, resolveSkillLoadout: resolveSelectedSkillLoadout }
-  );
+  const factory = bindBuildContext(withoutPresentation(module.profession), () => ({}), {
+    assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
+    resolveSkillLoadout: resolveSelectedSkillLoadout
+  });
   build.specializations = [{ name: 'Amalgam', traits: '1-1-1' }];
   const config = factory(input(module.profession, build)).simulationConfig();
   assert.deepEqual(config.selectedSkillIds, [utility]);
@@ -237,8 +237,8 @@ test('optimizer requirements reuse cached sets, reject early, and keep each cand
   const build = module.toApplicationBuild(module.profession.createBuildDefaults());
   const calls = [];
   const factory = bindBuildContext(
-    module.profession,
     {
+      ...module.profession,
       attributeContributions: (facts) => {
         calls.push(facts.weaponSet);
         return module.profession.attributeContributions(facts);

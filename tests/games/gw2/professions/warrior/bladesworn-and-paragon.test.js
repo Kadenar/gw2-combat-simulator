@@ -263,7 +263,7 @@ test('Dragon Trigger defers recharge while charging and still blocks re-entry', 
   });
   assert.deepEqual(active.warnings, []);
   assert.equal(active.planningState.profession[STATE.DRAGON_TRIGGER_ACTIVE], true);
-  assert.equal(active.planningState.cooldowns[ID.DRAGON_TRIGGER], undefined);
+  assert.equal(active.planningState.cooldownsBySkillId[ID.DRAGON_TRIGGER], undefined);
 
   const repeated = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.DRAGON_TRIGGER], { initialResource: 100 });
   assert.match(repeated.warnings[0].message, /Dragon Trigger is already active/);
@@ -283,7 +283,7 @@ test('Every Dragon Slash starts Dragon Trigger recharge at cast initiation', () 
         assert.deepEqual(result.warnings, []);
         assert.equal(result.planningState.profession[STATE.DRAGON_TRIGGER_ACTIVE], false);
         const rechargeMs = selectedTraitIds.includes(TRAIT.VERSATILE_POWER) ? 5440 : 6400;
-        assert.equal(result.planningState.cooldowns[ID.DRAGON_TRIGGER].readyAt, slash.start + rechargeMs);
+        assert.equal(result.planningState.cooldownsBySkillId[ID.DRAGON_TRIGGER].readyAtMs, slash.start + rechargeMs);
       }
     }
   }
@@ -309,7 +309,7 @@ test('Leaving Dragon Trigger starts recharge at the exit timestamp', () => {
       assert.equal(result.planningState.profession[STATE.DRAGON_TRIGGER_ACTIVE], false);
       assert.equal(result.planningState.profession[STATE.DRAGON_CHARGES].value, 0);
       const rechargeMs = selectedTraitIds.includes(TRAIT.VERSATILE_POWER) ? 5440 : 6400;
-      assert.equal(result.planningState.cooldowns[ID.DRAGON_TRIGGER].readyAt, exitAt + rechargeMs);
+      assert.equal(result.planningState.cooldownsBySkillId[ID.DRAGON_TRIGGER].readyAtMs, exitAt + rechargeMs);
     }
   }
 });
@@ -391,7 +391,7 @@ test('Bladesworn releases at the requested charge count and clamps to the trait 
       selectedTraitIds
     });
     const lastTick = result.events.filter((event) => event.reason === DRAGON_TRIGGER_TICK_RESOURCE_REASON).at(-1);
-    const slash = result.steps.find((step) => step.skill === 'Dragon Slash—Force');
+    const slash = result.steps.find((step) => step.skillName === 'Dragon Slash—Force');
 
     assert.deepEqual(result.warnings, []);
     assert.equal(lastTick.value, expectedCharges);
@@ -419,7 +419,8 @@ test('Dragon Trigger stalls below its Flow cost and resumes after rebuilding', (
   assert.equal(ticks.at(-1).value, 4);
   assert.ok(ticks.every((tick) => tick.flowAfter >= 0));
   assert.ok(
-    Math.abs(result.steps.find((step) => step.skill === 'Dragon Slash—Force').start / 1000 - ticks.at(-1).at) <= 0.001
+    Math.abs(result.steps.find((step) => step.skillName === 'Dragon Slash—Force').start / 1000 - ticks.at(-1).at) <=
+      0.001
   );
   const spend = result.events.find(
     (event) =>
@@ -467,7 +468,7 @@ test('Dragon Slash reports unreachable Flow-gated requests', () => {
   const result = simulate('Bladesworn', ['Dragon Trigger', { skillId: 62797, releaseAtCharges: 4 }, '__combat_start'], {
     initialResource: 15
   });
-  const slash = result.steps.find((step) => step.skill === 'Dragon Slash—Force');
+  const slash = result.steps.find((step) => step.skillName === 'Dragon Slash—Force');
 
   assert.equal(slash.invalid, true);
   assert.match(slash.invalidReason, /could not reach 4 charges/);
@@ -609,7 +610,7 @@ test('Flow Stabilizer, Tactical Reload, and adrenaline conversion drive Flow', (
   const recharge = observedRuntime(freshRecharge).cooldownController.readAmmo(ID.FLOW_STABILIZER).recharges[0];
   assert.equal(
     freshRecharge.planningState.ammoBySkillId[ID.FLOW_STABILIZER].nextRechargeAt,
-    recharge.startedAt + recharge.work / 1.25
+    recharge.workAnchorAt + recharge.work / 1.25
   );
   assert.ok(
     freshRecharge.planningState.ammoBySkillId[ID.FLOW_STABILIZER].nextRechargeAt >
@@ -717,7 +718,7 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
     concurrentTrigger.warnings.map(({ message, at }) => [message, at]),
     [['Dragon Trigger: Dragon Trigger cannot be cast concurrently.', 0]]
   );
-  assert.equal(concurrentTrigger.steps.find((step) => step.skill === 'Dragon Trigger').invalid, true);
+  assert.equal(concurrentTrigger.steps.find((step) => step.skillName === 'Dragon Trigger').invalid, true);
   const utility = simulate('Bladesworn', [ID.DRAGON_TRIGGER, ID.TRIGGERGUARD, ID.FLICKER_STEP], {
     initialResource: 100
   });
@@ -750,8 +751,8 @@ test('Dragon Trigger utilities expose defense, shadowstep ammo, and cooldown res
     [ID.DRAGON_TRIGGER, { skillId: ID.DRAGON_SLASH_FORCE, releaseAtCharges: 1 }, ID.DRAGONSPIKE_MINE],
     { initialResource: 100 }
   );
-  assert.ok(pending.planningState.cooldowns[ID.DRAGON_TRIGGER].remaining > 0);
-  assert.equal(cleared.planningState.cooldowns[ID.DRAGON_TRIGGER], undefined);
+  assert.ok(pending.planningState.cooldownsBySkillId[ID.DRAGON_TRIGGER].remainingMs > 0);
+  assert.equal(cleared.planningState.cooldownsBySkillId[ID.DRAGON_TRIGGER], undefined);
   assert.equal(
     reset.events.some(
       (event) => event.type === 'damage' && event.skillId === ID.DRAGONSPIKE_MINE && event.damageKind === 'explosion'
@@ -842,7 +843,7 @@ test('Overcharged Cartridges buffs explosion damage and burning', () => {
     lockedBuffs.map((event) => event.kind),
     ['overcharged-cartridges', 'supercharged-cartridges']
   );
-  assert.equal(locked.steps.filter((step) => step.skill === 'Overcharged Cartridges').length, 3);
+  assert.equal(locked.steps.filter((step) => step.skillName === 'Overcharged Cartridges').length, 3);
   assert.equal(locked.planningState.ammoBySkillId[ID.OVERCHARGED_CARTRIDGES].charges, 0);
   assert.equal(
     locked.planningState.profession[STATE.OVERCHARGED_CARTRIDGE_WINDOWS].find((window) => window.supercharged)
@@ -986,7 +987,7 @@ test('Signet of Rage suspends passive adrenaline until its cooldown ends', () =>
 
   for (const result of [ready, cooling, recovered]) assert.deepEqual(result.warnings, []);
   assert.ok(ready.planningState.profession[STATE.ADRENALINE].value > 0);
-  assert.ok(cooling.planningState.cooldowns[ID.SIGNET_OF_RAGE].remaining > 0);
+  assert.ok(cooling.planningState.cooldownsBySkillId[ID.SIGNET_OF_RAGE].remainingMs > 0);
   assert.equal(cooling.planningState.profession[STATE.ADRENALINE].value, 0);
   assert.ok(recovered.planningState.profession[STATE.ADRENALINE].value > 0);
 });

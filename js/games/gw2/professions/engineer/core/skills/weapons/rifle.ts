@@ -5,10 +5,9 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Defines Engineer rifle packet timing, projectile, movement, damage, and control behavior. */
-export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.RIFLE_BURST]: {
     name: 'Rifle Burst',
-    description: 'Deliver a quick burst of fire that pierces targets, followed by an explosive grenade.',
     icon: 'https://render.guildwars2.com/file/30F4477E57FFF65C3302F5380D5FCB654CA2E95F/102815.png',
     type: 'Weapon',
     weapon: 'Rifle',
@@ -53,12 +52,11 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.RIFLE_BURST_GRENADE]: {
     name: 'Rifle Burst Grenade',
-    description: 'Fire an explosive grenade from your rifle.',
     icon: 'https://render.guildwars2.com/file/5B2AB667667749BC1BC7AEFD27362E3E0E0F2FE6/103294.png',
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_1',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     cooldown: 0,
     castTimeMs: 0,
     effects: [
@@ -75,8 +73,6 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.BLUNDERBUSS]: {
     name: 'Blunderbuss',
-    description:
-      'Fire several shards of shrapnel that inflict more damage the closer you are to foes. You and nearby allies gain might.',
     icon: 'https://render.guildwars2.com/file/FC0C5A43332CBCEEFB32EF5331F89650FC0AF310/103111.png',
     type: 'Weapon',
     weapon: 'Rifle',
@@ -110,7 +106,6 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.NET_SHOT]: {
     name: 'Net Shot',
-    description: 'Immobilize foes with a net shot.',
     icon: 'https://render.guildwars2.com/file/A47830A4152F5F5DEC5D22975DE0449A57F2D570/102982.png',
     type: 'Weapon',
     weapon: 'Rifle',
@@ -147,8 +142,6 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.OVERCHARGED_SHOT]: {
     name: 'Overcharged Shot',
-    description:
-      'Fire a blast so strong that it launches your foe as the recoil frees you from any movement-impairing conditions.',
     icon: 'https://render.guildwars2.com/file/5B1B070F59C3FDB22794910FBD1C4C7DBF3BD47E/102790.png',
     type: 'Weapon',
     weapon: 'Rifle',
@@ -174,7 +167,6 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.JUMP_SHOT]: {
     name: 'Jump Shot',
-    description: 'Blast the ground, damaging nearby foes and leaping to your target.',
     icon: 'https://render.guildwars2.com/file/6B29C1E841653F64FCB769236177CFC836C8B933/102798.png',
     type: 'Weapon',
     weapon: 'Rifle',
@@ -219,4 +211,4 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
       ])
     ]
   }
-});
+};

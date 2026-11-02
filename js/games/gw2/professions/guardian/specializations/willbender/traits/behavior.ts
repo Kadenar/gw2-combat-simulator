@@ -12,7 +12,7 @@ import {
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianWillbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
-import type { GuardianRuntime, GuardianVirtue } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime, GuardianRuntimeState, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Decodes the selected grant, lifetime, and live cap for a single Tempo trigger. */
@@ -37,7 +37,7 @@ export function activeLethalTempo(state: GuardianWillbenderState, at: number): n
 }
 
 export function lethalTempoStacks(context: Gw2ModifierContext): number {
-  return activeLethalTempo(willbenderState.from(context), context.time);
+  return activeLethalTempo(willbenderState.from(context.runtime!.profession as GuardianRuntimeState), context.time);
 }
 
 /** The selected virtue owns its window, with Tyrant's Momentum retaining its Justice override. */

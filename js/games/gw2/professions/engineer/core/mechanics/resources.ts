@@ -6,7 +6,7 @@ import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
 /** Bind the profession's pool to shared endurance rules and its own additive trait bonuses. */
 export const engineerEndurance: EndurancePolicy<EngineerRuntime> = {
-  state: (context) => professionCoreState(context).endurance,
+  state: (context) => professionCoreState(context.profession).endurance,
   maximum: () => ENDURANCE.maximum,
   regenerationRate: (context, vigor) => enduranceRegenerationRate(vigor, adrenalImplantEnduranceBonus(context))
 };

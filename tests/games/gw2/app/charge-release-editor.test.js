@@ -90,7 +90,7 @@ test('Dragon Slash editor choices execute prefix candidates through the applicat
 
 test('Dragon Slash resource spends preserve charge outcome details', () => {
   const spends = mechanicResourceSpends({
-    steps: [{ ri: 4, activationId: 'slash', skill: 'Dragon Slash—Force' }],
+    steps: [{ rotationCommandIndex: 4, activationId: 'slash', skillName: 'Dragon Slash—Force' }],
     events: [
       {
         type: 'resource',

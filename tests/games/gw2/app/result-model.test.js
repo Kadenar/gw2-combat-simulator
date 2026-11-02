@@ -89,11 +89,11 @@ test('total idle time excludes explicit waits before combat start', () => {
     deathTime: null,
     ...effectFields([{ type: 'combat_start', at: 0.5 }], 1),
     steps: [
-      { ri: 0, skill: 'Wait', start: 0, end: 500, type: 'wait' },
-      { ri: 1, skill: 'Combat Start', start: 500, end: 500, type: 'combat_start' },
-      { ri: 2, skill: 'First Cast', start: 500, end: 600 },
-      { ri: 3, skill: 'Wait', start: 600, end: 900, type: 'wait' },
-      { ri: 4, skill: 'Second Cast', start: 900, end: 1000 }
+      { rotationCommandIndex: 0, skillName: 'Wait', start: 0, end: 500, type: 'wait' },
+      { rotationCommandIndex: 1, skillName: 'Combat Start', start: 500, end: 500, type: 'combat_start' },
+      { rotationCommandIndex: 2, skillName: 'First Cast', start: 500, end: 600 },
+      { rotationCommandIndex: 3, skillName: 'Wait', start: 600, end: 900, type: 'wait' },
+      { rotationCommandIndex: 4, skillName: 'Second Cast', start: 900, end: 1000 }
     ]
   });
 

@@ -23,7 +23,7 @@ function scheduleFlowTick(runtime: WarriorRuntime): void {
 
 /** Credit the interval ending now before closing its windows; no future rate or event-history projection is needed. */
 function flowTick(runtime: WarriorRuntime): void {
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.GUN_X_SWORD);
   const active = (start: number, end: number) => start < runtime.time && runtime.time <= end;
   const stabilizers = state.flowStabilizerWindows.filter((window) => active(window.startedAt, window.expiresAt));
@@ -52,7 +52,7 @@ const flowTasks: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['tasks'] =
 /** The shared pool owns Flow arithmetic; only the absolute-grid task supplies regeneration. */
 const bladeswornFlowPolicy: ResourcePolicy<WarriorRuntime> = {
   kind: 'continuous',
-  state: (runtime) => bladeswornState.from(runtime).flow,
+  state: (runtime) => bladeswornState.from(runtime.profession).flow,
   maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.GUN_X_SWORD, 'maximumStacks'),
   initial: (runtime, maximum) => boundedNumber(runtime.config.initialResource ?? 0, 0, 0, maximum),
   recovery: () => 0

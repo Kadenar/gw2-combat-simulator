@@ -79,9 +79,10 @@ export interface SkillDamageConditionRow {
   readonly durationMultiplier: number;
   readonly baseDurationMultiplier: number;
   readonly durationContributors: readonly Gw2ModifierContribution[];
-  readonly conditionDamage: number | null;
+  /** Condition Damage attribute at the first damaging sample, used to evaluate the condition formula. */
+  readonly conditionDamageAttribute: number | null;
   /** Damage per stack-second before outgoing condition modifiers, from the first damaging sample. */
-  readonly rate: number | null;
+  readonly damagePerStackSecond: number | null;
   readonly multiplier: number | null;
   readonly damageContributors: readonly Gw2ModifierContribution[];
   readonly damage: number;

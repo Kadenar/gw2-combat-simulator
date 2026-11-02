@@ -37,7 +37,9 @@ export function lightDensityHeatPerSecond(context: EngineerRuntime<HolosmithSkil
 
 /** PBM retains heat outside Forge until overheat, including when a dodge attempts to vent it. */
 export function preservesPhotonicHeat(context: EngineerRuntime<HolosmithSkill>): boolean {
-  return hasTrait(context.traits, TRAIT.PHOTONIC_BLASTING_MODULE) && !holosmithState.from(context).overheated;
+  return (
+    hasTrait(context.traits, TRAIT.PHOTONIC_BLASTING_MODULE) && !holosmithState.from(context.profession).overheated
+  );
 }
 
 // Overheating admits a blast with a fixed delivery delay, independent of its balance payload.

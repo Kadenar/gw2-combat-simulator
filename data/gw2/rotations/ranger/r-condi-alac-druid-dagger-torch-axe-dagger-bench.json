@@ -127,10 +127,6 @@
       "skillId": 12480
     },
     {
-      "type": "wait",
-      "durationMs": 40
-    },
-    {
       "type": "cast",
       "skillId": 12478
     },
@@ -185,7 +181,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 80
+      "durationMs": 40
     },
     {
       "type": "cast",
@@ -237,7 +233,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 80
+      "durationMs": 40
     },
     {
       "type": "cast",
@@ -390,10 +386,6 @@
       "skillId": 12480
     },
     {
-      "type": "wait",
-      "durationMs": 40
-    },
-    {
       "type": "cast",
       "skillId": 12478
     },
@@ -435,15 +427,17 @@
     },
     {
       "type": "cast",
-      "skillId": 31869
+      "skillId": 31869,
+      "concurrentOffsetMs": 560
     },
     {
       "type": "cast",
-      "skillId": 31406
+      "skillId": 31406,
+      "concurrentOffsetMs": 0
     },
     {
       "type": "wait",
-      "durationMs": 120
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -489,7 +483,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 80
+      "durationMs": 40
     },
     {
       "type": "cast",
@@ -624,10 +618,6 @@
       "skillId": 12480
     },
     {
-      "type": "wait",
-      "durationMs": 40
-    },
-    {
       "type": "cast",
       "skillId": 12478
     },
@@ -670,7 +660,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 120
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -747,7 +737,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 120
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -881,10 +871,6 @@
       "skillId": 12480
     },
     {
-      "type": "wait",
-      "durationMs": 40
-    },
-    {
       "type": "cast",
       "skillId": 12478
     },
@@ -940,7 +926,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 80
+      "durationMs": 40
     },
     {
       "type": "cast",
@@ -1008,7 +994,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 80
+      "durationMs": 40
     },
     {
       "type": "cast",
@@ -1130,10 +1116,6 @@
     {
       "type": "cast",
       "skillId": 12480
-    },
-    {
-      "type": "wait",
-      "durationMs": 40
     },
     {
       "type": "cast",

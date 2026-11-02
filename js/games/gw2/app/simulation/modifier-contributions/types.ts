@@ -20,8 +20,9 @@ export interface ModifierContributionRequest extends ModifierContributionBatchRe
   readonly baselineDps: number;
 }
 
+/** Each score omits its named modifier so contribution calculations can compare it with the full-build baseline. */
 export interface ModifierContributionBatchResult {
-  readonly scores: readonly { readonly id: string; readonly name: string; readonly dps: number }[];
+  readonly scores: readonly { readonly id: string; readonly name: string; readonly dpsWithoutModifier: number }[];
 }
 
 export interface ModifierContribution {

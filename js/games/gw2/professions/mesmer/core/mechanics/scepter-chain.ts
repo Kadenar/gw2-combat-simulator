@@ -35,7 +35,7 @@ export const mesmerScepterChainLifecycle = {
       if ((data as { at: number }).at !== runtime.profession.core.scepterChainExpiresAt) return;
 
       runtime.profession.core.scepterChainExpiresAt = null;
-      resetAutoattackChains(runtime, [ID.ETHER_BOLT]);
+      resetAutoattackChains(runtime.profession, [ID.ETHER_BOLT]);
     }
   }
 } satisfies RuntimeHooks<MesmerRuntimeState, MesmerSkill>;

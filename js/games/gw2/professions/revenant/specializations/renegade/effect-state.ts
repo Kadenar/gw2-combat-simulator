@@ -12,7 +12,7 @@ export function renegadeBuffPolicies(): BuffStatePolicy[] {
 
 /** Observe native Fervor and Razorclaw pools; Band Together uses the shared timed-buff observer. */
 export function renegadeEffectStates(runtime: MechanicQueriesOf<RevenantRuntime>): EffectState[] {
-  const state = renegadeState.from(runtime);
+  const state = renegadeState.from(runtime.profession);
   return [
     timedEffectState(
       'kallas-fervor',

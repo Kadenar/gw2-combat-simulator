@@ -53,7 +53,7 @@ export interface InputAnalysisSummary {
   readonly sections: readonly InputSection[];
   readonly keyUsage: ReadonlyMap<string, InputKeyUsage>;
   /** Actions per second in a full five-second window, shifted inward at rotation boundaries. */
-  readonly samples: readonly { readonly at: number; readonly rate: number }[];
+  readonly samples: readonly { readonly at: number; readonly actionsPerSecond: number }[];
 }
 
 /** Group bindings by usage and adjacent binding pairs by median gap, without combining measurements into a score. */
@@ -184,12 +184,12 @@ function rollingPace(
   actions: readonly AnalyzedInputAction[],
   start: number,
   duration: number
-): { at: number; rate: number }[] {
+): { at: number; actionsPerSecond: number }[] {
   if (duration <= 0) return [];
 
   const windowSeconds = Math.min(5, duration);
   const steps = Math.min(600, Math.ceil(duration / 0.25));
-  const samples: { at: number; rate: number }[] = [];
+  const samples: { at: number; actionsPerSecond: number }[] = [];
   let left = 0,
     right = 0;
   for (let index = 0; index <= steps; index++) {
@@ -202,7 +202,7 @@ function rollingPace(
     )
       right++;
     while (left < right && actions[left].input.at - start < from) left++;
-    samples.push({ at, rate: (right - left) / windowSeconds });
+    samples.push({ at, actionsPerSecond: (right - left) / windowSeconds });
   }
 
   return samples;

@@ -60,14 +60,7 @@ test('point registration rejects unbound listeners and invalid declarations', ()
   );
   for (const id of [NaN, Infinity, -Infinity])
     assert.throws(() => defineTriggerPoint('fixture.invalid', [id]), /invalid trait/);
-  for (const declaration of [
-    { emit: NaN },
-    { invoke: '' },
-    { invoke: 2, announce: 'yes' },
-    { emit: 101, effects: 1 },
-    { run() {}, unknown: true }
-  ])
-    assert.throws(() => onTriggerPoint(struck, declaration), /trigger/);
+  assert.throws(() => onTriggerPoint(struck, { run() {}, unknown: true }), /trigger/);
 });
 
 test('a missing declarative cause cannot consume a proc claim or skill recharge', () => {
@@ -176,15 +169,6 @@ test('intrinsic listeners opt out of the selection gate explicitly', () => {
   const profession = family([listener(101, calls), listener(102, calls)], [intrinsic]);
   simulateGw2({ profession, rotation: [1], config: { specialization: 'Elite', selectedTraitIds: [] } });
   assert.deepEqual(calls, ['run 103']);
-  assert.throws(
-    () =>
-      defineTrait({
-        id: 101,
-        name: 'Bad',
-        triggers: [onTriggerPoint(struck, { requiresSelection: 'no', run: () => {} })]
-      }),
-    /requiresSelection must be boolean/
-  );
 });
 
 test('declarative point payloads keep trait attribution and the firing cause', () => {
@@ -482,10 +466,6 @@ test('trait boon duration hooks validate and compose in Core then elite order', 
   });
   const profession = family([core], [elite], {}).runtimeFor({ specialization: 'Elite' });
   assert.equal(profession.boonDuration({}, { type: 'buff', kind: 'fury' }, 1, 4), 18);
-  assert.throws(
-    () => defineTrait({ id: 104, name: 'Invalid duration', hooks: { boonDuration: 3 } }),
-    /boonDuration must be a function/
-  );
 });
 
 // Skill-field recharge tuning composes with other rules and always follows the selected skill.

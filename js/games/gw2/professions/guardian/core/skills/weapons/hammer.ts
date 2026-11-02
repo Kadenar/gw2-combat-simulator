@@ -3,10 +3,9 @@ import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/pla
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
-export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.HAMMER_SWING]: {
     name: 'Hammer Swing',
-    description: 'Chain. Strike your foe.',
     icon: 'https://render.guildwars2.com/file/CDDCE227F218D8F1AFD49F46C57991E49666D964/103159.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -25,7 +24,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.HAMMER_BASH]: {
     name: 'Hammer Bash',
-    description: 'Chain. Bash your foe.',
     icon: 'https://render.guildwars2.com/file/18AE09A5E9424FAA35EFA33BB903A1062ACEF354/103160.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -44,7 +42,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SYMBOL_OF_PROTECTION]: {
     name: 'Symbol of Protection',
-    description: 'Symbol. Smash a mystic symbol onto the ground that gives protection to you and your allies.',
     icon: 'https://render.guildwars2.com/file/E56B3804B2F82E3256A82318E537D024DC57E271/103161.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -88,8 +85,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.MIGHTY_BLOW]: {
     name: 'Mighty Blow',
-    description:
-      'Damage nearby foes with a mighty ground slam. If your target has been struck by Banish, teleport to them.',
     icon: 'https://render.guildwars2.com/file/7CF5FFD35624B6D243B97CE4344018C3F1E6ACB7/103682.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -112,7 +107,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.GLACIAL_BLOW]: {
     name: 'Glacial Blow',
-    description: 'Crush nearby foes with a chilling slam. If your target has been struck by Banish, teleport to them.',
     icon: 'https://render.guildwars2.com/file/0B54C31BD12FD40F51C068D84A79BB6FCE6D2505/2075996.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -141,8 +135,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.ZEALOTS_EMBRACE]: {
     name: "Zealot's Embrace",
-    description:
-      'Send a wave toward your foe that immobilizes foes in a line. Gain barrier for each target struck. Barrier is reduced for each target struck beyond the first.',
     icon: 'https://render.guildwars2.com/file/53752EA071EBA20C3C2D79EB3949ED73C6BBCA40/103683.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -165,8 +157,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.BANISH]: {
     name: 'Banish',
-    description:
-      'Launch your foe with a powerful smash. Striking a foe refreshes Mighty Blow and allows your next Mighty Blow to teleport to that foe.',
     icon: 'https://render.guildwars2.com/file/080F4AC49809C32040C80512EAEA769EE7EA4FB7/103109.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -182,7 +172,7 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
             on: 'damage.resolved',
             actor: ACTOR.PLAYER,
             packets: 'each',
-            do: { type: 'rechargeReset', skillIds: [ID.MIGHTY_BLOW, ID.GLACIAL_BLOW] }
+            do: [{ type: 'rechargeReset', skillIds: [ID.MIGHTY_BLOW, ID.GLACIAL_BLOW] }]
           }
         ],
         coefficient: 3,
@@ -196,8 +186,6 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.RING_OF_WARDING]: {
     name: 'Ring of Warding',
-    description:
-      'Ward. Create a ring around you that foes cannot cross. Trapped foes cannot exit the ring while it is active.',
     icon: 'https://render.guildwars2.com/file/13A76EA2D6E91C94503F030E3A47F60A6B4153D2/103092.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -216,4 +204,4 @@ export const GUARDIAN_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     ],
     effects: []
   }
-});
+};

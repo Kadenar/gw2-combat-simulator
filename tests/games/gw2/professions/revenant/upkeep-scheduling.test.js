@@ -5,6 +5,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
@@ -24,7 +25,6 @@ const baseConfig = {
   target: { armor: 2597, conditions: {} }
 };
 const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const affinity = (result) => observedRuntime(result).profession.specialization.state.affinity.value;
 const daggerTimes = (result) =>
   result.events
@@ -189,7 +189,7 @@ test('Soulcleave dismissal and legend swap end allied procs, while recasting pre
   );
   assert.deepEqual(result.warnings, []);
   const activations = result.steps
-    .filter((step) => step.skill === "Soulcleave's Summit")
+    .filter((step) => step.skillName === "Soulcleave's Summit")
     .map((step) => step.end / 1000);
   const times = alliedProcTimes(result);
   for (const [index, startedAt] of activations.entries()) {

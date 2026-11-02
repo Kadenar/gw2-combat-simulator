@@ -18,6 +18,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 test('familiar replacement honors patched cancellation windows and preserves the boundary', () => {
@@ -166,7 +167,9 @@ test('Electric Enchantment consumes accepted post-grant hits chronologically and
     [3, 4]
   );
   assert.equal(
-    evokerState.from(observedRuntime(result)).electricEnchantmentGrants.reduce((sum, g) => sum + g.charges, 0),
+    evokerState
+      .from(observedRuntime(result).profession)
+      .electricEnchantmentGrants.reduce((sum, g) => sum + g.charges, 0),
     0
   );
 });
@@ -190,7 +193,7 @@ test('Electric Enchantment keeps overlapping grants independent of future queued
         at: 8.001,
         run: (r) =>
           assert.deepEqual(
-            evokerState.from(r).electricEnchantmentGrants.map((g) => g.charges),
+            evokerState.from(r.profession).electricEnchantmentGrants.map((g) => g.charges),
             [1, 2]
           )
       },
@@ -198,7 +201,7 @@ test('Electric Enchantment keeps overlapping grants independent of future queued
         at: 9.001,
         run: (r) =>
           assert.deepEqual(
-            evokerState.from(r).electricEnchantmentGrants.map((g) => g.charges),
+            evokerState.from(r.profession).electricEnchantmentGrants.map((g) => g.charges),
             [1]
           )
       }
@@ -236,7 +239,7 @@ test('Electric Enchantment spends the earliest expiry even when the shorter gran
         at: 5.001,
         run: (r) =>
           assert.deepEqual(
-            evokerState.from(r).electricEnchantmentGrants.map((g) => [g.expiresAt, g.charges]),
+            evokerState.from(r.profession).electricEnchantmentGrants.map((g) => [g.expiresAt, g.charges]),
             [
               [10, 0],
               [13, 1]
@@ -481,7 +484,9 @@ test('Specialized Elements familiar casts reduce active weapon recharge', () => 
     assert.deepEqual(specialized.warnings, []);
     assert.ok(
       Math.abs(
-        baseline.planningState.cooldowns[45313].readyAt - specialized.planningState.cooldowns[45313].readyAt - reduction
+        baseline.planningState.cooldownsBySkillId[45313].readyAtMs -
+          specialized.planningState.cooldownsBySkillId[45313].readyAtMs -
+          reduction
       ) < 1e-6
     );
   }
@@ -734,4 +739,36 @@ test('Specialized Elements forces and locks the selected attunement', () => {
     ),
     true
   );
+});
+
+test('Familiar Prowess retains its applied window and patched Focus scaling after selection ends', () => {
+  // Buff lifetime owns eligibility; the cached runtime still checks Focus against each current build.
+  const family = patchTraitProfession(elementalistProfession, {
+    balanceProfiles: {
+      [TRAIT.FAMILIARS_PROWESS]: { fields: { damageIncrease: 0.2 } },
+      [TRAIT.FAMILIARS_FOCUS]: { fields: { damageIncrease: 0.3 } }
+    }
+  });
+  const runtime = family.runtimeFor({ specialization: 'Evoker', patchId: 's4-preview' });
+  const context = {
+    time: 1,
+    catalog: runtime.catalog,
+    event: { actorType: 'player' },
+    config: { evokerElement: 'Air', selectedTraitIds: [] },
+    runtime: {
+      boons: new Map([]),
+      buffs: new Map([
+        ['familiars-prowess', [{ resolvedAudience: { includesSelf: true }, at: 0, expiresAt: 2, stacks: 1 }]]
+      ])
+    }
+  };
+  assert.equal(runtime.modifyStrikeDamage(context, 100), 120);
+  assert.equal(
+    runtime.modifyStrikeDamage(
+      { ...context, config: { ...context.config, selectedTraitIds: [TRAIT.FAMILIARS_FOCUS] } },
+      100
+    ),
+    130
+  );
+  assert.equal(runtime.modifyStrikeDamage({ ...context, time: 2 }, 100), 100);
 });

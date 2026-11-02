@@ -145,10 +145,10 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
   };
 }
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
 export function projectElementalistCorePlanningState(input: Gw2PlanningStateInput) {
   const state = (input.profession as { core: ReturnType<typeof createElementalistCoreState> }).core;
-  return structuredClone({
+  return {
     [STATE.PRIMARY_ATTUNEMENT]: state.primaryAttunement,
     [STATE.ATTUNEMENT_ENTERED_AT]: state.attunementEnteredAt,
     [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
@@ -163,5 +163,5 @@ export function projectElementalistCorePlanningState(input: Gw2PlanningStateInpu
     [STATE.CONJURE_PICKUPS]: state.conjurePickups,
     [STATE.AVAILABLE_FLIPS]: state.availableFlips,
     [STATE.SUMMONED_ELEMENTAL]: state.summonedElemental
-  });
+  };
 }

@@ -25,7 +25,7 @@ export function beginElementalistSpearCast(
   cast: RuntimeCast<ElementalistSkill>,
   skill: Skill
 ): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
 
   if (skillWeapon(skill) !== WEAPON.SPEAR || String(skill.slot || '') === 'Weapon_1') return;
 
@@ -73,17 +73,17 @@ export function empowerElementalistSpearPacket(
 export function openElementalistEtching(context: ElementalistRuntime, skill: Skill): void {
   const chain = etchingChain(skill.id)!;
   const expiresAt = context.time + Number(skill.comboFields?.[0]?.duration ?? 0);
-  professionCoreState(context).etchings[chain.etching] = { stage: 'lesser', otherCasts: 0, expiresAt };
+  professionCoreState(context.profession).etchings[chain.etching] = { stage: 'lesser', otherCasts: 0, expiresAt };
   context.schedule('elementalist.expire-state', expiresAt, null);
 }
 
 export function consumeElementalistEtching(context: ElementalistRuntime, skill: Skill): void {
-  professionCoreState(context).etchings[etchingChain(skill.id)!.etching] = null;
+  professionCoreState(context.profession).etchings[etchingChain(skill.id)!.etching] = null;
 }
 
 /** Releases never credit another etching, and a root never credits itself. */
 export function completeElementalistSpearProgression(context: ElementalistRuntime, skill: Skill): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const chain = etchingChain(skill.id);
 
   if (chain && Number(skill.id) !== chain.etchingId) return;
@@ -111,16 +111,16 @@ export function completeElementalistSpearProgression(context: ElementalistRuntim
 /** Mechanic-trigger handlers arm each one-shot spear bonus for a future cast. */
 const elementalistSpearMechanicHandlers = Object.freeze({
   'elementalist.core.arm-spear-damage': (context: ElementalistRuntime): void => {
-    professionCoreState(context).spearNextDamageBonus = true;
+    professionCoreState(context.profession).spearNextDamageBonus = true;
   },
   'elementalist.core.arm-spear-recharge': (context: ElementalistRuntime): void => {
-    professionCoreState(context).spearNextRechargeReduction = true;
+    professionCoreState(context.profession).spearNextRechargeReduction = true;
   },
   'elementalist.core.arm-spear-critical': (context: ElementalistRuntime): void => {
-    professionCoreState(context).spearNextGuaranteedCritical = true;
+    professionCoreState(context.profession).spearNextGuaranteedCritical = true;
   },
   'elementalist.core.arm-spear-control': (context: ElementalistRuntime): void => {
-    professionCoreState(context).spearNextControlHit = true;
+    professionCoreState(context.profession).spearNextControlHit = true;
   }
 });
 

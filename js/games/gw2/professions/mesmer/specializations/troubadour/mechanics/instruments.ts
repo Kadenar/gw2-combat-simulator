@@ -182,7 +182,7 @@ export function startTroubadourInstrument(
   expiresAt: number,
   delivery: EffectDelivery = {}
 ): void {
-  troubadourState.from(context).instruments[instrument] = expiresAt;
+  troubadourState.from(context.profession).instruments[instrument] = expiresAt;
   const packet = buildMesmerPacket({ type: 'mesmer.instrument', at, instrument, expiresAt });
   context.effects.emit({
     ...delivery,
@@ -211,7 +211,7 @@ function commitInstrument(
   const durationPerNote = balanceProfileNumber(instrumentsProfile, 'durationPerTier');
   // Playing windows are exact and replace only the matching instrument, without action-tick rounding.
   const expiresAt = canonicalTime(at + baseDuration + spent * durationPerNote);
-  const state = troubadourState.from(context);
+  const state = troubadourState.from(context.profession);
   state.lastInstrument = data.instrument;
   startTroubadourInstrument(context, data.instrument, at, expiresAt, delivery);
 
@@ -289,7 +289,7 @@ export function resolveCrescendo(
     damageAt,
     at,
     delivery,
-    lastInstrument: troubadourState.from(context).lastInstrument
+    lastInstrument: troubadourState.from(context.profession).lastInstrument
   });
 }
 
@@ -299,7 +299,7 @@ export function scheduleTroubadourPerformance(
   cast: RuntimeCast<MesmerSkill>,
   skill: MesmerSkill
 ): void {
-  if (cast.cancelled) return;
+  if (cast.cancelledBeforeCommit) return;
 
   const instrument = mesmerInstruments(context)[skill.id];
 

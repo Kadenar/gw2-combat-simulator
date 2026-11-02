@@ -234,7 +234,7 @@ export function scheduleBloodIsPowerLaunch(runtime: NecromancerRuntime, cast: Ru
     // Self-conditions must exist before the same-time hit can consume Plague Sending's armed transfer.
     runtime.schedule(CORRUPTION, launchAt, { skillId: cast.skill.id, activationId: cast.id }, undefined, -1);
   // Removing the strike must not remove a successfully committed cast's independent self-conditions or boons.
-  else if (!cast.cancelled)
+  else if (!cast.cancelledBeforeCommit)
     runtime.schedule(CORRUPTION, cast.effectiveEnd, { skillId: cast.skill.id, activationId: cast.id });
 }
 

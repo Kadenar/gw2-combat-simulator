@@ -11,6 +11,8 @@ import {
   NECROMANCER_SKILL_IDS as NECROMANCER_SKILLS
 } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { RANGER_TRAIT_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
+import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 
 const mesmerRules = (specialization) =>
   mesmerProfession.resolveProfession({
@@ -83,6 +85,28 @@ function modifierContext({
 function assertClose(actual, expected) {
   assert.ok(Math.abs(actual - expected) < 1e-12, `expected ${actual} to equal ${expected}`);
 }
+
+test('Bird of Prey multiplies the shared Gale Force, Wind Force, and sigil bonus', () => {
+  // A combined modifier scenario distinguishes a full movement bonus from adding it to the outgoing bucket.
+  const profession = rangerProfession.resolveProfession({ specialization: 'Galeshot' });
+  for (const swiftness of [false, true]) {
+    const context = modifierContext({
+      catalog: profession.catalog,
+      traits: [RANGER.BIRD_OF_PREY, RANGER.GALE_FORCE],
+      event: { actorType: 'player' },
+      config: { boons: { swiftness } },
+      runtime: {
+        profession: {
+          specialization: {
+            kind: 'Galeshot',
+            state: { windForce: { value: 2 }, galeForceUntil: 10 }
+          }
+        }
+      }
+    });
+    assertClose(profession.modifyStrikeDamage(context, 1), (1 + 0.08 + 0.25 + 2 * 0.03) * (swiftness ? 1.05 : 1));
+  }
+});
 
 test('Necromancer active runtimes isolate their Discretize modifier buckets', () => {
   const shared = {

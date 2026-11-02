@@ -14,7 +14,7 @@ import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.
 function planningState(overrides = {}) {
   return {
     atSeconds: 0,
-    cooldowns: {},
+    cooldownsBySkillId: {},
     ammoBySkillId: {},
     activeWeaponSet: 1,
     profession: {},
@@ -30,8 +30,8 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
   });
   const checkpoint = planningState({
     atSeconds: 1.2,
-    cooldowns: {
-      1: { remaining: 3800, readyAt: 5000 }
+    cooldownsBySkillId: {
+      1: { remainingMs: 3800, readyAtMs: 5000 }
     },
     profession: { [STATE.RESOURCE]: 2 }
   });
@@ -116,15 +116,15 @@ test('Bloodstone appears only after the insertion prefix includes Detonate', asy
     };
     app.results = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app)).result;
     assert.deepEqual(app.results.warnings, []);
-    const detonation = app.results.steps.find((step) => step.skill === 'Detonate');
-    app.rotationInsertionIndex = detonation.ri;
+    const detonation = app.results.steps.find((step) => step.skillName === 'Detonate');
+    app.rotationInsertionIndex = detonation.rotationCommandIndex;
     const before = rotationStateSnapshot(app);
     assert.ok(detonation.start <= before.timeMs, 'wall-clock filtering alone would admit this later input');
     assert.equal(
       before.items.some((item) => item.id === 'relic:Bloodstone Volatility'),
       false
     );
-    app.rotationInsertionIndex = detonation.ri + 1;
+    app.rotationInsertionIndex = detonation.rotationCommandIndex + 1;
     const after = rotationStateSnapshot(app);
     assert.equal(after.items.find((item) => item.id === 'relic:Bloodstone Volatility')?.value, '1/4 stacks');
   }
@@ -271,12 +271,12 @@ test('native insertion previews project weapon set and cooldown state', async ()
   const afterFirstSwap = adapter.rotationPreviewAt(app, 2).planningState;
 
   assert.equal(initial.activeWeaponSet, 1);
-  assert.ok(afterFirstSkill.cooldowns[10221].remaining > 0);
+  assert.ok(afterFirstSkill.cooldownsBySkillId[10221].remainingMs > 0);
   assert.equal(afterFirstSwap.activeWeaponSet, 2);
-  assert.ok(afterFirstSwap.cooldowns[10221].remaining > 0);
+  assert.ok(afterFirstSwap.cooldownsBySkillId[10221].remainingMs > 0);
   assert.deepEqual(adapter.rotationPreviewAt(app, 3).planningState, result.planningState);
 
-  // Reusing a tailed result would make recovered cooldowns available too early when appending.
+  // Reusing a tailed result would make recovered cooldownsBySkillId available too early when appending.
   app.results = simulateGw2({
     profession: adapter.profession,
     rotation: build.rotation,

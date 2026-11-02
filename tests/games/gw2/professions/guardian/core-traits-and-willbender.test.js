@@ -9,9 +9,11 @@ import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardia
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializations/willbender/mechanics/trigger-points.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
 
 const config = {
@@ -62,8 +64,8 @@ test('Guardian recharge applies Alacrity, ammo, and trait reductions', () => {
     secondaryWeapon: 'Pistol'
   })(undefined, ['Hail of Justice', 'Hail of Justice', 'Hail of Justice']);
 
-  assert.equal(alacrity.planningState.cooldowns[GUARDIAN_SKILL_IDS.JUSTICE].readyAt, 16000);
-  assert.equal(virtuous.planningState.cooldowns[GUARDIAN_SKILL_IDS.JUSTICE].readyAt, 13600);
+  assert.equal(alacrity.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.JUSTICE].readyAtMs, 16000);
+  assert.equal(virtuous.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.JUSTICE].readyAtMs, 13600);
   assert.equal(ammo.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.HAIL_OF_JUSTICE].charges, 0);
   assert.equal(ammo.steps[2].start, ammo.steps[0].end + 8000);
   assert.deepEqual(ammo.warnings, []);
@@ -667,7 +669,7 @@ test('Guardian greatsword autoattacks restart after another skill', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     ['Strike', 'Whirling Wrath', 'Strike']
   );
 });
@@ -686,12 +688,12 @@ test("Zealot's Flame preserves one-handed roots without exempting its flip", () 
 
   assert.deepEqual(sword.warnings, []);
   assert.deepEqual(
-    sword.steps.map((step) => step.skill),
+    sword.steps.map((step) => step.skillName),
     ['Sword of Wrath', "Zealot's Flame", 'Sword Arc']
   );
   assert.deepEqual(reset.warnings, []);
   assert.deepEqual(
-    reset.steps.map((step) => step.skill),
+    reset.steps.map((step) => step.skillName),
     ['Sword of Wrath', "Zealot's Flame", "Zealot's Fire", 'Sword of Wrath']
   );
 });
@@ -787,9 +789,9 @@ test('Renewed Focus recharges all three core virtues', () => {
     'Renewed Focus'
   ]);
 
-  assert.equal(Object.hasOwn(result.planningState.cooldowns, GUARDIAN_SKILL_IDS.JUSTICE), false);
-  assert.equal(Object.hasOwn(result.planningState.cooldowns, GUARDIAN_SKILL_IDS.RESOLVE), false);
-  assert.equal(Object.hasOwn(result.planningState.cooldowns, GUARDIAN_SKILL_IDS.COURAGE), false);
+  assert.equal(Object.hasOwn(result.planningState.cooldownsBySkillId, GUARDIAN_SKILL_IDS.JUSTICE), false);
+  assert.equal(Object.hasOwn(result.planningState.cooldownsBySkillId, GUARDIAN_SKILL_IDS.RESOLVE), false);
+  assert.equal(Object.hasOwn(result.planningState.cooldownsBySkillId, GUARDIAN_SKILL_IDS.COURAGE), false);
   assert.deepEqual(observedRuntime(result).profession.core.virtueReadyAt, {
     justice: result.steps.at(-1).end / 1000,
     resolve: result.steps.at(-1).end / 1000,
@@ -913,14 +915,17 @@ test('out-of-scope Guardian slot skills are absent and rejected in saved builds'
 
   // Valorous Stance has simulated boons, so only its loadout selection is hidden.
   const valorousStance = guardianCatalog.skillsById.get(77300);
-  assert.notEqual(valorousStance.simulatorExcluded, true);
+  assert.notEqual(valorousStance.rotationInputExcluded, true);
   assert.equal(valorousStance.slotSelectable, false);
 
   assert.throws(
     () =>
       migrateGuardianBuild({
         ...createGuardianBuildDefaults(),
-        selectedSkillIds: { ...createGuardianBuildDefaults().selectedSkillIds, Utility1: 'Contemplation of Purity' }
+        selectedSkillIds: {
+          ...createGuardianBuildDefaults().selectedSkillIds,
+          Utility1: 'Contemplation of Purity'
+        }
       }),
     /Unknown selected skill ID/
   );
@@ -932,9 +937,86 @@ test('Guardian results advance to cooldown expiry before recasting', () => {
     ['True Strike', { type: 'wait', durationMs: 1000 }, 'Pure Strike', 'Virtue of Justice', 'Virtue of Justice']
   );
 
-  const casts = result.steps.filter((step) => step.skill === 'Virtue of Justice');
+  const casts = result.steps.filter((step) => step.skillName === 'Virtue of Justice');
   assert.equal(casts[1].start - casts[0].start, 16000);
   assert.ok(result.steps.every((step) => !step.invalid));
-  assert.equal(result.planningState.cooldowns[GUARDIAN_SKILL_IDS.JUSTICE].readyAt, casts[1].end + 16000);
+  assert.equal(result.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.JUSTICE].readyAtMs, casts[1].end + 16000);
   assert.deepEqual(result.warnings, []);
+});
+
+test('Willbender build definitions read active tuning and honor disabled trait previews', () => {
+  // Each mutually exclusive adept owns its panel grant, including the Vitality input to later conversions.
+  const family = patchTraitProfession(guardianProfession, {
+    balanceProfiles: {
+      [GUARDIAN_TRAIT_IDS.SEARING_PACT]: { fields: { 'attributeBonuses.conditionDamage': 150 } },
+      [GUARDIAN_TRAIT_IDS.POWER_FOR_POWER]: { fields: { 'attributeBonuses.power': 200 } },
+      [GUARDIAN_TRAIT_IDS.CONCEITED_CURATE]: { fields: { 'attributeBonuses.vitality': 240 } }
+    }
+  });
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(guardianCatalog),
+    family.attributeContributions
+  );
+  for (const [choices, name, attribute, baseline, preview] of [
+    ['1-1-1', 'Searing Pact', 'Condition Damage', 120, 150],
+    ['2-1-1', 'Power for Power', 'Power', 120, 200],
+    ['3-1-1', 'Conceited Curate', 'Vitality', 180, 240]
+  ]) {
+    const build = { specializations: [{ name: 'Willbender', traits: choices }] };
+    for (const [patchId, bonus] of [
+      ['current', baseline],
+      ['s4-preview', preview]
+    ]) {
+      const balance = family.resolvePatch({ id: patchId }).balanceContext;
+      assert.equal(calculate(build, [], 1, null, null, balance).attributes[attribute].traits, bonus);
+      assert.equal(calculate(build, [], 1, name, null, balance).attributes[attribute].traits, 0);
+    }
+  }
+});
+
+test('Guardian weapon definitions preserve patched build bonuses and live weapon-swap provenance', () => {
+  // A delayed Greatsword packet uses the equipped weapon's bonus, subtracting the panel's previous weapon grant.
+  const family = patchTraitProfession(guardianProfession, {
+    balanceProfiles: {
+      [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE]: {
+        fields: { 'attributeBonuses.power': 100, 'conditionalAttributeBonuses.power': 300 }
+      },
+      [GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH]: {
+        fields: { 'attributeBonuses.precision': 40, 'attributeBonuses.power': 40 }
+      }
+    }
+  });
+  const balance = family.resolvePatch({ id: 's4-preview' }).balanceContext;
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(guardianCatalog),
+    family.attributeContributions
+  );
+  const build = {
+    specializations: [
+      { name: 'Zeal', traits: '1-2-1' },
+      { name: 'Radiance', traits: '2-1-1' }
+    ],
+    weapons: ['Greatsword'],
+    alternateWeapons: ['Sword', 'Focus']
+  };
+  assert.equal(calculate(build, [], 1, null, null, balance).attributes.Power.traits, 300);
+  assert.equal(calculate(build, [], 2, null, null, balance).attributes.Power.traits, 140);
+  const runtime = family.runtimeFor({ patchId: 's4-preview' });
+  const context = {
+    catalog: runtime.catalog,
+    time: 1,
+    event: { skillWeapon: 'Greatsword' },
+    config: {
+      primaryWeapon: 'Sword',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH]
+    }
+  };
+  assert.equal(runtime.modifyAttributes(context, { power: 1000 }).power, 1140);
+  assert.equal(
+    runtime.modifyAttributes(
+      { ...context, config: { ...context.config, primaryWeapon: 'Greatsword' } },
+      { power: 1000 }
+    ).power,
+    1300
+  );
 });

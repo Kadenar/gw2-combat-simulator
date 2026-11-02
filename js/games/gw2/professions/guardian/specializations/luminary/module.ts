@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/guardian/data/trait-lines.js';
 import { LUMINARY_SKILL_FIELDS } from '#gw2/professions/guardian/specializations/luminary/catalog-fields.js';
 import { luminaryHooks } from '#gw2/professions/guardian/specializations/luminary/hooks.js';
@@ -23,7 +24,7 @@ export const luminaryModule = defineNativeModule({
     traitLines: TRAIT_LINES,
     skillFlips: GUARDIAN_LUMINARY_SKILL_FLIPS,
     skillFields: LUMINARY_SKILL_FIELDS,
-    skillMechanics: LUMINARY_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(LUMINARY_SKILL_MECHANICS)
   }),
   state: { create: luminaryState.create, project: projectLuminaryPlanningState },
   // Stance rules precede weapon rules when their authored order ties.

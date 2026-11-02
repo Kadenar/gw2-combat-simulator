@@ -1,8 +1,8 @@
 import {
   fromProfile,
   outsideScopeTooltip,
+  tooltipAttributeConversion,
   tooltipFactorChange,
-  tooltipPercent,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
@@ -34,10 +34,10 @@ export const scrapperTooltips = {
       ['maximumAmmo', 'Minimum Function Gyro ammunition']
     ]),
     [TRAIT.KINETIC_ACCELERATORS]: traitTooltip(
-      'Successful blast, leap, and whirl combos grant quickness and might to the party. Function Gyro becomes a blast finisher. Gain concentration from eligible power.',
+      'Successful blast, leap, and whirl combos grant quickness and might to the party. Function Gyro becomes a blast finisher. Gain concentration based on power. Bonuses from other attribute conversions do not count.',
       [
         ['internalCooldown', 'Whirl-combo boon cooldown', tooltipSeconds],
-        ['attributeConversion', 'Eligible power converted to concentration', tooltipPercent]
+        ['attributeConversion', 'Concentration gained from power', tooltipAttributeConversion]
       ]
     ),
     [TRAIT.APPLIED_FORCE]: traitTooltip(

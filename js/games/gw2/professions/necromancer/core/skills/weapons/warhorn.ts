@@ -6,11 +6,9 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.WAIL_OF_DOOM]: {
     name: 'Wail of Doom',
-    description:
-      'Screech a wail of doom in a cone pattern, inflicting fear on foes. (Does bonus defiance-bar damage to defiant foes.)',
     icon: 'https://render.guildwars2.com/file/41C99E156B3F602C9069E2B838E8BD05D6262EBE/103277.png',
     type: 'Weapon',
     weapon: 'Warhorn',
@@ -28,8 +26,6 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.LOCUST_SWARM]: {
     name: 'Locust Swarm',
-    description:
-      'Grant swiftness to allies and summon a swarm of locusts that siphons health to you and your allies from nearby foes.',
     icon: 'https://render.guildwars2.com/file/1E2D4A00340B96CAE9A1E19F2B07B35A01741B14/103809.png',
     type: 'Weapon',
     weapon: 'Warhorn',
@@ -52,7 +48,7 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
               on: 'damage.resolved',
               actor: ACTOR.PLAYER,
               packets: 'each',
-              do: lifeForceGrant({ id: 'life-force', unit: 'pulse', grant: { percent: 1.5 } })
+              do: [lifeForceGrant({ id: 'life-force', unit: 'pulse', grant: { percent: 1.5 } })]
             }
           ],
           canCrit: false,
@@ -70,4 +66,4 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
       }
     ]
   }
-});
+};

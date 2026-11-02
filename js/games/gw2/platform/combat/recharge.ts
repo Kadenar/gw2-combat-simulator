@@ -5,7 +5,8 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Remaining base-recharge seconds anchored to a timestamp, independent of the current recharge rate. */
 export interface RechargeProgress {
-  startedAt: number;
+  /** Timestamp anchoring remaining work; updated when recharge progress is settled or restored. */
+  workAnchorAt: number;
   work: number;
   /** Captured incarnation owns received boons even after another companion becomes active. */
   readonly companionId?: string;
@@ -64,7 +65,7 @@ export function* gw2RechargeIntervals(
 export function projectRecharge(progress: RechargeProgress, intervals: Iterable<RateInterval>): number {
   let work = Math.max(0, progress.work);
 
-  if (!work) return progress.startedAt;
+  if (!work) return progress.workAnchorAt;
 
   for (const interval of intervals) {
     const elapsed = work / interval.rate;

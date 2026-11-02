@@ -28,13 +28,11 @@ import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professio
  * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
   // Fire+Water. Three-shot burst at 280/440/640 ms; the opening shot chills and
   // the two follow-ups each stack Burning.
   [ID.FROSTFIRE_FLURRY]: {
     name: 'Frostfire Flurry',
-    description:
-      'Dual Attack. Fire multiple bullets of fire and ice, inflicting conditions.\n\nIf you have a fire bullet, consume it to gain fire aura. If you have an ice bullet, consume it to cause the ice shots to inflict additional conditions.',
     icon: 'https://render.guildwars2.com/file/94A852009195CE9727D9BC463622A0C3566E0AF6/3256341.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -93,8 +91,6 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   // Vulnerability.
   [ID.PURBLINDING_PLASMA]: {
     name: 'Purblinding Plasma',
-    description:
-      'Dual Attack. Fire a ball of plasma that explodes when it hits, striking enemies behind the target.\n\nIf you have a fire bullet, consume it to create an area of fire beneath the initial target. If you have an air bullet, consume it to reduce the cooldown of this skill.',
     icon: 'https://render.guildwars2.com/file/22F037530AE534D9010D0AECA94701F915CEEC11/3256339.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -143,8 +139,6 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.MOLTEN_METEOR]: {
     name: 'Molten Meteor',
-    description:
-      'Dual Attack. Bombard your foe with a meteor that inflicts multiple conditions.\n\nIf you have a fire bullet, consume it to cause the shot to explode when it strikes an enemy, damaging other foes in the blast. If you have an earth bullet, consume it to inflict additional bleeding.',
     icon: 'https://render.guildwars2.com/file/04A87E6C08F06B1F909CD52D4CF62106FD1D2B97/3256340.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -185,8 +179,6 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   // (Regeneration and Stability) at cast start.
   [ID.FLOWING_FINESSE]: {
     name: 'Flowing Finesse',
-    description:
-      'Dual Attack. Evade backward and grant yourself boons.\n\nIf you have an ice bullet, consume it to gain frost aura. If you have an air bullet, consume it to gain superspeed.',
     icon: 'https://render.guildwars2.com/file/AE34310A3F1A36D4938002B8E6790DE465CD93C7/3256342.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -226,8 +218,6 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   // Water+Earth. Two shots at 280/480 ms, each applying two Bleeding stacks.
   [ID.ECHOING_EROSION]: {
     name: 'Echoing Erosion',
-    description:
-      'Dual Attack. Bleed your foe with ice and stone.\n\nIf you have an ice bullet, consume it to heal yourself. If you have an earth bullet, consume it to grant yourself barrier.',
     icon: 'https://render.guildwars2.com/file/C278C6CDF006FFA5F375499C6011803AB9741CBC/3256343.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -253,8 +243,6 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   // Air+Earth. Single Projectile finisher carrying Weakness and Cripple.
   [ID.ENERVATING_EARTH]: {
     name: 'Enervating Earth',
-    description:
-      'Dual Attack. Fire a quick shot that debilitates your target. \n\nIf you have an air bullet, consume it to also inflict daze. If you have an earth bullet, consume it to also inflict bleeding on your target.',
     icon: 'https://render.guildwars2.com/file/0552325DD95B09D569414E04D060120EE1EFA109/3256338.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -306,14 +294,14 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
       { on: 'castCommit', do: { type: 'elementalist.weaver.pistol.settle' } }
     ]
   }
-});
+};
 
 /** Payload declarations run before this shared all-matching-bullets settlement. */
 const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers'] = {
   'elementalist.weaver.pistol.settle'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol settlement requires a cast trigger.');
 
-    const state = professionCoreState(context);
+    const state = professionCoreState(context.profession);
     const active = weaverDualAttunements(trigger.skill)!.filter((element) => state.pistolBullets[element]);
 
     if (!active.length) state.pistolBullets[state.primaryAttunement] = true;

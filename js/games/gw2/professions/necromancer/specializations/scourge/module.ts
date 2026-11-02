@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/necromancer/data/trait-lines.js';
 import {
   NECROMANCER_SCOURGE_PROFILE_FIELDS,
@@ -23,7 +24,7 @@ export const scourgeModule = defineNativeModule({
     traitLines: TRAIT_LINES,
     profileFields: NECROMANCER_SCOURGE_PROFILE_FIELDS,
     skillFields: SCOURGE_SKILL_FIELDS,
-    skillMechanics: SCOURGE_BASE_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(SCOURGE_BASE_SKILL_MECHANICS)
   }),
   state: { create: scourgeState.create, project: projectScourgePlanningState },
   hooks: scourgeHooks,

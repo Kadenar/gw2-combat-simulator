@@ -1,14 +1,14 @@
-import { attributeFields } from '#gw2/platform/skills/attribute-fields.js';
-import { dataField, defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
+import { defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
 
-/** Warrior adrenaline and burst fields read only by Warrior mechanics. */
+/** Warrior owns adrenaline, burst, and trait-specific timing; shared consumers use the resolved skill timing. */
 export const WARRIOR_CORE_SKILL_FIELDS = defineFields(
   {
-    // Spends adrenaline as a burst skill.
-    burst: dataField,
+    /** Measured duration with Dual Wielding and Quickness; only skills declaring it receive the adjustment. */
+    dualWieldCastTimeMs: numberField({ unit: 'milliseconds' }),
+    /** Fixed commit cutoff with Dual Wielding; independent of cast-duration scaling. */
+    dualWieldInterruptCommitMs: numberField({ unit: 'milliseconds' }),
     // Intrinsic skill tuning is editable on its canonical owner.
     enduranceRegenerationBonus: numberField({ patch: 'primary' }),
-    ...attributeFields('activeAttributeBonuses', 'Active '),
     pulseInterval: numberField({ unit: 'seconds', patch: 'primary' }),
     durationPerTier: numberField({ unit: 'seconds', patch: 'primary' }),
     // Adrenaline spent by the skill.

@@ -40,7 +40,9 @@ export function locateDiagnostics(
     if (diagnostic.rotationIndex != null || diagnostic.activationId == null) return { ...diagnostic };
 
     const indices = new Set(
-      steps.filter((step) => step.ri >= 0 && step.activationId === diagnostic.activationId).map((step) => step.ri)
+      steps
+        .filter((step) => step.rotationCommandIndex >= 0 && step.activationId === diagnostic.activationId)
+        .map((step) => step.rotationCommandIndex)
     );
     return indices.size === 1 ? { ...diagnostic, rotationIndex: [...indices][0] } : { ...diagnostic };
   });

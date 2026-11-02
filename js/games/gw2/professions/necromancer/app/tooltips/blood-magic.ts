@@ -35,10 +35,16 @@ export const necromancerBloodMagicTooltips = {
     ]
   ),
   [TRAIT.VAMPIRIC_PRESENCE]: traitTooltip(
-    'Eligible player, creature, and configured allied hits trigger life-steal damage once Vampiric Aura is up; the first aura pulse is assumed half an interval after combat starts. The stronger payload applies to every recipient while you are in shroud.',
+    'Vampiric Aura lets you, your summons, and configured allies deal life-steal damage on hit. Their life-steal damage increases while you are in shroud.',
     [
       ['cooldown', 'Internal cooldown per recipient', tooltipSeconds],
-      ['auraPulseInterval', 'Vampiric Aura pulse interval', tooltipSeconds]
+      ['auraPulseInterval', 'Vampiric Aura pulse interval', tooltipSeconds],
+      // Keep the assumed initial delay visible without burying the trait's effect in scheduling prose.
+      [
+        'auraPulseInterval',
+        'First aura pulse after combat starts (simulation assumption)',
+        (value) => tooltipSeconds(value / 2)
+      ]
     ]
   ),
   [TRAIT.BLOOD_BANK]: outsideScopeTooltip,

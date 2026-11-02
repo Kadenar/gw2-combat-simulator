@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
@@ -16,10 +19,10 @@ function createVindicatorState(): VindicatorState {
 // Vindicator's slice of the single live runtime state.
 export const vindicatorState = defineProfessionSpecializationState('Vindicator', createVindicatorState);
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectVindicatorPlanningState(input: Gw2PlanningStateInput) {
-  const state = vindicatorState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectVindicatorPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = vindicatorState.from(input.profession);
+  return {
     [STATE.REAVERS_CURSE_UNTIL]: state.reaversCurseUntil
-  });
+  };
 }

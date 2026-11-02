@@ -25,7 +25,6 @@ import {
 } from '#gw2/professions/thief/specializations/antiquary/skills/double-edge.js';
 import { startForgedSurfer } from '#gw2/professions/thief/specializations/antiquary/skills/forged-surfer.js';
 import { completeSkrittScuffle } from '#gw2/professions/thief/specializations/antiquary/skills/skritt-scuffle.js';
-import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import {
   artifactWindowDuration,
@@ -52,7 +51,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       if (context.kind === 'cast') completeSkrittSwipe(runtime, context.cast);
     },
     'thief.reshuffle'(runtime) {
-      antiquaryState.from(runtime).artifactSlots = allArtifactChoices();
+      antiquaryState.from(runtime.profession).artifactSlots = allArtifactChoices();
     },
     'thief.double-edge'(runtime, context) {
       if (context.kind === 'cast') startDoubleEdge(runtime, context.cast);
@@ -61,7 +60,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       if (context.kind === 'cast')
         coinInitiative.set(
           context.cast,
-          tossCanachCoins(runtime, Boolean(antiquaryState.from(runtime).backfireState[context.skill.id]))
+          tossCanachCoins(runtime, Boolean(antiquaryState.from(runtime.profession).backfireState[context.skill.id]))
         );
     },
     'thief.pay-coins'(runtime, context) {
@@ -78,14 +77,14 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       completeSkrittScuffle(runtime);
     },
     'thief.guitar'(runtime, context) {
-      const state = antiquaryState.from(runtime);
+      const state = antiquaryState.from(runtime.profession);
       const at = runtime.time;
       const duration = artifactWindowDuration(runtime, context.skill);
       // Guitar replaces the active bonus-attack grant with the selected artifact count and lifetime.
       state.bonusStealthAttack = grantCharges(skillNumber(context.skill, 'maximumStacks'), at + duration);
     },
     'thief.mortar'(runtime, context) {
-      const state = antiquaryState.from(runtime);
+      const state = antiquaryState.from(runtime.profession);
       const at = runtime.time;
       const duration = artifactWindowDuration(runtime, context.skill);
 
@@ -95,12 +94,12 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       state.mistburn = grantCharges(skillNumber(context.skill, 'maximumStacks'), at + duration);
     },
     'thief.kryptis'(runtime) {
-      const state = antiquaryState.from(runtime);
+      const state = antiquaryState.from(runtime.profession);
       const at = runtime.time;
       state.kryptisDamageUntil = at + meticulousKryptisDuration(runtime);
     },
     'thief.chak'(runtime, context) {
-      const state = antiquaryState.from(runtime);
+      const state = antiquaryState.from(runtime.profession);
       const at = runtime.time;
       const duration = artifactWindowDuration(runtime, context.skill);
       // Three refunds are added up to four total; unused grants keep their own expiry instead of becoming permanent.
@@ -118,7 +117,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       );
     },
     'thief.holo'(runtime, context) {
-      const state = antiquaryState.from(runtime);
+      const state = antiquaryState.from(runtime.profession);
       const at = runtime.time;
       const duration = artifactWindowDuration(runtime, context.skill);
       // Store the exact canonical deadline so an expiry-tick utility cannot spend this grant.
@@ -128,7 +127,7 @@ export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeStat
       ];
     },
     'thief.surfer-window'(runtime, context) {
-      const state = antiquaryState.from(runtime);
+      const state = antiquaryState.from(runtime.profession);
       const at = runtime.time;
       const duration = skillNumber(
         context.skill,
@@ -151,6 +150,6 @@ export const kryptisTurretModifiers = Object.freeze<readonly Gw2ModifierRule[]>(
     factor: 1.15,
     when: (context) =>
       isGw2PlayerModifierOwnedEvent(context.event) &&
-      (thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').kryptisDamageUntil || 0) > context.time
+      (thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').kryptisDamageUntil || 0) > context.time
   }
 ]);

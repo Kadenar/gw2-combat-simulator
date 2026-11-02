@@ -52,13 +52,13 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
     { interrupted: true, skillId: buffSkill.id, cancelledBeforeCommit: true },
     { interrupted: true, skillId: packetSkill.id },
     { interrupted: false, skillId: packetSkill.id }
-  ].map((state, ri) => ({
+  ].map((state, rotationCommandIndex) => ({
     ...state,
-    ri,
-    skill: skill.name,
-    activationId: `cast:${ri}`,
-    start: ri * 100,
-    end: ri * 100 + 100
+    rotationCommandIndex,
+    skillName: skill.name,
+    activationId: `cast:${rotationCommandIndex}`,
+    start: rotationCommandIndex * 100,
+    end: rotationCommandIndex * 100 + 100
   }));
   const build = {
     rotation: steps.map((step) => ({ type: 'cast', skillId: step.skillId ?? skill.id })),
@@ -180,7 +180,10 @@ test('timeline labels the executed skill variant while preserving the saved comm
     alternateWeapons: []
   };
   for (const skill of [traited, base]) {
-    const results = { duration: 1, steps: [{ ri: 0, skillId: skill.id, skill: skill.name, start: 0, end: 1000 }] };
+    const results = {
+      duration: 1,
+      steps: [{ rotationCommandIndex: 0, skillId: skill.id, skillName: skill.name, start: 0, end: 1000 }]
+    };
     const html = timelineRowsView(
       app,
       build,
@@ -304,8 +307,12 @@ test('timeline reconciliation preserves its scroll position while replacing rows
 });
 
 test('timeline timings use only results produced for the current build revision', () => {
-  const staleResults = { steps: [{ ri: 0, skill: 'Negative Bash', start: 0, end: 0, fullCastMs: 0 }] };
-  const currentResults = { steps: [{ ri: 0, skill: 'Negative Bash', start: 0, end: 640, fullCastMs: 640 }] };
+  const staleResults = {
+    steps: [{ rotationCommandIndex: 0, skillName: 'Negative Bash', start: 0, end: 0, fullCastMs: 0 }]
+  };
+  const currentResults = {
+    steps: [{ rotationCommandIndex: 0, skillName: 'Negative Bash', start: 0, end: 640, fullCastMs: 640 }]
+  };
 
   assert.equal(
     currentTimelineResults({ buildRevision: 2, resultRevision: 1, results: staleResults }),

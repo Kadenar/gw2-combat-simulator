@@ -1,7 +1,9 @@
 import {
   profileFact,
   simulationEffectFacts,
+  tooltipAttributeConversion,
   tooltipPercent,
+  tooltipPercentValue,
   tooltipProfile,
   tooltipSeconds,
   traitSkillTooltip,
@@ -24,18 +26,19 @@ export const warriorArmsTooltips = {
     ]
   ),
   [TRAIT.BLOODLUST]: traitTooltip('Eligible critical hits can inflict bleeding. Bleeding lasts longer.', [
-    ['procChance', 'Chance on critical hit', tooltipPercent]
+    ['procChance', 'Chance on critical hit', tooltipPercentValue]
   ]),
-  [TRAIT.WOUNDING_PRECISION]: traitTooltip('Gain expertise from eligible precision.', [
-    ['attributeConversion', 'Eligible precision converted to expertise', tooltipPercent]
-  ]),
+  [TRAIT.WOUNDING_PRECISION]: traitTooltip(
+    'Gain expertise based on precision. Bonuses from other attribute conversions do not count.',
+    [['attributeConversion', 'Expertise gained from precision', tooltipAttributeConversion]]
+  ),
   [TRAIT.SIGNET_MASTERY]: traitSkillTooltip(
     [ID.LESSER_SIGNET_OF_MIGHT],
     'Activating signets grants stacking ferocity. Striking below the target health threshold invokes Lesser Signet of Might.',
     [
       ['attributePerStack', 'Ferocity per stack'],
       ['maximumStacks', 'Maximum stacks'],
-      ['threshold', 'Target health below', tooltipPercent]
+      ['threshold', 'Target health below', tooltipPercentValue]
     ]
   ),
   [TRAIT.OPPORTUNIST]: traitTooltip('Player control or immobilize applications grant adrenaline and fury.', [
@@ -76,6 +79,6 @@ export const warriorArmsTooltips = {
     ['maximumStacks', 'Maximum stacks']
   ]),
   [TRAIT.DUAL_WIELDING]: traitTooltip(
-    'Skills with measured Dual Wielding timings cast faster while using an eligible offhand weapon.'
+    'Attack faster while wielding an axe, dagger, mace, or sword in your off hand. In this simulator, the speed increase applies only to skills with recorded Dual Wielding timings.'
   )
 } satisfies NonNullable<ProfessionTooltips['traits']>;

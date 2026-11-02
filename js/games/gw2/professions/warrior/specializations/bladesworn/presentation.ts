@@ -21,7 +21,7 @@ import {
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import { maximumDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
-import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
+import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
 const DRAGON_SLASH_SKILLS = Object.freeze([ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH]);
@@ -185,7 +185,9 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
   chargeReleaseProjection: dragonChargeReleaseProjection,
   // Describe recorded charge outcomes without recalculating Flow gain or the charging cadence.
   timelineAnnotation: ({ skill, entry, spend, formattedTime }) => {
-    if (!skill?.dragonSlash || entry?.type !== 'cast') return null;
+    const warriorSkill: WarriorSkill | undefined = skill;
+
+    if (!warriorSkill?.dragonSlash || entry?.type !== 'cast') return null;
 
     const outcome = spend?.resource === 'dragon charges' ? spend : undefined;
     const requested = entry.releaseAtCharges ?? outcome?.maximumCharges;

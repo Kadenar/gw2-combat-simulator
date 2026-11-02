@@ -28,6 +28,139 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
+// Resource descriptions depend on the build, so changing elite specializations must invalidate cached skill cards.
+test('Mesmer skill tooltip resources follow specialization changes through the adapter cache', async () => {
+  const { mesmerAppAdapter } = await import('#gw2/professions/mesmer/app/app-definition.js');
+  const { mesmerProfession } = await import('#gw2/professions/mesmer/profession.js');
+  const { MESMER_SKILL_IDS: skills } = await import('#gw2/professions/mesmer/data/ids.js');
+  const patch = withPatchPreview(mesmerProfession, null).resolvePatch();
+  for (const [specialization, resource] of [
+    ['Virtuoso', 'blades'],
+    ['Troubadour', 'notes'],
+    ['Core', 'clones'],
+    ['Virtuoso', 'blades']
+  ]) {
+    const build = { specializations: specialization === 'Core' ? [] : [{ name: specialization, traits: '1-1-1' }] };
+    for (const id of [skills.PHANTASMAL_BERSERKER, skills.SIGNET_OF_ILLUSIONS]) {
+      const model = mesmerAppAdapter.skillTooltip(patch.balanceContext.catalog.skillsById.get(id), patch, build);
+      assert.match(model.description, new RegExp(`generate ${resource}`, 'i'));
+      for (const other of ['clones', 'blades', 'notes'].filter((name) => name !== resource))
+        assert.doesNotMatch(model.description, new RegExp(`generate ${other}`, 'i'));
+    }
+  }
+});
+
+// Patched absolute rates keep percentage units without borrowing the sign used for additive bonuses.
+test('trait tooltip rates distinguish conversions, thresholds, and chances from bonuses', async () => {
+  const { guardianProfession } = await import('#gw2/professions/guardian/profession.js');
+  const { guardianTooltips } = await import('#gw2/professions/guardian/app/tooltips.js');
+  const { GUARDIAN_TRAIT_IDS: guardianTraits } = await import('#gw2/professions/guardian/data/ids.js');
+  const { warriorProfession } = await import('#gw2/professions/warrior/profession.js');
+  const { warriorTooltips } = await import('#gw2/professions/warrior/app/tooltips.js');
+  const { WARRIOR_TRAIT_IDS: warriorTraits } = await import('#gw2/professions/warrior/data/ids.js');
+  const patch = {
+    id: 'tooltip-rates',
+    label: 'Tooltip rates',
+    professions: {
+      guardian: {
+        balanceProfiles: {
+          [guardianTraits.POWER_OF_THE_VIRTUOUS]: { fields: { attributeConversion: 0.125 } }
+        }
+      },
+      warrior: {
+        balanceProfiles: {
+          [warriorTraits.SIGNET_MASTERY]: { fields: { threshold: 0.45 } },
+          [warriorTraits.BLOODLUST]: { fields: { procChance: 0.27 } }
+        }
+      }
+    }
+  };
+  for (const [profession, tooltips, id, label, value] of [
+    [
+      guardianProfession,
+      guardianTooltips,
+      guardianTraits.POWER_OF_THE_VIRTUOUS,
+      'Condition damage gained from vitality',
+      '12.5% (source attribute unchanged)'
+    ],
+    [warriorProfession, warriorTooltips, warriorTraits.SIGNET_MASTERY, 'Target health below', '45%'],
+    [warriorProfession, warriorTooltips, warriorTraits.BLOODLUST, 'Chance on critical hit', '27%']
+  ]) {
+    const context = withPatchPreview(profession, patch).resolvePatch({ id: patch.id }).balanceContext;
+    const tooltip = describeSimulationTrait(context, { id }, tooltips);
+    assert.equal(tooltip.facts.find(({ name }) => name === label)?.detail, value);
+  }
+});
+
+// Specialization-specific facts must read the correct skill or trait and omit bonuses for another specialization.
+test('Mesmer trait tooltips select the active shatter names and balance sources', async () => {
+  const { mesmerProfession } = await import('#gw2/professions/mesmer/profession.js');
+  const { mesmerTooltips } = await import('#gw2/professions/mesmer/app/tooltips.js');
+  const { MESMER_TRAIT_IDS: traits, MESMER_SKILL_IDS: skills } = await import('#gw2/professions/mesmer/data/ids.js');
+  const context = withPatchPreview(mesmerProfession, {
+    id: 'shatter-tooltip',
+    label: 'Shatter tooltip',
+    professions: {
+      mesmer: {
+        balanceProfiles: { [traits.CRY_OF_PAIN]: { fields: { additionalStacks: 3 } } },
+        skills: { [skills.FLUSTERING_FLUTE]: { fields: { cryOfPainAdditionalStacks: 4 } } }
+      }
+    }
+  }).resolvePatch({ id: 'shatter-tooltip' }).balanceContext;
+  for (const [specialization, name, stacks] of [
+    ['Core', 'Cry of Frustration', '3'],
+    ['Chronomancer', 'Rewinder', '3'],
+    ['Virtuoso', 'Bladesong Sorrow', '3'],
+    ['Troubadour', 'Flustering Flute', '4']
+  ]) {
+    const cry = describeSimulationTrait(context, { id: traits.CRY_OF_PAIN }, mesmerTooltips, specialization);
+    assert.ok(cry.description.includes(name));
+    assert.equal(cry.facts.find(({ name }) => name === 'Additional confusion stacks')?.detail, stacks);
+    const fragmentation = describeSimulationTrait(
+      context,
+      { id: traits.MASTER_OF_FRAGMENTATION },
+      mesmerTooltips,
+      specialization
+    );
+    assert.equal(
+      fragmentation.facts.some(({ name }) => name.includes('Continuum Split')),
+      specialization === 'Chronomancer'
+    );
+    assert.equal(
+      fragmentation.facts.some(({ name }) => name.includes('Crescendo')),
+      specialization === 'Troubadour'
+    );
+    assert.equal(
+      fragmentation.facts.some(({ name }) => name === 'Weakness'),
+      specialization === 'Troubadour'
+    );
+  }
+
+  const withoutCripple = withPatchPreview(mesmerProfession, {
+    id: 'remove-shatter-cripple',
+    label: 'Remove shatter cripple',
+    professions: {
+      mesmer: {
+        balanceProfiles: {
+          [traits.MASTER_OF_FRAGMENTATION]: { removeEffects: [{ type: 'condition', name: 'Crippled' }] }
+        }
+      }
+    }
+  }).resolvePatch({ id: 'remove-shatter-cripple' }).balanceContext;
+  for (const specialization of ['Core', 'Troubadour']) {
+    const tooltip = describeSimulationTrait(
+      withoutCripple,
+      { id: traits.MASTER_OF_FRAGMENTATION },
+      mesmerTooltips,
+      specialization
+    );
+    const conditions = tooltip.facts.filter(({ name }) => name === 'Crippled' || name === 'Weakness');
+    assert.equal(conditions.length, specialization === 'Troubadour' ? 1 : 0);
+
+    if (conditions.length) assert.match(conditions[0].detail, /Deafening Drum hit/);
+  }
+});
+
 // Removing any spirit strike must leave surviving summon and coordinated attacks in their original tooltip groups.
 test('Ritualist tooltip packet roles survive canonical skill and action removals', () => {
   const base = withPatchPreview(necromancerProfession, null).resolvePatch().balanceContext;
@@ -300,7 +433,7 @@ test('Revenant trait tooltips show bonuses, resource icons, and excluded traits'
   }
 
   const excluded = describe(traits.CONTAINED_TEMPER);
-  assert.match(excluded.description, /outside the simulator's scope/);
+  assert.match(excluded.description, /no simulated effect/);
   assert.deepEqual(excluded.facts, []);
 });
 
@@ -579,13 +712,11 @@ test('tooltip construction rejects missing inputs and ignores external fact stri
   const skill = {
     id: 'example',
     name: 'Example',
-    description: 'Incorrect reference text',
     tooltipFacts: [{ name: 'Damage', detail: '999%' }],
     effects: [{ type: 'condition', condition: 'Torment', stacks: 1, duration: 3 }]
   };
   const model = describeSimulationSkill(context, skill, necromancerTooltips);
   assert.ok(!JSON.stringify(model).includes('999'));
-  assert.ok(!model.description.includes('Incorrect'));
   assert.throws(() => tooltipNumber({ amount: () => 1 }, 'amount'), /Invalid tooltip number/);
   assert.throws(() => tooltipNumber({ amount: null }, 'amount'), /Invalid tooltip number/);
   assert.equal(tooltipNumber({ amount: 0 }, 'amount'), 0);

@@ -6,6 +6,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
@@ -25,7 +26,6 @@ const simulate = createObservedProfessionSimulator(necromancerProfession, {
   }),
   target: { armor: 2597, health: 1000000000, conditions: {} }
 });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Landing owns every mark packet; cancellation, trait selection, and combat state gate the proc.
 test('Mark of Evasion triggers at dodge completion with bleeding and party regeneration', () => {

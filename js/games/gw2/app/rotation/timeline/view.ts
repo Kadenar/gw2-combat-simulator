@@ -67,21 +67,27 @@ export function authoredStepIndexesAtPreviewTime(
   if (!result || previewTimeMs == null) return [];
 
   const schedulerTimeMs = rotationPreviewSchedulerTimeMs(result, previewTimeMs);
-  const authored = (result.steps || []).filter((step) => Number(step.ri) >= 0 && !step.invalid);
+  const authored = (result.steps || []).filter((step) => Number(step.rotationCommandIndex) >= 0 && !step.invalid);
   const active = authored.filter((step) => {
     const start = Number(step.start || 0);
     const end = Math.max(start, Number(step.end ?? step.start ?? 0));
     return start <= schedulerTimeMs && schedulerTimeMs <= end;
   });
 
-  if (active.length) return [...new Set(active.map((step) => Number(step.ri)))];
+  if (active.length) return [...new Set(active.map((step) => Number(step.rotationCommandIndex)))];
 
   const latestStart = Math.max(
     ...authored.filter((step) => Number(step.start || 0) <= schedulerTimeMs).map((step) => Number(step.start || 0)),
     -Infinity
   );
   return Number.isFinite(latestStart)
-    ? [...new Set(authored.filter((step) => Number(step.start || 0) === latestStart).map((step) => Number(step.ri)))]
+    ? [
+        ...new Set(
+          authored
+            .filter((step) => Number(step.start || 0) === latestStart)
+            .map((step) => Number(step.rotationCommandIndex))
+        )
+      ]
     : [];
 }
 

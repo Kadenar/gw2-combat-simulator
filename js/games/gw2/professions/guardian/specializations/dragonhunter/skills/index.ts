@@ -4,17 +4,16 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { triggeredVirtueEffects } from '#gw2/professions/guardian/core/skills/virtue-payloads.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import { soaringDevastationEffects } from '#gw2/professions/guardian/specializations/dragonhunter/traits/behavior.js';
+import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 /**
  * Owns Dragonhunter virtue and trap skill definitions.
  * Runtime virtue and trap behavior remains under `mechanics/` and `execution/virtues.ts`.
  */
 
-export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<GuardianSkill>>> = {
   [ID.SPEAR_OF_JUSTICE]: {
     name: 'Spear of Justice',
-    description:
-      'Virtue. Burn foes every few attacks.\nActivate: Hurl a spear of light that passes through foes. Enemies struck become tethered and receive conditions periodically.',
     icon: 'https://render.guildwars2.com/file/05BF0016EC3AF1EE01F6C405C3BB01EE6CAAE095/1012863.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -60,7 +59,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
             packets: 'each',
             when: (_runtime, { event, details }) =>
               Number(event.coefficient) > 0 && Number(details.hitContext?.damage) > 0,
-            do: { type: 'guardian.attach-tether' }
+            do: [{ type: 'guardian.attach-tether' }]
           }
         ],
         coefficient: 0.8,
@@ -76,8 +75,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.PURIFICATION]: {
     name: 'Purification',
-    description:
-      'Trap. Heal yourself and imbue your light into a trap. Enemies that trigger this trap are damaged and blinded as the light returns to you for a second heal.',
     icon: 'https://render.guildwars2.com/file/07382144AF0B367539A7EF6AD61D7DCCA26759AC/1012868.png',
     type: 'Heal',
     slot: 'Heal',
@@ -101,7 +98,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.SHIELD_OF_COURAGE]: {
     name: 'Shield of Courage',
-    description: 'Virtue. Grant aegis and block attacks in front of you.',
     icon: 'https://render.guildwars2.com/file/09DE3F47930AFF2B2B3F4C20A401DCA9DC7344CC/1012865.png',
     type: 'Profession',
     slot: 'Profession_3',
@@ -126,7 +122,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.WINGS_OF_RESOLVE]: {
     name: 'Wings of Resolve',
-    description: 'Virtue. Dart forward and heal allies near your destination.',
     icon: 'https://render.guildwars2.com/file/A054A5300BF26FBAA601611BDA07B6001830FF92/1012864.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -139,7 +134,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.DRAGONS_MAW]: {
     name: "Dragon's Maw",
-    description: 'Trap. Lay a trap that pulls enemies and creates a barrier that holds them in.',
     icon: 'https://render.guildwars2.com/file/71FF4F27E1404DAD3EB1A63A4214A9797F740810/1024103.png',
     type: 'Elite',
     slot: 'Elite',
@@ -179,7 +173,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.PROCESSION_OF_BLADES]: {
     name: 'Procession of Blades',
-    description: 'Trap. Set a trap that whirls around and damages enemies when activated.',
     icon: 'https://render.guildwars2.com/file/D891D0C60ED609CB5C65ECFED69D3FFF077FD3E4/1012878.png',
     type: 'Utility',
     slot: 'Utility',
@@ -201,8 +194,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.FRAGMENTS_OF_FAITH]: {
     name: 'Fragments of Faith',
-    description:
-      "Trap. Lay a trap that deals damage and unleashes multiple fragments into the area when triggered. Each fragment grants aegis to allies, as long as they don't already have aegis.",
     icon: 'https://render.guildwars2.com/file/32106907940C3F0AB9E771C014BF59D4DE285241/1012877.png',
     type: 'Utility',
     slot: 'Utility',
@@ -219,8 +210,6 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.HUNTERS_VERDICT]: {
     name: "Hunter's Verdict",
-    description:
-      "Pull all enemies tethered by the Spear of Justice to you, breaking the link. This ability's recharge is separate from that of Spear of Justice.",
     icon: 'https://render.guildwars2.com/file/02C8A032F60414D0FAB7D0AFD965B5BA0947D6F8/103703.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -235,4 +224,4 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     // Only a committed verdict breaks the live tether.
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.break-tether' } }]
   }
-});
+};

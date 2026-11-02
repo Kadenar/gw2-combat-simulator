@@ -13,7 +13,7 @@ export function engineerCoreCastAvailability(
   context: MechanicQueriesOf<EngineerRuntime>,
   skill: EngineerSkill
 ): AvailabilityResult {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const spear = engineerSpearAvailability(context, skill);
 
   if (!spear.ready) return spear;

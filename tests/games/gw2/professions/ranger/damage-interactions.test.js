@@ -15,6 +15,7 @@ import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { wait } from '#tests/helpers/commands.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -27,9 +28,25 @@ const simulate = createObservedProfessionSimulator(rangerProfession, {
   attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0 }),
   target: { armor: 2597 }
 });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const hits = (result, skillId) =>
   result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === skillId);
+
+test('One Wolf Pack only echoes trap damage inside its resolved stance window', () => {
+  // A trap already pulsing during the stance animation must wait for the buff before it can create an echo.
+  const result = simulate('Soulbeast', [
+    ID.FROST_TRAP,
+    { type: 'cast', skillId: ID.ONE_WOLF_PACK, concurrentOffsetMs: 800 },
+    { type: 'wait', durationMs: 6500 }
+  ]);
+  assert.deepEqual(result.warnings, []);
+  const stance = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === 'one-wolf-pack');
+  const trapHits = hits(result, ID.FROST_TRAP);
+  const echoes = hits(result, ID.ONE_WOLF_PACK);
+  assert.ok(trapHits.some((event) => event.at < stance.at));
+  assert.ok(echoes.length > 0);
+  assert.ok(echoes.every((event) => event.at > stance.at));
+  assert.equal(echoes.length, trapHits.filter((event) => event.at >= stance.at).length);
+});
 
 test('Core damage reactions preserve trait and skill ordering without spending charges on excluded hits', () => {
   // One trap activation exercises interleaved procs and independent one-use versus per-hit state.
@@ -199,10 +216,11 @@ test('Leader of the Pack shares half the extended stance window with independent
       const times = procs
         .filter((event) => event.metadata.triggeredByAlly === allyIndex)
         .map((event) => Number((event.at - shared.at - delay).toFixed(6)));
-      // Four attacks per second continue through blocked opportunities without advancing the stance ICD.
-      const expected = Array.from(
-        { length: Math.floor((shared.duration - 0.25) / procInterval) + 1 },
-        (_, i) => 0.25 + i * procInterval
+      // Allied attacks retain the combat clock's cadence when a stance activates between attacks.
+      const firstAttack = (Math.floor(shared.at / 0.25) + 1) * 0.25;
+      const firstOffset = firstAttack - shared.at;
+      const expected = Array.from({ length: Math.floor((shared.duration - firstOffset) / procInterval) + 1 }, (_, i) =>
+        Number((firstOffset + i * procInterval).toFixed(6))
       );
       assert.deepEqual(times, expected);
     }
@@ -270,7 +288,12 @@ test('precast shared stances start allied attacks in combat without extending ex
 
 test('shared One Wolf Pack preserves personal triggers and resolves echoes after the shared window expires', () => {
   // The allied hit lands at shared expiry; its delayed echo must survive without consuming the player's ICD.
-  const config = { selectedTraitIds: [TRAIT.LEADER_OF_THE_PACK], allies: { count: 1, strikesPerSecond: 1 / 3.6 } };
+  const activationDelay = rangerCatalog.skillsById.get(ID.ONE_WOLF_PACK).interruptCommitMs / 1000;
+  const config = {
+    selectedTraitIds: [TRAIT.LEADER_OF_THE_PACK],
+    // Place the independent allied attack at the shared expiry, regardless of the stance's activation offset.
+    allies: { count: 1, strikesPerSecond: 1 / (activationDelay + 3.6) }
+  };
   const rotation = [ID.ONE_WOLF_PACK, ID.FROST_TRAP, wait(8000)];
   const shared = simulate('Soulbeast', rotation, config);
   const solo = simulate('Soulbeast', rotation, { ...config, allies: { count: 0 } });
@@ -336,16 +359,19 @@ test('Path of Scars variants share one row and chart series with both casts coun
   assert.ok(Math.abs(rows[0].dct - rows[0].total / castTime) < 1e-6);
 });
 
-test('Brutal Charge activates Claw on delayed contact rather than its queued activation', () => {
-  const rotation = [ID.BRUTAL_CHARGE_ID_46432, ID.DRAKES_SWIPE, wait(1500)];
+test('Brutal Charge activates Claw on contact for subsequent attacks', () => {
+  // Attacks before and after the charge distinguish the impact-triggered bonus from an always-active modifier.
+  const rotation = [ID.DRAKES_SWIPE, ID.BRUTAL_CHARGE_ID_46432, ID.DRAKES_SWIPE];
   const result = simulate('Soulbeast', rotation, { relic: 'Claw' });
   const baseline = simulate('Soulbeast', rotation, { relic: '' });
   const charge = hits(result, ID.BRUTAL_CHARGE_ID_46432)[0];
-  const swipe = hits(result, ID.DRAKES_SWIPE)[0];
+  const [before, after] = hits(result, ID.DRAKES_SWIPE);
+  const baselineSwipes = hits(baseline, ID.DRAKES_SWIPE);
   const proc = result.procSteps.find((event) => event.skill === 'Relic of the Claw');
   assert.deepEqual(result.warnings, []);
-  assert.ok(swipe.at < charge.at);
-  assert.equal(swipe.damage, hits(baseline, ID.DRAKES_SWIPE)[0].damage);
+  assert.ok(before.at < charge.at && after.at > charge.at);
+  assert.equal(before.damage, baselineSwipes[0].damage);
+  assert.ok(after.damage > baselineSwipes[1].damage);
   assert.equal(proc.start, Math.round(charge.at * 1000));
 });
 
@@ -364,7 +390,7 @@ test('Path of Scars activates Claw on the returning contact after a weapon swap'
     const returning = contacts.find((event) => event.hitIndex === 2);
     const pull = result.events.find((event) => event.type === 'control' && event.skillId === skillId);
     const proc = result.procSteps.find((event) => event.skill === 'Relic of the Claw');
-    const swap = result.steps.find((step) => step.skill === 'Swap Weapons');
+    const swap = result.steps.find((step) => step.skillName === 'Swap Weapons');
     const cast = result.steps.find((step) => step.skillId === skillId);
 
     assert.deepEqual(result.warnings, []);

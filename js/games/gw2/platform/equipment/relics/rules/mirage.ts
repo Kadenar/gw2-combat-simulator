@@ -1,9 +1,9 @@
 /** Mirage relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
@@ -26,15 +26,9 @@ export const mirage = defineRelic({
   },
   condition(ctx, _state, application) {
     if (application.sourceId === `relic.${RELIC_IDS.MIRAGE}`) {
-      ctx.effects.emit({
-        kind: 'announcement',
-        announcement: {
-          type: 'relic',
-          name: 'Relic of the Mirage',
-          at: application.at,
-          sourceSkill: application.triggeredBy,
-          detail: '2 Torment for 6s'
-        }
+      announceRelic(ctx, application, 'Relic of the Mirage', {
+        sourceSkill: application.triggeredBy,
+        detail: '2 Torment for 6s'
       });
     }
   }
@@ -47,13 +41,10 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, dodge: S
     event: {
       type: 'condition',
       at: dodge.at,
-      source: 'Relic',
-      sourceId: `relic.${RELIC_IDS.MIRAGE}`,
-      actorType: ACTOR.EFFECT,
-      ownerActorType: ACTOR.PLAYER,
+      ...playerOwnedRelicSource(RELIC_IDS.MIRAGE),
       triggeredBy: dodge.skillName,
       skillName: 'Relic of the Mirage',
-      name: 'Relic of the Mirage ? Torment',
+      name: 'Relic of the Mirage — Torment',
       condition: CONDITION.TORMENT,
       stacks: 2,
       duration: 6

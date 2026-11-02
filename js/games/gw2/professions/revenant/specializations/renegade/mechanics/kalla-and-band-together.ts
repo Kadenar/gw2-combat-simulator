@@ -39,7 +39,7 @@ export function grantKallasFervor(
   runtime: RevenantRuntime,
   { sourceId, sourceName, cause = null }: { sourceId: SkillId; sourceName: string; cause?: Gw2ResolverEvent | null }
 ): void {
-  const state = renegadeState.from(runtime);
+  const state = renegadeState.from(runtime.profession);
   const profile = fervorProfile(runtime);
   const effect = requireEffect(profile, 'buff', 'kallas-fervor');
 

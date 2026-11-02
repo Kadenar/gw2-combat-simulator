@@ -25,7 +25,7 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   /** Seed non-expiring Combat High stacks for an isolated damage occurrence. */
   prepareDamageState(runtime, _skill, inputs) {
     // Artifact use can buff ordinary attacks independently of Combat High.
-    antiquaryState.from(runtime).antiquaryDamageUntil = inputs.artifactMomentum ? Infinity : 0;
+    antiquaryState.from(runtime.profession).antiquaryDamageUntil = inputs.artifactMomentum ? Infinity : 0;
 
     if (!hasTrait(runtime, TRAIT.COMBAT_HIGH)) return;
 
@@ -35,7 +35,7 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     if (!Number.isInteger(stacks) || stacks < 0 || stacks > maximum)
       throw new RangeError('Combat High exceeds the selected build maximum.');
 
-    antiquaryState.from(runtime).combatHighExpirations = Array(stacks).fill(Infinity);
+    antiquaryState.from(runtime.profession).combatHighExpirations = Array(stacks).fill(Infinity);
   },
   // A pre-steal supplies Swipe's inventory before setup while leaving cooldowns and temporary buffs untouched.
   initialize(runtime) {
@@ -48,7 +48,7 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   reserveRecharge(runtime, skill, work) {
     if (skill.type !== 'Utility') return work;
 
-    const state = antiquaryState.from(runtime);
+    const state = antiquaryState.from(runtime.profession);
     const { expiries, consumed } = consumeOldestStacks(state.holoUtilityCooldownReductionExpirations, 1, runtime.time);
     state.holoUtilityCooldownReductionExpirations = expiries;
     return consumed > 0 ? work * skillNumberFromContext(runtime, ID.HOLO_DANCER_DECOY, 'rechargeMultiplier') : work;

@@ -3,6 +3,7 @@ import { activeChargeCount, grantCharges, type ChargeGrant } from '#gw2/platform
 import { gw2AlliedEffectRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
+import { type StatusEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -53,7 +54,7 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   )
     return;
 
-  const state = ritualistState.from(runtime);
+  const state = ritualistState.from(runtime.profession);
   const profile = requireSkillFromContext(runtime, painfulBondSkill.id);
   const buff = requireEffect(profile, 'buff', 'necromancer-painful-bond');
 
@@ -97,24 +98,24 @@ function grantWeaponSpell(
   cast: RuntimeCast<NecromancerSkill>,
   spell: 'nightmare' | 'splinter' | 'resilient'
 ): void {
-  const effect = cast.skill.effects?.find((effect) => effect.type === 'buff');
+  const effect = cast.skill.effects?.find((effect): effect is StatusEffect => effect.type === 'buff');
 
   if (!effect) return;
 
-  const state = ritualistState.from(runtime);
+  const state = ritualistState.from(runtime.profession);
   const previous = state.weaponSpells[spell];
 
   if (previous) runtime.cancelOwner(owner(spell, previous.generation));
 
   const generation = ++state.weaponSpellGeneration;
-  const expiresAt = canonicalTime(runtime.time + Number(effect.duration ?? 0));
+  const expiresAt = canonicalTime(runtime.time + effect.duration);
   const allyStacks = wieldersBoonCharges(runtime, effect);
   const audience = gw2AlliedEffectRecipients(runtime.config, {
     ...effect.audience,
     recipients: RECIPIENT.PARTY,
     eligibleCompanionIds: necromancerActiveMinionCompanionIds(runtime)
   });
-  const recipients: Record<string, ChargeGrant> = { player: grantCharges(Number(effect.stacks ?? 0), expiresAt) };
+  const recipients: Record<string, ChargeGrant> = { player: grantCharges(effect.stacks ?? 0, expiresAt) };
   for (const key of audience.companionIds) recipients[key] = grantCharges(allyStacks, expiresAt);
 
   // Defensive grants retain allied effect windows independently of the party's offensive strike cadence.
@@ -140,8 +141,8 @@ function grantWeaponSpell(
       skillName: cast.skill.name,
       activationId: cast.id,
       kind: String(effect.kind),
-      duration: Number(effect.duration ?? 0),
-      stacks: Number(effect.stacks ?? 0),
+      duration: effect.duration,
+      stacks: effect.stacks ?? 0,
       resolvedAudience: audience
     }
   });
@@ -158,7 +159,7 @@ function grantAlliedWeaponSpell(
   charges: number,
   expiresAt: number
 ): void {
-  const active = ritualistState.from(runtime).weaponSpells[spell];
+  const active = ritualistState.from(runtime.profession).weaponSpells[spell];
   runtime.alliedStrikes.registerRecipients(
     (allyIndex) => {
       // Create native charges only after the controller accepts a recipient with a live strike cadence.
@@ -167,7 +168,7 @@ function grantAlliedWeaponSpell(
         id: `ritualist.weapon-spell:${spell}:${allyIndex}`,
         // A replacement spell retires this registration; otherwise the ally's native grant answers liveness.
         isActive: (at) =>
-          ritualistState.from(runtime).weaponSpells[spell] === active &&
+          ritualistState.from(runtime.profession).weaponSpells[spell] === active &&
           activeChargeCount(active.recipients![`ally:${allyIndex}`], at) > 0,
         trigger(opportunity) {
           triggerRitualistWeaponSpell(
@@ -211,12 +212,12 @@ export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, Necroman
   tasks: {
     [EXPIRE](runtime, data) {
       const { spell, generation } = data as { spell: string; generation: number };
-      const state = ritualistState.from(runtime);
+      const state = ritualistState.from(runtime.profession);
 
       if (state.weaponSpells[spell]?.generation === generation) delete state.weaponSpells[spell];
     },
     [BOND](runtime, data) {
-      const state = ritualistState.from(runtime);
+      const state = ritualistState.from(runtime.profession);
 
       if (runtime.time >= bondExpiresAt(runtime) || runtime.deathTime != null) return;
 

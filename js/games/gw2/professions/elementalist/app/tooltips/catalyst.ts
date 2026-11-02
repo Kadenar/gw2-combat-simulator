@@ -45,7 +45,7 @@ export const catalystTooltips = {
       ]
     ),
     [ID.ELEMENTAL_CELERITY]: skillTooltip(
-      'Reset eligible weapon recharges in your primary attunement. Each authored boon requires its named Jade Sphere to remain active through completion.'
+      'Reset weapon cooldowns in your current attunement, restoring ammunition where applicable. Gain each listed boon if its matching Jade Sphere is still active when this cast finishes.'
     )
   },
   traits: {

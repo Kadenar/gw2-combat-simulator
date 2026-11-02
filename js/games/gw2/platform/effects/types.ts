@@ -12,20 +12,37 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
  * of runtime implementations.
  */
 
-export interface StrikeTick {
-  readonly atMs: number;
+/** Strike formula and ownership fields an effect declares once and an individual packet may override. */
+export interface StrikePacketFields {
   /** A packet can override the enclosing effect's combo finisher metadata. */
   readonly comboFinishers?: readonly OwnedComboDescriptor[];
   readonly projectile?: boolean;
-  readonly coefficient: number;
   readonly name?: string;
+  /** Optional row label separates an effect's damage while preserving its source skill. */
+  readonly damageBreakdownName?: string;
   readonly weaponStrength?: number;
   readonly independentSummonStrike?: boolean;
   readonly summonUsesProfessionModifiers?: boolean;
   readonly summonInheritsAttributes?: boolean;
   readonly summonInheritsCriticalAttributes?: boolean;
+  readonly flatDamage?: number;
+  readonly flatStrikeBase?: number;
+  readonly flatStrikePowerCoeff?: number;
+  readonly flatStrikeMultiplier?: number;
+  readonly flatStrikeHealthThreshold?: number;
+  readonly flatStrikeThresholdMultiplier?: number;
+  readonly canCrit?: boolean;
+  readonly forceCrit?: boolean;
+  readonly damageKind?: string;
   readonly metadata?: EffectMetadata;
-  readonly [field: string]: unknown;
+}
+
+export interface StrikeTick extends StrikePacketFields {
+  readonly atMs: number;
+  readonly coefficient: number;
+  readonly packetLabel?: string;
+  /** Attributes this packet to a different source skill than its parent effect. */
+  readonly sourceId?: SkillId;
 }
 
 export interface ConditionTick {
@@ -36,8 +53,8 @@ export interface ConditionTick {
   readonly duration: number;
   readonly damageKind?: string;
   readonly projectile?: boolean;
+  readonly packetLabel?: string;
   readonly metadata?: EffectMetadata;
-  readonly [field: string]: unknown;
 }
 
 /** Catalog effects are shared read-only declarations; runtime changes belong in derived packets. */
@@ -71,17 +88,32 @@ export interface SkillEffectBase {
   readonly metadata?: EffectMetadata;
   readonly comboFields?: readonly OwnedComboDescriptor[];
   readonly comboFinishers?: readonly OwnedComboDescriptor[];
-  readonly [field: string]: unknown;
+  /** Event-log label for this effect's packets, independent of the owning skill name. */
+  readonly packetLabel?: string;
+  /** Optional row label separates an effect's damage while preserving its source skill. */
+  readonly damageBreakdownName?: string;
+  /** `fixed` keeps repeated spacing on wall-clock time while the first packet follows `timingScale`. */
+  readonly intervalTimingScale?: 'cast' | 'fixed';
+  readonly damageKind?: string;
+  readonly projectile?: boolean;
+  /** Stacks granted to each ally recipient when it differs from the self grant. */
+  readonly allyStacks?: number;
+  /** Owner-scaled tuning read by the profession mechanic that consumes this effect. */
+  readonly damageIncreasePerStack?: number;
+  readonly damagePerCoefficient?: number;
+  readonly durationPerAffinity?: number;
+  readonly durationReductionPerAffinity?: number;
+  /** Selects one phantasm entity when a skill summons several. */
+  readonly phantasmEntityIndex?: number;
+  readonly skillWeapon?: string;
 }
 
-export interface StrikeEffect extends SkillEffectBase {
+export interface StrikeEffect extends SkillEffectBase, StrikePacketFields {
   readonly type: 'strike';
   /** Intrinsic bonuses apply to every strike packet from this effect, excluding sibling effects. */
   readonly modifiers?: readonly SkillDamageModifier[];
   /** Autonomous summon animation, excluding idle time, for recipient-specific attack scheduling. */
   readonly castTimeMs?: number;
-  /** Optional row label separates an effect's damage while preserving its source skill. */
-  readonly damageBreakdownName?: string;
   /** Aggregate coefficient; hits above one require one explicit shared atMs timestamp. */
   readonly coefficient?: number;
   readonly hits?: number;
@@ -91,19 +123,10 @@ export interface StrikeEffect extends SkillEffectBase {
   readonly intervalMs?: number;
   readonly coefficientModifiers?: DamageEvent['coefficientModifiers'];
   readonly weapon?: string;
-  readonly weaponStrength?: number;
   readonly weaponStrengthProfileId?: string;
   readonly weaponStrengthSource?: 'equipped';
-  readonly flatDamage?: number;
-  readonly flatStrikeBase?: number;
-  readonly flatStrikePowerCoeff?: number;
-  readonly flatStrikeMultiplier?: number;
-  readonly flatStrikeHealthThreshold?: number;
-  readonly flatStrikeThresholdMultiplier?: number;
-  readonly canCrit?: boolean;
-  readonly forceCrit?: boolean;
-  readonly damageKind?: string;
-  readonly projectile?: boolean;
+  /** Mechanic-owned busy window, such as a commanded summon's active attack. */
+  readonly duration?: number;
 }
 
 export interface ConditionEffect extends SkillEffectBase {
@@ -144,4 +167,9 @@ export interface StatusEffect extends SkillEffectBase {
   readonly kind?: string;
   readonly duration: number;
   readonly stacks?: number;
+}
+
+/** Explicit packet timelines belong only to strike and condition effects; other effects keep aggregate timing. */
+export function effectTicks(effect: SkillEffect): readonly (StrikeTick | ConditionTick)[] | undefined {
+  return effect.type === 'strike' || effect.type === 'condition' ? effect.ticks : undefined;
 }

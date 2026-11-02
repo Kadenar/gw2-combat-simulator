@@ -8,7 +8,7 @@ import type {
   SkillPatchEdit
 } from '#gw2/integrations/patches/authoring/patches.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { NumericFieldSpec } from '#gw2/platform/skills/field-specs.js';
+import type { FieldSpecs, NumericFieldSpec } from '#gw2/platform/skills/field-specs.js';
 import { SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
 
 // Presentation entries stay separate from the structured edits saved and consumed by the runtime.
@@ -29,7 +29,8 @@ export function numericFieldSpec(
   field: string,
   spec?: Pick<NumericFieldSpec, 'label' | 'unit'>
 ): Pick<NumericFieldSpec, 'label' | 'unit'> | undefined {
-  const shared = Object.hasOwn(SHARED_SKILL_FIELDS, field) ? SHARED_SKILL_FIELDS[field] : undefined;
+  const sharedFields: FieldSpecs = SHARED_SKILL_FIELDS;
+  const shared = Object.hasOwn(sharedFields, field) ? sharedFields[field] : undefined;
   return spec ?? (shared?.kind === 'number' ? shared : undefined);
 }
 
@@ -79,7 +80,8 @@ function effectTarget(patch: EffectPatch): string {
 
 /** Builds a short identity for effects added as complete authored payloads. */
 function effectIdentity(effect: Readonly<SkillEffect>): string {
-  const detail = effect.name || effect.condition || effect.boon || effect.kind;
+  const fields = effect as unknown as Readonly<Record<string, unknown>>;
+  const detail = effect.name || fields.condition || fields.boon || fields.kind;
   return `${effect.type}${detail ? ` ${String(detail)}` : ''}`;
 }
 

@@ -9,7 +9,7 @@ export function isAutoattackSkill(skill: Skill): boolean {
 }
 
 interface AutoattackChainState {
-  readonly [root: number]: SkillId | undefined;
+  readonly [rootSkillId: number]: SkillId | undefined;
 }
 
 interface ResolvedAutoattackChainStep {
@@ -45,9 +45,9 @@ export function indexAutoattackChains(chains: readonly (readonly SkillId[])[]): 
       positions.set(
         skillId,
         Object.freeze({
-          root: chain[0],
+          rootSkillId: chain[0],
           index,
-          next: chain[index + 1] ?? null
+          nextSkillId: chain[index + 1] ?? null
         })
       );
     });
@@ -71,7 +71,7 @@ export function resolveAutoattackChainStep(
 
   if (!position) return null;
 
-  const expectedSkillId = Number(chainState[position.root]) || position.root;
+  const expectedSkillId = Number(chainState[position.rootSkillId]) || position.rootSkillId;
   return {
     expectedSkillId,
     matchesExpectedStep: normalizedSkillId === expectedSkillId

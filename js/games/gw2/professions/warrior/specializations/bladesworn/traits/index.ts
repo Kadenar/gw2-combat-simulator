@@ -22,7 +22,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { dragonSlashRelease } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
@@ -230,7 +229,7 @@ const gunXSword = defineTrait({
 });
 
 /** Add the selected stun to the authored Dragon Slash release. */
-const unyieldingDragon = defineTrait({
+const unyieldingDragon = defineTrait<WarriorSkill>({
   id: TRAIT.UNYIELDING_DRAGON,
   hooks: {
     modifyEffects(runtime, cast, effects) {
@@ -270,7 +269,7 @@ export const warriorBladeswornTraits = [
 function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, trait: number): void {
   if (runtime.engagement.explicit && !runtime.engagement.active) return;
 
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
 
   if (!isInternalCooldownReady(runtime.time, runtime.procs.deadline('warrior.bladesworn.gunsaberSwapTrait'))) return;
 
@@ -416,12 +415,12 @@ function lushForestAmmo(
 ): void {
   if (!spent.startedFull || cast.skill.id === ID.ARTILLERY_SLASH) return;
 
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
   const weapons = new Set(
     gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1).filter(Boolean)
   );
   const selected = selectedSkillIdSet(runtime.config.selectedSkillIds);
-  const onBar = (skill: Skill) => {
+  const onBar = (skill: WarriorSkill) => {
     if (
       [ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER, ID.ARTILLERY_SLASH].some((id) => id === skill.id)
     )
@@ -468,7 +467,7 @@ function lushForestAmmo(
 
 /** Explosions extend the granted Glory window before cartridge reactions run. */
 function gunsAndGloryExplosion(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
   {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.GUNS_AND_GLORY);
     const duration = Math.min(

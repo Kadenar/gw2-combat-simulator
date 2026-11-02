@@ -19,7 +19,7 @@ export const virtuosoHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   resources: {
     blades: {
       kind: 'continuous',
-      state: (context) => virtuosoState.from(context).blades,
+      state: (context) => virtuosoState.from(context.profession).blades,
       maximum: (context) => mesmerResourceDefinition('Virtuoso', context).maximum,
       initial: (context, maximum) => boundedNumber(context.config.initialResource ?? 0, 0, 0, maximum),
       recovery: () => 0

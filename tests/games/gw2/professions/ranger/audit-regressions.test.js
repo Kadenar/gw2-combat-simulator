@@ -10,7 +10,7 @@ import {
 } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
@@ -31,7 +31,6 @@ const config = {
   target: { armor: 2597, defiant: true, conditions: {} }
 };
 const simulate = createObservedProfessionSimulator(rangerProfession, config);
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const copied = (result) =>
   result.events.filter((event) => event.type === 'buff' && event.skillId === ID.WE_HEAL_AS_ONE);
 
@@ -102,9 +101,6 @@ test('Resounding Timbre copies live boon pools and rejects other recipients and 
       boons: { protection: true }
     },
     {
-      extend: (native) => ({
-        catalog: withSkill(native.catalog, ID.SIC_EM, { description: 'Renamed command description.' })
-      }),
       initialize(runtime) {
         petId = rangerPetCompanionId(runtime);
         for (const [kind, duration, stacks, audience] of [

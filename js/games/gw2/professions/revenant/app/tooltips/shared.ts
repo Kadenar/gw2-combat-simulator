@@ -107,7 +107,7 @@ export const upkeepTooltip: DescribeSimulationTooltip = (balanceContext, entity)
   };
 };
 
-export const upkeepReleaseTooltip: DescribeSimulationTooltip = skillTooltip(
+export const upkeepReleaseTooltip: DescribeSimulationTooltip = skillTooltip<RevenantSkill>(
   "End the parent skill's upkeep and stop its recurring effects.",
   (balanceContext, entity) => {
     const parent = entity.flipParentId == null ? undefined : balanceContext.catalog.skillsById.get(entity.flipParentId);

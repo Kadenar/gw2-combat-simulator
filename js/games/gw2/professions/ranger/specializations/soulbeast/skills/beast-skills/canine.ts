@@ -5,11 +5,11 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
-export const SOULBEAST_CANINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const SOULBEAST_CANINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.BRUTAL_CHARGE]: {
     name: 'Brutal Charge',
-    description: 'Leap at your foe and knock them down.',
     icon: 'https://render.guildwars2.com/file/06614FF537DBD771DE67B341BA0CA565B24F0A67/103239.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -26,7 +26,6 @@ export const SOULBEAST_CANINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.CRIPPLING_LEAP]: {
     name: 'Crippling Leap',
-    description: 'Leap at your foe and cripple them.',
     icon: 'https://render.guildwars2.com/file/09990305A163E3BC2DF2E9D1D2BA93F2ECE8BA3E/103610.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -47,4 +46,4 @@ export const SOULBEAST_CANINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   }
-});
+};

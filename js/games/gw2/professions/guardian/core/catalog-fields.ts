@@ -1,10 +1,8 @@
-import { dataField, defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
+import { defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
 
 /** Intrinsic tuning belongs to the selected weapon or virtue; shared controllers consume these fields. */
 export const GUARDIAN_CORE_SKILL_FIELDS = defineFields(
   {
-    // The activation declares its virtue instead of inferring eligibility from its profession slot.
-    virtue: dataField,
     // Number of qualifying hits required by the untraited Justice passive.
     threshold: numberField({ patch: 'primary' }),
     illuminatedDamageMultiplier: numberField({ patch: 'primary' }),

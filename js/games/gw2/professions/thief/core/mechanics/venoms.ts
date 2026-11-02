@@ -86,7 +86,7 @@ function spendVenomCharge<T extends ChargeGrant>(batches: T[] | undefined, at: n
 export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefResolverEvent): number {
   if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return 0;
 
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   refreshVenomCharges(state, event.at);
   let procCount = 0;
   for (const venom of VENOMS) {

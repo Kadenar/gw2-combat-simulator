@@ -52,13 +52,13 @@ export class RelicComparisonRunner {
 
     if (
       results.relicComparison &&
-      (results.relicComparison.opponentRelic !== request.opponentRelic ||
+      (results.relicComparison.equippedRelic !== request.equippedRelic ||
         results.relicComparison.targetRelic !== request.comparisonRelic)
     ) {
       results.relicComparison = undefined;
     }
 
-    results.relicComparisonOpponent = request.opponentRelic;
+    results.relicComparisonOpponent = request.equippedRelic;
     results.relicComparisonTarget = request.comparisonRelic;
   }
 
@@ -83,13 +83,13 @@ export class RelicComparisonRunner {
 
     results.relicComparisonAvailable = true;
     results.relicComparisonError = '';
-    results.relicComparisonOpponent = request.opponentRelic;
+    results.relicComparisonOpponent = request.equippedRelic;
     results.relicComparisonTarget = request.comparisonRelic;
 
     // Finish this lightweight comparison on the calling thread, with no pending job or cloned baseline.
     try {
       results.relicComparison = calculateRelicComparison(
-        { ...request, opponentResult: results, initialStacks: this.initialStacks },
+        { ...request, baselineResult: results, initialStacks: this.initialStacks },
         app.profession
       );
     } catch (error) {

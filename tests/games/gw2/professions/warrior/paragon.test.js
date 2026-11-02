@@ -6,6 +6,8 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { paragonModule } from '#gw2/professions/warrior/specializations/paragon/module.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Exercise the registered family with one live Core and specialization owner.
@@ -24,7 +26,6 @@ function run(rotation, overrides = {}, source = warriorProfession, output = 'det
   return result;
 }
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const combat = { type: 'combat-start' };
 const state = (result) => observedRuntime(result).profession.specialization.state;
 const core = (result) => observedRuntime(result).profession.core;
@@ -76,7 +77,7 @@ test('Motivation policies initialize empty, cap fractional rewards, and isolate 
     const pool = state(result).motivation;
     assert.equal(pool.value, Math.min(maximumStacks, 6.5));
     assert.equal(pool.maximum, maximumStacks);
-    assert.equal(pool.rate, 0);
+    assert.equal(pool.unitsPerSecond, 0);
     assert.deepEqual(result.planningState.profession[STATE.MOTIVATION], pool);
     assert.notEqual(result.planningState.profession[STATE.MOTIVATION], pool);
     assert.equal(Object.hasOwn(state(result), 'maximumMotivation'), false);
@@ -309,7 +310,7 @@ test('burst-consumed echoes cancel their old wake and restart the remaining repe
   const consumed = run(prefix, config);
   assert.deepEqual(consumed.warnings, []);
   assert.equal(core(consumed).adrenaline.value, 10);
-  assert.equal(Object.values(state(consumed).commandEchoes)[0].remaining, 1);
+  assert.equal(Object.values(state(consumed).commandEchoes)[0].remainingEchoes, 1);
   // The former deadline lies before the rescheduled repeat; crossing it cannot deliver another grant.
   const oldWake = run([...prefix, wait(2900)], config);
   assert.equal(core(oldWake).adrenaline.value, 10);
@@ -317,7 +318,7 @@ test('burst-consumed echoes cancel their old wake and restart the remaining repe
   assert.equal(core(repeated).adrenaline.value, 20);
   assert.deepEqual(state(repeated).commandEchoes, {});
   const canceled = run(['"We Shall Return!"', { name: 'Chant of Action', interruptAfterMs: 1 }], config);
-  assert.equal(Object.values(state(canceled).commandEchoes)[0].remaining, 2);
+  assert.equal(Object.values(state(canceled).commandEchoes)[0].remainingEchoes, 2);
   assert.equal(core(canceled).adrenaline.value, 0);
 });
 
@@ -440,4 +441,56 @@ test('Action refrain reads patched Might and Enduring Refrain values', () => {
   const pulse = result.events.filter((event) => event.kind === 'might' && event.skillId === ID.CHANT_OF_ACTION).at(-1);
   assert.equal(pulse.stacks, 6);
   assert.equal(pulse.duration, 11);
+});
+
+// Refrain identity drives pulses and modifiers, while snapshots still expose a readable label.
+test('Paragon renamed refrains replace, project, exhaust, and recover from missing skills', () => {
+  // Renamed catalog entries and a removed pulse source exercise the actual refrain owner and public projection.
+  const run = (rotation, missing = false) => {
+    const config = {
+      specialization: 'Paragon',
+      initialResource: 30,
+      selectedTraitIds: [TRAIT.CALL_TO_ACTION, TRAIT.STRENGTHENING_STANZAS]
+    };
+    const profession = warriorProfession.runtimeFor(config);
+    const skillsById = new Map(profession.catalog.skillsById);
+    for (const id of [ID.CHANT_OF_ACTION, ID.CHANT_OF_FREEDOM])
+      skillsById.set(id, { ...skillsById.get(id), name: 'Renamed ' + id });
+    const catalog = { ...profession.catalog, skillsById };
+    return observeGw2Runtime({
+      profession: {
+        ...profession,
+        catalog,
+        onCastCommit(runtime, cast) {
+          profession.onCastCommit?.(runtime, cast);
+
+          if (missing && cast.skill.id === ID.CHANT_OF_FREEDOM) skillsById.delete(ID.CHANT_OF_FREEDOM);
+        }
+      },
+      config,
+      rotation
+    });
+  };
+
+  const combat = { type: 'combat-start' };
+  const action = run([combat]);
+  const freedom = run([combat, ID.CHANT_OF_FREEDOM]);
+  const rule = paragonModule.modifiers.modifierRules.find(({ id }) => id === 'warrior.strengthening-stanzas');
+  for (const [result, id, applies] of [
+    [action, ID.CHANT_OF_ACTION, true],
+    [freedom, ID.CHANT_OF_FREEDOM, false]
+  ]) {
+    assert.deepEqual(result.warnings, []);
+    const runtime = observedRuntime(result);
+    assert.equal(runtime.profession.specialization.state.activeRefrainId, id);
+    assert.equal(result.planningState.profession[STATE.ACTIVE_REFRAIN], 'Renamed ' + id);
+    assert.equal(rule.when({ config: runtime.config, runtime }), applies);
+  }
+
+  for (const missing of [false, true]) {
+    const result = run([combat, ID.CHANT_OF_FREEDOM, { type: 'wait', durationMs: 15000 }], missing);
+    assert.deepEqual(result.warnings, []);
+    assert.equal(observedRuntime(result).profession.specialization.state.activeRefrainId, null);
+    assert.equal(result.planningState.profession[STATE.ACTIVE_REFRAIN], '');
+  }
 });

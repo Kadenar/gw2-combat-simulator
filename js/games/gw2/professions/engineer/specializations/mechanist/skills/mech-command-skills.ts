@@ -6,10 +6,11 @@ import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/consta
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import type { MechanistSkill } from '#gw2/professions/engineer/specializations/mechanist/types.js';
 
 // F1-F3 commands execute on the mech's own serial cast lane so their animations
 // can overlap the engineer without allowing non-instant mech commands to overlap.
-function mechCommand(fragment: Partial<SkillDefinition>): Partial<SkillDefinition> {
+function mechCommand(fragment: Partial<SkillDefinition<MechanistSkill>>): Partial<SkillDefinition<MechanistSkill>> {
   const instant = (fragment.castTimeMs || 0) === 0 && fragment.quicknessCastTimeMs == null;
   return {
     ...fragment,
@@ -21,10 +22,9 @@ function mechCommand(fragment: Partial<SkillDefinition>): Partial<SkillDefinitio
 }
 
 /** Explicit base/Quickness pairs retain measured aftercasts, including commands that Quickness does not accelerate. */
-export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition>> = Object.freeze({
+export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<MechanistSkill>>> = {
   [ID.JADE_MORTAR]: {
     name: 'Jade Mortar',
-    description: 'Launch a powerful mortar attack at the target.',
     icon: 'https://render.guildwars2.com/file/BB3491B513007BC7109250054CC003B408E46D01/2503684.png',
     type: 'Profession',
     slot: 'Profession_3',
@@ -62,8 +62,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
   },
   [ID.BARRIER_BURST]: {
     name: 'Barrier Burst',
-    description:
-      'Pulse a barrier and boons to all nearby allies.\nThe mech does not count against the target count for this skill.',
     icon: 'https://render.guildwars2.com/file/BAF5BED745DABF5112014A7E2F5E29645FDBA6D3/2503685.png',
     type: 'Profession',
     slot: 'Profession_3',
@@ -110,7 +108,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
   },
   [ID.SPARK_REVOLVER]: {
     name: 'Spark Revolver',
-    description: 'Fire a rapid volley of jade energy bolts from both arms, piercing through all enemies.',
     icon: 'https://render.guildwars2.com/file/5F4E2699CF2750EA912E4D1303EB1EDF6AE30C3F/2503680.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -139,8 +136,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
   },
   [ID.SKY_CIRCUS]: {
     name: 'Sky Circus',
-    description:
-      'Your mech jets into the air and fires a missile at each nearby foe before crashing down and dealing additional damage to anything caught underfoot.',
     icon: 'https://render.guildwars2.com/file/F5B22BC2DCE815FD124A1B25646606633A68D1F5/2503686.png',
     type: 'Profession',
     slot: 'Profession_3',
@@ -173,8 +168,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
   },
   [ID.CRISIS_ZONE]: {
     name: 'Crisis Zone',
-    description:
-      'Your mech removes conditions, breaks stuns, and grants boons to itself and nearby allies.\nThe mech does not count against the target count for this skill.',
     icon: 'https://render.guildwars2.com/file/157891E17AB0EC5703BC5AF19F7A0E0CA27105A1/2503675.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -217,7 +210,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
   },
   [ID.ROLLING_SMASH]: {
     name: 'Rolling Smash',
-    description: 'Slam at the target with both cutters, inflicting severe bleeding to enemies in the area.',
     icon: 'https://render.guildwars2.com/file/043E0C37A34EB862D81B3902EC7660392FE9D922/2503678.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -248,7 +240,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
   },
   [ID.CORE_REACTOR_SHOT]: {
     name: 'Core Reactor Shot',
-    description: 'Charge up and then release a powerful ball of jade energy at your target that explodes on contact.',
     icon: 'https://render.guildwars2.com/file/7D28F26BB09378C256BAAE2F90DA1F3D6B5CCB71/2503683.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -278,8 +269,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
   },
   [ID.EXPLOSIVE_KNUCKLE]: {
     name: 'Explosive Knuckle',
-    description:
-      'Order your mech to dash at a target, punching with an explosive strike that weakens enemies near the point of impact.',
     icon: 'https://render.guildwars2.com/file/02DA2C9899B63DE522020824C67D05951F40CA4A/2503679.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -310,8 +299,6 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
   },
   [ID.DISCHARGE_ARRAY]: {
     name: 'Discharge Array',
-    description:
-      "Cycle energy into your mech's armor to turn it into a lightning rod. Jade energy strikes nearby foes and inflicts conditions on them.",
     icon: 'https://render.guildwars2.com/file/604109FCDFB65446F2274106E7C113F75B111345/2503681.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -361,4 +348,4 @@ export const MECHANIST_MECH_COMMAND_SKILL_MECHANICS: Readonly<Record<string, Ski
       ])
     })
   }
-});
+};

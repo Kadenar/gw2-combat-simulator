@@ -53,7 +53,7 @@ test('Binding Blade flips back when its ten-second tether expires', () => {
       tiles.map((skill) => skill.id),
       [expired ? parent.id : GUARDIAN_SKILL_IDS.PULL]
     );
-    assert.ok(result.planningState.cooldowns[parent.id].remaining > 0);
+    assert.ok(result.planningState.cooldownsBySkillId[parent.id].remainingMs > 0);
 
     const pull = createObservedProfessionSimulator(guardianProfession, settings)(undefined, [...rotation, 'Pull']);
     assert.equal(Boolean(pull.steps.at(-1).invalid), expired);
@@ -61,7 +61,10 @@ test('Binding Blade flips back when its ten-second tether expires', () => {
     if (expired) assert.match(pull.warnings.map(({ message }) => message).join(' '), /not currently armed/);
     else assert.deepEqual(pull.warnings, []);
 
-    assert.equal(pull.planningState.cooldowns[parent.id].readyAt, result.planningState.cooldowns[parent.id].readyAt);
+    assert.equal(
+      pull.planningState.cooldownsBySkillId[parent.id].readyAtMs,
+      result.planningState.cooldownsBySkillId[parent.id].readyAtMs
+    );
   }
 });
 
@@ -571,7 +574,7 @@ test('weapon swap ignores Alacrity and Relic of the Warrior reduces its recharge
       weaponSet2Primary: 'Scepter',
       ...extraConfig
     })(undefined, ['__combat_start', 'Swap Weapons', 'Swap Weapons'])
-      .steps.filter((step) => step.skill === 'Swap Weapons')
+      .steps.filter((step) => step.skillName === 'Swap Weapons')
       .map((step) => step.start);
 
   assert.deepEqual(swapStarts({ boons: { alacrity: true } }), [0, 10000]);
@@ -583,7 +586,15 @@ test('Guardian palettes keep inactive tome and forge skills visible', () => {
     specialization: 'Firebrand',
     professionState: {
       [STATE.ACTIVE_TOME]: '',
-      [STATE.TOME_PAGES]: { value: 5, maximum: 5, updatedAt: 0, rate: 0, interval: 8, amount: 1, nextAt: Infinity },
+      [STATE.TOME_PAGES]: {
+        value: 5,
+        maximum: 5,
+        updatedAt: 0,
+        unitsPerSecond: 0,
+        interval: 8,
+        unitsPerTick: 1,
+        nextAt: Infinity
+      },
       [STATE.RADIANT_FORGE]: false
     }
   };

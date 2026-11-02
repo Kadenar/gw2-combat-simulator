@@ -24,13 +24,13 @@ test('Catalyst initializes one detached clock with the selected cap and seed', (
         { catalog: (catalog) => withProfile(catalog, TRAIT.DEPTH_OF_ELEMENTS, { maximumStacks }) }
       );
       const runtime = observedRuntime(result);
-      const live = catalystState.from(runtime);
+      const live = catalystState.from(runtime.profession);
       const projected = result.planningState.profession;
       const expected = Math.min(maximumStacks, initialCatalystEnergy ?? maximumStacks);
       assert.deepEqual(result.warnings, []);
       assert.equal(runtime.resourceController.value('catalystEnergy'), expected);
       assert.equal(live.catalystEnergy.maximum, maximumStacks);
-      assert.equal(live.catalystEnergy.rate, 0);
+      assert.equal(live.catalystEnergy.unitsPerSecond, 0);
       assert.deepEqual(projected[STATE.CATALYST_ENERGY], live.catalystEnergy);
       assert.notEqual(projected[STATE.CATALYST_ENERGY], live.catalystEnergy);
       for (const state of [live, projected]) {
@@ -62,7 +62,7 @@ test('Catalyst deployment requires matching attunement and the selected fraction
       }
     );
     const runtime = observedRuntime(result);
-    const state = catalystState.from(runtime);
+    const state = catalystState.from(runtime.profession);
     assert.equal(state.catalystEnergy.value, accepted ? 0 : initialCatalystEnergy);
     assert.equal(state.sphereActiveUntil > 0, accepted);
     assert.equal(runtime.cooldownController.hasCooldown(sphere.id), accepted);
@@ -102,7 +102,7 @@ test('Catalyst hit rewards preserve eligibility, sphere suppression, and actual 
       {
         catalog: (catalog) => withProfile(catalog, TRAIT.DEPTH_OF_ELEMENTS, { resourceGain: 1.5 }),
         initialize(runtime) {
-          catalystState.from(runtime).sphereActiveUntil = sphereActive ? 10 : 0;
+          catalystState.from(runtime.profession).sphereActiveUntil = sphereActive ? 10 : 0;
           catalystHooks.reactions['damage.resolved'](runtime.mechanics, {
             type: 'damage',
             at: 0,

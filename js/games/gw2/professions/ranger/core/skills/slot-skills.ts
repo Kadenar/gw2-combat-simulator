@@ -9,7 +9,7 @@ import {
 } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { type SkillEffect, type StatusEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -60,10 +60,9 @@ function spiritShakes(boon: string, duration: number, stacks = 1): SkillEffect {
   };
 }
 
-export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.SPIKE_TRAP]: {
     name: 'Spike Trap',
-    description: 'Trap. Set a trap that bleeds and launches foes.',
     icon: 'https://render.guildwars2.com/file/B811D9DBB9D4D8459B4F1E21BBC06FF5A9422A77/103283.png',
     type: 'Utility',
     slot: 'Utility',
@@ -86,7 +85,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.TROLL_UNGUENT]: {
     name: 'Troll Unguent',
-    description: 'Survival. You and your pet regenerate health over time.',
     icon: 'https://render.guildwars2.com/file/5DBD13DA0EF70A3F0CA42857B72E950B6C76FDDC/103987.png',
     type: 'Heal',
     slot: 'Heal',
@@ -97,7 +95,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.HEALING_SPRING]: {
     name: 'Healing Spring',
-    description: 'Trap. Heals you and your pet. Place a trap that grants regeneration and cures conditions on allies.',
     icon: 'https://render.guildwars2.com/file/F6C2FD7E78EE0D9178AEAEF8B1666477D1E92C99/103544.png',
     type: 'Heal',
     slot: 'Heal',
@@ -116,8 +113,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.SIGNET_OF_THE_WILD]: {
     name: 'Signet of the Wild',
-    description:
-      'Signet Passive: Increases the ferocity of you and your pet. \nSignet Active: Tap into the land to root foes around you.',
     icon: 'https://render.guildwars2.com/file/C5C6F15A60FA590B2810DE5023E7402964190496/103542.png',
     type: 'Utility',
     slot: 'Utility',
@@ -146,13 +141,12 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.FROST_TRAP]: {
     name: 'Frost Trap',
-    description: 'Trap. Set a trap that chills foes.',
     icon: 'https://render.guildwars2.com/file/016A1099CAC468ADEE056A30551C33C74101E5D3/103074.png',
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Trap',
     cooldown: 30,
-    castTimeMs: 520,
+    castTimeMs: 600,
     interruptCommitMs: 440,
     comboFields: [
       {
@@ -185,8 +179,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.STORM_SPIRIT]: {
     name: 'Storm Spirit',
-    description:
-      'Spirit. Summon a storm spirit at a target location and apply vulnerability to nearby enemies. The spirit will slam the ground and then shake, granting boons to nearby allies.',
     icon: 'https://render.guildwars2.com/file/42B863334A6F66D64BC0DDD798959EEB15650F02/103993.png',
     type: 'Utility',
     slot: 'Utility',
@@ -207,8 +199,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.STONE_SPIRIT]: {
     name: 'Stone Spirit',
-    description:
-      'Spirit. Summon a stone spirit at a target location and apply aegis to nearby allies. The spirit will slam the ground and then shake, granting boons to nearby allies.',
     icon: 'https://render.guildwars2.com/file/65802D0CA90F904046542B78A79B48EB3745C244/103994.png',
     type: 'Utility',
     slot: 'Utility',
@@ -238,7 +228,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.VIPERS_NEST]: {
     name: "Viper's Nest",
-    description: 'Trap. Set a trap that pulses poison on foes when triggered.',
     icon: 'https://render.guildwars2.com/file/AA04EAA1350C060903E120004FB909F3DC0FDE58/103197.png',
     type: 'Utility',
     slot: 'Utility',
@@ -278,8 +267,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.FROST_SPIRIT]: {
     name: 'Frost Spirit',
-    description:
-      'Spirit. Summon a frost spirit at a target location and apply resistance to nearby allies. The spirit will slam the ground and then shake, granting boons to nearby allies.',
     icon: 'https://render.guildwars2.com/file/527D04E6562149B046DE7D41F312FE0100BF446E/103995.png',
     type: 'Utility',
     slot: 'Utility',
@@ -308,8 +295,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.SUN_SPIRIT]: {
     name: 'Sun Spirit',
-    description:
-      'Spirit. Summon a sun spirit at a target location and apply blindness to nearby enemies. The spirit will slam the ground and then shake, granting boons to nearby allies.',
     icon: 'https://render.guildwars2.com/file/C24EEF13ACFB15A8750BDA070F52A3AB6826A714/103944.png',
     type: 'Utility',
     slot: 'Utility',
@@ -331,7 +316,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.FLAME_TRAP]: {
     name: 'Flame Trap',
-    description: 'Trap. Set a trap that burns foes.',
     icon: 'https://render.guildwars2.com/file/B8652FF3DDA8EB67A540ECF73633EB4BFAA19E9A/103865.png',
     type: 'Utility',
     slot: 'Utility',
@@ -364,7 +348,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.MUDDY_TERRAIN]: {
     name: 'Muddy Terrain',
-    description: 'Survival. Use mud to cripple, slow, and immobilize foes.',
     icon: 'https://render.guildwars2.com/file/B6BD062BE66079C0514191004BB1D1140112E2A1/103996.png',
     type: 'Utility',
     slot: 'Utility',
@@ -390,8 +373,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.STRENGTH_OF_THE_PACK]: {
     name: '"Strength of the Pack!"',
-    description:
-      'Command. Rampage with your pet, gaining stability, fury, and swiftness. You and your pet also grant might to each other when you attack.',
     icon: 'https://render.guildwars2.com/file/B77111BD4468FB297D560A44EE5F023425915FBF/103606.png',
     type: 'Elite',
     slot: 'Elite',
@@ -437,7 +418,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.SHARPENING_STONE]: {
     name: 'Sharpening Stone',
-    description: 'Survival. Bleed foes with your next few attacks.',
     icon: 'https://render.guildwars2.com/file/662329DDE4D8C7DFB30DD3D1E8CAB807FACBF66A/104004.png',
     type: 'Utility',
     slot: 'Utility',
@@ -453,7 +433,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     sideEffects: [
       {
         on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelled,
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
         do: {
           type: 'ranger.sharpening-stone',
           id: 'sharpening-stone',
@@ -466,8 +446,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.SPIRIT_OF_NATURE]: {
     name: 'Spirit of Nature',
-    description:
-      'Spirit. Summon a spirit at a target point and convert conditions on allies into boons. The spirit will slam the ground and then shake, granting boons to nearby allies.',
     icon: 'https://render.guildwars2.com/file/E23D450D539B92FE0D36DEDF1B2D6010A961E612/104011.png',
     type: 'Elite',
     slot: 'Elite',
@@ -482,8 +460,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.ENTANGLE]: {
     name: 'Entangle',
-    description:
-      'Survival. Entangle foes around you with vines. Entangled foes bleed and are immobilized until the vines are destroyed.',
     icon: 'https://render.guildwars2.com/file/F532ED0DCE2AC7F4D51137B346D2F17AD006EC11/103101.png',
     type: 'Elite',
     slot: 'Elite',
@@ -522,7 +498,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.SOLAR_FLARE]: {
     name: 'Solar Flare',
-    description: 'Your sun spirit slams the ground and releases the brilliance of the sun on nearby foes.',
     // Use the dedicated spirit icon for result rows.
     icon: 'https://render.guildwars2.com/file/1D55D34FB4EE20B1962E315245E40CA5E1042D0E/62248.png',
     type: 'Utility',
@@ -540,7 +515,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.CALL_LIGHTNING]: {
     name: 'Call Lightning',
-    description: 'Your storm spirit slams the ground and generates a powerful blast of electricity.',
     // Use the dedicated spirit icon for result rows.
     icon: 'https://render.guildwars2.com/file/1D55D34FB4EE20B1962E315245E40CA5E1042D0E/62248.png',
     type: 'Utility',
@@ -560,7 +534,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.QUAKE]: {
     name: 'Quake',
-    description: 'Your stone spirit slams the ground and creates an earthen blast that inhibits enemies.',
     icon: 'https://render.guildwars2.com/file/1D55D34FB4EE20B1962E315245E40CA5E1042D0E/62248.png',
     type: 'Utility',
     slot: 'Utility',
@@ -583,8 +556,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.COLD_SNAP]: {
     name: 'Cold Snap',
-    description:
-      'Your frost spirit slams the ground and creates a cold snap that cleanses conditions from nearby allies.',
     icon: 'https://render.guildwars2.com/file/1D55D34FB4EE20B1962E315245E40CA5E1042D0E/62248.png',
     type: 'Utility',
     slot: 'Utility',
@@ -594,8 +565,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.NATURES_RENEWAL]: {
     name: "Nature's Renewal",
-    description:
-      'Your spirit of nature slams the ground and creates a blast of vital energy that revives nearby downed allies.',
     icon: 'https://render.guildwars2.com/file/1D55D34FB4EE20B1962E315245E40CA5E1042D0E/62248.png',
     type: 'Elite',
     slot: 'Elite',
@@ -605,7 +574,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.PROTECT_ME]: {
     name: '"Protect Me!"',
-    description: 'Command. Gain protection and barrier while breaking allies out of stuns.',
     icon: 'https://render.guildwars2.com/file/41121EEEF99A6F50130E323EA107024C53A809BD/104023.png',
     type: 'Utility',
     slot: 'Utility',
@@ -623,8 +591,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.GUARD]: {
     name: '"Guard!"',
-    description:
-      'Command. Order your pet to guard nearby allies; your pet takes damage on behalf of those allies. Gain might when your pet receives damage.',
     icon: 'https://render.guildwars2.com/file/CAF0C9FF0BAE4C32B3D01009A2ED0C063BDFD8AC/104024.png',
     type: 'Utility',
     slot: 'Utility',
@@ -642,7 +608,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.SIC_EM]: {
     name: '"Sic \'Em!"',
-    description: 'Command. Your pet rushes at your foe, revealing them and dealing increased damage.',
     icon: 'https://render.guildwars2.com/file/0D6B235E679346723414607E61DE052576097545/104025.png',
     type: 'Utility',
     slot: 'Utility',
@@ -657,8 +622,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.WATER_SPIRIT]: {
     name: 'Water Spirit',
-    description:
-      'Spirit. Summon a water spirit at a target location and heal yourself and your pet. The spirit will slam the ground and then shake, granting boons to nearby allies.',
     icon: 'https://render.guildwars2.com/file/FA9E444D3AEA9B06F70B96DBBA459A5AB1165BB5/699530.png',
     type: 'Heal',
     slot: 'Heal',
@@ -673,7 +636,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.AQUA_SURGE]: {
     name: 'Aqua Surge',
-    description: 'Your water spirit slams the ground and creates a wave that heals nearby allies.',
     icon: 'https://render.guildwars2.com/file/1D55D34FB4EE20B1962E315245E40CA5E1042D0E/62248.png',
     type: 'Heal',
     slot: 'Heal',
@@ -683,7 +645,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.WE_HEAL_AS_ONE]: {
     name: '"We Heal As One!"',
-    description: "Command. Heal yourself and your pet. You each gain copies of the other's boons.",
     icon: 'https://render.guildwars2.com/file/9658B6ACBC0CF618FDEF0C221C9352CA26ED33E2/103175.png',
     type: 'Heal',
     slot: 'Heal',
@@ -708,20 +669,20 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     // Activate the intrinsic reward at its declared boundary, before common trait observers.
     sideEffects: [{ on: 'castCommit', do: { type: 'ranger.copy-healing-boons' } }]
   }
-});
+};
 
 /** Copy both actors from one executed-time snapshot so the first copy never feeds the second. */
 function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   const activePet = runtime.profession.core.pet;
   const companionId = activePet?.id ?? null;
   const copies = (cast.skill.effects ?? [])
-    .filter((effect) => effect.type === 'boon')
+    .filter((effect): effect is StatusEffect => effect.type === 'boon')
     .map((effect) => {
       const kind = String(effect.boon).toLowerCase();
       const player = runtime.combat.boonSnapshot(kind, runtime.time, { actor: ACTOR.PLAYER }).stacks;
       return {
         kind,
-        duration: Number(effect.duration),
+        duration: effect.duration,
         player,
         pet: activePet
           ? runtime.combat.boonSnapshot(kind, runtime.time, { actor: 'companion', companionId }).stacks
@@ -874,7 +835,7 @@ export function releaseFrostTrap(runtime: RangerRuntime): void {
 }
 
 export function handleRangerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   // Recasts add charges without renewing the lifetime of the remaining stones.
   state.sharpeningStoneGrants = appendChargeGrant(
     state.sharpeningStoneGrants,
@@ -885,7 +846,7 @@ export function handleRangerSharpeningStone(context: RangerResolverContext, even
 }
 
 export function triggerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits.
   state.sharpeningStoneGrants = activeChargeGrants(state.sharpeningStoneGrants, event.at);
 

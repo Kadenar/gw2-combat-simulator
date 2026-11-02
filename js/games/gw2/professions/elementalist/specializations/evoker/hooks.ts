@@ -79,7 +79,7 @@ export const evokerHooks = composeRuntimeHooks<ElementalistRuntimeState, Element
     },
     onCastCancel(runtime, cast) {
       // Cancelled familiar casts release deferred weapon grants without resetting familiar charges.
-      const state = evokerState.from(runtime);
+      const state = evokerState.from(runtime.profession);
       state.pendingWeaponCompletions = state.pendingWeaponCompletions.filter((entry) => entry.activationId !== cast.id);
 
       if (state.activeFamiliarCast?.reservationId === cast.id) {
@@ -99,7 +99,7 @@ export const evokerHooks = composeRuntimeHooks<ElementalistRuntimeState, Element
         finishEvokerCast(runtime, cast);
         runtime.fireTrigger(evokerCastSettled, { cast });
 
-        delete evokerState.from(runtime).cancelledFamiliarActivations[cast.id];
+        delete evokerState.from(runtime.profession).cancelledFamiliarActivations[cast.id];
       }
     },
     reactions: {

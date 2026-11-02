@@ -5,10 +5,7 @@ import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
 import { bindRangerCoreUi } from '#gw2/professions/ranger/core/presentation.js';
 import { rangerPassiveAttributes } from '#gw2/professions/ranger/core/skills/attribute-passives.js';
 import { RANGER_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/ranger/core/skills/autoattack-chains.js';
-import {
-  RANGER_CORE_BASE_SKILL_MECHANICS,
-  RANGER_CORE_EXTRA_SKILLS
-} from '#gw2/professions/ranger/core/skills/index.js';
+import { RANGER_CORE_SKILLS } from '#gw2/professions/ranger/core/skills/index.js';
 import { rangerConsumingBiteModifier } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
 import { RANGER_CORE_SKILL_FLIPS } from '#gw2/professions/ranger/core/skills/skill-flips.js';
 import { sicEmPetModifiers } from '#gw2/professions/ranger/core/skills/slot-skills.js';
@@ -56,8 +53,7 @@ export const rangerCoreModule = defineNativeModule({
     autoattackChains: RANGER_CORE_AUTOATTACK_CHAINS,
     profileFields: RANGER_CORE_PROFILE_FIELDS,
     skillFields: RANGER_CORE_SKILL_FIELDS,
-    skillMechanics: RANGER_CORE_BASE_SKILL_MECHANICS,
-    extraSkills: RANGER_CORE_EXTRA_SKILLS
+    skills: RANGER_CORE_SKILLS
   }),
   state: { create: createRangerCoreState, project: projectRangerCoreState },
   // Keep player/shared rules before the pet audience and retain the established duration stage.

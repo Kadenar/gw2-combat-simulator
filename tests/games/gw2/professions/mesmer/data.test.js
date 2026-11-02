@@ -3,36 +3,27 @@ import test from 'node:test';
 
 import { createRotationItem } from '#gw2/app/rotation/editing/actions.js';
 import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
-import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import {
   createMesmerBuildDefaults,
   migrateMesmerBuild,
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
-import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
-import {
-  MESMER_CORE_PHANTASM_ATTACK_TIMINGS,
-  MESMER_CORE_SKILL_MECHANICS
-} from '#gw2/professions/mesmer/core/skills/index.js';
+import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS, MESMER_CORE_SKILLS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 import {
-  MESMER_CHRONOMANCER_EXTRA_SKILLS,
   MESMER_CHRONOMANCER_SHATTERS,
-  MESMER_CHRONOMANCER_SKILL_MECHANICS
+  MESMER_CHRONOMANCER_SKILLS
 } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
 import {
   MESMER_MIRAGE_AMBUSH_SKILLS as AMBUSH_ATTACKS,
-  MESMER_MIRAGE_EXTRA_SKILLS,
-  MESMER_MIRAGE_SKILL_MECHANICS
+  MESMER_MIRAGE_SKILLS
 } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
-import {
-  MESMER_TROUBADOUR_EXTRA_SKILLS,
-  MESMER_TROUBADOUR_SKILL_MECHANICS
-} from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
+import { MESMER_TROUBADOUR_SKILLS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import { MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
 import {
   MESMER_VIRTUOSO_SHATTERS,
@@ -66,22 +57,16 @@ const SHATTERS = Object.freeze({
   ...MESMER_VIRTUOSO_SHATTERS
 });
 
-const MESMER_SKILL_MECHANICS = composeSkillDefinitions(
-  ...[
-    MESMER_CORE_SKILL_MECHANICS,
-    MESMER_CHRONOMANCER_SKILL_MECHANICS,
-    MESMER_MIRAGE_SKILL_MECHANICS,
-    MESMER_VIRTUOSO_SKILL_MECHANICS,
-    MESMER_TROUBADOUR_SKILL_MECHANICS
-  ]
-);
-
-const PSEUDO_SKILLS = Object.freeze([
-  ...MESMER_CORE_EXTRA_SKILLS,
-  ...MESMER_CHRONOMANCER_EXTRA_SKILLS,
-  ...MESMER_MIRAGE_EXTRA_SKILLS.filter((skill) => skill.id < 0),
-  ...MESMER_TROUBADOUR_EXTRA_SKILLS
-]);
+// Module collections supply all owned identities, including generated actions and attacks.
+const declarations = [
+  ...MESMER_CORE_SKILLS,
+  ...MESMER_CHRONOMANCER_SKILLS,
+  ...MESMER_MIRAGE_SKILLS,
+  ...materializeSkillDefinitions(MESMER_VIRTUOSO_SKILL_MECHANICS),
+  ...MESMER_TROUBADOUR_SKILLS
+];
+const MESMER_SKILL_MECHANICS = Object.fromEntries(declarations.map((skill) => [skill.id, skill]));
+const PSEUDO_SKILLS = declarations.filter((skill) => skill.id < 0);
 
 const AMBUSH_SKILLS = Object.freeze(Object.values(AMBUSH_ATTACKS));
 
@@ -143,7 +128,6 @@ test('Mesmer mechanics are the sole simulation source and use stable skill ids',
   // Each keyed entry supplies its own identity and presentation.
   for (const skill of Object.values(MESMER_SKILL_MECHANICS)) {
     assert.equal(typeof skill.name, 'string');
-    assert.equal(typeof skill.description, 'string');
     assert.ok(skill.icon);
   }
 

@@ -268,8 +268,8 @@ test('pet commands do not reserve the player cast lane', () => {
   const result = simulate(['Poisonous Cloud', 'Instinctive Engage'], {
     selectedPet: 'Carrion Devourer'
   });
-  const command = result.steps.find(({ skill }) => skill === 'Poisonous Cloud');
-  const playerSkill = result.steps.find(({ skill }) => skill === 'Instinctive Engage');
+  const command = result.steps.find(({ skillName }) => skillName === 'Poisonous Cloud');
+  const playerSkill = result.steps.find(({ skillName }) => skillName === 'Instinctive Engage');
 
   assert.equal(command.start, 0);
   assert.equal(playerSkill.start, 0);
@@ -502,7 +502,7 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
   const blackHoleImmobilize = convergence.resolvedEvents.find(
     (event) => event.sourceId === ID.BLACK_HOLE && event.condition === 'Immobilized'
   );
-  const release = convergence.steps.find(({ skill }) => skill === 'Release Celestial Avatar');
+  const release = convergence.steps.find(({ skillName }) => skillName === 'Release Celestial Avatar');
   assert.ok(blackHoleImmobilize.at > release.end / 1000);
   assert.equal(blackHoleImmobilize.ownerActorType, 'player');
   assert.equal(blackHoleImmobilize.duration, 2);
@@ -587,7 +587,7 @@ test('Seed of Life detonates with Eclipse after releasing Celestial Avatar', () 
     ],
     { selectedTraitIds: [TRAIT.ECLIPSE] }
   );
-  const release = result.steps.find(({ skill }) => skill === 'Release Celestial Avatar');
+  const release = result.steps.find(({ skillName }) => skillName === 'Release Celestial Avatar');
   const blind = result.resolvedEvents.find(
     (event) => event.sourceId === ID.SEED_OF_LIFE && event.condition === 'Blindness'
   );
@@ -704,7 +704,7 @@ test('Astral Force follows landed direct damage and excludes pet damage', () => 
   });
 
   // Astral Force becomes available on the second delayed trap pulse.
-  assert.equal(directDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 2400);
+  assert.equal(directDamage.steps.find(({ skillName }) => skillName === 'Celestial Avatar').start, 2400);
 
   const petDamage = simulate(['Poisonous Cloud', 'Celestial Avatar'], {
     initialAstralForce: 99.25,
@@ -712,7 +712,7 @@ test('Astral Force follows landed direct damage and excludes pet damage', () => 
     selectedTraitIds: [TRAIT.NATURAL_MENDER]
   });
 
-  assert.equal(petDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 3000);
+  assert.equal(petDamage.steps.find(({ skillName }) => skillName === 'Celestial Avatar').start, 3000);
 
   const withoutEclipse = simulate([
     'Celestial Avatar',
@@ -737,7 +737,7 @@ test('Astral Force follows landed direct damage and excludes pet damage', () => 
 
   // Eclipse doubles each landed grant; the second pulse funds entry without a skipped-cast warning.
   assert.deepEqual(eclipseDamage.warnings, []);
-  assert.equal(eclipseDamage.steps.find(({ skill }) => skill === 'Celestial Avatar').start, 2400);
+  assert.equal(eclipseDamage.steps.find(({ skillName }) => skillName === 'Celestial Avatar').start, 2400);
 });
 
 test('Celestial Avatar transitions trigger swap mechanics and weapon lines', () => {

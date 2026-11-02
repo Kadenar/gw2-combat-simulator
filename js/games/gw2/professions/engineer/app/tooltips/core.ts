@@ -190,7 +190,7 @@ export const engineerCoreTooltips = {
         ).facts
     ),
     [ID.CLEANSING_BURST]: skillTooltip(
-      "Trigger the turret's burst and water field, re-arm Detonate, and restart the window before another Cleansing Burst becomes available."
+      "Trigger the turret's burst and water field. Make Detonate available again and restart the delay until the next Cleansing Burst."
     ),
     [ID.DETONATE_HEALING_TURRET]: skillTooltip(
       "Detonate the turret, end its overcharge cycle, and start Healing Turret's recharge."

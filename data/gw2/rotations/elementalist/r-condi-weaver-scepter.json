@@ -698,7 +698,7 @@
     },
     {
       "type": "cast",
-      "skillId": -1169,
+      "skillId": 40183,
       "concurrentOffsetMs": 920
     },
     {
@@ -884,7 +884,7 @@
     },
     {
       "type": "cast",
-      "skillId": -1169,
+      "skillId": 40183,
       "concurrentOffsetMs": 520
     },
     {

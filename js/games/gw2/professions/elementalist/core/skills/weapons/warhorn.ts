@@ -30,7 +30,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
 
 // Layers keep same-time Vulnerability behind its matching Lightning Orb strike while retaining multi-tick effects.
@@ -70,10 +70,9 @@ const DUST_STORM_TICK_OFFSETS_MS = [1560, 2640, 3560, 4640, 5560, 6640, 7560, 86
  * Complete warhorn declarations own presentation, cast timelines, emitted packets, and combo participation.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
   [ID.HEAT_SYNC]: {
     name: 'Heat Sync',
-    description: 'Give might and fury to yourself, then spread boons you have to allies.',
     icon: 'https://render.guildwars2.com/file/6B4C0B3DFDB4FDDCB22552719D980D9E4AE2C9D1/1029998.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -91,7 +90,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
   // Lays an 8s fire field and burns through seven packets, plus two packets on large targets.
   [ID.WILDFIRE]: {
     name: 'Wildfire',
-    description: 'Release a fiery torrent that burns enemies.',
     icon: 'https://render.guildwars2.com/file/9E33D36DB142E4F9C7C21CA9CD06D76B000FE506/1029999.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -144,7 +142,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.TIDAL_SURGE]: {
     name: 'Tidal Surge',
-    description: 'Send out a tidal wave that regenerates and heal allies, then knocks enemies back.',
     icon: 'https://render.guildwars2.com/file/466520602A5AFD1D46454AAED74B5849C40F6FBA/1030000.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -174,7 +171,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
   // Contributes only a water combo field; no strike or condition packets are modelled.
   [ID.WATER_GLOBE]: {
     name: 'Water Globe',
-    description: 'Blast out a watery orb that heals allies as it travels.',
     icon: 'https://render.guildwars2.com/file/5CFE011C13BB571BB2735FF729A1FB0F6A31BAD7/1030001.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -196,8 +192,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.CYCLONE]: {
     name: 'Cyclone',
-    description:
-      'Blast out a cyclone that pulls enemies toward its location and grants swiftness to allies it affects.',
     icon: 'https://render.guildwars2.com/file/3B78057FC723254A0BCDAEAC0D9D49E290F6F9D8/1029994.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -226,7 +220,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.LIGHTNING_ORB]: withSmallHitboxCap(
     {
       name: 'Lightning Orb',
-      description: 'Launch an orb of lightning that fires projectiles at nearby foes.',
       icon: 'https://render.guildwars2.com/file/F94EF9AA5A3B073807426D499F6353C91F7BC09F/1029995.png',
 
       type: 'Weapon',
@@ -255,8 +248,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
   // Grants Magnetic Aura for 4s alongside Protection; the aura is what other skills transmute.
   [ID.SAND_SQUALL]: {
     name: 'Sand Squall',
-    description:
-      'Apply protection to you and your allies, then increase the duration of all boons currently existing on you and your allies. Gain magnetic aura.',
     icon: 'https://render.guildwars2.com/file/7B047DE80C026DCF420E43DD16D80409E8C679A4/1029996.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -291,7 +282,6 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
   [ID.DUST_STORM]: withSmallHitboxCap(
     {
       name: 'Dust Storm',
-      description: 'Grant boons to nearby allies and summon a dust storm that inflicts conditions.',
       icon: 'https://render.guildwars2.com/file/210E23C1C2BE30F21C1C98C6FF4B053DFFC9BA1C/1029997.png',
 
       type: 'Weapon',
@@ -340,7 +330,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
     },
     6
   )
-});
+};
 
 /** Copy each boon after its self grant, preserving live durations without console assumptions or another self grant. */
 export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2ResolverEvent): void {

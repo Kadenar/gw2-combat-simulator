@@ -43,7 +43,7 @@ test('recharge reset clears all deadlines, progress, ammo queues, and use lockou
 test('reserved magazine rounds recharge serially from their future anchor', () => {
   const { controller } = fixture();
   controller.ensureAmmo(magazine);
-  assert.equal(controller.reserveAmmo(magazine, 2, { startedAt: 4, work: 5 }), 2);
+  assert.equal(controller.reserveAmmo(magazine, 2, { workAnchorAt: 4, work: 5 }), 2);
   assert.equal(controller.readAmmo(1).charges, 1);
   assert.equal(controller.refreshAmmo(magazine, 3).charges, 1);
   controller.spendAmmo(magazine, 4, 5);
@@ -81,7 +81,7 @@ test('linked and temporary ammo pools share charges until explicitly retired', (
   assert.equal(controller.readAmmo(9).charges, 2);
   controller.replaceAmmoCharges(magazine, 2, 2, []);
   assert.equal(controller.readAmmo(9).charges, 2);
-  controller.replaceAmmoCharges(magazine, 1, 0, [{ startedAt: 0, work: 5 }]);
+  controller.replaceAmmoCharges(magazine, 1, 0, [{ workAnchorAt: 0, work: 5 }]);
   assert.equal(controller.refreshAmmo(magazine, 5).charges, 1);
   controller.retireAmmo(9);
   assert.equal(controller.hasAmmo(9), false);
@@ -177,13 +177,13 @@ test('cached cooldowns reflect reductions and copied recharge immediately', () =
   assert.equal(controller.readyAt(ordinary.id), 7);
   controller.copy(ordinary.id, preserved.id);
   assert.equal(controller.readyAt(preserved.id), 7);
-  assert.deepEqual(controller.rechargeFor(preserved.id), { startedAt: 2, work: 5 });
+  assert.deepEqual(controller.rechargeFor(preserved.id), { workAnchorAt: 2, work: 5 });
   assert.notEqual(controller.rechargeFor(preserved.id), controller.rechargeFor(ordinary.id));
   state.time = 7;
   controller.refresh(7);
   assert.equal(controller.isOnCooldown(ordinary.id), false);
   assert.equal(controller.isOnCooldown(preserved.id), false);
-  assert.deepEqual(controller.rechargeFor(ordinary.id), { startedAt: 2, work: 5 });
+  assert.deepEqual(controller.rechargeFor(ordinary.id), { workAnchorAt: 2, work: 5 });
 });
 
 // A received boon can change live readiness before refresh; copied summon identities follow the recipient's rate.
@@ -209,7 +209,7 @@ test('summon recharge observes received Alacrity on demand and during refresh', 
   assert.equal(controller.readyAt(summon.id), 10);
   controller.refresh(9);
   assert.equal(controller.readyAt(summon.id), 9);
-  assert.deepEqual(controller.rechargeFor(summon.id), { startedAt: 0, work: 10 });
+  assert.deepEqual(controller.rechargeFor(summon.id), { workAnchorAt: 0, work: 10 });
 });
 
 // Restoring earned work uses the new timeline immediately, without relying on a later global refresh.
@@ -230,5 +230,5 @@ test('checkpoint restoration projects work before returning', () => {
   assert.equal(controller.readyAt(ordinary.id), 106);
   assert.equal(controller.readyAt(summon.id), 106.4);
   assert.equal(controller.isOnCooldown(ordinary.id), true);
-  assert.deepEqual(controller.rechargeFor(summon.id), { startedAt: 100, work: 8 });
+  assert.deepEqual(controller.rechargeFor(summon.id), { workAnchorAt: 100, work: 8 });
 });

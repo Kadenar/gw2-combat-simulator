@@ -13,7 +13,7 @@ export function mesmerAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
   const at = canonicalTime(context.time);
 
   if (skill.flipParentId) {
-    const flip = professionCoreState(state).availableFlips[skill.id];
+    const flip = professionCoreState(state.profession).availableFlips[skill.id];
 
     if (!skillFlipVisible(flip, at)) {
       const parent = context.helpers.skillsById.get(skill.flipParentId);
@@ -52,7 +52,7 @@ export function mesmerAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
   if (
     preparedFlip?.flipParentId === skill.id &&
     Number(preparedFlip.ammo) > 0 &&
-    preparedMagazineOpen(professionCoreState(state).availableFlips, { faceIds: [preparedFlip.id] })
+    preparedMagazineOpen(professionCoreState(state.profession).availableFlips, { faceIds: [preparedFlip.id] })
   ) {
     return {
       ready: false,

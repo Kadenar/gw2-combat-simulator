@@ -3,10 +3,9 @@ import { CONTROL } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
-export const WARRIOR_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const WARRIOR_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.SHIELD_BASH]: {
     name: 'Shield Bash',
-    description: 'Bash your foe with your shield and stun them.',
     icon: 'https://render.guildwars2.com/file/0DB2EBFB326833CE9654010A5915FB387B02BB4D/103002.png',
     type: 'Weapon',
     weapon: 'Shield',
@@ -27,7 +26,6 @@ export const WARRIOR_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SHIELD_STANCE]: {
     name: 'Shield Stance',
-    description: 'Block attacks.',
     icon: 'https://render.guildwars2.com/file/10E4931AC6BB5824CACE5A09E07E512869904DB9/102859.png',
     type: 'Weapon',
     weapon: 'Shield',
@@ -36,4 +34,4 @@ export const WARRIOR_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 2000,
     effects: []
   }
-});
+};

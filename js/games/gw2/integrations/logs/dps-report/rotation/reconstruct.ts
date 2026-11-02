@@ -390,8 +390,8 @@ function reconstructDpsReportWithProfile(
       // Resolve before replay spacing checks so imports use the cast's equipped-offhand cutoff.
       .map((action) => ({ ...action, skill: resolveSkill(action, action.skill) }))
       .sort(compareResolvedActions)
-      // Derived packets marked simulatorExcluded are materialized by their parent and must not become replayed inputs.
-      .filter((action) => action.skill?.simulatorExcluded !== true)
+      // Derived packets marked rotationInputExcluded are materialized by their parent and must not become replayed inputs.
+      .filter((action) => action.skill?.rotationInputExcluded !== true)
   ).sort(compareResolvedActions);
 
   if (!resolved.length) {

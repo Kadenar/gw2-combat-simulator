@@ -12,7 +12,6 @@ export const profession: BoundProfession = withActivePatchPreview(necromancerPro
 
 export const createBuildContext = bindBuildContext<NecromancerCanonicalBuild>(
   profession,
-  { attributeContributions: profession.attributeContributions },
   (build) => ({
     initialResource: build.initialResource,
     initialBlight: build.initialBlight,

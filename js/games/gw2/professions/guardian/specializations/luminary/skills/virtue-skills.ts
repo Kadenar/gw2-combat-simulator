@@ -14,11 +14,9 @@ import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guard
  * Persistent virtue state and behavior remain under Core and Luminary mechanics.
  */
 
-export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<GuardianSkill>>> = {
   [ID.RADIANT_COURAGE]: {
     name: 'Radiant Courage',
-    description:
-      "Virtue: Gain aegis periodically.\nActivate: Grant aegis, resistance, and Luminary's Blessing to yourself and nearby allies. \nThe next time you use Gleaming Blade, it deals increased damage and immobilizes enemies. The next time you use Radiant Bulwark, it grants barrier to nearby allies.",
     icon: 'https://render.guildwars2.com/file/61FA2B39C018F8930B38D1FC0FE5CE9C49BA681A/3713156.png',
     type: 'Profession',
     slot: 'Profession_3',
@@ -35,8 +33,6 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.RADIANT_RESOLVE]: {
     name: 'Radiant Resolve',
-    description:
-      'Virtue: Regenerates health.\nActivate: Heal yourself and nearby allies while granting light aura. The next time you use Luminous Staff, it heals allies and grants them regeneration.',
     icon: 'https://render.guildwars2.com/file/FA9E0C3E1024084F9E0F5505DAD826E242580C58/3713158.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -47,15 +43,13 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     // Resolve's scheduled grant owns its aura separately from its staff empowerment.
     effectVariants: [{ when: () => true, transform: () => [] }],
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.resolve-aura' } },
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelledBeforeCommit, do: { type: 'guardian.resolve-aura' } },
       // Commitment arms this virtue's next weapon entitlement, then fires the arming point.
       { on: 'castCommit', do: { type: 'guardian.arm-radiant-resolve' } }
     ]
   },
   [ID.RADIANT_JUSTICE]: {
     name: 'Radiant Justice',
-    description:
-      'Virtue: Burn foes every few attacks.\nActivate: Gain quickness. The next time you use Dazzling Hammer, it creates a delayed secondary impact.',
     icon: 'https://render.guildwars2.com/file/4AA777300AE7D0681907353CA69FBAFD7E649253/3713157.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -66,7 +60,7 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     // Commitment arms this virtue's next weapon entitlement, then fires the arming point.
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.arm-radiant-justice' } }]
   }
-});
+};
 
 const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   // Resolve's intrinsic aura replaces an old aura after any Sovereign detonation at the same boundary.
@@ -87,7 +81,7 @@ const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSki
   'guardian.arm-radiant-justice'(runtime, context) {
     if (context.kind !== 'cast') return;
 
-    luminaryState.from(runtime).radiantJusticeArmed = true;
+    luminaryState.from(runtime.profession).radiantJusticeArmed = true;
     runtime.effects.emit({
       kind: 'announcement',
       announcement: {
@@ -102,13 +96,13 @@ const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSki
     runtime.fireTrigger(radiantVirtueArmed, { context });
   },
   'guardian.arm-radiant-resolve'(runtime, context) {
-    luminaryState.from(runtime).radiantResolveArmed = true;
+    luminaryState.from(runtime.profession).radiantResolveArmed = true;
     runtime.fireTrigger(radiantVirtueArmed, { context });
   },
   'guardian.arm-radiant-courage'(runtime, context) {
     if (context.kind !== 'cast') return;
 
-    luminaryState.from(runtime).radiantCourageSwordArmed = true;
+    luminaryState.from(runtime.profession).radiantCourageSwordArmed = true;
     runtime.effects.emit({
       kind: 'announcement',
       announcement: {

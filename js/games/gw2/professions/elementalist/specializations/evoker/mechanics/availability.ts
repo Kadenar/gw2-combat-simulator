@@ -20,7 +20,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
  * a pending grant remain a final denial for this command.
  */
 export function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
 
   // Nothing may start until the familiar cast in flight ends.
   if (state.activeFamiliarCast && context.time < state.activeFamiliarCast.endsAt) {

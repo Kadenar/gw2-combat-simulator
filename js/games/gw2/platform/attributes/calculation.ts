@@ -211,7 +211,7 @@ export function derivedAttribute(
     runes: runeBonus,
     food: foodBonus,
     utility: 0,
-    jbc: 0,
+    jadeBotCore: 0,
     traits,
     sigils,
     infusions: 0
@@ -426,7 +426,7 @@ export function calculateCommonAttributes(
       runes: runes[stat] || 0,
       food: (foodConverted[stat] || 0) + (foodBuff[stat] || 0),
       utility: utility[stat] || 0,
-      jbc: build.jadeBotCore ? JBC_BONUS[stat] || 0 : 0,
+      jadeBotCore: build.jadeBotCore ? JBC_BONUS[stat] || 0 : 0,
       traits: 0,
       sigils: sigilStats[stat] || 0,
       infusions: infusions[stat] || 0

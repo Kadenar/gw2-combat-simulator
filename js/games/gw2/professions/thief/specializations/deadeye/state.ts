@@ -3,7 +3,10 @@ import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/c
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -44,14 +47,14 @@ interface DeadeyeCastFacts {
 
 export const deadeyeCastFacts = new WeakMap<RuntimeCast<ThiefSkill>, DeadeyeCastFacts>();
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectDeadeyePlanningState(input: Gw2PlanningStateInput) {
-  const state = deadeyeState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectDeadeyePlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = deadeyeState.from(input.profession);
+  return {
     [STATE.MARKED_TARGET_ID]: state.markedTargetId,
     [STATE.MARK_GENERATION]: state.markGeneration,
     [STATE.MALICE]: state.malice,
     [STATE.BONUS_STEALTH_ATTACK]: state.bonusStealthAttack,
     [STATE.MALEFICENT_SEVEN_TRIGGERED]: state.maleficentSevenTriggered
-  });
+  };
 }

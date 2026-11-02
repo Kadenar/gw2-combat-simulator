@@ -206,7 +206,7 @@ export function contributionBuckets(contributors: readonly Gw2ModifierContributi
 
 /** Damage per stack-second including outgoing modifiers, from the condition's first damaging sample. */
 export function conditionPerSecond(row: SkillDamageConditionRow): number | null {
-  return row.rate != null && row.multiplier != null ? row.rate * row.multiplier : null;
+  return row.damagePerStackSecond != null && row.multiplier != null ? row.damagePerStackSecond * row.multiplier : null;
 }
 
 /** The game's display names for resolver condition keys. */

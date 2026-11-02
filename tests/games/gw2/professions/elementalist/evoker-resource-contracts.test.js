@@ -61,7 +61,7 @@ test('Evoker policies seed both clocks from isolated caps and project detached v
     ]) {
       assert.equal(state[id].value, maximum);
       assert.equal(state[id].maximum, maximum);
-      assert.equal(state[id].rate, 0);
+      assert.equal(state[id].unitsPerSecond, 0);
       assert.equal(view.value, maximum);
       assert.equal(view.maximum, maximum);
       runtime.mechanics.resourceController.replace(key, 0);

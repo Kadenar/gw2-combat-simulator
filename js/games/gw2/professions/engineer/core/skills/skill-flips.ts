@@ -13,7 +13,7 @@ export const ENGINEER_CORE_SKILL_FLIPS: SkillFlips = Object.freeze([
   { parentId: ID.THROW_MINE, followUpId: ID.DETONATE },
   { parentId: ID.DEVASTATOR, followUpId: ID.FOCUSED_DEVASTATION },
   { parentId: ID.LIGHTNING_ROD, followUpId: ID.ELECTRIC_ARTILLERY },
-  { parentId: ID.HEALING_TURRET, followUpId: ID.CLEANSING_BURST, defaultFollowUp: false },
+  { parentId: ID.HEALING_TURRET, followUpId: ID.CLEANSING_BURST, isDefaultFollowUp: false },
   { parentId: ID.FLAMETHROWER, followUpId: ID.STOW_FLAMETHROWER },
   { parentId: ID.ELITE_MORTAR_KIT, followUpId: ID.STOW_ELITE_MORTAR_KIT }
 ]);

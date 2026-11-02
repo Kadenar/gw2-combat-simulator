@@ -1,22 +1,20 @@
 /** Profiles existing manifest rotations after warmup; loading and build preparation stay outside timed runs. */
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { Session } from 'node:inspector/promises';
 import { cpus } from 'node:os';
 import path from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { parseArgs } from 'node:util';
 
-import { loadBuildContext } from '#gw2/build-context/load.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { professionOptions } from '#gw2/profession-registry.js';
+
+import { benchmarkProfessionIds, loadBenchmarkPresets, prepareBenchmarkPreset } from '../lib/benchmark-presets.mjs';
 
 // Usage: node scripts/analysis/benchmark-supported-rotations.mjs [profession ...] > timings.json
 // Add --filter Ritualist to match preset IDs, or --cpu-profile-dir .scratch/profiles for separate warmed CPU captures.
 // Add --no-permanent-boons to measure generated boon pools without permanent boon assumptions.
 // Player cast timings and recharge rates remain fixed by the engine even when boon presence assumptions are cleared.
-const root = path.resolve(import.meta.dirname, '../..');
 const { values, positionals: requested } = parseArgs({
   allowPositionals: true,
   options: {
@@ -27,7 +25,7 @@ const { values, positionals: requested } = parseArgs({
     'cpu-profile-dir': { type: 'string' }
   }
 });
-const professions = requested.length ? requested : professionOptions.map(({ id }) => id);
+const professions = requested.length ? requested : benchmarkProfessionIds;
 
 if (!['detailed', 'score'].includes(values.output)) throw new TypeError('Output must be detailed or score.');
 
@@ -37,53 +35,29 @@ if (prefixLength != null && (!Number.isSafeInteger(prefixLength) || prefixLength
   throw new TypeError('Prefix length must be a nonnegative safe integer.');
 }
 
-for (const id of professions) {
-  if (!professionOptions.some((profession) => profession.id === id)) throw new TypeError(`Unknown profession: ${id}`);
-}
-
-const readJson = async (file) => JSON.parse(await readFile(path.join(root, file), 'utf8'));
 const cases = [];
-for (const profession of professions) {
-  const adapter = await loadBuildContext(profession);
-  const manifest = await readJson(`data/gw2/builds/${profession}/manifest.json`);
-  for (const section of manifest) {
-    for (const preset of section.presets) {
-      if (!preset.rotation) continue;
+for await (const preset of loadBenchmarkPresets(professions, { filter: values.filter })) {
+  const { identity, profession, rotation, config } = prepareBenchmarkPreset(preset);
 
-      const id = `${profession}|${section.section || ''}|${preset.label}`;
+  // Explicitly clear every standard boon, including timing boons normally forced on by build preparation.
+  if (values['no-permanent-boons'])
+    config.boons = Object.fromEntries(GW2_STANDARD_BOONS.map((kind) => [kind, kind === 'might' ? 0 : false]));
 
-      if (values.filter && !id.toLowerCase().includes(values.filter.toLowerCase())) continue;
-
-      const [savedBuild, savedRotation] = await Promise.all([readJson(preset.build), readJson(preset.rotation)]);
-      const build = adapter.toApplicationBuild({ ...savedBuild, rotation: savedRotation.rotation ?? savedRotation });
-      const context = adapter.createBuildContext({
-        build,
-        transitionDelays: normalizeTransitionDelays(),
-        patch: adapter.profession.resolvePatch({ id: 'current' })
-      });
-      const config = context.simulationConfig();
-
-      // Explicitly clear every standard boon, including timing boons normally forced on by build preparation.
-      if (values['no-permanent-boons'])
-        config.boons = Object.fromEntries(GW2_STANDARD_BOONS.map((kind) => [kind, kind === 'might' ? 0 : false]));
-
-      cases.push({
-        id,
-        profession,
-        build: preset.build,
-        rotation: preset.rotation,
-        benchmarkDps: preset.benchmarkDps,
-        // Short prefixes exercise editor request overhead with the same preparation and warmup as full rotations.
-        options: {
-          profession: adapter.profession,
-          rotation: prefixLength == null ? build.rotation : build.rotation.slice(0, prefixLength),
-          config,
-          output: values.output
-        },
-        samples: []
-      });
-    }
-  }
+  cases.push({
+    id: identity.id,
+    profession: identity.profession,
+    build: identity.build,
+    rotation: identity.rotation,
+    benchmarkDps: identity.benchmarkDps,
+    // Short prefixes exercise editor request overhead with the same preparation and warmup as full rotations.
+    options: {
+      profession,
+      rotation: prefixLength == null ? rotation : rotation.slice(0, prefixLength),
+      config,
+      output: values.output
+    },
+    samples: []
+  });
 }
 
 if (!cases.length) throw new TypeError(`No presets matched filter: ${values.filter}`);

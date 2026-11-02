@@ -6,7 +6,7 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
@@ -45,19 +45,12 @@ export const lastTyrant = defineRelic({
 
       state.stacks = advanceCounter(progress.value, 1, LAST_TYRANT_STACKS_NEEDED, 'retain').value;
       state.stackReadyAt = gw2EffectExpiresAt(application.at, LAST_TYRANT_STACK_INTERNAL_COOLDOWN);
-      ctx.effects.emit({
-        kind: 'announcement',
-        announcement: {
-          type: 'relic',
-          name: 'Relic of the Last Tyrant',
-          at: application.at,
-          sourceSkill: application.skillName,
-          detail: `${state.stacks}/${LAST_TYRANT_STACKS_NEEDED} stacks`,
-          icon: '',
-          cooldownReduction: null,
-          expiresAt: null,
-          effectState: { stacks: state.stacks, maximumStacks: LAST_TYRANT_STACKS_NEEDED }
-        }
+      announceRelic(ctx, application, 'Relic of the Last Tyrant', {
+        detail: `${state.stacks}/${LAST_TYRANT_STACKS_NEEDED} stacks`,
+        icon: '',
+        cooldownReduction: null,
+        expiresAt: null,
+        effectState: { stacks: state.stacks, maximumStacks: LAST_TYRANT_STACKS_NEEDED }
       });
       return;
     }
@@ -71,17 +64,10 @@ export const lastTyrant = defineRelic({
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
 function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, application: SimulationEvent): void {
-  ctx.effects.emit({
-    kind: 'announcement',
-    announcement: {
-      type: 'relic',
-      name: 'Relic of the Last Tyrant',
-      at: application.at,
-      sourceSkill: application.skillName,
-      detail: 'explosion',
-      // Consumption ends the recorded Fury stack window at the accepted explosion time.
-      effectState: { stacks: 0, maximumStacks: LAST_TYRANT_STACKS_NEEDED }
-    }
+  announceRelic(ctx, application, 'Relic of the Last Tyrant', {
+    detail: 'explosion',
+    // Consumption ends the recorded Fury stack window at the accepted explosion time.
+    effectState: { stacks: 0, maximumStacks: LAST_TYRANT_STACKS_NEEDED }
   });
   ctx.effects.emit({
     kind: 'packet',
@@ -94,10 +80,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
       hits: 1,
       hitIndex: 1,
       totalHits: 1,
-      source: 'Relic',
-      sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
-      actorType: ACTOR.EFFECT,
-      ownerActorType: ACTOR.PLAYER,
+      ...playerOwnedRelicSource(RELIC_IDS.LAST_TYRANT),
       skillWeapon: 'Unequipped',
       canCrit: true,
       triggeredBy: application.skillName
@@ -115,10 +98,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
       condition: CONDITION.BURNING,
       duration: 8,
       stacks: 2,
-      source: 'Relic',
-      sourceId: `relic.${RELIC_IDS.LAST_TYRANT}`,
-      actorType: ACTOR.EFFECT,
-      ownerActorType: ACTOR.PLAYER,
+      ...playerOwnedRelicSource(RELIC_IDS.LAST_TYRANT),
       triggeredBy: application.skillName
     }
   });

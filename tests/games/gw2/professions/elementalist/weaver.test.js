@@ -180,8 +180,8 @@ test('Unravel requires Elements of Rage and disables new dual attacks without ca
   });
 
   assert.deepEqual(queuedDualAttack.warnings, []);
-  const vortex = queuedDualAttack.steps.find((step) => step.skill === 'Pyro Vortex');
-  const unravelStep = queuedDualAttack.steps.find((step) => step.skill === 'Unravel');
+  const vortex = queuedDualAttack.steps.find((step) => step.skillName === 'Pyro Vortex');
+  const unravelStep = queuedDualAttack.steps.find((step) => step.skillName === 'Unravel');
   // Unravel changes future availability while the already selected dual attack completes.
   assert.ok(unravelStep.start > vortex.start && unravelStep.start < vortex.end);
 
@@ -213,31 +213,25 @@ test('Weaver can cancel a carried autoattack by starting the current primary cha
 
 test('Primordial Stance schedules unique authored pulse times without emitting placeholder packets', () => {
   // Coincident authored applications share a pulse; each task retains its activation owner.
-  for (const id of [
-    ID.PRIMORDIAL_STANCE_FIRE,
-    ID.PRIMORDIAL_STANCE_WATER,
-    ID.PRIMORDIAL_STANCE_AIR,
-    ID.PRIMORDIAL_STANCE_EARTH
-  ]) {
-    const canonical = elementalistCatalog.skillsById.get(id);
-    const effect = canonical.effects.find((effect) => effect.type === 'condition');
-    const skill = {
-      ...canonical,
-      effects: [{ ...effect, ticks: [0, 1250, 1250, 3000].map((atMs) => ({ ...effect.ticks[0], atMs })) }]
-    };
-    const cast = { skill, id: 'stance', command: {}, start: 10, fullEnd: 10, effectiveEnd: 10 };
-    const scheduled = [];
-    schedulePrimordialStance(
-      { scheduleForCast: (type, at, cast, data, owner) => scheduled.push({ type, at, cast, data, owner }) },
-      cast,
-      skill
-    );
-    assert.deepEqual(
-      scheduled.map((task) => task.at),
-      [11.25, 13]
-    );
-    assert.ok(scheduled.every((task) => task.owner.id === cast.id && task.cast === cast));
-  }
+  const id = ID.PRIMORDIAL_STANCE;
+  const canonical = elementalistCatalog.skillsById.get(id);
+  const effect = canonical.effects.find((effect) => effect.type === 'condition');
+  const skill = {
+    ...canonical,
+    effects: [{ ...effect, ticks: [0, 1250, 1250, 3000].map((atMs) => ({ ...effect.ticks[0], atMs })) }]
+  };
+  const cast = { skill, id: 'stance', command: {}, start: 10, fullEnd: 10, effectiveEnd: 10 };
+  const scheduled = [];
+  schedulePrimordialStance(
+    { scheduleForCast: (type, at, cast, data, owner) => scheduled.push({ type, at, cast, data, owner }) },
+    cast,
+    skill
+  );
+  assert.deepEqual(
+    scheduled.map((task) => task.at),
+    [11.25, 13]
+  );
+  assert.ok(scheduled.every((task) => task.owner.id === cast.id && task.cast === cast));
 });
 
 test('Primordial Stance retains shared skill payload patches and activation ownership within the observation window', () => {
@@ -248,7 +242,7 @@ test('Primordial Stance retains shared skill payload patches and activation owne
     professions: {
       elementalist: {
         skills: {
-          [ID.PRIMORDIAL_STANCE_FIRE]: {
+          [ID.PRIMORDIAL_STANCE]: {
             sideEffects: {
               pulses: {
                 effects: [
@@ -263,7 +257,7 @@ test('Primordial Stance retains shared skill payload patches and activation owne
     }
   });
   const result = runElementalist(
-    ['Primordial Stance (Fire)'],
+    ['Primordial Stance'],
     {
       specialization: 'Weaver',
       patchId: 'stance-preview',
@@ -278,7 +272,7 @@ test('Primordial Stance retains shared skill payload patches and activation owne
   assert.deepEqual(result.warnings, []);
   const action = result.events.find((event) => event.type === 'action');
   const pulses = result.events.filter(
-    (event) => event.skillId === ID.PRIMORDIAL_STANCE_FIRE && (event.type === 'damage' || event.type === 'condition')
+    (event) => event.skillId === ID.PRIMORDIAL_STANCE && (event.type === 'damage' || event.type === 'condition')
   );
   assert.ok(pulses.length > 0);
   assert.ok(
@@ -296,7 +290,7 @@ test('Primordial Stance does not restore removed action effects through fallback
   const context = {
     helpers: applySkillPatch(elementalistCatalog, {
       skills: {
-        [ID.PRIMORDIAL_STANCE_FIRE]: {
+        [ID.PRIMORDIAL_STANCE]: {
           sideEffects: { pulses: { removeEffects: [{ type: 'strike' }, { type: 'condition', name: 'Fire' }] } }
         }
       }
@@ -311,57 +305,49 @@ test('Primordial Stance does not restore removed action effects through fallback
   };
   primordialStancePulse(context, {
     cast: {
-      skill: elementalistCatalog.skillsById.get(ID.PRIMORDIAL_STANCE_FIRE),
+      skill: elementalistCatalog.skillsById.get(ID.PRIMORDIAL_STANCE),
       id: 'stance',
       command: {}
     }
   });
 });
 
-test('Primordial Stance variants share charges and count recharge', () => {
+test('Primordial Stance shares ammunition across attunement swaps', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Weaver']],
-    rotation: [
-      'Primordial Stance (Fire)',
-      'Air Attunement',
-      'Primordial Stance (Air)',
-      'Earth Attunement',
-      'Primordial Stance (Earth)'
-    ],
+    rotation: ['Primordial Stance', 'Air Attunement', 'Primordial Stance', 'Earth Attunement', 'Primordial Stance'],
     startAttunement: 'Fire',
     secondaryAttunement: 'Fire',
-    selectedSkillIds: { Heal: 34743, Utility1: 40183, Utility2: 5736, Utility3: 5638, Elite: 43638 }
+    selectedSkillIds: { Heal: 34743, Utility1: 40183, Utility2: 5734, Utility3: 5638, Elite: 43638 }
   });
-  const casts = result.steps.filter((step) => String(step.skill).startsWith('Primordial Stance'));
+  const casts = result.steps.filter((step) => String(step.skillName).startsWith('Primordial Stance'));
 
   assert.deepEqual(result.warnings, []);
   assert.equal(casts.length, 3);
-  // The first two variants spend the shared pool; the third waits for a charge.
+  // The first two activations spend the shared pool; the third waits for a charge.
   const recharge = (elementalistCatalog.skillsById.get(40183).cooldown * 1000) / 1.25;
   assert.ok(casts[1].start - casts[0].start < recharge);
   assert.ok(casts[2].start - casts[0].start >= recharge);
 });
 
-// Shared display grouping must count repeated and distinct variants without counting each damage contribution as a cast.
-test('Primordial Stance groups variant activations once across strikes and conditions', () => {
+// One skill identity groups activations across attunement swaps without counting damage packets as casts.
+test('Primordial Stance groups activations once across strikes and conditions', () => {
   const result = runNative({
     lines: [['Fire'], ['Air'], ['Weaver']],
     rotation: [
-      'Primordial Stance (Fire)',
+      'Primordial Stance',
       'Air Attunement',
-      'Primordial Stance (Air)',
+      'Primordial Stance',
       'Fire Attunement',
-      'Primordial Stance (Fire)',
+      'Primordial Stance',
       6000
     ],
     startAttunement: 'Fire',
     secondaryAttunement: 'Fire',
-    selectedSkillIds: { Heal: 34743, Utility1: 40183, Utility2: 5736, Utility3: 5638, Elite: 43638 }
+    selectedSkillIds: { Heal: 34743, Utility1: 40183, Utility2: 5734, Utility3: 5638, Elite: 43638 }
   });
   assert.deepEqual(result.warnings, []);
-  const actions = result.events.filter(
-    (event) => event.type === 'action' && [ID.PRIMORDIAL_STANCE_FIRE, ID.PRIMORDIAL_STANCE_AIR].includes(event.skillId)
-  );
+  const actions = result.events.filter((event) => event.type === 'action' && event.skillId === ID.PRIMORDIAL_STANCE);
   assert.equal(new Set(actions.map((event) => event.activationId)).size, 3);
   const rows = skillBreakdownRows(result).filter((row) => row.name === 'Primordial Stance');
   assert.equal(rows.length, 1);
@@ -389,7 +375,7 @@ test('Primordial Stance groups variant activations once across strikes and condi
 test('Primordial Stance pulses use the active attunements at each pulse', () => {
   const result = runNative({
     lines: [['Fire'], ['Earth'], ['Weaver']],
-    rotation: ['Primordial Stance (Fire)', 1500, 'Earth Attunement', 4500],
+    rotation: ['Primordial Stance', 1500, 'Earth Attunement', 4500],
     startAttunement: 'Fire',
     secondaryAttunement: 'Fire',
     selectedSkillIds: { Heal: 34743, Utility1: 40183, Utility2: 5542, Utility3: 5638, Elite: 43638 }
@@ -397,10 +383,10 @@ test('Primordial Stance pulses use the active attunements at each pulse', () => 
   const swap = result.events.find((event) => event.type === 'elementalist.attunement' && event.to === 'Earth');
 
   const hits = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillId === ID.PRIMORDIAL_STANCE_FIRE
+    (event) => event.type === 'damage' && event.skillId === ID.PRIMORDIAL_STANCE
   );
   const conditions = result.events.filter(
-    (event) => event.type === 'condition' && event.skillId === ID.PRIMORDIAL_STANCE_FIRE
+    (event) => event.type === 'condition' && event.skillId === ID.PRIMORDIAL_STANCE
   );
 
   // Each pulse reads both live attunements instead of capturing them at activation.

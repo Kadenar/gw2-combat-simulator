@@ -3,6 +3,7 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import { isCustomSideEffectAction, type SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
+import { fieldValue } from '#gw2/platform/skills/field-specs.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Validate literal and selected-profile amounts without coercion before a declaration can mutate runtime state. */
@@ -22,7 +23,7 @@ function validateSideEffectAmount(catalog: CanonicalCatalog, amount: unknown, la
       )
         throw new TypeError(`${label} requires an existing numeric skill field.`);
 
-      value = skill[reference.skillField];
+      value = fieldValue(skill, reference.skillField);
     } else {
       const profile = reference.profile == null ? undefined : catalog.balanceProfilesById.get(reference.profile);
 
@@ -119,10 +120,6 @@ export function validateSideEffectAction(
       if (!catalog.balanceProfilesById.has(action.profileId))
         throw new TypeError(`${label} references missing profile ${action.profileId}.`);
 
-      // Profile selection must be callable before runtime emission can apply any rewards.
-      if (action.effects != null && typeof action.effects !== 'function')
-        throw new TypeError(`${label} effects must be a predicate.`);
-
       if (action.attribution != null && (typeof action.attribution !== 'object' || Array.isArray(action.attribution)))
         throw new TypeError(`${label} attribution must be an object.`);
 
@@ -150,10 +147,6 @@ export function validateEffectReactions(catalog: CanonicalCatalog, skill: Skill,
 
   if (!Array.isArray(effect.reactions)) throw new TypeError(`Skill ${skill.id} reactions must be an array.`);
 
-  validateActionIds(
-    effect.reactions.flatMap((rule) => (Array.isArray(rule.do) ? rule.do : [rule.do])),
-    `Skill ${skill.id} effect`
-  );
   const stage = (
     {
       strike: 'damage.resolved',
@@ -180,17 +173,22 @@ export function validateEffectReactions(catalog: CanonicalCatalog, skill: Skill,
     )
       throw new TypeError(`Skill ${skill.id} has an invalid effect reaction.`);
 
-    const actions = Array.isArray(rule.do) ? rule.do : [rule.do];
+    // Reject malformed lists before inspecting actions so scalar declarations cannot enter canonical data.
+    if (!Array.isArray(rule.do) || !rule.do.length)
+      throw new TypeError(`Skill ${skill.id} reaction requires a nonempty action array.`);
 
-    if (!actions.length) throw new TypeError(`Skill ${skill.id} reaction requires an action.`);
-
-    for (const action of actions) {
+    for (const action of rule.do) {
       validateSideEffectAction(catalog, skill, action, rule.on);
 
       if (action.type === 'flipArm' || action.type === 'flipConsume')
         throw new TypeError(`${action.type} requires a cast trigger.`);
     }
   }
+
+  validateActionIds(
+    effect.reactions.flatMap((rule) => rule.do),
+    `Skill ${skill.id} effect`
+  );
 }
 
 /** Identified actions are unique within their cast or effect owner so edits never select two rewards. */

@@ -3,7 +3,7 @@ import { WEAPON } from '#gw2/platform/constants.js';
 import { rangerTooltips } from '#gw2/professions/ranger/app/tooltips.js';
 import { createBuildContext, profession, toApplicationBuild } from '#gw2/professions/ranger/build/context.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import type { RangerPlanningState } from '#gw2/professions/ranger/types.js';
+import type { RangerPlanningState, RangerSkill } from '#gw2/professions/ranger/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 // Exposes Ranger only through the shared browser application contract.
@@ -13,7 +13,7 @@ export const rangerAppAdapter = defineProfessionApp({
   createBuildContext,
   toApplicationBuild,
   resetPrompt: 'Reset the Ranger build, pet, assumptions, and rotation?',
-  isSkillAvailable(skill, context) {
+  isSkillAvailable(skill: RangerSkill, context) {
     // Greatsword Maul changes recipient when Soulbeast merges, so expose the matching skill ID.
     if (skill.id === ID.MAUL_SOULBEAST || skill.id === ID.MAUL_BASE) {
       const merged =

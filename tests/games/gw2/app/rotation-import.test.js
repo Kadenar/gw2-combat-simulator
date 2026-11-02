@@ -11,6 +11,7 @@ import {
 import { setRotationReference } from '#gw2/app/rotation/comparison-state.js';
 import { recordRotationHistory, redoRotation, undoRotation } from '#gw2/app/rotation/editing/history.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { mesmerAppAdapter as adapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
 import { RANGER_SKILL_IDS } from '#gw2/professions/ranger/data/ids.js';
@@ -240,4 +241,52 @@ test('selected identities reach both Current and Reference without mutating the 
   assert.deepEqual(app.build.rotation, [{ type: 'cast', skillId: 69311 }]);
   assert.notEqual(app.build.rotation, preview.rotation);
   assert.notEqual(app.rotationComparison.referenceRotation, preview.rotation);
+});
+
+// Both dialogs must upgrade standalone saves before the current build's schema is attached.
+test('Elementalist stance migration reaches rotation-only and combined imports through both dialogs', async () => {
+  for (const includeBuild of [false, true]) {
+    for (const useBuildDialog of [false, true]) {
+      const defaults = elementalistAppAdapter.profession.createBuildDefaults();
+      const app = {
+        adapter: elementalistAppAdapter,
+        activeCatalog: elementalistAppAdapter.profession.catalog,
+        build: elementalistAppAdapter.toApplicationBuild(defaults),
+        changed() {}
+      };
+      const rotation = [
+        { type: 'cast', skillId: -1167, offTarget: true },
+        'Primordial Stance (Air)',
+        { type: 'cast', skillId: -1169, concurrentOffsetMs: 250 },
+        { type: 'wait', durationMs: 500 }
+      ];
+      const payload = includeBuild
+        ? {
+            ...defaults,
+            schemaVersion: 5,
+            selectedSkillIds: { ...defaults.selectedSkillIds, Utility1: -1169 },
+            rotation
+          }
+        : { rotation };
+
+      if (useBuildDialog) {
+        const preview = previewBuildFileImport(payload, 'old-weaver.json', app);
+        assert.equal(preview.rotationError, null);
+        applyBuildFileImport(app, preview, { build: includeBuild, rotation: true });
+
+        if (includeBuild) assert.equal(app.build.selectedSkillIds.Utility1, 40183);
+      } else {
+        const file = new File([JSON.stringify(payload)], 'old-weaver.json', { type: 'application/json' });
+        const preview = await previewRotationFile(file, app);
+        applyRotationImportPreview(app, preview);
+      }
+
+      assert.deepEqual(app.build.rotation, [
+        { type: 'cast', skillId: 40183, offTarget: true },
+        { type: 'cast', skillId: 40183 },
+        { type: 'cast', skillId: 40183, concurrentOffsetMs: 250 },
+        { type: 'wait', durationMs: 500 }
+      ]);
+    }
+  }
 });

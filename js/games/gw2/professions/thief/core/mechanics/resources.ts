@@ -2,6 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { EndurancePolicy, ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -10,6 +11,11 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 
 /** Base initiative is fixed; trait and skill adjustments retain their own patchable tuning. */
 export const INITIATIVE = Object.freeze({ maximum: 12, regenerationPerSecond: 1 });
+
+/** Initiative a skill pays through its cost declaration; endurance-priced dodges and free skills spend none. */
+export function thiefInitiativeCost(skill: Skill): number {
+  return skill.cost?.resource === 'initiative' ? skill.cost.amount : 0;
+}
 
 /** Construction, runtime, and presentation share Preparedness's selected capacity or the fixed base maximum. */
 export function thiefInitiativeCapacity(context: unknown): number {

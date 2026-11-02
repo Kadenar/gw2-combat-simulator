@@ -22,6 +22,30 @@ export type AvailabilityResult =
 
 export const CAST_READY: AvailabilityResult = Object.freeze({ ready: true });
 
+/** Keep permanent denials, otherwise combine retry boundaries using the last denial's explanation. Callers own gate order. */
+export function combineAvailability(
+  previous: AvailabilityResult,
+  next: AvailabilityResult,
+  currentTime: number
+): AvailabilityResult {
+  if (!previous.ready && previous.retryAt === null) return previous;
+
+  if (!next.ready && next.retryAt === null) return next;
+
+  const blocked = next.ready ? previous : next;
+
+  if (blocked.ready) return blocked;
+
+  return {
+    ...blocked,
+    retryAt: Math.max(
+      currentTime,
+      previous.ready ? currentTime : previous.retryAt,
+      next.ready ? currentTime : next.retryAt
+    )
+  };
+}
+
 /** Creates a command-scoped denial when time alone cannot make the attempted cast valid. */
 export function denyCast(code: string, reason: string): AvailabilityResult {
   return { ready: false, retryAt: null, code, reason };
@@ -76,7 +100,6 @@ export function weaponSetSwapAvailability(
 export interface SlotSelectionPolicy {
   readonly omittedLoadout?: 'allow' | 'deny';
   readonly identity?: (id: SkillId, catalog: CanonicalCatalog) => SkillId;
-  readonly allowsFollowUp?: (skill: Skill, selected: ReadonlySet<SkillId>, catalog: CanonicalCatalog) => boolean;
 }
 
 /** Rejects unequipped slot skills at the caller's gate position; flips inherit their root's selection. */
@@ -106,7 +129,5 @@ export function selectedSlotSkillAvailability(
   const equipped = identity
     ? [...selected].some((id) => identity(id, context.catalog) === identity(root.id, context.catalog))
     : selected.has(root.id);
-  return equipped || policy.allowsFollowUp?.(skill, selected, context.catalog)
-    ? null
-    : denySkillCast(skill, 'gw2.slot-not-equipped', 'the skill is not equipped.');
+  return equipped ? null : denySkillCast(skill, 'gw2.slot-not-equipped', 'the skill is not equipped.');
 }

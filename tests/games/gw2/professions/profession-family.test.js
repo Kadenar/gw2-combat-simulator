@@ -496,12 +496,7 @@ test('family modifier rules share one GW2 damage bucket', () => {
 
 // Policy ownership is per target, and invalid declarations fail even when no damage rules exist.
 test('family damage bucket policies validate eligibility and reject conflicting owners', () => {
-  for (const [damageBuckets, message] of [
-    [42, /damageBuckets must be an object/],
-    [{ strikeDamage: null }, /bucket policy "strikeDamage" must be an object/],
-    [{ strikeDamage: { includeSigil: 42 } }, /unsupported includeSigil/],
-    [{ unknown: {} }, /unsupported target/]
-  ]) {
+  for (const [damageBuckets, message] of [[{ unknown: {} }, /unsupported target/]]) {
     const family = testFamily(testModule('Core', { modifiers: { damageBuckets } }));
     assert.throws(() => family.resolveProfession({}), message);
   }

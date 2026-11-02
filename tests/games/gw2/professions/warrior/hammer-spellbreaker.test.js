@@ -132,7 +132,7 @@ test('hammer cooldowns, conditional damage, recharge, and Defense traits work', 
   const reset = simulate('Core', ['Fierce Blow', 'Backbreaker', 'Fierce Blow'], { primaryWeapon: 'Hammer' });
 
   assert.deepEqual(
-    reset.steps.filter(({ skill }) => skill === 'Fierce Blow').map(({ start }) => start),
+    reset.steps.filter(({ skillName }) => skillName === 'Fierce Blow').map(({ start }) => start),
     [0, 1760]
   );
 

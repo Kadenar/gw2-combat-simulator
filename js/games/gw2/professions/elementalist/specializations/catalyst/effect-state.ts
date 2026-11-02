@@ -33,7 +33,7 @@ export function catalystBuffPolicies(context: unknown): BuffStatePolicy[] {
 
 /** Observe the same empowerment expiries combat mutates, retaining selected-profile caps and exact expiry. */
 export function catalystEffectStates(runtime: MechanicQueriesOf<ElementalistRuntime>): EffectState[] {
-  const state = catalystState.from(runtime);
+  const state = catalystState.from(runtime.profession);
   return [
     // Reporting snapshots the same refresh-all deadline used by both damage modifiers.
     timedEffectState(
@@ -43,7 +43,9 @@ export function catalystEffectStates(runtime: MechanicQueriesOf<ElementalistRunt
     ),
     timedEffectState(
       'elemental empowerment',
-      catalystState.from(runtime).elementalEmpowermentExpiries.map((expiresAt) => ({ expiresAt, stacks: 1 })),
+      catalystState
+        .from(runtime.profession)
+        .elementalEmpowermentExpiries.map((expiresAt) => ({ expiresAt, stacks: 1 })),
       balanceProfileNumber(balanceProfileFromContext(runtime, TRAIT.ELEMENTAL_EMPOWERMENT)!, 'maximumStacks')
     )
   ];

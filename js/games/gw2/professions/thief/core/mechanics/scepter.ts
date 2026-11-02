@@ -36,5 +36,5 @@ export function expireThiefScepterChain(runtime: ThiefRuntime, data: unknown): v
   if ((data as { at: number }).at !== core.scepterChainExpiresAt) return;
 
   core.scepterChainExpiresAt = null;
-  resetAutoattackChains(runtime, [ID.SHADOW_BOLT]);
+  resetAutoattackChains(runtime.profession, [ID.SHADOW_BOLT]);
 }

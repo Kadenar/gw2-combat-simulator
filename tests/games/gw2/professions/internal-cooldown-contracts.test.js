@@ -47,6 +47,7 @@ import { WARRIOR_SKILL_IDS, WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/d
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
@@ -57,7 +58,6 @@ const READY_AT = 1;
 const AFTER_READY_AT = 1.001;
 
 // Live owners claim from each qualifying completion or landed strike; ICD deadlines stay exclusive at the boundary.
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const revenantCooldown = (trait, duration) => (catalog) => withProfile(catalog, trait, { cooldown: duration });
 const closeTo = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} !== ${expected}`);
 
@@ -231,7 +231,7 @@ for (const [key, trait, invoke, literalDuration] of [
   });
 }
 
-/** Captures shared-service submissions while isolating one profession-owned proc gate and nested reaction. */
+/** Captures shared-service submissions with explicit mechanic state while isolating one owned proc gate. */
 function professionContext({ id, catalog, core, specialization = {}, kind = 'Core', config = {}, traits = [] }) {
   const events = [];
   const procs = [];
@@ -239,19 +239,12 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
   const context = {
     engagement: createCombatEngagement().query,
     procs: createProcRegistry(() => context),
-    profession: { id },
+    profession: { core, specialization: { kind, state: specialization } },
     catalog,
     // Resolver emitters use the canonical helper catalog for packet artwork as well as combat metadata.
     helpers: { skillsById: catalog.skillsById },
-    config,
+    config: { profession: id, ...config },
     traits: new Set(traits.length ? traits : config.selectedTraitIds || []),
-    state: {
-      activeWeaponSet: 1,
-      profession: {
-        core,
-        specialization: { kind, state: specialization }
-      }
-    },
     activeWeaponSet: 1,
     queue: new StableEventQueue(),
     resolved: [],

@@ -24,7 +24,6 @@ export interface Gw2SigilProc {
   readonly icon?: string;
   readonly coefficient?: number;
   readonly weaponStrength?: number;
-  readonly weaponStrengthProfileId?: string;
   readonly canCrit?: boolean;
   readonly projectile?: boolean;
   readonly condition?: string;

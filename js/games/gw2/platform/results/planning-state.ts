@@ -18,14 +18,14 @@ export function planningState<T extends object>(
 ): Gw2SimulationPlanningState {
   const endTime = input.time;
   // Keep distinct skills separate even when their display names match.
-  const cooldowns = Object.fromEntries(
+  const cooldownsBySkillId = Object.fromEntries(
     [...input.cooldownController.cooldownSkillIds()].map((id) => {
       const readyAt = input.cooldownController.readyAt(id)!;
       return [
         String(id),
         {
-          readyAt: Math.round(gw2CooldownReadyAt(readyAt) * 1000),
-          remaining: Math.max(0, Math.round((gw2CooldownReadyAt(readyAt) - endTime) * 1000))
+          readyAtMs: Math.round(gw2CooldownReadyAt(readyAt) * 1000),
+          remainingMs: Math.max(0, Math.round((gw2CooldownReadyAt(readyAt) - endTime) * 1000))
         }
       ];
     })
@@ -55,17 +55,17 @@ export function planningState<T extends object>(
     availability: structuredClone(
       Object.fromEntries(
         input.catalog.skills
-          .filter((skill) => !skill.simulatorExcluded)
+          .filter((skill) => !skill.rotationInputExcluded)
           .map((skill) => [String(skill.id), availability(skill)])
       )
     ),
     effects: structuredClone(effects),
     atSeconds: endTime,
     combatActive: input.combatActive,
-    cooldowns,
+    cooldownsBySkillId,
     ammoBySkillId,
     activeWeaponSet: input.activeWeaponSet,
-    // Projection lets a profession hide its internal bookkeeping.
+    // Projectors select public fields without mutation; this boundary alone detaches them from live owners.
     profession: structuredClone(projected ?? flattenProfessionState(input.profession))
   };
 }

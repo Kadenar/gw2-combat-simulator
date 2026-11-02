@@ -8,13 +8,12 @@ import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Supplies Harbinger elixir definitions to specialization composition. */
-export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<NecromancerSkill>>> = {
   [ID.ELIXIR_OF_BLISS]: {
     name: 'Elixir of Bliss',
-    description:
-      'Elixir. Infuse the magical essence of bliss into an elixir, gaining resolution and converting conditions on yourself into life force, and then toss the elixir at the targeted area, corrupting a boon on targets into a condition. If you are in the splash area of the elixir, gain Blight.\n\nIf you are at or above the Blight threshold when you activate this skill, consume that amount of Blight to double the damage and corrupt an additional boon on targets.',
     icon: 'https://render.guildwars2.com/file/459163C00EBE9680B15C0FB6FC26047661D2ACB9/2479396.png',
     type: 'Utility',
     slot: 'Utility',
@@ -43,8 +42,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.ELIXIR_OF_RISK]: {
     name: 'Elixir of Risk',
-    description:
-      'Elixir. Infuse the magical essence of risk into an elixir, gaining might and fury, and then toss the elixir at the targeted area, inflicting weakness on foes. If you are in the splash area of the elixir, gain Blight.\n\nIf you are at or above the Blight threshold when you activate this skill, consume that amount of Blight to double the damage and condition duration.',
     icon: 'https://render.guildwars2.com/file/0022CA7F9E786F947BB0B06B42292C5851B27DD5/2479399.png',
     type: 'Utility',
     slot: 'Utility',
@@ -117,8 +114,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.ELIXIR_OF_IGNORANCE]: {
     name: 'Elixir of Ignorance',
-    description:
-      'Elixir. Infuse the magical essence of ignorance into an elixir, gaining resistance and protection and breaking stuns, and then toss the elixir at the targeted area, inflicting blindness on foes. If you are in the splash area of the elixir, gain Blight.\n\nIf you are at or above the Blight threshold when you activate this skill, consume that amount of Blight to double the damage and condition duration.',
     icon: 'https://render.guildwars2.com/file/0200D6AE182625F423466235CAE295B4039AA2CF/2479397.png',
     type: 'Utility',
     slot: 'Utility',
@@ -152,8 +147,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.ELIXIR_OF_AMBITION]: {
     name: 'Elixir of Ambition',
-    description:
-      'Elixir. Infuse your boundless ambition into an elixir, gaining every possible boon, and then toss the elixir at the targeted area, inflicting all damaging conditions on foes. If you are in the splash area of the elixir, gain Blight.\n\nIf you are at or above the Blight threshold when you activate this skill, consume that amount of Blight to double the damage and condition duration.',
     icon: 'https://render.guildwars2.com/file/29ABACF1A407D95BD9D1A232F51C6E0003413010/2479394.png',
     type: 'Elite',
     slot: 'Elite',
@@ -241,8 +234,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.ELIXIR_OF_ANGUISH]: {
     name: 'Elixir of Anguish',
-    description:
-      'Elixir. Infuse the magical essence of anguish into an elixir, gaining swiftness and quickness, and then toss the elixir at the targeted area, inflicting cripple on foes. If you are in the splash area of the elixir, gain Blight.\n\nIf you are at or above the Blight threshold when you activate this skill, consume that amount of Blight to double the damage and condition duration.',
     icon: 'https://render.guildwars2.com/file/DF014624472FAC17D6201AAF0591E0FB45B5DDE0/2479395.png',
     type: 'Utility',
     slot: 'Utility',
@@ -300,8 +291,6 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.ELIXIR_OF_PROMISE]: {
     name: 'Elixir of Promise',
-    description:
-      'Elixir. Infuse an elixir with the promise of good health, healing yourself and gaining regeneration, and then toss the elixir at the targeted area, poisoning foes. If you are in the splash area of the elixir, gain Blight.\n\nIf you are at or above the Blight threshold when you activate this skill, consume that amount of Blight to double damage and condition duration.',
     icon: 'https://render.guildwars2.com/file/140E800A089A0CE7487E615006C02AAB9A944DA4/2479398.png',
     type: 'Heal',
     slot: 'Heal',
@@ -343,4 +332,4 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       }
     ]
   }
-});
+};

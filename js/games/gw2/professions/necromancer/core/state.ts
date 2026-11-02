@@ -3,7 +3,6 @@ import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import { cloneStateFields } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -91,29 +90,20 @@ export function necromancerLifeForceCapacity(
   return (NECROMANCER_BASE_HEALTH + Math.max(0, vitality) * 10) * 0.69 * capacityMultiplier;
 }
 
-/** Detach only public fields before clamping resources so normalization cannot mutate live owners. */
+/** Derive capped public resource values without mutating live owners; the observer detaches the result. */
 export function projectNecromancerPlanningState(input: Gw2PlanningStateInput) {
-  const state = cloneStateFields((input.profession as { core: NecromancerCoreState }).core, [
-    'endurance',
-    'lifeForce',
-    'activeShroud',
-    'soulShardGrant',
-    'carapaceExpiries',
-    'activeMinions',
-    'availableFlips',
-    'autoattackChains',
-    'selfConditions'
-  ]);
-  state.lifeForce.value = cappedResource(state.lifeForce.value, state.lifeForce.maximum);
-  // Detached resource values obey the same selected capacity as live grants.
-  state.soulShardGrant.charges = cappedResource(state.soulShardGrant.charges, necromancerSoulShardMaximum(input));
+  const state = (input.profession as { core: NecromancerCoreState }).core;
+  // Derive capped observations without changing the authoritative resource grants.
   return {
     [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.ENDURANCE]: state.endurance,
-    [STATE.LIFE_FORCE]: state.lifeForce,
+    [STATE.LIFE_FORCE]: { ...state.lifeForce, value: cappedResource(state.lifeForce.value, state.lifeForce.maximum) },
     [STATE.AVAILABLE_FLIPS]: state.availableFlips,
     [STATE.ACTIVE_SHROUD]: state.activeShroud,
-    [STATE.SOUL_SHARD_GRANT]: state.soulShardGrant,
+    [STATE.SOUL_SHARD_GRANT]: {
+      ...state.soulShardGrant,
+      charges: cappedResource(state.soulShardGrant.charges, necromancerSoulShardMaximum(input))
+    },
     [STATE.CARAPACE_EXPIRIES]: state.carapaceExpiries,
     [STATE.ACTIVE_MINIONS]: state.activeMinions,
     [STATE.SELF_CONDITIONS]: state.selfConditions

@@ -23,7 +23,7 @@ interface OptimizerMessage extends GameWorkerResponseEnvelope {
   readonly baseline?: OptimizerScore;
   readonly chunkId?: number;
   readonly completed?: string;
-  readonly represented?: string;
+  readonly representedCombinationCount?: string;
   readonly simulations?: string;
   readonly winners?: OptimizerCandidate[];
   readonly groups?: OptimizerResultGroups;
@@ -37,14 +37,14 @@ export interface OptimizerProgress {
   rawCount: bigint;
   count: bigint;
   completed: bigint;
-  represented: bigint;
+  representedCombinationCount: bigint;
   simulations: bigint;
   baseline: OptimizerScore | null;
   winners: OptimizerCandidate[];
   groups: OptimizerResultGroups;
   warnings: Map<string, bigint>;
+  /** Distinguishes searches at the same build revision for the result preview cache. */
   started: number;
-  elapsedMs: number;
 }
 
 /** Persistent workers pull disjoint unique-combination ranges; failure and cancellation terminate synchronous simulations immediately. */
@@ -70,14 +70,13 @@ export class GearOptimizerRunner {
       rawCount: 0n,
       count: 0n,
       completed: 0n,
-      represented: 0n,
+      representedCombinationCount: 0n,
       simulations: 0n,
       baseline: null,
       winners: [],
       groups: createOptimizerResultGroups(),
       warnings: new Map(),
-      started: performance.now(),
-      elapsedMs: 0
+      started: performance.now()
     };
   }
 
@@ -107,7 +106,6 @@ export class GearOptimizerRunner {
     if (!force && now - this.lastPublished < 150) return;
 
     this.lastPublished = now;
-    this.state.elapsedMs = now - this.state.started;
     this.onUpdate();
   }
 
@@ -131,7 +129,7 @@ export class GearOptimizerRunner {
     let chunkSize = 1n;
     const pending = new Map<
       Worker,
-      { id: number; size: bigint; completed: bigint; represented: bigint; simulations: bigint }
+      { id: number; size: bigint; completed: bigint; representedCombinationCount: bigint; simulations: bigint }
     >();
     const ready = new Set<Worker>();
     const verifying = new Set<Worker>();
@@ -152,7 +150,7 @@ export class GearOptimizerRunner {
 
       const end = next + chunkSize < this.state.count ? next + chunkSize : this.state.count;
       const id = ++chunkId;
-      pending.set(worker, { id, size: end - next, completed: 0n, represented: 0n, simulations: 0n });
+      pending.set(worker, { id, size: end - next, completed: 0n, representedCombinationCount: 0n, simulations: 0n });
       worker.postMessage({
         kind: 'chunk',
         requestId,
@@ -190,7 +188,7 @@ export class GearOptimizerRunner {
         roundOffset = this.state.completed;
         for (const worker of workers) worker.postMessage({ kind: 'refine', requestId, candidates: this.state.winners });
       } else {
-        if (request.search !== 'fast' && this.state.represented !== this.state.rawCount)
+        if (request.search !== 'fast' && this.state.representedCombinationCount !== this.state.rawCount)
           throw new Error('Optimizer coverage does not match the legal search space.');
 
         this.state.status = 'verifying';
@@ -256,7 +254,7 @@ export class GearOptimizerRunner {
         if (!chunk || chunk.id !== message.chunkId) throw new Error('Unexpected optimizer chunk completion.');
 
         const completed = BigInt(message.completed!);
-        const represented = BigInt(message.represented!);
+        const representedCombinationCount = BigInt(message.representedCombinationCount!);
         const simulations = BigInt(message.simulations!);
 
         // Cumulative range updates include rejected candidates; only add new work, including at final completion.
@@ -264,16 +262,16 @@ export class GearOptimizerRunner {
           completed < chunk.completed ||
           completed > chunk.size ||
           (message.kind === 'chunk' && completed !== chunk.size) ||
-          represented - chunk.represented < completed - chunk.completed ||
+          representedCombinationCount - chunk.representedCombinationCount < completed - chunk.completed ||
           simulations < chunk.simulations ||
           simulations - chunk.simulations > completed - chunk.completed
         )
           throw new Error('Invalid optimizer progress counts.');
 
         this.state.completed += completed - chunk.completed;
-        this.state.represented += represented - chunk.represented;
+        this.state.representedCombinationCount += representedCombinationCount - chunk.representedCombinationCount;
         this.state.simulations += simulations - chunk.simulations;
-        Object.assign(chunk, { completed, represented, simulations });
+        Object.assign(chunk, { completed, representedCombinationCount, simulations });
 
         if (message.kind === 'progress') {
           this.publish();

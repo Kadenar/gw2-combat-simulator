@@ -37,7 +37,7 @@ import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/pro
 
 /** Capture the magazine before the cast spends its ammunition so completion sees the accepted balance. */
 function prepareBladeswornAmmunition(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
-  if (cast.ammo) {
+  if (cast.usesAmmo) {
     const ammo = runtime.cooldownController.readAmmo(cast.skill.id)!;
     warriorAmmunition.set(cast, { rounds: 1, startedFull: ammo.charges >= ammo.maximum });
   }
@@ -71,7 +71,7 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
     buffPolicies: bladeswornBuffPolicies,
     observeEffects: bladeswornEffectStates,
     prepareDamageState(runtime, skill) {
-      bladeswornState.from(runtime).gunsaberActive = Boolean(skill?.gunsaberSkill);
+      bladeswornState.from(runtime.profession).gunsaberActive = Boolean(skill?.gunsaberSkill);
     },
 
     sideEffectHandlers: {
@@ -121,7 +121,7 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
       }
 
       if (cast.skill.gunsaberSkill && !runtime.helpers.autoattackChainPositions.has(Number(cast.skill.id)))
-        resetAutoattackChains(runtime);
+        resetAutoattackChains(runtime.profession);
     },
     reactions: { 'damage.resolved': reactToBladeswornExplosion }
   }

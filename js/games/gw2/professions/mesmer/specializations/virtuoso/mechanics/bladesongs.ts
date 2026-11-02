@@ -152,7 +152,7 @@ export function virtuosoAvailability(
     return denySkillCast(skill, 'mesmer.virtuoso-dagger-replaced', 'Virtuoso replaces this dagger skill.');
   }
 
-  if (!skill.shatter || virtuosoState.from(context).blades.value >= 1) {
+  if (!skill.shatter || virtuosoState.from(context.profession).blades.value >= 1) {
     return { ready: true };
   }
 

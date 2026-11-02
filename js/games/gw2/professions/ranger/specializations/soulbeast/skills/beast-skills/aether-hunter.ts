@@ -5,12 +5,11 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
-export const SOULBEAST_AETHER_HUNTER_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const SOULBEAST_AETHER_HUNTER_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.LEY_LINE_VORTEX]: {
     name: 'Ley-Line Vortex',
-    description:
-      'Spin around, creating a vortex of ley-line energy around you that strikes and inflicts conditions on enemies.',
     icon: 'https://render.guildwars2.com/file/030E7AB1CB18A4B348FD17B54B2B68FDABDB1DBC/3124961.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -34,7 +33,6 @@ export const SOULBEAST_AETHER_HUNTER_BEAST_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.LUNGE]: {
     name: 'Lunge',
-    description: 'Lunge forward, crippling opponents in the path.',
     icon: 'https://render.guildwars2.com/file/B65ECEBB72F4F10C4144510777E899E477DEE5B2/3124960.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -55,4 +53,4 @@ export const SOULBEAST_AETHER_HUNTER_BEAST_SKILL_MECHANICS: Readonly<Record<numb
       }
     ]
   }
-});
+};

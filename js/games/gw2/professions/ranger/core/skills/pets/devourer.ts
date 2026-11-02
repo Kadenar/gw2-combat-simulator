@@ -13,10 +13,9 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 const POISONOUS_CLOUD_PULSE_TIMES_MS = [1160, 2160, 3160, 4160, 5160, 6160];
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
-export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.POISONOUS_CLOUD]: definePetSkill({
     name: 'Poisonous Cloud',
-    description: 'Beast. Spit a ball of venom that covers an area with a poisonous cloud.',
     icon: 'https://render.guildwars2.com/file/36A3327C0EEA1D5C03EAA5587C73692580A42BB5/104031.png',
     petNames: ['Carrion Devourer'],
     type: 'Profession',
@@ -69,7 +68,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
   }),
   [ID.POISON_BARBS]: definePetSkill({
     name: 'Poison Barbs',
-    description: 'Beast. Spray poisonous barbs in an arc in front of you, damaging and poisoning foes.',
     icon: 'https://render.guildwars2.com/file/9A033F36CC4EEB19F6FCDE440D7CCB150A169BB5/104030.png',
     petNames: ['Whiptail Devourer'],
     type: 'Profession',
@@ -97,7 +95,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
   }),
   [ID.RENDING_BARBS]: definePetSkill({
     name: 'Rending Barbs',
-    description: 'Beast. Rapidly launch projectiles that bleed your target.',
     icon: 'https://render.guildwars2.com/file/5A56036047B5A211D8470C4F65F56FAC0550006D/104032.png',
     petNames: ['Lashtail Devourer'],
     type: 'Profession',
@@ -126,7 +123,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
   }),
   [ID.TWIN_DARTS]: definePetSkill({
     name: 'Twin Darts',
-    description: 'Fire two shots from your tail that bleed your enemy.',
     icon: 'https://render.guildwars2.com/file/9D3C1CD36EAFF4F4F5E4EB7B41C318771E579C78/103583.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -167,7 +163,6 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
   }),
   [ID.PET_TAIL_LASH]: definePetSkill({
     name: 'Tail Lash',
-    description: 'Push back a foe with your tail.',
     icon: 'https://render.guildwars2.com/file/086363EFF41571AD74CD1B506DF2B2F6F1F038D1/104029.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -192,4 +187,4 @@ export const RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ])
   })
-});
+};

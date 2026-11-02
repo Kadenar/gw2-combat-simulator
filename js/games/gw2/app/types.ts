@@ -26,30 +26,26 @@ import type {
   RandomDistributionResultState,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
-import type { BuildAttributes, BuildContextFactory } from '#gw2/build-context/types.js';
+import type { BuildAttributes, BuildContextFactory, BuildContextProfession } from '#gw2/build-context/types.js';
 import type { PatchOverviewEntry } from '#gw2/integrations/patches/authoring/overview-generation.js';
-import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
-import type { PatchSelection, ResolvedPatch } from '#gw2/integrations/patches/selection.js';
+import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { Gw2WeaponDataEntry, Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
-import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
-export type ProfessionAppContract = Gw2ProfessionSource & {
+/** UI adapters retain the same bound calculator and patch contract as headless build contexts. */
+export type ProfessionAppContract = BuildContextProfession & {
   readonly nativeDefinition: {
     readonly moduleVariants?: Readonly<
       Record<string, import('#gw2/platform/profession-definition/module-types.js').AnyNativeModule>
     >;
   };
-  readonly preview?: PatchPreview | null;
   readonly patchOverviewFor: (config: Gw2Config, observedIds: readonly SkillId[]) => readonly PatchOverviewEntry[];
-  /** Bound professions resolve the selected patch and reject unavailable patch IDs. */
-  readonly resolvePatch: (selection?: PatchSelection) => ResolvedPatch;
 };
 
 export interface ProfessionAppState

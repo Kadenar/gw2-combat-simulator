@@ -7,7 +7,6 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import {
@@ -54,8 +53,8 @@ function initializeWeaverAttunements(context: ElementalistRuntime): void {
     onAcceptedEvent(runtime, event);
   });
   registerElementalistAttunementTransition(context, completeDualAttunement);
-  const core = professionCoreState(context);
-  const state = weaverState.from(context);
+  const core = professionCoreState(context.profession);
+  const state = weaverState.from(context.profession);
   state.secondaryAttunement = isElementalistAttunement(context.config.secondaryAttunement)
     ? context.config.secondaryAttunement
     : core.primaryAttunement;
@@ -63,25 +62,28 @@ function initializeWeaverAttunements(context: ElementalistRuntime): void {
 
 // Enforce Weaver's dual-hand attunement model, Unravel replacement state, and
 // specialization-only skill gates before Core evaluates ordinary weapon rules.
-function weaverAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
+function weaverAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: ElementalistSkill
+): AvailabilityResult {
   const hammerAvailability = weaverHammerAvailability(context, skill);
 
   // Eligible orbs still pass through the shared hand and Unravel replacement gates below.
   if (hammerAvailability && !hammerAvailability.ready) return hammerAvailability;
 
   // Only the preserved next autoattack link may bypass hand checks after a swap.
-  const core = professionCoreState(context);
+  const core = professionCoreState(context.profession);
   const chainPosition = context.helpers.autoattackChainPositions.get(Number(skill.id));
   const carriedLink =
     chainPosition &&
-    Number(skill.id) !== chainPosition.root &&
-    core.autoattackCarryover?.root === chainPosition.root &&
+    Number(skill.id) !== chainPosition.rootSkillId &&
+    core.autoattackCarryover?.root === chainPosition.rootSkillId &&
     core.autoattackCarryover.attunement === skill.attunement &&
-    core.autoattackChains[chainPosition.root] === Number(skill.id);
+    core.autoattackChains[chainPosition.rootSkillId] === Number(skill.id);
 
   if (skill.type === 'Weapon' && skill.attunement && !carriedLink) {
-    const state = weaverState.from(context);
-    const attunement = String(skill.attunement);
+    const state = weaverState.from(context.profession);
+    const attunement = skill.attunement;
     const secondary = state.secondaryAttunement || core.primaryAttunement;
     const unravelActive = state.unravelUntil > context.time;
     const available = weaverWeaponAttunementAvailable(skill, core.primaryAttunement, secondary, unravelActive);
@@ -112,7 +114,7 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
     return;
   }
 
-  const state = weaverState.from(context);
+  const state = weaverState.from(context.profession);
   const at = event.at;
   const target = event.to;
   const sourceId = event.skillId ?? event.sourceId;
@@ -140,8 +142,8 @@ function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): 
 
 /** Core calls the elite transition once before shared attunement completion effects. */
 function completeDualAttunement(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
-  const state = weaverState.from(context),
-    core = professionCoreState(context),
+  const state = weaverState.from(context.profession),
+    core = professionCoreState(context.profession),
     at = context.time,
     skill = cast.skill;
   const target = targetAttunement(skill);
@@ -173,9 +175,9 @@ const weaverAttunementActions = {
   'elementalist.weaver.refresh-primary-attunement'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Attunement refresh requires a cast trigger.');
 
-    const core = professionCoreState(runtime);
+    const core = professionCoreState(runtime.profession);
 
-    if (core.primaryAttunement !== weaverState.from(runtime).secondaryAttunement)
+    if (core.primaryAttunement !== weaverState.from(runtime.profession).secondaryAttunement)
       setElementalistAttunementReadyAt(runtime, core.primaryAttunement, context.cast.effectiveEnd);
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers']>;
@@ -188,8 +190,8 @@ const weaverAttunementTasks = {
     // Task data is cloned; resolve the immutable payload from this accepted cast's selected skill.
     const action = requireSkillAction(skill, 'unravel');
     const at = cast.effectiveEnd;
-    const core = professionCoreState(context);
-    const state = weaverState.from(context);
+    const core = professionCoreState(context.profession);
+    const state = weaverState.from(context.profession);
     {
       const previousPrimary = core.primaryAttunement;
       const previousSecondary = state.secondaryAttunement;

@@ -4,7 +4,7 @@ export interface InputWindow {
   readonly start: number;
   readonly end: number;
   readonly count: number;
-  readonly rate: number;
+  readonly actionsPerSecond: number;
 }
 
 /** Shared rolling counts keep APM peaks and activity sections on the same accepted-input boundaries. */
@@ -24,7 +24,7 @@ export function rankedInputWindows(trace: InputTrace, windowSeconds: number): In
     while (right < times.length && (times[right] < end || (end === duration && times[right] === end))) right++;
     while (left < right && times[left] < start) left++;
     const count = right - left;
-    windows.push({ start, end, count, rate: count / windowSeconds });
+    windows.push({ start, end, count, actionsPerSecond: count / windowSeconds });
   }
 
   return windows.sort((a, b) => b.count - a.count || a.start - b.start);

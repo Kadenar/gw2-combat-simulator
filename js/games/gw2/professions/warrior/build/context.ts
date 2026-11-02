@@ -12,7 +12,6 @@ export const profession: BoundProfession = withActivePatchPreview(warriorProfess
 
 export const createBuildContext = bindBuildContext<WarriorCanonicalBuild>(
   profession,
-  { attributeContributions: profession.attributeContributions },
   (build) => ({ initialResource: build.initialResource }),
   { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
 );

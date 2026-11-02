@@ -120,16 +120,15 @@ Declare profession-specific identities in `professions/<profession>/state-ids.ts
 of runtime property names, display labels, build settings, skill IDs, and snapshot item IDs. Use the exported constants
 in consumers and fixtures. Do not add old-name aliases or infer IDs from runtime keys.
 
-Only Core and the active elite contribute observations. Each projector reads its actual owner, selects visible facts,
-and detaches mutable values. Composition rejects duplicate IDs instead of letting module order overwrite a value. A
-field owned by Core must be read from Core even if an elite is responsible for exposing it. Derive public types from
-`ReturnType<typeof projector>` so a renamed ID or omitted field is checked in presentation code.
+Only Core and the active elite contribute observations. Each projector receives explicit runtime state, reads its actual
+owner, and selects visible facts without mutation. Composition rejects duplicate IDs instead of letting module order
+overwrite a value. A field owned by Core must be read from Core even if an elite is responsible for exposing it. Derive
+public types from `ReturnType<typeof projector>` so a renamed ID or omitted field is checked in presentation code.
 
-Clone the selected record once rather than cloning every scalar or the entire runtime. Projectors that normalize mutable
-observations may use `cloneStateFields` to copy selected owner fields before filtering or deriving values. Never
-traverse private cast histories, task queues, or pet internals to build a public observation. The result boundary also
-detaches the composed observation; this protects generic extension projectors. See
-[CLONE-PERFORMANCE.md](./CLONE-PERFORMANCE.md#planning-state-projections) for the copying contract.
+The shared planning observer deep-clones the composed public record once. Module projectors may borrow read-only values;
+expiry, charge, and cap transformations must construct new values instead of mutating those borrowed objects. Standalone
+observation consumers must use the same result boundary rather than treat a raw projector return as a detached snapshot.
+Never traverse private cast histories, task queues, or pet internals to build a public observation.
 
 ### Shared and event-derived items
 

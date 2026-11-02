@@ -46,7 +46,10 @@ export function weaponSetActiveSegments(
         weaponSwapSkillIds.has(step.skillId) &&
         Number.isFinite(Number(step.end))
     )
-    .sort((left, right) => Number(left.end) - Number(right.end) || Number(left.ri) - Number(right.ri));
+    .sort(
+      (left, right) =>
+        Number(left.end) - Number(right.end) || Number(left.rotationCommandIndex) - Number(right.rotationCommandIndex)
+    );
 
   for (const swap of swaps) {
     const at = boundedNumber(swap.end, segmentStart, segmentStart, timelineEnd);

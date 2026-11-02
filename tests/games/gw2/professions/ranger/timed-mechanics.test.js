@@ -107,7 +107,7 @@ test('Avatar lifetime remains present at its exact deadline until exit cleanup c
               assert.equal(state.celestialAvatarEndsAt, runtime.time);
               native.tasks['ranger.avatar-exit'](runtime, data);
               transitions.push(state.celestialAvatarEndsAt);
-              assert.equal(state.astralClock.rate, 0);
+              assert.equal(state.astralClock.unitsPerSecond, 0);
             }
           }
         })

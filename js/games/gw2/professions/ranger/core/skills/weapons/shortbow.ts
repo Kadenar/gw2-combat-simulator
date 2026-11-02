@@ -4,6 +4,7 @@ import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { consumeCharge, expireCharges, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import { type ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -18,10 +19,10 @@ import type { RangerResolverContext, RangerRuntimeState, RangerSkill } from '#gw
 /** Share the patched base and intrinsic extension so trait extensions add seconds without compounding them. */
 export function shortbowConditionDuration(context: Gw2ModifierContext) {
   const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
-  const base = Number(
-    skill?.effects?.find((effect) => effect.type === 'condition' && effect.condition === context.condition)?.duration ||
-      0
-  );
+  const base =
+    skill?.effects?.find(
+      (effect): effect is ConditionEffect => effect.type === 'condition' && effect.condition === context.condition
+    )?.duration || 0;
   let intrinsic = 0;
 
   if (qualifiesForFlankingBonuses(context)) {
@@ -47,11 +48,9 @@ export const rangerShortbowConditionDurationModifier: Gw2ModifierRule = {
 
 // Full-cast medians and successful minimums from 20261006-010612, snapped to 40 ms.
 // Committed arrows retain their impacts and observed aftercast; offsets include this log's projectile travel.
-export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.CROSSFIRE]: {
     name: 'Crossfire',
-    description:
-      'Fire an arrow that inflicts bleeding on your target. Attacks are stronger from behind or from the side or against defiant foes.',
     icon: 'https://render.guildwars2.com/file/07CCE7B9D1EBEFCDFB6D44374691EE2E0B0203F0/103314.png',
     type: 'Weapon',
     weapon: 'Shortbow',
@@ -90,8 +89,6 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.POISON_VOLLEY]: {
     name: 'Poison Volley',
-    description:
-      'Fire a spread of five poison arrows. Poison lasts longer if you are flanking or behind the target or if you strike a defiant foe.',
     icon: 'https://render.guildwars2.com/file/AF233703C9039AF8DABEC1B9D4D7CC16AE030105/103275.png',
     type: 'Weapon',
     weapon: 'Shortbow',
@@ -124,7 +121,6 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.QUICK_SHOT]: {
     name: 'Quick Shot',
-    description: 'Fire a quick shot in an evasive retreat. Gain swiftness. This can be used while retreating.',
     icon: 'https://render.guildwars2.com/file/DB56E7E39FCF5DA5D558C01703BA51C2D3944EEE/103998.png',
     type: 'Weapon',
     weapon: 'Shortbow',
@@ -162,8 +158,6 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.CRIPPLING_SHOT]: {
     name: 'Crippling Shot',
-    description:
-      "Fire an arrow that cripples your target. If you are flanking or behind your target or your target is defiant, immobilize them. Your pet's next three attacks inflict bleeding.",
     icon: 'https://render.guildwars2.com/file/536408C20FCD02D4F407F7F49EFB02299C02F32E/103083.png',
     type: 'Weapon',
     weapon: 'Shortbow',
@@ -222,8 +216,6 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.CONCUSSION_SHOT]: {
     name: 'Concussion Shot',
-    description:
-      'Daze your foe with an arrow. Stun them if you hit from behind or from the side or if your foe is defiant.',
     icon: 'https://render.guildwars2.com/file/78DE331F09FDF21AC5AACF78625F970311530392/102985.png',
     type: 'Weapon',
     weapon: 'Shortbow',
@@ -260,11 +252,11 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
       ]
     )
   }
-});
+};
 
 export function handleRangerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   // Crippling Shot replaces the remaining charges with a new finite grant.
-  professionCoreState(context).bloodThirst = grantCharges(
+  professionCoreState(context.profession).bloodThirst = grantCharges(
     Math.max(0, Number(event.charges || 0)),
     event.at + (event.duration || 0)
   );
@@ -272,7 +264,7 @@ export function handleRangerBloodThirst(context: RangerResolverContext, event: G
 
 /** Pet hits, or player hits in Beastmode, spend charges using the Ranger's condition attributes. */
 export function triggerBloodThirst(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   expireCharges(state.bloodThirst, event.at);
 
   if (event.sourceId === ID.CRIPPLING_SHOT) return;

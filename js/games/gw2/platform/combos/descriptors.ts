@@ -7,6 +7,7 @@ import {
   normalizeComboFinisherType
 } from '#gw2/platform/combos/validation.js';
 import type { ComboFieldType, ComboFinisherType, SimulationActorType } from '#gw2/platform/constants.js';
+import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
@@ -62,13 +63,12 @@ export function fieldDescriptors(catalog: CanonicalCatalog, event: SimulationEve
   }));
 }
 
-function hasEffectFinishers(effects: readonly UnvalidatedFields[] | undefined): boolean {
+function hasEffectFinishers(effects: readonly SkillEffect[] | undefined): boolean {
   return Boolean(
     effects?.some(
       (effect) =>
         Array.isArray(effect.comboFinishers) ||
-        (Array.isArray(effect.ticks) &&
-          effect.ticks.some((tick) => Array.isArray((tick as UnvalidatedFields).comboFinishers)))
+        Boolean(effectTicks(effect)?.some((tick) => Array.isArray(tick.comboFinishers)))
     )
   );
 }

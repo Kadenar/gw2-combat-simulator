@@ -17,8 +17,8 @@ export interface TimelineInteractionOptions {
     insertAt: number
   ) => RotationCommand | RotationCommand[] | null | undefined;
   readonly onChanged?: () => void;
-  readonly onRemove?: (index: number, event?: Event) => unknown;
-  readonly onTruncate?: (index: number, event?: Event) => unknown;
+  readonly onRemove?: (index: number) => unknown;
+  readonly onTruncate?: (index: number) => unknown;
   readonly onEditActivation?: (index: number, event?: Event) => void;
   readonly onEditDoubleEdgeOutcome?: (index: number, event?: Event) => void;
   readonly onEditWait?: (index: number, event?: Event) => void;

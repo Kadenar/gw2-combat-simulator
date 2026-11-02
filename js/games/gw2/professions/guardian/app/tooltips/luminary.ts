@@ -18,6 +18,7 @@ import type { ProfessionBalanceContext } from '#gw2/platform/profession-definiti
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 const glaringBurstTooltip: DescribeSimulationTooltip = (balanceContext) => ({
   description:
@@ -74,7 +75,7 @@ const radiantForgeTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
         facts: []
       };
 
-const radiantWeaponTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
+const radiantWeaponTooltip: DescribeSimulationTooltip = (balanceContext, entity: GuardianSkill) =>
   skillTooltip(
     entity.flipParentId == null
       ? "Equip this radiant weapon and apply its effects. Its follow-up replaces the prior radiant weapon's follow-up, and Glaring Burst changes to match the equipped weapon. Triggers eligible weapon-equip effects."
@@ -164,7 +165,7 @@ export const luminaryTooltips = {
       const skill = requireSkillFromContext(context, entity.id);
       return {
         description:
-          'Gain a light aura and count qualifying Guardian-owned strike packets during the stance, then detonate. Each counted packet increases the detonation coefficient; reaching the stack cap also dazes the target.',
+          "Gain a light aura. Your damaging strikes, including Guardian-triggered attacks, build stacks that increase the final explosion's damage. At maximum stacks, the explosion also dazes. Summon attacks and equipment-triggered damage do not build stacks.",
         facts: [
           ...simulationEffectFacts(skill.effects?.filter((effect) => effect.type === 'aura')).facts,
           ...simulationEffectFacts(

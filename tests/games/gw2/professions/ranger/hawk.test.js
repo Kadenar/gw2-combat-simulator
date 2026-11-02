@@ -5,9 +5,9 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const hawk = { selectedPet: 'Hawk', specialization: 'Untamed', initialUntamedState: 'Ranger' };
 
 // AI spends its own cooldowns while F2 remains an explicit command.

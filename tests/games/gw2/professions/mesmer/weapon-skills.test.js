@@ -53,7 +53,7 @@ test('Mental Collapse resets Mind the Gap cooldown', () => {
     })
   );
 
-  assert.equal(resetOnly.planningState.cooldowns[ID.MIND_THE_GAP], undefined);
+  assert.equal(resetOnly.planningState.cooldownsBySkillId[ID.MIND_THE_GAP], undefined);
 });
 
 // A shatter on the impact frame consumes existing clones before the attack's deferred clone arrives.
@@ -254,7 +254,7 @@ test('requested weapon flips require and consume their parent sequence skill', (
     const result = simulateMesmer([parent, flip, flip], config);
 
     assert.deepEqual(
-      result.steps.filter((step) => !step.invalid).map((step) => step.skill),
+      result.steps.filter((step) => !step.invalid).map((step) => step.skillName),
       [parent, flip],
       flip
     );
@@ -285,7 +285,7 @@ test('Illusionary Riposte enables Counter Blade without block rewards', () => {
             : result.planningState.profession[STATE.RESOURCE],
         0
       );
-      assert.ok(result.steps.some((step) => step.skill === 'Counter Blade' && !step.invalid));
+      assert.ok(result.steps.some((step) => step.skillName === 'Counter Blade' && !step.invalid));
       assert.equal(
         result.resolvedEvents.some((event) => event.type === 'damage' && event.skillId === ID.ILLUSIONARY_RIPOSTE),
         false
@@ -320,7 +320,10 @@ test('Inspiring Imagery grants boons at field expiry and closes Abstraction', ()
       [field.expiresAt, 'fury', 1, 9]
     ]
   );
-  assert.equal(result.planningState.cooldowns[ID.INSPIRING_IMAGERY].readyAt, Math.ceil((cast.end + 9600) / 40) * 40);
+  assert.equal(
+    result.planningState.cooldownsBySkillId[ID.INSPIRING_IMAGERY].readyAtMs,
+    Math.ceil((cast.end + 9600) / 40) * 40
+  );
   assert.equal(result.steps.at(-1).invalid, true);
   assert.match(result.warnings[0].message, /Inspiring Imagery is not active/);
 });
@@ -338,7 +341,7 @@ test('Abstraction replaces boons with damage and conditions and blasts only its 
         target: { conditions: {} }
       })
     );
-    const cast = result.steps.find((step) => step.skill === 'Abstraction');
+    const cast = result.steps.find((step) => step.skillName === 'Abstraction');
     const events = result.events.filter((event) => event.skillId === ID.ABSTRACTION);
     const field = result.events.find((event) => event.type === 'combo_field' && event.skillId === ID.INSPIRING_IMAGERY);
     assert.equal(cast.invalid, undefined);

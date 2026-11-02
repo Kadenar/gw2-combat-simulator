@@ -111,8 +111,8 @@ function assertEventDescriptors(entry, profession) {
     state: {
       energy: 40,
       heat: 25,
-      initiative: { value: 8, maximum: 12, updatedAt: 0, rate: 1 },
-      lifeForce: { value: 75, maximum: 100, updatedAt: 0, rate: 0 }
+      initiative: { value: 8, maximum: 12, updatedAt: 0, unitsPerSecond: 1 },
+      lifeForce: { value: 75, maximum: 100, updatedAt: 0, unitsPerSecond: 0 }
     },
     name: 'Synthetic Event',
     skillName: 'Synthetic Skill',
@@ -280,7 +280,7 @@ test('profession registry entries conform to the shared contracts', async () => 
         'atSeconds',
         'availability',
         'combatActive',
-        'cooldowns',
+        'cooldownsBySkillId',
         'effects',
         'profession'
       ].sort()
@@ -502,7 +502,7 @@ describe('native build codecs', () => {
       const lockedSlotSkill = profession.catalog.skills.find(
         (skill) =>
           ['Heal', 'Utility', 'Elite'].includes(skill.type) &&
-          !skill.simulatorExcluded &&
+          !skill.rotationInputExcluded &&
           skill.flipParentId == null &&
           skill.specialization &&
           !selectedSpecializations.has(skill.specialization)
@@ -523,7 +523,10 @@ describe('native build codecs', () => {
 
       const duplicateUtility = {
         ...defaults,
-        selectedSkillIds: { ...defaults.selectedSkillIds, Utility2: defaults.selectedSkillIds.Utility1 }
+        selectedSkillIds: {
+          ...defaults.selectedSkillIds,
+          Utility2: defaults.selectedSkillIds.Utility1
+        }
       };
       const normalizedUtilities = profession.migrateBuild(duplicateUtility);
 
@@ -543,7 +546,10 @@ describe('native build codecs', () => {
 
       if (flip) {
         const slot = flip.type === 'Heal' ? 'Heal' : flip.type === 'Elite' ? 'Elite' : 'Utility1';
-        const withFlip = { ...defaults, selectedSkillIds: { ...defaults.selectedSkillIds, [slot]: flip.id } };
+        const withFlip = {
+          ...defaults,
+          selectedSkillIds: { ...defaults.selectedSkillIds, [slot]: flip.id }
+        };
 
         assert.equal(profession.validateBuild(withFlip).valid, false);
         assert.equal(profession.migrateBuild(withFlip).selectedSkillIds[slot], defaults.selectedSkillIds[slot]);

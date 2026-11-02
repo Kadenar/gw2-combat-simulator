@@ -78,7 +78,7 @@ test('Catalyst exposes every Jade Sphere beside its energy in the rotation palet
     specialization: 'Catalyst',
     professionState: {
       [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
-      [STATE.CATALYST_ENERGY]: { value: 30, maximum: 30, rate: 0, updatedAt: 0 }
+      [STATE.CATALYST_ENERGY]: { value: 30, maximum: 30, unitsPerSecond: 0, updatedAt: 0 }
     }
   };
   const group = paletteView(elementalistProfession, context).find(
@@ -103,7 +103,7 @@ test('Catalyst energy exposes its native compact-bar styling hook', () => {
   const [energy] = elementalistProfession.ui.resourceViews({
     catalog: elementalistProfession.catalog,
     specialization: 'Catalyst',
-    professionState: { [STATE.CATALYST_ENERGY]: { value: 20, maximum: 30, rate: 0, updatedAt: 0 } }
+    professionState: { [STATE.CATALYST_ENERGY]: { value: 20, maximum: 30, unitsPerSecond: 0, updatedAt: 0 } }
   });
 
   assert.equal(energy.id, 'catalyst-energy');

@@ -1,6 +1,7 @@
 import {
   fromProfile,
   outsideScopeTooltip,
+  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -46,7 +47,7 @@ export const warriorTacticsTooltips = {
     "Soldier's Focus grants stability to the party. Weapon swaps make Soldier's Focus ready again."
   ),
   [TRAIT.VIGOROUS_SHOUTS]: traitTooltip('Gain healing power based on power.', [
-    ['attributeConversion', 'Power converted to healing power', tooltipPercent]
+    ['attributeConversion', 'Healing power gained from power', tooltipAttributeConversion]
   ]),
   [TRAIT.PHALANX_STRENGTH]: outsideScopeTooltip
 } satisfies NonNullable<ProfessionTooltips['traits']>;

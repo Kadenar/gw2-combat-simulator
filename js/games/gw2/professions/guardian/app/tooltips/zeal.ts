@@ -2,10 +2,12 @@ import {
   fromProfile,
   outsideScopeTooltip,
   profileFact,
+  tooltipAttributeConversion,
   tooltipDecimal,
   tooltipFactorChange,
   tooltipNumber,
   tooltipPercent,
+  tooltipPercentValue,
   tooltipSeconds,
   traitSkillTooltip,
   traitTooltip,
@@ -19,7 +21,7 @@ export const guardianZealTooltips = {
   [TRAIT.ZEALOTS_RESOLUTION]: traitSkillTooltip(
     [ID.LESSER_SYMBOL_OF_RESOLUTION],
     'A qualifying strike after the target has lost enough health creates Lesser Symbol of Resolution. The hit crossing the threshold does not trigger it.',
-    [['threshold', 'Required target health lost', tooltipPercent]]
+    [['threshold', 'Required target health lost', tooltipPercentValue]]
   ),
   [TRAIT.SYMBOLIC_EXPOSURE]: traitTooltip(
     'Symbol hits inflict vulnerability. Deal increased strike damage to vulnerable targets.',
@@ -55,9 +57,10 @@ export const guardianZealTooltips = {
     ]
   ),
   // Attribute facts use the same patchable fields as the build calculator and runtime.
-  [TRAIT.KINDLED_ZEAL]: traitTooltip('Gain condition damage from eligible power.', [
-    ['attributeConversion', 'Eligible power converted to condition damage', tooltipPercent]
-  ]),
+  [TRAIT.KINDLED_ZEAL]: traitTooltip(
+    'Gain condition damage based on power. Bonuses from other attribute conversions do not count.',
+    [['attributeConversion', 'Condition damage gained from power', tooltipAttributeConversion]]
+  ),
   [TRAIT.ETERNAL_ARMORY]: traitTooltip('Spirit weapon skills gain additional ammunition.', [
     ['resourceGain', 'Additional ammunition']
   ]),

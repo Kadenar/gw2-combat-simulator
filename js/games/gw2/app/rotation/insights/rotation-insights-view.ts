@@ -39,7 +39,7 @@ const METRICS: Record<string, string> = {
 };
 
 /** Keep the outline focused on deficits and their useful metrics, never internal component IDs or event packets. */
-export function rotationLossOutline(report: RotationInsights) {
+function rotationLossOutline(report: RotationInsights) {
   const losses = report.findings.filter(
     (finding) => finding.category === 'skill-output' && finding.material && (finding.damageDifference ?? 0) < 0
   );
@@ -83,7 +83,7 @@ export function rotationLossOutline(report: RotationInsights) {
 }
 
 /** Describe extra or missing uses and hits in the same direction as the measured output change. */
-export function rotationSkillDetail(finding: RotationFinding): string {
+function rotationSkillDetail(finding: RotationFinding): string {
   const details: string[] = [];
   const gain = (finding.damageDifference ?? 0) > 0;
   for (const [id, name] of [

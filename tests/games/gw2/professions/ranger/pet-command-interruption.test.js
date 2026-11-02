@@ -2,9 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 for (const specialization of ['Core', 'Druid', 'Galeshot', 'Soulbeast', 'Untamed']) {
   // Commands take priority before the AI opener, during its windup, and after its impact.

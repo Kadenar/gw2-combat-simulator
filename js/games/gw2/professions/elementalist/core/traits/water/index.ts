@@ -18,7 +18,7 @@ import {
   type ElementalistCastCompleted
 } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Water definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const soothingIce = defineTrait({
@@ -33,7 +33,7 @@ export const soothingIce = defineTrait({
   triggers: [onTriggerPoint(elementalistCastCompleted, { run: applySoothingIce })]
 });
 
-export const aquamancersTraining = defineTrait({
+export const aquamancersTraining = defineTrait<ElementalistSkill>({
   id: TRAIT.AQUAMANCERS_TRAINING,
   balance: {
     rechargeMultiplier: 0.8

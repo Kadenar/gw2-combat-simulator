@@ -34,7 +34,8 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import type {
   NecromancerResolverContext,
   NecromancerResolverEvent,
-  NecromancerRuntime
+  NecromancerRuntime,
+  NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -99,7 +100,7 @@ export const vitalPersistence = defineTrait({
 });
 
 /** Owns Sinister Shroud tuning and behavior at its existing execution boundaries. */
-export const sinisterShroud = defineTrait({
+export const sinisterShroud = defineTrait<NecromancerSkill>({
   id: TRAIT.SINISTER_SHROUD,
   balance: { rechargeMultiplier: 0.85 },
   rechargeRules: [

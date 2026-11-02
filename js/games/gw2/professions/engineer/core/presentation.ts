@@ -52,7 +52,7 @@ export function engineerUiState(context: EngineerUiContext = {}): Partial<Engine
 }
 
 /** Uses the active specialization already derived by the UI or simulation configuration. */
-export function engineerUiSpecialization(context: EngineerUiContext = {}): string {
+function engineerUiSpecialization(context: EngineerUiContext = {}): string {
   return context.specialization || context.config?.specialization || 'Core';
 }
 

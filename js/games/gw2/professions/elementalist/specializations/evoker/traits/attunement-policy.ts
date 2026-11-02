@@ -23,7 +23,7 @@ export function commitRechargeDuration(context: ElementalistRuntime, skill: Skil
     return duration;
   }
 
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
 
   if (state.elementalBalanceUntil <= context.time) {
     return duration;
@@ -84,7 +84,7 @@ export function evocationAllowsAttunementTrait(
 ): boolean {
   return (
     !EVOKER_ATTUNEMENT_TRAIT_ICD_PROFILES.has(profileId) ||
-    evokerState.from(context).element !== attunement ||
+    evokerState.from(context.profession).element !== attunement ||
     consumeEvokerAttunementTraitCooldown(context, at, profileId)
   );
 }

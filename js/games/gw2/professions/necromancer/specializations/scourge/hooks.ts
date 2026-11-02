@@ -30,7 +30,7 @@ export const scourgeHooks = composeRuntimeHooks<NecromancerRuntimeState, Necroma
         : event,
     /** Hold the selected preview state while evaluating detached damage queries. */
     prepareDamageState(runtime, _skill, inputs) {
-      scourgeState.from(runtime).shades = Array(Number(inputs.shade ?? 0)).fill(Infinity);
+      scourgeState.from(runtime.profession).shades = Array(Number(inputs.shade ?? 0)).fill(Infinity);
     },
     buffPolicies: scourgeBuffPolicies,
     observeEffects: scourgeEffectStates,

@@ -8,16 +8,15 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
  * Invoked skills own their payloads and recharge; fixed pulses preserve their independent impact timing.
  * Symbol tags, declared fields, and repeated pulses let Writ of Persistence extend triggered and cast symbols alike.
  */
-export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
+export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = [
   {
     name: 'Lesser Symbol of Blades',
-    description: 'Automatically triggered Lesser Symbol of Blades effect.',
     icon: 'https://render.guildwars2.com/file/E7F5FFA84F0AE4EA0EC5AE54FA365C09925551A0/103641.png',
     id: ID.LESSER_SYMBOL_OF_BLADES,
     tags: ['symbol'],
     type: 'Proc',
     slot: 'Action',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     slotSelectable: false,
     cooldown: 10,
     castTimeMs: 0,
@@ -38,13 +37,12 @@ export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Lesser Symbol of Protection',
-    description: 'Automatically triggered Lesser Symbol of Protection effect.',
     icon: 'https://render.guildwars2.com/file/E56B3804B2F82E3256A82318E537D024DC57E271/103161.png',
     id: ID.LESSER_SYMBOL_OF_PROTECTION,
     tags: ['symbol'],
     type: 'Proc',
     slot: 'Action',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     slotSelectable: false,
     cooldown: 20,
     castTimeMs: 0,
@@ -75,13 +73,12 @@ export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Lesser Symbol of Resolution',
-    description: 'Automatically triggered Lesser Symbol of Resolution effect.',
     icon: 'https://render.guildwars2.com/file/B9FC18E67D7FEE5B64F60AB7700E5706CCB51DA6/103660.png',
     id: ID.LESSER_SYMBOL_OF_RESOLUTION,
     tags: ['symbol'],
     type: 'Proc',
     slot: 'Action',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     slotSelectable: false,
     cooldown: 30,
     castTimeMs: 0,
@@ -110,4 +107,4 @@ export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = Object.freeze([
       }
     ])
   }
-]);
+];

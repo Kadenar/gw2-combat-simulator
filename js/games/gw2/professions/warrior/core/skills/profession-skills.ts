@@ -11,11 +11,9 @@ import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { warriorBurstRules } from '#gw2/professions/warrior/resource-rules.js';
 import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<WarriorSkill>>> = {
   [ID.EVISCERATE]: {
     name: 'Eviscerate',
-    description:
-      'Burst. Leap at your foe with a devastating attack. Effect increases with adrenaline level. Gain might if this attack hits.',
     icon: 'https://render.guildwars2.com/file/EA325CADCFA2EEF9E2427DD415402E056A6D6CB3/103230.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -62,8 +60,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.ARCING_SLICE]: {
     name: 'Arcing Slice',
-    description:
-      'Burst. Deliver a circular attack to foes around you, and gain fury. Deal more damage to foes with low health.',
     icon: 'https://render.guildwars2.com/file/6003B9BAF49D80F30D13E40453C145BF1159572B/103017.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -109,7 +105,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.EARTHSHAKER]: {
     name: 'Earthshaker',
-    description: 'Burst. Jump to the targeted location and slam your hammer down, damaging and stunning foes.',
     icon: 'https://render.guildwars2.com/file/B8D91A691871E4EA40645E2DE8F0452643263E9E/103181.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -142,8 +137,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.KILL_SHOT]: {
     name: 'Kill Shot',
-    description:
-      'Burst. Fire a powerful shot. Damage increases with adrenaline level. Deal increased damage to enemies that are affected by crowd control or below the health threshold.',
     icon: 'https://render.guildwars2.com/file/9A4310F746AECD6348D6663D56F45447BAF0789C/103313.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -190,7 +183,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.SKULL_CRACK]: {
     name: 'Skull Crack',
-    description: 'Burst. Stun your foe with a skull crack. Effect increases with adrenaline level.',
     icon: 'https://render.guildwars2.com/file/F4F19D3AA21DD174389D01ACD9D76433750CE9DF/103280.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -217,7 +209,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.COMBUSTIVE_SHOT]: {
     name: 'Combustive Shot',
-    description: 'Burst. Ignite target area, burning nearby foes. Effect increases with adrenaline level.',
     icon: 'https://render.guildwars2.com/file/45CE3B6BCD1FBB5B592859C37FC7D35FDA9E482B/103212.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -294,7 +285,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.BREACHING_STRIKE]: {
     name: 'Breaching Strike',
-    description: 'Burst. Strike your target and remove boons. Deal more damage if your target has no boons.',
     icon: 'https://render.guildwars2.com/file/48B836AE01C6EC0D0A0A0680D23834960D556A7E/1770661.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -328,8 +318,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.PATH_TO_VICTORY]: {
     name: 'Path to Victory',
-    description:
-      'Burst. Carve a path to victory, dealing damage to enemies in front of you while healing and granting regeneration to nearby allies.',
     icon: 'https://render.guildwars2.com/file/337928249A067249569AA70D78120D0E03257203/3256396.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -356,8 +344,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.PATH_TO_VICTORY_ID_71932]: {
     name: 'Path to Victory',
-    description:
-      'Burst. Carve a path to victory, dealing damage to enemies in front of you while healing and granting regeneration to nearby allies.',
     icon: 'https://render.guildwars2.com/file/337928249A067249569AA70D78120D0E03257203/3256396.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -383,8 +369,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.PATH_TO_VICTORY_ID_71950]: {
     name: 'Path to Victory',
-    description:
-      'Burst. Carve a path to victory, dealing damage to enemies in front of you while healing and granting regeneration to nearby allies.',
     icon: 'https://render.guildwars2.com/file/337928249A067249569AA70D78120D0E03257203/3256396.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -411,8 +395,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.HARRIERS_TOSS_ID_73006]: {
     name: "Harrier's Toss",
-    description:
-      'Burst. Jump up and throw a spear at your targeted location, dealing damage in an area. Damage dealt is increased with adrenaline level, and the opponent closest to the epicenter takes additional damage.',
     icon: 'https://render.guildwars2.com/file/FE3E5C674895F8B2F59280552A460FE310BE32A0/3379205.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -438,8 +420,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.HARRIERS_TOSS]: {
     name: "Harrier's Toss",
-    description:
-      'Burst. Jump up and throw a spear at your targeted location, dealing damage in an area. Damage dealt is increased with adrenaline level, and the opponent closest to the epicenter takes additional damage.',
     icon: 'https://render.guildwars2.com/file/FE3E5C674895F8B2F59280552A460FE310BE32A0/3379205.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -464,8 +444,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.HARRIERS_TOSS_ID_73042]: {
     name: "Harrier's Toss",
-    description:
-      'Burst. Jump up and throw a spear at your targeted location, dealing damage in an area. Damage dealt is increased with adrenaline level, and the opponent closest to the epicenter takes additional damage.',
     icon: 'https://render.guildwars2.com/file/FE3E5C674895F8B2F59280552A460FE310BE32A0/3379205.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -491,8 +469,6 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.BLOODTHIRSTER]: {
     name: 'Bloodthirster',
-    description:
-      'Burst. Sweep your blade around yourself, slicing nearby enemies. Effect increases with adrenaline level. Heal if you strike a target, healing more if they are bleeding. Healing scales off of the target struck that is bleeding the most.',
     icon: 'https://render.guildwars2.com/file/9B1F4EC20A4B9A497A9A361052C608C5FFED3001/3790492.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -530,7 +506,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   }
-});
+};
 
 /** Intrinsic live modifiers retain critical semantics and the simulator's boonless-target assumption. */
 export const warriorBurstSkillModifiers: readonly Gw2ModifierRule[] = [

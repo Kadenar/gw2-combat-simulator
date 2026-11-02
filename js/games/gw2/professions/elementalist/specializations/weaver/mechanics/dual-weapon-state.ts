@@ -11,12 +11,14 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { HAMMER_ORB_REUSE_DELAY } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Parses canonical skill metadata for a valid pair of distinct Weaver attunements. */
-export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttunement, ElementalistAttunement] | null {
-  const parts = String(skill.attunement || '').split('+');
+export function weaverDualAttunements(
+  skill: ElementalistSkill
+): readonly [ElementalistAttunement, ElementalistAttunement] | null {
+  const parts = (skill.attunement || '').split('+');
 
   if (parts.length !== 2) return null;
 
@@ -29,7 +31,7 @@ export function weaverDualAttunements(skill: Skill): readonly [ElementalistAttun
 
 /** Slots 1–2 use the primary hand, 3 requires both elements, and 4–5 use the secondary; Unravel uses only primary. */
 export function weaverWeaponAttunementAvailable(
-  skill: Skill,
+  skill: ElementalistSkill,
   primary: string,
   secondary: string,
   unravelActive: boolean
@@ -59,7 +61,7 @@ export function weaverHammerAvailability(
 
   if (!elements) return null;
 
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   // Every dual hammer skill shares one short lockout after the last orb cast.
   // The unarmed negative-infinity sentinel stays ready; armed deadlines use the canonical clock.
   const retryAt = Number.isFinite(state.hammerOrbLastCastAt)

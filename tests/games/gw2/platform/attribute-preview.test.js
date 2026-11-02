@@ -51,11 +51,9 @@ test('attribute preview composition rejects duplicate control keys', () => {
 });
 
 // Professions without conditional previews retain empty projections and cannot accidentally mutate query inputs.
-test('attribute preview hooks normalize to no-ops and validate callback declarations', () => {
+test('attribute preview hooks normalize to no-ops', () => {
   const ui = normalizeProfessionUi('fixture');
   const context = Object.freeze({});
   assert.deepEqual(ui.previewControls(context), []);
   assert.equal(ui.prepareAttributePreview(context), undefined);
-  for (const name of ['previewControls', 'prepareAttributePreview'])
-    assert.throws(() => normalizeProfessionUi('fixture', { [name]: [] }), /must be a function/);
 });

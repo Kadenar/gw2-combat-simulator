@@ -3,11 +3,11 @@ import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/pla
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.SHATTERSHOT]: {
     name: 'Shattershot',
-    description: 'Release an arrow that shatters upon striking, inflicting bleeding on nearby foes.',
     icon: 'https://render.guildwars2.com/file/232D91913C60F230422E410CB6C8BD56E93751C4/1770596.png',
     type: 'Weapon',
     weapon: 'Shortbow',
@@ -49,8 +49,6 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.BLOODBANE_PATH]: {
     name: 'Bloodbane Path',
-    description:
-      'Conjure a portal through the Mists and fire barbed arrows to strike from unexpected directions at your enemy.',
     icon: 'https://render.guildwars2.com/file/07F358B1429B2535C2C83454F235A99E0902A50E/1770597.png',
     type: 'Weapon',
     weapon: 'Shortbow',
@@ -77,7 +75,6 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.SEVENSHOT]: {
     name: 'Sevenshot',
-    description: 'Conjure a focused volley of arrows to harass your foes.',
     icon: 'https://render.guildwars2.com/file/9F93AB3310F46308219A25AE985AE252336843F2/1770598.png',
     type: 'Weapon',
     weapon: 'Shortbow',
@@ -116,7 +113,6 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.SPIRITCRUSH]: {
     name: 'Spiritcrush',
-    description: 'Create a debilitating zone by firing a volley of flaming arrows at an area.',
     icon: 'https://render.guildwars2.com/file/AF0F3CECA42ABDE06707040ECDD994F8FB2B5F21/1770599.png',
     type: 'Weapon',
     weapon: 'Shortbow',
@@ -170,7 +166,6 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.SCORCHRAZOR]: {
     name: 'Scorchrazor',
-    description: 'Unleash a fiery edge to ignite and knock down your enemies.',
     icon: 'https://render.guildwars2.com/file/20C1136E80C36692C3434E0B52A36645B131FACD/1770600.png',
     type: 'Weapon',
     weapon: 'Shortbow',
@@ -201,4 +196,4 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ])
   }
-});
+};

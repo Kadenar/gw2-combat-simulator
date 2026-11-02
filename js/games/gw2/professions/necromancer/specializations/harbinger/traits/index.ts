@@ -2,8 +2,8 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
@@ -409,7 +409,7 @@ function applyCascadingCorruption(
   cast: RuntimeCast<NecromancerSkill>,
   consumed: number
 ): void {
-  const state = harbingerState.from(runtime);
+  const state = harbingerState.from(runtime.profession);
 
   if (consumed && runtime.engagement.hostileEffectsAllowed(runtime.time)) {
     const corruption = requireBalanceProfileFromContext(runtime, TRAIT.CASCADING_CORRUPTION);
@@ -539,7 +539,8 @@ function applyDoomApproachesStrike(context: NecromancerResolverContext, event: N
 function applySepticCorruptionStrike(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.actorType === ACTOR.EFFECT || !(Number(event.coefficient) > 0)) return;
 
-  const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
+  const skill: NecromancerSkill | undefined =
+    event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
 
   // Septic Corruption procs on shroud slot 2 specifically (the pistol #2 skill), not all pistol hits.
   if (skill?.shroudSlot === 2) {

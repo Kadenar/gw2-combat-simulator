@@ -10,7 +10,10 @@
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
@@ -87,13 +90,13 @@ export const evokerState = defineProfessionSpecializationState(
   }
 );
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectEvokerPlanningState(input: Gw2PlanningStateInput) {
-  const state = evokerState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectEvokerPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = evokerState.from(input.profession);
+  return {
     [STATE.ELEMENT]: state.element,
     [STATE.FAMILIAR_CHARGES]: state.familiarCharges,
     [STATE.EMPOWERED_CHARGES]: state.empoweredCharges,
     [STATE.ELEMENTAL_BALANCE_UNTIL]: state.elementalBalanceUntil
-  });
+  };
 }

@@ -18,6 +18,7 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefBuff } from '#gw2/professions/thief/core/events.js';
 import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
+import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { selectedDodgeProfile } from '#gw2/professions/thief/specializations/daredevil/mechanics/dodges.js';
@@ -66,7 +67,7 @@ const boundingDodger = defineTrait({
   triggers: [
     onTriggerPoint(daredevilDodged, {
       requiresSelection: false,
-      when: (runtime) => daredevilState.from(runtime).selectedDodge === 'Bounding Dodger',
+      when: (runtime) => daredevilState.from(runtime.profession).selectedDodge === 'Bounding Dodger',
       run: (runtime) => openDodgeWindow(runtime)
     })
   ]
@@ -108,7 +109,7 @@ const lotusTraining = defineTrait({
   triggers: [
     onTriggerPoint(daredevilDodged, {
       requiresSelection: false,
-      when: (runtime) => daredevilState.from(runtime).selectedDodge === 'Lotus Training',
+      when: (runtime) => daredevilState.from(runtime.profession).selectedDodge === 'Lotus Training',
       run: (runtime) => openDodgeWindow(runtime)
     })
   ]
@@ -151,7 +152,7 @@ const havocSpecialist = defineTrait({
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Trait activates whenever endurance is not at maximum — any spent dodge qualifies
-        (thiefRuntimeState(context).endurance?.value ?? 0) <
+        (thiefRuntimeState(context.runtime?.profession).endurance?.value ?? 0) <
           balanceNumberFromContext(context, TRAIT.PHYSICAL_SUPREMACY, 'maximumStacks')
     }
   ]
@@ -273,7 +274,7 @@ function grantEnduranceThief(runtime: ThiefRuntime): void {
 /** Applies Staff Master at its established mechanical boundary. */
 function refundStaffMaster(runtime: ThiefRuntime, { cast }: DaredevilCast): void {
   const skill = cast.skill;
-  const cost = skill.initiativeCost || 0;
+  const cost = thiefInitiativeCost(skill);
 
   if (cost > 0 && skill.weapon === WEAPON.STAFF) {
     const enduranceGain = cost * balanceNumberFromContext(runtime, TRAIT.STAFF_MASTER, 'resourceGain');
@@ -284,7 +285,7 @@ function refundStaffMaster(runtime: ThiefRuntime, { cast }: DaredevilCast): void
 
 /** Arm the next landed strike after the dodge window opens. */
 function armWeakeningStrikes(runtime: ThiefRuntime, { cast }: DaredevilCast): void {
-  const state = daredevilState.from(runtime);
+  const state = daredevilState.from(runtime.profession);
   const skill = cast.skill;
 
   const weakening = requireBalanceProfileFromContext(runtime, TRAIT.WEAKENING_STRIKES);
@@ -310,7 +311,7 @@ function armWeakeningStrikes(runtime: ThiefRuntime, { cast }: DaredevilCast): vo
 
 /** The armed grant is consumed by the next landed player strike, never by a cast or condition tick. */
 function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrike): void {
-  const state = daredevilState.from(runtime);
+  const state = daredevilState.from(runtime.profession);
 
   if (
     !state.weakeningStrikeReady ||
@@ -351,7 +352,7 @@ function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrik
  * resolves before the window it grants.
  */
 function openDodgeWindow(runtime: ThiefRuntime): void {
-  const state = daredevilState.from(runtime);
+  const state = daredevilState.from(runtime.profession);
   const profile = selectedDodgeProfile(runtime);
 
   if (!profile) return;

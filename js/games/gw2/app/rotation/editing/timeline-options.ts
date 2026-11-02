@@ -1,4 +1,4 @@
-import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
+import { resolveEntryDisplaySkill, resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import {
   activationDamageCommitMs,
   openActivationEditor,
@@ -11,6 +11,7 @@ import {
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
 import { insertRotationEntries, moveRotationEntry, updateRotationEntry } from '#gw2/app/rotation/editing/operations.js';
 import { resolvePaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
+import type { RotationSkill } from '#gw2/app/rotation/skill-views.js';
 import type { TimelineInteractionOptions } from '#gw2/app/rotation/timeline/interactions.js';
 import {
   currentTimelineResults,
@@ -86,7 +87,7 @@ function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Ev
   if (entry === undefined) return;
 
   const item = timelineItem(entry);
-  const skill = resolveEntrySkill(app, item.command);
+  const skill: RotationSkill | undefined = resolveEntrySkill(app, item.command);
 
   if (!skill?.dragonSlash) return;
 
@@ -128,7 +129,14 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   if (entry === undefined) return;
 
   const item = timelineItem(entry);
-  const skill = resolveEntrySkill(app, item.command);
+  const results = currentTimelineResults(app);
+  const step = results?.steps?.find((candidate) => candidate.rotationCommandIndex === index && !candidate.invalid);
+  // Inspect the executed bar face while edits continue to preserve the command's generic input identity.
+  const skill: RotationSkill | undefined = resolveEntryDisplaySkill(
+    app,
+    item.command,
+    step?.invalid ? undefined : step?.skillId
+  );
 
   // Dragon Slash uses charge release as its cast configuration, so the pencil opens that editor directly.
   if (skill?.dragonSlash) return editReleaseAtCharges(app, index, event);
@@ -140,13 +148,17 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
 
   if (!skill && !isCombatStart) return;
 
-  const results = currentTimelineResults(app);
-  const step = results?.steps?.find((candidate) => candidate.ri === index && !candidate.invalid);
   // Combat Start offsets are relative to the preceding cast, so show that cast's impact beside the offset editor.
   const impactStep = isCombatStart
     ? [...(results?.steps || [])]
         .reverse()
-        .find((candidate) => candidate.ri >= 0 && candidate.ri < index && !candidate.invalid && candidate.activationId)
+        .find(
+          (candidate) =>
+            candidate.rotationCommandIndex >= 0 &&
+            candidate.rotationCommandIndex < index &&
+            !candidate.invalid &&
+            candidate.activationId
+        )
     : step;
   const targetImpact = impactStep?.activationId
     ? timelineTargetImpactDetails([impactStep], results?.events || []).get(impactStep.activationId)
@@ -191,7 +203,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     fullCastMs,
     suggestedInterruptMs: suggestedActivationInterruptMs(fullCastMs, catalogCastMs),
     damageCommitMs: activationDamageCommitMs(skill),
-    targetImpactDetails: targetImpact && isCombatStart ? `${impactStep?.skill}\n${targetImpact}` : targetImpact,
+    targetImpactDetails: targetImpact && isCombatStart ? `${impactStep?.skillName}\n${targetImpact}` : targetImpact,
     impactOffsetsMs,
     combatStartAfterCastMs,
     previewCombatStartAfterCastMs:
@@ -206,7 +218,9 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
               { ...app, build: { ...app.build, rotation } },
               rotation.length
             );
-            const previewStep = preview.steps.find((candidate) => candidate.ri === index && !candidate.invalid);
+            const previewStep = preview.steps.find(
+              (candidate) => candidate.rotationCommandIndex === index && !candidate.invalid
+            );
             return previewStep && preview.combatStartTime != null
               ? Math.round(preview.combatStartTime * 1000 - previewStep.start)
               : null;

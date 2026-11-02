@@ -81,12 +81,15 @@ export function advanceEndurance(
   }
 
   // A zero rate must remain idle even when an observation window has no finite endpoint.
-  const rate = Math.max(0, regenerationPerSecond);
+  const unitsPerSecond = Math.max(0, regenerationPerSecond);
   return {
     ...state,
-    value: cappedResource(state.value + (rate === 0 ? 0 : (at - state.updatedAt) * rate), state.maximum),
+    value: cappedResource(
+      state.value + (unitsPerSecond === 0 ? 0 : (at - state.updatedAt) * unitsPerSecond),
+      state.maximum
+    ),
     updatedAt: at,
-    rate
+    unitsPerSecond
   };
 }
 
@@ -139,7 +142,7 @@ export function advanceEnduranceIntervals(
     if (end > start) current = advanceEndurance({ ...current, updatedAt: start }, end, interval.rate);
 
     if (interval.end > at) {
-      current.rate = Math.max(0, interval.rate);
+      current.unitsPerSecond = Math.max(0, interval.rate);
       break;
     }
   }

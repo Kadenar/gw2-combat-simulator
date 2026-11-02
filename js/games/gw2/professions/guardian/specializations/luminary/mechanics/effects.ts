@@ -54,12 +54,12 @@ export function grantLuminaryAura(
 /** Native and combo grants share acceptance; detonation sees the old aura before its replacement is stored. */
 export function acceptLuminaryAura(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
   runtime.fireTrigger(lightAuraGranting, { cause: event });
-  luminaryState.from(runtime).lightAuraUntil = gw2EffectExpiresAt(runtime.time, event.duration ?? 0);
+  luminaryState.from(runtime.profession).lightAuraUntil = gw2EffectExpiresAt(runtime.time, event.duration ?? 0);
 }
 
 /** Count only accepted strikes in the half-open window, excluding gear and summoned actors. */
 export function countEffulgentHit(runtime: GuardianRuntime, event: Gw2ResolverEvent, damage: number): void {
-  const state = luminaryState.from(runtime);
+  const state = luminaryState.from(runtime.profession);
 
   if (!(damage > 0) || !(Number(event.coefficient) > 0) || runtime.time >= state.effulgentActiveUntil) return;
 
@@ -81,7 +81,7 @@ const luminaryEffectTasks = {
   },
   [STANCE](runtime: GuardianRuntime, data: unknown) {
     const { cast, piercing } = data as { cast: RuntimeCast<GuardianSkill>; piercing: boolean };
-    const state = luminaryState.from(runtime);
+    const state = luminaryState.from(runtime.profession);
     const duration = 8 + (piercing ? Math.max(0, state.piercingStanceUntil - runtime.time) : 0);
 
     if (piercing) state.piercingStanceUntil = gw2EffectExpiresAt(runtime.time, duration);
@@ -99,7 +99,7 @@ const luminaryEffectTasks = {
   },
   [EFFULGENT](runtime: GuardianRuntime, data: unknown) {
     const event = data as Gw2ResolverEvent;
-    const state = luminaryState.from(runtime);
+    const state = luminaryState.from(runtime.profession);
 
     if (state.effulgentActivationId !== event.activationId) return;
 

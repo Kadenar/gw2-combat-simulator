@@ -4,10 +4,9 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.SOUL_GRASP]: {
     name: 'Soul Grasp',
-    description: 'Release a disembodied hand to draw life force from your foe.',
     icon: 'https://render.guildwars2.com/file/FA5ADFEE0A3C38BC6B9A0E301E6DEFFF9C763A54/103137.png',
     type: 'Weapon',
     weapon: 'Focus',
@@ -27,7 +26,7 @@ export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, 
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => event.sourceId === event.skillId,
-            do: lifeForceGrant({ id: 'life-force', unit: 'application', grant: { percent: 11 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'application', grant: { percent: 11 } })]
           }
         ],
         condition: CONDITION.VULNERABILITY,
@@ -38,8 +37,6 @@ export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.SPINAL_SHIVERS]: {
     name: 'Spinal Shivers',
-    description:
-      'Chill your target and remove up to three boons, dealing extra damage based on the number of boons removed.',
     icon: 'https://render.guildwars2.com/file/365608D62CC05CD6030EA30FEFD6D7D52EB002E7/103808.png',
     type: 'Weapon',
     weapon: 'Focus',
@@ -62,4 +59,4 @@ export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   }
-});
+};

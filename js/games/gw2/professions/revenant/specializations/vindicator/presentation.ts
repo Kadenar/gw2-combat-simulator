@@ -38,7 +38,6 @@ function vindicatorDodgeAutoPaletteSkill(context: RevenantUiContext): Skill | nu
     id: VINDICATOR_DODGE_AUTO_ACTION,
     name: VINDICATOR_DODGE_AUTO_ACTION,
     displayName: 'Dodge + Auto',
-    description: `Start the ${VINDICATOR_AIRBORNE_MS} ms dodge + ${VINDICATOR_LANDING_MS} ms landing and the current autoattack together.`,
     icon: VINDICATOR_DODGE_AUTO_ICON,
     type: 'Action',
     slot: 'Action',

@@ -1,8 +1,10 @@
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import { hasTrait, normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { selectedThiefTraits } from '#gw2/professions/thief/core/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefConfig, ThiefDodge } from '#gw2/professions/thief/types.js';
 
@@ -13,7 +15,8 @@ export interface DaredevilState {
 }
 
 export function createDaredevilState(config: ThiefConfig = {}): DaredevilState {
-  const traits = selectedThiefTraits(config);
+  // Normalize trait selection once while creating the specialization owner.
+  const traits = normalizeSelectedTraitIds(config.selectedTraitIds);
   return {
     // Daredevil owns the extra dodge capacity even though endurance is spent by the shared Thief resource system.
 
@@ -40,11 +43,11 @@ function selectedDodge(config: ThiefConfig, traits: ReadonlySet<string | number>
   return config.selectedDodge || 'Dodge';
 }
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectDaredevilPlanningState(input: Gw2PlanningStateInput) {
-  const state = daredevilState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectDaredevilPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = daredevilState.from(input.profession);
+  return {
     [STATE.WEAKENING_STRIKE_READY]: state.weakeningStrikeReady,
     [STATE.WEAKENING_STRIKE_EXPIRES_AT]: state.weakeningStrikeExpiresAt
-  });
+  };
 }

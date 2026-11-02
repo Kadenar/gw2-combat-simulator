@@ -1,14 +1,6 @@
 import type { DynamicFields } from '#kernel/core/dynamic-fields.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
-/** Clone only selected live fields so projection normalization cannot mutate owners or copy private bookkeeping. */
-export function cloneStateFields<TState extends object, const TKey extends keyof TState>(
-  state: TState,
-  keys: readonly TKey[]
-): Pick<TState, TKey> {
-  return structuredClone(Object.fromEntries(keys.map((key) => [key, state[key]]))) as Pick<TState, TKey>;
-}
-
 /** Reject overlapping public identities so module order cannot silently replace another owner's observation. */
 export function composePlanningState(projections: readonly object[]): object {
   const result: Record<string, unknown> = {};
@@ -85,62 +77,23 @@ export function readProfessionSpecializationState<TState extends object = Dynami
   return specialization.state;
 }
 
-type ProfessionStateContext<TRuntimeState> = {
-  readonly state: {
-    readonly profession: TRuntimeState;
-  };
-};
-
-type DirectProfessionContext<TRuntimeState> = {
-  readonly profession: TRuntimeState;
-};
-
-type ProfessionRuntimeFromContext<TContext> =
-  TContext extends ProfessionStateContext<infer TRuntimeState>
-    ? TRuntimeState
-    : TContext extends DirectProfessionContext<infer TRuntimeState>
-      ? TRuntimeState
-      : never;
-
-type RuntimeCoreState<TRuntimeState> = TRuntimeState extends {
-  readonly core: infer TCoreState;
-}
-  ? TCoreState
-  : never;
-
 /**
- * Returns the explicitly owned Core state slice for a family runtime.
+ * Reads the explicitly supplied runtime state, so callers choose their owner without context-shape dispatch.
  */
-export function professionCoreState<TContext>(
-  context: TContext
-): RuntimeCoreState<ProfessionRuntimeFromContext<TContext>> {
-  const candidate = context as {
-    readonly state?: { readonly profession?: unknown };
-    readonly runtime?: { readonly profession?: unknown };
-    readonly profession?: unknown;
-  };
-  const runtime = (candidate.state?.profession ?? candidate.runtime?.profession ?? candidate.profession) as {
-    readonly core: unknown;
-  };
-  return runtime.core as RuntimeCoreState<ProfessionRuntimeFromContext<TContext>>;
+export function professionCoreState<TState extends { readonly core: object }>(state: TState): TState['core'] {
+  return state.core;
+}
+
+/** Explicit active-specialization ownership shared by mechanics and planning observations. */
+export interface SpecializationRuntimeState {
+  readonly specialization: { readonly kind: string; readonly state: object };
 }
 
 /**
  * Returns the active specialization state after validating its discriminant.
  * Module mechanics use this accessor instead of a flat family-state view.
  */
-function specializationStateForKind(context: unknown, expectedKind: string): object {
-  const candidate = context as {
-    readonly state?: { readonly profession?: unknown };
-    readonly runtime?: { readonly profession?: unknown };
-    readonly profession?: unknown;
-  };
-  const runtime = (candidate.state?.profession ?? candidate.runtime?.profession ?? candidate.profession) as {
-    readonly specialization: {
-      readonly kind: string;
-      readonly state: object;
-    };
-  };
+function specializationStateForKind(runtime: SpecializationRuntimeState, expectedKind: string): object {
   const active = runtime.specialization;
 
   if (active.kind !== expectedKind) {
@@ -157,7 +110,7 @@ interface ProfessionSpecializationStateDefinition<
 > {
   readonly kind: TKind;
   readonly create: (...args: TArguments) => TState;
-  readonly from: (context: unknown) => TState;
+  readonly from: (runtime: SpecializationRuntimeState) => TState;
 }
 
 /**
@@ -176,9 +129,9 @@ export function defineProfessionSpecializationState<
   return Object.freeze({
     kind,
     create,
-    from(context: unknown): TState {
+    from(runtime: SpecializationRuntimeState): TState {
       // The owning factory determines the state type; the shared accessor only checks the active kind.
-      return specializationStateForKind(context, kind) as TState;
+      return specializationStateForKind(runtime, kind) as TState;
     }
   });
 }

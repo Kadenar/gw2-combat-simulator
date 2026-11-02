@@ -45,14 +45,14 @@ test('weapon swap only starts its cooldown in combat', () => {
     [0, 0]
   );
   assert.equal(precombat.planningState.activeWeaponSet, 1);
-  assert.equal(precombat.planningState.cooldowns[-3], undefined);
+  assert.equal(precombat.planningState.cooldownsBySkillId[-3], undefined);
 
   const inCombat = simulateMesmer(['__combat_start', 'Swap Weapons', 'Swap Weapons'], config);
 
   assert.deepEqual(
-    inCombat.steps.filter((step) => step.skill === 'Swap Weapons').map((step) => step.start),
+    inCombat.steps.filter((step) => step.skillName === 'Swap Weapons').map((step) => step.start),
     [0, 10000]
   );
   assert.equal(inCombat.planningState.activeWeaponSet, 1);
-  assert.equal(inCombat.planningState.cooldowns[-3].readyAt, 20000);
+  assert.equal(inCombat.planningState.cooldownsBySkillId[-3].readyAtMs, 20000);
 });

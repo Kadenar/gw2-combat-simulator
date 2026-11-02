@@ -6,10 +6,9 @@ import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-fo
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
-export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.DARK_SLASH]: {
     name: 'Dark Slash',
-    description: 'Chain. Slash your foes with your spear.',
     icon: 'https://render.guildwars2.com/file/62FAFB94710DF84D160BA0D371B06901A0DF6D06/3379159.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -30,7 +29,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.DEADLY_SLICE]: {
     name: 'Deadly Slice',
-    description: 'Chain. Slice foes in front of you with your spear.',
     icon: 'https://render.guildwars2.com/file/05924CE123EE48985EC17F57A0E627263E576A31/3379160.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -50,7 +48,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.soul-shards', amount: 1 }
+            do: [{ type: 'necromancer.soul-shards', amount: 1 }]
           }
         ],
         ticks: [{ atMs: 400, coefficient: 1.4 }],
@@ -62,7 +60,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.SINISTER_STAB]: {
     name: 'Sinister Stab',
-    description: 'Chain. Stab foes and chill them. Gain a soul shard if you strike a foe.',
     icon: 'https://render.guildwars2.com/file/37E10170BBC70563DE1F0DF8CA66F11E28412860/3379161.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -82,14 +79,14 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } })]
           },
           {
             on: 'damage.resolved',
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.soul-shards', amount: 1 }
+            do: [{ type: 'necromancer.soul-shards', amount: 1 }]
           }
         ],
         coefficient: 1.8
@@ -99,8 +96,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.PERFORATE]: {
     name: 'Perforate',
-    description:
-      'Attack foes in front of you with a series of strikes, consuming any active soul shards. Deal additional damage against foes below the health threshold.',
     icon: 'https://render.guildwars2.com/file/A7A8BF413E59C060DA6BBE0DAE460C70DE01264A/3379162.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -119,7 +114,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.perforate' }
+            do: [{ type: 'necromancer.perforate' }]
           }
         ],
         ticks: [
@@ -166,8 +161,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.ADDLE]: {
     name: 'Addle',
-    description:
-      'Daze your target and gain life force and soul shards. If your target is using a skill, the daze duration is extended and you gain additional life force and soul shards. If you have a number of soul shards above the threshold when you activate this skill, your target is also immobilized.',
     icon: 'https://render.guildwars2.com/file/9EC732C1EB4D50F2183C6D05250A0A6D993AA6D0/3379163.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -194,16 +187,18 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })]
           },
           {
             on: 'damage.resolved',
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: {
-              type: 'necromancer.addle-control'
-            }
+            do: [
+              {
+                type: 'necromancer.addle-control'
+              }
+            ]
           },
           {
             on: 'damage.resolved',
@@ -211,9 +206,11 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             packets: 'first',
             when: (_runtime, { event }) =>
               Number(event.coefficient) > 0 && Boolean(event.metadata?.necromancerAddleImmobilize),
-            do: {
-              type: 'necromancer.addle-immobilize'
-            }
+            do: [
+              {
+                type: 'necromancer.addle-immobilize'
+              }
+            ]
           },
           {
             on: 'damage.resolved',
@@ -239,7 +236,7 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
             when: (runtime, { event }) =>
               Number(event.coefficient) > 0 &&
               !Boolean(runtime.config.target?.defiant || runtime.config.target?.activatingSkills),
-            do: { type: 'necromancer.soul-shards', amount: 2 }
+            do: [{ type: 'necromancer.soul-shards', amount: 2 }]
           }
         ],
         ticks: [{ atMs: 240, coefficient: 1.9 }],
@@ -267,8 +264,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.ISOLATE]: {
     name: 'Isolate',
-    description:
-      'Throw a spear at your target. If it strikes a foe, it inflicts conditions and you may reactivate to teleport to that foe. \nThis skill recharges when exiting death shroud.',
     icon: 'https://render.guildwars2.com/file/CD722D70794A9A690DDBB4DF4638CC59CA06482E/3379164.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -289,8 +284,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.DISTRESS]: {
     name: 'Distress',
-    description:
-      'Teleport to the foe marked by Isolate, recharge Perforate, and gain soul shards. Gain additional soul shards if there are no other enemies nearby.',
     icon: 'https://render.guildwars2.com/file/08B9D63645B11ACD3404B2F50539EDE8916CEE25/3379165.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -307,8 +300,6 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.EXTIRPATE]: {
     name: 'Extirpate',
-    description:
-      'Perform a wide swing that removes boons from foes. Gain soul shards and might for each target struck.',
     icon: 'https://render.guildwars2.com/file/7209CFEA65160A2F0154D015B12167744AD814FC/3379166.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -331,14 +322,14 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
               actor: ACTOR.PLAYER,
               packets: 'first',
               when: (_runtime, { event }) => Number(event.coefficient) > 0,
-              do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 } })
+              do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 12 } })]
             },
             {
               on: 'damage.resolved',
               actor: ACTOR.PLAYER,
               packets: 'first',
               when: (_runtime, { event }) => Number(event.coefficient) > 0,
-              do: { type: 'necromancer.soul-shards', amount: 2 }
+              do: [{ type: 'necromancer.soul-shards', amount: 2 }]
             }
           ],
           coefficient: 3.8,
@@ -356,4 +347,4 @@ export const NECROMANCER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, 
       ]
     )
   }
-});
+};

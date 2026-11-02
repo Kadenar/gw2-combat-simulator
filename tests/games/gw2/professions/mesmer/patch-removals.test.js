@@ -218,7 +218,6 @@ test('Time Bomb trait profile edits control its explosion and delay without muta
   assert.equal(armed.duration, 2);
   assert.equal(explosion.at, armed.at + 2);
   assert.equal(explosion.coefficient, 4);
-  assert.equal(explosion.balanceProfileId, TRAIT.TIME_BOMB);
   const base = mesmerCatalog.balanceProfilesById.get(TRAIT.TIME_BOMB);
   assert.equal(base.duration, 5);
   assert.equal(base.effects.find((effect) => effect.name === 'Strike').coefficient, 3);

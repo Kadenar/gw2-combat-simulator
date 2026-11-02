@@ -1,12 +1,13 @@
 import type { ProfessionWeaponSkillGroup } from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 const ATTUNEMENT_ORDER = ['Fire', 'Water', 'Air', 'Earth', 'Dual', 'Special'];
 
 /** Groups elemental variants in attunement order while leaving a single weapon bar unlabelled. */
 export function elementalistWeaponGroups(
   skills: readonly Skill[],
-  groupKey: (skill: Skill) => string = (skill) => String(skill.attunement || 'Special')
+  groupKey: (skill: ElementalistSkill) => string = (skill) => skill.attunement || 'Special'
 ): ProfessionWeaponSkillGroup[] | null {
   const groups = new Map<string, Skill[]>();
   for (const skill of skills) {

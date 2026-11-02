@@ -32,7 +32,7 @@ const MAX_OPTIMIZER_STAT_TOTALS = 100_000;
 export interface GroupedOptimizerSpace {
   readonly ordinary: OptimizerSpace;
   readonly statDimensions: readonly OptimizerDimension[];
-  readonly totals: readonly { path: string; represented: bigint }[];
+  readonly totals: readonly { encodedChoiceIndices: string; representedCombinationCount: bigint }[];
   readonly upgrades: readonly OptimizerDimension[];
   readonly count: bigint;
 }
@@ -108,12 +108,12 @@ export function groupOptimizerSpace(
   const varying = Array.from({ length: contributions[0][0].length }, (_, i) => i).filter((i) =>
     contributions.some((choices) => choices.some((choice) => choice[i] !== choices[0][i]))
   );
-  let totals = new Map<string, { path: string; represented: bigint }>([
-    [varying.map(() => 0).join(','), { path: '', represented: 1n }]
+  let totals = new Map<string, { encodedChoiceIndices: string; representedCombinationCount: bigint }>([
+    [varying.map(() => 0).join(','), { encodedChoiceIndices: '', representedCombinationCount: 1n }]
   ]);
   for (const choices of contributions) {
     if (choices.length === 1) {
-      for (const total of totals.values()) total.path += String.fromCharCode(0);
+      for (const total of totals.values()) total.encodedChoiceIndices += String.fromCharCode(0);
       continue;
     }
 
@@ -122,13 +122,14 @@ export function groupOptimizerSpace(
       const vector = key ? key.split(',').map(Number) : [];
       choices.forEach((addition, index) => {
         const key = varying.map((attribute, i) => vector[i] + addition[attribute]).join(',');
-        const path = total.path + String.fromCharCode(index);
+        const encodedChoiceIndices = total.encodedChoiceIndices + String.fromCharCode(index);
         const previous = next.get(key);
 
         if (previous) {
-          previous.represented += total.represented;
+          previous.representedCombinationCount += total.representedCombinationCount;
 
-          if (path < previous.path) previous.path = path;
+          if (encodedChoiceIndices < previous.encodedChoiceIndices)
+            previous.encodedChoiceIndices = encodedChoiceIndices;
         } else {
           // Abort before allocating an unbounded index; a memory-limited search must never claim complete coverage.
           if (next.size >= totalLimit)
@@ -136,7 +137,7 @@ export function groupOptimizerSpace(
               'This search exceeds the preparation memory limit. Reduce prefix or infusion choices.'
             );
 
-          next.set(key, { path, represented: total.represented });
+          next.set(key, { encodedChoiceIndices, representedCombinationCount: total.representedCombinationCount });
         }
       });
     }
@@ -159,7 +160,7 @@ export function groupOptimizerSpace(
 export function groupedEquipmentAt(
   space: GroupedOptimizerSpace,
   ordinal: bigint
-): { equipment: OptimizerEquipment; represented: bigint } {
+): { equipment: OptimizerEquipment; representedCombinationCount: bigint } {
   if (ordinal < 0n || ordinal >= space.count) throw new RangeError('Candidate ordinal outside grouped search.');
 
   const equipment = optimizerEquipment(space.ordinary.request.build);
@@ -167,7 +168,7 @@ export function groupedEquipmentAt(
   const total = space.totals[Number(ordinal % radix)];
   ordinal /= radix;
   space.statDimensions.forEach((dimension, index) =>
-    assignOptimizerChoice(equipment, dimension.key, dimension.choices[total.path.charCodeAt(index)])
+    assignOptimizerChoice(equipment, dimension.key, dimension.choices[total.encodedChoiceIndices.charCodeAt(index)])
   );
   for (const dimension of space.upgrades) {
     const radix = BigInt(dimension.choices.length);
@@ -175,7 +176,7 @@ export function groupedEquipmentAt(
     ordinal /= radix;
   }
 
-  return { equipment, represented: total.represented };
+  return { equipment, representedCombinationCount: total.representedCombinationCount };
 }
 
 /** Compare combined converted stats and rune durations while retaining independent proc and consumable identities. */
@@ -209,7 +210,11 @@ export function optimizerEquivalenceKey(
   ]);
 }
 
-export type OptimizerRangeProgress = (completed: bigint, represented: bigint, simulations: bigint) => void;
+export type OptimizerRangeProgress = (
+  completed: bigint,
+  representedCombinationCount: bigint,
+  simulations: bigint
+) => void;
 
 /** Unique ordinals belong to one worker range, so no score cache or repeat simulations are needed. */
 export function createGroupedOptimizer(request: GearOptimizerRequest, adapter: OptimizerContext) {
@@ -241,7 +246,7 @@ export function scoreOptimizerRange(
   evaluator: ReturnType<typeof createOptimizerEvaluator>,
   start: bigint,
   end: bigint,
-  equipmentAt: (ordinal: bigint) => { equipment: OptimizerEquipment; represented: bigint },
+  equipmentAt: (ordinal: bigint) => { equipment: OptimizerEquipment; representedCombinationCount: bigint },
   onProgress?: OptimizerRangeProgress
 ) {
   const winners: OptimizerCandidate[] = [];
@@ -255,17 +260,17 @@ export function scoreOptimizerRange(
     runeAliases.set(key, [...(runeAliases.get(key) || []), rune]);
   }
 
-  let represented = 0n;
+  let representedCombinationCount = 0n;
   let simulations = 0n;
   const warnings = new Map<string, number>();
   for (let ordinal = start; ordinal < end; ordinal++) {
     const candidate = equipmentAt(ordinal);
     // Rejected assignments still count toward coverage but never run combat or enter result groups.
-    represented += candidate.represented;
+    representedCombinationCount += candidate.representedCombinationCount;
     const result = evaluator.score(candidate.equipment);
 
     if (!result) {
-      onProgress?.(ordinal - start + 1n, represented, simulations);
+      onProgress?.(ordinal - start + 1n, representedCombinationCount, simulations);
       continue;
     }
 
@@ -282,7 +287,12 @@ export function scoreOptimizerRange(
 
     retainOptimizerCandidate(
       winners,
-      { key, equipment: candidate.equipment, score, represented: candidate.represented.toString() },
+      {
+        key,
+        equipment: candidate.equipment,
+        score,
+        representedCombinationCount: candidate.representedCombinationCount.toString()
+      },
       ordinary.request.limit
     );
     for (const rune of runeAliases.get(
@@ -292,7 +302,7 @@ export function scoreOptimizerRange(
         key,
         equipment: { ...candidate.equipment, rune },
         score,
-        represented: candidate.represented.toString()
+        representedCombinationCount: candidate.representedCombinationCount.toString()
       };
 
       // The pinned row owns the equipped setup; keep the strongest alternative for each display group.
@@ -303,14 +313,14 @@ export function scoreOptimizerRange(
     }
 
     // Report finished candidates even while a large range is still being scored.
-    onProgress?.(ordinal - start + 1n, represented, simulations);
+    onProgress?.(ordinal - start + 1n, representedCombinationCount, simulations);
   }
 
   return {
     completed: (end - start).toString(),
     winners,
     groups,
-    represented: represented.toString(),
+    representedCombinationCount: representedCombinationCount.toString(),
     simulations: simulations.toString(),
     warnings: [...warnings]
   };

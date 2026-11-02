@@ -3,11 +3,11 @@ import { ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
-export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<NecromancerSkill>>> = {
   [ID.NECROTIC_GRASP]: {
     name: 'Necrotic Grasp',
-    description: 'Send out a grasping hand that damages foes in a line and grants you life force.',
     icon: 'https://render.guildwars2.com/file/DB3E59E3A05011265E91A3591951A26B07E52ADA/103565.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -26,7 +26,7 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 4 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 4 } })]
           }
         ],
         coefficient: 1,
@@ -43,7 +43,6 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.MARK_OF_BLOOD]: {
     name: 'Mark of Blood',
-    description: 'Mark. Inscribe a mark that bleeds foes when they trigger it, and grants regeneration to allies.',
     icon: 'https://render.guildwars2.com/file/F205B3A517DF27E3323D2FBCFE6C0FA3430242F9/103813.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -67,7 +66,6 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.CHILLBLAINS]: {
     name: 'Chillblains',
-    description: 'Mark. Inscribe a mark that inflicts chill and poison on foes when triggered.',
     icon: 'https://render.guildwars2.com/file/A33F6E0F51AD229AD57ED83D7AC040225DFD0FEA/103138.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -97,7 +95,6 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.PUTRID_MARK]: {
     name: 'Putrid Mark',
-    description: 'Mark. Inscribe a mark that damages enemies and transfers your conditions to them when triggered.',
     icon: 'https://render.guildwars2.com/file/DF024691B5A2CD0D78CDF3EAEB0394F878FD6EC4/103814.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -117,7 +114,7 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.transfer' }
+            do: [{ type: 'necromancer.transfer' }]
           }
         ],
         coefficient: 1.32,
@@ -133,7 +130,6 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.REAPERS_MARK]: {
     name: "Reaper's Mark",
-    description: 'Mark. Inscribe a mark that inflicts fear on foes when triggered.',
     icon: 'https://render.guildwars2.com/file/0D7FDAA90B6C043A31333E630C55C8547CC09EC2/103821.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -155,4 +151,4 @@ export const NECROMANCER_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   }
-});
+};

@@ -5,9 +5,9 @@ import { swapRangerPets } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const pets = [
   { name: 'Boar', basic: ID.PORCINE_JAB, special: ID.PORCINE_MAUL },
   { name: 'Aether Hunter', basic: ID.AETHER_HUNTER_BITE, special: ID.AETHER_HUNTER_LEY_LINE_VORTEX },

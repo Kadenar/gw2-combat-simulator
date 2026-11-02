@@ -5,8 +5,8 @@ import { weaponSetActiveSegments, weaponSetDurationTotals } from '#gw2/app/rotat
 
 const SWAP_WEAPONS_ID = -1;
 
-function step(ri, skillId, start, end = start, skill = String(skillId)) {
-  return { ri, skillId, skill, start, end };
+function step(rotationCommandIndex, skillId, start, end = start, skill = String(skillId)) {
+  return { rotationCommandIndex, skillId, skill, start, end };
 }
 
 test('one usable weapon set owns the full timeline', () => {

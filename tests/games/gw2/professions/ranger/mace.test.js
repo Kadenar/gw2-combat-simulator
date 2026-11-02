@@ -4,6 +4,7 @@ import test from 'node:test';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
@@ -24,7 +25,6 @@ const simulate = (...args) => {
 
 const cycle = [ID.FLOURISH, ID.OAKEN_CUDGEL, ID.THISTLEGUARD, ID.WILD_STRIKES];
 const chain = [ID.GERMINATE, ID.BURGEON, ID.CULTIVATE];
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const buffs = (result, kind) => result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === kind);
 const stacks = (result, kind) =>
   observedRuntime(result).mechanics.combat.activeBuffStacks(
@@ -43,7 +43,7 @@ test('mace disables activate Claw for subsequent player strikes, while cancelled
       result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.GERMINATE);
     assertFlooredDamageMultiplier(hit(equipped).damage, hit(ordinary).damage, 1.07);
     assert.equal(buffs(equipped, 'relic-claw').length, 1);
-    assert.equal(buffs(equipped, 'relic-claw')[0].triggeredBy, equipped.steps[0].skill);
+    assert.equal(buffs(equipped, 'relic-claw')[0].triggeredBy, equipped.steps[0].skillName);
 
     const cancelled = simulate('Core', [{ type: 'cast', skillId, interruptAfterMs: 0 }, ID.GERMINATE], {
       relic: 'Claw'
@@ -77,7 +77,7 @@ test("five stacks consume Nature's Strength and reset all mace recharges includi
   assert.equal(buffs(result, 'force-of-nature').length, 1);
   assert.equal(stacks(result, 'natures-strength'), 0);
   for (let index = 5; index < result.steps.length; index++) {
-    assert.equal(result.steps[index].start, result.steps[index - 1].end, result.steps[index].skill);
+    assert.equal(result.steps[index].start, result.steps[index - 1].end, result.steps[index].skillName);
   }
 
   const force = buffs(result, 'force-of-nature')[0];

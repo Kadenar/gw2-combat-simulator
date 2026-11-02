@@ -87,7 +87,7 @@ test('Galeshot palette and Wind Force display use the patched threshold', () => 
             catalog: withProfile(native.catalog, TRAIT.TEACHINGS_OF_THE_TENGU, { minimumStacks: maximum })
           }),
           initialize(runtime) {
-            const state = galeshotState.from(runtime);
+            const state = galeshotState.from(runtime.profession);
             state.cycloneBowActive = true;
             runtime.resourceController.replace('windForce', value);
           }

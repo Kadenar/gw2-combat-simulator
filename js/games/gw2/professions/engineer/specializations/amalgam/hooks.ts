@@ -11,7 +11,7 @@ export const amalgamHooks = composeRuntimeHooks<EngineerRuntimeState, EngineerSk
   {
     /** Hold selected bonuses throughout isolated damage queries without casting Morph or Evolve. */
     prepareDamageState(runtime, _skill, inputs) {
-      const state = amalgamState.from(runtime);
+      const state = amalgamState.from(runtime.profession);
       state.willingHostUntil = inputs.willingHost ? Infinity : 0;
       state.evolvedUntil = inputs.evolved ? Infinity : 0;
       state.titanicUntil = inputs.titanic ? Infinity : 0;

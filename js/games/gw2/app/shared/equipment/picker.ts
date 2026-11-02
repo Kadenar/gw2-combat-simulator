@@ -110,7 +110,7 @@ function splitOptionLabel(label: string): { name: string; details: string } {
 }
 
 /** Replace tooltip metadata together so changing or clearing equipment cannot leave stale bonuses behind. */
-export function setEquipmentTooltip(element: HTMLElement, attributes: string): void {
+function setEquipmentTooltip(element: HTMLElement, attributes: string): void {
   element.removeAttribute('title');
   for (const key of Object.keys(element.dataset)) {
     if (key.startsWith('wiki')) delete element.dataset[key];

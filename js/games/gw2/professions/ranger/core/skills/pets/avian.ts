@@ -9,10 +9,9 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.BIRD_SLASH]: definePetSkill({
     name: 'Slash',
-    description: 'Slash your foe.',
     icon: new URL('@images/wiki/slash-bird.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -35,7 +34,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   }),
   [ID.BIRD_SWOOP]: definePetSkill({
     name: 'Swoop',
-    description: 'Swoop at your foe, making them vulnerable.',
     icon: 'https://render.guildwars2.com/file/FCCA3C61C308E1D625C70BD4CCB9F05051AE6F6F/104047.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -67,7 +65,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   }),
   [ID.QUICKENING_SCREECH_PET]: definePetSkill({
     name: 'Quickening Screech',
-    description: 'Grant swiftness to nearby allies and remove movement-impairing conditions from them.',
     icon: 'https://render.guildwars2.com/file/69F1291534027E0937A5C020FFEBCC96F301EC54/104048.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -93,7 +90,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   }),
   [ID.BLINDING_SLASH]: definePetSkill({
     name: 'Blinding Slash',
-    description: 'Beast. Blind your foes with a slash.',
     icon: 'https://render.guildwars2.com/file/6A3CA8D32FDD9EB0A8546FDC4DB39FA8EE740059/104049.png',
     petNames: ['Raven', 'White Raven'],
     type: 'Profession',
@@ -114,7 +110,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   }),
   [ID.CHILLING_SLASH]: definePetSkill({
     name: 'Chilling Slash',
-    description: 'Beast. Slash your foes and chill them.',
     icon: 'https://render.guildwars2.com/file/6A3CA8D32FDD9EB0A8546FDC4DB39FA8EE740059/104049.png',
     petNames: ['Owl'],
     type: 'Profession',
@@ -143,7 +138,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   }),
   [ID.BRASH_SLASH]: definePetSkill({
     name: 'Brash Slash',
-    description: 'Beast. Slash your foes, inflicting weakness.',
     icon: 'https://render.guildwars2.com/file/6A3CA8D32FDD9EB0A8546FDC4DB39FA8EE740059/104049.png',
     petNames: ['Eagle'],
     type: 'Profession',
@@ -172,7 +166,6 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   }),
   [ID.LACERATING_SLASH]: definePetSkill({
     name: 'Lacerating Slash',
-    description: 'Beast. Slash your foes and cause them to bleed.',
     icon: 'https://render.guildwars2.com/file/6A3CA8D32FDD9EB0A8546FDC4DB39FA8EE740059/104049.png',
     petNames: ['Hawk'],
     type: 'Profession',
@@ -197,4 +190,4 @@ export const RANGER_CORE_AVIAN_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
       }
     ])
   })
-});
+};

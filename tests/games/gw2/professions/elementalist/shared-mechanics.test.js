@@ -27,7 +27,7 @@ test('every Elementalist specialization can prepare attunements without precomba
           },
           { profession: elementalistProfession }
         );
-        const swaps = result.steps.filter((step) => step.skill.endsWith(' Attunement'));
+        const swaps = result.steps.filter((step) => step.skillName.endsWith(' Attunement'));
         assert.deepEqual(result.warnings, [], specialization);
         assert.ok(
           swaps.every((step) => step.start === swaps[0].start),
@@ -36,9 +36,9 @@ test('every Elementalist specialization can prepare attunements without precomba
         assert.equal(result.planningState.profession[STATE.PRIMARY_ATTUNEMENT], 'Fire');
         for (const attunement of ['Fire', 'Water', 'Air', 'Earth']) {
           assert.equal(
-            result.planningState.cooldowns[
+            result.planningState.cooldownsBySkillId[
               elementalistCatalog.skills.find((candidate) => candidate.name === `${attunement} Attunement`).id
-            ]?.remaining ?? 0,
+            ]?.remainingMs ?? 0,
             0,
             specialization
           );
@@ -55,7 +55,7 @@ test('attunement recharge resumes after an explicit combat marker or the first h
       { specialization: 'Core', startAttunement: 'Fire', primaryWeapon: 'Staff' },
       { profession: elementalistProfession }
     );
-    const swaps = result.steps.filter((step) => step.skill.endsWith(' Attunement'));
+    const swaps = result.steps.filter((step) => step.skillName.endsWith(' Attunement'));
     assert.deepEqual(result.warnings, []);
     assert.equal(swaps[1].start, swaps[0].start);
     assert.equal(swaps[3].start - swaps[2].start, 8000);
@@ -96,7 +96,7 @@ test('cooldown reset also resets native attunement recharge', () => {
       alacrity: false
     }
   });
-  const fire = result.steps.find((step) => step.skill === 'Fire Attunement');
+  const fire = result.steps.find((step) => step.skillName === 'Fire Attunement');
 
   assert.deepEqual(result.warnings, []);
   assert.equal(fire.start, 0);
@@ -203,12 +203,12 @@ test('Ride the Lightning preserves sword roots without exempting other dagger sk
 
   assert.deepEqual(preserved.warnings, []);
   assert.deepEqual(
-    preserved.steps.map((step) => step.skill),
+    preserved.steps.map((step) => step.skillName),
     ['Charged Strike', 'Ride the Lightning', 'Polaric Slash']
   );
   assert.deepEqual(reset.warnings, []);
   assert.deepEqual(
-    reset.steps.map((step) => step.skill),
+    reset.steps.map((step) => step.skillName),
     ['Charged Strike', 'Updraft', 'Charged Strike']
   );
 });
@@ -224,7 +224,7 @@ test('Relentless Fire preserves the sword autoattack chain', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     ['Charged Strike', 'Relentless Fire', 'Polaric Slash']
   );
 });
@@ -239,7 +239,7 @@ test('Ride the Lightning preserves the timed Aerial Agility flip sequence', () =
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     ['Aerial Agility', 'Ride the Lightning', 'Aerial Agility (chain)', 'Aerial Agility (dash)']
   );
 });
@@ -253,7 +253,7 @@ test('Aerial Agility expires while its original cooldown keeps counting down', (
   });
 
   assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.AERIAL_AGILITY], undefined);
-  assert.ok(result.planningState.cooldowns[ID.AERIAL_AGILITY].remaining > 0);
+  assert.ok(result.planningState.cooldownsBySkillId[ID.AERIAL_AGILITY].remainingMs > 0);
 });
 
 test('using the first Aerial Agility follow-up restarts its full cooldown', () => {
@@ -269,12 +269,13 @@ test('using the first Aerial Agility follow-up restarts its full cooldown', () =
     startAttunement: 'Air',
     weapons: ['Pistol', 'Dagger']
   });
-  const initialDuration = unused.planningState.cooldowns[ID.AERIAL_AGILITY].readyAt - unused.steps[0].end;
-  const followup = used.steps.find((step) => step.skill === 'Aerial Agility (chain)');
+  const initialDuration = unused.planningState.cooldownsBySkillId[ID.AERIAL_AGILITY].readyAtMs - unused.steps[0].end;
+  const followup = used.steps.find((step) => step.skillName === 'Aerial Agility (chain)');
 
-  assert.equal(used.planningState.cooldowns[ID.AERIAL_AGILITY].readyAt - followup.end, initialDuration);
+  assert.equal(used.planningState.cooldownsBySkillId[ID.AERIAL_AGILITY].readyAtMs - followup.end, initialDuration);
   assert.ok(
-    used.planningState.cooldowns[ID.AERIAL_AGILITY].readyAt > unused.planningState.cooldowns[ID.AERIAL_AGILITY].readyAt
+    used.planningState.cooldownsBySkillId[ID.AERIAL_AGILITY].readyAtMs >
+      unused.planningState.cooldownsBySkillId[ID.AERIAL_AGILITY].readyAtMs
   );
 });
 
@@ -293,7 +294,7 @@ test('advancing Aerial Agility replaces the previous stage expiry', () => {
 
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.AERIAL_AGILITY], expected);
-    assert.ok(result.planningState.cooldowns[ID.AERIAL_AGILITY].remaining > 0);
+    assert.ok(result.planningState.cooldownsBySkillId[ID.AERIAL_AGILITY].remainingMs > 0);
   }
 });
 
@@ -319,7 +320,7 @@ test('rotation palette resolves equipped glyphs to the active attunement', () =>
     ...elementalistProfession.createBuildDefaults(),
     selectedSkillIds: {
       ...elementalistProfession.createBuildDefaults().selectedSkillIds,
-      Utility2: 5736
+      Utility2: 5734
     }
   });
   const app = {
@@ -344,7 +345,7 @@ test('equipped glyphs remain available across attunement variants', () => {
     lines: [['Fire'], ['Air'], ['Arcane']],
     rotation: ['Air Attunement', 'Glyph of Storms (Air)'],
     startAttunement: 'Fire',
-    selectedSkillIds: { Heal: 34743, Utility1: 5539, Utility2: 5736, Utility3: 5638, Elite: 25488 }
+    selectedSkillIds: { Heal: 34743, Utility1: 5539, Utility2: 5734, Utility3: 5638, Elite: 25488 }
   });
 
   assert.deepEqual(result.warnings, []);
@@ -359,9 +360,9 @@ test('attunement variants of an equipped glyph share their cooldown', () => {
     lines: [['Fire'], ['Air'], ['Arcane']],
     rotation: ['Air Attunement', 'Glyph of Storms (Air)', 10000, 'Fire Attunement', 'Glyph of Storms (Fire)'],
     startAttunement: 'Fire',
-    selectedSkillIds: { Heal: 34743, Utility1: 5539, Utility2: 5736, Utility3: 5638, Elite: 25488 }
+    selectedSkillIds: { Heal: 34743, Utility1: 5539, Utility2: 5734, Utility3: 5638, Elite: 25488 }
   });
-  const casts = result.steps.filter((step) => String(step.skill).startsWith('Glyph of Storms'));
+  const casts = result.steps.filter((step) => String(step.skillName).startsWith('Glyph of Storms'));
 
   assert.deepEqual(result.warnings, []);
   assert.equal(casts.length, 2);

@@ -43,12 +43,12 @@ function arm(runtime: GuardianRuntime, definition: MantraDefinition): void {
     runtime.time
   );
   runtime.cooldownController.clear(definition.rootId);
-  firebrandState.from(runtime).mantraRechargeReadyAt[definition.rootId] = runtime.time;
+  firebrandState.from(runtime.profession).mantraRechargeReadyAt[definition.rootId] = runtime.time;
 }
 
 /** Exactly one pending wake owns each mantra's next charge or full rearm; rate changes replace that wake. */
 function sync(runtime: GuardianRuntime, definition: MantraDefinition): void {
-  const state = firebrandState.from(runtime);
+  const state = firebrandState.from(runtime.profession);
   const previous = state.mantraWakeGenerations[definition.rootId] ?? 0;
   runtime.cancelOwner(owner(definition, previous));
   const generation = previous + 1;
@@ -100,7 +100,8 @@ export function initializeFirebrandMantras(runtime: GuardianRuntime): void {
 function refreshFirebrandMantras(runtime: GuardianRuntime): void {
   runtime.cooldownController.refresh(runtime.time);
   for (const definition of MANTRAS)
-    if (Object.hasOwn(firebrandState.from(runtime).mantraRechargeReadyAt, definition.rootId)) sync(runtime, definition);
+    if (Object.hasOwn(firebrandState.from(runtime.profession).mantraRechargeReadyAt, definition.rootId))
+      sync(runtime, definition);
 }
 
 function firebrandMantraWake(runtime: GuardianRuntime, rootId: unknown): void {
@@ -169,7 +170,7 @@ const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState, GuardianSk
             magazine(runtime, definition)
           );
           const root = runtime.helpers.skillsById.get(definition.rootId)!;
-          firebrandState.from(runtime).mantraRechargeReadyAt[definition.rootId] =
+          firebrandState.from(runtime.profession).mantraRechargeReadyAt[definition.rootId] =
             runtime.cooldownController.startRecharge(root, runtime.time);
           sync(runtime, definition);
         }

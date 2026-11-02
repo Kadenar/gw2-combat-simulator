@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/elementalist/data/trait-lines.js';
 import {
   ELEMENTALIST_EVOKER_PROFILE_FIELDS,
@@ -31,11 +32,10 @@ export const evokerModule = defineNativeModule({
     skillFlips: ELEMENTALIST_EVOKER_SKILL_FLIPS,
     profileFields: ELEMENTALIST_EVOKER_PROFILE_FIELDS,
     skillFields: EVOKER_SKILL_FIELDS,
-    // Assemble both skill families at the module boundary in familiar-first order.
-    skillMechanics: {
-      ...EVOKER_FAMILIAR_SKILL_MECHANICS,
-      ...EVOKER_MEDITATION_SKILL_MECHANICS
-    }
+    // Both owner families contribute complete declarations without allowing duplicate identities to overwrite.
+    skills: materializeSkillDefinitions(
+      composeSkillDefinitions(EVOKER_FAMILIAR_SKILL_MECHANICS, EVOKER_MEDITATION_SKILL_MECHANICS)
+    )
   }),
   state: { create: evokerState.create, project: projectEvokerPlanningState },
   // Register the skill/mechanic-owned rules alongside trait declarations.

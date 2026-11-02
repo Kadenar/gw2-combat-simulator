@@ -8,7 +8,7 @@ export const coinInitiative = new WeakMap<RuntimeCast<ThiefSkill>, number>();
 
 /** Spend an already-earned Luck charge without requiring current selection. */
 function consumeScoundrelsLuck(runtime: ThiefRuntime): boolean {
-  const state = antiquaryState.from(runtime);
+  const state = antiquaryState.from(runtime.profession);
 
   if (!(state.scoundrelsLuck > 0)) return false;
 
@@ -27,7 +27,7 @@ function acceptDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>):
 
 /** Canach coins alternate heads and tails across uses; a backfire pays only for heads. */
 export function tossCanachCoins(runtime: ThiefRuntime, backfire: boolean): number {
-  const state = antiquaryState.from(runtime);
+  const state = antiquaryState.from(runtime.profession);
   let initiative = 0;
   for (let coin = 0; coin < 3; coin += 1) {
     const heads = (state.canachCoinIndex || 0) % 2 === 0;
@@ -43,7 +43,7 @@ export function tossCanachCoins(runtime: ThiefRuntime, backfire: boolean): numbe
  * packets are timed from the reserved end of the cast.
  */
 export function startDoubleEdge(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const state = antiquaryState.from(runtime);
+  const state = antiquaryState.from(runtime.profession);
   const skill = cast.skill;
   const outcome = acceptDoubleEdge(runtime, cast);
 

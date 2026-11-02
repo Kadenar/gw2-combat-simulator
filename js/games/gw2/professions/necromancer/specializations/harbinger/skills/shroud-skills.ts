@@ -4,12 +4,12 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { doomApproachesDarkBarrage } from '#gw2/professions/necromancer/specializations/harbinger/traits/behavior.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Supplies Harbinger Shroud definitions to specialization composition. */
-export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<NecromancerSkill>>> = {
   [ID.TAINTED_BOLTS]: {
     name: 'Tainted Bolts',
-    description: 'Fire quick bolts of dark energy that explode on impact, inflicting torment to enemies in the area.',
     icon: 'https://render.guildwars2.com/file/03AB6A0BA611767DA8A30A0D0E68CE580760EA34/2479402.png',
     cooldown: 0,
     skillWeapon: 'Hammer',
@@ -38,7 +38,6 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.EXIT_HARBINGER_SHROUD]: {
     name: 'Exit Harbinger Shroud',
-    description: 'Leave Harbinger Shroud and return to your normal form.',
     icon: 'https://render.guildwars2.com/file/99465D6C7322FCB7B06AC7729F2A91BB243A09E4/2479401.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -53,7 +52,6 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.DARK_BARRAGE]: {
     name: 'Dark Barrage',
-    description: 'Fire six bolts of tormenting energy that fan out from you, piercing all enemies in their path.',
     icon: 'https://render.guildwars2.com/file/3EBE1078EC053BA76F057D2F0758692F0C0D6CD3/2479393.png',
     cooldown: 6,
     skillWeapon: 'Hammer',
@@ -101,8 +99,6 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.HARBINGER_SHROUD]: {
     name: 'Harbinger Shroud',
-    description:
-      'Enter Harbinger Shroud, granting powerful offensive skills but leaving you vulnerable to attack.\nAs you remain in Harbinger Shroud, you accumulate blight over time.\nBlight decreases your maximum health.',
     icon: 'https://render.guildwars2.com/file/C9CA706909A104A509F594AADA150D680AA948BC/2479400.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -119,8 +115,6 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.DEVOURING_CUT]: {
     name: 'Devouring Cut',
-    description:
-      'Channel twisted energy to launch yourself at your foe, damaging nearby enemies on impact.\n\n\n\nIf you are at or above the Blight threshold when you activate this skill, consume that amount of Blight to double the damage and torment struck foes.',
     icon: 'https://render.guildwars2.com/file/F4A01998B419F5A3B2EA7010107ED64AAE119369/2479392.png',
     cooldown: 8,
     skillWeapon: 'Hammer',
@@ -169,8 +163,6 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.VORACIOUS_ARC]: {
     name: 'Voracious Arc',
-    description:
-      'Leap to your destination, evading through the air. Daze enemies near your impact point.\n\nIf you are at or above the Blight threshold when you activate this skill, consume that amount of Blight to double the damage and torment struck foes.',
     icon: 'https://render.guildwars2.com/file/E338A042D7F5EDB705F5A5E033F330D3C25774C5/2479406.png',
     cooldown: 10,
     skillWeapon: 'Hammer',
@@ -217,8 +209,6 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.VITAL_DRAW]: {
     name: 'Vital Draw',
-    description:
-      'Twist the souls of nearby enemies, suspending them in the air while you siphon their life force. Gain life force for each target struck.',
     icon: 'https://render.guildwars2.com/file/71A90FD69C7E5F319B1E26F1A72CC7D65E93A84A/2479405.png',
     cooldown: 20,
     skillWeapon: 'Hammer',
@@ -241,7 +231,7 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
             actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 3 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 3 } })]
           }
         ],
         ticks: [760, 1760, 2760].map((atMs) => ({ atMs, coefficient: 0.4 }))
@@ -255,4 +245,4 @@ export const HARBINGER_SHROUD_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       }
     ])
   }
-});
+};

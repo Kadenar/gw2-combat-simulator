@@ -40,7 +40,7 @@ export function createProcRegistry(context: () => ProcRegistryContext): ProcRegi
       readyAt[key] = canonicalTime(
         projectRecharge(
           progress,
-          context().query.timeline.rechargeIntervals(skill, progress.startedAt, Infinity, progress.companionId)
+          context().query.timeline.rechargeIntervals(skill, progress.workAnchorAt, Infinity, progress.companionId)
         )
       );
     }
@@ -87,7 +87,7 @@ export function createProcRegistry(context: () => ProcRegistryContext): ProcRegi
           name: profile.name,
           rechargeBuffAudience: RECIPIENT.SUMMONS
         };
-        const progress = { startedAt: at, work, companionId };
+        const progress = { workAnchorAt: at, work, companionId };
         const projected = canonicalTime(
           projectRecharge(progress, runtime.query.timeline.rechargeIntervals(skill, at, Infinity, progress.companionId))
         );

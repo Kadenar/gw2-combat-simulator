@@ -11,7 +11,7 @@ import { CONDUIT_ENTITY_SKILL_MECHANICS } from '#gw2/professions/revenant/specia
 import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/index.js';
 import { RENEGADE_WARBAND_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import { VINDICATOR_PROFESSION_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/profession-skills.js';
-import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
+import type { RevenantCanonicalBuild, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 interface RevenantLegend {
@@ -164,8 +164,8 @@ export const revenantLegendLoadout = Object.freeze({
     // Loadout children follow the same selected declarations as activation and the live palette.
     if (!context.catalog) throw new Error('Revenant loadout children require the selected catalog.');
 
-    const skill = context.catalog.skillsById.get(skillId);
-    const consumeId = skill?.facet ? revenantUpkeepConsumeId(skill, String(skill.legendId ?? '')) : undefined;
+    const skill: RevenantSkill | undefined = context.catalog.skillsById.get(skillId);
+    const consumeId = skill?.facet ? revenantUpkeepConsumeId(skill, skill.legendId ?? '') : undefined;
 
     if (consumeId != null) return [consumeId];
 
@@ -182,8 +182,8 @@ export const revenantLegendLoadout = Object.freeze({
       className: group.active ? 'compact-resource-palette revenant-legend-skills' : 'revenant-legend-skills-inactive',
       resourceAnchor: group.active,
       skillIds: group.skillIds.flatMap((skillId) => {
-        const skill = catalog.skillsById.get(skillId);
-        const heraldFlipId = skill?.facet ? revenantUpkeepConsumeId(skill, String(skill.legendId ?? '')) : undefined;
+        const skill: RevenantSkill | undefined = catalog.skillsById.get(skillId);
+        const heraldFlipId = skill?.facet ? revenantUpkeepConsumeId(skill, skill.legendId ?? '') : undefined;
 
         if (heraldFlipId != null && availableFlips[heraldFlipId]) {
           return [Number(heraldFlipId)];

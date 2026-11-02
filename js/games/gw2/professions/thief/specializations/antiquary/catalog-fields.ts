@@ -1,4 +1,4 @@
-import { dataField, defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
+import { defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
 
 /** Antiquary artifact fields read only by Antiquary mechanics. */
 export const ANTIQUARY_SKILL_FIELDS = defineFields(
@@ -11,12 +11,7 @@ export const ANTIQUARY_SKILL_FIELDS = defineFields(
     enhancedDuration: numberField({ label: 'enhanced identity duration', patch: 'primary', unit: 'seconds' }),
     maximumDuration: numberField({ label: 'maximum identity duration', patch: 'primary', unit: 'seconds' }),
     refundCharges: numberField({ label: 'initiative refund charges', patch: 'primary' }),
-    rechargeMultiplier: numberField({ label: 'next utility recharge multiplier', patch: 'primary' }),
-
-    // Artifact this skill stocks or spends.
-    artifactKind: dataField,
-    // Has a backfire outcome selected in the rotation.
-    backfire: dataField
+    rechargeMultiplier: numberField({ label: 'next utility recharge multiplier', patch: 'primary' })
   },
   'Antiquary'
 );

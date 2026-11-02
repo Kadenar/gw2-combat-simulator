@@ -153,7 +153,7 @@ export const barrierEnginePassive = definePeriodicTask<EngineerRuntime>({
   name: 'engineer.barrier-engine',
   background: true,
   priority: 0,
-  state: (runtime) => mechanistState.from(runtime).barrierEngine,
+  state: (runtime) => mechanistState.from(runtime.profession).barrierEngine,
   nextAt: (runtime) => runtime.time + balanceNumberFromContext(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE, 'interval'),
   run: pulseBarrierEngine
 });
@@ -403,7 +403,7 @@ function triggerMechFighter(context: EngineerRuntime, { skill, at }: MechanistCa
 
 /** The passive starts in combat and runs independently of the mech's command lane. */
 function startBarrierEngine(runtime: EngineerRuntime): void {
-  const state = mechanistState.from(runtime);
+  const state = mechanistState.from(runtime.profession);
 
   if (state.barrierEngine.generation > 0) return;
 

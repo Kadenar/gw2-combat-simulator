@@ -1,11 +1,12 @@
-import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 /**
  * Core Engineer skill mechanics.
  *
  * Weapon skills remain Core-owned because Weaponmaster Training makes the
  * physical weapon families profession-wide.
  */
+import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import { ENGINEER_CORE_EXTRA_SKILLS } from '#gw2/professions/engineer/core/skills/actions.js';
 import { ENGINEER_BOMB_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/bomb-kit.js';
 import { ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/elite-mortar-kit.js';
 import { ENGINEER_ELIXIR_GUN_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/kits/elixir-gun.js';
@@ -25,7 +26,7 @@ import { ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS } from '#gw2/professions/enginee
 import { ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/engineer/core/skills/weapons/sword.js';
 
 /** Composes kit definitions with physical weapons, utilities, toolbelt actions, and synthetic Core skills. */
-export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition>> = composeSkillDefinitions(
+const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition>> = composeSkillDefinitions(
   ENGINEER_TRAIT_SKILL_MECHANICS,
   ENGINEER_PROFESSION_SKILLS_SKILL_MECHANICS,
   ENGINEER_SLOT_SKILLS_SKILL_MECHANICS,
@@ -45,4 +46,8 @@ export const ENGINEER_CORE_SKILL_MECHANICS: Readonly<Record<string, SkillDefinit
   ENGINEER_ELITE_MORTAR_KIT_SKILL_MECHANICS
 );
 
-export { ENGINEER_CORE_EXTRA_SKILLS } from '#gw2/professions/engineer/core/skills/actions.js';
+/** One complete module collection includes authored skills, generated attacks, and simulator actions. */
+export const ENGINEER_CORE_SKILLS = Object.freeze([
+  ...materializeSkillDefinitions(ENGINEER_CORE_SKILL_MECHANICS),
+  ...ENGINEER_CORE_EXTRA_SKILLS
+]);

@@ -4,6 +4,7 @@ import {
   migrateElementalistBuild,
   validateElementalistBuild
 } from '#gw2/professions/elementalist/build/build.js';
+import { migrateElementalistStanceRotation } from '#gw2/professions/elementalist/build/primordial-stance-migration.js';
 import { elementalistWeaponSkillMatchesSet } from '#gw2/professions/elementalist/build/weapon-matching.js';
 import { elementalistNativeModules } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -22,6 +23,7 @@ export const elementalistProfession = defineNativeProfession({
   build: {
     createBuildDefaults: createElementalistBuildDefaults,
     migrateBuild: migrateElementalistBuild,
+    migrateRotation: migrateElementalistStanceRotation,
     validateBuild: validateElementalistBuild
   },
   modules: elementalistNativeModules,

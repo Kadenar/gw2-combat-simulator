@@ -5,11 +5,11 @@
 import { BOON, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
-export const SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.QUICKENING_SCREECH]: {
     name: 'Quickening Screech',
-    description: 'Grant swiftness to nearby allies and remove movement-impairing conditions from them.',
     icon: 'https://render.guildwars2.com/file/69F1291534027E0937A5C020FFEBCC96F301EC54/104048.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -29,7 +29,6 @@ export const SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.SWOOP_ID_44991]: {
     name: 'Swoop',
-    description: 'Swoop at your foe, making them vulnerable.',
     icon: 'https://render.guildwars2.com/file/FCCA3C61C308E1D625C70BD4CCB9F05051AE6F6F/104047.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -52,4 +51,4 @@ export const SOULBEAST_AVIAN_BEAST_SKILL_MECHANICS: Readonly<Record<number, Skil
       }
     ]
   }
-});
+};

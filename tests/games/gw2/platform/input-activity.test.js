@@ -90,8 +90,8 @@ test('activity samples and busy sections remain unchanged when bindings move or 
   assert.equal(edited.totalActions, 5);
   assert.deepEqual(edited.samples, initial.samples);
   assert.deepEqual(
-    edited.sections.map(({ start, end, count, rate }) => ({ start, end, count, rate })),
-    initial.sections.map(({ start, end, count, rate }) => ({ start, end, count, rate }))
+    edited.sections.map(({ start, end, count, actionsPerSecond }) => ({ start, end, count, actionsPerSecond })),
+    initial.sections.map(({ start, end, count, actionsPerSecond }) => ({ start, end, count, actionsPerSecond }))
   );
   assert.equal(editedAnalysis.reachCounts.unknown, 3);
   assert.equal(editedAnalysis.coverage.missing.length, 2);
@@ -187,7 +187,7 @@ test('busy sections use nonoverlapping five-second windows and preserve endpoint
   );
   const analysis = analyzeInputTrace(input, p);
   assert.equal(analysis.windows.length, 3);
-  assert.deepEqual(analysis.windows[0], { start: 10, end: 15, count: 3, rate: 0.6 });
+  assert.deepEqual(analysis.windows[0], { start: 10, end: 15, count: 3, actionsPerSecond: 0.6 });
   const ordered = [...analysis.windows].sort((a, b) => a.start - b.start);
   assert.ok(ordered.every((window, index) => !index || ordered[index - 1].end <= window.start));
   const endpointInput = trace(
@@ -198,11 +198,11 @@ test('busy sections use nonoverlapping five-second windows and preserve endpoint
     10
   );
   const endpoint = analyzeInputTrace(endpointInput, p);
-  assert.deepEqual(endpoint.windows[0], { start: 5, end: 10, count: 2, rate: 0.4 });
+  assert.deepEqual(endpoint.windows[0], { start: 5, end: 10, count: 2, actionsPerSecond: 0.4 });
   const summary = summarizeInputAnalysis(endpointInput, endpoint);
   assert.equal(summary.sections[0].rotationIndices.length, 2);
-  assert.equal(summary.samples.find((sample) => sample.at === 2.5).rate, 0);
-  assert.equal(summary.samples.at(-1).rate, 2 / 5);
+  assert.equal(summary.samples.find((sample) => sample.at === 2.5).actionsPerSecond, 0);
+  assert.equal(summary.samples.at(-1).actionsPerSecond, 2 / 5);
 });
 
 test('short, empty and zero-duration traces report activity without inventing busy sections', () => {
@@ -257,9 +257,9 @@ test('activity curve uses complete windows at both edges and one whole window fo
     10
   );
   const summary = summarizeInputAnalysis(input, analyzeInputTrace(input, p));
-  assert.equal(summary.samples[0].rate, 2 / 5);
-  assert.equal(summary.samples.find((sample) => sample.at === 2.5).rate, 2 / 5);
-  assert.equal(summary.samples.at(-1).rate, 2 / 5);
+  assert.equal(summary.samples[0].actionsPerSecond, 2 / 5);
+  assert.equal(summary.samples.find((sample) => sample.at === 2.5).actionsPerSecond, 2 / 5);
+  assert.equal(summary.samples.at(-1).actionsPerSecond, 2 / 5);
   const short = trace(
     [
       [0, 'weapon-2'],
@@ -268,7 +268,7 @@ test('activity curve uses complete windows at both edges and one whole window fo
     3
   );
   const shortSummary = summarizeInputAnalysis(short, analyzeInputTrace(short, p));
-  assert.ok(shortSummary.samples.every((sample) => sample.rate === 2 / 3));
+  assert.ok(shortSummary.samples.every((sample) => sample.actionsPerSecond === 2 / 3));
 });
 
 test('profile schema rejects unsupported versions and physical keys', () => {
@@ -382,7 +382,7 @@ test('movement-only profession commands execute without adding a key input', () 
     skillInputBars: [{ id: 'selected', slots: { 'slot-7': 41065 } }]
   });
   assert.deepEqual(result.warnings, []);
-  assert.ok(result.steps.some((step) => step.skill === 'Pick Up Mirage Mirror'));
+  assert.ok(result.steps.some((step) => step.skillName === 'Pick Up Mirage Mirror'));
   assert.equal(result.rotationApm.actionCount, result.inputTrace.actions.length);
   assert.equal(result.rotationApm.actionCount, 1);
   assert.equal(result.rotationApm.apm, 60 / (result.inputTrace.end - result.inputTrace.start));

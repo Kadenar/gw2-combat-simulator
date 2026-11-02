@@ -1,15 +1,14 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Guild actor attacks own their selected packets and repeat recharge; shared AI keeps engagement and lifetime. */
-export const SPECTER_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
+export const SPECTER_GUILD_ATTACK_SKILLS: readonly Skill[] = [
   {
     name: 'Thieves Guild (Specter) \u2014 Shadow Bolt',
-    description: 'Automatically triggered Thieves Guild (Specter) — Shadow Bolt effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 67807,
     displayName: 'Shadow Bolt',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [
@@ -33,12 +32,11 @@ export const SPECTER_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Thieves Guild (Specter) \u2014 Well of Sorrow',
-    description: 'Automatically triggered Thieves Guild (Specter) — Well of Sorrow effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 67795,
     displayName: 'Well of Sorrow',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [
@@ -86,12 +84,11 @@ export const SPECTER_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Thieves Guild (Specter) \u2014 Double Bolt',
-    description: 'Automatically triggered Thieves Guild (Specter) — Double Bolt effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 67812,
     displayName: 'Double Bolt',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [
@@ -115,12 +112,11 @@ export const SPECTER_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Thieves Guild (Specter) \u2014 Triple Bolt',
-    description: 'Automatically triggered Thieves Guild (Specter) — Triple Bolt effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 67817,
     displayName: 'Triple Bolt',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [
@@ -144,12 +140,11 @@ export const SPECTER_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Thieves Guild (Specter) \u2014 Triple Threat',
-    description: 'Automatically triggered Thieves Guild (Specter) — Triple Threat effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 67818,
     displayName: 'Triple Threat',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [
@@ -171,4 +166,4 @@ export const SPECTER_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
       }
     ]
   }
-]);
+];

@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { revenantCatalog } from '#gw2/professions/revenant/catalog.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -11,6 +12,7 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+type NotKey<T, K extends PropertyKey> = K extends keyof T ? false : true;
 
 const first = revenantProfession.runtimeFor({ specialization: 'Conduit' });
 const second = revenantProfession.resolveProfession({ specialization: 'Herald' });
@@ -27,8 +29,8 @@ export type RevenantSkillFlowAssertions = [
   Assert<Equal<Parameters<CoreAvailability>[1], RevenantSkill>>,
   Assert<Equal<Parameters<EliteCast>[1]['skill'], RevenantSkill>>,
   Assert<Equal<Parameters<EliteCast>[0]['profession'], RevenantRuntime['profession']>>,
-  Assert<Equal<Skill['energyCost'], unknown>>,
-  Assert<Equal<RevenantSkill['dragonSlash'], unknown>>
+  Assert<NotKey<Skill, 'energyCost'>>,
+  Assert<NotKey<RevenantSkill, 'dragonSlash'>>
 ];
 
 // Casts and ID/name/list lookups expose the same typed mechanics to runtime helpers.
@@ -45,7 +47,6 @@ export function revenantHookSkillReads(runtime: RevenantRuntime, cast: Parameter
 const invalidDefinitions: Record<string, SkillDefinition<RevenantSkill>> = {
   1: {
     name: 'Fixture',
-    description: 'Fixture skill.',
     icon: 'fixture.png',
     // @ts-expect-error Known profession fields reject invalid authored values.
     energyCost: 'invalid'
@@ -54,5 +55,5 @@ const invalidDefinitions: Record<string, SkillDefinition<RevenantSkill>> = {
 createNativeModuleData<RevenantSkill>({
   id: 'Core',
   traitLines: TRAIT_LINES,
-  skillMechanics: invalidDefinitions
+  skills: materializeSkillDefinitions(invalidDefinitions)
 });

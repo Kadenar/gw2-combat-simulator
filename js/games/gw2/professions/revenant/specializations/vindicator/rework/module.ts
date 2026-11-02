@@ -2,12 +2,11 @@ import { createNativeModuleData } from '#gw2/platform/profession-definition/asse
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
-import { VINDICATOR_DODGE_INPUT } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import { vindicatorHooks } from '#gw2/professions/revenant/specializations/vindicator/hooks.js';
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
 import { VINDICATOR_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/revenant/specializations/vindicator/rework/ids.js';
 import { vindicatorReworkTraits } from '#gw2/professions/revenant/specializations/vindicator/rework/traits.js';
-import { VINDICATOR_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/index.js';
+import { VINDICATOR_SKILLS } from '#gw2/professions/revenant/specializations/vindicator/skills/index.js';
 import {
   projectVindicatorPlanningState,
   vindicatorState
@@ -19,46 +18,18 @@ const live = TRAIT_LINES.find((traitLine) => traitLine.name === 'Vindicator')!;
 /** Preserve moved identities so existing dodge and Energy Meld selectors follow the preview's legal choices. */
 const traitLine = {
   ...live,
-  minorTraits: live.minorTraits.map((trait) => {
-    if (trait.id === TRAIT.BALANCE_IN_DISCORD)
-      return {
-        ...trait,
-        description:
-          'Gain endurance when swapping legends. The amount is provisional. The Alliance Tactics trigger is deferred because Alliance stance switching is not implemented.'
-      };
-
-    if (trait.id === TRAIT.EMPIRE_DIVIDED)
-      return {
-        ...trait,
-        id: REWORK.RISE_TO_THE_OCCASION,
-        name: 'Rise to the Occasion',
-        description:
-          'Increase strike damage while endurance is below full. The percentage and multiplicative stacking are provisional. Outgoing healing is outside simulation scope.'
-      };
-
-    return trait;
-  }),
+  minorTraits: live.minorTraits.map((trait) =>
+    trait.id === TRAIT.EMPIRE_DIVIDED
+      ? { ...trait, id: REWORK.RISE_TO_THE_OCCASION, name: 'Rise to the Occasion' }
+      : trait
+  ),
   majorTraits: [
     live.majorTraits[1]!,
     live.majorTraits[2]!,
     [
-      {
-        id: REWORK.FRIEND_OF_THE_LUXONS,
-        name: 'Friend of the Luxons',
-        description: "Unlock Archemorus's Strike. Pending: the new skill is not implemented in this first pass."
-      },
-      {
-        id: REWORK.HEATED_RIVALRY,
-        name: 'Heated Rivalry',
-        description:
-          'Three Luxon or Kurzick skills recharge Alliance Tactics and refund the next opposite-faction skill. Deferred: Kurzick skills, Alliance Tactics, faction counters, and energy refunds are not implemented.'
-      },
-      {
-        id: REWORK.FRIEND_OF_THE_KURZICKS,
-        name: 'Friend of the Kurzicks',
-        description:
-          'Unlock Shield of Saint Viktor. Deferred: the skill is not implemented; ally barrier and projectile blocking are outside simulation scope.'
-      }
+      { id: REWORK.FRIEND_OF_THE_LUXONS, name: 'Friend of the Luxons' },
+      { id: REWORK.HEATED_RIVALRY, name: 'Heated Rivalry' },
+      { id: REWORK.FRIEND_OF_THE_KURZICKS, name: 'Friend of the Kurzicks' }
     ].map((trait) => ({
       ...trait,
       icon: live.icon
@@ -72,8 +43,7 @@ export const vindicatorReworkModule = defineNativeModule({
   data: createNativeModuleData<RevenantSkill>({
     id: 'Vindicator',
     traitLines: [traitLine],
-    skillMechanics: VINDICATOR_BASE_SKILL_MECHANICS,
-    extraSkills: [VINDICATOR_DODGE_INPUT]
+    skills: VINDICATOR_SKILLS
   }),
   traitDefinitions: vindicatorReworkTraits,
   state: { create: vindicatorState.create, project: projectVindicatorPlanningState },

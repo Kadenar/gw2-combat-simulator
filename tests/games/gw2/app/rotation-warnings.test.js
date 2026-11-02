@@ -54,9 +54,9 @@ test('deduplicated simultaneous rejections navigate to the first affected step',
 // A delayed diagnostic belongs to its originating activation, even after another cast has started, whatever its wording.
 test('activation-owned diagnostics locate their authored step and leave unreported activations unlinked', () => {
   const steps = [
-    { ri: 0, skill: 'Finisher', start: 0, end: 1000, activationId: 'first' },
-    { ri: 1, skill: 'Finisher', start: 2000, end: 3000, activationId: 'second' },
-    { ri: -1, skill: 'Companion', start: 0, end: 500, activationId: 'companion' }
+    { rotationCommandIndex: 0, skillName: 'Finisher', start: 0, end: 1000, activationId: 'first' },
+    { rotationCommandIndex: 1, skillName: 'Finisher', start: 2000, end: 3000, activationId: 'second' },
+    { rotationCommandIndex: -1, skillName: 'Companion', start: 0, end: 500, activationId: 'companion' }
   ];
   const located = locateDiagnostics(
     [

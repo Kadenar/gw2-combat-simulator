@@ -6,10 +6,10 @@ import {
   createNativeModuleData
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
-import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
+import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
-import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
+import { ELEMENTALIST_CORE_SKILLS } from '#gw2/professions/elementalist/core/skills/index.js';
 import { ELEMENTALIST_SKILL_IDS, ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { TRAIT_LINES } from '#gw2/professions/elementalist/data/trait-lines.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
@@ -23,7 +23,7 @@ import { weaverModule } from '#gw2/professions/elementalist/specializations/weav
 import { WEAVER_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/weaver/skills/index.js';
 
 const slices = [
-  ['core', elementalistCoreModule, ELEMENTALIST_CORE_SKILL_MECHANICS],
+  ['core', elementalistCoreModule, Object.fromEntries(ELEMENTALIST_CORE_SKILLS.map((skill) => [skill.id, skill]))],
   ['specializations/tempest', tempestModule, TEMPEST_SKILL_MECHANICS],
   ['specializations/weaver', weaverModule, WEAVER_SKILL_MECHANICS],
   ['specializations/catalyst', catalystModule, CATALYST_SKILL_MECHANICS],
@@ -62,7 +62,7 @@ test('Elementalist skill mechanics have disjoint module ownership', () => {
     [...owners.keys()].sort((left, right) => Number(left) - Number(right)),
     Object.keys(ELEMENTALIST_SKILL_MECHANICS).sort((left, right) => Number(left) - Number(right))
   );
-  const declaredIds = new Set([...Object.values(ELEMENTALIST_SKILL_IDS), SHARED_SKILL_IDS.DODGE]);
+  const declaredIds = new Set([...Object.values(ELEMENTALIST_SKILL_IDS), ...Object.values(SHARED_SKILL_IDS)]);
 
   for (const skillId of owners.keys()) {
     assert.equal(declaredIds.has(Number(skillId)), true, skillId);
@@ -77,7 +77,6 @@ function catalogModule(id, data = {}) {
 test('Elementalist declaration order follows its module contributions', () => {
   const declaration = {
     name: 'Shared fixture',
-    description: 'Fixture.',
     icon: 'fixture.png',
     type: 'Utility',
     effects: []
@@ -89,7 +88,7 @@ test('Elementalist declaration order follows its module contributions', () => {
     createNativeModuleData({
       id: 'Tempest',
       traitLines: TRAIT_LINES,
-      skillMechanics: { [firstId]: declaration }
+      skills: materializeSkillDefinitions({ [firstId]: declaration })
     })
   );
   const weaver = catalogModule(
@@ -97,7 +96,7 @@ test('Elementalist declaration order follows its module contributions', () => {
     createNativeModuleData({
       id: 'Weaver',
       traitLines: TRAIT_LINES,
-      skillMechanics: { [secondId]: declaration }
+      skills: materializeSkillDefinitions({ [secondId]: declaration })
     })
   );
   const core = catalogModule('Core');
@@ -118,10 +117,13 @@ test('Elementalist declaration order follows its module contributions', () => {
 });
 
 test('Elementalist accepts complete declarations and shared assembly rejects duplicate owners', () => {
-  const declared = { name: 'Fixture', description: 'Fixture action.', icon: 'fixture.png', effects: [] };
+  const declared = { name: 'Fixture', icon: 'fixture.png', effects: [] };
   assert.equal(
-    createNativeModuleData({ id: 'Tempest', traitLines: TRAIT_LINES, skillMechanics: { 999999: declared } }).skills[0]
-      .id,
+    createNativeModuleData({
+      id: 'Tempest',
+      traitLines: TRAIT_LINES,
+      skills: materializeSkillDefinitions({ 999999: declared })
+    }).skills[0].id,
     999999
   );
   const skillMechanics = { [ELEMENTALIST_SKILL_IDS.FIREBALL]: { ...declared, name: 'Duplicate fixture' } };
@@ -130,7 +132,14 @@ test('Elementalist accepts complete declarations and shared assembly rejects dup
       assembleNativeApplicationCatalog([
         catalogModule('Core'),
         ...['Tempest', 'Weaver'].map((id) =>
-          catalogModule(id, createNativeModuleData({ id: id, traitLines: TRAIT_LINES, skillMechanics }))
+          catalogModule(
+            id,
+            createNativeModuleData({
+              id: id,
+              traitLines: TRAIT_LINES,
+              skills: materializeSkillDefinitions(skillMechanics)
+            })
+          )
         )
       ]),
     /Duplicate skill id 5491 in Tempest and Weaver/

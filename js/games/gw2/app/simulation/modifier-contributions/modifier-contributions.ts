@@ -47,13 +47,18 @@ export function mergeModifierContributions(
 
   const contributions: ModifierContribution[] = [];
   for (const { scores } of groups) {
-    for (const { id, name, dps } of scores) {
-      const dpsIncrease = baselineDps - dps;
+    for (const { id, name, dpsWithoutModifier } of scores) {
+      const dpsIncrease = baselineDps - dpsWithoutModifier;
 
       // Whole-DPS reports should not retain numerical noise that renders as 0 or -0.
       if (Math.round(dpsIncrease) === 0) continue;
 
-      contributions.push({ id, name, dpsIncrease, pctIncrease: dps > 0 ? (dpsIncrease / dps) * 100 : 0 });
+      contributions.push({
+        id,
+        name,
+        dpsIncrease,
+        pctIncrease: dpsWithoutModifier > 0 ? (dpsIncrease / dpsWithoutModifier) * 100 : 0
+      });
     }
   }
 
@@ -84,7 +89,7 @@ export function calculateContributionBatch(
       modifier.type === 'Skill'
         ? rotation.filter((command) => command.type !== 'cast' || command.skillId !== modifier.skillId)
         : rotation;
-    return { id: modifier.id, name: modifier.label, dps: simulateBuild(comparisonRotation, config).dps };
+    return { id: modifier.id, name: modifier.label, dpsWithoutModifier: simulateBuild(comparisonRotation, config).dps };
   });
   return { scores };
 }

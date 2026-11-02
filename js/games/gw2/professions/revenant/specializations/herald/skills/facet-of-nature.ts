@@ -25,11 +25,9 @@ const FACET_OF_NATURE_PALETTE_TILE = 'revenant-herald-facet-of-nature';
 const TRUE_NATURE_SHARED_COOLDOWN = 20;
 
 /** Nature variants share one facet, palette tile, and recharge while their authored effects remain legend-specific. */
-export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.FACET_OF_NATURE]: {
     name: 'Facet of Nature',
-    description:
-      'Legendary Dragon. Facet. Place the Facet of Nature on yourself to grant nearby allies enhancements based on your channeled legend.',
     icon: 'https://render.guildwars2.com/file/590F7657AB11171A35304E5DDA6FDA5B2EC70350/1058606.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -80,7 +78,6 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.TRUE_NATURE_ASSASSIN]: {
     name: 'True Nature',
-    description: 'Legendary Dragon. Consume. Strip boons from nearby enemies.',
     icon: 'https://render.guildwars2.com/file/B8D4BCE521B2ADED5E2F7CBC0A676C4262E9C714/1058607.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -104,13 +101,16 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
     ],
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'revenant.start-consume' }
+      },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
     ]
   },
   [ID.TRUE_NATURE_DWARF]: {
     name: 'True Nature',
-    description: 'Legendary Dragon. Consume. Grant stability to nearby allies.',
     icon: 'https://render.guildwars2.com/file/B8D4BCE521B2ADED5E2F7CBC0A676C4262E9C714/1058607.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -132,13 +132,16 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
     ],
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'revenant.start-consume' }
+      },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
     ]
   },
   [ID.TRUE_NATURE_DRAGON]: {
     name: 'True Nature',
-    description: "Legendary Dragon. Consume. Increase the duration of allies' boons. Remove conditions from allies.",
     icon: 'https://render.guildwars2.com/file/B8D4BCE521B2ADED5E2F7CBC0A676C4262E9C714/1058607.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -163,14 +166,17 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
     ],
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'revenant.start-consume' }
+      },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } },
       { on: 'castCommit', do: { type: 'revenant.true-nature-dragon' } }
     ]
   },
   [ID.TRUE_NATURE_CENTAUR]: {
     name: 'True Nature',
-    description: 'Legendary Dragon. Consume. Cleanse conditions from nearby allies. Heal for each condition removed.',
     icon: 'https://render.guildwars2.com/file/B8D4BCE521B2ADED5E2F7CBC0A676C4262E9C714/1058607.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -184,14 +190,16 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
     effects: [],
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'revenant.start-consume' }
+      },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
     ]
   },
   [ID.TRUE_NATURE_DEMON]: {
     name: 'True Nature',
-    description:
-      'Legendary Dragon. Consume. Transfer conditions to nearby enemies. Gain might for each condition transferred.',
     icon: 'https://render.guildwars2.com/file/B8D4BCE521B2ADED5E2F7CBC0A676C4262E9C714/1058607.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -206,11 +214,15 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
     effects: [],
     // The declaration owns this activation; shared mechanics retain its live state.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.start-consume' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'revenant.start-consume' }
+      },
       { on: 'castCommit', do: { type: 'revenant.complete-consume' } }
     ]
   }
-});
+};
 
 /** True Nature (Dragon) extends boons when its authored proc lands; Core Value adds its patched extension. */
 export function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
@@ -252,7 +264,7 @@ export function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent):
   if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
   const core = runtime.profession.core;
-  const state = heraldState.from(runtime);
+  const state = heraldState.from(runtime.profession);
   const active = activeRevenantUpkeep(runtime, ID.FACET_OF_NATURE);
   const legend = active ? core.activeLegendId : state.lingeringFacets[ID.FACET_OF_NATURE]?.legendId;
 

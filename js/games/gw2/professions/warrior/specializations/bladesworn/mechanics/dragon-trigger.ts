@@ -71,7 +71,7 @@ export const ENTER_DRAGON_TRIGGER_REASON = 'Enter Dragon Trigger before using th
 
 /** Charge windows own their next actual tick; release or replacement invalidates all remaining wakes by activation ID. */
 export function exitDragonTrigger(runtime: WarriorRuntime, at = runtime.time): void {
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
 
   if (!state.dragonTriggerActive) return;
 
@@ -91,7 +91,7 @@ export function exitDragonTrigger(runtime: WarriorRuntime, at = runtime.time): v
 /** Schedule charge work from the activation clock so stalls cannot shift the charge grid. */
 
 function scheduleCharge(runtime: WarriorRuntime): void {
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
   state.nextDragonChargeAt = canonicalTime(
     state.dragonTriggerStartedAt +
       dragonChargeTickOffsetSeconds(state.dragonChargeTickCount + 1, hasTrait(runtime, TRAIT.DARING_DRAGON))
@@ -106,7 +106,7 @@ function scheduleCharge(runtime: WarriorRuntime): void {
 
 /** Entry spends once; the first interval is prepaid, and every subsequent interval checks then spends current Flow. */
 function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
 
   if (!state.gunsaberActive) swapGunsaber(runtime, cast, true);
 
@@ -159,7 +159,7 @@ function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
 }
 
 function chargeTick(runtime: WarriorRuntime, identity: unknown): void {
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
 
   if (!state.dragonTriggerActive || state.dragonTriggerEventActivationId !== identity) return;
 
@@ -258,7 +258,7 @@ export function slashEffects(_runtime: WarriorRuntime, cast: RuntimeCast<Warrior
 
 /** Accepted releases publish captured charge facts before clearing the shared Trigger state, even on cancellation. */
 function captureSlash(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
   runtime.resourceController.refresh('dragonCharges');
   const maximum = state.dragonCharges.maximum;
   // Scale Force's maximum before interpolating charges so Daring Dragon uses its chosen damage endpoint.
@@ -317,7 +317,7 @@ export function dragonSlashRelease(cast: RuntimeCast<WarriorSkill>) {
 /** Capacity follows the selected trait/profile; the existing charge task remains the only grant cadence. */
 const dragonChargePolicy: ResourcePolicy<WarriorRuntime> = {
   kind: 'continuous',
-  state: (runtime) => bladeswornState.from(runtime).dragonCharges,
+  state: (runtime) => bladeswornState.from(runtime.profession).dragonCharges,
   maximum: maximumDragonCharges,
   initial: () => 0,
   recovery: () => 0
@@ -328,7 +328,7 @@ export const dragonTriggerHooks = {
   resources: { dragonCharges: dragonChargePolicy },
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
-    const state = bladeswornState.from(runtime);
+    const state = bladeswornState.from(runtime.profession);
 
     if (skill?.dragonSlash) {
       const charges = Number(inputs.charges ?? maximumDragonCharges(runtime));
@@ -355,7 +355,7 @@ export const dragonTriggerHooks = {
   tasks: {
     [CHARGE_TICK]: chargeTick,
     [TRIGGER_EXPIRY](runtime, identity) {
-      const state = bladeswornState.from(runtime);
+      const state = bladeswornState.from(runtime.profession);
 
       if (state.dragonTriggerActive && state.dragonTriggerEventActivationId === identity)
         exitDragonTrigger(runtime, state.dragonTriggerChargeDeadline);
@@ -367,7 +367,7 @@ export const dragonTriggerHooks = {
 export const dragonTriggerAvailability: NonNullable<
   RuntimeProfession<WarriorRuntimeState, WarriorSkill>['availability']
 > = (runtime, skill, command) => {
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
 
   if ((skill.dragonSlash || skill.dragonTriggerSkill) && !state.dragonTriggerActive)
     return denyCast('warrior.dragon-trigger', ENTER_DRAGON_TRIGGER_REASON);

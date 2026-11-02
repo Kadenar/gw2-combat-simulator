@@ -8,11 +8,10 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   // Natural Jade Cannon uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.TURTLE_JADE_CANNON]: definePetSkill({
     name: 'Jade Cannon',
-    description: 'Fire a long-range, slow-moving jade missile that explodes on impact, damaging nearby foes.',
     icon: new URL('@images/wiki/jade-cannon-turtle.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -36,7 +35,6 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   // Natural Heavy Shot uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.TURTLE_HEAVY_SHOT]: definePetSkill({
     name: 'Heavy Shot',
-    description: 'Shoot a jade missile at your target that dazes nearby enemies on impact.',
     icon: new URL('@images/wiki/heavy-shot.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -58,7 +56,6 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'control',
         controlKind: CONTROL.DAZE,
-        duration: 2,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
@@ -67,7 +64,6 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   // Natural Slam uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.TURTLE_SLAM]: definePetSkill({
     name: 'Slam',
-    description: 'Leap and knock nearby foes back.',
     icon: 'https://render.guildwars2.com/file/42093A336F337E45FD91B058E12864E738D83E42/2604868.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -88,7 +84,6 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'control',
         controlKind: CONTROL.LAUNCH,
-        duration: 1,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
@@ -96,7 +91,6 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.HUNKER_DOWN]: definePetSkill({
     name: 'Hunker Down',
-    description: 'Beast. Deploy a barrier that shields allies from incoming projectiles and grants protection.',
     icon: 'https://render.guildwars2.com/file/1D4ED81A5F0B21CABCD005C79A49E471F653A5CA/2604867.png',
     petNames: ['Siege Turtle'],
     type: 'Profession',
@@ -116,4 +110,4 @@ export const RANGER_CORE_TURTLE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   })
-});
+};

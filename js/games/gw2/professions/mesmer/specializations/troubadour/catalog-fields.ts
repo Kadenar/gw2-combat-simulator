@@ -1,12 +1,8 @@
-import { dataField, defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
+import { defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
 
 /** Troubadour instrument and performance fields read only by Troubadour mechanics. */
 export const TROUBADOUR_SKILL_FIELDS = defineFields(
   {
-    // Authored instrument identity for capacity queries.
-    instrument: dataField,
-    // Performance reward and the instruments it requires.
-    tale: dataField,
     // Eligible Tale performances award notes separately from Honorable Rogue's endurance.
     noteGain: numberField({ patch: 'primary' }),
     // August Queen starts all instruments with this base duration.

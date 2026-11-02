@@ -216,10 +216,10 @@ test('Mechanist commands use a serial mech lane without reserving the engineer l
       ]
     }
   );
-  const refraction = result.steps.find((step) => step.skill === 'Refraction Cutter');
-  const spark = result.steps.find((step) => step.skill === 'Spark Revolver');
-  const radiant = result.steps.find((step) => step.skill === 'Radiant Arc');
-  const reactor = result.steps.find((step) => step.skill === 'Core Reactor Shot');
+  const refraction = result.steps.find((step) => step.skillName === 'Refraction Cutter');
+  const spark = result.steps.find((step) => step.skillName === 'Spark Revolver');
+  const radiant = result.steps.find((step) => step.skillName === 'Radiant Arc');
+  const reactor = result.steps.find((step) => step.skillName === 'Core Reactor Shot');
 
   // The engineer advances after its own cast while the second mech command
   // waits for the first command's independent animation to finish.
@@ -634,8 +634,8 @@ test('Engineer spear focus selects its condition branch and consumes Lightning R
 
   assert.equal(focused.warnings.length, 0);
 
-  const rodStep = focused.steps.find((step) => step.skill === 'Lightning Rod');
-  const artilleryStep = focused.steps.find((step) => step.skill === 'Electric Artillery');
+  const rodStep = focused.steps.find((step) => step.skillName === 'Lightning Rod');
+  const artilleryStep = focused.steps.find((step) => step.skillName === 'Electric Artillery');
 
   assert.equal(artilleryStep.start - rodStep.start, 4200);
   assert.equal(focused.events.find((event) => event.type === 'engineer.electric-artillery').charges, 8);
@@ -859,7 +859,7 @@ test('Mine Field detonation respects combat entry and retains toolbelt ownership
 
   const combatStart = precast.events.find((event) => event.type === 'combat_start');
   assert.ok(mineTimes(precast).every((at) => at === combatStart.at));
-  const mineFieldCompletion = active.steps.find((step) => step.skill === 'Mine Field').end / 1000;
+  const mineFieldCompletion = active.steps.find((step) => step.skillName === 'Mine Field').end / 1000;
   assert.ok(mineTimes(active).every((at) => at === mineFieldCompletion));
 
   // Deferred packets keep their original cast owner, and combat start consumes the pending activation once.

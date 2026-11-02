@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/elementalist/data/trait-lines.js';
 import { ELEMENTALIST_CATALYST_PROFILE_FIELDS } from '#gw2/professions/elementalist/specializations/catalyst/catalog-fields.js';
 import { catalystHooks } from '#gw2/professions/elementalist/specializations/catalyst/hooks.js';
@@ -26,7 +27,7 @@ export const catalystModule = defineNativeModule({
     id: 'Catalyst',
     traitLines: TRAIT_LINES,
     profileFields: ELEMENTALIST_CATALYST_PROFILE_FIELDS,
-    skillMechanics: CATALYST_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(CATALYST_SKILL_MECHANICS)
   }),
   state: { create: catalystState.create, project: projectCatalystPlanningState },
   // Register the skill/mechanic-owned rules alongside trait declarations.

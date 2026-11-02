@@ -1,5 +1,8 @@
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { GuardianVirtue } from '#gw2/professions/guardian/types.js';
@@ -37,13 +40,13 @@ function createWillbenderState(): GuardianWillbenderState {
 
 export const willbenderState = defineProfessionSpecializationState('Willbender', createWillbenderState);
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectWillbenderPlanningState(input: Gw2PlanningStateInput) {
-  const state = willbenderState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectWillbenderPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = willbenderState.from(input.profession);
+  return {
     [STATE.JUSTICE_UNTIL]: state.justiceUntil,
     [STATE.RESOLVE_UNTIL]: state.resolveUntil,
     [STATE.COURAGE_UNTIL]: state.courageUntil,
     [STATE.LETHAL_TEMPO]: state.lethalTempo
-  });
+  };
 }

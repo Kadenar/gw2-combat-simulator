@@ -284,61 +284,32 @@ export function defineTrait<TSkill extends Skill>(
       ].includes(key)
     )
       throw new TypeError(`Unsupported trait definition field: ${key}.`);
-  for (const key of ['modifierRules', 'triggers', 'rechargeRules'] as const)
-    if (definition[key] != null && !Array.isArray(definition[key]))
-      throw new TypeError(`Trait ${definition.id}.${key} must be an array.`);
   for (const rule of [...(definition.triggers ?? []), ...(definition.rechargeRules ?? [])])
     if ('trait' in rule) throw new TypeError(`Trait ${definition.id} owns its rule selection gate.`);
   for (const rule of definition.triggers ?? []) assertTraitTrigger(rule, `Trait ${definition.id}`);
-  for (const rule of definition.modifierRules ?? [])
-    if (rule.requiresSelection !== undefined && typeof rule.requiresSelection !== 'boolean')
-      throw new TypeError(`Trait ${definition.id} modifier requiresSelection must be boolean.`);
 
-  if (definition.balance != null) {
-    if (typeof definition.balance !== 'object' || Array.isArray(definition.balance))
-      throw new TypeError(`Trait ${definition.id}.balance must be an object.`);
-
-    if ('name' in definition.balance) throw new TypeError(`Trait ${definition.id}.balance cannot override name.`);
-  }
+  if (definition.balance && 'name' in definition.balance)
+    throw new TypeError(`Trait ${definition.id}.balance cannot override name.`);
 
   for (const surface of ['hooks', 'lifetime'] as const) {
     const hooks = definition[surface];
 
     if (hooks == null) continue;
 
-    if (typeof hooks !== 'object' || Array.isArray(hooks))
-      throw new TypeError(`Trait ${definition.id}.${surface} must be an object.`);
-
     const allowed: readonly string[] = surface === 'hooks' ? VALUE_HOOKS : LIFETIME_HOOKS;
     for (const [key, value] of Object.entries(hooks)) {
       if (!allowed.includes(key))
         throw new TypeError(`Unsupported trait ${surface === 'hooks' ? 'hook' : 'lifetime hook'}: ${key}.`);
 
-      // Task lifetime declarations accompany handlers; they never replace or disable execution.
-      if (key === 'backgroundTasks') {
-        if (!Array.isArray(value) || value.some((name) => typeof name !== 'string' || !name))
-          throw new TypeError(`Trait ${definition.id}.backgroundTasks must contain task names.`);
-      } else if (['reactions', 'tasks', 'eventHandlers'].includes(key)) {
-        if (
-          !value ||
-          typeof value !== 'object' ||
-          Array.isArray(value) ||
-          Object.values(value).some((handler) => typeof handler !== 'function')
-        )
-          throw new TypeError(`Trait ${definition.id}.${key} must contain handlers.`);
-
-        if (key === 'reactions')
-          for (const stage of Object.keys(value))
-            if (!(LIFETIME_STAGES as readonly string[]).includes(stage))
-              throw new TypeError(
-                `Unsupported trait lifetime reaction: ${stage}. Use a compiled trigger for new activation.`
-              );
-      } else if (typeof value !== 'function') throw new TypeError(`Trait ${definition.id}.${key} must be a function.`);
+      // Lifetime reactions only observe existing work; new activation belongs to compiled triggers.
+      if (key === 'reactions')
+        for (const stage of Object.keys(value as object))
+          if (!(LIFETIME_STAGES as readonly string[]).includes(stage))
+            throw new TypeError(
+              `Unsupported trait lifetime reaction: ${stage}. Use a compiled trigger for new activation.`
+            );
     }
   }
 
-  for (const key of ['attributes', 'grantedAttributes'] as const)
-    if (definition[key] != null && typeof definition[key] !== 'function')
-      throw new TypeError(`Trait ${definition.id}.${key} must be a function.`);
   return Object.freeze({ ...definition });
 }

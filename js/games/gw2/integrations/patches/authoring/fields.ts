@@ -1,7 +1,7 @@
 /** Owns editable-field metadata and sanitized authoring references without applying patches. */
 import { deepFreeze } from '#gw2/integrations/patches/authoring/immutable.js';
 import { hasActionEffects } from '#gw2/platform/effects/actions.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { effectTicks, type ConditionTick, type SkillEffect, type StrikeTick } from '#gw2/platform/effects/types.js';
 import { patchableNumericFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 
@@ -43,18 +43,17 @@ export const PATCHABLE_EFFECT_NUMERIC_FIELDS = Object.freeze([
 ] as const);
 
 /** Flat packets use their own formula, including defaults inherited by ticks; ordinary coefficients cannot tune it. */
-export function effectNumericFieldIsPatchable(
-  field: string,
-  effect: Readonly<Record<string, unknown>>,
-  parent?: Readonly<Record<string, unknown>>
-): boolean {
+export function effectNumericFieldIsPatchable(field: string, effect: object, parent?: object): boolean {
   return (
     PATCHABLE_EFFECT_NUMERIC_FIELDS.some((candidate) => candidate === field) &&
     !(
       field === 'coefficient' &&
       [effect, parent].some(
         (source) =>
-          source && ['flatDamage', 'flatStrikeBase', 'flatStrikePowerCoeff'].some((key) => Number.isFinite(source[key]))
+          source &&
+          ['flatDamage', 'flatStrikeBase', 'flatStrikePowerCoeff'].some((key) =>
+            Number.isFinite((source as Readonly<Record<string, unknown>>)[key])
+          )
       )
     )
   );
@@ -88,12 +87,19 @@ export function balanceProfileEffectNumericFieldTier(field: string, value: numbe
 }
 
 /** Detects whether an effect or nested tick exposes at least one approved profile control. */
-function effectHasAuthorableProfileValue(effect: Readonly<SkillEffect>, parent?: Readonly<SkillEffect>): boolean {
+function effectHasAuthorableProfileValue(
+  effect: Readonly<SkillEffect> | StrikeTick | ConditionTick,
+  parent?: Readonly<SkillEffect>
+): boolean {
   for (const [field, value] of Object.entries(effect)) {
     if (typeof value === 'number' && effectNumericFieldIsPatchable(field, effect, parent)) return true;
   }
 
-  return Array.isArray(effect.ticks) && effect.ticks.some((tick) => effectHasAuthorableProfileValue(tick, effect));
+  // Ticks inherit their parent's eligibility; a tick never nests another timeline.
+  if (!('type' in effect)) return false;
+
+  const owner = effect;
+  return Boolean(effectTicks(owner)?.some((tick) => effectHasAuthorableProfileValue(tick, owner)));
 }
 
 /** Reads a nested numeric candidate without treating missing path segments as errors. */

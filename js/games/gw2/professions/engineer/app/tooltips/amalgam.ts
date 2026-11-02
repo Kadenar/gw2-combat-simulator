@@ -22,6 +22,7 @@ import type { SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
+import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 
 /** Strain wording records the state transition; numerical durations and proc packets stay with their simulation owners. */
 function strainFacts(
@@ -95,7 +96,7 @@ const amalgamMorphTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
   return { description, facts };
 };
 
-const evolveTooltip: DescribeSimulationTooltip = skillTooltip(
+const evolveTooltip: DescribeSimulationTooltip = skillTooltip<AmalgamSkill>(
   'Enter Evolved form, increasing eligible attributes. Apply strains for the selected protocols, unless Silver Lining moved those grants to protocol activations. Symbiotic Synergy also recharges selected protocols. Double Helix selects the ammunition variant and larger attribute bonus.',
   (balanceContext, skill) => [
     { name: 'Evolved duration', detail: tooltipSeconds(tooltipNumber(skill, 'duration')) },

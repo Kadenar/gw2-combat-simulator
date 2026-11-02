@@ -12,24 +12,16 @@ import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/sta
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Cantrips own their utility effects, flip windows, and commitment actions. */
-export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition<ThiefSkill>>> = {
   [ID.SHADOW_FLARE]: {
     name: 'Shadow Flare',
-    description:
-      'Cantrip. Throw an orb of shadow magic that damages nearby foes at your targeted location. You may reactivate this skill to swap places with the orb. Deals increased damage to your marked target.',
     icon: 'https://render.guildwars2.com/file/007CF2CAA795DC259DD538C0CB7D9C36FE3AE423/1770636.png',
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Cantrip',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     flipDuration: 4,
     cooldown: 20,
-    initiativeCost: 0,
     castTimeMs: 480,
     effects: [
       {
@@ -55,19 +47,11 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition>> = Ob
   },
   [ID.BINDING_SHADOW]: {
     name: 'Binding Shadow',
-    description:
-      'Cantrip. Reveal yourself if you are stealthed and remove boons from your target after a short delay. If the foe is your marked target, they are also immobilized.',
     icon: 'https://render.guildwars2.com/file/7A5BD448F1522426E745A539F6200918145AF1A0/1770633.png',
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Cantrip',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     cooldown: 20,
-    initiativeCost: 0,
     castTimeMs: 520,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
@@ -102,17 +86,10 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition>> = Ob
   },
   [ID.MERCY]: {
     name: 'Mercy',
-    description:
-      "Cantrip. Lose all malice, instantly refresh Deadeye's Mark, and gain initiative. Gain additional initiative for each stack of malice you had prior to using this skill.",
     icon: 'https://render.guildwars2.com/file/120BA65D429AC57ECAED3BEAAFCF7C9E3D356DDD/1770635.png',
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Cantrip',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     initiativeRefund: 3,
     initiativePerMalice: 1,
@@ -120,7 +97,6 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition>> = Ob
     ammo: 2,
 
     ammoCastLockout: 1,
-    initiativeCost: 0,
     castTimeMs: 0,
     effects: [],
     // The fixed reset belongs to the skill; Malice consumption and its scaled refund remain stateful.
@@ -131,38 +107,24 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition>> = Ob
   },
   [ID.MALICIOUS_RESTORATION]: {
     name: 'Malicious Restoration',
-    description: 'Cantrip. Transfer your conditions to your marked target and then heal yourself.',
     icon: 'https://render.guildwars2.com/file/C1E7E96F22330A9AF3DBDAF5245430CBA17FB0A3/1770611.png',
     type: 'Heal',
     slot: 'Heal',
     skillFamily: 'Cantrip',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     cooldown: 25,
-    initiativeCost: 0,
     castTimeMs: 0,
     effects: []
   },
   [ID.SHADOW_MELD]: {
     name: 'Shadow Meld',
-    description: 'Cantrip. Vanish into stealth.',
     icon: 'https://render.guildwars2.com/file/380609B742C9C59C9EC5B4A428070039787A61C9/1770610.png',
     type: 'Elite',
     slot: 'Elite',
     skillFamily: 'Cantrip',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     cooldown: 25,
     ammo: 2,
 
     ammoCastLockout: 5,
-    initiativeCost: 0,
     castTimeMs: 440,
     effects: [
       {
@@ -180,18 +142,10 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition>> = Ob
   },
   [ID.SHADOW_SWAP]: {
     name: 'Shadow Swap',
-    description:
-      'Swap places with your shadow flare, causing it to detonate and deal damage to enemies at your original location. Deals increased damage to your marked target.',
     icon: 'https://render.guildwars2.com/file/399C0ED664165E4E53C6F909CB150BE35A5B6C2D/1770634.png',
     type: 'Utility',
     slot: 'Utility',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     cooldown: 0,
-    initiativeCost: 0,
     castTimeMs: 0,
     effects: [
       {
@@ -208,19 +162,11 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition>> = Ob
   },
   [ID.SHADOW_GUST]: {
     name: 'Shadow Gust',
-    description:
-      "Cantrip. Knock away nearby foes with a burst of shadow magic, then stealth yourself. If this skill hits your marked target, they'll be launched instead.",
     icon: 'https://render.guildwars2.com/file/972D59E7299266512B04BDD9DB04BFF6AC383F61/1770637.png',
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Cantrip',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     cooldown: 30,
-    initiativeCost: 0,
     castTimeMs: 360,
     effects: [
       {
@@ -246,7 +192,7 @@ export const DEADEYE_SLOT_SKILLS: Readonly<Record<number, SkillDefinition>> = Ob
     // The skill owns this transition at successful commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.stealth' } }]
   }
-});
+};
 
 const SHADOW_FLARE_SKILL_IDS: ReadonlySet<number> = new Set([ID.SHADOW_FLARE, ID.SHADOW_SWAP]);
 
@@ -272,7 +218,7 @@ const deadeyeSlotActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill
   },
   'thief.mercy'(runtime) {
     // Consume live commitment-time malice before refunding the selected skill's amount.
-    const state = deadeyeState.from(runtime);
+    const state = deadeyeState.from(runtime.profession);
     const malice = runtime.resourceController.value('malice');
     runtime.resourceController.replace('malice', 0);
     state.maleficentSevenTriggered = false;

@@ -3,8 +3,7 @@ import { defineNativeModule } from '#gw2/platform/profession-definition/professi
 import { TRAIT_LINES } from '#gw2/professions/thief/data/trait-lines.js';
 import { daredevilHooks } from '#gw2/professions/thief/specializations/daredevil/hooks.js';
 import { daredevilUi } from '#gw2/professions/thief/specializations/daredevil/presentation.js';
-import { DAREDEVIL_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializations/daredevil/skills/guild-attacks.js';
-import { DAREDEVIL_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/daredevil/skills/index.js';
+import { DAREDEVIL_SKILLS } from '#gw2/professions/thief/specializations/daredevil/skills/index.js';
 import { THIEF_DAREDEVIL_SKILL_FLIPS } from '#gw2/professions/thief/specializations/daredevil/skills/skill-flips.js';
 import {
   daredevilState,
@@ -20,8 +19,8 @@ export const daredevilModule = defineNativeModule({
     id: 'Daredevil',
     traitLines: TRAIT_LINES,
     skillFlips: THIEF_DAREDEVIL_SKILL_FLIPS,
-    extraSkills: DAREDEVIL_GUILD_ATTACK_SKILLS,
-    skillMechanics: DAREDEVIL_SKILL_MECHANICS
+
+    skills: DAREDEVIL_SKILLS
   }),
   state: { create: daredevilState.create, project: projectDaredevilPlanningState },
   hooks: daredevilHooks,

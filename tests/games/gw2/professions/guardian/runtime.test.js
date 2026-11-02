@@ -11,10 +11,10 @@ import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runGuardian as run } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const core = (result) => observedRuntime(result).profession.core;
 // Select Justice applications independently of condition ticks and Willbender's shared passive source label.
 const justiceApplications = (result, kind) =>
@@ -64,7 +64,7 @@ test('Luminary forge owns exact expiry, distinct-weapon recharge, and precombat 
 
   const expired = run([ID.ENTER_RADIANT_FORGE, wait(20000)], luminary);
   assert.equal(lum(expired).radiantForge, false);
-  assert.equal(observedRuntime(expired).cooldownController.rechargeFor(ID.ENTER_RADIANT_FORGE).startedAt, 20);
+  assert.equal(observedRuntime(expired).cooldownController.rechargeFor(ID.ENTER_RADIANT_FORGE).workAnchorAt, 20);
   assert.equal(core(expired).availableFlips[ID.EXIT_RADIANT_FORGE], undefined);
   const precombat = run(
     [ID.ENTER_RADIANT_FORGE, wait(20000), { type: 'combat-start' }, ID.ENTER_RADIANT_FORGE],
@@ -848,7 +848,7 @@ test('Renewed Focus restores real virtue recharge only after a completed cast', 
     assert.deepEqual(result.warnings, []);
     assert.equal(result.events.filter((event) => event.sourceId === TRAIT.INSPIRED_VIRTUE).length, interrupted ? 1 : 2);
     const owner = observedRuntime(result);
-    assert.equal(owner.cooldownController.rechargeFor(ID.JUSTICE).startedAt, interrupted ? 0 : owner.time);
+    assert.equal(owner.cooldownController.rechargeFor(ID.JUSTICE).workAnchorAt, interrupted ? 0 : owner.time);
   }
 });
 

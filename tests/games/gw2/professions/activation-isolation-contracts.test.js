@@ -18,10 +18,10 @@ import { WARRIOR_SKILL_IDS as W, WARRIOR_TRAIT_IDS as WT } from '#gw2/profession
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { DETONATE } from '#gw2/professions/warrior/specializations/berserker/traits/behavior.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const combat = { type: 'combat-start' };
 const state = (runtime) => runtime.profession.specialization.state;
 const cause = (at, fields = {}) => ({
@@ -237,7 +237,7 @@ test('Natural Mender isolates startup and retains admitted astral renewal', () =
         {
           initialize(runtime) {
             if (admitted) {
-              druidState.from(runtime).naturalMender.deadline = 1;
+              druidState.from(runtime.profession).naturalMender.deadline = 1;
               naturalMenderPassive.restart(runtime, 1);
             }
           }

@@ -13,7 +13,9 @@ export const ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS = 1;
 
 /** The skill's commit declaration opens the skill-owned window for the next recharging weapon cast. */
 export function armArcaneEcho(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
-  professionCoreState(context).arcaneEchoUntil = canonicalTime(cast.effectiveEnd + skillNumber(cast.skill, 'duration'));
+  professionCoreState(context.profession).arcaneEchoUntil = canonicalTime(
+    cast.effectiveEnd + skillNumber(cast.skill, 'duration')
+  );
 }
 
 /** Observes weapon completions to consume an armed window and transfer their recharge work. */
@@ -22,11 +24,11 @@ export function completeArcaneEcho(
   cast: RuntimeCast<ElementalistSkill>,
   skill: Skill
 ): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
 
   // Successful non-autoattack weapon casts claim the window by their start, even if completion is later.
   if (
-    cast.cancelled ||
+    cast.cancelledBeforeCommit ||
     state.arcaneEchoUntil <= 0 ||
     cast.start > state.arcaneEchoUntil ||
     skill.type !== 'Weapon' ||

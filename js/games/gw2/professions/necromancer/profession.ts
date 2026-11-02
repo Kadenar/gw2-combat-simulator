@@ -7,6 +7,7 @@ import {
 import { necromancerNativeModules } from '#gw2/professions/necromancer/catalog.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerFamilyUi } from '#gw2/professions/necromancer/family-presentation.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 export { necromancerCatalog, necromancerNativeModules } from '#gw2/professions/necromancer/catalog.js';
 
@@ -33,8 +34,10 @@ export const necromancerProfession = defineNativeProfession({
       {
         // Entering or leaving shroud resets weapon-chain state even without a direct damage packet.
         id: 'necromancer.form-casts-reset',
-        when: ({ interruptingSkill }) =>
-          Boolean(interruptingSkill.shroud || interruptingSkill.shroudEntry || interruptingSkill.shroudExit),
+        when: ({ interruptingSkill }) => {
+          const skill: NecromancerSkill = interruptingSkill;
+          return Boolean(skill.shroud || skill.shroudEntry || skill.shroudExit);
+        },
         decision: 'reset'
       }
     ]

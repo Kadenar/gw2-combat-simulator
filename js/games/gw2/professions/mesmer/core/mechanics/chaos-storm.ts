@@ -10,7 +10,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 /** Each storm hit independently selects Poison from three conditions, using its own reproducible random stream. */
 export function scheduleChaosStormPoison(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   // Register the field before its first impact; unsuccessful casts must not create a field or consume its rolls.
-  if (cast.cancelled) return;
+  if (cast.cancelledBeforeCommit) return;
 
   const { skill, start: castStart, fullEnd: castEnd, id: activationId } = cast;
   // Read the field-start payload so selection and removal remain local to this cast.

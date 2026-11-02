@@ -35,12 +35,12 @@ export function isBerserkerSkill(skill: WarriorSkill): boolean {
 }
 
 export function armAura(runtime: WarriorRuntime, until: number): void {
-  const state = berserkerState.from(runtime);
+  const state = berserkerState.from(runtime.profession);
   state.fireAuraUntil = Math.max(state.fireAuraUntil, until);
 }
 
 export function detonate(runtime: WarriorRuntime, payload: { activationId: string; skillId: number | string }): void {
-  const state = berserkerState.from(runtime);
+  const state = berserkerState.from(runtime.profession);
 
   if (state.fireAuraUntil <= runtime.time) return;
 

@@ -1,11 +1,10 @@
 import { createGw2SimulationConfig } from '#gw2/build-context/simulation-config.js';
 import type {
   BuildAttributes,
-  BuildContextAttributeRules,
   BuildContextDeclarations,
   BuildContextFactory,
   BuildContextProfession,
-  WeaponSet
+  WeaponSetNumber
 } from '#gw2/build-context/types.js';
 import { calculateCommonAttributes } from '#gw2/platform/attributes/calculation.js';
 import { attributeSeedFromCommon } from '#gw2/platform/attributes/inputs.js';
@@ -72,10 +71,9 @@ type ProfessionConfig = Partial<ProfessionConfigFields> & {
   readonly [Key in Exclude<keyof Gw2Config, keyof ProfessionConfigFields>]?: never;
 };
 
-/** Share equipment preparation between configuration and lazy finalized attribute previews. */
+/** Share equipment preparation and use the bound profession's calculator for lazy attribute previews. */
 export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
   profession: BuildContextProfession,
-  attributeRules: BuildContextAttributeRules,
   professionConfig: (build: Readonly<TBuild>, specialization: string) => ProfessionConfig,
   declarations: BuildContextDeclarations<TBuild>
 ): BuildContextFactory<TBuild> {
@@ -109,8 +107,8 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
     );
     const selectedTraitIds = traitContext.activeTraits.map((trait) => trait.id);
     // Keep equipment seeds independent of finalized previews, including when requirements request a preview first.
-    const equipmentCache = new Map<WeaponSet, { common: Gw2CommonAttributeResult; seed: Gw2AttributeSeed }>();
-    const equipment = (weaponSet: WeaponSet) => {
+    const equipmentCache = new Map<WeaponSetNumber, { common: Gw2CommonAttributeResult; seed: Gw2AttributeSeed }>();
+    const equipment = (weaponSet: WeaponSetNumber) => {
       let prepared = equipmentCache.get(weaponSet);
 
       if (!prepared) {
@@ -125,8 +123,8 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
       return prepared;
     };
 
-    const cache = new Map<WeaponSet, BuildAttributes>();
-    const attributes = (weaponSet: WeaponSet): BuildAttributes => {
+    const cache = new Map<WeaponSetNumber, BuildAttributes>();
+    const attributes = (weaponSet: WeaponSetNumber): BuildAttributes => {
       if (weaponSet !== 1 && weaponSet !== 2) throw new RangeError('Weapon set must be 1 or 2.');
 
       let result = cache.get(weaponSet);
@@ -139,7 +137,7 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
           weaponSet,
           disabledTrait,
           balanceContext,
-          attributeContributions: attributeRules.attributeContributions
+          attributeContributions: profession.attributeContributions
         }) as BuildAttributes;
         cache.set(weaponSet, result);
       }
@@ -148,7 +146,6 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
     };
 
     return {
-      profession,
       specialization,
       selectedSkillIds,
       attributes,

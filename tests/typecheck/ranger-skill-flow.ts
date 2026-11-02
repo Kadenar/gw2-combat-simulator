@@ -1,8 +1,10 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerCoreHooks } from '#gw2/professions/ranger/core/hooks.js';
 import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
+import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { TRAIT_LINES } from '#gw2/professions/ranger/data/trait-lines.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { galeshotHooks } from '#gw2/professions/ranger/specializations/galeshot/hooks.js';
@@ -10,6 +12,7 @@ import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.j
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+type NotKey<T, K extends PropertyKey> = K extends keyof T ? false : true;
 
 const first = rangerProfession.runtimeFor({ specialization: 'Galeshot' });
 const second = rangerProfession.resolveProfession({ specialization: 'Untamed' });
@@ -26,8 +29,8 @@ export type RangerSkillFlowAssertions = [
   Assert<Equal<Parameters<CoreAvailability>[1], RangerSkill>>,
   Assert<Equal<Parameters<EliteCast>[1]['skill'], RangerSkill>>,
   Assert<Equal<Parameters<EliteCast>[0]['profession'], RangerRuntime['profession']>>,
-  Assert<Equal<Skill['arrowCost'], unknown>>,
-  Assert<Equal<RangerSkill['dragonSlash'], unknown>>
+  Assert<NotKey<Skill, 'arrowCost'>>,
+  Assert<NotKey<RangerSkill, 'dragonSlash'>>
 ];
 
 // Casts and ID/name/list lookups expose the same typed mechanics to runtime helpers.
@@ -44,7 +47,6 @@ export function rangerHookSkillReads(runtime: RangerRuntime, cast: Parameters<El
 const invalidDefinitions: Record<string, SkillDefinition<RangerSkill>> = {
   1: {
     name: 'Fixture',
-    description: 'Fixture skill.',
     icon: 'fixture.png',
     // @ts-expect-error Known profession fields reject invalid authored values.
     arrowCost: 'invalid'
@@ -53,5 +55,13 @@ const invalidDefinitions: Record<string, SkillDefinition<RangerSkill>> = {
 createNativeModuleData<RangerSkill>({
   id: 'Core',
   traitLines: TRAIT_LINES,
-  skillMechanics: invalidDefinitions
+  skills: materializeSkillDefinitions(invalidDefinitions)
+});
+
+// Pet declarations pass through a helper whose concrete parameter still checks the authored literal.
+definePetSkill({
+  name: 'Fixture',
+  icon: 'fixture.png',
+  // @ts-expect-error Misspelled pet fields fail at the declaration.
+  petFamilySkil: true
 });

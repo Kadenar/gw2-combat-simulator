@@ -15,3 +15,16 @@ export function composeSkillDefinitions<TSkill extends Skill = Skill>(
 
   return Object.freeze(definitions);
 }
+
+/** Give keyed owner declarations their identities before combining them with generated module skills. */
+export function materializeSkillDefinitions<TSkill extends Skill = Skill>(
+  definitions: Readonly<Record<string, SkillDefinition<TSkill>>>
+): readonly TSkill[] {
+  return Object.freeze(
+    Object.entries(definitions).map(([key, definition]) => {
+      const numericId = Number(key);
+      const id = Number.isSafeInteger(numericId) && String(numericId) === key ? numericId : key;
+      return Object.freeze({ ...definition, id }) as TSkill;
+    })
+  );
+}

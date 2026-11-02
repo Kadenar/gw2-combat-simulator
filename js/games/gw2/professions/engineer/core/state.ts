@@ -47,15 +47,15 @@ export function createEngineerCoreState(): EngineerCoreState {
   };
 }
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
 export function projectEngineerCorePlanningState(input: Gw2PlanningStateInput) {
   const state = (input.profession as { core: ReturnType<typeof createEngineerCoreState> }).core;
-  return structuredClone({
+  return {
     [STATE.ENDURANCE]: state.endurance,
     [STATE.ACTIVE_KIT]: state.activeKit,
     [STATE.AVAILABLE_FLIPS]: state.availableFlips,
     [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.LIGHTNING_ROD_CHARGE_EXPIRIES]: state.lightningRodChargeExpiries,
     [STATE.KINETIC_CHARGES]: state.kineticCharges
-  });
+  };
 }

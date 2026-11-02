@@ -65,7 +65,7 @@ export function onAttunementComplete(
   target: ElementalistAttunement,
   transition: ElementalistAttunementTransition = {}
 ): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const at = cast.effectiveEnd;
   const previous = state.primaryAttunement;
   const attunementReadyAtBefore = Object.fromEntries(

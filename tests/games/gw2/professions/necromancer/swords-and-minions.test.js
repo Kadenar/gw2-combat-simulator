@@ -242,8 +242,9 @@ test('Satiate expires after three seconds and base sword cooldowns continue duri
 
     assert.deepEqual(result.warnings, [], `${parent} -> ${followUp}`);
     const readyAt =
-      result.planningState.cooldowns[necromancerCatalog.skills.find((candidate) => candidate.name === parent).id]
-        .readyAt / 1000;
+      result.planningState.cooldownsBySkillId[
+        necromancerCatalog.skills.find((candidate) => candidate.name === parent).id
+      ].readyAtMs / 1000;
     assert.ok(Math.abs(readyAt - parentAction.endsAt - cooldown / 1.25) < 1e-9, parent);
     assert.ok(readyAt > followUpAction.at, parent);
   }
@@ -317,7 +318,7 @@ test('Plaguelands, chill fields, and cooldown reset retain live behavior', () =>
     );
 
   assert.deepEqual(plague.warnings, []);
-  assert.equal(plague.steps.filter((step) => step.skill === 'Plaguelands').length, 2);
+  assert.equal(plague.steps.filter((step) => step.skillName === 'Plaguelands').length, 2);
   assert.ok(plagueEvents('damage').length > 0);
   assert.ok(plagueEvents('condition', 'Bleeding').length > 0);
   assert.ok(plagueEvents('condition', 'Poisoned').length > 0);
@@ -911,7 +912,7 @@ test('Rigor Mortis applies immobilization and projectile finishers', () => {
   const disruptionTorment = result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === TRAIT.INSIDIOUS_DISRUPTION
   );
-  const preservedRigorStep = preservedChain.steps.find((step) => step.skill === 'Rigor Mortis');
+  const preservedRigorStep = preservedChain.steps.find((step) => step.skillName === 'Rigor Mortis');
   const firstFollowup = preservedChain.resolvedEvents.find(
     (event) =>
       event.type === 'damage' && [3633, 3644].includes(event.skillId) && event.at * 1000 > preservedRigorStep.start
@@ -1099,10 +1100,12 @@ test('persistent minion summons cannot recharge until their minions die', () => 
       selectedSkillIds: [necromancerCatalog.skills.find((candidate) => candidate.name === summon).id]
     });
 
-    assert.equal(result.steps.filter((step) => step.skill === summon && !step.invalid).length, 1, summon);
+    assert.equal(result.steps.filter((step) => step.skillName === summon && !step.invalid).length, 1, summon);
     assert.match(result.warnings.map(({ message }) => message).join(' '), /summoned minion is still alive/, summon);
     assert.equal(
-      result.planningState.cooldowns[necromancerCatalog.skills.find((candidate) => candidate.name === summon).id],
+      result.planningState.cooldownsBySkillId[
+        necromancerCatalog.skills.find((candidate) => candidate.name === summon).id
+      ],
       undefined,
       summon
     );
@@ -1123,8 +1126,8 @@ test('bone minion recharge starts after both minions are destroyed', () => {
       selectedSkillIds: [10541]
     }
   );
-  const summons = result.steps.filter((step) => step.skill === 'Summon Bone Minions' && !step.invalid);
-  const explosions = result.steps.filter((step) => step.skill === 'Putrid Explosion' && !step.invalid);
+  const summons = result.steps.filter((step) => step.skillName === 'Summon Bone Minions' && !step.invalid);
+  const explosions = result.steps.filter((step) => step.skillName === 'Putrid Explosion' && !step.invalid);
 
   assert.deepEqual(result.warnings, []);
   assert.equal(explosions.length, 2);
@@ -1337,7 +1340,7 @@ test('Reaper traits reduce shroud cooldowns and ignore minion critical hits', ()
     boons: { quickness: true, alacrity: true },
     selectedTraitIds: [TRAIT.SINISTER_SHROUD, TRAIT.REAPERS_ONSLAUGHT, TRAIT.DEATH_PERCEPTION]
   });
-  const secondChargeStart = (result) => result.steps.filter((step) => step.skill === "Death's Charge")[1].start;
+  const secondChargeStart = (result) => result.steps.filter((step) => step.skillName === "Death's Charge")[1].start;
   const firstLifeRendDamage = (result) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Life Rend')?.damage || 0;
 

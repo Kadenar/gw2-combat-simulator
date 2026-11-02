@@ -5,11 +5,6 @@ export function normalizeProfessionBuild<TBuild extends object>(
   professionId: string,
   build: ProfessionBuildDefinition<TBuild> = {}
 ) {
-  for (const name of ['createBuildDefaults', 'migrateBuild', 'validateBuild'] as const) {
-    if (build[name] != null && typeof build[name] !== 'function')
-      throw new TypeError(`build.${name} must be a function.`);
-  }
-
   return Object.freeze({
     createBuildDefaults:
       build.createBuildDefaults ||
@@ -18,6 +13,7 @@ export function normalizeProfessionBuild<TBuild extends object>(
           schemaVersion: 3,
           profession: professionId
         }) as unknown as TBuild),
+    migrateRotation: build.migrateRotation,
     migrateBuild: build.migrateBuild || ((saved: UnvalidatedBuild) => saved as TBuild),
     validateBuild: build.validateBuild || (() => ({ valid: true, errors: [] }))
   });

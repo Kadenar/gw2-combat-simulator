@@ -2,7 +2,6 @@
 import type { CatalogEntity } from '#gw2/platform/skills/types.js';
 
 export interface Gw2TraitData extends CatalogEntity {
-  readonly description: string;
   readonly icon: string;
 }
 

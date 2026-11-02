@@ -122,7 +122,7 @@ export const elementalistCoreSideEffectHandlers: RuntimeProfession<
     );
   },
   'elementalist.cancel-hammer-orbits'(context) {
-    for (const activation of Object.values(professionCoreState(context).hammerOrbActivationIds))
+    for (const activation of Object.values(professionCoreState(context.profession).hammerOrbActivationIds))
       if (activation) context.cancelOwner({ id: activation, generation: 0 });
   },
   'elementalist.consume-hammer-orbs'(context, trigger) {
@@ -144,7 +144,7 @@ export const elementalistCoreSideEffectHandlers: RuntimeProfession<
     if (trigger.kind !== 'cast') throw new TypeError('Aura transmutation requires a cast trigger.');
 
     const aura = AURA_TRANSMUTE_SKILLS[Number(trigger.skill.id)];
-    const state = professionCoreState(context);
+    const state = professionCoreState(context.profession);
     state.activeAuras = state.activeAuras.filter(
       (candidate) => candidate.type !== aura || candidate.expiresAt <= trigger.cast.effectiveEnd
     );

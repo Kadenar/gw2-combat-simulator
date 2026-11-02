@@ -10,8 +10,11 @@ function fixture() {
     skills: [990101, 990102].map((id) => ({ id, name: 'Shared Name', effects: [] }))
   });
   const ammo = new Map([
-    [990101, { charges: 0, maximum: 1, recharges: [{ startedAt: 0, work: 5 }], nextRechargeAt: 4, lockoutReadyAt: 2 }],
-    [990102, { charges: 1, maximum: 2, recharges: [{ startedAt: 0, work: 10 }], nextRechargeAt: 8 }]
+    [
+      990101,
+      { charges: 0, maximum: 1, recharges: [{ workAnchorAt: 0, work: 5 }], nextRechargeAt: 4, lockoutReadyAt: 2 }
+    ],
+    [990102, { charges: 1, maximum: 2, recharges: [{ workAnchorAt: 0, work: 10 }], nextRechargeAt: 8 }]
   ]);
   const deadlines = new Map([
     [990101, 4],
@@ -42,9 +45,9 @@ function fixture() {
 test('same-name skills retain independent planning identities', () => {
   const { capture } = fixture();
   const state = capture();
-  assert.deepEqual(state.cooldowns, {
-    990101: { readyAt: 4000, remaining: 4000 },
-    990102: { readyAt: 8000, remaining: 8000 }
+  assert.deepEqual(state.cooldownsBySkillId, {
+    990101: { readyAtMs: 4000, remainingMs: 4000 },
+    990102: { readyAtMs: 8000, remainingMs: 8000 }
   });
   assert.deepEqual(Object.keys(state.ammoBySkillId), ['990101', '990102']);
   // Public ammo contains only display facts, even when the owner retains recharge work and a lockout.
@@ -60,12 +63,12 @@ test('planning ammo display facts are detached from their owner and other observ
   const second = capture();
   first.ammoBySkillId[990101].charges = 99;
   first.ammoBySkillId[990101].nextRechargeAt = 99;
-  first.cooldowns[990101].remaining = 99;
+  first.cooldownsBySkillId[990101].remainingMs = 99;
   assert.equal(ammo.get(990101).charges, 0);
   assert.equal(ammo.get(990101).nextRechargeAt, 4);
   assert.equal(second.ammoBySkillId[990101].charges, 0);
   assert.equal(second.ammoBySkillId[990101].nextRechargeAt, 4);
-  assert.equal(second.cooldowns[990101].remaining, 4000);
+  assert.equal(second.cooldownsBySkillId[990101].remainingMs, 4000);
   ammo.get(990102).charges = 2;
   ammo.get(990102).nextRechargeAt = null;
   assert.equal(second.ammoBySkillId[990102].charges, 1);

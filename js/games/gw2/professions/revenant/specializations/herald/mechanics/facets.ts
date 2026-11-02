@@ -18,7 +18,7 @@ export const FACET_PULSE = 'revenant.herald-facet-pulse';
 
 /** Each facet pulse is identified by its scheduled instant; reactivation or expiry leaves stale pulses inert. */
 export function scheduleFacetPulse(runtime: RevenantRuntime, skillId: SkillId, at: number): void {
-  heraldState.from(runtime).facetPulseReadyAt[skillId] = at;
+  heraldState.from(runtime.profession).facetPulseReadyAt[skillId] = at;
   runtime.schedule(FACET_PULSE, at, { skillId });
 }
 
@@ -39,7 +39,7 @@ export function heraldFacetPassiveActive(
 /** Only the current active or retained facet emits its boon pulse and schedules the next eligible pulse. */
 export function facetPulse(runtime: RevenantRuntime, data: unknown): void {
   const { skillId } = data as { skillId: SkillId };
-  const state = heraldState.from(runtime);
+  const state = heraldState.from(runtime.profession);
 
   if (state.facetPulseReadyAt[skillId] !== runtime.time) return;
 
@@ -79,7 +79,7 @@ export function startFacet(runtime: RevenantRuntime, skill: RevenantSkill): void
   if (!skill.facet || !activeRevenantUpkeep(runtime, skill.id)) return;
 
   const core = runtime.profession.core;
-  const state = heraldState.from(runtime);
+  const state = heraldState.from(runtime.profession);
   delete state.lingeringFacets[skill.id];
   const consumeId = revenantUpkeepConsumeId(skill, core.activeLegendId);
 

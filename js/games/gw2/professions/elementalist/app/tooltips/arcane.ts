@@ -3,6 +3,7 @@ import {
   outsideScopeTooltip,
   tooltipFactorChange,
   tooltipPercent,
+  tooltipPercentValue,
   tooltipSeconds,
   traitSkillTooltip,
   traitTooltip,
@@ -26,7 +27,7 @@ export const elementalistArcaneTooltips = {
   [TRAIT.ARCANE_PRECISION]: traitTooltip(
     'Eligible critical hits have a chance to apply the condition corresponding to your primary attunement.',
     [
-      ['procChance', 'Chance on critical hit', tooltipPercent],
+      ['procChance', 'Chance on critical hit', tooltipPercentValue],
       ['internalCooldown', 'Internal cooldown', tooltipSeconds]
     ]
   ),

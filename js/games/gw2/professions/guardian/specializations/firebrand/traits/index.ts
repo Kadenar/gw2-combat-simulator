@@ -56,7 +56,7 @@ function attribution(event: Gw2ResolverEvent) {
 const refundByCast = new WeakMap<RuntimeCast<GuardianSkill>, number>();
 
 /** Purity of Word introduces the shared page pool; the resource controller retains its accounting. */
-export const purityOfWord = defineTrait({
+const purityOfWord = defineTrait({
   id: TRAIT.PURITY_OF_WORD,
   balance: {
     maximumStacks: 5,
@@ -85,9 +85,9 @@ export const swiftScholar = defineTrait({
       on: 'castStart',
       requiresSelection: false,
       run(runtime, cast) {
-        if (!cast.skill.tome || cast.cancelled) return;
+        if (!cast.skill.tome || cast.cancelledBeforeCommit) return;
 
-        const state = firebrandState.from(runtime);
+        const state = firebrandState.from(runtime.profession);
 
         if (state.swiftScholarTome !== cast.skill.tome) {
           state.swiftScholarTome = cast.skill.tome;
@@ -142,7 +142,7 @@ export const swiftScholar = defineTrait({
 });
 
 /** Each completed page grants the boon associated with its tome. */
-const legendaryLore = defineTrait({
+const legendaryLore = defineTrait<GuardianSkill>({
   id: TRAIT.LEGENDARY_LORE,
   balance: {
     effects: [
@@ -394,7 +394,7 @@ export const firebrandTraits = [
 
 /** Tome session changes reset only the counter, never refunds earned by accepted casts. */
 function resetSwiftScholar(runtime: GuardianRuntime, virtue?: string): void {
-  const state = firebrandState.from(runtime);
+  const state = firebrandState.from(runtime.profession);
 
   if (virtue === undefined || state.swiftScholarTome !== virtue) {
     state.swiftScholarTome = virtue ?? '';

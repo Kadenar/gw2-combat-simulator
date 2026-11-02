@@ -14,6 +14,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Exercise the real policies and reward owner without damage or cast-speed dependencies.
@@ -190,7 +191,15 @@ test('resource gain at an interrupted endpoint survives roundoff but a later gai
         count: 1
       }
     };
-    const cast = { id: 'resource-cast', start: 0.1, fullEnd: 1, effectiveEnd, cancelled: true, skill, command: {} };
+    const cast = {
+      id: 'resource-cast',
+      start: 0.1,
+      fullEnd: 1,
+      effectiveEnd,
+      cancelledBeforeCommit: true,
+      skill,
+      command: {}
+    };
     startMesmerCast(context, cast, skill);
     context.time = effectiveEnd;
     completeMesmerCast(context, cast, skill);
@@ -217,7 +226,7 @@ for (const [specialization, key, id, maximum] of [
     const clock = context.profession.specialization.state[key];
     assert.equal(clock.value, maximum - 1);
     assert.equal(clock.maximum, maximum);
-    assert.equal(clock.rate, 0);
+    assert.equal(clock.unitsPerSecond, 0);
     assert.equal(events.filter((event) => event.reason === 'initial').length, 1);
     assert.equal(
       events.some((event) => event.kind === 'compounding'),
@@ -236,7 +245,7 @@ for (const [specialization, key, id, maximum] of [
     assert.equal(events.length, count);
 
     // Public clocks are detached observations and preserve a genuine zero over a configured initial value.
-    const projected = profession.projectPlanningState({
+    const projected = projectObservedState(mesmerProfession, {
       profession: context.profession,
       config: context.config,
       catalog: profession.catalog,
@@ -248,7 +257,7 @@ for (const [specialization, key, id, maximum] of [
     assert.equal(Object.hasOwn(context.profession.specialization.state, 'numericResource'), false);
     context.resourceController.spend(key, maximum);
     assert.equal(projected[id].value, maximum);
-    const empty = profession.projectPlanningState({
+    const empty = projectObservedState(mesmerProfession, {
       profession: context.profession,
       config: context.config,
       catalog: profession.catalog,

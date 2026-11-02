@@ -2,15 +2,22 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { runEngineer } from '#tests/helpers/engineer-simulation.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
 // Core trait contracts cover proc triggers, attribute modifiers, and Tools interactions.
 const baseConfig = Object.freeze({
@@ -617,7 +624,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
     selectedTraitIds: [TRAIT.POWER_WRENCH]
   });
 
-  assert.equal(wrench.planningState.cooldowns[ID.SUPPLY_CRATE].readyAt, wrench.steps[0].end + 57600);
+  assert.equal(wrench.planningState.cooldownsBySkillId[ID.SUPPLY_CRATE].readyAtMs, wrench.steps[0].end + 57600);
 
   const adrenal = simulate('Core', ['Grenade Barrage', 'Dodge', { type: 'wait', durationMs: 1000 }], {
     selectedTraitIds: [TRAIT.MECHANIZED_DEPLOYMENT, TRAIT.ADRENAL_IMPLANT],
@@ -625,7 +632,7 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   });
 
   assert.equal(
-    adrenal.planningState.cooldowns[ID.GRENADE_BARRAGE].readyAt,
+    adrenal.planningState.cooldownsBySkillId[ID.GRENADE_BARRAGE].readyAtMs,
     Math.ceil((adrenal.steps[0].end + 16200) / 40) * 40
   );
   assert.equal(adrenal.planningState.profession[STATE.ENDURANCE].value, 65.75);
@@ -665,7 +672,10 @@ test('Tools traits materialize tool-belt, dodge, kit, and battery behavior', () 
   });
 
   // Amalgam F2-F5 mechanics replace tool-belt slots and retain every Tools interaction attached to those slots.
-  assert.equal(amalgamToolbelt.planningState.cooldowns[ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163].readyAt, 12800);
+  assert.equal(
+    amalgamToolbelt.planningState.cooldownsBySkillId[ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163].readyAtMs,
+    12800
+  );
   assert.equal(
     amalgamToolbelt.events.filter(
       (event) => event.type === 'buff' && event.kind === 'vigor' && event.sourceId === TRAIT.OPTIMIZED_ACTIVATION
@@ -758,7 +768,7 @@ test('Equal and Opposite Reaction grants Quickness and Stability from player dis
   const grants = result.resolvedEvents.filter(
     (event) => event.type === 'buff' && event.sourceId === TRAIT.EQUAL_AND_OPPOSITE_REACTION
   );
-  const castEnd = (skill) => result.steps.find((step) => step.skill === skill).end / 1000;
+  const castEnd = (skill) => result.steps.find((step) => step.skillName === skill).end / 1000;
 
   assert.equal(result.warnings.length, 0);
   // Borrowed Time's simultaneous daze and stun share one ICD claim; Supply Crate's stun belongs to the summon.
@@ -771,4 +781,320 @@ test('Equal and Opposite Reaction grants Quickness and Stability from player dis
       [castEnd('Overcharged Shot'), 'stability', 5]
     ]
   );
+});
+
+const coreBaseConfig = Object.freeze({
+  selectedSkillIds: [5857, 5805, 6161, 5933, 5868],
+  attributeInputs: baseAttributeInputs({
+    power: 2000,
+    precision: 1500,
+    ferocity: 500,
+    conditionDamage: 1000,
+    expertise: 0,
+    vitality: 1000
+  }),
+  target: { armor: 2597, conditions: {} }
+});
+
+// Run the smallest Core rotation that reaches a migrated trait through its registered trait hooks.
+function simulateCore(rotation, config = {}) {
+  return createObservedProfessionSimulator(engineerProfession, coreBaseConfig)('Core', rotation, config);
+}
+
+const shortWait = { type: 'wait', durationMs: 100 };
+
+// The profile owns offsets and repetitions; ordinary toolbelts still trigger at their completion boundary.
+test('Optimized Activation materializes delayed repeated Vigor and respects effect removal', () => {
+  for (const effects of [
+    [],
+    [
+      {
+        type: 'boon',
+        name: 'vigor',
+        boon: 'vigor',
+        duration: 4,
+        stacks: 1,
+        atMs: 500,
+        applications: 2,
+        intervalMs: 200
+      }
+    ]
+  ]) {
+    const result = runEngineer(
+      ['Regenerating Mist', { type: 'wait', durationMs: 1500 }],
+      {
+        ...baseConfig,
+        selectedTraitIds: [TRAIT.OPTIMIZED_ACTIVATION]
+      },
+      {
+        extend: (native) => ({
+          catalog: effects.length
+            ? withProfile(native.catalog, TRAIT.OPTIMIZED_ACTIVATION, { effects })
+            : applyBalanceProfilePatch(native.catalog, {
+                balanceProfiles: { [TRAIT.OPTIMIZED_ACTIVATION]: { removeEffects: [{ type: 'boon', all: true }] } }
+              })
+        })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const boons = result.events.filter((event) => event.sourceId === TRAIT.OPTIMIZED_ACTIVATION);
+    assert.deepEqual(
+      boons.map((event) => event.at),
+      effects.length
+        ? [0.5, 0.7].map((offset) =>
+            Number((result.events.find((event) => event.type === 'action').endsAt + offset).toFixed(6))
+          )
+        : []
+    );
+  }
+});
+
+const traitCases = [
+  {
+    name: 'Grenadier',
+    trait: TRAIT.GRENADIER,
+    rotation: ['Healing Turret', { type: 'wait', durationMs: 1000 }],
+    verify: (result) =>
+      assert.ok(
+        result.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === ID.LESSER_GRENADE_BARRAGE)
+      )
+  },
+  {
+    name: 'Explosive Entrance and its dodge reset',
+    trait: TRAIT.EXPLOSIVE_ENTRANCE,
+    rotation: ['Grenade Kit', 'Grenade', 'Dodge', 'Grenade', shortWait],
+    verify: (result) =>
+      assert.equal(
+        result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Explosive Entrance').length,
+        2
+      )
+  },
+  {
+    name: 'Steel-Packed Powder',
+    trait: TRAIT.STEEL_PACKED_POWDER,
+    rotation: ['Grenade Kit', 'Grenade', shortWait],
+    verify: (result) =>
+      assert.ok(
+        result.resolvedEvents.some(
+          (event) =>
+            event.type === 'condition' &&
+            event.sourceId === TRAIT.STEEL_PACKED_POWDER &&
+            event.condition === 'Vulnerability'
+        )
+      )
+  },
+  {
+    name: 'Short Fuse',
+    trait: TRAIT.SHORT_FUSE,
+    rotation: ['Grenade Kit', 'Grenade', shortWait],
+    verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'Short Fuse'))
+  },
+  {
+    name: 'Explosive Temper',
+    trait: TRAIT.EXPLOSIVE_TEMPER,
+    rotation: ['Grenade Kit', 'Grenade', shortWait],
+    verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'Explosive Temper'))
+  },
+  {
+    name: 'Grand Entrance',
+    trait: TRAIT.GRAND_ENTRANCE,
+    extraTraits: [TRAIT.EXPLOSIVE_ENTRANCE],
+    rotation: ['Puncturing Jab', shortWait],
+    verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'Grand Entrance'))
+  },
+  {
+    name: 'Shrapnel',
+    trait: TRAIT.SHRAPNEL,
+    rotation: ['Grenade Kit', 'Grenade', 'Shrapnel Grenade', shortWait],
+    verify: (result) =>
+      assert.ok(
+        result.resolvedEvents.some(
+          (event) => event.type === 'condition' && event.sourceId === TRAIT.SHRAPNEL && event.condition === 'Bleeding'
+        )
+      )
+  },
+  {
+    name: 'Aim-Assisted Rocket',
+    trait: TRAIT.AIM_ASSISTED_ROCKET,
+    rotation: ['Grenade Kit', 'Grenade', shortWait],
+    verify: (result) =>
+      assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Aim-Assisted Rocket'))
+  },
+  {
+    name: 'Serrated Steel',
+    trait: TRAIT.SERRATED_STEEL,
+    rotation: ['Grenade Kit', 'Grenade', 'Grenade', shortWait],
+    config: { attributeInputs: baseAttributeInputs({ precision: 4000 }) },
+    verify: (result) =>
+      assert.ok(
+        result.resolvedEvents.some(
+          (event) =>
+            event.type === 'condition' && event.sourceId === TRAIT.SERRATED_STEEL && event.condition === 'Bleeding'
+        )
+      )
+  },
+  {
+    name: 'No Scope',
+    trait: TRAIT.NO_SCOPE,
+    rotation: ['Puncturing Jab', shortWait],
+    config: { attributeInputs: baseAttributeInputs({ precision: 4000 }) },
+    verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'No Scope'))
+  },
+  {
+    name: 'Incendiary Powder',
+    trait: TRAIT.INCENDIARY_POWDER,
+    rotation: ['Puncturing Jab', shortWait],
+    config: { attributeInputs: baseAttributeInputs({ precision: 4000 }) },
+    verify: (result) =>
+      assert.ok(
+        result.resolvedEvents.some(
+          (event) =>
+            event.type === 'condition' && event.sourceId === TRAIT.INCENDIARY_POWDER && event.condition === 'Burning'
+        )
+      )
+  },
+  {
+    name: 'Thermal Vision',
+    trait: TRAIT.THERMAL_VISION,
+    rotation: ['Blowtorch', shortWait],
+    verify: (result) => assert.ok(observedRuntime(result).buffs.get('thermal-vision').length > 0)
+  },
+  {
+    name: 'Sanguine Array',
+    trait: TRAIT.SANGUINE_ARRAY,
+    rotation: ['Fragmentation Shot', shortWait],
+    verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'Sanguine Array'))
+  },
+  {
+    name: 'Hematic Focus',
+    trait: TRAIT.HEMATIC_FOCUS,
+    rotation: ['Fragmentation Shot', shortWait],
+    verify: (result) => assert.ok(result.procSteps.some((step) => step.skill === 'Hematic Focus'))
+  },
+  {
+    name: 'HGH',
+    trait: TRAIT.HGH,
+    rotation: ['Elixir Gun', 'Acid Bomb', { type: 'wait', durationMs: 6500 }],
+    config: { selectedSkillIds: [...baseConfig.selectedSkillIds, 5933] },
+    verify: (result) => {
+      const field = result.events.find((event) => event.type === 'combo_field' && event.skillName === 'Acid Bomb');
+      assert.equal(field.expiresAt - field.at, 6);
+      assert.equal(
+        result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Acid Bomb').length,
+        7
+      );
+      assert.ok(result.events.some((event) => event.type === 'buff' && event.sourceId === TRAIT.HGH));
+    }
+  },
+  {
+    name: 'Streamlined Kits',
+    trait: TRAIT.STREAMLINED_KITS,
+    rotation: ['Grenade Kit', shortWait],
+    verify: (result) => {
+      assert.ok(result.events.some((event) => event.type === 'buff' && event.sourceId === TRAIT.STREAMLINED_KITS));
+      assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Drop Mine'));
+    }
+  },
+  {
+    name: 'Optimized Activation',
+    trait: TRAIT.OPTIMIZED_ACTIVATION,
+    rotation: ['Regenerating Mist', shortWait],
+    verify: (result) =>
+      assert.ok(result.events.some((event) => event.type === 'buff' && event.sourceId === TRAIT.OPTIMIZED_ACTIVATION))
+  },
+  {
+    name: 'Static Discharge',
+    trait: TRAIT.STATIC_DISCHARGE,
+    rotation: ['Regenerating Mist', shortWait],
+    verify: (result) =>
+      assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.name === 'Static Discharge'))
+  },
+  {
+    name: 'Kinetic Battery',
+    trait: TRAIT.KINETIC_BATTERY,
+    rotation: ['Regenerating Mist', 'Grenade Barrage', 'Mine Field', 'Healing Mist', 'Med Pack Drop'],
+    verify: (result) =>
+      assert.ok(result.events.some((event) => event.type === 'buff' && event.kind === 'kinetic-battery'))
+  }
+];
+
+for (const { name, trait, extraTraits = [], rotation, config, verify } of traitCases) {
+  test(`${name} remains behaviorally reachable through its Core trait hooks`, () => {
+    verify(simulateCore(rotation, { ...config, selectedTraitIds: [trait, ...extraTraits] }));
+  });
+}
+
+test('Engineer Core definitions share patched build grants and preserve static attribute provenance', () => {
+  // The build panel and live resolver consume the same registered owner without adding its grant twice.
+  const family = patchTraitProfession(engineerProfession, {
+    balanceProfiles: { [TRAIT.CHEMICAL_ROUNDS]: { fields: { 'attributeBonuses.conditionDamage': 180 } } }
+  });
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(engineerCatalog),
+    family.attributeContributions
+  );
+  const build = { specializations: [{ name: 'Firearms', traits: '1-2-3' }] };
+  for (const [patchId, bonus] of [
+    ['current', 120],
+    ['s4-preview', 180]
+  ]) {
+    const balance = family.resolvePatch({ id: patchId }).balanceContext;
+    assert.equal(calculate(build, [], 1, null, null, balance).attributes['Condition Damage'].traits, bonus);
+    assert.equal(calculate(build, [], 1, 'Chemical Rounds', null, balance).attributes['Condition Damage'].traits, 0);
+    const runtime = family.runtimeFor({ patchId });
+    const context = { catalog: runtime.catalog, time: 0, config: { selectedTraitIds: [TRAIT.CHEMICAL_ROUNDS] } };
+    assert.equal(runtime.modifyAttributes(context, { conditionDamage: 100 }).conditionDamage, 100 + bonus);
+    assert.equal(
+      runtime.modifyAttributes(
+        {
+          ...context,
+          config: {
+            ...context.config
+          }
+        },
+        { conditionDamage: 100 }
+      ).conditionDamage,
+      100 + bonus
+    );
+  }
+});
+
+// A formerly shared scalar now permits one attribute to change without altering its sibling or its boon gate.
+test('Energy Amplifier independently patches named grants while retaining Regeneration eligibility', () => {
+  const family = patchTraitProfession(engineerProfession, {
+    balanceProfiles: {
+      [TRAIT.ENERGY_AMPLIFIER]: { fields: { 'attributeBonuses.power': 73, 'attributeBonuses.healingPower': 0 } }
+    }
+  });
+  for (const [patchId, power, healingPower] of [
+    ['current', 250, 250],
+    ['s4-preview', 73, 0],
+    ['current', 250, 250]
+  ]) {
+    const balance = family.resolvePatch({ id: patchId }).balanceContext;
+    const tooltip = describeSimulationTrait(
+      balance,
+      { id: TRAIT.ENERGY_AMPLIFIER, name: 'Energy Amplifier' },
+      engineerTooltips
+    );
+    assert.equal(tooltip.facts.find((fact) => fact.name === 'Power with regeneration').detail, String(power));
+    assert.equal(
+      tooltip.facts.find((fact) => fact.name === 'Healing Power with regeneration').detail,
+      String(healingPower)
+    );
+    const runtime = family.runtimeFor({ patchId });
+    for (const enabled of [true, false]) {
+      const context = {
+        catalog: runtime.catalog,
+        time: 0,
+        config: {
+          selectedTraitIds: [TRAIT.ENERGY_AMPLIFIER],
+          boons: { regeneration: enabled }
+        }
+      };
+      const stats = runtime.modifyAttributes(context, { power: 1000, healingPower: 0 });
+      assert.equal(stats.power, 1000 + (enabled ? power : 0));
+      assert.equal(stats.healingPower, enabled ? healingPower : 0);
+    }
+  }
 });

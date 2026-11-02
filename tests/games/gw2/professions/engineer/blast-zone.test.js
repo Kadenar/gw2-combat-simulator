@@ -36,7 +36,7 @@ test('Blast Zone grants fire-field Might from healing toolbelts and first mech c
     assert.deepEqual(result.warnings, [], skill);
     const attempts = blasts(result);
     assert.equal(attempts.length, 1, skill);
-    const cast = result.steps.find((step) => step.skill === skill);
+    const cast = result.steps.find((step) => step.skillName === skill);
     assert.equal(attempts[0].at, (commandTrait ? cast.start : cast.end) / 1000, skill);
     assert.equal(attempts[0].actorType, 'player', skill);
     assert.equal(attempts[0].finisherType, 'Blast', skill);

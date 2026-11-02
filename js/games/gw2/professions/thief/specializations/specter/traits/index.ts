@@ -21,6 +21,7 @@ import {
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterState } from '#gw2/professions/thief/specializations/specter/state.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 const ROT_WALLOW_VENOM_ICON = 'https://render.guildwars2.com/file/0F0B6509C8D5023D949153929E02FD2195AF63FE/2503654.png';
 
@@ -124,7 +125,7 @@ const secondOpinion = defineTrait({
 });
 
 /** Assume a tethered ally is present among nearby allies; share each committed shroud reward with the party. */
-const shadestep = defineTrait({
+const shadestep = defineTrait<ThiefSkill>({
   id: TRAIT.SHADESTEP,
   balance: {
     effects: [
@@ -275,12 +276,12 @@ function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
   // cause of the barrier that granted it.
   runtime.alliedStrikes.registerRecipients(
     (allyIndex, cause) => {
-      const state = specterState.from(runtime);
+      const state = specterState.from(runtime.profession);
       state.rotWallowVenom[allyIndex] = [
         ...(state.rotWallowVenom[allyIndex] ?? []).filter((grant) => activeChargeCount(grant, runtime.time, true) > 0),
         { ...grantCharges(stacks, runtime.time + venomDuration), cause }
       ];
-      const batches = () => specterState.from(runtime).rotWallowVenom[allyIndex] ?? [];
+      const batches = () => specterState.from(runtime.profession).rotWallowVenom[allyIndex] ?? [];
       const next = (time: number) => batches().find((batch) => activeChargeCount(batch, time, true) > 0);
       return {
         id: `rot-wallow:${allyIndex}`,
@@ -344,6 +345,6 @@ function applyLarcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEv
         }
       });
 
-  if (!specterState.from(runtime).shadowShroudActive && stacks > 0)
+  if (!specterState.from(runtime.profession).shadowShroudActive && stacks > 0)
     runtime.resourceController.grant('shadowForce', stacks * balanceProfileNumber(profile, 'resourceGain'));
 }

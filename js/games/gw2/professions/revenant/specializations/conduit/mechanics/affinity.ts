@@ -8,7 +8,7 @@ import { conduitState } from '#gw2/professions/revenant/specializations/conduit/
 /** Affinity starts empty with no passive recovery; the selected profile retains its minimum-one capacity rule. */
 export const conduitAffinityPolicy: ResourcePolicy<RevenantRuntime> = {
   kind: 'continuous',
-  state: (runtime) => conduitState.from(runtime).affinity,
+  state: (runtime) => conduitState.from(runtime.profession).affinity,
   maximum: (runtime) => Math.max(1, balanceNumberFromContext(runtime, TRAIT.ENIGMATIC_CONNECTION, 'maximumStacks')),
   initial: () => 0,
   recovery: () => 0
@@ -18,7 +18,7 @@ export const conduitAffinityPolicy: ResourcePolicy<RevenantRuntime> = {
 export function gainAffinity(runtime: RevenantRuntime, amount: number): void {
   if (!runtime.engagement.combatMechanicsAllowed()) return;
 
-  const state = conduitState.from(runtime);
+  const state = conduitState.from(runtime.profession);
   const previous = runtime.resourceController.value('affinity');
   runtime.resourceController.grant('affinity', amount);
   runtime.fireTrigger(affinityGranted, { previous, maximum: state.affinity.maximum });

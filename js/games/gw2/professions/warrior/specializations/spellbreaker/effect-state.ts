@@ -22,7 +22,7 @@ export function spellbreakerBuffPolicies(context: unknown): BuffStatePolicy[] {
 
 /** Observe live owner state so consumption and expiry agree with combat. */
 export function spellbreakerEffectStates(runtime: MechanicQueriesOf<WarriorRuntime>): EffectState[] {
-  const state = spellbreakerState.from(runtime);
+  const state = spellbreakerState.from(runtime.profession);
   return [
     timedEffectState(
       'attackers-insight',

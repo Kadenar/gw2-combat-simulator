@@ -10,7 +10,6 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { necromancerBloodMagicTooltips } from '#gw2/professions/necromancer/app/tooltips/blood-magic.js';
@@ -29,6 +28,7 @@ import {
   effectLifeForceGrants
 } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 const oppressiveCollapseTooltip: DescribeSimulationTooltip = skillTooltip(
   "Strike and control your target. Gain party might for each distinct condition on the target when its strike lands, up to the skill's condition limit."
@@ -49,7 +49,7 @@ const summonMadnessTooltip: DescribeSimulationTooltip = (balanceContext, entity)
     description:
       'Summon temporary horrors in sequence. Each horror attacks and then explodes; the listed effects are for one horror.',
     facts: [
-      { name: 'Horrors summoned', detail: String(tooltipNumber(selected, RECIPIENT.SUMMONS)) },
+      { name: 'Horrors summoned', detail: String(tooltipNumber(selected, 'summonCount')) },
       { name: 'Interval between summons', detail: tooltipSeconds(tooltipNumber(selected, 'summonInterval')) },
       ...effects.facts
     ]
@@ -110,7 +110,7 @@ const distressTooltip: DescribeSimulationTooltip = skillTooltip(
   "Consume this follow-up, reset Perforate's recharge, and gain Soul Shards. Includes the additional Soul Shards for the simulator's single target."
 );
 
-const minionTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+const minionTooltip: DescribeSimulationTooltip<NecromancerSkill> = (balanceContext, entity) => {
   const summon = requireSkillFromContext(balanceContext, entity.id);
   const profileId = summon.summonAttackId as import('#gw2/platform/skills/types.js').SkillId;
   const profile = requireSkillFromContext(balanceContext, profileId);
@@ -133,7 +133,7 @@ const minionTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
 
 const minionCommandTooltip: DescribeSimulationTooltip = skillTooltip(
   'Command the corresponding active minion to apply these effects. A consumed minion is removed; surviving minions resume their autonomous attacks.',
-  (_c, entity) =>
+  (_c, entity: NecromancerSkill) =>
     entity.consumes == null
       ? []
       : [{ name: 'Minions consumed', detail: tooltipDecimal(tooltipNumber(entity, 'consumes')) }]
@@ -197,13 +197,13 @@ export const necromancerCoreTooltips = {
           : [])
       ])
       .concat(
-        entity.lifeForceCost == null
+        entity.cost?.resource !== 'lifeForce'
           ? []
           : [
               {
                 name: 'Life force spent',
                 // Match whole-point in-game facts without rounding the cost used by simulation.
-                detail: tooltipNumber(entity, 'lifeForceCost').toLocaleString('en-US', {
+                detail: entity.cost.amount.toLocaleString('en-US', {
                   maximumFractionDigits: 0
                 })
               }

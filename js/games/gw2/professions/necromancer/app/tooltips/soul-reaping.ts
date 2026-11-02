@@ -13,6 +13,7 @@ import { lifeForce } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 import { dhuumfireProjection } from '#gw2/professions/necromancer/core/traits/soul-reaping/procs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { shadeDhuumfireParameters } from '#gw2/professions/necromancer/specializations/scourge/mechanics/shade-projection.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Describe soul reaping tooltips from the selected balance data. */
 export const necromancerSoulReapingTooltips = {
@@ -77,4 +78,4 @@ export const necromancerSoulReapingTooltips = {
       facts: [...effects.facts, ...(scourge ? [{ name: 'Internal cooldown', detail: tooltipSeconds(interval) }] : [])]
     };
   }
-} satisfies NonNullable<ProfessionTooltips['traits']>;
+} satisfies NonNullable<ProfessionTooltips<NecromancerSkill>['traits']>;

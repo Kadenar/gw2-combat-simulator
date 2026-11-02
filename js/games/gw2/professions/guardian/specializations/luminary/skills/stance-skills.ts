@@ -20,11 +20,9 @@ import { canonicalTime } from '#kernel/core/clock.js';
 // Cast-scaled impacts use the measured Quickness timeline as their source data.
 const PIERCING_STANCE_IMPACT_MS = 160;
 
-export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<GuardianSkill>>> = {
   [ID.RESOLUTE_STANCE]: {
     name: 'Resolute Stance',
-    description:
-      'Stance. Enter a stance that heals when you remove conditions from yourself, then heal nearby allies and remove conditions from them.',
     icon: 'https://render.guildwars2.com/file/C0267DCD064328C6C4CF33CF08714FB1DC1171BC/3680141.png',
     type: 'Heal',
     slot: 'Heal',
@@ -35,8 +33,6 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.DARING_ADVANCE]: {
     name: 'Daring Advance',
-    description:
-      'Stance. Leap to an area, tethering nearby enemies and empowering allies. Tethered enemies are revealed and take additional damage from your attacks and are stunned if they move beyond the range threshold.',
     icon: 'https://render.guildwars2.com/file/2E24D2089501C663801BF7CC567E1CC0F5714AD7/3680140.png',
     type: 'Elite',
     slot: 'Elite',
@@ -63,12 +59,12 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
       }
     ],
     // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
-    sideEffects: [{ on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-daring' } }]
+    sideEffects: [
+      { on: 'castStart', when: (_runtime, cast) => !cast.cancelledBeforeCommit, do: { type: 'guardian.start-daring' } }
+    ]
   },
   [ID.EFFULGENT_STANCE]: {
     name: 'Effulgent Stance',
-    description:
-      'Stance. Grant barrier and light aura to nearby allies, then enter a stance that charges up a burst of light when striking or struck by enemies. The burst of light dazes enemies if fully charged.',
     icon: 'https://render.guildwars2.com/file/59A7E145B5D6DC4CB9642F80007644791D302FA2/3680156.png',
     type: 'Utility',
     slot: 'Utility',
@@ -87,12 +83,15 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     effectVariants: [{ when: () => true, transform: () => [] }],
     // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-effulgent' } }
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'guardian.start-effulgent' }
+      }
     ]
   },
   [ID.PIERCING_STANCE]: {
     name: 'Piercing Stance',
-    description: 'Stance. Enter a stance that causes you to deal more damage, then strike nearby enemies to daze them.',
     icon: 'https://render.guildwars2.com/file/E5805F3477ED5618E348043475FFA442C7C791E3/3680154.png',
     type: 'Utility',
     slot: 'Utility',
@@ -115,13 +114,15 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     ]),
     // Schedule the intrinsic self effect at its boundary even when the hostile impact misses.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.start-piercing' } }
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'guardian.start-piercing' }
+      }
     ]
   },
   [ID.VALOROUS_STANCE]: {
     name: 'Valorous Stance',
-    description:
-      'Stance. Enter a stance that causes you to heal allies when you grant them boons, then grant boons to nearby allies.',
     icon: 'https://render.guildwars2.com/file/7D246678672DAF3F941930A50EBCDB54A91C7D0F/3680155.png',
     type: 'Utility',
     slot: 'Utility',
@@ -138,7 +139,7 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
       { type: 'boon', boon: BOON.PROTECTION, duration: 4, audience: { recipients: RECIPIENT.PARTY } }
     ]
   }
-});
+};
 
 /** Priority preserves fresh Piercing before its hit and fresh Daring after Sovereign's detonation. */
 const luminaryStanceActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
@@ -156,7 +157,7 @@ const luminaryStanceActions: RuntimeProfession<GuardianRuntimeState, GuardianSki
     const cast = context.cast;
     const event = { ...guardianCastCause(runtime, cast), offTarget: cast.command.offTarget === true };
     runtime.schedule(AURA_GRANT, cast.start, { cause: event, skillId: cast.skill.id }, undefined, -10);
-    const state = luminaryState.from(runtime);
+    const state = luminaryState.from(runtime.profession);
     const skill = requireSkillFromContext(runtime, cast.skill.id);
     state.effulgentActiveUntil = canonicalTime(
       cast.start + requireBalanceNumber(skill.duration, `skill=${skill.id} field=duration`)

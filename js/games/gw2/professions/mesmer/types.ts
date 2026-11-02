@@ -82,7 +82,7 @@ export interface MesmerUiContext extends Omit<ProfessionUiCallbackContext<Mesmer
 }
 
 /** UI slice whose callbacks read Mesmer end-state projections. */
-export type MesmerUiSlice = Partial<ProfessionUiContract<MesmerUiState>>;
+export type MesmerUiSlice = Partial<ProfessionUiContract<MesmerUiState, MesmerSkill>>;
 
 /** Adds ambush damage and status scheduling to the shared strike definition. */
 export interface MesmerAmbushStrike extends Partial<StrikeEffect> {
@@ -128,7 +128,6 @@ export type MesmerActivePrimaryWeapon = () => string;
 export interface MesmerProfessionActionController {
   commitReservedResources(at: number, reserved: number, details?: MesmerResourceSpendDetails): number;
   consumeResources(at: number, details?: MesmerResourceSpendDetails): number;
-  currentResource(): number;
   handleShatter(
     context: MesmerRuntime,
     skill: MesmerSkill,

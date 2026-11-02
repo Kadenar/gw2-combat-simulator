@@ -36,7 +36,7 @@ const maul: Partial<SkillDefinition> = {
             !isPetStrike(event) &&
             skill.id === ID.MAUL_BASE &&
             Boolean(runtime.profession.core.pet),
-          do: { type: 'ranger.maul-pet' }
+          do: [{ type: 'ranger.maul-pet' }]
         },
         {
           on: 'damage.resolved',
@@ -47,7 +47,7 @@ const maul: Partial<SkillDefinition> = {
             !isPetStrike(event) &&
             skill.id === ID.MAUL_SOULBEAST &&
             rangerMerged(runtime.profession),
-          do: { type: 'ranger.maul-player' }
+          do: [{ type: 'ranger.maul-player' }]
         }
       ]
     },
@@ -55,10 +55,9 @@ const maul: Partial<SkillDefinition> = {
   ]
 };
 
-export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.SLASH_ID_12474]: {
     name: 'Slash',
-    description: 'Chain. Slash your foe.',
     icon: 'https://render.guildwars2.com/file/47E2C8FA10D594E892C65D7B3370C603987D95A9/103984.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -77,7 +76,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SLICE]: {
     name: 'Slice',
-    description: 'Chain. Slice your foe.',
     icon: 'https://render.guildwars2.com/file/6F01147F253C13B96A336232B5C808BA1C02EB4A/103990.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -96,7 +94,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.ENDURING_SWING]: {
     name: 'Enduring Swing',
-    description: 'Slash at your foe. This attack restores endurance if it hits.',
     icon: 'https://render.guildwars2.com/file/6528ADEC67E00D9DB7FA70F7200F5EC3D83AB99C/103991.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -127,7 +124,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.MAUL_SOULBEAST]: {
     name: 'Maul',
-    description: 'Attack your foe with the force of a bear. Your pet gains an attack of opportunity.',
     icon: 'https://render.guildwars2.com/file/630D39D16942680EC6EA66DE6D13317B6B9F3C30/103877.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -136,7 +132,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.MAUL_BASE]: {
     name: 'Maul',
-    description: 'Attack your foe with the force of a bear. Your pet gains an attack of opportunity.',
     icon: 'https://render.guildwars2.com/file/630D39D16942680EC6EA66DE6D13317B6B9F3C30/103877.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -145,7 +140,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SWOOP]: {
     name: 'Swoop',
-    description: 'Run and leap at your foe, hitting them and nearby foes.',
     icon: 'https://render.guildwars2.com/file/329E3C6524785BB37A3040AC4F362BEC23F8D625/103311.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -164,7 +158,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.COUNTERATTACK]: {
     name: 'Counterattack',
-    description: 'Block incoming attacks. If an attack is blocked, Counterattack Kick can be used.',
     icon: 'https://render.guildwars2.com/file/16D60B57A2F495EE963811A305079790AC090E1B/104000.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -177,7 +170,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.COUNTERATTACK_KICK]: {
     name: 'Counterattack Kick',
-    description: 'Kick your foe, knocking them backward.',
     icon: 'https://render.guildwars2.com/file/AD43D7CDEBF83C23B799E94A649794181F6208DA/103124.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -199,8 +191,6 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.HILT_BASH]: {
     name: 'Hilt Bash',
-    description:
-      'Daze your foe with a hilt bash. Stun them if you hit from behind or they are defiant, and refresh your Maul skill.',
     icon: 'https://render.guildwars2.com/file/C5A7760DF1E93EFDCC5761C005CF34526801129B/103985.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -220,7 +210,7 @@ export const RANGER_CORE_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     // The completed activation refreshes its paired skill through the shared recharge owner.
     sideEffects: [{ on: 'castCommit', do: { type: 'rechargeReset', skillIds: [ID.MAUL_SOULBEAST, ID.MAUL_BASE] } }]
   }
-});
+};
 
 // Only direct attacks spend the charge; trait and stance damage cannot steal it.
 function attackRecipient(event?: SimulationEvent | null): 'pet' | typeof ACTOR.PLAYER | undefined {

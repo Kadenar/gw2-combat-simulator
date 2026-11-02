@@ -14,6 +14,7 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { conduitModule } from '#gw2/professions/revenant/specializations/conduit/module.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
@@ -113,9 +114,9 @@ describe('Power Conduit skill profiles', () => {
 
   test('Deathstrike exposes its cooldown after execution', () => {
     const deathstrike = simulate('Conduit', [{ type: 'cast', skillId: 27074 }], config);
-    assert.deepEqual(deathstrike.planningState.cooldowns[SKILL.DEATHSTRIKE], {
-      readyAt: 12440,
-      remaining: 11720
+    assert.deepEqual(deathstrike.planningState.cooldownsBySkillId[SKILL.DEATHSTRIKE], {
+      readyAtMs: 12440,
+      remainingMs: 11720
     });
   });
 
@@ -128,9 +129,9 @@ describe('Power Conduit skill profiles', () => {
       primaryWeapon: 'Greatsword',
       secondaryWeapon: ''
     });
-    assert.deepEqual(onslaught.planningState.cooldowns[SKILL.PHANTOMS_ONSLAUGHT], {
-      readyAt: 6440,
-      remaining: 6000
+    assert.deepEqual(onslaught.planningState.cooldownsBySkillId[SKILL.PHANTOMS_ONSLAUGHT], {
+      readyAtMs: 6440,
+      remainingMs: 6000
     });
   });
 
@@ -252,7 +253,7 @@ test('Drop the Hammer resets Coalescence of Ruin when its delayed hit lands', ()
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    result.steps.filter((step) => step.skill === 'Coalescence of Ruin').map((step) => step.start),
+    result.steps.filter((step) => step.skillName === 'Coalescence of Ruin').map((step) => step.start),
     [480, 1640]
   );
   assert.equal(
@@ -407,7 +408,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
 
   assert.equal(result.warnings.length, 0);
   assert.deepEqual(
-    result.steps.filter((step) => step.skill === 'Banish Enchantment').map((step) => step.start),
+    result.steps.filter((step) => step.skillName === 'Banish Enchantment').map((step) => step.start),
     [0, 4440]
   );
   const banishes = result.events.filter((event) => event.type === 'action' && event.skillName === 'Banish Enchantment');
@@ -437,7 +438,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
 
   assert.equal(expiringDuringCast.warnings.length, 0);
   assert.deepEqual(
-    expiringDuringCast.steps.filter((step) => step.skill === 'Banish Enchantment').map((step) => step.start),
+    expiringDuringCast.steps.filter((step) => step.skillName === 'Banish Enchantment').map((step) => step.start),
     [0, 6760, 11200]
   );
   // Replaying each prefix exposes the reservation left by that cast; the post-expiry cast adds none.
@@ -497,7 +498,7 @@ test('Form of the Mesmer modifies Demon skill costs and Banish cooldown', () => 
   // Recovery during the opening cast makes the reduced-cost follow-up immediately affordable.
   assert.deepEqual(
     anguish.steps
-      .filter((step) => ['Call to Anguish', 'Unyielding Impact'].includes(step.skill))
+      .filter((step) => ['Call to Anguish', 'Unyielding Impact'].includes(step.skillName))
       .map((step) => step.start),
     [0, 800]
   );
@@ -1086,7 +1087,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
     selectedTraitIds: [TRAIT.ENHANCED_EMBODIMENT, TRAIT.FOUND_PURPOSE, TRAIT.LINGERING_DETERMINATION, TRAIT.MISTFIRE]
   });
 
-  assert.equal(cosmic.planningState.cooldowns[SKILL.SWAP_LEGENDS].readyAt, 6000);
+  assert.equal(cosmic.planningState.cooldownsBySkillId[SKILL.SWAP_LEGENDS].readyAtMs, 6000);
   assert.equal(cosmic.planningState.profession[STATE.COSMIC_WISDOM_UNTIL], 8);
   assert.ok(
     cosmic.events.some(
@@ -1145,7 +1146,7 @@ test('Bolstered Bonds and Kinetic Insight modify runtime attributes and damage',
         core: { selectedLegendIds: [LEGEND.ASSASSIN, LEGEND.ENTITY] },
         specialization: {
           kind: 'Conduit',
-          state: { affinity: { value: 3, maximum: 5, rate: 0, updatedAt: 0 }, cosmicWisdomUntil: 7 }
+          state: { affinity: { value: 3, maximum: 5, unitsPerSecond: 0, updatedAt: 0 }, cosmicWisdomUntil: 7 }
         }
       }
     }
@@ -1239,14 +1240,36 @@ test('Alacrity does not reduce Revenant legend or weapon swap cooldowns', () => 
   const legends = simulate('Core', ['__combat_start', 'Swap Legends', 'Swap Legends'], config);
 
   assert.deepEqual(
-    legends.steps.filter((step) => step.skill === 'Swap Legends').map((step) => step.start),
+    legends.steps.filter((step) => step.skillName === 'Swap Legends').map((step) => step.start),
     [0, 10000]
   );
 
   const weapons = simulate('Core', ['__combat_start', 'Swap Weapons', 'Swap Weapons'], config);
 
   assert.deepEqual(
-    weapons.steps.filter((step) => step.skill === 'Swap Weapons').map((step) => step.start),
+    weapons.steps.filter((step) => step.skillName === 'Swap Weapons').map((step) => step.start),
     [0, 10000]
   );
+});
+
+// Display labels cannot grant another skill's resonance or suppress a valid proc.
+test('Conduit modifiers follow all supported button IDs after renaming', () => {
+  const context = {
+    config: {},
+    time: 0,
+    runtime: {
+      profession: { core: { selectedLegendIds: [LEGEND.ASSASSIN] }, specialization: { kind: 'Conduit', state: {} } }
+    }
+  };
+  for (const [suffix, ids] of [
+    ['release-dervish-affinity', [SKILL.RELEASE_POTENTIAL_DERVISH]],
+    ['release-assassin-affinity', [SKILL.RELEASE_POTENTIAL_ASSASSIN]],
+    ['release-warrior-affinity', [SKILL.RELEASE_POTENTIAL_WARRIOR]],
+    ['beguiling-haze-assassin-resonance', [SKILL.BEGUILING_HAZE]],
+    ['twin-moon-assassin-resonance', [SKILL.TWIN_MOON_SWEEP]]
+  ]) {
+    const rule = conduitModule.modifiers.modifierRules.find(({ id }) => id === 'revenant.' + suffix);
+    for (const id of ids) assert.equal(rule.when({ ...context, event: { skillId: id, skillName: 'Renamed' } }), true);
+    assert.equal(rule.when({ ...context, event: { skillId: 999999, skillName: 'Beguiling Haze' } }), false);
+  }
 });

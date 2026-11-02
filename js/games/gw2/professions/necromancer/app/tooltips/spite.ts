@@ -1,7 +1,9 @@
 import {
   fromProfile,
+  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
+  tooltipPercentValue,
   tooltipSeconds,
   traitSkillTooltip,
   traitTooltip,
@@ -21,7 +23,7 @@ export const necromancerSpiteTooltips = {
     'Striking a low-health target grants might.',
     [
       ['cooldown', 'Internal cooldown', tooltipSeconds],
-      ['threshold', 'Target health below', tooltipPercent]
+      ['threshold', 'Target health below', tooltipPercentValue]
     ],
     'against a low-health target'
   ),
@@ -36,13 +38,13 @@ export const necromancerSpiteTooltips = {
   [TRAIT.CHILL_OF_DEATH]: traitSkillTooltip(
     [ID.LESSER_SPINAL_SHIVERS],
     'Striking a low-health target invokes Lesser Spinal Shivers. Chill follows the strike; target boon removal is not simulated.',
-    [['threshold', 'Target health below', tooltipPercent]]
+    [['threshold', 'Target health below', tooltipPercentValue]]
   ),
   [TRAIT.SPITEFUL_FORTITUDE]: traitTooltip(
     'Gain vitality from power. Player strikes against a low-health target generate life force.',
     [
-      ['attributeConversion', 'Power converted to vitality', tooltipPercent],
-      ['threshold', 'Life force target health threshold', tooltipPercent],
+      ['attributeConversion', 'Vitality gained from power', tooltipAttributeConversion],
+      ['threshold', 'Life force target health threshold', tooltipPercentValue],
       ['lifeForceGain', 'Life force gained', lifeForce]
     ]
   ),
@@ -54,7 +56,7 @@ export const necromancerSpiteTooltips = {
     fromProfile(TRAIT.DREAD, 'damageIncrease', 'Strike damage', tooltipPercent)
   ]),
   [TRAIT.CLOSE_TO_DEATH]: traitTooltip('Deal increased strike damage to low-health targets.', [
-    ['threshold', 'Target health below', tooltipPercent],
+    ['threshold', 'Target health below', tooltipPercentValue],
     fromProfile(TRAIT.CLOSE_TO_DEATH, 'damageMultiplier', 'Strike damage', tooltipFactorChange)
   ]),
   [TRAIT.SPITEFUL_SPIRIT]: traitTooltip('Entering shroud triggers a strike.')

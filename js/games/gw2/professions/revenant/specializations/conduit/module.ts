@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
 import {
   CONDUIT_SKILL_FIELDS,
@@ -22,7 +23,7 @@ export const conduitModule = defineNativeModule({
     traitLines: TRAIT_LINES,
     profileFields: REVENANT_CONDUIT_PROFILE_FIELDS,
     skillFields: CONDUIT_SKILL_FIELDS,
-    skillMechanics: CONDUIT_BASE_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(CONDUIT_BASE_SKILL_MECHANICS)
   }),
   state: { create: conduitState.create, project: projectConduitPlanningState },
   // Copy the entity declarations at registration so module composition owns its rule list.

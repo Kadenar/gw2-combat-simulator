@@ -8,12 +8,8 @@ import { guardianCoreHooks } from '#gw2/professions/guardian/core/hooks.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
 import { guardianPassiveAttributes } from '#gw2/professions/guardian/core/skills/attribute-passives.js';
 import { GUARDIAN_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/guardian/core/skills/autoattack-chains.js';
-import {
-  GUARDIAN_CORE_EXTRA_SKILLS,
-  GUARDIAN_CORE_SKILL_MECHANICS
-} from '#gw2/professions/guardian/core/skills/index.js';
+import { GUARDIAN_CORE_SKILLS } from '#gw2/professions/guardian/core/skills/index.js';
 import { GUARDIAN_CORE_SKILL_FLIPS } from '#gw2/professions/guardian/core/skills/skill-flips.js';
-import { GUARDIAN_CORE_TRAIT_SKILLS } from '#gw2/professions/guardian/core/skills/trait-skills.js';
 import { createGuardianCoreState, projectGuardianPlanningState } from '#gw2/professions/guardian/core/state.js';
 import { guardianCoreTraits } from '#gw2/professions/guardian/core/traits/index.js';
 import { TRAIT_LINES } from '#gw2/professions/guardian/data/trait-lines.js';
@@ -49,8 +45,8 @@ export const guardianCoreModule = defineNativeModule({
     skillFlips: GUARDIAN_CORE_SKILL_FLIPS,
     autoattackChains: GUARDIAN_CORE_AUTOATTACK_CHAINS,
     profileFields: GUARDIAN_CORE_PROFILE_FIELDS,
-    skillMechanics: GUARDIAN_CORE_SKILL_MECHANICS,
-    extraSkills: [...GUARDIAN_CORE_EXTRA_SKILLS, ...GUARDIAN_CORE_TRAIT_SKILLS],
+    skills: GUARDIAN_CORE_SKILLS,
+
     skillFields: GUARDIAN_CORE_SKILL_FIELDS
   }),
   state: { create: createGuardianCoreState, project: projectGuardianPlanningState },

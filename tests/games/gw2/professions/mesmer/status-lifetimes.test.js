@@ -86,7 +86,7 @@ function lifetimeContext(traits = [], rechargeRate = 1) {
 function complete(context, cast) {
   context.time = cast.fullEnd;
 
-  if (!cast.cancelled && cast.skill.id === ID.MIMIC)
+  if (!cast.cancelledBeforeCommit && cast.skill.id === ID.MIMIC)
     applySkillSideEffects(context, cast, 'castCommit', mesmerCoreHooks.sideEffectHandlers);
 
   completeMimicCast(context, cast);
@@ -103,7 +103,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
       start: context.start,
       fullEnd: context.fullEnd,
       effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
-      cancelled: Boolean(context.action.cancelled),
+      cancelledBeforeCommit: Boolean(context.action.cancelled),
       command: {},
       id: 'fixture',
       rechargeWork: 0,
@@ -117,7 +117,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
       start: context.start,
       fullEnd: context.fullEnd,
       effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
-      cancelled: Boolean(context.action.cancelled),
+      cancelledBeforeCommit: Boolean(context.action.cancelled),
       command: {},
       id: 'fixture',
       rechargeWork: 0,
@@ -132,7 +132,7 @@ test('Mimic accepts utility starts through its exact deadline and consumes the r
       start: context.start,
       fullEnd: context.fullEnd,
       effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
-      cancelled: Boolean(context.action.cancelled),
+      cancelledBeforeCommit: Boolean(context.action.cancelled),
       command: {},
       id: 'fixture',
       rechargeWork: 0,
@@ -156,10 +156,10 @@ test('Mimic gives one second of base recharge and adds the original utility rech
     // The accepted utility may have adjusted recharge; Mimic inherits its original authored value.
     context.cooldownController.startRecharge(utility, 5, 7);
     complete(context, { skill: utility, start: 4, fullEnd: 5, rechargeWork: 7 });
-    assert.deepEqual(context.cooldownController.rechargeFor(utility.id), { startedAt: 5, work: 1 });
+    assert.deepEqual(context.cooldownController.rechargeFor(utility.id), { workAnchorAt: 5, work: 1 });
     assert.equal(context.cooldownController.readyAt(utility.id), canonicalTime(5 + 1 / rate));
     assert.deepEqual(context.cooldownController.rechargeFor(mimic.id), {
-      startedAt: 5,
+      workAnchorAt: 5,
       work: 20 - 4 * rate + 30
     });
     assert.ok(Math.abs(context.cooldownController.readyAt(mimic.id) - originalReadyAt - 30 / rate) < 0.000002);
@@ -179,7 +179,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     start: context.start,
     fullEnd: context.fullEnd,
     effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
-    cancelled: Boolean(context.action.cancelled),
+    cancelledBeforeCommit: Boolean(context.action.cancelled),
     command: {},
     id: 'fixture',
     rechargeWork: 0,
@@ -190,7 +190,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     start: context.start,
     fullEnd: context.fullEnd,
     effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
-    cancelled: Boolean(context.action.cancelled),
+    cancelledBeforeCommit: Boolean(context.action.cancelled),
     command: {},
     id: 'fixture',
     rechargeWork: 0,
@@ -203,7 +203,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     start: context.start,
     fullEnd: context.fullEnd,
     effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
-    cancelled: Boolean(context.action.cancelled),
+    cancelledBeforeCommit: Boolean(context.action.cancelled),
     command: {},
     id: 'fixture',
     rechargeWork: 0,
@@ -213,7 +213,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     start: context.start,
     fullEnd: context.fullEnd,
     effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
-    cancelled: Boolean(context.action.cancelled),
+    cancelledBeforeCommit: Boolean(context.action.cancelled),
     command: {},
     id: 'fixture',
     rechargeWork: 0,
@@ -225,7 +225,7 @@ test('Mimic refresh replaces the deadline while cancelled casts and flips leave 
     start: context.start,
     fullEnd: context.fullEnd,
     effectiveEnd: context.action.cancelled ? context.start : context.fullEnd,
-    cancelled: Boolean(context.action.cancelled),
+    cancelledBeforeCommit: Boolean(context.action.cancelled),
     command: {},
     id: 'fixture',
     rechargeWork: 0,
@@ -246,7 +246,7 @@ test('Mimic does not restore ammunition or restart its count recharge', () => {
   const ammo = context.cooldownController.ensureAmmo(utility);
   assert.equal(ammo.charges, 1);
   assert.equal(ammo.recharges.length, 1);
-  assert.deepEqual(ammo.recharges, [{ startedAt: 2, work: 100 }]);
+  assert.deepEqual(ammo.recharges, [{ workAnchorAt: 2, work: 100 }]);
 });
 
 // Completion consumes the currently armed window, even if it was replaced after the utility started.
@@ -254,11 +254,11 @@ test('Mimic rearming during overlapping utilities rewards the first successful c
   const context = lifetimeContext();
   const mimic = context.catalog.skillsById.get(ID.MIMIC);
   const utility = context.catalog.skillsById.get(ID.SIGNET_OF_ILLUSIONS);
-  const cast = (skill, start, fullEnd, cancelled = false) => ({
+  const cast = (skill, start, fullEnd, cancelledBeforeCommit = false) => ({
     skill,
     start,
     fullEnd,
-    cancelled,
+    cancelledBeforeCommit,
     command: {},
     id: String(fullEnd),
     rechargeWork: 0

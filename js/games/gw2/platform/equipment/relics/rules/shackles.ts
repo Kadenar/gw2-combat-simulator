@@ -3,7 +3,7 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js'
 import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { defineRelic, playerOwnedRelicSource, relicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
@@ -52,7 +52,7 @@ function emitDamagePayload(
     kind: 'announcement',
     log: true,
     cause: application,
-    attribution: { source: 'Relic', sourceId: `relic.${RELIC_IDS.SHACKLES}`, actorType: ACTOR.EFFECT },
+    attribution: relicSource(RELIC_IDS.SHACKLES),
     announcement: {
       type: 'relic',
       name: 'Relic of the Shackles',
@@ -73,10 +73,7 @@ function emitDamagePayload(
       hits: 1,
       hitIndex: 1,
       totalHits: 1,
-      source: 'Relic',
-      sourceId: `relic.${RELIC_IDS.SHACKLES}`,
-      actorType: ACTOR.EFFECT,
-      ownerActorType: ACTOR.PLAYER,
+      ...playerOwnedRelicSource(RELIC_IDS.SHACKLES),
       skillWeapon: 'Unequipped',
       canCrit: true,
       triggeredBy: application.skillName
@@ -91,9 +88,7 @@ function emitDamagePayload(
       name: 'Relic of the Shackles',
       skillName: 'Relic of the Shackles',
       controlKind: CONTROL.STUN,
-      source: 'Relic',
-      sourceId: `relic.${RELIC_IDS.SHACKLES}`,
-      actorType: ACTOR.EFFECT,
+      ...relicSource(RELIC_IDS.SHACKLES),
       triggeredBy: application.skillName
     }
   });

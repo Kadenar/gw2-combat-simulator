@@ -1,4 +1,5 @@
 import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
+import { fieldValue } from '#gw2/platform/skills/field-specs.js';
 
 /** Reject unowned declarations at authoring and runtime boundaries so combos cannot silently disappear. */
 export function requireComboDescriptorOwner(value: unknown, label: string): OwnedComboDescriptor {
@@ -25,8 +26,8 @@ export function requireOwnedComboDescriptors(value: unknown, label: string): rea
 }
 
 /** Validate both declaration kinds wherever an effect, tick, or custom packet carries combo metadata. */
-export function validateComboOwnership(value: Readonly<Record<string, unknown>>, label: string): void {
+export function validateComboOwnership(value: object, label: string): void {
   for (const field of ['comboFields', 'comboFinishers']) {
-    requireOwnedComboDescriptors(value[field], `${label} ${field}`);
+    requireOwnedComboDescriptors(fieldValue(value, field), `${label} ${field}`);
   }
 }

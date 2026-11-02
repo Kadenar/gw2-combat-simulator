@@ -474,7 +474,7 @@ function strikesWhileArmed(
 
 /** Rearms Explosive Entrance after a resolved Engineer dodge. */
 function resetExplosiveEntrance(context: EngineerResolverContext): void {
-  professionCoreState(context).explosiveEntranceFired = false;
+  professionCoreState(context.profession).explosiveEntranceFired = false;
 }
 
 /**
@@ -489,7 +489,7 @@ function fireExplosiveEntrance(context: EngineerRuntime, event: EngineerResolver
 
   // Dodge rearming never resets the skill's recharge.
   context.cooldownController.startRecharge(skill, event.at);
-  professionCoreState(context).explosiveEntranceFired = true;
+  professionCoreState(context.profession).explosiveEntranceFired = true;
   invokeTraitSkill(context, TRAIT.EXPLOSIVE_ENTRANCE, skill.id, event, { announce: true });
 }
 
@@ -500,7 +500,7 @@ function isAimAssistedProjectile(event: EngineerResolverEvent): boolean {
 
 /** Every fifth accepted rocket becomes an Orbital Command Strike; the counter advances only on accepted procs. */
 function fireAimAssistedRocket(context: EngineerRuntime, event: EngineerResolverEvent): void {
-  const core = professionCoreState(context);
+  const core = professionCoreState(context.profession);
   // Preserve the cumulative total used to select each orbital strike.
   const progress = advanceCyclicCounter(
     core.aimAssistedRocketCount,

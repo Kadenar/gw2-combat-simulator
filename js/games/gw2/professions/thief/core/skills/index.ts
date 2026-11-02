@@ -1,4 +1,4 @@
-import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
+import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { CORE_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/core/skills/guild-attacks.js';
@@ -16,7 +16,7 @@ import { THIEF_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/thief/core
 import { THIEF_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/weapons/sword.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
-export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
+const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
   THIEF_MISC_SKILL_MECHANICS,
   THIEF_PROFESSION_SKILLS_SKILL_MECHANICS,
   THIEF_SLOT_SKILLS_SKILL_MECHANICS,
@@ -31,12 +31,13 @@ export const THIEF_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
   THIEF_WEAPONS_SWORD_SKILL_MECHANICS
 );
 
-export const THIEF_CORE_EXTRA_SKILLS: readonly ThiefSkill[] = Object.freeze([
+/** One complete module collection includes authored skills, generated attacks, and simulator actions. */
+export const THIEF_CORE_SKILLS: readonly ThiefSkill[] = Object.freeze([
+  ...materializeSkillDefinitions(THIEF_CORE_SKILL_MECHANICS),
   ...CORE_GUILD_ATTACK_SKILLS,
   Object.freeze(createWeaponSwapSkill()),
   Object.freeze(
     createDodgeSkill({
-      description: 'Perform the selected thief dodge.',
       interruptCommitMs: 760,
       retainsCastLockoutAfterInterrupt: true
     })

@@ -2,18 +2,24 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
+import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { reactToSymbolOfIgnition } from '#gw2/professions/guardian/core/skills/weapons/pistol.js';
 import { createGuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import {
-  firebrandState,
-  projectFirebrandPlanningState
-} from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import { firebrandModule } from '#gw2/professions/guardian/specializations/firebrand/module.js';
+import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
+import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import {
+  createObservedProfessionSimulator,
+  observedRuntime,
+  projectObservedState
+} from '#tests/helpers/observed-runtime.js';
 
 const config = {
   attributeInputs: baseAttributeInputs({
@@ -32,7 +38,7 @@ test('Firebrand public projections preserve configured pages and detach the cano
     config: { initialTomePages: 2 },
     balanceProfile: (id) => guardianCatalog.balanceProfilesById.get(id)
   });
-  const projected = projectFirebrandPlanningState({
+  const projected = projectObservedState(guardianProfession, {
     profession: { core: createGuardianCoreState(), specialization: { kind: 'Firebrand', state } }
   });
   assert.equal(projected[STATE.TOME_PAGES].value, 2);
@@ -182,7 +188,7 @@ test('stowing during a tome page preserves its effects and resource spend withou
   assert.deepEqual(result.warnings, []);
   const cast = result.events.find((e) => e.type === 'action' && e.skillId === GUARDIAN_SKILL_IDS.ASHES_OF_THE_JUST);
   const granted = result.events.find((e) => e.type === 'buff' && e.kind === 'ashes-of-the-just');
-  const resourceCost = guardianCatalog.skillsById.get(cast.skillId).resourceCost;
+  const resourceCost = guardianCatalog.skillsById.get(cast.skillId).cost.amount;
   assert.equal(Boolean(cast.interrupted), false);
   assert.ok(granted.at > cast.at && granted.at < cast.endsAt);
   assert.equal(result.planningState.profession[STATE.TOME_PAGES].value, 5 - resourceCost);
@@ -257,7 +263,7 @@ for (const initialTomePages of [1, 5]) {
       (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.IGNITING_BURST
     );
     const refund = result.procSteps.find((step) => step.skill === 'Weighty Terms');
-    const resourceCost = guardianCatalog.skillsById.get(cast.skillId).resourceCost;
+    const resourceCost = guardianCatalog.skillsById.get(cast.skillId).cost.amount;
     assert.ok(refund.start / 1000 > cast.at && refund.start / 1000 < cast.endsAt);
     assert.equal(
       result.planningState.profession[STATE.TOME_PAGES].value,
@@ -345,7 +351,7 @@ test('Firebrand page regeneration keeps ticking at capacity after natural recove
     // Full-pool ticks advance the original clock without banking extra pages or restarting on the next spend.
     assert.equal(
       state[STATE.TOME_PAGES].value,
-      state[STATE.TOME_PAGES].maximum - guardianCatalog.skillsById.get(first.skillId).resourceCost
+      state[STATE.TOME_PAGES].maximum - guardianCatalog.skillsById.get(first.skillId).cost.amount
     );
     assert.equal(state[STATE.TOME_PAGES].nextAt, first.endsAt + 3 * state[STATE.TOME_PAGES].interval);
   }
@@ -361,10 +367,10 @@ test('Firebrand page exhaustion requires an explicit stow before weapon inputs',
   };
   const result = createObservedProfessionSimulator(guardianProfession, firebrandConfig)(undefined, rotation);
 
-  const [blocked, ready] = result.steps.filter((step) => step.skill === 'True Strike');
+  const [blocked, ready] = result.steps.filter((step) => step.skillName === 'True Strike');
   assert.ok(blocked.invalid);
   assert.equal(ready.invalid, undefined);
-  assert.equal(result.steps.find((step) => step.skill === 'Stow Tome').invalid, undefined);
+  assert.equal(result.steps.find((step) => step.skillName === 'Stow Tome').invalid, undefined);
   assert.equal(result.planningState.profession[STATE.ACTIVE_TOME], '');
   assert.equal(result.planningState.profession[STATE.SWIFT_SCHOLAR_COUNT], 0);
   const transition = guardianProfession.ui.timelineWeaponLineTransition;
@@ -400,7 +406,7 @@ test('Firebrand tome page cost waits for a regenerating page', () => {
     'Epilogue: Eternal Oasis'
   ]);
 
-  const epilogue = result.steps.find((step) => step.skill === 'Epilogue: Eternal Oasis');
+  const epilogue = result.steps.find((step) => step.skillName === 'Epilogue: Eternal Oasis');
 
   assert.deepEqual(result.warnings, []);
   assert.ok(epilogue && !epilogue.invalid);
@@ -514,7 +520,7 @@ test('symbol and projectile ignition independently block through 240 ms without 
   const context = {
     procs: createProcRegistry(() => context),
     catalog: guardianCatalog,
-    state: { profession: { core } },
+    profession: { core },
     effects: { emit: ({ event }) => queued.push(event) }
   };
   const strike = { type: 'damage', actorType: 'player', skillId: GUARDIAN_SKILL_IDS.PEACEKEEPER, coefficient: 1 };
@@ -669,8 +675,8 @@ test('Firebrand mantras flip to their final charge and rearm after full recharge
   assert.equal(depleted.planningState.profession[STATE.AVAILABLE_FLIPS][rush.id], undefined);
   assert.equal(depleted.planningState.profession[STATE.AVAILABLE_FLIPS][surge.id], undefined);
   assert.equal(depleted.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.FLAME_RUSH], undefined);
-  assert.ok(depleted.planningState.cooldowns[GUARDIAN_SKILL_IDS.MANTRA_OF_FLAME].remaining > 0);
-  const rechargeReadyAt = depleted.planningState.cooldowns[GUARDIAN_SKILL_IDS.MANTRA_OF_FLAME].readyAt;
+  assert.ok(depleted.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.MANTRA_OF_FLAME].remainingMs > 0);
+  const rechargeReadyAt = depleted.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.MANTRA_OF_FLAME].readyAtMs;
   // A queued normal charge waits for the root recharge, which restores the prepared pool.
   const rearmed = createObservedProfessionSimulator(guardianProfession, {
     ...config,
@@ -1027,4 +1033,112 @@ test('Firebrand Justice attribution and Imbued Haste use timeline state', () => 
   const imbued = tome([GUARDIAN_TRAIT_IDS.IMBUED_HASTE]);
 
   assert.ok(imbued.conditionDamage > normal.conditionDamage);
+});
+
+// Default factories and profile initialization share normalization but never mutable state.
+test('Firebrand page initialization preserves explicit pages, caps, trait defaults, and patched cadence', () => {
+  // Capacity bonuses change the omitted default, never an explicit starting-page choice.
+  for (const [initial, expected] of [
+    [undefined, 8],
+    [5, 5],
+    [0, 0],
+    [3, 3],
+    [99, 8]
+  ]) {
+    const config = {
+      specialization: 'Firebrand',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS, GUARDIAN_TRAIT_IDS.LOREMASTER],
+      initialTomePages: initial
+    };
+    const first = firebrandState.create({
+      config,
+      balanceProfile: (id) => guardianCatalog.balanceProfilesById.get(id)
+    });
+    const second = observedRuntime(runGuardian([], config)).profession.specialization.state;
+    assert.equal(second.tomePages.value, expected);
+    assert.equal(second.tomePages.maximum, 8);
+    assert.equal(second.tomePages.nextAt, expected < 8 ? 5 : Infinity);
+    assert.deepEqual(first.tomePages, second.tomePages);
+    assert.notEqual(first.tomePages, second.tomePages);
+  }
+
+  const patched = withPatchPreview(guardianProfession, {
+    id: 'pages',
+    label: 'Pages',
+    professions: {
+      guardian: {
+        balanceProfiles: {
+          [GUARDIAN_TRAIT_IDS.PURITY_OF_WORD]: { fields: { maximumStacks: 6, pulseInterval: 2 } },
+          [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS]: { fields: { maximumStacks: 10 } }
+        }
+      }
+    }
+  });
+  // Module creation must use the selected catalog before runtime resource initialization can adjust state.
+  const balanceContext = patched.resolvePatch({ id: 'pages' }).balanceContext;
+  for (const selectedTraitIds of [[], [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS]]) {
+    const maximum = selectedTraitIds.length ? 10 : 6;
+    for (const initialTomePages of [undefined, 0]) {
+      const state = firebrandModule.state.create({ selectedTraitIds, initialTomePages }, { balanceContext });
+      assert.equal(state.tomePages.maximum, maximum);
+      assert.equal(state.tomePages.value, initialTomePages ?? maximum);
+      assert.equal(state.tomePages.interval, 2);
+      assert.equal(state.tomePages.nextAt, initialTomePages === 0 ? 2 : Infinity);
+    }
+  }
+
+  const result = runGuardian(
+    [],
+    {
+      specialization: 'Firebrand',
+      patchId: 'pages',
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS],
+      initialTomePages: 6
+    },
+    { initialize: () => {}, profession: patched }
+  );
+  const pages = observedRuntime(result).profession.specialization.state.tomePages;
+  assert.equal(pages.value, 6);
+  assert.equal(pages.maximum, 10);
+  assert.equal(pages.nextAt, 2);
+  assert.equal(pages.interval, 2);
+});
+
+// Canonical normal charges never become final merely because ammo or names say so.
+test('Weighty Terms follows canonical mantra IDs and ignores names', () => {
+  const config = {
+    specialization: 'Firebrand',
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS],
+    initialTomePages: 0
+  };
+  const native = guardianProfession.runtimeFor(config);
+  for (const mantra of MANTRAS) {
+    for (const id of [mantra.rootId, mantra.normalId, mantra.finalId, 999991]) {
+      const result = runGuardian([], config, {
+        initialize: (runtime) => {
+          const skill = {
+            ...guardianCatalog.skillsById.get(id),
+            id,
+            name: 'Renamed mantra',
+            skillFamily: 'Mantra'
+          };
+          const cast = {
+            skill,
+            id: 'fixture-mantra',
+            command: {},
+            start: 0,
+            fullEnd: 0,
+            effectiveEnd: 0
+          };
+          // Match runtime dispatch so named mantra actions run before the remaining trait effects.
+          applySkillSideEffects(runtime.mechanics, cast, 'castCommit', native.sideEffectHandlers);
+          native.onCastCommit(runtime.mechanics, cast);
+        }
+      });
+      assert.equal(
+        observedRuntime(result).profession.specialization.state.tomePages.value,
+        id === mantra.finalId ? 2 : 0
+      );
+    }
+  }
 });

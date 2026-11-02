@@ -58,18 +58,15 @@ export interface WarriorSkill
         typeof BERSERKER_SKILL_FIELDS &
         typeof PARAGON_SKILL_FIELDS
     > {
-  /**
-   * Measured cast duration (ms) while Dual Wielding and Quickness are active.
-   * Only skills with this value receive a Dual Wielding cast-time adjustment.
-   */
-  readonly dualWieldCastTimeMs?: number;
-  /** Fixed commit cutoff while Dual Wielding is active; independent of cast-duration scaling. */
-  readonly dualWieldInterruptCommitMs?: number;
-  /** Measured cast-start packet offsets keyed by authored offset; replaces proportional scaling for this skill. */
+  /** Measured Dual Wielding cast-start offsets replace the skill's authored offsets before shared scheduling. */
   readonly dualWieldEffectOffsetsMs?: Readonly<Record<number, number>>;
+  /** Spends adrenaline as a burst skill. */
   readonly burst?: boolean;
+  /** Primal burst available only while berserk. */
   readonly primalBurst?: boolean;
+  /** Available only while the gunsaber is drawn. */
   readonly gunsaberSkill?: boolean;
+  /** Dragon Trigger charge skill. */
   readonly dragonTriggerSkill?: boolean;
   readonly movementSkill?: boolean;
   readonly dragonSlash?: boolean;
@@ -88,4 +85,4 @@ export interface WarriorUiContext extends Omit<ProfessionUiCallbackContext<Parti
 }
 
 /** UI slice whose callbacks read Warrior end-state projections. */
-export type WarriorUiSlice = Partial<ProfessionUiContract<Partial<WarriorPlanningState>>>;
+export type WarriorUiSlice = Partial<ProfessionUiContract<Partial<WarriorPlanningState>, WarriorSkill>>;

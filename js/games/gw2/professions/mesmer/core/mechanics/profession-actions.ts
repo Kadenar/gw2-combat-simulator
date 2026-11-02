@@ -47,7 +47,7 @@ export function createProfessionActionController({
 
   // Clone-based specs (core/Chronomancer) count live clones; numeric specs (Virtuoso/Troubadour) read their shared clock.
   const currentResource = () =>
-    kind === 'clones' ? professionCoreState(state).clones.length : state.resourceController.value(kind);
+    kind === 'clones' ? professionCoreState(state.profession).clones.length : state.resourceController.value(kind);
 
   const addResourceSpendEvent = (
     at: number,
@@ -81,11 +81,11 @@ export function createProfessionActionController({
     const spent = currentResource();
 
     if (kind === 'clones') {
-      for (const clone of professionCoreState(state).clones) {
+      for (const clone of professionCoreState(state.profession).clones) {
         destroyClone(clone);
       }
 
-      professionCoreState(state).clones = [];
+      professionCoreState(state.profession).clones = [];
     } else {
       state.resourceController.spend(kind, spent);
     }
@@ -205,7 +205,6 @@ export function createProfessionActionController({
   return {
     commitReservedResources,
     consumeResources,
-    currentResource,
     handleShatter,
     reserveResources,
     restoreReservedResources

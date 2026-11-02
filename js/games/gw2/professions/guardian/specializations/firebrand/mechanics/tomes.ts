@@ -59,7 +59,7 @@ const TOMES = { justice: ID.TOME_OF_JUSTICE, resolve: ID.TOME_OF_RESOLVE, courag
 
 /** Tome reopening changes only the current bar; it cannot restart a dormant passive or duplicate its activation traits. */
 function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
-  const state = firebrandState.from(runtime);
+  const state = firebrandState.from(runtime.profession);
   // Tome activation and passive eligibility share Core's deadline, independently of skill cooldowns.
   const readyAt = runtime.profession.core.virtueReadyAt;
   const ready = readyAt[virtue] <= runtime.time;
@@ -133,7 +133,7 @@ const firebrandTomeActions: NonNullable<RuntimeHooks<GuardianRuntimeState, Guard
     if (context.kind !== 'cast') return;
 
     const cast = context.cast;
-    const state = firebrandState.from(runtime);
+    const state = firebrandState.from(runtime.profession);
     state.activeTome = '';
     runtime.fireTrigger(tomeStowed);
     runtime.effects.emit({
@@ -153,7 +153,7 @@ export function firebrandTomeAvailability(
   runtime: MechanicQueriesOf<GuardianRuntime>,
   skill: GuardianSkill
 ): AvailabilityResult | null {
-  const state = firebrandState.from(runtime);
+  const state = firebrandState.from(runtime.profession);
 
   if (skill.type === 'Weapon' && state.activeTome)
     return denyCast('guardian.tome-weapon-lockout', `${skill.name} requires stowing the active tome.`);
@@ -174,7 +174,7 @@ export function firebrandTomeAvailability(
 /** Pages recover from their first spend; opening or stowing a tome does not restart their clock. */
 const firebrandTomePages: ResourcePolicy<GuardianRuntime> = {
   kind: 'discrete',
-  state: (runtime) => firebrandState.from(runtime).tomePages,
+  state: (runtime) => firebrandState.from(runtime.profession).tomePages,
   maximum: (runtime) => firebrandPageTuning(runtime).maximum,
   initial: (runtime) => firebrandPageTuning(runtime).initial,
   recovery: (runtime) => ({ interval: firebrandPageTuning(runtime).interval, amount: 1, start: 'first-spend' })
@@ -184,7 +184,7 @@ const firebrandTomePages: ResourcePolicy<GuardianRuntime> = {
 function refillFirebrandTomePages(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
   if (cast.skill.id !== ID.RENEWED_FOCUS || castWasInterrupted(cast)) return;
 
-  const state = firebrandState.from(runtime);
+  const state = firebrandState.from(runtime.profession);
   runtime.resourceController.grant('tomePages', state.tomePages.maximum);
 }
 

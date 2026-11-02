@@ -10,8 +10,9 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2SpecializationData } from '#gw2/platform/profession-definition/specialization-data-types.js';
-import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { FieldSpecs, NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
 import type { SkillDamageModifier } from '#gw2/platform/skills/modifiers.js';
+import type { SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
 import type { SkillFlips } from '#gw2/platform/skills/skill-flip-definitions.js';
 
 export type SkillId = string | number;
@@ -53,7 +54,7 @@ type AssembledSkillField =
 
 /** Keyed owner entries carry presentation and behavior, without authoring fields supplied by assembly. */
 export type SkillDefinition<TSkill extends Skill = Skill> = Partial<TSkill> &
-  Required<Pick<TSkill, 'name' | 'description' | 'icon'>> & {
+  Required<Pick<TSkill, 'name' | 'icon'>> & {
     readonly [TField in AssembledSkillField]?: never;
   };
 
@@ -73,9 +74,14 @@ export interface TooltipFact {
 /** Canonical attribute keys, so skill grants share the attribute pipeline's vocabulary. */
 export type SkillAttributeKey = keyof typeof import('#gw2/platform/attributes/inputs.js').ATTRIBUTE_NAMES;
 
-export interface Skill extends CatalogEntity {
-  /** Seconds between accepted procs owned by this skill; independent of activation recharge. */
-  readonly internalCooldown?: number;
+/** Numeric skill properties come from the shared field table, so each is authored once with its bounds and patch tier. */
+type SharedNumericSkillFields = NumericSkillFields<typeof SHARED_SKILL_FIELDS>;
+
+/**
+ * Platform skill vocabulary. Non-numeric fields are declared only here or on a profession's skill type; the closed
+ * shape rejects unknown and misspelled fields at compile time instead of during catalog construction.
+ */
+export interface Skill extends CatalogEntity, SharedNumericSkillFields {
   /**
    * Flat attributes this skill grants, such as a signet passive or a wielded conjure. The owning mechanic decides
    * when the grant applies (readiness, held bundle); the amounts stay with the skill so patches edit one owner.
@@ -83,10 +89,6 @@ export interface Skill extends CatalogEntity {
   readonly attributeBonuses?: Readonly<Partial<Record<SkillAttributeKey, number>>>;
   /** Fixed grants while the skill's active state applies. */
   readonly activeAttributeBonuses?: Skill['attributeBonuses'];
-  /** Duration in seconds of a skill-owned form or state, including a preparation's arming phase. */
-  readonly duration?: number;
-  /** Multiplier applied by the skill's mechanic to its eligible attribute pool. */
-  readonly attributeMultiplier?: number;
   /** Intrinsic strike and critical-damage modifiers apply only to damage attributed to this skill. */
   readonly modifiers?: readonly SkillDamageModifier[];
   /** Identity-only tombstones scoped to this skill in its selected catalog. */
@@ -96,19 +98,27 @@ export interface Skill extends CatalogEntity {
   /** Explicit control for synthetic actions whose metadata has no physical bar slot. */
   readonly inputControl?: import('#gw2/platform/skills/input-controls.js').InputControlId;
   readonly inputCategory?: 'weapon-swap' | 'bar-swap';
-  readonly description?: string;
-  readonly icon?: string;
+  /** Label shown instead of the canonical name where several records share one name. */
+  readonly displayName?: string;
   readonly variantBadge?: string;
+  /** False keeps a slot skill out of build-template selection while it remains castable through its owner. */
+  readonly slotSelectable?: boolean;
+  /** Keeps a catalog record out of rotation planning and log reconstruction; only an owning mechanic invokes it. */
+  readonly rotationInputExcluded?: boolean;
+  /** False keeps this skill out of palette flip families, so it never shares a tile with a flip parent or child. */
+  readonly paletteFlip?: boolean;
   /** Stable selectable skill resolved from a build-template palette ID. */
   readonly loadoutSkillId?: SkillId;
   /** Base identity replaced by this specialization's weapon skill, independent of its display label. */
   readonly weaponVariantRootId?: SkillId;
   /**
    * Retain the catalog record but omit it from patch authoring because no
-   * simulator path consumes it. This is independent of simulatorExcluded,
+   * simulator path consumes it. This is independent of rotationInputExcluded,
    * which also covers live indirect skills.
    */
   readonly patchAuthoringExcluded?: boolean;
+  /** Named concrete choices for an input resolved by its profession before cast acceptance. */
+  readonly selector?: Readonly<Record<string, SkillId>>;
   readonly type?: string;
   readonly slot?: string | number;
   readonly weapon?: string;
@@ -116,10 +126,6 @@ export interface Skill extends CatalogEntity {
   readonly specialization?: string;
   readonly requiredMainHand?: string;
   readonly requiredOffHand?: string | false;
-  /** Effective player cast duration; independent summons retain their base duration. */
-  readonly castTimeMs?: number;
-  /** Summon-only measured duration under Quickness. Player skills use castTimeMs. */
-  readonly quicknessCastTimeMs?: number;
   /**
    * Casts on a separate actor lane. Independent casts remain serial with one
    * another but do not reserve or delay the player's ordinary cast lane.
@@ -133,10 +139,6 @@ export interface Skill extends CatalogEntity {
   readonly rechargeAnchor?: 'castStart' | 'castEnd';
   /** An independently scheduled actor starts its recharge when its own action executes. */
   readonly rechargeOwner?: 'actor';
-  readonly rechargeOffsetMs?: number;
-  /** Fraction of the accepted interval to the recharge anchor, before any fixed offset. */
-  readonly rechargeProgress?: number;
-  readonly cooldown?: number;
   /** Which actor's active boons determine recharge-rate modifiers. */
   readonly rechargeBuffAudience?: typeof RECIPIENT.SELF | typeof RECIPIENT.SUMMONS;
   /** Recharge always runs at the base rate; Alacrity never changes it (for example, Revenant legend swap). */
@@ -148,13 +150,6 @@ export interface Skill extends CatalogEntity {
    */
   readonly usableWhileRecharging?: boolean;
   /**
-   * Self-inflicted stun applied to the player when this serial cast completes
-   * (e.g. Berserker Head Butt). The player's cast lane is blocked for this many
-   * milliseconds after the cast unless the next serial skill is a `stunbreak`,
-   * or the player has stability when the cast ends.
-   */
-  readonly selfStunMs?: number;
-  /**
    * Marks this skill as a stunbreak. A stunbreak may be cast during an active
    * self-stun (see `selfStunMs`) and clears it, letting the player act again
    * immediately instead of waiting out the stun.
@@ -164,20 +159,10 @@ export interface Skill extends CatalogEntity {
   readonly evades?: boolean;
   /** Activation shadowsteps its actor; shared equipment such as Relic of Peitha reacts to committed activations. */
   readonly shadowstepSkill?: boolean;
-  /**
-   * Fixed milliseconds from `peithaImpactAnchor` to the Relic of Peitha projectile impact, including launch latency
-   * and travel. Skills without a measured value use the relic's default impact delay.
-   */
-  readonly peithaImpactDelayMs?: number;
   /** Measures the Peitha impact delay from activation (default) or from the activation's cast end. */
   readonly peithaImpactAnchor?: 'castStart' | 'castEnd';
-  readonly ammo?: number;
-  /** Minimum delay between consecutive casts of an ammo skill, in seconds. */
-  readonly ammoCastLockout?: number;
-  readonly defaultInterruptMs?: number;
   /** Controls whether interruption preserves committed effects or only packets that have already occurred. */
   readonly interruptMode?: SkillInterruptMode;
-  readonly interruptCommitMs?: number;
   /** Keep the serial cast lane blocked through the original cast end after the skill commits. */
   readonly retainsCastLockoutAfterInterrupt?: boolean;
   readonly effects?: readonly SkillEffect[];
@@ -186,9 +171,10 @@ export interface Skill extends CatalogEntity {
   readonly parentId?: SkillId;
   readonly flipParentId?: SkillId | null;
   readonly flipSkillId?: SkillId | null;
-  /** Seconds a completed parent keeps its follow-up window open; professions supply their default when absent. */
-  readonly flipDuration?: number;
   readonly nextChainId?: SkillId | null;
+  /** Autoattack chain identity and one-based position, supplied by catalog assembly. */
+  readonly chainRoot?: SkillId | null;
+  readonly chainStep?: number | null;
   /** UI-only family key for skills that occupy one live combat-bar tile. */
   readonly paletteTileId?: SkillId | string;
   /** Stable fallback order within a UI-only tile family. */
@@ -198,12 +184,8 @@ export interface Skill extends CatalogEntity {
   readonly tags?: readonly string[];
   readonly skillFamily?: SkillFamily;
   readonly resource?: unknown;
-  /** Amount of the resource selected by the consuming profession mechanic. */
-  readonly resourceGain?: number;
-  /** Patchable amount a declared cost pays when it names no balance-profile field. */
-  readonly resourceCost?: number;
   readonly cost?: SkillCost;
-  /** Named mechanic work a committed activation schedules; each task receives `{ cast, trigger }`. */
+  /** Named mechanic work a committed activation schedules; each task receives `{ cast, taskDefinition }`. */
   readonly tasks?: readonly SkillTask[];
   /** Ordered mutations executed by the platform at the declared activation phase. */
   readonly sideEffects?: readonly SkillSideEffect[];
@@ -269,10 +251,9 @@ export interface BalanceProfile extends CatalogEntity {
  */
 interface SkillCost {
   readonly resource: 'endurance' | ResourceKey;
-  /** Fixed game-rule costs bypass balance authoring and cannot combine with another amount selector. */
-  readonly amount?: number;
-  /** Read an authored numeric skill field live; without an amount selector, pay resourceCost. */
-  readonly skillAmount?: string;
+  /** The one authored price; patches edit it through the `cost.amount` field so admission and payment agree. */
+  readonly amount: number;
+  /** Payment defaults to cast start; commitment-paid skills keep interrupted attempts free. */
   readonly spendOn?: 'castStart' | 'castCommit';
 }
 
@@ -294,10 +275,11 @@ export interface SkillTask {
   readonly count?: number;
 }
 
+/** Skill identities anchor the chain and its successor; index is the zero-based position within that chain. */
 export interface AutoattackChainPosition {
-  readonly root: number;
+  readonly rootSkillId: number;
   readonly index: number;
-  readonly next: number | null;
+  readonly nextSkillId: number | null;
 }
 
 export interface CanonicalCatalog<TSkill extends Skill = Skill> {
@@ -327,10 +309,12 @@ export interface CanonicalCatalog<TSkill extends Skill = Skill> {
   readonly [field: string]: unknown;
 }
 
+/** Identity shared by skills, profiles, and traits; owners declare every other field on their own closed types. */
 export interface CatalogEntity {
   readonly id: SkillId;
   readonly name: string;
-  readonly [field: string]: unknown;
+  /** Skills and traits both render an icon. */
+  readonly icon?: string;
 }
 
 export interface CatalogLookup {

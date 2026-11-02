@@ -249,5 +249,7 @@ export type UnvalidatedBuild = unknown;
 export interface ProfessionBuildDefinition<TBuild extends object = object> {
   readonly createBuildDefaults?: () => TBuild;
   readonly migrateBuild?: (saved: UnvalidatedBuild) => TBuild;
+  /** Upgrade unversioned saved rotation files before the shared command decoder validates them. */
+  readonly migrateRotation?: (rotation: readonly unknown[]) => readonly unknown[];
   readonly validateBuild?: (build: UnvalidatedBuild) => BuildValidationResult;
 }

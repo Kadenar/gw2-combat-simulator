@@ -47,7 +47,7 @@ export function createRuntimeResources<T extends object>(
 
     const state = policy.state(runtime.mechanics);
 
-    if (![state.value, state.maximum, state.updatedAt, state.rate].every(Number.isFinite))
+    if (![state.value, state.maximum, state.updatedAt, state.unitsPerSecond].every(Number.isFinite))
       throw new TypeError('Invalid resource clock.');
 
     return { policy, state };
@@ -91,7 +91,7 @@ export function createRuntimeResources<T extends object>(
   const refresh = (key: ResourceKey) => {
     const { policy, state } = get(key);
     advanceResource(state, runtime.time);
-    const before = [state.maximum, state.value, state.rate, state.recoveryMaximum];
+    const before = [state.maximum, state.value, state.unitsPerSecond, state.recoveryMaximum];
     state.maximum = amount(policy.maximum(runtime.mechanics));
     state.value = Math.min(state.value, state.maximum);
 
@@ -107,12 +107,12 @@ export function createRuntimeResources<T extends object>(
     if (typeof recovery === 'number') {
       if (!Number.isFinite(recovery)) throw new TypeError('Invalid resource rate.');
 
-      state.rate = recovery;
+      state.unitsPerSecond = recovery;
     } else {
       const discrete = state as DiscreteResourceClock;
-      const disabled = !(discrete.interval > 0 && discrete.amount > 0);
+      const disabled = !(discrete.interval > 0 && discrete.unitsPerTick > 0);
       discrete.interval = amount(recovery.interval);
-      discrete.amount = amount(recovery.amount);
+      discrete.unitsPerTick = amount(recovery.amount);
 
       if (discrete.interval > 0 && canonicalTime(discrete.interval) === 0)
         throw new RangeError('Resource cadence is below clock precision.');
@@ -120,13 +120,13 @@ export function createRuntimeResources<T extends object>(
       if (!['immediate', 'first-spend'].includes(recovery.start))
         throw new TypeError('Invalid resource cadence start.');
 
-      if (!discrete.interval || !discrete.amount) discrete.nextAt = Infinity;
+      if (!discrete.interval || !discrete.unitsPerTick) discrete.nextAt = Infinity;
       else if (disabled && (recovery.start === 'immediate' || state.value < state.maximum))
         discrete.nextAt = canonicalTime(runtime.time + discrete.interval);
     }
 
     // Compare one settled snapshot so unchanged policies keep the existing accrual anchor.
-    const after = [state.maximum, state.value, state.rate, state.recoveryMaximum];
+    const after = [state.maximum, state.value, state.unitsPerSecond, state.recoveryMaximum];
 
     if (before.some((value, index) => value !== after[index])) anchorResourceClock(state);
 
@@ -143,9 +143,9 @@ export function createRuntimeResources<T extends object>(
       state.maximum = amount(policy.maximum(runtime.mechanics));
       state.value = Math.min(state.maximum, amount(policy.initial(runtime.mechanics, state.maximum)));
       state.updatedAt = runtime.time;
-      state.rate = 0;
+      state.unitsPerSecond = 0;
 
-      if (policy.kind === 'discrete') Object.assign(state, { interval: 0, amount: 0, nextAt: Infinity });
+      if (policy.kind === 'discrete') Object.assign(state, { interval: 0, unitsPerTick: 0, nextAt: Infinity });
 
       anchorResourceClock(state);
       refresh(key);
@@ -175,7 +175,7 @@ export function createRuntimeResources<T extends object>(
         next < state.value &&
         state.nextAt === Infinity &&
         state.interval > 0 &&
-        state.amount > 0
+        state.unitsPerTick > 0
       )
         state.nextAt = canonicalTime(runtime.time + state.interval);
 
@@ -210,7 +210,7 @@ export function createRuntimeResources<T extends object>(
       if ('nextAt' in state && value > 0) {
         const discrete = state;
 
-        if (discrete.nextAt === Infinity && discrete.interval > 0 && discrete.amount > 0)
+        if (discrete.nextAt === Infinity && discrete.interval > 0 && discrete.unitsPerTick > 0)
           discrete.nextAt = canonicalTime(runtime.time + discrete.interval);
       }
 
@@ -241,7 +241,7 @@ export function createRuntimeEndurance<T extends object>(
     const state = policy.state(runtime.mechanics);
     const maximum = amount(policy.maximum(runtime.mechanics));
 
-    if (![state.value, state.maximum, state.updatedAt, state.rate].every(Number.isFinite) || maximum === 0)
+    if (![state.value, state.maximum, state.updatedAt, state.unitsPerSecond].every(Number.isFinite) || maximum === 0)
       throw new TypeError('Invalid endurance pool.');
 
     return { state, maximum };
@@ -271,7 +271,7 @@ export function createRuntimeEndurance<T extends object>(
   if (policy) {
     const { state, maximum } = pool();
     // Every simulation starts with the selected profession's full endurance pool.
-    Object.assign(state, { value: maximum, maximum, updatedAt: runtime.time, rate: 0 });
+    Object.assign(state, { value: maximum, maximum, updatedAt: runtime.time, unitsPerSecond: 0 });
     advance();
   }
 

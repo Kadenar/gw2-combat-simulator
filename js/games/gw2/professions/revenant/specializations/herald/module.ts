@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
 import { heraldAttributes } from '#gw2/professions/revenant/specializations/herald/attributes.js';
 import {
@@ -27,7 +28,7 @@ export const heraldModule = defineNativeModule({
     skillFlips: REVENANT_HERALD_SKILL_FLIPS,
     profileFields: REVENANT_HERALD_PROFILE_FIELDS,
     skillFields: HERALD_SKILL_FIELDS,
-    skillMechanics: HERALD_BASE_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(HERALD_BASE_SKILL_MECHANICS)
   }),
   state: { create: heraldState.create },
   attributes: heraldAttributes,

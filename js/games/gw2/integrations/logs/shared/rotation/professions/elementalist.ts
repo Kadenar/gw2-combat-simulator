@@ -7,6 +7,7 @@ import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID
 } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 type Element = keyof typeof ELEMENTALIST_ATTUNEMENT_SKILL_IDS;
 
@@ -19,7 +20,7 @@ const ELEMENTS = new Set<Element>(['Fire', 'Water', 'Air', 'Earth']);
 const DUAL_ATTUNEMENT_NAME = /^Dual (Fire|Water|Air|Earth) Attunement$/i;
 // EI derives Unravel and its generated Dual attunement from separate buff gains that can land a millisecond apart.
 const UNRAVEL_TRANSITION_WINDOW_MS = 5;
-const ATTUNEMENT_SUFFIX_SKILLS = new Set(['Glyph of Elemental Power', 'Primordial Stance', 'Deploy Jade Sphere']);
+const ATTUNEMENT_SUFFIX_SKILLS = new Set(['Glyph of Elemental Power', 'Deploy Jade Sphere']);
 const GLYPH_OF_STORMS = new Map<string, ElementalistSkillIdentity>([
   ['Firestorm', { name: 'Glyph of Storms (Fire)', skillId: ID.GLYPH_OF_STORMS_FIRE }],
   ['Ice Storm', { name: 'Glyph of Storms (Water)', skillId: ID.GLYPH_OF_STORMS_WATER }],
@@ -82,7 +83,8 @@ function inferStartingElement(context: LogActionNormalizationContext, actions: r
 
     if (suffixElement) return suffixElement;
 
-    const attunement = String(recordedActionSkill(action, context)?.attunement || '');
+    const skill: ElementalistSkill | null = recordedActionSkill(action, context);
+    const attunement = String(skill?.attunement || '');
     const skillElement = attunement.includes('+') ? null : elementName(attunement);
 
     if (skillElement) return skillElement;

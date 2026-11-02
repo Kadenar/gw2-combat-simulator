@@ -5,7 +5,7 @@ import { buildChartSeries } from '#gw2/app/results/model.js';
 import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
 import { resolvePaletteDropItem } from '#gw2/app/rotation/palette/interactions.js';
 import {
-  currentAutoattackSkill,
+  createPaletteContext,
   paletteActionSkills,
   paletteSkillView,
   weaponSkills
@@ -268,7 +268,7 @@ test('Dwarf upkeep stops dealing damage when released', () => {
     }
   );
   const hits = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Vengeful Hammers');
-  const release = result.steps.find((step) => step.skill === 'Release Hammers');
+  const release = result.steps.find((step) => step.skillName === 'Release Hammers');
   assert.deepEqual(result.warnings, []);
   assert.ok(hits.length > 0);
   assert.ok(hits.every((event) => event.at <= release.end / 1000));
@@ -653,7 +653,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
     runtime: {
       profession: {
         core: {
-          endurance: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }
+          endurance: { value: 100, maximum: 100, updatedAt: 0, unitsPerSecond: 0 }
         },
         specialization: {
           kind: 'Renegade',
@@ -952,12 +952,12 @@ test('All for One refunds Energy and halves only enhanced-skill recharge', () =>
     revenantCatalog.balanceProfilesById.get(TRAIT.ALL_FOR_ONE).resourceGain
   );
   assert.equal(
-    traited.planningState.cooldowns[SKILL.ICERAZORS_IRE].remaining,
-    base.planningState.cooldowns[SKILL.ICERAZORS_IRE].remaining / 2
+    traited.planningState.cooldownsBySkillId[SKILL.ICERAZORS_IRE].remainingMs,
+    base.planningState.cooldownsBySkillId[SKILL.ICERAZORS_IRE].remainingMs / 2
   );
   assert.equal(
-    traited.planningState.cooldowns[SKILL.RAZORCLAWS_RAGE].readyAt,
-    base.planningState.cooldowns[SKILL.RAZORCLAWS_RAGE].readyAt
+    traited.planningState.cooldownsBySkillId[SKILL.RAZORCLAWS_RAGE].readyAtMs,
+    base.planningState.cooldownsBySkillId[SKILL.RAZORCLAWS_RAGE].readyAtMs
   );
 });
 
@@ -1024,7 +1024,7 @@ test('Soulcleave procs both damage packets and recharges from dismissal', () => 
 
   assert.ok(procs.some((event) => /Additional Strike/.test(event.name)));
   assert.ok(procs.some((event) => /Life Siphon/.test(event.name) && event.flatStrikePowerCoeff > 0));
-  const dismiss = result.steps.find((step) => step.skill === 'Dismiss Lieutenant Soulcleave');
+  const dismiss = result.steps.find((step) => step.skillName === 'Dismiss Lieutenant Soulcleave');
 
   assert.equal(
     result.steps.at(-1).start,
@@ -1056,7 +1056,7 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
     initialEnergy: 100
   });
 
-  const release = odds.steps.find((step) => step.skill === 'Relinquish Power');
+  const release = odds.steps.find((step) => step.skillName === 'Relinquish Power');
   assert.equal(
     odds.steps.at(-1).start,
     release.end + (revenantCatalog.skillsById.get(27107).manualReleaseCooldown * 1000) / 1.25
@@ -1140,7 +1140,7 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
   };
   const result = simulate('Vindicator', ['Dodge', { type: 'cast', skillId: 62757 }, 'Dodge', 'Dodge'], config);
   const dodges = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Death Drop');
-  const meld = result.steps.find((step) => step.skill === 'Energy Meld');
+  const meld = result.steps.find((step) => step.skillName === 'Energy Meld');
 
   assert.deepEqual(result.warnings, []);
   // Reaver's Curse enhances exactly the next dodge; later dodges return to normal damage.
@@ -1172,8 +1172,8 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
     selectedTraitIds: []
   });
   assert.ok(
-    result.planningState.cooldowns[SKILL.ENERGY_MELD].readyAt - meld.end <
-      baseline.planningState.cooldowns[SKILL.ENERGY_MELD].readyAt - baseline.steps.at(-1).end
+    result.planningState.cooldownsBySkillId[SKILL.ENERGY_MELD].readyAtMs - meld.end <
+      baseline.planningState.cooldownsBySkillId[SKILL.ENERGY_MELD].readyAtMs - baseline.steps.at(-1).end
   );
   assert.ok(
     result.events.some(
@@ -1229,22 +1229,22 @@ test('Vindicator resource display includes live endurance', () => {
   const core = revenantProfession.ui.resourceViews({
     specialization: 'Core',
     professionState: {
-      [STATE.ENERGY]: { value: 40.9, maximum: 100, updatedAt: 0, rate: 5 },
-      [STATE.ENDURANCE]: { value: 25, maximum: 100, updatedAt: 0, rate: 0 }
+      [STATE.ENERGY]: { value: 40.9, maximum: 100, updatedAt: 0, unitsPerSecond: 5 },
+      [STATE.ENDURANCE]: { value: 25, maximum: 100, updatedAt: 0, unitsPerSecond: 0 }
     }
   });
   const conduit = revenantProfession.ui.resourceViews({
     specialization: 'Conduit',
     professionState: {
-      [STATE.ENERGY]: { value: 40, maximum: 100, updatedAt: 0, rate: 5 },
-      [STATE.AFFINITY]: { value: 3, maximum: 5, rate: 0, updatedAt: 0 }
+      [STATE.ENERGY]: { value: 40, maximum: 100, updatedAt: 0, unitsPerSecond: 5 },
+      [STATE.AFFINITY]: { value: 3, maximum: 5, unitsPerSecond: 0, updatedAt: 0 }
     }
   });
   const vindicator = revenantProfession.ui.resourceViews({
     specialization: 'Vindicator',
     professionState: {
-      [STATE.ENERGY]: { value: 40, maximum: 100, updatedAt: 0, rate: 5 },
-      [STATE.ENDURANCE]: { value: 25, maximum: 100, updatedAt: 0, rate: 0 }
+      [STATE.ENERGY]: { value: 40, maximum: 100, updatedAt: 0, unitsPerSecond: 5 },
+      [STATE.ENDURANCE]: { value: 25, maximum: 100, updatedAt: 0, unitsPerSecond: 0 }
     }
   });
 
@@ -1340,7 +1340,7 @@ test('Vindicator jumps pay endurance before midair Energy refunds and reset auto
     }
   );
   assert.deepEqual(result.warnings, []);
-  const jumps = result.steps.filter((step) => step.skill === 'Dodge');
+  const jumps = result.steps.filter((step) => step.skillName === 'Dodge');
   assert.equal(jumps.length, 3);
   assert.ok(jumps.slice(1).every((step, index) => step.start === jumps[index].end));
   assert.equal(result.steps.at(-1).start, jumps.at(-1).end);
@@ -1392,7 +1392,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
     }
   };
 
-  assert.equal(currentAutoattackSkill(app).name, 'Preparation Thrust');
+  assert.equal(createPaletteContext(app).activeAutoattack.name, 'Preparation Thrust');
   const paletteSkill = paletteActionSkills(app, 'Vindicator').find(
     (skill) => skill.name === VINDICATOR_DODGE_AUTO_ACTION
   );
@@ -1401,7 +1401,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   assert.deepEqual(
     vindicatorDodgeAutoRotationEntries({
       specialization: 'Vindicator',
-      activeAutoattack: currentAutoattackSkill(app)
+      activeAutoattack: createPaletteContext(app).activeAutoattack
     }),
     [
       {
@@ -1463,11 +1463,14 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   assert.equal(changeCount, 2);
 
   app.results.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST] = SKILL.BRUTAL_BLADE;
-  assert.equal(currentAutoattackSkill(app).name, 'Brutal Blade');
+  assert.equal(createPaletteContext(app).activeAutoattack.name, 'Brutal Blade');
 
   const combined = simulate(
     'Vindicator',
-    ['Preparation Thrust', ...vindicatorDodgeAutoRotationEntries({ activeAutoattack: currentAutoattackSkill(app) })],
+    [
+      'Preparation Thrust',
+      ...vindicatorDodgeAutoRotationEntries({ activeAutoattack: createPaletteContext(app).activeAutoattack })
+    ],
     {
       selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
       startingLegend: LEGEND.ASSASSIN,
@@ -1492,7 +1495,7 @@ test('Vindicator legend skills preserve the Greatsword autoattack chain', () => 
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     ['Mist Swing', 'Mist Slash', 'Spear of Archemorus', 'Arcing Mists']
   );
 });
@@ -1560,8 +1563,8 @@ test('Deathstrike weapon palette keeps the primary skill identity on cooldown', 
       planningState: {
         atSeconds: 0.72,
         ammoBySkillId: {},
-        cooldowns: {
-          [SKILL.DEATHSTRIKE]: { readyAt: 12420, remaining: 11700 }
+        cooldownsBySkillId: {
+          [SKILL.DEATHSTRIKE]: { readyAtMs: 12420, remainingMs: 11700 }
         }
       }
     },
@@ -1654,4 +1657,16 @@ test('Fervor modifiers and observations resolve the selected profile cap without
 
     assert.equal(Object.hasOwn(profession.specialization.state, 'kallasFervorMaximumStacks'), false);
   }
+});
+
+test('Fervor counting preserves start, expiry, and cap boundaries on readonly partial state', () => {
+  const state = Object.freeze({
+    kallasFervor: Object.freeze([Object.freeze({ at: 1, expiresAt: 3 }), Object.freeze({ at: 2, expiresAt: 4 })])
+  });
+  assert.equal(activeKallasFervorStacks(state, 0, 1), 0);
+  assert.equal(activeKallasFervorStacks(state, 1, 1), 1);
+  assert.equal(activeKallasFervorStacks(state, 2, 1), 1);
+  assert.equal(activeKallasFervorStacks(state, 2, 2), 2);
+  assert.equal(activeKallasFervorStacks(state, 3, 2), 1);
+  assert.equal(activeKallasFervorStacks(state, 4, 1), 0);
 });

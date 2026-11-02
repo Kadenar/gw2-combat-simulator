@@ -5,12 +5,11 @@ import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, WEAPO
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<WarriorSkill>>> = {
   [ID.SUNDERING_LEAP]: {
     name: 'Sundering Leap',
-    description:
-      'Rage. Leap to a location, dealing damage and inflicting conditions on all foes in the area. Extends the duration of berserk mode if it hits.',
     icon: 'https://render.guildwars2.com/file/C8B8AD46430401040D732711F8EB3BFF37B6052B/1058651.png',
     type: 'Utility',
     slot: 'Utility',
@@ -73,8 +72,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.GUN_FLAME]: {
     name: 'Gun Flame',
-    description:
-      'Primal Burst. Fire a fast, flaming shot that explodes on the first foe it hits, interrupting foes in the area.',
     icon: 'https://render.guildwars2.com/file/C4CF21FCA018CF58CC94B8F3211004A2496147AE/1058645.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -104,8 +101,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.SKULL_GRINDER]: {
     name: 'Skull Grinder',
-    description:
-      'Primal Burst. Unleash a powerful skull strike that dazes your target and inflicts multiple conditions.',
     icon: 'https://render.guildwars2.com/file/043071CABF4FD10BB85AD24947ADF30734ACC7E9/1058644.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -147,7 +142,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.ARC_DIVIDER]: {
     name: 'Arc Divider',
-    description: 'Primal Burst. Spin to create a violent shock wave that damages nearby foes.',
     icon: 'https://render.guildwars2.com/file/0CC6E97CF3DD32E5B57001980702C10F1538F97E/1058639.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -175,7 +169,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.SCORCHED_EARTH]: {
     name: 'Scorched Earth',
-    description: 'Primal Burst. Fire a burning shot into the ground that creates a trail of flaming destruction.',
     icon: 'https://render.guildwars2.com/file/BE01D01CCE7503A4FE1D7F0F0A680EED3230BAAA/1058643.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -209,8 +202,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.WILD_BLOW]: {
     name: 'Wild Blow',
-    description:
-      'Rage. Lash out with a critical attack that knocks down your foes. Extend the duration of berserk mode if this attack hits.',
     icon: 'https://render.guildwars2.com/file/584D27AD243C071B3505B311D9A50CB9B9C0ED94/1058653.png',
     type: 'Utility',
     slot: 'Utility',
@@ -258,8 +249,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.SHATTERING_BLOW]: {
     name: 'Shattering Blow',
-    description:
-      'Rage. Summon a rock that blocks attacks, then shatter it to send out rock fragments that inflict bleeding on all foes in front of you. Extends the duration of berserk mode if it hits.',
     icon: 'https://render.guildwars2.com/file/317AAB9736A32EBBE8A54FA6519FAD7510A71672/1058650.png',
     type: 'Utility',
     slot: 'Utility',
@@ -307,7 +296,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.BERSERK]: {
     name: 'Berserk',
-    description: 'Rage. Gain adrenaline, an attack-speed boost, and access to primal burst skills.',
     icon: 'https://render.guildwars2.com/file/1354D8FC07F9F859DC7F0E7B61C0724FD4927C4E/1058638.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -341,8 +329,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.BLOOD_RECKONING]: {
     name: 'Blood Reckoning',
-    description:
-      'Rage. Heal yourself, gain adrenaline, and recharge all primal burst skills. Heal for a percentage of your outgoing damage. This skill extends the duration of berserk mode.',
     icon: 'https://render.guildwars2.com/file/3E80EA264B52D3A3B3CA2E5DA41F57BF35445AF4/1058642.png',
     type: 'Heal',
     slot: 'Heal',
@@ -375,8 +361,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.OUTRAGE]: {
     name: 'Outrage',
-    description:
-      'Rage. Break out of stun and extend the duration of berserk mode. The extension of berserk mode increases if an enemy is nearby.',
     icon: 'https://render.guildwars2.com/file/DE44372830465728D82500744A04041359ECA9C0/1058652.png',
     type: 'Utility',
     slot: 'Utility',
@@ -407,7 +391,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.HEAD_BUTT]: {
     name: 'Head Butt',
-    description: 'Rage. Stun your target and stun yourself. Gain adrenaline and extend berserk duration if you hit.',
     icon: 'https://render.guildwars2.com/file/046F1B0E64AC140CB7C0DE26A8D61CE13E02466A/1058637.png',
     type: 'Elite',
     slot: 'Elite',
@@ -452,8 +435,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.FLAMING_FLURRY]: {
     name: 'Flaming Flurry',
-    description:
-      'Primal Burst. Lash out with a flurry of strikes that block missiles and shoot fireballs at foes in front of you.',
     icon: 'https://render.guildwars2.com/file/F7DB99C8C851FA8094FFFAE2B92F0372641CF89F/1058647.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -488,8 +469,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.DECAPITATE]: {
     name: 'Decapitate',
-    description:
-      'Primal Burst. Gather your strength into a powerful attack. If it hits, gain might and recharge this skill.',
     icon: 'https://render.guildwars2.com/file/93C1E158334AF969FCDCDFC3FD2625780C73B237/1058636.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -518,8 +497,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.RUPTURING_SMASH]: {
     name: 'Rupturing Smash',
-    description:
-      'Primal Burst. Jump to the targeted location and slam your hammer down, creating a deadly chain of earthen shock waves that immobilize and daze foes.',
     icon: 'https://render.guildwars2.com/file/F64D02DBB50B06737D3B4905B26E2A71A3EF0A19/1058640.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -558,8 +535,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.SLICING_MAELSTROM]: {
     name: 'Slicing Maelstrom',
-    description:
-      'Primal Burst. Slice nearby enemies, removing boons and gaining adrenaline per boon removed. Deal more damage if your target has no boons.',
     icon: 'https://render.guildwars2.com/file/E8D6FA67E7460325725107F636DDF1492106A342/3098879.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -579,8 +554,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.RAMPART_SPLITTER]: {
     name: 'Rampart Splitter',
-    description:
-      'Primal Burst. Slam your staff on the ground, sending a shock wave forward that damages and immobilizes enemies while inspiring nearby allies, healing and granting regeneration to them.',
     icon: 'https://render.guildwars2.com/file/5FC8CA3826E41F7E2DB10811E5F61A2EA4B816EC/3256397.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -608,7 +581,6 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
   },
   [ID.WILD_THROW]: {
     name: 'Wild Throw',
-    description: 'Primal Burst. Throw several piercing spears that inflict vulnerability in quick succession.',
     icon: 'https://render.guildwars2.com/file/0B79EB6203654C703FF9DCBEDF2A4BDAB54D35FC/3379204.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -653,7 +625,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>
       }
     ]
   }
-});
+};
 
 /** Intrinsic live modifiers retain critical semantics and the simulator's boonless-target assumption. */
 export const slicingMaelstromModifiers: readonly Gw2ModifierRule[] = [

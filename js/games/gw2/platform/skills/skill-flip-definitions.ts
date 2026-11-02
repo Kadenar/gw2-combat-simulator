@@ -5,7 +5,7 @@ export interface SkillFlipDefinition {
   readonly parentId: SkillId;
   readonly followUpId: SkillId;
   /** Secondary commands share a parent without replacing its default follow-up. */
-  readonly defaultFollowUp?: boolean;
+  readonly isDefaultFollowUp?: boolean;
 }
 
 export type SkillFlips = readonly SkillFlipDefinition[];
@@ -31,15 +31,15 @@ export function normalizeSkillFlips(
       throw new TypeError(`Skill flip has a self-reference or duplicate parent for ${followUpId}.`);
     }
 
-    if (chains.has(parentId) && chains.get(parentId)?.root === chains.get(followUpId)?.root) {
+    if (chains.has(parentId) && chains.get(parentId)?.rootSkillId === chains.get(followUpId)?.rootSkillId) {
       throw new TypeError(`Autoattack chain members cannot form a skill flip: ${parentId} -> ${followUpId}.`);
     }
 
-    if (declaration.defaultFollowUp != null && typeof declaration.defaultFollowUp !== 'boolean') {
-      throw new TypeError(`Skill flip ${parentId} -> ${followUpId} has an invalid defaultFollowUp.`);
+    if (declaration.isDefaultFollowUp != null && typeof declaration.isDefaultFollowUp !== 'boolean') {
+      throw new TypeError(`Skill flip ${parentId} -> ${followUpId} has an invalid isDefaultFollowUp.`);
     }
 
-    if (declaration.defaultFollowUp !== false) {
+    if (declaration.isDefaultFollowUp !== false) {
       if (defaults.has(parentId)) throw new TypeError(`Skill ${parentId} declares multiple default follow-ups.`);
 
       defaults.set(parentId, followUpId);
@@ -49,7 +49,7 @@ export function normalizeSkillFlips(
     return Object.freeze({
       parentId,
       followUpId,
-      ...(declaration.defaultFollowUp === false ? { defaultFollowUp: false } : {})
+      ...(declaration.isDefaultFollowUp === false ? { isDefaultFollowUp: false } : {})
     });
   });
   // Follow-up families have a stable root; cycles cannot represent a rooted family.

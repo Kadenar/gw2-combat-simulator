@@ -12,6 +12,7 @@ import {
   guildAttackConditions,
   SPECTER_THIEVES_GUILD_ACTOR
 } from '#gw2/professions/thief/specializations/specter/mechanics/thieves-guild.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 const actors = {
@@ -20,7 +21,6 @@ const actors = {
   Specter: SPECTER_THIEVES_GUILD_ACTOR,
   Antiquary: ANTIQUARY_THIEVES_GUILD_ACTOR
 };
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const config = (specialization) => ({ specialization, selectedSkillIds: [ID.THIEVES_GUILD] });
 const guildPackets = (result) =>
   result.events.filter((event) => event.type === 'damage' && event.sourceId === 'thief.thieves-guild');

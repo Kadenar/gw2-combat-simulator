@@ -13,6 +13,7 @@ import {
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
@@ -29,7 +30,6 @@ const simulate = createObservedProfessionSimulator(rangerProfession, {
   }),
   target: { armor: 2597, defiant: true, conditions: { Vulnerability: 25 } }
 });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const strike = (result, id) => result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === id);
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
 

@@ -16,7 +16,11 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 
 /** Accepted player disables trigger the equipped Earth familiar's personal boon at most once per interval. */
 export function applyCalcifyProtection(context: ElementalistRuntime, event: SimulationEvent): void {
-  if (event.type !== 'control' || event.actorType !== ACTOR.PLAYER || evokerState.from(context).element !== 'Earth')
+  if (
+    event.type !== 'control' ||
+    event.actorType !== ACTOR.PLAYER ||
+    evokerState.from(context.profession).element !== 'Earth'
+  )
     return;
 
   const skill = requireSkillFromContext(context, ID.CALCIFY);
@@ -36,7 +40,7 @@ export function applyCalcifyProtection(context: ElementalistRuntime, event: Simu
 
 /** Applies familiar, enchantment, and attunement-entry rewards at their actual event boundary. */
 export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): void {
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
   applyEvokerAttunementRechargePolicy(context, event, state);
   context.fireTrigger(evokerEventAccepted, { event });
 

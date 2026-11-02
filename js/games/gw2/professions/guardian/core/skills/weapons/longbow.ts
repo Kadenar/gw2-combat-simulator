@@ -5,11 +5,9 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
 // Packet offsets are the canonical Quickness timings measured from EVTC animation starts.
-export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.PUNCTURE_SHOT]: {
     name: 'Puncture Shot',
-    description:
-      'Fire an arrow that pierces enemies. If the arrow hits a second target, all enemies struck are crippled.',
     icon: 'https://render.guildwars2.com/file/080363673FCB09916AF7D035C31327C105EE219E/1012869.png',
     type: 'Weapon',
     weapon: 'Longbow',
@@ -32,7 +30,6 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.TRUE_SHOT]: {
     name: 'True Shot',
-    description: 'Charge up energy, creating a powerful attack that pierces through enemies.',
     icon: 'https://render.guildwars2.com/file/0B0A3D5C61D9DD0619FE032E3E752FB5AE0CE7BE/1012870.png',
     type: 'Weapon',
     weapon: 'Longbow',
@@ -50,7 +47,6 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.DEFLECTING_SHOT]: {
     name: 'Deflecting Shot',
-    description: 'Fire a missile that knocks back enemies and blocks missiles.',
     icon: 'https://render.guildwars2.com/file/71415F58F7FF445672ADA1DA7BC12576E7FA557B/1012871.png',
     type: 'Weapon',
     weapon: 'Longbow',
@@ -71,8 +67,6 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.SYMBOL_OF_ENERGY]: {
     name: 'Symbol of Energy',
-    description:
-      'Symbol. Fire a slow, arcing arrow that explodes on impact to burn targets and sear a symbol of energy into the ground.',
     icon: 'https://render.guildwars2.com/file/7DFEE492C091D39ABA7F26020F06FFE0C7A30453/1012872.png',
     type: 'Weapon',
     weapon: 'Longbow',
@@ -113,7 +107,6 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.HUNTERS_WARD]: {
     name: "Hunter's Ward",
-    description: 'Form your arrows into a barrier, and deal damage at the location.',
     icon: 'https://render.guildwars2.com/file/BA2C3116B20CF142F70D18394E377A043D3E0E96/1012873.png',
     type: 'Weapon',
     weapon: 'Longbow',
@@ -141,4 +134,4 @@ export const GUARDIAN_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   }
-});
+};

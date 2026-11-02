@@ -123,7 +123,7 @@ function paletteContext(app) {
     specialization: 'Tempest',
     catalog,
     professionState: app.results.planningState.profession,
-    cooldowns: app.results.planningState.cooldowns,
+    cooldowns: app.results.planningState.cooldownsBySkillId,
     time: app.results.planningState.atSeconds,
     build: app.build,
     traits: new Set(app.attributeData.activeTraits.map((trait) => trait.id))

@@ -5,10 +5,9 @@ import type { SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Defines non-Holosmith Engineer sword timing, damage, conditions, boons, and combo behavior. */
-export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.SUN_EDGE_NON_HOLOSMITH]: {
     name: 'Sun Edge',
-    description: 'Strike your foe and inflict vulnerability.',
     icon: 'https://render.guildwars2.com/file/136E9A23E326BE1D67FAD6793A6253024204A6E5/1770405.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -37,7 +36,6 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SUN_RIPPER_NON_HOLOSMITH]: {
     name: 'Sun Ripper',
-    description: 'Strike your foe again and inflict vulnerability.',
     icon: 'https://render.guildwars2.com/file/004244480A0828CE033FB575C8FA3A566A016C58/1770406.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -66,7 +64,6 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.GLEAM_SABER_NON_HOLOSMITH]: {
     name: 'Gleam Saber',
-    description: 'Unleash a burst of stored energy with your sword and recharge your other sword skills.',
     icon: 'https://render.guildwars2.com/file/DA9AC63DCF633A5D2806C37EB5C0E105C01DD7AC/1770407.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -93,8 +90,6 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.REFRACTION_CUTTER_NON_HOLOSMITH]: {
     name: 'Refraction Cutter',
-    description:
-      'Strike at foes in front of you and launch two blades of light at your target. Each blade inflicts conditions.',
     icon: 'https://render.guildwars2.com/file/C571A742D055DCA81F6FD70D38C0409DDC9ABEE5/1770408.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -137,7 +132,6 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.RADIANT_ARC_NON_HOLOSMITH]: {
     name: 'Radiant Arc',
-    description: 'Leap to your target and create an arc of light that strikes nearby foes. Gain quickness.',
     icon: 'https://render.guildwars2.com/file/A57A38790F3B7AE905B60AB2E172DC0C437125EA/1770409.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -173,7 +167,7 @@ export const ENGINEER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   }
-});
+};
 
 // Core variants remain distinct from the elite specialization weapon identities.
 export const NON_HOLOSMITH_SWORD_SKILL_IDS: ReadonlySet<SkillId> = new Set([

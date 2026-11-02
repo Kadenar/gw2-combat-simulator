@@ -31,7 +31,7 @@ export function isPetActorEvent(
 
 /** A landed strike from the current pet lifetime; retired pets and Ranger-owned pet effects never qualify. */
 export function isActivePetStrike(context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
-  const { pet } = professionCoreState(context);
+  const { pet } = professionCoreState(context.profession);
   return pet != null && isPetActorEvent(event) && event.summonOwner === pet.id && Number(event.coefficient) > 0;
 }
 

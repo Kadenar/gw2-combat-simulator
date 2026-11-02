@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { EngineerConfig } from '#gw2/professions/engineer/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -33,10 +36,10 @@ function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
 
 export const amalgamState = defineProfessionSpecializationState('Amalgam', createAmalgamState);
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectAmalgamPlanningState(input: Gw2PlanningStateInput) {
-  const state = amalgamState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectAmalgamPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = amalgamState.from(input.profession);
+  return {
     [STATE.SELECTED_MORPH_SKILL_IDS]: state.selectedMorphSkillIds,
     [STATE.EVOLVED_UNTIL]: state.evolvedUntil,
     [STATE.PLASMATIC_STATE_UNTIL]: state.plasmaticStateUntil,
@@ -44,5 +47,5 @@ export function projectAmalgamPlanningState(input: Gw2PlanningStateInput) {
     [STATE.PREDATOR_UNTIL]: state.predatorUntil,
     [STATE.TITANIC_UNTIL]: state.titanicUntil,
     [STATE.BERSERKER_UNTIL]: state.berserkerUntil
-  });
+  };
 }

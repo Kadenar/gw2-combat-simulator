@@ -15,7 +15,7 @@ import {
 } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
   rangerPetCombatMetadata,
   rangerPetCompanionId
@@ -98,7 +98,11 @@ function petBoonActive(context: MechanicQueriesOf<RangerRuntime>, kind: string):
 }
 
 /** Pet commands use their companion's speed rather than inheriting the player's Quickness. */
-function rangerPetCastDurationMs(context: MechanicQueriesOf<RangerRuntime>, skill: Skill, durationMs: number): number {
+function rangerPetCastDurationMs(
+  context: MechanicQueriesOf<RangerRuntime>,
+  skill: RangerSkill,
+  durationMs: number
+): number {
   if (!skill.petSkill) return durationMs;
 
   const petName = rangerPetForState(context.profession.core).name;

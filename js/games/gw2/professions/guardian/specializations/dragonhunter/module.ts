@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/guardian/data/trait-lines.js';
 import { dragonhunterHooks } from '#gw2/professions/guardian/specializations/dragonhunter/hooks.js';
 import { bindDragonhunterUi } from '#gw2/professions/guardian/specializations/dragonhunter/presentation.js';
@@ -19,7 +20,7 @@ export const dragonhunterModule = defineNativeModule({
     id: 'Dragonhunter',
     traitLines: TRAIT_LINES,
     skillFlips: GUARDIAN_DRAGONHUNTER_SKILL_FLIPS,
-    skillMechanics: DRAGONHUNTER_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(DRAGONHUNTER_SKILL_MECHANICS)
   }),
   state: {
     create: dragonhunterState.create,

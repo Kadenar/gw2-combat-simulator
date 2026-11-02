@@ -1,6 +1,9 @@
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { cloneStateFields, defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import {
@@ -65,22 +68,9 @@ export function activeCartridgeWindow(
   return undefined;
 }
 
-/** Detach only public fields before filtering expiry so private release history is never deep-cloned. */
-export function projectBladeswornPlanningState(input: Gw2PlanningStateInput) {
-  const state = cloneStateFields(bladeswornState.from(input), [
-    'flow',
-    'flowStabilizerWindows',
-    'traitPositiveFlowStartedAt',
-    'traitPositiveFlowUntil',
-    'traitPositiveFlowStacks',
-    'gunsaberActive',
-    'dragonTriggerActive',
-    'dragonCharges',
-    'overchargedCartridgeWindows'
-  ]);
-  state.overchargedCartridgeWindows = state.overchargedCartridgeWindows.filter(
-    (window) => window.expiresAt > input.time
-  );
+/** Filter public expiry windows without altering live state or reading private release history. */
+export function projectBladeswornPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = bladeswornState.from(input.profession);
   return {
     [STATE.FLOW]: state.flow,
     [STATE.DRAGON_CHARGES]: state.dragonCharges,
@@ -89,7 +79,9 @@ export function projectBladeswornPlanningState(input: Gw2PlanningStateInput) {
     [STATE.TRAIT_POSITIVE_FLOW_UNTIL]: state.traitPositiveFlowUntil,
     [STATE.TRAIT_POSITIVE_FLOW_STACKS]: state.traitPositiveFlowStacks,
     [STATE.GUNSABER_ACTIVE]: state.gunsaberActive,
-    [STATE.OVERCHARGED_CARTRIDGE_WINDOWS]: state.overchargedCartridgeWindows,
+    [STATE.OVERCHARGED_CARTRIDGE_WINDOWS]: state.overchargedCartridgeWindows.filter(
+      (window) => window.expiresAt > input.time
+    ),
     [STATE.DRAGON_TRIGGER_ACTIVE]: state.dragonTriggerActive
   };
 }

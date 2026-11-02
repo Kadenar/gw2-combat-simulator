@@ -3,6 +3,7 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
+import { resolveSkillSelector } from '#gw2/platform/skills/selectors.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   elementalistCoreSideEffectHandlers,
@@ -49,6 +50,7 @@ import {
 } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { shareHeatSyncBoon } from '#gw2/professions/elementalist/core/skills/weapons/warhorn.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
+import { validateElementalistGlyphs } from '#gw2/professions/elementalist/data/glyphs.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistRuntimeState,
@@ -75,14 +77,19 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
           state.hammerOrbs[element] = inputs[`orb:${element}`] ? 3600 : null;
     },
 
+    // Validate the selected runtime catalog, including patches, before any glyph can be cast.
+    initialize(context) {
+      validateElementalistGlyphs(context.helpers);
+    },
     buffPolicies: elementalistBuffPolicies,
     observeEffects: elementalistEffectStates,
     sideEffectHandlers: elementalistCoreSideEffectHandlers,
     endurance: elementalistEndurance,
     availability: elementalistCoreAvailability,
-    // The swap input drops a conjure first; only a later precombat input may change equipped weapon sets.
+    // Generic glyphs follow live attunement; a swap drops an equipped conjure before any weapon-set change.
     resolveCastSkill(context, skill) {
-      if (skill.id !== SHARED_SKILL_IDS.SWAP_WEAPONS || !context.profession.core.conjureEquipped) return skill;
+      if (skill.id !== SHARED_SKILL_IDS.SWAP_WEAPONS || !context.profession.core.conjureEquipped)
+        return resolveSkillSelector(context.helpers, skill, context.profession.core.primaryAttunement);
 
       const drop = context.helpers.skillsById.get(ID.DROP_BUNDLE);
 
@@ -123,7 +130,7 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
       );
     },
     onCastStart(runtime, cast) {
-      if (!cast.cancelled) elementalistOnCastStart(runtime, cast, cast.skill);
+      if (!cast.cancelledBeforeCommit) elementalistOnCastStart(runtime, cast, cast.skill);
     },
     onCastCommit(runtime, cast) {
       elementalistOnCastCommit(runtime, cast, cast.skill);

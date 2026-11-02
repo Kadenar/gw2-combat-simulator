@@ -11,10 +11,10 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 
 // Keyed declarations cannot smuggle assembly-owned fields through either literals or object spreads.
-const authoredSkill = { name: 'Fixture', description: 'Fixture skill.', icon: 'fixture.png' } satisfies SkillDefinition;
+const authoredSkill = { name: 'Fixture', icon: 'fixture.png' } satisfies SkillDefinition;
 function authoredDefinition(definition: SkillDefinition): SkillDefinition {
   return definition;
 }
@@ -36,6 +36,25 @@ authoredDefinition({ ...authoredSkill, flipParentId: 1 });
 const runtimeIdentity = { ...authoredSkill, id: 1 };
 // @ts-expect-error A runtime record is not a keyed definition even when passed by reference.
 authoredDefinition(runtimeIdentity);
+
+// Catalogs accept any field at runtime, so authored maps and arrays annotate their literal directly: each entry is
+// then checked for misspelled fields. Wrapping the literal in Object.freeze would infer its type and skip the check.
+export const misspelledMapEntry: Readonly<Record<number, SkillDefinition>> = {
+  1: {
+    ...authoredSkill,
+    // @ts-expect-error Misspelled fields in keyed maps fail at the declaration.
+    simulatrExcluded: true
+  }
+};
+
+export const misspelledArrayEntry: readonly Skill[] = [
+  {
+    id: 1,
+    name: 'Fixture',
+    // @ts-expect-error Inline skill arrays check each entry too.
+    simulatrExcluded: true
+  }
+];
 
 type Assert<T extends true> = T;
 type Equal<TLeft, TRight> = (<T>() => T extends TLeft ? 1 : 2) extends <T>() => T extends TRight ? 1 : 2 ? true : false;

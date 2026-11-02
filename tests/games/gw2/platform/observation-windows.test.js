@@ -103,7 +103,7 @@ test('post-death planning retains later self cooldowns without changing the comb
   assert.equal(result.combatEndTime, result.deathTime);
   assert.equal(result.planningState.atSeconds, result.observationEndTime);
   assert.ok(result.planningState.atSeconds > result.combatEndTime);
-  assert.ok(result.planningState.cooldowns[10174].remaining > 0);
+  assert.ok(result.planningState.cooldownsBySkillId[10174].remainingMs > 0);
   assert.ok(
     result.resolvedEvents.filter((event) => event.type === 'damage').every((event) => event.at <= result.deathTime)
   );
@@ -190,7 +190,7 @@ test('offset combat starts respect the clock and keep sigil procs aligned with r
     const expectedStart = Math.max(2, concurrentOffsetMs / 1000);
     assert.equal(result.combatStartTime, expectedStart);
     assert.equal(result.events.find((event) => event.type === 'combat_start').at, expectedStart);
-    assert.equal(result.steps.find((step) => step.skill === 'Combat Start').start, expectedStart * 1000);
+    assert.equal(result.steps.find((step) => step.skillName === 'Combat Start').start, expectedStart * 1000);
     assert.equal(result.firstHitTime, Math.ceil(expectedStart / 0.04) * 0.04 + 1);
     assert.deepEqual(
       result.procSteps.filter((event) => event.skill === 'Sigil of Ice').map((event) => event.start / 1000),

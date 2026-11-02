@@ -5,6 +5,7 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js'
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { targetHasCondition } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import type { AnnouncementEmission } from '#gw2/platform/effects/emission.js';
 import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import type { Gw2RelicContext, Gw2RelicRule, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -37,6 +38,29 @@ export function explicitCombatStartTime(events: readonly SimulationEvent[]): num
 
 export function defineRelic(rules: Gw2RelicRule): Readonly<Gw2RelicRule> {
   return Object.freeze(rules);
+}
+
+/** Relic packets share one effect-sourced identity keyed by the relic, so logs and breakdowns group every payload. */
+export function relicSource(relicId: number) {
+  return { source: 'Relic', sourceId: `relic.${relicId}`, actorType: ACTOR.EFFECT } as const;
+}
+
+/** Relic payloads that scale with the player's outgoing modifiers name the player as their owner. */
+export function playerOwnedRelicSource(relicId: number) {
+  return { ...relicSource(relicId), ownerActorType: ACTOR.PLAYER } as const;
+}
+
+/** Records one relic activation on the timeline, attributed to the skill whose event triggered it. */
+export function announceRelic(
+  ctx: Pick<Gw2RelicContext, 'effects'>,
+  event: SimulationEvent,
+  name: string,
+  fields: Omit<AnnouncementEmission['announcement'], 'type' | 'name' | 'at'> = {}
+): void {
+  ctx.effects.emit({
+    kind: 'announcement',
+    announcement: { type: 'relic', name, at: event.at, sourceSkill: event.skillName, ...fields }
+  });
 }
 
 /** Accepted independent windows preserve the longest expiry without another mutable lifetime owner. */
@@ -77,10 +101,7 @@ export function recordTimedBuffProc(
       at: event.at,
       duration,
       stacks: 1,
-      source: 'Relic',
-      sourceId: `relic.${relicId}`,
-      actorType: ACTOR.EFFECT,
-      ownerActorType: ACTOR.PLAYER,
+      ...playerOwnedRelicSource(relicId),
       name,
       skillName: name,
       triggeredBy: event.skillName,
@@ -121,10 +142,7 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
         event: {
           type: 'condition',
           at,
-          source: 'Relic',
-          sourceId: `relic.${RELIC_IDS.DIRECTOR}`,
-          actorType: ACTOR.EFFECT,
-          ownerActorType: ACTOR.PLAYER,
+          ...playerOwnedRelicSource(RELIC_IDS.DIRECTOR),
           skillName: name,
           name,
           triggeredBy: event.skillName,

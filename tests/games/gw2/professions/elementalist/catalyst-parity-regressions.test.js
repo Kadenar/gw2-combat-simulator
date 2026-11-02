@@ -45,7 +45,7 @@ test('Catalyst baseline renewal rejects intervals that cannot advance the clock 
     };
     // Admit the current occurrence through its owner before testing invalid successor tuning.
     baseEmpowermentPassive.restart(runtime, runtime.time);
-    const generation = catalystState.from(runtime).baseEmpowerment.generation;
+    const generation = catalystState.from(runtime.profession).baseEmpowerment.generation;
     scheduled.length = 0;
     const renew = () => catalystModule.hooks.tasks['elementalist.catalyst-base-empowerment'](runtime, generation);
 
@@ -54,7 +54,7 @@ test('Catalyst baseline renewal rejects intervals that cannot advance the clock 
       assert.equal(emitted[0].duration, 2);
       assert.equal(scheduled.length, 1);
       assert.equal(scheduled[0][1], 9);
-      assert.equal(catalystState.from(runtime).baseEmpowerment.nextAt, 9);
+      assert.equal(catalystState.from(runtime.profession).baseEmpowerment.nextAt, 9);
     } else {
       assert.throws(renew, /Elemental Empowerment renewal must advance the simulation clock/);
       assert.deepEqual(emitted, []);

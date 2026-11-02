@@ -5,6 +5,7 @@ import {
   profileFact,
   simulationEffectFacts,
   skillTooltip,
+  tooltipAttributeConversion,
   tooltipDecimal,
   tooltipPercent,
   tooltipProfile,
@@ -110,7 +111,7 @@ export const specterTooltips = {
       [
         ['attributeBonuses.conditionDamage', 'Condition damage'],
         ['conditionalAttributeBonuses.conditionDamage', 'Additional condition damage with scepter'],
-        ['attributeConversion', 'Condition damage converted to healing power', tooltipPercent]
+        ['attributeConversion', 'Healing power gained from condition damage', tooltipAttributeConversion]
       ]
     ),
     [TRAIT.SHALLOW_GRAVE]: outsideScopeTooltip,
@@ -125,7 +126,7 @@ export const specterTooltips = {
     ]),
     [TRAIT.TRAVERSING_DUSK]: outsideScopeTooltip,
     [TRAIT.STRENGTH_OF_SHADOWS]: traitTooltip('Gain expertise from vitality. Torment deals more damage.', [
-      ['attributeConversion', 'Vitality converted to expertise', tooltipPercent],
+      ['attributeConversion', 'Expertise gained from vitality', tooltipAttributeConversion],
       fromProfile(TRAIT.STRENGTH_OF_SHADOWS, 'conditionDamageIncrease', 'Torment damage', tooltipPercent)
     ]),
     [TRAIT.HUNGERING_DARKNESS]: outsideScopeTooltip,

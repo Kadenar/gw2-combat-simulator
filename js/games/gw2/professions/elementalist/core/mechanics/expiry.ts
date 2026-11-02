@@ -19,7 +19,7 @@ export function expireElementalistState(runtime: ElementalistRuntime): void {
   if (state.conjureEquipped && state.conjureExpiresAt <= at) {
     state.conjureEquipped = null;
     state.conjureExpiresAt = 0;
-    resetAutoattackChains(runtime);
+    resetAutoattackChains(runtime.profession);
   }
 
   for (const [weapon, expiresAt] of Object.entries(state.conjurePickups))

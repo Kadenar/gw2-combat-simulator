@@ -143,7 +143,7 @@ test('condition breakdown groups matching applications and separates different d
     const row = rows.find((entry) => entry.baseDurationSeconds === duration);
     assert.equal(row.stacks, stacks);
     assert.equal(row.effectiveDurationSeconds, duration);
-    assert.equal(row.damage, row.rate * row.multiplier * duration * stacks);
+    assert.equal(row.damage, row.damagePerStackSecond * row.multiplier * duration * stacks);
   }
 
   assert.equal(
@@ -176,8 +176,8 @@ test('condition breakdown separates applications with different sampled damage f
   const rows = result.measurement.conditions;
   assert.equal(rows.length, 2);
   assert.equal(rows[0].effectiveDurationSeconds, rows[1].effectiveDurationSeconds);
-  assert.ok(rows[1].conditionDamage > rows[0].conditionDamage);
-  assert.ok(rows[1].rate > rows[0].rate);
+  assert.ok(rows[1].conditionDamageAttribute > rows[0].conditionDamageAttribute);
+  assert.ok(rows[1].damagePerStackSecond > rows[0].damagePerStackSecond);
 });
 
 test('unrelated damage reactions are not invoked when measuring a skill', () => {

@@ -3,11 +3,11 @@ import { BOON, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<WarriorSkill>>> = {
   [ID.CHOP]: {
     name: 'Chop',
-    description: 'Chain. Chop your foe.',
     icon: 'https://render.guildwars2.com/file/BDE6BF09D647B6FA9CA0B42A4B4DE8201C5D004F/103144.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -30,7 +30,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.DOUBLE_CHOP]: {
     name: 'Double Chop',
-    description: 'Chain. Chop your foe twice.',
     icon: 'https://render.guildwars2.com/file/A0D6F19109A1BBB848D9C7FF1B090C1EAFC01023/103145.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -59,7 +58,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.TRIPLE_CHOP]: {
     name: 'Triple Chop',
-    description: 'Deliver three final chops to your foe.',
     icon: 'https://render.guildwars2.com/file/EA1741F12BA0FECD2A0FECB70A2F9E90C749C22C/103146.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -90,7 +88,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.CYCLONE_AXE]: {
     name: 'Cyclone Axe',
-    description: 'Spin around and attack all nearby foes, applying vulnerability each hit. Gain fury for each foe hit.',
     icon: 'https://render.guildwars2.com/file/15ECC799800532F4CEAE170E6D7D03FBA225B7C9/102767.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -132,7 +129,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.THROW_AXE]: {
     name: 'Throw Axe',
-    description: 'Throw an axe that cripples foes, dealing bonus damage at lower health thresholds.',
     icon: 'https://render.guildwars2.com/file/46C6E91E394242FDD3C762DD672CE01D19C05B67/103247.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -172,7 +168,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.DUAL_STRIKE]: {
     name: 'Dual Strike',
-    description: 'Strike your foe with both weapons. Gain quickness for each strike that hits.',
     icon: 'https://render.guildwars2.com/file/20185D064F3665CD7170457DDAC1FBEA0F232974/103000.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -201,7 +196,6 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.WHIRLING_AXE]: {
     name: 'Whirling Axe',
-    description: 'Spin and attack nearby foes. You can move while spinning.',
     icon: 'https://render.guildwars2.com/file/7BD3B56E245B01B50F775627C20965C9410DE842/103866.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -228,4 +222,4 @@ export const WARRIOR_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillD
       }
     ]
   }
-});
+};

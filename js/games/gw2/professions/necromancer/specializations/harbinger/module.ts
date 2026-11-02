@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/necromancer/data/trait-lines.js';
 import {
   HARBINGER_SKILL_FIELDS,
@@ -25,7 +26,7 @@ export const harbingerModule = defineNativeModule({
     skillFlips: NECROMANCER_HARBINGER_SKILL_FLIPS,
     profileFields: NECROMANCER_HARBINGER_PROFILE_FIELDS,
     skillFields: HARBINGER_SKILL_FIELDS,
-    skillMechanics: HARBINGER_BASE_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(HARBINGER_BASE_SKILL_MECHANICS)
   }),
   // One state factory supplies the live combat owner.
   state: { create: harbingerState.create, project: projectHarbingerPlanningState },

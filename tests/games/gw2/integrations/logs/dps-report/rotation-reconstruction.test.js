@@ -461,7 +461,7 @@ test('keeps simulator-generated Engineer packets out of imported rotations', () 
   fixture.skillMap.s73064 = { name: 'Focused Devastation', isInstantCast: true, isNotAccurate: true };
   const catalog = rotationCatalog([
     ...catalogFixture().skills,
-    skill(73064, 'Focused Devastation', { type: 'weapon', castTimeMs: 0, simulatorExcluded: true })
+    skill(73064, 'Focused Devastation', { type: 'weapon', castTimeMs: 0, rotationInputExcluded: true })
   ]);
 
   const result = reconstructDpsReportRotation(parseDpsReport(fixture), catalog, {

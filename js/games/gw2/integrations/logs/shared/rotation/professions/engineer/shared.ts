@@ -46,7 +46,7 @@ function kitStow(
   action: RecordedLogAction
 ): RecordedLogAction | null {
   const skill = context.catalog?.skills.find(
-    (candidate) => (candidate as EngineerSkill).kitTransition === 'stow' && candidate.kitId === kit
+    (candidate: EngineerSkill) => candidate.kitTransition === 'stow' && candidate.kitId === kit
   );
 
   if (!skill || typeof skill.id !== 'number') return null;
@@ -83,7 +83,7 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
       );
       const outgoingCast = signal
         ? context.recordedActions.find((candidate) => {
-            const skill = recordedActionSkill(candidate, context);
+            const skill: EngineerSkill | null = recordedActionSkill(candidate, context);
             return (
               candidate.start === signal.start && normalized(skill?.type) === 'weapon' && skill?.kitId !== equippedKit
             );

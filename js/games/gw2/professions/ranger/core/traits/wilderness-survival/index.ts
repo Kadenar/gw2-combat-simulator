@@ -48,7 +48,7 @@ export const childOfEarth = defineTrait({
 });
 
 /** Owns Poison Master's live tuning and trait behavior. */
-export const poisonMaster = defineTrait({
+export const poisonMaster = defineTrait<RangerSkill>({
   id: TRAIT.POISON_MASTER,
   balance: {
     conditionDamageMultiplier: 1.25,
@@ -252,7 +252,7 @@ function applyPoisonMasterBeastSkill(context: RangerRuntime, skill: RangerSkill)
 }
 
 function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   // Player and pet hold separate grants; either route retains the trait's player-scaled poison.
   const merged = rangerMerged(context.profession);
   // Ranger-owned Cloud/vine packets retain pet provenance, but cannot spend the companion's next-strike grant.
@@ -317,7 +317,7 @@ function triggerArachnophobia(context: RangerResolverContext, event: Gw2Resolver
 
 function handlePoisonMasterGrant(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   if (hasTrait(context, TRAIT.POISON_MASTER)) {
-    const state = professionCoreState(context);
+    const state = professionCoreState(context.profession);
     // A delayed grant can only reach the companion that accepted the command, never a newer incarnation.
     const actor = event.summonOwner ? rangerOwningPetState(state.pet, event.summonOwner) : state.player;
 

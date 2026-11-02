@@ -12,6 +12,7 @@ import {
   observedRuntime,
   observeGw2Runtime
 } from '#tests/helpers/observed-runtime.js';
+import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
 // Each live trigger must claim only its own gate before emitting its effects.
 for (const [key, trait, trigger, literalDuration] of [
@@ -389,4 +390,29 @@ test('Furious Burst retains activation ordering through the shared emission path
   assert.equal(fury.causalOrder, action.causalOrder);
   assert.ok(Number.isFinite(fury.eventOrder));
   assert.equal(fury.actorType, 'effect');
+});
+
+test('Versatile Power adjusts selected burst and Dragon Trigger recharge using the active profile', () => {
+  const family = patchTraitProfession(warriorProfession, {
+    balanceProfiles: { [TRAIT.VERSATILE_POWER]: { fields: { rechargeMultiplier: 0.5 } } }
+  });
+  for (const [patchId, factor] of [
+    ['current', 0.85],
+    ['s4-preview', 0.5]
+  ]) {
+    // Dragon Trigger owns the slash recharge without needing the burst flag used by damage traits.
+    for (const [specialization, skillName] of [
+      ['Core', 'Eviscerate'],
+      ['Bladesworn', 'Dragon Trigger']
+    ]) {
+      const runtime = family.runtimeFor({ patchId, specialization });
+      const skill = runtime.catalog.skills.find((candidate) => candidate.name === skillName);
+      const weapon = runtime.catalog.skillsById.get(14421);
+      assert.ok(skill && weapon);
+      const context = { helpers: runtime.catalog, config: { selectedTraitIds: [TRAIT.VERSATILE_POWER] } };
+      assert.equal(runtime.rechargeWork(context, skill, 10), 10 * factor);
+      assert.equal(runtime.rechargeWork({ ...context, config: { selectedTraitIds: [] } }, skill, 10), 10);
+      assert.equal(runtime.rechargeWork(context, weapon, 10), 10);
+    }
+  }
 });

@@ -111,13 +111,13 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
     interrupted && !completedInterruptedPhantasm && !committedBladesong ? cast.effectiveEnd : Infinity
   );
   try {
-    if (cast.cancelled && details.reservedShatterResources && !details.shatterSpendCommitted) {
+    if (cast.cancelledBeforeCommit && details.reservedShatterResources && !details.shatterSpendCommitted) {
       createMesmerActions(context).restoreReservedResources(details.shatterSpent || 0);
       return;
     }
 
     // Cancelled attempts still refund reservations and clear cast-local state, but grant no completion effects.
-    if (cast.cancelled) return;
+    if (cast.cancelledBeforeCommit) return;
 
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) return;
 
@@ -202,7 +202,7 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mesmer
     shatterSpent
   });
 
-  if (delayedResourceSpend && !cast.cancelled) {
+  if (delayedResourceSpend && !cast.cancelledBeforeCommit) {
     context.schedule(
       'mesmer.blade-spend',
       canonicalTime(Math.min(cast.effectiveEnd, cast.start + (cast.fullEnd - cast.start) * spendProgress)),

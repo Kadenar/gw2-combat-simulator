@@ -1,5 +1,8 @@
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { RevenantTimedStack } from '#gw2/professions/revenant/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -27,11 +30,11 @@ function createRenegadeState(): RenegadeState {
 
 export const renegadeState = defineProfessionSpecializationState('Renegade', createRenegadeState);
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectRenegadePlanningState(input: Gw2PlanningStateInput) {
-  const state = renegadeState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectRenegadePlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = renegadeState.from(input.profession);
+  return {
     [STATE.KALLAS_FERVOR]: state.kallasFervor,
     [STATE.RAZORCLAWS_RAGE]: state.razorclawsRage
-  });
+  };
 }

@@ -402,7 +402,7 @@ test('skills used during splits retain cooldowns and self buffs into the next da
     ]
   });
   assert.equal(result.encounter.phaseId, 'b');
-  assert.ok(result.planningState.cooldowns['990101'].remaining > 0);
+  assert.ok(result.planningState.cooldownsBySkillId['990101'].remainingMs > 0);
   assert.ok(result.resolvedEvents.some((event) => event.type === 'buff' && event.kind.toLowerCase() === 'might'));
 });
 
@@ -695,7 +695,7 @@ test('intermissions defer the rotation while split preparation skills and cooldo
   assert.equal(result.steps.length, rotation.length);
   assert.equal(pause.playerDamage, 0);
   assert.equal(pause.groupDamage, 0);
-  assert.ok(result.planningState.cooldowns['990201'].remaining > 0);
+  assert.ok(result.planningState.cooldownsBySkillId['990201'].remainingMs > 0);
 });
 
 test('intermissions hold waits, reset controls, and concurrent skills without consuming or backdating them', () => {

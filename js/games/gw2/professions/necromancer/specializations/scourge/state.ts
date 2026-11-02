@@ -1,5 +1,8 @@
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
@@ -26,10 +29,10 @@ export function purgeScourgeTimedState(state: ScourgeState, at: number): void {
 // Shade lifetime and Sand Sage attributes read the same state.
 export const scourgeState = defineProfessionSpecializationState('Scourge', createScourgeState);
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectScourgePlanningState(input: Gw2PlanningStateInput) {
-  const state = scourgeState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectScourgePlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = scourgeState.from(input.profession);
+  return {
     [STATE.SHADES]: state.shades
-  });
+  };
 }

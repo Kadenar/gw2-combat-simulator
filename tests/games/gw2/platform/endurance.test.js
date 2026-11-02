@@ -14,7 +14,12 @@ import {
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 
 // Test clocks carry capacity and their settled rate alongside the balance.
-const clock = (value, updatedAt = 0, maximum = 100, rate = 0) => ({ value, maximum, updatedAt, rate });
+const clock = (value, updatedAt = 0, maximum = 100, unitsPerSecond = 0) => ({
+  value,
+  maximum,
+  updatedAt,
+  unitsPerSecond
+});
 
 // Accepted grants carry resolved recipients; the cache must preserve their ordering and audience semantics.
 const vigorGrant = (at, duration, recipients = 'self') => {

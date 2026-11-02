@@ -5,10 +5,9 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.VICIOUS_SHOT]: {
     name: 'Vicious Shot',
-    description: 'Fire a tormenting bullet that bounces between nearby foes.',
     icon: 'https://render.guildwars2.com/file/1DDAE693CAB780E7000BAED0973E0E485CCE9709/2479403.png',
     type: 'Weapon',
     weapon: 'Pistol',
@@ -33,8 +32,6 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.WEEPING_SHOTS]: {
     name: 'Weeping Shots',
-    description:
-      'Pierce your enemies with a series of corrosive bullets, inflicting torment and vulnerability. Gain life force for the first target hit by each bullet.',
     icon: 'https://render.guildwars2.com/file/A5E9C936EBF4F44D09CF08AAF52D0D7D220E2AD5/2479407.png',
     type: 'Weapon',
     weapon: 'Pistol',
@@ -61,7 +58,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
             actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1.5 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1.5 } })]
           }
         ],
         ticks: [240, 360, 520, 640, 760, 880].map((atMs) => ({ atMs, coefficient: 0.4 }))
@@ -88,8 +85,6 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.VILE_BLAST]: {
     name: 'Vile Blast',
-    description:
-      'Fire a dart that shatters on impact, releasing noxious liquid that stuns, weakens, and poisons foes in the area. Gain life force for each target struck.',
     icon: 'https://render.guildwars2.com/file/35F00F2A4694E8FE05B2B7E2765B78C207EE28AF/2479404.png',
     type: 'Weapon',
     weapon: 'Pistol',
@@ -110,7 +105,7 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 4 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 4 } })]
           }
         ],
         coefficient: 1
@@ -119,4 +114,4 @@ export const NECROMANCER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number,
       { type: 'control', controlKind: CONTROL.STUN }
     ])
   }
-});
+};

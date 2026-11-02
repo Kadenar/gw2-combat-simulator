@@ -15,8 +15,9 @@ import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 
 /** One reported rotation cast, positioned on the result timeline in milliseconds. */
 export interface SimulationStep {
-  readonly ri: number;
-  readonly skill: string;
+  /** Connects this observed cast to its originating command in the authored rotation. */
+  readonly rotationCommandIndex: number;
+  readonly skillName: string;
   /** Stable cast identity used by result analysis without relying on display names or bar positions. */
   readonly skillId?: SkillId;
   /** Scheduled start in milliseconds, used to position this step on the timeline. */
@@ -64,7 +65,7 @@ export interface Gw2SimulationPlanningState {
   /** Observed planning boundary in seconds; includes authoring continuation after target death. */
   readonly atSeconds: number;
   /** Skill-ID-keyed cooldown deadlines and remaining durations are milliseconds. */
-  readonly cooldowns: Readonly<Record<string, { readyAt: number; remaining: number }>>;
+  readonly cooldownsBySkillId: Readonly<Record<string, { readyAtMs: number; remainingMs: number }>>;
   /** ID-keyed ammo avoids collisions between distinct skills sharing a display name. */
   readonly ammoBySkillId: Readonly<Record<string, Gw2PlanningAmmo>>;
   readonly activeWeaponSet: number;

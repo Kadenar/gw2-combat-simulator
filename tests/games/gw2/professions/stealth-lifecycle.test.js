@@ -149,7 +149,7 @@ test('Thief: smoke leap stealth enables Backstab through the ordinary packet lif
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.ok(result.steps.some((step) => step.skill === 'Backstab'));
+  assert.ok(result.steps.some((step) => step.skillName === 'Backstab'));
   assert.equal(stealthActive(observedRuntime(result).profession.core, result.planningState.atSeconds), false);
 });
 

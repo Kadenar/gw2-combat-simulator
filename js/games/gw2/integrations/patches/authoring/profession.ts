@@ -12,11 +12,6 @@ import type {
   NativePreviewModifierRuleTarget
 } from '#gw2/integrations/patches/authoring/module-types.js';
 import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
-import type {
-  ModifierRulePatchEdit,
-  PatchPreview,
-  ProfessionPatchPreview
-} from '#gw2/integrations/patches/authoring/patches.js';
 import {
   applyBalanceProfilePatch,
   applyModifierRulePatch,
@@ -24,6 +19,11 @@ import {
   CURRENT_PATCH_ID,
   professionPatchFor,
   validatePatchPreview
+} from '#gw2/integrations/patches/authoring/patches.js';
+import type {
+  ModifierRulePatchEdit,
+  PatchPreview,
+  ProfessionPatchPreview
 } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   replaceProvisionalEffect,
@@ -38,12 +38,13 @@ import type { ProfessionBalanceContext } from '#gw2/platform/profession-definiti
 import type { AnyNativeModule, NativeProfessionContract } from '#gw2/platform/profession-definition/module-types.js';
 import { defineNativeProfession as defineStableNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import type { ProfessionRuntimeOptions } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { Gw2SpecializationData } from '#gw2/platform/profession-definition/specialization-data-types.js';
 import { traitAttributeFieldLabels } from '#gw2/platform/profession-definition/traits.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { patchableNumericFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
-import type { CanonicalCatalog, CatalogEntity } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { assertObject } from '#kernel/core/objects.js';
 
 function modifierAuthoringValue(value: Gw2ModifierRule['amount'] | Gw2ModifierRule['factor']): {
@@ -276,10 +277,8 @@ function relaidSpecializations(
   live: Readonly<CanonicalCatalog>,
   preview: Readonly<CanonicalCatalog>
 ): readonly string[] {
-  const layout = (specialization: CatalogEntity) =>
-    JSON.stringify(
-      (specialization.majorTraits as readonly (readonly CatalogEntity[])[]).map((tier) => tier.map(({ id }) => id))
-    );
+  const layout = (specialization: Gw2SpecializationData) =>
+    JSON.stringify(specialization.majorTraits.map((tier) => tier.map(({ id }) => id)));
   const liveLayouts = new Map(
     live.specializations.map((specialization) => [specialization.name, layout(specialization)])
   );

@@ -164,7 +164,7 @@ export const naturesVengeance = defineTrait({
     {
       on: 'castStart',
       run(_runtime, cast) {
-        if (!cast.cancelled) admittedSpiritRepeats.add(cast);
+        if (!cast.cancelledBeforeCommit) admittedSpiritRepeats.add(cast);
       }
     },
     {

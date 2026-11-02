@@ -5,7 +5,6 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { attunementInvoked, attunementReleased } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import {
@@ -28,11 +27,11 @@ const OVERLOAD_SKILL_IDS = new Set<number>(Object.values(ELEMENTALIST_OVERLOAD_S
 // the primary one and must have been held for the dwell time. Non-overload skills pass through.
 function tempestOverloadAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill
+  skill: ElementalistSkill
 ): AvailabilityResult {
   if (!skill.overload) return { ready: true };
 
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
 
   if (skill.attunement !== state.primaryAttunement) {
     return denySkillCast(skill, 'elementalist.tempest-attunement', `requires ${String(skill.attunement)} attunement.`);
@@ -58,7 +57,7 @@ function tempestOverloadAvailability(
 export function startTempestOverload(
   context: ElementalistRuntime,
   cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill
+  skill: ElementalistSkill
 ): void {
   if (!skill.overload) return;
 
@@ -78,7 +77,7 @@ export function startTempestOverload(
 export function completeTempestOverload(
   context: ElementalistRuntime,
   cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill
+  skill: ElementalistSkill
 ): void {
   if (!skill.overload) return;
 
@@ -149,7 +148,7 @@ const tempestOverloadActions = {
 /** Extra overload credits follow Core credit settlement before another cast can observe the etching. */
 const tempestOverloadTasks = {
   'elementalist.tempest.etching-credits'(context) {
-    const state = professionCoreState(context);
+    const state = professionCoreState(context.profession);
     for (const [name, progress] of Object.entries(state.etchings)) {
       if (!progress || progress.stage !== 'lesser') continue;
 

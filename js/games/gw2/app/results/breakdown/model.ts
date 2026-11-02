@@ -75,7 +75,7 @@ export const SKILL_COLS: readonly ResultColumn[] = [
         : 'Strike hits.'
   },
   {
-    key: 'critChance',
+    key: 'observedCritRate',
     label: 'Crit %',
     numeric: true,
     format: (value) => (value == null ? '—' : `${(Number(value) * 100).toFixed(1)}%`),

@@ -7,10 +7,9 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 // Haskha's log places the flock's first hit near 1,080 ms, followed by fixed 280 ms attacks.
 const huntersCallHitTimes = Array.from({ length: 16 }, (_, index) => 1080 + index * 280);
 
-export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.HUNTERS_CALL]: {
     name: "Hunter's Call",
-    description: 'Call hawks to swarm your foe.',
     icon: 'https://render.guildwars2.com/file/6A6673BC6B33212978F2CC2D04BD1AE8C5ECB593/103076.png',
     type: 'Weapon',
     weapon: 'Warhorn',
@@ -32,7 +31,6 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.CALL_OF_THE_WILD]: {
     name: 'Call of the Wild',
-    description: 'Daze and weaken nearby enemies. Grant fury, might, and swiftness to yourself and nearby allies.',
     icon: 'https://render.guildwars2.com/file/2BBB18C54A01FF1D5FF9473EB1059AE491AA98FF/103310.png',
     type: 'Weapon',
     weapon: 'Warhorn',
@@ -74,4 +72,4 @@ export const RANGER_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, SkillD
       }
     ]
   }
-});
+};

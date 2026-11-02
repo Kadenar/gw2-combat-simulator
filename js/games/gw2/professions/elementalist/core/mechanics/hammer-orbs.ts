@@ -51,7 +51,7 @@ export function createHammerOrbs(
   skill: Skill,
   elements: readonly ElementalistAttunement[]
 ): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const at = cast.effectiveEnd;
   const duration = skillNumber(skill, 'orbDuration');
   const previouslyActive = new Set(activeHammerOrbElements(state, at));
@@ -90,7 +90,7 @@ export function createHammerOrbs(
 
 /** Finale consumes stored orbs while keeping their buffs alive through its last packet. */
 export function consumeHammerOrbs(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const at = cast.effectiveEnd;
   const active = ELEMENTALIST_ATTUNEMENTS.filter((element) => {
     const expiresAt = state.hammerOrbs[element];

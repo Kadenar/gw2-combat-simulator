@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/guardian/data/trait-lines.js';
 import { willbenderHooks } from '#gw2/professions/guardian/specializations/willbender/hooks.js';
 import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
@@ -19,7 +20,7 @@ export const willbenderModule = defineNativeModule({
     id: 'Willbender',
     traitLines: TRAIT_LINES,
     skillFlips: GUARDIAN_WILLBENDER_SKILL_FLIPS,
-    skillMechanics: WILLBENDER_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(WILLBENDER_SKILL_MECHANICS)
   }),
   state: { create: willbenderState.create, project: projectWillbenderPlanningState },
   traitDefinitions: willbenderTraits,

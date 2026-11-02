@@ -1,9 +1,9 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -64,10 +64,7 @@ function emitDamagePayload(
     ctx.engagement.startTime ?? -Infinity
   );
   const attribution = {
-    source: 'Relic',
-    sourceId: `relic.${RELIC_IDS.PEITHA}`,
-    actorType: ACTOR.EFFECT,
-    ownerActorType: ACTOR.PLAYER,
+    ...playerOwnedRelicSource(RELIC_IDS.PEITHA),
     activationId: event.activationId,
     skillName: 'Relic of Peitha',
     triggeredBy: event.skillName

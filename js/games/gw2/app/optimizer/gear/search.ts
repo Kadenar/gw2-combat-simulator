@@ -38,16 +38,16 @@ export interface GearOptimizerSelections {
   minToughness?: number;
   maxToughness?: number;
   minVitality?: number;
-  minBoonDuration?: number;
-  minQuicknessDuration?: number;
+  minBoonDurationPercent?: number;
+  minQuicknessDurationPercent?: number;
 }
 
 export const OPTIMIZER_REQUIREMENTS = {
   minToughness: 'Minimum toughness',
   maxToughness: 'Maximum toughness',
   minVitality: 'Minimum vitality',
-  minBoonDuration: 'Minimum boon duration (%)',
-  minQuicknessDuration: 'Minimum quickness duration (%)'
+  minBoonDurationPercent: 'Minimum boon duration (%)',
+  minQuicknessDurationPercent: 'Minimum quickness duration (%)'
 } as const;
 
 export interface GearOptimizerRequest {
@@ -98,7 +98,7 @@ export interface OptimizerCandidate {
   readonly key: string;
   readonly equipment: OptimizerEquipment;
   readonly score: OptimizerScore;
-  represented: string;
+  representedCombinationCount: string;
 }
 
 /** Freeze a clone so neither selector edits nor later build mutations alter a captured job. */
@@ -246,7 +246,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
 
     if (
       value !== undefined &&
-      (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || (key.endsWith('Duration') && value > 100))
+      (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || (key.endsWith('Percent') && value > 100))
     )
       throw new RangeError(`Invalid ${OPTIMIZER_REQUIREMENTS[key].toLowerCase()}.`);
   }
@@ -483,8 +483,10 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
           (limits.minToughness !== undefined && toughness < limits.minToughness) ||
           (limits.maxToughness !== undefined && toughness > limits.maxToughness) ||
           (limits.minVitality !== undefined && attributes.Vitality.final < limits.minVitality) ||
-          (limits.minBoonDuration !== undefined && Math.min(100, boonDuration) < limits.minBoonDuration) ||
-          (limits.minQuicknessDuration !== undefined && Math.min(100, quicknessDuration) < limits.minQuicknessDuration)
+          (limits.minBoonDurationPercent !== undefined &&
+            Math.min(100, boonDuration) < limits.minBoonDurationPercent) ||
+          (limits.minQuicknessDurationPercent !== undefined &&
+            Math.min(100, quicknessDuration) < limits.minQuicknessDurationPercent)
         )
           return null;
       }
@@ -584,7 +586,9 @@ export function retainOptimizerCandidate(
   const previous = winners.find((winner) => winner.key === candidate.key);
 
   if (previous) {
-    previous.represented = (BigInt(previous.represented) + BigInt(candidate.represented)).toString();
+    previous.representedCombinationCount = (
+      BigInt(previous.representedCombinationCount) + BigInt(candidate.representedCombinationCount)
+    ).toString();
 
     // Completion order must not choose a different representative for an equal combat vector.
     if (JSON.stringify(candidate.equipment) < JSON.stringify(previous.equipment)) {

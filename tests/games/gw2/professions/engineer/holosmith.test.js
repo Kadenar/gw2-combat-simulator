@@ -297,7 +297,7 @@ test('cancelled Light Strike leaves the Photon Forge chain ready for the next Li
     { name: 'Light Strike', skillId: ID.LIGHT_STRIKE, interruptMs: 80 },
     'Light Strike'
   ]);
-  const lightStrikeSteps = result.steps.filter((step) => step.skill === 'Light Strike');
+  const lightStrikeSteps = result.steps.filter((step) => step.skillName === 'Light Strike');
   const lightStrikePackets = result.events.filter((event) => event.type === 'damage' && event.name === 'Light Strike');
 
   assert.equal(result.warnings.length, 0);
@@ -396,7 +396,7 @@ test('explicit Overheat exits preserve cooling cadence and the pending Lens gran
 
   const cooled = simulate('Holosmith', [...opener, { type: 'wait', durationMs: 20000 }, 'Photon Blitz'], config);
   assert.equal(cooled.planningState.profession[STATE.HEAT].value, 0);
-  assert.ok(cooled.steps.find((step) => step.skill === 'Photon Blitz').invalid);
+  assert.ok(cooled.steps.find((step) => step.skillName === 'Photon Blitz').invalid);
 });
 
 test('Photon Forge waits for its resource tick before overheating at maximum heat', () => {
@@ -410,7 +410,7 @@ test('Photon Forge waits for its resource tick before overheating at maximum hea
       selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
     }
   );
-  const barrage = result.steps.find((step) => step.skill === 'Grenade Barrage');
+  const barrage = result.steps.find((step) => step.skillName === 'Grenade Barrage');
   const overheat = result.events.find((event) => event.type === 'engineer.heat' && event.reason === 'overheat');
 
   assert.equal(result.warnings.length, 0);
@@ -437,7 +437,7 @@ test('Photon Forge starts a fresh Overheat cadence on each entry', () => {
       selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
     }
   );
-  const barrage = result.steps.find((step) => step.skill === 'Grenade Barrage');
+  const barrage = result.steps.find((step) => step.skillName === 'Grenade Barrage');
   const overheat = result.events.find((event) => event.type === 'engineer.heat' && event.reason === 'overheat');
 
   assert.equal(result.warnings.length, 0);
@@ -508,13 +508,13 @@ test('Overheat blocks Forge and weapon inputs until the rotation exits', () => {
     1
   );
   for (const name of ['Photon Blitz', 'Light Strike']) {
-    assert.ok(result.steps.find((step) => step.skill === name).invalid);
+    assert.ok(result.steps.find((step) => step.skillName === name).invalid);
   }
 
-  const [blocked, ready] = result.steps.filter((step) => step.skill === 'Glue Shot');
+  const [blocked, ready] = result.steps.filter((step) => step.skillName === 'Glue Shot');
   assert.ok(blocked.invalid);
   assert.equal(ready.invalid, undefined);
-  assert.equal(result.steps.find((step) => step.skill === 'Deactivate Photon Forge').invalid, undefined);
+  assert.equal(result.steps.find((step) => step.skillName === 'Deactivate Photon Forge').invalid, undefined);
   assert.equal(result.planningState.profession[STATE.PHOTON_FORGE_ACTIVE], false);
 });
 
@@ -568,7 +568,7 @@ test('Overheat delays its tool-belt minimum cooldown until the damage effect', (
     });
 
     assert.equal(result.warnings.length, 0);
-    return result.steps.filter((step) => step.skill === 'Grenade Barrage').map((step) => step.start);
+    return result.steps.filter((step) => step.skillName === 'Grenade Barrage').map((step) => step.start);
   };
 
   assert.deepEqual(
@@ -1119,9 +1119,11 @@ test('Holosmith positive strike factors below one apply and retain delayed captu
       time: 0,
       config: { selectedTraitIds: [] },
       catalog: engineerCatalog,
-      profession: {
-        core: createEngineerCoreState(),
-        specialization: { kind: 'Holosmith', state: createHolosmithState() }
+      runtime: {
+        profession: {
+          core: createEngineerCoreState(),
+          specialization: { kind: 'Holosmith', state: createHolosmithState() }
+        }
       },
       event: { actorType: 'player', holosmithStrikeFactor: factor }
     };
@@ -1138,10 +1140,12 @@ test('Holosmith positive strike factors below one apply and retain delayed captu
   const context = {
     catalog,
     config: { selectedTraitIds: [] },
-    profession: {
-      specialization: {
-        kind: 'Holosmith',
-        state: { heat: { value: 75 } }
+    runtime: {
+      profession: {
+        specialization: {
+          kind: 'Holosmith',
+          state: { heat: { value: 75 } }
+        }
       }
     },
     event: { actorType: 'player', holosmithStrikeSkillId: ID.SUN_EDGE }

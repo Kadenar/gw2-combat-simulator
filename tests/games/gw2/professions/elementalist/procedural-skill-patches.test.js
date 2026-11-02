@@ -298,10 +298,10 @@ test('Elemental Explosion selects the live attunement aura and consumes all bull
   }
 });
 
-test('all Primordial Stance variants use the canonical action patch while sampling both live hands', () => {
+test('Primordial Stance uses its action patch from every starting attunement while sampling both live hands', () => {
   for (const removedType of [null, 'strike', 'condition']) {
     const profession = preview({
-      [ID.PRIMORDIAL_STANCE_FIRE]: {
+      [ID.PRIMORDIAL_STANCE]: {
         sideEffects: {
           pulses: {
             effects: [
@@ -318,7 +318,7 @@ test('all Primordial Stance variants use the canonical action patch while sampli
       }
     });
     for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
-      const id = ID[`PRIMORDIAL_STANCE_${element.toUpperCase()}`];
+      const id = ID.PRIMORDIAL_STANCE;
       const result = runElementalist(
         [{ type: 'cast', skillId: id }],
         {
@@ -336,7 +336,7 @@ test('all Primordial Stance variants use the canonical action patch while sampli
             {
               at: 0.5,
               run(runtime) {
-                // The accepting variant is no longer either hand when the pulse resolves.
+                // The live hands change after activation and before the pulse resolves.
                 runtime.profession.core.primaryAttunement = 'Fire';
                 runtime.profession.specialization.state.secondaryAttunement = 'Fire';
               }
@@ -352,7 +352,7 @@ test('all Primordial Stance variants use the canonical action patch while sampli
       if (strike) assert.equal(strike.coefficient, 0.57);
 
       const conditions = result.events.filter((event) => event.type === 'condition' && event.skillId === id);
-      // Matching hands each contribute the selected condition, even for a differently named casting variant.
+      // Matching hands each contribute their condition regardless of the starting attunement.
       assert.equal(conditions.length, removedType === 'condition' ? 0 : 2);
       for (const condition of conditions) {
         assert.equal(condition.condition, 'Burning');
@@ -364,7 +364,9 @@ test('all Primordial Stance variants use the canonical action patch while sampli
       const context = profession.resolvePatch({ id: 'side-effect-ownership' }).balanceContext;
       const model = describeSimulationSkill(context, context.catalog.skillsById.get(id), elementalistTooltips);
       assert.equal(
-        model.facts.some((fact) => fact.name === 'Burning' && fact.detail.includes('7s')),
+        model.facts.some(
+          (fact) => fact.name === 'Fire' && fact.detail.includes('Burning') && fact.detail.includes('7s')
+        ),
         removedType !== 'condition'
       );
     }

@@ -8,11 +8,11 @@ import { UNTAMED_AMBUSH_SKILL_IDS } from '#gw2/professions/ranger/data/untamed-a
 import { untamedCastAvailability } from '#gw2/professions/ranger/specializations/untamed/mechanics/unleash-effects.js';
 import { bindUntamedUi } from '#gw2/professions/ranger/specializations/untamed/presentation.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 const config = { specialization: 'Untamed', primaryWeapon: 'Hammer', selectedTraitIds: [TRAIT.LET_LOOSE] };
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const ui = bindUntamedUi(rangerCatalog);
 
 // Availability and presentation read the same executed deadline; equality closes the occurrence.

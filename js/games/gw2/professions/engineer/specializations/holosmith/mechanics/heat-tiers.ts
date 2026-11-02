@@ -1,12 +1,14 @@
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
+import type { HolosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import {
   enhancedCapacityHeatTier,
   enhancedCapacitySelected
 } from '#gw2/professions/engineer/specializations/holosmith/traits/heat.js';
-import type { EngineerConfig, EngineerResolverEvent } from '#gw2/professions/engineer/types.js';
+import type { EngineerConfig, EngineerResolverEvent, EngineerRuntimeState } from '#gw2/professions/engineer/types.js';
 
 type HolosmithHeatTier = 'base' | 'high' | 'enhanced';
 
@@ -35,11 +37,13 @@ export function holosmithEventMetadata(event: unknown): HolosmithEventMetadata {
 }
 
 /** Captures activation heat and ECSU selection so delayed packets retain their original tier. */
-export function snapshotHolosmithHeat(context: unknown): HolosmithHeatSnapshot {
-  const source = context as { readonly config?: EngineerConfig };
+export function snapshotHolosmithHeat(
+  state: Pick<HolosmithState, 'heat'>,
+  config: EngineerConfig
+): HolosmithHeatSnapshot {
   return Object.freeze({
-    heat: holosmithState.from(context).heat.value,
-    enhancedCapacitySelected: enhancedCapacitySelected(source.config || {})
+    heat: state.heat.value,
+    enhancedCapacitySelected: enhancedCapacitySelected(config)
   });
 }
 
@@ -77,7 +81,7 @@ export function holosmithSkillStrikeFactor(
 }
 
 /** Reads an event's captured strike factor or evaluates its skill against current heat as a fallback. */
-export function holosmithEventStrikeFactor(context: unknown, event: unknown, fallback = 1): number {
+export function holosmithEventStrikeFactor(context: Gw2ModifierContext, event: unknown, fallback = 1): number {
   const metadata = holosmithEventMetadata(event);
   const capturedFactor = Number(metadata.holosmithStrikeFactor);
 
@@ -85,5 +89,12 @@ export function holosmithEventStrikeFactor(context: unknown, event: unknown, fal
 
   if (metadata.holosmithStrikeSkillId == null) return fallback;
 
-  return holosmithSkillStrikeFactor(context, metadata.holosmithStrikeSkillId, snapshotHolosmithHeat(context));
+  return holosmithSkillStrikeFactor(
+    context,
+    metadata.holosmithStrikeSkillId,
+    snapshotHolosmithHeat(
+      holosmithState.from(context.runtime!.profession as EngineerRuntimeState),
+      context.config || {}
+    )
+  );
 }

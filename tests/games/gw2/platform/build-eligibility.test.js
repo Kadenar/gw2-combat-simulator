@@ -16,7 +16,7 @@ test('shared eligibility precedes profession filters and cast state changes', ()
     id: 2,
     name: 'Automatic effect',
     type: 'Utility',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     cooldown: 10,
     effects: []
   };
@@ -79,14 +79,14 @@ test('shared eligibility precedes profession filters and cast state changes', ()
   });
   assert.equal(stateChecks, 1, 'Only the castable weapon is queried by planning capture');
   assert.equal(rejected.planningState.profession[STATE.RESOURCE], 10);
-  assert.equal(Object.keys(rejected.planningState.cooldowns).length, 0);
+  assert.equal(Object.keys(rejected.planningState.cooldownsBySkillId).length, 0);
   assert.ok(rejected.steps.every((step) => step.invalid));
   assert.equal(rejected.warnings.length, 2);
 
   const accepted = simulateGw2({ profession, config: context, rotation: [{ type: 'cast', skillId: weapon.id }] });
   assert.deepEqual(accepted.warnings, []);
   assert.equal(accepted.planningState.profession[STATE.RESOURCE], 9);
-  assert.ok(accepted.planningState.cooldowns[weapon.id].readyAt > 0);
+  assert.ok(accepted.planningState.cooldownsBySkillId[weapon.id].readyAtMs > 0);
 });
 
 test('every profession inherits build rejection in browser, palette, and resolved runtime', async () => {
@@ -100,7 +100,7 @@ test('every profession inherits build rejection in browser, palette, and resolve
       const runtime = adapter.profession.runtimeFor(context);
       for (const skill of [
         { id: -90001, name: 'Other specialization action', type: 'Action', specialization: 'Other specialization' },
-        { id: 90002, name: 'Excluded weapon', type: 'Weapon', simulatorExcluded: true }
+        { id: 90002, name: 'Excluded weapon', type: 'Weapon', rotationInputExcluded: true }
       ]) {
         const label = `${entry.id}/${specialization}: ${skill.name}`;
         assert.equal(adapter.isSkillAvailable(skill, context), false, label);

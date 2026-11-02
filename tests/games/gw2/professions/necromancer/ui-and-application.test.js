@@ -134,7 +134,7 @@ test('Necromancer resources and palette change with specialization state', () =>
     catalog: necromancerProfession.catalog,
     specialization: 'Harbinger',
     professionState: {
-      [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
+      [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
 
       [STATE.BLIGHT]: 12,
       [STATE.CASCADING_CORRUPTION_STACKS]: 7
@@ -147,7 +147,7 @@ test('Necromancer resources and palette change with specialization state', () =>
       weapons: ['Spear', '']
     },
     professionState: {
-      [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
+      [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
 
       [STATE.SOUL_SHARD_GRANT]: { charges: 4, expiresAt: 10 },
       [STATE.SHADES]: [10, 20]
@@ -252,7 +252,7 @@ test('Necromancer resources and palette change with specialization state', () =>
           alternateWeapons: ['Spear', '']
         },
         professionState: {
-          [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
+          [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
 
           [STATE.BLIGHT]: 12,
           [STATE.SOUL_SHARD_GRANT]: { charges: 4, expiresAt: 10 }
@@ -355,10 +355,10 @@ test('Necromancer renders life force above its F-skills', async () => {
       // Resource-only fixtures retain the shared planning fields consumed by the palette.
       atSeconds: 0,
       activeWeaponSet: 1,
-      cooldowns: {},
+      cooldownsBySkillId: {},
       ammoBySkillId: {},
       profession: {
-        [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, rate: 0 },
+        [STATE.LIFE_FORCE]: { value: 80, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
 
         [STATE.SOUL_SHARD_GRANT]: { charges: 0, expiresAt: 10 },
         [STATE.SHADES]: [10, 20]

@@ -88,6 +88,7 @@ export interface MesmerSkill
     NumericSkillFields<typeof TROUBADOUR_SKILL_FIELDS> {
   readonly id: number;
   readonly ambush?: boolean;
+  /** Performance reward and the instruments it requires. */
   readonly tale?: {
     readonly name: string;
   } &
@@ -96,23 +97,31 @@ export interface MesmerSkill
       | { readonly instrument: string; readonly minimumInstruments?: never }
       | { readonly instrument?: never; readonly minimumInstruments: number }
     );
+  /** Payload a mirror replays for this skill. */
   readonly mirrorPayloadSkillId?: number;
   readonly duration?: number;
+  /** Summons a phantasm whose attacks follow its timing recipe. */
   readonly phantasm?: boolean;
+  /** Overrides the summoned phantasm's attack timing. */
   readonly phantasmTiming?: Partial<
     import('#gw2/professions/mesmer/core/mechanics/illusions/types.js').MesmerPhantasmAttackTiming
   >;
+  /** Counts as a blade-producing skill for blade-dependent mechanics. */
   readonly blade?: boolean;
+  /** Shatter recipe consuming the live illusions. */
   readonly shatter?: import('#gw2/professions/mesmer/core/mechanics/shatter-types.js').MesmerShatterDefinition;
   /** Authored instrument identity supports capacity queries without reaching into live illusion controllers. */
   readonly instrument?: import('#gw2/professions/mesmer/types.js').MesmerInstrument;
+  /** Arms its follow-up flip when the cast starts rather than when it commits. */
   readonly armedAtStart?: boolean;
+  /** Intrinsic follow-up window this skill opens. */
   readonly flipArm?: {
     readonly skillId: number;
     readonly duration: number;
     readonly delay?: number;
     readonly anchor?: 'castStart' | 'castCommit';
   };
+  /** Hits whose damage this skill records for a later payout. */
   readonly trackedHitDamage?: MesmerTrackedHitDamage;
   // Authored packets use shared effect forms, including conditions whose values live on individual ticks.
   readonly effects?: readonly (SkillEffect & {

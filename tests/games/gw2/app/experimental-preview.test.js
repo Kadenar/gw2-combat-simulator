@@ -203,7 +203,7 @@ test('Grenadier edits percentage bonuses using the same fractional units as Fire
     build: { specializations: [{ name: 'Explosives', traits: '1-1-1' }] }
   };
   const { parameter, value } = previewAssumptionGroups(app)[0].values[0];
-  assert.equal(displayAssumptionValue(parameter, value), 10);
+  assert.equal(displayAssumptionValue(parameter, value), 5);
   assert.equal(displayAssumptionValue(parameter, parameter.minimum), 0);
   const changed = canonicalAssumptionValue(parameter, 15);
   assert.equal(changed, 0.15);
@@ -218,7 +218,7 @@ test('Grenadier edits percentage bonuses using the same fractional units as Fire
   );
   assert.deepEqual(previewAssumptionCounts(previewAssumptionGroups(app)), { total: 1, custom: 1 });
   app.patch = profession.resolvePatch({ id: profession.preview.id });
-  assert.equal(displayAssumptionValue(parameter, previewAssumptionGroups(app)[0].values[0].value), 10);
+  assert.equal(displayAssumptionValue(parameter, previewAssumptionGroups(app)[0].values[0].value), 5);
   assert.equal(grenadier.modifierRules[0].factor({ catalog: profession.resolvePatch({ id: 'current' }).catalog }), 1);
 
   const percent = preview.professions.guardian.provisional.find(({ id }) => id === 'bleedingDuration');

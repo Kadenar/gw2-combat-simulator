@@ -48,13 +48,11 @@ interface DecodedGw2BuildTemplate {
 }
 
 export interface ResolvedGw2BuildTemplate {
-  readonly professionId: string;
   readonly professionName: string;
   readonly specializations: readonly Gw2BuildSpecialization[];
   readonly selectedSkillIds: Readonly<Record<string, SkillId | null>>;
   readonly weaponOptions: readonly Gw2BuildTemplateWeaponSet[];
   readonly weapons: Gw2BuildTemplateWeaponSet | null;
-  readonly skillOverrides: readonly number[];
   readonly warnings: readonly string[];
 }
 
@@ -166,23 +164,9 @@ function selectableCandidates(
   );
 }
 
-function preferredCandidate(
-  candidates: readonly Skill[],
-  preferredAttunement: string,
-  skillId: SkillId
-): Skill | undefined {
-  return [...candidates].sort((left, right) => {
-    const leftAttunement = String(left.attunement || '');
-    const rightAttunement = String(right.attunement || '');
-    const leftPreferred = leftAttunement === preferredAttunement ? 1 : 0;
-    const rightPreferred = rightAttunement === preferredAttunement ? 1 : 0;
-
-    if (leftPreferred !== rightPreferred) return rightPreferred - leftPreferred;
-
-    const leftExact = left.id === skillId ? 1 : 0;
-    const rightExact = right.id === skillId ? 1 : 0;
-    return rightExact - leftExact;
-  })[0];
+/** Prefer an exact selectable catalog identity when a palette ID has multiple candidates. */
+function preferredCandidate(candidates: readonly Skill[], skillId: SkillId): Skill | undefined {
+  return candidates.find((skill) => skill.id === skillId) ?? candidates[0];
 }
 
 function inferredWeaponOptions(
@@ -241,12 +225,10 @@ export function resolveGw2BuildTemplate(
   decoded: DecodedGw2BuildTemplate,
   {
     catalog,
-    expectedProfession,
-    preferredAttunement = 'Fire'
+    expectedProfession
   }: {
     readonly catalog: CanonicalCatalog;
     readonly expectedProfession: Gw2BuildTemplateProfessionIdentity;
-    readonly preferredAttunement?: string;
   }
 ): ResolvedGw2BuildTemplate {
   const professionData = GW2_BUILD_TEMPLATE_PROFESSIONS[decoded.professionCode];
@@ -292,11 +274,7 @@ export function resolveGw2BuildTemplate(
     // Build-template snapshots can retain an older API ID after its simulator record is removed.
     const skillId = canonicalGw2SkillId(rawSkillId);
 
-    const skill = preferredCandidate(
-      selectableCandidates(catalog, skillId, type, selectedSpecializations),
-      preferredAttunement,
-      skillId
-    );
+    const skill = preferredCandidate(selectableCandidates(catalog, skillId, type, selectedSpecializations), skillId);
 
     if (!skill) {
       warnings.push(`${slot} skill ${skillId} is not implemented.`);
@@ -325,13 +303,11 @@ export function resolveGw2BuildTemplate(
   }
 
   return Object.freeze({
-    professionId: expectedProfession.id,
     professionName: expectedProfession.name,
     specializations: Object.freeze(specializations),
     selectedSkillIds: Object.freeze(selectedSkillIds),
     weaponOptions,
     weapons,
-    skillOverrides: decoded.skillOverrides,
     warnings: Object.freeze(warnings)
   });
 }

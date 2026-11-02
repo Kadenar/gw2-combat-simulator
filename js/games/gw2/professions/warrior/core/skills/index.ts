@@ -1,6 +1,7 @@
-import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 /** Explicit PvE skill mechanics owned by the Core Warrior module. */
+import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import { WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from '#gw2/professions/warrior/core/skills/actions.js';
 import { WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { WARRIOR_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/slot-skills.js';
 import { WARRIOR_CORE_TRAIT_SKILLS } from '#gw2/professions/warrior/core/skills/trait-skills.js';
@@ -19,9 +20,7 @@ import { WARRIOR_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/warrior/
 import { WARRIOR_WEAPONS_TORCH_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/weapons/torch.js';
 import { WARRIOR_WEAPONS_WARHORN_SKILL_MECHANICS } from '#gw2/professions/warrior/core/skills/weapons/warhorn.js';
 
-export { WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS } from '#gw2/professions/warrior/core/skills/actions.js';
-
-export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
+const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
   WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS,
   WARRIOR_SLOT_SKILLS_SKILL_MECHANICS,
   WARRIOR_WEAPONS_AXE_SKILL_MECHANICS,
@@ -40,4 +39,10 @@ export const WARRIOR_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   WARRIOR_WEAPONS_WARHORN_SKILL_MECHANICS
 );
 
-export { WARRIOR_CORE_TRAIT_SKILLS };
+/** One complete module collection includes authored skills, generated attacks, and simulator actions. */
+export const WARRIOR_CORE_SKILLS = Object.freeze([
+  ...materializeSkillDefinitions(WARRIOR_CORE_SKILL_MECHANICS),
+  WARRIOR_DODGE,
+  WARRIOR_SWAP_WEAPONS,
+  ...WARRIOR_CORE_TRAIT_SKILLS
+]);

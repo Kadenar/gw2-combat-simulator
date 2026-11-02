@@ -5,6 +5,7 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { naturesStrengthReaction } from '#gw2/professions/ranger/core/skills/weapons/mace.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { naturalFortitudeAmbushEffect } from '#gw2/professions/ranger/specializations/untamed/traits/behavior.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Preserve the measured Quickness offsets, including projectiles and effects that outlive the cast. */
 function impact(atMs: number, effects: readonly SkillEffect[]): SkillEffect[] {
@@ -43,7 +44,7 @@ function ambush(
   firstHitMs: number,
   effects: readonly SkillEffect[],
   timing: { interruptCommitMs?: number; persistsAfterInterrupt?: boolean } = {}
-): Partial<SkillDefinition> {
+): Partial<SkillDefinition<RangerSkill>> {
   return {
     castTimeMs,
     ...(timing.interruptCommitMs == null ? {} : { interruptCommitMs: timing.interruptCommitMs }),
@@ -56,10 +57,9 @@ function ambush(
 }
 
 // All timings use the observed timeline rounded to 40 ms; durations below exclude build expertise.
-export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.SUNDERING_VOLLEY]: {
     name: 'Sundering Volley',
-    description: 'Throw two axes, bleeding the target and applying vulnerability followed by immobilize.',
     icon: 'https://render.guildwars2.com/file/76E435CE09EE9F155FA830BB05211BE0D7AE4DD2/2565746.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -87,7 +87,6 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.NEUROTOXIN_BURST]: {
     name: 'Neurotoxin Burst',
-    description: 'Shadowstep and strike, applying bleeding, poison, and vulnerability.',
     icon: 'https://render.guildwars2.com/file/3B7CC3146E0796B901AA05E4D7AD9AD0DDCC2BC0/3098874.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -107,7 +106,6 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.RAMPANT_GROWTH]: {
     name: 'Rampant Growth',
-    description: 'Strike with verdant growth and immobilize the target.',
     icon: 'https://render.guildwars2.com/file/AA6DF43F39613B3BFF36EA5E5DE8E479B54C3D13/3256376.png',
     type: 'Weapon',
     weapon: 'Mace',
@@ -127,7 +125,6 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.SOLAR_BRILLIANCE]: {
     name: 'Solar Brilliance',
-    description: 'Blind nearby enemies, then pulse damage around yourself.',
     icon: 'https://render.guildwars2.com/file/47D72665624F25469A11D86943F9037591F444AF/3098875.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -147,7 +144,6 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.SAVAGE_SLASH]: {
     name: 'Savage Slash',
-    description: 'Strike nearby enemies, applying vulnerability and creating an exploding spore.',
     icon: 'https://render.guildwars2.com/file/D30E4B593AEE93C795B40F020B3727FCCC5E39D7/2565747.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -164,7 +160,6 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.MULTISHOT]: {
     name: 'Multishot',
-    description: 'Fire arrows at your target and nearby enemies.',
     icon: 'https://render.guildwars2.com/file/AF7A96BB16BD9453059730A6B5EF437E7C72AB3A/2565749.png',
     type: 'Weapon',
     weapon: 'Longbow',
@@ -175,7 +170,6 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.TOXIC_SHOT]: {
     name: 'Toxic Shot',
-    description: 'Fire an explosive arrow that poisons and weakens. Already-poisoned targets also receive torment.',
     icon: 'https://render.guildwars2.com/file/ED090826AD5C2E700D6604F9E0CC7C1AAEF0C25D/2565750.png',
     type: 'Weapon',
     weapon: 'Shortbow',
@@ -197,13 +191,15 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, SkillDefin
               actor: ACTOR.PLAYER,
               packets: 'first',
               when: (runtime, { event }) => runtime.combat.targetHasCondition(CONDITION.POISONED, event.at),
-              do: {
-                type: 'ranger.toxic-shot',
-                id: 'poisoned-target',
-                effects: [
-                  { name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, stacks: 4, duration: 6 }
-                ]
-              }
+              do: [
+                {
+                  type: 'ranger.toxic-shot',
+                  id: 'poisoned-target',
+                  effects: [
+                    { name: CONDITION.TORMENT, type: 'condition', condition: CONDITION.TORMENT, stacks: 4, duration: 6 }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -215,7 +211,6 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.RAVAGERS_ABANDON]: {
     name: "Ravager's Abandon",
-    description: 'Strike with a wave of corruption and create an exploding spore.',
     icon: 'https://render.guildwars2.com/file/100EF926B3F04A73719E7CD531C8ABC81938CF19/3379182.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -224,4 +219,4 @@ export const UNTAMED_WEAPON_AMBUSH_MECHANICS: Readonly<Record<number, SkillDefin
     unleashedAmbushSkill: true,
     ...ambush(680, 600, [...impact(600, [{ type: 'strike', coefficient: 3 }]), ...spore("Ravager's Abandon")])
   }
-});
+};

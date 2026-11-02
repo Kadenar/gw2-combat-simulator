@@ -12,7 +12,6 @@ export const profession: BoundProfession = withActivePatchPreview(mesmerProfessi
 
 export const createBuildContext = bindBuildContext<MesmerCanonicalBuild>(
   profession,
-  { attributeContributions: profession.attributeContributions },
   (build, specialization) => ({
     initialResource: specialization === 'Virtuoso' || specialization === 'Troubadour' ? build.initialResource : 0
   }),

@@ -1,4 +1,5 @@
 import { validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
+import { CAST_READY, combineAvailability, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { composeGw2Reactions } from '#gw2/platform/resolver/reaction-registry.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
@@ -182,22 +183,16 @@ const pipeline: CombineRule = (fns) => {
       };
 };
 
-type Availability = ReturnType<NonNullable<RuntimeHooks<object>['availability']>>;
-
 /** Permanent denials win immediately; retryable denials keep the latest retry boundary across contributors. */
 const availability: CombineRule = (fns) => (context, skill, command) => {
-  let retryAt = (context as { readonly time: number }).time;
-  let blocked: Availability = { ready: true };
+  const time = (context as { readonly time: number }).time;
+  let blocked: AvailabilityResult = CAST_READY;
 
   for (const fn of fns) {
-    const result = fn(context, skill, command) as Availability | undefined;
+    const result = fn(context, skill, command) as AvailabilityResult | undefined;
+    blocked = combineAvailability(blocked, result ?? CAST_READY, time);
 
-    if (result && !result.ready) {
-      if (result.retryAt == null) return result;
-
-      retryAt = Math.max(retryAt, result.retryAt);
-      blocked = { ...result, retryAt };
-    }
+    if (!blocked.ready && blocked.retryAt === null) return blocked;
   }
 
   return blocked;

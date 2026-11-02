@@ -164,7 +164,7 @@ const kingOfFires = defineTrait({
         if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
         const hit = details.hitContext as Gw2HitResolutionContext;
-        const state = berserkerState.from(runtime);
+        const state = berserkerState.from(runtime.profession);
 
         if (
           !hit.critEligible ||
@@ -345,7 +345,7 @@ function heatTheSoulCompletion(runtime: WarriorRuntime, cast: RuntimeCast<Warrio
 /** Own this trait's reward at the accepted mechanic boundary. */
 function kingOfFiresCompletion(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   if (isBerserkerSkill(cast.skill)) {
-    berserkerState.from(runtime).completedActivations[cast.id] = runtime.time;
+    berserkerState.from(runtime.profession).completedActivations[cast.id] = runtime.time;
     runtime.schedule(DETONATE, runtime.time, { activationId: cast.id, skillId: cast.skill.id }, undefined, 5);
   }
 }

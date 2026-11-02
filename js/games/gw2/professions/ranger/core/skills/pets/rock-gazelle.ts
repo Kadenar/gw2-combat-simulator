@@ -8,11 +8,10 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   // Natural Headbutt uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.ROCK_GAZELLE_HEADBUTT]: definePetSkill({
     name: 'Headbutt',
-    description: ' Bash your target.',
     icon: new URL('@images/wiki/headbutt-gazelle.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -35,7 +34,6 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
   // Natural Kick uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.ROCK_GAZELLE_KICK]: definePetSkill({
     name: 'Kick',
-    description: ' Kick your enemy.',
     icon: 'https://render.guildwars2.com/file/2ADAEF05DE5D0F031ACE310DB425E01CE7180416/1770575.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -68,7 +66,6 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
   // Natural Charge uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.ROCK_GAZELLE_CHARGE]: definePetSkill({
     name: 'Charge',
-    description: ' Charge at your target.',
     icon: 'https://render.guildwars2.com/file/9E1718ECB696EBE63CF7EE700306D2090DD8084B/1770573.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -96,7 +93,6 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
       {
         type: 'control',
         controlKind: CONTROL.DAZE,
-        duration: 2,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
@@ -104,7 +100,6 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
   }),
   [ID.HEAD_TOSS]: definePetSkill({
     name: 'Head Toss',
-    description: 'Beast. Toss your foe into the air.',
     icon: 'https://render.guildwars2.com/file/313824ACD4211D7E76011D07B7B814C1B995E9CA/1770560.png',
     petNames: ['Rock Gazelle'],
     type: 'Profession',
@@ -122,4 +117,4 @@ export const RANGER_CORE_ROCK_GAZELLE_PET_SKILL_MECHANICS: Readonly<Record<numbe
       }
     ]
   })
-});
+};

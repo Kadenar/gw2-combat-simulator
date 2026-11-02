@@ -22,11 +22,11 @@ import { RAZORCLAW_PROC_ID } from '#gw2/professions/revenant/specializations/ren
 import { razorclawsRage } from '#gw2/professions/revenant/specializations/renegade/skills/warband.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { REVENANT_TEST_CONFIG as baseConfig, revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const simulate = createObservedProfessionSimulator(revenantProfession, baseConfig);
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const core = (result) => observedRuntime(result).profession.core;
 const specialization = (result) => observedRuntime(result).profession.specialization.state;
 
@@ -48,7 +48,7 @@ test('Conduit affinity initializes empty and exposes the selected cap through de
     const pool = specialization(result).affinity;
     assert.equal(pool.value, 0, 'precombat grants and time alone cannot accrue affinity');
     assert.equal(pool.maximum, Math.max(1, maximumStacks));
-    assert.equal(pool.rate, 0);
+    assert.equal(pool.unitsPerSecond, 0);
     assert.deepEqual(result.planningState.profession[STATE.AFFINITY], pool);
     assert.notEqual(result.planningState.profession[STATE.AFFINITY], pool);
     assert.equal(Object.hasOwn(specialization(result), 'affinityMaximum'), false);
@@ -193,7 +193,7 @@ test('legend swap recharge ignores Alacrity in the runtime and palette', () => {
   const planned = runRevenant(rotation, {}, { initialize: alacrityAt(2, 4) });
   const swap = revenantCatalog.skillsById.get(SKILL.SWAP_LEGENDS);
   const projected = planned.planningState;
-  assert.equal(projected.cooldowns[swap.id].readyAt, 10000);
+  assert.equal(projected.cooldownsBySkillId[swap.id].readyAtMs, 10000);
   // Recharge is a scheduler/display gate, separate from captured profession legality.
   assert.equal(projected.availability[swap.id].ready, true);
   const next = runRevenant([...rotation, 'Swap Legends'], {}, { initialize: alacrityAt(2, 4) });
@@ -607,7 +607,7 @@ test('upkeep manual release cooldowns scale with Alacrity', () => {
           boons: { alacrity }
         }
       );
-      const release = result.steps.find((step) => step.skill === releaseName);
+      const release = result.steps.find((step) => step.skillName === releaseName);
       assert.deepEqual(result.warnings, []);
       assert.equal(result.steps.at(-1).start, release.end + (cooldown / 1.25) * 1000);
     }

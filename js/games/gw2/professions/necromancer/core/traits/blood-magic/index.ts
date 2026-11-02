@@ -175,7 +175,7 @@ export const overflowingThirst = defineTrait({
 });
 
 /** Owns Transfusion tuning and behavior at its existing execution boundaries. */
-export const transfusion = defineTrait({
+export const transfusion = defineTrait<NecromancerSkill>({
   id: TRAIT.TRANSFUSION,
   triggers: [
     { order: 2, on: 'castCommit', when: (_runtime, cast) => cast.skill.shroudSlot === 4, invoke: ID.LESSER_CHILBLAINS }
@@ -332,7 +332,7 @@ function vampiricPresenceDamage(
   context: NecromancerResolverContext,
   profile: BalanceProfile
 ): TraitDamageDefinition | undefined {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const inShroud = Boolean(state.activeShroud && state.activeShroud !== 'lich');
   const effect = requireEffect(profile, 'strike', inShroud ? 'shroud' : 'base');
 
@@ -413,7 +413,7 @@ function addTasteForBloodApplication(
   recipient: string,
   cause?: Gw2ResolverEvent | null
 ): void {
-  const grants = professionCoreState(context).tasteForBloodGrants;
+  const grants = professionCoreState(context.profession).tasteForBloodGrants;
   const application: TasteForBloodGrant = {
     ...grantCharges(Math.max(1, event.stacks ?? 1), canonicalTime(event.at + Math.max(0, event.duration || 0))),
     at: canonicalTime(event.at),
@@ -440,7 +440,7 @@ function consumeTasteForBlood(
   const profile = requireBalanceProfileFromContext(context, TRAIT.OVERFLOWING_THIRST);
   const effect = requireEffect(profile, 'strike', 'Strike');
   // Application time remains owner metadata: future grants cannot pay for an earlier hit.
-  const grants = professionCoreState(context).tasteForBloodGrants[recipient] ?? [];
+  const grants = professionCoreState(context.profession).tasteForBloodGrants[recipient] ?? [];
 
   if (!effect || !consumeChargeBatch(grants, event.at, (grant) => grant.at <= event.at)) return false;
 
@@ -467,7 +467,7 @@ function reactToTasteForBloodGrant(context: NecromancerResolverContext, event: N
       const recipient = alliedTasteForBloodRecipient(allyIndex);
       addTasteForBloodApplication(context, event, recipient, cause);
       const next = (time: number) =>
-        professionCoreState(context).tasteForBloodGrants[recipient]?.find(
+        professionCoreState(context.profession).tasteForBloodGrants[recipient]?.find(
           (grant) => grant.at <= time && activeChargeCount(grant, time) > 0
         );
       return {

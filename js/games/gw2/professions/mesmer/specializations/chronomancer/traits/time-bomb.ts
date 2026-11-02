@@ -23,7 +23,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
 
   if (skill.id !== ID.TIME_SINK) return;
 
-  const state = chronomancerState.from(context);
+  const state = chronomancerState.from(context.profession);
   const at = cast.fullEnd;
 
   if (at < state.timeBombUntil) return;
@@ -69,7 +69,6 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
     state.timeBombUntil,
     {
       ...timeBomb,
-      balanceProfileId: profile.id,
       name: undefined,
       summonKind: undefined,
       source: 'Player',

@@ -4,26 +4,20 @@ import { ACTOR, BOON, COMBO_FINISHER, CONDITION, RECIPIENT, WEAPON } from '#gw2/
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSkill>>> = {
   [ID.SHADOW_BOLT]: {
     name: 'Shadow Bolt',
-    description: 'Fire a projectile that hinders foes and helps allies.',
     icon: 'https://render.guildwars2.com/file/D6D1A6997E0E07ECC3A2CF61C0AC054B2102A369/2503744.png',
     type: 'Weapon',
     weapon: 'Scepter',
     slot: 'Weapon_1',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
-    initiativeCost: 0,
     castTimeMs: 520,
     // The bolt commits before the aftercast ends; EVTC keeps raw sub-480 ms attempts below this grid boundary.
     interruptCommitMs: 480,
@@ -46,20 +40,13 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.DOUBLE_BOLT]: {
     name: 'Double Bolt',
-    description: 'Fire two projectiles that hinder foes and help allies.',
     icon: 'https://render.guildwars2.com/file/C7D7DF4CB2E9D52E4EDF735627063F0C41A878AC/2503735.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Scepter',
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
-    initiativeCost: 0,
     castTimeMs: 640,
     interruptMode: 'per-packet',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -85,20 +72,13 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.TRIPLE_BOLT]: {
     name: 'Triple Bolt',
-    description: 'Fire three missiles that hinder foes and help allies.',
     icon: 'https://render.guildwars2.com/file/C505F1FEF4DAFA05126CF14D1B0CDC2511F8CEEB/2503749.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Scepter',
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
-    initiativeCost: 0,
     castTimeMs: 1080,
     interruptMode: 'per-packet',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
@@ -130,19 +110,11 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.SHADOWSQUALL]: {
     name: 'Shadowsquall',
-    description: 'Stealth Attack. Unleash a barrage from the shadows toward your target.',
     icon: 'https://render.guildwars2.com/file/02C8462294CFA9AFAB36A5364CA2C0E0AE13129F/2503747.png',
     type: 'Weapon',
     weapon: 'Scepter',
     slot: 'Weapon_1',
-
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     cooldown: 0,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.SCEPTER,
     stealthAttack: true,
     castTimeMs: 1960,
@@ -168,19 +140,13 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.SHADOW_SAP]: {
     name: 'Shadow Sap',
-    description: 'Hurl a bolt of unfurling shadows to bolster allies.',
     icon: 'https://render.guildwars2.com/file/C7F90ED7C6D2944A3258CFF1B75CC2D4EE36384A/2503746.png',
     type: 'Weapon',
     weapon: 'Scepter',
     slot: 'Weapon_2',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     cooldown: 0,
-    initiativeCost: 4,
     castTimeMs: 600,
     comboFinishers: [
       {
@@ -215,19 +181,13 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.TRIPLE_THREAT]: {
     name: 'Triple Threat',
-    description: 'Fire three missiles that hinder foes and help allies.',
     icon: 'https://render.guildwars2.com/file/A9905B250CDB0820D4A51C623A6ED6024B33D897/2503750.png',
     type: 'Weapon',
     weapon: 'Scepter',
     slot: 'Weapon_3',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     cooldown: 0,
-    initiativeCost: 4,
     requiredMainHand: WEAPON.SCEPTER,
     requiredOffHand: false,
     castTimeMs: 1000,
@@ -251,20 +211,14 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.TWILIGHT_COMBO]: {
     name: 'Twilight Combo',
-    description: 'Dual Wield. Fire a slow-moving projectile, then fire a quick shot that accelerates the first.',
     icon: 'https://render.guildwars2.com/file/FB0F9FF5A67F57F8E8B0D8B20F0F53D0CEBDF317/2503751.png',
     type: 'Weapon',
     weapon: 'Scepter',
     slot: 'Weapon_3',
     dualWieldAttack: true,
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     cooldown: 0,
-    initiativeCost: 4,
     requiredMainHand: WEAPON.SCEPTER,
     requiredOffHand: WEAPON.DAGGER,
     castTimeMs: 760,
@@ -314,24 +268,18 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.MEASURED_SHOT]: {
     name: 'Measured Shot',
-    description: 'Dual Wield. Shadowstep and fire a shot that hinders foes and helps allies.',
     icon: 'https://render.guildwars2.com/file/F70A335A50480D68FCCDCE447EED16A25C3CAD01/2503742.png',
     type: 'Weapon',
     weapon: 'Scepter',
     slot: 'Weapon_3',
     dualWieldAttack: true,
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     // This opener arms its declared dual-wield follow-up.
     dualWieldOpener: true,
     // Endless Night replaces Measured Shot for five seconds after the shot commits.
     flipDuration: 5,
     cooldown: 0,
-    initiativeCost: 4,
     movementSkill: true,
     shadowstepSkill: true,
     requiredMainHand: WEAPON.SCEPTER,
@@ -369,20 +317,14 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.ENDLESS_NIGHT]: {
     name: 'Endless Night',
-    description: 'Dual Wield. Fire a beam that hinders foes and helps allies.',
     icon: 'https://render.guildwars2.com/file/15BE9504ACEED3C462F7173D63E44836BFA2F934/2503736.png',
     type: 'Weapon',
     weapon: 'Scepter',
     slot: 'Weapon_3',
     dualWieldAttack: true,
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 3 },
 
     cooldown: 0,
-    initiativeCost: 3,
     requiredMainHand: WEAPON.SCEPTER,
     requiredOffHand: WEAPON.PISTOL,
     castTimeMs: 1920,
@@ -424,4 +366,4 @@ export const THIEF_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Skil
     // A committed follow-up consumes its window and restores the parent.
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.ENDLESS_NIGHT } }]
   }
-});
+};

@@ -16,7 +16,7 @@ export function scourgeEffectStates(
   return [
     timedEffectState(
       'active-shade',
-      scourgeState.from(runtime).shades.map((expiresAt) => ({ expiresAt, stacks: 1 }))
+      scourgeState.from(runtime.profession).shades.map((expiresAt) => ({ expiresAt, stacks: 1 }))
     )
   ];
 }

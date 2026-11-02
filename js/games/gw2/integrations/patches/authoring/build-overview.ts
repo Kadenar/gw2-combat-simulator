@@ -24,6 +24,10 @@ export function buildRelevantPatch(
   const traits = new Set(config.selectedTraitIds);
   const relevantIds = new Set([...selectedSkillIdSet(config.selectedSkillIds), ...observedIds, ...traits]);
 
+  // Equipped selectors expose every payload that can execute, even before a rotation uses it.
+  for (const id of relevantIds)
+    for (const choice of Object.values(catalog.skillsById.get(id)?.selector ?? {})) relevantIds.add(choice);
+
   // Patch-note relevance includes shared tuning consumed without casting its owning skill.
   if (metadata.professionId === 'guardian') relevantIds.add(GUARDIAN_SKILL_IDS.JUSTICE);
 

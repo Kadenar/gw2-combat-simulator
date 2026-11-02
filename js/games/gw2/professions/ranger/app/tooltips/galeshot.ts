@@ -17,6 +17,7 @@ import {
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { fieldValue } from '#gw2/platform/skills/field-specs.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 /** Compose galeshot descriptions using the selected catalog's balance data. */
@@ -27,7 +28,7 @@ export const galeshotTooltips = {
       ['windForceGain', 'Wind Force gained'],
       ['arrowsRestored', 'Arrows restored']
     ].flatMap(([field, name]) =>
-      entity[field] == null ? [] : [{ name, detail: tooltipDecimal(tooltipNumber(entity, field)) }]
+      fieldValue(entity, field) == null ? [] : [{ name, detail: tooltipDecimal(tooltipNumber(entity, field)) }]
     )
   ],
   skills: {
@@ -110,9 +111,14 @@ export const galeshotTooltips = {
     ]),
     [TRAIT.CLOUDBURST]: (balanceContext, entity) => ({
       description:
-        "Bluster and Hawkeye grant their corresponding party boons. Quarry's Peril and Supersonic Arrow reset Bluster's recharge.",
+        "Bluster and Hawkeye grant Quickness and Might to your party. Using Quarry's Peril or Supersonic Arrow fully recharges Bluster.",
+      // Identify the granting skill once per row; the description already explains the party recipients.
       facts: (tooltipProfile(balanceContext, entity.id).effects || []).flatMap(
-        (effect, index) => simulationEffectFacts([effect], index < 2 ? 'Bluster · party' : 'Hawkeye · party').facts
+        (effect) =>
+          simulationEffectFacts(
+            [effect.type === 'boon' ? { ...effect, name: effect.boon } : effect],
+            effect.name?.startsWith('Hawkeye ') ? 'Hawkeye' : 'Bluster'
+          ).facts
       )
     }),
     [TRAIT.GALE_FORCE]: traitTooltip(

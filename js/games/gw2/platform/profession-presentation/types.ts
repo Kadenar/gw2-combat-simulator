@@ -196,6 +196,9 @@ export interface ProfessionWeaponPaletteView {
   readonly placeActionsInPrimary?: boolean;
 }
 
+/** A displayed bar face may insert a different canonical input without changing its tooltip or readiness. */
+export type ProfessionPaletteSkill<TSkill extends Skill = Skill> = TSkill & { readonly inputSkillId?: SkillId };
+
 export interface ProfessionPaletteActionIdentity {
   readonly name: string;
   readonly skillId?: SkillId | null;
@@ -309,7 +312,7 @@ export interface ProfessionCatalogContext {
 
 /** Live palette projection at the rotation insertion point. */
 export interface ProfessionPaletteContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
-  readonly cooldowns?: Gw2SimulationPlanningState['cooldowns'];
+  readonly cooldownsBySkillId?: Gw2SimulationPlanningState['cooldownsBySkillId'];
   readonly activeWeaponSet?: number;
   /** Scheduler clock in seconds. */
   readonly time?: number;
@@ -405,14 +408,18 @@ export type ProfessionUiCallbackContext<TProfessionState = unknown> = Profession
   ProfessionTimelineIconContext<TProfessionState> &
   Partial<ProfessionTimelineAnnotationContext<TProfessionState>>;
 
-export interface ProfessionUiContract<TProfessionState = unknown> {
+/**
+ * Profession presentation callbacks. Skill parameters use the owning profession's skill type; the shell passes skills
+ * from that profession's catalog.
+ */
+export interface ProfessionUiContract<TProfessionState = unknown, TSkill extends Skill = Skill> {
   /** Conditional inputs for both isolated previews; each control's scope selects its panels. */
   readonly previewControls: (context: ProfessionAttributePreviewContext) => PreviewControl[];
   readonly prepareAttributePreview: (context: ProfessionAttributePreviewPreparation) => void;
   /** Mechanic groups for the skill damage preview; weapons and slot skills are grouped by the platform. */
   readonly skillDamageGroups: (context: SkillDamagePreviewContext) => SkillDamageGroup[];
   /** State a skill needs before it can be measured, or null when the generic setup is enough. */
-  readonly skillDamageState: (context: SkillDamagePreviewPreparation, skill: Skill) => SkillDamageState | null;
+  readonly skillDamageState: (context: SkillDamagePreviewPreparation, skill: TSkill) => SkillDamageState | null;
   /** Profession runtime fields that apply the skill damage preview's values to every probe. */
   readonly prepareSkillDamagePreview: (context: SkillDamagePreviewPreparation) => SkillDamageConfigPatch;
   readonly chartApplications: (context: ProfessionResultUiContext<TProfessionState>) => ProfessionChartApplication[];
@@ -423,12 +430,12 @@ export interface ProfessionUiContract<TProfessionState = unknown> {
   ) => ProfessionTimelineAnnotation | null;
   readonly paletteWeaponGroups: (
     context: ProfessionPaletteContext<TProfessionState>,
-    skills: readonly Skill[]
+    skills: readonly TSkill[]
   ) => ProfessionWeaponSkillGroup[] | null;
   readonly paletteSelectedSlotSkills: (
     context: ProfessionPaletteContext<TProfessionState>,
-    skills: readonly Skill[]
-  ) => Skill[];
+    skills: readonly TSkill[]
+  ) => ProfessionPaletteSkill<TSkill>[];
   readonly assumptionControls: readonly ProfessionAssumptionControl[];
   /** Returns charge-release rows for the application editor to validate, or null when the skill has none. */
   readonly chargeReleaseProjection: (context: ProfessionChargeReleaseContext) => object | null;
@@ -439,26 +446,26 @@ export interface ProfessionUiContract<TProfessionState = unknown> {
     context: ProfessionEventLogContext<TProfessionState>,
     event: SimulationEvent
   ) => ProfessionEventLogDescriptor | null | undefined;
-  readonly isPaletteSkillInstant: (context: ProfessionPaletteContext<TProfessionState>, skill: Skill) => boolean;
+  readonly isPaletteSkillInstant: (context: ProfessionPaletteContext<TProfessionState>, skill: TSkill) => boolean;
   /** Narrow authoring and tile-identity exceptions; ordinary gates come from the planning observation. */
   readonly paletteOverride?: (
     context: ProfessionPaletteContext<TProfessionState> & ProfessionCatalogContext,
-    skill: Skill
+    skill: TSkill
   ) => PaletteOverride | undefined;
-  readonly isSlotSkillSelectable: (context: ProfessionUiContext<TProfessionState>, skill: Skill) => boolean;
+  readonly isSlotSkillSelectable: (context: ProfessionUiContext<TProfessionState>, skill: TSkill) => boolean;
   readonly paletteGroups: (
     context: ProfessionPaletteContext<TProfessionState> & ProfessionCatalogContext
   ) => ProfessionPaletteGroup[];
   /** Adds or projects profession-owned actions before the shell renders them. */
   readonly paletteActionSkills: (
     context: ProfessionPaletteContext<TProfessionState>,
-    skills: readonly Skill[]
-  ) => Skill[];
+    skills: readonly TSkill[]
+  ) => TSkill[];
   /** Projects profession state into the weapon skills rendered by the shell. */
   readonly paletteWeaponSkills: (
     context: ProfessionPaletteContext<TProfessionState>,
-    skills: readonly Skill[]
-  ) => Skill[];
+    skills: readonly TSkill[]
+  ) => TSkill[];
   /** Lets a specialization own an exceptional weapon layout without shell policy. */
   readonly renderWeaponPalette: (
     context: ProfessionWeaponPaletteRenderContext<TProfessionState>

@@ -6,7 +6,7 @@ import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
 import { thiefCoreUi } from '#gw2/professions/thief/core/presentation.js';
 import { thiefPassiveAttributes } from '#gw2/professions/thief/core/skills/attribute-passives.js';
 import { THIEF_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/thief/core/skills/autoattack-chains.js';
-import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
+import { THIEF_CORE_SKILLS } from '#gw2/professions/thief/core/skills/index.js';
 import { THIEF_CORE_SKILL_FLIPS } from '#gw2/professions/thief/core/skills/skill-flips.js';
 import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/weapons/spear.js';
 import { createThiefCoreState, projectThiefCorePlanningState } from '#gw2/professions/thief/core/state.js';
@@ -40,8 +40,7 @@ export const thiefCoreModule = defineNativeModule({
     autoattackChains: THIEF_CORE_AUTOATTACK_CHAINS,
     profileFields: THIEF_CORE_PROFILE_FIELDS,
     skillFields: THIEF_CORE_SKILL_FIELDS,
-    skillMechanics: THIEF_CORE_SKILL_MECHANICS,
-    extraSkills: THIEF_CORE_EXTRA_SKILLS
+    skills: THIEF_CORE_SKILLS
   }),
   state: { create: createThiefCoreState, project: projectThiefCorePlanningState },
 

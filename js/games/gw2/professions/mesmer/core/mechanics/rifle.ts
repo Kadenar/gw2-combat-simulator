@@ -10,7 +10,7 @@ import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 /** Bind the blast to this image and end its field immediately after the detonation interaction. */
 export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
-  const flip = professionCoreState(context).availableFlips[ID.ABSTRACTION];
+  const flip = professionCoreState(context.profession).availableFlips[ID.ABSTRACTION];
   const field = context.combat.fieldFor(ID.INSPIRING_IMAGERY, flip?.availableAt);
 
   if (!field) return;

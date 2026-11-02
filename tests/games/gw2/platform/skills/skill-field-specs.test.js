@@ -15,6 +15,10 @@ import {
 import { professionSkillFields, SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { ENGINEER_SKILL_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { NECROMANCER_SKILL_IDS as NECROMANCER } from '#gw2/professions/necromancer/data/ids.js';
+import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { WARRIOR_SKILL_IDS as WARRIOR } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 
@@ -35,6 +39,8 @@ test('skill field declarations reject duplicate owners and orphaned patch leaves
     /requires its group fixtureGroup/
   );
   assert.ok(professionSkillFields({ fixtureGroup: dataField, 'fixtureGroup.amount': numberField() }));
+  // Skill types declare non-numeric fields, so a skill-table data entry without numeric leaves is rejected.
+  assert.throws(() => professionSkillFields({ fixtureFlag: dataField }), /fixtureFlag belongs on its skill type/);
   for (const spec of [
     { kind: 'text' },
     numberField({ unit: 'minutes' }),
@@ -97,14 +103,10 @@ test('numeric validation keeps grouped values and registry bounds independent', 
     );
 });
 
-// Profession vocabulary is accepted only by the profession that declares it, in authored data and in patches.
+// Profession tuning is patchable only through the profession that declares it.
 test('profession-owned skill fields stay with their profession', () => {
   assert.equal(Object.hasOwn(SHARED_SKILL_FIELDS, 'detonationDelay'), false);
   assert.equal(Object.hasOwn(SHARED_SKILL_FIELDS, 'rechargeMultiplier'), false);
-  assert.throws(
-    () => createCanonicalCatalog({ skills: [{ id: 1, name: 'Undeclared', rechargeMultiplier: 0.5 }] }),
-    /unsupported field: rechargeMultiplier/
-  );
   assert.throws(
     () =>
       applySkillPatch(warriorProfession.catalog, {
@@ -116,6 +118,32 @@ test('profession-owned skill fields stay with their profession', () => {
     skills: { [ELEMENTALIST.FROZEN_FUSILLADE]: { fields: { detonationDelay: 2 } } }
   });
   assert.equal(patched.skillsById.get(ELEMENTALIST.FROZEN_FUSILLADE).detonationDelay, 2);
+});
+
+// Canonical owner fields remain editable while unrelated catalogs reject them and retired names have no fallback.
+test('Evolve scaling and horror summon counts use their owning field tables', () => {
+  for (const [profession, id, field, value] of [
+    [engineerProfession, ENGINEER.EVOLVE_BASE, 'attributeMultiplier', 1.25],
+    [necromancerProfession, NECROMANCER.SUMMON_MADNESS, 'summonCount', 3]
+  ]) {
+    const patched = applySkillPatch(profession.catalog, { skills: { [id]: { fields: { [field]: value } } } });
+    assert.equal(patched.skillsById.get(id)[field], value);
+    assert.throws(
+      () =>
+        applySkillPatch(warriorProfession.catalog, {
+          skills: { [WARRIOR.BLADETRAIL]: { fields: { [field]: value } } }
+        }),
+      new RegExp(`unsupported patch field ${field}`)
+    );
+  }
+
+  assert.throws(
+    () =>
+      applySkillPatch(necromancerProfession.catalog, {
+        skills: { [NECROMANCER.SUMMON_MADNESS]: { fields: { summons: 3 } } }
+      }),
+    /unsupported patch field summons/
+  );
 });
 
 // A runtime assembled from Core and one elite keeps the profession-wide table, because elite-authored shared

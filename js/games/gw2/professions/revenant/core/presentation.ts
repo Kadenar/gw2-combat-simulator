@@ -15,7 +15,12 @@ import type { Skill as PreviewSkill } from '#gw2/platform/skills/types.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { revenantLegend, revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import type { RevenantPlanningState, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
+import type {
+  RevenantPlanningState,
+  RevenantSkill,
+  RevenantUiContext,
+  RevenantUiSlice
+} from '#gw2/professions/revenant/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -89,10 +94,7 @@ function revenantCoreStateSnapshot(
 
   if (abyssExpiries.length) {
     // Match runtime acquisition's cap from the selected spear skill.
-    const maximum = Math.max(
-      0,
-      Number(context.balanceContext.catalog.skillsById.get(SKILL.ABYSSAL_RAZE)?.maximumStacks || 0)
-    );
+    const maximum = Math.max(0, context.balanceContext.catalog.skillsById.get(SKILL.ABYSSAL_RAZE)?.maximumStacks || 0);
     const nextExpiry = Math.min(...abyssExpiries) - at;
     items.push({
       id: 'revenant-crushing-abyss',
@@ -122,7 +124,7 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
     preview.damageTargetHealth(preview.hasId(TRAIT.SWIFT_TERMINATION, TRAIT.UNSUSPECTING_STRIKES));
     const legends = (context.build as { selectedLegends?: readonly string[] }).selectedLegends ?? [];
     const upkeeps = context.catalog.skills.filter(
-      (skill) => skill.upkeepCost != null && legends.includes(String(skill.legendId))
+      (skill: RevenantSkill) => skill.upkeepCost != null && legends.includes(String(skill.legendId))
     );
 
     if (upkeeps.length)

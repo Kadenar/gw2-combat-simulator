@@ -7,10 +7,7 @@ import {
 import { revenantCoreHooks } from '#gw2/professions/revenant/core/hooks.js';
 import { revenantCoreUi } from '#gw2/professions/revenant/core/presentation.js';
 import { REVENANT_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/revenant/core/skills/autoattack-chains.js';
-import {
-  REVENANT_CORE_BASE_SKILL_MECHANICS,
-  REVENANT_CORE_EXTRA_SKILLS
-} from '#gw2/professions/revenant/core/skills/index.js';
+import { REVENANT_CORE_SKILLS } from '#gw2/professions/revenant/core/skills/index.js';
 import { REVENANT_CORE_SKILL_FLIPS } from '#gw2/professions/revenant/core/skills/skill-flips.js';
 import { createRevenantCoreState, projectRevenantPlanningState } from '#gw2/professions/revenant/core/state.js';
 import { traitDefinitions } from '#gw2/professions/revenant/core/traits/index.js';
@@ -44,8 +41,7 @@ export const revenantCoreModule = defineNativeModule({
     autoattackChains: REVENANT_CORE_AUTOATTACK_CHAINS,
     profileFields: REVENANT_CORE_PROFILE_FIELDS,
     skillFields: REVENANT_CORE_SKILL_FIELDS,
-    skillMechanics: REVENANT_CORE_BASE_SKILL_MECHANICS,
-    extraSkills: REVENANT_CORE_EXTRA_SKILLS
+    skills: REVENANT_CORE_SKILLS
   }),
   state: {
     create: createRevenantCoreState,

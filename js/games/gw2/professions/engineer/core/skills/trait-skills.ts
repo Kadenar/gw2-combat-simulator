@@ -10,10 +10,9 @@ import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js'
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Defines the catalog definitions used by Core Engineer trait effects. */
-export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<EngineerSkill>>> = Object.freeze({
+export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<EngineerSkill>>> = {
   [ID.LESSER_GRENADE_BARRAGE]: {
     name: 'Lesser Grenade Barrage',
-    description: 'Throw several grenades at once.',
     icon: 'https://render.guildwars2.com/file/5B2AB667667749BC1BC7AEFD27362E3E0E0F2FE6/103294.png',
     type: 'Proc',
     slot: 'Action',
@@ -38,7 +37,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
   },
   [ID.LESSER_ELIXIR_B]: {
     name: 'Lesser Elixir B',
-    description: 'Quaff an elixir, gaining boons.',
     icon: 'https://render.guildwars2.com/file/19E19A741B72550BF44E96F43C28571CCB059FBC/103402.png',
     type: 'Proc',
     slot: 'Action',
@@ -74,8 +72,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
   },
   [ID.STATIC_DISCHARGE_TRAIT_SKILL]: {
     name: 'Static Discharge',
-    description:
-      'Hit multiple foes with arcs of chain lightning. Critical hits with this ability deal increased damage.',
     icon: 'https://render.guildwars2.com/file/01D310FE65DBA378CBAFD13B2BFEDE59939C5153/102964.png',
     type: 'Proc',
     slot: 'Action',
@@ -108,7 +104,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
   },
   [ID.DROP_MINE]: {
     name: 'Drop Mine',
-    description: 'Drop a mine that deals damage to enemies that trigger it.',
     icon: 'https://render.guildwars2.com/file/C2A603094B5709BE213D391AFD4D33293C19EA38/103396.png',
     type: 'Proc',
     slot: 'Action',
@@ -127,7 +122,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
 
   [ID.MAGNETIC_AURA_TRAIT_SKILL]: {
     name: 'Magnetic Aura (trait skill)',
-    description: 'Become surrounded in a magnetic shield that reflects projectiles.',
     icon: 'https://render.guildwars2.com/file/206FCC2A05035FDB306AB5136E5F3AC0FC6467F3/103395.png',
     type: 'Proc',
     slot: 'Action',
@@ -138,7 +132,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
   },
   [ID.BUNKER_DOWN_TRAIT_SKILL]: {
     name: 'Bunker Down (trait skill)',
-    description: 'Detonates when enemies draw near.',
     icon: 'https://render.guildwars2.com/file/6BDE0704072F580D5818C004FB6CFA42A4F10F57/104786.png',
     type: 'Proc',
     slot: 'Action',
@@ -165,7 +158,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
 
   [ID.CLEANSING_PULSE]: {
     name: 'Cleansing Pulse',
-    description: 'Cleanse a condition from nearby allies.',
     icon: 'https://render.guildwars2.com/file/1B0C0900BD7F04324E1695BCF97D5AF8AD0609B7/103419.png',
     type: 'Proc',
     slot: 'Action',
@@ -184,7 +176,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
   },
   [ID.LESSER_UTILITY_GOGGLES]: {
     name: 'Lesser Utility Goggles',
-    description: 'Gain resistance, clear blindness, and remove damaging conditions.',
     icon: 'https://render.guildwars2.com/file/4ED8F42447B076AF1DD410430974C7BE7A0F7F61/103417.png',
     type: 'Proc',
     slot: 'Action',
@@ -202,7 +193,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
   },
   [ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL]: {
     name: 'Aim-Assisted Rocket',
-    description: 'Fire a seeking rocket at your foe.',
     icon: 'https://render.guildwars2.com/file/C61F211044C97242B6324B6F092802706A5FC101/103936.png',
     type: 'Proc',
     slot: 'Action',
@@ -227,7 +217,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
   },
   [ID.BANDAGE_TRAIT_SKILL]: {
     name: 'Bandage (trait skill)',
-    description: 'Drop a pack of bandages that provides a little healing.',
     icon: 'https://render.guildwars2.com/file/50C2CA45076553093FCF2135FBD7439280EE67F1/240697.png',
     type: 'Proc',
     slot: 'Action',
@@ -245,7 +234,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
   },
   [ID.ORBITAL_COMMAND_STRIKE]: {
     name: 'Orbital Command Strike',
-    description: 'Call down energy from the sky to blast an area.',
     icon: 'https://render.guildwars2.com/file/99CFD7B1B200DCC508172BC8A3C2EE970C06493E/1012854.png',
     type: 'Proc',
     slot: 'Action',
@@ -270,7 +258,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
   },
   [ID.CONTROLLED_ANALYSIS]: {
     name: 'Controlled Analysis',
-    description: 'Analyze a disabled foe, applying vulnerability.',
     icon: 'https://render.guildwars2.com/file/5DF2A130174A73B268A1683DCF5ED39AD0325592/103460.png',
     type: 'Proc',
     slot: 'Action',
@@ -295,7 +282,6 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
   },
   [ID.EXPLOSIVE_ENTRANCE_TRAIT_SKILL]: {
     name: 'Explosive Entrance',
-    description: 'Your first attack explodes, dealing extra damage to nearby enemies.',
     icon: 'https://render.guildwars2.com/file/02A02091B1EBDB782719EB6AE56F01E6372C500D/103091.png',
     type: 'Proc',
     slot: 'Action',
@@ -315,4 +301,4 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
       }
     ]
   }
-});
+};

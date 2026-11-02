@@ -37,7 +37,11 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistResolverContext,
+  ElementalistRuntime,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 
 /** Earth definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const earthsEmbrace = defineTrait({
@@ -164,7 +168,7 @@ export const rockSolid = defineTrait({
 
 /** Casts and held Rock Barrier release share the same Earth-weapon eligibility and live multiplier. */
 export const geomancersTrainingRechargeRule = {
-  when: (_runtime: object, skill: Skill) => skill.type === 'Weapon' && skill.attunement === 'Earth',
+  when: (_runtime: object, skill: ElementalistSkill) => skill.type === 'Weapon' && skill.attunement === 'Earth',
   multiplier: { profile: TRAIT.GEOMANCERS_TRAINING, field: 'rechargeMultiplier' }
 };
 

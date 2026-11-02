@@ -45,7 +45,7 @@ test('ammo charges recover sequentially and partial restoration preserves active
     if (reload) {
       assert.equal(controller.restoreAmmo(skill, 1, 5), 1);
       assert.equal(ammo.charges, 1);
-      assert.deepEqual(ammo.recharges, [{ startedAt: 0.6, work: 20 }]);
+      assert.deepEqual(ammo.recharges, [{ workAnchorAt: 0.6, work: 20 }]);
       assert.equal(ammo.nextRechargeAt, 16.6);
     }
 
@@ -111,7 +111,7 @@ test('restoration removes queued charges even when later charges have shorter re
   controller.spendAmmo(skill, 1, 10);
   controller.spendAmmo(skill, 2, 5);
   assert.equal(controller.restoreAmmo(skill, 2, 3), 2);
-  assert.deepEqual(controller.readAmmo(skill.id).recharges, [{ startedAt: 0, work: 20 }]);
+  assert.deepEqual(controller.readAmmo(skill.id).recharges, [{ workAnchorAt: 0, work: 20 }]);
   assert.equal(controller.refreshAmmo(skill, 7).charges, 2);
   assert.equal(controller.refreshAmmo(skill, 20).charges, 3);
 });
@@ -273,7 +273,7 @@ test('consecutive concurrent casts chain offsets from the preceding cast', () =>
     ]
   );
   assert.deepEqual(
-    scheduled.steps.map((step) => [step.ri, step.skill, step.start]),
+    scheduled.steps.map((step) => [step.rotationCommandIndex, step.skillName, step.start]),
     [
       [0, 'Long Cast', 0],
       [1, 'Gated Cast', 520],
@@ -390,7 +390,7 @@ test('skill-group lockouts block only skills in the same group', () => {
 
   // Only the shared group delays the final input to the 80 ms retry tick; unrelated instants remain available.
   assert.deepEqual(
-    scheduled.steps.map((step) => [step.skill, step.start]),
+    scheduled.steps.map((step) => [step.skillName, step.start]),
     [
       ['Shatter One', 0],
       ['Unrelated Instant', 0],
@@ -412,7 +412,7 @@ test('queued instant casts use the combat marker when their requested overlap ha
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    result.steps.map((step) => [step.skill, step.start]),
+    result.steps.map((step) => [step.skillName, step.start]),
     [
       ['Fixture Slash', 0],
       ['Combat Start', 500],

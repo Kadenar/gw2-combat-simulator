@@ -17,10 +17,9 @@ const CALL_LIGHTNING_PULSE_TIMES_MS = [1760, 2760, 3760, 4760, 5760];
 // Calibrated so both condition Druid presets reproduce the 158 damage every logged vine hit deals in their logs.
 const EMBRACE_VINE_COEFFICIENT = 0.0845;
 
-export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.JACARANDA_PHOTOSYNTHESIZE]: definePetSkill({
     name: 'Photosynthesize',
-    description: 'Restore health, gain regeneration, and remove conditions.',
     icon: 'https://render.guildwars2.com/file/976A0CC4EA0F36C8A4A705FDE22F03D65CD050D1/1770577.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -46,7 +45,6 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
   }),
   [ID.JACARANDAS_EMBRACE]: definePetSkill({
     name: "Jacaranda's Embrace",
-    description: 'Beast. Fire a missile that roots foes for a period of time.',
     icon: 'https://render.guildwars2.com/file/62C42A056E3B30C8770D5BA3E4301C06069BE21E/1770562.png',
     petNames: ['Jacaranda'],
     type: 'Profession',
@@ -96,7 +94,6 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
   }),
   [ID.JACARANDA_ROOT_SLAP]: definePetSkill({
     name: 'Root Slap',
-    description: 'Strike your target with roots.',
     icon: new URL('@images/wiki/root-slap.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -120,7 +117,6 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
   }),
   [ID.JACARANDA_CALL_LIGHTNING]: definePetSkill({
     name: 'Call Lightning',
-    description: 'Call lightning to a small area.',
     icon: 'https://render.guildwars2.com/file/731C0827CBB7E4015F3C45B4C49C58B42416BFA8/1770576.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -156,4 +152,4 @@ export const RANGER_CORE_JACARANDA_PET_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ])
   })
-});
+};

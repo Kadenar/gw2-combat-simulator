@@ -3,12 +3,11 @@ import { COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<WarriorSkill>>> = {
   [ID.MIGHTY_THROW]: {
     name: 'Mighty Throw',
-    description:
-      'Throw a spear at your enemy that shatters on contact, scattering shards that damage enemies around the initial target.',
     icon: 'https://render.guildwars2.com/file/F02129C7049F590E00BB7B09EDC1B258655D9459/3379199.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -45,8 +44,6 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.MAIMING_SPEAR]: {
     name: 'Maiming Spear',
-    description:
-      'Throw your spear at a targeted location, damaging and inflicting conditions on opponents in the area and causing an aftershock after a short delay. The aftershock deals more damage to the opponent closest to the epicenter.',
     icon: 'https://render.guildwars2.com/file/AB9C0E53733CDA025F4B7EB813C8AEF932F4E74F/3379200.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -100,8 +97,6 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.DISRUPTING_THROW]: {
     name: 'Disrupting Throw',
-    description:
-      'Throw a spear that pierces foes in a line, immobilizing them. The first enemy struck by this skill is additionally dazed.',
     icon: 'https://render.guildwars2.com/file/6AC359F6D6C8D8F11372EE01FBB09D9CE25D767D/3379202.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -140,8 +135,6 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.SPEARMARSHALS_SUPPORT]: {
     name: "Spearmarshal's Support",
-    description:
-      'Mark a single target; after a short delay, bombard the area with spears that deal more damage to the marked target and continue to track their location.',
     icon: 'https://render.guildwars2.com/file/43132DEC934F072272F14B19FC03FB62111502FB/3379203.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -170,8 +163,6 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.SPEAR_SWIPE]: {
     name: 'Spear Swipe',
-    description:
-      'Jump up and evade attacks, then swipe forward, sending a wave of air in front of you that pushes you backward, knocks enemies back, and reflects projectiles. The first enemy struck is launched instead of knocked back. Evading an attack reduces the cooldown of this skill.',
     icon: 'https://render.guildwars2.com/file/EB6D03527064DF984CA10F08426765070948A9E3/3379201.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -192,4 +183,4 @@ export const WARRIOR_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Skil
       }
     ]
   }
-});
+};

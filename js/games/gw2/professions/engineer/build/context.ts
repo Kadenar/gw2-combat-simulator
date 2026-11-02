@@ -13,7 +13,6 @@ export const profession: BoundProfession = withActivePatchPreview(engineerProfes
 
 export const createBuildContext = bindBuildContext<EngineerCanonicalBuild>(
   profession,
-  { attributeContributions: profession.attributeContributions },
   (build) => ({
     initialHeat: build.initialHeat,
     selectedMorphSkillIds: build.selectedMorphSkillIds

@@ -5,7 +5,7 @@ import {
   normalizeComboFieldType,
   normalizeComboFinisherType
 } from '#gw2/platform/combos/validation.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
@@ -113,13 +113,14 @@ function normalizeEffect(effect: SkillEffect, effectIndex: number): SkillEffect 
     effect.comboFinishers == null
       ? undefined
       : normalizeFinisherDescriptors(effect.comboFinishers, `effect:${effectIndex + 1}`);
-  const ticks = Array.isArray(effect.ticks)
+  const declared = effectTicks(effect);
+  const ticks = declared
     ? Object.freeze(
-        effect.ticks.map((tick, tickIndex) =>
-          Object.freeze(normalizeTick(tick as UnvalidatedFields, effectIndex, tickIndex))
+        declared.map((tick, tickIndex) =>
+          Object.freeze(normalizeTick(tick as unknown as UnvalidatedFields, effectIndex, tickIndex))
         )
       )
-    : effect.ticks;
+    : undefined;
   return {
     ...effect,
     ...(comboFields ? { comboFields } : {}),

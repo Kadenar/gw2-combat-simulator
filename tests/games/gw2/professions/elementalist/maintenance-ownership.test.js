@@ -34,7 +34,7 @@ test('Tempest charges require a live elemental and retire on replacement and nat
           at: 0.1,
           run(runtime) {
             arm(runtime);
-            assert.equal(tempestState.from(runtime).pendingLightningJolt, null);
+            assert.equal(tempestState.from(runtime.profession).pendingLightningJolt, null);
           }
         },
         { at: 0.2, run: summon },
@@ -42,26 +42,29 @@ test('Tempest charges require a live elemental and retire on replacement and nat
           at: 0.3,
           run(runtime) {
             arm(runtime);
-            assert.equal(tempestState.from(runtime).pendingLightningJolt.summonGeneration, 1);
+            assert.equal(tempestState.from(runtime.profession).pendingLightningJolt.summonGeneration, 1);
           }
         },
         {
           at: 0.5,
           run(runtime) {
             summon(runtime);
-            assert.equal(tempestState.from(runtime).pendingLightningJolt, null);
+            assert.equal(tempestState.from(runtime.profession).pendingLightningJolt, null);
             arm(runtime);
           }
         }
       ],
       probes: [
-        [2.2, (runtime) => assert.equal(tempestState.from(runtime).pendingLightningJolt.summonGeneration, 2)],
+        [
+          2.2,
+          (runtime) => assert.equal(tempestState.from(runtime.profession).pendingLightningJolt.summonGeneration, 2)
+        ],
         [
           2.5,
           (runtime) => {
-            assert.equal(tempestState.from(runtime).pendingLightningJolt, null);
+            assert.equal(tempestState.from(runtime.profession).pendingLightningJolt, null);
             arm(runtime);
-            assert.equal(tempestState.from(runtime).pendingLightningJolt, null);
+            assert.equal(tempestState.from(runtime.profession).pendingLightningJolt, null);
           }
         ]
       ]
@@ -93,11 +96,11 @@ test('Tempest consumes the latest charge once before a current-generation strike
               companionId: 'elementalist-elemental:1',
               activationId: 'stale'
             });
-            assert.equal(tempestState.from(runtime).pendingLightningJolt.coefficient, 0.8);
+            assert.equal(tempestState.from(runtime.profession).pendingLightningJolt.coefficient, 0.8);
           }
         }
       ],
-      probes: [[7, (runtime) => assert.equal(tempestState.from(runtime).pendingLightningJolt, null)]]
+      probes: [[7, (runtime) => assert.equal(tempestState.from(runtime.profession).pendingLightningJolt, null)]]
     }
   );
   assert.deepEqual(result.warnings, []);

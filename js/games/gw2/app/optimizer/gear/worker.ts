@@ -68,20 +68,24 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
       const started = performance.now();
       let lastProgress = started;
       // Rejections and simulations have very different costs; keep counts moving within adaptive batches.
-      const result = job.evaluateRange(BigInt(data.start), BigInt(data.end), (completed, represented, simulations) => {
-        const now = performance.now();
+      const result = job.evaluateRange(
+        BigInt(data.start),
+        BigInt(data.end),
+        (completed, representedCombinationCount, simulations) => {
+          const now = performance.now();
 
-        if (now - lastProgress < 150) return;
+          if (now - lastProgress < 150) return;
 
-        lastProgress = now;
-        post({
-          kind: 'progress',
-          chunkId: data.chunkId,
-          completed: completed.toString(),
-          represented: represented.toString(),
-          simulations: simulations.toString()
-        });
-      });
+          lastProgress = now;
+          post({
+            kind: 'progress',
+            chunkId: data.chunkId,
+            completed: completed.toString(),
+            representedCombinationCount: representedCombinationCount.toString(),
+            simulations: simulations.toString()
+          });
+        }
+      );
       post({ kind: 'chunk', chunkId: data.chunkId, ...result, elapsedMs: performance.now() - started });
       return;
     }

@@ -8,7 +8,18 @@ import {
   MAX_EFFECT_EXPANSION,
   requireEffectExpansionCount
 } from '#gw2/platform/effects/expansion-budget.js';
-import type { ConditionTick, SkillEffect, StrikeTick } from '#gw2/platform/effects/types.js';
+import type {
+  AuraEffect,
+  ConditionEffect,
+  ConditionTick,
+  ControlEffect,
+  CustomEffect,
+  SkillEffect,
+  SkillEffectBase,
+  StatusEffect,
+  StrikeEffect,
+  StrikeTick
+} from '#gw2/platform/effects/types.js';
 import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import { normalizeEffectAudience, normalizeEffectMetadata } from '#gw2/platform/events/audience-metadata-validation.js';
@@ -26,74 +37,16 @@ const TIMING_ANCHORS = new Set(['castStart', 'castEnd']);
 
 const TIMING_SCALES = new Set(['cast', 'fixed']);
 
-// Allowlist used to catch typos in hand-authored effect objects at catalog-build time.
-const EFFECT_FIELDS = new Set([
-  'modifiers',
-  'type',
-  'reactions',
-  'when',
-  'coefficient',
-  'coefficientModifiers',
-  'hits',
-  'applications',
-  'allyStacks',
-  'ticks',
-  'condition',
-  'stacks',
-  'duration',
-  'maximumDuration',
-  'durationPerAffinity',
-  'durationReductionPerAffinity',
-  'damageIncreasePerStack',
-  'damagePerCoefficient',
-  'aura',
-  'boon',
-  'kind',
-  'name',
-  'icon',
-  'atMs',
-  'intervalMs',
-  'intervalTimingScale',
-  'timingAnchor',
-  'timingScale',
-  'castTimeMs',
-  'packetLabel',
-  'damageBreakdownName',
-  'phantasmEntityIndex',
-  'source',
-  'sourceId',
-  'actorType',
-  'ownerActorType',
-  'summonKind',
-  'summonOwner',
-  'skillName',
-  'parentSkillName',
-  'weapon',
-  'weaponStrength',
-  'weaponStrengthProfileId',
-  'weaponStrengthSource',
-  'skillWeapon',
-  'canCrit',
-  'flatDamage',
-  'flatStrikeBase',
-  'flatStrikePowerCoeff',
-  'flatStrikeMultiplier',
-  'flatStrikeHealthThreshold',
-  'flatStrikeThresholdMultiplier',
-  'damageKind',
-  'forceCrit',
-  'projectile',
-  'controlKind',
-  'target',
-  'persistsAfterInterrupt',
-  'interruptCommitMs',
-  'audience',
-  'metadata',
-  'eventType',
-  'event',
-  'comboFields',
-  'comboFinishers'
-]);
+/** Validation reads every variant's fields from one unvalidated declaration before its type discriminates it. */
+type UnvalidatedEffect = SkillEffectBase &
+  Partial<
+    Omit<StrikeEffect, 'type'> &
+      Omit<ConditionEffect, 'type' | 'ticks'> &
+      Omit<StatusEffect, 'type'> &
+      Omit<AuraEffect, 'type'> &
+      Omit<ControlEffect, 'type'> &
+      Omit<CustomEffect, 'type'>
+  > & { readonly type: SkillEffect['type'] };
 
 /** Names identify procedural packets independently of their position after patch deletion. */
 export function skillEffectKey(type: SkillEffect['type'], name: string): string {
@@ -156,7 +109,8 @@ export function requireCanonicalSkillEffects(
   const effects = (action ?? owner).effects;
 
   if (!effects || !canonicalEffectLists.has(effects)) {
-    const metadata = owner.balanceDataContext as BalanceProfile['balanceDataContext'];
+    // Patched catalogs stamp their source on profiles; skills never carry it.
+    const metadata = 'balanceDataContext' in owner ? owner.balanceDataContext : undefined;
     throw new TypeError(
       `Invalid balance data: profession=${metadata?.professionId ?? '<unknown>'} patch=${metadata?.patchId ?? '<unknown>'} owner=${owner.id}${action ? ` action=${action.id ?? action.type}` : ''} effects must be normalized at construction`
     );
@@ -328,7 +282,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     });
   }
 
-  const normalizedEffect = candidate as unknown as SkillEffect;
+  const normalizedEffect = candidate as unknown as UnvalidatedEffect;
   validateEffectNumbers(candidate, label);
 
   // Validate explicit profiles before authored effects enter the runtime.
@@ -337,7 +291,7 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   // Validate aura identity and duration at the same boundary as other supported effects.
   if (
     normalizedEffect.type === 'aura' &&
-    (!Object.values(AURA).includes(normalizedEffect.aura) || !(normalizedEffect.duration > 0))
+    (!Object.values(AURA).includes(normalizedEffect.aura!) || !((normalizedEffect.duration ?? 0) > 0))
   )
     throw new TypeError('Aura effects require a canonical aura and positive finite duration.');
 
@@ -370,14 +324,6 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
     normalizedEffect.coefficient < 0
   ) {
     throw new TypeError('field=coefficient expected=non-negative number');
-  }
-
-  const unknownFields = Object.keys(candidate).filter((field) => !EFFECT_FIELDS.has(field));
-
-  if (unknownFields.length) {
-    throw new TypeError(
-      `Skill effect has unsupported field${unknownFields.length === 1 ? '' : 's'}: ` + unknownFields.join(', ')
-    );
   }
 
   if (normalizedEffect.when != null && typeof normalizedEffect.when !== 'function')

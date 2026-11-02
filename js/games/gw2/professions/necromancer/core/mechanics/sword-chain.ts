@@ -46,7 +46,7 @@ function observeNecromancerAutoattackTransition(
 
 const necromancerSwordTasks = {
   [SWORD_AUTOATTACK_EXPIRY_TASK](runtime: NecromancerRuntime) {
-    resetAutoattackChains(runtime, [ID.ENERVATION_BLADE]);
+    resetAutoattackChains(runtime.profession, [ID.ENERVATION_BLADE]);
   }
 };
 

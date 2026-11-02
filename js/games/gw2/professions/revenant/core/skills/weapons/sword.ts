@@ -3,12 +3,12 @@ import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // Snap each intended packet independently so rounding a repeated interval cannot accumulate drift.
-export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.PREPARATION_THRUST]: {
     name: 'Preparation Thrust',
-    description: 'Stab your foe with your sword, inflicting vulnerability.',
     icon: 'https://render.guildwars2.com/file/09B709249BD429435E53DEA0E2E701560F68DD1B/1013000.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -40,7 +40,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.BRUTAL_BLADE]: {
     name: 'Brutal Blade',
-    description: 'Slice foes, damaging them and inflicting vulnerability.',
     icon: 'https://render.guildwars2.com/file/A3E65AA00621DE0915C6607BB6E9084D0B480CCC/1013001.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -71,7 +70,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.RIFT_SLASH]: {
     name: 'Rift Slash',
-    description: 'Slash foes, creating a rift on them that explodes for additional damage after a short delay.',
     icon: 'https://render.guildwars2.com/file/91913B6196F06B95EBC71FC3EE9B41004B1EDF09/1013002.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -107,8 +105,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.CHILLING_ISOLATION]: {
     name: 'Chilling Isolation',
-    description:
-      'Strike all nearby foes, then release a burst of mist energy that deals a second strike. The second strike deals bonus damage if it hits only one enemy.',
     icon: 'https://render.guildwars2.com/file/5201D39E6CC216A5A64E17F6E6ECB15708F103EE/1013003.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -141,7 +137,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.UNRELENTING_ASSAULT]: {
     name: 'Unrelenting Assault',
-    description: 'Shadowstep and unleash fierce attacks on nearby foes. Gain might each time you damage a foe.',
     icon: 'https://render.guildwars2.com/file/A1E252A0C9F506B73465E09919D119D706702DD8/1013004.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -176,8 +171,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SHACKLING_WAVE]: {
     name: 'Shackling Wave',
-    description:
-      'Slice through the air, sending a wave of energy from the Mists toward your foe and dealing rapid strikes. Immobilize duration is increased per target you strike.',
     icon: 'https://render.guildwars2.com/file/C9AA7D9B9BDE6652194A5963F5C2694C3AE0CEF6/1030006.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -232,8 +225,6 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.DEATHSTRIKE]: {
     name: 'Deathstrike',
-    description:
-      'Shadowstep to your foe and deliver a quick attack, then deliver a second devastating blow if it hits.',
     icon: 'https://render.guildwars2.com/file/030BA607CA9D6A0D0E29F53C201421019263F353/1876877.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -275,13 +266,12 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.DEATHSTRIKE_ID_28625]: {
     name: 'Deathstrike',
-    description: 'Deliver a second devastating blow.',
     icon: 'https://render.guildwars2.com/file/030BA607CA9D6A0D0E29F53C201421019263F353/1876877.png',
     weapon: 'Sword',
     slot: 'Weapon_5',
     // The second blow is automatic; retain its damage identity without offering another weapon input.
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 0,
@@ -296,4 +286,4 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   }
-});
+};

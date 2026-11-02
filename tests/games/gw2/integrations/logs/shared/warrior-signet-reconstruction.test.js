@@ -174,7 +174,7 @@ for (const format of ['dps.report', 'evtc']) {
         config: defaultSimulationConfig({ specialization: 'Spellbreaker', initialResource: 0 })
       });
       assert.deepEqual(result.warnings, []);
-      assert.equal(Object.hasOwn(result.planningState.cooldowns, ID.SIGNET_OF_MIGHT), mode !== 'proc');
+      assert.equal(Object.hasOwn(result.planningState.cooldownsBySkillId, ID.SIGNET_OF_MIGHT), mode !== 'proc');
     }
   });
 

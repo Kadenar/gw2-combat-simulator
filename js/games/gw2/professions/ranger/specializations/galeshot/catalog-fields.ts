@@ -10,7 +10,9 @@ export const GALESHOT_SKILL_FIELDS = defineFields(
     // Wind force gained by the skill.
     windForceGain: numberField({ patch: 'primary' }),
     // Milliseconds into the cast when the wind force gain applies.
-    windForceApplyMs: numberField({ unit: 'milliseconds', patch: 'primary' })
+    windForceApplyMs: numberField({ unit: 'milliseconds', patch: 'primary' }),
+    // Hawkeye opens Gale Force before its first projectile, independently of animation recovery.
+    galeForceApplyMs: numberField({ unit: 'milliseconds', patch: 'primary' })
   },
   'Galeshot'
 );

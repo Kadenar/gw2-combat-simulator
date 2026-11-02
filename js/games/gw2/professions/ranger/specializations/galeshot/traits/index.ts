@@ -29,6 +29,7 @@ import {
   galeshotCastCompleted,
   galeshotControlAccepted,
   galeshotPetStrike,
+  hawkeyeReleased,
   missileResolved
 } from '#gw2/professions/ranger/specializations/galeshot/mechanics/cyclone-bow.js';
 import type { GaleshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
@@ -183,9 +184,8 @@ const galeForce = defineTrait({
     }
   ],
   triggers: [
-    onTriggerPoint(cycloneBowCompleted, {
-      when: (_runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) => input.skill.id === ID.HAWKEYE,
-      run: (runtime, input: TriggerPointInput<typeof cycloneBowCompleted>) => applyGaleForce(runtime, input.skill)
+    onTriggerPoint(hawkeyeReleased, {
+      run: (runtime, input: TriggerPointInput<typeof hawkeyeReleased>) => applyGaleForce(runtime, input.skill)
     })
   ]
 });
@@ -200,8 +200,9 @@ const birdOfPrey = defineTrait({
       order: 100,
       id: 'ranger.bird-of-prey',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.BIRD_OF_PREY, 'damageIncrease'),
+      // Multiply the shared Gale Force and sigil bucket so the movement bonus retains its full value.
+      operation: 'multiply',
+      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.BIRD_OF_PREY, 'damageIncrease'),
       // Either movement buff activates the player bonus, including generated buffs until they expire.
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
@@ -239,7 +240,7 @@ export const galeshotTraits = [
 /** Shrike counts resolved projectile impacts, including returns, independently of Mistral. */
 function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): void {
   const at = event.at;
-  const state = galeshotState.from(context);
+  const state = galeshotState.from(context.profession);
   const profile = requireBalanceProfileFromContext(context, TRAIT.SHRIKE);
   const threshold = balanceProfileNumber(profile, 'threshold');
   // Completing the missile-hit cycle resets buildup before granting the arrow refund and optional strike.
@@ -394,9 +395,9 @@ function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill): void
   });
 }
 
-/** Hawkeye opens the selected Gale Force damage window after commitment. */
+/** Hawkeye opens the selected Gale Force window at release, without refreshing it at animation end. */
 function applyGaleForce(context: RangerRuntime, skill: RangerSkill): void {
-  const state = galeshotState.from(context);
+  const state = galeshotState.from(context.profession);
   {
     const profile = requireBalanceProfileFromContext(context, TRAIT.GALE_FORCE);
     const effect = requireEffect(profile, 'buff', 'gale-force');

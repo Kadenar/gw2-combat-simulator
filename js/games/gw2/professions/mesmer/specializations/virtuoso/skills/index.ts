@@ -22,10 +22,9 @@ function bladePacketTiers(coefficients: readonly number[], atMs: readonly number
   );
 }
 
-export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinition<MesmerSkill>>> = Object.freeze({
+export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinition<MesmerSkill>>> = {
   [ID.BLADECALL]: {
     name: 'Bladecall',
-    description: 'Throw a fan of daggers that return to you. Summon a clone if this attack hits at least one target.',
     icon: 'https://render.guildwars2.com/file/45B04E5D30ADD8D1B3086A98D40BE506E313B646/2479379.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -47,7 +46,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
   },
   [ID.THOUSAND_CUTS]: {
     name: 'Thousand Cuts',
-    description: 'Psionic. Open a portal that devastates targets in a line in front of you with a flurry of blades.',
     icon: 'https://render.guildwars2.com/file/1AF971BFF051CE34DE34437D1A0E0991A92155F4/2479389.png',
     type: 'Elite',
     slot: 'Elite',
@@ -69,8 +67,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
   },
   [ID.SWORD_OF_DECIMATION]: {
     name: 'Sword of Decimation',
-    description:
-      'Psionic. Drop a massive blade on a location, immobilizing enemies. This attack deals increased damage against controlled, downed, or defiant foes. Does bonus defiance-bar damage to defiant foes.\nControls include stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.',
     icon: 'https://render.guildwars2.com/file/FD3A260F2B09CA7BE3C8B7E2A17A9D436394D9AA/2479388.png',
     type: 'Utility',
     slot: 'Utility',
@@ -93,7 +89,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
   },
   [ID.BLADE_RENEWAL]: {
     name: 'Blade Renewal',
-    description: 'Psionic. Channel to gain distortion and stock up to the maximum number of blades.',
     icon: 'https://render.guildwars2.com/file/F21B401FC2A8736497704B7FFD4773500CA57C37/2479380.png',
     type: 'Utility',
     slot: 'Utility',
@@ -109,8 +104,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
   },
   [ID.RAIN_OF_SWORDS]: {
     name: 'Rain of Swords',
-    description:
-      'Psionic. Create a storm of blades that attacks a large area, damaging and applying vulnerability to targets.',
     icon: 'https://render.guildwars2.com/file/B707CE945A596CC37A5D971EC2EB072A57680CA7/2479387.png',
     type: 'Utility',
     slot: 'Utility',
@@ -133,8 +126,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
   },
   [ID.TWIN_BLADE_RESTORATION]: {
     name: 'Twin Blade Restoration',
-    description:
-      'Psionic. Heal yourself, lose conditions, and throw two blades at your target. If the first blade hits, you gain aegis. If the second blade hits, you gain vigor.',
     icon: 'https://render.guildwars2.com/file/1EB2DEF5C20E4E415698251AE8AFAA5D02A513AC/2479390.png',
     type: 'Heal',
     slot: 'Heal',
@@ -155,8 +146,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
   },
   [ID.BLADETURN_REQUIEM]: {
     name: 'Bladeturn Requiem',
-    description:
-      'Bladesong.Send your blades spinning around you to hit nearby foes. Spinning blade duration scales with number of blades consumed.',
     icon: 'https://render.guildwars2.com/file/040192EDDE9D2492D2428027E50DFC12B9044D39/2479384.png',
     type: 'Profession',
     slot: 'Profession_5',
@@ -183,8 +172,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
   },
   [ID.BLADESONG_DISSONANCE]: {
     name: 'Bladesong Dissonance',
-    description:
-      'Bladesong. Combine all your blades into one large blade that dazes targets based on the number of blades consumed.',
     icon: 'https://render.guildwars2.com/file/D96E115ADAB14D610215EC185C3C21B4611DC292/2479381.png',
     type: 'Profession',
     slot: 'Profession_3',
@@ -221,7 +208,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
   },
   [ID.BLADESONG_SORROW]: {
     name: 'Bladesong Sorrow',
-    description: 'Bladesong. Fire all stocked blades, inflicting your target with conditions.',
     icon: 'https://render.guildwars2.com/file/EF9223543A66B8B5A8FD1C4BC4E7A218277C15C4/2479383.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -251,7 +237,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
   },
   [ID.BLADESONG_HARMONY]: {
     name: 'Bladesong Harmony',
-    description: 'Bladesong. Fire all stocked blades at your target.',
     icon: 'https://render.guildwars2.com/file/656A0C59523A4D9D935316EA93F1EA6247C32106/2479382.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -280,8 +265,6 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
   },
   [ID.BLADESONG_DISTORTION]: {
     name: 'Bladesong Distortion',
-    description:
-      'Bladesong. Gain distortion and consume all stocked blades, gaining additional distortion for each consumed blade.',
     icon: 'https://render.guildwars2.com/file/D0969802A76808ACD65A56A6D54F2A40E355F7C3/103284.png',
     type: 'Profession',
     slot: 'Profession_4',
@@ -305,7 +288,7 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
     castTimeMs: 0,
     effects: []
   }
-});
+};
 
 // Profile and runtime registries project the same skill-owned recipe.
 export const MESMER_VIRTUOSO_SHATTERS: Readonly<Record<number, MesmerShatterDefinition>> = Object.freeze(

@@ -102,7 +102,7 @@ export interface Gw2AttributeBreakdown {
   runes: number;
   food: number;
   utility: number;
-  jbc: number;
+  jadeBotCore: number;
   traits: number;
   sigils: number;
   infusions: number;

@@ -3,6 +3,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import { effectTicks } from '#gw2/platform/effects/types.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -364,8 +365,8 @@ function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<Warrior
   if (skill.id === ID.KICK) {
     const strike = skill.effects?.find((effect) => effect.type === 'strike');
     const timing = strike && scaleCastBoundTiming(cast, skill, strike);
-    const firstTick = Array.isArray(timing?.ticks) ? timing.ticks[0] : undefined;
-    const offsetMs = Number(firstTick?.atMs ?? timing?.atMs ?? skill.castTimeMs ?? 0);
+    const firstTick = timing ? effectTicks(timing)?.[0] : undefined;
+    const offsetMs = firstTick?.atMs ?? timing?.atMs ?? skill.castTimeMs ?? 0;
     at = Math.min(at, cast.start + offsetMs / 1000);
   }
 

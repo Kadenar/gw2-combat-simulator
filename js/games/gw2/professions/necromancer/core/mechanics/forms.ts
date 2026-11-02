@@ -61,7 +61,7 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   if (!state.activeShroud || state.activeShroud === 'lich') return;
 
   // Depletion has no cast completion; the actual form exit still invalidates its pending attack chain.
-  resetAutoattackChains(runtime);
+  resetAutoattackChains(runtime.profession);
   const entry =
     state.activeShroudEntryId == null ? undefined : runtime.helpers.skillsById.get(state.activeShroudEntryId);
 

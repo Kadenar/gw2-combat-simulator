@@ -3,7 +3,7 @@
  * The view reconciles this HTML into the DOM, so imported text must be escaped at each HTML boundary.
  */
 import type { TimelinePresentation } from '#gw2/app/presentation/model.js';
-import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
+import { resolveEntryDisplaySkill, resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import {
   doubleEdgeOutcomeLabel,
   hasConfigurableDoubleEdgeOutcome
@@ -117,9 +117,9 @@ export function timelineRowsView(
         `Transition delay: ${Math.round(Number(event.duration) * 1000)} ms (overlaps cast recovery)`
       ])
   );
-  // ri < 0 marks injected/synthetic steps (e.g. auto-attacks) not tied to a rotation entry.
+  // rotationCommandIndex < 0 marks injected/synthetic steps (e.g. auto-attacks) not tied to a rotation entry.
   const steps = new Map<number, SimulationStep>(
-    resultSteps.filter((step) => step.ri >= 0).map((step) => [step.ri, step])
+    resultSteps.filter((step) => step.rotationCommandIndex >= 0).map((step) => [step.rotationCommandIndex, step])
   );
   const castOrdinals = timelineSkillCastOrdinals(resultSteps);
   const resourceSpends = mechanicResourceSpends(results);
@@ -319,12 +319,12 @@ export function timelineRowsView(
           ? marker.reason === 'cancelled-before-commit'
             ? [
                 `Idle time: ${duration} wasted`,
-                `${marker.skill || 'Skill'} was interrupted before its interruptCommitMs cutoff`
+                `${marker.skill || 'Skill'} was interrupted before the attack could take effect`
               ].join('\n')
             : [
                 `Idle time: ${duration} wasted`,
                 `${marker.skill || 'Skill'} dealt no damage after being interrupted`,
-                'No interruptCommitMs is configured'
+                'Interruption timing is unavailable for this skill; this interrupted cast contributes no damage'
               ].join('\n')
           : [
               `Idle time: ${duration} wasted`,
@@ -436,13 +436,10 @@ export function timelineRowsView(
       }
 
       const item = timelineItem(entry);
-      const highlightKey = rotationSkillHighlightKey(entry);
+      const highlightKey = rotationSkillHighlightKey(entry, app.activeCatalog);
       const step = steps.get(index);
       // Trait-selected variants can differ from saved commands; display the skill that actually ran.
-      const skill = resolveEntrySkill(
-        app,
-        step?.skillId != null ? { type: 'cast', skillId: step.skillId } : item.command
-      );
+      const skill = resolveEntryDisplaySkill(app, item.command, step?.invalid ? undefined : step?.skillId);
       const invalid = Boolean(step?.invalid);
       const display =
         item.type === 'wait'

@@ -21,7 +21,7 @@ import {
 } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { addVenomCharges } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
+import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Owns Cloaked in Shadow tuning and behavior at the existing execution boundaries. */
 export const cloakedInShadow = defineTrait({
@@ -109,7 +109,7 @@ export const leechingVenoms = defineTrait({
 });
 
 /** Owns Shadow Siphoning tuning and behavior at the existing execution boundaries. */
-export const shadowSiphoning = defineTrait({
+export const shadowSiphoning = defineTrait<ThiefSkill>({
   id: TRAIT.SHADOW_SIPHONING,
   balance: {
     internalCooldown: 1,

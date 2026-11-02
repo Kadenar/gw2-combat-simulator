@@ -400,7 +400,7 @@ async function showOptimizerResults(page) {
       key: String(index),
       equipment: { ...structuredClone(equipment), ...changes },
       score: { ...baseline, dps: 1030 - index * 10 },
-      represented: '1'
+      representedCombinationCount: '1'
     }));
     runner.request = request;
     Object.assign(runner.state, {

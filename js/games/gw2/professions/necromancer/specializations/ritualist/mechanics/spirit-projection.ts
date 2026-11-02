@@ -2,6 +2,7 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Named roles are shared by spirit execution and presentation, so removing a sibling cannot reclassify an attack. */
 const SPIRIT_ATTACKS: ReadonlyMap<
@@ -44,7 +45,7 @@ export function spiritAttackEffects(context: unknown, skillId: SkillId) {
 
   if (!attacks) return undefined;
 
-  const summon = requireSkillFromContext(context, skillId);
+  const summon: NecromancerSkill = requireSkillFromContext(context, skillId);
   const profile = requireSkillFromContext(context, summon.summonAttackId as SkillId);
   const opening = requireSkillAction(summon, 'opening');
   const command = requireSkillFromContext(context, ID.SUMMON_SPIRITS);

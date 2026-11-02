@@ -2,11 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { createObservedProfessionSimulator, projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
 const config = {
   attributeInputs: baseAttributeInputs({
@@ -49,7 +52,10 @@ test('Renewed Focus restores core activation traits and Flowing Resolve charges 
     const ammo = willbender.planningState.ammoBySkillId[GUARDIAN_SKILL_IDS.FLOWING_RESOLVE];
     assert.equal(ammo.charges, interrupted ? 0 : ammo.maximum);
     assert.equal(ammo.nextRechargeAt == null, !interrupted);
-    assert.equal(Object.hasOwn(willbender.planningState.cooldowns, GUARDIAN_SKILL_IDS.FLOWING_RESOLVE), interrupted);
+    assert.equal(
+      Object.hasOwn(willbender.planningState.cooldownsBySkillId, GUARDIAN_SKILL_IDS.FLOWING_RESOLVE),
+      interrupted
+    );
   }
 });
 
@@ -145,5 +151,45 @@ test('Willbender misses cannot complete a virtue hit cycle', () => {
       ),
       !offTarget
     );
+  }
+});
+
+test('Guardian Virtues share patched conversion and recharge without reapplying build attributes', () => {
+  // The same owner supplies the panel conversion and live virtue recharge for each current build.
+  const family = patchTraitProfession(guardianProfession, {
+    balanceProfiles: {
+      [GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS]: { fields: { attributeConversion: 0.11, rechargeMultiplier: 0.5 } }
+    }
+  });
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(guardianCatalog),
+    family.attributeContributions
+  );
+  const build = { specializations: [{ name: 'Virtues', traits: '1-1-1' }] };
+  for (const [patchId, bonus, recharge] of [
+    ['current', 70, 25.5],
+    ['s4-preview', 110, 15]
+  ]) {
+    const balance = family.resolvePatch({ id: patchId }).balanceContext;
+    assert.equal(calculate(build, [], 1, null, null, balance).attributes['Condition Damage'].traits, bonus);
+    assert.equal(
+      calculate(build, [], 1, 'Power of the Virtuous', null, balance).attributes['Condition Damage'].traits,
+      0
+    );
+    const runtime = family.runtimeFor({ patchId });
+    const context = {
+      catalog: runtime.catalog,
+      time: 0,
+      config: {
+        selectedTraitIds: [GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS],
+        attributeInputs: baseAttributeInputs({ vitality: 1000 })
+      }
+    };
+    const justice = runtime.catalog.skillsById.get(GUARDIAN_SKILL_IDS.JUSTICE);
+    assert.equal(runtime.rechargeWork(context, justice, 30), recharge);
+    assert.equal(runtime.modifyAttributes(context, { conditionDamage: 100 }).conditionDamage, 100 + bonus);
+    assert.equal(runtime.modifyAttributes(context, { conditionDamage: 100 }).conditionDamage, 100 + bonus);
+    context.config.selectedTraitIds = [];
+    assert.equal(runtime.rechargeWork(context, justice, 30), 30);
   }
 });

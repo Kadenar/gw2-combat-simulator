@@ -6,6 +6,7 @@ import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { DODGE_ICON } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -13,11 +14,9 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { ambushSkill } from '#gw2/professions/mesmer/specializations/mirage/skills/ambush.js';
 import type { MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';
 
-export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinition<MesmerSkill>>> = Object.freeze({
+const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinition<MesmerSkill>>> = {
   [ID.LINGERING_THOUGHTS]: {
     name: 'Lingering Thoughts',
-    description:
-      'Spin forward and strike multiple times, inflicting conditions and leaving a mirage at your starting position. If an enemy is near the mirage when it expires, a clone is summoned.',
     icon: 'https://render.guildwars2.com/file/A49921EC7A0C62617006BAF11F76B103C26A120C/1770503.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -67,8 +66,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefini
   },
   [ID.AXES_OF_SYMMETRY]: {
     name: 'Axes of Symmetry',
-    description:
-      'You and all your axe clones shadowstep to a random location around your target and strike, applying confusion. This attack breaks enemy targeting, and your illusions change focus to the targeted foe.',
     icon: 'https://render.guildwars2.com/file/516ED87B7FC703AC09DE924218CDB53D2FFF39C9/1770504.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -103,8 +100,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefini
   },
   [ID.FALSE_OASIS]: {
     name: 'False Oasis',
-    description:
-      'Deception. Create a mirage at your current location and heal over time. When the mirage expires, it spawns a mirage mirror.',
     icon: 'https://render.guildwars2.com/file/CAF16BD2E1C1D1E263B46E702FD3AF9821C59FED/1770506.png',
     type: 'Heal',
     slot: 'Heal',
@@ -126,8 +121,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefini
   },
   [ID.CRYSTAL_SANDS]: {
     name: 'Crystal Sands',
-    description:
-      'Deception. Draw in shards of crystal sand that confuse foes they pass through on their way to your targeted location. The shards form a Mirage Mirror upon reaching their destination.',
     icon: 'https://render.guildwars2.com/file/0EDDF8213428A8302871089E560443AEEBA0246D/1770514.png',
     type: 'Utility',
     slot: 'Utility',
@@ -166,8 +159,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefini
   },
   [ID.MIRAGE_ADVANCE]: {
     name: 'Mirage Advance',
-    description:
-      'Deception. Shadowstep and unleash an attack that blinds and dazes your target and nearby foes. You may reactivate this skill to return to your original position.',
     icon: 'https://render.guildwars2.com/file/729819F719FB5C6AA8F171993968B9276A803EDA/1770516.png',
     type: 'Utility',
     slot: 'Utility',
@@ -199,7 +190,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefini
   },
   [ID.SAND_THROUGH_GLASS]: {
     name: 'Sand through Glass',
-    description: 'Deception. Evade backward and gain Mirage Cloak.',
     icon: 'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png',
     type: 'Utility',
     slot: 'Utility',
@@ -218,8 +208,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefini
   },
   [ID.ILLUSIONARY_AMBUSH]: {
     name: 'Illusionary Ambush',
-    description:
-      "Deception. You and all your illusions shadowstep to a random point around your target and gain Mirage Cloak. Illusions' actions are interrupted when they change focus to the targeted foe.",
     icon: 'https://render.guildwars2.com/file/C40D96A2CEE7E1DCD012E4FFD70C0C25DA0AD949/1770515.png',
     type: 'Utility',
     slot: 'Utility',
@@ -238,7 +226,6 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefini
   },
   [ID.JAUNT]: {
     name: 'Jaunt',
-    description: 'Deception. Shadowstep to a target location and confuse nearby foes.',
     icon: 'https://render.guildwars2.com/file/D2B615F6B574667BF4CA9C4703CB52ECFFFE2192/1770505.png',
     type: 'Elite',
     slot: 'Elite',
@@ -267,7 +254,7 @@ export const MESMER_MIRAGE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefini
       }
     ]
   }
-});
+};
 
 /** Select player packets at acceptance; status schedules remain independent of whether strikes are removed. */
 function playerAmbushEffects(party = false): NonNullable<MesmerSkill['effectVariants']> {
@@ -345,7 +332,6 @@ function playerAmbushEffects(party = false): NonNullable<MesmerSkill['effectVari
 export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAttack>> = Object.freeze({
   [WEAPON.AXE]: ambushSkill({
     name: 'Imaginary Axes',
-    description: 'Ambush. Release phantasmal axes that seek out the nearest target after a short delay.',
     icon: 'https://render.guildwars2.com/file/38ED6AA595AEF00C0F704D0565DB7DD24B623850/1770513.png',
     id: ID.IMAGINARY_AXES,
     cooldown: 1,
@@ -390,7 +376,6 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
   }),
   [WEAPON.DAGGER]: ambushSkill({
     name: 'Phantom Razor',
-    description: 'Ambush. Slice your foe with a flurry of blades. Each blade inflicts different conditions.',
     icon: 'https://render.guildwars2.com/file/45D4ADDEDD740AFDD1AF1EB9632BFCB3FFACE75F/3098873.png',
     id: ID.PHANTOM_RAZOR,
     cooldown: 1,
@@ -449,7 +434,6 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
   }),
   [WEAPON.GREATSWORD]: ambushSkill({
     name: 'Split Surge',
-    description: 'Ambush. Shoot a beam at a targeted foe, and secondary beams at foes near your target.',
     icon: 'https://render.guildwars2.com/file/66067CFD182ED01761DC5992E679BFA2057B5954/1770507.png',
     id: ID.SPLIT_SURGE,
     cooldown: 0.5,
@@ -489,7 +473,6 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
   }),
   [WEAPON.RIFLE]: ambushSkill({
     name: 'Effervescence',
-    description: 'Ambush. Spray invigorating magic, damaging enemies and healing allies.',
     icon: 'https://render.guildwars2.com/file/4F0FBD163F2F996D1292B90193C356402BF7554D/3256357.png',
     id: ID.EFFERVESCENCE,
     cooldown: 1,
@@ -521,7 +504,6 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
   }),
   [WEAPON.SCEPTER]: ambushSkill({
     name: 'Ether Barrage',
-    description: 'Ambush. Launch a barrage of chaos orbs at your foe, inflicting confusion and torment.',
     icon: 'https://render.guildwars2.com/file/26CCD4729A4E32E75704E50F6B35DB70040680B8/1770508.png',
     id: ID.ETHER_BARRAGE,
     cooldown: 1,
@@ -573,7 +555,6 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
   }),
   [WEAPON.SPEAR]: ambushSkill({
     name: 'Fractured Glass',
-    description: 'Ambush. Pierce targets in front of you in a flurry of blows, leaving them vulnerable.',
     icon: 'https://render.guildwars2.com/file/5169DEF67A777AA8023122EDCFCEE9A548DCF599/3379151.png',
     id: ID.FRACTURED_GLASS,
     cooldown: 1,
@@ -601,8 +582,6 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
   }),
   [WEAPON.STAFF]: ambushSkill({
     name: 'Chaos Vortex',
-    description:
-      'Ambush. Release a vortex of chaos energy that inflicts damaging conditions on foes and grants boons to allies.',
     icon: 'https://render.guildwars2.com/file/0E2D7DB6FB4C0A9F681759099DE5D794A04914BF/1770510.png',
     id: ID.CHAOS_VORTEX,
     cooldown: 1,
@@ -694,7 +673,6 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
   }),
   [WEAPON.SWORD]: ambushSkill({
     name: 'Mirage Thrust',
-    description: 'Ambush. Lunge at your foe, briefly daze them, and leave behind a clone.',
     icon: 'https://render.guildwars2.com/file/609505304F1D0AB548710E92335E5F550D7E396E/1770511.png',
     id: ID.MIRAGE_THRUST,
     cooldown: 1,
@@ -730,16 +708,17 @@ export const MESMER_MIRAGE_AMBUSH_SKILLS: Readonly<Record<string, MesmerAmbushAt
   })
 });
 
-export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze([
+/** One complete module collection includes authored skills, generated attacks, and simulator actions. */
+export const MESMER_MIRAGE_SKILLS: readonly MesmerSkill[] = Object.freeze([
+  ...materializeSkillDefinitions(MESMER_MIRAGE_SKILL_MECHANICS),
   ...Object.values(MESMER_MIRAGE_AMBUSH_SKILLS),
   // One canonical mirror owns the shared ground lifetime and independently removable pickup rewards.
   {
     name: 'Mirage Mirror',
-    description: 'Automatically triggered Mirage Mirror effect.',
     icon: 'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png',
     id: ID.MIRAGE_MIRROR_DAMAGE,
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 0.6, hits: 1 },
@@ -749,8 +728,6 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze(
   },
   {
     name: 'Dodge / Mirage Cloak',
-    description:
-      'Spend 50 endurance. Mirage gains Mirage Cloak and an ambush window; Infinite Horizon commands active clones to ambush.',
     icon: DODGE_ICON,
     id: ID.DODGE_MIRAGE_CLOAK,
     // Mirage replaces the dodge effect without changing its physical input.
@@ -772,7 +749,6 @@ export const MESMER_MIRAGE_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze(
   {
     name: 'Pick Up Mirage Mirror',
     // Pickup is a movement mechanic, not an additional skill-bar key press.
-    description: 'Pick up an available Mirage Mirror, damaging nearby enemies and gaining Mirage Cloak.',
     icon: 'https://render.guildwars2.com/file/7F3FA1CD20D930E7EEC75459E7206979DD0AD016/1770518.png',
     id: ID.PICK_UP_MIRAGE_MIRROR,
     mirrorPayloadSkillId: ID.MIRAGE_MIRROR_DAMAGE,

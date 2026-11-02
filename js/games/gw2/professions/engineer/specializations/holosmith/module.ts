@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/engineer/data/trait-lines.js';
 import {
   ENGINEER_HOLOSMITH_PROFILE_FIELDS,
@@ -27,7 +28,7 @@ export const holosmithModule = defineNativeModule({
     skillFlips: ENGINEER_HOLOSMITH_SKILL_FLIPS,
     profileFields: ENGINEER_HOLOSMITH_PROFILE_FIELDS,
     skillFields: HOLOSMITH_SKILL_FIELDS,
-    skillMechanics: HOLOSMITH_SKILL_MECHANICS,
+    skills: materializeSkillDefinitions(HOLOSMITH_SKILL_MECHANICS),
     autoattackChains: ENGINEER_HOLOSMITH_AUTOATTACK_CHAINS
   }),
   // Heat tasks and impact formulas read the same live specialization state.

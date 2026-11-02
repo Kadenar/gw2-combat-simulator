@@ -8,13 +8,13 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { harbingerHooks } from '#gw2/professions/necromancer/specializations/harbinger/hooks.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime, projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 const PATCH = 'resource-capacity';
 const SHARDS = ID.SOUL_SHARDS;
 const BLIGHT = TRAIT.DARK_DISCIPLE;
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 /** Exercise the public overlay so initialization and later mechanics must select the same balance source. */
 function preview(shards, blight) {

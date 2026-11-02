@@ -9,6 +9,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -23,10 +24,18 @@ import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/cor
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 
+/** Name the resource produced by the selected build, sharing the profession's resource terminology. */
+function tooltipResource(build?: Pick<Gw2CanonicalBuild, 'specializations'>) {
+  return mesmerResourceKind(
+    build?.specializations.find(({ name }) => name === 'Virtuoso' || name === 'Troubadour')?.name ?? 'Core'
+  );
+}
+
 // Phantasm condition budgets are distributed across their authored hit packets, independently for each summoned entity.
-const phantasmTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
+const phantasmTooltip: DescribeSimulationTooltip = (balanceContext, entity, _specialization, build) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id)! as MesmerSkill;
   const timing = { ...MESMER_CORE_PHANTASM_ATTACK_TIMINGS, ...MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS }[
     selected.id
@@ -55,7 +64,7 @@ const phantasmTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   facts.push({ name: 'Base phantasms summoned', detail: tooltipDecimal(tooltipNumber(selected.resource!, 'count')) });
   return {
     description:
-      "Summon phantasms that perform their own attacks before converting into your specialization's resource. Player effects occur once; companion effects are per phantasm. Traits can change the count, repeat attacks, or modify conversion." +
+      `Summon phantasms to attack your target and generate ${tooltipResource(build)}. Effects from your character apply once per cast; phantasm effects are listed per summon. Traits can summon extra phantasms or make them attack again.` +
       (selected.id === ID.PHANTASMAL_LANCER
         ? ' Consuming Clarity summons an additional Lancer; only that second phantasm immobilizes.'
         : ''),
@@ -114,13 +123,20 @@ export const mesmerCoreTooltips = {
         simulationEffectFacts(requireSkillAction(requireSkillFromContext(context, ID.CHAOS_STORM), 'poison').effects)
           .facts
     ),
-    [ID.SIGNET_OF_ILLUSIONS]: skillTooltip(
-      "Passively generate your specialization's resource while equipped and recharged. Activate to reset eligible shatter and instrument cooldowns, restoring one ammunition charge where applicable. Continuum Split is excluded. The passive restarts after the signet recharges.",
-      [
-        fromSkill(ID.SIGNET_OF_ILLUSIONS, 'pulseInterval', 'Passive interval', tooltipSeconds),
-        fromSkill(ID.SIGNET_OF_ILLUSIONS, 'resourceGain', 'Resources per passive pulse')
-      ]
-    ),
+    [ID.SIGNET_OF_ILLUSIONS]: (context, entity, _specialization, build) => {
+      const resource = tooltipResource(build);
+      return skillTooltip(
+        `Signet Passive: Generate ${resource} while equipped and recharged. Signet Active: Reset shatter and instrument cooldowns, restoring one ammunition charge where applicable. Continuum Split is excluded. The passive resumes when the signet recharges.`,
+        [
+          fromSkill(ID.SIGNET_OF_ILLUSIONS, 'pulseInterval', 'Passive interval', tooltipSeconds),
+          fromSkill(
+            ID.SIGNET_OF_ILLUSIONS,
+            'resourceGain',
+            `${resource[0].toUpperCase()}${resource.slice(1)} per passive pulse`
+          )
+        ]
+      )(context, entity);
+    },
     [ID.SIGNET_OF_THE_ETHER]: skillTooltip(
       "Reset phantasm skill cooldowns. Its healing has no effect on the simulator's fixed player health."
     ),

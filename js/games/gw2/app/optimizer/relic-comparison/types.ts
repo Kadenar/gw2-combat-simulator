@@ -7,13 +7,13 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 export interface RelicComparisonRequest {
   readonly rotation: readonly RotationCommand[];
   readonly baseConfig: Gw2Config;
-  readonly opponentRelic: string;
+  readonly equippedRelic: string;
   readonly comparisonRelic: string;
 }
 
 /** Supplies the displayed baseline and selected assumptions for the local counterfactual calculations. */
 export interface RelicComparisonCalculationRequest extends RelicComparisonRequest {
-  readonly opponentResult: Pick<
+  readonly baselineResult: Pick<
     Gw2SimulationResult,
     'dps' | 'breakdown' | 'resolvedEvents' | 'dpsStartTime' | 'firstHitTime' | 'combatEndTime'
   >;

@@ -9,6 +9,7 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
+import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 // Runtime passes helpers + traits; presentation passes catalog + traits.
 export type AshesSelection = { readonly traits: ReadonlySet<SkillId> } & (
@@ -29,7 +30,7 @@ export interface ResolvedAshes {
 
 // Select values before emission so every consumer sees the same effective payload.
 export function resolveAshes(selection: AshesSelection): ResolvedAshes | undefined {
-  const mechanic = requireSkillFromContext(selection, ashesBurningSkill.id);
+  const mechanic: GuardianSkill = requireSkillFromContext(selection, ashesBurningSkill.id);
   const base = requireEffect(mechanic, 'condition', CONDITION.BURNING);
 
   if (!base) return undefined;

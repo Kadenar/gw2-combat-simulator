@@ -221,7 +221,7 @@ for (const [relic, skill] of [
     assert.equal(procs(ordinary).length, 1);
     assert.ok(procs(ordinary)[0].start >= ordinary.combatStartTime * 1000);
     assert.equal(procs(prepared).length, 2);
-    assert.deepEqual(prepared.planningState.cooldowns, ordinary.planningState.cooldowns);
+    assert.deepEqual(prepared.planningState.cooldownsBySkillId, ordinary.planningState.cooldownsBySkillId);
 
     const noMarker = simulateMesmer([skill, { type: 'wait', durationMs: 2000 }, 'Flying Cutter'], {
       ...config,

@@ -82,14 +82,22 @@ export type RangerRuntime = MechanicContext<RangerRuntimeState, RangerSkill> & {
 /** Numeric tuning fields are typed from the modules' skill-field declarations, which also validate and patch them. */
 export interface RangerSkill
   extends Skill, NumericSkillFields<typeof GALESHOT_SKILL_FIELDS>, NumericSkillFields<typeof RANGER_CORE_SKILL_FIELDS> {
+  /** Executed by the pet rather than the player. */
   readonly petSkill?: boolean;
+  /** Belongs to the selected pet family's skill set. */
   readonly petFamilySkill?: boolean;
   readonly petAutonomousSkill?: boolean;
+  /** Available only while Celestial Avatar is active. */
   readonly celestialAvatarSkill?: boolean;
+  /** Available only while merged with the pet. */
   readonly beastmodeSkill?: boolean;
+  /** Pet skill used while the pet is unleashed. */
   readonly unleashedPetSkill?: boolean;
   readonly unleashedAmbushSkill?: boolean;
+  /** Spear attack available while stealthed; the rotation palette highlights it like other stealth attacks. */
+  readonly stealthAttack?: boolean;
   readonly cycloneBowSkill?: boolean;
+  /** Pets that own this skill. */
   readonly petNames?: readonly string[];
 }
 
@@ -107,7 +115,7 @@ export interface RangerUiContext extends Omit<ProfessionUiCallbackContext<Partia
 }
 
 /** UI slice whose callbacks read Ranger end-state projections. */
-export type RangerUiSlice = Partial<ProfessionUiContract<Partial<RangerPlanningState>>>;
+export type RangerUiSlice = Partial<ProfessionUiContract<Partial<RangerPlanningState>, RangerSkill>>;
 
 export interface RangerUiSelection {
   readonly key?: string;

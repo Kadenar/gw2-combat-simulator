@@ -172,9 +172,7 @@ export const conduitTooltips = {
               'Additional Targeted Destruction bonus',
               tooltipPercent
             ),
-            icon: String(
-              balanceContext.catalog.traits.find((trait) => trait.id === TRAIT.TARGETED_DESTRUCTION)?.icon || ''
-            )
+            icon: balanceContext.catalog.traits.find((trait) => trait.id === TRAIT.TARGETED_DESTRUCTION)?.icon || ''
           },
           {
             ...profileFact(
@@ -184,9 +182,7 @@ export const conduitTooltips = {
               'Additional damaging-condition duration',
               tooltipPercent
             ),
-            icon: String(
-              balanceContext.catalog.traits.find((trait) => trait.id === TRAIT.YEARNING_EMPOWERMENT)?.icon || ''
-            )
+            icon: balanceContext.catalog.traits.find((trait) => trait.id === TRAIT.YEARNING_EMPOWERMENT)?.icon || ''
           }
         ]
       };

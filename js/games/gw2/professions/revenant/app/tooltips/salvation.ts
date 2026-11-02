@@ -1,7 +1,7 @@
 import {
   outsideScopeTooltip,
   simulationEffectFacts,
-  tooltipPercent,
+  tooltipAttributeConversion,
   tooltipProfile,
   traitTooltip,
   type ProfessionTooltips
@@ -11,10 +11,13 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.
 /** Describe salvation tooltips from the selected balance data. */
 export const revenantSalvationTooltips = {
   [TRAIT.HEALERS_GIFT]: outsideScopeTooltip,
-  [TRAIT.LIFE_ATTUNEMENT]: traitTooltip('Gain healing power and convert eligible healing power to concentration.', [
-    ['attributeBonuses.healingPower', 'Healing power'],
-    ['attributeConversion', 'Eligible healing power converted to concentration', tooltipPercent]
-  ]),
+  [TRAIT.LIFE_ATTUNEMENT]: traitTooltip(
+    'Gain healing power, then gain concentration based on healing power. Bonuses from other attribute conversions do not count.',
+    [
+      ['attributeBonuses.healingPower', 'Healing power'],
+      ['attributeConversion', 'Concentration gained from healing power', tooltipAttributeConversion]
+    ]
+  ),
   // Show the supported skill-specific boons while explicitly excluding healing effectiveness.
   [TRAIT.SERENE_REJUVENATION]: (balanceContext, entity) => ({
     description:

@@ -3,7 +3,6 @@ import {
   simulationEffectFacts,
   skillTooltip,
   tooltipDecimal,
-  tooltipNumber,
   tooltipPercent,
   tooltipProfile,
   tooltipSeconds,
@@ -19,6 +18,7 @@ import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { resolveAshes, type ResolvedAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
 import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
+import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 
 /** Resolved Ashes payloads reuse the shared effect formatter so Burning rows match the grant rows' icons and stacks. */
@@ -49,9 +49,9 @@ const tomePageTooltip: DescribeSimulationTooltip = skillTooltip(
 export const firebrandTooltips = {
   skillFacts: (_c, entity) =>
     // Only tome pages spend this resource; other canonical costs have their own facts.
-    entity.resourceCost == null || !entity.tome
+    entity.cost?.resource !== 'tomePages' || !entity.tome
       ? []
-      : [{ name: 'Tome pages spent', detail: tooltipDecimal(tooltipNumber(entity, 'resourceCost')) }],
+      : [{ name: 'Tome pages spent', detail: tooltipDecimal(entity.cost.amount) }],
   skills: {
     [ID.STOW_TOME]: stowTomeTooltip,
     ...Object.fromEntries(
@@ -193,7 +193,7 @@ export const firebrandTooltips = {
       ['pulseInterval', 'Page regeneration interval', tooltipSeconds]
     ])
   }
-} satisfies ProfessionTooltips;
+} satisfies ProfessionTooltips<GuardianSkill>;
 
 /** Provisional facts always read selected values, so editing an assumption cannot leave stale tooltip numbers. */
 export const firebrandReworkTooltips = {

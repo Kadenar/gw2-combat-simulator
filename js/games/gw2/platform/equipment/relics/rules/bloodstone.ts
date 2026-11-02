@@ -2,10 +2,12 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
+import { COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import {
+  announceRelic,
   defineRelic,
+  playerOwnedRelicSource,
   recordTimedBuffProc,
   relicBuffActive,
   timedStrikeBuff
@@ -42,34 +44,20 @@ export const bloodstone = defineRelic({
         'exclusive'
       );
       state.refreshedStacks = buff;
-      ctx.effects.emit({
-        kind: 'announcement',
-        announcement: {
-          type: 'relic',
-          name: 'Bloodstone Volatility',
-          at: event.at,
-          sourceSkill: event.skillName,
-          detail: `${buff.stacks}/${VOLATILITY_TRIGGER_STACKS} stacks`,
-          expiresAt: buff.expiresAt,
-          effectState: { stacks: buff.stacks, maximumStacks: VOLATILITY_TRIGGER_STACKS }
-        }
+      announceRelic(ctx, event, 'Bloodstone Volatility', {
+        detail: `${buff.stacks}/${VOLATILITY_TRIGGER_STACKS} stacks`,
+        expiresAt: buff.expiresAt,
+        effectState: { stacks: buff.stacks, maximumStacks: VOLATILITY_TRIGGER_STACKS }
       });
       return;
     }
 
     // The fourth qualifying blast consumes three Volatility stacks and activates Fervor.
     state.refreshedStacks = { stacks: 0, expiresAt: 0 };
-    ctx.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'relic',
-        name: 'Bloodstone Volatility',
-        at: event.at,
-        sourceSkill: event.skillName,
-        detail: 'stacks consumed',
-        expiresAt: event.at,
-        effectState: { stacks: 0, maximumStacks: VOLATILITY_TRIGGER_STACKS }
-      }
+    announceRelic(ctx, event, 'Bloodstone Volatility', {
+      detail: 'stacks consumed',
+      expiresAt: event.at,
+      effectState: { stacks: 0, maximumStacks: VOLATILITY_TRIGGER_STACKS }
     });
     emitDamagePayload(ctx, state, event);
   },
@@ -98,10 +86,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       hits: 1,
       hitIndex: 1,
       totalHits: 1,
-      source: 'Relic',
-      sourceId: `relic.${RELIC_IDS.BLOODSTONE}`,
-      actorType: ACTOR.EFFECT,
-      ownerActorType: ACTOR.PLAYER,
+      ...playerOwnedRelicSource(RELIC_IDS.BLOODSTONE),
       skillWeapon: 'Unequipped',
       canCrit: true,
       triggeredBy: event.skillName
@@ -117,10 +102,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       condition: CONDITION.BLEEDING,
       duration: 6,
       stacks: 6,
-      source: 'Relic',
-      sourceId: `relic.${RELIC_IDS.BLOODSTONE}`,
-      actorType: ACTOR.EFFECT,
-      ownerActorType: ACTOR.PLAYER,
+      ...playerOwnedRelicSource(RELIC_IDS.BLOODSTONE),
       triggeredBy: event.skillName
     }
   });

@@ -182,11 +182,11 @@ test('Double Helix identity, ammo and Evolved lifetime remain available with tra
           { type: 'wait', durationMs: 10000 }
         ]
       },
-      { probes: [[1, (runtime) => assert.ok(amalgamState.from(runtime).evolvedUntil > runtime.time)]] }
+      { probes: [[1, (runtime) => assert.ok(amalgamState.from(runtime.profession).evolvedUntil > runtime.time)]] }
     );
     assert.equal(result.steps.find((step) => step.skillId != null).skillId, ID.EVOLVE_DOUBLE_HELIX);
     assert.equal(runtime.cooldownController.readAmmo(ID.EVOLVE_DOUBLE_HELIX).maximum, 2);
-    assert.ok(amalgamState.from(runtime).evolvedUntil < runtime.time);
+    assert.ok(amalgamState.from(runtime.profession).evolvedUntil < runtime.time);
   }
 });
 
@@ -210,7 +210,7 @@ test('Barrier Engine admits one selected loop at implicit or deferred explicit c
         );
         const active = selected && traitTriggers;
         const barriers = rewards(result, TRAIT.MECH_CORE_BARRIER_ENGINE);
-        assert.equal(mechanistState.from(runtime).barrierEngine.generation > 0, active);
+        assert.equal(mechanistState.from(runtime.profession).barrierEngine.generation > 0, active);
         assert.equal(barriers.length > 0, active);
 
         if (active) {
@@ -307,7 +307,7 @@ test('Forge stays intrinsic while new Lens grants and enhanced-capacity renewal 
       selectedTraitIds: [TRAIT.SOLAR_FOCUSING_LENS, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT],
       rotation: [cast('Engage Photon Forge'), { type: 'wait', durationMs: 1000 }]
     });
-    const state = holosmithState.from(runtime);
+    const state = holosmithState.from(runtime.profession);
     assert.equal(state.photonForgeActive, true);
     assert.equal(state.heat.maximum, 150);
     assert.ok(state.heat.value > 110);
@@ -348,7 +348,7 @@ test('Explicit Solar Focusing Lens charges resolve and expire while new trait pr
       .length,
     2
   );
-  assert.ok(holosmithState.from(runtime).solarFocusingLens.expiresAt < runtime.time);
+  assert.ok(holosmithState.from(runtime.profession).solarFocusingLens.expiresAt < runtime.time);
 });
 
 test('Scrapper threshold rewards and Stability renewal obey selection and isolation', () => {
@@ -393,7 +393,7 @@ test('Scrapper admitted Mass Momentum survives isolation and stops when Stabilit
         {
           at: 1.5,
           run(runtime) {
-            scrapperState.from(runtime).massMomentumAt = 2;
+            scrapperState.from(runtime.profession).massMomentumAt = 2;
             runtime.schedule('engineer.mass-momentum', 2, cause(1, { type: 'buff', kind: 'stability' }));
           }
         }
@@ -403,7 +403,7 @@ test('Scrapper admitted Mass Momentum survives isolation and stops when Stabilit
   const might = rewards(result, TRAIT.MASS_MOMENTUM);
   assert.equal(might.length, 1);
   assert.equal(might[0].at, 2);
-  assert.equal(scrapperState.from(runtime).massMomentumAt, Infinity);
+  assert.equal(scrapperState.from(runtime.profession).massMomentumAt, Infinity);
 });
 
 test('Kinetic Accelerators isolates the selected Function Gyro finisher and accepted combo rewards', () => {

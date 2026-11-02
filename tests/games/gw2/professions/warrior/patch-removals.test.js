@@ -233,7 +233,7 @@ test('removed Artillery Slash strike preserves Bleeding, control, and ammo spend
   );
   assert.ok(result.events.some((e) => e.skillId === ID.SHARP_ARTILLERY_SLASH && e.type === 'condition'));
   assert.ok(result.events.some((e) => e.skillId === ID.SHARP_ARTILLERY_SLASH && e.type === 'control'));
-  assert.ok(Object.keys(result.planningState.cooldowns).length > 0);
+  assert.ok(Object.keys(result.planningState.cooldownsBySkillId).length > 0);
 });
 
 test('removed ordinary cartridge buff cannot substitute the supercharged window', () => {

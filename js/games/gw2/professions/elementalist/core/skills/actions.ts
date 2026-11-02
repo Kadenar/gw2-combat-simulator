@@ -14,7 +14,7 @@ const CONJURE_ACTION_ICONS = Object.freeze({
 });
 
 /** Supplies bundle controls so rotations can drop and recover conjures. */
-export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = [
   // Complete shared actions carry their own IDs and contribute through the array boundary.
   createDodgeSkill({
     cost: {
@@ -27,7 +27,6 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.fr
   createWeaponSwapSkill(),
   {
     name: '__drop_bundle',
-    description: 'Drop the currently equipped conjured weapon.',
     icon: WEAPON_SWAP_ICON,
     id: ID.DROP_BUNDLE,
     inputCategory: 'bar-swap',
@@ -53,7 +52,6 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.fr
     id: Number(id),
     inputCategory: 'bar-swap',
     displayName: `Pick up ${weapon}`,
-    description: `Pick up the available ${weapon}.`,
     icon: CONJURE_ACTION_ICONS[weapon as keyof typeof CONJURE_ACTION_ICONS],
     type: 'Action',
 
@@ -67,10 +65,10 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = Object.fr
     sideEffects: [
       {
         on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelled,
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
         do: { type: 'elementalist.capture-conjure-pickup' }
       },
       { on: 'castCommit', do: { type: 'elementalist.pick-up-conjure' } }
     ]
   }))
-]);
+];

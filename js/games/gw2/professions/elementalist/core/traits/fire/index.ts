@@ -57,7 +57,11 @@ import {
   extendPersistingFlamesFields
 } from '#gw2/professions/elementalist/core/traits/fire/persisting-flames.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistResolverContext,
+  ElementalistRuntime,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 
 /** Fire definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const empoweringFlame = defineTrait({
@@ -194,7 +198,7 @@ export const powerOverwhelming = defineTrait({
   }
 });
 
-export const pyromancersTraining = defineTrait({
+export const pyromancersTraining = defineTrait<ElementalistSkill>({
   id: TRAIT.PYROMANCERS_TRAINING,
   balance: {
     damageMultiplier: 1.07,
@@ -297,7 +301,7 @@ function applyPyromancersPuissance(context: ElementalistRuntime, { cast }: Eleme
   const skill = cast.skill;
   const at = cast.effectiveEnd;
 
-  if (professionCoreState(context).primaryAttunement !== 'Fire' || !combatStarted(context, at)) return;
+  if (professionCoreState(context.profession).primaryAttunement !== 'Fire' || !combatStarted(context, at)) return;
 
   emitTraitProfile(context, TRAIT.PYROMANCERS_PUISSANCE, TRAIT.PYROMANCERS_PUISSANCE, undefined, {
     at: at,

@@ -7,6 +7,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
@@ -24,7 +25,6 @@ function run(rotation, overrides = {}, source = warriorProfession, output = 'det
   return observeGw2Runtime({ profession: source.runtimeFor(config), config, rotation, output });
 }
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const combat = { type: 'combat-start' };
 const slash = (charges, extra = {}) => ({ skillId: ID.DRAGON_SLASH_FORCE, releaseAtCharges: charges, ...extra });
 const state = (result) => observedRuntime(result).profession.specialization.state;
@@ -368,7 +368,7 @@ test('Dragon Trigger admits its exact deadline then expires autonomously and sta
   assert.equal(state(expired).dragonTriggerActive, false);
   assert.equal(state(expired).dragonCharges.value, 0);
   assert.equal(state(expired).nextDragonChargeAt, 0);
-  assert.equal(observedRuntime(expired).cooldownController.rechargeFor(ID.DRAGON_TRIGGER).startedAt, 0.48);
+  assert.equal(observedRuntime(expired).cooldownController.rechargeFor(ID.DRAGON_TRIGGER).workAnchorAt, 0.48);
   const stalled = run(['Dragon Trigger', slash(3), combat], config, patched);
   assert.ok(stalled.warnings.some(({ message: warning }) => warning.includes('reached 2')));
 });
@@ -392,7 +392,7 @@ test('cast-bar skills exit charging at acceptance, while instant skills retain t
   assert.equal(state(exited).dragonTriggerActive, false);
   close(state(exited).flow.value, 15);
   assert.equal(exited.events.filter((event) => event.reason === 'dragon trigger charge').length, 1);
-  close(observedRuntime(exited).cooldownController.rechargeFor(ID.DRAGON_TRIGGER).startedAt, 0.24);
+  close(observedRuntime(exited).cooldownController.rechargeFor(ID.DRAGON_TRIGGER).workAnchorAt, 0.24);
 });
 
 test('Dragon Slash captures its tier and refunds only charge Flow after successful completion', () => {
@@ -556,7 +556,7 @@ test('Tactical Reload clears full Cartridges recharge and restores the longest t
   assert.deepEqual(spentAgain.warnings, []);
   assert.equal(newAmmo.recharges.length, 1);
   // The new magazine owns fresh recharge work after the full refill removed its previous queue.
-  close(newAmmo.nextRechargeAt, newAmmo.recharges[0].startedAt + 16);
+  close(newAmmo.nextRechargeAt, newAmmo.recharges[0].workAnchorAt + 16);
   assert.ok(newAmmo.nextRechargeAt > firstDeadline);
 
   const partial = run([cartridges, cartridges, wait(4000), reload], config);
@@ -574,7 +574,7 @@ test('Artillery Slash queues recharge for all rounds spent together', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(ammo.charges, 0);
   assert.equal(ammo.recharges.length, ammo.maximum);
-  assert.ok(ammo.recharges.every((progress) => progress.startedAt === ammo.recharges[0].startedAt));
+  assert.ok(ammo.recharges.every((progress) => progress.workAnchorAt === ammo.recharges[0].workAnchorAt));
 });
 
 test('Dragonspike resets exit recharge and an old expiry cannot close a replacement charge window', () => {

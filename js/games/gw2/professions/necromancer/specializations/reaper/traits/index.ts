@@ -18,7 +18,11 @@ import {
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerActiveShroud } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
+import type {
+  NecromancerResolverContext,
+  NecromancerResolverEvent,
+  NecromancerSkill
+} from '#gw2/professions/necromancer/types.js';
 
 /** Shroud Knight owns Reaper Shroud's intrinsic life-force drain. */
 const shroudKnight = defineTrait({
@@ -263,7 +267,7 @@ const decimateDefenses = defineTrait({
 });
 
 /** Life Reap admits shroud recharge reductions independently of Onslaught's passive attribute policy. */
-const reapersOnslaught = defineTrait({
+const reapersOnslaught = defineTrait<NecromancerSkill>({
   id: TRAIT.REAPERS_ONSLAUGHT,
   balance: {
     attributeBonuses: { ferocity: 300 },

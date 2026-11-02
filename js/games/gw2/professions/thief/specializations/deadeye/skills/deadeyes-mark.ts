@@ -12,38 +12,29 @@ import {
   maliceGained,
   markCompleted
 } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
-import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { initialMalice, stolenSkillGrant } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Deadeye's Mark commits the target and stolen-skill transaction through its skill-owned action. */
-export const DEADEYE_MARK_SKILLS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const DEADEYE_MARK_SKILLS: Readonly<Record<number, SkillDefinition<ThiefSkill>>> = {
   [ID.DEADEYES_MARK]: {
     name: "Deadeye's Mark",
-    description:
-      'Mark a target, causing your initiative attacks to generate malice when they hit or critically hit your mark. Shadowstep to your target if you are wielding a dagger, sword, spear, or staff in your main hand. Lose malice when the mark ends or when this skill is recast on a new target.\nMalice is only gained once per skill use.',
     icon: 'https://render.guildwars2.com/file/3ECEA70D0DCDAF65E0069263D005507ADBF95A62/1770609.png',
     type: 'Profession',
     slot: 'Profession_1',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     duration: 30,
     stealTraitSkill: true,
     movementSkill: true,
     cooldown: 25,
-    initiativeCost: 0,
     castTimeMs: 0,
     effects: [],
     // The skill owns this transition at successful commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.deadeyes-mark' } }]
   }
-});
+};
 
 const DEADEYE_MARK_EXPIRY = 'thief.deadeye-mark-expire';
 /**
@@ -51,7 +42,7 @@ const DEADEYE_MARK_EXPIRY = 'thief.deadeye-mark-expire';
  * The mark also grants Deadeye's stolen skills and schedules its own expiry.
  */
 function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const state = deadeyeState.from(runtime);
+  const state = deadeyeState.from(runtime.profession);
   runtime.fireTrigger(stealAccepted, { cast });
   const remarking = state.markedTargetId === 'primary-target' && state.markExpiresAt > runtime.time;
   state.markedTargetId = 'primary-target';
@@ -72,7 +63,7 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
 
 /** Mark expiry resets malice; a stale expiry from an earlier mark is ignored. */
 function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
-  const state = deadeyeState.from(runtime);
+  const state = deadeyeState.from(runtime.profession);
 
   if ((data as { generation: number }).generation !== state.markGeneration || runtime.time < state.markExpiresAt)
     return;
@@ -85,14 +76,14 @@ function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
 
 /** Modifier eligibility reads the active specialization mark, including detached previews. */
 export function markedTarget(context: Gw2ModifierContext): boolean {
-  const state = thiefRuntimeSpecializationState<DeadeyeState>(context, 'Deadeye');
+  const state = thiefRuntimeSpecializationState(context.runtime?.profession, 'Deadeye');
   return Boolean(state.markedTargetId) && (state.markExpiresAt || Infinity) > context.time;
 }
 
 /** Malice rewards and cast snapshots require a mark still active at the live combat clock. */
 export function deadeyeMarked(runtime: ThiefRuntime): boolean {
   const at = runtime.time;
-  const state = deadeyeState.from(runtime);
+  const state = deadeyeState.from(runtime.profession);
   return Boolean(state.markedTargetId) && state.markExpiresAt > at;
 }
 

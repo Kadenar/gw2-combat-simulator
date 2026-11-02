@@ -3,6 +3,7 @@ import { ACTOR, BOON, COMBO_FINISHER, CONDITION, WEAPON } from '#gw2/platform/co
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Both Repeater variants fire the same volley; their weapon access, initiative cost, and charge gate are separate.
 const REPEATER_ATTACK = {
@@ -43,23 +44,16 @@ const REPEATER_ATTACK = {
 
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSkill>>> = {
   [ID.VITAL_SHOT]: {
     name: 'Vital Shot',
-    description: 'Bleed your foe with a shot to the vitals.',
     icon: 'https://render.guildwars2.com/file/DF44613E8041055BFB17D5F0E93C67F23EA4320D/103252.png',
     type: 'Weapon',
     weapon: 'Pistol',
     slot: 'Weapon_1',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
-    initiativeCost: 0,
     castTimeMs: 360,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
@@ -87,19 +81,11 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.SNEAK_ATTACK]: {
     name: 'Sneak Attack',
-    description: 'Stealth Attack. Sneak attack with rapid fire from your pistol and make your foe bleed.',
     icon: 'https://render.guildwars2.com/file/98BEBF73285E355BED016D221EA32D41AFF59F01/104102.png',
     type: 'Weapon',
     weapon: 'Pistol',
     slot: 'Weapon_1',
-
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     cooldown: 1,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.PISTOL,
     stealthAttack: true,
     castTimeMs: 680,
@@ -129,19 +115,13 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.BOLA_SHOT]: {
     name: 'Bola Shot',
-    description: 'Fire a set of immobilizing bolas at your foe.',
     icon: 'https://render.guildwars2.com/file/C203DEA0472BEEA173A60DF41C66F75E7FC0D80A/2261529.png',
     type: 'Weapon',
     weapon: 'Pistol',
     slot: 'Weapon_2',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     cooldown: 0,
-    initiativeCost: 4,
     castTimeMs: 360,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
@@ -175,25 +155,18 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.SHADOW_STRIKE]: {
     name: 'Shadow Strike',
-    description:
-      'Dual Wield. Stab your foe, then shadowstep away and shoot them. Unlock Repeater at reduced initiative cost for a short time.',
     icon: 'https://render.guildwars2.com/file/0E056D0AC615A63656BD4E994756AB1CA9DB13ED/103922.png',
     type: 'Weapon',
     weapon: 'Pistol',
     slot: 'Weapon_3',
     dualWieldAttack: true,
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     // This opener arms its declared dual-wield follow-up.
     dualWieldOpener: true,
     // The retreat shadowsteps away, enabling shared shadowstep rewards such as Peitha.
     shadowstepSkill: true,
     cooldown: 0,
-    initiativeCost: 4,
     requiredMainHand: WEAPON.PISTOL,
     requiredOffHand: WEAPON.DAGGER,
     // EVTC records a 160 ms melee segment followed by a 440 ms shot animation: 600 ms on the action grid.
@@ -241,20 +214,14 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.REPEATER_ID_59526]: {
     name: 'Repeater',
-    description: 'Dual Wield. Blast your foe with rapid fire from your pistol.',
     icon: 'https://render.guildwars2.com/file/9B4E1B72A86C0F3FCB0B9E272E2A2AEC45669E92/103878.png',
     type: 'Weapon',
     weapon: 'Pistol',
     slot: 'Weapon_3',
     dualWieldAttack: true,
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 2 },
 
     cooldown: 0,
-    initiativeCost: 2,
     requiredMainHand: WEAPON.PISTOL,
     requiredOffHand: WEAPON.DAGGER,
     ...REPEATER_ATTACK,
@@ -263,22 +230,16 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.UNLOAD]: {
     name: 'Unload',
-    description: 'Dual Wield. Blast your foe repeatedly with both pistols. Gain initiative if all attacks hit.',
     icon: 'https://render.guildwars2.com/file/BB0B5FF8F7191B0BB39B0C0406EFB52161A6DB47/103129.png',
     type: 'Weapon',
     weapon: 'Pistol',
     slot: 'Weapon_3',
     dualWieldAttack: true,
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 3 },
 
     // The channel refund mechanic grants this only after every bullet in the activation lands.
     initiativeRefund: 2,
     cooldown: 0,
-    initiativeCost: 3,
     requiredMainHand: WEAPON.PISTOL,
     requiredOffHand: WEAPON.PISTOL,
     castTimeMs: 1320,
@@ -314,39 +275,27 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.REPEATER]: {
     name: 'Repeater',
-    description: 'Blast your foe with rapid fire from your pistol.',
     icon: 'https://render.guildwars2.com/file/9B4E1B72A86C0F3FCB0B9E272E2A2AEC45669E92/103878.png',
     type: 'Weapon',
     weapon: 'Pistol',
     slot: 'Weapon_3',
     dualWieldAttack: true,
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 3 },
 
     cooldown: 0,
-    initiativeCost: 3,
     requiredMainHand: WEAPON.PISTOL,
     requiredOffHand: false,
     ...REPEATER_ATTACK
   },
   [ID.HEAD_SHOT]: {
     name: 'Head Shot',
-    description: 'Daze your foe with a head shot.',
     icon: 'https://render.guildwars2.com/file/01FB72EDB4F0E6B67CE0672B1A960FEBC96FC11A/103119.png',
     type: 'Weapon',
     weapon: 'Pistol',
     slot: 'Weapon_4',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     cooldown: 0,
-    initiativeCost: 4,
     castTimeMs: 0,
     effects: [
       {
@@ -367,19 +316,13 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.BLACK_POWDER]: {
     name: 'Black Powder',
-    description: 'Fire a black-powder shot, blinding your target and nearby foes with smoke.',
     icon: 'https://render.guildwars2.com/file/0CE1DF4033D2FA0406E4B8430B270BC99A28D0C2/103236.png',
     type: 'Weapon',
     weapon: 'Pistol',
     slot: 'Weapon_5',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 6 },
 
     cooldown: 0,
-    initiativeCost: 6,
     castTimeMs: 360,
     effects: [
       {
@@ -410,4 +353,4 @@ export const THIEF_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ]
   }
-});
+};

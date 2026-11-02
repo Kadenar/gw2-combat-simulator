@@ -10,6 +10,7 @@ import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-fo
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { cast } from '#tests/helpers/commands.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
@@ -19,7 +20,6 @@ const base = {
   attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, vitality: 1000 }),
   target: { armor: 2597, health: 0, conditions: {} }
 };
-const cast = (skillId, extra = {}) => ({ type: 'cast', skillId, ...extra });
 
 function simulate(skillId, edit, config = base, extra = {}) {
   const native = necromancerProfession.runtimeFor(config);

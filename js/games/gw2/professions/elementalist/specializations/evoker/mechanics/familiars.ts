@@ -80,7 +80,7 @@ export function releaseElementalProcession(
  * availability can retry after the weapon or refill commits.
  */
 export function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
 
   // Track pending grants so early familiar inputs can wait for their resource provider.
   if (cast.command.concurrentOffsetMs == null) {
@@ -153,7 +153,7 @@ const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeS
   'elementalist.evoker.settle-empowered-familiar'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
-    const state = evokerState.from(context);
+    const state = evokerState.from(context.profession);
 
     context.resourceController.replace('empoweredCharges', 0);
     emitResource(context, cast, skill, state);
@@ -161,7 +161,7 @@ const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeS
   'elementalist.evoker.rejuvenate'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
-    const state = evokerState.from(context);
+    const state = evokerState.from(context.profession);
 
     context.resourceController.grant('familiarCharges', state.familiarCharges.maximum);
     emitResource(context, cast, skill, state);
@@ -212,7 +212,7 @@ const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeS
   'elementalist.evoker.foxs-fury'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;
-    const state = evokerState.from(context);
+    const state = evokerState.from(context.profession);
     const at = cast.effectiveEnd;
     const action = requireSkillAction(skill, 'boons');
     const might = requireEffect(skill, 'boon', 'Fox Might', action);
@@ -260,7 +260,7 @@ export const evokerSkillCommitLifecycle = {
 
 /** Release each deferred grant after the familiar reset, then run the final familiar trait observer. */
 export function finishEvokerCast(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
 
   if (state.activeFamiliarCast?.reservationId === cast.id) {
     flushPendingWeaponChargeGains(context, state);
@@ -275,7 +275,7 @@ export function finishEvokerCast(context: ElementalistRuntime, cast: RuntimeCast
  * before the skill-declared resource reset and final observer tasks run.
  */
 export function onCastCommit(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
   // A settled grant cannot fund another retry or be awarded again after a familiar spends it.
   state.pendingWeaponCompletions = state.pendingWeaponCompletions.filter((entry) => entry.activationId !== cast.id);
   grantWeaponSkillCharges(context, cast, skill, state);

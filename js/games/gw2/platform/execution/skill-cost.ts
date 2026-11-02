@@ -5,7 +5,6 @@
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { skillCostAmount } from '#gw2/platform/skills/cost.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Affordable now, a retry when regeneration will cover the cost, or a rejection when it never can. */
@@ -15,8 +14,7 @@ export function skillCostAvailability<T extends object>(
 ): AvailabilityResult | null {
   if (!skill.cost) return null;
 
-  const { resource } = skill.cost;
-  const amount = skillCostAmount(skill);
+  const { resource, amount } = skill.cost;
 
   // Free skills need no pool readiness and remain valid when recovery is disabled.
   if (amount === 0) return null;
@@ -37,8 +35,8 @@ export function skillCostAvailability<T extends object>(
 
 /** Pays the declared cost from the live pool. */
 export function spendSkillCost<T extends object>(runtime: MechanicContext<T>, skill: Skill): void {
-  const amount = skillCostAmount(skill);
+  const { resource, amount } = skill.cost!;
 
-  if (skill.cost!.resource === 'endurance') runtime.endurance.spend(amount);
-  else runtime.resourceController.spend(skill.cost!.resource, amount);
+  if (resource === 'endurance') runtime.endurance.spend(amount);
+  else runtime.resourceController.spend(resource, amount);
 }

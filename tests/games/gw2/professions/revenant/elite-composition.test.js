@@ -8,6 +8,7 @@ import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/pr
 import { revenantFacetParents, revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 
@@ -17,7 +18,6 @@ const heraldConfig = {
   startingLegend: LEGEND.ASSASSIN,
   initialEnergy: 100
 };
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 /** Read the composed observer so these contracts cover registration as well as owner-local projection. */
 function effects(result) {

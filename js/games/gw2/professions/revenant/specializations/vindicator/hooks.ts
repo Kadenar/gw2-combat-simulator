@@ -107,7 +107,7 @@ export const vindicatorHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> 
   },
   onCastStart(runtime, cast) {
     // Endurance has already been paid; cancelled jumps keep that cost but produce no landing.
-    if (cast.skill.id === SHARED_SKILL_IDS.DODGE && !cast.cancelled)
+    if (cast.skill.id === SHARED_SKILL_IDS.DODGE && !cast.cancelledBeforeCommit)
       scheduleLanding(runtime, cast, cast.start + VINDICATOR_AIRBORNE_MS / 1000);
   },
   onCastCommit(runtime, cast) {
@@ -120,7 +120,7 @@ export const vindicatorHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> 
 
 /** Consumes a still-valid armed landing charge, including its exact expiry boundary. */
 function consumeReaversCurse(runtime: RevenantRuntime): boolean {
-  const state = vindicatorState.from(runtime);
+  const state = vindicatorState.from(runtime.profession);
   const reaversCurse =
     hasTrait(runtime, TRAIT.REAVERS_CURSE) && state.reaversCurseUntil > 0 && state.reaversCurseUntil >= runtime.time;
 

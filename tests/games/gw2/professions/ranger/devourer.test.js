@@ -6,6 +6,7 @@ import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { RANGER_CORE_DEVOURER_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/devourer.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 const config = {
@@ -14,7 +15,6 @@ const config = {
   initialUntamedState: 'Ranger',
   attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 })
 };
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 test('Carrion Devourer exposes its land command without underwater Regenerate', () => {
   // Removing the underwater identity must preserve both Poisonous Cloud and Fern Hound's distinct land heal.

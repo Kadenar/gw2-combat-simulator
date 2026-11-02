@@ -3,12 +3,12 @@ import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/pla
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Bomb Kit. */
-export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition>> = Object.freeze({
+export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<EngineerSkill>>> = {
   [ID.BOMB_KIT]: {
     name: 'Bomb Kit',
-    description: 'Engineering Kit. Equip a kit that replaces your weapon with bomb skills.',
     icon: 'https://render.guildwars2.com/file/B06C59BBB1EC416859E04E7C9859BE020C4B3E17/103399.png',
     type: 'Utility',
     slot: 'Utility',
@@ -24,7 +24,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDef
   },
   [ID.BOMB]: {
     name: 'Bomb',
-    description: 'Set an explosive that damages nearby foes.',
     icon: 'https://render.guildwars2.com/file/02A02091B1EBDB782719EB6AE56F01E6372C500D/103091.png',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -53,7 +52,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDef
   },
   [ID.FIRE_BOMB]: {
     name: 'Fire Bomb',
-    description: 'Set an explosive that burns nearby foes.',
     icon: 'https://render.guildwars2.com/file/95DF02395BB2C2EFD4D7BA5BE3ECC512E875EFEE/103404.png',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -104,7 +102,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDef
   },
   [ID.GALVANIC_BOMB]: {
     name: 'Galvanic Bomb',
-    description: 'Set an explosive that electrocutes nearby foes, dazing them.',
     icon: 'https://render.guildwars2.com/file/E406DB5F73E8AE312E0E04650FDAF0CCFCFC28FF/103403.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -148,7 +145,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDef
   },
   [ID.SMOKE_BOMB_ENGINEER_SKILL]: {
     name: 'Smoke Bomb (engineer skill)',
-    description: 'Set a timed charge that creates a cloud of smoke, blinding nearby foes.',
     icon: 'https://render.guildwars2.com/file/2D0B6AC204047FE40504BFD7B0B1E015FEF75C2F/103405.png',
     type: 'Profession',
     slot: 'Action',
@@ -168,7 +164,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDef
   },
   [ID.MAGNETIC_BOMB]: {
     name: 'Magnetic Bomb',
-    description: 'Set a timed charge that pulls nearby foes.',
     icon: 'https://render.guildwars2.com/file/B70B5426F0B2F4924E08198069789121426F9517/103176.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -202,7 +197,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDef
   },
   [ID.STOW_BOMB_KIT]: {
     name: 'Stow Bomb Kit',
-    description: 'Stow your bomb kit.',
     icon: 'https://render.guildwars2.com/file/7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png',
     type: 'Utility',
     slot: 'Utility',
@@ -220,7 +214,6 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDef
   },
   [ID.BIG_OL_BOMB]: {
     name: "Big Ol' Bomb",
-    description: 'Set a timed charge with a big blast that knocks down nearby foes. This skill blast finishes twice.',
     icon: 'https://render.guildwars2.com/file/9ADBE10F0E4F7D75DC0BF54EBD5B360BE1AB9D09/103400.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -258,4 +251,4 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDef
       ]
     )
   }
-});
+};

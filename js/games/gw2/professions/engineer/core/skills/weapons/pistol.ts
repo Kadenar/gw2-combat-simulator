@@ -5,10 +5,9 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 /** Defines Engineer pistol projectile timing, damage, condition, and combo behavior. */
-export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.FRAGMENTATION_SHOT]: {
     name: 'Fragmentation Shot',
-    description: 'Fire a shot that bleeds the impacted target and then shatters, dealing damage to nearby enemies.',
     icon: 'https://render.guildwars2.com/file/40BE467F4D09226EA70526E4B61C0EDA270B6317/103170.png',
     type: 'Weapon',
     weapon: 'Pistol',
@@ -50,7 +49,6 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.POISON_DART_VOLLEY]: {
     name: 'Poison Dart Volley',
-    description: 'Fire a volley of darts that poison foes.',
     icon: 'https://render.guildwars2.com/file/E630EC9663DDE5C165BC0304C636900C7D2006F9/103171.png',
     type: 'Weapon',
     weapon: 'Pistol',
@@ -82,7 +80,6 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.STATIC_SHOT]: {
     name: 'Static Shot',
-    description: 'Discharge a lightning shot that bounces between multiple foes, blinding and confusing them.',
     icon: 'https://render.guildwars2.com/file/CBC5740B8092A6474595F8BFB2394D145D3AB0E8/103406.png',
     type: 'Weapon',
     weapon: 'Pistol',
@@ -116,7 +113,6 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.BLOWTORCH]: {
     name: 'Blowtorch',
-    description: 'Unleash flames from your pistol to burn foes. Deals more damage the closer you are.',
     icon: 'https://render.guildwars2.com/file/061D48DCAC954D91D8F8BD7F6B193201A695F92F/103407.png',
     type: 'Weapon',
     weapon: 'Pistol',
@@ -148,8 +144,6 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.GLUE_SHOT]: {
     name: 'Glue Shot',
-    description:
-      'Coat the target area with a glue puddle that immobilizes foes on impact, then cripples foes that remain within.',
     icon: 'https://render.guildwars2.com/file/AA05DE91B26C2926046495CE0293966A3C1EA492/103187.png',
     type: 'Weapon',
     weapon: 'Pistol',
@@ -193,4 +187,4 @@ export const ENGINEER_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   }
-});
+};

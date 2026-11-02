@@ -43,7 +43,7 @@ test('graph tooltips stay inside the chart at desktop and mobile widths', async 
     }
 
     const model = {
-      opponentRelic: 'Fractal',
+      equippedRelic: 'Fractal',
       targetRelic: 'Akeem',
       durationMs: 10000,
       evaluationStartMs: 0,

@@ -4,11 +4,13 @@ import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
-export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<
+  Record<number, SkillDefinition<NecromancerSkill>>
+> = {
   [ID.LIFE_BLAST]: {
     name: 'Life Blast',
-    description: 'Shroud. Blast your foe with life force.',
     icon: 'https://render.guildwars2.com/file/E163E6D4B3E0DE946C00002526947BA20B542D40/103260.png',
     cooldown: 0,
     skillWeapon: 'Hammer',
@@ -30,7 +32,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.DEATH_SHROUD]: {
     name: 'Death Shroud',
-    description: 'Assume a spectral form and gain new skills, turning your life force into health.',
     icon: 'https://render.guildwars2.com/file/01B603B6CE41416CD0582AAC1D3A33DE3E086BFA/103298.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -49,7 +50,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.END_DEATH_SHROUD]: {
     name: 'End Death Shroud',
-    description: 'Leave Death Shroud and return to your normal form.',
     icon: 'https://render.guildwars2.com/file/B0B702D80CAAEF7AF1010B716C730B920E632B0D/103817.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -64,7 +64,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.DHUUMFIRE_BLAST]: {
     name: 'Dhuumfire',
-    description: 'Blast your foe with life force, setting them alight.',
     icon: 'https://render.guildwars2.com/file/E163E6D4B3E0DE946C00002526947BA20B542D40/103260.png',
     cooldown: 0,
     skillWeapon: 'Hammer',
@@ -72,7 +71,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
     slot: 'Weapon_1',
     shroud: 'death',
     shroudSlot: 1,
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 920,
     effects: [
       {
@@ -91,7 +90,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.DARK_PATH]: {
     name: 'Dark Path',
-    description: 'Shroud. Send out a claw that damages, bleeds, and chills the target.',
     icon: 'https://render.guildwars2.com/file/10773D150F72F5BEF252D06EB7DC2C040A5202A3/2175061.png',
     cooldown: 8,
     skillWeapon: 'Hammer',
@@ -127,7 +125,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.DARK_PURSUIT]: {
     name: 'Dark Pursuit',
-    description: 'Shadowstep to the foe marked by Dark Path.',
     icon: 'https://render.guildwars2.com/file/1063CD31245E30A20662042B5EB7375C9CCAF5A5/2175062.png',
     skillWeapon: 'Hammer',
     type: 'Profession',
@@ -142,7 +139,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.DOOM]: {
     name: 'Doom',
-    description: 'Shroud. Damage and fear your target.',
     icon: 'https://render.guildwars2.com/file/6CAB0D17DF604E5C6330523A350EC4430409A309/103818.png',
     cooldown: 20,
     skillWeapon: 'Hammer',
@@ -168,7 +164,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.LIFE_TRANSFER]: {
     name: 'Life Transfer',
-    description: 'Shroud. Channel damage around you and gain life force per strike.',
     icon: 'https://render.guildwars2.com/file/579400360B6E0C9D699B5D6D0AC9F2184CC707F8/103820.png',
     cooldown: 20,
     skillWeapon: 'Hammer',
@@ -190,7 +185,7 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 9 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 9 } })]
           }
         ],
         ticks: [240, 440, 680, 880, 1120, 1320, 1560, 1760, 2000].map((atMs) => ({ atMs, coefficient: 3.825 / 9 }))
@@ -207,7 +202,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.TAINTED_SHACKLES]: {
     name: 'Tainted Shackles',
-    description: 'Shroud. Bind nearby enemies, pulsing torment before the binding strikes.',
     icon: 'https://render.guildwars2.com/file/CBEB3C180F343DC0CBA9BD5A3E09642C1D73599C/598947.png',
     cooldown: 25,
     skillWeapon: 'Hammer',
@@ -249,7 +243,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.DEATHLY_CLAWS]: {
     name: 'Deathly Claws',
-    description: 'Lich Form. Send grasping claws through your foes.',
     icon: 'https://render.guildwars2.com/file/0232367CBDA026CD9B00B5E97D312F2CF2E0551F/103836.png',
     type: 'Profession',
     slot: 'Weapon_1',
@@ -274,7 +267,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.LICHS_GAZE]: {
     name: "Lich's Gaze",
-    description: 'Lich Form. Fire an unblockable projectile that chills and corrupts boons.',
     icon: 'https://render.guildwars2.com/file/0E5873900C7F43F3DFC394494D0AD90959CECA22/1770531.png',
     type: 'Profession',
     slot: 'Weapon_2',
@@ -297,7 +289,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.RIPPLE_OF_HORROR]: {
     name: 'Ripple of Horror',
-    description: 'Lich Form. Launch a damaging wave that fears foes it crosses.',
     icon: 'https://render.guildwars2.com/file/3D4622D7D8C6163E9FE4FBD50E01ED215AD0EE2B/1770530.png',
     type: 'Profession',
     slot: 'Weapon_3',
@@ -323,7 +314,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.MARCH_OF_UNDEATH]: {
     name: 'March of Undeath',
-    description: 'Lich Form. Shadowstep to your Ripple of Horror.',
     icon: 'https://render.guildwars2.com/file/6728BBF7042B554E3D3996C1721501FF16E4F661/1770529.png',
     type: 'Profession',
     slot: 'Weapon_3',
@@ -336,13 +326,12 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.SUMMON_MADNESS]: {
     name: 'Summon Madness',
-    description: 'Lich Form. Repeatedly summon unstable horrors that attack and explode.',
     icon: 'https://render.guildwars2.com/file/590CC70C1003DC0F3C6498E8BED4FF0765CA1E72/103716.png',
     type: 'Profession',
     slot: 'Weapon_4',
 
     cooldown: 30,
-    summons: 8,
+    summonCount: 8,
     summonInterval: 1,
     // Creature lifetime survives removal of an attack or explosion from the selected profile.
     summonDuration: 6,
@@ -370,7 +359,6 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
   },
   [ID.GRIM_SPECTER]: {
     name: 'Grim Specter',
-    description: 'Lich Form. Siphon life from nearby enemies over time.',
     icon: 'https://render.guildwars2.com/file/A6CAF2146D9DF2EBEFD9285CB0E9E3617A659071/1770528.png',
     type: 'Profession',
     slot: 'Weapon_5',
@@ -402,4 +390,4 @@ export const NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<numb
       )
     ]
   }
-});
+};

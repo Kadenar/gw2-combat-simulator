@@ -35,6 +35,7 @@ import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID
 } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const elementalistCoreTooltips = {
@@ -104,6 +105,13 @@ export const elementalistCoreTooltips = {
       : [])
   ],
   skills: {
+    // Equipment selects the glyph; the accepted cast owns its elemental payload and recharge.
+    [ID.GLYPH_OF_STORMS]: skillTooltip(
+      'Create the storm for your primary attunement when the cast begins. Its elemental effects remain fixed for that activation, and all elements share the resulting recharge.'
+    ),
+    [ID.GLYPH_OF_ELEMENTAL_POWER]: skillTooltip(
+      'Cast the Glyph of Elemental Power variant for your primary attunement. Changing attunement changes the next available variant, while all variants share recharge.'
+    ),
     [ID.GRAND_FINALE]: skillTooltip(
       "Consume all active hammer orbs and fire one projectile per orb. Each projectile applies its element's effects. Consuming the orbs cancels their pending attacks.",
       () => [{ name: 'Combo finisher', detail: 'Projectile, per consumed orb' }]
@@ -350,4 +358,4 @@ export const elementalistCoreTooltips = {
     ...elementalistArcaneTooltips,
     ...elementalistAirTooltips
   }
-} satisfies ProfessionTooltips;
+} satisfies ProfessionTooltips<ElementalistSkill>;

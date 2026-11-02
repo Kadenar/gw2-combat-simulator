@@ -4,7 +4,10 @@ import {
   createResourceClock,
   type DiscreteResourceClock
 } from '#gw2/platform/combat/resources/clock.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -37,13 +40,13 @@ function createGaleshotState(config: RangerConfig = {}): GaleshotState {
 
 export const galeshotState = defineProfessionSpecializationState('Galeshot', createGaleshotState);
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectGaleshotPlanningState(input: Gw2PlanningStateInput) {
-  const state = galeshotState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectGaleshotPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = galeshotState.from(input.profession);
+  return {
     [STATE.CYCLONE_BOW_ACTIVE]: state.cycloneBowActive,
     [STATE.ARROWS]: state.arrows,
     [STATE.WIND_FORCE]: state.windForce,
     [STATE.MISTRAL_UNTIL]: state.mistralUntil
-  });
+  };
 }

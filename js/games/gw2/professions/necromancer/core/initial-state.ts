@@ -25,7 +25,7 @@ export function createNecromancerCoreState(
     lifeForce: {
       value: (clamp(config.initialResource ?? 100, 0, 100) * maximum) / 100,
       maximum,
-      rate: 0,
+      unitsPerSecond: 0,
       updatedAt: 0
     },
     signetPassives: {

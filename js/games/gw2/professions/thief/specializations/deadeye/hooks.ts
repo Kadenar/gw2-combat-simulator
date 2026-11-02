@@ -36,7 +36,7 @@ export const deadeyeHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
     resources: { malice: deadeyeMalice },
     /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
     prepareDamageState(runtime, _skill, inputs) {
-      const state = deadeyeState.from(runtime);
+      const state = deadeyeState.from(runtime.profession);
       const malice = Number(inputs.malice ?? 0);
 
       if (!Number.isInteger(malice) || malice < 0 || malice > state.malice.maximum)

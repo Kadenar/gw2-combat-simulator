@@ -1,11 +1,10 @@
-import { expireCharges, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
+import { activeChargeCount, grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { skillFlipVisible, type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import { cloneStateFields } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -61,36 +60,25 @@ export function activeSymbolicAvengerExpirations(state: Partial<GuardianCoreStat
   return purgeExpiredStacks(state.symbolicAvengerExpirations || [], at);
 }
 
-/** Detach only public fields before expiring visible windows, leaving private state and live owners untouched. */
+/** Derive visible windows without mutating grants or reading private state; the observer detaches the result. */
 export function projectGuardianPlanningState(input: Gw2PlanningStateInput) {
-  const state = cloneStateFields((input.profession as { core: ReturnType<typeof createGuardianCoreState> }).core, [
-    'endurance',
-
-    'justiceActiveArmed',
-    'autoattackChains',
-    'availableFlips',
-
-    'symbolicAvengerExpirations',
-
-    'resolutionUntil',
-    'spearIlluminated',
-    'spearLuminanceUntil'
-  ]);
+  const state = (input.profession as { core: ReturnType<typeof createGuardianCoreState> }).core;
   // Projections can precede a flip's expiry task; never expose an expired flip to the palette.
-  state.availableFlips = Object.fromEntries(
+  const availableFlips = Object.fromEntries(
     Object.entries(state.availableFlips).filter(([, window]) => skillFlipVisible(window, input.time))
   );
-  state.symbolicAvengerExpirations = activeSymbolicAvengerExpirations(state, input.time);
   // Project only live entitlement without consuming the runtime's captured grant.
-  expireCharges(state.spearIlluminated, input.time);
   return {
     [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.ENDURANCE]: state.endurance,
-    [STATE.AVAILABLE_FLIPS]: state.availableFlips,
+    [STATE.AVAILABLE_FLIPS]: availableFlips,
     [STATE.JUSTICE_ACTIVE_ARMED]: state.justiceActiveArmed,
-    [STATE.SYMBOLIC_AVENGER_EXPIRATIONS]: state.symbolicAvengerExpirations,
+    [STATE.SYMBOLIC_AVENGER_EXPIRATIONS]: activeSymbolicAvengerExpirations(state, input.time),
     [STATE.RESOLUTION_UNTIL]: state.resolutionUntil,
-    [STATE.SPEAR_ILLUMINATED]: state.spearIlluminated,
+    [STATE.SPEAR_ILLUMINATED]: {
+      ...state.spearIlluminated,
+      charges: activeChargeCount(state.spearIlluminated, input.time)
+    },
     [STATE.SPEAR_LUMINANCE_UNTIL]: state.spearLuminanceUntil
   };
 }

@@ -43,23 +43,14 @@ function mapPoisonDurations(effects: readonly SkillEffect[], scaled: (duration: 
 }
 
 /** Malicious stealth attacks keep their accepted-malice transforms beside their weapon effects. */
-export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<ThiefSkill>>> = {
   [ID.MALICIOUS_DEATHS_JUDGMENT]: {
     name: "Malicious Death's Judgment",
-    description:
-      'Stealth Attack. Reveal yourself and fire a powerful shot at your target that pierces but deals less damage to untargeted foes. If this attack targets and hits your mark, it consumes all malice and deals increased damage for each malice consumed.',
     icon: 'https://render.guildwars2.com/file/7228E29372F37958FEB8684E91F7060D71D3D6E2/1770628.png',
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_1',
-
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     cooldown: 1,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.RIFLE,
     stealthAttack: true,
     malicious: true,
@@ -80,20 +71,12 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
   },
   [ID.MALICIOUS_SURPRISE_SHOT]: {
     name: 'Malicious Surprise Shot',
-    description:
-      'Shoot an arrow that bleeds and immobilizes your foe. If the arrow hits your marked target, it consumes all malice and splinters, firing new arrows at nearby foes for each malice consumed.',
     icon: 'https://render.guildwars2.com/file/0B78EA15E65D63D4D85E4C2E3840E679A6F9F378/2010291.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Shortbow',
 
     cooldown: 1,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.SHORTBOW,
     stealthAttack: true,
     malicious: true,
@@ -125,14 +108,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
   },
   [ID.MALICIOUS_SNEAK_ATTACK]: {
     name: 'Malicious Sneak Attack',
-    description:
-      'Sneak attack with a rapid fire from your pistol that makes your foe bleed. Consumes all malice when striking your mark to inflict torment with a duration equal to twice the consumed malice.',
     icon: 'https://render.guildwars2.com/file/13ED5F3F5ACD4FC19452911309C4E46E46731671/2010290.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Pistol',
@@ -140,7 +116,6 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     durationPerMalice: 2,
     cooldown: 1,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.PISTOL,
     stealthAttack: true,
     malicious: true,
@@ -192,20 +167,12 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
   },
   [ID.MALICIOUS_BACKSTAB]: {
     name: 'Malicious Backstab',
-    description:
-      'Attack your foe from the shadows and strike for double the damage if you hit from behind or they are defiant. Consumes all malice when striking your mark to deal bonus damage.',
     icon: 'https://render.guildwars2.com/file/FF0A2DF63F383E7C9B3D090FFDF070BC472520F9/2010288.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Dagger',
 
     cooldown: 1,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.DAGGER,
     stealthAttack: true,
     malicious: true,
@@ -227,20 +194,12 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
   },
   [ID.MALICIOUS_TACTICAL_STRIKE]: {
     name: 'Malicious Tactical Strike',
-    description:
-      'Daze your foe by bashing them with your sword hilt. Daze them for a longer duration if you attack from behind or they are defiant. Applies vulnerability. Consumes all malice when striking your mark to restore endurance based on the malice used.',
     icon: 'https://render.guildwars2.com/file/DF27A8C60E93120707FC0FE871540AFEEC01DCF7/2010293.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Sword',
 
     cooldown: 1,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.SWORD,
     stealthAttack: true,
     malicious: true,
@@ -261,20 +220,12 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
   },
   [ID.MALICIOUS_SHADOWSQUALL]: {
     name: 'Malicious Shadowsquall',
-    description:
-      'From the shadows, unleash a barrage towards your target. If this attack hits your mark, it consumes all malice and increases the duration of poison it applies',
     icon: 'https://render.guildwars2.com/file/F94EC6D9CF082D32D0D7B80EB0DAD90642565090/3098877.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Scepter',
 
     cooldown: 0,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.SCEPTER,
     stealthAttack: true,
     malicious: true,
@@ -316,20 +267,12 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
   },
   [ID.MALICIOUS_HOOK_STRIKE]: {
     name: 'Malicious Hook Strike',
-    description:
-      'Attack your foes from stealth, knocking enemies down. If this attack hits your mark, it consumes all malice and grants you quickness.',
     icon: 'https://render.guildwars2.com/file/C1C5B9CDD6A6AB04056780B259050FC93A342770/3098878.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Staff',
 
     cooldown: 1,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.STAFF,
     stealthAttack: true,
     malicious: true,
@@ -373,14 +316,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
   },
   [ID.MALICIOUS_CUNNING_SALVO]: {
     name: 'Malicious Cunning Salvo',
-    description:
-      'Throw an axe that explodes when it hits a target, crippling nearby enemies. Gain initiative if you strike an enemy. Consumes all malice when striking your mark to inflict poison with a duration equal to the consumed malice.',
     icon: 'https://render.guildwars2.com/file/C811399D9A589160C42B720830BE0D05326A0352/3256392.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Axe',
@@ -388,7 +324,6 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
     // The stealth attack's one-second reuse lockout is independent of Alacrity.
     rechargeIgnoresAlacrity: true,
     cooldown: 1,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.AXE,
     stealthAttack: true,
     malicious: true,
@@ -408,13 +343,15 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
               actor: ACTOR.PLAYER,
               packets: 'first',
               // Keep the impact refund independently editable without changing its hit requirement.
-              do: {
-                type: 'resourceGrant' as const,
-                id: 'initiative-refunded',
-                label: 'Initiative refunded',
-                resource: 'initiative',
-                amount: 2
-              }
+              do: [
+                {
+                  type: 'resourceGrant' as const,
+                  id: 'initiative-refunded',
+                  label: 'Initiative refunded',
+                  resource: 'initiative',
+                  amount: 2
+                }
+              ]
             }
           ],
           coefficient: 1.5,
@@ -467,18 +404,10 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
   },
   [ID.MALICIOUS_ASHEN_ASSAULT]: {
     name: 'Malicious Ashen Assault',
-    description:
-      'Stealth Attack. Attack foes in front of you with a series of strikes, inflicting damaging conditions. The final strike makes them vulnerable. If this skill follows a Finisher skill, it grants initiative. Consumes all malice when striking your mark to inflict torment and increase the damage dealt.',
     icon: 'https://render.guildwars2.com/file/D3EB04ABC0B56CEF0F29F10A61B4B64F073E213C/3379198.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_1',
-
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     initiativeRefund: 4,
     coefficientPerMalice: 0.02,
@@ -486,7 +415,6 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
     preservesStealth: true,
     spearStealthAttack: true,
     cooldown: 0,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.SPEAR,
     stealthAttack: true,
     malicious: true,
@@ -587,7 +515,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition>
     // Landed strikes own the initiative refund; the final packet owns accepted-malice Torment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.spear-chain' as const } }]
   }
-});
+};
 
 const MALICIOUS_DAMAGE_SCALING_SKILL_IDS: ReadonlySet<number> = new Set([
   ID.MALICIOUS_BACKSTAB,

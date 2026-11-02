@@ -234,12 +234,12 @@ function applyEmpoweringSpirits(runtime: NecromancerRuntime, cast: RuntimeCast<N
 
 /** Entry arms a single summon refund; the granted refund survives until a summon consumes it. */
 function armSoulTwisting(runtime: NecromancerRuntime): void {
-  ritualistState.from(runtime).soulTwistingAvailable = true;
+  ritualistState.from(runtime.profession).soulTwistingAvailable = true;
 }
 
 /** Only a committed summon spends the refund. */
 function consumeSoulTwisting(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  const state = ritualistState.from(runtime);
+  const state = ritualistState.from(runtime.profession);
 
   if (state.soulTwistingAvailable) {
     state.soulTwistingAvailable = false;

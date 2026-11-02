@@ -12,11 +12,11 @@ import { swiftScholarPagesGranted } from '#gw2/professions/guardian/specializati
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const config = { specialization: 'Firebrand', selectedTraitIds: [TRAIT.QUICKFIRE] };
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const state = (result) => observedRuntime(result).profession.specialization.state;
 const burns = (result) =>
   result.resolvedEvents.filter(

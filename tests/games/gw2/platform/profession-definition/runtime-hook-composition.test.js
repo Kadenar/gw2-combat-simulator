@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import {
   createCastDetailContext,
   createMaximumAmmoContext
@@ -129,6 +130,45 @@ test('composition preserves retry boundaries, permanent denials, and exclusive p
     composeRuntimeHooks([early, { availability: () => denial }, late]).availability({ time: 0 }, {}, {}),
     denial
   );
+});
+
+// Retry deadlines and explanations have separate precedence; ready hooks cannot clear an earlier denial.
+test('availability composition preserves the latest deadline, last denial, and current-time floor', () => {
+  const early = retryCast(3, 'early', 'Early gate');
+  const late = retryCast(7, 'late', 'Late gate');
+  for (const [time, results, expected] of [
+    [2, [late, CAST_READY, early, undefined], { ...early, retryAt: 7 }],
+    [2, [early, late], late],
+    [10, [late, early], { ...early, retryAt: 10 }],
+    [10, [early, CAST_READY], { ...early, retryAt: 10 }],
+    [2, [late, retryCast(7, 'tie', 'Tied gate')], retryCast(7, 'tie', 'Tied gate')],
+    [2, [undefined, CAST_READY], CAST_READY]
+  ]) {
+    const hooks = composeRuntimeHooks(results.map((result) => ({ availability: () => result })));
+    assert.deepEqual(hooks.availability({ time }, {}, {}), expected);
+  }
+});
+
+// Permanent rejection stops evaluation even when an earlier gate requested a retry.
+test('availability composition stops at the first permanent denial', () => {
+  const denial = denyCast('denied', 'Cannot cast');
+  for (const results of [[denial], [retryCast(7, 'wait', 'Wait'), denial]]) {
+    const calls = [];
+    const hooks = composeRuntimeHooks([
+      ...results.map((result, index) => ({
+        availability: () => {
+          calls.push(index);
+          return result;
+        }
+      })),
+      { availability: () => assert.fail('Later availability gates must not execute.') }
+    ]);
+    assert.equal(hooks.availability({ time: 2 }, {}, {}), denial);
+    assert.deepEqual(
+      calls,
+      results.map((_, index) => index)
+    );
+  }
 });
 
 test('named owners and unsupported fields fail instead of silently replacing or dropping behavior', () => {

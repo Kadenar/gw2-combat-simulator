@@ -9,6 +9,7 @@ import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
 // Named profile grants must agree in the isolated preview, live attributes, and tooltip, including boon gates.
 test('Mesmer named attribute grants follow the selected patch and their independent boon assumptions', () => {
@@ -91,5 +92,54 @@ test('Mesmer named attribute grants follow the selected patch and their independ
         assert.equal(tooltip.facts.find((fact) => fact.name === name).detail, String(amount));
       }
     }
+  }
+});
+
+test('Mesmer Core and elite build owners consume patched values with independent boon assumptions', () => {
+  // Native composition applies each selected contribution once and keeps preview overrides local to that calculation.
+  const family = patchTraitProfession(mesmerProfession, {
+    balanceProfiles: {
+      [TRAIT.CHAOTIC_PERSISTENCE]: {
+        fields: { 'attributeBonuses.expertise': 180, 'attributeBonuses.concentration': 320 }
+      },
+      [TRAIT.FLOW_OF_TIME]: { fields: { criticalChance: 0.2 } }
+    }
+  });
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(mesmerCatalog),
+    family.attributeContributions
+  );
+  const build = {
+    specializations: [
+      { name: 'Chaos', traits: '1-1-1' },
+      { name: 'Chronomancer', traits: '1-1-1' }
+    ]
+  };
+  for (const [patchId, expertise, concentration] of [
+    ['current', 100, 250],
+    ['s4-preview', 180, 320]
+  ]) {
+    const balance = family.resolvePatch({ id: patchId }).balanceContext;
+    const attributes = calculate(build, [], 1, null, null, balance).attributes;
+    assert.equal(attributes.Expertise.traits, expertise);
+    assert.equal(attributes.Concentration.traits, concentration);
+    const withoutFlow = calculate(build, [], 1, 'Flow of Time', null, balance).attributes;
+    assert.equal(
+      attributes['Critical Chance'].final - withoutFlow['Critical Chance'].final,
+      patchId === 'current' ? 15 : 20
+    );
+    const disabled = calculate(build, [], 1, 'Chaotic Persistence', null, balance).attributes;
+    assert.equal(disabled.Expertise.traits, 0);
+    assert.equal(disabled.Concentration.traits, 0);
+    const withoutRegeneration = calculate(
+      { ...build, assumptions: { regeneration: false } },
+      [],
+      1,
+      null,
+      null,
+      balance
+    ).attributes;
+    assert.equal(withoutRegeneration.Expertise.traits, 0);
+    assert.equal(withoutRegeneration.Concentration.traits, 0);
   }
 });

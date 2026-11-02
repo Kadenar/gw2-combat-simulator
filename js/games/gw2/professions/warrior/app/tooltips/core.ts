@@ -19,6 +19,7 @@ import { resourceTooltip } from '#gw2/professions/warrior/app/tooltips/shared.js
 import { warriorStrengthTooltips } from '#gw2/professions/warrior/app/tooltips/strength.js';
 import { warriorTacticsTooltips } from '#gw2/professions/warrior/app/tooltips/tactics.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const warriorCoreTooltips = {
@@ -201,4 +202,4 @@ export const warriorCoreTooltips = {
     ...warriorArmsTooltips,
     ...warriorDisciplineTooltips
   }
-} satisfies ProfessionTooltips;
+} satisfies ProfessionTooltips<WarriorSkill>;

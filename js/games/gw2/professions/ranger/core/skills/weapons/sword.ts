@@ -7,10 +7,9 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 // Measured with Quickness in 20261015-203144.zevtc, rounded to the 40 ms action grid.
 // Apply each attack's hit rewards before recovery ends so completed impacts survive recovery cancellation.
-export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.SLASH]: {
     name: 'Slash',
-    description: 'Chain. Slash your foe.',
     icon: 'https://render.guildwars2.com/file/905B29D0F09934F0FBD954675D1C0CBC37ECEFD8/103123.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -31,7 +30,6 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.CRIPPLING_THRUST]: {
     name: 'Crippling Thrust',
-    description: 'Chain. Stab your foe, crippling them for a short time.',
     icon: 'https://render.guildwars2.com/file/5D2F5316C846E2C4030837A25EFC98C31826390F/2207784.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -58,7 +56,6 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.PRECISION_SWIPE]: {
     name: 'Precision Swipe',
-    description: 'Deliver a blow to your foe. Your pet gains might for each foe struck.',
     icon: 'https://render.guildwars2.com/file/ABE517B7E57E1BE230BD56C3F93A46A0900AAD3E/2207785.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -86,8 +83,6 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.POUNCE]: {
     name: 'Pounce',
-    description:
-      'Deliver a leaping strike that deals more damage to disabled, defiant, or movement-impaired foes. Gain vigor if an enemy is struck.',
     icon: 'https://render.guildwars2.com/file/CECBFA1662D837E8A526E475A1E701679A2662BA/103125.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -118,8 +113,6 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.SERPENTS_STRIKE]: {
     name: "Serpent's Strike",
-    description:
-      'Leap to your target and cripple them. If your target is disabled, defiant, or movement impaired, immobilize them instead.',
     icon: 'https://render.guildwars2.com/file/26B3CC91C193FDC30873937B2FB735E1B7C6A83A/103126.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -161,7 +154,7 @@ export const RANGER_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDef
       }
     ])
   }
-});
+};
 
 /** Intrinsic live-impact policy stays beside its skill; the shared registry supplies resolution. */
 export const rangerPounceModifier: Gw2ModifierRule = {

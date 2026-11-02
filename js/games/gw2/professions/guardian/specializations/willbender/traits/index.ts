@@ -95,7 +95,7 @@ export const lethalTempo = defineTrait({
       for (const buff of runtime.config.initialBuffs ?? []) {
         if (buff.kind !== 'lethal-tempo') continue;
 
-        gainLethalTempo(willbenderState.from(runtime), runtime.time, {
+        gainLethalTempo(willbenderState.from(runtime.profession), runtime.time, {
           ...parameters,
           stacks: buff.stacks,
           duration: buff.duration
@@ -140,17 +140,17 @@ const restorativeVirtues = defineTrait({
   ],
   lifetime: {
     onCastStart(runtime, cast) {
-      if (cast.cancelled) return;
+      if (cast.cancelledBeforeCommit) return;
 
       if (cast.skill.type === 'Weapon')
-        willbenderState.from(runtime).weaponCastRecharge[cast.id] = {
+        willbenderState.from(runtime.profession).weaponCastRecharge[cast.id] = {
           skillId: cast.skill.id,
           rechargeStart: cast.rechargeStart,
           rechargeWork: cast.rechargeWork
         };
     },
     onCastCommit(runtime, cast) {
-      const state = willbenderState.from(runtime);
+      const state = willbenderState.from(runtime.profession);
       const pending = state.pendingWeaponCooldownReduction[cast.id] ?? 0;
       delete state.pendingWeaponCooldownReduction[cast.id];
       delete state.weaponCastRecharge[cast.id];
@@ -301,7 +301,7 @@ const searingPact = defineTrait({
 });
 
 /** Training owns the common trigger threshold; each virtue retains its independent live counter. */
-export const willbenderTraining = defineTrait({
+const willbenderTraining = defineTrait({
   id: TRAIT.WILLBENDER_TRAINING,
   balance: { threshold: 5 }
 });
@@ -384,7 +384,7 @@ function tempo(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
 
   if (!parameters) return;
 
-  const stacks = gainLethalTempo(willbenderState.from(runtime), runtime.time, parameters);
+  const stacks = gainLethalTempo(willbenderState.from(runtime.profession), runtime.time, parameters);
   runtime.effects.emit({
     kind: 'packet',
     event: {
@@ -420,7 +420,7 @@ function tempo(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
 
 /** Earned base work applies to equipped weapon cooldowns and reservations before speed conversion. */
 function reduceWeapons(runtime: GuardianRuntime, cause: Gw2ResolverEvent): void {
-  const state = willbenderState.from(runtime);
+  const state = willbenderState.from(runtime.profession);
   const names = new Set(gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1).filter(Boolean));
   const matches = (skill: Skill) => skill.type === 'Weapon' && (!names.size || names.has(String(skill.weapon)));
   const amount = balanceNumberFromContext(runtime, TRAIT.RESTORATIVE_VIRTUES, 'rechargeReduction');
@@ -442,7 +442,7 @@ function reduceWeapons(runtime: GuardianRuntime, cause: Gw2ResolverEvent): void 
     const pending = state.pendingWeaponCooldownReduction[id] ?? 0;
     const available = runtime.cooldownController.remaining(
       skill,
-      { startedAt: cast.rechargeStart, work: cast.rechargeWork },
+      { workAnchorAt: cast.rechargeStart, work: cast.rechargeWork },
       runtime.time
     );
     const gain = Math.min(amount, Math.max(0, available - pending));

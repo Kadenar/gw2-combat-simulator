@@ -65,7 +65,7 @@ import {
   resourceGrantNumericFields,
   type ResourceGrantAction
 } from '#gw2/platform/effects/resource-grants.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 import { escapeHtml } from '#ui/shared/html.js';
 
 let app: HTMLElement;
@@ -282,7 +282,7 @@ function effectNumericRows(
 ): string {
   const topPatch = effectPatchFor(edit, effectIndex);
   const rows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
-    const current = effect[field];
+    const current = (effect as unknown as Readonly<Record<string, unknown>>)[field];
     return typeof current === 'number' && effectNumericFieldIsPatchable(field, effect)
       ? [
           numberInput({
@@ -310,11 +310,11 @@ function effectNumericRows(
     );
   }
 
-  const ticks = Array.isArray(effect.ticks) ? effect.ticks : [];
+  const ticks = effectTicks(effect) ?? [];
   for (const [tickIndex, tick] of ticks.entries()) {
     const tickPatch = effectPatchFor(edit, effectIndex, tickIndex);
     const tickRows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
-      const current = tick[field];
+      const current = (tick as unknown as Readonly<Record<string, unknown>>)[field];
       return typeof current === 'number' && effectNumericFieldIsPatchable(field, tick, effect)
         ? [
             numberInput({
@@ -522,7 +522,7 @@ function balanceProfileEffectRows(
 ): string {
   const topPatch = effectPatchFor(edit, effectIndex);
   const rows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
-    const current = effect[field];
+    const current = (effect as unknown as Readonly<Record<string, unknown>>)[field];
     return typeof current === 'number' &&
       effectNumericFieldIsPatchable(field, effect) &&
       balanceProfileEffectNumericFieldTier(field, current) === tier
@@ -553,11 +553,11 @@ function balanceProfileEffectRows(
     );
   }
 
-  const ticks = Array.isArray(effect.ticks) ? effect.ticks : [];
+  const ticks = effectTicks(effect) ?? [];
   for (const [tickIndex, tick] of ticks.entries()) {
     const tickPatch = effectPatchFor(edit, effectIndex, tickIndex);
     const tickRows = PATCHABLE_EFFECT_NUMERIC_FIELDS.flatMap((field) => {
-      const current = tick[field];
+      const current = (tick as unknown as Readonly<Record<string, unknown>>)[field];
       return typeof current === 'number' &&
         effectNumericFieldIsPatchable(field, tick, effect) &&
         balanceProfileEffectNumericFieldTier(field, current) === tier

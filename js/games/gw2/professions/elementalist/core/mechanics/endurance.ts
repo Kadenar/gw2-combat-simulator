@@ -5,7 +5,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 
 /** Bind the profession's pool to shared endurance rules and its own additive trait bonuses. */
 export const elementalistEndurance: EndurancePolicy<ElementalistRuntime> = {
-  state: (context) => professionCoreState(context).endurance,
+  state: (context) => professionCoreState(context.profession).endurance,
   maximum: () => ENDURANCE.maximum,
   regenerationRate: (_context, vigor) => enduranceRegenerationRate(vigor)
 };

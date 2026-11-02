@@ -1,11 +1,13 @@
-import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 /**
  * Composes Core Guardian weapon, profession, and slot-skill catalogs.
  * Synthetic actions live in `actions.ts`; runtime behavior lives under `mechanics/`.
  */
+import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import { GUARDIAN_CORE_EXTRA_SKILLS } from '#gw2/professions/guardian/core/skills/actions.js';
 import { GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/guardian/core/skills/profession-skills.js';
 import { GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/guardian/core/skills/slot-skills.js';
+import { GUARDIAN_CORE_TRAIT_SKILLS } from '#gw2/professions/guardian/core/skills/trait-skills.js';
 import { GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS } from '#gw2/professions/guardian/core/skills/weapons/axe.js';
 import { GUARDIAN_WEAPONS_FOCUS_SKILL_MECHANICS } from '#gw2/professions/guardian/core/skills/weapons/focus.js';
 import { GUARDIAN_WEAPONS_GREATSWORD_SKILL_MECHANICS } from '#gw2/professions/guardian/core/skills/weapons/greatsword.js';
@@ -20,7 +22,7 @@ import { GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/guardia
 import { GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/guardian/core/skills/weapons/sword.js';
 import { GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS } from '#gw2/professions/guardian/core/skills/weapons/torch.js';
 
-export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
+const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
   GUARDIAN_PROFESSION_SKILLS_SKILL_MECHANICS,
   GUARDIAN_SLOT_SKILLS_SKILL_MECHANICS,
   GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS,
@@ -38,4 +40,9 @@ export const GUARDIAN_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS
 );
 
-export { GUARDIAN_CORE_EXTRA_SKILLS } from '#gw2/professions/guardian/core/skills/actions.js';
+/** One complete module collection includes authored skills, generated attacks, and simulator actions. */
+export const GUARDIAN_CORE_SKILLS = Object.freeze([
+  ...materializeSkillDefinitions(GUARDIAN_CORE_SKILL_MECHANICS),
+  ...GUARDIAN_CORE_EXTRA_SKILLS,
+  ...GUARDIAN_CORE_TRAIT_SKILLS
+]);

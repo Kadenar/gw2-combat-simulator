@@ -15,7 +15,7 @@ export function scheduleMesmerTrackedHits(
 
   const tracking = skill.trackedHitDamage;
   const duration = tracking.duration || 0;
-  let recentHits = [...(professionCoreState(state).trackedSkillHits[skill.id] || [])];
+  let recentHits = [...(professionCoreState(state.profession).trackedSkillHits[skill.id] || [])];
   const required = Math.max(1, Math.trunc(tracking.hitsRequired || 1));
   for (const currentHitAt of [...playerHitTimes].sort((a, b) => a - b)) {
     // A prior hit expires at its exact age limit; retain its final live microsecond.
@@ -59,5 +59,5 @@ export function scheduleMesmerTrackedHits(
     }
   }
 
-  professionCoreState(state).trackedSkillHits[skill.id] = recentHits;
+  professionCoreState(state.profession).trackedSkillHits[skill.id] = recentHits;
 }

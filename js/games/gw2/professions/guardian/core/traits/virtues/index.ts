@@ -158,7 +158,7 @@ export const masterOfConsecrations = defineTrait({
 });
 
 /** Owns Power of the Virtuous tuning and behavior at its existing mechanic boundaries. */
-export const powerOfTheVirtuous = defineTrait({
+export const powerOfTheVirtuous = defineTrait<GuardianSkill>({
   id: GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS,
   balance: {
     attributeConversion: 0.07,

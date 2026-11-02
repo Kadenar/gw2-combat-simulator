@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { thiefCatalog } from '#gw2/professions/thief/catalog.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -12,6 +13,7 @@ import type { ThiefArtifactKind, ThiefSkill } from '#gw2/professions/thief/types
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+type NotKey<T, K extends PropertyKey> = K extends keyof T ? false : true;
 
 const antiquary = thiefProfession.runtimeFor({ specialization: 'Antiquary' });
 const specter = thiefProfession.resolveProfession({ specialization: 'Specter' });
@@ -29,32 +31,31 @@ export type ThiefSkillFlowAssertions = [
   Assert<Equal<Parameters<CoreAvailability>[1], ThiefSkill>>,
   Assert<Equal<Parameters<AntiquaryCastStart>[1]['skill'], ThiefSkill>>,
   Assert<Equal<Parameters<SpecterCastStart>[1]['skill'], ThiefSkill>>,
-  Assert<Equal<Skill['initiativeCost'], unknown>>,
-  Assert<Equal<ThiefSkill['dragonSlash'], unknown>>
+  Assert<NotKey<Skill, 'initiativeRefund'>>,
+  Assert<NotKey<ThiefSkill, 'dragonSlash'>>
 ];
 
 // The shared Thief runtime alias and accepted casts expose numeric costs and profession flags without assertions.
 export function thiefHookSkillReads(runtime: ThiefRuntime, cast: Parameters<AntiquaryCastStart>[1]): void {
-  const cost: number | undefined = cast.skill.initiativeCost;
+  const cost: number | undefined = cast.skill.initiativeRefund;
   const artifact: ThiefArtifactKind | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.artifactKind;
   const shroud: boolean | undefined = runtime.helpers.skillsById.get(cast.skill.id)?.shadowShroudSkill;
   const listed: boolean | undefined = runtime.helpers.skills[0]?.stealthAttack;
-  // @ts-expect-error Initiative costs retain their numeric type.
-  const invalid: string = cast.skill.initiativeCost;
+  // @ts-expect-error Initiative tuning retains its numeric type.
+  const invalid: string = cast.skill.initiativeRefund;
   void [cost, artifact, shroud, listed, invalid];
 }
 
 const invalidDefinitions: Record<string, SkillDefinition<ThiefSkill>> = {
   1: {
     name: 'Fixture',
-    description: 'Fixture skill.',
     icon: 'fixture.png',
     // @ts-expect-error Known Thief fields reject the wrong authored value type.
-    initiativeCost: 'six'
+    initiativeRefund: 'six'
   }
 };
 createNativeModuleData<ThiefSkill>({
   id: 'Core',
   traitLines: TRAIT_LINES,
-  skillMechanics: invalidDefinitions
+  skills: materializeSkillDefinitions(invalidDefinitions)
 });

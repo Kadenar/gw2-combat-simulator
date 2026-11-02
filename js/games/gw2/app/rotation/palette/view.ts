@@ -73,6 +73,7 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
   // Delayed wiki cards let rapid palette clicks and drags finish without an overlay appearing under the pointer.
   return `<div class="${classes}" data-skill="${esc(view.name)}"
     ${skillId ? `data-skill-id="${esc(skillId)}"` : ''}
+    ${view.displaySkillId != null ? `data-display-skill-id="${esc(view.displaySkillId)}"` : ''}
     ${hotkeyAction ? `data-hotkey-action="${esc(hotkeyAction)}"` : ''}
     ${view.skill && view.tooltip ? `${skillTooltipAttributes(view.skill, view.tooltip, { details: view.castDetails, detailsTitle: 'Cast details', notice: view.notice })} data-wiki-delay="700" tabindex="0"` : `title="${esc(view.title || view.name)}"`} draggable="${draggable ? 'true' : 'false'}"
     ${ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''}

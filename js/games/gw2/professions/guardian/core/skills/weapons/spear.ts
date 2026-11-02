@@ -193,10 +193,9 @@ function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<G
     runtime.schedule(GUARDIAN_SPEAR_EXPIRY, expiresAt, { symbol, expiresAt }, undefined, -220);
 }
 
-export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<GuardianSkill>>> = {
   [ID.DAYBREAKING_SLASH]: {
     name: 'Daybreaking Slash',
-    description: 'Swing your spear, sending out a wave of light in front of you that damages enemies and heals allies.',
     icon: 'https://render.guildwars2.com/file/9CE5430CF8490EAC2512AAC1C8362DD24A65D428/3379124.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -218,8 +217,6 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.HELIO_RUSH]: {
     name: 'Helio Rush',
-    description:
-      'Charge forward with your spear, striking enemies and healing allies you pass through. Upon striking an enemy, your next spear attack is illuminated.\n \nIlluminated. Allies you pass through are healed for more and gain boons. Enemies you strike take bonus damage and are inflicted with conditions.\n\n  Allies at full health are not affected by this skill. ',
     icon: 'https://render.guildwars2.com/file/E1207948233A0CAC25B25F4B1240773719CC6838/3379125.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -257,8 +254,6 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.GLEAMING_DISC]: {
     name: 'Gleaming Disc',
-    description:
-      'Spin around, striking enemies around you. After a short delay, a shock wave of light bursts forth from your position, damaging enemies and granting might to allies. Your next spear attack is illuminated when striking an enemy with the initial spin. \n\nIlluminated. The shock wave additionally deals more damage and inflicts conditions on enemies and grants boons to allies.',
     icon: 'https://render.guildwars2.com/file/0A7A6902DC73F1C8A50907DAAE080A3CA40BC44F/3379127.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -299,8 +294,6 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SOLAR_STORM]: {
     name: 'Solar Storm',
-    description:
-      'Throw a spear above the targeted point. The spear explodes, raining shards that damage enemies and remove conditions from allies. Your next spear attack is illuminated if you are within range of your own shards. \n\nIlluminated. More shards are produced. Removing conditions from allies also heals them. \nDamage is reduced per target each time they are struck by this skill.',
     icon: 'https://render.guildwars2.com/file/D026ABCF610D6E9615A2F7BDB8716EAFB99AAAFB/3379128.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -373,8 +366,6 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SYMBOL_OF_LUMINANCE]: {
     name: 'Symbol of Luminance',
-    description:
-      'Places the Symbol of Luminance on the ground, knocking back enemies on initial cast. While active, the symbol grants boons to allies and inflicts conditions on enemies. While standing within the symbol, your spear attacks are automatically illuminated and do not consume the illuminated effect when used. Resistance granted by this skill can only be granted once per interval.\n\nIlluminated. While the symbol is active, all other spear skills are illuminated, even if you move out of range of the symbol.',
     icon: 'https://render.guildwars2.com/file/0E1E2D69CBC3C0E36217506C6CCB710138035373/3379129.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -439,7 +430,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   }
-});
+};
 
 const guardianSpearActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.spear-illumination'(runtime, context) {

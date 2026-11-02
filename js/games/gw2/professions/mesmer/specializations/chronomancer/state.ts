@@ -1,5 +1,8 @@
 import type { RechargeCheckpoint } from '#gw2/platform/execution/cooldown-contracts.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -29,8 +32,8 @@ function createChronomancerState(): MesmerChronomancerState {
 export const chronomancerState = defineProfessionSpecializationState('Chronomancer', createChronomancerState);
 
 /** Derive scalar observations directly; the private continuum checkpoint never needs copying. */
-export function projectChronomancerPlanningState(input: Gw2PlanningStateInput) {
-  const state = chronomancerState.from(input);
+export function projectChronomancerPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = chronomancerState.from(input.profession);
   const at = canonicalTime(input.time);
   return {
     [STATE.CONTINUUM_ACTIVE]: Boolean(state.continuum),

@@ -20,6 +20,7 @@ import { draconicEcho } from '#gw2/professions/revenant/specializations/herald/t
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 
@@ -35,7 +36,6 @@ const base = {
   target: { armor: 2597, conditions: {} }
 };
 const simulate = createObservedProfessionSimulator(revenantProfession, base);
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Minimal resource histories include delayed applications, pooled duration, and timestamped extension.
 test('Endurance accrual and Dodge readiness integrate delayed, pooled, and extended Vigor windows', () => {

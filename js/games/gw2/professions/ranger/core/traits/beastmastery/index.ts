@@ -146,7 +146,7 @@ export const honedAxes = defineTrait({
 });
 
 /** Owns Pack Alpha's live tuning and trait behavior. */
-export const packAlpha = defineTrait({
+export const packAlpha = defineTrait<RangerSkill>({
   id: TRAIT.PACK_ALPHA,
   balance: {
     attributeBonuses: { power: 150, conditionDamage: 150, precision: 150, toughness: 150, vitality: 150 },
@@ -318,7 +318,7 @@ function applyRangerCommandTraits(
   skill: Pick<RangerSkill, 'name'>,
   at: number
 ): void {
-  if (!professionCoreState(context).pet) return;
+  if (!professionCoreState(context.profession).pet) return;
 
   for (const kind of GW2_STANDARD_BOONS) {
     // The shared live query owns boon pools; this trait owns their unchanged-duration copy to the active pet.
@@ -358,7 +358,7 @@ function applyRangerCommandTraits(
 
 // A qualifying beast hit invokes the skill's companion buff with the current pet as its recipient.
 function triggerGoForTheThroat(context: RangerRuntime, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const skill = skillForEvent(context.helpers, event);
   const beastSkillId = rangerPetForState(state).skillIds.at(-1);
 

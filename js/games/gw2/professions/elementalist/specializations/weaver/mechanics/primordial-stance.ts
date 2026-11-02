@@ -54,8 +54,8 @@ function emitPrimordialStancePulse(
   },
   emissionCast?: EffectDelivery['cast']
 ): void {
-  const core = professionCoreState(context);
-  const state = weaverState.from(context);
+  const core = professionCoreState(context.profession);
+  const state = weaverState.from(context.profession);
   const sourceId = captured.sourceId;
   const attunements = state.secondaryAttunement
     ? [core.primaryAttunement, state.secondaryAttunement]
@@ -72,7 +72,7 @@ function emitPrimordialStancePulse(
           source: 'elementalist',
           sourceId,
           actorType: ACTOR.PLAYER,
-          // Retain the casting variant for action counts while all variants share one displayed row.
+          // Every pulse retains its activation and the single stance identity across attunement changes.
           skillName: captured.skillName,
           damageBreakdownName: 'Primordial Stance',
           skillId: sourceId,

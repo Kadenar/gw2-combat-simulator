@@ -25,7 +25,7 @@ export function necromancerSoulShardMaximum(context: unknown): number {
 export function necromancerActiveMinionCompanionIds(
   context: Pick<NecromancerRuntime, 'profession'>
 ): readonly string[] {
-  const core = professionCoreState(context);
+  const core = professionCoreState(context.profession);
   const companionIds: string[] = [];
   for (const [key, count] of Object.entries(core.activeMinions)) {
     for (let index = 0; index < (count || 0); index += 1) {

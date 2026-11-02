@@ -1,23 +1,20 @@
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { SPECTER_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializations/specter/skills/guild-attacks.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Shadow Shroud entry and exit are state-selected variants of one UI tile.
 const SHADOW_SHROUD_PALETTE_TILE = 'specter-shadow-shroud';
 
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSkill>>> = {
   [ID.SIPHON]: {
     name: 'Siphon',
-    description: 'Steal',
     icon: 'https://render.guildwars2.com/file/C6D7F7A40A041D52D15E595D3DA59F24B8B1A6E9/2503748.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Profession',
     slot: 'Profession_1',
 
@@ -27,7 +24,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
     // Siphon adds Lead Attacks and Sleight of Hand reductions instead of multiplying them.
     stealRechargeMode: 'additive',
     cooldown: 18,
-    initiativeCost: 0,
     castTimeMs: 520,
     // Siphon's committed effects survive cancellation of the remaining animation.
     interruptCommitMs: 440,
@@ -46,14 +42,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.ENTER_SHADOW_SHROUD]: {
     name: 'Enter Shadow Shroud',
-    description:
-      '<span style="color:blue">Ally target:</span> Enter shadow shroud and tether a targeted or previously siphoned ally, granting them barrier. If no target is selected, one will be chosen randomly in the indicated radius.',
     icon: 'https://render.guildwars2.com/file/0A93EB27CFAE0291F0D009E15B4545DD7D054A28/2503737.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Profession',
     slot: 'Profession_2',
     inputCategory: 'bar-swap',
@@ -62,7 +51,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
     cooldown: 8,
     paletteTileId: SHADOW_SHROUD_PALETTE_TILE,
     paletteTileOrder: 1,
-    initiativeCost: 0,
     castTimeMs: 0,
     effects: [],
     // The skill owns this transition at successful commitment.
@@ -94,21 +82,13 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.HAUNT_SHOT]: {
     name: 'Haunt Shot',
-    description:
-      'Unleash darkness in a targeted area, inflicting conditions on foes while healing and granting might to nearby allies and your tethered ally for each target struck.',
     icon: 'https://render.guildwars2.com/file/409264A2535956BCFDD9CA608008A79FB027F06E/2503741.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_1',
 
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
-    initiativeCost: 0,
     shadowShroudSkill: true,
     castTimeMs: 640,
     interruptCommitMs: 560,
@@ -142,19 +122,11 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.GRASPING_SHADOWS]: {
     name: 'Grasping Shadows',
-    description:
-      'Unleash darkness in a targeted area, inflicting conditions on foes. Cleanse conditions from yourself while healing and cleansing your tethered ally, based on targets struck.',
     icon: 'https://render.guildwars2.com/file/069BBE2DDF56A0C0565D475E1715157A514FABD3/2503740.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_2',
 
     cooldown: 3,
-    initiativeCost: 0,
     shadowShroudSkill: true,
     castTimeMs: 240,
     // The ground effect is already placed when a following shroud skill cancels the remaining animation.
@@ -195,19 +167,11 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.DAWNS_REPOSE]: {
     name: "Dawn's Repose",
-    description:
-      'Leap to the targeted area, inflicting fear on foes at your ending point. Grant barrier to your tethered ally and nearby allies based on targets struck. Heal your tethered ally based on targets struck.',
     icon: 'https://render.guildwars2.com/file/060A9A76FC69FB2B25A462C84F475A2580501E0C/2503734.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_3',
 
     cooldown: 8,
-    initiativeCost: 0,
     shadowShroudSkill: true,
     // The leap hits at 800 ms and finishes its activation at 960 ms in the supplied log.
     castTimeMs: 960,
@@ -263,20 +227,12 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.WELL_OF_SILENCE]: {
     name: 'Well of Silence',
-    description:
-      'Well. Shadowstep to the target area and lay down a well that removes conditions from allies. Gain shadow force for each condition removed. The first strike of the well dazes foes.',
     icon: 'https://render.guildwars2.com/file/6B22FFB6CE4764F31FF7B7300E5C694E296CC1AD/2503754.png',
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Well',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     movementSkill: true,
     cooldown: 25,
-    initiativeCost: 0,
     castTimeMs: 360,
     effects: [
       {
@@ -288,19 +244,11 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.ETERNAL_NIGHT]: {
     name: 'Eternal Night',
-    description:
-      'Strike at foes in front of you with your shadow magic, inflicting conditions. Nearby allies and your tethered ally gain health for each enemy struck.',
     icon: 'https://render.guildwars2.com/file/D6CB992E12F0BCB2984C3FEA066FA1B7A077752A/2503738.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_4',
 
     cooldown: 8,
-    initiativeCost: 0,
     shadowShroudSkill: true,
     // The supplied log retains the 360/680 ms impacts within a 760 ms activation.
     castTimeMs: 760,
@@ -334,13 +282,7 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.EXIT_SHADOW_SHROUD]: {
     name: 'Exit Shadow Shroud',
-    description: 'Exit your shadow shroud, breaking the tether between you and your ally.',
     icon: 'https://render.guildwars2.com/file/44F8D2065727B25C7DA9D5E52065D1A86CC6330F/2503739.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Profession',
     slot: 'Profession_2',
     inputCategory: 'bar-swap',
@@ -349,7 +291,6 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
     cooldown: 0,
     paletteTileId: SHADOW_SHROUD_PALETTE_TILE,
     paletteTileOrder: 2,
-    initiativeCost: 0,
     castTimeMs: 0,
     effects: [],
     // The skill owns this transition at successful commitment.
@@ -357,19 +298,11 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.SHADOWFALL]: {
     name: 'Shadowfall',
-    description:
-      'Well. Shadowstep to your target location and drop a well that continuously pulls foes to its center, increasing intensity with each hit.',
     icon: 'https://render.guildwars2.com/file/0F27940ECADC0A47D809E5EBCBD1E80607417403/2503745.png',
     type: 'Elite',
     slot: 'Elite',
     skillFamily: 'Well',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     cooldown: 75,
-    initiativeCost: 0,
     castTimeMs: 360,
     effects: [
       {
@@ -394,20 +327,13 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.WELL_OF_SORROW]: {
     name: 'Well of Sorrow',
-    description: 'Well. Shadowstep to your target location and create a well that inflicts foes with conditions.',
     icon: 'https://render.guildwars2.com/file/494191F4140194C74A1AC0CCF137710290364CA7/2503755.png',
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Well',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     movementSkill: true,
     shadowstepSkill: true,
     cooldown: 20,
-    initiativeCost: 0,
     castTimeMs: 600,
     // Once placed, the well keeps pulsing through cancellation of its remaining animation.
     interruptCommitMs: 520,
@@ -434,19 +360,12 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.WELL_OF_GLOOM]: {
     name: 'Well of Gloom',
-    description: 'Well. Shadowstep to your target location and drop a well that cripples foes and heals allies.',
     icon: 'https://render.guildwars2.com/file/BE0101D159F09B45F1CA58F5E4E7562E05B40E37/2503753.png',
     type: 'Heal',
     slot: 'Heal',
     skillFamily: 'Well',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     movementSkill: true,
     cooldown: 20,
-    initiativeCost: 0,
     castTimeMs: 680,
     effects: [
       {
@@ -460,20 +379,13 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.WELL_OF_TEARS]: {
     name: 'Well of Tears',
-    description: 'Well. Shadowstep to the target location and drop a well that repeatedly strikes foes.',
     icon: 'https://render.guildwars2.com/file/347CEB77023C76989211D59EBFC6970EEA7354E1/2503756.png',
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Well',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     movementSkill: true,
     shadowstepSkill: true,
     cooldown: 20,
-    initiativeCost: 0,
     castTimeMs: 600,
     effects: [
       {
@@ -488,20 +400,13 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.WELL_OF_BOUNTY]: {
     name: 'Well of Bounty',
-    description: 'Well. Shadowstep to a targeted point and create a well that grants boons to allies.',
     icon: 'https://render.guildwars2.com/file/CF17E53430D9055B599FD751994370106143077D/2503752.png',
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Well',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     movementSkill: true,
     shadowstepSkill: true,
     cooldown: 20,
-    initiativeCost: 0,
     castTimeMs: 400,
     effects: [
       {
@@ -558,19 +463,11 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.MIND_SHOCK]: {
     name: 'Mind Shock',
-    description:
-      'After a short channel, unleash a blast of compressed magic that stuns enemies. Nearby allies and your tethered ally gain stability. Heal your tethered ally based on each enemy you hit.',
     icon: 'https://render.guildwars2.com/file/A5A90244CD1A151F384EE6F64BF93622E50FBE19/2503743.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_5',
 
     cooldown: 16,
-    initiativeCost: 0,
     shadowShroudSkill: true,
     castTimeMs: 360,
     comboFinishers: [
@@ -612,4 +509,10 @@ export const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
       }
     ]
   }
-});
+};
+
+/** One complete module collection includes authored skills, generated attacks, and simulator actions. */
+export const SPECTER_SKILLS = Object.freeze([
+  ...materializeSkillDefinitions(SPECTER_SKILL_MECHANICS),
+  ...SPECTER_GUILD_ATTACK_SKILLS
+]);

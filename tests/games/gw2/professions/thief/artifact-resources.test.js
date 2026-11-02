@@ -22,11 +22,11 @@ test('Chak Shield refunds three paid weapon uses and preserves charges for free 
   };
   const state = runtime.profession.specialization.state;
   assert.equal(state.chakInitiativeRefunds[0].charges, 3);
-  spendAntiquaryInitiative(runtime, { skill: { type: 'Weapon', initiativeCost: 0 } });
-  spendAntiquaryInitiative(runtime, { skill: { type: 'Profession', initiativeCost: 2 } });
+  spendAntiquaryInitiative(runtime, { skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 0 } } });
+  spendAntiquaryInitiative(runtime, { skill: { type: 'Profession', cost: { resource: 'initiative', amount: 2 } } });
   assert.equal(state.chakInitiativeRefunds[0].charges, 3);
   for (let use = 0; use < 4; use++) {
-    spendAntiquaryInitiative(runtime, { skill: { type: 'Weapon', initiativeCost: 4 } });
+    spendAntiquaryInitiative(runtime, { skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 4 } } });
   }
 
   assert.deepEqual(refunds, [
@@ -79,6 +79,6 @@ test('Chak Shield caps stacked refunds at four and expired grants cannot fund we
     4
   );
   for (const grant of state.chakInitiativeRefunds) grant.expiresAt = runtime.time;
-  spendAntiquaryInitiative(runtime, { skill: { type: 'Weapon', initiativeCost: 4 } });
+  spendAntiquaryInitiative(runtime, { skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 4 } } });
   assert.deepEqual(refunds, []);
 });

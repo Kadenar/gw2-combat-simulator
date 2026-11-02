@@ -79,7 +79,7 @@ test('Grenadier triggers the barrage skill effects and registers their effect re
                   on: 'damage.resolved',
                   actor: 'effect',
                   packets: 'each',
-                  do: { type: 'emitProfile', profileId: ENGINEER.OPTIMIZED_ACTIVATION }
+                  do: [{ type: 'emitProfile', profileId: ENGINEER.OPTIMIZED_ACTIVATION }]
                 }
               ]
             }

@@ -13,7 +13,7 @@ export function engineerKitAvailability(
   context: MechanicQueriesOf<EngineerRuntime>,
   skill: EngineerSkill
 ): AvailabilityResult {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
 
   if (skill.kitId) {
     if (state.activeKit !== skill.kitId) {

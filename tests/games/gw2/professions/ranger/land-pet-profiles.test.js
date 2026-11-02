@@ -8,9 +8,9 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const petActions = (result) =>
   result.events.filter((event) => event.type === 'action' && event.source === 'ranger-pet');
 

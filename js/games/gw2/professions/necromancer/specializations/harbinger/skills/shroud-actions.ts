@@ -19,7 +19,7 @@ const MOVEMENT = 'harbinger.movement-impact';
 /** Movement launch carries the post-spend snapshot; its authored control receives the trait replacement. */
 function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const empowered = spendBlight(runtime, cast);
-  const blight = harbingerState.from(runtime).blightExpiries.length;
+  const blight = harbingerState.from(runtime.profession).blightExpiries.length;
   const effects = empowered ? requireSkillAction(cast.skill, 'empowered').effects : (cast.skill.effects ?? []);
   runtime.effects.emit({
     kind: 'profile',
@@ -48,7 +48,7 @@ const harbingerShroudActions = {
     );
 
     // A committed movement cast keeps its delayed payload and Blight spend after interruption.
-    if (!cast.cancelled || at <= cast.effectiveEnd) runtime.scheduleForCast(MOVEMENT, at, cast);
+    if (!cast.cancelledBeforeCommit || at <= cast.effectiveEnd) runtime.scheduleForCast(MOVEMENT, at, cast);
   }
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['sideEffectHandlers']>;
 

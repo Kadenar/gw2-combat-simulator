@@ -33,7 +33,7 @@ export const guardianHonorTooltips = {
   ),
   [TRAIT.PURE_OF_VOICE]: outsideScopeTooltip,
   [TRAIT.WRIT_OF_PERSISTENCE]: traitTooltip(
-    'Symbols last longer: their fields are extended, and each symbol keeps pulsing its own payload on its own cadence.',
+    'Symbols last longer and continue applying their effects at the usual interval.',
     [['durationExtension', 'Symbol duration increase', tooltipSeconds]]
   ),
   [TRAIT.FORCE_OF_WILL]: traitTooltip('Gain vitality.', [['attributeBonuses.vitality', 'Vitality']])

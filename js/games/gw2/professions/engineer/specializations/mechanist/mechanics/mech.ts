@@ -7,7 +7,7 @@ import {
   prepareGw2BuffCompanionCandidates
 } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 import { weaponStrengthMidpoint, weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import {
@@ -33,8 +33,6 @@ import type {
   EngineerSkill
 } from '#gw2/professions/engineer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-
-export { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
 
 /** Initialization without deferred combat, or explicit combat entry, admits trait-owned background work. */
 export const mechanistCombatReady = defineTriggerPoint<Record<string, never>>('engineer.mechanist-combat-ready', [
@@ -85,10 +83,10 @@ function mechImpactEffects(
     return {
       ...effect,
       ...(effect.atMs == null ? {} : { atMs: offsets[effect.atMs] ?? effect.atMs }),
-      ...(Array.isArray(effect.ticks)
-        ? { ticks: effect.ticks.map((tick) => ({ ...tick, atMs: offsets[tick.atMs] ?? tick.atMs })) }
+      ...(effectTicks(effect)
+        ? { ticks: effectTicks(effect)!.map((tick) => ({ ...tick, atMs: offsets[tick.atMs] ?? tick.atMs })) }
         : {})
-    };
+    } as SkillEffect;
   });
 }
 
@@ -298,7 +296,7 @@ export const mechanistCastCompleted = defineTriggerPoint<MechanistCastCompletion
 
 /** The Mechanist lifecycle reserves post-cast mech recovery before notifying its trait listeners. */
 function completeEngineerMechCast(context: EngineerRuntime, skill: EngineerSkill): void {
-  const state = mechanistState.from(context);
+  const state = mechanistState.from(context.profession);
   const at = context.time;
 
   if (isEngineerMechCommand(skill) && (skill.castTimeMs || 0) > 0) {
@@ -314,7 +312,7 @@ function completeEngineerMechCast(context: EngineerRuntime, skill: EngineerSkill
 
 /** Starts one autonomous attack loop when the Mechanist's combat boundary admits summon actions. */
 function initializeEngineerMech(context: EngineerRuntime): void {
-  const state = mechanistState.from(context);
+  const state = mechanistState.from(context.profession);
 
   if (!autonomousActionsAllowed(context) || state.mech.attackLoopStarted) return;
 
@@ -329,7 +327,7 @@ function stepMechAttack(
   at: number,
   payload: MechAttackPayload
 ): { at: number; state: MechAttackPayload } {
-  const state = mechanistState.from(context);
+  const state = mechanistState.from(context.profession);
   // Commands restart either chain from its first attack, including commands completed between autonomous wakes.
   const phase = state.mech.busyUntil > payload.previousCommandEnd ? 0 : payload.phase;
   const cannon = jadeCannonsAttack(context.config, phase);
@@ -355,7 +353,7 @@ function stepMechAttack(
 
 /** Reserves the mech lane and emits Overclock Signet's timed Jade Buster Cannon burst. */
 function activateOverclockSignet(context: EngineerRuntime, skill: EngineerSkill): void {
-  const state = mechanistState.from(context);
+  const state = mechanistState.from(context.profession);
 
   const at = context.time;
   const rate = mechAttackRate(context, at);
@@ -409,7 +407,7 @@ export const engineerMechLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerS
     return prepareEngineerMechEvent(runtime, prepareGw2BuffCompanionCandidates(event, ['engineer.mech']));
   },
   onCastStart(runtime, cast) {
-    const mech = mechanistState.from(runtime).mech;
+    const mech = mechanistState.from(runtime.profession).mech;
 
     if (isEngineerMechCommand(cast.skill) && cast.fullEnd > cast.start)
       mech.busyUntil = Math.max(mech.busyUntil, cast.effectiveEnd + MECHANIST_ATTACK_TIMING.commandRecovery);
@@ -428,7 +426,7 @@ export const engineerMechLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerS
   backgroundTasks: ['engineer.mech-attack', 'engineer.mech-impact'],
   tasks: {
     'engineer.mech-impact'(runtime, data) {
-      const mech = mechanistState.from(runtime).mech;
+      const mech = mechanistState.from(runtime.profession).mech;
       const impact = data as MechImpactPayload;
 
       // A command that took the lane after windup began cancels this pending basic attack.
@@ -437,7 +435,7 @@ export const engineerMechLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerS
       emitMechAttack(runtime, impact.skillId, runtime.time);
     },
     'engineer.mech-attack'(runtime, data) {
-      const mech = mechanistState.from(runtime).mech;
+      const mech = mechanistState.from(runtime.profession).mech;
 
       if (!autonomousActionsAllowed(runtime)) return;
 

@@ -3,6 +3,7 @@ import {
   outsideScopeTooltip,
   tooltipFactorChange,
   tooltipPercent,
+  tooltipPercentValue,
   tooltipSeconds,
   traitSkillTooltip,
   traitTooltip,
@@ -25,9 +26,9 @@ export const rangerMarksmanshipTooltips = {
     [
       ['internalCooldown', 'Internal cooldown', tooltipSeconds],
       ['maximumStacks', 'Might stacks in the lowest health tier'],
-      ['lowerThreshold', 'Lowest target-health threshold', tooltipPercent],
-      ['threshold', 'Middle target-health threshold', tooltipPercent],
-      ['upperThreshold', 'Highest target-health threshold', tooltipPercent]
+      ['lowerThreshold', 'Lowest target-health threshold', tooltipPercentValue],
+      ['threshold', 'Middle target-health threshold', tooltipPercentValue],
+      ['upperThreshold', 'Highest target-health threshold', tooltipPercentValue]
     ],
     'base application; stacks depend on target health'
   ),

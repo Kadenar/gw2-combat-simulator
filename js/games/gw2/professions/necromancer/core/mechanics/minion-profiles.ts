@@ -1,5 +1,10 @@
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { effectNumber, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
+import {
+  effectNumber,
+  requireSkillFromContext,
+  skillNumber,
+  type SkillCatalogSource
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_MINION_SUMMON_IDS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
@@ -38,7 +43,7 @@ export interface MinionDefinition {
 }
 
 interface MinionCommandDefinition {
-  readonly strike?: SkillEffect;
+  readonly strike?: StrikeEffect;
   readonly coefficient?: number;
   readonly conditions?: readonly (readonly (string | number)[])[];
   readonly control?: string;
@@ -48,22 +53,25 @@ interface MinionCommandDefinition {
   readonly attacks?: readonly MinionAttack[];
 }
 
-function minionAttackFromEffect(profile: Skill, effect: SkillEffect): MinionAttack {
+function minionAttackFromEffect(profile: Skill, effect: StrikeEffect): MinionAttack {
   return {
     // Packet keys may differ while their summon attack attribution remains shared.
     name: effect.skillName || effect.name || profile.name,
     coefficient: effectNumber(profile, effect, 'coefficient'),
     offset: (effect.atMs || 0) / 1000,
-    castTimeMs: Number(effect.castTimeMs || 0),
+    castTimeMs: effect.castTimeMs || 0,
     skillId: effect.sourceId,
     icon: effect.icon == null ? undefined : effect.icon,
-    damagePerCoefficient: effect.damagePerCoefficient == null ? undefined : Number(effect.damagePerCoefficient),
+    damagePerCoefficient: effect.damagePerCoefficient == null ? undefined : effect.damagePerCoefficient,
     comboFinishers: effect.comboFinishers
   };
 }
 
 /** Compiles the selected summon and attack skills into the attack model used by its lifetime owner. */
-export function minionDefinitionForSkill(context: unknown, skillId: SkillId): MinionDefinition | undefined {
+export function minionDefinitionForSkill(
+  context: SkillCatalogSource<NecromancerSkill>,
+  skillId: SkillId
+): MinionDefinition | undefined {
   if (!NECROMANCER_MINION_SUMMON_IDS.some((id) => id === skillId)) return undefined;
 
   const summon = requireSkillFromContext(context, skillId);
@@ -71,15 +79,15 @@ export function minionDefinitionForSkill(context: unknown, skillId: SkillId): Mi
   if (!summon.summonAttackId) return undefined;
 
   // Both explicit and configured summons compile selected canonical skill owners.
-  const profile = requireSkillFromContext(context, summon.summonAttackId as SkillId);
+  const profile = requireSkillFromContext(context, summon.summonAttackId);
   // Attack lists are iterated, so removing any packet leaves the surviving ones in their declared roles.
-  const strikes = (profile.effects || []).filter((effect) => effect.type === 'strike');
+  const strikes = (profile.effects || []).filter((effect): effect is StrikeEffect => effect.type === 'strike');
   const ordinary = strikes.filter((effect) => effect.packetLabel !== 'alternate');
   const alternate = strikes.filter((effect) => effect.packetLabel === 'alternate');
   const alternateCondition = (profile.effects || []).find(
-    (effect) => effect.type === 'condition' && effect.packetLabel === 'alternate'
+    (effect): effect is ConditionEffect => effect.type === 'condition' && effect.packetLabel === 'alternate'
   );
-  const toAttack = (effect: SkillEffect): MinionAttack => ({
+  const toAttack = (effect: StrikeEffect): MinionAttack => ({
     ...minionAttackFromEffect(profile, effect),
     // Alternate conditions belong only to their alternate attack cycle.
     ...(alternateCondition && effect.packetLabel === 'alternate'
@@ -93,18 +101,17 @@ export function minionDefinitionForSkill(context: unknown, skillId: SkillId): Mi
       : {})
   });
   return {
-    key: String(profile.minionKey || ''),
+    key: profile.minionKey || '',
     count: skillNumber(summon, 'minionCount'),
     interval: skillNumber(profile, 'pulseInterval'),
     openingAttackWindupMs: skillNumber(profile, 'openingAttackWindupMs'),
-    commandId: profile.commandId as SkillId | undefined,
+    commandId: profile.commandId,
     weaponStrength: skillNumber(profile, 'weaponStrength'),
     basePower: skillNumber(profile, 'basePower'),
     damagePerCoefficient: skillNumber(profile, 'damagePerCoefficient'),
     criticalChance: skillNumber(profile, 'criticalChance'),
     criticalDamage: skillNumber(profile, 'criticalDamage'),
-    commandRecoveryDelay:
-      profile.commandRecoveryDelayMs == null ? undefined : Number(profile.commandRecoveryDelayMs) / 1000,
+    commandRecoveryDelay: profile.commandRecoveryDelayMs == null ? undefined : profile.commandRecoveryDelayMs / 1000,
     attacks: ordinary.map(toAttack),
     // Cadence applies only while alternate attacks survive.
     alternateEvery: alternate.length ? skillNumber(profile, 'alternateEvery') : 0,
@@ -112,7 +119,10 @@ export function minionDefinitionForSkill(context: unknown, skillId: SkillId): Mi
   };
 }
 
-export function minionDefinitionFor(context: unknown, key: string): MinionDefinition | undefined {
+export function minionDefinitionFor(
+  context: SkillCatalogSource<NecromancerSkill>,
+  key: string
+): MinionDefinition | undefined {
   for (const skillId of NECROMANCER_MINION_SUMMON_IDS) {
     const definition = minionDefinitionForSkill(context, skillId);
 
@@ -125,8 +135,10 @@ export function minionDefinitionFor(context: unknown, key: string): MinionDefini
 /** Compiles a command skill's declarative packets into its command payload. */
 export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefinition {
   const effects = skill.effects || [];
-  const strike = effects.find((effect) => effect.type === 'strike' && !Array.isArray(effect.ticks));
-  const tickStrike = effects.find((effect) => effect.type === 'strike' && Array.isArray(effect.ticks));
+  const strike = effects.find((effect): effect is StrikeEffect => effect.type === 'strike' && !effect.ticks);
+  const tickStrike = effects.find(
+    (effect): effect is StrikeEffect => effect.type === 'strike' && Boolean(effect.ticks)
+  );
   const ticks = Array.isArray(tickStrike?.ticks) ? tickStrike.ticks : [];
   const conditions = effects
     .filter((effect) => effect.type === 'condition')
@@ -145,7 +157,7 @@ export function commandDefinitionFor(skill: NecromancerSkill): MinionCommandDefi
   const controlEffect = effects.find((effect) => effect.type === 'control');
   return {
     strike,
-    coefficient: Number(strike?.coefficient || 0),
+    coefficient: strike?.coefficient || 0,
     conditions,
     control: controlEffect?.controlKind || attacks[0]?.controlKind || '',
     impactDelay: skill.impactDelay || 0,

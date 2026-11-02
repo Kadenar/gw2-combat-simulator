@@ -11,39 +11,17 @@
  *
  * Also exported as `captureSupportedBuildMetrics(professions?)` for reuse without
  * spawning the CLI. When run directly, positional args pick professions; with none
- * it captures all of DEFAULT_PROFESSIONS.
+ * it captures all registered professions in alphabetical order.
  *
  * Usage: node scripts/analysis/capture-supported-build-metrics.mjs [profession...]
  */
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
-
-import { loadBuildContext } from '#gw2/build-context/load.js';
 import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
-import { parseGameOption, resolveGameData } from '../lib/game-data.mjs';
+import { benchmarkProfessionIds, loadBenchmarkPresets, prepareBenchmarkPreset } from '../lib/benchmark-presets.mjs';
+import { parseGameOption } from '../lib/game-data.mjs';
 import { targetHealthBandDps } from './health-band-dps.mjs';
-
-const DEFAULT_PROFESSIONS = [
-  'elementalist',
-  'engineer',
-  'guardian',
-  'mesmer',
-  'necromancer',
-  'ranger',
-  'revenant',
-  'thief',
-  'warrior'
-];
-
-const repoRoot = path.resolve(import.meta.dirname, '../..');
-
-async function readJson(relativePath) {
-  return JSON.parse(await readFile(path.join(repoRoot, relativePath), 'utf8'));
-}
 
 function finalDamagingPacket(result) {
   const packets = result.resolvedEvents.flatMap((event) => {
@@ -63,94 +41,59 @@ function finalDamagingPacket(result) {
 
 /** Build independent patch state before recalculation so capture never mixes live attributes with preview effects. */
 export function simulateBenchmarkPreset(adapter, savedBuild, savedRotation, patchId = 'current') {
-  const build = adapter.toApplicationBuild({
-    ...structuredClone(savedBuild),
-    rotation: structuredClone(savedRotation.rotation ?? savedRotation)
-  });
-  const context = adapter.createBuildContext({
+  const {
     build,
-    transitionDelays: normalizeTransitionDelays(),
-    patch: adapter.profession.resolvePatch({ id: patchId })
-  });
-  const config = deterministicSimulationConfig(context.simulationConfig());
+    profession,
+    rotation,
+    config: preparedConfig
+  } = prepareBenchmarkPreset({ adapter, savedBuild, savedRotation }, patchId);
+  const config = deterministicSimulationConfig(preparedConfig);
   // Benchmarks need combat events and APM, but never consume chart histories or projected party-boon reports.
   return {
     build,
-    result: simulateGw2({ profession: context.profession, rotation: build.rotation, config, collectChartData: false })
+    result: simulateGw2({ profession, rotation, config, collectChartData: false })
   };
 }
 
-async function captureProfession(professionId, gameId, patchId) {
-  if (gameId !== 'gw2') throw new TypeError(`Game "${gameId}" has no benchmark simulator.`);
-
-  const data = resolveGameData(repoRoot, gameId);
-  const [manifest, adapter] = await Promise.all([
-    readJson(path.relative(repoRoot, path.join(data.builds, professionId, 'manifest.json'))),
-    loadBuildContext(professionId)
-  ]);
-
-  if (!adapter) throw new Error(`${professionId} has no build-context binding.`);
-
-  const metrics = [];
-
-  for (const section of manifest) {
-    for (const preset of section.presets) {
-      if (!preset.rotation) continue;
-
-      const [savedBuild, savedRotation] = await Promise.all([readJson(preset.build), readJson(preset.rotation)]);
-      const { build, result } = simulateBenchmarkPreset(adapter, savedBuild, savedRotation, patchId);
-      const finalPacket = finalDamagingPacket(result);
-
-      metrics.push({
-        id: `${professionId}|${section.section || ''}|${preset.label}`,
-        profession: professionId,
-        patchId,
-        section: section.section || '',
-        label: preset.label,
-        build: preset.build,
-        rotation: preset.rotation,
-        benchmarkDps: preset.benchmarkDps,
-        benchmarkApm: preset.benchmarkApm,
-        benchmarkDpsByHealth: preset.benchmarkDpsByHealth,
-        rotationEndTime: result.rotationEndTime,
-        observationEndTime: result.observationEndTime,
-        combatEndTime: result.combatEndTime,
-        dpsStartTime: result.dpsStartTime,
-        dpsWindow: result.dpsWindow,
-        deathTime: result.deathTime,
-        lastHitTime: result.lastHitTime,
-        dps: result.dps,
-        // Reuse the simulator's input accounting rather than estimating actions from saved rotation length.
-        ...(patchId === 'current' ? { apm: result.rotationApm.apm } : {}),
-        // Measure each band within the same simulation, including its live target-health modifiers.
-        dpsByHealth: targetHealthBandDps(result, build.targetHealth, build.targetStartingHealthPercent ?? 100),
-        totalDamage: result.totalDamage,
-        strikeDamage: result.strikeDamage,
-        conditionDamage: result.conditionDamage,
-        finalDamagingPacket: finalPacket,
-        // Metrics are a printed report, so diagnostics carry their occurrence time as text.
-        warnings: result.warnings.map(formatSimulationDiagnostic)
-      });
-    }
-  }
-
-  return metrics;
-}
-
 export async function captureSupportedBuildMetrics(
-  professions = DEFAULT_PROFESSIONS,
+  professions = [...benchmarkProfessionIds].sort(),
   { gameId = 'gw2', patchId = 'current' } = {}
 ) {
-  const unknown = professions.filter((profession) => !DEFAULT_PROFESSIONS.includes(profession));
-
-  if (unknown.length) {
-    throw new TypeError(`Unknown professions: ${unknown.join(', ')}.`);
-  }
-
   const metrics = [];
+  for await (const { identity, adapter, savedBuild, savedRotation } of loadBenchmarkPresets(professions, { gameId })) {
+    const { build, result } = simulateBenchmarkPreset(adapter, savedBuild, savedRotation, patchId);
+    const finalPacket = finalDamagingPacket(result);
 
-  for (const profession of professions) {
-    metrics.push(...(await captureProfession(profession, gameId, patchId)));
+    metrics.push({
+      id: identity.id,
+      profession: identity.profession,
+      patchId,
+      section: identity.section,
+      label: identity.label,
+      build: identity.build,
+      rotation: identity.rotation,
+      benchmarkDps: identity.benchmarkDps,
+      benchmarkApm: identity.benchmarkApm,
+      benchmarkDpsByHealth: identity.benchmarkDpsByHealth,
+      rotationEndTime: result.rotationEndTime,
+      observationEndTime: result.observationEndTime,
+      combatEndTime: result.combatEndTime,
+      dpsStartTime: result.dpsStartTime,
+      dpsWindow: result.dpsWindow,
+      deathTime: result.deathTime,
+      lastHitTime: result.lastHitTime,
+      dps: result.dps,
+      // Reuse the simulator's input accounting rather than estimating actions from saved rotation length.
+      ...(patchId === 'current' ? { apm: result.rotationApm.apm } : {}),
+      // Measure each band within the same simulation, including its live target-health modifiers.
+      dpsByHealth: targetHealthBandDps(result, build.targetHealth, build.targetStartingHealthPercent ?? 100),
+      totalDamage: result.totalDamage,
+      strikeDamage: result.strikeDamage,
+      conditionDamage: result.conditionDamage,
+      finalDamagingPacket: finalPacket,
+      // Metrics are a printed report, so diagnostics carry their occurrence time as text.
+      warnings: result.warnings.map(formatSimulationDiagnostic)
+    });
   }
 
   return metrics;
@@ -159,7 +102,7 @@ export async function captureSupportedBuildMetrics(
 // Only print metrics for direct CLI invocations; importers choose when to run simulations.
 if (import.meta.main) {
   const { gameId, args: requested } = parseGameOption(process.argv.slice(2));
-  const metrics = await captureSupportedBuildMetrics(requested.length ? requested : DEFAULT_PROFESSIONS, { gameId });
+  const metrics = await captureSupportedBuildMetrics(requested.length ? requested : undefined, { gameId });
 
   process.stdout.write(`${JSON.stringify(metrics, null, 2)}\n`);
 }

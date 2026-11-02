@@ -357,7 +357,7 @@ export const evokerTraits = [
 
 /** Accepted Burning in Fire consumes Evocation's Might interval only when its reward survives. */
 function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEvent): void {
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
 
   if (event.type === 'condition' && event.condition === CONDITION.BURNING && state.element === 'Fire') {
     const evocationProfile = requireBalanceProfileFromContext(context, TRAIT.EVOCATION);
@@ -391,7 +391,7 @@ function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEv
 
 /** Entry cycles arm Elemental Balance before Dynamo grants the resulting familiar charge. */
 function applyElementalBalanceEntry(context: ElementalistRuntime, event: SimulationEvent): void {
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
 
   // everything past this point is an attunement-entry trait
   if (event.type !== 'elementalist.attunement' && event.type !== 'elementalist.attunement-enter') {
@@ -429,7 +429,7 @@ function applyElementalBalanceEntry(context: ElementalistRuntime, event: Simulat
 
 /** Accepted entries into the familiar element grant one profiled Dynamo charge. */
 function applyElementalDynamoEntry(context: ElementalistRuntime, event: SimulationEvent): void {
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
 
   // everything past this point is an attunement-entry trait
   if (event.type !== 'elementalist.attunement' && event.type !== 'elementalist.attunement-enter') {
@@ -506,7 +506,7 @@ function applySpecializedElementsTrait(
 
 /** Pin Core's element after the resource initializer has clamped its seeded charges. */
 function initializeSpecializedElements(context: ElementalistRuntime): void {
-  professionCoreState(context).primaryAttunement = evokerState.from(context).element;
+  professionCoreState(context.profession).primaryAttunement = evokerState.from(context.profession).element;
 }
 
 /** Meditation skills whose named profile effects grant Altruistic Aspect boons. */

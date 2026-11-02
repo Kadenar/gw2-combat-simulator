@@ -1,5 +1,6 @@
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
@@ -25,13 +26,13 @@ function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleI
   const action = requireSkillAction(skill, 'tale');
   const partyRecipients = { audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } };
 
-  for (const boon of action.effects.filter((effect) => effect.type === 'boon')) {
+  for (const boon of action.effects.filter((effect): effect is StatusEffect => effect.type === 'boon')) {
     const packet = buildMesmerPacket({
       type: 'buff',
       at,
-      kind: String(boon.boon || '').toLowerCase(),
+      kind: (boon.boon || '').toLowerCase(),
       stacks: Number(boon.stacks),
-      duration: Number(boon.duration),
+      duration: boon.duration,
       skillName: skill.name,
       sourceSkill: skill.name,
       ...partyRecipients

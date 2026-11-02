@@ -95,7 +95,6 @@ test('catalog validation rejects malformed intrinsic modifiers and registration 
     { ...bonus('bad', 1), target: 'attributePower' },
     { ...bonus('bad', 1), typo: true },
     bonus('bad', NaN),
-    { ...bonus('bad', 1), when: true },
     { ...bonus('bad', 1), operation: 'add' },
     { ...bonus('bad', 1), target: 'criticalDamage', operation: 'damage-additive', amount: 0.1 }
   ]) {

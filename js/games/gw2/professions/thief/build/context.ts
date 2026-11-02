@@ -13,7 +13,6 @@ export const profession: BoundProfession = withActivePatchPreview(thiefProfessio
 
 export const createBuildContext = bindBuildContext<ThiefCanonicalBuild>(
   profession,
-  { attributeContributions: profession.attributeContributions },
   (build) => ({
     initialInitiative: build.initialInitiative,
     initialSpinningAxes: build.initialSpinningAxes,

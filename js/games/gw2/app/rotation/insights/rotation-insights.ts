@@ -36,8 +36,8 @@ export function analyzeRotationInsights(
   const sharedDuration = Math.min(currentFullDuration, referenceFullDuration);
   const currentDuration = mode === 'full' ? currentFullDuration : sharedDuration;
   const referenceDuration = mode === 'full' ? referenceFullDuration : sharedDuration;
-  const c = rotationObservations(current, currentDuration),
-    r = rotationObservations(reference, referenceDuration);
+  const currentObservations = rotationObservations(current, currentDuration),
+    referenceObservations = rotationObservations(reference, referenceDuration);
   const findings: RotationFinding[] = [];
   const add = (finding: Omit<RotationFinding, 'material'>) => {
     if (!finding.metrics.some((value) => Math.abs(value.delta) > 1e-9)) return;
@@ -45,7 +45,10 @@ export function analyzeRotationInsights(
     const material = finding.metrics.some((value) => {
       const absolute =
         value.unit === 'damage'
-          ? Math.max(INSIGHT_MATERIALITY.damage, Math.max(c.damage, r.damage) * INSIGHT_MATERIALITY.damageShare)
+          ? Math.max(
+              INSIGHT_MATERIALITY.damage,
+              Math.max(currentObservations.damage, referenceObservations.damage) * INSIGHT_MATERIALITY.damageShare
+            )
           : INSIGHT_MATERIALITY[value.unit];
       return (
         Math.abs(value.delta) >= absolute &&
@@ -56,9 +59,9 @@ export function analyzeRotationInsights(
     findings.push({ ...finding, material });
   };
 
-  for (const id of keys(c.skills, r.skills)) {
-    const a = c.skills.get(id),
-      b = r.skills.get(id);
+  for (const id of keys(currentObservations.skills, referenceObservations.skills)) {
+    const a = currentObservations.skills.get(id),
+      b = referenceObservations.skills.get(id);
     const metrics = [
       metric('output', 'damage', a?.damage ?? 0, b?.damage ?? 0),
       metric('uses', 'count', a?.casts ?? 0, b?.casts ?? 0),
@@ -74,9 +77,9 @@ export function analyzeRotationInsights(
     });
   }
 
-  for (const id of keys(c.cancellations, r.cancellations)) {
-    const a = c.cancellations.get(id),
-      b = r.cancellations.get(id),
+  for (const id of keys(currentObservations.cancellations, referenceObservations.cancellations)) {
+    const a = currentObservations.cancellations.get(id),
+      b = referenceObservations.cancellations.get(id),
       row = a ?? b!;
     add({
       id: `cancellation:${id}`,
@@ -86,19 +89,19 @@ export function analyzeRotationInsights(
     });
   }
 
-  for (const id of keys(c.idle, r.idle)) {
+  for (const id of keys(currentObservations.idle, referenceObservations.idle)) {
     add({
       id: `idle:${id}`,
       category: 'idle',
       label: id,
-      metrics: [metric(id, 'seconds', c.idle.get(id) ?? 0, r.idle.get(id) ?? 0)]
+      metrics: [metric(id, 'seconds', currentObservations.idle.get(id) ?? 0, referenceObservations.idle.get(id) ?? 0)]
     });
   }
 
-  if (c.effectsAvailable && r.effectsAvailable) {
-    for (const id of keys(c.effects, r.effects)) {
-      const a = c.effects.get(id),
-        b = r.effects.get(id);
+  if (currentObservations.effectsAvailable && referenceObservations.effectsAvailable) {
+    for (const id of keys(currentObservations.effects, referenceObservations.effects)) {
+      const a = currentObservations.effects.get(id),
+        b = referenceObservations.effects.get(id);
       add({
         id: `buff:${id}`,
         category: 'buff',
@@ -112,9 +115,9 @@ export function analyzeRotationInsights(
     }
   }
 
-  for (const id of keys(c.procs, r.procs)) {
-    const a = c.procs.get(id),
-      b = r.procs.get(id);
+  for (const id of keys(currentObservations.procs, referenceObservations.procs)) {
+    const a = currentObservations.procs.get(id),
+      b = referenceObservations.procs.get(id);
 
     // A missing primary activation record cannot establish zero activations for an unaudited mechanic.
     if (!a || !b) continue;
@@ -165,7 +168,10 @@ export function analyzeRotationInsights(
   // No execution grade is manufactured, including for incompatible or incomplete references.
   return {
     window: { mode, currentDuration, referenceDuration },
-    runs: { current: summary(current, c.damage), reference: summary(reference, r.damage) },
+    runs: {
+      current: summary(current, currentObservations.damage),
+      reference: summary(reference, referenceObservations.damage)
+    },
     status: invalid ? 'incompatible' : currentDuration <= 0 || referenceDuration <= 0 ? 'unavailable' : 'ready',
     findings
   };

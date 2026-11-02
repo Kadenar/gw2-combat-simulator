@@ -4,10 +4,9 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
-export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.CORE_CLEAVE]: {
     name: 'Core Cleave',
-    description: 'Cleave at your enemy with a physical and a magical axe.',
     icon: 'https://render.guildwars2.com/file/B6900CCBA53BD1189D0E09C10C43AB08AE64016B/1770455.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -30,7 +29,6 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.BLEEDING_EDGE]: {
     name: 'Bleeding Edge',
-    description: 'Slice through your foe again, physically and magically, as your weapon is heating up.',
     icon: 'https://render.guildwars2.com/file/490E143D431FCBDC9BD7E60ED875F5710DBEE43F/1770456.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -54,7 +52,6 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.SEARING_SLASH]: {
     name: 'Searing Slash',
-    description: 'Unleash your searing axe in an overhand slash, following it up with a magical edge.',
     icon: 'https://render.guildwars2.com/file/6D161191B16102166A94D41FF6F0DBF206F3A77C/1770457.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -77,8 +74,6 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.SYMBOL_OF_VENGEANCE]: {
     name: 'Symbol of Vengeance',
-    description:
-      'Symbol. Cleave your axe into the ground, reducing enemy movement and carving a razor-sharp symbol of vengeance.',
     icon: 'https://render.guildwars2.com/file/D7DDD899551C060AB9B2C2B0BDC71A6194E379EF/1770458.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -141,7 +136,6 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.BLAZING_EDGE]: {
     name: 'Blazing Edge',
-    description: 'Conjure a magical axe to rake your enemies toward you.',
     icon: 'https://render.guildwars2.com/file/B254F2279C5C1E9E6E3AAE11B97D460E0F3E45E0/1770459.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -168,4 +162,4 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ]
   }
-});
+};

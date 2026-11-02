@@ -110,10 +110,13 @@ export function replaceBuildRotation(
   currentBuild: Gw2CanonicalBuild,
   adapter: Gw2AppAdapter
 ): Gw2CanonicalBuild {
+  // Imported rotation files have no build version; migrate them before attaching the current build schema.
+  const items = Array.isArray(rotation) ? rotation : [];
+  const migrated = adapter.profession.migrateRotation?.(items) ?? items;
   return replaceBuild(
     {
       ...currentBuild,
-      rotation: Array.isArray(rotation) ? rotation : []
+      rotation: migrated
     },
     adapter
   );

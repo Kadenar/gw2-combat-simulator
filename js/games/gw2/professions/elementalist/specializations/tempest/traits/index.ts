@@ -214,7 +214,7 @@ const gatheredFocus = defineTrait({
   ])
 });
 
-const hardyConduit = defineTrait({
+const hardyConduit = defineTrait<ElementalistSkill>({
   id: TRAIT.HARDY_CONDUIT,
   balance: {
     effects: [
@@ -247,7 +247,7 @@ const hardyConduit = defineTrait({
   ]
 });
 
-const harmoniousConduit = defineTrait({
+const harmoniousConduit = defineTrait<ElementalistSkill>({
   id: TRAIT.HARMONIOUS_CONDUIT,
   balance: {
     effects: [
@@ -274,7 +274,7 @@ const harmoniousConduit = defineTrait({
   ]
 });
 
-const transcendentTempest = defineTrait({
+const transcendentTempest = defineTrait<ElementalistSkill>({
   id: TRAIT.TRANSCENDENT_TEMPEST,
   balance: {
     // Shortened singularity dwell, separate from the damage buff's seven-second lifetime.
@@ -529,7 +529,11 @@ function applyLatentStamina(
 }
 
 /** Schedule alacrity from accepted overload hits before packet emission, retaining shortened-channel behavior. */
-function applyLucidSingularity(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
+function applyLucidSingularity(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: ElementalistSkill
+): void {
   if (!skill.overload) return;
 
   const hits = (skill.effects ?? [])
@@ -555,7 +559,7 @@ function applyLucidSingularity(context: ElementalistRuntime, cast: RuntimeCast<E
         event.type === 'damage' &&
         Number(event.coefficient) > 0 &&
         // Reuse the engine's commitment decision so the surviving storm retains its alacrity pulses.
-        (!cast.cancelled || event.at <= cast.effectiveEnd)
+        (!cast.cancelledBeforeCommit || event.at <= cast.effectiveEnd)
     )
     .sort((a, b) => a.at - b.at)
     .slice(0, balanceNumberFromContext(context, TRAIT.LUCID_SINGULARITY, 'maximumStacks'));
@@ -581,7 +585,11 @@ function applyLucidSingularity(context: ElementalistRuntime, cast: RuntimeCast<E
 }
 
 /** The completing overload's aura precedes the same-time overload packet and Fire-exit proc. */
-function applyUnstableConduit(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
+function applyUnstableConduit(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: ElementalistSkill
+): void {
   const attunement = String(skill.attunement);
   {
     const unstableConduitProfile = requireBalanceProfileFromContext(context, TRAIT.UNSTABLE_CONDUIT);

@@ -5,10 +5,9 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 
-export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.DUSK_STRIKE]: {
     name: 'Dusk Strike',
-    description: 'Chain. Cleave foes in front of you.',
     icon: 'https://render.guildwars2.com/file/586BB9520AA13949955903702C5871A25902B9B8/1012921.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -28,7 +27,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 2 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 2 } })]
           }
         ],
         coefficient: 1.2,
@@ -38,7 +37,6 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.FADING_TWILIGHT]: {
     name: 'Fading Twilight',
-    description: 'Chain. Cleave foes in front of you again.',
     icon: 'https://render.guildwars2.com/file/4761E414945BD91B4B0F5D0B0C2DA4615710D6CE/1012922.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -57,7 +55,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 2 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 2 } })]
           }
         ],
         ticks: [{ atMs: 520, coefficient: 1.4 }],
@@ -68,7 +66,6 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.CHILLING_SCYTHE]: {
     name: 'Chilling Scythe',
-    description: 'Chain. Strike foes and chill them. A successful strike reduces the recharge on Gravedigger.',
     icon: 'https://render.guildwars2.com/file/95FD52BE3FDA503BF96A4AEA1F5FD7A976F6382F/1012923.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -90,14 +87,14 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } })]
           },
           {
             on: 'damage.resolved',
             actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'rechargeReset', skillIds: [ID.GRAVEDIGGER] }
+            do: [{ type: 'rechargeReset', skillIds: [ID.GRAVEDIGGER] }]
           }
         ],
         coefficient: 1.8
@@ -107,8 +104,6 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.GRAVEDIGGER]: {
     name: 'Gravedigger',
-    description:
-      'Perform a huge swing that deals heavy damage. Recharges faster if it hits a downed or low-health foe.',
     icon: 'https://render.guildwars2.com/file/A818623898AEE40827F139A945EFAB385913559F/1012924.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -144,7 +139,6 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.DEATH_SPIRAL]: {
     name: 'Death Spiral',
-    description: 'Conjure a drill of dark energy on your blade, and rend the armor of foes in front of you.',
     icon: 'https://render.guildwars2.com/file/5CE4CE5573EEF5054F016F13D3E1F850F2A1DB0C/1012925.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -186,8 +180,6 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.NIGHTFALL]: {
     name: 'Nightfall',
-    description:
-      'Call down a growing column of shadows that damages and applies conditions to foes every pulse. The initial strike blinds foes and converts their boons into conditions. Gain life force while inside the area.',
     icon: 'https://render.guildwars2.com/file/586F0469807BB7CB7942F098CC24331D0FF3CA4E/1012926.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -207,7 +199,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
             actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'pulse', grant: { percent: 7 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'pulse', grant: { percent: 7 } })]
           }
         ],
         // EVTC records four Quickness pulses at 560 ms and fixed one-second intervals.
@@ -243,8 +235,6 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
   },
   [ID.GRASPING_DARKNESS]: {
     name: 'Grasping Darkness',
-    description:
-      'Conjure claws of darkness from the shadows to attack foes, applying a condition to them and pulling them to you. Gain quickness if you strike a foe and gain life force for each struck foe.',
     icon: 'https://render.guildwars2.com/file/5B26FDF0B9ACD9B004543B9F3C01AFDEDA540F2A/1012927.png',
     type: 'Weapon',
     weapon: 'Greatsword',
@@ -266,7 +256,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
               actor: ACTOR.PLAYER,
               packets: 'each',
               when: (_runtime, { event }) => Number(event.coefficient) > 0,
-              do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })
+              do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })]
             }
           ],
           coefficient: 1.3
@@ -276,4 +266,4 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
       ]
     )
   }
-});
+};

@@ -6,6 +6,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { cast } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 const config = {
@@ -15,7 +16,6 @@ const config = {
   attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, vitality: 1000 }),
   target: { armor: 2597, health: 0, conditions: {} }
 };
-const cast = (skillId) => ({ type: 'cast', skillId });
 
 // Removing an empowered component cannot cancel the skill's independently owned resource transaction.
 for (const id of [

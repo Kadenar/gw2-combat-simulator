@@ -6,384 +6,369 @@ import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js'
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Defines Engineer spear definitions and declares stateful packets emitted by live spear tasks. */
-export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<EngineerSkill>>> =
-  Object.freeze({
-    [ID.PUNCTURING_JAB]: {
-      name: 'Puncturing Jab',
-      description: 'Stab your foe, inflicting bleeding. Inflict vulnerability if your target is focused.',
-      icon: 'https://render.guildwars2.com/file/CFCB6F01A1F9404E39D966BFC54BD79038A04231/3379111.png',
-      type: 'Weapon',
-      weapon: 'Spear',
-      slot: 'Weapon_1',
-      autoattack: true,
-      // Ordinary repeatable attack; excluded from player-input metrics.
-      cooldown: 0,
-      castTimeMs: 440,
-      interruptCommitMs: 360,
-      // Spear autoattacks land before recovery ends; strike and conditions share the measured impact.
-      effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        {
-          type: 'strike',
-          coefficient: 0.45,
-          hits: 1,
-          name: 'Puncturing Jab',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.BLEEDING,
-          stacks: 1,
-          duration: 6,
-          actorType: ACTOR.PLAYER
-        }
-      ])
-    },
-    [ID.RENDING_STRIKE]: {
-      name: 'Rending Strike',
-      description: 'Swing your spear, inflicting bleeding. Inflict vulnerability if your target is focused.',
-      icon: 'https://render.guildwars2.com/file/0BBE356A09F8642EEC3A37C83A51FBD9C918B82D/3379112.png',
-      type: 'Weapon',
-      weapon: 'Spear',
-      slot: 'Weapon_1',
-      autoattack: true,
-      // Ordinary repeatable attack; excluded from player-input metrics.
-      cooldown: 0,
-      castTimeMs: 520,
-      // The strike lands before recovery ends; cancelling recovery still advances the spear chain.
-      interruptCommitMs: 400,
-      effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        {
-          type: 'strike',
-          coefficient: 0.65,
-          hits: 1,
-          name: 'Rending Strike',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.BLEEDING,
-          stacks: 1,
-          duration: 6,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.VULNERABILITY,
-          stacks: 1,
-          duration: 8,
-          actorType: ACTOR.PLAYER
-        }
-      ])
-    },
-    [ID.AMPLIFYING_SLICE]: {
-      name: 'Amplifying Slice',
-      description:
-        'Strike your foe, refreshing your focus and bleeding your target. Inflict vulnerability if your target is focused.',
-      icon: 'https://render.guildwars2.com/file/A81BFF49E602EA430906A617A49C285C4FF1159B/3379113.png',
-      type: 'Weapon',
-      weapon: 'Spear',
-      slot: 'Weapon_1',
-      autoattack: true,
-      // Ordinary repeatable attack; excluded from player-input metrics.
-      cooldown: 0,
-      castTimeMs: 640,
-      interruptCommitMs: 600,
-      // The finishing sweep applies its damage and conditions before its final recovery.
-      effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
-        {
-          type: 'strike',
-          coefficient: 0.99,
-          hits: 1,
-          name: 'Amplifying Slice',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.BLEEDING,
-          stacks: 2,
-          duration: 6,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.VULNERABILITY,
-          stacks: 2,
-          duration: 6,
-          actorType: ACTOR.PLAYER
-        }
-      ])
-    },
-    [ID.CONDUIT_SURGE]: {
-      name: 'Conduit Surge',
-      description:
-        'Leap toward your target, unleashing intense energy on the area if you strike them. Your primary target becomes the focus of your other skills. If a focused target dies, this skill is refreshed.',
-      icon: 'https://render.guildwars2.com/file/09D83A621D282D7E78C6E3502D9E91AC4AC6A2E9/3379114.png',
-      type: 'Weapon',
-      weapon: 'Spear',
-      slot: 'Weapon_2',
-      // Intrinsic tuning follows this selected skill through patches and deferred work.
-      duration: 10,
-      cooldown: 5,
-      castTimeMs: 520,
-      effects: [],
-      // Resolve the committed impact through the owner that establishes the target's Focused window.
-      sideEffects: [
-        {
-          on: 'castCommit',
-          do: {
-            type: 'engineer.conduit-surge',
-            id: 'payload',
-            effects: [
-              {
-                name: 'Conduit Surge',
-                type: 'strike',
-                coefficient: 1.2,
-                hits: 1
-              },
-              {
-                name: 'Burning',
-                type: 'condition',
-                condition: CONDITION.BURNING,
-                stacks: 1,
-                duration: 7
-              }
-            ]
-          }
-        }
-      ]
-    },
-    [ID.LIGHTNING_ROD]: {
-      name: 'Lightning Rod',
-      description:
-        'Prime your lightning rod to deal damage to nearby enemies. Focused enemies receive extra punishment. Gain charges for your Electric Artillery skill.',
-      icon: 'https://render.guildwars2.com/file/F3B4056D042BC2573D054F49ACF40FFA16014CB8/3379115.png',
-      type: 'Weapon',
-      weapon: 'Spear',
-      slot: 'Weapon_3',
-      cooldown: 12,
-      castTimeMs: 400,
-      interruptCommitMs: 280,
-      effects: [],
-      // Replace the owned pulse sequence and arm Artillery's delayed follow-up window on commitment.
-      sideEffects: [
-        {
-          on: 'castCommit',
-          do: {
-            type: 'engineer.lightning-rod',
-            id: 'payload',
-            effects: [
-              {
-                name: 'Lightning Rod Pulse',
-                type: 'strike',
-                coefficient: 0.17,
-                hits: 1
-              },
-              {
-                name: 'Vulnerability',
-                type: 'condition',
-                condition: CONDITION.VULNERABILITY,
-                stacks: 1,
-                duration: 8
-              },
-              {
-                name: 'Focused Lightning Rod Pulse',
-                type: 'strike',
-                coefficient: 0.3,
-                hits: 1
-              },
-              {
-                name: 'Focused Vulnerability',
-                type: 'condition',
-                condition: CONDITION.VULNERABILITY,
-                stacks: 2,
-                duration: 8
-              }
-            ]
-          }
-        }
-      ]
-    },
-    [ID.ELECTRIC_ARTILLERY]: {
-      name: 'Electric Artillery',
-      description:
-        "Hurl your charged rod at a foe, immobilizing them. Foes take increased burning duration and vulnerability stacks based on your lightning rod's charge.",
-      icon: 'https://render.guildwars2.com/file/0CB823345DA0D01FB64C39485242D408C75C2E05/3379116.png',
-      type: 'Weapon',
-      weapon: 'Spear',
-      slot: 'Weapon_3',
-      // Intrinsic tuning follows this selected skill through patches and deferred work.
-      maximumStacks: 12,
-      chargesPerVulnerability: 2,
-      burningDurationPerCharge: 0.25,
-      focusedChargesPerVulnerability: 1,
-      focusedBurningDurationPerCharge: 0.5,
-      cooldown: 1,
-      castTimeMs: 520,
-      // Releasing the projectile consumes the flip even if its final recovery is cancelled.
-      interruptCommitMs: 480,
-      effects: [],
-      // Snapshot charges at release, then retire Lightning Rod while the launched projectile remains pending.
-      sideEffects: [
-        {
-          on: 'castCommit',
-          do: {
-            type: 'engineer.electric-artillery',
-            id: 'payload',
-            effects: [
-              {
-                name: 'Electric Artillery',
-                type: 'strike',
-                coefficient: 1,
-                hits: 1
-              },
-              {
-                name: 'Immobilized',
-                type: 'condition',
-                condition: CONDITION.IMMOBILIZED,
-                stacks: 1,
-                duration: 2
-              },
-              {
-                name: 'Vulnerability',
-                type: 'condition',
-                condition: CONDITION.VULNERABILITY,
-                stacks: 1,
-                duration: 8
-              },
-              {
-                name: 'Burning',
-                type: 'condition',
-                condition: CONDITION.BURNING,
-                stacks: 2,
-                duration: 3
-              },
-              {
-                name: 'Focused Electric Artillery',
-                type: 'strike',
-                coefficient: 1.5,
-                hits: 1
-              },
-              {
-                name: 'Focused Immobilized',
-                type: 'condition',
-                condition: CONDITION.IMMOBILIZED,
-                stacks: 1,
-                duration: 2
-              },
-              {
-                name: 'Focused Vulnerability',
-                type: 'condition',
-                condition: CONDITION.VULNERABILITY,
-                stacks: 1,
-                duration: 8
-              },
-              {
-                name: 'Focused Burning',
-                type: 'condition',
-                condition: CONDITION.BURNING,
-                stacks: 2,
-                duration: 3
-              }
-            ]
-          }
-        }
-      ]
-    },
-    [ID.ROILING_SKIES]: {
-      name: 'Roiling Skies',
-      description: 'Charge the earth with electricity, launching focused foes and stunning others.',
-      icon: 'https://render.guildwars2.com/file/06B2CD104A29423DE524D1B10A5E5614E75760EC/3379117.png',
-      type: 'Weapon',
-      weapon: 'Spear',
-      slot: 'Weapon_4',
-      cooldown: 15,
-      castTimeMs: 680,
-      effects: [
-        {
-          type: 'strike',
-          coefficient: 2,
-          hits: 1,
-          name: 'Roiling Skies',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.CRIPPLED,
-          stacks: 1,
-          duration: 5,
-          actorType: ACTOR.PLAYER
-        }
-      ],
-      // Select launch or stun from the live Focused state when the cast commits.
-      sideEffects: [{ on: 'castCommit', do: { type: 'engineer.roiling-skies' } }]
-    },
-    [ID.DEVASTATOR]: {
-      name: 'Devastator',
-      description:
-        'Traverse the area and unleash lighting around you, directly targeting focused foes a number of times.',
-      icon: 'https://render.guildwars2.com/file/0D9EF8DA5BAE16F60602985D223AA01D1394A0CF/3379118.png',
-      type: 'Weapon',
-      weapon: 'Spear',
-      slot: 'Weapon_5',
-      // Check Focused at the reserved cast end before emitting the delayed follow-up.
-      tasks: [{ type: 'engineer.devastation', timingAnchor: 'castEnd' }],
-      cooldown: 20,
-      castTimeMs: 1000,
-      effects: [
-        {
-          type: 'strike',
-          coefficient: 2,
-          hits: 1,
-          name: 'Devastator',
-          // Its primary impact is intrinsically an explosion for every event producer.
-          damageKind: 'explosion',
-          actorType: ACTOR.PLAYER,
-          // Only the primary impact is the blast; focused follow-up packets must not create extra combos.
-          comboFinishers: [
+export const ENGINEER_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<EngineerSkill>>> = {
+  [ID.PUNCTURING_JAB]: {
+    name: 'Puncturing Jab',
+    icon: 'https://render.guildwars2.com/file/CFCB6F01A1F9404E39D966BFC54BD79038A04231/3379111.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
+    cooldown: 0,
+    castTimeMs: 440,
+    interruptCommitMs: 360,
+    // Spear autoattacks land before recovery ends; strike and conditions share the measured impact.
+    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        coefficient: 0.45,
+        hits: 1,
+        name: 'Puncturing Jab',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 6,
+        actorType: ACTOR.PLAYER
+      }
+    ])
+  },
+  [ID.RENDING_STRIKE]: {
+    name: 'Rending Strike',
+    icon: 'https://render.guildwars2.com/file/0BBE356A09F8642EEC3A37C83A51FBD9C918B82D/3379112.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
+    cooldown: 0,
+    castTimeMs: 520,
+    // The strike lands before recovery ends; cancelling recovery still advances the spear chain.
+    interruptCommitMs: 400,
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        coefficient: 0.65,
+        hits: 1,
+        name: 'Rending Strike',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 1,
+        duration: 6,
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.VULNERABILITY,
+        stacks: 1,
+        duration: 8,
+        actorType: ACTOR.PLAYER
+      }
+    ])
+  },
+  [ID.AMPLIFYING_SLICE]: {
+    name: 'Amplifying Slice',
+    icon: 'https://render.guildwars2.com/file/A81BFF49E602EA430906A617A49C285C4FF1159B/3379113.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_1',
+    autoattack: true,
+    // Ordinary repeatable attack; excluded from player-input metrics.
+    cooldown: 0,
+    castTimeMs: 640,
+    interruptCommitMs: 600,
+    // The finishing sweep applies its damage and conditions before its final recovery.
+    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        coefficient: 0.99,
+        hits: 1,
+        name: 'Amplifying Slice',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BLEEDING,
+        stacks: 2,
+        duration: 6,
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.VULNERABILITY,
+        stacks: 2,
+        duration: 6,
+        actorType: ACTOR.PLAYER
+      }
+    ])
+  },
+  [ID.CONDUIT_SURGE]: {
+    name: 'Conduit Surge',
+    icon: 'https://render.guildwars2.com/file/09D83A621D282D7E78C6E3502D9E91AC4AC6A2E9/3379114.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_2',
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    duration: 10,
+    cooldown: 5,
+    castTimeMs: 520,
+    effects: [],
+    // Resolve the committed impact through the owner that establishes the target's Focused window.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'engineer.conduit-surge',
+          id: 'payload',
+          effects: [
             {
-              ownerId: 'engineer',
-              finisherType: COMBO_FINISHER.BLAST
+              name: 'Conduit Surge',
+              type: 'strike',
+              coefficient: 1.2,
+              hits: 1
+            },
+            {
+              name: 'Burning',
+              type: 'condition',
+              condition: CONDITION.BURNING,
+              stacks: 1,
+              duration: 7
             }
           ]
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.BURNING,
-          stacks: 3,
-          duration: 4,
-          actorType: ACTOR.PLAYER
         }
-      ]
-    },
-    [ID.FOCUSED_DEVASTATION]: {
-      name: 'Focused Devastation',
-      description: 'Repeatedly strike your foe, inflicting conditions.',
-      icon: 'https://render.guildwars2.com/file/0D9EF8DA5BAE16F60602985D223AA01D1394A0CF/3379118.png',
-      type: 'Weapon',
-      weapon: 'Spear',
-      slot: 'Weapon_5',
-      // This derived packet is emitted by Devastator, never manually cast.
-      simulatorExcluded: true,
-      cooldown: 0,
-      castTimeMs: 0,
-      effects: [
-        {
-          type: 'strike',
-          ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: 160 * (index + 1), coefficient: 0.2 })),
-          name: 'Focused Devastation',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.BURNING,
-          // Burning owns its cadence independently of the removable strike timeline.
-          atMs: 160,
-          stacks: 1,
-          applications: 6,
-          intervalMs: 160,
-          duration: 2,
-          actorType: ACTOR.PLAYER
+      }
+    ]
+  },
+  [ID.LIGHTNING_ROD]: {
+    name: 'Lightning Rod',
+    icon: 'https://render.guildwars2.com/file/F3B4056D042BC2573D054F49ACF40FFA16014CB8/3379115.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_3',
+    cooldown: 12,
+    castTimeMs: 400,
+    interruptCommitMs: 280,
+    effects: [],
+    // Replace the owned pulse sequence and arm Artillery's delayed follow-up window on commitment.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'engineer.lightning-rod',
+          id: 'payload',
+          effects: [
+            {
+              name: 'Lightning Rod Pulse',
+              type: 'strike',
+              coefficient: 0.17,
+              hits: 1
+            },
+            {
+              name: 'Vulnerability',
+              type: 'condition',
+              condition: CONDITION.VULNERABILITY,
+              stacks: 1,
+              duration: 8
+            },
+            {
+              name: 'Focused Lightning Rod Pulse',
+              type: 'strike',
+              coefficient: 0.3,
+              hits: 1
+            },
+            {
+              name: 'Focused Vulnerability',
+              type: 'condition',
+              condition: CONDITION.VULNERABILITY,
+              stacks: 2,
+              duration: 8
+            }
+          ]
         }
-      ]
-    }
-  });
+      }
+    ]
+  },
+  [ID.ELECTRIC_ARTILLERY]: {
+    name: 'Electric Artillery',
+    icon: 'https://render.guildwars2.com/file/0CB823345DA0D01FB64C39485242D408C75C2E05/3379116.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_3',
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    maximumStacks: 12,
+    chargesPerVulnerability: 2,
+    burningDurationPerCharge: 0.25,
+    focusedChargesPerVulnerability: 1,
+    focusedBurningDurationPerCharge: 0.5,
+    cooldown: 1,
+    castTimeMs: 520,
+    // Releasing the projectile consumes the flip even if its final recovery is cancelled.
+    interruptCommitMs: 480,
+    effects: [],
+    // Snapshot charges at release, then retire Lightning Rod while the launched projectile remains pending.
+    sideEffects: [
+      {
+        on: 'castCommit',
+        do: {
+          type: 'engineer.electric-artillery',
+          id: 'payload',
+          effects: [
+            {
+              name: 'Electric Artillery',
+              type: 'strike',
+              coefficient: 1,
+              hits: 1
+            },
+            {
+              name: 'Immobilized',
+              type: 'condition',
+              condition: CONDITION.IMMOBILIZED,
+              stacks: 1,
+              duration: 2
+            },
+            {
+              name: 'Vulnerability',
+              type: 'condition',
+              condition: CONDITION.VULNERABILITY,
+              stacks: 1,
+              duration: 8
+            },
+            {
+              name: 'Burning',
+              type: 'condition',
+              condition: CONDITION.BURNING,
+              stacks: 2,
+              duration: 3
+            },
+            {
+              name: 'Focused Electric Artillery',
+              type: 'strike',
+              coefficient: 1.5,
+              hits: 1
+            },
+            {
+              name: 'Focused Immobilized',
+              type: 'condition',
+              condition: CONDITION.IMMOBILIZED,
+              stacks: 1,
+              duration: 2
+            },
+            {
+              name: 'Focused Vulnerability',
+              type: 'condition',
+              condition: CONDITION.VULNERABILITY,
+              stacks: 1,
+              duration: 8
+            },
+            {
+              name: 'Focused Burning',
+              type: 'condition',
+              condition: CONDITION.BURNING,
+              stacks: 2,
+              duration: 3
+            }
+          ]
+        }
+      }
+    ]
+  },
+  [ID.ROILING_SKIES]: {
+    name: 'Roiling Skies',
+    icon: 'https://render.guildwars2.com/file/06B2CD104A29423DE524D1B10A5E5614E75760EC/3379117.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_4',
+    cooldown: 15,
+    castTimeMs: 680,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2,
+        hits: 1,
+        name: 'Roiling Skies',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.CRIPPLED,
+        stacks: 1,
+        duration: 5,
+        actorType: ACTOR.PLAYER
+      }
+    ],
+    // Select launch or stun from the live Focused state when the cast commits.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.roiling-skies' } }]
+  },
+  [ID.DEVASTATOR]: {
+    name: 'Devastator',
+    icon: 'https://render.guildwars2.com/file/0D9EF8DA5BAE16F60602985D223AA01D1394A0CF/3379118.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_5',
+    // Check Focused at the reserved cast end before emitting the delayed follow-up.
+    tasks: [{ type: 'engineer.devastation', timingAnchor: 'castEnd' }],
+    cooldown: 20,
+    castTimeMs: 1000,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 2,
+        hits: 1,
+        name: 'Devastator',
+        // Its primary impact is intrinsically an explosion for every event producer.
+        damageKind: 'explosion',
+        actorType: ACTOR.PLAYER,
+        // Only the primary impact is the blast; focused follow-up packets must not create extra combos.
+        comboFinishers: [
+          {
+            ownerId: 'engineer',
+            finisherType: COMBO_FINISHER.BLAST
+          }
+        ]
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        stacks: 3,
+        duration: 4,
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  },
+  [ID.FOCUSED_DEVASTATION]: {
+    name: 'Focused Devastation',
+    icon: 'https://render.guildwars2.com/file/0D9EF8DA5BAE16F60602985D223AA01D1394A0CF/3379118.png',
+    type: 'Weapon',
+    weapon: 'Spear',
+    slot: 'Weapon_5',
+    // This derived packet is emitted by Devastator, never manually cast.
+    rotationInputExcluded: true,
+    cooldown: 0,
+    castTimeMs: 0,
+    effects: [
+      {
+        type: 'strike',
+        ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: 160 * (index + 1), coefficient: 0.2 })),
+        name: 'Focused Devastation',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        // Burning owns its cadence independently of the removable strike timeline.
+        atMs: 160,
+        stacks: 1,
+        applications: 6,
+        intervalMs: 160,
+        duration: 2,
+        actorType: ACTOR.PLAYER
+      }
+    ]
+  }
+};

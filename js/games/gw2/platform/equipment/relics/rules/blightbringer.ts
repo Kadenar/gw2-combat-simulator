@@ -2,9 +2,9 @@
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
@@ -48,15 +48,7 @@ export const blightbringer = defineRelic({
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
 function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, application: SimulationEvent): void {
-  ctx.effects.emit({
-    kind: 'announcement',
-    announcement: {
-      type: 'relic',
-      name: 'Relic of Blightbringer',
-      at: application.at,
-      sourceSkill: application.skillName
-    }
-  });
+  announceRelic(ctx, application, 'Relic of Blightbringer');
   for (const [condition, stacks, duration] of [
     [CONDITION.POISONED, 3, 10],
     [CONDITION.CRIPPLED, 1, 5],
@@ -73,10 +65,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, applicat
         condition,
         duration,
         stacks,
-        source: 'Relic',
-        sourceId: `relic.${RELIC_IDS.BLIGHTBRINGER}`,
-        actorType: ACTOR.EFFECT,
-        ownerActorType: ACTOR.PLAYER
+        ...playerOwnedRelicSource(RELIC_IDS.BLIGHTBRINGER)
       }
     });
   }

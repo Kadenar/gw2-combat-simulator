@@ -3,6 +3,7 @@ import {
   fromSkill,
   outsideScopeTooltip,
   skillTooltip,
+  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -37,8 +38,8 @@ export const daredevilTooltips = {
     ),
     [TRAIT.ENDURANCE_THIEF]: traitTooltip('Stealing restores endurance.', [['resourceGain', 'Endurance restored']]),
     [TRAIT.MARAUDERS_RESILIENCE]: traitTooltip(
-      'Gain vitality from eligible power. Incoming damage is outside combat simulation scope.',
-      [['attributeConversion', 'Eligible power converted to vitality', tooltipPercent]]
+      'Gain vitality based on power. Bonuses from other attribute conversions do not count. Incoming damage is outside combat simulation scope.',
+      [['attributeConversion', 'Vitality gained from power', tooltipAttributeConversion]]
     ),
     [TRAIT.ESCAPISTS_FORTITUDE]: outsideScopeTooltip,
     [TRAIT.BRAWLERS_TENACITY]: traitTooltip('Using an eligible physical utility or healing skill restores endurance.', [

@@ -43,7 +43,7 @@ test('Enemy Attraction requires a mature tether and releases it with vulnerabili
   assert.ok(effects.some((event) => event.type === 'control' && event.controlKind === 'pull'));
   assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.OTHERWORLDLY_ATTRACTION_ENEMY], undefined);
   assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DEACTIVATE_OTHERWORLDLY_BOND], undefined);
-  assert.ok(result.planningState.cooldowns[ID.OTHERWORLDLY_BOND].remaining > 0);
+  assert.ok(result.planningState.cooldownsBySkillId[ID.OTHERWORLDLY_BOND].remainingMs > 0);
 });
 
 test('Tether cancellation, expiry and weapon swap close follow-ups and start recharge', () => {
@@ -57,7 +57,7 @@ test('Tether cancellation, expiry and weapon swap close follow-ups and start rec
     assert.deepEqual(result.warnings, []);
     assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.OTHERWORLDLY_ATTRACTION_ENEMY], undefined);
     assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DEACTIVATE_OTHERWORLDLY_BOND], undefined);
-    assert.ok(result.planningState.cooldowns[ID.OTHERWORLDLY_BOND].remaining > 0);
+    assert.ok(result.planningState.cooldownsBySkillId[ID.OTHERWORLDLY_BOND].remainingMs > 0);
   }
 });
 
@@ -80,7 +80,7 @@ test('Blossoming Aura keeps a fixed fuse after attachment regardless of cast spe
     const damage = auraDamage(result);
     assert.deepEqual(result.warnings, []);
     assert.equal(damage.at(-1).coefficient, 2.5);
-    assert.equal(result.planningState.cooldowns[ID.BLOSSOMING_AURA].readyAt, 6400);
+    assert.equal(result.planningState.cooldownsBySkillId[ID.BLOSSOMING_AURA].readyAtMs, 6400);
     assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DETONATE_BLOSSOMING_AURA], undefined);
   }
 });
@@ -100,7 +100,7 @@ test('Manual Aura detonation uses the reached tier and cancels future pulses wit
       damage.filter((event) => event.name === 'Final Damage').map((event) => event.coefficient),
       [1 + tier * 0.5]
     );
-    assert.equal(result.planningState.cooldowns[ID.BLOSSOMING_AURA].readyAt, 6400);
+    assert.equal(result.planningState.cooldownsBySkillId[ID.BLOSSOMING_AURA].readyAtMs, 6400);
     assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DETONATE_BLOSSOMING_AURA], undefined);
   }
 });
@@ -112,7 +112,7 @@ test('Aura stays attached and remains manually detonatable across a legend swap'
     auraDamage(result).map((event) => event.name),
     ['Pulsing Damage', 'Final Damage']
   );
-  assert.equal(result.planningState.cooldowns[ID.BLOSSOMING_AURA].readyAt, 6400);
+  assert.equal(result.planningState.cooldownsBySkillId[ID.BLOSSOMING_AURA].readyAtMs, 6400);
 });
 
 test('Staff attacks divide their total coefficients per hit and Rejuvenating Assault owns a whirl finisher', () => {

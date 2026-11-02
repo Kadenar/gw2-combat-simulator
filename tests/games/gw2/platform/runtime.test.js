@@ -6,6 +6,7 @@ import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createRuntimeEndurance } from '#gw2/platform/simulation/runtime-resources.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { testProfessionModifiers } from '#tests/fixtures/profession.js';
+import { cast, wait } from '#tests/helpers/commands.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // The pilot owns its hooks directly; none of the production scheduler/resolver state factories are installed.
@@ -50,11 +51,9 @@ const catalog = createCanonicalCatalog({
   ],
   weapons: ['Sword']
 });
-const cast = (skillId, extra = {}) => ({ type: 'cast', skillId, ...extra });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 test('endurance spending agrees with readiness after fractional regeneration', () => {
-  const pool = { value: 0, maximum: 100, updatedAt: 0, rate: 0 };
+  const pool = { value: 0, maximum: 100, updatedAt: 0, unitsPerSecond: 0 };
   const runtime = { time: 0, config: {}, history: [] };
   const endurance = createRuntimeEndurance(runtime, {
     endurance: { state: () => pool, maximum: () => 100, regenerationRate: () => 7.5 }
@@ -96,7 +95,7 @@ function fixture(hooks = {}) {
     id: 'live-fixture',
     catalog,
     createState: () => ({
-      energy: { value: 0, maximum: 10, updatedAt: 0, rate: 0 },
+      energy: { value: 0, maximum: 10, updatedAt: 0, unitsPerSecond: 0 },
       accepted: [],
       completed: [],
       hits: 0
@@ -191,7 +190,7 @@ test('continuous recovery retries at the action tick covering its finite thresho
   const result = run([cast(990002)], {
     profession: fixture({
       initialize(runtime) {
-        runtime.profession.energy.rate = 2;
+        runtime.profession.energy.unitsPerSecond = 2;
         anchorResourceClock(runtime.profession.energy);
       },
       availability(runtime) {
@@ -481,7 +480,7 @@ test('lethal siblings finish but post-death hits grant nothing while self comman
   assert.equal(result.combatEndTime, 0.5);
   assert.equal(result.planningState.profession.hits, 1);
   assert.equal(result.planningState.atSeconds, 2);
-  assert.equal(result.planningState.cooldowns[990001].readyAt, 3600);
+  assert.equal(result.planningState.cooldownsBySkillId[990001].readyAtMs, 3600);
   result.planningState.profession.hits = 999;
   assert.equal(owner.profession.hits, 1);
   assert.equal(run([wait(1000), cast(990001)], { ...options, output: 'score' }).totalDamage, 20);
@@ -595,7 +594,7 @@ test('cast tasks detach snapshots, retain catalog callbacks, and preserve priori
     assert.notEqual(data.cast.command, accepted.command);
     assert.equal(data.cast.id, accepted.id);
     assert.equal(data.cast.command.impactDelayMs, 250);
-    seen.push([data.label ?? data.trigger.type, runtime.time]);
+    seen.push([data.label ?? data.taskDefinition.type, runtime.time]);
   };
 
   const result = run([cast(990021, { impactDelayMs: 250 }), wait(1000)], {

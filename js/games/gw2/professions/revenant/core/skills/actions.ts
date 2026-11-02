@@ -13,7 +13,6 @@ const actions: readonly Skill[] = [
   {
     name: 'Swap Legends',
     // Count the explicit bar-changing input in effort summaries.
-    description: 'Invoke the other selected legend and reset energy.',
     icon: 'https://render.guildwars2.com/file/67CDD35F6BC3072E0837715A5E0A90646529BAA2/1030005.png',
     id: ID.SWAP_LEGENDS,
     // Custom: Switches legends and resets energy through `core/hooks.ts`.
@@ -31,7 +30,6 @@ const actions: readonly Skill[] = [
   },
   // Core owns the input and its cost; active specialization hooks supply any dodge replacement.
   createDodgeSkill({
-    description: 'Perform the selected dodge.',
     castTimeMs: 0
   })
 ];

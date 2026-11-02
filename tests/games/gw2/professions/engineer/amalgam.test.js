@@ -461,7 +461,7 @@ test('Willing Host and Symbiotic Synergy apply their damage windows', () => {
     selectedMorphSkillIds,
     selectedTraitIds: [TRAIT.SYMBIOTIC_SYNERGY]
   });
-  const morphSteps = reset.steps.filter((step) => step.skill === 'Offensive Protocol: Pierce');
+  const morphSteps = reset.steps.filter((step) => step.skillName === 'Offensive Protocol: Pierce');
   const evolveStep = reset.steps.find((step) => step.skillId === ID.EVOLVE_BASE);
 
   assert.equal(morphSteps[1].start, evolveStep.end);

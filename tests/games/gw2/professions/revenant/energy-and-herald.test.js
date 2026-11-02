@@ -250,7 +250,7 @@ test('Soulcleave stays on its parent tile at zero Energy until its release is ar
     for (const energy of [0, 4, 5]) {
       const professionState = {
         [STATE.ACTIVE_LEGEND_ID]: activeLegendId,
-        [STATE.ENERGY]: { value: energy, maximum: 100, rate: 5, updatedAt: 0 },
+        [STATE.ENERGY]: { value: energy, maximum: 100, unitsPerSecond: 5, updatedAt: 0 },
         [STATE.AVAILABLE_FLIPS]: {}
       };
       const app = {
@@ -343,7 +343,7 @@ test('legend swaps preserve the absolute Energy affordability grid', () => {
     { startingLegend: LEGEND.DEMON }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.steps.find((step) => step.skill === 'Jade Winds').start, 3040);
+  assert.equal(result.steps.find((step) => step.skillName === 'Jade Winds').start, 3040);
 });
 
 test('a cooldown-queued Revenant skill recovers Energy before its next cast', () => {
@@ -351,7 +351,7 @@ test('a cooldown-queued Revenant skill recovers Energy before its next cast', ()
 
   assert.equal(result.warnings.length, 0);
   assert.deepEqual(
-    result.steps.map((step) => [step.skill, step.start]),
+    result.steps.map((step) => [step.skillName, step.start]),
     [
       ['Phase Traversal', 0],
       ['Phase Traversal', result.steps[0].end + 4000]
@@ -451,7 +451,7 @@ test('legend swap replaces the fixed bar, resets energy, and triggers sigils', (
   assert.equal(result.warnings.length, 0);
   assert.equal(result.planningState.profession[STATE.ACTIVE_LEGEND_ID], LEGEND.DEMON);
   assert.ok(result.events.some((event) => event.type === 'sigil_swap'));
-  assert.ok(result.planningState.cooldowns[SKILL.SWAP_LEGENDS].readyAt >= 10000);
+  assert.ok(result.planningState.cooldownsBySkillId[SKILL.SWAP_LEGENDS].readyAtMs >= 10000);
   assert.ok(result.totalDamage > 0);
 
   const precombat = simulate('Core', ['Swap Legends', 'Swap Legends']);
@@ -461,15 +461,15 @@ test('legend swap replaces the fixed bar, resets energy, and triggers sigils', (
     precombat.steps.map((step) => step.start),
     [0, 0]
   );
-  assert.equal(precombat.planningState.cooldowns[SKILL.SWAP_LEGENDS], undefined);
+  assert.equal(precombat.planningState.cooldownsBySkillId[SKILL.SWAP_LEGENDS], undefined);
 
   const inCombat = simulate('Core', ['__combat_start', 'Swap Legends', 'Swap Legends']);
 
   assert.deepEqual(
-    inCombat.steps.filter((step) => step.skill === 'Swap Legends').map((step) => step.start),
+    inCombat.steps.filter((step) => step.skillName === 'Swap Legends').map((step) => step.start),
     [0, 10000]
   );
-  assert.equal(inCombat.planningState.cooldowns[SKILL.SWAP_LEGENDS].readyAt, 20000);
+  assert.equal(inCombat.planningState.cooldownsBySkillId[SKILL.SWAP_LEGENDS].readyAtMs, 20000);
 
   const sigilResult = simulate('Core', ['__combat_start', 'Swap Legends'], {
     sigilSets: [
@@ -1044,7 +1044,7 @@ test('upkeep Energy drain begins when its cast completes', () => {
     startingLegend: LEGEND.DEMON
   });
 
-  const completion = result.steps.find((step) => step.skill === 'Embrace the Darkness').end / 1000;
+  const completion = result.steps.find((step) => step.skillName === 'Embrace the Darkness').end / 1000;
 
   // Activation spends 5 Energy; the full windup regenerates before sustained drain starts.
   assert.ok(Math.abs(result.planningState.profession[STATE.ENERGY].value - (45 + 5 * completion)) < 1e-9);
@@ -1314,7 +1314,7 @@ test('Nature survives swaps into every legend and switches its consume without r
       legend === LEGEND.DWARF ? [['stability', 2, 4]] : []
     );
     const consumeStep = consumed.steps.find((step) => step.skillId === consumeId);
-    assert.equal(consumed.planningState.cooldowns[SKILL.FACET_OF_NATURE].readyAt, consumeStep.end + 16000);
+    assert.equal(consumed.planningState.cooldownsBySkillId[SKILL.FACET_OF_NATURE].readyAtMs, consumeStep.end + 16000);
   }
 });
 
@@ -1387,8 +1387,8 @@ test('True Nature variants share their twenty-second parent cooldown across lege
       initialEnergy: 100
     }
   );
-  const facetSteps = result.steps.filter((step) => step.skill === 'Facet of Nature');
-  const firstTrueNature = result.steps.find((step) => step.skill === 'True Nature');
+  const facetSteps = result.steps.filter((step) => step.skillName === 'Facet of Nature');
+  const firstTrueNature = result.steps.find((step) => step.skillName === 'True Nature');
 
   assert.deepEqual(result.warnings, []);
   assert.equal(facetSteps[1].start, firstTrueNature.end + 16000);
@@ -1418,16 +1418,16 @@ test('Herald consume skills apply their cooldown to the parent facet', () => {
       startingLegend: LEGEND.DRAGON,
       initialEnergy: 100
     });
-    const consumeStep = result.steps.find((step) => step.skill === consume);
+    const consumeStep = result.steps.find((step) => step.skillName === consume);
 
     assert.deepEqual(result.warnings, [], facet);
-    const readyAt = consumeStep.end + (cooldown * 1000) / 1.25;
+    const readyAtMs = consumeStep.end + (cooldown * 1000) / 1.25;
 
     assert.deepEqual(
-      result.planningState.cooldowns[revenantCatalog.skills.find((candidate) => candidate.name === facet).id],
+      result.planningState.cooldownsBySkillId[revenantCatalog.skills.find((candidate) => candidate.name === facet).id],
       {
-        readyAt,
-        remaining: readyAt - result.planningState.atSeconds * 1000
+        readyAtMs,
+        remainingMs: readyAtMs - result.planningState.atSeconds * 1000
       }
     );
   }

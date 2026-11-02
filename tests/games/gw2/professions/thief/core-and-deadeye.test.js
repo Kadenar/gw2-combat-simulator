@@ -277,7 +277,7 @@ test('Deadeye live runtime and palette enforce the same flip expiry boundary', (
 test('Thief catalog retains valid effect schemas and skill metadata', () => {
   assert.equal(thiefCatalog.skillsById.get(40436).id, 40436);
   assert.equal(thiefCatalog.skillsById.get(77230).id, 77230);
-  assert.equal(thiefCatalog.skillsById.get(13006).initiativeCost, 4);
+  assert.equal(thiefCatalog.skillsById.get(13006).cost.amount, 4);
 
   // Thief strike timelines stay explicit unless every hit shares one timestamp.
   for (const skill of thiefCatalog.skills) {
@@ -307,7 +307,7 @@ test('Thief catalog retains valid effect schemas and skill metadata', () => {
   assert.ok(
     thiefCatalog.skills
       .filter((skill) => skill.type === 'Weapon')
-      .every((skill) => Number.isFinite(Number(skill.initiativeCost)))
+      .every((skill) => skill.cost == null || skill.cost.resource === 'initiative')
   );
   assert.ok(
     thiefCatalog.skills
@@ -394,7 +394,7 @@ test('Thief resources use profession-specific initiative and malice pips', () =>
   const displayedInitiative = resourceDisplayViews(thiefProfession, {
     specialization: 'Core',
     professionState: {
-      [STATE.INITIATIVE]: { value: 4.9, maximum: 12, updatedAt: 0, rate: 1 }
+      [STATE.INITIATIVE]: { value: 4.9, maximum: 12, updatedAt: 0, unitsPerSecond: 1 }
     }
   })[0];
 
@@ -552,7 +552,7 @@ test('initiative regenerates at exact boundaries and ignores Alacrity', () => {
 
 test('Unload refunds 2 initiative on completion but not cancellation', () => {
   const config = { initialInitiative: 3, primaryWeapon: 'Pistol', secondaryWeapon: 'Pistol' };
-  const cost = thiefCatalog.skillsById.get(13011).initiativeCost;
+  const cost = thiefCatalog.skillsById.get(13011).cost.amount;
   // Regeneration of one initiative per second through the cast isolates the refund.
   const initiative = (result) => observedRuntime(result).resourceController.value('initiative');
   const completed = simulate('Core', ['Unload'], config);
@@ -659,7 +659,7 @@ test('weapon swap preserves shared initiative', () => {
   });
 
   assert.deepEqual(resetChain.warnings, []);
-  assert.equal(resetChain.steps.filter((step) => step.skill === 'Double Strike').length, 2);
+  assert.equal(resetChain.steps.filter((step) => step.skillName === 'Double Strike').length, 2);
 });
 
 test('a pre-commit cancellation does not advance the Thief autoattack chain', () => {
@@ -722,7 +722,7 @@ test('delayed strikes break stealth on impact without blocking a same-time steal
     config
   );
   const flare = sameTimeAttack.events.find((event) => event.type === 'damage' && event.skillName === 'Shadow Flare');
-  const deathJudgment = sameTimeAttack.steps.find((step) => step.skill === "Malicious Death's Judgment");
+  const deathJudgment = sameTimeAttack.steps.find((step) => step.skillName === "Malicious Death's Judgment");
 
   assert.deepEqual(sameTimeAttack.warnings, []);
   assert.ok(Math.abs(deathJudgment.start / 1000 - flare.at) < 1e-9);
@@ -1358,14 +1358,14 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
     selectedSkillIds: [41372]
   };
   const earlyMercy = runThief(earlyMercyRotation, earlyMercyConfig);
-  const mercyAt = earlyMercy.steps.find((step) => step.skill === 'Mercy').end / 1000;
+  const mercyAt = earlyMercy.steps.find((step) => step.skillName === 'Mercy').end / 1000;
   // Observe half a millisecond either side of the instant Mercy, removing that interval's regeneration.
   const around = [];
   runThief(earlyMercyRotation, earlyMercyConfig, {
     probes: [mercyAt - 0.0005, mercyAt + 0.0005].map((at) => [
       at,
       (runtime) =>
-        around.push([runtime.resourceController.value('initiative'), runtime.profession.core.initiative.rate])
+        around.push([runtime.resourceController.value('initiative'), runtime.profession.core.initiative.unitsPerSecond])
     ])
   });
   // Two malice stacks refund five initiative independently of the preceding regeneration wait.
@@ -1386,7 +1386,7 @@ test('Deadeye malice resolves on the first hit and malicious impact', () => {
     result.resolvedEvents.find((event) => event.skillName === "Malicious Death's Judgment" && event.type === 'damage');
   const ordinaryEvent = maliciousEvent(ordinaryShot);
   const mercyEvent = maliciousEvent(mercyShot);
-  const mercyStep = mercyShot.steps.find((step) => step.skill === 'Mercy');
+  const mercyStep = mercyShot.steps.find((step) => step.skillName === 'Mercy');
 
   // A Mercy cast during the attack cannot change the malice the attack snapshotted at its start.
   assert.ok(mercyStep.start / 1000 < mercyEvent.at);
@@ -1443,7 +1443,7 @@ test('Deadeye rifle stance rejects every inactive replacement', () => {
 
 // A fractional observation must not bypass the recovery threshold's detection tick.
 test('initiative-funded casts retain readiness across intermediate observations', () => {
-  const catalog = (live) => withSkill(live, ID.DOUBLE_STRIKE, { initiativeCost: 0.1 });
+  const catalog = (live) => withSkill(live, ID.DOUBLE_STRIKE, { cost: { resource: 'initiative', amount: 0.1 } });
   for (const waits of [[100], [50, 50]]) {
     const result = runThief(
       [...waits.map((durationMs) => ({ type: 'wait', durationMs })), 'Double Strike'],
@@ -1472,7 +1472,8 @@ test('initiative uses shared warning codes and cost-gate priority', () => {
         initialInitiative: 0
       },
       {
-        catalog: (live) => withSkill(live, ID.SNIPERS_COVER, { initiativeCost }),
+        catalog: (live) =>
+          withSkill(live, ID.SNIPERS_COVER, { cost: { resource: 'initiative', amount: initiativeCost } }),
         extend: (native) => ({
           availability(runtime, skill, command) {
             const result = native.availability(runtime, skill, command);
@@ -1495,7 +1496,7 @@ test('initiative availability includes signet grants alongside ordinary recovery
     ['Double Strike'],
     { ...baseConfig, initialInitiative: 0, selectedSkillIds: [13064] },
     {
-      catalog: (live) => withSkill(live, ID.DOUBLE_STRIKE, { initiativeCost: 11 })
+      catalog: (live) => withSkill(live, ID.DOUBLE_STRIKE, { cost: { resource: 'initiative', amount: 11 } })
     }
   );
   assert.deepEqual(result.warnings, []);

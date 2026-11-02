@@ -143,7 +143,7 @@ export function relicComparisonChartSvg(
   model: RelicComparisonModel,
   options: RelicComparisonChartOptions = {}
 ): string {
-  const opponentLabel = options.opponentLabel || relicLabel(model.opponentRelic);
+  const opponentLabel = options.opponentLabel || relicLabel(model.equippedRelic);
   const targetLabel = relicLabel(model.targetRelic);
 
   // Use the model's final DPS for each simulation's own endpoint, independent of relic damage attribution.
@@ -215,7 +215,7 @@ export function bindRelicComparisonChartHover(
   const plotPoints = comparisonPlotPoints(model);
   const startMs = plotPoints[0].tMs;
   const endMs = model.durationMs;
-  const opponentLabel = relicLabel(model.opponentRelic);
+  const opponentLabel = relicLabel(model.equippedRelic);
   const targetLabel = relicLabel(model.targetRelic);
 
   svg.onmouseleave = () => {

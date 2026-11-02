@@ -21,7 +21,7 @@ export function willbenderBuffPolicies(context: unknown): BuffStatePolicy[] {
 
 /** Observe the owning pools so consumption, replacement, and expiry agree with combat. */
 export function willbenderEffectStates(runtime: MechanicQueriesOf<GuardianRuntime>): EffectState[] {
-  const state = willbenderState.from(runtime);
+  const state = willbenderState.from(runtime.profession);
   const effects: EffectState[] = [];
   effects.push(
     timedEffectState(

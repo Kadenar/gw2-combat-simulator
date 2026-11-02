@@ -5,11 +5,11 @@
 import { CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
-export const SOULBEAST_JANTHIRI_BEE_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const SOULBEAST_JANTHIRI_BEE_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.BUMBLE]: {
     name: 'Bumble',
-    description: 'Charge at your enemy, knocking them down.',
     icon: 'https://render.guildwars2.com/file/DCA96000060D21F6E4A9600DB3D8A90CE8AB574B/3594073.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -28,7 +28,6 @@ export const SOULBEAST_JANTHIRI_BEE_BEAST_SKILL_MECHANICS: Readonly<Record<numbe
   },
   [ID.STINGING_SORROW]: {
     name: 'Stinging Sorrow',
-    description: 'Unleash a flurry of rage-filled jabs.',
     icon: 'https://render.guildwars2.com/file/7869ABC7D2937825AD34ECEEF9014801BA11EB53/3594076.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -50,4 +49,4 @@ export const SOULBEAST_JANTHIRI_BEE_BEAST_SKILL_MECHANICS: Readonly<Record<numbe
       }
     ]
   }
-});
+};

@@ -7,6 +7,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { DEADEYE_STOLEN_SKILL_ID_SET } from '#gw2/professions/thief/data/stolen-skills.js';
 import { maliceGained, maliceSpent } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
@@ -22,7 +23,7 @@ const maliceSnapshots = new WeakMap<object, Map<string, number>>();
 /** Malice is earned through marks and accepted hits, with no passive recovery. */
 export const deadeyeMalice: ResourcePolicy<ThiefRuntime> = {
   kind: 'continuous',
-  state: (runtime) => deadeyeState.from(runtime).malice,
+  state: (runtime) => deadeyeState.from(runtime.profession).malice,
   maximum: maximumDeadeyeMalice,
   initial: () => 0,
   recovery: () => 0
@@ -49,11 +50,11 @@ export function reactDeadeyeMalice(
 
   if (!skill) return;
 
-  const initiativeAttack = skill.type === 'Weapon' && (skill.initiativeCost || 0) > 0 && !skill.stealthAttack;
+  const initiativeAttack = skill.type === 'Weapon' && thiefInitiativeCost(skill) > 0 && !skill.stealthAttack;
 
   if (!skill.malicious && !initiativeAttack) return;
 
-  const state = deadeyeState.from(runtime);
+  const state = deadeyeState.from(runtime.profession);
 
   if (skill.malicious) {
     if (!claimActivation(state.deadeyeActivationClaims, 'thief.deadeye.malice-spend', event.activationId)) return;

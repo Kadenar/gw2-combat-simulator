@@ -13,7 +13,6 @@ export const profession: BoundProfession = withActivePatchPreview(rangerProfessi
 
 export const createBuildContext = bindBuildContext<RangerCanonicalBuild>(
   profession,
-  { attributeContributions: profession.attributeContributions },
   (build) => ({
     initialAstralForce: build.initialAstralForce,
     initialArrows: build.initialArrows,

@@ -2,9 +2,9 @@
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
@@ -16,10 +16,7 @@ function grantBoons(ctx: Gw2RelicContext, state: Gw2RelicState, event: Simulatio
 
   state.readyAt = event.at + 1;
   const name = 'Relic of the Midnight King';
-  ctx.effects.emit({
-    kind: 'announcement',
-    announcement: { type: 'relic', name, at: event.at, sourceSkill: event.skillName }
-  });
+  announceRelic(ctx, event, name);
   for (const { boon, duration, stacks } of [
     { boon: BOON.MIGHT, duration: 9, stacks: 3 },
     { boon: BOON.FURY, duration: 5, stacks: 1 }
@@ -32,10 +29,7 @@ function grantBoons(ctx: Gw2RelicContext, state: Gw2RelicState, event: Simulatio
         kind: boonKey(boon),
         duration,
         stacks,
-        source: 'Relic',
-        sourceId: `relic.${RELIC_IDS.MIDNIGHT_KING}`,
-        actorType: ACTOR.EFFECT,
-        ownerActorType: ACTOR.PLAYER,
+        ...playerOwnedRelicSource(RELIC_IDS.MIDNIGHT_KING),
         name: `${name} - ${boon}`,
         skillName: name,
         triggeredBy: event.skillName,

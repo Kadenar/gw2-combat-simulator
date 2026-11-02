@@ -26,7 +26,7 @@ export function emptyBuildTabSession() {
 }
 
 type BuildTabSession = Pick<ProfessionAppState, keyof ReturnType<typeof emptyBuildTabSession>> & {
-  values?: Readonly<Record<string, number>>;
+  patchPreviewValues?: Readonly<Record<string, number>>;
 };
 
 export interface BuildTab {
@@ -163,7 +163,7 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
 }
 
 /** Snapshots references owned by the outgoing tab without cloning large simulation results. */
-export function captureActiveBuildTab(app: ProfessionAppState): void {
+function captureActiveBuildTab(app: ProfessionAppState): void {
   const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
 
   if (!tab) return;
@@ -173,7 +173,7 @@ export function captureActiveBuildTab(app: ProfessionAppState): void {
   tab.session = Object.fromEntries(
     Object.keys(emptyBuildTabSession()).map((key) => [key, app[key as keyof ReturnType<typeof emptyBuildTabSession>]])
   ) as unknown as BuildTabSession;
-  tab.session.values = app.patch.values;
+  tab.session.patchPreviewValues = app.patch.values;
   tab.resultsFresh =
     app.results !== null && app.resultRevision === app.buildRevision && app.simulationStatus === 'idle';
 }

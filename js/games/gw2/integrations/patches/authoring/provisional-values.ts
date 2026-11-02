@@ -53,7 +53,8 @@ export function provisionalValue(catalog: Readonly<CanonicalCatalog>, parameter:
   if (parameter.effect && effects.length !== 1)
     throw new TypeError(`Provisional value ${parameter.id} must select one effect.`);
 
-  const value = (parameter.effect ? effects[0] : profile)[parameter.field as keyof typeof profile];
+  const owner = (parameter.effect ? effects[0] : profile) as unknown as Readonly<Record<string, unknown>>;
+  const value = owner[parameter.field];
 
   if (typeof value !== 'number' || !Number.isFinite(value))
     throw new TypeError(`Provisional value ${parameter.id} requires a numeric field.`);

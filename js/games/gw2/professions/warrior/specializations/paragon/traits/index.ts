@@ -1,6 +1,6 @@
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
@@ -114,7 +114,7 @@ const callToAction = defineTrait({
   triggers: [
     onTriggerPoint(paragonCombatStarted, {
       run(runtime) {
-        const state = paragonState.from(runtime);
+        const state = paragonState.from(runtime.profession);
 
         if (state.callToActionActivated) return;
 
@@ -134,7 +134,7 @@ const callToAction = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-const rallyTheValiant = defineTrait({
+const rallyTheValiant = defineTrait<WarriorSkill>({
   id: TRAIT.RALLY_THE_VALIANT,
   // The intrinsic trait owns Motivation capacity, tier thresholds, and refrain cadence.
   balance: { resourceGain: 4, maximumStacks: 10, minimumStacks: 4, threshold: 7, pulseInterval: 3 },
@@ -142,13 +142,13 @@ const rallyTheValiant = defineTrait({
     {
       on: 'castStart',
       run(runtime, cast) {
-        if (cast.cancelled) return;
+        if (cast.cancelledBeforeCommit) return;
 
         // Trait dispatch admits selection; a non-chant burst rewards motivation only while a refrain is active.
         if (
           cast.skill.burst &&
           cast.skill.skillFamily !== 'Chant' &&
-          paragonState.from(runtime).activeRefrainId != null
+          paragonState.from(runtime.profession).activeRefrainId != null
         )
           runtime.resourceController.grant(
             'motivation',

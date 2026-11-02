@@ -36,7 +36,7 @@ interface SpiritAuto {
 
 /** Removing a spirit cancels its pending attacks and wakes; already created fields retain their own lifetime. */
 function clearSpirits(runtime: NecromancerRuntime): void {
-  const state = ritualistState.from(runtime);
+  const state = ritualistState.from(runtime.profession);
   for (const key of Object.keys(state.activeSpirits)) {
     runtime.cancelOwner(owner(key, state.activeSpirits[key].generation));
     runtime.cancelOwner(ritualistSpiritActionOwner(runtime, key));
@@ -48,13 +48,13 @@ function clearSpirits(runtime: NecromancerRuntime): void {
 
 /** Attack cancellation is independent of both damage attribution and the recurring spirit clock. */
 export function ritualistSpiritActionOwner(runtime: NecromancerRuntime, key: string) {
-  const actor = ritualistState.from(runtime).activeSpirits[key];
+  const actor = ritualistState.from(runtime.profession).activeSpirits[key];
   return { id: `spirit-action:${key}:${actor.generation}`, generation: actor.actionGeneration };
 }
 
 /** A replacement action cancels unfinished work without changing the creature or its next clock opportunity. */
 export function beginRitualistSpiritAction(runtime: NecromancerRuntime, key: string, duration: number): void {
-  const actor = ritualistState.from(runtime).activeSpirits[key];
+  const actor = ritualistState.from(runtime.profession).activeSpirits[key];
   runtime.cancelOwner(ritualistSpiritActionOwner(runtime, key));
   actor.actionGeneration++;
   actor.busyUntil = canonicalTime(runtime.time + duration);
@@ -63,7 +63,7 @@ export function beginRitualistSpiritAction(runtime: NecromancerRuntime, key: str
 /** Each spirit joins the same clock, skipping busy opportunities without delaying future attack starts. */
 function auto(runtime: NecromancerRuntime, data: unknown): void {
   const work = data as SpiritAuto;
-  const state = ritualistState.from(runtime);
+  const state = ritualistState.from(runtime.profession);
 
   if (
     !state.activeSpirits[work.key] ||
@@ -115,7 +115,7 @@ export function summonRitualistSpirit(
   cast: RuntimeCast<NecromancerSkill>,
   spirit: SpiritDefinition
 ): void {
-  const state = ritualistState.from(runtime);
+  const state = ritualistState.from(runtime.profession);
   const key = spirit.key;
   const previous = state.activeSpirits[key];
 
@@ -146,7 +146,7 @@ export function summonRitualistSpirit(
 export function startRitualistSpirits(runtime: NecromancerRuntime): void {
   if (!autonomousActionsAllowed(runtime)) return;
 
-  const state = ritualistState.from(runtime);
+  const state = ritualistState.from(runtime.profession);
   for (const [key, actor] of Object.entries(state.activeSpirits)) {
     if (actor.started) continue;
 
@@ -183,7 +183,7 @@ export function initializeRitualistSpiritLifecycle(runtime: NecromancerRuntime):
     onEnter(skill) {
       if (skill.shroudEntry !== 'ritualist') return;
 
-      const state = ritualistState.from(runtime);
+      const state = ritualistState.from(runtime.profession);
 
       state.spiritAutoAnchorAt = runtime.time;
       for (const [key, actor] of Object.entries(state.activeSpirits)) {

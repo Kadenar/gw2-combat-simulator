@@ -21,12 +21,12 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 const combat = { type: 'combat-start' };
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const cause = (at, fields = {}) => ({
   at,
   source: 'Fixture',
@@ -170,7 +170,7 @@ test('Evoker admitted enchantments retain independent charge expiry under isolat
   );
   assert.ok(rewards(result, 'elementalist.electric-enchantment').some((event) => event.type === 'damage'));
   assert.equal(
-    evokerState.from(runtime).electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
+    evokerState.from(runtime.profession).electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
     0
   );
 });

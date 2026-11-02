@@ -7,6 +7,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { cast, wait } from '#tests/helpers/commands.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
@@ -16,8 +17,6 @@ const base = {
   attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, vitality: 1000 }),
   target: { armor: 2597, health: 0, conditions: {} }
 };
-const cast = (skillId) => ({ type: 'cast', skillId });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const run = (rotation, config = base, extra = {}) =>
   observeGw2Runtime({ profession: necromancerProfession.runtimeFor(config), config, rotation, ...extra });
 const state = (result) => observedRuntime(result).profession.specialization.state;
@@ -90,11 +89,11 @@ test('shade skills consume Core life force once and never enter a draining shrou
     const config = { ...base, selectedTraitIds: skillId === ID.SANDSTORM_SHROUD ? [TRAIT.HERALD_OF_SORROW] : [] };
     const result = run([cast(skillId)], config);
     const core = result.planningState.profession;
-    const rawCost = necromancerProfession.runtimeFor(config).catalog.skillsById.get(skillId).lifeForceCost;
+    const rawCost = necromancerProfession.runtimeFor(config).catalog.skillsById.get(skillId).cost.amount;
     assert.deepEqual(result.warnings, []);
     assert.equal(core[STATE.LIFE_FORCE].value, core[STATE.LIFE_FORCE].maximum - rawCost);
     assert.equal(core[STATE.ACTIVE_SHROUD], '');
-    assert.equal(core[STATE.LIFE_FORCE].rate, 0);
+    assert.equal(core[STATE.LIFE_FORCE].unitsPerSecond, 0);
   }
 });
 
@@ -111,7 +110,9 @@ test('selected shade costs use vitality and Soul Battery in shared admission and
       for (const lifeForceCost of [0, 3000, 6000]) {
         const profession = {
           ...native,
-          catalog: withSkill(native.catalog, ID.DESERT_SHROUD, { lifeForceCost })
+          catalog: withSkill(native.catalog, ID.DESERT_SHROUD, {
+            cost: { resource: 'lifeForce', amount: lifeForceCost }
+          })
         };
         const maximum = (9212 + vitality * 1.05 * 10) * 0.69 * (battery ? 1.2 : 1);
         const cost = (lifeForceCost * 100) / maximum;

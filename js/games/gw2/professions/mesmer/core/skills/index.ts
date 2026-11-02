@@ -1,11 +1,13 @@
-import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 /**
  * Composes owner-local Core Mesmer skill catalogs without owning behavior.
  * Runtime execution lives in sibling controller files and persistent illusion state lives under `mechanics/`.
  */
+import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
+import { MESMER_CORE_EXTRA_SKILLS } from '#gw2/professions/mesmer/core/skills/actions.js';
 import { MESMER_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SLOT_SKILLS_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/slot-skills.js';
+import { MESMER_CORE_TRAIT_SKILLS } from '#gw2/professions/mesmer/core/skills/trait-skills.js';
 import { MESMER_WEAPONS_AXE_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
 import { MESMER_WEAPONS_DAGGER_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/weapons/dagger.js';
 import { MESMER_WEAPONS_FOCUS_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/weapons/focus.js';
@@ -20,23 +22,22 @@ import { MESMER_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/mesmer/co
 import { MESMER_WEAPONS_TORCH_SKILL_MECHANICS } from '#gw2/professions/mesmer/core/skills/weapons/torch.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
-export const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinition<MesmerSkill>>> =
-  composeSkillDefinitions(
-    MESMER_PROFESSION_SKILLS_SKILL_MECHANICS,
-    MESMER_SLOT_SKILLS_SKILL_MECHANICS,
-    MESMER_WEAPONS_AXE_SKILL_MECHANICS,
-    MESMER_WEAPONS_DAGGER_SKILL_MECHANICS,
-    MESMER_WEAPONS_FOCUS_SKILL_MECHANICS,
-    MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS,
-    MESMER_WEAPONS_PISTOL_SKILL_MECHANICS,
-    MESMER_WEAPONS_RIFLE_SKILL_MECHANICS,
-    MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS,
-    MESMER_WEAPONS_SHIELD_SKILL_MECHANICS,
-    MESMER_WEAPONS_SPEAR_SKILL_MECHANICS,
-    MESMER_WEAPONS_STAFF_SKILL_MECHANICS,
-    MESMER_WEAPONS_SWORD_SKILL_MECHANICS,
-    MESMER_WEAPONS_TORCH_SKILL_MECHANICS
-  );
+const MESMER_CORE_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinition<MesmerSkill>>> = composeSkillDefinitions(
+  MESMER_PROFESSION_SKILLS_SKILL_MECHANICS,
+  MESMER_SLOT_SKILLS_SKILL_MECHANICS,
+  MESMER_WEAPONS_AXE_SKILL_MECHANICS,
+  MESMER_WEAPONS_DAGGER_SKILL_MECHANICS,
+  MESMER_WEAPONS_FOCUS_SKILL_MECHANICS,
+  MESMER_WEAPONS_GREATSWORD_SKILL_MECHANICS,
+  MESMER_WEAPONS_PISTOL_SKILL_MECHANICS,
+  MESMER_WEAPONS_RIFLE_SKILL_MECHANICS,
+  MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS,
+  MESMER_WEAPONS_SHIELD_SKILL_MECHANICS,
+  MESMER_WEAPONS_SPEAR_SKILL_MECHANICS,
+  MESMER_WEAPONS_STAFF_SKILL_MECHANICS,
+  MESMER_WEAPONS_SWORD_SKILL_MECHANICS,
+  MESMER_WEAPONS_TORCH_SKILL_MECHANICS
+);
 
 // Tooltips and runtime share the timelines authored by each summoning skill.
 export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, NonNullable<MesmerSkill['phantasmTiming']>>> =
@@ -45,3 +46,10 @@ export const MESMER_CORE_PHANTASM_ATTACK_TIMINGS: Readonly<Record<number, NonNul
       skill.phantasmTiming ? [[Number(id), skill.phantasmTiming]] : []
     )
   );
+
+/** One complete module collection includes authored skills, generated attacks, and simulator actions. */
+export const MESMER_CORE_SKILLS = Object.freeze([
+  ...materializeSkillDefinitions(MESMER_CORE_SKILL_MECHANICS),
+  ...MESMER_CORE_EXTRA_SKILLS,
+  ...MESMER_CORE_TRAIT_SKILLS
+]);

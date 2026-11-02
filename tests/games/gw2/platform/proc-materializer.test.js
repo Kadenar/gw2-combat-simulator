@@ -255,7 +255,7 @@ test('missed attacks leave consecutive swaps out of combat', () => {
     });
     assert.deepEqual(result.warnings, []);
     assert.deepEqual(
-      result.steps.filter((step) => step.skill === 'Swap Weapons').map((step) => step.start),
+      result.steps.filter((step) => step.skillName === 'Swap Weapons').map((step) => step.start),
       offTarget ? [1000, 1000] : [1000, 11000]
     );
 

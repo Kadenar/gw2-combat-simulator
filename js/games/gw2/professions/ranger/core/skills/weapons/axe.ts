@@ -12,10 +12,9 @@ const WHIRLING_DEFENSE_TICK_OFFSETS_MS = [200, 360, 600, 840, 1040, 1280, 1520, 
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
-export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.RICOCHET]: {
     name: 'Ricochet',
-    description: 'Bounce your axe between multiple foes, gaining might for each enemy struck.',
     icon: 'https://render.guildwars2.com/file/C3C004026BC93EEF532665099638063E541995A4/103288.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -25,6 +24,8 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 600,
     interruptCommitMs: 320,
+    // Committed throws retain recovery even when their animation is interrupted.
+    retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
@@ -48,14 +49,13 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.SPLITBLADE]: {
     name: 'Splitblade',
-    description: 'Throw a spread pattern of five whirling axes that bleeds foes.',
     icon: 'https://render.guildwars2.com/file/9D661C490109C13717F95520EF6ED7BB16BE99E3/103986.png',
     type: 'Weapon',
     weapon: 'Axe',
     slot: 'Weapon_2',
     cooldown: 6,
-    // Match the observed median Quickness animation, rounded to the 40 ms action tick.
-    castTimeMs: 560,
+    castTimeMs: 600,
+    // The throw commits before recovery, but interrupting it retains the remaining cast lockout.
     interruptCommitMs: 480,
     retainsCastLockoutAfterInterrupt: true,
     effects: impactEffects({ atMs: 480, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -82,7 +82,6 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.WINTERS_BITE]: {
     name: "Winter's Bite",
-    description: "Throw an axe to chill the area around your foe. Your pet's next attack inflicts weakness.",
     icon: 'https://render.guildwars2.com/file/1D6462C04F2B4EB601C8EAF8B80C23046E544AEB/103992.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -125,7 +124,6 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.PATH_OF_SCARS]: {
     name: 'Path of Scars',
-    description: 'Throw your axe so that it returns to you, striking foes each way.',
     icon: 'https://render.guildwars2.com/file/B5B27723701C39327D2145DEE76579FB007F9344/103903.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -142,8 +140,8 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
         projectile: true,
         ticks: [
           { atMs: 400, coefficient: 1.2 },
-          // Use the short return window for normal, close-range throws.
-          { atMs: 480, coefficient: 1.2 }
+          // Approximate shorter throws with the observed 880 ms return window.
+          { atMs: 880, coefficient: 1.2 }
         ],
         comboFinishers: [
           {
@@ -155,14 +153,13 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
       {
         type: 'control',
         // Pull and Claw activation belong to the returning contact.
-        atMs: 480,
+        atMs: 880,
         controlKind: CONTROL.PULL
       }
     ])
   },
   [ID.WHIRLING_DEFENSE]: {
     name: 'Whirling Defense',
-    description: 'Spin your axes around you to attack nearby foes.',
     icon: 'https://render.guildwars2.com/file/3D24774AAFBEFF40016ED8B451A245D95A2D08E3/103147.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -199,13 +196,12 @@ export const RANGER_CORE_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
       }
     ]
   }
-});
+};
 
 /** Owns the max-range Path of Scars identity beside the canonical Axe definition. */
-export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = [
   {
     name: 'Path of Scars (Max Range)',
-    description: 'Throw your axe from maximum range so its returning strike lands later.',
     icon: 'https://render.guildwars2.com/file/B5B27723701C39327D2145DEE76579FB007F9344/103903.png',
     id: ID.PATH_OF_SCARS_MAX_RANGE,
     variantBadge: 'MAX',
@@ -227,8 +223,8 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         damageBreakdownName: 'Path of Scars',
         ticks: [
           { atMs: 400, coefficient: 1.2 },
-          // Maximum range uses the long return window; the pull waits for this contact.
-          { atMs: 1920, coefficient: 1.2 }
+          // Approximate longer throws with the observed 1,640 ms return window.
+          { atMs: 1640, coefficient: 1.2 }
         ],
         comboFinishers: [
           {
@@ -240,12 +236,12 @@ export const RANGER_CORE_AXE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
       {
         type: 'control',
         // Keep the pull on the return contact, including when the player has already swapped weapons.
-        atMs: 1920,
+        atMs: 1640,
         controlKind: CONTROL.PULL
       }
     ])
   }
-]);
+];
 
 /** Both throw distances keep the source's live recharge even when the attempt is interrupted. */
 function synchronizePathOfScarsRecharge(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {

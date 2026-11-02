@@ -23,7 +23,7 @@ const FORGED_SURFER_OWNER = Object.freeze({ id: FORGED_SURFER, generation: 0 });
 export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
   const { skillId, occurrence } = data as { skillId: SkillId; occurrence: number };
 
-  if (occurrence > 0 && runtime.time > antiquaryState.from(runtime).forgedSurferBombDropUntil) return;
+  if (occurrence > 0 && runtime.time > antiquaryState.from(runtime.profession).forgedSurferBombDropUntil) return;
 
   const profile = requireSkillFromContext(runtime, ID.FORGED_SURFER_DASH);
   // Dash and bomb identities survive deletion of either strike or condition.
@@ -64,7 +64,7 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
   // A duration-driven sequence must advance its clock even when authoring a patched skill.
   if (nextAt <= runtime.time) throw new RangeError('Forged Surfer bomb interval must advance time.');
 
-  if (nextAt <= canonicalTime(antiquaryState.from(runtime).forgedSurferBombDropUntil))
+  if (nextAt <= canonicalTime(antiquaryState.from(runtime.profession).forgedSurferBombDropUntil))
     runtime.schedule(FORGED_SURFER, nextAt, { skillId, occurrence: occurrence + 1 }, FORGED_SURFER_OWNER);
 }
 

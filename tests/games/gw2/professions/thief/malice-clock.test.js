@@ -28,7 +28,7 @@ test('malice initializes once with selected capacity and projects a detached clo
   const projected = result.planningState.profession;
   assert.equal(state.malice.maximum, 9);
   assert.equal(state.malice.value, 0);
-  assert.equal(state.malice.rate, 0);
+  assert.equal(state.malice.unitsPerSecond, 0);
   assert.equal(Object.hasOwn(state, 'maximumMalice'), false);
   assert.equal(Object.hasOwn(projected, 'maximumMalice'), false);
   assert.notEqual(projected[STATE.MALICE], state.malice);

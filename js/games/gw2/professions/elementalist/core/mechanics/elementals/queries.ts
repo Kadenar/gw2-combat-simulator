@@ -81,7 +81,7 @@ export function activeElemental(
   summonGeneration: number,
   at: number
 ): boolean {
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
   return (
     (elemental.element === 'Fire' || elemental.element === 'Earth') &&
     elemental.summonGeneration === summonGeneration &&
@@ -98,7 +98,7 @@ export function elementalistElementalAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,
   skill: Skill
 ): AvailabilityResult | null {
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
 
   if (skill.id === FLAME_BARRAGE_ID) {
     const active = elemental.element === 'Fire' && elemental.activeUntil > context.time;

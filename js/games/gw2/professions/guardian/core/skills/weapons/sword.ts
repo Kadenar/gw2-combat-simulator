@@ -3,10 +3,9 @@ import { BOON, COMBO_FIELD, CONDITION, RECIPIENT } from '#gw2/platform/constants
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
-export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.SWORD_OF_WRATH]: {
     name: 'Sword of Wrath',
-    description: 'Chain. Slash your foe once.',
     icon: 'https://render.guildwars2.com/file/29742A41232437EE7C7025E65CA21509040621AF/103646.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -30,7 +29,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SWORD_ARC]: {
     name: 'Sword Arc',
-    description: 'Chain. Slash your foe again.',
     icon: 'https://render.guildwars2.com/file/C3446A6CD8E81B1A4B3E945DED582AD506ABEDC9/103647.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -53,7 +51,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SWORD_WAVE]: {
     name: 'Sword Wave',
-    description: 'Send out waves of attacks that strike multiple targets.',
     icon: 'https://render.guildwars2.com/file/EE60D5DCE54CEF6108417BD7AF5758806D2A4066/103705.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -76,8 +73,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SYMBOL_OF_BLADES]: {
     name: 'Symbol of Blades',
-    description:
-      'Symbol. Teleport to your target, and blind nearby foes. Create a symbol at your feet that damages nearby enemies and benefits allies.',
     icon: 'https://render.guildwars2.com/file/E7F5FFA84F0AE4EA0EC5AE54FA365C09925551A0/103641.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -123,7 +118,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.ZEALOTS_DEFENSE]: {
     name: "Zealot's Defense",
-    description: 'Block ranged attacks while casting magical projectiles.',
     icon: 'https://render.guildwars2.com/file/C0ED0D01EA4116136DCBE4925B1C2B92A209B221/103648.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -143,8 +137,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.EXECUTIONERS_CALLING]: {
     name: "Executioner's Calling",
-    description:
-      'Strike your foe with rending force. Follow up this attack with a dual strike that deals increased damage against foes you struck with the first.',
     icon: 'https://render.guildwars2.com/file/ECB53EFD2308DAB756D8CC6EA852B9C4E4BFE16A/2479371.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -176,8 +168,6 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.ADVANCING_STRIKE]: {
     name: 'Advancing Strike',
-    description:
-      'Quickly dash toward your foe and then shadowstep to deliver a debilitating attack that immobilizes your enemies.',
     icon: 'https://render.guildwars2.com/file/C6C4F63B3BE6D7CB0163F25E5A51029023F7B492/2479372.png',
     type: 'Weapon',
     weapon: 'Sword',
@@ -202,4 +192,4 @@ export const GUARDIAN_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   }
-});
+};

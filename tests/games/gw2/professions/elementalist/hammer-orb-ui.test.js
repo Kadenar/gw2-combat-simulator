@@ -31,7 +31,7 @@ function createHammerApp(hammerOrbs) {
         availability: {},
         activeWeaponSet: 1,
         atSeconds: 0,
-        cooldowns: {},
+        cooldownsBySkillId: {},
         // Orb state changes independently of the canonical ammo projection.
         ammoBySkillId: {},
         profession: {

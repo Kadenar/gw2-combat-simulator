@@ -1,4 +1,4 @@
-import { dataField, defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
+import { defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
 
 /** Revenant energy, upkeep, and legend fields read only by Revenant mechanics. */
 export const REVENANT_CORE_SKILL_FIELDS = defineFields(
@@ -6,8 +6,6 @@ export const REVENANT_CORE_SKILL_FIELDS = defineFields(
     // Alternate activation cost and recharge while Conduit's Mesmer form is active.
     mesmerEnergyCost: numberField({ patch: 'advanced' }),
     mesmerRecharge: numberField({ unit: 'seconds', patch: 'advanced' }),
-    // Legend that owns this skill.
-    legendId: dataField,
     // Energy spent when the skill activates.
     energyCost: numberField({ label: 'energy cost', patch: 'primary' }),
     // Energy drained per second while the upkeep is active.

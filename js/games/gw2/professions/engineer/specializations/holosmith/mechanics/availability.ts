@@ -18,7 +18,7 @@ export function holosmithCastAvailability(
     return denyEngineerCast(skill, 'engineer.holosmith-sword-replaced', 'Holosmith replaces this sword skill.');
   }
 
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
 
   // The explicit Forge exit owns its cooldown and state changes; swapping cannot bypass it during preparation.
   if (skill.inputCategory === 'weapon-swap' && state.photonForgeActive)

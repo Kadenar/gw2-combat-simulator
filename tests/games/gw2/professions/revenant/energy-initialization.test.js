@@ -24,7 +24,7 @@ test('constructed and initialized energy agree on fixed base recovery', () => {
     const expected = {
       value,
       maximum: REVENANT_MAXIMUM_ENERGY,
-      rate: 5,
+      unitsPerSecond: 5,
       recoveryMaximum: REVENANT_PRECOMBAT_ENERGY_CEILING
     };
     assert.deepEqual(constructed, expected, String(initialEnergy));

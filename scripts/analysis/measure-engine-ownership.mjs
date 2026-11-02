@@ -54,7 +54,7 @@ const definitions = [
       'Glaring Burst'
     ],
     verify(result) {
-      const details = result.steps.filter((step) => step.skill === 'Glaring Burst').map((step) => step.detail);
+      const details = result.steps.filter((step) => step.skillName === 'Glaring Burst').map((step) => step.detail);
 
       if (details.join('|') !== 'Variant: Sword (fast)|Variant: Sword (slow)|Variant: Staff')
         throw new Error('Luminary fixture must exercise variant selection.');

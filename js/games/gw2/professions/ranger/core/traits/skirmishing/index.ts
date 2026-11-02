@@ -474,7 +474,7 @@ function weaponSwapBoon(
 
 /** Own the selected reward at the committed weapon-swap boundary. */
 function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const inCombat = context.engagement.startTime != null && at >= context.engagement.startTime;
 
   if (inCombat && context.procs.claim(TRAIT.QUICK_DRAW, 'ranger.core.quickDraw', at)) {
@@ -502,7 +502,7 @@ function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): 
 
 /** Apply Trapper's Expertise once per trap activation when its damage resolves. */
 function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const skill = skillForEvent(context.helpers, event);
 
   if (skill?.skillFamily === 'Trap' && event.activationId) {

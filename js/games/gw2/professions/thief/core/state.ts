@@ -1,4 +1,3 @@
-import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { ChargeGrant, ChargePool } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
@@ -72,11 +71,6 @@ export interface ThiefCoreState extends StealthState {
   scepterChainExpiresAt: number | null;
 }
 
-export function selectedThiefTraits(config: ThiefConfig = {}): Set<string | number> {
-  // State initialization normalizes the canonical trait-ID selection once.
-  return normalizeSelectedTraitIds(config.selectedTraitIds);
-}
-
 // Initialize bounded initiative and endurance plus complete stealth, venom,
 // preparation, weapon-chain, stolen-skill, and trait bookkeeping.
 export function createThiefCoreState(
@@ -92,7 +86,7 @@ export function createThiefCoreState(
     initiative: {
       ...createResourceClock(thiefStartingInitiative(config, maximumInitiative)),
       maximum: maximumInitiative,
-      rate: thiefInitiativeRegenerationRate({ kneeling: false }, context)
+      unitsPerSecond: thiefInitiativeRegenerationRate({ kneeling: false }, context)
     },
     ...createStealthState(),
     hiddenKillerUntil: 0,
@@ -126,10 +120,10 @@ export function createThiefCoreState(
   };
 }
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
 export function projectThiefCorePlanningState(input: Gw2PlanningStateInput) {
   const state = (input.profession as { core: ReturnType<typeof createThiefCoreState> }).core;
-  return structuredClone({
+  return {
     [STATE.INITIATIVE]: state.initiative,
     [STATE.STEALTH_STARTED_AT]: state.stealthStartedAt,
     [STATE.STEALTH_UNTIL]: state.stealthUntil,
@@ -147,5 +141,5 @@ export function projectThiefCorePlanningState(input: Gw2PlanningStateInput) {
     [STATE.ACTIVE_THIEVES_GUILD]: state.activeThievesGuild,
     [STATE.AVAILABLE_FLIPS]: state.availableFlips,
     [STATE.AUTOATTACK_CHAINS]: state.autoattackChains
-  });
+  };
 }

@@ -1,3 +1,4 @@
+/** Preparations expose arming availability, activation, and placement restoration through the palette. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

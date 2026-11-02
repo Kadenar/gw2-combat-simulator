@@ -9,31 +9,23 @@ import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balan
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // EVTC-measured Quickness timings keep spear casts aligned with their observed cast-lane occupancy.
 // Packet offsets are rounded independently to the nearest 40 ms tick to avoid cumulative spacing drift.
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSkill>>> = {
   [ID.ASHEN_ASSAULT]: {
     name: 'Ashen Assault',
-    description:
-      'Stealth Attack. Attack foes in front of you with a series of strikes, inflicting damaging conditions. The final strike makes them vulnerable. If this skill follows a Finisher skill, it grants initiative.',
     icon: 'https://render.guildwars2.com/file/07F4055E57F1E82EE1BFBAA11AE1F59145070617/3379197.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_1',
-
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     initiativeRefund: 4,
     preservesStealth: true,
     spearStealthAttack: true,
     cooldown: 0,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.SPEAR,
     stealthAttack: true,
     castTimeMs: 1200,
@@ -87,20 +79,13 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.BARBED_SPEAR]: {
     name: 'Barbed Spear',
-    description: 'Swing your spear. If your enemy is far away, throw your spear instead.',
     icon: 'https://render.guildwars2.com/file/3A5C3F7697DAE8C90B450B92323937A396EDC4EC/3379188.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_1',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
-    initiativeCost: 0,
     // Preserve the measured repeat cadence for the spear autoattack.
     castTimeMs: 560,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -122,22 +107,15 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.MANTIS_STING]: {
     name: 'Mantis Sting',
-    description:
-      'Lead Attack. Cripple your foe with a quick strike.\nStriking an enemy with a lead attack enables follow-up attacks.',
     icon: 'https://render.guildwars2.com/file/195C9FD6753501224702FE4EA7480E2CD7437B29/3379189.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_2',
     weaponBarChainRootId: 73041,
     weaponBarChainStep: 1,
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 3 },
 
     cooldown: 0,
-    initiativeCost: 3,
     castTimeMs: 400,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
@@ -167,22 +145,15 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.ENTANGLING_ASP]: {
     name: 'Entangling Asp',
-    description:
-      'Follow Up. Poison your foe with a sweeping strike. Movement-impaired foes are immobilized.\nStriking an enemy with a follow-up attack enables finisher attacks.',
     icon: 'https://render.guildwars2.com/file/0A5EE17BC8F00A9F10349C72C4D5B7366C37FF04/3379190.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_2',
     weaponBarChainRootId: 73041,
     weaponBarChainStep: 2,
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 2 },
 
     cooldown: 0,
-    initiativeCost: 2,
     castTimeMs: 520,
     // The attack launches before impact; a queued finisher must retain the launched strike and chain advancement.
     interruptCommitMs: 360,
@@ -217,14 +188,8 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.FALLING_SPIDER]: {
     name: 'Falling Spider',
-    description:
-      'Finisher. Strike nearby enemies, inflicting multiple conditions. Deal more damage and inflict additional conditions against controlled and immobilized foes.',
     icon: 'https://render.guildwars2.com/file/BEA5D1B8D1BC0F97690CE57CD03DADB9DA7F4004/3379191.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 1 },
 
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -235,7 +200,6 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
     empoweredDamageMultiplier: 1.15,
     empoweredConditionStacks: 1,
     cooldown: 0,
-    initiativeCost: 1,
     castTimeMs: 600,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
@@ -308,22 +272,15 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.UNSUSPECTING_STRIKE]: {
     name: 'Unsuspecting Strike',
-    description:
-      'Lead Attack. Leap at your foe and inflict conditions. Inflict additional stacks against foes above the health threshold.\nStriking an enemy with a lead attack enables follow-up attacks.',
     icon: 'https://render.guildwars2.com/file/805A252809DD3DA83ECACC630803A21B904158AA/3379192.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_3',
     weaponBarChainRootId: 72986,
     weaponBarChainStep: 1,
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 3 },
 
     cooldown: 0,
-    initiativeCost: 3,
     castTimeMs: 680,
     effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       {
@@ -351,7 +308,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
             packets: 'each',
             // Both fixed preview health and simulated health use the same strict upper-health gate.
             when: (runtime) => (runtime.combat.remainingTargetHealthFraction() ?? 1) > 0.9,
-            do: { type: 'thief.unsuspecting-bleeding' }
+            do: [{ type: 'thief.unsuspecting-bleeding' }]
           }
         ],
         stacks: 1,
@@ -364,22 +321,15 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.VAMPIRIC_SLASH]: {
     name: 'Vampiric Slash',
-    description:
-      'Follow Up. Strike your foes and siphon health from them. Siphon additional health from vulnerable foes.\nStriking an enemy with a follow-up attack enables finisher attacks.',
     icon: 'https://render.guildwars2.com/file/60071334EC9B38397C03A5290B372D6FF3E831B0/3379193.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_3',
     weaponBarChainRootId: 72986,
     weaponBarChainStep: 2,
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 1 },
 
     cooldown: 0,
-    initiativeCost: 1,
     // The measured follow-up includes its siphon animation before the next chain input.
     castTimeMs: 440,
     // The strike and siphon resolve before the final animation tail.
@@ -423,14 +373,8 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.SHATTERING_ASSAULT]: {
     name: 'Shattering Assault',
-    description:
-      'Finisher. Strike foes in front of you and remove boons from them, then enter stealth. Remove additional boons from weakened foes.',
     icon: 'https://render.guildwars2.com/file/68E71F96676504BED138AA0F3238D33B1408F3F9/3379194.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 1 },
 
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -438,7 +382,6 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
     weaponBarChainRootId: 72986,
     weaponBarChainStep: 3,
     cooldown: 0,
-    initiativeCost: 1,
     castTimeMs: 640,
     effects: [
       {
@@ -464,22 +407,15 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.DISTRACTING_THROW]: {
     name: 'Distracting Throw',
-    description:
-      'Throw a spear that inflicts conditions on your target. If this strikes a movement-impaired foe, it also inflicts daze. If this skill follows a Finisher skill, it counts as a lead attack and grants a bonus to outgoing damage for a duration.',
     icon: 'https://render.guildwars2.com/file/D778C3EF460E2F960DA2153F7A3326C13DAD18E7/3379195.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_4',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 2 },
 
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
     duration: 10,
     cooldown: 0,
-    initiativeCost: 2,
     castTimeMs: 360,
     effects: [
       ...impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
@@ -516,25 +452,18 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.SHADOW_VEIL]: {
     name: 'Shadow Veil',
-    description:
-      'Block the next incoming attack. If you block an attack, heal yourself. If this skill follows a Finisher skill, it blocks additional attacks.',
     icon: 'https://render.guildwars2.com/file/97B9B5EC330C0780DB7DE0AA0FE4B0713F3F92D2/3379196.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_5',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 3 },
 
     cooldown: 0,
-    initiativeCost: 3,
     // The defensive stance releases the input lane immediately after activation.
     castTimeMs: 80,
     effects: []
   }
-});
+};
 
 /** The spear finisher grants a timed damage bonus to player-owned packets. */
 export const distractingThrowModifiers = Object.freeze<readonly Gw2ModifierRule[]>([

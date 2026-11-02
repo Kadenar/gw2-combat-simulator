@@ -9,6 +9,7 @@ import { necromancerProfession } from '#gw2/professions/necromancer/profession.j
 import { anguishConditionModifier } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
 import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { cast, wait } from '#tests/helpers/commands.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
@@ -18,8 +19,6 @@ const base = {
   attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, vitality: 1000 }),
   target: { armor: 2597, health: 0, conditions: {} }
 };
-const cast = (skillId) => ({ type: 'cast', skillId });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const state = (result) => observedRuntime(result).profession.specialization.state;
 
 // Ownership selects Anguish even when Summon Spirits supplies the skill identity; Innervate remains excluded.
@@ -414,13 +413,13 @@ test('exit cancels spirit attacks while Lingering preserves creatures until depl
   const living = run(rotation.slice(0, 3), { config });
   assert.deepEqual(Object.keys(state(living).activeSpirits), ['anguish']);
   assert.equal(
-    living.planningState.profession[STATE.LIFE_FORCE].rate,
+    living.planningState.profession[STATE.LIFE_FORCE].unitsPerSecond,
     (-living.planningState.profession[STATE.LIFE_FORCE].maximum * 3) / 100
   );
   const depleted = run([...rotation, cast(ID.INNERVATE_ANGUISH)], { config });
   assert.deepEqual(state(depleted).activeSpirits, {});
   assert.equal(lifeForcePercent(depleted.planningState.profession[STATE.LIFE_FORCE]), 0);
-  assert.equal(depleted.planningState.profession[STATE.LIFE_FORCE].rate, 0);
+  assert.equal(depleted.planningState.profession[STATE.LIFE_FORCE].unitsPerSecond, 0);
   assert.equal(depleted.steps.at(-1).invalid, true);
 });
 

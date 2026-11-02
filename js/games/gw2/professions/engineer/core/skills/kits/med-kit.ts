@@ -2,12 +2,12 @@
 import { BOON, COMBO_FIELD, COMBO_FINISHER, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Med Kit. */
-export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition>> = Object.freeze({
+export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<EngineerSkill>>> = {
   [ID.MED_KIT]: {
     name: 'Med Kit',
-    description: 'Engineering Kit. Equip a kit that replaces your weapon with healing skills.',
     icon: 'https://render.guildwars2.com/file/206FCC2A05035FDB306AB5136E5F3AC0FC6467F3/103395.png',
     type: 'Heal',
     slot: 'Heal',
@@ -23,7 +23,6 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefi
   },
   [ID.STOW_MED_KIT]: {
     name: 'Stow Med Kit',
-    description: 'Stow your med kit.',
     icon: 'https://render.guildwars2.com/file/7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png',
     type: 'Heal',
     slot: 'Heal',
@@ -41,8 +40,6 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefi
   },
   [ID.MED_BLASTER]: {
     name: 'Med Blaster',
-    description:
-      'Restore health to allies with several pulses of healing energy. Heals more for each boon on the ally.',
     icon: 'https://render.guildwars2.com/file/94A7A5711A4922DFF3BCB701D770D3BB06EE0A59/1012852.png',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -56,7 +53,6 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefi
   },
   [ID.BANDAGE_SELF]: {
     name: 'Bandage Self',
-    description: 'Bandage your wounds and heal yourself.',
     icon: 'https://render.guildwars2.com/file/0C982310320AC3E2584E20727CB645D1C53C1906/102826.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -69,7 +65,6 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefi
   },
   [ID.BANDAGE_BLAST]: {
     name: 'Bandage Blast',
-    description: 'Fire several bandages ahead of you to heal allies.',
     icon: 'https://render.guildwars2.com/file/F473E7A5D7D301A3B813443812C73338C073ABB2/102898.png',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -88,7 +83,6 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefi
   },
   [ID.CLEANSING_FIELD]: {
     name: 'Cleansing Field',
-    description: 'Release purifying vapors to cleanse conditions from allies near you at each interval.',
     icon: 'https://render.guildwars2.com/file/4A5B72C612F4EEFE57E20E020EA82ED0219952E9/1983629.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -108,7 +102,6 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefi
   },
   [ID.VITAL_BURST]: {
     name: 'Vital Burst',
-    description: 'Unleash a cascade of concentrated healing vapors around you.',
     icon: 'https://render.guildwars2.com/file/3FF9282CD06FDF087F31A1F334C56F032A2FD207/1983631.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -120,7 +113,6 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefi
   },
   [ID.INFUSION_BOMB]: {
     name: 'Infusion Bomb',
-    description: 'Throw a bomb that grants boons to nearby allies when it explodes.',
     icon: 'https://render.guildwars2.com/file/A9E8073549D17E37C46FD25D1D02F85DFCE9747A/1983630.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -158,4 +150,4 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefi
       }
     ]
   }
-});
+};

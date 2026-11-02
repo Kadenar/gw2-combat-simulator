@@ -26,10 +26,10 @@ export const CROSSOVER_EVALUATION_START_MS = 8000;
 
 /** A comparison needs two distinct, selected relics. */
 export function relicComparisonAvailable(
-  opponentRelic: string | null | undefined,
+  equippedRelic: string | null | undefined,
   targetRelic: string | null | undefined
 ): boolean {
-  const opponent = String(opponentRelic || '');
+  const opponent = String(equippedRelic || '');
   const target = String(targetRelic || '');
   return Boolean(opponent && target && opponent !== target);
 }
@@ -44,7 +44,7 @@ export interface RelicComparisonPoint {
 export interface RelicComparisonModel {
   readonly opponentDamage?: RelicDamageSummary;
   readonly targetDamage?: RelicDamageSummary;
-  readonly opponentRelic: string;
+  readonly equippedRelic: string;
   readonly targetRelic: string;
   readonly durationMs: number;
   readonly points: readonly RelicComparisonPoint[];
@@ -59,7 +59,7 @@ export interface RelicComparisonModel {
 }
 
 export interface RelicComparisonModelInput {
-  readonly opponentRelic: string;
+  readonly equippedRelic: string;
   readonly targetRelic: string;
   readonly opponentDps: readonly ChartPoint[];
   readonly targetDps: readonly ChartPoint[];
@@ -81,7 +81,7 @@ function interpolateCrossing(previous: RelicComparisonPoint, current: RelicCompa
 
 /** Samples both curves within their shared window; final simulation DPS stays independent of chart samples. */
 export function buildRelicComparisonModel({
-  opponentRelic,
+  equippedRelic,
   targetRelic,
   opponentDps,
   targetDps,
@@ -128,7 +128,7 @@ export function buildRelicComparisonModel({
 
   const evaluationStartMs = firstEvalIndex >= 0 ? points[firstEvalIndex].tMs : Number(points[0]?.tMs ?? 0);
   return {
-    opponentRelic,
+    equippedRelic,
     targetRelic,
     durationMs,
     points,

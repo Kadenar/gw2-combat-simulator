@@ -17,12 +17,9 @@ export const SKILL_PLACEHOLDER_ICON =
 export const SHARED_SKILL_IDS = Object.freeze({ SWAP_WEAPONS: -3, DODGE: -5 });
 
 /** Declares the common swap action while retaining profession-owned recharge and bar behavior. */
-export function createWeaponSwapSkill(
-  overrides: Partial<Pick<Skill, 'cooldown' | 'inputCategory' | 'description'>> = {}
-) {
+export function createWeaponSwapSkill(overrides: Partial<Pick<Skill, 'cooldown' | 'inputCategory'>> = {}) {
   return {
     name: 'Swap Weapons',
-    description: 'Swap equipped weapon sets.',
     icon: WEAPON_SWAP_ICON,
     type: 'Action',
     slot: 'Action',
@@ -42,7 +39,6 @@ export function createDodgeSkill(
   overrides: Partial<
     Pick<
       Skill,
-      | 'description'
       | 'cost'
       | 'castTimeMs'
       | 'interruptCommitMs'
@@ -56,7 +52,6 @@ export function createDodgeSkill(
 ) {
   return {
     name: 'Dodge',
-    description: 'Perform a dodge roll.',
     icon: DODGE_ICON,
     type: 'Action',
     slot: 'Action',

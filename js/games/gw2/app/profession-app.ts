@@ -108,7 +108,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.profession = adapter.profession;
     this.workspace = loadBuildWorkspace(adapter);
     const activeTab = this.workspace.tabs.find((tab) => tab.id === this.workspace.activeTabId)!;
-    this.patch = this.profession.resolvePatch({ id: activeTab.patchId, values: activeTab.session.values });
+    this.patch = this.profession.resolvePatch({ id: activeTab.patchId, values: activeTab.session.patchPreviewValues });
     this.patchComparison = null;
     this.build = activeTab.build;
     this.simulationSettings = this.workspace.simulationSettings;
@@ -419,8 +419,8 @@ export class ProfessionApp implements ProfessionAppState {
     this.simulationSettings = workspace.simulationSettings;
     this.workspace.activeTabId = id;
     this.build = tab.build;
-    this.patch = this.profession.resolvePatch({ id: tab.patchId, values: tab.session.values });
-    const { values: _values, ...session } = tab.session;
+    this.patch = this.profession.resolvePatch({ id: tab.patchId, values: tab.session.patchPreviewValues });
+    const { patchPreviewValues: _patchPreviewValues, ...session } = tab.session;
     Object.assign(this, session);
 
     // A cached tab must match the session's capture setting before its result can be reused.

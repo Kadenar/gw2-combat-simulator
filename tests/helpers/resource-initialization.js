@@ -1,6 +1,11 @@
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
-const clockFields = ({ value, maximum, rate, recoveryMaximum }) => ({ value, maximum, rate, recoveryMaximum });
+const clockFields = ({ value, maximum, unitsPerSecond, recoveryMaximum }) => ({
+  value,
+  maximum,
+  unitsPerSecond,
+  recoveryMaximum
+});
 
 /**
  * Builds one Core resource pool both ways from the same selected tuning: the standalone factory that attribute previews

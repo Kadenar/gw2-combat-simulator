@@ -5,9 +5,8 @@ import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Wallow retains Porcine traits while exposing its own unmerged attacks and merged bar.
 test('Wallow loads its attributes, autonomous attacks, command, and merged skills', () => {

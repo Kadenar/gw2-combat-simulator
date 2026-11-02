@@ -91,13 +91,13 @@ export function razorclawsRage(
   const charges = Math.max(0, Math.trunc(effectNumber(profile, buff, 'stacks')));
   // Every recipient's grant is blocked at its arming instant, so no strike at that timestamp can spend it.
   const arm = (): ChargeGrant => ({ ...grantCharges(charges, runtime.time + duration), readyAt: runtime.time });
-  const state = renegadeState.from(runtime);
+  const state = renegadeState.from(runtime.profession);
   state.razorclawsRage = arm();
   // The controller only offers strikes; each ally's charges, expiry, and cooldown follow the player's policy.
   // Reapplication replaces every grant without resetting the shared strike cadence.
   runtime.alliedStrikes.registerRecipients((allyIndex) => {
     state.alliedRazorclawsRage[allyIndex] = arm();
-    const current = () => renegadeState.from(runtime).alliedRazorclawsRage[allyIndex];
+    const current = () => renegadeState.from(runtime.profession).alliedRazorclawsRage[allyIndex];
     return {
       id: `razorclaw:${allyIndex}`,
       isActive: (at) => activeChargeCount(current(), at) > 0,
@@ -203,7 +203,7 @@ export function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast
 export function razorclawProc(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
   if (event.skillId === ID.RAZORCLAWS_RAGE) return;
 
-  const spent = spendRazorclawCharge(runtime, renegadeState.from(runtime).razorclawsRage);
+  const spent = spendRazorclawCharge(runtime, renegadeState.from(runtime.profession).razorclawsRage);
 
   if (spent) runtime.effects.emit({ kind: 'packet', cause: event, event: razorclawBleed(spent, runtime.time) });
 }

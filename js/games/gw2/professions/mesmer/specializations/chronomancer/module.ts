@@ -4,10 +4,7 @@ import { TRAIT_LINES } from '#gw2/professions/mesmer/data/trait-lines.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
 import { chronomancerUi } from '#gw2/professions/mesmer/specializations/chronomancer/presentation.js';
-import {
-  MESMER_CHRONOMANCER_EXTRA_SKILLS,
-  MESMER_CHRONOMANCER_SKILL_MECHANICS
-} from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
+import { MESMER_CHRONOMANCER_SKILLS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
 import {
   chronomancerState,
   projectChronomancerPlanningState
@@ -19,8 +16,7 @@ export const chronomancerModule = defineNativeModule({
   data: createNativeModuleData<MesmerSkill>({
     id: 'Chronomancer',
     traitLines: TRAIT_LINES,
-    skillMechanics: MESMER_CHRONOMANCER_SKILL_MECHANICS,
-    extraSkills: MESMER_CHRONOMANCER_EXTRA_SKILLS
+    skills: MESMER_CHRONOMANCER_SKILLS
   }),
   state: {
     create: chronomancerState.create,

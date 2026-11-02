@@ -33,7 +33,7 @@ function releaseRockBarrier(runtime: ElementalistRuntime): void {
       runtime.time,
       rockBarrierTrainingRecharge(runtime, root, elementalistRechargeWork(runtime, root, root.cooldown ?? 0, true))
     );
-    resetAutoattackChains(runtime, [root.id]);
+    resetAutoattackChains(runtime.profession, [root.id]);
   }
 }
 

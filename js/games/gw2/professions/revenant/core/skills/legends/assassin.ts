@@ -17,11 +17,9 @@ import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js'
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
-export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.ENCHANTED_DAGGERS]: {
     name: 'Enchanted Daggers',
-    description:
-      'Legendary Assassin. Summon enchanted daggers that will attack as you attack, siphoning life from targets hit.',
     icon: 'https://render.guildwars2.com/file/A01907F923B160E6261174BEF5975D070D4D6511/1012989.png',
     type: 'Heal',
     slot: 'Heal',
@@ -61,7 +59,6 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.RELINQUISH_POWER]: {
     name: 'Relinquish Power',
-    description: 'Legendary Assassin. End the Impossible Odds skill.',
     icon: 'https://render.guildwars2.com/file/211A1045B4A90B8005652E35BF5BD6270CB239CC/1030007.png',
     type: 'Utility',
     slot: 'Utility',
@@ -77,8 +74,6 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.IMPOSSIBLE_ODDS]: {
     name: 'Impossible Odds',
-    description:
-      "Legendary Assassin. Empower yourself with Shiro's incredible speed and destructive prowess, gaining great movement speed and striking foes an additional time when you hit them. This effect can occur once per interval.",
     icon: 'https://render.guildwars2.com/file/D5479F5A43B3A1550EC0F457AA4ED79F93EF9A22/1013014.png',
     type: 'Utility',
     slot: 'Utility',
@@ -113,7 +108,6 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.PHASE_TRAVERSAL]: {
     name: 'Phase Traversal',
-    description: "Legendary Assassin. Step through the Mists to your target. Your next few attacks can't be blocked.",
     icon: 'https://render.guildwars2.com/file/6C9F184D04E3590AC3F4061327BF0A68904D7DED/1013016.png',
     type: 'Utility',
     slot: 'Utility',
@@ -140,8 +134,6 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.JADE_WINDS]: {
     name: 'Jade Winds',
-    description:
-      'Legendary Assassin. Call upon the Jade Wind to turn nearby enemies into jade, stunning them for a short duration.',
     icon: 'https://render.guildwars2.com/file/93F6019F04E9F802E658963C79772D979731CE9B/1012987.png',
     type: 'Elite',
     slot: 'Elite',
@@ -169,8 +161,6 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.RIPOSTING_SHADOWS]: {
     name: 'Riposting Shadows',
-    description:
-      'Legendary Assassin. Dodge backward through the Mists. Remove movement-impairing conditions, and gain fury.',
     icon: 'https://render.guildwars2.com/file/75DF55FCC5120EF6B643C1B1730E050EA17F5827/1013019.png',
     type: 'Utility',
     slot: 'Utility',
@@ -188,7 +178,7 @@ export const REVENANT_ASSASSIN_SKILL_MECHANICS: Readonly<Record<number, SkillDef
       }
     ]
   }
-});
+};
 
 /** A ready, unexpired Enchanted Daggers charge becomes a delayed siphon after a landed player strike. */
 export function enchantedDaggers(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {

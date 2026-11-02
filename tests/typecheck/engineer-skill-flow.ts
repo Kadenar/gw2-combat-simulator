@@ -1,10 +1,12 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { engineerCoreHooks } from '#gw2/professions/engineer/core/hooks.js';
 import { engineerCoreModule } from '#gw2/professions/engineer/core/module.js';
 import { TRAIT_LINES } from '#gw2/professions/engineer/data/trait-lines.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 import { holosmithHooks } from '#gw2/professions/engineer/specializations/holosmith/hooks.js';
 import type {
   HolosmithSkill,
@@ -15,6 +17,7 @@ import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/t
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+type NotKey<T, K extends PropertyKey> = K extends keyof T ? false : true;
 
 const first = engineerProfession.runtimeFor({ specialization: 'Mechanist' });
 const second = engineerProfession.resolveProfession({ specialization: 'Amalgam' });
@@ -34,9 +37,13 @@ export type EngineerSkillFlowAssertions = [
   Assert<Equal<Parameters<EliteCast>[0]['profession'], EngineerRuntime['profession']>>,
   Assert<Equal<Parameters<HolosmithCast>[1]['skill'], HolosmithSkill>>,
   Assert<Equal<Parameters<HolosmithCast>[0]['helpers']['skills'][number], HolosmithSkill>>,
-  Assert<Equal<EngineerSkill['heatGain'], unknown>>,
-  Assert<Equal<Skill['mechanicSlot'], unknown>>,
-  Assert<Equal<EngineerSkill['dragonSlash'], unknown>>
+  Assert<NotKey<EngineerSkill, 'heatGain'>>,
+  // Evolve's scaling belongs only to the specialization that consumes it.
+  Assert<NotKey<Skill, 'attributeMultiplier'>>,
+  Assert<NotKey<EngineerSkill, 'attributeMultiplier'>>,
+  Assert<Equal<AmalgamSkill['attributeMultiplier'], number | undefined>>,
+  Assert<NotKey<Skill, 'mechanicSlot'>>,
+  Assert<NotKey<EngineerSkill, 'dragonSlash'>>
 ];
 
 // Casts and ID/name/list lookups expose the same typed mechanics to runtime helpers.
@@ -53,7 +60,6 @@ export function engineerHookSkillReads(runtime: EngineerRuntime, cast: Parameter
 const invalidDefinitions: Record<string, SkillDefinition<EngineerSkill>> = {
   1: {
     name: 'Fixture',
-    description: 'Fixture skill.',
     icon: 'fixture.png',
     // @ts-expect-error Known profession fields reject invalid authored values.
     mechanicSlot: 'invalid'
@@ -62,7 +68,7 @@ const invalidDefinitions: Record<string, SkillDefinition<EngineerSkill>> = {
 createNativeModuleData<EngineerSkill>({
   id: 'Core',
   traitLines: TRAIT_LINES,
-  skillMechanics: invalidDefinitions
+  skills: materializeSkillDefinitions(invalidDefinitions)
 });
 
 // Heat stays local to Holosmith while its helpers still inherit Engineer kit metadata.

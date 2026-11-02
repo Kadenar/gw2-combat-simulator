@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/necromancer/data/trait-lines.js';
 import { NECROMANCER_REAPER_PROFILE_FIELDS } from '#gw2/professions/necromancer/specializations/reaper/catalog-fields.js';
 import { bindReaperUi } from '#gw2/professions/necromancer/specializations/reaper/presentation.js';
@@ -19,7 +20,7 @@ export const reaperModule = defineNativeModule({
     traitLines: TRAIT_LINES,
     skillFlips: NECROMANCER_REAPER_SKILL_FLIPS,
     profileFields: NECROMANCER_REAPER_PROFILE_FIELDS,
-    skillMechanics: REAPER_BASE_SKILL_MECHANICS,
+    skills: materializeSkillDefinitions(REAPER_BASE_SKILL_MECHANICS),
     autoattackChains: NECROMANCER_REAPER_AUTOATTACK_CHAINS
   }),
   // One state factory supplies the live combat owner.

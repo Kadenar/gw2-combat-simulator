@@ -19,10 +19,10 @@ export function encounterTimelineMarkers(
   if (!result?.encounter) return [];
 
   const steps = result.steps
-    .filter((step) => step.ri >= 0 && !step.invalid)
-    .sort((left, right) => left.start - right.start || left.ri - right.ri);
+    .filter((step) => step.rotationCommandIndex >= 0 && !step.invalid)
+    .sort((left, right) => left.start - right.start || left.rotationCommandIndex - right.rotationCommandIndex);
   const placement = (start: number) => ({
-    insertionIndex: steps.find((step) => step.start >= start)?.ri ?? rotationLength,
+    insertionIndex: steps.find((step) => step.start >= start)?.rotationCommandIndex ?? rotationLength,
     duringAction: steps.some((step) => step.start < start && step.end > start)
   });
   let boss = 0;

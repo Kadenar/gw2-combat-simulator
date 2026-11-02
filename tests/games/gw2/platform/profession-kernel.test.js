@@ -9,23 +9,20 @@ import { weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/execution/ski
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { numberField } from '#gw2/platform/skills/field-specs.js';
 import { testProfessionModifiers } from '#tests/fixtures/profession.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { cast, wait } from '#tests/helpers/commands.js';
 
 // Shared runtime contracts that profession mechanics build on: procedural emission, follow-up windows, declared
 // costs, and authored skill tasks. Each scenario uses a minimal fixture profession rather than a saved rotation.
 const catalog = createCanonicalCatalog({
-  // The fixture profession owns one patchable cost field, as a real profession module would declare it.
-  skillFields: { initiativeCost: numberField({ patch: 'primary' }) },
   skills: [
     { id: 991001, name: 'Trigger', castTimeMs: 0, effects: [] },
     {
       id: 991002,
       name: 'Paid On Start',
       castTimeMs: 1000,
-      resourceCost: 3,
-      cost: { resource: 'energy' },
+      cost: { resource: 'energy', amount: 3 },
       effects: []
     },
     {
@@ -33,8 +30,7 @@ const catalog = createCanonicalCatalog({
       name: 'Paid On Commit',
       castTimeMs: 1000,
       interruptCommitMs: 500,
-      resourceCost: 4,
-      cost: { resource: 'energy', spendOn: 'castCommit' },
+      cost: { resource: 'energy', amount: 4, spendOn: 'castCommit' },
       effects: []
     },
     {
@@ -122,8 +118,6 @@ const config = {
   randomness: { mode: 'expected', seed: 123 },
   selectedTraitIds: ['test.trait']
 };
-const cast = (skillId, extra = {}) => ({ type: 'cast', skillId, ...extra });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 function fixture(hooks = {}) {
   return {
@@ -133,7 +127,7 @@ function fixture(hooks = {}) {
     catalog,
     createState: () => ({
       core: { availableFlips: {} },
-      energy: { value: 0, maximum: 10, updatedAt: 0, rate: 0 },
+      energy: { value: 0, maximum: 10, updatedAt: 0, unitsPerSecond: 0 },
       log: []
     }),
     resources: {
@@ -257,7 +251,7 @@ test('successful resource costs settle once before completion rewards', () => {
       profession: {
         ...fixture({ onCastCommit: (runtime) => observed.push(runtime.resourceController.value('energy')) }),
         catalog: withSkill(catalog, 991003, {
-          cost: { resource: 'energy', spendOn: 'castCommit' },
+          cost: { resource: 'energy', amount: 4, spendOn: 'castCommit' },
           sideEffects: [{ on: 'castCommit', do: { type: 'resourceGrant', resource: 'energy', amount: 2 } }]
         })
       },
@@ -271,7 +265,7 @@ test('successful resource costs settle once before completion rewards', () => {
 });
 
 test('an unaffordable declared cost waits for regeneration or rejects when no regeneration can cover it', () => {
-  const skill = { name: 'Dodge', resourceCost: 50, cost: { resource: 'endurance' } };
+  const skill = { name: 'Dodge', cost: { resource: 'endurance', amount: 50 } };
   const runtime = (readyAt) => ({ time: 1, endurance: { readyAt: () => readyAt } });
   assert.equal(skillCostAvailability(runtime(1), skill), null);
   assert.deepEqual(skillCostAvailability(runtime(4), skill), {
@@ -284,13 +278,10 @@ test('an unaffordable declared cost waits for regeneration or rejects when no re
 });
 
 // Authored costs stay live across patches, including free casts, and settle before profession rewards.
-test('skill-field costs share their patched amount between admission and start payment', () => {
-  const declared = withSkill(catalog, 991002, {
-    initiativeCost: 0,
-    cost: { resource: 'energy', skillAmount: 'initiativeCost', spendOn: 'castStart' }
-  });
+test('patched cost amounts are shared between admission and start payment', () => {
+  const declared = withSkill(catalog, 991002, { cost: { resource: 'energy', amount: 0 } });
   for (const amount of [0, 2, 4]) {
-    const patched = applySkillPatch(declared, { skills: { 991002: { fields: { initiativeCost: amount } } } });
+    const patched = applySkillPatch(declared, { skills: { 991002: { fields: { 'cost.amount': amount } } } });
     const skill = patched.skillsById.get(991002);
     const queried = [];
     const admission = skillCostAvailability(
@@ -327,8 +318,8 @@ test('skill-field costs share their patched amount between admission and start p
   }
 });
 
-test('automatic payments share the declared skill amount with affordability and pay only once', () => {
-  // Both payment phases use the skill-owned cost checked by affordability instead of the default resource cost.
+test('automatic payments share the declared amount with affordability and pay only once', () => {
+  // Both payment phases spend the amount affordability checked.
   for (const spendOn of ['castStart', 'castCommit']) {
     const observed = [];
     const result = runGw2Runtime({
@@ -339,13 +330,7 @@ test('automatic payments share the declared skill amount with affordability and 
           }
         }),
         catalog: withSkill(catalog, 991003, {
-          resourceCost: 50,
-          initiativeCost: 3,
-          cost: {
-            resource: 'energy',
-            spendOn,
-            skillAmount: 'initiativeCost'
-          }
+          cost: { resource: 'energy', amount: 3, spendOn }
         })
       },
       config,

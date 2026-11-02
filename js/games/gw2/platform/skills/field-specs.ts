@@ -1,7 +1,9 @@
 /**
- * Declares which fields skills and balance profiles may carry. The platform owns the vocabulary its own code reads; each profession
- * module contributes the fields that only its code reads. One record per field drives catalog validation, the patch
- * allowlist, and authoring labels, so no other registry repeats the field name.
+ * Declares field metadata for skills and balance profiles. The platform owns the vocabulary its own code reads; each
+ * profession module contributes the fields that only its code reads. Numeric records drive bounds validation, the patch
+ * allowlist, and authoring labels, and skill types derive their numeric properties from them. Skill types declare every
+ * non-numeric field, so skill tables hold data records only for groups that own dotted numeric leaves; profile tables
+ * also list their non-numeric fields because profiles stay open and are checked against their table at runtime.
  */
 
 /** Units select the editor suffix; stored values keep their declared unit. */
@@ -23,7 +25,10 @@ export interface NumericFieldSpec {
   readonly runtimeOnly?: boolean;
 }
 
-/** Identity, flags, or structured declarations whose owning mechanic validates their shape. */
+/**
+ * A group owning dotted numeric leaves, or a non-numeric profile field whose owning mechanic validates its shape.
+ * Skill tables use it only for groups.
+ */
 export interface DataFieldSpec {
   readonly kind: 'data';
   /** A map of fixed grants keyed by canonical attribute names. */
@@ -135,6 +140,14 @@ export function assertFieldGroups(fields: FieldSpecs): void {
     if (group !== field && fields[group]?.kind !== 'data')
       throw new TypeError(`Field ${field} requires its group ${group} to be declared.`);
   }
+}
+
+/**
+ * Reads one top-level field whose name comes from a field table or an authored declaration rather than from code.
+ * Closed skill types cannot be indexed by an arbitrary string; the table, not the type, vouches for the key.
+ */
+export function fieldValue(owner: object, field: string): unknown {
+  return (owner as Readonly<Record<string, unknown>>)[field];
 }
 
 /** Reuse compiled paths during catalog validation while preserving own-property checks for grouped values. */

@@ -5,14 +5,13 @@
  * and autoattack chain carryover across attunement swaps.
  */
 import type { AutoattackChainTransitionResult } from '#gw2/platform/execution/autoattack-chains.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as unavailable } from '#gw2/platform/execution/availability.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistLoadoutIdentity } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
@@ -34,7 +33,7 @@ function ready(): AvailabilityResult {
 
 // Attunement variants are alternate faces of one utility slot, so copy both
 // cooldown and ammo state to every variant after any one face is used.
-export function shareAttunementVariantRecharge(context: ElementalistRuntime, skill: Skill): void {
+export function shareAttunementVariantRecharge(context: ElementalistRuntime, skill: ElementalistSkill): void {
   if (!['Heal', 'Utility', 'Elite'].includes(String(skill.type)) || !skill.attunement) {
     return;
   }
@@ -60,7 +59,7 @@ export function shareAttunementVariantRecharge(context: ElementalistRuntime, ski
  */
 export function weaponAttunementAvailable(
   context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill,
+  skill: ElementalistSkill,
   state: ReadonlyMechanicState<ElementalistCoreState>
 ): AvailabilityResult {
   // A carried root exposes its shared-controller-approved next step even after
@@ -69,13 +68,13 @@ export function weaponAttunementAvailable(
 
   if (
     chain &&
-    state.autoattackCarryover?.root === chain.root &&
+    state.autoattackCarryover?.root === chain.rootSkillId &&
     state.autoattackCarryover.attunement === skill.attunement
   ) {
     return ready();
   }
 
-  const attunement = String(skill.attunement || '');
+  const attunement = skill.attunement || '';
 
   if (!attunement) return ready();
 
@@ -120,8 +119,8 @@ export function inFlightAutoattackCarryover(
     const position = context.helpers.autoattackChainPositions.get(Number(skillId));
     const skill = context.helpers.skillsById.get(Number(skillId));
 
-    if (position && isAttunementCarryoverChain(position.root) && skill?.attunement === attunement) {
-      return { root: position.root, attunement };
+    if (position && isAttunementCarryoverChain(position.rootSkillId) && skill?.attunement === attunement) {
+      return { root: position.rootSkillId, attunement };
     }
   }
 
@@ -139,7 +138,7 @@ function observeElementalistAutoattackTransition(
   cast: RuntimeCast<ElementalistSkill>,
   result: AutoattackChainTransitionResult
 ): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const chainRoot = result.castChainRootId;
 
   // An uncommitted cast never earns carryover, so drop the pending capture.
@@ -165,7 +164,7 @@ function observeElementalistAutoattackTransition(
 
     if (chainChange.decision === 'complete' && state.autoattackCarryover?.root === chainRoot) {
       state.autoattackCarryover = null;
-    } else if (position && state.autoattackCarryover?.root !== position.root) {
+    } else if (position && state.autoattackCarryover?.root !== position.rootSkillId) {
       state.autoattackCarryover = null;
     }
   }

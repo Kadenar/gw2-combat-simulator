@@ -14,10 +14,10 @@ import { conduitState } from '#gw2/professions/revenant/specializations/conduit/
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { renegadeState } from '#gw2/professions/revenant/specializations/renegade/state.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const core = (result) => observedRuntime(result).profession.core;
 
 // One Core-owned input acquires a landing only through the active Vindicator module.
@@ -126,7 +126,7 @@ for (const [skillId, specialization, legend, active] of [
     ID.RAZORCLAWS_RAGE,
     'Renegade',
     LEGEND.RENEGADE,
-    (result) => renegadeState.from(observedRuntime(result)).razorclawsRage.charges > 0
+    (result) => renegadeState.from(observedRuntime(result).profession).razorclawsRage.charges > 0
   ],
   [
     ID.BREAKRAZORS_BASTION,
@@ -138,13 +138,13 @@ for (const [skillId, specialization, legend, active] of [
     ID.BEGUILING_HAZE,
     'Conduit',
     LEGEND.ENTITY,
-    (result) => conduitState.from(observedRuntime(result)).beguilingHazeCharges > 0
+    (result) => conduitState.from(observedRuntime(result).profession).beguilingHazeCharges > 0
   ],
   [
     ID.COSMIC_WISDOM,
     'Conduit',
     LEGEND.DEMON,
-    (result) => conduitState.from(observedRuntime(result)).cosmicWisdomUntil > 0
+    (result) => conduitState.from(observedRuntime(result).profession).cosmicWisdomUntil > 0
   ]
 ]) {
   test(`skill ${skillId} owns its intrinsic transition`, () => {
@@ -232,7 +232,7 @@ test('Heroic Command refreshes only live Fervor at commitment, including when Mi
             { castTimeMs: 1000 }
           ),
         initialize(runtime) {
-          renegadeState.from(runtime).kallasFervor = [
+          renegadeState.from(runtime.profession).kallasFervor = [
             { at: 0, expiresAt: 0.5 },
             { at: 0, expiresAt: 2 },
             { at: 10, expiresAt: 20 }
@@ -241,7 +241,7 @@ test('Heroic Command refreshes only live Fervor at commitment, including when Mi
       }
     );
     assert.deepEqual(result.warnings, []);
-    const fervor = renegadeState.from(observedRuntime(result)).kallasFervor;
+    const fervor = renegadeState.from(observedRuntime(result).profession).kallasFervor;
     assert.equal(fervor.length, 2);
     assert.ok(fervor[0].expiresAt > 2);
     assert.deepEqual(fervor[1], { at: 10, expiresAt: 20 }, 'future applications are neither counted nor refreshed');
@@ -262,7 +262,7 @@ test('Heroic Command without Fervor grants no Might', () => {
     startingLegend: LEGEND.RENEGADE
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(renegadeState.from(observedRuntime(result)).kallasFervor.length, 0);
+  assert.equal(renegadeState.from(observedRuntime(result).profession).kallasFervor.length, 0);
   assert.equal(
     result.events.some((event) => event.type === 'buff' && event.kind === 'might'),
     false
@@ -287,7 +287,7 @@ test('Cosmic Wisdom grants Core traits once before form activation', () => {
           emit(request) {
             const event = request.kind === 'packet' ? request.event : request.attribution;
 
-            if (event?.sourceId === TRAIT.NOTORIETY) order.push(conduitState.from(runtime).conduitForm);
+            if (event?.sourceId === TRAIT.NOTORIETY) order.push(conduitState.from(runtime.profession).conduitForm);
 
             return effects.emit(request);
           }
@@ -298,7 +298,7 @@ test('Cosmic Wisdom grants Core traits once before form activation', () => {
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(order, ['']);
   assert.equal(result.events.filter((event) => event.sourceId === TRAIT.NOTORIETY).length, 1);
-  assert.equal(conduitState.from(observedRuntime(result)).conduitForm, 'Mesmer');
+  assert.equal(conduitState.from(observedRuntime(result).profession).conduitForm, 'Mesmer');
 });
 
 test('Herald consume publishes Core rewards before establishing Echo retention', () => {
@@ -320,7 +320,9 @@ test('Herald consume publishes Core rewards before establishing Echo retention',
             const event = request.kind === 'packet' ? request.event : request.attribution;
 
             if (event?.sourceId === TRAIT.NOTORIETY && event.skillId === ID.TRUE_NATURE_DRAGON)
-              retainedDuringReward.push(Boolean(heraldState.from(runtime).lingeringFacets[ID.FACET_OF_NATURE]));
+              retainedDuringReward.push(
+                Boolean(heraldState.from(runtime.profession).lingeringFacets[ID.FACET_OF_NATURE])
+              );
 
             return effects.emit(request);
           }
@@ -330,7 +332,7 @@ test('Herald consume publishes Core rewards before establishing Echo retention',
   );
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(retainedDuringReward, [false]);
-  assert.ok(heraldState.from(observedRuntime(result)).lingeringFacets[ID.FACET_OF_NATURE]);
+  assert.ok(heraldState.from(observedRuntime(result).profession).lingeringFacets[ID.FACET_OF_NATURE]);
 });
 
 test('Twin Moon affinity belongs to each resolved player packet, independently of fragments', () => {
@@ -362,7 +364,7 @@ test('Twin Moon affinity belongs to each resolved player packet, independently o
         }
       );
       assert.deepEqual(result.warnings, []);
-      assert.equal(conduitState.from(observedRuntime(result)).affinity.value, removed || offTarget ? 0 : 4);
+      assert.equal(conduitState.from(observedRuntime(result).profession).affinity.value, removed || offTarget ? 0 : 4);
     }
   }
 });
@@ -406,7 +408,7 @@ test('Heroic Command selects independent skill-owned Might and still refreshes F
               }
             }),
           initialize(runtime) {
-            renegadeState.from(runtime).kallasFervor = [{ at: 0, expiresAt: 1 }];
+            renegadeState.from(runtime.profession).kallasFervor = [{ at: 0, expiresAt: 1 }];
           }
         }
       );
@@ -415,7 +417,7 @@ test('Heroic Command selects independent skill-owned Might and still refreshes F
         (event) => event.type === 'buff' && event.kind === 'might' && event.skillId === ID.HEROIC_COMMAND
       );
       assert.equal(might?.stacks ?? 0, removed ? 0 : 4);
-      assert.ok(renegadeState.from(observedRuntime(result)).kallasFervor[0].expiresAt > 1);
+      assert.ok(renegadeState.from(observedRuntime(result).profession).kallasFervor[0].expiresAt > 1);
     }
   }
 });
@@ -518,6 +520,6 @@ test('Dervish release reads its selected all-legend Affinity threshold', () => {
       ),
       threshold === 2
     );
-    assert.equal(conduitState.from(observedRuntime(result)).affinity.maximum, 5);
+    assert.equal(conduitState.from(observedRuntime(result).profession).affinity.maximum, 5);
   }
 });

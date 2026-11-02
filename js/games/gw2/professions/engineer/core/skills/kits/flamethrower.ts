@@ -6,7 +6,7 @@ import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import type { EngineerResolverEvent, EngineerRuntime } from '#gw2/professions/engineer/types.js';
+import type { EngineerResolverEvent, EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 const NAPALM_TICK_OFFSETS_MS = [280, 440, 560, 680, 840, 960, 1080, 1240, 1360, 1480];
 
@@ -24,10 +24,9 @@ export const airBlastImpacted = defineTriggerPoint<AirBlastImpact>('engineer.air
 ]);
 
 /** Defines the equip action, palette skills, stow action, and linked toolbelt skill for Flamethrower. */
-export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition>> = Object.freeze({
+export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<EngineerSkill>>> = {
   [ID.FLAMETHROWER]: {
     name: 'Flamethrower',
-    description: 'Engineering Kit. Arm yourself with a flamethrower that replaces your weapon skills.',
     icon: 'https://render.guildwars2.com/file/573A10BFC3310A694740092B91E40C953EE80A03/103435.png',
     type: 'Utility',
     slot: 'Utility',
@@ -43,8 +42,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.FLAME_JET]: {
     name: 'Flame Jet',
-    description:
-      'Spray fire in a cone pattern while moving, burning foes on the final attack. Deals 10% bonus damage to burning targets.',
     icon: 'https://render.guildwars2.com/file/2CDBD11894D945140B3480BFEC960800086352E5/103269.png',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -86,7 +83,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.FLAME_BLAST]: {
     name: 'Flame Blast',
-    description: 'Fire a napalm ball that explodes on impact.',
     icon: 'https://render.guildwars2.com/file/703AA8FC9F98FA4F6700AF06796575D3020A05C6/103436.png',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -129,7 +125,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.AIR_BLAST]: {
     name: 'Air Blast',
-    description: 'Push back foes and projectiles with a hot-air blast, burning foes that are already on fire.',
     icon: 'https://render.guildwars2.com/file/92CE7EBBFA670CB00809F8267802A6FA459E2EC8/103291.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -154,8 +149,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.STOKE_THE_FLAMES]: {
     name: 'Stoke the Flames',
-    description:
-      'Overcharge your flamethrower with a fuel injection, releasing a burst of flames around you as you grant yourself boons.',
     icon: 'https://render.guildwars2.com/file/9FD24A39C91355664B9C4FDEA7A1A40662C2E1AF/103461.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -207,7 +200,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.STOW_FLAMETHROWER]: {
     name: 'Stow Flamethrower',
-    description: 'Stow your flamethrower.',
     icon: 'https://render.guildwars2.com/file/7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png',
     type: 'Utility',
     slot: 'Utility',
@@ -225,7 +217,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.SMOKE_VENT]: {
     name: 'Smoke Vent',
-    description: 'Vent smoke from your flamethrower, blinding nearby foes.',
     icon: 'https://render.guildwars2.com/file/8027942FE405D7B0CC2EA60AE109AC6C9EDAD566/103299.png',
     type: 'Profession',
     slot: 'Action',
@@ -245,7 +236,6 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
   },
   [ID.NAPALM]: {
     name: 'Napalm',
-    description: 'Immolate enemies in front of you with a cone of intense fire.',
     icon: 'https://render.guildwars2.com/file/D2B2120894BF221251F39F090E6F6353A79CCCFB/103300.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -278,7 +268,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
       }
     ])
   }
-});
+};
 
 /** Air Blast's Burning missile exists only against a target still burning at impact; knockback resolves separately. */
 export function handleAirBlast(context: EngineerRuntime, event: EngineerResolverEvent): void {

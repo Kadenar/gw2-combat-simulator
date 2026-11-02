@@ -24,7 +24,7 @@ export function calculateRelicComparison(
     },
     collectChartData: false
   });
-  const opponentSeries = buildTimeSeries(request.opponentResult, 250, { includeEffects: false });
+  const opponentSeries = buildTimeSeries(request.baselineResult, 250, { includeEffects: false });
   const targetSeries = buildTimeSeries(targetResult, 250, { includeEffects: false });
   // One shared no-relic run attributes both direct damage and modifier effects.
   const withoutRelic = simulate({
@@ -35,14 +35,14 @@ export function calculateRelicComparison(
   });
   return {
     ...buildRelicComparisonModel({
-      opponentRelic: request.opponentRelic,
+      equippedRelic: request.equippedRelic,
       targetRelic: request.comparisonRelic,
       opponentDps: opponentSeries.dps,
       targetDps: targetSeries.dps,
-      opponentFinalDps: request.opponentResult.dps,
+      opponentFinalDps: request.baselineResult.dps,
       targetFinalDps: targetResult.dps
     }),
-    opponentDamage: relicDamageSummary(request.opponentResult, withoutRelic.dps),
+    opponentDamage: relicDamageSummary(request.baselineResult, withoutRelic.dps),
     targetDamage: relicDamageSummary(targetResult, withoutRelic.dps)
   };
 }

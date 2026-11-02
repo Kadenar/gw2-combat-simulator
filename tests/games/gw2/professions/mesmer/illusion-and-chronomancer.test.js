@@ -38,8 +38,8 @@ test('queueing a cooling-down icon waits until it is available', () => {
 
   assert.equal(result.steps[0].start, 0);
   assert.equal(result.steps[1].start, 4440);
-  assert.equal(result.planningState.cooldowns[ID.BLADECALL].readyAt, 8880);
-  assert.equal(result.planningState.cooldowns[ID.BLADECALL].remaining, 4000);
+  assert.equal(result.planningState.cooldownsBySkillId[ID.BLADECALL].readyAtMs, 8880);
+  assert.equal(result.planningState.cooldownsBySkillId[ID.BLADECALL].remainingMs, 4000);
 });
 
 // Controlled recharge data exercises the real profession without pinning the live balance value.
@@ -455,7 +455,7 @@ test('Shift+click timeline form schedules a concurrent instant skill on the next
 
   assert.equal(result.steps[1].start, 120);
   assert.equal(result.planningState.atSeconds * 1000, 440);
-  assert.equal(result.planningState.cooldowns[ID.BLADESONG_DISTORTION].readyAt, 40120);
+  assert.equal(result.planningState.cooldownsBySkillId[ID.BLADESONG_DISTORTION].readyAtMs, 40120);
 });
 
 test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () => {
@@ -471,7 +471,7 @@ test('shift-queued Rewinder waits past its parent cast for cooldown expiry', () 
       initialResource: 3
     })
   );
-  assert.equal(result.steps.findLast((step) => step.skill === 'Rewinder').start, 12000);
+  assert.equal(result.steps.findLast((step) => step.skillName === 'Rewinder').start, 12000);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -485,7 +485,7 @@ test('Confusing Images starts its cooldown after its channel ends', () => {
   const full = simulateMesmer(['Confusing Images', 'Confusing Images'], config);
   const interrupted = simulateMesmer([{ name: 'Confusing Images', interruptMs: 250 }], config);
   assert.equal(full.steps[1].start, 9120);
-  assert.equal(interrupted.planningState.cooldowns[ID.CONFUSING_IMAGES].readyAt, 7480);
+  assert.equal(interrupted.planningState.cooldownsBySkillId[ID.CONFUSING_IMAGES].readyAtMs, 7480);
 });
 
 test('Phantasmal Swordsman registers its player hit before a later overlapping action', () => {
@@ -725,7 +725,7 @@ test('Mimic allows the next utility to repeat after its reduced recharge', () =>
   assert.deepEqual(result.warnings, []);
   const proc = result.events.find((event) => event.type === 'proc' && event.source === 'Mimic');
   assert.ok(proc);
-  const utilities = result.steps.filter((step) => step.skill === 'Tale of the Tortured Mastermind');
+  const utilities = result.steps.filter((step) => step.skillName === 'Tale of the Tortured Mastermind');
   assert.equal(utilities[1].start, Math.round((proc.at + 1 / 1.25) * 1000));
 });
 
@@ -750,7 +750,7 @@ test('Well of Precognition grants support boons and restores endurance at field 
   const endurance = events.find((event) => event.type === 'resource' && event.resource === 'endurance');
   assert.equal(endurance.at, field.expiresAt);
   assert.equal(endurance.amount, 30);
-  assert.equal(result.planningState.cooldowns[ID.WELL_OF_PRECOGNITION].readyAt - cast.end, 40000);
+  assert.equal(result.planningState.cooldownsBySkillId[ID.WELL_OF_PRECOGNITION].readyAtMs - cast.end, 40000);
   assert.deepEqual(result.warnings, []);
 });
 

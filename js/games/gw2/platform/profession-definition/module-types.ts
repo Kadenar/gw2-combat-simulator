@@ -45,6 +45,7 @@ interface NativeStateDefinition<TState extends object, TProjectOptions extends o
     config: Readonly<ProfessionConfig>,
     preparation: { attributes: Gw2Stats; balanceContext: ProfessionBalanceContext }
   ) => TState;
+  /** Pure selector: values may borrow live fields; the planning observer owns snapshot detachment. */
   readonly project?: (options: TProjectOptions) => TProjectedState;
 }
 

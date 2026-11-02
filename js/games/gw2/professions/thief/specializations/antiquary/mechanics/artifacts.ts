@@ -7,6 +7,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { stealAccepted, stealCompleted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { improvisationArtifactUses } from '#gw2/professions/thief/core/traits/deadly-arts/steal.js';
 import {
@@ -31,7 +32,7 @@ export function allArtifactChoices(): ThiefArtifactSlot[] {
 
 /** Replace inventory with trait-derived uses; starting artifacts must not trigger live pilfer effects. */
 export function storeAntiquaryArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initiative' | 'scuffle'): void {
-  const state = antiquaryState.from(runtime);
+  const state = antiquaryState.from(runtime.profession);
   state.artifactSlots = allArtifactChoices();
 
   // Offer Scuffle's random bomb outcome as a choice, just like the normal randomized artifact pool.
@@ -49,7 +50,7 @@ export function storeAntiquaryArtifacts(runtime: ThiefRuntime, source: 'swipe' |
 /** Live pilfers reset spending; Swipe also grants its buffs and utility recharge reduction. */
 export function pilferArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initiative' | 'scuffle'): void {
   storeAntiquaryArtifacts(runtime, source);
-  const state = antiquaryState.from(runtime);
+  const state = antiquaryState.from(runtime.profession);
   // Every pilfer starts fresh, including Swipe and Scuffle; excess spending never carries to a second pilfer.
   state.initiativeSpentSincePilfer = 0;
   runtime.fireTrigger(artifactsPilfered, { source });
@@ -60,7 +61,7 @@ export function pilferArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initia
  * the next pool instead of being consumed by the cast that was already underway.
  */
 export function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const state = antiquaryState.from(runtime);
+  const state = antiquaryState.from(runtime.profession);
   artifactSlotsUsed.set(
     cast,
     state.artifactSlots.find((value) => value.skillId === cast.skill.id)
@@ -71,11 +72,11 @@ export function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
 
 /** Gross initiative spending feeds Prodigious Pincher; each live Chak Shield charge refunds one paid weapon use. */
 export function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const cost = cast.skill.initiativeCost || 0;
+  const cost = thiefInitiativeCost(cast.skill);
 
   if (!(cost > 0)) return;
 
-  const state = antiquaryState.from(runtime);
+  const state = antiquaryState.from(runtime.profession);
   // Keep gross spending before Chak refunds; reward eligibility is checked separately against the live progress.
   state.initiativeSpentSincePilfer = addCounterProgress(state.initiativeSpentSincePilfer, cost);
 
@@ -97,7 +98,7 @@ export function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast<Thi
 
 /** Artifacts require a held slot; backfire variants are internal; Reshuffle rerolls only an existing pool. */
 export function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
-  const state = antiquaryState.from(runtime);
+  const state = antiquaryState.from(runtime.profession);
 
   if (
     skill.artifactKind &&
@@ -128,7 +129,7 @@ export function prodigiousPincherReady(runtime: ThiefRuntime): boolean {
     runtime.engagement.combatMechanicsAllowed() &&
     hasTrait(runtime, TRAIT.PRODIGIOUS_PINCHER) &&
     advanceCounter(
-      antiquaryState.from(runtime).initiativeSpentSincePilfer,
+      antiquaryState.from(runtime.profession).initiativeSpentSincePilfer,
       0,
       balanceNumberFromContext(runtime, TRAIT.PRODIGIOUS_PINCHER, 'threshold'),
       'retain'

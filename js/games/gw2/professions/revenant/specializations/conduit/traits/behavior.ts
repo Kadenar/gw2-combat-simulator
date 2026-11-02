@@ -77,7 +77,7 @@ export function affinity(context: Gw2ModifierContext): number {
 
 /** Kinetic Insight adds its patched virtual affinity bonus for scaling without changing the stored value. */
 export function effectiveConduitAffinity(runtime: MechanicQueriesOf<RevenantRuntime>): number {
-  const pool = conduitState.from(runtime).affinity;
+  const pool = conduitState.from(runtime.profession).affinity;
   return Math.min(
     pool.maximum,
     runtime.resourceController.value('affinity') +

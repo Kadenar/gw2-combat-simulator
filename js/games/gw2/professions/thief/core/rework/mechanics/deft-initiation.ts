@@ -34,7 +34,7 @@ export function initiatingStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent)
 }
 
 /** The proc keeps its causal parent but rolls its own strength, independently of the triggering weapon. */
-export function emitSharpInitiation(runtime: ThiefRuntime, cause: Gw2ResolverEvent): void {
+function emitSharpInitiation(runtime: ThiefRuntime, cause: Gw2ResolverEvent): void {
   emitTraitProfile(runtime, REWORK.SHARP_INITIATION, REWORK.SHARP_INITIATION, cause, {
     skillId: REWORK.SHARP_INITIATION,
     skillName: 'Sharp Initiation',

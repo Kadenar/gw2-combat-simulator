@@ -72,7 +72,7 @@ export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
 
     runtime.fireTrigger(daredevilCastStarted, { cast });
 
-    if (skill.id === SHARED_SKILL_IDS.DODGE && !cast.cancelled) queueDodgePackets(runtime, cast);
+    if (skill.id === SHARED_SKILL_IDS.DODGE && !cast.cancelledBeforeCommit) queueDodgePackets(runtime, cast);
   },
   onCastCommit(runtime, cast) {
     deferThiefCompletion(runtime, DAREDEVIL_COMPLETE, cast);

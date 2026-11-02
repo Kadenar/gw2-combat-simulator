@@ -13,10 +13,10 @@ import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const conduitConfig = {
   specialization: 'Conduit',
   selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],

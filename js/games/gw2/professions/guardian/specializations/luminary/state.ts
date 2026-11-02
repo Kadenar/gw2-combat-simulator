@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
@@ -49,10 +52,10 @@ function createLuminaryState(): GuardianLuminaryState {
 
 export const luminaryState = defineProfessionSpecializationState('Luminary', createLuminaryState);
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectLuminaryPlanningState(input: Gw2PlanningStateInput) {
-  const state = luminaryState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectLuminaryPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = luminaryState.from(input.profession);
+  return {
     [STATE.RADIANT_FORGE]: state.radiantForge,
     [STATE.RADIANT_FORGE_ENDS_AT]: state.radiantForgeEndsAt,
     [STATE.RADIANT_WEAPON]: state.radiantWeapon,
@@ -63,5 +66,5 @@ export function projectLuminaryPlanningState(input: Gw2PlanningStateInput) {
     [STATE.RADIANT_COURAGE_SWORD_ARMED]: state.radiantCourageSwordArmed,
     [STATE.EFFULGENT_ACTIVE_UNTIL]: state.effulgentActiveUntil,
     [STATE.EFFULGENT_STACKS]: state.effulgentStacks
-  });
+  };
 }

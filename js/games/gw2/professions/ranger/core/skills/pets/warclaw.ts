@@ -8,11 +8,10 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   // Natural Slash uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.WARCLAW_SLASH]: definePetSkill({
     name: 'Slash',
-    description: 'Slash at your foe.',
     icon: new URL('@images/wiki/slash-warclaw.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -35,7 +34,6 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Natural Battle Maul uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.WARCLAW_BATTLE_MAUL]: definePetSkill({
     name: 'Battle Maul',
-    description: 'Pounce on foes.',
     icon: new URL('@images/wiki/battle-maul-juvenile-warclaw.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -66,7 +64,6 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Natural Bop uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.WARCLAW_BOP]: definePetSkill({
     name: 'Bop',
-    description: 'Ready a powerful thwack to knock down your enemy.',
     icon: 'https://render.guildwars2.com/file/B7474B75A6C14CE0FF295523AADCA5A5F2C1621B/3379168.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -87,7 +84,6 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
       {
         type: 'control',
         controlKind: CONTROL.KNOCKDOWN,
-        duration: 3,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
@@ -95,7 +91,6 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   }),
   [ID.RALLYING_ROAR]: definePetSkill({
     name: 'Rallying Roar',
-    description: 'Beast. Let out a noble roar, granting superspeed to nearby allies.',
     icon: 'https://render.guildwars2.com/file/C20B41C6C7E2E512BF73ABB968A17F61690517AF/3379169.png',
     petNames: ['Warclaw'],
     type: 'Profession',
@@ -105,4 +100,4 @@ export const RANGER_CORE_WARCLAW_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
     quicknessCastTimeMs: 333,
     effects: []
   })
-});
+};

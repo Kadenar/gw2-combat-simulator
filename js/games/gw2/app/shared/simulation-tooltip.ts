@@ -11,6 +11,7 @@ import {
   requireBalanceProfileFromContext,
   skillNumberFromContext
 } from '#gw2/platform/skills/balance-profiles.js';
+import { displayedSkill } from '#gw2/platform/skills/selectors.js';
 import type { BalanceProfile, CatalogEntity, Skill, SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
 
 export interface SimulationTooltip {
@@ -21,21 +22,25 @@ export interface SimulationTooltip {
   readonly incomplete?: boolean;
 }
 
-export type DescribeSimulationTooltip = (
-  context: ProfessionBalanceContext,
-  entity: CatalogEntity,
+/**
+ * Describes one catalog entity. Skill describers receive the owning profession's skill type and catalog; trait
+ * describers receive base identities.
+ */
+export type DescribeSimulationTooltip<TSkill extends Skill = Skill, TEntity extends CatalogEntity = CatalogEntity> = (
+  context: ProfessionBalanceContext<TSkill>,
+  entity: TEntity,
   specialization?: string,
   build?: Pick<Gw2CanonicalBuild, 'specializations'>
 ) => SimulationTooltip;
 
 /** Separate entity namespaces retain identity even when a skill and trait share the same numeric API ID. */
-export interface ProfessionTooltips {
-  readonly traits: Readonly<Record<string, DescribeSimulationTooltip>>;
+export interface ProfessionTooltips<TSkill extends Skill = Skill> {
+  readonly traits: Readonly<Record<string, DescribeSimulationTooltip<TSkill>>>;
   /** Replacement descriptions selected in manifest order by registered module variants. */
-  readonly reworks?: Readonly<Record<string, Pick<ProfessionTooltips, 'traits' | 'skills'>>>;
-  readonly skills?: Readonly<Record<string, DescribeSimulationTooltip>>;
+  readonly reworks?: Readonly<Record<string, Pick<ProfessionTooltips<TSkill>, 'traits' | 'skills'>>>;
+  readonly skills?: Readonly<Record<string, DescribeSimulationTooltip<TSkill, TSkill>>>;
   /** Profession resources supplement both ordinary skills and explicitly described skills. */
-  readonly skillFacts?: (context: ProfessionBalanceContext, skill: Skill) => readonly TooltipFact[];
+  readonly skillFacts?: (context: ProfessionBalanceContext<TSkill>, skill: TSkill) => readonly TooltipFact[];
 }
 
 const tooltipSelections = new WeakMap<ProfessionTooltips, WeakMap<object, ProfessionTooltips>>();
@@ -93,7 +98,8 @@ export type FactSpec =
     };
 
 /** Computed payloads still need callbacks; scalar declarations can use facts directly. */
-type TooltipFacts<T> = readonly FactSpec[] | ((context: ProfessionBalanceContext, entity: T) => readonly TooltipFact[]);
+type TooltipFacts<T, TSkill extends Skill = Skill> =
+  readonly FactSpec[] | ((context: ProfessionBalanceContext<TSkill>, entity: T) => readonly TooltipFact[]);
 
 /** Select another profile without repeating balance-context plumbing in every authored row. */
 export const fromProfile = (
@@ -174,6 +180,8 @@ effectNames.set('explosive-temper', 'Explosive Temper');
 effectNames.set('illusionary-membrane', 'Illusionary Membrane');
 effectNames.set('twice-as-vicious', 'Twice as Vicious');
 effectNames.set('vow-of-the-untamed', 'Vow of the Untamed');
+// Resolve Gale Force's buff ID to its display name and trait icon.
+effectNames.set('gale-force', 'Gale Force');
 effectNames.set('relentless-fire', 'Relentless Fire');
 effectNames.set('shattering-ice', 'Shattering Ice');
 // All ordinary descriptions use the same locale, so reuse its formatter across skills.
@@ -199,6 +207,13 @@ export const tooltipPercent = (value: number, options: { maximumFractionDigits?:
       : String(Number((value * 100).toFixed(options.maximumFractionDigits)));
   return `${Number(percent) > 0 ? '+' : ''}${percent}%`;
 };
+
+/** Absolute chances, thresholds, and conversion rates are quantities, not signed bonuses. */
+export const tooltipPercentValue = (value: number): string => `${tooltipDecimal(value * 100)}%`;
+
+/** Attribute conversions grant a bonus without spending the source attribute. */
+export const tooltipAttributeConversion = (value: number): string =>
+  `${tooltipPercentValue(value)} (source attribute unchanged)`;
 
 // Keep duration units and signed multiplier changes consistent across professions.
 export const tooltipSeconds = (value: number): string => `${tooltipDecimal(value)}s`;
@@ -269,13 +284,19 @@ export function traitSkillTooltip(
   };
 }
 
-/** Explain unsupported traits and direct users to request support through an issue. */
+/** State the simulation outcome without guessing why an unmodeled trait was excluded. */
 export const outsideScopeTooltip = traitTooltip(
-  "This trait is either outside the simulator's scope or has not been implemented yet. To request support for it, submit an issue."
+  'This trait has no simulated effect. Its bonuses and triggers are not included in the simulation.'
 );
 
-/** Skill-specific wording can augment the selected skill's ordinary declarative payload. */
-export function skillTooltip(description: string, facts: TooltipFacts<Skill> = []): DescribeSimulationTooltip {
+/**
+ * Skill-specific wording can augment the selected skill's ordinary declarative payload. The selected catalog supplies
+ * the skill, so fact callbacks read it as the owning profession's skill type.
+ */
+export function skillTooltip<TSkill extends Skill = Skill>(
+  description: string,
+  facts: TooltipFacts<TSkill, TSkill> = []
+): DescribeSimulationTooltip<TSkill> {
   return (context, entity) => {
     const skill = context.catalog.skillsById.get(entity.id);
 
@@ -558,8 +579,27 @@ function ordinarySkillDescription(skill: Skill): string {
   if (effects.some((effect) => effect.type === 'aura'))
     sentences.push('Grant the listed auras to their indicated recipients.');
 
-  if (effects.some((effect) => effect.type === 'control'))
-    sentences.push('Apply control to your target, triggering eligible control effects.');
+  // Name each declared disable so the description explains the action rather than its internal event category.
+  const controls = [...new Set(effects.flatMap((effect) => (effect.type === 'control' ? [effect.controlKind] : [])))];
+  const controlVerbs: Readonly<Record<string, string>> = {
+    daze: 'Daze',
+    fear: 'Inflict fear on',
+    float: 'Float',
+    knockback: 'Knock back',
+    knockdown: 'Knock down',
+    launch: 'Launch',
+    pull: 'Pull',
+    push: 'Push',
+    sink: 'Sink',
+    stun: 'Stun',
+    taunt: 'Taunt'
+  };
+  for (const control of controls)
+    sentences.push(
+      control && controlVerbs[control]
+        ? `${controlVerbs[control]} your target.`
+        : 'Apply a control effect to your target.'
+    );
 
   if (effects.some((effect) => effect.type === 'custom' && effect.eventType === 'resource'))
     sentences.push('Gain the listed resources.');
@@ -575,6 +615,19 @@ export function describeSimulationSkill(
   build?: Pick<Gw2CanonicalBuild, 'specializations'>
 ): SimulationTooltip {
   presentation = resolveTooltips(context, presentation);
+
+  // Selector tooltips expose each concrete payload in a labeled tab, including its own recharge and damage.
+  if (skill.selector)
+    return {
+      description: presentation.skills?.[skill.id]?.(context, skill, undefined, build).description ?? skill.name,
+      facts: [],
+      factTabs: Object.keys(skill.selector).map((label) => ({
+        label,
+        facts: describeSimulationSkill(context, displayedSkill(context.catalog, skill, label), presentation, build)
+          .facts
+      }))
+    };
+
   const describe = presentation.skills?.[skill.id];
   // Custom descriptions own their packets; only format generic effects when no override handles the skill.
   let model: SimulationTooltip;

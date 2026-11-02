@@ -9,6 +9,7 @@ import type {
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { fieldValue } from '#gw2/platform/skills/field-specs.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Ordinary actions receive only the services they can mutate; profession verbs keep their typed context. */
@@ -35,7 +36,7 @@ export function sideEffectAmount(
     typeof amount === 'number'
       ? amount
       : 'skillField' in amount
-        ? skill?.[amount.skillField]
+        ? skill && fieldValue(skill, amount.skillField)
         : balanceNumberFromContext(runtime, amount.profile, amount.field);
 
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
@@ -112,11 +113,11 @@ export function applySideEffect<TContext extends SideEffectServices>(
       runtime.consumeFlip(action.skillId);
       return;
     case 'emitProfile': {
+      // Profile actions emit the complete selected profile with the triggering skill's attribution.
       const profile = requireBalanceProfileFromContext(runtime, action.profileId);
       runtime.effects.emit({
         kind: 'profile',
         profile: profile,
-        effects: action.effects ? (profile.effects ?? []).filter(action.effects) : undefined,
         cause: context.kind === 'effect' ? context.trigger.event : undefined,
         attribution: {
           source: 'Trait',

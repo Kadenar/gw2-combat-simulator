@@ -29,7 +29,7 @@ import { THIEF_SKILL_IDS as SKILL, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profess
 const mobilityEligible = (_runtime: unknown, { cast }: ThiefCastCompletion) => cast.skill.id !== SKILL.DEADEYES_MARK;
 
 /** Combat entry and mobility arm one next-hit payload; unknown numbers stay in the selected profiles. */
-export const deftInitiation = defineTrait({
+const deftInitiation = defineTrait({
   id: REWORK.DEFT_INITIATION,
   balance: {
     internalCooldown: 0,
@@ -57,7 +57,7 @@ export const deftInitiation = defineTrait({
 });
 
 /** Cause-free cast completion emits self swiftness explicitly; zero cooldown never merges same-instant grants. */
-export const felineGrace = defineTrait({
+const felineGrace = defineTrait({
   id: TRAIT.FELINE_GRACE,
   balance: {
     internalCooldown: 0,
@@ -99,7 +99,7 @@ export const felineGrace = defineTrait({
 });
 
 /** Target assumptions and applied impairing conditions share the same damage predicate. */
-export const opportuneOpening = defineTrait({
+const opportuneOpening = defineTrait({
   id: REWORK.OPPORTUNE_OPENING,
   balance: {
     damageIncrease: 0,
@@ -122,7 +122,7 @@ export const opportuneOpening = defineTrait({
 });
 
 /** Keep this shared completion listener in both rulesets, replacing movement endurance with Steal resistance. */
-export const hardToCatch = defineTrait({
+const hardToCatch = defineTrait({
   id: TRAIT.HARD_TO_CATCH,
   balance: {
     effects: [
@@ -152,7 +152,7 @@ export const hardToCatch = defineTrait({
 });
 
 /** Each actual self swiftness application can grant endurance; permanent boon assumptions are not producers. */
-export const dontStop = defineTrait({
+const dontStop = defineTrait({
   id: TRAIT.DONT_STOP,
   balance: { resourceGain: 0, internalCooldown: 0 },
   triggers: [
@@ -174,7 +174,7 @@ export const dontStop = defineTrait({
 });
 
 /** The extra strike uses the unequipped strength profile so it stays independent of the triggering weapon. */
-export const sharpInitiation = defineTrait({
+const sharpInitiation = defineTrait({
   id: REWORK.SHARP_INITIATION,
   balance: {
     effects: [

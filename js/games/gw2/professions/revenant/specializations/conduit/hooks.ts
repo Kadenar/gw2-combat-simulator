@@ -61,7 +61,7 @@ const RELEASE_POTENTIAL_IDS = new Set<SkillId>(Object.values(REVENANT_RELEASE_PO
 export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   /** Hold the selected preview state while evaluating detached damage queries. */
   prepareDamageState(runtime, _skill, inputs) {
-    const state = conduitState.from(runtime);
+    const state = conduitState.from(runtime.profession);
     state.cosmicWisdomUntil = inputs.cosmicWisdom ? Infinity : 0;
     state.conduitForm = inputs.cosmicWisdom
       ? REVENANT_CONDUIT_FORM_BY_LEGEND[runtime.profession.core.activeLegendId] || ''
@@ -74,7 +74,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   // Control-triggered Burning shares Mistfire's profile, excluding its own Twin Moon chain.
 
   availability(runtime, skill) {
-    const state = conduitState.from(runtime);
+    const state = conduitState.from(runtime.profession);
 
     if (skill.id === ID.BEGUILING_HAZE) {
       // Project the shared recharge without mutating state during an availability query.
@@ -101,7 +101,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   },
   resolveCastSkill(runtime, skill) {
     // Select the follow-up cutoff before cancellation checks and charge consumption.
-    if (skill.id !== ID.BEGUILING_HAZE || conduitState.from(runtime).beguilingHazeCharges <= 0) return skill;
+    if (skill.id !== ID.BEGUILING_HAZE || conduitState.from(runtime.profession).beguilingHazeCharges <= 0) return skill;
 
     return {
       ...skill,
@@ -129,7 +129,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     // Form-specific recharge belongs to the selected Demon skill, independently of its normal cooldown.
     if (
       (skill.id === ID.PAIN_ABSORPTION || skill.id === ID.BANISH_ENCHANTMENT) &&
-      revenantConduitFormIsActive(conduitState.from(runtime), 'Mesmer', runtime.time)
+      revenantConduitFormIsActive(conduitState.from(runtime.profession), 'Mesmer', runtime.time)
     )
       return Math.max(0, skillNumberFromContext(runtime, skill.id, 'mesmerRecharge'));
 
@@ -141,7 +141,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
 
     if (
       skill.legendId === LEGEND.ENTITY &&
-      revenantConduitFormIsActive(conduitState.from(runtime), 'Dervish', cast.start)
+      revenantConduitFormIsActive(conduitState.from(runtime.profession), 'Dervish', cast.start)
     )
       dervishCasts.add(cast);
   },
@@ -204,8 +204,8 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   },
   onCooldownReset(runtime) {
     // A full cooldown reset makes Beguiling Haze immediately available.
-    conduitState.from(runtime).beguilingHazeReadyAt = runtime.time;
-    conduitState.from(runtime).beguilingHazeRecharge = null;
+    conduitState.from(runtime.profession).beguilingHazeReadyAt = runtime.time;
+    conduitState.from(runtime.profession).beguilingHazeRecharge = null;
   },
   tasks: {
     [FORM_EXPIRY]: formExpiry,

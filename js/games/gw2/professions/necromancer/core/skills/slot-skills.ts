@@ -19,14 +19,13 @@ import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mec
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
-import type { NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
+import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
 
-export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<NecromancerSkill>>> = {
   [ID.WELL_OF_BLOOD]: {
     name: 'Well of Blood',
-    description: 'Well. Conjure a well of blood to heal allies.',
     icon: 'https://render.guildwars2.com/file/F7E56628560660BBD504BB1661934814DD41A9A5/103097.png',
     type: 'Heal',
     slot: 'Heal',
@@ -37,8 +36,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SUMMON_BONE_FIEND]: {
     name: 'Summon Bone Fiend',
-    description:
-      'Minion. Summon a bone fiend that attacks foes at range. Delivers a crippling attack once every ten seconds.',
     icon: 'https://render.guildwars2.com/file/941C6A21F67EAD342859D2783715A10D79D0C236/103802.png',
     type: 'Utility',
     slot: 'Utility',
@@ -55,7 +52,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.PUTRID_EXPLOSION]: {
     name: 'Putrid Explosion',
-    description: 'Explode a bone minion.',
     icon: 'https://render.guildwars2.com/file/E65DF0D89D5FF85CD772F8542A070737EAE457A1/102782.png',
     type: 'Utility',
     slot: 'Utility',
@@ -79,7 +75,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SUMMON_BONE_MINIONS]: {
     name: 'Summon Bone Minions',
-    description: 'Minion. Summon two bone minions.',
     icon: 'https://render.guildwars2.com/file/9369C81D9A6B4E026BD4F39A1F11495F35C24F6D/103804.png',
     type: 'Utility',
     slot: 'Utility',
@@ -96,7 +91,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.BLOOD_IS_POWER]: {
     name: 'Blood Is Power',
-    description: 'Corruption. Bleed yourself to grant might to allies around you and bleed your target.',
     icon: 'https://render.guildwars2.com/file/F26312E5CBFE5CA12261B66E194F21A5D205F314/103795.png',
     type: 'Utility',
     slot: 'Utility',
@@ -145,7 +139,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Wells use their EVTC-observed Quickness packet schedule for every damage and condition pulse.
   [ID.WELL_OF_CORRUPTION]: {
     name: 'Well of Corruption',
-    description: 'Well. Target area pulses, converting boons on foes into conditions.',
     icon: 'https://render.guildwars2.com/file/60117AF6357DBEAFAA4B139BDC2494380680D52A/103008.png',
     type: 'Utility',
     slot: 'Utility',
@@ -162,7 +155,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 1 } })]
           }
         ],
         ticks: [320, 1280, 2280, 3280, 4280, 5280].map((atMs) => ({ atMs, coefficient: 0.5 })),
@@ -173,7 +166,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.WELL_OF_SUFFERING]: {
     name: 'Well of Suffering',
-    description: 'Well. Target area pulses, damaging foes and inflicting vulnerability.',
     icon: 'https://render.guildwars2.com/file/44002EEFB097C4D23F5B0DF3004F90171D022EA8/103570.png',
     type: 'Utility',
     slot: 'Utility',
@@ -201,7 +193,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SUMMON_BLOOD_FIEND]: {
     name: 'Summon Blood Fiend',
-    description: 'Minion. Summon a blood fiend that transfers health to you on each attack.',
     icon: 'https://render.guildwars2.com/file/9BB42A45780BC6D0F5F8157BC26A64A3C31DAF02/103088.png',
     type: 'Heal',
     slot: 'Heal',
@@ -217,7 +208,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.CONSUME_CONDITIONS]: {
     name: 'Consume Conditions',
-    description: 'Corruption. Feast on your conditions, gaining health for each one consumed. You become vulnerable.',
     icon: 'https://render.guildwars2.com/file/2E59B8AD34566FB37594A703180D1F1744012B20/103806.png',
     type: 'Heal',
     slot: 'Heal',
@@ -246,8 +236,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.PLAGUELANDS]: {
     name: 'Plaguelands',
-    description:
-      'Corruption. Create a virulent cloud that inflicts conditions on foes in its area. This plague inflicts additional conditions every second it persists. Inflict bleeding on yourself.',
     icon: 'https://render.guildwars2.com/file/97EC4B6E302F5D79639CA519D25F9A5C2A2DDEC1/103312.png',
     type: 'Elite',
     slot: 'Elite',
@@ -363,8 +351,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.LICH_FORM]: {
     name: 'Lich Form',
-    description:
-      'Spectral. Assume the form of a lich for a brief time, improving your precision and vitality. Gain life force when this skill ends.\nEntering this form removes other spectral effects.',
     icon: 'https://render.guildwars2.com/file/05440954B9C0A2D8C13463196C64BB6777E6F79C/103807.png',
     type: 'Elite',
     slot: 'Elite',
@@ -380,7 +366,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.PLAGUE_SIGNET]: {
     name: 'Plague Signet',
-    description: 'Signet Passive: Reduce incoming condition damage.\nSignet Active: Send your conditions to a foe.',
     icon: 'https://render.guildwars2.com/file/7BA4196DCAD2BED2D4E7EF23B1CB4806DABC0C56/103812.png',
     type: 'Utility',
     slot: 'Utility',
@@ -395,7 +380,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.RIGOR_MORTIS]: {
     name: 'Rigor Mortis',
-    description: 'Immobilize your bone fiend, and it will immobilize foes.',
     icon: 'https://render.guildwars2.com/file/2E1AA4F827F1D6450C9F98C6EA3EB3BC020B25F2/103815.png',
     type: 'Utility',
     slot: 'Utility',
@@ -448,7 +432,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.TASTE_OF_DEATH]: {
     name: 'Taste of Death',
-    description: "Sacrifice your blood fiend's health to heal yourself.",
     icon: 'https://render.guildwars2.com/file/5D3ABA007906D715CE6CA70D5EE9029ACA0A10B5/103816.png',
     type: 'Heal',
     slot: 'Heal',
@@ -462,7 +445,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SUMMON_SHADOW_FIEND]: {
     name: 'Summon Shadow Fiend',
-    description: 'Minion. Summon a shadow fiend to attack foes.',
     icon: 'https://render.guildwars2.com/file/79FD0497A0BD625E0AD19A3A93C60946CB6C46E1/103819.png',
     type: 'Utility',
     slot: 'Utility',
@@ -479,7 +461,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.HAUNT]: {
     name: 'Haunt',
-    description: 'Command your shadow fiend to teleport to a foe and attack all nearby foes, inflicting conditions.',
     icon: 'https://render.guildwars2.com/file/457C16DE0EBA0205D501FF265593EAC377806F15/103102.png',
     type: 'Utility',
     slot: 'Utility',
@@ -500,7 +481,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
             actor: ACTOR.SUMMON,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 10 } })]
           }
         ]
       },
@@ -532,7 +513,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.WELL_OF_DARKNESS]: {
     name: 'Well of Darkness',
-    description: 'Well. Target area pulses, blinding foes with each pulse.',
     icon: 'https://render.guildwars2.com/file/73CD1C36D50DD05FA009A5119166AF9BF665B5F1/103566.png',
     type: 'Utility',
     slot: 'Utility',
@@ -578,8 +558,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SIGNET_OF_UNDEATH]: {
     name: 'Signet of Undeath',
-    description:
-      'Signet Passive: Generates life force while in combat.\nSignet Active: Sacrifice health to revive one downed ally in a target area.',
     icon: 'https://render.guildwars2.com/file/71931FADB11260EDB2770DF23054DC9970D35734/103826.png',
     type: 'Utility',
     slot: 'Utility',
@@ -594,7 +572,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SPECTRAL_GRASP]: {
     name: 'Spectral Grasp',
-    description: 'Spectral. Pull target foe and all nearby foes to you, chill them, and gain life force.',
     icon: 'https://render.guildwars2.com/file/D0B194BE68DB7E3AA4029490D1B2087709CA7864/103568.png',
     type: 'Utility',
     slot: 'Utility',
@@ -611,7 +588,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => event.sourceId === event.skillId,
-            do: lifeForceGrant({ id: 'life-force', unit: 'application', grant: { percent: 15 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'application', grant: { percent: 15 } })]
           }
         ],
         condition: CONDITION.CHILLED,
@@ -622,8 +599,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SIGNET_OF_SPITE]: {
     name: 'Signet of Spite',
-    description:
-      'Signet Passive: Improves power.\nSignet Active: Inflict bleeding, blindness, crippled, poison, vulnerability, and weakness on your foe.',
     icon: 'https://render.guildwars2.com/file/596707B904509879083B6F6697012448A7420A63/58459.png',
     type: 'Utility',
     slot: 'Utility',
@@ -651,7 +626,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SUMMON_FLESH_GOLEM]: {
     name: 'Summon Flesh Golem',
-    description: 'Minion. Summon a flesh golem to attack foes with crippling claws.',
     icon: 'https://render.guildwars2.com/file/0C9376D8AC320CB10F43D6F9D37B5458316AC9DF/103840.png',
     type: 'Elite',
     slot: 'Elite',
@@ -668,8 +642,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.CHARGE]: {
     name: 'Charge',
-    description:
-      'Command your flesh golem to gain stability and charge a foe, knocking down or launching enemies in its path.',
     icon: 'https://render.guildwars2.com/file/D97B1BD34FE795A2B8D3251F0C2DE677211DF957/103841.png',
     type: 'Elite',
     slot: 'Elite',
@@ -690,8 +662,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.CORROSIVE_POISON_CLOUD]: {
     name: 'Corrosive Poison Cloud',
-    description:
-      'Corruption. Weaken yourself and envelope the target area in a noxious cloud that blocks enemy missiles and poisons foes and leaves them weakened.',
     icon: 'https://render.guildwars2.com/file/2B32FAFBD66F35AB51C3D97E910912AB74DD57A0/102897.png',
     type: 'Utility',
     slot: 'Utility',
@@ -726,8 +696,6 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SIGNET_OF_VAMPIRISM]: {
     name: 'Signet of Vampirism',
-    description:
-      'Signet Passive: Steal health from nearby foes while in combat.\nSignet Active: Heal yourself and mark a foe. Allied players will siphon life from the marked enemy.',
     icon: 'https://render.guildwars2.com/file/F62121A2D713A4CD5FDA3E5C734408EF3306BED4/699529.png',
     type: 'Heal',
     slot: 'Heal',
@@ -774,7 +742,7 @@ export const NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, Sk
       ]
     ]
   }
-});
+};
 
 /** Checks whether Signet of Spite's selected, out-of-shroud, off-cooldown passive is active. */
 export function signetOfSpitePassiveActive(context: Gw2ModifierContext): boolean {

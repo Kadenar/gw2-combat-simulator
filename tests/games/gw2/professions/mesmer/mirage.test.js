@@ -141,7 +141,7 @@ test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () =>
   const used = simulateMesmer(['Dodge / Mirage Cloak', 'Imaginary Axes'], config);
 
   assert.deepEqual(
-    used.steps.map((step) => step.skill),
+    used.steps.map((step) => step.skillName),
     ['Dodge / Mirage Cloak', 'Imaginary Axes']
   );
   assert.ok(
@@ -185,7 +185,7 @@ test('cancelling an ambush preserves the cloak window across a weapon swap', () 
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.ok(result.steps.some((step) => step.skill === 'Imaginary Axes' && !step.invalid));
+  assert.ok(result.steps.some((step) => step.skillName === 'Imaginary Axes' && !step.invalid));
   assert.equal(result.planningState.profession[STATE.AVAILABLE_AMBUSH], null);
   assert.equal(
     result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Chaos Vortex'),
@@ -217,7 +217,7 @@ test('all terrestrial Mirage weapons execute their correct ambush', () => {
     );
 
     assert.deepEqual(
-      result.steps.map((step) => step.skill),
+      result.steps.map((step) => step.skillName),
       ['Dodge / Mirage Cloak', ambush],
       weapon
     );
@@ -479,7 +479,7 @@ test('Desert Distortion and Dune Cloak grant their shatter ambush windows', () =
   );
 
   assert.equal(dune.planningState.profession[STATE.AVAILABLE_AMBUSH].source, 'Dune Cloak');
-  assert.equal(dune.planningState.cooldowns[ID.MIND_WRACK].readyAt, 8800);
+  assert.equal(dune.planningState.cooldownsBySkillId[ID.MIND_WRACK].readyAtMs, 8800);
 
   const twoClones = simulateMesmer(
     ['Mind Wrack'],
@@ -700,7 +700,7 @@ test('Mirage can queue an ambush before its window closes without extending the 
         selectedTraitIds: []
       })
     );
-    const ambush = result.steps.find((step) => step.skill === 'Fractured Glass');
+    const ambush = result.steps.find((step) => step.skillName === 'Fractured Glass');
     assert.equal(Boolean(ambush.invalid), waitMs > 0);
 
     if (!waitMs) {
@@ -783,7 +783,7 @@ test('Sigil of Energy restores one Mirage dodge charge on weapon swap', () => {
       initialResource: 0
     })
   );
-  const dodges = result.steps.filter((step) => step.skill === 'Dodge / Mirage Cloak' && !step.invalid);
+  const dodges = result.steps.filter((step) => step.skillName === 'Dodge / Mirage Cloak' && !step.invalid);
   const energy = result.procSteps.find((proc) => proc.skill === 'Sigil of Energy');
 
   assert.deepEqual(result.warnings, []);

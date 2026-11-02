@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -30,7 +33,7 @@ export function selectedMechCommands(traits: EngineerConfig | ReadonlySet<SkillI
 }
 
 /** The mech stays present throughout simulation; attack scheduling and live attributes belong to their runtime owners. */
-export function createMechanistState(config: EngineerConfig = {}): MechanistState {
+function createMechanistState(config: EngineerConfig = {}): MechanistState {
   const traits = selectedEngineerTraits(config);
   return {
     barrierEngine: createPeriodicTaskState(),
@@ -44,10 +47,10 @@ export function createMechanistState(config: EngineerConfig = {}): MechanistStat
 
 export const mechanistState = defineProfessionSpecializationState('Mechanist', createMechanistState);
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectMechanistPlanningState(input: Gw2PlanningStateInput) {
-  const state = mechanistState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectMechanistPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = mechanistState.from(input.profession);
+  return {
     [STATE.MECH]: state.mech
-  });
+  };
 }

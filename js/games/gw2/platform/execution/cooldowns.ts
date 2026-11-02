@@ -39,7 +39,7 @@ export function createCooldownController({
   maximumAmmo = (skill) => skill.ammo || 0
 }: CooldownControllerOptions): Readonly<CooldownController> {
   // Recharge stores belong exclusively to this controller; callers supply only the live clock.
-  const cooldowns = new Map<SkillId, number>();
+  const readyAtBySkillId = new Map<SkillId, number>();
   const rechargeProgress = new Map<SkillId, RechargeProgress>();
   const ammoPools = new Map<SkillId, AmmoState>();
 
@@ -61,8 +61,8 @@ export function createCooldownController({
     let work = progress.work;
     for (const interval of rechargeIntervals(
       skill,
-      progress.startedAt,
-      Math.max(progress.startedAt, at),
+      progress.workAnchorAt,
+      Math.max(progress.workAnchorAt, at),
       progress.companionId
     )) {
       work -= (interval.end - interval.start) * interval.rate;
@@ -75,37 +75,37 @@ export function createCooldownController({
     // Published readiness is a canonical deadline, even after fractional recharge reductions.
     const deadline = projectRecharge(
       progress,
-      rechargeIntervals(skill, progress.startedAt, Infinity, progress.companionId)
+      rechargeIntervals(skill, progress.workAnchorAt, Infinity, progress.companionId)
     );
     return Number.isFinite(deadline) ? canonicalTime(deadline) : deadline;
   };
 
   const startRecharge = (skill: Skill, at: number, work?: number, companionId?: string): number => {
     const progress = {
-      startedAt: at,
+      workAnchorAt: at,
       work: Math.max(0, work ?? rechargeDuration(skill, at) * rate(skill, at)),
       ...(companionId == null ? {} : { companionId })
     };
     rechargeProgress.set(skill.id, progress);
     const readyAt = project(skill, progress);
-    cooldowns.set(skill.id, readyAt);
+    readyAtBySkillId.set(skill.id, readyAt);
     return readyAt;
   };
 
   const setReadyAt = (skillId: SkillId, readyAt: number): void => {
     rechargeProgress.delete(skillId);
-    cooldowns.set(skillId, Number.isFinite(readyAt) ? canonicalTime(readyAt) : readyAt);
+    readyAtBySkillId.set(skillId, Number.isFinite(readyAt) ? canonicalTime(readyAt) : readyAt);
   };
 
   const clear = (skillId: SkillId): void => {
     rechargeProgress.delete(skillId);
-    cooldowns.delete(skillId);
+    readyAtBySkillId.delete(skillId);
   };
 
   const copy = (sourceId: SkillId, targetId: SkillId): void => {
     if (sourceId === targetId) return;
 
-    const readyAt = cooldowns.get(sourceId);
+    const readyAt = readyAtBySkillId.get(sourceId);
 
     if (readyAt == null) {
       clear(targetId);
@@ -129,9 +129,9 @@ export function createCooldownController({
     );
 
     if (gw2CooldownReadyAt(readyAt) > at) {
-      cooldowns.set(skill.id, readyAt);
+      readyAtBySkillId.set(skill.id, readyAt);
     } else {
-      cooldowns.delete(skill.id);
+      readyAtBySkillId.delete(skill.id);
     }
   };
 
@@ -176,7 +176,7 @@ export function createCooldownController({
       ammo.recharges.shift();
       const next = ammo.recharges[0];
 
-      if (next) next.startedAt = Math.max(next.startedAt, completedAt);
+      if (next) next.workAnchorAt = Math.max(next.workAnchorAt, completedAt);
     }
 
     if (ammo.charges >= ammo.maximum) ammo.recharges = [];
@@ -196,7 +196,7 @@ export function createCooldownController({
     ammo.charges -= 1;
     // A cast carries its selected recharge through completion; direct resource spends still query at their anchor.
     const work = Math.max(0, committedRechargeWork ?? rechargeDuration(skill, at) * rate(skill, at));
-    ammo.recharges.push({ startedAt: at, work });
+    ammo.recharges.push({ workAnchorAt: at, work });
 
     syncAmmoCooldown(skill, ammo, at);
   };
@@ -232,14 +232,14 @@ export function createCooldownController({
     let remainingReduction = requested;
     ammo.recharges = ammo.recharges.map((progress, index) => {
       // Magazine reservations may precede their recharge anchor; reductions only affect timers already running.
-      if (progress.startedAt > at) return progress;
+      if (progress.workAnchorAt > at) return progress;
 
       // Waiting rounds have not earned elapsed work; only excess reduction reaches their full interval.
       const work = index === 0 ? remaining(skill, progress, at) : progress.work;
       const reduction = Math.min(remainingReduction, work);
       remainingReduction -= reduction;
       reducedWork += reduction;
-      return { startedAt: index === 0 ? at : progress.startedAt, work: work - reduction };
+      return { workAnchorAt: index === 0 ? at : progress.workAnchorAt, work: work - reduction };
     });
     refreshAmmo(skill, at);
     return reducedWork / rate(skill, at);
@@ -259,7 +259,7 @@ export function createCooldownController({
 
     if (!progress) {
       // Explicit fixed deadlines keep their existing policy when reduced.
-      const readyAt = cooldowns.get(skill.id) || 0;
+      const readyAt = readyAtBySkillId.get(skill.id) || 0;
       const reducedBy = clamp(requested / rate(skill, at), 0, readyAt - at);
 
       if (reducedBy) setReadyAt(skill.id, readyAt - reducedBy);
@@ -284,7 +284,7 @@ export function createCooldownController({
 
     if (!ammo) return;
 
-    const progress = { startedAt: at, work: Math.max(0, work) };
+    const progress = { workAnchorAt: at, work: Math.max(0, work) };
     const projected = project(skill, progress);
     const previous = ammo.lockoutProgress ? project(skill, ammo.lockoutProgress) : ammo.lockoutReadyAt || 0;
 
@@ -307,15 +307,17 @@ export function createCooldownController({
       const progress = rechargeProgress.get(id);
       // Same-timestamp summon boon changes must be visible before the next clock refresh.
       const readyAt =
-        skill && progress && hasVariableRechargeRate(skill) ? project(skill, progress) : (cooldowns.get(id) ?? 0);
+        skill && progress && hasVariableRechargeRate(skill)
+          ? project(skill, progress)
+          : (readyAtBySkillId.get(id) ?? 0);
       return readyAt > at;
     },
-    readyAt: (id: SkillId) => cooldowns.get(id),
-    hasCooldown: (id: SkillId) => cooldowns.has(id),
+    readyAt: (id: SkillId) => readyAtBySkillId.get(id),
+    hasCooldown: (id: SkillId) => readyAtBySkillId.has(id),
     readAmmo: (id: SkillId) => ammoPools.get(id),
     hasAmmo: (id: SkillId) => ammoPools.has(id),
     rechargeFor: (id: SkillId) => rechargeProgress.get(id),
-    cooldownSkillIds: () => cooldowns.keys(),
+    cooldownSkillIds: () => readyAtBySkillId.keys(),
     ammoSkillIds: () => ammoPools.keys(),
     retireAmmo(id: SkillId) {
       // The cooldown entry of an ammo skill mirrors its pool, so retiring the pool drops that deadline and lockout too.
@@ -370,7 +372,7 @@ export function createCooldownController({
       // Capture work without advancing clocks; only the front queued charge has earned elapsed recharge.
       return {
         remainingCooldowns: new Map(
-          [...cooldowns]
+          [...readyAtBySkillId]
             .filter(([id]) => id !== independentCooldownId && !preservedCooldownIds.has(id))
             .map(([id, ready]) => [id, ready - at])
         ),
@@ -411,21 +413,22 @@ export function createCooldownController({
       deadlines: readonly { readonly skillId: SkillId; readonly readyAt: number }[]
     ) {
       // Restore relative work/deadlines atomically before reprojecting against the current recharge rate.
-      const preservedCooldowns = [...cooldowns].filter(([id]) => preservedCooldownIds.has(id));
+      const preservedCooldowns = [...readyAtBySkillId].filter(([id]) => preservedCooldownIds.has(id));
       const progress = [...rechargeProgress].filter(([id]) => preservedCooldownIds.has(id));
-      cooldowns.clear();
-      for (const [id, ready] of preservedCooldowns) cooldowns.set(id, ready);
-      for (const [id, duration] of checkpoint.remainingCooldowns) if (duration > 0) cooldowns.set(id, at + duration);
-      for (const deadline of deadlines) cooldowns.set(deadline.skillId, deadline.readyAt);
+      readyAtBySkillId.clear();
+      for (const [id, ready] of preservedCooldowns) readyAtBySkillId.set(id, ready);
+      for (const [id, duration] of checkpoint.remainingCooldowns)
+        if (duration > 0) readyAtBySkillId.set(id, at + duration);
+      for (const deadline of deadlines) readyAtBySkillId.set(deadline.skillId, deadline.readyAt);
       rechargeProgress.clear();
       for (const [id, value] of progress) rechargeProgress.set(id, value);
       // Restored work must publish its deadline now; constant-rate timers no longer reproject during refresh.
       for (const [id, work] of checkpoint.remainingRechargeWork) {
-        const restored = { startedAt: at, work };
+        const restored = { workAnchorAt: at, work };
         rechargeProgress.set(id, restored);
         const skill = skillFor(id);
 
-        if (skill) cooldowns.set(id, project(skill, restored));
+        if (skill) readyAtBySkillId.set(id, project(skill, restored));
       }
 
       ammoPools.clear();
@@ -433,10 +436,10 @@ export function createCooldownController({
         ammoPools.set(id, {
           charges: ammo.charges,
           maximum: ammo.maximum,
-          recharges: ammo.pendingRechargeWork.map((work) => ({ startedAt: at, work })),
+          recharges: ammo.pendingRechargeWork.map((work) => ({ workAnchorAt: at, work })),
           ...(ammo.pendingLockoutWork == null
             ? {}
-            : { lockoutProgress: { startedAt: at, work: ammo.pendingLockoutWork } }),
+            : { lockoutProgress: { workAnchorAt: at, work: ammo.pendingLockoutWork } }),
           nextRechargeAt: ammo.nextRechargeRemaining == null ? null : at + ammo.nextRechargeRemaining,
           lockoutReadyAt: ammo.lockoutRemaining > 0 ? at + ammo.lockoutRemaining : 0
         });
@@ -455,7 +458,7 @@ export function createCooldownController({
     },
     resetAll() {
       // Discard every skill's deadline, recharge work, and ammo lockout so no old queue survives the reset.
-      cooldowns.clear();
+      readyAtBySkillId.clear();
       rechargeProgress.clear();
       ammoPools.clear();
     },
@@ -471,7 +474,7 @@ export function createCooldownController({
       for (const [id, progress] of rechargeProgress) {
         const skill = skillFor(id);
 
-        if (skill && hasVariableRechargeRate(skill)) cooldowns.set(id, project(skill, progress));
+        if (skill && hasVariableRechargeRate(skill)) readyAtBySkillId.set(id, project(skill, progress));
       }
 
       for (const id of ammoPools.keys()) {

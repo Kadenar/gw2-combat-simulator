@@ -19,7 +19,7 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
   )
     return;
 
-  const state = antiquaryState.from(context);
+  const state = antiquaryState.from(context.profession);
 
   if (!consumeCharge(state.mistburn, event.at)) return;
 

@@ -406,7 +406,7 @@ function grantConductiveArmaments(runtime: RevenantRuntime, skill: RevenantSkill
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 function extendEnhancedEmbodiment(runtime: RevenantRuntime, formActive: boolean): void {
-  const state = conduitState.from(runtime);
+  const state = conduitState.from(runtime.profession);
 
   if (formActive) {
     const enhanced = requireBalanceProfileFromContext(runtime, TRAIT.ENHANCED_EMBODIMENT);

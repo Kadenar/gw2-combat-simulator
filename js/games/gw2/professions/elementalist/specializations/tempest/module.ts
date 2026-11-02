@@ -1,4 +1,3 @@
-import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 /**
  * Tempest module wiring.
  *
@@ -6,9 +5,10 @@ import { createNativeModuleData } from '#gw2/platform/profession-definition/asse
  * live deadlines, shout completion, aura reactions, and skill-bar presentation into
  * the single native module the elementalist family registers.
  */
+import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/elementalist/data/trait-lines.js';
-import { TEMPEST_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/tempest/catalog-fields.js';
 import { tempestHooks } from '#gw2/professions/elementalist/specializations/tempest/hooks.js';
 import { tempestUi } from '#gw2/professions/elementalist/specializations/tempest/presentation.js';
 import { TEMPEST_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/tempest/skills/index.js';
@@ -22,8 +22,7 @@ export const tempestModule = defineNativeModule({
   data: createNativeModuleData<ElementalistSkill>({
     id: 'Tempest',
     traitLines: TRAIT_LINES,
-    skillFields: TEMPEST_SKILL_FIELDS,
-    skillMechanics: TEMPEST_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(TEMPEST_SKILL_MECHANICS)
   }),
   state: { create: tempestState.create },
   traitDefinitions: tempestTraits,

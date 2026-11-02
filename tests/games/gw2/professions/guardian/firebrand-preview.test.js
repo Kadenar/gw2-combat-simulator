@@ -4,6 +4,7 @@ import test from 'node:test';
 import { selectSpecialization, toggleMajorTrait } from '#gw2/app/build/panels/traits.js';
 import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
@@ -13,6 +14,7 @@ import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition
 import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import { firebrandTooltips } from '#gw2/professions/guardian/app/tooltips/firebrand.js';
 import { createBuildContext, profession, toApplicationBuild } from '#gw2/professions/guardian/build/context.js';
+import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { resolveAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
@@ -22,12 +24,14 @@ import { firebrandControlAccepted } from '#gw2/professions/guardian/specializati
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { missingPatchTraits, selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
 const patchId = profession.preview.id;
 const config = { specialization: 'Firebrand', patchId };
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const cycle = [SKILL.TOME_OF_JUSTICE, SKILL.SEARING_SPELL, SKILL.IGNITING_BURST, SKILL.HEATED_REBUKE];
 const run = (rotation, overrides = {}, options = {}) =>
   runGuardian(rotation, { ...config, ...overrides }, { profession, ...options });
@@ -715,4 +719,62 @@ test('observed Ashes Burning exposes its skill edits without an Epilogue cast', 
   assert.ok(
     !notes.some((entry) => entry.subject === guardianProfession.catalog.skillsById.get(SKILL.ASHES_OF_THE_JUST).name)
   );
+});
+
+test('Imbued Haste shares patched attributes between build preview and current runtime selection', () => {
+  // The registered owner grants three attributes once and honors disabled-trait and boon previews.
+  const family = patchTraitProfession(guardianProfession, {
+    balanceProfiles: {
+      [TRAIT.IMBUED_HASTE]: {
+        fields: {
+          'attributeBonuses.conditionDamage': 175,
+          'attributeBonuses.healingPower': 175,
+          'attributeBonuses.vitality': 175
+        }
+      }
+    }
+  });
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(guardianCatalog),
+    family.attributeContributions
+  );
+  const build = { specializations: [{ name: 'Firebrand', traits: '1-1-1' }] };
+  for (const [patchId, bonus] of [
+    ['current', 250],
+    ['s4-preview', 175]
+  ]) {
+    const balance = family.resolvePatch({ id: patchId }).balanceContext;
+    const preview = calculate(build, [], 1, null, null, balance);
+    const disabled = calculate(build, [], 1, 'Imbued Haste', null, balance);
+    const withoutQuickness = calculate({ ...build, assumptions: { quickness: false } }, [], 1, null, null, balance);
+    const runtime = family.runtimeFor({ specialization: 'Firebrand', patchId });
+    const context = {
+      catalog: runtime.catalog,
+      time: 0,
+      config: {
+        selectedTraitIds: [TRAIT.IMBUED_HASTE],
+        boons: { quickness: true },
+        attributeInputs: baseAttributeInputs({ vitality: 100 })
+      }
+    };
+    for (const [label, key] of [
+      ['Condition Damage', 'conditionDamage'],
+      ['Healing Power', 'healingPower'],
+      ['Vitality', 'vitality']
+    ]) {
+      assert.equal(preview.attributes[label].traits, bonus);
+      assert.equal(disabled.attributes[label].traits, 0);
+      assert.equal(withoutQuickness.attributes[label].traits, 0);
+      // Final Vitality includes armor reinforcement without changing the trait's declared grant.
+      const final = 100 + bonus + (key === 'vitality' ? Math.round((100 + bonus) * 0.05) : 0);
+      assert.equal(runtime.modifyAttributes(context, { [key]: 100 })[key], final);
+      assert.equal(runtime.modifyAttributes({ ...context, config: { ...context.config } }, { [key]: 100 })[key], final);
+      assert.equal(
+        runtime.modifyAttributes({ ...context, config: { ...context.config, selectedTraitIds: [] } }, { [key]: 100 })[
+          key
+        ],
+        key === 'vitality' ? 105 : 100
+      );
+    }
+  }
 });

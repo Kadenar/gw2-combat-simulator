@@ -1,8 +1,8 @@
 /** Steamshrieker relic rules. */
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, COMBO_FIELD, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
+import { COMBO_FIELD, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
@@ -29,10 +29,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
     event: {
       type: 'condition',
       at: event.at,
-      source: 'Relic',
-      sourceId: `relic.${RELIC_IDS.STEAMSHRIEKER}`,
-      actorType: ACTOR.EFFECT,
-      ownerActorType: ACTOR.PLAYER,
+      ...playerOwnedRelicSource(RELIC_IDS.STEAMSHRIEKER),
       skillName: 'Relic of Steamshrieker',
       name: 'Relic of Steamshrieker — Burning',
       condition: CONDITION.BURNING,
@@ -41,8 +38,5 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       triggeredBy: event.skillName
     }
   });
-  ctx.effects.emit({
-    kind: 'announcement',
-    announcement: { type: 'relic', name: 'Relic of Steamshrieker', at: event.at, sourceSkill: event.skillName }
-  });
+  announceRelic(ctx, event, 'Relic of Steamshrieker');
 }

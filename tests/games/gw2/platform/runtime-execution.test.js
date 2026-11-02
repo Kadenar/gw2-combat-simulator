@@ -120,7 +120,7 @@ test('identity, recharge-anchor and boon-duration policies receive only their de
       },
       onCastCommit(runtime, cast) {
         reservations.push(cast);
-        assert.equal(runtime.cooldownController.rechargeFor(cast.skill.id).startedAt, cast.rechargeStart);
+        assert.equal(runtime.cooldownController.rechargeFor(cast.skill.id).workAnchorAt, cast.rechargeStart);
         assert.equal(runtime.cooldownController.rechargeFor(cast.skill.id).work, cast.rechargeWork);
       }
     }
@@ -260,7 +260,7 @@ function fixture({ skill = {}, hooks = {} } = {}) {
           traits: [{ id: 'test.proc', name: 'Proc' }]
         },
         traitDefinitions: [{ id: 'test.proc', name: 'Proc', balance: { maximumStacks: 2 } }],
-        state: { create: () => ({ energy: { value: 0, maximum: 10, updatedAt: 0, rate: 0 } }) },
+        state: { create: () => ({ energy: { value: 0, maximum: 10, updatedAt: 0, unitsPerSecond: 0 } }) },
         hooks: {
           resources: {
             energy: {
@@ -291,7 +291,7 @@ test('isolated casts preserve resources at acceptance and commit while combat pa
   for (const spendOn of ['castStart', 'castCommit']) {
     const balances = [];
     const profession = fixture({
-      skill: { resourceCost: 3, cost: { resource: 'energy', spendOn } },
+      skill: { cost: { resource: 'energy', amount: 3, spendOn } },
       hooks: {
         onCastStart: (runtime) => balances.push(runtime.profession.core.energy.value),
         onCastCommit: (runtime) => balances.push(runtime.profession.core.energy.value)
@@ -368,7 +368,7 @@ test('isolated damage retains authored hit reactions without starting combat or 
           type: 'strike',
           coefficient: 1,
           weaponStrength: 1000,
-          reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'test.authored' } }]
+          reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: [{ type: 'test.authored' }] }]
         }
       ]
     },

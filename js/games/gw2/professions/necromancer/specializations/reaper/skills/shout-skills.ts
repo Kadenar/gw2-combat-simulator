@@ -9,13 +9,12 @@ import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 /** Supplies Reaper shout definitions to specialization composition. */
-export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<NecromancerSkill>>> = {
   [ID.YOU_ARE_ALL_WEAKLINGS]: {
     name: '"You Are All Weaklings!"',
-    description:
-      'Shout. Damage foes around you and gain boons. Inflict conditions on struck foes, and gain boons per foe struck. Deal additional damage and gain additional boons when striking foes within melee range.',
     icon: 'https://render.guildwars2.com/file/7F319A751466157F5496545D21C76161F0E752F6/1012951.png',
     type: 'Utility',
     slot: 'Utility',
@@ -26,8 +25,6 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.NOTHING_CAN_SAVE_YOU]: {
     name: '"Nothing Can Save You!"',
-    description:
-      'Shout. Damage foes around you, converting their boons into vulnerability. Your next few attacks become unblockable. Deal additional damage and gain additional unblockable attacks when striking foes within melee range.',
     icon: 'https://render.guildwars2.com/file/E45F03C3E0CDAD2FA832383105C5E8E2E5EFFDC3/1012939.png',
     type: 'Utility',
     slot: 'Utility',
@@ -41,8 +38,6 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.CHILLED_TO_THE_BONE]: {
     name: '"Chilled to the Bone!"',
-    description:
-      'Shout. Freeze all enemies around you, inflicting conditions on them. Gain boons for each foe you freeze. Deal additional damage and increased stun duration and gain additional boons when striking foes in melee range.',
     icon: 'https://render.guildwars2.com/file/7E2553D0EFDAE14CACCBC3089DBEA70E6CED2AF1/1012912.png',
     type: 'Elite',
     slot: 'Elite',
@@ -57,8 +52,6 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.YOUR_SOUL_IS_MINE]: {
     name: '"Your Soul Is Mine!"',
-    description:
-      'Shout. Heal yourself, gain life force, and strike foes around you, absorbing additional life force from each foe struck. Deal additional damage and gain bonus life force when striking foes in melee range.',
     icon: 'https://render.guildwars2.com/file/53CF76526440F5987FA3E2CCDC9A2F2799CB26A8/1012929.png',
     type: 'Heal',
     slot: 'Heal',
@@ -75,7 +68,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 15 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 15 } })]
           }
         ],
         coefficient: 0.5,
@@ -85,8 +78,6 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.SUFFER]: {
     name: '"Suffer!"',
-    description:
-      'Shout. Damage foes around you and chill them. Transfer conditions to each foe you strike. Deal additional damage and transfer additional conditions to foes struck within melee range.',
     icon: 'https://render.guildwars2.com/file/E7D8759CBA4E41A03C4E466FDC1274A72D4CE862/1012950.png',
     type: 'Utility',
     slot: 'Utility',
@@ -105,7 +96,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.transfer' }
+            do: [{ type: 'necromancer.transfer' }]
           }
         ],
         coefficient: 1.5,
@@ -116,8 +107,6 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.RISE]: {
     name: '"Rise!"',
-    description:
-      'Shout. Damage foes around you. Summon a shambling horror plus additional horrors near each enemy struck. Deal additional damage and summon a second horror when striking foes within melee range. Shambling horrors absorb damage for their master as long as they are attacking.',
     icon: 'https://render.guildwars2.com/file/EE1C060DCC3E764730737C446408EF9DD813E7A6/1012949.png',
     type: 'Utility',
     slot: 'Utility',
@@ -126,7 +115,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     castTimeMs: 360,
     effects: [{ type: 'strike', coefficient: 0.8, hits: 1 }]
   }
-});
+};
 
 /** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
 export const reaperShoutMeleeModifier: Gw2ModifierRule = {

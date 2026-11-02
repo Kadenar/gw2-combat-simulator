@@ -1,7 +1,6 @@
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { ACTOR } from '#gw2/platform/constants.js';
 import { RELIC_BY_ID, RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
@@ -22,17 +21,7 @@ export const agony = defineRelic({
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
 function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: SimulationEvent): void {
-  ctx.effects.emit({
-    kind: 'announcement',
-    announcement: {
-      type: 'relic',
-      name: 'Relic of Agony',
-      at: event.at,
-      sourceSkill: event.skillName,
-      detail: '',
-      icon: RELIC_BY_ID[RELIC_IDS.AGONY].icon
-    }
-  });
+  announceRelic(ctx, event, 'Relic of Agony', { detail: '', icon: RELIC_BY_ID[RELIC_IDS.AGONY].icon });
   // This effect is not a condition: fixed ticks bypass duration, vulnerability, and outgoing damage modifiers.
   for (let second = 1; second <= 5; second += 1) {
     ctx.effects.emit({
@@ -42,10 +31,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
         at: event.at + second,
         name: 'Agony of the Choir',
         skillName: 'Relic of Agony',
-        source: 'Relic',
-        sourceId: `relic.${RELIC_IDS.AGONY}`,
-        actorType: ACTOR.EFFECT,
-        ownerActorType: ACTOR.PLAYER,
+        ...playerOwnedRelicSource(RELIC_IDS.AGONY),
         triggeredBy: event.skillName,
         icon: RELIC_BY_ID[RELIC_IDS.AGONY].icon,
         flatDamage: 134.5,

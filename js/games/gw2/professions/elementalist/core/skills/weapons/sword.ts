@@ -19,6 +19,7 @@ import {
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 // Canonical Sword timelines keep condition applications aligned with their originating strike packets.
 const QUANTUM_STRIKE_TICKS = [
@@ -40,13 +41,12 @@ const RUST_FRENZY_TICKS = [360, 360, 600, 640, 840, 840, 1080, 1120] as const;
  * Complete sword declarations own presentation, cast timelines, emitted packets, and combo participation.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
   // Fire autoattack chain opener; Fire Strike -> Fire Swipe -> Searing Slash -> back, with only
   // the finisher applying Burning. The Water, Air, and Earth chains below follow the same shape.
   [ID.FIRE_STRIKE]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Fire Strike',
-    description: 'Build elemental flames into your sword and strike your enemies.',
     icon: 'https://render.guildwars2.com/file/01BBF5AFE8D46FAE7F3ABE04A7EA2065E203A010/1770361.png',
     autoattack: true,
     type: 'Weapon',
@@ -76,7 +76,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.FIRE_SWIPE]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Fire Swipe',
-    description: 'Heat your sword a second time and strike your enemies for increased damage.',
     icon: 'https://render.guildwars2.com/file/515620A36869D978A1E66FA135446D77A3C94F50/1770362.png',
     autoattack: true,
     type: 'Weapon',
@@ -105,7 +104,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.SEARING_SLASH]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Searing Slash',
-    description: 'Heat your sword a final time and use the full power of your flames to sear enemies and ignite them.',
     icon: 'https://render.guildwars2.com/file/365C7D9672533C765C4DC819FC263D4C38AE0B1E/1770363.png',
     autoattack: true,
     type: 'Weapon',
@@ -126,7 +124,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   // second apart after the leap connects.
   [ID.FLAME_UPRISING]: {
     name: 'Flame Uprising',
-    description: 'Jump forward and deliver a fiery blast to the area.',
     icon: 'https://render.guildwars2.com/file/C4EF2F0EB22C2D0AEB40F6ADDD80F2A3D4BB0B7B/1770369.png',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -173,7 +170,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.CAUTERIZING_STRIKE]: {
     name: 'Cauterizing Strike',
-    description: 'Stab your foe with full force, dealing bonus damage against burning enemies.',
     icon: 'https://render.guildwars2.com/file/5CF5932ACF2EB9D17BE4DC634BB01EB3CC37070F/1770375.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -191,7 +187,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.SEICHE]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Seiche',
-    description: 'Imbue your blade with water, healing yourself for each target you strike.',
     icon: 'https://render.guildwars2.com/file/042718CC3B0C533D6DF4BFC103E901B6A90B13E2/1770364.png',
     autoattack: true,
     type: 'Weapon',
@@ -219,7 +214,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.CLAPOTIS]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Clapotis',
-    description: 'Deliver a second strike that heals yourself for each target it hits.',
     icon: 'https://render.guildwars2.com/file/2019DD99B0260C064DD1EDB504307518441FB109/1770365.png',
     autoattack: true,
     type: 'Weapon',
@@ -247,7 +241,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.BREAKING_WAVE]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Breaking Wave',
-    description: 'Strike your enemies and unleash a wave that heals allies.',
     icon: 'https://render.guildwars2.com/file/99AE33BF5F03749CA414B033FC3D6762C3A4FE50/1770366.png',
     autoattack: true,
     type: 'Weapon',
@@ -275,8 +268,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Front-loaded strike at 40ms plus Regeneration, leaving a 4s water field behind the cast.
   [ID.RIPTIDE]: {
     name: 'Riptide',
-    description:
-      'Use the element of water to propel yourself backward and regenerate, leaving a healing area at your location.',
     icon: 'https://render.guildwars2.com/file/07D74E01540900CD96A9BDCB3023EECBBB0EAB6B/1770370.png',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -301,7 +292,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.AQUA_SIPHON]: {
     name: 'Aqua Siphon',
-    description: 'Strike an enemy and draw water from them, causing them to deliver a healing burst to your allies.',
     icon: 'https://render.guildwars2.com/file/0FF207987424A1B0A6DEF7E2140CB010DCB948BB/1770379.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -326,7 +316,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.CHARGED_STRIKE]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Charged Strike',
-    description: 'Strike your foe with shocking force.',
     icon: 'https://render.guildwars2.com/file/69521650FA42B136CCCBA3EC01EED74C3BF3A3DA/1770355.png',
     autoattack: true,
     type: 'Weapon',
@@ -356,7 +345,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.POLARIC_SLASH]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Polaric Slash',
-    description: 'Deliver a second strike, gaining swiftness.',
     icon: 'https://render.guildwars2.com/file/CAB0C907C03A00540849085DE2ACAB54BF0156DE/1770356.png',
     autoattack: true,
     type: 'Weapon',
@@ -377,7 +365,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.CALL_LIGHTNING]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Call Lightning',
-    description: 'Deliver the final attack, calling lightning strikes onto enemies.',
     icon: 'https://render.guildwars2.com/file/166E751B3C56196EC1E8B323400C5AFCEC3C0C01/1770357.png',
     autoattack: true,
     type: 'Weapon',
@@ -404,7 +391,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.POLARIC_LEAP]: {
     name: 'Polaric Leap',
-    description: 'Shadowstep to your target and deliver a dazing strike. Gain superspeed if you interrupt an enemy.',
     icon: 'https://render.guildwars2.com/file/62486C9906C4B4D5D6A8112CF671743F01DF392F/1770367.png',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -436,8 +422,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Nine-packet flurry; the shared tick table keeps one Vulnerability stack aligned to each strike.
   [ID.QUANTUM_STRIKE]: {
     name: 'Quantum Strike',
-    description:
-      'Strike your foe, charging them with static and causing lightning to strike repeatedly for a short period of time.',
     icon: 'https://render.guildwars2.com/file/0D4D42EF67E9EB0B4A0304CF39901661ED087BE5/1770371.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -463,7 +447,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.CRYSTAL_SLASH]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Crystal Slash',
-    description: 'Strike your opponent with your serrated blade.',
     icon: 'https://render.guildwars2.com/file/083CE8B4C86A115123440703072E0E453D1A0A27/1770358.png',
     autoattack: true,
     type: 'Weapon',
@@ -482,7 +465,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.CRYSTALLINE_STRIKE]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Crystalline Strike',
-    description: 'Attack enemies with a second vicious attack.',
     icon: 'https://render.guildwars2.com/file/0D06CA7F9D03A4166900C4003DBB0EE910736A08/1770359.png',
     autoattack: true,
     type: 'Weapon',
@@ -501,7 +483,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.CRYSTALLINE_SUNDER]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Crystalline Sunder',
-    description: 'Unleash a final crushing blow.',
     icon: 'https://render.guildwars2.com/file/03586ED169D344CFAA513763B616C152F839C153/1770360.png',
     autoattack: true,
     type: 'Weapon',
@@ -520,7 +501,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.EARTHEN_VORTEX]: {
     name: 'Earthen Vortex',
-    description: 'Burrow into the ground, then erupt with earth-shattering force.',
     icon: 'https://render.guildwars2.com/file/2F12CFE8B84805BEBB563D0897E6102DB380512D/1770368.png',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -549,7 +529,6 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Eight paired packets, each applying its own six-second Bleeding stack on the same timestamps.
   [ID.RUST_FRENZY]: {
     name: 'Rust Frenzy',
-    description: 'Strike your enemies with deadly force.',
     icon: 'https://render.guildwars2.com/file/B16E9EE2AACD62042A64356334DC726E1E7FBF7B/1770372.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -572,4 +551,4 @@ export const ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS: Readonly<Record<number, Sk
       )
     ])
   }
-});
+};

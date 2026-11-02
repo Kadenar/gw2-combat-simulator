@@ -23,7 +23,7 @@ test('constructed and initialized initiative share fixed base rules and patched 
     const config = { ...THIEF_TEST_CONFIG, specialization: 'Core', selectedTraitIds };
     const { constructed, initialized } = constructedAndInitializedPool(thiefProfession, config, 'initiative', patched);
     // Preparedness raises the capacity only; an omitted start still begins at the fixed base capacity.
-    const expected = { value: BASE_CAPACITY, maximum, rate: BASE_REGENERATION, recoveryMaximum: undefined };
+    const expected = { value: BASE_CAPACITY, maximum, unitsPerSecond: BASE_REGENERATION, recoveryMaximum: undefined };
     assert.deepEqual(constructed, expected, String(selectedTraitIds));
     assert.deepEqual(initialized, expected, String(selectedTraitIds));
   }

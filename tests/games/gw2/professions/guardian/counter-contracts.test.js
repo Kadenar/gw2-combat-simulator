@@ -219,7 +219,7 @@ test('Swift Scholar resets the page cycle on acceptance and retains the earned c
   const { onCastStart } = compileProfessionRules({
     traitTriggers: swiftScholar.triggers.map((rule) => ({ ...rule, trait: swiftScholar.id }))
   });
-  onCastStart(context, { ...cast, cancelled: true });
+  onCastStart(context, { ...cast, cancelledBeforeCommit: true });
   assert.equal(state.swiftScholarCount, 2);
   onCastStart(context, cast);
   assert.equal(state.swiftScholarCount, 0);

@@ -16,7 +16,7 @@ export const dervishCasts = new WeakSet<RuntimeCast<RevenantSkill>>();
 
 /** Active Assassin form emits an independent dagger proc for a completed skill or upkeep pulse. */
 export function lesserDaggers(runtime: RevenantRuntime, source: Skill): void {
-  if (!revenantConduitFormIsActive(conduitState.from(runtime), 'Assassin', runtime.time)) return;
+  if (!revenantConduitFormIsActive(conduitState.from(runtime.profession), 'Assassin', runtime.time)) return;
 
   const skill = runtime.helpers.skillsById.get(ID.LESSER_ENCHANTED_DAGGERS);
 

@@ -34,9 +34,9 @@ export const naturalMenderPassive = definePeriodicTask<RangerRuntime>({
   name: 'ranger.natural-mender',
   background: true,
   priority: -1,
-  state: (runtime) => druidState.from(runtime).naturalMender,
+  state: (runtime) => druidState.from(runtime.profession).naturalMender,
   nextAt(runtime) {
-    const state = druidState.from(runtime).naturalMender;
+    const state = druidState.from(runtime.profession).naturalMender;
     const interval = balanceNumberFromContext(runtime, TRAIT.NATURAL_MENDER, 'pulseInterval');
 
     if (interval <= 0) return Infinity;
@@ -45,7 +45,7 @@ export const naturalMenderPassive = definePeriodicTask<RangerRuntime>({
     return gw2CooldownReadyAt(state.deadline);
   },
   run(runtime) {
-    if (druidState.from(runtime).celestialAvatarEndsAt === null)
+    if (druidState.from(runtime.profession).celestialAvatarEndsAt === null)
       runtime.resourceController.grant(
         'astralForce',
         balanceNumberFromContext(runtime, TRAIT.NATURAL_MENDER, 'resourceGain')
@@ -66,7 +66,7 @@ const naturalMender = defineTrait({
         const interval = balanceNumberFromContext(runtime, TRAIT.NATURAL_MENDER, 'pulseInterval');
 
         if (interval > 0) {
-          druidState.from(runtime).naturalMender.deadline = interval;
+          druidState.from(runtime.profession).naturalMender.deadline = interval;
           naturalMenderPassive.restart(runtime, gw2CooldownReadyAt(interval));
         }
       }

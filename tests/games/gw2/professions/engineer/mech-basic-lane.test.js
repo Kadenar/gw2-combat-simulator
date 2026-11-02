@@ -27,8 +27,8 @@ test('a non-instant mech command pauses basic attacks and restarts the melee cha
     'Puncturing Jab',
     { type: 'wait', durationMs: 6000 }
   ]);
-  const command = result.steps.find((step) => step.skill === 'Rolling Smash');
-  const player = result.steps.find((step) => step.skill === 'Puncturing Jab');
+  const command = result.steps.find((step) => step.skillName === 'Rolling Smash');
+  const player = result.steps.find((step) => step.skillName === 'Puncturing Jab');
   const attacks = basics(result);
   assert.equal(attacks.filter((event) => event.at < command.start / 1000).at(-1).name, 'Heavy Smash (Mech)');
   assert.ok(attacks.every((event) => event.at < command.start / 1000 || event.at >= command.end / 1000));
@@ -44,7 +44,7 @@ test('Crisis Zone preserves the active melee-chain phase', () => {
     'Crisis Zone',
     { type: 'wait', durationMs: 3000 }
   ]);
-  const command = result.steps.find((step) => step.skill === 'Crisis Zone');
+  const command = result.steps.find((step) => step.skillName === 'Crisis Zone');
   const next = basics(result).find((event) => event.at > command.start / 1000);
   assert.equal(next.name, 'Twin Strike (Mech)');
   // Twin Strike's full coefficient belongs to one critical-hit and on-hit opportunity, rather than half-strength hits.
@@ -59,7 +59,7 @@ test('mech commands cancel pending melee impacts while instant support preserves
     simulate('Mechanist', [{ type: 'wait', durationMs: 1100 }, command, { type: 'wait', durationMs: 5000 }]);
   const command = run('Rolling Smash');
   const support = run('Crisis Zone');
-  const reservation = command.steps.find((step) => step.skill === 'Rolling Smash');
+  const reservation = command.steps.find((step) => step.skillName === 'Rolling Smash');
   const pending = basics(idle)[0];
 
   // Establish that the command intervenes during windup, rather than testing a particular calibrated timestamp.
@@ -101,7 +101,7 @@ for (const quickness of [false, true]) {
       );
     const commanded = run('Spark Revolver');
     const support = run('Crisis Zone');
-    const reservation = commanded.steps.find((step) => step.skill === 'Spark Revolver');
+    const reservation = commanded.steps.find((step) => step.skillName === 'Spark Revolver');
     const commandedShots = shots(commanded);
 
     assert.equal(first.skillId, ID.JADE_ENERGY_SHOT);

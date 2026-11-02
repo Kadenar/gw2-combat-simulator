@@ -1,10 +1,9 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
-import { VINDICATOR_DODGE_INPUT } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import { vindicatorHooks } from '#gw2/professions/revenant/specializations/vindicator/hooks.js';
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
-import { VINDICATOR_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/vindicator/skills/index.js';
+import { VINDICATOR_SKILLS } from '#gw2/professions/revenant/specializations/vindicator/skills/index.js';
 import {
   projectVindicatorPlanningState,
   vindicatorState
@@ -19,8 +18,7 @@ export const vindicatorModule = defineNativeModule({
   data: createNativeModuleData<RevenantSkill>({
     id: 'Vindicator',
     traitLines: TRAIT_LINES,
-    skillMechanics: VINDICATOR_BASE_SKILL_MECHANICS,
-    extraSkills: [VINDICATOR_DODGE_INPUT]
+    skills: VINDICATOR_SKILLS
   }),
   state: { create: vindicatorState.create, project: projectVindicatorPlanningState },
   hooks: vindicatorHooks,

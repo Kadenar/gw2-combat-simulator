@@ -2,6 +2,7 @@ import {
   fromProfile,
   profileFact,
   simulationEffectFacts,
+  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipNumber,
   tooltipPercent,
@@ -128,13 +129,13 @@ export const harbingerTooltips = {
       };
     },
     [TRAIT.IMPLACABLE_FOE]: traitTooltip('Gain ferocity from vitality. Entering Harbinger Shroud grants stability.', [
-      ['attributeConversion', 'Vitality converted to ferocity', tooltipPercent]
+      ['attributeConversion', 'Ferocity gained from vitality', tooltipAttributeConversion]
     ]),
     [TRAIT.TWISTED_MEDICINE]: traitTooltip('Gain concentration from vitality. Elixir boons are shared with allies.', [
-      ['attributeConversion', 'Vitality converted to concentration', tooltipPercent]
+      ['attributeConversion', 'Concentration gained from vitality', tooltipAttributeConversion]
     ]),
     [TRAIT.DARK_GUNSLINGER]: traitTooltip('Gain expertise from vitality. Pistol skills recharge faster.', [
-      ['attributeConversion', 'Vitality converted to expertise', tooltipPercent],
+      ['attributeConversion', 'Expertise gained from vitality', tooltipAttributeConversion],
       ['rechargeMultiplier', 'Pistol recharge reduction', (value) => tooltipPercent(1 - value)]
     ]),
     [TRAIT.CASCADING_CORRUPTION]: traitTooltip(

@@ -89,7 +89,6 @@ test('Core Revenant mechanics expose patch-authorable declarations', () => {
   const chargedMists = profile(REVENANT_TRAIT_IDS.CHARGED_MISTS);
   const battleScars = skill(battleScarsSkill.id);
 
-  assert.equal(skill(SHARED_SKILL_IDS.DODGE).patchableFields.resourceCost, undefined);
   assert.equal(skill(SKILL.SWAP_LEGENDS).patchableFields.resourceGain, 50);
   assert.equal(skill(SKILL.ANCIENT_ECHO).patchableFields.resourceGain, 25);
   assert.equal(profile('revenant.core.resources'), undefined);
@@ -351,7 +350,7 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
   const kallasFervor = namedProfile('Ambush Commander');
   const soulcleaveProc = named("Soulcleave's Summit — Triggered Attack");
   const allForOne = namedProfile('All for One');
-  assert.equal(enhancedIcerazor.skill.simulatorExcluded, true);
+  assert.equal(enhancedIcerazor.skill.rotationInputExcluded, true);
   assert.deepEqual(
     razorclaw.skill.effects.find((effect) => effect.kind === 'razorclaws-rage'),
     {
@@ -494,7 +493,7 @@ test('legend palette shows only the destination legend with the shared swap cool
   const cooldownContext = {
     ...context,
     time: 1,
-    cooldowns: { [SKILL.SWAP_LEGENDS]: { readyAt: 10000, remaining: 9000 } }
+    cooldownsBySkillId: { [SKILL.SWAP_LEGENDS]: { readyAtMs: 10000, remainingMs: 9000 } }
   };
 
   assert.equal(
@@ -508,7 +507,7 @@ test('legend palette shows only the destination legend with the shared swap cool
             availability: {},
             atSeconds: 1,
             ammoBySkillId: {},
-            cooldowns: cooldownContext.cooldowns,
+            cooldownsBySkillId: cooldownContext.cooldownsBySkillId,
             profession: cooldownContext.professionState
           }
         }
@@ -768,7 +767,7 @@ test('Temporal Rift preserves the Mace autoattack chain', () => {
 
   assert.equal(result.warnings.length, 0);
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     ['Misery Swipe', 'Temporal Rift', 'Anguish Swipe']
   );
   assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.MISERY_SWIPE], SKILL.MANIFEST_TOXIN);
@@ -782,7 +781,7 @@ test('Temporal Rift preserves the Sword autoattack chain until its delayed hit',
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     ['Preparation Thrust', 'Temporal Rift', 'Brutal Blade']
   );
   assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST], SKILL.RIFT_SLASH);
@@ -803,7 +802,7 @@ test('Beguiling Haze resets the Sword autoattack chain', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     ['Preparation Thrust', 'Brutal Blade', 'Beguiling Haze', 'Preparation Thrust']
   );
   assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST], SKILL.BRUTAL_BLADE);
@@ -824,7 +823,7 @@ test('Citadel Bombardment resets the Renegade autoattack chain', () => {
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     ['Preparation Thrust', 'Brutal Blade', 'Citadel Bombardment', 'Preparation Thrust']
   );
   assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST], SKILL.BRUTAL_BLADE);
@@ -873,7 +872,7 @@ test('Abyssal Strike repeats without exposing a separate second-swing palette ti
     },
     adapter: {
       eliteSpecialization: () => 'Core',
-      isSkillAvailable: (skill) => !skill.simulatorExcluded
+      isSkillAvailable: (skill) => !skill.rotationInputExcluded
     }
   };
 
@@ -984,7 +983,7 @@ test('Revenant spear packets reduce Abyssal Raze count recharge on hit', () => {
 
   assert.equal(result.warnings.length, 0);
   const damageOffsets = (skillName) => {
-    const start = result.steps.find((step) => step.skill === skillName).start;
+    const start = result.steps.find((step) => step.skillName === skillName).start;
 
     return result.events
       .filter((event) => event.type === 'damage' && event.skillName === skillName)
@@ -1159,9 +1158,9 @@ test("Abyssal Strike reduces Raze's displayed cooldown with no charges", () => {
   assert.equal(result.warnings.length, 0);
 
   assert.equal(observedRuntime(result).cooldownController.readAmmo(SKILL.ABYSSAL_RAZE).nextRechargeAt, 11.8);
-  assert.deepEqual(result.planningState.cooldowns[SKILL.ABYSSAL_RAZE], {
-    readyAt: 11800,
-    remaining: 760
+  assert.deepEqual(result.planningState.cooldownsBySkillId[SKILL.ABYSSAL_RAZE], {
+    readyAtMs: 11800,
+    remainingMs: 760
   });
 });
 
@@ -1190,7 +1189,7 @@ test('Abyssal Raze recharge reduction carries only excess work into the next que
   assert.ok(overflow > 0 && overflow < 1);
   assert.ok(Math.abs(ammo.recharges[0].work - (15 - overflow)) < 1e-9);
   assert.equal(ammo.recharges[1].work, 15);
-  assert.equal(result.planningState.cooldowns[SKILL.ABYSSAL_RAZE], undefined);
+  assert.equal(result.planningState.cooldownsBySkillId[SKILL.ABYSSAL_RAZE], undefined);
 });
 
 test('Crushing Abyss scales Raze and triggers at three stacks on weapon swap', () => {
@@ -1205,7 +1204,7 @@ test('Crushing Abyss scales Raze and triggers at three stacks on weapon swap', (
 
   assert.equal(result.warnings.length, 0);
   assert.deepEqual(
-    result.steps.filter((step) => step.skill === 'Abyssal Raze').map((step) => step.start),
+    result.steps.filter((step) => step.skillName === 'Abyssal Raze').map((step) => step.start),
     [0, 1400, 2800]
   );
   const razes = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Abyssal Raze');

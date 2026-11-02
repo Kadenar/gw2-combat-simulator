@@ -4,6 +4,7 @@ import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
+import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefMobilityUsed } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { THIEF_CORE_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/thief/core/rework/ids.js';
 import { reworkCoreState } from '#gw2/professions/thief/core/rework/state.js';
@@ -20,7 +21,7 @@ const reworkHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   },
   onCastCommit(runtime, cast) {
     // Ordinary flagged skills dispatch from Core; only contextual/unflagged elite mobility needs this task.
-    if (cast.cancelled || cast.skill.movementSkill || cast.skill.shadowstepSkill) return;
+    if (cast.cancelledBeforeCommit || cast.skill.movementSkill || cast.skill.shadowstepSkill) return;
 
     // Every Daredevil dodge replacement (Bound, Impaling Lotus, Dash) is a movement skill; the plain Dodge is not.
     const specialization = runtime.profession.specialization;
@@ -32,14 +33,14 @@ const reworkHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     // Capture the accepted cost before the deferred task resolves its skill from the live catalog, as Core does.
     if (cast.skill.id === SKILL.SHADOW_SWAP || movingDodge)
       deferThiefCompletion(runtime, MOBILITY_COMPLETE, cast, {
-        initiativeCost: Math.max(0, cast.skill.initiativeCost || 0)
+        initiativeCost: thiefInitiativeCost(cast.skill)
       });
   },
   tasks: {
     [MOBILITY_COMPLETE](runtime, data) {
       const { cast, initiativeCost } = data as { cast: RuntimeCast<ThiefSkill>; initiativeCost: number };
 
-      if (!cast.cancelled) runtime.fireTrigger(thiefMobilityUsed, { cast, initiativeCost });
+      if (!cast.cancelledBeforeCommit) runtime.fireTrigger(thiefMobilityUsed, { cast, initiativeCost });
     }
   }
 };

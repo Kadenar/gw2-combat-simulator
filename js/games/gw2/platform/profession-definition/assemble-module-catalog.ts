@@ -1,31 +1,46 @@
 import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
+import { prepareCatalogActionRequirements } from '#gw2/platform/effects/action-declarations.js';
 import type { AnyNativeModule, NativeModuleCatalogData } from '#gw2/platform/profession-definition/module-types.js';
 import { traitBalanceProfiles } from '#gw2/platform/profession-definition/traits.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
-import { createCanonicalCatalog, type AutoattackChains } from '#gw2/platform/skills/catalog.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { combineFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import type { SkillFlipDefinition, SkillFlips } from '#gw2/platform/skills/skill-flip-definitions.js';
-import type { CanonicalCatalog, CatalogEntity, Skill, SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
+import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import { validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
 import { toEntries } from '#kernel/core/collections.js';
 
 /** Selects a module from shared input using the same catalog fields as its output. */
 export interface NativeModuleDataSelection<TSkill extends Skill = Skill> extends Omit<
   NativeModuleCatalogData<TSkill>,
-  'skills' | 'traits'
+  'traits'
 > {
   readonly id: string;
-  readonly skillMechanics?: Readonly<Record<string, SkillDefinition<TSkill>>>;
-  readonly extraSkills?: readonly TSkill[];
 }
 
-/** Materialize complete keyed skill declarations; family selection only filters non-skill records. */
+const MODULE_DATA_FIELDS = new Set([
+  'id',
+  'skills',
+  'skillFields',
+  'profileFields',
+  'traitLines',
+  'weapons',
+  'weaponHands',
+  'autoattackChains',
+  'skillFlips'
+]);
+
+/** Select complete module skill declarations and trait-line ownership before catalog compilation. */
 export function createNativeModuleData<TSkill extends Skill = Skill>(
   selection: NativeModuleDataSelection<TSkill>
 ): NativeModuleCatalogData<TSkill> {
+  // Reject unsupported input rather than silently discarding declarations from an untyped caller.
+  for (const field of Object.keys(selection))
+    if (!MODULE_DATA_FIELDS.has(field)) throw new TypeError(`Unsupported native module data field: ${field}.`);
+
   const {
     id,
-    skillMechanics = {},
-    extraSkills = [],
+    skills = [],
     skillFields,
     profileFields,
     traitLines = [],
@@ -34,18 +49,10 @@ export function createNativeModuleData<TSkill extends Skill = Skill>(
     autoattackChains,
     skillFlips
   } = selection;
-  // The key supplies identity; no external metadata can add or replace authored fields.
-  const skills = [
-    ...Object.entries(skillMechanics).map(([id, skill]) => ({ ...skill, id: Number(id) }) as TSkill),
-    ...extraSkills
-  ];
   // Missing presentation is an authoring error; module assembly never consults a second skill catalog.
   for (const skill of skills) {
-    for (const field of ['name', 'description', 'icon'] as const) {
-      if (
-        typeof skill[field] !== 'string' ||
-        (!skill[field].trim() && !(field === 'description' && skill.type === 'Action'))
-      ) {
+    for (const field of ['name', 'icon'] as const) {
+      if (typeof skill[field] !== 'string' || !skill[field].trim()) {
         throw new TypeError(`${id} skill ${skill.id} requires an authored ${field}.`);
       }
     }
@@ -55,7 +62,7 @@ export function createNativeModuleData<TSkill extends Skill = Skill>(
   const ownedTraitLines = traitLines.filter((line) => (line.elite ? line.name === id : id === 'Core'));
 
   return Object.freeze({
-    skills: Object.freeze(skills),
+    skills: Object.freeze([...skills]),
     ...(skillFields == null ? {} : { skillFields }),
     ...(profileFields == null ? {} : { profileFields }),
     traits: Object.freeze(ownedTraitLines.flatMap((line) => [...line.minorTraits, ...line.majorTraits.flat()])),
@@ -183,7 +190,7 @@ function composeNativeCatalog<TSkill extends Skill>(
 
   const skillOwners = skills.owners;
 
-  const chainContributions = new Map<string, AutoattackChains>();
+  const chainContributions = new Map<string, CanonicalCatalog['autoattackChains']>();
   for (const module of modules) {
     chainContributions.set(module.id, []);
   }
@@ -225,8 +232,8 @@ function composeNativeCatalog<TSkill extends Skill>(
       module.id,
       Object.freeze({
         skills: Object.freeze(catalog.skills.filter((skill) => skillOwners.get(skill.id) === module.id)),
-        skillFields,
-        profileFields,
+        skillFields: catalog.skillFields,
+        profileFields: catalog.profileFields,
         balanceProfiles: Object.freeze(
           catalog.balanceProfiles.filter((profile) => balanceProfiles.owners.get(profile.id) === module.id)
         ),
@@ -236,9 +243,12 @@ function composeNativeCatalog<TSkill extends Skill>(
             (specialization) => specializations.owners.get(specialization.id) === module.id
           )
         ),
-        weapons: Object.freeze([...weapons].filter((weapon) => module.data.weapons?.includes(weapon))),
+        weapons: new Set([...weapons].filter((weapon) => module.data.weapons?.includes(weapon))),
         weaponHands: hands,
         autoattackChains: Object.freeze(chains),
+        autoattackChainPositions: new Map(
+          [...catalog.autoattackChainPositions].filter(([id]) => skillOwners.get(id) === module.id)
+        ),
         skillFlips: Object.freeze(flipContributions.get(module.id) || [])
       } satisfies ProfessionModuleCatalogFragment<TSkill>)
     );
@@ -285,19 +295,30 @@ export function assembleNativeApplicationCatalog<TSkill extends Skill>(
 export function assembleNativeRuntimeCatalog<TSkill extends Skill>(
   fragments: readonly Readonly<ProfessionModuleCatalogFragment<TSkill>>[]
 ): Readonly<CanonicalCatalog<TSkill>> {
-  // Entity and weapon-hand ownership was validated once during full application assembly.
-  const catalog = createCanonicalCatalog({
-    skills: fragments.flatMap((fragment) => fragment.skills || []),
-    // Fragments share one profession-wide table; any fragment supplies it.
-    skillFields: fragments.find((fragment) => fragment.skillFields)?.skillFields,
-    profileFields: fragments.find((fragment) => fragment.profileFields)?.profileFields,
-    balanceProfiles: fragments.flatMap((fragment) => fragment.balanceProfiles || []),
-    traits: fragments.flatMap((fragment) => fragment.traits || []),
-    specializations: fragments.flatMap((fragment) => fragment.specializations || []),
-    weapons: [...new Set(fragments.flatMap((fragment) => fragment.weapons || []))],
-    weaponHands: new Map(fragments.flatMap((fragment) => [...toEntries(fragment.weaponHands)])),
-    autoattackChains: fragments.flatMap((fragment) => fragment.autoattackChains || []),
-    skillFlips: fragments.flatMap((fragment) => fragment.skillFlips || [])
-  });
-  return catalog;
+  const first = fragments[0];
+
+  if (!first) throw new TypeError('A native runtime catalog requires selected module fragments.');
+
+  // Selection owns fresh collections while borrowing immutable records compiled at the authoring boundary.
+  const skills = Object.freeze(fragments.flatMap((fragment) => fragment.skills));
+  const balanceProfiles = Object.freeze(fragments.flatMap((fragment) => fragment.balanceProfiles));
+  const catalog: CanonicalCatalog<TSkill> = {
+    skills,
+    skillsById: new Map(skills.map((skill) => [skill.id, skill])),
+    skillFields: first.skillFields,
+    profileFields: first.profileFields,
+    balanceProfiles,
+    balanceProfilesById: new Map(balanceProfiles.map((profile) => [profile.id, profile])),
+    traits: Object.freeze(fragments.flatMap((fragment) => fragment.traits)),
+    specializations: Object.freeze(fragments.flatMap((fragment) => fragment.specializations)),
+    weapons: new Set(fragments.flatMap((fragment) => [...fragment.weapons])),
+    weaponHands: new Map(fragments.flatMap((fragment) => [...fragment.weaponHands])),
+    autoattackChains: Object.freeze(fragments.flatMap((fragment) => fragment.autoattackChains)),
+    autoattackChainPositions: new Map(fragments.flatMap((fragment) => [...fragment.autoattackChainPositions])),
+    skillFlips: Object.freeze(fragments.flatMap((fragment) => fragment.skillFlips))
+  };
+  // A reference valid in the full editor catalog may still point into an inactive module.
+  validateCanonicalCatalog(catalog);
+  prepareCatalogActionRequirements(catalog);
+  return Object.freeze(catalog);
 }

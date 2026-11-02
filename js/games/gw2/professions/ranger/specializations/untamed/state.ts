@@ -1,6 +1,9 @@
 import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-claims.js';
 import type { RefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import { cloneStateFields, defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { RangerConfig } from '#gw2/professions/ranger/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -18,7 +21,7 @@ export interface UntamedState {
   untamedActivationClaims: ActivationClaims;
 }
 
-export function createUntamedState(config: RangerConfig = {}): UntamedState {
+function createUntamedState(config: RangerConfig = {}): UntamedState {
   return {
     // Default is Pet unleashed; "Ranger" must be explicitly requested.
     rangerUnleashed: config.initialUntamedState === 'Ranger',
@@ -35,19 +38,13 @@ export function createUntamedState(config: RangerConfig = {}): UntamedState {
 
 export const untamedState = defineProfessionSpecializationState('Untamed', createUntamedState);
 
-/** Detach public fields before hiding expired ambushes, leaving private activation claims untouched. */
-export function projectUntamedPlanningState(input: Gw2PlanningStateInput) {
-  const state = cloneStateFields(untamedState.from(input), [
-    'rangerUnleashed',
-    'ambushReadyUntil',
-    'ferociousSymbiosisPlayer'
-  ]);
-
-  if (state.ambushReadyUntil <= input.time) state.ambushReadyUntil = 0;
+/** Hide expired ambush observations without changing live state or reading private activation claims. */
+export function projectUntamedPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = untamedState.from(input.profession);
 
   return {
     [STATE.RANGER_UNLEASHED]: state.rangerUnleashed,
-    [STATE.AMBUSH_READY_UNTIL]: state.ambushReadyUntil,
+    [STATE.AMBUSH_READY_UNTIL]: state.ambushReadyUntil > input.time ? state.ambushReadyUntil : 0,
     [STATE.FEROCIOUS_SYMBIOSIS_PLAYER]: state.ferociousSymbiosisPlayer
   };
 }

@@ -21,12 +21,12 @@ export const SHADOW_DEPLETED = 'thief.shadow-shroud-depleted';
 /** Specter supplies drain and capacity; the shared lifecycle advances and replaces the depletion deadline. */
 export const shadowForce: ResourcePolicy<ThiefRuntime> = {
   kind: 'continuous',
-  state: (runtime) => specterState.from(runtime).shadowClock,
+  state: (runtime) => specterState.from(runtime.profession).shadowClock,
   maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.SPECTER, 'maximumStacks'),
   initial: (runtime) => (runtime.config as ThiefConfig).initialShadowForce ?? 0,
   recovery: (runtime) => {
     const profile = requireBalanceProfileFromContext(runtime, TRAIT.SPECTER);
-    return specterState.from(runtime).shadowShroudActive
+    return specterState.from(runtime.profession).shadowShroudActive
       ? -balanceProfileNumber(profile, 'maximumStacks') * balanceProfileNumber(profile, 'lifeForceDrain')
       : 0;
   },
@@ -45,7 +45,7 @@ export function setShadowShroud(
   // Entering shroud ends the rifle stance and its initiative bonus before the replacement bar becomes active.
   if (active && runtime.profession.core.kneeling) setThiefKneeling(runtime, false);
 
-  specterState.from(runtime).shadowShroudActive = active;
+  specterState.from(runtime.profession).shadowShroudActive = active;
   runtime.resourceController.refresh('shadowForce');
   runtime.effects.emit({
     kind: 'packet',
@@ -64,7 +64,7 @@ export function setShadowShroud(
 
 /** The surviving depletion wake forces the shroud closed with the exit transition's input lockout. */
 export function shadowDepleted(runtime: ThiefRuntime): void {
-  const state = specterState.from(runtime);
+  const state = specterState.from(runtime.profession);
 
   if (!state.shadowShroudActive) return;
 
@@ -73,7 +73,7 @@ export function shadowDepleted(runtime: ThiefRuntime): void {
 
 /** Shroud entry needs force; inside the shroud only its own bar is castable, and exit waits out its lockout. */
 export function specterAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
-  const state = specterState.from(runtime);
+  const state = specterState.from(runtime.profession);
 
   if (skill.id === ID.ENTER_SHADOW_SHROUD) {
     if (state.shadowShroudActive) return denySkillCast(skill, 'thief.in-shroud', 'Shadow Shroud is already active.');

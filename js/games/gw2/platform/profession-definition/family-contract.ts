@@ -21,6 +21,8 @@ export interface ProfessionApplicationContract<TBuild extends object = object, T
   readonly ui: ProfessionUiContract;
   readonly createBuildDefaults: () => TBuild;
   readonly migrateBuild: (saved: UnvalidatedBuild) => TBuild;
+  /** Optional save migration for standalone rotation imports, outside live skill resolution. */
+  readonly migrateRotation?: (rotation: readonly unknown[]) => readonly unknown[];
   readonly validateBuild: (build: UnvalidatedBuild) => BuildValidationResult;
 }
 

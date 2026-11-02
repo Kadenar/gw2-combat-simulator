@@ -1,10 +1,84 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+
+// Native admission checks cost before profession hooks, merging waitable denials without running past permanent ones.
+test('native availability combines cost and profession gates in order', () => {
+  const calls = [];
+  let professionResult;
+  const profession = defineNativeProfession({
+    id: 'availability-fixture',
+    name: 'Availability fixture',
+    modules: [
+      defineNativeModule({
+        id: 'Core',
+        data: {
+          skills: [
+            { id: 1, name: 'Cost probe', icon: 'fixture.png', effects: [], cost: { resource: 'energy', amount: 2 } }
+          ]
+        },
+        state: { create: () => ({}) },
+        hooks: {
+          availability: () => {
+            calls.push('profession');
+            return professionResult;
+          }
+        }
+      })
+    ]
+  });
+  const runtime = profession.runtimeFor({});
+  const skill = runtime.catalog.skillsById.get(1);
+  const costDenial = (retryAt) => ({
+    ready: false,
+    retryAt,
+    code: 'gw2.insufficient-energy',
+    reason: 'Cost probe is unavailable — requires 2 energy.'
+  });
+  const wait = retryCast(3, 'profession.wait', 'Profession must wait');
+  const permanent = denyCast('profession.denied', 'Profession rejects this command');
+  for (const [readyAt, result, expected] of [
+    [7, wait, { ...wait, retryAt: 7 }],
+    [3, retryCast(7, 'later', 'Later gate'), retryCast(7, 'later', 'Later gate')],
+    [7, CAST_READY, costDenial(7)],
+    [2, retryCast(1, 'past', 'Past boundary'), retryCast(2, 'past', 'Past boundary')],
+    [2, CAST_READY, CAST_READY],
+    [2, undefined, CAST_READY],
+    [null, wait, costDenial(null)],
+    [null, permanent, costDenial(null)],
+    [7, permanent, permanent]
+  ]) {
+    calls.length = 0;
+    professionResult = result;
+    const context = {
+      time: 2,
+      config: {},
+      resourceController: {
+        readyAt: (resource, amount) => {
+          assert.equal(resource, 'energy');
+          assert.equal(amount, 2);
+          calls.push('cost');
+          return readyAt;
+        }
+      }
+    };
+    assert.deepEqual(runtime.availability(context, skill, {}), expected);
+    assert.deepEqual(calls, readyAt === null ? ['cost'] : ['cost', 'profession']);
+  }
+
+  // Build rejection still precedes both cost and profession checks.
+  calls.length = 0;
+  assert.equal(
+    runtime.availability({ config: {} }, { ...skill, rotationInputExcluded: true }, {}).code,
+    'gw2.build-unavailable'
+  );
+  assert.deepEqual(calls, []);
+});
 
 // Flat declarations must compile once per stage, preserving priorities, ties, and stage-scoped IDs.
 test('mixed-stage reaction arrays retain dispatch ownership and stable order after compilation', () => {
@@ -60,9 +134,6 @@ test('native runtime compilation defers presentation until the application reque
   assert.equal(familyPresentations, 0);
   assert.equal(presentations, 0);
   const runtime = resolveProfessionContract(profession);
-  // Resolution requires a family so an already-resolved runtime cannot bypass specialization selection.
-  assert.throws(() => resolveProfessionContract(runtime), /profession family contract is required/);
-  assert.throws(() => resolveProfessionContract(null), /profession family contract is required/);
   assert.equal(Object.hasOwn(runtime, 'ui'), false);
   assert.equal(Object.hasOwn(runtime, 'migrateBuild'), false);
   assert.deepEqual(simulateGw2({ profession, rotation: [] }).warnings, []);

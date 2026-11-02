@@ -32,7 +32,7 @@ import {
 import { warriorDualWieldingActive } from '#gw2/professions/warrior/data/dual-wielding.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js';
-import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
+import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Owns this trait's tuning and selected contributions. */
 export const signetMastery = defineTrait({
@@ -79,7 +79,7 @@ export const signetMastery = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const burstPrecision = defineTrait({
+export const burstPrecision = defineTrait<WarriorSkill>({
   id: TRAIT.BURST_PRECISION,
   balance: {
     threshold: 30,
@@ -110,7 +110,7 @@ export const burstPrecision = defineTrait({
       operation: 'add',
       amount: (context) => balanceNumberFromContext(context, TRAIT.BURST_PRECISION, 'criticalChance'),
       when: (context) =>
-        Boolean(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.burst) ||
+        Boolean(skillForEvent<WarriorSkill>(context.profession?.catalog, context.event, context.skillId)?.burst) ||
         warriorActiveBuffStacks(context, 'burst-precision', 1) > 0
     }
   ],
@@ -366,7 +366,7 @@ export const blademaster = defineTrait({
 });
 
 /** Select measured dual wield durations for the active offhand. */
-export const dualWielding = defineTrait({
+export const dualWielding = defineTrait<WarriorSkill>({
   id: TRAIT.DUAL_WIELDING,
   hooks: {
     castDurationMs(runtime, skill, durationMs) {

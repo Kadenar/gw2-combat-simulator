@@ -3,19 +3,13 @@ import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, STATUS, WEAPON } f
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Share each impact's timing while preserving effect order and effect-local payloads.
-export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSkill>>> = {
   [ID.DEADLY_AIM]: {
     name: 'Deadly Aim',
-    description:
-      'Fire a shot that inflicts vulnerability on your target. Applies additional vulnerability against your marked target.',
     icon: 'https://render.guildwars2.com/file/4E3F0B6E685229564C5E023C1367B257EA20D141/1770621.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Rifle',
@@ -23,7 +17,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
-    initiativeCost: 0,
     kneelSkill: true,
     castTimeMs: 600,
     interruptCommitMs: 520,
@@ -60,21 +53,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.BRUTAL_AIM]: {
     name: 'Brutal Aim',
-    description:
-      'Fire a shot that inflicts vulnerability on your target. Applies additional vulnerability when used against your marked target.',
     icon: 'https://render.guildwars2.com/file/03A49460B608436CF3B0072F2E4129F11ABB3DE8/1770622.png',
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_1',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
-    initiativeCost: 0,
     castTimeMs: 600,
     interruptCommitMs: 520,
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -110,20 +95,11 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.DEATHS_JUDGMENT]: {
     name: "Death's Judgment",
-    description:
-      'Stealth Attack. Reveal yourself and fire a powerful shot at your target that pierces but deals less damage to untargeted foes.',
     icon: 'https://render.guildwars2.com/file/C7FDA946603F56590400096DB95FF366090E740B/3098876.png',
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_1',
-
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     cooldown: 1,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.RIFLE,
     stealthAttack: true,
     castTimeMs: 360,
@@ -154,19 +130,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.SKIRMISHERS_SHOT]: {
     name: "Skirmisher's Shot",
-    description: 'Fire a bullet that inflicts conditions on your target and grants you a boon.',
     icon: 'https://render.guildwars2.com/file/C4CB4C106624CE97BDDB0F44E1C2B2E1E1DA3337/1770625.png',
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_2',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 3 },
 
     cooldown: 0,
-    initiativeCost: 3,
     castTimeMs: 440,
     effects: [
       ...impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'fixed' }, [
@@ -201,19 +171,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.SPOTTERS_SHOT]: {
     name: "Spotter's Shot",
-    description: 'Kneel. Fire a bullet that grants you boons and inflicts conditions on your target.',
     icon: 'https://render.guildwars2.com/file/0CFD156D4CF5F17EA13952B6083CAE04E1601B5E/1770624.png',
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_2',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 3 },
 
     cooldown: 0,
-    initiativeCost: 3,
     kneelSkill: true,
     castTimeMs: 600,
     effects: [
@@ -256,19 +220,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.DOUBLE_TAP]: {
     name: 'Double Tap',
-    description: 'Fire two bullets that grant might if they hit your target.',
     icon: 'https://render.guildwars2.com/file/3DAF4EF37FE4D5966596545D2A1B445564090E66/1770627.png',
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_3',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     cooldown: 0,
-    initiativeCost: 4,
     castTimeMs: 680,
     effects: [
       {
@@ -296,19 +254,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.THREE_ROUND_BURST]: {
     name: 'Three Round Burst',
-    description: 'Kneel. Fire three bullets that grant might if they hit your target.',
     icon: 'https://render.guildwars2.com/file/55013868E7A03E437305D7B706EB042A35172450/1770626.png',
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_3',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     cooldown: 0,
-    initiativeCost: 4,
     kneelSkill: true,
     castTimeMs: 840,
     effects: [
@@ -337,22 +289,16 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.DEATHS_RETREAT]: {
     name: "Death's Retreat",
-    description: 'Shadowstep away from your target and lose conditions. Poisons foes at your starting location.',
     icon: 'https://render.guildwars2.com/file/BBAD4B7DA7187A9A09E01E6A11D74962A7050B44/1770629.png',
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_4',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     // The retreat shadowsteps away, so shadowstep and movement rewards (Peitha, Fluid Strikes) apply.
     movementSkill: true,
     shadowstepSkill: true,
     cooldown: 0,
-    initiativeCost: 4,
     castTimeMs: 240,
     effects: impactEffects({ atMs: 160, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -381,21 +327,14 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.SNIPERS_COVER]: {
     name: "Sniper's Cover",
-    description:
-      "Kneel. Create a barrier of shadows that blocks incoming missiles. For a short period of time, gain access to Death's Advance while kneeling.",
     icon: 'https://render.guildwars2.com/file/21A0A255EA0126D30453CAE6CC40DF0B0B70B2ED/1770632.png',
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_4',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     flipDuration: 5,
     cooldown: 0,
-    initiativeCost: 4,
     kneelSkill: true,
     castTimeMs: 320,
     // The smoke field lasts through the existing five-second Death's Advance follow-up window.
@@ -406,20 +345,13 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.DEATHS_ADVANCE]: {
     name: "Death's Advance",
-    description:
-      "Kneel. Shadowstep forward while granting yourself stealth. While standing within Sniper's Cover, shadowstep to any position within range instead.",
     icon: 'https://render.guildwars2.com/file/F66C0938F052950905AE804BB4C495CBF6AD36AF/2779165.png',
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_4',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 2 },
 
     cooldown: 0,
-    initiativeCost: 2,
     kneelSkill: true,
     castTimeMs: 240,
     effects: [
@@ -438,24 +370,17 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.KNEEL]: {
     name: 'Kneel',
-    description:
-      'Your base and maximum movement speed is reduced. Gain access to kneel skills, which have increased projectile velocity. You can still dodge roll while kneeling. Kneeling is canceled if you swap weapons or use Free Action.',
     icon: 'https://render.guildwars2.com/file/B872B96AC8ED04DE1F1FAE0EA93D71270A6B2DF1/1770631.png',
     type: 'Weapon',
     weapon: 'Rifle',
     slot: 'Weapon_5',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 1 },
 
     // Kneel owns its extra recovery; Core continues to own base initiative policy.
     kneelingInitiativeRegenerationBonus: 1 / 3,
     inputCategory: 'bar-swap',
     // Count the explicit bar-changing input in effort summaries.
     cooldown: 0.5,
-    initiativeCost: 1,
     castTimeMs: 320,
     effects: [],
     // The skill owns this transition at successful commitment.
@@ -463,13 +388,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.FREE_ACTION]: {
     name: 'Free Action',
-    description: 'Stop kneeling and move freely. If you used at least one kneel skill, gain swiftness.',
     icon: 'https://render.guildwars2.com/file/9DB6B099015F000FE8E9B0F52A245D08E73AA266/1770630.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: 'Rifle',
@@ -477,7 +396,6 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
     inputCategory: 'bar-swap',
     // Count the explicit bar-changing input in effort summaries.
     cooldown: 0,
-    initiativeCost: 0,
     kneelSkill: true,
     castTimeMs: 200,
     effects: [
@@ -491,4 +409,4 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
     // The skill owns this transition at successful commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.stand' } }]
   }
-});
+};

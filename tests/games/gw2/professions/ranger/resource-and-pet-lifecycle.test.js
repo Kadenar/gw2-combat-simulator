@@ -8,6 +8,7 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/state.js';
 import { activeSoulbeastBuff } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
@@ -23,7 +24,6 @@ const config = {
 // Bind real owner operations for this focused mechanic fixture.
 config.combat = createMechanicCombatServices(config);
 const simulate = createObservedProfessionSimulator(rangerProfession, config);
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`);
 // Seed only initial state; every gain, expiry, extension, and wait runs on the common queue.
 const boon = (runtime, kind, at, duration, affectsSelf = true) =>
@@ -95,7 +95,7 @@ test('Galeshot arrow regeneration ignores Alacrity gain and expiry', () => {
           }
         }
       );
-      const arrows = galeshotState.from(observedRuntime(result)).arrows;
+      const arrows = galeshotState.from(observedRuntime(result).profession).arrows;
       assert.equal(arrows.value, value);
       assert.equal(arrows.nextAt, nextAt);
     }

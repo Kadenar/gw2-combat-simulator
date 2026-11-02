@@ -13,10 +13,10 @@ import { canonicalTime } from '#kernel/core/clock.js';
 export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const skill = cast.skill;
 
-  if (cast.cancelled) return;
+  if (cast.cancelledBeforeCommit) return;
 
   const at = canonicalTime(context.time);
-  const core = professionCoreState(context);
+  const core = professionCoreState(context.profession);
 
   if (
     skill.id === ID.MIMIC ||
@@ -53,5 +53,5 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
 export function armMimic(context: MesmerRuntime): void {
   const expiresAt = canonicalTime(context.time + skillNumberFromContext(context, ID.MIMIC, 'duration'));
   // Keep the grant after expiry: an in-flight utility can still claim it using its earlier start.
-  professionCoreState(context).mimic = grantCharges(expiresAt > 0 ? 1 : 0, expiresAt);
+  professionCoreState(context.profession).mimic = grantCharges(expiresAt > 0 ? 1 : 0, expiresAt);
 }

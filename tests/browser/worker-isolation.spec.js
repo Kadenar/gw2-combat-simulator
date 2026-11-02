@@ -80,7 +80,9 @@ test('simulation workers load current and preview patches without UI dependencie
   expect(contributions.requestId).toBe(17);
   expect(contributions.scores.length).toBeGreaterThan(0);
   expect(baseline.output.result.dps).toBeGreaterThan(0);
-  expect(contributions.scores.some(({ dps }) => dps < baseline.output.result.dps)).toBe(true);
+  expect(contributions.scores.some(({ dpsWithoutModifier }) => dpsWithoutModifier < baseline.output.result.dps)).toBe(
+    true
+  );
   expect(await uiImports(await modifierWorkerReady)).toEqual([]);
 
   const randomWorkerReady = page.waitForEvent('worker', (worker) =>

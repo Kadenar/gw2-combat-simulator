@@ -28,10 +28,9 @@ function stalkersStrikeTargetImpaired(hasCondition: (condition: string) => boole
 }
 
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
-export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.GROUNDWORK_GOUGE]: {
     name: 'Groundwork Gouge',
-    description: "Swipe past your foe's defenses, exposing their vulnerability.",
     icon: 'https://render.guildwars2.com/file/043E152903A33B09DAD74AA85F559062FC72EA0B/1770553.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -58,7 +57,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.LEADING_SWIPE]: {
     name: 'Leading Swipe',
-    description: 'Rake your dagger across your foe, leaving them bleeding.',
     icon: 'https://render.guildwars2.com/file/EDDA7CC00BAEB5EEE53A0D2937CDB10094A29692/1770554.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -83,7 +81,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.SERPENT_STAB]: {
     name: 'Serpent Stab',
-    description: 'Slash across your foe, poisoning them.',
     icon: 'https://render.guildwars2.com/file/080360524A4926B770065F99DDB57AB7FDFDC4AC/1770555.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -109,7 +106,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.DEADLY_DELIVERY]: {
     name: 'Deadly Delivery',
-    description: 'Strike deeply into your foe, inflicting multiple conditions.',
     icon: 'https://render.guildwars2.com/file/080360524A4926B770065F99DDB57AB7FDFDC4AC/1770555.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -147,8 +143,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.DOUBLE_ARC]: {
     name: 'Double Arc',
-    description:
-      "Rip your blade through your foe twice, inflicting heavy bleeding. Your pet's next two strikes inflict poison.",
     icon: 'https://render.guildwars2.com/file/337557BD3779CD416D6DD32E6E74BB7D949708E4/1770556.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -188,7 +182,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.INSTINCTIVE_ENGAGE]: {
     name: 'Instinctive Engage',
-    description: 'Leap forward and slash at your foe. Gain quickness if you successfully strike.',
     icon: 'https://render.guildwars2.com/file/411FB9186E16AAF67508EA94FAD8115855051430/1770557.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -229,8 +222,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.STALKERS_STRIKE]: {
     name: "Stalker's Strike",
-    description:
-      'Stab and poison your foe while evading attacks. This attack deals increased damage and poison against movement-impaired foes.',
     icon: 'https://render.guildwars2.com/file/997E9851717291082CC3314E68F3D703FD710B08/103166.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -271,13 +262,15 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
               Number(event.coefficient) > 0 &&
               !isPetStrike(event) &&
               stalkersStrikeTargetImpaired((condition) => runtime.combat.targetHasCondition(condition, event.at)),
-            do: {
-              type: 'ranger.stalkers-poison',
-              id: 'impaired-poison',
-              effects: [
-                { name: CONDITION.POISONED, type: 'condition', condition: CONDITION.POISONED, stacks: 2, duration: 8 }
-              ]
-            }
+            do: [
+              {
+                type: 'ranger.stalkers-poison',
+                id: 'impaired-poison',
+                effects: [
+                  { name: CONDITION.POISONED, type: 'condition', condition: CONDITION.POISONED, stacks: 2, duration: 8 }
+                ]
+              }
+            ]
           }
         ],
         coefficient: 0.6,
@@ -293,7 +286,6 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   },
   [ID.CRIPPLING_TALON]: {
     name: 'Crippling Talon',
-    description: 'Throw a dagger to bleed and cripple your foe.',
     icon: 'https://render.guildwars2.com/file/9B167B580711A77D5E95EF5E6E5B04A907DA3E35/103165.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -332,11 +324,11 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
       }
     ])
   }
-});
+};
 
 /** Grant only the accepting actor; merging and unmerging never transfer these charges. */
 export function handleRangerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const actor = event.summonOwner ? rangerOwningPetState(state.pet, event.summonOwner) : state.player;
 
   if (actor)
@@ -352,7 +344,7 @@ const POISONOUS_STRIKES_NAME = 'Poisonous Strikes - Poisoned';
 
 /** The current pet's own strikes spend its charges; Ranger-owned Cloud/vine effects cannot consume pet venom. */
 export function triggerPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const { pet } = professionCoreState(context);
+  const { pet } = professionCoreState(context.profession);
 
   if (!pet) return;
 
@@ -382,7 +374,7 @@ export function triggerPoisonousStrikes(context: RangerResolverContext, event: G
 
 /** While Soulbeast replaces its pet in Beastmode, the merged Ranger's own strikes spend the player's charges. */
 export function triggerMergedPoisonousStrikes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const { player } = professionCoreState(context);
+  const { player } = professionCoreState(context.profession);
   expireCharges(player.poisonousStrikes, event.at, true);
 
   if (!rangerMerged(context.profession) || !isPlayerStrike(event) || !(Number(event.coefficient) > 0)) return;

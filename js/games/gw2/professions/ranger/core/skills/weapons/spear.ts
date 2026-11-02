@@ -7,17 +7,16 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
-export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.DRAKES_SWIPE]: {
     name: "Drake's Swipe",
-    description: 'Chain. Swing your spear.',
     icon: 'https://render.guildwars2.com/file/414A30909FE90ABA80BD36D4426DE80B5A081710/3379171.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -26,8 +25,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 520,
-    // Separate contact from recovery; per-packet cancellation retains only contacts already reached.
-    interruptMode: 'per-packet',
+    interruptCommitMs: 400,
     effects: [
       {
         type: 'strike',
@@ -41,7 +39,6 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.WYVERNS_LASH]: {
     name: "Wyvern's Lash",
-    description: 'Chain. Strike with your spear, crippling your foe.',
     icon: 'https://render.guildwars2.com/file/D2C90A1160383EE7487A4F652C02C7525698CDD3/3379172.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -50,7 +47,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 440,
-    interruptMode: 'per-packet',
+    interruptCommitMs: 400,
     effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -67,7 +64,6 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.CHEETAHS_STRIKE]: {
     name: "Cheetah's Strike",
-    description: 'Chain. Heave your spear, gaining swiftness if you strike an enemy.',
     icon: 'https://render.guildwars2.com/file/E2CF3E65CFD875E103D8F260A2806642A644AEFE/3379173.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -76,7 +72,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     castTimeMs: 760,
-    interruptMode: 'per-packet',
+    interruptCommitMs: 560,
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -93,20 +89,23 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.MONGOOSES_FRENZY]: {
     name: "Mongoose's Frenzy",
-    description: 'Swipe at enemies in front of you, cleaving them.',
     icon: 'https://render.guildwars2.com/file/D69F9EC04864417F0956045A1A3B1FBF455EC4C8/3379174.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_2',
     cooldown: 5,
-    castTimeMs: 667,
+    castTimeMs: 800,
     interruptMode: 'per-packet',
     effects: [
       {
         type: 'strike',
-        coefficient: 2.5,
-        hits: 2,
-        atMs: 0
+        // Separate the two observed contacts so cancellation only drops pending damage.
+        ticks: [
+          { atMs: 400, coefficient: 1.25 },
+          { atMs: 720, coefficient: 1.25 }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       },
       {
         type: 'condition',
@@ -118,14 +117,13 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.FALCONS_STOOP]: {
     name: "Falcon's Stoop",
-    description:
-      'Fling your spear at your enemy, dealing heavy damage. Damage is increased against immobilized, disabled, or defiant foes.',
     icon: 'https://render.guildwars2.com/file/3AD908302F5A733FB07AF295DBDB30B637ADD0F4/3379176.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_3',
     cooldown: 7,
-    castTimeMs: 600,
+    // The projectile contacts at 520 ms, followed by 200 ms of recovery.
+    castTimeMs: 720,
     interruptMode: 'per-packet',
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -145,15 +143,14 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.WARCLAWS_ENGAGE]: {
     name: "Warclaw's Engage",
-    description:
-      'Leap to a target location, damaging nearby enemies. Deal more damage to foes below the health threshold.',
     icon: 'https://render.guildwars2.com/file/DA9AE866CC0D07E0453B64EFFB2019E17306D7D0/3379178.png',
     type: 'Weapon',
     weapon: 'Spear',
     slot: 'Weapon_4',
     cooldown: 12,
     evades: true,
-    castTimeMs: 960,
+    // The leap contacts before its recovery finishes, matching the observed animation.
+    castTimeMs: 920,
     interruptMode: 'per-packet',
     effects: [
       {
@@ -162,7 +159,7 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
         // Read remaining target health at impact, including strict exclusion of the threshold itself.
         coefficientModifiers: [{ kind: 'target-health-below', threshold: 0.5, multiplier: 1.2 }],
         hits: 1,
-        atMs: 840,
+        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'cast',
         comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.LEAP }]
@@ -171,8 +168,6 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.PANTHERS_PROWL]: {
     name: "Panther's Prowl",
-    description:
-      "Conceal yourself in the brush, gaining stealth. Gain Hunter's Prowess, allowing you to use a Stealth Attack even if revealed.",
     icon: 'https://render.guildwars2.com/file/07F83EAFE63F1BBD31ABE1C954BED3D1C5CB090C/3379180.png',
     type: 'Weapon',
     weapon: 'Spear',
@@ -201,13 +196,12 @@ export const RANGER_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     // Prowess remains independent of stealth and Revealed, with one shared choice window.
     sideEffects: [{ on: 'castCommit', do: { type: 'ranger.hunters-prowess' } }]
   }
-});
+};
 
 /** Owns Ranger spear stealth attacks alongside the other weapon skills. */
-export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly RangerSkill[] = [
   {
     name: "Wolf's Onslaught",
-    description: 'Stealth Attack. Slash enemies in front of you, then follow up with a powerful blow.',
     icon: 'https://render.guildwars2.com/file/E1550C4BB87B62B14AC39E3F2DB2AC4E07F55F91/3379175.png',
     id: ID.WOLFS_ONSLAUGHT,
     type: 'Weapon',
@@ -239,7 +233,6 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: "Owl's Flight",
-    description: 'Stealth Attack. Reveal yourself and throw an unblockable, piercing spear.',
     icon: 'https://render.guildwars2.com/file/FBA45321DB6E98FB510AF8215EF0A19EB4FB4FC6/3379177.png',
     id: ID.OWLS_FLIGHT,
     type: 'Weapon',
@@ -247,9 +240,10 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     slot: 'Weapon_3',
     cooldown: 7,
     stealthAttack: true,
-    castTimeMs: 500,
+    // Match Falcon's contact and recovery windows while keeping the stealth payload.
+    castTimeMs: 720,
     interruptMode: 'per-packet',
-    effects: [
+    effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         projectile: true,
@@ -268,14 +262,12 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
         stacks: 1,
         duration: 4
       }
-    ],
+    ]),
     // An accepted attempt consumes every choice, including an interrupted attack.
     sideEffects: [{ on: 'castStart', do: { type: 'ranger.spear-opportunity' } }]
   },
   {
     name: "Predator's Ambush",
-    description:
-      'Stealth Attack. Leap to a target location, dazing enemies. Deal increased damage to foes below the health threshold.',
     icon: 'https://render.guildwars2.com/file/2D36D9D30E372A750D700F3334A8CE697B4C3010/3379179.png',
     id: ID.PREDATORS_AMBUSH,
     type: 'Weapon',
@@ -284,9 +276,10 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     cooldown: 12,
     stealthAttack: true,
     evades: true,
-    castTimeMs: 960,
+    // The empowered leap shares Warclaw's contact and recovery windows.
+    castTimeMs: 920,
     interruptMode: 'per-packet',
-    effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
         coefficient: 3.67,
@@ -310,7 +303,6 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: "Spider's Web",
-    description: 'Stealth Attack. Throw a net that damages, immobilizes, and cripples enemies.',
     icon: 'https://render.guildwars2.com/file/1C6D1E0860B3B6C24136F1489F5AACD87D329EC7/3379181.png',
     id: ID.SPIDERS_WEB,
     type: 'Weapon',
@@ -318,7 +310,8 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     slot: 'Weapon_5',
     cooldown: 20,
     stealthAttack: true,
-    castTimeMs: 333,
+    // Resolve the web and pet support effects when the observed cast completes.
+    castTimeMs: 680,
     interruptMode: 'per-packet',
     effects: [
       {
@@ -351,7 +344,7 @@ export const RANGER_CORE_SPEAR_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
     // An accepted attempt consumes every choice, including an interrupted attack.
     sideEffects: [{ on: 'castStart', do: { type: 'ranger.spear-opportunity' } }]
   }
-]);
+];
 
 /** Copy the live source recharge on commitment and cancellation, excluding Panther's independent ammo. */
 function synchronizeSpearRecharge(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {

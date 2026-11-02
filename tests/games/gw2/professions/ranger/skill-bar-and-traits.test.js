@@ -699,8 +699,8 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
   });
 
   assert.ok(
-    ambidexterity.planningState.cooldowns[ID.DOUBLE_ARC].readyAt <
-      daggerBaseline.planningState.cooldowns[ID.DOUBLE_ARC].readyAt
+    ambidexterity.planningState.cooldownsBySkillId[ID.DOUBLE_ARC].readyAtMs <
+      daggerBaseline.planningState.cooldownsBySkillId[ID.DOUBLE_ARC].readyAtMs
   );
 
   // Verify Poison Master's multiplier before packet rounding, which need not preserve an exact aggregate ratio.
@@ -1070,7 +1070,7 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
       attributes.Power.runes +
       attributes.Power.food +
       attributes.Power.infusions +
-      attributes.Power.jbc) *
+      attributes.Power.jadeBotCore) *
       0.07
   );
 

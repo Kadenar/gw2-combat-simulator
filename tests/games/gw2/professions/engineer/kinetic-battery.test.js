@@ -33,7 +33,7 @@ test('every mech command retains tool-belt classification and Tools reactions', 
   assert.equal(result.planningState.profession[STATE.KINETIC_CHARGES], 1);
   assert.ok(result.events.some((event) => event.kind === 'vigor'));
   assert.ok(result.resolvedEvents.some((event) => event.name === 'Static Discharge'));
-  assert.equal(result.planningState.cooldowns[63367].readyAt, 20400);
+  assert.equal(result.planningState.cooldownsBySkillId[63367].readyAtMs, 20400);
 });
 
 test('mech command charges count when issued, before the independent animation completes', () => {
@@ -49,7 +49,7 @@ test('mech command charges count when issued, before the independent animation c
       [0, 2]
     ]
   );
-  assert.equal(result.steps.find((step) => step.skill === 'Fragmentation Shot').start, 0);
+  assert.equal(result.steps.find((step) => step.skillName === 'Fragmentation Shot').start, 0);
 });
 
 // Active State follows the inspected time, including before activation and at buff expiry.

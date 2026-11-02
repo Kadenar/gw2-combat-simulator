@@ -272,7 +272,7 @@ test('legacy build migrates once and workspace round trips only durable inputs a
   assert.equal(saved.version, 1);
   assert.equal(saved.tabs[1].session, undefined);
   assert.equal(JSON.stringify(saved).includes('ashesStacks'), false);
-  assert.deepEqual(other.session.values, { ashesStacks: 2 });
+  assert.deepEqual(other.session.patchPreviewValues, { ashesStacks: 2 });
   assert.equal(values.get(adapter.storageKey), legacy);
   const restored = loadBuildWorkspace(adapter);
   assert.deepEqual(
@@ -285,7 +285,7 @@ test('legacy build migrates once and workspace round trips only durable inputs a
   assert.equal(restored.activeTabId, other.id);
   assert.equal(restored.tabs[1].patchId, 'preview');
   assert.equal(restored.tabs[1].session.results, null);
-  assert.equal(restored.tabs[1].session.values, undefined);
+  assert.equal(restored.tabs[1].session.patchPreviewValues, undefined);
 });
 
 test('workspace save and load give empty infusion selections two unequipped rows', async (t) => {
@@ -480,7 +480,7 @@ test('switching tabs uses each patch catalog for skill lists and lookups', (t) =
   const { app, tab } = appFixture();
   const catalogs = Object.fromEntries(
     ['current', 'preview'].map((id) => {
-      const skill = { id: 1, name: 'Utility', type: 'Utility', description: id };
+      const skill = { id: 1, name: `${id} utility`, type: 'Utility' };
       return [id, { skills: [skill], skillsById: new Map([[skill.id, skill]]) }];
     })
   );

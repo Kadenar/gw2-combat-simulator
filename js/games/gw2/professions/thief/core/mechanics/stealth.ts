@@ -164,7 +164,7 @@ export function commitThiefStealth(runtime: ThiefRuntime, context: ActionContext
 
   if (revealedActive(runtime.profession.core, runtime.time)) return;
 
-  const duration = effects.reduce((sum, effect) => sum + Number(effect.duration || 0), 0);
+  const duration = effects.reduce((sum, effect) => sum + (('duration' in effect && effect.duration) || 0), 0);
 
   if (!(duration > 0)) return;
 

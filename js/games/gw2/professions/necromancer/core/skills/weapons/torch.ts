@@ -14,11 +14,9 @@ import type {
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
 
-export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.HARROWING_WAVE]: {
     name: 'Harrowing Wave',
-    description:
-      'Unleash a wave of corrupted fire, burning and tormenting enemies. Gain life force for each enemy struck.',
     icon: 'https://render.guildwars2.com/file/A2ADDF0F080938253AE452B043A71161EE045410/1770540.png',
     type: 'Weapon',
     weapon: 'Torch',
@@ -36,7 +34,7 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 5 } })]
           }
         ],
         coefficient: 0.8
@@ -47,8 +45,6 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
   },
   [ID.OPPRESSIVE_COLLAPSE]: {
     name: 'Oppressive Collapse',
-    description:
-      'Corrupt the ground under your target; if they remain within the area, they will be knocked down. Grant might to allies near your target based on how many conditions they have.',
     icon: 'https://render.guildwars2.com/file/BE78672ACBDE107931DAAE08B6F001E010FF3F2B/1770541.png',
     type: 'Weapon',
     weapon: 'Torch',
@@ -66,7 +62,7 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.oppressive-collapse' }
+            do: [{ type: 'necromancer.oppressive-collapse' }]
           }
         ],
         coefficient: 1.2
@@ -75,7 +71,7 @@ export const NECROMANCER_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, 
       { type: 'control', controlKind: CONTROL.KNOCKDOWN }
     ])
   }
-});
+};
 
 /** Party Might samples live conditions and companion eligibility at the accepted impact. */
 function resolveOppressiveCollapse(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {

@@ -8,6 +8,7 @@ import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
  * Photon Forge concerns out of the shared Engineer skill contract.
  */
 export interface HolosmithSkill extends EngineerSkill, NumericSkillFields<typeof HOLOSMITH_SKILL_FIELDS> {
+  /** Marks skills available only inside Photon Forge. */
   readonly forgeSkill?: boolean;
 }
 

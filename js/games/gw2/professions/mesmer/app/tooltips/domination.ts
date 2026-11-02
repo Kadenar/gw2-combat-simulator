@@ -41,17 +41,26 @@ export const mesmerDominationTooltips = {
     'Deal increased strike damage against the boonless simulated target, including illusion strikes.',
     [fromProfile(TRAIT.VICIOUS_EXPRESSION, 'damageMultiplier', 'Strike damage', tooltipFactorChange)]
   ),
-  [TRAIT.MENTAL_ANGUISH]: traitTooltip(
-    'Eligible first-strike shatter packets deal increased damage, with a larger bonus while the target is not activating skills.',
-    [
-      fromProfile(
-        TRAIT.MENTAL_ANGUISH,
-        'activatingFactor',
-        'Damage while target activates skills',
-        tooltipFactorChange
-      ),
-      fromProfile(TRAIT.MENTAL_ANGUISH, 'idleFactor', 'Damage while target is idle', tooltipFactorChange)
-    ]
-  ),
+  // Clone shatters exclude repeat strikes; Virtuoso applies the bonus to each bladesong strike.
+  [TRAIT.MENTAL_ANGUISH]: (context, entity, specialization) =>
+    traitTooltip(
+      (specialization === 'Virtuoso'
+        ? 'Bladesong strikes deal increased damage.'
+        : specialization === 'Troubadour'
+          ? 'This trait does not increase instrument or Crescendo damage.'
+          : 'The first strike from you and each shattered clone deals increased damage. Repeat strikes from the same shatter do not receive this bonus.') +
+        (specialization === 'Troubadour' ? '' : ' The bonus is larger while the target is not activating skills.'),
+      specialization === 'Troubadour'
+        ? []
+        : [
+            fromProfile(
+              TRAIT.MENTAL_ANGUISH,
+              'activatingFactor',
+              'Damage while target activates skills',
+              tooltipFactorChange
+            ),
+            fromProfile(TRAIT.MENTAL_ANGUISH, 'idleFactor', 'Damage while target is idle', tooltipFactorChange)
+          ]
+    )(context, entity),
   [TRAIT.POWER_BLOCK]: outsideScopeTooltip
 } satisfies NonNullable<ProfessionTooltips['traits']>;

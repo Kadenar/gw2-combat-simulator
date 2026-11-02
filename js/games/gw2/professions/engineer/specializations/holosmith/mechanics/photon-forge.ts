@@ -70,7 +70,7 @@ const PHOTON_FORGE_OVERHEAT_PENALTY_TASK = 'engineer.photon-forge-overheat-penal
 
 /** Heat observations describe an executed transition; consuming them never restores or mutates profession state. */
 function reportHeat(context: EngineerRuntime<HolosmithSkill>, reason: string): void {
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
   buildEngineerPackets('engineer.heat', {
     at: context.time,
     reason,
@@ -90,7 +90,7 @@ function passiveHeatPerTick(context: EngineerRuntime<HolosmithSkill>): number {
 
 /** Returns the cooling due on one cadence tick after accounting for Forge state, delay, and PBM. */
 function passiveCoolingPerTick(context: EngineerRuntime<HolosmithSkill>, at: number): number {
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
 
   if ((state.photonForgeActive && !state.overheated) || state.forgeExitedAt == null) return 0;
 
@@ -134,7 +134,7 @@ function scheduleToolbeltOverheatPenalty(context: EngineerRuntime<HolosmithSkill
 
 /** Locks Forge attacks at maximum heat; the rotation owns exit while Overheat consequences remain automatic. */
 function forceOverheat(context: EngineerRuntime<HolosmithSkill>, at: number): void {
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
   const blast = photonicOverheatTiming(context, at);
   const effectAt = blast?.at ?? at + HOLOSMITH_HEAT.overheatEffectDelay;
   context.resourceController.replace('heat', state.heat.maximum);
@@ -157,14 +157,14 @@ function forceOverheat(context: EngineerRuntime<HolosmithSkill>, at: number): vo
 
 /** Restarts passive heat processing one cadence tick after a Forge state transition. */
 function startPassiveHeatCadence(context: EngineerRuntime<HolosmithSkill>, at: number): void {
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
   state.passiveHeatAt = nextPassiveHeatTick(at);
   context.schedule(PHOTON_FORGE_PASSIVE_HEAT_TASK, state.passiveHeatAt, state.passiveHeatAt, undefined, 100);
 }
 
 /** Starts cooling cadence for simulations configured with nonzero initial heat. */
 function initializePhotonForgeHeat(context: EngineerRuntime<HolosmithSkill>): void {
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
   // The policy has already clamped initialHeat against the trait-selected capacity.
   state.forgeExitedAt = state.heat.value > 0 ? context.time : null;
   context.fireTrigger(heatInitialized);
@@ -177,7 +177,7 @@ function initializePhotonForgeHeat(context: EngineerRuntime<HolosmithSkill>): vo
 
 /** Processes one validated passive heat or cooling tick and schedules the next tick when needed. */
 function applyPassiveHeat(context: EngineerRuntime<HolosmithSkill>, at: number): void {
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
 
   const previousHeat = state.heat.value;
 
@@ -214,8 +214,8 @@ function applyPassiveHeat(context: EngineerRuntime<HolosmithSkill>, at: number):
 /** Enters Photon Forge, starts heat cadence, and applies entry lockout and trait state. */
 function enterPhotonForge(context: EngineerRuntime<HolosmithSkill>, skill: EngineerSkill): void {
   lockTransitionInput(context, 'forgeEntryMs', skill);
-  const state = holosmithState.from(context);
-  const coreState = professionCoreState(context);
+  const state = holosmithState.from(context.profession);
+  const coreState = professionCoreState(context.profession);
   const at = context.time;
   const baseKitLockout = skillNumberFromContext(context, ID.ENGAGE_PHOTON_FORGE, 'kitLockoutDuration');
   coreState.activeKit = null;
@@ -233,7 +233,7 @@ function enterPhotonForge(context: EngineerRuntime<HolosmithSkill>, skill: Engin
 /** Both exit paths share cooling and trait state; callers retain their own bar-swap event order. */
 function leavePhotonForge(context: EngineerRuntime<HolosmithSkill>, skill: EngineerSkill): void {
   lockTransitionInput(context, 'forgeExitMs', skill);
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
   const at = context.time;
   state.photonForgeActive = false;
 
@@ -270,7 +270,7 @@ function scheduleHeatPulse(
 
 /** Allows skill heat only while Photon Forge is active and below Overheat. */
 function canApplyHeat(context: EngineerRuntime<HolosmithSkill>, skill: HolosmithSkill): boolean {
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
   return state.photonForgeActive && !state.overheated && Number(skill.heatGain) > 0;
 }
 
@@ -278,7 +278,7 @@ function canApplyHeat(context: EngineerRuntime<HolosmithSkill>, skill: Holosmith
 const CORONA_QUICKNESS_PULSE_OFFSETS_MS = Object.freeze([400, 760, 1120, 1480, 1800]);
 
 /** Schedules every committed Corona Burst pulse, including pulses that land after Forge exit. */
-export function applyCoronaBurstHeat(
+function applyCoronaBurstHeat(
   context: EngineerRuntime<HolosmithSkill>,
   skill: HolosmithSkill,
   cast: RuntimeCast<HolosmithSkill>
@@ -377,7 +377,7 @@ export function triggerVentExhaust(
   });
 
   // Vent heat immediately after its combat packets are queued at the same timestamp.
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
   context.resourceController.spend('heat', Math.min(state.heat.value, Math.max(0, ventExhaust.heatLoss || 0)));
 
   if (state.heat.value === 0 && !state.photonForgeActive) state.overheated = false;
@@ -392,7 +392,7 @@ export function triggerVentExhaust(
  * a kit rather than pressing the deactivate button.
  */
 function handleHolosmithKitEquip(context: EngineerRuntime<HolosmithSkill>, skill: EngineerSkill): void {
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
 
   if (skill.kitTransition !== 'equip' || !state.photonForgeActive) return;
 
@@ -403,7 +403,7 @@ function handleHolosmithKitEquip(context: EngineerRuntime<HolosmithSkill>, skill
 /** Only a current cadence tick can mutate heat or continue its lifetime. */
 const photonForgeTasks: RuntimeProfession<EngineerRuntimeState, HolosmithSkill>['tasks'] = {
   [PHOTON_FORGE_PASSIVE_HEAT_TASK](context, data) {
-    const state = holosmithState.from(context);
+    const state = holosmithState.from(context.profession);
 
     if (state.passiveHeatAt !== data || context.time !== data) return;
 
@@ -423,7 +423,7 @@ const photonForgeTasks: RuntimeProfession<EngineerRuntimeState, HolosmithSkill>[
   },
   'engineer.photon-forge-heat'(context, data) {
     const payload = data as PhotonForgeHeatPayload;
-    const state = holosmithState.from(context);
+    const state = holosmithState.from(context.profession);
 
     if (state.overheated || (!state.photonForgeActive && !payload.persistsOutsideForge)) return;
 
@@ -443,7 +443,7 @@ export const photonForgeHooks = {
   resources: {
     heat: {
       kind: 'continuous',
-      state: (context) => holosmithState.from(context).heat,
+      state: (context) => holosmithState.from(context.profession).heat,
       maximum: (context) => enhancedCapacityMaximumHeat(context.config, context),
       initial: (context, maximum) => boundedNumber((context.config as EngineerConfig).initialHeat, 0, 0, maximum),
       recovery: () => 0

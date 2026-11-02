@@ -31,7 +31,7 @@ const MANIFEST = 'scourge.manifest-impact';
 
 /** Shade replacements cancel the old expiry wake; only the next surviving shade deadline remains queued. */
 function refreshShadeExpiry(runtime: NecromancerRuntime): void {
-  const state = scourgeState.from(runtime);
+  const state = scourgeState.from(runtime.profession);
   runtime.cancelOwner({ id: EXPIRE, generation: state.shadeGeneration });
   state.shadeGeneration++;
 
@@ -129,7 +129,7 @@ function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast<Necromance
   const lifetime = requireEffect(profile, 'buff', 'active-shade', action);
 
   if (lifetime) {
-    const state = scourgeState.from(runtime);
+    const state = scourgeState.from(runtime.profession);
     state.shades = grantTimedStacks(state.shades, {
       at: runtime.time,
       expiresAt: canonicalTime(runtime.time + effectNumber(profile, lifetime, 'duration')),
@@ -146,7 +146,7 @@ function manifestShade(runtime: NecromancerRuntime, cast: RuntimeCast<Necromance
 /** Shade commands share manifestation, lifetime replacement, and their common strike. */
 const scourgeShadeActions = {
   'scourge.manifest-start'(runtime, context) {
-    if (context.kind === 'cast' && !context.cast.cancelled)
+    if (context.kind === 'cast' && !context.cast.cancelledBeforeCommit)
       runtime.scheduleForCast(
         MANIFEST,
         canonicalTime(context.cast.start + ((context.cast.fullEnd - context.cast.start) * 11) / 12),
@@ -164,7 +164,7 @@ const scourgeShadeActions = {
 /** Shade expiry and queued manifestation settle through the same lifetime and strike owners. */
 const scourgeShadeTasks = {
   [EXPIRE](runtime) {
-    purgeScourgeTimedState(scourgeState.from(runtime), runtime.time);
+    purgeScourgeTimedState(scourgeState.from(runtime.profession), runtime.time);
     refreshShadeExpiry(runtime);
   },
   [MANIFEST](runtime, data) {

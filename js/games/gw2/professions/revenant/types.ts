@@ -21,13 +21,16 @@ export interface RevenantSkill
     Skill,
     NumericSkillFields<typeof REVENANT_CORE_SKILL_FIELDS>,
     NumericSkillFields<typeof CONDUIT_SKILL_FIELDS> {
+  /** Grants legend affinity when the skill hits. */
   readonly affinityOnHit?: boolean;
+  /** Consumes an active facet instead of starting its upkeep. */
   readonly consume?: boolean;
-  readonly duration?: number;
-  readonly displayName?: string;
+  /** Facet whose upkeep and consume pair this skill belongs to. */
   readonly facet?: boolean;
+  /** Legend that owns this skill. */
   readonly legendId?: string;
   readonly paletteLegendId?: string;
+  /** Consume skill selected by the active legend. */
   readonly upkeepConsumeByLegendId?: Readonly<Record<string, SkillId>>;
   readonly upkeepPulse?: {
     readonly kind: string;
@@ -102,15 +105,14 @@ export type RevenantResolverContext = MechanicCombatContext & {
 
 export interface RevenantUiContext extends Omit<
   ProfessionUiCallbackContext<Partial<RevenantPlanningState>>,
-  'build' | 'cooldowns' | 'entry' | 'rotation'
+  'build' | 'entry' | 'rotation'
 > {
   readonly config?: RevenantConfig;
   readonly build?: RevenantBuild | null;
   readonly initialEnergy?: number;
-  readonly cooldowns?: Readonly<Record<string, { readonly remaining?: number }>>;
   readonly entry?: unknown;
   readonly rotation?: readonly unknown[];
 }
 
 /** UI slice whose callbacks read Revenant end-state projections. */
-export type RevenantUiSlice = Partial<ProfessionUiContract<Partial<RevenantPlanningState>>>;
+export type RevenantUiSlice = Partial<ProfessionUiContract<Partial<RevenantPlanningState>, RevenantSkill>>;

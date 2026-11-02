@@ -1,9 +1,11 @@
 import type { AuraEffect } from '#gw2/platform/effects/types.js';
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
+import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 import { TRAIT_LINES } from '#gw2/professions/elementalist/data/trait-lines.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
@@ -11,6 +13,7 @@ import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/el
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+type NotKey<T, K extends PropertyKey> = K extends keyof T ? false : true;
 
 const first = elementalistProfession.runtimeFor({ specialization: 'Weaver' });
 const second = elementalistProfession.resolveProfession({ specialization: 'Evoker' });
@@ -27,8 +30,8 @@ export type ElementalistSkillFlowAssertions = [
   Assert<Equal<Parameters<CoreAvailability>[1], ElementalistSkill>>,
   Assert<Equal<Parameters<EliteCast>[1]['skill'], ElementalistSkill>>,
   Assert<Equal<Parameters<EliteCast>[0]['profession'], ElementalistRuntime['profession']>>,
-  Assert<Equal<Skill['attunement'], unknown>>,
-  Assert<Equal<ElementalistSkill['dragonSlash'], unknown>>
+  Assert<NotKey<Skill, 'attunement'>>,
+  Assert<NotKey<ElementalistSkill, 'dragonSlash'>>
 ];
 
 // Casts and ID/name/list lookups expose the same typed mechanics to runtime helpers.
@@ -47,14 +50,12 @@ export function elementalistHookSkillReads(runtime: ElementalistRuntime, cast: P
 const invalidDefinitions: Record<string, SkillDefinition<ElementalistSkill>> = {
   1: {
     name: 'Fixture',
-    description: 'Fixture skill.',
     icon: 'fixture.png',
     // @ts-expect-error Known profession fields reject invalid authored values.
     attunement: 5
   },
   2: {
     name: 'Fixture',
-    description: 'Fixture skill.',
     icon: 'fixture.png',
     effects: [
       // @ts-expect-error Aura effects require a canonical aura name.
@@ -65,5 +66,16 @@ const invalidDefinitions: Record<string, SkillDefinition<ElementalistSkill>> = {
 createNativeModuleData<ElementalistSkill>({
   id: 'Core',
   traitLines: TRAIT_LINES,
-  skillMechanics: invalidDefinitions
+  skills: materializeSkillDefinitions(invalidDefinitions)
 });
+
+// Hitbox-capped declarations pass through a helper whose concrete parameter still checks the authored literal.
+withSmallHitboxCap(
+  {
+    name: 'Fixture',
+    icon: 'fixture.png',
+    // @ts-expect-error Misspelled Elementalist fields fail at the declaration.
+    attunment: 'Fire'
+  },
+  1
+);

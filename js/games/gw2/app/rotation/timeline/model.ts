@@ -7,13 +7,14 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicResourceSpend, ProfessionTimelineMarker } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ProcStep, Gw2SimulationResult, SimulationStep } from '#gw2/platform/results/types.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
+import { skillInputIdentity } from '#gw2/platform/skills/selectors.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
 export interface TimelineCastOrdinal {
-  readonly matchingIndex: number;
-  readonly matchingTotal: number;
-  readonly skillIndex: number;
-  readonly skillTotal: number;
+  readonly skillUseNumber: number;
+  readonly skillUseCount: number;
+  readonly rotationCastNumber: number;
+  readonly rotationCastCount: number;
 }
 
 export interface TimelineRow {
@@ -166,20 +167,23 @@ const TIMELINE_WAIT_STEP_NAMES = new Set(['Wait', '__wait']);
 const TIMELINE_WAIT_STEP_TYPES = new Set(['wait']);
 
 function isValidTimelineStep(step: TimelineDeadTimeStep): boolean {
-  return Number.isInteger(Number(step?.ri)) && Number(step.ri) >= 0 && !step.invalid;
+  return (
+    Number.isInteger(Number(step?.rotationCommandIndex)) && Number(step.rotationCommandIndex) >= 0 && !step.invalid
+  );
 }
 
 function isTimelineWaitStep(step: TimelineDeadTimeStep): boolean {
   return (
     isValidTimelineStep(step) &&
-    (TIMELINE_WAIT_STEP_NAMES.has(String(step.skill || '')) || TIMELINE_WAIT_STEP_TYPES.has(String(step.type || '')))
+    (TIMELINE_WAIT_STEP_NAMES.has(String(step.skillName || '')) ||
+      TIMELINE_WAIT_STEP_TYPES.has(String(step.type || '')))
   );
 }
 
 function isTimelineSkillStep(step: TimelineDeadTimeStep): boolean {
   return (
     isValidTimelineStep(step) &&
-    !NON_SKILL_STEP_NAMES.has(String(step.skill || '')) &&
+    !NON_SKILL_STEP_NAMES.has(String(step.skillName || '')) &&
     !NON_SKILL_STEP_TYPES.has(String(step.type || ''))
   );
 }
@@ -187,24 +191,28 @@ function isTimelineSkillStep(step: TimelineDeadTimeStep): boolean {
 export function timelineSkillCastOrdinals(steps: readonly SimulationStep[] = []): Map<number, TimelineCastOrdinal> {
   const casts = steps
     .filter(isTimelineSkillStep)
-    .sort((left, right) => Number(left.start || 0) - Number(right.start || 0) || Number(left.ri) - Number(right.ri));
+    .sort(
+      (left, right) =>
+        Number(left.start || 0) - Number(right.start || 0) ||
+        Number(left.rotationCommandIndex) - Number(right.rotationCommandIndex)
+    );
   const totalsBySkill = new Map<string, number>();
   for (const cast of casts) {
-    totalsBySkill.set(cast.skill, (totalsBySkill.get(cast.skill) || 0) + 1);
+    totalsBySkill.set(cast.skillName, (totalsBySkill.get(cast.skillName) || 0) + 1);
   }
 
   const seenBySkill = new Map<string, number>();
   return new Map(
     casts.map((cast, index) => {
-      const matchingIndex = (seenBySkill.get(cast.skill) || 0) + 1;
-      seenBySkill.set(cast.skill, matchingIndex);
+      const skillUseNumber = (seenBySkill.get(cast.skillName) || 0) + 1;
+      seenBySkill.set(cast.skillName, skillUseNumber);
       return [
-        Number(cast.ri),
+        Number(cast.rotationCommandIndex),
         {
-          matchingIndex,
-          matchingTotal: totalsBySkill.get(cast.skill) ?? 0,
-          skillIndex: index + 1,
-          skillTotal: casts.length
+          skillUseNumber,
+          skillUseCount: totalsBySkill.get(cast.skillName) ?? 0,
+          rotationCastNumber: index + 1,
+          rotationCastCount: casts.length
         }
       ];
     })
@@ -235,7 +243,7 @@ export function timelineDeadTimeMarkers(
     // A retained post-interrupt cast lockout is forced busy time, even though
     // the visible cast itself ends at the earlier interrupt timestamp.
     const end = Math.max(Math.round(Number(step.end)), Math.round(Number(step.castLockoutEnd ?? step.end)));
-    const insertionIndex = Number(step.ri);
+    const insertionIndex = Number(step.rotationCommandIndex);
 
     if (Number.isFinite(start) && Number.isFinite(end) && end >= start) {
       intervals.push({ start, end, insertionIndex, containsSkill: isSkill, explicitWait: !isSkill });
@@ -275,7 +283,7 @@ export function timelineDeadTimeMarkers(
     const start = Math.round(event.at * 1000);
     const end = Math.round((event.at + Number(event.duration || 0)) * 1000);
     const following = steps.find((step) => Number(step.start) >= end && isTimelineSkillStep(step));
-    intervals.push({ start, end, insertionIndex: following?.ri ?? 0, containsSkill: false });
+    intervals.push({ start, end, insertionIndex: following?.rotationCommandIndex ?? 0, containsSkill: false });
   }
 
   // Intermissions force the rotation to wait; their timeline sections already explain that time.
@@ -285,7 +293,7 @@ export function timelineDeadTimeMarkers(
     const start = Math.round(phase.start * 1000);
     const end = Math.round(phase.end * 1000);
     const following = steps.find((step) => step.start >= end && isTimelineSkillStep(step));
-    intervals.push({ start, end, insertionIndex: following?.ri ?? 0, containsSkill: false });
+    intervals.push({ start, end, insertionIndex: following?.rotationCommandIndex ?? 0, containsSkill: false });
   }
 
   // Simultaneous actions anchor to the earliest authored entry so preceding idle time renders before all of them.
@@ -383,12 +391,12 @@ export function timelineDeadTimeMarkers(
     if (!Number.isFinite(start) || !Number.isFinite(end) || durationMs <= 0) continue;
 
     markers.push({
-      insertionIndex: Number(step.ri),
+      insertionIndex: Number(step.rotationCommandIndex),
       start,
       end,
       durationMs,
       reason: cancelledBeforeKnownCommit ? 'cancelled-before-commit' : 'zero-damage-cast',
-      skill: step.skill
+      skill: step.skillName
     });
   }
 
@@ -433,12 +441,14 @@ export function timelineTransitionDelayMarkers(
 
   const skills = steps
     .filter(isTimelineSkillStep)
-    .sort((left, right) => left.start - right.start || left.ri - right.ri);
+    .sort((left, right) => left.start - right.start || left.rotationCommandIndex - right.rotationCommandIndex);
   return merged.map(({ start, end }) => ({
     start,
     end,
     durationMs: end - start,
-    insertionIndex: skills.find((step) => step.start >= end)?.ri ?? Math.max(0, ...steps.map((step) => step.ri + 1))
+    insertionIndex:
+      skills.find((step) => step.start >= end)?.rotationCommandIndex ??
+      Math.max(0, ...steps.map((step) => step.rotationCommandIndex + 1))
   }));
 }
 
@@ -469,8 +479,8 @@ export function formatTimelineSkillTooltip(
     `Start: ${formatTime(step.start)}`,
     `Cast time: ${duration}ms`,
     ...(targetImpactDetails ? [targetImpactDetails] : []),
-    `Skill use: ${ordinal.matchingIndex} of ${ordinal.matchingTotal}`,
-    `Rotation action: ${ordinal.skillIndex} of ${ordinal.skillTotal}`,
+    `Skill use: ${ordinal.skillUseNumber} of ${ordinal.skillUseCount}`,
+    `Rotation action: ${ordinal.rotationCastNumber} of ${ordinal.rotationCastCount}`,
     ...details
   ].join('\n');
 }
@@ -560,12 +570,16 @@ export function professionTimelineMarkers(
   markers: readonly ProfessionTimelineMarker[]
 ) {
   const steps = (result?.steps || [])
-    .filter((step) => step.ri >= 0 && !step.invalid)
-    .sort((left, right) => left.start - right.start || left.ri - right.ri);
+    .filter((step) => step.rotationCommandIndex >= 0 && !step.invalid)
+    .sort((left, right) => left.start - right.start || left.rotationCommandIndex - right.rotationCommandIndex);
   return markers
     .map((marker) => {
       const start = Math.round(marker.at * 1000);
-      return { ...marker, start, insertionIndex: steps.find((step) => step.start >= start)?.ri ?? rotationLength };
+      return {
+        ...marker,
+        start,
+        insertionIndex: steps.find((step) => step.start >= start)?.rotationCommandIndex ?? rotationLength
+      };
     })
     .sort((left, right) => left.start - right.start);
 }
@@ -598,7 +612,7 @@ export interface ProcTimelineMarker extends Gw2ProcStep {
 }
 
 function procMarkerInsertionIndex(steps: readonly SimulationStep[], start: number, rotationLength: number): number {
-  return steps.find((step) => step.start > start)?.ri ?? rotationLength;
+  return steps.find((step) => step.start > start)?.rotationCommandIndex ?? rotationLength;
 }
 
 function matchingProcTimelineMarkers(
@@ -607,8 +621,8 @@ function matchingProcTimelineMarkers(
   rotationLength = 0
 ): ProcTimelineMarker[] {
   const steps = (result?.steps || [])
-    .filter((step) => step.ri >= 0 && !step.invalid)
-    .sort((left, right) => left.start - right.start || left.ri - right.ri);
+    .filter((step) => step.rotationCommandIndex >= 0 && !step.invalid)
+    .sort((left, right) => left.start - right.start || left.rotationCommandIndex - right.rotationCommandIndex);
   const activationGroups = new Map<string, Gw2ProcStep[]>();
   for (const proc of [...(result?.procSteps || [])].sort((left, right) => left.start - right.start)) {
     const activationKey = `${procFilterKey(proc)}:${proc.start}`;
@@ -704,8 +718,8 @@ export function relicProcExpirationTimelineMarkers(
   rotationLength = 0
 ): ProcTimelineMarker[] {
   const steps = (result?.steps || [])
-    .filter((step) => step.ri >= 0 && !step.invalid)
-    .sort((left, right) => left.start - right.start || left.ri - right.ri);
+    .filter((step) => step.rotationCommandIndex >= 0 && !step.invalid)
+    .sort((left, right) => left.start - right.start || left.rotationCommandIndex - right.rotationCommandIndex);
   const effectiveEnd = Number(result?.combatEndTime || 0);
   const rotationEnd = Math.round(effectiveEnd * 1000);
   const windows = new Map<string, { proc: Gw2ProcStep; expiresAt: number; activations: Gw2ProcStep[] }>();
@@ -758,9 +772,11 @@ export function relicProcExpirationTimelineMarkers(
   return expired.sort((left, right) => left.start - right.start);
 }
 
-export function rotationSkillHighlightKey(entry: RotationCommand): string {
-  // Canonical identities keep duplicate display names and special commands from sharing highlights.
-  return `skill:${entry.type === 'cast' ? String(entry.skillId) : entry.type}`;
+export function rotationSkillHighlightKey(entry: RotationCommand, catalog?: CanonicalCatalog): string {
+  // Selector roots and their explicit choices represent the same input family.
+  const id =
+    entry.type === 'cast' ? (catalog ? skillInputIdentity(catalog, entry.skillId) : entry.skillId) : entry.type;
+  return `skill:${id}`;
 }
 
 /** Label active buildup only; consumed stacks remain in the recorded state without a misleading zero-stack badge. */
@@ -867,13 +883,13 @@ export function targetHealthTimelineMarkers(
   if (!percents.length) return [];
 
   const steps = (result?.steps || [])
-    .filter((step) => step.ri >= 0 && !step.invalid)
-    .sort((left, right) => left.start - right.start || left.ri - right.ri);
+    .filter((step) => step.rotationCommandIndex >= 0 && !step.invalid)
+    .sort((left, right) => left.start - right.start || left.rotationCommandIndex - right.rotationCommandIndex);
   return targetHealthBreakpointSnapshots(result, targetHealth, percents, startingHealthPercent).map((snapshot) => {
     const start = Math.round(snapshot.at * 1000);
     const next = steps.find((step) => step.start >= start);
     return {
-      insertionIndex: next?.ri ?? rotationLength,
+      insertionIndex: next?.rotationCommandIndex ?? rotationLength,
       healthPercent: snapshot.healthPercent,
       start,
       damage: snapshot.damage
@@ -891,11 +907,15 @@ export function mechanicResourceSpends(
   for (const event of result?.events || []) {
     const activation = event.activationId == null ? undefined : activations.get(event.activationId);
 
-    if (event.type !== 'resource' || event.reason !== 'profession mechanic' || activation?.ri == null) {
+    if (
+      event.type !== 'resource' ||
+      event.reason !== 'profession mechanic' ||
+      activation?.rotationCommandIndex == null
+    ) {
       continue;
     }
 
-    spends.set(activation.ri, {
+    spends.set(activation.rotationCommandIndex, {
       count: Math.abs(Number(event.amount || 0)),
       resource: String(event.resource || 'resources'),
       ...(event.maximumCharges == null ? {} : { maximumCharges: Number(event.maximumCharges) }),
@@ -927,7 +947,7 @@ export function timelineStepsWithChargeFills(
   resourceSpends: ReadonlyMap<number, MechanicResourceSpend>
 ): TimelineChargeFillStep[] {
   return steps.map((step) => {
-    const spend = resourceSpends.get(step.ri);
+    const spend = resourceSpends.get(step.rotationCommandIndex);
     const chargingMs = Math.round(Number(spend?.chargingSeconds || 0) * 1000);
 
     if (chargingMs <= 0) return step;

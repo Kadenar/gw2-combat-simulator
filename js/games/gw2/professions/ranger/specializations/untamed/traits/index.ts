@@ -108,7 +108,7 @@ const letLoose = defineTrait({
     {
       on: 'castCommit',
       run(runtime, cast) {
-        const state = untamedState.from(runtime);
+        const state = untamedState.from(runtime.profession);
 
         if (
           cast.skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS &&
@@ -233,7 +233,7 @@ const debilitatingBlows = defineTrait({
       cooldown: 'profile',
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
-        untamedState.from(runtime).rangerUnleashed &&
+        untamedState.from(runtime.profession).rangerUnleashed &&
         Boolean(
           requireEffect(
             requireBalanceProfileFromContext(runtime, TRAIT.DEBILITATING_BLOWS),
@@ -256,7 +256,7 @@ const debilitatingBlows = defineTrait({
       cooldown: 'profile',
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
-        !untamedState.from(runtime).rangerUnleashed &&
+        !untamedState.from(runtime.profession).rangerUnleashed &&
         Boolean(
           requireEffect(
             requireBalanceProfileFromContext(runtime, TRAIT.DEBILITATING_BLOWS),
@@ -293,7 +293,7 @@ const enhancingImpact = defineTrait({
       cooldown: 'profile',
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
-        untamedState.from(runtime).rangerUnleashed &&
+        untamedState.from(runtime.profession).rangerUnleashed &&
         Boolean(
           requireEffect(
             requireBalanceProfileFromContext(runtime, TRAIT.ENHANCING_IMPACT),
@@ -316,7 +316,7 @@ const enhancingImpact = defineTrait({
       cooldown: 'profile',
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
-        !untamedState.from(runtime).rangerUnleashed &&
+        !untamedState.from(runtime.profession).rangerUnleashed &&
         Boolean(
           requireEffect(
             requireBalanceProfileFromContext(runtime, TRAIT.ENHANCING_IMPACT),
@@ -353,7 +353,7 @@ const biorhythm = defineTrait({
   triggers: [
     onTriggerPoint(untamedUnleashed, {
       run(runtime, input: TriggerPointInput<typeof untamedUnleashed>) {
-        const state = untamedState.from(runtime);
+        const state = untamedState.from(runtime.profession);
         // Owned pending stacks are cancelled and live stacks end now, so an early unleash cannot inherit progress.
         runtime.cancelOwner(BIORHYTHM_OWNER);
         runtime.combat.reviseBuffExpiry(
@@ -377,7 +377,7 @@ const biorhythm = defineTrait({
           runtime.combat.activeBuffStacks(BIORHYTHM, runtime.time) >=
           balanceNumberFromContext(runtime, TRAIT.BIORHYTHM, 'stackThreshold')
         )
-          untamedState.from(runtime).biorhythmArmed = true;
+          untamedState.from(runtime.profession).biorhythmArmed = true;
       }
     }
   ]
@@ -457,7 +457,7 @@ export const untamedTraits = [
 ];
 
 function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = untamedState.from(context);
+  const state = untamedState.from(context.profession);
   const profile = requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS);
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
   const duration = balanceProfileNumber(profile, 'duration');
@@ -503,7 +503,13 @@ function triggerLetLoose(context: RangerResolverContext, event: Gw2ResolverEvent
   }
 
   // Each ambush activation grants boons exactly once even if the skill hits multiple times.
-  if (!claimActivation(untamedState.from(context).untamedActivationClaims, 'ranger.let-loose', event.activationId))
+  if (
+    !claimActivation(
+      untamedState.from(context.profession).untamedActivationClaims,
+      'ranger.let-loose',
+      event.activationId
+    )
+  )
     return;
 
   // Expand each surviving boon once per accepted ambush, preserving the party audience.

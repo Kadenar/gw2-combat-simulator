@@ -10,7 +10,7 @@ export function amalgamCastAvailability(
   context: MechanicQueriesOf<EngineerRuntime>,
   skill: EngineerSkill
 ): AvailabilityResult {
-  const state = amalgamState.from(context);
+  const state = amalgamState.from(context.profession);
 
   // Each protocol type (e.g., "Offensive Protocol: Shred") exists as several
   // distinct skill IDs depending on which mechanic slot it occupies. Block any

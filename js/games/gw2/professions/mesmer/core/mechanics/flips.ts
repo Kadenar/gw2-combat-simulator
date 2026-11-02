@@ -30,7 +30,7 @@ export function armMesmerSkillFlip(context: MesmerRuntime, cast: RuntimeCast<Mes
 }
 
 /** A Mesmer mantra's prepared flip owns its charges and is the magazine's only face. */
-export function mesmerMantraMagazine(flip: MesmerSkill): PreparedMagazine<MesmerSkill> {
+function mesmerMantraMagazine(flip: MesmerSkill): PreparedMagazine<MesmerSkill> {
   return { pool: flip, faceIds: [flip.id] };
 }
 

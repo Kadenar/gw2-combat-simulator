@@ -3,11 +3,11 @@ import { BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platfo
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<WarriorSkill>>> = {
   [ID.FIERCE_SHOT]: {
     name: 'Fierce Shot',
-    description: 'Fire a shot at your target. Gain might if you strike a vulnerable target.',
     icon: 'https://render.guildwars2.com/file/FBBFE42D0BD0745F56BF30483240E67F0994562C/103254.png',
     type: 'Weapon',
     weapon: 'Rifle',
@@ -42,7 +42,6 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.VOLLEY]: {
     name: 'Volley',
-    description: 'Fire a volley of shots at your foe.',
     icon: 'https://render.guildwars2.com/file/97A0DA3D06ABFDE4CFEF0EE02EC4B46DF6F17271/103249.png',
     type: 'Weapon',
     weapon: 'Rifle',
@@ -78,8 +77,6 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.EXPLOSIVE_SHELL]: {
     name: 'Explosive Shell',
-    description:
-      'Shoot an explosive round that explodes when it hits, striking nearby enemies and enemies in a cone behind the initial target.',
     icon: 'https://render.guildwars2.com/file/B65AC760EC9D4FAC6D701694BB9B3A3FC9D134AC/2440723.png',
     type: 'Weapon',
     weapon: 'Rifle',
@@ -113,7 +110,6 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.BRUTAL_SHOT]: {
     name: 'Brutal Shot',
-    description: 'Evade backward while firing an immobilizing shot.',
     icon: 'https://render.guildwars2.com/file/E07AB4BA685E11A6BEAFC9540308CD0DD1C23B6C/103248.png',
     type: 'Weapon',
     weapon: 'Rifle',
@@ -154,8 +150,6 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.RIFLE_BUTT]: {
     name: 'Rifle Butt',
-    description:
-      'Knock back your foe with your rifle butt. Recover ammunition for each of your other rifle skills and fully recharge your rifle burst skills. Successfully striking a foe reduces the recharge time of this skill.',
     icon: 'https://render.guildwars2.com/file/77FCEC0F1833249C540D5B321E3BA4017872ABCB/102766.png',
     type: 'Weapon',
     weapon: 'Rifle',
@@ -178,4 +172,4 @@ export const WARRIOR_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Skil
     // Completed strikes restock the live rifle catalog and reset its bursts.
     sideEffects: [{ on: 'castCommit', do: { type: 'warrior.rifle-restock' } }]
   }
-});
+};

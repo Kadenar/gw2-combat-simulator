@@ -54,7 +54,7 @@ function fixture(traits = []) {
     start: runtime.time,
     fullEnd: runtime.time + 1,
     effectiveEnd: runtime.time + 1,
-    cancelled: false,
+    cancelledBeforeCommit: false,
     command: {}
   });
   const apply = (accepted, phase) => applySkillSideEffects(runtime, accepted, phase, renegadeHooks.sideEffectHandlers);

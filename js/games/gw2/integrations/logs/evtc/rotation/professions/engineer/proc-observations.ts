@@ -48,9 +48,7 @@ export interface EngineerShrapnelObservation {
 function isExplosionSkill(skill: Skill): boolean {
   return Boolean(
     EVENT_FLAGGED_EXPLOSION_NAMES.has(normalized(skill.name)) ||
-    normalized(skill.damageKind) === 'explosion' ||
-    skill.explosion === true ||
-    skill.effects?.some((effect) => normalized(effect.damageKind) === 'explosion' || effect.explosion === true)
+    skill.effects?.some((effect) => normalized(effect.damageKind) === 'explosion')
   );
 }
 

@@ -41,7 +41,7 @@ function occupiedSeconds(intervals: [number, number][]): number {
 /** Project the canonical trace window into APM units; the activity chart uses the same window counts. */
 function peakApm(trace: InputTrace, seconds: number): RotationApmPeak | null {
   const peak = rankedInputWindows(trace, seconds)[0];
-  return peak ? { startSeconds: peak.start, endSeconds: peak.end, apm: peak.rate * 60 } : null;
+  return peak ? { startSeconds: peak.start, endSeconds: peak.end, apm: peak.actionsPerSecond * 60 } : null;
 }
 
 /** Manual counts come from accepted inputs; executed events supply autoattack and animation occupancy details. */
@@ -69,21 +69,15 @@ export function rotationApm(
   const autoattackIntervals: [number, number][] = [];
   let autoattackCount = 0;
   for (const step of steps) {
-    const command = commands[step.ri];
+    const command = commands[step.rotationCommandIndex];
 
     if (step.invalid || !step.activationId || command?.type !== 'cast') continue;
 
+    // The accepted activation owns occupancy even when a selector or trait transformed the input ID.
     const activation = activations.get(step.activationId);
     const skill = step.skillId == null ? undefined : catalog.skillsById.get(step.skillId);
 
-    if (
-      !activation ||
-      !skill ||
-      command.skillId !== skill.id ||
-      activation.skillId !== skill.id ||
-      activation.at > end ||
-      seen.has(step.activationId)
-    )
+    if (!activation || !skill || activation.skillId !== skill.id || activation.at > end || seen.has(step.activationId))
       continue;
 
     seen.add(step.activationId);

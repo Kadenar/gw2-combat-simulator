@@ -28,7 +28,7 @@ export const avatarExited = defineTriggerPoint<Record<string, never>>('ranger.av
 
 /** Avatar changes the one resource clock and bar; expiration cannot retire a later entry. */
 function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): void {
-  const state = druidState.from(runtime);
+  const state = druidState.from(runtime.profession);
 
   if ((state.celestialAvatarEndsAt !== null) === active) return;
 
@@ -54,7 +54,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
 
   runtime.fireTrigger(avatarExited);
 
-  resetAutoattackChains(runtime);
+  resetAutoattackChains(runtime.profession);
   const skill = runtime.helpers.skillsById.get(active ? ID.CELESTIAL_AVATAR : ID.RELEASE_CELESTIAL_AVATAR)!;
   runtime.effects.emit({
     kind: 'packet',
@@ -71,18 +71,18 @@ export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSk
   resources: {
     astralForce: {
       kind: 'continuous',
-      state: (runtime) => druidState.from(runtime).astralClock,
+      state: (runtime) => druidState.from(runtime.profession).astralClock,
       maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.CELESTIAL_BEING, 'maximumStacks'),
       initial: (runtime, maximum) => (runtime as RangerRuntime).config.initialAstralForce ?? maximum,
       recovery(runtime) {
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.CELESTIAL_BEING);
         const duration = skillNumber(requireSkillFromContext(runtime, ID.CELESTIAL_AVATAR), 'duration');
-        return druidState.from(runtime).celestialAvatarEndsAt !== null && duration > 0
+        return druidState.from(runtime.profession).celestialAvatarEndsAt !== null && duration > 0
           ? -balanceProfileNumber(profile, 'maximumStacks') / duration
           : 0;
       },
       nextChange(runtime) {
-        const state = druidState.from(runtime);
+        const state = druidState.from(runtime.profession);
         state.pendingHitTimes = state.pendingHitTimes.filter((at) => at > runtime.time);
         return Math.min(state.naturalMender.nextAt, ...state.pendingHitTimes);
       },
@@ -92,7 +92,7 @@ export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSk
         retainUnchangedDeadline: true,
         // Avatar ends at exact depletion or its maximum lifetime, whichever comes first; it does not use action ticks.
         deadline(runtime, depletionAt) {
-          const state = druidState.from(runtime);
+          const state = druidState.from(runtime.profession);
           return state.celestialAvatarEndsAt !== null
             ? canonicalTime(Math.min(state.celestialAvatarEndsAt, depletionAt))
             : Infinity;
@@ -111,12 +111,12 @@ export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSk
       event.ownerActorType !== ACTOR.SUMMON &&
       !event.independentSummonStrike
     )
-      druidState.from(runtime).pendingHitTimes.push(event.at);
+      druidState.from(runtime.profession).pendingHitTimes.push(event.at);
 
     return event;
   },
   availability(runtime, skill) {
-    const state = druidState.from(runtime);
+    const state = druidState.from(runtime.profession);
 
     if (
       (skill.celestialAvatarSkill || skill.id === ID.RELEASE_CELESTIAL_AVATAR) &&
@@ -160,7 +160,7 @@ export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSk
   reactions: {
     'damage.resolved'(runtime, event) {
       if (
-        druidState.from(runtime).celestialAvatarEndsAt !== null ||
+        druidState.from(runtime.profession).celestialAvatarEndsAt !== null ||
         event.actorType === ACTOR.SUMMON ||
         event.ownerActorType === ACTOR.SUMMON ||
         isPetStrike(event) ||

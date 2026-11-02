@@ -1,5 +1,6 @@
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 
 export type AmalgamMorphKind = 'cleanse' | 'protect' | 'thorns' | 'demolish' | 'obliterate' | 'pierce' | 'shred';
 
@@ -46,7 +47,7 @@ const MORPH_ORDER: readonly AmalgamMorphKind[] = [
 type MorphCatalog = Pick<CanonicalCatalog, 'skills' | 'skillsById'>;
 
 /** Only known morph identities in their authored slots may participate in a loadout. */
-function legalMorph(skill: Skill | undefined, slot = Number(skill?.mechanicSlot)): skill is Skill {
+function legalMorph(skill: AmalgamSkill | undefined, slot = Number(skill?.mechanicSlot)): skill is AmalgamSkill {
   return Boolean(
     skill &&
     AMALGAM_MORPH_KIND_BY_SKILL_ID.has(skill.id) &&
@@ -77,7 +78,7 @@ export function validAmalgamMorphs(catalog: MorphCatalog, value: unknown): value
   const skills = value.map((id) => catalog.skillsById.get(id));
   return (
     skills.every((skill) => legalMorph(skill)) &&
-    new Set(skills.map((skill) => Number(skill.mechanicSlot))).size === 3 &&
+    new Set(skills.map((skill: AmalgamSkill) => Number(skill.mechanicSlot))).size === 3 &&
     new Set(value.map((id) => AMALGAM_MORPH_KIND_BY_SKILL_ID.get(id))).size === 3
   );
 }

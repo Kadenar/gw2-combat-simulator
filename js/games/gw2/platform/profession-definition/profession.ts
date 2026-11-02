@@ -17,6 +17,8 @@ import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/res
 import { validateCatalogActionHandlers } from '#gw2/platform/effects/action-declarations.js';
 import { validateAutoattackChainOptions } from '#gw2/platform/execution/autoattack-chains.js';
 import {
+  CAST_READY,
+  combineAvailability,
   denyCast,
   selectedSlotSkillAvailability,
   weaponSetSwapAvailability
@@ -68,7 +70,6 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { nativeSkillModifierRules } from '#gw2/platform/skills/modifiers.js';
 import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
-import { assertObject } from '#kernel/core/objects.js';
 
 /** Policies a family exposes for capacity previews; their maximum reads only configuration and catalog. */
 type ProfessionResourcePreview = ResourcePolicies & { readonly endurance?: EndurancePolicy };
@@ -87,60 +88,32 @@ const NATIVE_MODULE_FIELDS = Object.freeze([
   'canSwapWeaponSetsInCombat'
 ]);
 
-function assertNativeModuleDefinition(definition: object): void {
-  assertObject(definition, 'Native profession module');
-  const candidate = definition as {
-    readonly id?: string;
-    readonly canSwapWeaponSetsInCombat?: boolean;
-    readonly data?: Record<string, unknown>;
-    readonly state?: {
-      readonly create?: (...args: never[]) => object;
-      readonly project?: (...args: never[]) => object;
-    };
-    readonly hooks?: object;
-    readonly kind?: string;
-    readonly modifiers?: ProfessionModifierDefinition | readonly unknown[];
-  };
-
-  if (!(candidate.id || '').trim()) {
+/** Typed shells still reject an empty id and retired or misspelled sections that would otherwise install nothing. */
+function assertNativeModuleDefinition(definition: {
+  readonly id: string;
+  readonly kind?: string;
+  readonly state: object;
+  readonly modifiers?: ProfessionModifierDefinition | readonly unknown[];
+}): void {
+  if (!definition.id.trim()) {
     throw new TypeError('Native profession module id is required.');
   }
 
   // Unknown fields would otherwise be dropped silently, leaving their behavior uninstalled.
-  for (const key of Object.keys(candidate)) {
+  for (const key of Object.keys(definition)) {
     if (!NATIVE_MODULE_FIELDS.includes(key)) throw new TypeError(`Unsupported native module field: ${key}.`);
   }
 
-  if (candidate.canSwapWeaponSetsInCombat != null && typeof candidate.canSwapWeaponSetsInCombat !== 'boolean')
-    throw new TypeError('canSwapWeaponSetsInCombat must be a boolean.');
-
-  assertObject(candidate.data, `${candidate.id}.data`);
-
-  assertObject(candidate.state, `${candidate.id}.state`);
-  for (const key of Object.keys(candidate.state!)) {
+  for (const key of Object.keys(definition.state)) {
     if (!['create', 'project'].includes(key)) throw new TypeError(`Unsupported native state field: ${key}.`);
-  }
-
-  if (typeof candidate.state?.create !== 'function') {
-    throw new TypeError(`${candidate.id}.state.create must be a function.`);
-  }
-
-  for (const name of ['project'] as const) {
-    if (candidate.state?.[name] != null && typeof candidate.state[name] !== 'function') {
-      throw new TypeError(`${candidate.id}.state.${name} must be a function.`);
-    }
-  }
-
-  if (candidate.hooks != null) {
-    assertObject(candidate.hooks, `${candidate.id}.hooks`);
   }
 
   // Authoring accepts rule arrays; registered modules and preview clones use one validated object shape.
   if (
-    candidate.kind === 'native-profession-module' ||
-    (candidate.modifiers != null && !Array.isArray(candidate.modifiers))
+    definition.kind === 'native-profession-module' ||
+    (definition.modifiers != null && !Array.isArray(definition.modifiers))
   ) {
-    assertModifierDefinition(candidate.modifiers, `${candidate.id}.modifiers`);
+    assertModifierDefinition(definition.modifiers ?? {}, `${definition.id}.modifiers`);
   }
 }
 
@@ -165,9 +138,6 @@ export function defineNativeModule<
   definition: NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation, TSkill>
 ): NativeModule<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation, TSkill> {
   assertNativeModuleDefinition(definition);
-
-  if (definition.traitDefinitions != null && !Array.isArray(definition.traitDefinitions))
-    throw new TypeError(`${definition.id}.traitDefinitions must be an array.`);
 
   const traits = definition.traitDefinitions?.map(defineTrait<TSkill>) ?? [];
   const sourceModifiers: ProfessionModifierDefinition = Array.isArray(definition.modifiers)
@@ -294,9 +264,6 @@ function composeModuleModifiers(
 
     if (policies == null) continue;
 
-    if (typeof policies !== 'object' || Array.isArray(policies))
-      throw new TypeError('Modifier damageBuckets must be an object.');
-
     for (const target of Object.keys(policies)) {
       if (policyOwners.has(target))
         throw new TypeError(
@@ -352,14 +319,7 @@ export function defineNativeProfession<
 >(
   definition: NativeProfessionDefinition<TModules, TPresentation, TBuild, TSkill>
 ): NativeProfessionContract<TModules, TPresentation, TBuild, TSkill> {
-  if (!definition || typeof definition !== 'object') {
-    throw new TypeError('A native profession definition is required.');
-  }
-
   assertDefinition(definition);
-
-  if (definition.runtimeHooks != null && typeof definition.runtimeHooks !== 'function')
-    throw new TypeError('profession.runtimeHooks must be a function.');
 
   validateAutoattackChainOptions(definition.autoattackChains ?? {});
   // Module data fixes the skill type for both catalog selection and execution callbacks.
@@ -676,17 +636,9 @@ export function defineNativeProfession<
 
         if (cost && !cost.ready && cost.retryAt == null) return cost;
 
-        const result = composed.availability?.(context, skill, command) ?? { ready: true };
-
-        if (!result.ready && result.retryAt == null) return result;
-
-        if (cost && !cost.ready)
-          return {
-            ...(!result.ready ? result : cost),
-            retryAt: Math.max(context.time, cost.retryAt, !result.ready ? result.retryAt : context.time)
-          };
-
-        return result;
+        // Only retryable cost denials reach profession gates; arbitration retains their combined deadline.
+        const result = composed.availability?.(context, skill, command) ?? CAST_READY;
+        return combineAvailability(cost ?? CAST_READY, result, context.time);
       }
     };
 

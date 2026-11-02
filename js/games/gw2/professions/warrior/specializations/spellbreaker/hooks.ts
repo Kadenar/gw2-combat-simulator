@@ -23,9 +23,9 @@ const spellbreakerAdrenalinePolicy: typeof coreAdrenalinePolicy = {
 export const spellbreakerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   /** Hold the selected preview state while evaluating detached damage queries. */
   prepareDamageState(runtime, _skill, inputs) {
-    spellbreakerState.from(runtime).magebaneTetherUntil = inputs.magebaneTether ? Infinity : 0;
+    spellbreakerState.from(runtime.profession).magebaneTetherUntil = inputs.magebaneTether ? Infinity : 0;
     // Hold the selected Insight stacks for isolated damage queries using the native attribute owner.
-    spellbreakerState.from(runtime).attackerInsightExpiries = Array.from(
+    spellbreakerState.from(runtime.profession).attackerInsightExpiries = Array.from(
       { length: Number(inputs.attackersInsight) || 0 },
       () => Infinity
     );

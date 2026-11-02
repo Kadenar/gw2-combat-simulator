@@ -1,4 +1,3 @@
-import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 /**
  * Core skill mechanics owned by the Core Necromancer module.
  *
@@ -6,6 +5,7 @@ import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definition
  * definitions. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
+import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_CORE_EXTRA_SKILLS as CORE_ACTIONS } from '#gw2/professions/necromancer/core/skills/actions.js';
 import { NECROMANCER_MINION_ATTACK_SKILLS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
@@ -39,7 +39,7 @@ export const NECROMANCER_LICH_SKILL_IDS: readonly SkillId[] = Object.freeze([
   ID.EXIT_LICH_FORM
 ]);
 
-export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
+const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
   NECROMANCER_PROFESSION_SKILLS_SKILL_MECHANICS,
   NECROMANCER_SLOT_SKILLS_SKILL_MECHANICS,
   NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS,
@@ -56,7 +56,9 @@ export const NECROMANCER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, Skil
 );
 
 // Keep triggered axe identities in the catalog without exposing them as player inputs.
-export const NECROMANCER_CORE_EXTRA_SKILLS = Object.freeze([
+/** One complete module collection includes authored skills, generated attacks, and simulator actions. */
+export const NECROMANCER_CORE_SKILLS = Object.freeze([
+  ...materializeSkillDefinitions(NECROMANCER_CORE_BASE_SKILL_MECHANICS),
   ...NECROMANCER_CORE_TRAIT_SKILLS,
   ...CORE_ACTIONS,
   ...NECROMANCER_MINION_ATTACK_SKILLS,

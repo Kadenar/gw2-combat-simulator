@@ -5,6 +5,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -19,7 +20,6 @@ const baseConfig = {
   target: { armor: 2597, health: 1000000000, conditions: {} }
 };
 const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Actual packets grant resources once; interruption cannot grant the skipped remainder of a channel.
 test('Ghastly Claws grants life force on each landed packet and preserves partial-channel gains', () => {
@@ -121,8 +121,8 @@ test('axe weapon cooldowns begin at completed cast recharge anchors', () => {
   ]) {
     const result = simulate('Core', [name]);
     assert.equal(
-      result.planningState.cooldowns[necromancerCatalog.skills.find((candidate) => candidate.name === name).id]
-        .readyAt - result.steps[0].end,
+      result.planningState.cooldownsBySkillId[necromancerCatalog.skills.find((candidate) => candidate.name === name).id]
+        .readyAtMs - result.steps[0].end,
       (seconds * 1000) / 1.25
     );
     assert.deepEqual(result.warnings, []);

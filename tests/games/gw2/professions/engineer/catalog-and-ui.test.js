@@ -769,10 +769,10 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
 
   const healing = simulate('Core', ['Healing Turret']);
 
-  assert.equal(healing.planningState.cooldowns[ID.HEALING_TURRET], undefined);
-  assert.deepEqual(healing.planningState.cooldowns[ID.DETONATE_HEALING_TURRET], {
-    readyAt: Math.ceil((healing.steps[0].end + 500) / 40) * 40,
-    remaining: Math.ceil((healing.steps[0].end + 500) / 40) * 40 - healing.steps[0].end
+  assert.equal(healing.planningState.cooldownsBySkillId[ID.HEALING_TURRET], undefined);
+  assert.deepEqual(healing.planningState.cooldownsBySkillId[ID.DETONATE_HEALING_TURRET], {
+    readyAtMs: Math.ceil((healing.steps[0].end + 500) / 40) * 40,
+    remainingMs: Math.ceil((healing.steps[0].end + 500) / 40) * 40 - healing.steps[0].end
   });
   assert.ok(
     healing.events.some(
@@ -793,7 +793,7 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
     'Cleansing Burst'
   ]);
   const [firstTurret, detonation, secondTurret, cleansingBurst] = turretCycle.steps.filter((step) =>
-    ['Healing Turret', 'Detonate Healing Turret', 'Cleansing Burst'].includes(step.skill)
+    ['Healing Turret', 'Detonate Healing Turret', 'Cleansing Burst'].includes(step.skillName)
   );
   assert.equal(detonation.start, Math.ceil((firstTurret.end + 500) / 40) * 40);
   assert.equal(secondTurret.start - detonation.end, 19760);
@@ -804,7 +804,7 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
   };
   const throwStarts = (rotation) =>
     simulate('Core', rotation, mineConfig)
-      .steps.filter((step) => step.skill === 'Throw Mine')
+      .steps.filter((step) => step.skillName === 'Throw Mine')
       .map((step) => step.start);
 
   assert.equal(engineerCatalog.skillsById.get(6161).rechargeAnchor, 'castStart');
@@ -902,7 +902,7 @@ test('Elixir Gun packets, fields, finishers, and HGH use their authored contract
 test('Engineer contextual weapon follow-ups are not standalone selections', () => {
   const rifleGrenade = engineerCatalog.skillsById.get(68079);
 
-  assert.equal(rifleGrenade.simulatorExcluded, true);
+  assert.equal(rifleGrenade.rotationInputExcluded, true);
   assert.equal(
     engineerCatalog.autoattackChains.some((chain) => chain.includes(rifleGrenade.id)),
     false

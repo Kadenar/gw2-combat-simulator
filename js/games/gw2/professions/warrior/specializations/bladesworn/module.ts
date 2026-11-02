@@ -9,8 +9,7 @@ import { bladeswornHooks } from '#gw2/professions/warrior/specializations/blades
 import { bladeswornUi } from '#gw2/professions/warrior/specializations/bladesworn/presentation.js';
 import { WARRIOR_BLADESWORN_AUTOATTACK_CHAINS } from '#gw2/professions/warrior/specializations/bladesworn/skills/autoattack-chains.js';
 import {
-  BLADESWORN_SHARP_AS_THE_WIND_SKILLS,
-  BLADESWORN_SKILL_MECHANICS,
+  BLADESWORN_SKILLS,
   cartridgeModifiers
 } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
 import { WARRIOR_BLADESWORN_SKILL_FLIPS } from '#gw2/professions/warrior/specializations/bladesworn/skills/skill-flips.js';
@@ -31,8 +30,8 @@ export const bladeswornModule = defineNativeModule({
     skillFlips: WARRIOR_BLADESWORN_SKILL_FLIPS,
     profileFields: WARRIOR_BLADESWORN_PROFILE_FIELDS,
     skillFields: BLADESWORN_SKILL_FIELDS,
-    skillMechanics: BLADESWORN_SKILL_MECHANICS,
-    extraSkills: BLADESWORN_SHARP_AS_THE_WIND_SKILLS,
+    skills: BLADESWORN_SKILLS,
+
     autoattackChains: WARRIOR_BLADESWORN_AUTOATTACK_CHAINS
   }),
   state: {

@@ -47,7 +47,7 @@ const EVOKER_NO_CHARGE_SPEAR_SKILLS: ReadonlySet<SkillId> = new Set([
 /** Familiar pools have no passive recovery; traits select capacity before any initialization hooks run. */
 export const familiarChargePolicy: ResourcePolicy<ElementalistRuntime> = {
   kind: 'continuous',
-  state: (context) => evokerState.from(context).familiarCharges,
+  state: (context) => evokerState.from(context.profession).familiarCharges,
   maximum: (context) => balanceProfileNumber(evokerChargeProfile(context), 'maximumStacks'),
   initial: (context, maximum) => boundedNumber(context.config.initialEvokerCharges ?? maximum, maximum, 0, maximum),
   recovery: () => 0
@@ -56,7 +56,7 @@ export const familiarChargePolicy: ResourcePolicy<ElementalistRuntime> = {
 /** Empowered progress is earned only by completed basic conversions, independently of familiar charge capacity. */
 export const empoweredChargePolicy: ResourcePolicy<ElementalistRuntime> = {
   kind: 'continuous',
-  state: (context) => evokerState.from(context).empoweredCharges,
+  state: (context) => evokerState.from(context.profession).empoweredCharges,
   maximum: (context) => balanceNumberFromContext(context, EVOKER_TRAIT.EVOCATION, 'minimumStacks'),
   initial: (context, maximum) => boundedNumber(context.config.initialEvokerEmpowered ?? 0, 0, 0, maximum),
   recovery: () => 0
@@ -92,7 +92,11 @@ export function emitResource(
  * otherwise the matching-element amount when the skill shares the selected
  * element, and the smaller off-element amount when it does not.
  */
-export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pick<EvokerState, 'element'>): number {
+export function weaponSkillChargeGain(
+  context: unknown,
+  skill: ElementalistSkill,
+  state: Pick<EvokerState, 'element'>
+): number {
   const slot = /^Weapon_(\d)$/.exec(String(skill.slot || ''));
 
   if (
@@ -109,9 +113,7 @@ export function weaponSkillChargeGain(context: unknown, skill: Skill, state: Pic
 
   // Split-attunement skills gain the matching-element amount; Specialized
   // Elements raises that amount from two charges to three.
-  return String(skill.attunement || '')
-    .split('+')
-    .includes(state.element)
+  return (skill.attunement || '').split('+').includes(state.element)
     ? balanceProfileNumber(evokerChargeProfile(context), 'playerStacks')
     : balanceNumberFromContext(context, EVOKER_TRAIT.EVOCATION, 'allyStacks');
 }

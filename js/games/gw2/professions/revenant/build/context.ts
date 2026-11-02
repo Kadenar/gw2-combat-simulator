@@ -13,7 +13,6 @@ export const profession: BoundProfession = withActivePatchPreview(revenantProfes
 
 export const createBuildContext = bindBuildContext<RevenantCanonicalBuild>(
   profession,
-  { attributeContributions: profession.attributeContributions },
   (build) => ({
     initialEnergy: build.initialEnergy,
     selectedLegends: build.selectedLegends,

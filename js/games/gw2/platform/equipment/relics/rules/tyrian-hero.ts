@@ -2,9 +2,9 @@
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, BOON, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
+import { BOON, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const tyrianHero = defineRelic({
   completed(ctx, _state, event) {
@@ -15,10 +15,7 @@ export const tyrianHero = defineRelic({
     if (skill?.skillFamily !== 'Shout' && skill?.skillFamily !== 'Command') return;
 
     const name = 'Relic of the Tyrian Hero';
-    ctx.effects.emit({
-      kind: 'announcement',
-      announcement: { type: 'relic', name, at: event.at, sourceSkill: event.skillName }
-    });
+    announceRelic(ctx, event, name);
     // PvE values: https://wiki.guildwars2.com/wiki/Relic_of_the_Tyrian_Hero
     // Superspeed is a status, so only Might and Swiftness receive boon-duration scaling.
     for (const { kind, duration, stacks, audience } of [
@@ -44,10 +41,7 @@ export const tyrianHero = defineRelic({
           kind,
           duration,
           stacks,
-          source: 'Relic',
-          sourceId: `relic.${RELIC_IDS.TYRIAN_HERO}`,
-          actorType: ACTOR.EFFECT,
-          ownerActorType: ACTOR.PLAYER,
+          ...playerOwnedRelicSource(RELIC_IDS.TYRIAN_HERO),
           name: `${name} - ${kind}`,
           skillName: name,
           triggeredBy: event.skillName,

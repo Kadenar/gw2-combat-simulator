@@ -31,7 +31,7 @@ for (const { id } of professionOptions) {
     for (const module of family.nativeDefinition.modules) {
       const config = { specialization: module.id };
       const profession = family.runtimeFor(config);
-      const candidates = profession.catalog.skills.filter((skill) => !skill.simulatorExcluded);
+      const candidates = profession.catalog.skills.filter((skill) => !skill.rotationInputExcluded);
       const result = observeGw2Runtime({ profession, config, rotation: [] });
       const runtime = observedRuntime(result);
       assert.deepEqual(
@@ -180,7 +180,7 @@ test('Conduit recharge queries leave the committed resource state untouched', as
   Object.assign(runtime.profession.specialization.state, {
     beguilingHazeCharges: 0,
     beguilingHazeReadyAt: 0,
-    beguilingHazeRecharge: { startedAt: 0, work: 20 }
+    beguilingHazeRecharge: { workAnchorAt: 0, work: 20 }
   });
   const before = snapshot(runtime);
   for (const skill of profession.catalog.skills.filter((skill) => skill.name === 'Beguiling Haze')) {

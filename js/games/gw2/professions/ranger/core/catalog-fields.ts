@@ -1,4 +1,4 @@
-import { dataField, defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
+import { defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
 
 /** Ranger pet fields read only by Ranger mechanics. */
 export const RANGER_CORE_SKILL_FIELDS = defineFields(
@@ -8,17 +8,7 @@ export const RANGER_CORE_SKILL_FIELDS = defineFields(
     quicknessAutonomousRecharge: numberField({ unit: 'seconds', patch: 'primary' }),
     charges: numberField({ patch: 'primary' }),
     echoDelay: numberField({ unit: 'seconds', patch: 'primary' }),
-    impairedDamageMultiplier: numberField({ patch: 'primary' }),
-    // Executed by the pet rather than the player.
-    petSkill: dataField,
-    // Belongs to the selected pet family's skill set.
-    petFamilySkill: dataField,
-    // Pets that own this skill.
-    petNames: dataField,
-    // Available only while merged with the pet.
-    beastmodeSkill: dataField,
-    // Pet skill used while the pet is unleashed.
-    unleashedPetSkill: dataField
+    impairedDamageMultiplier: numberField({ patch: 'primary' })
   },
   'Ranger Core'
 );

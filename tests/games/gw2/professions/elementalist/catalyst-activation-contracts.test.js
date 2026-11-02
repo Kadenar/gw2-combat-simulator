@@ -66,8 +66,8 @@ for (const [origin, produce] of [
         assert.equal(buffs(result, TRAIT.ELEMENTAL_EPITOME).length, Number(active));
         assert.equal(buffs(result, TRAIT.ELEMENTAL_SYNERGY).length, Number(active && origin === 'combo'));
         assert.equal(runtime.profession.core.activeAuras.length, Number(origin === 'aura' || active));
-        assert.equal(catalystState.from(runtime).empoweringAuras.stacks, Number(active));
-        assert.equal(catalystState.from(runtime).elementalEmpowermentExpiries.length, Number(active));
+        assert.equal(catalystState.from(runtime.profession).empoweringAuras.stacks, Number(active));
+        assert.equal(catalystState.from(runtime.profession).elementalEmpowermentExpiries.length, Number(active));
         for (const trait of ['elementalEpitome', 'elementalSynergy'])
           assert.equal(runtime.procs.deadline(`elementalist.catalyst.${trait}:Fire`) > 0, active && origin === 'combo');
 
@@ -103,7 +103,7 @@ test('Vicious Empowerment gates both accepted inputs and shares one strict coold
       );
       const active = selected && traitTriggers;
       assert.equal(buffs(result, TRAIT.VICIOUS_EMPOWERMENT).length, active ? 4 : 0);
-      assert.equal(catalystState.from(runtime).elementalEmpowermentExpiries.length, active ? 4 : 0);
+      assert.equal(catalystState.from(runtime.profession).elementalEmpowermentExpiries.length, active ? 4 : 0);
       assert.equal(runtime.procs.deadline('elementalist.catalyst.viciousEmpowerment'), active ? 1.55 : 0);
     }
   }
@@ -183,12 +183,12 @@ test('Elemental Empowerment starts only one selected and enabled renewal loop', 
         { timeline: [{ at: 1, run: (runtime) => runtime.fireTrigger(catalystCombatStarted) }] }
       );
       const active = selected && traitTriggers;
-      assert.equal(catalystState.from(runtime).baseEmpowerment.generation > 0, active);
+      assert.equal(catalystState.from(runtime.profession).baseEmpowerment.generation > 0, active);
       assert.deepEqual(
         buffs(result, TRAIT.ELEMENTAL_EMPOWERMENT).map((event) => event.at),
         active ? [0, 15, 30] : []
       );
-      assert.equal(catalystState.from(runtime).elementalEmpowermentExpiries.length, active ? 3 : 0);
+      assert.equal(catalystState.from(runtime.profession).elementalEmpowermentExpiries.length, active ? 3 : 0);
     }
   }
 });
@@ -199,12 +199,12 @@ test('An explicitly admitted renewal task survives disabled or unselected produc
       { traitTriggers: false, selectedTraitIds, duration: 17 },
       { initialize: (runtime) => baseEmpowermentPassive.restart(runtime, 1) }
     );
-    assert.ok(catalystState.from(runtime).baseEmpowerment.nextAt > runtime.time);
+    assert.ok(catalystState.from(runtime.profession).baseEmpowerment.nextAt > runtime.time);
     assert.deepEqual(
       buffs(result, TRAIT.ELEMENTAL_EMPOWERMENT).map((event) => event.at),
       [1, 16]
     );
-    assert.equal(catalystState.from(runtime).elementalEmpowermentExpiries.length, 3);
+    assert.equal(catalystState.from(runtime.profession).elementalEmpowermentExpiries.length, 3);
   }
 });
 
@@ -256,11 +256,11 @@ test('Explicit Catalyst stacks keep recipient rules, passive attributes and expi
               live && selectedTraitIds.length ? 1020 : 1000
             );
             assert.equal(
-              catalystState.from(runtime).empoweringAuras.expiresAt,
+              catalystState.from(runtime.profession).empoweringAuras.expiresAt,
               4,
               'disabled aura producers cannot refresh explicit stacks'
             );
-            assert.equal(catalystState.from(runtime).elementalEmpowermentExpiries.length, 2);
+            assert.equal(catalystState.from(runtime.profession).elementalEmpowermentExpiries.length, 2);
           }
         ])
       }

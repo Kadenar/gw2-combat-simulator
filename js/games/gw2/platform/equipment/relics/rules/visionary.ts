@@ -4,7 +4,7 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js'
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { COMBO_FINISHER } from '#gw2/platform/constants.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { announceRelic, defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 import { isTimeInWindow } from '#kernel/core/clock.js';
 
 const VISIONARY_STACKS_NEEDED = 8;
@@ -32,39 +32,25 @@ export const visionary = defineRelic({
     const progress = advanceCounter(state.stacks || 0, 1, VISIONARY_STACKS_NEEDED, 'reset');
     state.stacks = progress.value;
     // Buildup has its own track; publishing consumption closes it before the separate damage buff begins.
-    ctx.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'relic',
-        name: 'Relic of the Visionary',
-        at: event.at,
-        sourceSkill: event.skillName,
-        detail: state.stacks ? `${state.stacks}/${VISIONARY_STACKS_NEEDED} stacks` : 'stacks consumed',
-        icon: '',
-        cooldownReduction: null,
-        expiresAt: null,
-        effectState: { stacks: state.stacks, maximumStacks: VISIONARY_STACKS_NEEDED }
-      }
+    announceRelic(ctx, event, 'Relic of the Visionary', {
+      detail: state.stacks ? `${state.stacks}/${VISIONARY_STACKS_NEEDED} stacks` : 'stacks consumed',
+      icon: '',
+      cooldownReduction: null,
+      expiresAt: null,
+      effectState: { stacks: state.stacks, maximumStacks: VISIONARY_STACKS_NEEDED }
     });
 
     if (!progress.reached) return;
 
     const until = gw2EffectExpiresAt(event.at, VISIONARY_BUFF_DURATION);
     windows.push({ from: event.at, until });
-    ctx.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'relic',
-        name: "Vloxx's Vision",
-        at: event.at,
-        sourceSkill: event.skillName,
-        detail: '+10% strike and condition damage',
-        icon: '',
-        cooldownReduction: null,
-        expiresAt: until,
-        // The reward window lives in this mechanic rather than generic buff storage.
-        effectState: { stacks: 1, maximumStacks: 1 }
-      }
+    announceRelic(ctx, event, "Vloxx's Vision", {
+      detail: '+10% strike and condition damage',
+      icon: '',
+      cooldownReduction: null,
+      expiresAt: until,
+      // The reward window lives in this mechanic rather than generic buff storage.
+      effectState: { stacks: 1, maximumStacks: 1 }
     });
   },
   // Windows are retained so out-of-order condition tick queries still see the buff active at their own time.

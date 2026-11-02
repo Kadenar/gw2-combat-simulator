@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/warrior/data/trait-lines.js';
 import { berserkerAttributes } from '#gw2/professions/warrior/specializations/berserker/attributes.js';
 import { BERSERKER_SKILL_FIELDS } from '#gw2/professions/warrior/specializations/berserker/catalog-fields.js';
@@ -23,7 +24,7 @@ export const berserkerModule = defineNativeModule({
     id: 'Berserker',
     traitLines: TRAIT_LINES,
     skillFields: BERSERKER_SKILL_FIELDS,
-    skillMechanics: BERSERKER_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(BERSERKER_SKILL_MECHANICS)
   }),
   state: { create: berserkerState.create, project: projectBerserkerPlanningState },
   // Preserve live trait attributes alongside skill-owned Slicing Maelstrom rules.

@@ -5,6 +5,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
@@ -17,7 +18,6 @@ const simulate = createObservedProfessionSimulator(rangerProfession, {
   attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000, ferocity: 0, conditionDamage: 0, expertise: 0 }),
   target: { armor: 2597, defiant: false, conditions: {} }
 });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const cast = (id, interruptAfterMs) => ({ type: 'cast', skillId: id, interruptAfterMs });
 const strike = (result, id) => result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === id);
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);

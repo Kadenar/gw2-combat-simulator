@@ -133,7 +133,7 @@ test('skill and Combat Start editors expose the scheduled target impact', async 
   await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
   const impactLabel = await page.evaluate(() => {
     const result = window.professionApp.results;
-    const step = result.steps.find((candidate) => candidate.skill === 'Blood Is Power');
+    const step = result.steps.find((candidate) => candidate.skillName === 'Blood Is Power');
     const impact = result.events.find(
       (event) => event.activationId === step.activationId && event.type === 'condition'
     );

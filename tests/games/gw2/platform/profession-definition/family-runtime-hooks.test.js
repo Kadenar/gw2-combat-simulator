@@ -43,7 +43,6 @@ test('family bindings compose before selected modules and stay isolated across c
 
 test('family bindings retain duplicate-owner and unsupported-hook validation', () => {
   const definition = { id: 'fixture', name: 'Fixture', modules: [module('Core', { tasks: { owned() {} } })] };
-  assert.throws(() => defineNativeProfession({ ...definition, runtimeHooks: {} }), /runtimeHooks must be a function/);
   assert.throws(
     () =>
       defineNativeProfession({

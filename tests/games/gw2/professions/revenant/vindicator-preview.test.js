@@ -141,7 +141,9 @@ test('Rise to the Occasion follows endurance, ownership and provisional tuning w
         config: selected,
         time: 0,
         event: { actorType },
-        runtime: { profession: { core: { endurance: { value: endurance, maximum: 100, updatedAt: 0, rate: 0 } } } }
+        runtime: {
+          profession: { core: { endurance: { value: endurance, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } } }
+        }
       };
       assert.equal(native.modifyStrikeDamage(context, 1), expected);
       assert.equal(native.modifyConditionDamage({ ...context, condition: 'Burning' }, 1), 1);

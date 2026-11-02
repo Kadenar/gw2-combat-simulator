@@ -13,7 +13,7 @@ const HAMMER = 'guardian.luminary.hammer';
 
 /** Justice is sampled at hammer impact, allowing a concurrent virtue to empower an already accepted cast. */
 function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
-  const state = luminaryState.from(runtime);
+  const state = luminaryState.from(runtime.profession);
 
   if (!state.radiantJusticeArmed) return;
 

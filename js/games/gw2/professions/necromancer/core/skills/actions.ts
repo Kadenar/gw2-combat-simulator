@@ -4,14 +4,13 @@
  */
 import { ACTOR } from '#gw2/platform/constants.js';
 import { createDodgeSkill, createWeaponSwapSkill } from '#gw2/platform/skills/shared-actions.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
-const extraSkills: Skill[] = [
+const extraSkills: NecromancerSkill[] = [
   // Consumed shards invoke this canonical payload without adding a player activation.
   {
     name: 'Soul Shards',
-    description: 'Automatically triggered Soul Shards effect.',
     icon: 'https://render.guildwars2.com/file/A7A8BF413E59C060DA6BBE0DAE460C70DE01264A/3379162.png',
     id: ID.SOUL_SHARDS,
     // The canonical siphon owns charge capacity and its target-health damage bonus.
@@ -19,7 +18,7 @@ const extraSkills: Skill[] = [
     threshold: 0.5,
     damageMultiplier: 1.5,
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     effects: [
       {
@@ -41,7 +40,6 @@ const extraSkills: Skill[] = [
   {
     name: 'Exit Lich Form',
     // Manual form exit replaces the active skill bar.
-    description: 'Leave Lich Form and return to your normal skill bar.',
     icon: 'https://render.guildwars2.com/file/A6CAF2146D9DF2EBEFD9285CB0E9E3617A659071/1770528.png',
     id: ID.EXIT_LICH_FORM,
     inputCategory: 'bar-swap',

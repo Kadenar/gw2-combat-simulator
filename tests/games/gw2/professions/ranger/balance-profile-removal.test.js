@@ -14,13 +14,13 @@ import { triggerPoisonousStrikes } from '#gw2/professions/ranger/core/skills/wea
 import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { wait } from '#tests/helpers/commands.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 const remove = (type, name) => ({ removeEffects: [{ type, name }] });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 // Runtime patches retain the selected catalog; standalone trait probes explicitly use the family catalog.
 const patched = (catalog, balanceProfiles) => applyBalanceProfilePatch(catalog, { balanceProfiles });
 
@@ -169,13 +169,14 @@ test('removed Quick Draw quickness keeps the trait-owned recharge window and coo
     catalog: patched(rangerCatalog, { [TRAIT.QUICK_DRAW]: remove('boon', 'quickness') }),
     engagement: enteredCombat(),
     effectiveEnd: 1,
-    state: { time: 1, profession: { core: createRangerCoreState(config) } },
+    time: 1,
+    profession: { core: createRangerCoreState(config) },
     effects: { emit: ({ event }) => events.push(event) }
   };
   // Exercise the same selected point listeners as the live profession.
   bindTriggerPoints(context, rangerProfession, config);
   context.fireTrigger(weaponSwapped, { skill: rangerCatalog.skillsById.get(SHARED_SKILL_IDS.SWAP_WEAPONS), at: 1 });
-  const core = context.state.profession.core;
+  const core = context.profession.core;
   assert.equal(core.quickDraw.expiresAt, 6);
   assert.equal(core.quickDraw.charges, 1);
   assert.equal(context.procs.deadline('ranger.core.quickDraw'), 10);
@@ -250,7 +251,8 @@ test('a missing required Ranger scalar fails instead of using a local default', 
     catalog: { balanceProfilesById: new Map([[TRAIT.QUICK_DRAW, profile]]) },
     engagement: enteredCombat(),
     effectiveEnd: 1,
-    state: { time: 1, profession: { core: createRangerCoreState(config) } },
+    time: 1,
+    profession: { core: createRangerCoreState(config) },
     emit() {}
   };
   // Exercise the same selected point listeners as the live profession.
@@ -321,7 +323,7 @@ test('pet recharge consumes patched Pack Alpha and Crippling Anguish values', ()
     const cast = result.events.find((event) => event.type === 'action' && event.skillId === ID.CRIPPLING_ANGUISH_PET);
     assert.ok(cast);
     const progress = observedRuntime(result).cooldownController.rechargeFor(ID.CRIPPLING_ANGUISH_PET);
-    assert.equal(progress.startedAt, cast.at);
+    assert.equal(progress.workAnchorAt, cast.at);
     // Unquickened work is the 14 s autonomous interval scaled by the patched Pack Alpha multiplier.
     assert.equal(progress.work, quickness ? 5 : 7);
   }

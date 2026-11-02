@@ -138,7 +138,7 @@ test('batch consumption preserves identity and cannot spend a sibling through an
 });
 
 test('anchored accrual queries retain their original anchor', () => {
-  const anchor = { value: 10, maximum: 100, rate: 3, updatedAt: 1 };
+  const anchor = { value: 10, maximum: 100, unitsPerSecond: 3, updatedAt: 1 };
   resourceValueAt(anchor, 2);
   assert.equal(resourceValueAt(anchor, 4), 19);
   assert.equal(anchor.value, 10, 'queries must retain the original accrual anchor');

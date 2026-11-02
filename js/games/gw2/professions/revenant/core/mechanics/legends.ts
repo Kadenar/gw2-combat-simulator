@@ -1,12 +1,11 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { ACTOR } from '#gw2/platform/constants.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { legendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { clearRevenantLegendFlips, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -18,7 +17,7 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 /** A legal swap is immediately ready; other legend skills require their currently invoked legend. */
 export function revenantLegendAvailability(
   runtime: MechanicQueriesOf<RevenantRuntime>,
-  skill: Skill
+  skill: RevenantSkill
 ): AvailabilityResult | null {
   const core = runtime.profession.core;
 

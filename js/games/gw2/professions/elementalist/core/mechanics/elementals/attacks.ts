@@ -84,7 +84,7 @@ function beginSummonAction(
   actionGeneration: number;
   activationId: string;
 }> {
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
   const element = elemental.element as ElementalKind;
   interruptCurrentAction(context, at);
   elemental.actionGeneration += 1;
@@ -126,7 +126,7 @@ function scheduleImpact(
   hitIndex = 1,
   priority = -20
 ): void {
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
   context.schedule(
     ELEMENTAL_IMPACT_TASK,
     at,
@@ -155,7 +155,7 @@ export function startSingleImpactAttack(
   impact: 'fireball' | 'flame-burst' | 'punch' | 'enervating-punch'
 ): void {
   const rate = actionRate(context, at);
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
   const action = beginSummonAction(context, at, profile.skillId, name, profile.animationEnd / rate);
 
   if ('cooldown' in profile)
@@ -174,7 +174,7 @@ export function startSingleImpactAttack(
 export function startFlameBarrage(context: ElementalistRuntime, at: number): void {
   const profile = FIRE_ELEMENTAL_EVTC_PROFILE.flameBarrage;
   const rate = actionRate(context, at);
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
   const postCommandRecovery =
     elemental.actionGeneration === 0
       ? FIRE_ELEMENTAL_EVTC_PROFILE.postCommandRecovery
@@ -193,7 +193,7 @@ export function startFlameBarrage(context: ElementalistRuntime, at: number): voi
 export function startStomp(context: ElementalistRuntime, at: number): void {
   const profile = EARTH_ELEMENTAL_EVTC_PROFILE.stomp;
   const rate = actionRate(context, at);
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
   const postCommandRecovery =
     elemental.actionGeneration === 0
       ? EARTH_ELEMENTAL_EVTC_PROFILE.postCommandRecovery
@@ -238,7 +238,7 @@ function emitStrike(
     readonly summonUsesEquipmentModifiers?: boolean;
   } = {}
 ): void {
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
   const element = elemental.element as ElementalKind;
   beforeElementalStrike(context, {
     summonGeneration: payload.summonGeneration,
@@ -277,7 +277,7 @@ function emitPlayerOwnedCondition(
   duration: number,
   stacks = 1
 ): void {
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
   context.effects.emit(
     elementalistConditionRequest({
       activationId: payload.activationId,
@@ -348,7 +348,7 @@ function emitStompProtection(context: ElementalistRuntime, payload: ElementalImp
 // IMPACT task handler: lands one hit. Bails if the summon expired/was replaced or the
 // action was superseded, then dispatches per impact kind to emit strike + effects.
 function handleElementalImpactTask(context: ElementalistRuntime, payload: ElementalImpactTaskPayload): void {
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
 
   if (
     !activeElemental(context, payload.summonGeneration, context.time) ||

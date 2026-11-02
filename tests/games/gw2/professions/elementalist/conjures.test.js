@@ -75,7 +75,7 @@ test('a late ground pickup grants a fresh lifetime, is consumed once, and keeps 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession[STATE.CONJURE_EQUIPPED], 'Lightning Hammer');
   assert.deepEqual(result.planningState.profession[STATE.CONJURE_PICKUPS], {});
-  const leaps = result.steps.filter((step) => step.skill === 'Lightning Leap');
+  const leaps = result.steps.filter((step) => step.skillName === 'Lightning Leap');
   assert.equal(leaps[1].start - leaps[0].end, 6400);
 
   // The pickup starts while the ground copy exists and finishes after the original lifetime ends.
@@ -84,7 +84,7 @@ test('a late ground pickup grants a fresh lifetime, is consumed once, and keeps 
     rotation: ['Conjure Lightning Hammer', 29900, '__pickup_Lightning Hammer', 1000, 'Lightning Swing']
   });
   assert.deepEqual(late.warnings, []);
-  const pickup = late.steps.find((step) => step.skill === '__pickup_Lightning Hammer');
+  const pickup = late.steps.find((step) => step.skillName === '__pickup_Lightning Hammer');
   assert.equal(late.planningState.profession[STATE.CONJURE_EXPIRES_AT], pickup.end / 1000 + 30);
   assert.equal(late.planningState.profession[STATE.CONJURE_EQUIPPED], 'Lightning Hammer');
 
@@ -102,7 +102,7 @@ test('Conjure Lightning Hammer keeps its sixty-second recharge across bundle exp
     rotation: ['Conjure Lightning Hammer', 30000, 'Conjure Lightning Hammer']
   });
   assert.deepEqual(result.warnings, []);
-  const casts = result.steps.filter((step) => step.skill === 'Conjure Lightning Hammer');
+  const casts = result.steps.filter((step) => step.skillName === 'Conjure Lightning Hammer');
   assert.equal(casts[1].start - casts[0].end, 48000);
 });
 
@@ -114,7 +114,7 @@ test('picking up the second conjure after twenty-nine seconds starts a fresh thi
       rotation: ['Conjure Lightning Hammer', 29000, '__pickup_Lightning Hammer', elapsedMs]
     });
     assert.deepEqual(result.warnings, []);
-    const pickup = result.steps.find((step) => step.skill === '__pickup_Lightning Hammer');
+    const pickup = result.steps.find((step) => step.skillName === '__pickup_Lightning Hammer');
     const grant = result.events.find(
       (event) => event.type === 'elementalist.conjure' && event.skillName === '__pickup_Lightning Hammer'
     );

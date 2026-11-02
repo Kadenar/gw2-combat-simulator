@@ -1,12 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
+import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
 function canonicalRotation(rotation) {
   return rotation.map((entry) =>
@@ -348,4 +352,108 @@ test('Elementalist critical reactions emit effects in registration order', () =>
   });
 
   assert.deepEqual(effects, expected);
+});
+
+test('Elementalist Core definitions preserve patched build grants and disabled-trait preview selection', () => {
+  const family = patchTraitProfession(elementalistProfession, {
+    balanceProfiles: {
+      [TRAIT.BURNING_RAGE]: { fields: { 'attributeBonuses.conditionDamage': 240 } },
+      [TRAIT.BURNING_PRECISION]: { fields: { durationMultiplier: 30 } },
+      [TRAIT.ZEPHYRS_SPEED]: { fields: { criticalChance: 0.1 } }
+    }
+  });
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(elementalistCatalog),
+    family.attributeContributions
+  );
+  const build = {
+    specializations: [
+      { name: 'Fire', traits: '1-1-1' },
+      { name: 'Air', traits: '1-1-1' }
+    ]
+  };
+  const live = calculate(build, [], 1, null, null, family.resolvePatch({ id: 'current' }).balanceContext);
+  const preview = calculate(build, [], 1, null, null, family.resolvePatch({ id: 's4-preview' }).balanceContext);
+  assert.equal(live.attributes['Condition Damage'].traits, 180);
+  assert.equal(preview.attributes['Condition Damage'].traits, 240);
+  assert.equal(preview.attributes['Burning Duration'].traits, 30);
+  assert.equal(preview.attributes['Critical Chance'].traits, 10);
+  assert.equal(
+    calculate(build, [], 1, 'Burning Rage', null, family.resolvePatch({ id: 's4-preview' }).balanceContext).attributes[
+      'Condition Damage'
+    ].traits,
+    0
+  );
+});
+
+test('Electric Discharge keeps its packet-owned critical modifier after selection ends and reads preview tuning', () => {
+  // Its proc packet already owns eligibility; ordinary trait modifiers still require current selection.
+  const family = patchTraitProfession(elementalistProfession, {
+    balanceProfiles: { [TRAIT.ELECTRIC_DISCHARGE]: { fields: { criticalDamage: 3 } } }
+  });
+  for (const [patchId, factor] of [
+    ['current', 2],
+    ['s4-preview', 3]
+  ]) {
+    const runtime = family.runtimeFor({ patchId });
+    const context = {
+      time: 1,
+      catalog: runtime.catalog,
+      event: { actorType: 'effect', skillName: 'Electric Discharge' },
+      config: { selectedTraitIds: [] }
+    };
+    assert.equal(runtime.modifyCriticalDamage(context, 1), factor);
+    assert.equal(runtime.modifyCriticalDamage({ ...context, event: { skillName: 'Other' } }, 1), 1);
+    assert.equal(runtime.modifyCriticalChance({ ...context, event: { actorType: 'player' } }, 0), 0);
+  }
+});
+
+test('Persisting Flames patches transform packets before emission and display the same stack cap used by damage', () => {
+  const family = patchTraitProfession(elementalistProfession, {
+    balanceProfiles: {
+      [TRAIT.PERSISTING_FLAMES]: {
+        fields: { durationPerTier: 3, maximumStacks: 2, damageIncreasePerStack: 0.1 }
+      }
+    }
+  });
+  const effects = [
+    { type: 'strike', damageKind: 'field-tick', coefficient: 1, atMs: 0, applications: 2, intervalMs: 1000 }
+  ];
+  const skill = { type: 'Weapon', comboFields: [{ fieldType: 'Fire', duration: 2 }] };
+  // The patched field extension alone decides how many one-second pulses are added.
+  for (const [patchId, extension, damage] of [
+    ['current', 2, 110],
+    ['s4-preview', 3, 120]
+  ]) {
+    const runtime = family.runtimeFor({ patchId });
+    const context = {
+      time: 1,
+      helpers: runtime.catalog,
+      catalog: runtime.catalog,
+      config: { selectedTraitIds: [TRAIT.PERSISTING_FLAMES] },
+      runtime: {
+        boons: new Map([]),
+        buffs: new Map([
+          ['persisting flames', [{ resolvedAudience: { includesSelf: true }, at: 0, expiresAt: 15, stacks: 5 }]]
+        ])
+      },
+      event: { actorType: 'player' }
+    };
+    assert.equal(runtime.modifyComboFields(context, { skill }, skill.comboFields)[0].duration, 2 + extension);
+    // Value transforms receive the fixture's query view, as they do through native mechanic composition.
+    const transformed = runtime.modifyEffects({ ...context, queries: context }, { skill }, effects);
+    assert.equal(transformed.at(-1).applications, 2 + extension);
+    assert.ok(Math.abs(runtime.modifyStrikeDamage(context, 100) - damage) < 1e-10);
+    const unselected = { ...context, config: { selectedTraitIds: [] } };
+    assert.equal(runtime.modifyEffects({ ...unselected, queries: unselected }, { skill }, effects), effects);
+  }
+
+  const tooltip = describeSimulationTrait(
+    family.resolvePatch({ id: 's4-preview' }).balanceContext,
+    { id: TRAIT.PERSISTING_FLAMES, name: 'Persisting Flames' },
+    elementalistTooltips
+  );
+  assert.equal(tooltip.facts.find((fact) => fact.name === 'Maximum stacks').detail, '2');
+  assert.equal(effects[0].applications, 2);
+  assert.equal(skill.comboFields[0].duration, 2);
 });

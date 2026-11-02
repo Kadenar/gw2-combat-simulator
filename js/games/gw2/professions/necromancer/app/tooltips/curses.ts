@@ -1,6 +1,7 @@
 import {
   outsideScopeTooltip,
   profileFact,
+  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -25,7 +26,7 @@ export const necromancerCursesTooltips = {
   [TRAIT.TARGET_THE_WEAK]: traitTooltip(
     'Gain condition damage from precision and critical-strike chance for each condition on the target.',
     [
-      ['attributeConversion', 'Precision converted to condition damage', tooltipPercent],
+      ['attributeConversion', 'Condition damage gained from precision', tooltipAttributeConversion],
       ['criticalChancePerCondition', 'Critical chance per target condition', tooltipPercent],
       // The selected profile exposes its condition cap alongside the per-condition critical chance.
       ['maximumConditions', 'Maximum conditions counted']

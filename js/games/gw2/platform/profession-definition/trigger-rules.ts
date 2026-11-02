@@ -166,10 +166,7 @@ const RESOLVER_STAGES = new Set<string>([
 ] satisfies Gw2ResolverStage[]);
 
 /** Reject authoring mistakes when a trait or module is declared, before a silent no-op can reach a simulation. */
-export function assertTraitTrigger(rule: unknown, owner: string): void {
-  if (!rule || typeof rule !== 'object' || Array.isArray(rule))
-    throw new TypeError(`${owner} trigger must be an object.`);
-
+export function assertTraitTrigger(rule: object, owner: string): void {
   const trigger = rule as LooseTrigger;
   for (const key of Object.keys(rule))
     if (
@@ -201,44 +198,11 @@ export function assertTraitTrigger(rule: unknown, owner: string): void {
 
   if (reactions !== 1) throw new TypeError(`${owner} trigger must declare exactly one of emit, invoke, or run.`);
 
-  if (trigger.run != null && typeof trigger.run !== 'function')
-    throw new TypeError(`${owner} trigger run must be a function.`);
-
-  if (trigger.when != null && typeof trigger.when !== 'function')
-    throw new TypeError(`${owner} trigger when must be a function.`);
-
-  for (const key of ['emit', 'invoke'] as const) {
-    const id = trigger[key];
-
-    if (
-      id != null &&
-      (!['string', 'number'].includes(typeof id) ||
-        !String(id).trim() ||
-        (typeof id === 'number' && !Number.isFinite(id)))
-    )
-      throw new TypeError(`${owner} trigger ${key} must be a skill/profile id.`);
-  }
-
-  if (trigger.effects != null && typeof trigger.effects !== 'function')
-    throw new TypeError(`${owner} trigger effects must be a function.`);
-
-  if (trigger.announce != null && typeof trigger.announce !== 'boolean')
-    throw new TypeError(`${owner} trigger announce must be boolean.`);
-
-  if (trigger.order != null && !Number.isFinite(trigger.order))
-    throw new TypeError(`${owner} trigger order must be finite.`);
-
   if (trigger.emit == null && (trigger.effects != null || trigger.attribution != null))
     throw new TypeError(`${owner} trigger effects and attribution apply only to emit.`);
 
   if (trigger.invoke == null && trigger.announce != null)
     throw new TypeError(`${owner} trigger announce applies only to invoke.`);
-
-  if (trigger.requiresSelection != null && typeof trigger.requiresSelection !== 'boolean')
-    throw new TypeError(`${owner} trigger requiresSelection must be boolean.`);
-
-  if (trigger.cooldown != null && !['profile', 'skill'].includes(trigger.cooldown))
-    throw new TypeError(`${owner} trigger cooldown must be profile or skill.`);
 
   if (trigger.cooldown === 'skill' && trigger.invoke == null)
     throw new TypeError(`${owner} trigger cooldown skill requires invoke.`);

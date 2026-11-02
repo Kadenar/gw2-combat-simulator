@@ -213,9 +213,9 @@ test('Arcane Echo adds original weapon recharge to its 15-second base and grants
     context.time = 5;
     context.cooldownController.startRecharge(weapon, 5, 7);
     completeArcaneEcho(context, { start: 4, effectiveEnd: 5, rechargeWork: 7 }, weapon);
-    assert.deepEqual(context.cooldownController.rechargeFor(weapon.id), { startedAt: 5, work: 1 });
+    assert.deepEqual(context.cooldownController.rechargeFor(weapon.id), { workAnchorAt: 5, work: 1 });
     assert.equal(context.cooldownController.readyAt(weapon.id), canonicalTime(5 + 1 / rate));
-    assert.deepEqual(context.cooldownController.rechargeFor(echo.id), { startedAt: 5, work: 45 - 5 * rate });
+    assert.deepEqual(context.cooldownController.rechargeFor(echo.id), { workAnchorAt: 5, work: 45 - 5 * rate });
     assert.equal(context.cooldownController.readyAt(echo.id), 45 / rate);
   }
 });
@@ -223,7 +223,7 @@ test('Arcane Echo adds original weapon recharge to its 15-second base and grants
 // Autoattacks must not claim the buff even when their authored data includes a positive cooldown.
 test('Arcane Echo ignores autoattacks, non-weapons, follow-ups, zero recharge, and cancelled casts', () => {
   const weapon = elementalistCatalog.skillsById.get(ID.LIGHTNING_STRIKE);
-  for (const [patch, cancelled] of [
+  for (const [patch, cancelledBeforeCommit] of [
     [{ autoattack: true }, false],
     [{ slot: 'Weapon_1', autoattack: false }, false],
     [{ type: 'Utility' }, false],
@@ -238,7 +238,7 @@ test('Arcane Echo ignores autoattacks, non-weapons, follow-ups, zero recharge, a
     context.cooldownController.setReadyAt(weapon.id, 20);
     armArcaneEcho(context, { effectiveEnd: 0, skill: context.helpers.skillsById.get(ID.ARCANE_ECHO) });
     context.time = 2;
-    completeArcaneEcho(context, { start: 1, effectiveEnd: 2, cancelled }, { ...weapon, ...patch });
+    completeArcaneEcho(context, { start: 1, effectiveEnd: 2, cancelledBeforeCommit }, { ...weapon, ...patch });
     assert.equal(context.profession.core.arcaneEchoUntil, 10);
     assert.equal(context.cooldownController.readyAt(weapon.id), 20);
     assert.equal(context.cooldownController.readyAt(echo.id), 15);
@@ -259,7 +259,7 @@ test('Arcane Echo preserves spent ammunition and adds its original count recharg
   completeArcaneEcho(context, { start: 1, effectiveEnd: 2, rechargeWork: 7 }, weapon);
   const ammo = context.cooldownController.readAmmo(weapon.id);
   assert.equal(ammo.charges, 1);
-  assert.deepEqual(ammo.recharges, [{ startedAt: 2, work: 7 }]);
+  assert.deepEqual(ammo.recharges, [{ workAnchorAt: 2, work: 7 }]);
   assert.equal(context.cooldownController.readyAt(echo.id), 15 + weapon.cooldown);
 });
 

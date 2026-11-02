@@ -5,6 +5,7 @@ import {
   simulationEffectFacts,
   skillFact,
   skillTooltip,
+  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipProfile,
@@ -18,6 +19,7 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { resourceTooltip } from '#gw2/professions/warrior/app/tooltips/shared.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Describe berserker tooltips from the selected balance data. */
 export const berserkerTooltips = {
@@ -89,8 +91,8 @@ export const berserkerTooltips = {
     [TRAIT.BLOOD_REACTION]: traitTooltip(
       'Gain ferocity from precision and condition damage from power. The conversion is stronger during Berserk.',
       [
-        ['attributeConversion', 'Base conversion', tooltipPercent],
-        ['coefficientMultiplier', 'Conversion during Berserk', tooltipPercent]
+        ['attributeConversion', 'Base attribute gain', tooltipAttributeConversion],
+        ['coefficientMultiplier', 'Attribute gain during Berserk', tooltipAttributeConversion]
       ]
     ),
     // Describe each Quickness variant from Heat the Soul's own selected effects.
@@ -123,4 +125,4 @@ export const berserkerTooltips = {
     ),
     [TRAIT.ETERNAL_CHAMPION]: outsideScopeTooltip
   }
-} satisfies ProfessionTooltips;
+} satisfies ProfessionTooltips<WarriorSkill>;

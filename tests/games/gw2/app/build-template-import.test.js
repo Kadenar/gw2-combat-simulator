@@ -50,7 +50,7 @@ test('in-game build import replaces selections without discarding gear or rotati
   assert.deepEqual(app.build.selectedSkillIds, {
     Heal: 29535,
     Utility1: 30662,
-    Utility2: 5736,
+    Utility2: 5734,
     Utility3: 5542,
     Elite: 25488
   });

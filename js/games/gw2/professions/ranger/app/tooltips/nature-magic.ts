@@ -1,6 +1,7 @@
 import {
   fromProfile,
   outsideScopeTooltip,
+  tooltipAttributeConversion,
   tooltipPercent,
   tooltipSeconds,
   traitTooltip,
@@ -31,7 +32,7 @@ export const rangerNatureMagicTooltips = {
   ),
   [TRAIT.WELLSPRING]: traitTooltip(
     'Gain healing power from power. Completing a healing skill grants regeneration to the party.',
-    [['attributeConversion', 'Power converted to healing power', tooltipPercent]],
+    [['attributeConversion', 'Healing power gained from power', tooltipAttributeConversion]],
     RECIPIENT.PARTY
   ),
   [TRAIT.ALLIES_AID]: outsideScopeTooltip,

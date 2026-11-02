@@ -6,7 +6,7 @@ import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 /** Bind the profession's pool to shared endurance rules and its own additive trait bonuses. */
 export const rangerEndurance: EndurancePolicy<RangerRuntime> = {
-  state: (context) => professionCoreState(context).endurance,
+  state: (context) => professionCoreState(context.profession).endurance,
   maximum: () => ENDURANCE.maximum,
   regenerationRate: (context, vigor) => enduranceRegenerationRate(vigor, naturalVigorBonus(context))
 };

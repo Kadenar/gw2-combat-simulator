@@ -49,8 +49,8 @@ test('Forge entry skill patches own expiry and the conditional exit recharge red
   assert.equal(expired.at - entered.at, 2);
   assert.equal(result.planningState.profession[STATE.RADIANT_FORGE], false);
   assert.equal(
-    baseline.planningState.cooldowns[ID.ENTER_RADIANT_FORGE].remaining -
-      result.planningState.cooldowns[ID.ENTER_RADIANT_FORGE].remaining,
+    baseline.planningState.cooldownsBySkillId[ID.ENTER_RADIANT_FORGE].remainingMs -
+      result.planningState.cooldownsBySkillId[ID.ENTER_RADIANT_FORGE].remainingMs,
     3000 / GW2_ALACRITY_RECHARGE_RATE
   );
   assert.equal(

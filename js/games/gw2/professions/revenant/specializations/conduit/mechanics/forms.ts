@@ -12,7 +12,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Clear expired or removed windows; otherwise select the current legend's form and validate its costs. */
 function updateConduitForm(runtime: RevenantRuntime): void {
-  const state = conduitState.from(runtime);
+  const state = conduitState.from(runtime.profession);
 
   if (state.cosmicWisdomUntil <= runtime.time) {
     state.cosmicWisdomUntil = 0;
@@ -27,7 +27,7 @@ function updateConduitForm(runtime: RevenantRuntime): void {
 
 /** Form expiry clears the form and restores native Energy costs, unless an extension moved the deadline. */
 export function formExpiry(runtime: RevenantRuntime, data: unknown): void {
-  const state = conduitState.from(runtime);
+  const state = conduitState.from(runtime.profession);
 
   if (state.cosmicWisdomUntil !== (data as { until: number }).until) return;
 
@@ -37,7 +37,7 @@ export function formExpiry(runtime: RevenantRuntime, data: unknown): void {
 
 /** Cosmic Wisdom resolves Mistfire, then opens the current legend's form and grants Numinous Gift. */
 export function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const state = conduitState.from(runtime);
+  const state = conduitState.from(runtime.profession);
   runtime.fireTrigger(cosmicWisdomEntering, { cast });
 
   const window = requireEffect(cast.skill, 'buff', 'cosmic-wisdom');
@@ -52,7 +52,7 @@ export function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast<Revenan
 
 /** Legend swaps reset affinity, extend and re-select the form, and share Found Purpose. */
 export function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const state = conduitState.from(runtime);
+  const state = conduitState.from(runtime.profession);
   const combat = runtime.engagement.combatMechanicsAllowed();
   // The form state before the reset decides Enhanced Embodiment and the form update.
   const formActive = state.cosmicWisdomUntil > runtime.time;

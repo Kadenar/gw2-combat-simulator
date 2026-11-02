@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { weaponPaletteRows, weaponSkills } from '#gw2/app/rotation/palette/model.js';
-import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
@@ -30,7 +29,7 @@ test('every profession and specialization swaps precombat; the composed capabili
         rotation: [swap, swap, swap, combat, swap]
       });
       assert.deepEqual(
-        result.steps.filter((step) => step.invalid).map((step) => step.ri),
+        result.steps.filter((step) => step.invalid).map((step) => step.rotationCommandIndex),
         allowed ? [] : [4],
         label
       );
@@ -154,13 +153,6 @@ test('Elementalist swap input drops every conjure before considering an equipped
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession[STATE.CONJURE_EQUIPPED], null);
   assert.equal(result.planningState.activeWeaponSet, 1);
-});
-
-test('combat swap capability rejects malformed definitions', () => {
-  assert.throws(
-    () => defineProfession({ id: 'fixture', name: 'Fixture', canSwapWeaponSetsInCombat: 'false' }),
-    /must be a boolean/
-  );
 });
 
 // Palette restrictions follow the insertion boundary; isolated equipment enumeration remains independent.

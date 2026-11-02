@@ -19,6 +19,7 @@ import {
   holosmithSkillStrikeFactor,
   snapshotHolosmithHeat
 } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
+import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
 import type {
   HolosmithSkill,
   HolosmithSkillFragment
@@ -33,11 +34,9 @@ import type {
 const LAUNCH_WALL_IMPACT_DELAY = 0.48;
 
 /** Supplies Holosmith slot-skill definitions to Holosmith module composition. */
-export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = Object.freeze({
+export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSkillFragment>> = {
   [ID.COOLANT_BLAST]: {
     name: 'Coolant Blast',
-    description:
-      'Exceed. Heal yourself and chill nearby foes. If you are above the heat threshold when this skill is activated, gain Frost Aura and continue healing for a duration.',
     icon: 'https://render.guildwars2.com/file/FC409CF9B0063964C23A62311EF52B71A6F064D9/1770388.png',
     type: 'Heal',
     slot: 'Heal',
@@ -55,8 +54,6 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
   },
   [ID.LAUNCH_WALL]: {
     name: 'Launch Wall',
-    description:
-      'Exceed. Launch your photon wall forward, causing the wall to explode when it strikes a foe, inflicting conditions on nearby enemies. When fired above the heat threshold, launch additional walls.',
     icon: 'https://render.guildwars2.com/file/0B07BD5AD1FA7107A97DB35A22A17E73FB989824/1770413.png',
     type: 'Utility',
     slot: 'Utility',
@@ -100,8 +97,6 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
   },
   [ID.PRIME_LIGHT_BEAM]: {
     name: 'Prime Light Beam',
-    description:
-      'Exceed. Charge up and fire an explosive beam of light in front of you. When activated above the heat threshold, this attack leaves behind a burning holographic field.',
     icon: 'https://render.guildwars2.com/file/80052B4C12919318036326D6D2A579C76867DF1B/1770387.png',
     type: 'Elite',
     slot: 'Elite',
@@ -162,8 +157,6 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
   },
   [ID.LASER_DISK]: {
     name: 'Laser Disk',
-    description:
-      'Exceed. Create rotating laser blades to damage nearby foes. This skill has increased duration when activated while above the heat threshold.',
     icon: 'https://render.guildwars2.com/file/A01806176C59A9D0E80A5A7F5BAC2B7C96E51DC6/1770411.png',
     type: 'Utility',
     slot: 'Utility',
@@ -204,8 +197,6 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
   },
   [ID.PHOTON_WALL]: {
     name: 'Photon Wall',
-    description:
-      'Exceed. A defensive barrier appears in front of you that blocks you and your allies from incoming attacks. Reactivate Exceed to fire the barrier at foes as an attack. This skill grants projectile reflection if you are above the heat threshold.',
     icon: 'https://render.guildwars2.com/file/17FCB62A75625CDE2DC279FB9209D65974C8F435/1770412.png',
     type: 'Utility',
     slot: 'Utility',
@@ -217,7 +208,6 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
   },
   [ID.BLADE_BURST]: {
     name: 'Blade Burst',
-    description: 'Fire holographic blades at foes within range. Damage increased while over the heat threshold.',
     icon: 'https://render.guildwars2.com/file/1C472B68AAFFA6E50C29524CC7EF5B6AB5532803/1770393.png',
     type: 'Profession',
     slot: 'Action',
@@ -248,8 +238,6 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
   },
   [ID.CAUTERIZE]: {
     name: 'Cauterize',
-    description:
-      'Use a laser to burn off conditions and set yourself on fire for each condition removed. Removes additional conditions if above the heat threshold.',
     icon: 'https://render.guildwars2.com/file/923048741863452B14360357FDD603A9DA04F7B9/1770394.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -262,8 +250,6 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
   },
   [ID.PARTICLE_ACCELERATOR]: {
     name: 'Particle Accelerator',
-    description:
-      'Fire a crippling bolt of light at your target. Allies the bolt passes through are granted swiftness. Projectile velocity and damage increased while above the heat threshold.',
     icon: 'https://render.guildwars2.com/file/1C03EBDDD56EC42F4E42DB5BA9E2CB0AFAA1AFE6/1770396.png',
     type: 'Profession',
     slot: 'Action',
@@ -306,7 +292,7 @@ export const HOLOSMITH_SLOT_SKILL_MECHANICS: Readonly<Record<string, HolosmithSk
       }
     ]
   }
-});
+};
 
 /** Heat selection stays local; the shared emitter expands paired applications with their captured delivery fields. */
 function emitHeatApplications(
@@ -427,7 +413,7 @@ export function prepareHolosmithSlotEvent(
   event: SimulationEventBase
 ): SimulationEventBase {
   if (['engineer.laser-disk', 'engineer.launch-wall', 'engineer.prime-light-beam-field'].includes(event.type)) {
-    const snapshot = snapshotHolosmithHeat(context);
+    const snapshot = snapshotHolosmithHeat(holosmithState.from(context.profession), context.config);
     return {
       ...event,
       holosmithActivationHeat: snapshot.heat,

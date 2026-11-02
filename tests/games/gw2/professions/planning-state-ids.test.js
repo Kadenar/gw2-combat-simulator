@@ -13,6 +13,7 @@ import { REVENANT_STATE_IDS } from '#gw2/professions/revenant/state-ids.js';
 import { PROFESSION_STATE_IDS } from '#gw2/professions/state-ids.js';
 import { THIEF_STATE_IDS } from '#gw2/professions/thief/state-ids.js';
 import { WARRIOR_STATE_IDS } from '#gw2/professions/warrior/state-ids.js';
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 
 // Check the separate registries before aggregation can hide a duplicated constant or identity.
 test('planning identities are unique across shared and profession registries', () => {
@@ -69,18 +70,17 @@ for (const entry of professionRegistry) {
       const profession = runtime.createState(config);
       const input = { profession, config, catalog: runtime.catalog, time: 0, activeWeaponSet: 1 };
       const liveObjects = objectsIn(profession);
-      const projected = runtime.projectPlanningState(input);
+      const projected = projectObservedState(family, input);
       assert.ok(Object.keys(projected).length > 0, specialization);
       for (const id of Object.keys(projected)) assert.ok(registeredIds.has(id), `${specialization}: ${id}`);
       for (const value of objectsIn(projected)) assert.equal(liveObjects.has(value), false, specialization);
 
-      // The direct owner boundary must detach as well as the composed runtime boundary.
+      // Pure owner selectors contribute identities; only the public observation boundary owns detachment.
       const activeIds = new Set();
       for (const module of family.nativeDefinition.modules.filter(({ id }) => id === 'Core' || id === specialization)) {
         if (!module.state?.project) continue;
 
         const ownedProjection = module.state.project(input);
-        for (const value of objectsIn(ownedProjection)) assert.equal(liveObjects.has(value), false, module.id);
         for (const id of Object.keys(ownedProjection)) activeIds.add(id);
       }
 

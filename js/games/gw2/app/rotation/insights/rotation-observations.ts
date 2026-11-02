@@ -69,7 +69,7 @@ export function rotationObservations(result: Gw2SimulationResult, duration: numb
 
     if (step.invalid || step.skillId == null || !inside(step.start / 1000)) continue;
 
-    const row = ensureSkill(skillKey('player', step.skillId), step.skill);
+    const row = ensureSkill(skillKey('player', step.skillId), step.skillName);
     row.casts++;
 
     if (step.activationId) countedActivations.add(step.activationId);
@@ -140,13 +140,13 @@ export function rotationObservations(result: Gw2SimulationResult, duration: numb
     if (step.activationId && usefulActivations.has(step.activationId)) continue;
 
     const id = skillKey('player', step.skillId);
-    const row = cancellations.get(id) ?? { label: step.skill, count: 0 };
+    const row = cancellations.get(id) ?? { label: step.skillName, count: 0 };
     row.count++;
     cancellations.set(id, row);
   }
 
   const idleIntervals = new Map<string, ObservationInterval[]>();
-  const stepsByIndex = new Map(result.steps.map((step) => [step.ri, step]));
+  const stepsByIndex = new Map(result.steps.map((step) => [step.rotationCommandIndex, step]));
   for (const marker of timelineDeadTimeMarkers(
     timelineStepsWithChargeFills(result.steps, mechanicResourceSpends(result)),
     result.resolvedEvents

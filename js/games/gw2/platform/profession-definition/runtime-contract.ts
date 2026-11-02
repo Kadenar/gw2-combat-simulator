@@ -62,6 +62,7 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   /** Selected trait listeners for each trigger point, in each point's declared order; empty for isolated payloads. */
   readonly triggerListeners?: ReadonlyMap<string, readonly TriggerListener<T, TSkill>[]>;
   createState(config: Gw2Config): T;
+  /** Pure selector: values may borrow live fields; the planning observer owns snapshot detachment. */
   projectPlanningState?(input: Gw2PlanningStateInput<T>): unknown;
   initialize?(runtime: MechanicContext<T, TSkill>): void;
   /** Select cancellation ownership without publishing or transforming the packet. */
@@ -101,7 +102,7 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   /** Selected mechanics may move the recharge anchor while retaining one immutable cast reservation. */
   rechargeStart?(
     context: RechargeStartContext,
-    cast: Pick<RuntimeCast<TSkill>, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd' | 'cancelled'>,
+    cast: Pick<RuntimeCast<TSkill>, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd' | 'cancelledBeforeCommit'>,
     at: number
   ): number;
   /** Capacity selection cannot mutate the pools whose initialization it controls. */

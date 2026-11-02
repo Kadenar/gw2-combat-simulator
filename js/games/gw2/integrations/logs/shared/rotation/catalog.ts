@@ -8,6 +8,7 @@ import {
   resolveWarriorDualWieldSkill,
   warriorDualWieldingActive
 } from '#gw2/professions/warrior/data/dual-wielding.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export type RotationCatalog = Pick<CanonicalCatalog, 'skills' | 'skillsById'>;
 
@@ -61,7 +62,7 @@ function bestNameMatch(candidates: readonly Skill[], profile: RotationProfession
           Number(Boolean(normalizedName(right.specialization))) -
             Number(Boolean(normalizedName(left.specialization))) ||
           // Name collisions prefer an executable input over an excluded hit/proc identity.
-          Number(Boolean(left.simulatorExcluded)) - Number(Boolean(right.simulatorExcluded)) ||
+          Number(Boolean(left.rotationInputExcluded)) - Number(Boolean(right.rotationInputExcluded)) ||
           Number(left.parentId != null) - Number(right.parentId != null)
       )[0] || null
   );
@@ -151,7 +152,8 @@ export function createRotationSkillResolver(
         activeSet = activeSet === 1 ? 2 : 1;
     }
 
-    const resolved = resolveWarriorDualWieldSkill(skill, context.professionConfig, activeSet);
+    // The profession guard above selects Warrior's timing vocabulary before projecting ordinary replay timing.
+    const resolved = resolveWarriorDualWieldSkill<WarriorSkill>(skill, context.professionConfig, activeSet);
     const durationMs = Number(resolved.dualWieldCastTimeMs);
     // Wait projection must use the same active-offhand duration as replay or faster casts erase recorded idle gaps.
     return durationMs > 0 && warriorDualWieldingActive(context.professionConfig, activeSet)

@@ -59,20 +59,20 @@ export function createIllusionRewardController({
 
     if (kind === 'clones') {
       for (let index = 0; index < amount; index += 1) {
-        if (professionCoreState(state).clones.length >= resourceDefinition.maximum) {
-          const replaced = professionCoreState(state).clones.shift();
+        if (professionCoreState(state.profession).clones.length >= resourceDefinition.maximum) {
+          const replaced = professionCoreState(state.profession).clones.shift();
 
           if (replaced) destroyClone(replaced);
         }
 
         const clone = {
-          id: ++professionCoreState(state).cloneSequence,
+          id: ++professionCoreState(state.profession).cloneSequence,
           // Clone IDs provide stable identity; simultaneous gains share the resource task's timestamp.
           createdAt: at,
           weapon: weapon || activePrimaryWeapon()
         };
         const initialized = cloneAttackScheduler.initializeClone(clone);
-        professionCoreState(state).clones.push(initialized);
+        professionCoreState(state.profession).clones.push(initialized);
         createdClones.push(initialized);
         created.push({ id: clone.id, weapon: clone.weapon });
         gained += 1;
@@ -91,7 +91,10 @@ export function createIllusionRewardController({
         type: 'resource',
         at,
         amount: gained,
-        value: kind === 'clones' ? professionCoreState(state).clones.length : state.resourceController.value(kind),
+        value:
+          kind === 'clones'
+            ? professionCoreState(state.profession).clones.length
+            : state.resourceController.value(kind),
         resource: resourceDefinition.plural,
         ...(kind !== 'clones' ? { maximum: resourceDefinition.maximum } : {}),
         reason,

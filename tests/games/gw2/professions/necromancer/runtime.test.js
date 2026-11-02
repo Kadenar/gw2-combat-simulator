@@ -14,6 +14,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { cast, wait } from '#tests/helpers/commands.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
@@ -23,8 +24,6 @@ const base = {
   attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, vitality: 1000 }),
   target: { armor: 2597, health: 0, conditions: {} }
 };
-const cast = (skillId) => ({ type: 'cast', skillId });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const simulate = (rotation, config = base, extra = {}) =>
   observeGw2Runtime({ profession: necromancerProfession.runtimeFor(config), config, rotation, ...extra });
 
@@ -132,7 +131,7 @@ test('cancelled swaps retain the active set and form legality blocks ordinary sw
 test('native live build eligibility rejects excluded skills and foreign specialization utilities', () => {
   const native = necromancerProfession.runtimeFor(base);
   const skillsById = new Map(native.catalog.skillsById);
-  skillsById.set(ID.GHASTLY_CLAWS, { ...skillsById.get(ID.GHASTLY_CLAWS), simulatorExcluded: true });
+  skillsById.set(ID.GHASTLY_CLAWS, { ...skillsById.get(ID.GHASTLY_CLAWS), rotationInputExcluded: true });
   skillsById.set(ID.LICH_FORM, { ...skillsById.get(ID.LICH_FORM), specialization: 'Harbinger' });
   const profession = { ...native, catalog: { ...native.catalog, skillsById } };
   const result = simulate([cast(ID.LICH_FORM), cast(ID.GHASTLY_CLAWS)], base, { profession });
@@ -268,7 +267,7 @@ function withChainStep(config, skillId) {
       native.initialize(runtime);
       const position = native.catalog.autoattackChainPositions.get(skillId);
 
-      if (position) runtime.profession.core.autoattackChains[position.root] = skillId;
+      if (position) runtime.profession.core.autoattackChains[position.rootSkillId] = skillId;
     }
   };
 }

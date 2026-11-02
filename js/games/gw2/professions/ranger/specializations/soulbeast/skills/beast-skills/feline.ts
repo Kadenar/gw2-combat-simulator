@@ -5,11 +5,11 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
-export const SOULBEAST_FELINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const SOULBEAST_FELINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.BITE]: {
     name: 'Bite',
-    description: 'Bite your foe for severe damage.',
     icon: 'https://render.guildwars2.com/file/520693759A79FD464CA7AD08947D10B4B50F7A96/103516.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -26,7 +26,6 @@ export const SOULBEAST_FELINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.MAUL_ID_44514]: {
     name: 'Maul',
-    description: 'Slash a foe multiple times and make them bleed.',
     icon: 'https://render.guildwars2.com/file/D5420B910EE4DA1D2F63AEC71F4DF862E414D6E1/103515.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -48,4 +47,4 @@ export const SOULBEAST_FELINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   }
-});
+};

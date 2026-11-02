@@ -7,15 +7,19 @@ import type { MechanicCombatContext } from '#gw2/platform/profession-definition/
 import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
+import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
 
 const SHATTERING_ICE_PACKET = 'elementalist.catalyst.shattering-ice';
 
 /** Accepted Shattering Ice applications rearm its first proc and tick-aligned window. */
-export function applyShatteringIce(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
+export function applyShatteringIce(
+  context: MechanicCombatContext<ElementalistRuntimeState>,
+  event: Gw2ResolverEvent
+): void {
   const kind = (event.kind || '').toLowerCase();
 
   if (kind === 'shattering ice' && event.resolvedAudience?.includesSelf) {
-    const state = catalystState.from(context);
+    const state = catalystState.from(context.profession);
     state.shatteringIceUntil = gw2EffectExpiresAt(event.at, Math.max(0, event.duration || 0));
     // Refreshing the buff rearms its first strike; subsequent strikes use the canonical strict ICD.
     context.procs.setDeadline('elementalist.catalyst.shatteringIce', 0);
@@ -29,8 +33,11 @@ export function applyShatteringIce(context: MechanicCombatContext, event: Gw2Res
  * A qualifying hit consumes the skill internal cooldown and queues the strike
  * and chill packets that Shattering Ice owns.
  */
-export function applyCatalystResolvedDamage(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
-  const state = catalystState.from(context);
+export function applyCatalystResolvedDamage(
+  context: MechanicCombatContext<ElementalistRuntimeState>,
+  event: Gw2ResolverEvent
+): void {
+  const state = catalystState.from(context.profession);
 
   if (
     (event.actorType !== ACTOR.PLAYER && event.actorType !== ACTOR.EFFECT) ||

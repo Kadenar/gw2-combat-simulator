@@ -23,7 +23,7 @@ test('shortbow projectiles trigger Mistral and Shrike independently of combo suc
     result.resolvedEvents.some((event) => event.type === 'combo'),
     false
   );
-  assert.equal(galeshotState.from(observedRuntime(result)).missileHits, 1);
+  assert.equal(galeshotState.from(observedRuntime(result).profession).missileHits, 1);
 });
 
 // Sigil missiles retain effect ownership while participating in projectile reactions; other sigil strikes do not.
@@ -46,7 +46,7 @@ test('Mischief snowballs trigger Mistral and advance Shrike', () => {
     assert.equal(strike.projectile, sigil === 'Mischief');
     const mistral = hits(result, ID.MISTRAL);
     assert.equal(mistral.length, sigil === 'Mischief' ? 1 : 0);
-    assert.equal(galeshotState.from(observedRuntime(result)).missileHits, sigil === 'Mischief' ? 1 : 0);
+    assert.equal(galeshotState.from(observedRuntime(result).profession).missileHits, sigil === 'Mischief' ? 1 : 0);
 
     if (sigil === 'Mischief') {
       assert.equal(mistral[0].triggeredBy, strike.skillName);
@@ -85,7 +85,7 @@ test('Galeshot projectile reactions reject pets and unowned effects', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(result.resolvedEvents.filter((event) => event.skillName === 'Non-player projectile').length, 2);
   assert.equal(hits(result, ID.MISTRAL).length, 0);
-  assert.equal(galeshotState.from(observedRuntime(result)).missileHits, 0);
+  assert.equal(galeshotState.from(observedRuntime(result).profession).missileHits, 0);
 });
 
 // Expiry between contacts must retain only this axe's enhancement, including across a weapon swap.
@@ -112,7 +112,7 @@ test('both Path of Scars variants retain Mistral on return without enhancing lat
       },
       {
         initialize(runtime) {
-          galeshotState.from(runtime).mistralUntil = 0.44;
+          galeshotState.from(runtime.profession).mistralUntil = 0.44;
         }
       }
     );
@@ -124,7 +124,7 @@ test('both Path of Scars variants retain Mistral on return without enhancing lat
     assert.equal(procs[0].at, contacts[0].at);
     assert.equal(procs[1].at, contacts[1].at);
     assert.equal(hits(result, ID.CROSSFIRE).length, 1);
-    const state = galeshotState.from(observedRuntime(result));
+    const state = galeshotState.from(observedRuntime(result).profession);
     assert.deepEqual(state.mistralPathOfScars, {});
     assert.equal(state.missileHits, 5);
   }

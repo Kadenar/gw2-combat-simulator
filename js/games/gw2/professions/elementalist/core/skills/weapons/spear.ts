@@ -14,15 +14,15 @@ import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, STATUS, WEAPON }
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /**
  * Complete spear declarations own presentation, cast timelines, emitted packets, and combo participation.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
   [ID.FLAME_SPEAR]: {
     name: 'Flame Spear',
-    description: 'Throw a spear of flame at your foe.',
     icon: 'https://render.guildwars2.com/file/74B333AD21E95C9D63AE0128F2DDA7CBEE75A841/3379079.png',
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
@@ -54,7 +54,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.BLAZING_BARRAGE]: {
     name: 'Blazing Barrage',
-    description: 'Unleash a volley of blazing spears, damaging foes in the area.',
     icon: 'https://render.guildwars2.com/file/FA97DE180DF595E721D064D7472DC7694D6F78B1/3379083.png',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -81,7 +80,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SEETHE]: {
     name: 'Seethe',
-    description: 'Gain boons. Your next spear skill deals increased damage.',
     icon: 'https://render.guildwars2.com/file/409EE1CC3F41C1FC20B71D0944063179BB94C471/3379087.png',
     nextSkillDamageMultiplier: 1.2,
     type: 'Weapon',
@@ -106,8 +104,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.METEOR]: {
     name: 'Meteor',
-    description:
-      'Conjure a meteor at the target location, damaging enemies. Enemies at the center of the impact take increased damage.',
     icon: 'https://render.guildwars2.com/file/FAE0AFE5623F58965BFC327F99105ED605E6B2F5/3379091.png',
     // The simulator assumes a center hit; keep its bonus independent of the base coefficient.
     modifiers: [
@@ -147,8 +143,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   // payoff skills below occupy the same slot and are gated on that stage.
   [ID.ETCHING_VOLCANO]: {
     name: 'Etching: Volcano',
-    description:
-      'Etch a spell into the ground that creates a violent eruption. Using a number of other skills within this etching completes the spell, unlocking its full potential.',
     icon: 'https://render.guildwars2.com/file/037DCBFCCD3BA4C3ACC7B73DF4965D3A170F0F3E/3379099.png',
     // Other completed actions upgrade only this root's live etching.
     etchingCompletionThreshold: 3,
@@ -185,8 +179,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Early payoff: six eruption packets whose coefficients decay from 0.63 down to 0.315.
   [ID.LESSER_VOLCANO]: {
     name: 'Lesser Volcano',
-    description:
-      'Create a violent eruption that damages foes.\nDamage is reduced on subsequent hits against the same foe.',
     icon: 'https://render.guildwars2.com/file/F17A92D0331607C7C59D0213ECE1C5F1C3770680/3379100.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -270,7 +262,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Full payoff: twelve eruption packets decaying from 1.21 to a 0.05 floor.
   [ID.VOLCANO]: {
     name: 'Volcano',
-    description: 'Release your completed fire etching in a series of eruptions that deal diminishing damage.',
     // The etching release owns its distinct follow-up art.
     icon: 'https://render.guildwars2.com/file/334EA928E56F38C176A22415DE3ECE144C5FD5BB/3379101.png',
     type: 'Weapon',
@@ -307,7 +298,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.RESTORATIVE_SPEAR]: {
     name: 'Restorative Spear',
-    description: 'Throw a spear of water at your foe that heals you when it strikes.',
     icon: 'https://render.guildwars2.com/file/B756C80D01D7EAB61B7EBA231B029C7E9DBCAF54/3379080.png',
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
@@ -339,7 +329,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Three beam pulses at 360/520/720ms, each applying its own one-second Chilled stack.
   [ID.ICE_BEAM]: {
     name: 'Ice Beam',
-    description: 'Chill enemies with a beam of ice.',
     icon: 'https://render.guildwars2.com/file/076572AF05EF210B9CCA6422641A0AA52A6B9156/3379084.png',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -366,7 +355,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.RIPPLE]: {
     name: 'Ripple',
-    description: 'Evade attacks and remove conditions from yourself. Your next spear skill recharges faster.',
     icon: 'https://render.guildwars2.com/file/D246C6CE0468F2484643935675010B0A963EC9D8/3379088.png',
     nextSkillRechargeMultiplier: 0.67,
     type: 'Weapon',
@@ -388,8 +376,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.UNDERTOW]: {
     name: 'Undertow',
-    description:
-      'Conjure a whirlpool at the target location, pulling enemies in. Enemies at the center of the whirlpool are slowed.',
     icon: 'https://render.guildwars2.com/file/01E36A1DDA2D1709E109210A71041812F65C496B/3379092.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -406,8 +392,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.ETCHING_JO_KULHLAUP]: {
     name: 'Etching: Jökulhlaup',
-    description:
-      'Etch a spell into the ground that invokes a glacial flood. Using a number of other skills within this etching completes the spell, unlocking its full potential.',
     icon: 'https://render.guildwars2.com/file/7B61A40CFC6F2A9DE5A5414C50E87BD9D9711E43/3379102.png',
     // Other completed actions upgrade only this root's live etching.
     etchingCompletionThreshold: 3,
@@ -433,7 +417,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.LESSER_JO_KULHLAUP]: {
     name: 'Lesser Jökulhlaup',
-    description: 'Invoke a glacial flood that damages enemies. Heal for each target struck.',
     icon: 'https://render.guildwars2.com/file/3333FBE3CB1331A40AC51903580FCFB09BC80335/3379103.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -461,7 +444,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.JO_KULHLAUP]: {
     name: 'Jökulhlaup',
-    description: 'Release your completed water etching to strike foes with a powerful surge of water.',
     icon: 'https://render.guildwars2.com/file/48EB1A03297EE4DFA0FE2CA41F0B02B77302060B/3379104.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -489,7 +471,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.LIGHTNING_JAVELIN]: {
     name: 'Lightning Javelin',
-    description: 'Launch a spear of lightning that makes your foe vulnerable.',
     icon: 'https://render.guildwars2.com/file/0F2F5806E0C2424234562CF27B06606031B32DFE/3379077.png',
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
@@ -516,7 +497,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   // so most of the damage lands well after the 560ms cast.
   [ID.FULGOR]: {
     name: 'Fulgor',
-    description: 'Create a storm of lightning that inflicts damage over time to affected foes.',
     icon: 'https://render.guildwars2.com/file/ECE34CA514D057F0166EC50EF9AB19751C53BE96/3379081.png',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -574,7 +554,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.ENERGIZE]: {
     name: 'Energize',
-    description: 'Gain superspeed. Your next spear skill always critically strikes.',
     icon: 'https://render.guildwars2.com/file/0BA3490023A82B4B5FCA597C3CB965E21D3CE504/3379085.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -605,8 +584,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.TWISTER]: {
     name: 'Twister',
-    description:
-      'Conjure a twister at the target location, making foes vulnerable. Foes in the center of the twister are lifted into the air.',
     icon: 'https://render.guildwars2.com/file/BAD1E32FA0F93A560B60DB703D716B70C6ED0F63/3379089.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -636,8 +613,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.ETCHING_DERECHO]: {
     name: 'Etching: Derecho',
-    description:
-      'Etch a spell into the ground that summons an intense windstorm. Using a number of other skills within this etching completes the spell, unlocking its full potential.',
     icon: 'https://render.guildwars2.com/file/F1B3331AB23F37964BE8D6A91F43FF066BE970AA/3379093.png',
     // Other completed actions upgrade only this root's live etching.
     etchingCompletionThreshold: 3,
@@ -673,7 +648,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.LESSER_DERECHO]: {
     name: 'Lesser Derecho',
-    description: 'Summon an intense windstorm that damages and dazes foes.',
     icon: 'https://render.guildwars2.com/file/93950D05BFE50508031DA59BA0381252F60FEDBC/3379094.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -692,7 +666,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.DERECHO]: {
     name: 'Derecho',
-    description: 'Release your completed air etching to damage and daze foes with a rushing storm.',
     icon: 'https://render.guildwars2.com/file/94F1A894667CA4F3407C57B055F8236804264B1F/3379095.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -711,7 +684,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.STONE_STRIKE]: {
     name: 'Stone Strike',
-    description: 'Toss a light spear of stone to bleed your foe.',
     icon: 'https://render.guildwars2.com/file/19C7C57CCB3B22A11D29684F35C967A5A66D5BE0/3379078.png',
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
@@ -731,7 +703,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.EARTHEN_SPEAR]: {
     name: 'Earthen Spear',
-    description: 'Hurl a heavy earthen spear that cripples your foe.',
     icon: 'https://render.guildwars2.com/file/98B2192A9DB346C7E2C90F0071A880737416F32E/3379082.png',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -758,7 +729,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.HARDEN]: {
     name: 'Harden',
-    description: 'Gain barrier. Your next spear skill inflicts daze.',
     icon: 'https://render.guildwars2.com/file/08F199900A0613B465DF63D1DA4D6647A954DE0B/3379086.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -779,8 +749,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.FISSURE]: {
     name: 'Fissure',
-    description:
-      'Create a fissure at the target location, crippling foes. Foes at the center of the fissure take increased damage and are weakened.',
     icon: 'https://render.guildwars2.com/file/51A85B4EC564F24A10EF7D982DDA73BF1940CA01/3379090.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -803,8 +771,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Earth's etching root is the odd one out: it lays a Dark field rather than an elemental one.
   [ID.ETCHING_HABOOB]: {
     name: 'Etching: Haboob',
-    description:
-      'Etch a spell into the ground that unleashes a devastating dust storm. Using a number of other skills within this etching completes the spell, unlocking its full potential.',
     icon: 'https://render.guildwars2.com/file/7C7339E9EA33F7CD05806CE20066DF0EC4673767/3379096.png',
     // Other completed actions upgrade only this root's live etching.
     etchingCompletionThreshold: 3,
@@ -830,7 +796,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.LESSER_HABOOB]: {
     name: 'Lesser Haboob',
-    description: 'Unleash a devastating dust storm that damages and debilitates enemies.',
     icon: 'https://render.guildwars2.com/file/E5FDD5E622E3DF73496BB35C0E33B429B8C5EB52/3379097.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -857,8 +822,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Full payoff retains five-second Cripple and adds Vulnerability and Weakness to the Lesser version's effects.
   [ID.HABOOB]: {
     name: 'Haboob',
-    description:
-      'Release your completed earth etching to damage, blind, cripple, weaken, and expose foes to vulnerability.',
     icon: 'https://render.guildwars2.com/file/562F2D0ED67AD8453F9CA60F27DB154F2E7543FC/3379098.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -884,4 +847,4 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     // Roots open their field-length window; releases consume only their own etching.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.consume-etching' } }]
   }
-});
+};

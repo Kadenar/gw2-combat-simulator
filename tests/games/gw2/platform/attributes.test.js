@@ -30,6 +30,7 @@ import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js'
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
+import { cast } from '#tests/helpers/commands.js';
 import { modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
 
 // Attribute assertions use the same calculator composed into the Mesmer adapter.
@@ -41,7 +42,6 @@ const createDefaultBuild = () => createDefaultBuildFor(mesmerAppAdapter);
 const replaceBuild = (saved) => replaceBuildFor(saved, mesmerAppAdapter);
 
 // Canonical commands keep the intended specialization variant when skills share a display name.
-const cast = (skillId) => ({ type: 'cast', skillId });
 
 test('flat writ attributes feed conversions while converted utility attributes do not', () => {
   // Writs enter the shared source pool once, allowing Evolve and native traits to convert their flat grants.
@@ -67,8 +67,8 @@ test('flat writ attributes feed conversions while converted utility attributes d
 test('build contexts calculate each requested weapon set once and detach configuration seeds', () => {
   const calculatedSets = [];
   const createBuildContext = bindBuildContext(
-    mesmerAppAdapter.profession,
     {
+      ...mesmerAppAdapter.profession,
       attributeContributions: ({ weaponSet }) => {
         calculatedSets.push(weaponSet);
         return [
@@ -214,8 +214,8 @@ test('modifier comparisons partition across a capped worker pool', () => {
   );
   assert.deepEqual(
     mergeModifierContributions(100, [
-      { scores: [{ id: 'low', name: 'Low', dps: 98 }] },
-      { scores: [{ id: 'high', name: 'High', dps: 92 }] }
+      { scores: [{ id: 'low', name: 'Low', dpsWithoutModifier: 98 }] },
+      { scores: [{ id: 'high', name: 'High', dpsWithoutModifier: 92 }] }
     ]).map(({ id }) => id),
     ['high', 'low']
   );
@@ -541,7 +541,7 @@ test('Mesmer browser simulations allow weapons from other specializations', () =
     mesmerAppAdapter
       .calculateBaselineSimulation(mesmerAppAdapter.baselineSimulationRequest(app))
       .result.steps.filter((step) => step.invalid)
-      .map((step) => step.skill),
+      .map((step) => step.skillName),
     []
   );
 });

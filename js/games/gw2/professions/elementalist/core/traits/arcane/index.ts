@@ -47,7 +47,11 @@ import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistResolverContext,
+  ElementalistRuntime,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 
 /** Arcane definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
 export const arcaneProwess = defineTrait({
@@ -167,7 +171,7 @@ export const elementalLockdown = defineTrait({
   ]
 });
 
-export const elementalEnchantment = defineTrait({
+export const elementalEnchantment = defineTrait<ElementalistSkill>({
   id: TRAIT.ELEMENTAL_ENCHANTMENT,
   balance: {
     attributeBonuses: { concentration: 180 },
@@ -268,7 +272,7 @@ export const bountifulPower = defineTrait({
 // Materialize the current attunement's dodge proc while tracking an independent elemental ICD.
 function triggerEvasiveArcana(context: ElementalistRuntime, { cast }: ElementalistCastCompleted): void {
   // Each attunement's invoked skill owns its payload and independent player recharge.
-  const attunement = professionCoreState(context).primaryAttunement;
+  const attunement = professionCoreState(context.profession).primaryAttunement;
   const ids = {
     Fire: ID.FLAME_BURST_TRAIT,
     Water: ID.CLEANSING_WAVE_TRAIT,
@@ -416,7 +420,7 @@ function applyArcaneLightning(context: ElementalistRuntime, { cast }: Elementali
 
 /** Grants Elemental Lockdown's attunement-specific boon after a classified control event. */
 function applyElementalLockdown(context: ElementalistRuntime, event: SimulationEvent): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
 
   // Claim the existing owner-local timer before any derived effect.
   if (
@@ -455,7 +459,7 @@ export function elementalEnchantmentRecharge(context: ElementalistRuntime, secon
 
 /** Materializes Arcane Precision after its registered critical-hit reaction succeeds. */
 function applyArcanePrecision(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
-  const attunement = professionCoreState(context).primaryAttunement;
+  const attunement = professionCoreState(context.profession).primaryAttunement;
   const arcanePrecisionProfile = requireBalanceProfileFromContext(context, TRAIT.ARCANE_PRECISION);
   const condition = requireEffect(arcanePrecisionProfile, 'condition', attunement);
 
@@ -602,7 +606,7 @@ function triggerBountifulPower(
   // Nonpositive custom thresholds disable this proc.
   if (threshold <= 0) return;
 
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   // Reaching the stack cap grants one buff package and resets buildup before rewards can start a new cycle.
   const progress = advanceCounter(state.bountifulPowerProgress, stacks, threshold, 'reset');
   state.bountifulPowerProgress = progress.value;

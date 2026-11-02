@@ -133,7 +133,7 @@ export const hiddenKiller = defineTrait({
       operation: 'add',
       amount: (context) => balanceNumberFromContext(context, TRAIT.HIDDEN_KILLER, 'criticalChance'),
       when: (context) => {
-        const state = thiefRuntimeState(context);
+        const state = thiefRuntimeState(context.runtime?.profession);
         return (
           isGw2PlayerModifierOwnedEvent(context.event) &&
           // The explicit expiry is armed by stealth, never by the initial Revealed sentinel.

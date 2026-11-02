@@ -55,6 +55,7 @@ export interface EngineerRuntimeState {
 
 export interface EngineerSkill extends Skill, NumericSkillFields<typeof ENGINEER_CORE_SKILL_FIELDS> {
   readonly kitTransition?: 'equip' | 'stow';
+  /** Elite tools count as toolbelt skills for toolbelt-triggered traits. */
   readonly countsAsToolbeltSkill?: boolean;
   readonly duration?: number;
   /** Equip-skill identity for bundle skills; equip actions use their own id. */
@@ -62,7 +63,7 @@ export interface EngineerSkill extends Skill, NumericSkillFields<typeof ENGINEER
   readonly mechanicSlot?: number;
   /** Armed command faces require their parent's successful activation before casting. */
   readonly requiresArmedFlip?: boolean;
-  readonly simulatorExcluded?: boolean;
+  /** The slot skill whose toolbelt companion this skill is. */
   readonly toolbeltParentId?: SkillId | null;
 }
 
@@ -76,13 +77,6 @@ export type EngineerRuntime<TSkill extends EngineerSkill = EngineerSkill> = Mech
 
 export type EngineerSimulationEvent = SimulationEvent & {
   readonly application?: EngineerSimulationEvent;
-  readonly cancelled?: boolean;
-  readonly coefficient?: number;
-  readonly condition?: string;
-  readonly endsAt?: number;
-  readonly expiresAt?: number;
-  readonly fieldType?: string;
-  readonly mechBasicAttack?: boolean;
   readonly skillWeapon?: string;
 };
 
@@ -120,7 +114,7 @@ export interface EngineerUiContext extends Omit<
 }
 
 /** UI slice whose callbacks read Engineer end-state projections. */
-export type EngineerUiSlice = Partial<ProfessionUiContract<Partial<EngineerPlanningState>>>;
+export type EngineerUiSlice = Partial<ProfessionUiContract<Partial<EngineerPlanningState>, EngineerSkill>>;
 
 export interface EngineerUiSelection {
   readonly key?: string;

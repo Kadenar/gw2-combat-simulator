@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/elementalist/data/trait-lines.js';
 import { WEAVER_SKILL_FIELDS } from '#gw2/professions/elementalist/specializations/weaver/catalog-fields.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
@@ -25,7 +26,7 @@ export const weaverModule = defineNativeModule({
     traitLines: TRAIT_LINES,
     skillFlips: ELEMENTALIST_WEAVER_SKILL_FLIPS,
     skillFields: WEAVER_SKILL_FIELDS,
-    skillMechanics: WEAVER_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(WEAVER_SKILL_MECHANICS)
   }),
   state: { create: weaverState.create, project: projectWeaverPlanningState },
   traitDefinitions: weaverTraits,

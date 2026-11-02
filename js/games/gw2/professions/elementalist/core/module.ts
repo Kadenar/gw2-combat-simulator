@@ -10,10 +10,7 @@ import { hammerOrbModifiers } from '#gw2/professions/elementalist/core/mechanics
 import { bindElementalistCoreUi } from '#gw2/professions/elementalist/core/presentation.js';
 import { elementalistSkillAttributes } from '#gw2/professions/elementalist/core/skills/attributes.js';
 import { ELEMENTALIST_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/elementalist/core/skills/autoattack-chains.js';
-import {
-  ELEMENTALIST_CORE_EXTRA_SKILLS,
-  ELEMENTALIST_CORE_SKILL_MECHANICS
-} from '#gw2/professions/elementalist/core/skills/index.js';
+import { ELEMENTALIST_CORE_SKILLS } from '#gw2/professions/elementalist/core/skills/index.js';
 import { ELEMENTALIST_CORE_SKILL_FLIPS } from '#gw2/professions/elementalist/core/skills/skill-flips.js';
 import {
   createElementalistCoreState,
@@ -54,8 +51,7 @@ export const elementalistCoreModule = defineNativeModule({
     autoattackChains: ELEMENTALIST_CORE_AUTOATTACK_CHAINS,
     profileFields: ELEMENTALIST_CORE_PROFILE_FIELDS,
     skillFields: ELEMENTALIST_CORE_SKILL_FIELDS,
-    skillMechanics: ELEMENTALIST_CORE_SKILL_MECHANICS,
-    extraSkills: ELEMENTALIST_CORE_EXTRA_SKILLS
+    skills: ELEMENTALIST_CORE_SKILLS
   }),
   state: {
     create: createElementalistCoreState,

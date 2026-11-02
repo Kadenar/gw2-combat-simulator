@@ -14,6 +14,7 @@ import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializati
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
 const mechanistRechargeWork = engineerProfession.runtimeFor({ specialization: 'Mechanist' }).rechargeWork;
 
@@ -649,7 +650,7 @@ describe('Mechanist grandmaster active effects', () => {
       ],
       target: { conditions: {} }
     });
-    const mortarSteps = dynamo.steps.filter((step) => step.skill === 'Jade Mortar');
+    const mortarSteps = dynamo.steps.filter((step) => step.skillName === 'Jade Mortar');
     assert.equal(mortarSteps[1].start - mortarSteps[0].start, 12800);
     assert.equal(
       dynamo.events.filter((event) => event.type === 'buff' && event.kind === 'quickness' && event.duration === 2.5)
@@ -807,7 +808,34 @@ describe('Mechanist grandmaster active effects', () => {
       1.12
     );
     const signetRecharge = simulate('Mechanist', ['Force Signet', 'Force Signet'], jDriveConfig);
-    const signetSteps = signetRecharge.steps.filter((step) => step.skill === 'Force Signet');
+    const signetSteps = signetRecharge.steps.filter((step) => step.skillName === 'Force Signet');
     assert.equal(signetSteps[1].start - signetSteps[0].end, 18240);
   });
+});
+
+test('Mechanist registered recharge owners read preview values and preserve Overclock eligibility', () => {
+  // Command and signet recharge use their selected trait profiles; Overclock cannot reduce itself.
+  const family = patchTraitProfession(engineerProfession, {
+    balanceProfiles: {
+      [TRAIT.MECH_CORE_JADE_DYNAMO]: { fields: { rechargeMultiplier: 0.5 } },
+      [TRAIT.MECH_CORE_J_DRIVE]: { fields: { rechargeMultiplier: 0.6 } }
+    }
+  });
+  const runtime = family.runtimeFor({ specialization: 'Mechanist', patchId: 's4-preview' });
+  const context = {
+    catalog: runtime.catalog,
+    config: {
+      selectedSkillIds: [63095],
+      selectedTraitIds: [TRAIT.MECH_CORE_JADE_DYNAMO, TRAIT.MECH_CORE_J_DRIVE]
+    },
+    cooldowns: new Map([[ID.OVERCLOCK_SIGNET, 90]]),
+    cooldownController: { readyAt: (id) => context.cooldowns.get(id) },
+    time: 1
+  };
+  const skill = (id) => runtime.catalog.skillsById.get(id);
+  assert.equal(runtime.rechargeWork(context, skill(ID.JADE_MORTAR), 30), 15);
+  assert.equal(runtime.rechargeWork(context, skill(ID.SUPERCONDUCTING_SIGNET), 30), 18);
+  assert.equal(runtime.rechargeWork(context, skill(ID.OVERCLOCK_SIGNET), 90), 90);
+  context.config.selectedTraitIds = [];
+  assert.equal(runtime.rechargeWork(context, skill(ID.SUPERCONDUCTING_SIGNET), 30), 30);
 });

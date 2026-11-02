@@ -90,7 +90,7 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
   // Every declared skill, including patched replacements, is checked against this one profession-wide table.
   const skillFields = professionSkillFields(professionFields);
   const profileFields = professionProfileFields(professionProfileDeclarations);
-  const normalizedSkills = declared.map((skill) => normalizeSkill(skill, skillFields));
+  const normalizedSkills = declared.map((skill) => normalizeSkill(skill));
   const normalizedAutoattacks = normalizeAutoattackChains(normalizedSkills, autoattackChains);
   const normalizedFlips = normalizeSkillFlips(normalizedSkills, skillFlips, normalizedAutoattacks.positions);
   // Inject chain position data (root id + step index) into each skill after the chain
@@ -105,10 +105,10 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
       ...(position
         ? {
             autoattack: skill.autoattack ?? true,
-            nextChainId: position.next
+            nextChainId: position.nextSkillId
           }
         : {}),
-      chainRoot: position?.root ?? null,
+      chainRoot: position?.rootSkillId ?? null,
       // Public chain steps are one-based; the chain index owns the underlying position.
       chainStep: position ? position.index + 1 : null
     });
@@ -119,41 +119,6 @@ export function createCanonicalCatalog<TSkill extends Skill = Skill>({
       effects: normalizeSkillEffects(profile.effects || [], `profile=${profile.id}`)
     })
   );
-  const profileIds = new Set<SkillId>();
-  const procRateIds = new Set<string>();
-  for (const profile of profiles) {
-    if (profileIds.has(profile.id)) {
-      throw new TypeError(`Duplicate balance profile id: ${String(profile.id)}`);
-    }
-
-    profileIds.add(profile.id);
-
-    if (!String(profile.name || '')) {
-      throw new TypeError(`Balance profile ${String(profile.id)} has no name.`);
-    }
-
-    // Proc declarations compose with Core/elite catalogs and must not silently share an override key.
-    if (profile.procRate) {
-      const { id, traitId, field, opportunity } = profile.procRate;
-      const chance = profile[field];
-
-      if (
-        !/^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/.test(id) ||
-        procRateIds.has(id) ||
-        !traits.some((trait) => trait.id === traitId) ||
-        !opportunity ||
-        typeof chance !== 'number' ||
-        !Number.isFinite(chance) ||
-        chance < 0 ||
-        chance > 1
-      ) {
-        throw new TypeError(`Balance profile ${String(profile.id)} has an invalid or duplicate procRate declaration.`);
-      }
-
-      procRateIds.add(id);
-    }
-  }
-
   // Arrays and ID indexes share the same entities; display labels are never stored as identity indexes.
   const catalog: CanonicalCatalog<TSkill> = {
     skills: Object.freeze(skills),

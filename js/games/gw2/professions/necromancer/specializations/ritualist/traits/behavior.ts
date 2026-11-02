@@ -1,5 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -18,6 +18,6 @@ export function lingeringSpiritsActive(runtime: NecromancerRuntime): boolean {
 }
 
 /** Wielder's Boon grants allied recipients the player's full charge count. */
-export function wieldersBoonCharges(runtime: NecromancerRuntime, effect: SkillEffect): number {
-  return hasTrait(runtime, TRAIT.WIELDERS_BOON) ? Number(effect.stacks ?? 0) : Number(effect.allyStacks ?? 0);
+export function wieldersBoonCharges(runtime: NecromancerRuntime, effect: StatusEffect): number {
+  return hasTrait(runtime, TRAIT.WIELDERS_BOON) ? (effect.stacks ?? 0) : (effect.allyStacks ?? 0);
 }

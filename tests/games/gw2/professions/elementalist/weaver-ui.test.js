@@ -117,7 +117,7 @@ test('Weaver current bar exposes a carried autoattack from the previous primary 
         availability: Object.fromEntries(elementalistCatalog.skills.map((skill) => [skill.id, { ready: true }])),
         activeWeaponSet: 1,
         atSeconds: 1,
-        cooldowns: {},
+        cooldownsBySkillId: {},
         // Carryover changes the active chain without changing the ammo projection.
         ammoBySkillId: {},
         profession: {

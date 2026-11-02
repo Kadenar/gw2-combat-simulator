@@ -5,6 +5,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { testProfessionModifiers } from '#tests/fixtures/profession.js';
+import { cast, wait } from '#tests/helpers/commands.js';
 
 // Every reported packet carries an identity, and reactions name the event whose handling created them.
 const catalog = createCanonicalCatalog({
@@ -19,8 +20,6 @@ const config = {
   target: { armor: 1000, health: 0, conditions: {} },
   randomness: { mode: 'expected', seed: 123 }
 };
-const cast = (skillId) => ({ type: 'cast', skillId });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const buff = (at, sourceId, extra = {}) => ({
   type: 'buff',
   at,

@@ -149,7 +149,7 @@ test('commanded Jacaranda Photosynthesize recharges and grants regeneration only
           assert.ok(progress);
           assert.equal(progress.companionId, rangerPetCompanionId(runtime));
           const readyAt = runtime.cooldownController.project(skill, progress);
-          assert.equal(readyAt, progress.startedAt + skill.cooldown);
+          assert.equal(readyAt, progress.workAnchorAt + skill.cooldown);
           samples.push({ ...progress, readyAt });
 
           if (at === 3) {
@@ -174,7 +174,7 @@ test('commanded Jacaranda Photosynthesize recharges and grants regeneration only
       (event) =>
         event.type === 'action' &&
         event.skillId === ID.JACARANDA_ROOT_SLAP &&
-        event.at > samples[0].startedAt &&
+        event.at > samples[0].workAnchorAt &&
         event.at < samples[0].readyAt
     ),
     'Jacaranda must resume basic attacks while Photosynthesize recharges.'
@@ -247,15 +247,15 @@ for (const [label, grantAt, duration] of [
     assert.deepEqual(result.warnings, []);
     assert.equal(sample.work, 20);
     const expected = !duration
-      ? sample.startedAt + sample.work
+      ? sample.workAnchorAt + sample.work
       : grantAt
-        ? grantAt + (sample.work - (grantAt - sample.startedAt)) / 1.25
+        ? grantAt + (sample.work - (grantAt - sample.workAnchorAt)) / 1.25
         : duration === 10
-          ? sample.startedAt + sample.work - (duration - sample.startedAt) * 0.25
-          : sample.startedAt + sample.work / 1.25;
+          ? sample.workAnchorAt + sample.work - (duration - sample.workAnchorAt) * 0.25
+          : sample.workAnchorAt + sample.work / 1.25;
     assert.ok(Math.abs(sample.readyAt - expected) < 1e-9);
     const actions = result.events.filter((event) => event.type === 'action' && event.source === 'ranger-pet');
-    const repeat = actions.find((event) => event.skillId === ID.PET_TAIL_LASH && event.at > sample.startedAt);
+    const repeat = actions.find((event) => event.skillId === ID.PET_TAIL_LASH && event.at > sample.workAnchorAt);
     assert.ok(repeat);
     assert.ok(repeat.at >= gw2CooldownReadyAt(expected), 'Autonomous attacks cannot spend unfinished recharge.');
     assert.equal(
@@ -311,7 +311,8 @@ test('autonomous recharge discards Alacrity and retains earned work across retir
   assert.equal(returned.readyAt, retired.readyAt);
   assert.ok(retired.readyAt > beforeSwap.readyAt);
   assert.ok(
-    Math.abs(retired.readyAt - (beforeSwap.startedAt + beforeSwap.work - (6 - beforeSwap.startedAt) * 0.25)) < 1e-9
+    Math.abs(retired.readyAt - (beforeSwap.workAnchorAt + beforeSwap.work - (6 - beforeSwap.workAnchorAt) * 0.25)) <
+      1e-9
   );
 });
 
@@ -495,7 +496,7 @@ test('replacement pet recharge ignores outgoing, expired and player-only Alacrit
               assert.equal(runtime.cooldownController.rechargeFor(skill.id).companionId, progress.companionId);
               sample = {
                 readyAt: runtime.cooldownController.project(skill, progress),
-                baseReadyAt: progress.startedAt + progress.work
+                baseReadyAt: progress.workAnchorAt + progress.work
               };
             }
           ]

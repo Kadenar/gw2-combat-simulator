@@ -8,9 +8,9 @@ import { necromancerProfession } from '#gw2/professions/necromancer/profession.j
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const cases = [
   { name: 'mech', family: engineerProfession, config: { specialization: 'Mechanist' }, task: 'engineer.mech-attack' },
   { name: 'pet', family: rangerProfession, config: { selectedPet: 'Tiger' }, task: 'ranger.pet-autonomous-skill' },
@@ -221,7 +221,7 @@ test('Horror engagement delays its ordinary attack without moving expiry or its 
       ],
       profession: {
         ...native,
-        catalog: withSkill(native.catalog, ID.SUMMON_MADNESS, { summons: 1 }),
+        catalog: withSkill(native.catalog, ID.SUMMON_MADNESS, { summonCount: 1 }),
         onCombatStart(runtime) {
           idleAtEngagement = Object.values(runtime.profession.core.minionAttackCursors).every(
             (cursor) => !cursor.started

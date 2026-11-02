@@ -4,10 +4,9 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
-export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.ORB_OF_WRATH]: {
     name: 'Orb of Wrath',
-    description: 'Fire a slow-moving orb at your foe.',
     icon: 'https://render.guildwars2.com/file/0F9DAB04690C9A01C80DEEE8D5792937F4EF6DC4/103642.png',
     type: 'Weapon',
     weapon: 'Scepter',
@@ -28,7 +27,6 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.SYMBOL_OF_PUNISHMENT]: {
     name: 'Symbol of Punishment',
-    description: 'Symbol. Create a symbol on the ground that strikes foes and grants might to nearby allies.',
     icon: 'https://render.guildwars2.com/file/C3DB032B0C51CD2DC9EC01CFB1DFA406466D3B0E/103263.png',
     type: 'Weapon',
     weapon: 'Scepter',
@@ -83,7 +81,6 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.CHAINS_OF_LIGHT]: {
     name: 'Chains of Light',
-    description: 'Immobilize and make your foe vulnerable with ethereal chains.',
     icon: 'https://render.guildwars2.com/file/43B33FC616A6FAEFEC2AA2A5C50A4F93A4A5317A/103292.png',
     type: 'Weapon',
     weapon: 'Scepter',
@@ -112,4 +109,4 @@ export const GUARDIAN_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   }
-});
+};

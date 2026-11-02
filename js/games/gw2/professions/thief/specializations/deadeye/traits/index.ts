@@ -4,6 +4,7 @@ import { boonActive, countActiveBoons, skillForEvent } from '#gw2/platform/comba
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
+import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -249,8 +250,8 @@ function traitBoons(
     },
     transform: (event, effect) => ({
       ...event,
-      name: `${source} \u2014 ${effect.boon}`,
-      boon: String(effect.boon),
+      name: `${source} \u2014 ${(effect as StatusEffect).boon}`,
+      boon: String((effect as StatusEffect).boon),
       audience: party ? { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } : undefined
     })
   });
@@ -264,7 +265,7 @@ function grantFireForEffect(runtime: ThiefRuntime, { cast }: DeadeyeCast): void 
 }
 
 function applyMaleficentSeven(runtime: ThiefRuntime, { cast }: DeadeyeMalice): void {
-  const state = deadeyeState.from(runtime);
+  const state = deadeyeState.from(runtime.profession);
 
   if (state.malice.value !== state.malice.maximum || state.maleficentSevenTriggered) return;
 
@@ -287,7 +288,7 @@ function grantOneInTheChamber(runtime: ThiefRuntime): void {
 
 function grantSilentScope(runtime: ThiefRuntime, { cast }: DeadeyeCast): void {
   const skill = cast.skill;
-  const state = deadeyeState.from(runtime);
+  const state = deadeyeState.from(runtime.profession);
 
   if (skill.id === SHARED_SKILL_IDS.DODGE) {
     const silentScope = requireBalanceProfileFromContext(runtime, TRAIT.SILENT_SCOPE);

@@ -63,7 +63,7 @@ for (const format of ['evtc', 'dps-report']) {
       const inputs = imported.rotation.filter((step) => step.type === 'cast');
       assert.equal(inputs.length, 1);
       assert.equal(inputs[0].skillId, 62895);
-      assert.equal(revenantCatalog.skillsById.get(62713).simulatorExcluded, true);
+      assert.equal(revenantCatalog.skillsById.get(62713).rotationInputExcluded, true);
       const result = runRevenant(imported.rotation, {
         specialization: 'Conduit',
         primaryWeapon: 'Greatsword',
@@ -74,8 +74,8 @@ for (const format of ['evtc', 'dps-report']) {
       const hit = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === 62895);
       assert.ok(hit?.damage > 0);
       assert.equal(hit.weaponStrengthProfileId, 'weapon.greatsword');
-      assert.ok(result.planningState.cooldowns[62895]);
-      assert.equal(result.planningState.cooldowns[62713], undefined);
+      assert.ok(result.planningState.cooldownsBySkillId[62895]);
+      assert.equal(result.planningState.cooldownsBySkillId[62713], undefined);
     });
   }
 }

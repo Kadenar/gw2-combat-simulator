@@ -27,7 +27,7 @@ function reverberationEchoCount(runtime: WarriorRuntime): number {
 
 /** A consumed echo invalidates its old wake and starts any remaining repeat from the actual consumption time. */
 function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
-  const state = paragonState.from(runtime);
+  const state = paragonState.from(runtime.profession);
   const echo = state.commandEchoes[activationId];
 
   if (!echo) return;
@@ -57,10 +57,10 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
   });
   runtime.resourceController.grant('adrenaline', skillNumber(skill, 'echoResourceGain'));
 
-  echo.remaining--;
+  echo.remainingEchoes--;
   const interval = skillNumber(skill, 'pulseInterval');
 
-  if (echo.remaining <= 0 || interval <= 0) {
+  if (echo.remainingEchoes <= 0 || interval <= 0) {
     delete state.commandEchoes[activationId];
     return;
   }
@@ -78,13 +78,17 @@ function consumeEcho(runtime: WarriorRuntime, activationId: string): void {
 /** Command instances retain independent repeats; a successful burst consumes one repeat from each pending command. */
 function activateCommand(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   const interval = skillNumber(cast.skill, 'pulseInterval');
-  const remaining = reverberationEchoCount(runtime);
+  const remainingEchoes = reverberationEchoCount(runtime);
 
-  if (interval <= 0 || remaining <= 0) return;
+  if (interval <= 0 || remainingEchoes <= 0) return;
 
-  if (!Number.isSafeInteger(remaining)) throw new RangeError('Command echo counts must be positive integers.');
+  if (!Number.isSafeInteger(remainingEchoes)) throw new RangeError('Command echo counts must be positive integers.');
 
-  paragonState.from(runtime).commandEchoes[cast.id] = { skillId: cast.skill.id, remaining, generation: 0 };
+  paragonState.from(runtime.profession).commandEchoes[cast.id] = {
+    skillId: cast.skill.id,
+    remainingEchoes,
+    generation: 0
+  };
   runtime.schedule(
     ECHO,
     canonicalTime(runtime.time + interval),
@@ -103,7 +107,7 @@ export const paragonCommandLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorS
   },
   onCastCommit(runtime, cast) {
     if (cast.skill.burst)
-      for (const activationId of Object.keys(paragonState.from(runtime).commandEchoes))
+      for (const activationId of Object.keys(paragonState.from(runtime.profession).commandEchoes))
         consumeEcho(runtime, activationId);
 
     runtime.fireTrigger(paragonCastCompleted, { cast });

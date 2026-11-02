@@ -8,11 +8,10 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   // Natural Bite uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.DRAKE_BITE]: definePetSkill({
     name: 'Bite',
-    description: 'Bite a foe with your jaws.',
     icon: new URL('@images/wiki/bite-drake.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -35,7 +34,6 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   // Natural Tail Swipe uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.DRAKE_TAIL_SWIPE]: definePetSkill({
     name: 'Tail Swipe',
-    description: 'Attack all surrounding foes with a tail swipe.',
     icon: 'https://render.guildwars2.com/file/150DEE60799B04CF20A66DE020A81DA7D4D139A4/103596.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -72,7 +70,6 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   }),
   [ID.FIRE_BREATH]: definePetSkill({
     name: 'Fire Breath',
-    description: 'Beast. Breathe a cone of fire that burns foes.',
     icon: 'https://render.guildwars2.com/file/D6D964AD6F784A4CEAA2D0CE7C5F542213D635D0/102890.png',
     petNames: ['Salamander Drake'],
     type: 'Profession',
@@ -101,7 +98,6 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   }),
   [ID.INSECT_SWARM]: definePetSkill({
     name: 'Insect Swarm',
-    description: 'Beast. Exhale a swarm of insects that hits multiple foes.',
     icon: 'https://render.guildwars2.com/file/3F1A0AF31F0AEC0BCB120B0C730DADB7C6ABC090/104043.png',
     petNames: ['Marsh Drake'],
     type: 'Profession',
@@ -130,7 +126,6 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   }),
   [ID.FROST_BREATH]: definePetSkill({
     name: 'Frost Breath',
-    description: 'Beast. Breathe a cone of frost, damaging and chilling foes.',
     icon: 'https://render.guildwars2.com/file/C9CC5F16B1371B524005D5CB995797411A2F021A/104040.png',
     petNames: ['Ice Drake'],
     type: 'Profession',
@@ -159,7 +154,6 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   }),
   [ID.LIGHTNING_BREATH]: definePetSkill({
     name: 'Lightning Breath',
-    description: 'Beast. Breathe bolts of lightning that bounce to nearby foes.',
     icon: 'https://render.guildwars2.com/file/59A1097728F7E50F54CC992D52F7ACF64411A1D8/104041.png',
     petNames: ['River Drake'],
     type: 'Profession',
@@ -180,7 +174,6 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
   }),
   [ID.SONIC_SHRIEK]: definePetSkill({
     name: 'Sonic Shriek',
-    description: 'Beast. Emit a cone of discordant sonic energy to confuse foes.',
     icon: 'https://render.guildwars2.com/file/7D0139B155352CEA660D19EEBB01EE5C941980E5/514415.png',
     petNames: ['Reef Drake'],
     type: 'Profession',
@@ -215,4 +208,4 @@ export const RANGER_CORE_DRAKE_PET_SKILL_MECHANICS: Readonly<Record<number, Skil
       }
     ]
   })
-});
+};

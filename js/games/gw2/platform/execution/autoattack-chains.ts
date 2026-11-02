@@ -1,6 +1,6 @@
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { resolveAutoattackChainStep } from '#gw2/platform/skills/autoattack-chain-index.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
@@ -56,15 +56,15 @@ export function autoattackChainSkillAvailable(
   return skill.id === expected;
 }
 
-function chainState(context: object): Record<string, SkillId> | null {
-  const core = professionCoreState(context) as AutoattackChainCoreState | undefined;
-  const chains = core?.autoattackChains;
+/** Optional chain ownership is read from the supplied profession state, never inferred from an execution context. */
+function chainState(professionState: object): Record<string, SkillId> | null {
+  const chains = readProfessionCoreState<AutoattackChainCoreState>(professionState).autoattackChains;
   return chains && typeof chains === 'object' && !Array.isArray(chains) ? chains : null;
 }
 
 /** Clears all pending roots, or only the supplied roots, without replacing the shared state object. */
-export function resetAutoattackChains(context: object, chainRootIds?: readonly SkillId[]): void {
-  const chains = chainState(context);
+export function resetAutoattackChains(professionState: object, chainRootIds?: readonly SkillId[]): void {
+  const chains = chainState(professionState);
 
   if (!chains) return;
 
@@ -106,25 +106,17 @@ export function validateAutoattackChainOptions(options: Gw2AutoattackChainOption
 
     if (ids.has(id)) throw new TypeError(`Duplicate autoattack-chain override id: ${id}.`);
 
-    if (override.decision !== 'preserve' && override.decision !== 'reset') {
-      throw new TypeError(`${id} must decide "preserve" or "reset".`);
-    }
-
-    if (override.when != null && typeof override.when !== 'function') {
-      throw new TypeError(`${id}.when must be a function.`);
-    }
-
     ids.add(id);
   }
 }
 
 /** Both execution owners validate the same canonical chain map without changing its current step. */
 export function autoattackChainAvailability(
-  context: object,
+  professionState: object,
   catalog: Pick<CanonicalCatalog, 'autoattackChainPositions' | 'skillsById'>,
   skill: Skill
 ): AvailabilityResult {
-  const chains = chainState(context);
+  const chains = chainState(professionState);
 
   if (!chains) return CAST_READY;
 
@@ -141,16 +133,16 @@ export function autoattackChainAvailability(
 
 /** Mutates each pending root once from committed cast facts, independently of scheduling or combat-history queries. */
 export function advanceAutoattackChains(
-  context: object,
+  professionState: object,
   catalog: Pick<CanonicalCatalog, 'autoattackChainPositions'>,
   skill: Skill,
   committed: boolean,
   interrupts: boolean,
   overrides: readonly AutoattackChainOverride[] = []
 ): AutoattackChainTransitionResult {
-  const chains = chainState(context);
+  const chains = chainState(professionState);
   const position = catalog.autoattackChainPositions.get(Number(skill.id));
-  const castChainRootId = position?.root ?? null;
+  const castChainRootId = position?.rootSkillId ?? null;
 
   if (!chains) {
     return Object.freeze({ committed, castChainRootId, transitions: Object.freeze([]) });
@@ -187,14 +179,14 @@ export function advanceAutoattackChains(
   }
 
   if (position && committed) {
-    if (position.next == null) delete chains[position.root];
-    else chains[position.root] = position.next;
+    if (position.nextSkillId == null) delete chains[position.rootSkillId];
+    else chains[position.rootSkillId] = position.nextSkillId;
 
     changes.push(
       Object.freeze({
-        chainRootId: position.root,
-        nextSkillId: position.next,
-        decision: position.next == null ? 'complete' : 'advance'
+        chainRootId: position.rootSkillId,
+        nextSkillId: position.nextSkillId,
+        decision: position.nextSkillId == null ? 'complete' : 'advance'
       })
     );
   }

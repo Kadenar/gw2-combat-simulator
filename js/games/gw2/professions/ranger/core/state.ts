@@ -6,7 +6,6 @@ import { createStealthState, type StealthState } from '#gw2/platform/combat/stea
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import {
-  cloneStateFields,
   readProfessionCoreState,
   readProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
@@ -74,21 +73,10 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
   };
 }
 
-/** Detach consumed public observations while leaving private proc grants with the runtime owner. */
+/** Select public observations without reading private proc grants; the observer detaches the result. */
 export function projectRangerCoreState(input: Gw2PlanningStateInput) {
   const { pet } = readProfessionCoreState<RangerCoreState>(input.profession);
-  const state = cloneStateFields((input.profession as { core: RangerCoreState }).core, [
-    'autoattackChains',
-    'endurance',
-    'availableFlips',
-    'activePetSlot',
-    'petNames',
-    'winterBiteReady',
-    'quickDraw',
-    'stealthStartedAt',
-    'stealthUntil',
-    'revealedUntil'
-  ]);
+  const state = (input.profession as { core: RangerCoreState }).core;
   return {
     [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.ENDURANCE]: state.endurance,
@@ -101,7 +89,7 @@ export function projectRangerCoreState(input: Gw2PlanningStateInput) {
     [STATE.STEALTH_UNTIL]: state.stealthUntil,
     [STATE.REVEALED_UNTIL]: state.revealedUntil,
     [STATE.PET]: pet
-      ? { id: pet.id, ferociousSymbiosis: { ...pet.ferociousSymbiosis }, wutheringWindReady: pet.wutheringWindReady }
+      ? { id: pet.id, ferociousSymbiosis: pet.ferociousSymbiosis, wutheringWindReady: pet.wutheringWindReady }
       : null
   };
 }

@@ -4,7 +4,7 @@
     "benchmarkDurationSeconds": 112.315,
     "benchmarkDamage": 3972090,
     "benchmarkDps": 35365.62,
-    "timingSource": "Raw EVTC activations and weapon-bar transitions reconstructed on 40 ms action ticks",
+    "timingSource": "PQgale.zevtc cast starts rounded to 40 ms, preserving Winter?s Bite interruptions at weapon swaps and the following input gaps; final Rapid Fire stops at the 112.320 s encounter boundary.",
     "petCadenceSource": "Fresh pet activations with global skill cooldowns across swaps",
     "simulationNotes": "Cyclone Bow transitions are reconstructed from confirmed bundle changes. The log starts inside Cyclone Bow, so its initial entry is restored at the first observed bow skill. Damage-confirmed Winter's Bite activations are retained despite zero-duration stop records."
   },
@@ -79,10 +79,6 @@
     {
       "type": "cast",
       "skillId": 12480
-    },
-    {
-      "type": "wait",
-      "durationMs": 40
     },
     {
       "type": "cast",
@@ -164,21 +160,22 @@
       "skillId": 12480
     },
     {
-      "type": "wait",
-      "durationMs": 40
-    },
-    {
       "type": "cast",
       "skillId": 12639,
       "interruptAfterMs": 1160
     },
     {
       "type": "cast",
-      "skillId": 12490
+      "skillId": 12490,
+      "interruptAfterMs": 360
     },
     {
       "type": "cast",
       "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
     },
     {
       "type": "cast",
@@ -253,10 +250,6 @@
     {
       "type": "cast",
       "skillId": 12480
-    },
-    {
-      "type": "wait",
-      "durationMs": 40
     },
     {
       "type": "cast",
@@ -335,7 +328,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 280
+      "durationMs": 240
     },
     {
       "type": "cast",
@@ -354,11 +347,16 @@
     },
     {
       "type": "cast",
-      "skillId": 12490
+      "skillId": 12490,
+      "interruptAfterMs": 360
     },
     {
       "type": "cast",
       "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
     },
     {
       "type": "cast",
@@ -370,7 +368,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 120
+      "durationMs": 160
     },
     {
       "type": "cast",
@@ -433,10 +431,6 @@
     {
       "type": "cast",
       "skillId": 12480
-    },
-    {
-      "type": "wait",
-      "durationMs": 40
     },
     {
       "type": "cast",
@@ -509,21 +503,22 @@
       "skillId": 12480
     },
     {
-      "type": "wait",
-      "durationMs": 40
-    },
-    {
       "type": "cast",
       "skillId": 12639,
       "interruptAfterMs": 1320
     },
     {
       "type": "cast",
-      "skillId": 12490
+      "skillId": 12490,
+      "interruptAfterMs": 360
     },
     {
       "type": "cast",
       "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
     },
     {
       "type": "cast",
@@ -535,7 +530,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 120
+      "durationMs": 160
     },
     {
       "type": "cast",
@@ -609,10 +604,6 @@
       "skillId": 12480
     },
     {
-      "type": "wait",
-      "durationMs": 40
-    },
-    {
       "type": "cast",
       "skillId": 12490
     },
@@ -635,7 +626,8 @@
     },
     {
       "type": "cast",
-      "skillId": -4
+      "skillId": -4,
+      "concurrentOffsetMs": 640
     },
     {
       "type": "cast",
@@ -693,7 +685,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 280
+      "durationMs": 240
     },
     {
       "type": "cast",
@@ -702,11 +694,16 @@
     },
     {
       "type": "cast",
-      "skillId": 12490
+      "skillId": 12490,
+      "interruptAfterMs": 360
     },
     {
       "type": "cast",
       "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
     },
     {
       "type": "cast",
@@ -718,7 +715,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 80
+      "durationMs": 120
     },
     {
       "type": "cast",
@@ -787,10 +784,6 @@
       "skillId": 12480
     },
     {
-      "type": "wait",
-      "durationMs": 40
-    },
-    {
       "type": "cast",
       "skillId": 12490
     },
@@ -866,10 +859,6 @@
       "skillId": 12480
     },
     {
-      "type": "wait",
-      "durationMs": 40
-    },
-    {
       "type": "cast",
       "skillId": 12639,
       "interruptAfterMs": 1400
@@ -886,11 +875,16 @@
     },
     {
       "type": "cast",
-      "skillId": 12490
+      "skillId": 12490,
+      "interruptAfterMs": 400
     },
     {
       "type": "cast",
       "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 120
     },
     {
       "type": "cast",
@@ -948,11 +942,8 @@
     },
     {
       "type": "cast",
-      "skillId": 12509
-    },
-    {
-      "type": "wait",
-      "durationMs": 560
+      "skillId": 12509,
+      "interruptAfterMs": 360
     }
   ]
 }

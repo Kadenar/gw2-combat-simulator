@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 5,
+  "schemaVersion": 6,
   "profession": "elementalist",
   "gear": {
     "Helm": "Berserker's",
@@ -60,7 +60,7 @@
   "selectedSkillIds": {
     "Heal": 5503,
     "Utility1": 40183,
-    "Utility2": 5736,
+    "Utility2": 5734,
     "Utility3": 5539,
     "Elite": 43638
   },

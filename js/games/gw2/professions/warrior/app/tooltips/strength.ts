@@ -1,8 +1,10 @@
 import {
   fromProfile,
   outsideScopeTooltip,
+  tooltipAttributeConversion,
   tooltipDecimal,
   tooltipPercent,
+  tooltipPercentValue,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
@@ -41,12 +43,12 @@ export const warriorStrengthTooltips = {
     [
       ['attributeBonuses.power', 'Power'],
       ['conditionalAttributeBonuses.power', 'Additional power with a greatsword'],
-      ['procChance', 'Base might chance on critical hit', tooltipPercent]
+      ['procChance', 'Base might chance on critical hit', tooltipPercentValue]
     ]
   ),
   [TRAIT.GREAT_FORTITUDE]: traitTooltip(
-    'Gain vitality and ferocity from eligible power. The power gained during Berserk also contributes.',
-    [['attributeConversion', 'Power converted to each attribute', tooltipPercent]]
+    'Gain vitality and ferocity based on power. Bonuses from other attribute conversions do not count. The power gained during Berserk also contributes.',
+    [['attributeConversion', 'Each attribute gained from power', tooltipAttributeConversion]]
   ),
   [TRAIT.BERSERKERS_POWER]: traitTooltip(
     'The first qualifying burst hit grants damage-bonus stacks according to the resource tier spent.',

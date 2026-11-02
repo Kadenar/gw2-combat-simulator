@@ -3,7 +3,7 @@
  * validation and normalization that turn downloaded legacy and shorthand rotation inputs into those commands.
  */
 import { canonicalGw2SkillId } from '#gw2/platform/skills/external-skill-ids.js';
-import type { CatalogLookup, SkillId } from '#gw2/platform/skills/types.js';
+import type { CatalogEntity, CatalogLookup, SkillId } from '#gw2/platform/skills/types.js';
 
 export interface CastCommand {
   readonly type: 'cast';
@@ -48,6 +48,9 @@ const MILLISECOND_FIELDS = Object.entries({
   impactDelayMs: 'Impact delay',
   releaseDelayMs: 'Release delay'
 });
+/** Warrior declares Dragon Slash; command validation only asks whether a cast may carry a held release. */
+type HeldReleaseSkill = CatalogEntity & { readonly dragonSlash?: boolean };
+
 const CAST_FIELDS = ['interruptAfterMs', 'releaseAtCharges', 'doubleEdgeOutcome', 'impactDelayMs', 'offTarget'];
 
 /** Validate decoded command intent before normalization discards zero values or irrelevant payloads. */
@@ -100,10 +103,9 @@ export function validateRotationCommand(
   }
 
   // Even a zero hold must belong to Dragon Slash before normalization can omit it.
-  if (
-    candidate.releaseDelayMs != null &&
-    (candidate.type !== 'cast' || !catalog?.skillsById?.get(candidate.skillId as SkillId)?.dragonSlash)
-  )
+  const heldSkill: HeldReleaseSkill | undefined = catalog?.skillsById?.get(candidate.skillId as SkillId);
+
+  if (candidate.releaseDelayMs != null && (candidate.type !== 'cast' || !heldSkill?.dragonSlash))
     errors.push('only Dragon Slash casts may contain releaseDelayMs.');
 
   if (candidate.offTarget === true && Number(candidate.impactDelayMs) > 0)

@@ -12,10 +12,10 @@ import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/type
 
 /** Both sides share the already committed recharge and notify equipment without changing the configured weapon set. */
 export function swapGunsaber(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, active: boolean): void {
-  bladeswornState.from(runtime).gunsaberActive = active;
+  bladeswornState.from(runtime.profession).gunsaberActive = active;
   // Every actual Gunsaber entry or exit shares weapon-swap recovery, including entry through Dragon Trigger.
   lockTransitionInput(runtime, 'weaponSwapMs', cast.skill);
-  resetAutoattackChains(runtime);
+  resetAutoattackChains(runtime.profession);
   runtime.fireTrigger(focusReset);
   const swapId = cast.skill.id === ID.DRAGON_TRIGGER ? ID.UNSHEATHE_GUNSABER : cast.skill.id;
 
@@ -44,7 +44,7 @@ export function swapGunsaber(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
 
 /** Bar replacement and explicit transition eligibility precede charge-specific readiness. */
 export function gunsaberBarAvailability(runtime: MechanicQueriesOf<WarriorRuntime>, skill: WarriorSkill) {
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
 
   // Equipment changes require returning to the normal bar, even before combat begins.
   if (skill.inputCategory === 'weapon-swap' && (state.gunsaberActive || state.dragonTriggerActive))
@@ -67,7 +67,7 @@ export function gunsaberBarAvailability(runtime: MechanicQueriesOf<WarriorRuntim
 
 /** Attack eligibility follows Trigger readiness so existing denial precedence stays stable. */
 export function gunsaberAttackAvailability(runtime: MechanicQueriesOf<WarriorRuntime>, skill: WarriorSkill) {
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
 
   if (skill.gunsaberSkill && !skill.dragonSlash && !skill.dragonTriggerSkill) {
     if (state.dragonTriggerActive)

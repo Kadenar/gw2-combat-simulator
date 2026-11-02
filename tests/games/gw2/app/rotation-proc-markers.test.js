@@ -49,9 +49,9 @@ test('proc display groups only consecutive occurrences of the same proc', () => 
 test('proc timeline markers follow their simulated activation times', () => {
   const result = {
     steps: [
-      { ri: 0, skill: 'Opening Strike', start: 0, end: 600 },
-      { ri: 1, skill: 'Follow-up', start: 700, end: 1200 },
-      { ri: 2, skill: 'Finisher', start: 1300, end: 1800 }
+      { rotationCommandIndex: 0, skillName: 'Opening Strike', start: 0, end: 600 },
+      { rotationCommandIndex: 1, skillName: 'Follow-up', start: 700, end: 1200 },
+      { rotationCommandIndex: 2, skillName: 'Finisher', start: 1300, end: 1800 }
     ],
     procSteps: [
       {
@@ -167,9 +167,9 @@ test('timed relic expiration markers merge refreshes and stay within the rotatio
     observationEndTime: 12,
     combatEndTime: 12,
     steps: [
-      { ri: 0, skill: 'Opening Strike', start: 0, end: 500 },
-      { ri: 1, skill: 'Follow-up', start: 6000, end: 6500 },
-      { ri: 2, skill: 'Finisher', start: 11500, end: 12000 }
+      { rotationCommandIndex: 0, skillName: 'Opening Strike', start: 0, end: 500 },
+      { rotationCommandIndex: 1, skillName: 'Follow-up', start: 6000, end: 6500 },
+      { rotationCommandIndex: 2, skillName: 'Finisher', start: 11500, end: 12000 }
     ],
     procSteps: [
       {
@@ -278,7 +278,7 @@ test('relic overlay markers flag activations that only refresh an active window'
     ...(effectState ? { effectState } : {})
   });
   const result = {
-    steps: [{ ri: 0, skill: 'Strike', start: 0, end: 500 }],
+    steps: [{ rotationCommandIndex: 0, skillName: 'Strike', start: 0, end: 500 }],
     procSteps: [
       relic('Relic of the Claw', 1000, 9000),
       relic('Relic of the Claw', 4000, 12000),

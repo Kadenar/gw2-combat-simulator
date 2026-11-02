@@ -3,11 +3,10 @@ import { COMBO_FIELD } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
-export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   // Catalog chain links let the shared autoattack controller own progression, availability, and resets.
   [ID.BOLT_OF_WRATH]: {
     name: 'Bolt of Wrath',
-    description: 'Fire a bolt that damages foes.',
     icon: 'https://render.guildwars2.com/file/4F6B5A087DA754B44DAC062EDD57E719E3CC92B4/2029302.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -26,7 +25,6 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SEEKING_JUDGMENT]: {
     name: 'Seeking Judgment',
-    description: 'Fire a seeking projectile that explodes upon contact and damages enemies.',
     icon: 'https://render.guildwars2.com/file/F7F7100DB608A7CBFA3EFB6918D992287E30DB14/2029304.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -45,7 +43,6 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SEARING_LIGHT]: {
     name: 'Searing Light',
-    description: 'Fire a projectile that explodes upon impact and damages enemies.',
     icon: 'https://render.guildwars2.com/file/786A40D25853070BFE4936656A03679DC21239AC/2029303.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -64,7 +61,6 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.HOLY_STRIKE]: {
     name: 'Holy Strike',
-    description: 'Mark an area for judgment, rapidly healing allies and then blasting foes in the area.',
     icon: 'https://render.guildwars2.com/file/E693B0D94525BFECFDB6FAC2670A1360443DB2F0/2029305.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -81,8 +77,6 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SYMBOL_OF_SWIFTNESS]: {
     name: 'Symbol of Swiftness',
-    description:
-      'Symbol. Sear a mystic symbol into the target area, damaging foes and granting swiftness to allies. Allies in the area gain a burst of speed when the symbol is created.',
     icon: 'https://render.guildwars2.com/file/E315FF56624F5B2BB8BF51D00FA716FA4936F037/103268.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -110,8 +104,6 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.EMPOWER]: {
     name: 'Empower',
-    description:
-      'Channel healing and might to nearby allies. Completing this channel grants more health to your allies.',
     icon: 'https://render.guildwars2.com/file/0EFCC1FD452CC19694D6BA3F390C1822C3FE73CD/103636.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -122,7 +114,6 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.LINE_OF_WARDING]: {
     name: 'Line of Warding',
-    description: 'Ward. Create a line in front of you that foes cannot cross.',
     icon: 'https://render.guildwars2.com/file/62F8F469B1AEF1C440AAAB010B7268C2C32F364D/103658.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -132,4 +123,4 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 520,
     effects: []
   }
-});
+};

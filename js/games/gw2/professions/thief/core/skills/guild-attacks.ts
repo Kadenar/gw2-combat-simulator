@@ -1,15 +1,14 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Guild actor attacks own their selected packets and repeat recharge; shared AI keeps engagement and lifetime. */
-export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
+export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = [
   {
     name: 'Thieves Guild (Core) \u2014 Black Powder',
-    description: 'Automatically triggered Thieves Guild (Core) — Black Powder effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 3669,
     displayName: 'Black Powder',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [
@@ -25,12 +24,11 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Thieves Guild (Core) \u2014 Unload',
-    description: 'Automatically triggered Thieves Guild (Core) — Unload effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 3666,
     displayName: 'Unload',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 5.8,
     effects: [
@@ -46,12 +44,11 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Thieves Guild (Core) \u2014 Scorpion Wire',
-    description: 'Automatically triggered Thieves Guild (Core) — Scorpion Wire effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 3665,
     displayName: 'Scorpion Wire',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [
@@ -83,12 +80,11 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Thieves Guild (Core) \u2014 Twisting Fang I',
-    description: 'Automatically triggered Thieves Guild (Core) — Twisting Fang I effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 3661,
     displayName: 'Twisting Fang I',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 2.68,
     effects: [
@@ -104,12 +100,11 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Thieves Guild (Core) \u2014 Twisting Fang II',
-    description: 'Automatically triggered Thieves Guild (Core) — Twisting Fang II effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 3662,
     displayName: 'Twisting Fang II',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 2.68,
     effects: [
@@ -125,12 +120,11 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Thieves Guild (Core) \u2014 Twisting Fang III',
-    description: 'Automatically triggered Thieves Guild (Core) — Twisting Fang III effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 3663,
     displayName: 'Twisting Fang III',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 2.68,
     effects: [
@@ -146,12 +140,11 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Thieves Guild (Core) \u2014 Basic Attack',
-    description: 'Automatically triggered Thieves Guild (Core) — Basic Attack effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 'thief.guild.core.basic',
     displayName: 'Basic Attack',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 1,
     effects: [
@@ -165,4 +158,4 @@ export const CORE_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
       }
     ]
   }
-]);
+];

@@ -120,7 +120,7 @@ function attachTether(runtime: GuardianRuntime, data: unknown): void {
   if (runtime.deathTime != null) return;
 
   const event = data as Gw2ResolverEvent;
-  const state = dragonhunterState.from(runtime);
+  const state = dragonhunterState.from(runtime.profession);
 
   if (state.tetherActivationId === event.activationId) return;
 
@@ -146,7 +146,7 @@ function attachTether(runtime: GuardianRuntime, data: unknown): void {
 /** Only the current tether schedules another pulse; replacing or breaking it invalidates already queued work. */
 function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
   const pulse = data as { event: Gw2ResolverEvent; activationId: string | null; deadline: number };
-  const state = dragonhunterState.from(runtime);
+  const state = dragonhunterState.from(runtime.profession);
 
   if (
     runtime.deathTime != null ||
@@ -187,12 +187,12 @@ function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
 export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, GuardianSkill> = {
   /** Hold the selected preview state while evaluating detached damage queries. */
   prepareDamageState(runtime, _skill, inputs) {
-    dragonhunterState.from(runtime).tetherUntil = inputs.bigGameHunter ? Infinity : 0;
+    dragonhunterState.from(runtime.profession).tetherUntil = inputs.bigGameHunter ? Infinity : 0;
   },
   sideEffectHandlers: {
     // Breaking a tether retires its follow-up without touching parent recharge.
     'guardian.break-tether'(runtime) {
-      dragonhunterState.from(runtime).tetherUntil = 0;
+      dragonhunterState.from(runtime.profession).tetherUntil = 0;
       consumeSkillFlip(runtime.profession.core.availableFlips, ID.HUNTERS_VERDICT);
     },
     'guardian.attach-tether'(runtime, context) {
@@ -216,7 +216,7 @@ export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, Gua
 
     if (!virtue || !admitVirtueActivation(runtime, cast, virtue)) return;
 
-    if (cast.skill.id === ID.SPEAR_OF_JUSTICE && !cast.cancelled) {
+    if (cast.skill.id === ID.SPEAR_OF_JUSTICE && !cast.cancelledBeforeCommit) {
       const at = canonicalTime(
         cast.start + projectCastRelativeEffectTimingMs(cast.skill, (cast.fullEnd - cast.start) * 1000, 480) / 1000
       );

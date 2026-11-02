@@ -13,6 +13,7 @@ import { CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /**
  * The six Dual Orbits definitions, keyed by skill id and merged into
@@ -25,11 +26,9 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
  * Burning, Water -> Vulnerability, Air -> Weakness, Earth -> Bleeding.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
   [ID.DUAL_ORBITS_FIRE_AND_WATER]: {
     name: 'Dual Orbits: Fire and Water',
-    description:
-      'Dual Attack. Summon projectiles of fire and ice that circle around you, striking enemies they pass through. While the fire projectile is active, it grants you increased outgoing damage. While the ice projectile is active, you take reduced damage from conditions. Summoning a circular projectile refreshes the duration of all other circular projectiles.',
     icon: 'https://render.guildwars2.com/file/0B340C7718CE9B08CBB1EEE163F10455E1F96A6C/3098871.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -50,8 +49,6 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.DUAL_ORBITS_FIRE_AND_AIR]: {
     name: 'Dual Orbits: Fire and Air',
-    description:
-      'Dual Attack. Summon projectiles of fire and air that circle around you, striking enemies they pass through. While the fire projectile is active, it grants you increased outgoing damage. While the air projectile is active, your chance to critically strike is increased. Summoning a circular projectile refreshes the duration of all other circular projectiles.',
     icon: 'https://render.guildwars2.com/file/D1C0EEFF71955A7512F57C9917077C26EC0BA2C5/3098869.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -72,8 +69,6 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.DUAL_ORBITS_FIRE_AND_EARTH]: {
     name: 'Dual Orbits: Fire and Earth',
-    description:
-      'Dual Attack. Summon projectiles of fire and earth that circle around you, striking enemies they pass through. While the fire projectile is active, it grants you increased outgoing damage. While the earth projectile is active, you take reduced damage from strikes. Summoning a circular projectile refreshes the duration of all other circular projectiles.',
     icon: 'https://render.guildwars2.com/file/65EA4B5877B26CF67D7CE1F1910B0A0C4C58CBC5/3098870.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -94,8 +89,6 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.DUAL_ORBITS_WATER_AND_AIR]: {
     name: 'Dual Orbits: Water and Air',
-    description:
-      'Dual Attack. Summon projectiles of ice and air that circle around you, striking enemies they pass through. While the ice projectile is active, you take reduced damage from conditions. While the air projectile is active, your chance to critically strike is increased. Summoning a circular projectile refreshes the duration of all other circular projectiles.',
     icon: 'https://render.guildwars2.com/file/F4D9DB65E7250ED9DEB15E61EDE76A4B9D310B03/3098872.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -116,8 +109,6 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.DUAL_ORBITS_WATER_AND_EARTH]: {
     name: 'Dual Orbits: Water and Earth',
-    description:
-      'Dual Attack. Summon projectiles of ice and earth that circle around you, striking enemies they pass through. While the ice projectile is active, you take reduced damage from conditions. While the earth projectile is active, you take reduced damage from strikes. Summoning a circular projectile refreshes the duration of all other circular projectiles.',
     icon: 'https://render.guildwars2.com/file/22A6A8B51B3E68A076F90C2F78BFFE11E65F02A0/3098868.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -138,8 +129,6 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   },
   [ID.DUAL_ORBITS_AIR_AND_EARTH]: {
     name: 'Dual Orbits: Air and Earth',
-    description:
-      'Dual Attack. Summon projectiles of air and earth that circle around you, striking enemies they pass through. While the air projectile is active, your chance to critically strike is increased. While the earth projectile is active, you take reduced damage from strikes. Summoning a circular projectile refreshes the duration of all other circular projectiles.',
     icon: 'https://render.guildwars2.com/file/404A01282D26575AC694B4B70651010F0AFF03B8/3098867.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -158,4 +147,4 @@ export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
     orbDuration: 15,
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.create-hammer-orbs' } }]
   }
-});
+};

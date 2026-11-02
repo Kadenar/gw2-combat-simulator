@@ -6,6 +6,7 @@ import {
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { warriorCatalog, warriorNativeModules } from '#gw2/professions/warrior/catalog.js';
 import { warriorCoreModule } from '#gw2/professions/warrior/core/module.js';
@@ -15,6 +16,7 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+type NotKey<T, K extends PropertyKey> = K extends keyof T ? false : true;
 
 const assembly = getNativeCatalogAssembly(warriorNativeModules);
 const runtimeCatalog = assembleNativeRuntimeCatalog([...assembly.fragments.values()]);
@@ -24,7 +26,11 @@ const resolved = warriorProfession.resolveProfession({ specialization: 'Bladeswo
 // Supplying Warrior module data also types inline callbacks without parameter annotations or assertions.
 defineNativeModule({
   id: 'Core',
-  data: createNativeModuleData<WarriorSkill>({ id: 'Core', traitLines: TRAIT_LINES, skillMechanics: {} }),
+  data: createNativeModuleData<WarriorSkill>({
+    id: 'Core',
+    traitLines: TRAIT_LINES,
+    skills: []
+  }),
   state: { create: () => ({}) },
   hooks: {
     onCastStart(context, cast) {
@@ -47,7 +53,11 @@ export type WarriorSkillFlowAssertions = [
   Assert<Equal<(typeof runtimeCatalog.skills)[number], WarriorSkill>>,
   Assert<Equal<(typeof resolved.catalog.skills)[number], WarriorSkill>>,
   Assert<Equal<(typeof runtime.catalog.skills)[number], WarriorSkill>>,
-  Assert<Equal<Skill['dragonSlash'], unknown>>
+  Assert<NotKey<Skill, 'dragonSlash'>>,
+  // Trait-specific timing belongs to Warrior rather than the shared skill vocabulary.
+  Assert<NotKey<Skill, 'dualWieldCastTimeMs'>>,
+  Assert<NotKey<Skill, 'dualWieldInterruptCommitMs'>>,
+  Assert<NotKey<Skill, 'dualWieldEffectOffsetsMs'>>
 ];
 
 const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
@@ -83,7 +93,6 @@ export type WarriorHookSkillAssertion = Assert<
 const invalidDefinitions: Record<string, SkillDefinition<WarriorSkill>> = {
   1: {
     name: 'Fixture',
-    description: 'Fixture skill.',
     icon: 'fixture.png',
     // @ts-expect-error Warrior authoring must reject the wrong type for a known field.
     adrenalineCost: 'thirty'
@@ -92,5 +101,5 @@ const invalidDefinitions: Record<string, SkillDefinition<WarriorSkill>> = {
 createNativeModuleData<WarriorSkill>({
   id: 'Core',
   traitLines: TRAIT_LINES,
-  skillMechanics: invalidDefinitions
+  skills: materializeSkillDefinitions(invalidDefinitions)
 });

@@ -51,7 +51,7 @@ function stepElemental(
 ): {
   at: number;
 } | null {
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
 
   if (
     !activeElemental(context, state.summonGeneration, at) ||
@@ -106,7 +106,7 @@ function expireElemental(
     summonGeneration: number;
   }
 ): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const elemental = state.summonedElemental;
 
   if (captured.summonGeneration !== elemental.summonGeneration) return;
@@ -139,7 +139,7 @@ function expireElemental(
 // Kicks off the attack loop after the initial target-acquisition delay. Idempotent
 // via the `started` flag so combat-start and cast paths don't double-start it.
 function startElemental(context: ElementalistRuntime, at: number): void {
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
 
   if (
     (elemental.element !== 'Fire' && elemental.element !== 'Earth') ||
@@ -159,7 +159,7 @@ function startElemental(context: ElementalistRuntime, at: number): void {
 // with a fresh summonGeneration, emits the expiry marker, arms its lifetime, and enables
 // the command flip. Optionally starts the attack loop immediately.
 function summonElemental(context: ElementalistRuntime, at: number, element: ElementalKind): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   // Explicit casts and configured openers share the selected glyph's lifecycle tuning.
   const glyph = glyphSkillForElement(context, element)!;
   // Replacement ends the old action and flip together with its queued work.
@@ -238,7 +238,7 @@ export function completeElementalistElementalCommand(
   }
 
   // A command replaces the pending decision, including target acquisition, with its own recovery deadline.
-  const elemental = professionCoreState(context).summonedElemental;
+  const elemental = professionCoreState(context.profession).summonedElemental;
   scheduleElementalDecision(context, elemental.busyUntil);
 }
 

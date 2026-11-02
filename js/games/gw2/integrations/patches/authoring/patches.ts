@@ -80,7 +80,7 @@ export interface SkillPatchEdit {
     | { readonly type: 'Utility'; readonly weapon: ''; readonly slot: 'Utility' };
   /** Cast grants are independent of hostile effect edits. */
   readonly resourceGrants?: ResourceGrantEdits;
-  /** Numeric balance fields such as cooldown or initiativeCost. */
+  /** Numeric balance fields such as cooldown or cost.amount. */
   readonly fields?: Readonly<Record<string, NumEdit>>;
   readonly effects?: readonly EffectPatch[];
   /** Complete effects appended after edits/removals of existing effects. */
@@ -461,10 +461,10 @@ function effectMatches(effect: SkillEffect, patch: EffectSelector): boolean {
 
   if (patch.name != null && effect.name !== patch.name) return false;
 
-  if (patch.boon != null && effect.boon !== patch.boon) return false;
+  if (patch.boon != null && !('boon' in effect && effect.boon === patch.boon)) return false;
 
   if (patch.condition != null) {
-    if (effect.condition === patch.condition) return true;
+    if ('condition' in effect && effect.condition === patch.condition) return true;
 
     return Boolean(effectTicks(effect)?.some((tick) => 'condition' in tick && tick.condition === patch.condition));
   }
@@ -711,7 +711,11 @@ function normalizeEffectEdits(source: Pick<Skill, 'name' | 'effects'>, edit: Ski
     };
     recordChanges(live as unknown as Record<string, unknown>, patched as unknown as Record<string, unknown>, selector);
     for (const [tickIndex, tick] of (effectTicks(live) || []).entries()) {
-      recordChanges(tick, effectTicks(patched)![tickIndex], { effectIndex, tickIndex });
+      recordChanges(
+        tick as unknown as Record<string, unknown>,
+        effectTicks(patched)![tickIndex] as unknown as Record<string, unknown>,
+        { effectIndex, tickIndex }
+      );
     }
   }
 

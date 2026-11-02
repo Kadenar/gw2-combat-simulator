@@ -2,6 +2,7 @@ import {
   fromProfile,
   outsideScopeTooltip,
   profileFact,
+  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -32,7 +33,7 @@ export const guardianVirtuesTooltips = {
   [TRAIT.POWER_OF_THE_VIRTUOUS]: traitTooltip(
     'Gain condition damage from vitality. Virtues recharge faster; Firebrand tome dormancy is also shortened.',
     [
-      ['attributeConversion', 'Vitality converted to condition damage'],
+      ['attributeConversion', 'Condition damage gained from vitality', tooltipAttributeConversion],
       ['rechargeMultiplier', 'Virtue recharge duration', tooltipFactorChange]
     ]
   ),

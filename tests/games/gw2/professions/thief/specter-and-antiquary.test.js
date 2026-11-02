@@ -165,7 +165,7 @@ test('Specter Siphon, initiative spending, and Shadow Shroud share force', () =>
   const inactiveGroups = thiefProfession.ui.paletteGroups({
     specialization: 'Specter',
     professionState: {
-      [STATE.SHADOW_CLOCK]: { value: 0, maximum: 100, updatedAt: 0, rate: 0 },
+      [STATE.SHADOW_CLOCK]: { value: 0, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
       [STATE.SHADOW_SHROUD_ACTIVE]: false
     }
   });
@@ -211,19 +211,19 @@ test('Specter Shadow Shroud ends rifle kneeling and its initiative regeneration 
   const kneeling = simulate('Specter', ['Kneel'], config);
   assert.deepEqual(kneeling.warnings, []);
   assert.equal(kneeling.planningState.profession[STATE.KNEELING], true);
-  assert.equal(kneeling.planningState.profession[STATE.INITIATIVE].rate, 4 / 3);
+  assert.equal(kneeling.planningState.profession[STATE.INITIATIVE].unitsPerSecond, 4 / 3);
 
   const shrouded = simulate('Specter', ['Kneel', 'Enter Shadow Shroud'], config);
   assert.deepEqual(shrouded.warnings, []);
   assert.equal(shrouded.planningState.profession[STATE.SHADOW_SHROUD_ACTIVE], true);
   assert.equal(shrouded.planningState.profession[STATE.KNEELING], false);
-  assert.equal(shrouded.planningState.profession[STATE.INITIATIVE].rate, 1);
+  assert.equal(shrouded.planningState.profession[STATE.INITIATIVE].unitsPerSecond, 1);
 
   const exited = simulate('Specter', ['Kneel', 'Enter Shadow Shroud', 'Exit Shadow Shroud', 'Brutal Aim'], config);
   assert.deepEqual(exited.warnings, []);
   assert.equal(exited.planningState.profession[STATE.SHADOW_SHROUD_ACTIVE], false);
   assert.equal(exited.planningState.profession[STATE.KNEELING], false);
-  assert.equal(exited.planningState.profession[STATE.INITIATIVE].rate, 1);
+  assert.equal(exited.planningState.profession[STATE.INITIATIVE].unitsPerSecond, 1);
 });
 
 test('Specter can use its shroud autoattack while stealth is active', () => {
@@ -680,14 +680,18 @@ test('Specter traits amplify force gains and add their Siphon recharge reduction
   const sleight = simulate('Specter', ['Siphon'], { selectedTraitIds: [TRAIT.SLEIGHT_OF_HAND] });
   // Both traits contribute additively, independent of Siphon's authored cooldown.
   assert.equal(
-    reduced.planningState.cooldowns[ID.SIPHON].remaining,
-    lead.planningState.cooldowns[ID.SIPHON].remaining +
-      sleight.planningState.cooldowns[ID.SIPHON].remaining -
-      baseline.planningState.cooldowns[ID.SIPHON].remaining
+    reduced.planningState.cooldownsBySkillId[ID.SIPHON].remainingMs,
+    lead.planningState.cooldownsBySkillId[ID.SIPHON].remainingMs +
+      sleight.planningState.cooldownsBySkillId[ID.SIPHON].remainingMs -
+      baseline.planningState.cooldownsBySkillId[ID.SIPHON].remainingMs
   );
-  assert.ok(reduced.planningState.cooldowns[ID.SIPHON].remaining < lead.planningState.cooldowns[ID.SIPHON].remaining);
   assert.ok(
-    reduced.planningState.cooldowns[ID.SIPHON].remaining < sleight.planningState.cooldowns[ID.SIPHON].remaining
+    reduced.planningState.cooldownsBySkillId[ID.SIPHON].remainingMs <
+      lead.planningState.cooldownsBySkillId[ID.SIPHON].remainingMs
+  );
+  assert.ok(
+    reduced.planningState.cooldownsBySkillId[ID.SIPHON].remainingMs <
+      sleight.planningState.cooldownsBySkillId[ID.SIPHON].remainingMs
   );
 
   const larcenous = simulate(
@@ -922,7 +926,7 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
   );
 
   assert.deepEqual(stealthFinisher.warnings, []);
-  assert.ok(stealthFinisher.steps.some((step) => step.skill === 'Ashen Assault'));
+  assert.ok(stealthFinisher.steps.some((step) => step.skillName === 'Ashen Assault'));
 });
 
 test('Skale and Devourer Venom grant party charges that proc together on attacks', () => {

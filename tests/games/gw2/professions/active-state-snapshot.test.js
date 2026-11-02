@@ -127,6 +127,28 @@ test('public expiry projections use exclusive deadlines without mutating the liv
   }
 });
 
+// Charge observations may expire ahead of queued cleanup without consuming the authoritative grant.
+test('charge expiry projections preserve live grants and earlier observations', () => {
+  for (const [family, specialization, slice, key, stateId] of [
+    [guardianProfession, 'Core', 'core', 'spearIlluminated', STATE.SPEAR_ILLUMINATED],
+    [thiefProfession, 'Antiquary', 'specialization', 'mistburn', STATE.MISTBURN]
+  ]) {
+    const config = { specialization };
+    const profession = family.runtimeFor(config).createState(config);
+    const owner = slice === 'core' ? profession.core : profession.specialization.state;
+    owner[key] = Object.freeze({ charges: 3, expiresAt: 5, readyAt: 2 });
+    const earlier = projectObservedState(family, { profession, config, time: 4 });
+    const expired = projectObservedState(family, { profession, config, time: 5 });
+    assert.deepEqual(expired[stateId], { charges: 0, expiresAt: 5, readyAt: 2 });
+    assert.deepEqual(owner[key], { charges: 3, expiresAt: 5, readyAt: 2 });
+    owner[key] = { charges: 7, expiresAt: 9, readyAt: 6 };
+    assert.deepEqual(earlier[stateId], { charges: 3, expiresAt: 5, readyAt: 2 });
+    expired[stateId].readyAt = 99;
+    assert.equal(owner[key].readyAt, 6);
+    assert.equal(earlier[stateId].readyAt, 2);
+  }
+});
+
 test('filtered public windows remain deeply detached from their live owners', () => {
   // Filtering must preserve nested detachment even when a visible window survives the observation.
   const guardian = guardianProfession.runtimeFor({ specialization: 'Core' }).createState({ specialization: 'Core' });
@@ -236,7 +258,7 @@ test('force clocks are detached in snapshots and planning projections and absent
     assert.deepEqual(projected[stateId], clock);
     assert.notEqual(projected[stateId], clock);
     // Projection must leave the live resource and its capacity untouched.
-    assert.deepEqual(clock, { value: 37, maximum: 90, updatedAt: 2, rate: 0 });
+    assert.deepEqual(clock, { value: 37, maximum: 90, updatedAt: 2, unitsPerSecond: 0 });
     for (const professionState of [projected]) {
       const resources = profession.ui.resourceViews({ specialization, professionState });
       assert.equal(
@@ -688,7 +710,7 @@ test('Warrior snapshots expose shared stacks, Bladesworn buffs, and Paragon refr
       'Paragon',
       {
         [STATE.ACTIVE_REFRAIN]: 'Chant of Action',
-        [STATE.MOTIVATION]: { value: 5, maximum: 10, rate: 0, updatedAt: 4 }
+        [STATE.MOTIVATION]: { value: 5, maximum: 10, unitsPerSecond: 0, updatedAt: 4 }
       },
       4
     )

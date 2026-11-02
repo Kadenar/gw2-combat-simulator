@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/engineer/data/trait-lines.js';
 import { mechanistAttributes } from '#gw2/professions/engineer/specializations/mechanist/attributes.js';
 import {
@@ -27,7 +28,7 @@ export const mechanistModule = defineNativeModule({
     traitLines: TRAIT_LINES,
     profileFields: ENGINEER_MECHANIST_PROFILE_FIELDS,
     skillFields: MECHANIST_SKILL_FIELDS,
-    skillMechanics: MECHANIST_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(MECHANIST_SKILL_MECHANICS)
   }),
   state: { create: mechanistState.create, project: projectMechanistPlanningState },
   attributes: mechanistAttributes,

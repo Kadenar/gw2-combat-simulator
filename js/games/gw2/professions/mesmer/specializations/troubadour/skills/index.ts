@@ -7,6 +7,7 @@ import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR, AURA, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
 import { cryOfPainConfusion } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
@@ -41,9 +42,12 @@ function instrumentEffects(): NonNullable<MesmerSkill['effectVariants']> {
   return [
     {
       when: () => true,
-      transform: (runtime, cast, effects) =>
-        traitedInstrumentConditions(runtime, effects, cast.skill as MesmerSkill).map((effect): SkillEffect => {
-          const damageAtMs = (cast.skill.instrument as MesmerInstrument).damageAtMs ?? 0;
+      transform: (runtime, cast, effects) => {
+        // Performances are Mesmer skills; Mesmer narrows skill ids, so the shared cast skill is asserted once here.
+        const skill = cast.skill as MesmerSkill;
+        const instrument = skill.instrument as MesmerInstrument;
+        return traitedInstrumentConditions(runtime, effects, skill).map((effect): SkillEffect => {
+          const damageAtMs = instrument.damageAtMs ?? 0;
           const timing = {
             source: 'Player',
             actorType: ACTOR.PLAYER,
@@ -66,10 +70,11 @@ function instrumentEffects(): NonNullable<MesmerSkill['effectVariants']> {
             ...timing,
             name: cast.skill.name,
             weaponStrengthProfileId: 'nonweapon.profession-mechanic',
-            persistsAfterInterrupt: Boolean((cast.skill.instrument as MesmerInstrument).persistsAfterInterrupt),
+            persistsAfterInterrupt: Boolean(instrument.persistsAfterInterrupt),
             ...(effect.ticks ? { ticks: effect.ticks.map((tick) => ({ ...tick, atMs: damageAtMs + tick.atMs })) } : {})
           };
-        })
+        });
+      }
     }
   ];
 }
@@ -85,13 +90,11 @@ const LUTE_ACTIONS: NonNullable<MesmerSkill['sideEffects']> = [
   { on: 'castStart', do: { type: 'mesmer.troubadour.schedule-lute-playing' } }
 ];
 
-export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
+const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   Record<SkillId, SkillDefinition<MesmerSkill> & { readonly instrument?: MesmerInstrument }>
-> = Object.freeze({
+> = {
   [ID.LIVELY_LUTE]: {
     name: 'Lively Lute',
-    description:
-      "Instrument. Perform with your lute, sending out damaging sound waves toward an enemy and healing tones toward allies.\nThe lute will then consume all notes to continue playing in the background. The lute's duration is extended for each note consumed.",
     icon: 'https://render.guildwars2.com/file/4CAA3750145A55B7E73D5EB9917590EC45657BE7/3680159.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -120,8 +123,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.TALE_OF_THE_HONORABLE_ROGUE]: {
     name: 'Tale of the Honorable Rogue',
-    description:
-      'Tale. Quote the escapades of Dougal Keane, causing nearby allies to become extraordinarily nimble with a burst of speed.',
     icon: 'https://render.guildwars2.com/file/37EF1C69AC3D935333FCD8FC637729CEBE2A460E/3680165.png',
     type: 'Utility',
     slot: 'Utility',
@@ -151,8 +152,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.TALE_OF_THE_SECOND_SCION]: {
     name: 'Tale of the Second Scion',
-    description:
-      'Tale. Deliver the story of Aurene and the dragon cycle, rejuvenating nearby allies and increasing their incoming healing.',
     icon: 'https://render.guildwars2.com/file/F12BF59E070FB12D2EAAA209596C52C4D76C4E97/3680158.png',
     type: 'Heal',
     slot: 'Heal',
@@ -169,8 +168,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.FLUSTERING_FLUTE]: {
     name: 'Flustering Flute',
-    description:
-      "Instrument. Play an enchanting tune with the flute, confusing enemies in front of you. Enemies in the center of the music will be dazed.\nThe flute will then consume all notes to continue playing in the background. The flute's duration is extended for each note consumed.",
     icon: 'https://render.guildwars2.com/file/CFE30B5052A2AA67D9A8AE5FC1FBA0A56C64584C/3680160.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -206,7 +203,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.TALE_OF_THE_SOULKEEPER]: {
     name: 'Tale of the Soulkeeper',
-    description: 'Tale. Rouse allies with the legend of Almorra Soulkeeper, granting offensive boons.',
     icon: 'https://render.guildwars2.com/file/AC9DC59D1CEF42DFD47CED6CE429041C7FADBBE7/3680164.png',
     type: 'Utility',
     slot: 'Utility',
@@ -234,8 +230,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.CRESCENDO]: {
     name: 'Crescendo',
-    description:
-      "Strike up the band and unleash a wave of sonic magic. Instruments playing in the background contribute to the amplitude, increasing the strength of the wave.\nThis skill's recharge cannot be reset by other mesmer skills.",
     icon: 'https://render.guildwars2.com/file/935C32505D1F4DB7D9739C2C4B4137D4346709A4/3680163.png',
     type: 'Profession',
     slot: 'Profession_5',
@@ -258,8 +252,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.HARMONIOUS_HARP]: {
     name: 'Harmonious Harp',
-    description:
-      "Instrument. Gain distortion and strum the harp, continuously healing nearby allies.\nThe harp will then consume all notes to continue playing in the background. The harp's duration is extended for each note consumed.",
     icon: 'https://render.guildwars2.com/file/C1BCF465DE1DAB00E00B0F1494ABDB2D7F57BECA/3680162.png',
     type: 'Profession',
     slot: 'Profession_4',
@@ -278,7 +270,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         ...INSTRUMENT_ACTIONS,
         {
           on: 'castStart',
-          when: (_runtime, cast) => !cast.cancelled,
+          when: (_runtime, cast) => !cast.cancelledBeforeCommit,
           do: {
             id: 'distortion',
             type: 'mesmer.troubadour.harp-distortion',
@@ -290,8 +282,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.TALE_OF_THE_AUGUST_QUEEN]: {
     name: 'Tale of the August Queen',
-    description:
-      'Tale. Retell how Queen Jennah protected her city in their time of need, granting allies distortion and chaos aura.',
     icon: 'https://render.guildwars2.com/file/3FE0BC0317E63419FBCCC374A0D0A358E3A225F7/3680157.png',
     type: 'Elite',
     slot: 'Elite',
@@ -331,8 +321,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.TALE_OF_THE_TORTURED_MASTERMIND]: {
     name: 'Tale of the Tortured Mastermind',
-    description:
-      'Tale. Recall the cruelty of Scarlet Briar as you revile your target with a battery of insults, damaging their ego.',
     icon: 'https://render.guildwars2.com/file/64FFFDF0DB06E31493673D7313305536B7AAA53D/3680167.png',
     type: 'Utility',
     slot: 'Utility',
@@ -373,8 +361,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.HARMONIOUS_HARP_ALTERNATE]: {
     name: 'Harmonious Harp',
-    description:
-      "Instrument. Gain distortion and strum the harp, continuously healing nearby allies.\nThe harp will then consume all notes to continue playing in the background. The harp's duration is extended for each note consumed.",
     icon: 'https://render.guildwars2.com/file/C1BCF465DE1DAB00E00B0F1494ABDB2D7F57BECA/3680162.png',
     type: 'Profession',
     slot: 'Profession_4',
@@ -393,7 +379,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         ...INSTRUMENT_ACTIONS,
         {
           on: 'castStart',
-          when: (_runtime, cast) => !cast.cancelled,
+          when: (_runtime, cast) => !cast.cancelledBeforeCommit,
           do: {
             id: 'distortion',
             type: 'mesmer.troubadour.harp-distortion',
@@ -405,8 +391,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.DEAFENING_DRUM]: {
     name: 'Deafening Drum',
-    description:
-      "Instrument. Slam the drum to release a percussive shock wave, disabling enemies. The strength of the disable increases the closer an enemy is.\nThe drum will then consume all notes to continue playing in the background. The drum's duration is extended for each note consumed.",
     icon: 'https://render.guildwars2.com/file/E061ECE20A34DC281C0E3EB8FB90094549E87941/3680161.png',
     type: 'Profession',
     slot: 'Profession_3',
@@ -439,8 +423,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.TALE_OF_THE_VALIANT_MARSHAL]: {
     name: 'Tale of the Valiant Marshal',
-    description:
-      'Tale. Orate the heroism of Trahearne, calling nearby allies to action. Break their stuns and brace them for battle.',
     icon: 'https://render.guildwars2.com/file/C0BF1CA6F342F135C71E97D827ECCC776D0E7429/3680166.png',
     type: 'Utility',
     slot: 'Utility',
@@ -467,8 +449,6 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
   },
   [ID.LIVELY_LUTE_ALTERNATE]: {
     name: 'Lively Lute',
-    description:
-      "Instrument. Perform with your lute, sending out damaging sound waves toward an enemy and healing tones toward allies.\nThe lute will then consume all notes to continue playing in the background. The lute's duration is extended for each note consumed.",
     icon: 'https://render.guildwars2.com/file/4CAA3750145A55B7E73D5EB9917590EC45657BE7/3680159.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -497,7 +477,7 @@ export const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
       sideEffects: LUTE_ACTIONS
     })
   }
-});
+};
 
 // Derive runtime and balance-profile inputs from the skill records so instrument behavior has one authoring site.
 export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<Record<number, MesmerInstrument>> = Object.freeze(
@@ -508,9 +488,10 @@ export const MESMER_TROUBADOUR_INSTRUMENTS: Readonly<Record<number, MesmerInstru
   )
 );
 
-export const MESMER_TROUBADOUR_EXTRA_SKILLS: readonly MesmerSkill[] = Object.freeze([
+/** One complete module collection includes authored skills, generated attacks, and simulator actions. */
+export const MESMER_TROUBADOUR_SKILLS: readonly MesmerSkill[] = Object.freeze([
+  ...materializeSkillDefinitions(MESMER_TROUBADOUR_SKILL_MECHANICS),
   createDodgeSkill({
-    description: 'Spend 50 endurance to evade. Mayhem reduces Flustering Flute recharge.',
     castTimeMs: 0,
     cost: { resource: 'endurance', amount: ENDURANCE.dodgeCost, spendOn: 'castCommit' },
     tasks: [

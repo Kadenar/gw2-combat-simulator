@@ -9,12 +9,7 @@ import { warriorCoreHooks } from '#gw2/professions/warrior/core/hooks.js';
 import { warriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
 import { warriorPassiveAttributes } from '#gw2/professions/warrior/core/skills/attribute-passives.js';
 import { WARRIOR_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/warrior/core/skills/autoattack-chains.js';
-import {
-  WARRIOR_CORE_SKILL_MECHANICS,
-  WARRIOR_CORE_TRAIT_SKILLS,
-  WARRIOR_DODGE,
-  WARRIOR_SWAP_WEAPONS
-} from '#gw2/professions/warrior/core/skills/index.js';
+import { WARRIOR_CORE_SKILLS } from '#gw2/professions/warrior/core/skills/index.js';
 import { warriorBurstSkillModifiers } from '#gw2/professions/warrior/core/skills/profession-skills.js';
 import { WARRIOR_CORE_SKILL_FLIPS } from '#gw2/professions/warrior/core/skills/skill-flips.js';
 import { signetActiveAttributeEffects } from '#gw2/professions/warrior/core/skills/slot-skills.js';
@@ -56,8 +51,7 @@ export const warriorCoreModule = defineNativeModule({
     autoattackChains: WARRIOR_CORE_AUTOATTACK_CHAINS,
     profileFields: WARRIOR_CORE_PROFILE_FIELDS,
     skillFields: WARRIOR_CORE_SKILL_FIELDS,
-    skillMechanics: WARRIOR_CORE_SKILL_MECHANICS,
-    extraSkills: [WARRIOR_DODGE, WARRIOR_SWAP_WEAPONS, ...WARRIOR_CORE_TRAIT_SKILLS]
+    skills: WARRIOR_CORE_SKILLS
   }),
   state: {
     create: createWarriorCoreState,

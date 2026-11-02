@@ -8,10 +8,10 @@ import {
 } from '#gw2/platform/effects/action-validation.js';
 import { skillActions } from '#gw2/platform/effects/actions.js';
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
-import { validateFieldValues, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import { fieldValue, validateFieldValues, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { INPUT_CONTROL_IDS } from '#gw2/platform/skills/input-controls.js';
 import { normalizeSkillDamageModifiers } from '#gw2/platform/skills/modifiers.js';
-import { catalogSkillFields, SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
+import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 import type { BalanceProfile, CanonicalCatalog, Skill, SkillId, SkillLockout } from '#gw2/platform/skills/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
@@ -65,6 +65,23 @@ function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillL
 /** References can cross module contributions, so validate after the complete catalog exists. */
 function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): void {
   validateSkillTuning(skill, catalogSkillFields(catalog), `skill=${skill.id}`);
+
+  // Selector metadata is a cross-catalog contract, never a second source of executable packets.
+  if (skill.selector) {
+    const choices = Object.values(skill.selector);
+
+    if (!choices.length || skill.effects?.length || skill.sideEffects?.length)
+      throw new TypeError('Skill selector must have choices and no payload: ' + skill.id);
+
+    // Input identity walks each choice back to its root, so both directions of the family must agree.
+    for (const id of choices) {
+      const choice = catalog.skillsById.get(id);
+
+      if (!choice || choice.selector || choice.loadoutSkillId !== skill.id)
+        throw new TypeError('Invalid skill selector choice: ' + id);
+    }
+  }
+
   // Stable cast action identities and owner validators use the actual authored execution stage.
   validateActionIds(skillActions(skill), `Skill ${skill.id}`);
   for (const { do: action, on } of skill.sideEffects ?? []) {
@@ -78,11 +95,11 @@ function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): voi
 }
 
 /** State lifetimes and duration additions use finite, nonnegative seconds, including explicit zero. */
-export function validateDurationFields(owner: Readonly<Record<string, unknown>>, label: string): void {
+function validateDurationFields(owner: object, label: string): void {
   for (const field of ['duration', 'baseDuration', 'durationPerTier', 'durationExtension', 'flipDuration']) {
     if (!Object.hasOwn(owner, field)) continue;
 
-    const value = owner[field];
+    const value = fieldValue(owner, field);
 
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
       throw new TypeError(`${label} field=${field} expected=finite nonnegative seconds.`);
@@ -113,9 +130,9 @@ function attributeGroups(fields: FieldSpecs): readonly string[] {
 function validateSkillTuning(skill: Skill | BalanceProfile, fields: FieldSpecs, label: string): void {
   // Each declared grant group uses the same closed attribute vocabulary.
   for (const group of attributeGroups(fields)) {
-    if (skill[group] === undefined) continue;
+    const bonuses = fieldValue(skill, group);
 
-    const bonuses: unknown = skill[group];
+    if (bonuses === undefined) continue;
 
     if (!bonuses || typeof bonuses !== 'object' || Array.isArray(bonuses))
       throw new TypeError(`${label} field=${group} must be an object.`);
@@ -143,7 +160,41 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
     }
   }
 
+  // Selected and patched catalogs retain the same profile identity and trait-reference contract.
+  const profileIds = new Set<SkillId>();
+  const procRateIds = new Set<string>();
   for (const profile of catalog.balanceProfiles) {
+    if (profileIds.has(profile.id)) {
+      throw new TypeError(`Duplicate balance profile id: ${String(profile.id)}`);
+    }
+
+    profileIds.add(profile.id);
+
+    if (!String(profile.name || '')) {
+      throw new TypeError(`Balance profile ${String(profile.id)} has no name.`);
+    }
+
+    // Proc declarations compose with Core/elite catalogs and must not silently share an override key.
+    if (profile.procRate) {
+      const { id: procRateId, traitId, field, opportunity } = profile.procRate;
+      const chance = profile[field];
+
+      if (
+        !/^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)+$/.test(procRateId) ||
+        procRateIds.has(procRateId) ||
+        !catalog.traits.some((trait) => trait.id === traitId) ||
+        !opportunity ||
+        typeof chance !== 'number' ||
+        !Number.isFinite(chance) ||
+        chance < 0 ||
+        chance > 1
+      ) {
+        throw new TypeError(`Balance profile ${String(profile.id)} has an invalid or duplicate procRate declaration.`);
+      }
+
+      procRateIds.add(procRateId);
+    }
+
     // Profiles obey their selected profession's declarations on authored and patched catalogs alike.
     for (const field of Object.keys(profile))
       if (!Object.hasOwn(catalog.profileFields, field))
@@ -161,8 +212,6 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
     ids.add(skill.id);
 
     if (!String(skill.name || '')) throw new Error(`Skill ${skill.id} has no name.`);
-
-    validatePlainPresentation(skill);
 
     validateSkillDeclarations(catalog, skill);
     for (const reference of [skill.parentId, skill.flipParentId]) {
@@ -189,8 +238,6 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
   // Track catalog identities separately so duplicate trait definitions fail fast.
   const seenTraitIds = new Set();
   for (const trait of catalog?.traits || []) {
-    validatePlainPresentation(trait);
-
     if (trait.id === undefined || trait.id === null || seenTraitIds.has(trait.id)) {
       throw new Error(`Duplicate or missing trait id: ${trait.id}`);
     }
@@ -216,47 +263,17 @@ export function validateCanonicalCatalog(catalog: CanonicalCatalog): void {
   }
 }
 
-/** Authored presentation is plain text; source markup must not leak into native tooltips. */
-function validatePlainPresentation(record: { readonly id: unknown; readonly [field: string]: unknown }): void {
-  for (const field of ['name', 'description', 'icon']) {
-    const value = record[field];
-
-    if (typeof value === 'string' && /<\/?c(?:=|>)|<br\b|\{\{/i.test(value))
-      throw new TypeError(`Record ${record.id} ${field} must use plain text without API or wiki markup.`);
-  }
-}
-
 /**
- * Validate and normalize one declared skill before immutable catalog indexing. Only fields declared by the platform or
- * the owning profession are accepted, so a retired or misspelled field fails instead of being silently ignored.
+ * Validate and normalize one declared skill before immutable catalog indexing. The closed skill types reject unknown
+ * and misspelled fields at compile time; this checks the values those types cannot express.
  */
-export function normalizeSkill<TSkill extends Skill>(source: TSkill, fields: FieldSpecs = SHARED_SKILL_FIELDS): TSkill {
+export function normalizeSkill<TSkill extends Skill>(source: TSkill): TSkill {
   const id = source.id;
-  for (const field of Object.keys(source)) {
-    if (!Object.hasOwn(fields, field)) throw new TypeError(`Skill ${id} has unsupported field: ${field}.`);
-  }
-
   validateDurationFields(source, `skill=${id}`);
 
   // Input observations accept only canonical control identifiers.
   if (source.inputControl != null && !INPUT_CONTROL_IDS.includes(source.inputControl))
     throw new TypeError(`Skill ${id} has invalid inputControl.`);
-
-  // Measured packet schedules must contain finite non-negative offsets before any cast selects them.
-  if (source.dualWieldEffectOffsetsMs != null) {
-    const offsets = source.dualWieldEffectOffsetsMs;
-
-    if (
-      typeof offsets !== 'object' ||
-      Array.isArray(offsets) ||
-      Object.entries(offsets).some(
-        ([from, to]) =>
-          !Number.isFinite(Number(from)) || Number(from) < 0 || typeof to !== 'number' || !Number.isFinite(to) || to < 0
-      )
-    ) {
-      throw new TypeError(`Skill ${id} has invalid dualWieldEffectOffsetsMs.`);
-    }
-  }
 
   // Direct catalog consumers must enforce ownership even without a profession-specific normalizer.
   validateComboOwnership(source, `Skill ${id} (${source.name})`);
@@ -281,17 +298,6 @@ export function normalizeSkill<TSkill extends Skill>(source: TSkill, fields: Fie
     throw new TypeError(`Skill ${id} has an invalid interruptCommitMs.`);
   }
 
-  // Conditional cutoffs obey the same fixed, non-negative timing contract as the default.
-  const dualWieldInterruptCommitMs =
-    source.dualWieldInterruptCommitMs == null ? null : Number(source.dualWieldInterruptCommitMs);
-
-  if (
-    dualWieldInterruptCommitMs != null &&
-    (!(dualWieldInterruptCommitMs >= 0) || !Number.isFinite(dualWieldInterruptCommitMs))
-  ) {
-    throw new TypeError(`Skill ${id} has an invalid dualWieldInterruptCommitMs.`);
-  }
-
   // Commit is the safe default; only explicitly classified channels retain packets individually.
   const interruptMode = source.interruptMode == null ? 'commit' : String(source.interruptMode);
 
@@ -303,40 +309,13 @@ export function normalizeSkill<TSkill extends Skill>(source: TSkill, fields: Fie
   const modifiers =
     source.modifiers == null ? undefined : normalizeSkillDamageModifiers(source.modifiers, `Skill ${id}`);
 
-  // Cost declarations select one payment owner and reject fields outside the canonical shape.
+  // A cost names one resource and one amount; the `cost.amount` field declaration bounds the value.
   if (
     source.cost != null &&
-    (typeof source.cost !== 'object' ||
-      Array.isArray(source.cost) ||
-      Object.keys(source.cost).some((key) => !['resource', 'amount', 'skillAmount', 'spendOn'].includes(key)) ||
-      (source.cost.spendOn != null && !['castStart', 'castCommit'].includes(source.cost.spendOn)))
+    (Object.keys(source.cost).some((key) => !['resource', 'amount', 'spendOn'].includes(key)) ||
+      typeof source.cost.amount !== 'number')
   )
     throw new TypeError(`Skill ${id} has an invalid cost declaration.`);
-
-  // Fixed rule costs must be finite and nonnegative, with no competing balance selector.
-  if (
-    source.cost?.amount != null &&
-    (typeof source.cost.amount !== 'number' ||
-      !Number.isFinite(source.cost.amount) ||
-      source.cost.amount < 0 ||
-      source.cost.skillAmount != null)
-  )
-    throw new TypeError(`Skill ${id} has an invalid fixed cost amount.`);
-
-  // A skill-field selector must name one finite nonnegative amount owned by the skill.
-  if (source.cost?.skillAmount != null) {
-    const field = source.cost.skillAmount;
-
-    if (
-      typeof field !== 'string' ||
-      fields[field]?.kind !== 'number' ||
-      !Object.hasOwn(source, field) ||
-      typeof source[field] !== 'number' ||
-      !Number.isFinite(source[field]) ||
-      source[field] < 0
-    )
-      throw new TypeError(`Skill ${id} has an invalid cost amount field "${field}".`);
-  }
 
   // Reject obsolete or misspelled task anchors before scheduling can silently choose the full cast end.
   if (!Array.isArray(source.tasks ?? [])) throw new TypeError(`Skill ${id} tasks must be an array.`);
@@ -423,7 +402,6 @@ export function normalizeSkill<TSkill extends Skill>(source: TSkill, fields: Fie
     ...(quicknessCastTimeMs == null ? {} : { quicknessCastTimeMs }),
     interruptMode,
     ...(interruptCommitMs == null ? {} : { interruptCommitMs }),
-    ...(dualWieldInterruptCommitMs == null ? {} : { dualWieldInterruptCommitMs }),
     lockouts: normalizeLockouts(source.lockouts, id)
   };
   const normalized: Partial<TSkill> = {

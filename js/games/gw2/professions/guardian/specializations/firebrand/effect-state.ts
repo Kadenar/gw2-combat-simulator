@@ -10,6 +10,6 @@ export function firebrandBuffPolicies(): BuffStatePolicy[] {
 
 /** Observe the owning pools so consumption, replacement, and expiry agree with combat. */
 export function firebrandEffectStates(runtime: MechanicQueriesOf<GuardianRuntime>): EffectState[] {
-  const state = firebrandState.from(runtime);
+  const state = firebrandState.from(runtime.profession);
   return [timedEffectState('ashes-of-the-just', [{ stacks: state.ashes.charges, expiresAt: state.ashes.expiresAt }])];
 }

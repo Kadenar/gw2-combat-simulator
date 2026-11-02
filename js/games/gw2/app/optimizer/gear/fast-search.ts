@@ -111,7 +111,7 @@ export function createFastOptimizer(request: GearOptimizerRequest, adapter: Opti
       end,
       (ordinal) => ({
         equipment: candidates[Number(ordinal)],
-        represented: 1n
+        representedCombinationCount: 1n
       }),
       onProgress
     );

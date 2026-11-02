@@ -3,12 +3,12 @@ import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // Snap each intended packet independently so rounding a repeated interval cannot accumulate drift.
-export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.RAPID_SWIPE]: {
     name: 'Rapid Swipe',
-    description: 'Swipe your staff at your foe.',
     icon: 'https://render.guildwars2.com/file/2ECDC80E365C9147A05C50490BF3DFE6FAE009FE/1012993.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -30,7 +30,6 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.FORCEFUL_BASH]: {
     name: 'Forceful Bash',
-    description: 'Bash your foe with your staff.',
     icon: 'https://render.guildwars2.com/file/29D643D46935DC1BDBA8C752ED4860135F1E6502/1012994.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -52,7 +51,6 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.REJUVENATING_ASSAULT]: {
     name: 'Rejuvenating Assault',
-    description: 'Cleave foes around you with your staff, healing nearby allies.',
     icon: 'https://render.guildwars2.com/file/5CEC75C6494329457DC36C972204952ECF80E5C3/1012995.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -79,8 +77,6 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.MENDERS_REBUKE]: {
     name: "Mender's Rebuke",
-    description:
-      'Smash the ground in front of you to damage foes. After a delay, allies in the area are healed. Heals for more if an enemy was struck.',
     icon: 'https://render.guildwars2.com/file/0F7CB313454F1B2A3568E54F439D7ED36F2A7075/1012996.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -107,8 +103,6 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.WARDING_RIFT]: {
     name: 'Warding Rift',
-    description:
-      'Create a rift from the Mists that blocks incoming attacks. When the rift closes it blinds foes in front of you.',
     icon: 'https://render.guildwars2.com/file/DD1CCDF4034E9CF70346FFBDA643F908B096077F/1012997.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -135,8 +129,6 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.RENEWING_WAVE]: {
     name: 'Renewing Wave',
-    description:
-      'Release a burst of Mists energy that heals and removes conditions from allies. Create a healing orb for each ally that loses conditions.',
     icon: 'https://render.guildwars2.com/file/08B93F4A0EA8B764F9F6F80721F7AD3DC02565A0/1012998.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -148,7 +140,6 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SURGE_OF_THE_MISTS]: {
     name: 'Surge of the Mists',
-    description: 'Charge forward, knocking back enemies that cross your path.',
     icon: 'https://render.guildwars2.com/file/F4355F2FB422A7C316EDCBF6E897EC9A72C4D26D/1012999.png',
     type: 'Weapon',
     weapon: 'Staff',
@@ -176,4 +167,4 @@ export const REVENANT_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   }
-});
+};

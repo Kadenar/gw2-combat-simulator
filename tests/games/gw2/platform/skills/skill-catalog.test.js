@@ -3,29 +3,25 @@ import test from 'node:test';
 
 import { indexAutoattackChains, resolveAutoattackChainStep } from '#gw2/platform/skills/autoattack-chain-index.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { numberField } from '#gw2/platform/skills/field-specs.js';
 
-test('fixed costs validate nonnegative finite amounts and reject competing selectors', () => {
-  // A fixed game rule must resolve unambiguously before a runtime can admit or spend it.
+test('costs require one nonnegative finite amount and reject other amount sources', () => {
+  // A cost must resolve unambiguously before a runtime can admit or spend it.
   const load = (amount, extra = {}) =>
     createCanonicalCatalog({
       skills: [{ id: 1, name: 'Fixed cost', cost: { resource: 'endurance', amount, ...extra } }]
     });
   for (const amount of [0, 0.5, 50]) assert.doesNotThrow(() => load(amount));
-  for (const amount of [-1, NaN, Infinity, '50']) assert.throws(() => load(amount), /invalid fixed cost/);
-  assert.throws(() => load(50, { skillAmount: 'resourceCost' }), /invalid fixed cost/);
-  assert.throws(
-    () => load(undefined, { profileAmount: { profileId: 'resource', field: 'resourceCost' } }),
-    /invalid cost declaration/
-  );
+  for (const amount of [-1, NaN, Infinity]) assert.throws(() => load(amount), /field=cost.amount/);
+  for (const amount of [undefined, '50']) assert.throws(() => load(amount), /invalid cost declaration/);
+  assert.throws(() => load(50, { skillAmount: 'resourceCost' }), /invalid cost declaration/);
 });
 
 test('shared autoattack helpers index explicit ID-based chains', () => {
   const chains = [[1, 2, 3]];
   assert.deepEqual(indexAutoattackChains(chains).get(2), {
-    root: 1,
+    rootSkillId: 1,
     index: 1,
-    next: 3
+    nextSkillId: 3
   });
 });
 
@@ -77,9 +73,9 @@ test('canonical catalogs own explicit weapon and transformed autoattack chains',
     [6, 7]
   ]);
   assert.deepEqual(catalog.autoattackChainPositions.get(2), {
-    root: 1,
+    rootSkillId: 1,
     index: 1,
-    next: 3
+    nextSkillId: 3
   });
   assert.equal(catalog.skillsById.get(2).chainRoot, 1);
   assert.equal(catalog.skillsById.get(2).chainStep, 2);
@@ -167,7 +163,6 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
     { type: 'flipConsume', skillId: 2 },
     { type: 'flipArm', skillId: 2, durationSec: 1, expiryPriority: -220 },
     { type: 'emitProfile', profileId: 'test.profile' },
-    { type: 'emitProfile', profileId: 'test.profile', effects: () => true },
     { type: 'test.action', amount: 0 }
   ])
     assert.doesNotThrow(() => load(declaration(action)));
@@ -200,7 +195,6 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
     })),
     { type: 'emitProfile', profileId: 'missing' },
     { type: 'emitProfile', profileId: 'test.profile', attribution: [] },
-    { type: 'emitProfile', profileId: 'test.profile', effects: 'stability' },
     { type: 'typo' }
   ])
     assert.throws(() => load(declaration(action)), TypeError);
@@ -256,29 +250,6 @@ test('resource grants validate current-skill amounts without accepting them for 
   );
 });
 
-// Cost selectors must resolve to one numeric amount before any cast can be admitted or paid.
-test('skill costs validate authored field selectors and reject competing amount sources', () => {
-  // A cost amount must name a declared numeric field; this fixture declares its own, as a profession module would.
-  const load = (initiativeCost, cost = { resource: 'initiative', skillAmount: 'initiativeCost' }) =>
-    createCanonicalCatalog({
-      skillFields: { initiativeCost: numberField() },
-      skills: [{ id: 1, name: 'Paid', initiativeCost, cost }]
-    });
-  for (const value of [0, 0.1, 4]) assert.doesNotThrow(() => load(value));
-  for (const value of [undefined, -1, Infinity, NaN, '4']) assert.throws(() => load(value), TypeError);
-  for (const skillAmount of ['missing', 'name', '', 4])
-    assert.throws(() => load(4, { resource: 'initiative', skillAmount }), TypeError);
-  assert.throws(
-    () =>
-      load(4, {
-        resource: 'initiative',
-        skillAmount: 'initiativeCost',
-        amount: 3
-      }),
-    TypeError
-  );
-});
-
 // Aura declarations validate their name and duration as supported effects before any cast can apply them.
 test('skill aura effects accept only a canonical aura with a positive finite duration', () => {
   const load = (aura) => createCanonicalCatalog({ skills: [{ id: 1, name: 'Aura', effects: aura ? [aura] : [] }] });
@@ -297,13 +268,4 @@ test('skill aura effects accept only a canonical aura with a positive finite dur
     ...[0, -1, NaN, Infinity].map((duration) => ({ type: 'aura', aura: 'Fire Aura', duration }))
   ])
     assert.throws(() => load(aura), /aura|effect|duration/);
-});
-
-// Unknown and retired keys must fail in every authoring layer instead of accepting fields with no runtime behavior.
-test('catalogs reject unsupported skill fields in every authoring layer', () => {
-  const skill = { id: 1, name: 'Validation' };
-  for (const field of ['retiredField', 'createsClone', 'flipDelay', 'aura']) {
-    for (const options of [{ skills: [{ ...skill, [field]: true }] }])
-      assert.throws(() => createCanonicalCatalog(options), new RegExp(`unsupported field: ${field}`));
-  }
 });

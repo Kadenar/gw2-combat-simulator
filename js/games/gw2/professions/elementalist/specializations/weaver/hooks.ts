@@ -38,7 +38,8 @@ export const weaverHooks = composeRuntimeHooks<ElementalistRuntimeState, Element
     // The Air bullet and Flow State reductions compose without consuming bullet state during lookup.
     rechargeRules: [
       {
-        when: (context, skill) => skill.id === ID.PURBLINDING_PLASMA && professionCoreState(context).pistolBullets.Air,
+        when: (context, skill) =>
+          skill.id === ID.PURBLINDING_PLASMA && professionCoreState(context.profession).pistolBullets.Air,
         multiplier: { skillField: 'airBulletRechargeMultiplier' }
       }
     ],

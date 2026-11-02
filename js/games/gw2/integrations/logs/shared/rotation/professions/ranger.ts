@@ -6,9 +6,11 @@ import type {
 import { mergeCompositeActions, mergedActionStatus } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-commands.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
 const UNLEASHED_OVERBEARING_SMASH_FINISH_ID = 63_224;
 const RANGER_PET_SPAWNED_ID = -28;
+const CARRION_DEVOURER_REGENERATE_ID = 12_703;
 const SIMULATOR_OWNED_SKILL_IDS: ReadonlySet<number> = new Set([ID.LESSER_SIC_EM, ID.WUTHERING_WIND]);
 const WEAPON_BAR_TRANSITION_IDS: ReadonlySet<number> = new Set([
   ID.SUMMON_CYCLONE_BOW,
@@ -68,7 +70,11 @@ function normalizeRangerSignals(
     .filter((action) => {
       if (SIMULATOR_OWNED_SKILL_IDS.has(action.rawSkillId)) return false;
 
-      const skill = recordedActionSkill(action, context);
+      // EI infers this extra marker from the same Devourer signal as Poisonous Cloud;
+      // its name must not resolve to the unrelated Fern Hound Regenerate command.
+      if (action.rawSkillId === CARRION_DEVOURER_REGENERATE_ID) return false;
+
+      const skill: RangerSkill | null = recordedActionSkill(action, context);
       // Natural F1/F3 pet skills are explicit replay inputs only for Untamed.
       return (
         skill?.petAutonomousSkill !== true ||

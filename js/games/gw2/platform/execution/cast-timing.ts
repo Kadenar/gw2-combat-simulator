@@ -1,5 +1,5 @@
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { Skill, SkillTask } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -95,20 +95,19 @@ export function scaleCastBoundTiming(
   if (effect.timingScale !== 'cast' || !(Number(skill.castTimeMs) > 0)) return effect;
 
   const adjustedCastMs = Math.max(0, context.fullEnd - context.start) * 1000;
-  const firstTickAtMs = Array.isArray(effect.ticks) ? Number(effect.ticks[0]?.atMs || 0) : 0;
+  const ticks = effectTicks(effect);
+  const firstTickAtMs = ticks ? ticks[0]?.atMs || 0 : 0;
   // Return a copy because skill metadata is shared by every simulation run.
   return {
     ...effect,
-    ...(Array.isArray(effect.ticks)
+    ...(ticks
       ? {
-          ticks: effect.ticks.map((tick) => ({
+          ticks: ticks.map((tick) => ({
             ...tick,
             atMs:
               effect.intervalTimingScale === 'fixed'
-                ? projectCastRelativeEffectTimingMs(skill, adjustedCastMs, firstTickAtMs) +
-                  Number(tick.atMs) -
-                  firstTickAtMs
-                : projectCastRelativeEffectTimingMs(skill, adjustedCastMs, Number(tick.atMs))
+                ? projectCastRelativeEffectTimingMs(skill, adjustedCastMs, firstTickAtMs) + tick.atMs - firstTickAtMs
+                : projectCastRelativeEffectTimingMs(skill, adjustedCastMs, tick.atMs)
           }))
         }
       : {}),
@@ -116,19 +115,19 @@ export function scaleCastBoundTiming(
     ...(effect.intervalMs == null || effect.intervalTimingScale === 'fixed'
       ? {}
       : { intervalMs: projectCastRelativeEffectTimingMs(skill, adjustedCastMs, effect.intervalMs) })
-  };
+  } as SkillEffect;
 }
 
 /** Scheduling and readiness use the same cast-relative deadline, clamped to the live clock. */
-export function skillTaskAt(cast: RuntimeCast, trigger: SkillTask, now: number): number {
+export function skillTaskAt(cast: RuntimeCast, taskDefinition: SkillTask, now: number): number {
   const castTimeMs = Number(cast.skill.castTimeMs);
   const scale =
-    trigger.timingScale === 'cast' && castTimeMs > 0 ? ((cast.fullEnd - cast.start) * 1000) / castTimeMs : 1;
+    taskDefinition.timingScale === 'cast' && castTimeMs > 0 ? ((cast.fullEnd - cast.start) * 1000) / castTimeMs : 1;
   const origin =
-    trigger.timingAnchor === 'castStart'
+    taskDefinition.timingAnchor === 'castStart'
       ? cast.start
-      : trigger.timingAnchor === 'castCommit'
+      : taskDefinition.timingAnchor === 'castCommit'
         ? cast.effectiveEnd
         : cast.fullEnd;
-  return canonicalTime(Math.max(now, origin + ((trigger.atMs ?? 0) * scale) / 1000));
+  return canonicalTime(Math.max(now, origin + ((taskDefinition.atMs ?? 0) * scale) / 1000));
 }

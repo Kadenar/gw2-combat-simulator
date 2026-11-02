@@ -43,7 +43,7 @@ import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/reven
 export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   /** Hold the selected preview state while evaluating detached damage queries. */
   prepareDamageState(runtime, _skill, inputs) {
-    const state = renegadeState.from(runtime);
+    const state = renegadeState.from(runtime.profession);
     state.kallasFervor = Array.from({ length: Number(inputs.kallasFervor ?? 0) }, () => ({
       at: runtime.time,
       expiresAt: Infinity
@@ -110,7 +110,11 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
 
       if (core == null) return;
 
-      const stacks = activeKallasFervorStacks(renegadeState.from(runtime), runtime.time, fervorMaximumStacks(runtime));
+      const stacks = activeKallasFervorStacks(
+        renegadeState.from(runtime.profession),
+        runtime.time,
+        fervorMaximumStacks(runtime)
+      );
 
       if (!stacks) return;
 

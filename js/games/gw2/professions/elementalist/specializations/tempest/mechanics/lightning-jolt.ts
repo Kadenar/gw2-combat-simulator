@@ -27,7 +27,7 @@ export function armElementalLightningJolt(
   const elemental = context.profession.core.summonedElemental;
 
   if ((elemental.element === 'Fire' || elemental.element === 'Earth') && elemental.activeUntil > cast.effectiveEnd) {
-    tempestState.from(context).pendingLightningJolt = {
+    tempestState.from(context.profession).pendingLightningJolt = {
       summonGeneration: elemental.summonGeneration,
       coefficient,
       skillId
@@ -37,7 +37,7 @@ export function armElementalLightningJolt(
 
 /** Consume before emission so one accepted strike cannot recursively spend the same charge twice. */
 function consumeElementalLightningJolt(context: ElementalistRuntime, strike: ElementalStrikeBoundary): void {
-  const state = tempestState.from(context);
+  const state = tempestState.from(context.profession);
   const charge = state.pendingLightningJolt;
 
   if (!charge || charge.summonGeneration !== strike.summonGeneration) return;
@@ -77,7 +77,7 @@ export function registerTempestLightningJolt(context: ElementalistRuntime): void
   registerElementalLifecycle(context, {
     beforeStrike: consumeElementalLightningJolt,
     retire(runtime, summonGeneration) {
-      const state = tempestState.from(runtime);
+      const state = tempestState.from(runtime.profession);
 
       if (state.pendingLightningJolt?.summonGeneration === summonGeneration) state.pendingLightningJolt = null;
     }

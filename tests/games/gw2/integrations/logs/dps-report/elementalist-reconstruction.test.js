@@ -62,18 +62,13 @@ test('tracks Elementalist attunements when resolving EI-only skill names', () =>
       attunement: 'Air',
       castTimeMs: 600
     }),
-    skill(ID.PRIMORDIAL_STANCE_AIR, 'Primordial Stance (Air)', {
+    skill(ID.PRIMORDIAL_STANCE, 'Primordial Stance', {
       type: 'Utility',
       castTimeMs: 0,
       independentCast: true
     }),
     skill(ID.EARTH_ATTUNEMENT, 'Earth Attunement', {
       type: 'Profession',
-      castTimeMs: 0,
-      independentCast: true
-    }),
-    skill(ID.PRIMORDIAL_STANCE_EARTH, 'Primordial Stance (Earth)', {
-      type: 'Utility',
       castTimeMs: 0,
       independentCast: true
     })
@@ -85,7 +80,7 @@ test('tracks Elementalist attunements when resolving EI-only skill names', () =>
   assert.equal(result.actions.find((action) => action.name === 'Earth Attunement')?.skillId, ID.EARTH_ATTUNEMENT);
   assert.deepEqual(
     result.actions.filter((action) => action.rawSkillId === 40183).map((action) => action.skillId),
-    [ID.PRIMORDIAL_STANCE_AIR, ID.PRIMORDIAL_STANCE_EARTH]
+    [ID.PRIMORDIAL_STANCE, ID.PRIMORDIAL_STANCE]
   );
   assert.doesNotMatch(result.warnings.join('\n'), /Needs review/);
 });

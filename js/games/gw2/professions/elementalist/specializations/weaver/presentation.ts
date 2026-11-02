@@ -38,6 +38,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
 import type {
   ElementalistPlanningState,
+  ElementalistSkill,
   ElementalistUiContext,
   ElementalistUiSlice
 } from '#gw2/professions/elementalist/types.js';
@@ -58,7 +59,7 @@ function hasElementsOfRage(context: ElementalistUiContext & ProfessionCatalogCon
 // leaves the previous element's progressed autoattack on slot 1 until its chain resolves.
 function isCarriedAutoattackSkill(
   context: ElementalistUiContext & Partial<Pick<ProfessionWeaponPaletteRenderContext, 'autoattackChains'>>,
-  skill: Skill
+  skill: ElementalistSkill
 ): boolean {
   const state = elementalistUiState(context);
   const carryover = state[STATE.AUTOATTACK_CARRYOVER];
@@ -66,7 +67,7 @@ function isCarriedAutoattackSkill(
 
   if (!Number.isFinite(root) || Number(skill.chainRoot) !== root) return false;
 
-  if ((carryover?.attunement || '') !== String(skill.attunement || '')) return false;
+  if ((carryover?.attunement || '') !== (skill.attunement || '')) return false;
 
   const chains: ProfessionWeaponPaletteRenderContext['autoattackChains'] =
     state[STATE.AUTOATTACK_CHAINS] || context.autoattackChains || {};
@@ -165,7 +166,7 @@ export function weaverWeaponPaletteLayout(skills: readonly Skill[]): WeaverWeapo
   // to `extraSkills`.
   const elementalRows = ['Fire', 'Water', 'Air', 'Earth'].map((attunement) => ({
     attunement,
-    skills: skills.filter((skill) => skill.attunement === attunement)
+    skills: skills.filter((skill: ElementalistSkill) => skill.attunement === attunement)
   }));
   const slot = (skill: Skill): number => Number(String(skill.slot || '').match(/(\d+)$/)?.[1] || 0);
   const primaryRows = elementalRows.map((row) => ({
@@ -208,7 +209,7 @@ function attunementBadge(attunement: unknown): string {
 // Render one weapon cell with availability, equipped-state, and optional
 // attunement badge while delegating the actual skill tile to the shared renderer.
 function skillCellHtml(
-  skill: Skill,
+  skill: ElementalistSkill,
   isAvailable: (skill: Skill) => boolean,
   unavailableMessage: (skill: Skill) => string,
   renderSkill: ProfessionPaletteSkillRenderer,
@@ -227,7 +228,7 @@ function skillCellHtml(
   });
   const equipped = !options.staticCooldown && (options.equipped || available) ? ' is-equipped' : '';
   return `<div class="weaver-skill-cell${equipped}${options.staticCooldown ? ' is-static' : ''}"
-      data-attunement="${esc(String(skill.attunement || 'Special'))}"
+      data-attunement="${esc(skill.attunement || 'Special')}"
       ${options.staticCooldown ? 'data-palette-static="true"' : ''}>
       ${renderedSkill}
     </div>`;
@@ -476,8 +477,8 @@ export const weaverUi: ElementalistUiSlice = Object.freeze({
   rotationStateSnapshot,
   // Dual-attuned skills share one row; the elemental helper owns the remaining row ordering.
   paletteWeaponGroups: (_context, skills) =>
-    elementalistWeaponGroups(skills, (skill) =>
-      String(skill.attunement || 'Special').includes('+') ? 'Dual' : String(skill.attunement || 'Special')
+    elementalistWeaponGroups(skills, (skill: ElementalistSkill) =>
+      (skill.attunement || 'Special').includes('+') ? 'Dual' : skill.attunement || 'Special'
     ),
   timelineWeaponLineTransition: unravelTimelineWeaponLineTransition,
   eventLogRow,

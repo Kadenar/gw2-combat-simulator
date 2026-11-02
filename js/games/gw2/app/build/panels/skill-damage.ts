@@ -654,7 +654,7 @@ function breakdownHtml(row: SkillDamageRowView, model: SkillDamageViewModel): st
         const baseDurationFactor =
           condition.baseDurationMultiplier !== 1 ? ` &times; ${condition.baseDurationMultiplier.toFixed(3)}` : '';
         return `<div class="sd-condition-factors"><strong>${esc(conditionLabel(condition.condition))}</strong>
-        <div class="sd-condition-calculation"><span>Damage / second</span><span class="sd-mono">${condition.rate == null ? '&mdash;' : integer(condition.rate)} &times; ${(condition.multiplier ?? 1).toFixed(3)} = <b>${perSecond == null ? '&mdash;' : integer(perSecond)}</b></span><small>${sources(condition.damageContributors)}${condition.conditionDamage == null ? '' : ` &middot; Base rate at ${integer(condition.conditionDamage)} Condition Damage`}</small></div>
+        <div class="sd-condition-calculation"><span>Damage / second</span><span class="sd-mono">${condition.damagePerStackSecond == null ? '&mdash;' : integer(condition.damagePerStackSecond)} &times; ${(condition.multiplier ?? 1).toFixed(3)} = <b>${perSecond == null ? '&mdash;' : integer(perSecond)}</b></span><small>${sources(condition.damageContributors)}${condition.conditionDamageAttribute == null ? '' : ` &middot; Base rate at ${integer(condition.conditionDamageAttribute)} Condition Damage`}</small></div>
         <div class="sd-condition-calculation"><span>Duration</span><span class="sd-mono">${condition.baseDurationSeconds}s${baseDurationFactor} &times; ${condition.durationMultiplier.toFixed(3)} = <b>${condition.effectiveDurationSeconds.toFixed(1)}s</b></span><small>${sources(condition.durationContributors)} &middot; Bonus capped at +100%</small></div>
       </div>`;
       })

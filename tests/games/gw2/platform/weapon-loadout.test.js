@@ -60,11 +60,6 @@ test('profession weapon eligibility is shared with headless simulation', () => {
       assert.deepEqual(result.warnings, []);
     }
   }
-
-  assert.throws(
-    () => defineTestProfession({ id: 'invalid', name: 'Invalid', weaponSkillMatchesSet: true }),
-    /weaponSkillMatchesSet must be a function/
-  );
 });
 
 test('configured weapon accessors read the caller-selected set without fallback', () => {

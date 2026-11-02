@@ -1,6 +1,9 @@
 import { consumeNewestStacks, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import { cloneStateFields, defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -103,19 +106,15 @@ export function consumeBlight(state: HarbingerState, stacks: number, at: number,
 
 export const harbingerState = defineProfessionSpecializationState('Harbinger', createHarbingerState);
 
-/** Detach public fields before reconciling Blight so its display cap cannot alter live stacks. */
-export function projectHarbingerPlanningState(input: Gw2PlanningStateInput) {
-  const state = cloneStateFields(harbingerState.from(input), [
-    'blightExpiries',
-    'cascadingCorruptionStacks',
-    'meltdownUntil'
-  ]);
-  capHarbingerBlight(state, harbingerBlightMaximum(input));
-  // Public consumers receive a count derived from the detached, capped applications.
+/** Derive capped Blight observations without altering the authoritative stack array. */
+export function projectHarbingerPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = harbingerState.from(input.profession);
+  const capped = { blightExpiries: state.blightExpiries };
+  capHarbingerBlight(capped, harbingerBlightMaximum(input));
   return {
-    [STATE.BLIGHT_EXPIRIES]: state.blightExpiries,
+    [STATE.BLIGHT_EXPIRIES]: capped.blightExpiries,
     [STATE.CASCADING_CORRUPTION_STACKS]: state.cascadingCorruptionStacks,
     [STATE.MELTDOWN_UNTIL]: state.meltdownUntil,
-    [STATE.BLIGHT]: state.blightExpiries.length
+    [STATE.BLIGHT]: capped.blightExpiries.length
   };
 }

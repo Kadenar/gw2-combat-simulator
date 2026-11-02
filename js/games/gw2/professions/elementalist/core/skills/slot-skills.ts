@@ -12,21 +12,21 @@ import { BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constant
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
+import { ELEMENTALIST_GLYPHS } from '#gw2/professions/elementalist/data/glyphs.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /**
  * Skill-id → definition table for the Core heal, utility, and elite slot skills. Entries are keyed
  * by GW2 skill ID and supply complete catalog entries.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
   // --- Heals ------------------------------------------------------------------
   // Healing is not modelled, so the heal skills only carry their offensive/boon side effects
   // (Signet of Restoration is pure sustain and therefore has none).
   [ID.ARCANE_BRILLIANCE]: {
     name: 'Arcane Brilliance',
-    description:
-      'Arcane. Blast the area, hitting foes with critical damage and healing yourself. Healing effectiveness is increased per target hit. If this skill finishes a combo, you heal an additional amount.',
     icon: 'https://render.guildwars2.com/file/09A60F4FF1020AD1CB78FC7FF21F10306AF7DF0E/699524.png',
     type: 'Heal',
     slot: 'Heal',
@@ -56,7 +56,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.SIGNET_OF_RESTORATION]: {
     name: 'Signet of Restoration',
-    description: 'Signet Passive: Grants health every time you cast a spell. \nSignet Active: Heal yourself.',
     icon: 'https://render.guildwars2.com/file/3FA4D3DCA80A06036E7F6C77E84D94466D157766/103321.png',
     type: 'Heal',
     slot: 'Heal',
@@ -68,7 +67,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.GLYPH_OF_ELEMENTAL_HARMONY]: {
     name: 'Glyph of Elemental Harmony',
-    description: 'Glyph. Heal yourself and gain a boon based on your attunement.',
     icon: 'https://render.guildwars2.com/file/26026B59966B4378C538E0513059CF1901E39DCF/1424228.png',
     loadoutSkillId: 5569,
     type: 'Heal',
@@ -95,7 +93,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // driven from core/execution/index.ts.
   [ID.ARCANE_BLAST]: {
     name: 'Arcane Blast',
-    description: 'Arcane. Blast your foe with energy for critical damage.',
     icon: 'https://render.guildwars2.com/file/BCEB22C05BD13F226612C81339AF9A7647F7B454/103229.png',
     type: 'Utility',
     slot: 'Utility',
@@ -127,8 +124,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.ARCANE_ECHO]: {
     name: 'Arcane Echo',
-    description:
-      "Arcane. The next weapon skill you use has significantly reduced recharge, and this skill's recharge is increased by the original recharge of the affected skill.",
     icon: 'https://render.guildwars2.com/file/AD24BD1B231424D2A8F223A6F899AC34D6AAAB26/103356.png',
     // The skill owns its window; like Mimic, the consuming weapon skill's recharge becomes one base second.
     duration: 10,
@@ -143,7 +138,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.ARCANE_WAVE]: {
     name: 'Arcane Wave',
-    description: 'Arcane. Blast foes in the target area with an energy wave for critical damage.',
     icon: 'https://render.guildwars2.com/file/367C5408D29E1C49AE52ED18A2EFD76C1B40EB5A/103372.png',
     type: 'Utility',
     slot: 'Utility',
@@ -176,8 +170,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // conjure-skills.ts. (Conjure Fiery Greatsword, below, is the exception — it also strikes.)
   [ID.CONJURE_FROST_BOW]: {
     name: 'Conjure Frost Bow',
-    description:
-      'Conjure. Manifest a frost bow in your hands and at the target location. Wielders of this weapon gain increased condition duration and healing power.',
     icon: 'https://render.guildwars2.com/file/CC6D556B7C3F95C49E54D697CC2B4E79105DC594/103348.png',
     // The equipped bundle and its ground copy share this skill-owned lifetime.
     duration: 30,
@@ -195,8 +187,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.CONJURE_LIGHTNING_HAMMER]: {
     name: 'Conjure Lightning Hammer',
-    description:
-      'Conjure. Manifest a lightning hammer in your hands and at the target location. Wielders of this weapon gain increased precision and ferocity.',
     icon: 'https://render.guildwars2.com/file/C3DA6AC980062B0A0EEA14CE51393748CFAE01CA/103369.png',
     // The equipped bundle and its ground copy share this skill-owned lifetime.
     duration: 30,
@@ -218,13 +208,22 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // The four entries share one slot; `attunement` is the gate — availability rejects a variant
   // unless it matches the current primary attunement. Only the Fire and Air variants carry
   // packets; Water and Earth are modelled as no-ops.
+  // The selectable glyph resolves to its live elemental payload before cast acceptance.
+  [ID.GLYPH_OF_ELEMENTAL_POWER]: {
+    name: 'Glyph of Elemental Power',
+    selector: ELEMENTALIST_GLYPHS[ID.GLYPH_OF_ELEMENTAL_POWER],
+    icon: 'https://render.guildwars2.com/file/0805084EF739CEDD5C9678561C331D7F0B01590B/1424236.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Glyph',
+    patchAuthoringExcluded: true
+  },
   [ID.GLYPH_OF_ELEMENTAL_POWER_FIRE]: {
     name: 'Glyph of Elemental Power (Fire)',
-    description: 'Glyph. Unleash elemental energy around yourself. Its effect will differ based on your attunement.',
     icon: 'https://render.guildwars2.com/file/0805084EF739CEDD5C9678561C331D7F0B01590B/1424236.png',
-    loadoutSkillId: 5506,
+    loadoutSkillId: ID.GLYPH_OF_ELEMENTAL_POWER,
+    slotSelectable: false,
     displayName: 'Glyph of Elemental Power',
-    paletteTileId: 5506,
     type: 'Utility',
     slot: 'Utility',
     attunement: 'Fire',
@@ -244,11 +243,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.GLYPH_OF_ELEMENTAL_POWER_WATER]: {
     name: 'Glyph of Elemental Power (Water)',
-    description: 'Glyph. Unleash elemental energy around yourself. Its effect will differ based on your attunement.',
     icon: 'https://render.guildwars2.com/file/BB18F50D1F7E7F59BFCBC521F6EBD9754522B22D/1424237.png',
-    loadoutSkillId: 5506,
+    loadoutSkillId: ID.GLYPH_OF_ELEMENTAL_POWER,
+    slotSelectable: false,
     displayName: 'Glyph of Elemental Power',
-    paletteTileId: 5506,
     type: 'Utility',
     slot: 'Utility',
     attunement: 'Water',
@@ -260,11 +258,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.GLYPH_OF_ELEMENTAL_POWER_AIR]: {
     name: 'Glyph of Elemental Power (Air)',
-    description: 'Glyph. Unleash elemental energy around yourself. Its effect will differ based on your attunement.',
     icon: 'https://render.guildwars2.com/file/B4E00C980DE7F1CB0BE62F3901EB031067F302F3/1424234.png',
-    loadoutSkillId: 5506,
+    loadoutSkillId: ID.GLYPH_OF_ELEMENTAL_POWER,
+    slotSelectable: false,
     displayName: 'Glyph of Elemental Power',
-    paletteTileId: 5506,
     type: 'Utility',
     slot: 'Utility',
     attunement: 'Air',
@@ -279,11 +276,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.GLYPH_OF_ELEMENTAL_POWER_EARTH]: {
     name: 'Glyph of Elemental Power (Earth)',
-    description: 'Glyph. Unleash elemental energy around yourself. Its effect will differ based on your attunement.',
     icon: 'https://render.guildwars2.com/file/C8AEFA0A46F573F37E7902257772AD9A5E742BBD/1424235.png',
-    loadoutSkillId: 5506,
+    loadoutSkillId: ID.GLYPH_OF_ELEMENTAL_POWER,
+    slotSelectable: false,
     displayName: 'Glyph of Elemental Power',
-    paletteTileId: 5506,
     type: 'Utility',
     slot: 'Utility',
     attunement: 'Earth',
@@ -297,13 +293,22 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // Same attunement gate as above, but each variant is a long ground field with its own
   // cooldown: eleven one-second pulses (Fire/Earth), or an EVTC-derived tick timeline
   // (Water/Air). Field pulses are tagged `damageKind: 'field-tick'`.
+  // The selectable glyph resolves to its live elemental payload before cast acceptance.
+  [ID.GLYPH_OF_STORMS]: {
+    name: 'Glyph of Storms',
+    selector: ELEMENTALIST_GLYPHS[ID.GLYPH_OF_STORMS],
+    icon: 'https://render.guildwars2.com/file/53207A9159611359DD9E4001F530F63CA7627FAD/103393.png',
+    type: 'Utility',
+    slot: 'Utility',
+    skillFamily: 'Glyph',
+    patchAuthoringExcluded: true
+  },
   [ID.GLYPH_OF_STORMS_FIRE]: {
     name: 'Glyph of Storms (Fire)',
-    description: 'Glyph. Create a storm based on your attunement.',
     icon: 'https://render.guildwars2.com/file/53207A9159611359DD9E4001F530F63CA7627FAD/103393.png',
-    loadoutSkillId: 5734,
+    loadoutSkillId: ID.GLYPH_OF_STORMS,
+    slotSelectable: false,
     displayName: 'Glyph of Storms',
-    paletteTileId: 5734,
     type: 'Utility',
     slot: 'Utility',
     attunement: 'Fire',
@@ -335,11 +340,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   [ID.GLYPH_OF_STORMS_WATER]: withSmallHitboxCap(
     {
       name: 'Glyph of Storms (Water)',
-      description: 'Glyph. Create a storm based on your attunement.',
       icon: 'https://render.guildwars2.com/file/53207A9159611359DD9E4001F530F63CA7627FAD/103393.png',
-      loadoutSkillId: 5734,
+      loadoutSkillId: ID.GLYPH_OF_STORMS,
+      slotSelectable: false,
       displayName: 'Glyph of Storms',
-      paletteTileId: 5734,
 
       type: 'Utility',
       slot: 'Utility',
@@ -389,11 +393,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   [ID.GLYPH_OF_STORMS_AIR]: withSmallHitboxCap(
     {
       name: 'Glyph of Storms (Air)',
-      description: 'Glyph. Create a storm based on your attunement.',
       icon: 'https://render.guildwars2.com/file/53207A9159611359DD9E4001F530F63CA7627FAD/103393.png',
-      loadoutSkillId: 5734,
+      loadoutSkillId: ID.GLYPH_OF_STORMS,
+      slotSelectable: false,
       displayName: 'Glyph of Storms',
-      paletteTileId: 5734,
 
       type: 'Utility',
       slot: 'Utility',
@@ -477,11 +480,10 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // one-second blind applications expressed as a single repeating packet.
   [ID.GLYPH_OF_STORMS_EARTH]: {
     name: 'Glyph of Storms (Earth)',
-    description: 'Glyph. Create a storm based on your attunement.',
     icon: 'https://render.guildwars2.com/file/53207A9159611359DD9E4001F530F63CA7627FAD/103393.png',
-    loadoutSkillId: 5734,
+    loadoutSkillId: ID.GLYPH_OF_STORMS,
+    slotSelectable: false,
     displayName: 'Glyph of Storms',
-    paletteTileId: 5734,
     type: 'Utility',
     slot: 'Utility',
     attunement: 'Earth',
@@ -523,7 +525,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // Active effects are authored here; the attribute modifier reads recharge for Signet of Fire's passive precision.
   [ID.SIGNET_OF_FIRE]: {
     name: 'Signet of Fire',
-    description: 'Signet Passive: Improves critical chance.\nSignet Active: Burn your target and nearby foes.',
     icon: 'https://render.guildwars2.com/file/78F000A3121FCFF9B56EA62625186F0E06D8A458/103340.png',
     // Readiness and Written in Stone gate this skill-owned passive precision bonus.
     attributeBonuses: { precision: 180 },
@@ -547,7 +548,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.SIGNET_OF_EARTH]: {
     name: 'Signet of Earth',
-    description: 'Signet Passive: Reduce incoming strike damage.\nSignet Active: Immobilize and bleed your foe.',
     icon: 'https://render.guildwars2.com/file/DC27E04D9F9CE5627D953752B5F334C7A304B7F5/103352.png',
     type: 'Utility',
     slot: 'Utility',
@@ -567,8 +567,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // Unlike the utility conjures this one also strikes, and its hit lands after the cast ends.
   [ID.CONJURE_FIERY_GREATSWORD]: {
     name: 'Conjure Fiery Greatsword',
-    description:
-      'Conjure. Manifest a fiery greatsword in your hands and at the target location. When it lands, it damages and burns foes. Wielders of this weapon gain increased power and condition damage and cast Lesser Fiery Eruption at regular intervals on random enemies.',
     icon: 'https://render.guildwars2.com/file/EEDA0B1847077DE93DBB0575D44BE0615FBCE728/103328.png',
     // The equipped bundle and its ground copy share this skill-owned lifetime.
     duration: 30,
@@ -595,7 +593,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // it also blocks a recast while the elemental is alive and re-arms the cooldown on expiry.
   [ID.GLYPH_OF_ELEMENTALS]: {
     name: 'Glyph of Elementals',
-    description: 'Glyph. Summon a Fire Elemental regardless of attunement.',
     icon: 'https://render.guildwars2.com/file/011D983FEAFB946EF0F45E7F290838CFA31D63D0/103380.png',
     loadoutSkillId: 5666,
     // Companion lifecycle tuning is independent of the glyph's activation cooldown.
@@ -617,7 +614,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   [ID.GLYPH_OF_ELEMENTALS_EARTH]: {
     name: 'Glyph of Elementals (Earth)',
     // This simulator projection always summons Earth, independent of the current attunement.
-    description: 'Glyph. Summon an Earth Elemental regardless of attunement.',
     icon: 'https://render.guildwars2.com/file/011D983FEAFB946EF0F45E7F290838CFA31D63D0/103380.png',
     loadoutSkillId: 5666,
     // Companion lifecycle tuning is independent of the glyph's activation cooldown.
@@ -639,7 +635,6 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // cleanse it is named for has no damage-model effect).
   [ID.CLEANSING_FIRE]: {
     name: 'Cleansing Fire',
-    description: 'Cantrip. Cure conditions and burn foes. Gain might for each condition removed.',
     icon: 'https://render.guildwars2.com/file/2FBB046640434531443F7920CFF205A2787932E3/103336.png',
     type: 'Utility',
     slot: 'Utility',
@@ -657,4 +652,4 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
       { type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 9 }
     ])
   }
-});
+};

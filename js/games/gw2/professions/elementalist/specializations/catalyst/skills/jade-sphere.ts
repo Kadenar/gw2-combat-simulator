@@ -8,7 +8,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import {
   ELEMENTALIST_TRAIT_IDS as CATALYST_TRAIT,
   ELEMENTALIST_SKILL_IDS as ID
@@ -56,17 +56,14 @@ const CATALYST_JADE_SPHERE_EFFECTS: Readonly<Record<number, readonly SkillEffect
 });
 
 /** Jade Sphere declarations and execution share one owner for attunement, energy spending, and field windows. */
-export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
   [ID.DEPLOY_JADE_SPHERE_FIRE]: {
     name: 'Deploy Jade Sphere (Fire)',
-    description:
-      'Summon your jade sphere, creating a combo field and granting boons to allies in its radius based on its element.',
     // Each attunement supplies its own sphere art.
     icon: 'https://render.guildwars2.com/file/22CA7C0F420C7F61CEBFA323DF3AADC5EF237475/2491598.png',
     type: 'Profession',
     slot: 'Profession_5',
     attunement: 'Fire',
-    mechanicSlot: 5,
 
     cooldown: 15,
     skillFamily: 'Jade Sphere',
@@ -85,13 +82,10 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, SkillDefinitio
   },
   [ID.DEPLOY_JADE_SPHERE_WATER]: {
     name: 'Deploy Jade Sphere (Water)',
-    description:
-      'Summon your jade sphere, creating a combo field and granting boons to allies in its radius based on its element.',
     icon: 'https://render.guildwars2.com/file/6016319AAF18417F0401800EF36C0F18E207FFD5/2491600.png',
     type: 'Profession',
     slot: 'Profession_5',
     attunement: 'Water',
-    mechanicSlot: 5,
 
     cooldown: 15,
     skillFamily: 'Jade Sphere',
@@ -110,13 +104,10 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, SkillDefinitio
   },
   [ID.DEPLOY_JADE_SPHERE_AIR]: {
     name: 'Deploy Jade Sphere (Air)',
-    description:
-      'Summon your jade sphere, creating a combo field and granting boons to allies in its radius based on its element.',
     icon: 'https://render.guildwars2.com/file/07D9C76FEB07BB04B9D07A05D87C09A0A0AE0319/2491594.png',
     type: 'Profession',
     slot: 'Profession_5',
     attunement: 'Air',
-    mechanicSlot: 5,
 
     cooldown: 15,
     skillFamily: 'Jade Sphere',
@@ -135,13 +126,10 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, SkillDefinitio
   },
   [ID.DEPLOY_JADE_SPHERE_EARTH]: {
     name: 'Deploy Jade Sphere (Earth)',
-    description:
-      'Summon your jade sphere, creating a combo field and granting boons to allies in its radius based on its element.',
     icon: 'https://render.guildwars2.com/file/97BEF22148DDA3159B4CF6DB18ECFEDE7107710B/2491596.png',
     type: 'Profession',
     slot: 'Profession_5',
     attunement: 'Earth',
-    mechanicSlot: 5,
 
     cooldown: 15,
     skillFamily: 'Jade Sphere',
@@ -158,14 +146,17 @@ export const CATALYST_JADE_SPHERE_SKILLS: Readonly<Record<number, SkillDefinitio
     // Spend energy once and record this field's live window before deployment traits and pulses.
     sideEffects: [{ on: 'castStart', do: { type: 'elementalist.catalyst.deploy-sphere' } }]
   }
-});
+};
 
 // Jade Sphere deployment requires the matching attunement and the profile energy
 // cost; every other skill passes through untouched.
-function catalystSphereAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
+function catalystSphereAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: ElementalistSkill
+): AvailabilityResult {
   if (skill.skillFamily !== 'Jade Sphere') return { ready: true };
 
-  const core = professionCoreState(context);
+  const core = professionCoreState(context.profession);
 
   if (skill.attunement !== core.primaryAttunement) {
     return denyCast(
@@ -182,8 +173,12 @@ function catalystSphereAvailability(context: MechanicQueriesOf<ElementalistRunti
 
 // Spend sphere energy and schedule its attunement-specific field, pulses, and
 // boons from cast start so later attunement swaps cannot change the sphere.
-function deployJadeSphere(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
-  const state = catalystState.from(context);
+function deployJadeSphere(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: ElementalistSkill
+): void {
+  const state = catalystState.from(context.profession);
   const sphereCost = balanceNumberFromContext(context, CATALYST_TRAIT.DEPTH_OF_ELEMENTS, 'resourceCost');
   // Keep spending at deployment, before sphere traits and fields, rather than moving it to cast acceptance.
   context.resourceController.spend('catalystEnergy', sphereCost);

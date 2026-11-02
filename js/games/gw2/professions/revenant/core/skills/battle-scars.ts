@@ -6,13 +6,12 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 /** All scar-granting traits feed one charge pool and one patchable life-siphon payload. */
 export const battleScarsSkill: Skill = {
   name: 'Battle Scars',
-  description: '',
   icon: SKILL_PLACEHOLDER_ICON,
   id: 'revenant.battle-scars',
   type: 'Action',
   slot: 'Action',
   slotSelectable: false,
-  simulatorExcluded: true,
+  rotationInputExcluded: true,
   cooldown: 0,
   maximumStacks: 25,
   effects: [

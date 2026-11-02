@@ -1,6 +1,6 @@
 import type { SimulationActorType } from '#gw2/platform/constants.js';
 import { effectApplicationCount, validateConditionExpansion } from '#gw2/platform/effects/expansion-budget.js';
-import type { SkillEffect, StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
+import { effectTicks, type SkillEffect, type StrikeEffect, type StrikeTick } from '#gw2/platform/effects/types.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { EffectMetadata, SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -57,7 +57,7 @@ function strikeEventFields(source: StrikeEffect | StrikeTick) {
   return {
     ...(source.name != null ? { name: source.name } : {}),
     // Explicit packet labels let the breakdown separate effects while retaining their casting skill.
-    ...(source.damageBreakdownName != null ? { damageBreakdownName: String(source.damageBreakdownName) } : {}),
+    ...(source.damageBreakdownName != null ? { damageBreakdownName: source.damageBreakdownName } : {}),
     ...(source.weaponStrength != null ? { weaponStrength: source.weaponStrength } : {}),
     ...(source.independentSummonStrike != null ? { independentSummonStrike: source.independentSummonStrike } : {}),
     ...(source.summonUsesProfessionModifiers != null
@@ -67,15 +67,15 @@ function strikeEventFields(source: StrikeEffect | StrikeTick) {
     ...(source.summonInheritsCriticalAttributes != null
       ? { summonInheritsCriticalAttributes: source.summonInheritsCriticalAttributes }
       : {}),
-    ...(source.flatDamage != null ? { flatDamage: Number(source.flatDamage) } : {}),
-    ...(source.flatStrikeBase != null ? { flatStrikeBase: Number(source.flatStrikeBase) } : {}),
-    ...(source.flatStrikePowerCoeff != null ? { flatStrikePowerCoeff: Number(source.flatStrikePowerCoeff) } : {}),
-    ...(source.flatStrikeMultiplier != null ? { flatStrikeMultiplier: Number(source.flatStrikeMultiplier) } : {}),
+    ...(source.flatDamage != null ? { flatDamage: source.flatDamage } : {}),
+    ...(source.flatStrikeBase != null ? { flatStrikeBase: source.flatStrikeBase } : {}),
+    ...(source.flatStrikePowerCoeff != null ? { flatStrikePowerCoeff: source.flatStrikePowerCoeff } : {}),
+    ...(source.flatStrikeMultiplier != null ? { flatStrikeMultiplier: source.flatStrikeMultiplier } : {}),
     ...(source.flatStrikeHealthThreshold != null
-      ? { flatStrikeHealthThreshold: Number(source.flatStrikeHealthThreshold) }
+      ? { flatStrikeHealthThreshold: source.flatStrikeHealthThreshold }
       : {}),
     ...(source.flatStrikeThresholdMultiplier != null
-      ? { flatStrikeThresholdMultiplier: Number(source.flatStrikeThresholdMultiplier) }
+      ? { flatStrikeThresholdMultiplier: source.flatStrikeThresholdMultiplier }
       : {}),
     ...(source.damageKind != null ? { damageKind: source.damageKind } : {}),
     ...(source.canCrit != null ? { canCrit: source.canCrit } : {}),
@@ -88,9 +88,9 @@ function strikeEventFields(source: StrikeEffect | StrikeTick) {
 export function effectFirstAt(start: number, fullEnd: number, effect: SkillEffect): number {
   const origin = effect.timingAnchor === 'castStart' ? start : fullEnd;
 
-  if (Array.isArray(effect.ticks) && effect.ticks.length) {
-    return origin + Number(effect.ticks[0].atMs) / 1000;
-  }
+  const ticks = effectTicks(effect);
+
+  if (ticks?.length) return origin + ticks[0].atMs / 1000;
 
   if (effect.atMs != null) return origin + effect.atMs / 1000;
 

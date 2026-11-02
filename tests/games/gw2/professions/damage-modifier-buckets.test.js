@@ -189,7 +189,7 @@ const EXPECTED = {
   },
   ranger: {
     traits: {
-      'Bird of Prey': { strike: 'additive' },
+      'Bird of Prey': { strike: 'multiplier' },
       'Blinding Outburst': { strike: 'multiplier' },
       'Bountiful Hunter': { strike: 'multiplier' },
       Farsighted: { strike: 'multiplier' },

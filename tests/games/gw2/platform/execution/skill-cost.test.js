@@ -45,7 +45,7 @@ test('fixed costs use the same amount for admission and spending, including zero
 test('cost admission never treats a future resource deadline as already affordable', () => {
   // The gate must preserve the owner's verdict even within the old clock epsilon or below clock precision.
   for (const resource of ['endurance', 'energy']) {
-    const skill = { name: 'Cost probe', resourceCost: 50, cost: { resource } };
+    const skill = { name: 'Cost probe', cost: { resource, amount: 50 } };
     for (const readyAt of [1, 1.0000004, 1.000001, 1.00005, 1.0001, null]) {
       const runtime = {
         time: 1,
@@ -66,14 +66,14 @@ test('cost admission never treats a future resource deadline as already affordab
 test('endurance admission and payment wait for the full dodge cost', () => {
   // A shortage measured in real resource units must never be excused by a time epsilon.
   for (const time of [9.9998, 9.9999, 9.99995, 9.999999, 10]) {
-    const pool = { value: 0, maximum: 100, updatedAt: 0, rate: 0 };
+    const pool = { value: 0, maximum: 100, updatedAt: 0, unitsPerSecond: 0 };
     const runtime = { time: 0, config: {}, history: [] };
     runtime.endurance = createRuntimeEndurance(runtime, {
       endurance: { state: () => pool, maximum: () => 100, regenerationRate: () => 5 }
     });
     runtime.endurance.spend(100);
     runtime.time = time;
-    const skill = { name: 'Dodge', resourceCost: 50, cost: { resource: 'endurance' } };
+    const skill = { name: 'Dodge', cost: { resource: 'endurance', amount: 50 } };
     const availability = skillCostAvailability(runtime, skill);
 
     if (time < 10) {
@@ -91,7 +91,7 @@ test('endurance admission and payment wait for the full dodge cost', () => {
 test('continuous resource admission and payment agree just before recovery readiness', () => {
   // Exercise the real controller so admission cannot silently borrow future recovery from another resource type.
   for (const time of [0.9998, 0.9999, 0.99995, 0.999999, 1]) {
-    const pool = { value: 0, maximum: 10, updatedAt: 0, rate: 0 };
+    const pool = { value: 0, maximum: 10, updatedAt: 0, unitsPerSecond: 0 };
     const runtime = { time: 0, mechanics: {} };
     runtime.resourceController = createRuntimeResources(runtime, {
       resources: {
@@ -106,7 +106,7 @@ test('continuous resource admission and payment agree just before recovery readi
     });
     runtime.resourceController.initialize();
     runtime.time = time;
-    const skill = { name: 'Energy probe', resourceCost: 1, cost: { resource: 'energy' } };
+    const skill = { name: 'Energy probe', cost: { resource: 'energy', amount: 1 } };
     const availability = skillCostAvailability(runtime, skill);
 
     if (time < 1) {
@@ -123,7 +123,7 @@ test('continuous resource admission and payment agree just before recovery readi
 
 test('resource forecasts cannot round a real sub-microsecond shortage into present affordability', () => {
   // The amount deficit exceeds resource rounding tolerance even though its recovery time is below clock precision.
-  const pool = { value: 0, maximum: 100, updatedAt: 0, rate: 0 };
+  const pool = { value: 0, maximum: 100, updatedAt: 0, unitsPerSecond: 0 };
   const runtime = { time: 0, config: {}, history: [], mechanics: {} };
   const endurance = createRuntimeEndurance(runtime, {
     endurance: { state: () => pool, maximum: () => 100, regenerationRate: () => 5 }
@@ -136,7 +136,7 @@ test('resource forecasts cannot round a real sub-microsecond shortage into prese
   endurance.spend(50);
 
   runtime.time = 0;
-  const energyPool = { value: 0, maximum: 10, updatedAt: 0, rate: 0 };
+  const energyPool = { value: 0, maximum: 10, updatedAt: 0, unitsPerSecond: 0 };
   const energy = createRuntimeResources(runtime, {
     resources: {
       energy: {

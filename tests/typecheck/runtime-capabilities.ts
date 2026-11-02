@@ -198,7 +198,7 @@ function mechanicBoundaries(context: WarriorRuntime) {
   // @ts-expect-error Recharge observations cannot mutate the owner's magazine.
   context.cooldownController.readAmmo(1)!.charges = 0;
   // @ts-expect-error Nested recharge work is read-only too.
-  context.cooldownController.readAmmo(1)!.recharges.push({ startedAt: 0, work: 1 });
+  context.cooldownController.readAmmo(1)!.recharges.push({ workAnchorAt: 0, work: 1 });
   // @ts-expect-error Proc storage remains private to its owner.
   context.procs.readyAt.trait = 0;
   // @ts-expect-error Report arrays are unavailable to author callbacks.

@@ -85,7 +85,7 @@ test('replacement rejects invalid values atomically and preserves continuous rec
   assert.equal(pool.updatedAt, 1);
   assert.equal(resourceAnchor(pool), anchor);
   context.resourceController.replace('initiative', 1.5);
-  assert.equal(pool.rate, 2);
+  assert.equal(pool.unitsPerSecond, 2);
   assert.notEqual(resourceAnchor(pool), anchor);
   advance(context, 2);
   assert.equal(pool.value, 3.5);

@@ -15,13 +15,13 @@ const DODGE_PROFILES: Readonly<Partial<Record<ThiefDodge, SkillId>>> = Object.fr
 });
 
 export function selectedDodgeProfile(runtime: ThiefRuntime): BalanceProfile | undefined {
-  const profileId = DODGE_PROFILES[daredevilState.from(runtime).selectedDodge];
+  const profileId = DODGE_PROFILES[daredevilState.from(runtime.profession).selectedDodge];
   return profileId == null ? undefined : requireBalanceProfileFromContext(runtime, profileId);
 }
 
 /** Dodge packets use the in-game skill name of the selected dodge. */
 function dodgeSkillName(runtime: ThiefRuntime): string {
-  const selected = daredevilState.from(runtime).selectedDodge;
+  const selected = daredevilState.from(runtime.profession).selectedDodge;
   return selected === 'Bounding Dodger' ? 'Bound' : selected === 'Lotus Training' ? 'Impaling Lotus' : selected;
 }
 

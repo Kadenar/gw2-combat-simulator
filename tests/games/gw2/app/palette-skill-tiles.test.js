@@ -21,7 +21,7 @@ function projectionApp(
     specialization = 'Core',
     professionState = {},
     time = 0,
-    cooldowns = {},
+    cooldownsBySkillId = {},
     ammoBySkillId = {},
     useProfessionUi = true
   } = {}
@@ -41,7 +41,7 @@ function projectionApp(
         availability: {},
         atSeconds: time,
         activeWeaponSet: 1,
-        cooldowns,
+        cooldownsBySkillId,
         ammoBySkillId,
         profession: professionState
       }
@@ -54,7 +54,7 @@ test('Mirage dodge markup exposes projected endurance instead of ammo', async ()
   const profession = await loadProfession('mesmer');
   const app = projectionApp(profession, {
     specialization: 'Mirage',
-    professionState: { [STATE.ENDURANCE]: { value: 7.5, maximum: 100, updatedAt: 0, rate: 0 } }
+    professionState: { [STATE.ENDURANCE]: { value: 7.5, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } }
   });
   const skill = profession.catalog.skillsById.get(-1);
   const markup = paletteSkillHtml(paletteSkillView(app, skill));
@@ -81,7 +81,7 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
     const result = observeGw2Runtime({ profession: profession.runtimeFor(config), rotation: [skill.name], config });
     const app = projectionApp(profession, {
       time: result.planningState.atSeconds,
-      cooldowns: result.planningState.cooldowns
+      cooldownsBySkillId: result.planningState.cooldownsBySkillId
     });
     const view = paletteSkillView(app, skill, true);
     assert.equal(view.cooldownLabel, label);
@@ -104,7 +104,7 @@ test('same-name palette skills use their own cooldown and ammo identities', () =
   const skills = [990101, 990102].map((id) => ({ id, name: 'Shared Name', type: 'Utility', effects: [] }));
   const app = catalogApp(skills);
   app.profession.ui.resourceViews = () => [];
-  app.results.planningState.cooldowns = { 990101: { remaining: 4000, readyAt: 4000 } };
+  app.results.planningState.cooldownsBySkillId = { 990101: { remainingMs: 4000, readyAtMs: 4000 } };
   app.results.planningState.ammoBySkillId = {
     990101: { charges: 0, maximum: 2, nextRechargeAt: null },
     990102: { charges: 2, maximum: 2, nextRechargeAt: null }
@@ -142,7 +142,7 @@ test('palette distinguishes startup, missing verdicts, and runtime retry boundar
   const view = paletteSkillView(app, skill, availability.available, availability.message, availability.retryAt);
   assert.equal(view.contextDisabled, false);
   assert.equal(view.cooldownLabel, '2.000s');
-  assert.match(view.castDetails, /Next check in: 2\.000s/);
+  assert.match(view.castDetails, /Availability rechecked in: 2\.000s/);
   assert.equal(paletteAvailability(app, context, { ...skill, specialization: 'Bladesworn' }).available, false);
 });
 
@@ -196,11 +196,11 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
     const tile = tiles()[0]?.[0];
     assert.ok(tile, name);
     assert.doesNotMatch(tile, /pal-context-disabled/, name);
-    assert.match(tile, /Next check in:/, name);
+    assert.match(tile, /Availability rechecked in:/, name);
 
     if (name === 'Heartseeker') {
       assert.match(tiles()[1][0], /pal-context-disabled/);
-      assert.doesNotMatch(tiles()[1][0], /Next check in:/);
+      assert.doesNotMatch(tiles()[1][0], /Availability rechecked in:/);
     }
 
     if (id === 'revenant') {
@@ -209,7 +209,7 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
         slotLoadout: { ...adapter.slotLoadout, unavailableReason: () => 'Requires another loadout' }
       };
       assert.match(tiles()[0][0], /pal-context-disabled/);
-      assert.doesNotMatch(tiles()[0][0], /Next check in:/);
+      assert.doesNotMatch(tiles()[0][0], /Availability rechecked in:/);
     }
   }
 });
@@ -308,7 +308,7 @@ test('Dragon Slash editor access is separate from its default verdict and requir
     Object.assign(runtime.profession.specialization.state, {
       gunsaberActive: true,
       dragonTriggerActive: true,
-      dragonCharges: { value: 1, maximum: 10, rate: 0, updatedAt: 0 },
+      dragonCharges: { value: 1, maximum: 10, unitsPerSecond: 0, updatedAt: 0 },
       nextDragonChargeAt: 0
     });
   });
@@ -372,7 +372,7 @@ test('autoattack links, replacements, and excluded flips never expand a root-onl
     ['unleashed ambush', {}, { unleashedAmbushSkill: true }],
     ['parent opt-out', { paletteFlip: false }, {}],
     ['child opt-out', {}, { paletteFlip: false }],
-    ['excluded weapon', {}, { simulatorExcluded: true, type: 'Weapon' }]
+    ['excluded weapon', {}, { rotationInputExcluded: true, type: 'Weapon' }]
   ]) {
     const skills = [
       { id: 1, name: 'Root', flipSkillId: 2, ...parent },
@@ -490,7 +490,7 @@ test('stateful transforms select one live tile across professions', async () => 
       'thief',
       'Specter',
       {
-        [STATE.SHADOW_CLOCK]: { value: 100, maximum: 100, updatedAt: 0, rate: 0 },
+        [STATE.SHADOW_CLOCK]: { value: 100, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
         [STATE.SHADOW_SHROUD_ACTIVE]: false
       },
       ['Enter Shadow Shroud'],
@@ -499,7 +499,10 @@ test('stateful transforms select one live tile across professions', async () => 
     [
       'thief',
       'Specter',
-      { [STATE.SHADOW_CLOCK]: { value: 100, maximum: 100, updatedAt: 0, rate: 0 }, [STATE.SHADOW_SHROUD_ACTIVE]: true },
+      {
+        [STATE.SHADOW_CLOCK]: { value: 100, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
+        [STATE.SHADOW_SHROUD_ACTIVE]: true
+      },
       ['Enter Shadow Shroud'],
       'Exit Shadow Shroud'
     ],
@@ -507,7 +510,7 @@ test('stateful transforms select one live tile across professions', async () => 
       'ranger',
       'Druid',
       {
-        [STATE.ASTRAL_CLOCK]: { value: 100, maximum: 100, updatedAt: 0, rate: 0 },
+        [STATE.ASTRAL_CLOCK]: { value: 100, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
         [STATE.CELESTIAL_AVATAR_ENDS_AT]: null
       },
       ['Celestial Avatar'],
@@ -517,7 +520,7 @@ test('stateful transforms select one live tile across professions', async () => 
       'ranger',
       'Druid',
       {
-        [STATE.ASTRAL_CLOCK]: { value: 100, maximum: 100, updatedAt: 0, rate: 0 },
+        [STATE.ASTRAL_CLOCK]: { value: 100, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
         [STATE.CELESTIAL_AVATAR_ENDS_AT]: 15
       },
       ['Celestial Avatar'],
@@ -532,14 +535,20 @@ test('stateful transforms select one live tile across professions', async () => 
     [
       'ranger',
       'Galeshot',
-      { [STATE.CYCLONE_BOW_ACTIVE]: true, [STATE.WIND_FORCE]: { value: 0, maximum: 5, rate: 0, updatedAt: 0 } },
+      {
+        [STATE.CYCLONE_BOW_ACTIVE]: true,
+        [STATE.WIND_FORCE]: { value: 0, maximum: 5, unitsPerSecond: 0, updatedAt: 0 }
+      },
       ['Keen Shot'],
       'Keen Shot'
     ],
     [
       'ranger',
       'Galeshot',
-      { [STATE.CYCLONE_BOW_ACTIVE]: true, [STATE.WIND_FORCE]: { value: 5, maximum: 5, rate: 0, updatedAt: 0 } },
+      {
+        [STATE.CYCLONE_BOW_ACTIVE]: true,
+        [STATE.WIND_FORCE]: { value: 5, maximum: 5, unitsPerSecond: 0, updatedAt: 0 }
+      },
       ['Keen Shot'],
       'Hawkeye'
     ],
@@ -605,7 +614,7 @@ test('Untamed ambush tiles glow only while their window is open and recharge is 
   const profession = await loadProfession('ranger');
   for (const name of ['Relentless Whirl', 'Deft Strike']) {
     const skill = profession.catalog.skills.find((candidate) => candidate.name === name);
-    for (const [time, rangerUnleashed, remaining, expected] of [
+    for (const [time, rangerUnleashed, remainingMs, expected] of [
       [3.999, true, 0, true],
       [4, true, 0, false],
       [3, false, 0, false],
@@ -616,7 +625,10 @@ test('Untamed ambush tiles glow only while their window is open and recharge is 
         time,
         professionState: { [STATE.RANGER_UNLEASHED]: rangerUnleashed, [STATE.AMBUSH_READY_UNTIL]: 4 }
       };
-      const app = projectionApp(profession, { ...context, cooldowns: { [skill.id]: { remaining, readyAt: 4000 } } });
+      const app = projectionApp(profession, {
+        ...context,
+        cooldownsBySkillId: { [skill.id]: { remainingMs, readyAtMs: 4000 } }
+      });
       const planning = planningFixture(profession, { specialization: 'Untamed' }, (runtime) => {
         Object.assign(runtime.profession.specialization.state, { rangerUnleashed, ambushReadyUntil: time < 4 ? 4 : 0 });
       });
@@ -653,8 +665,8 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
     specialization: 'Core',
     professionState: { [STATE.AVAILABLE_FLIPS]: {} },
     time: 1,
-    cooldowns: {
-      [profession.catalog.skillsById.get(5695).id]: { remaining: 8000, readyAt: 9000 }
+    cooldownsBySkillId: {
+      [profession.catalog.skillsById.get(5695).id]: { remainingMs: 8000, readyAtMs: 9000 }
     }
   });
   const [skill] = displayedSkillTiles(app, [profession.catalog.skillsById.get(5695)]);
@@ -671,8 +683,8 @@ test('cooldown tooltip reports availability relative to combat start', async () 
   const skill = profession.catalog.skillsById.get(76961);
   const app = projectionApp(profession, {
     time: 14.84,
-    cooldowns: {
-      [skill.id]: { remaining: 8160, readyAt: 23000 }
+    cooldownsBySkillId: {
+      [skill.id]: { remainingMs: 8160, readyAtMs: 23000 }
     }
   });
   app.results.events = [{ type: 'combat_start', at: 10 }];

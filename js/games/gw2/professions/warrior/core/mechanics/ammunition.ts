@@ -16,7 +16,7 @@ export function spendWarriorMagazine(runtime: MechanicContext, cast: RuntimeCast
 
   if (extraRounds)
     runtime.cooldownController.reserveAmmo(cast.skill, extraRounds, {
-      startedAt: cast.rechargeStart,
+      workAnchorAt: cast.rechargeStart,
       work: cast.rechargeWork
     });
 }

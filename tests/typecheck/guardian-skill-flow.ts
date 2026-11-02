@@ -1,4 +1,5 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { guardianCoreModule } from '#gw2/professions/guardian/core/module.js';
@@ -10,6 +11,7 @@ import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 type Assert<T extends true> = T;
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+type NotKey<T, K extends PropertyKey> = K extends keyof T ? false : true;
 
 const firebrand = guardianProfession.runtimeFor({ specialization: 'Firebrand' });
 const luminary = guardianProfession.resolveProfession({ specialization: 'Luminary' });
@@ -25,8 +27,8 @@ export type GuardianSkillFlowAssertions = [
   Assert<Equal<(typeof luminary.catalog.skills)[number], GuardianSkill>>,
   Assert<Equal<Parameters<FirebrandAvailability>[1], GuardianSkill>>,
   Assert<Equal<Parameters<LuminaryCastStart>[1]['skill'], GuardianSkill>>,
-  Assert<Equal<Skill['tome'], unknown>>,
-  Assert<Equal<GuardianSkill['dragonSlash'], unknown>>
+  Assert<NotKey<Skill, 'tome'>>,
+  Assert<NotKey<GuardianSkill, 'dragonSlash'>>
 ];
 
 // ID/name lookups and accepted casts expose Guardian fields directly, without local assertions.
@@ -46,7 +48,6 @@ export function guardianHookSkillReads(
 const invalidDefinitions: Record<string, SkillDefinition<GuardianSkill>> = {
   1: {
     name: 'Fixture',
-    description: 'Fixture skill.',
     icon: 'fixture.png',
     // @ts-expect-error Guardian module data preserves the declared type of known profession fields.
     radiantForgeSkill: 'active'
@@ -55,5 +56,5 @@ const invalidDefinitions: Record<string, SkillDefinition<GuardianSkill>> = {
 createNativeModuleData<GuardianSkill>({
   id: 'Core',
   traitLines: TRAIT_LINES,
-  skillMechanics: invalidDefinitions
+  skills: materializeSkillDefinitions(invalidDefinitions)
 });

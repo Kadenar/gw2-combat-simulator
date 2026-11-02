@@ -28,7 +28,7 @@ const IMPACT = 'harbinger.elixir-impact';
 /** Elixir launch spends live Blight before queuing its independent local and hostile impact. */
 function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>, impactAt: number): void {
   const empowered = spendBlight(runtime, cast);
-  const blight = harbingerState.from(runtime).blightExpiries.length;
+  const blight = harbingerState.from(runtime.profession).blightExpiries.length;
   runtime.fireTrigger(harbingerElixirLaunched, { cast });
 
   runtime.scheduleForCast(IMPACT, impactAt, cast, { empowered, blight });
@@ -37,7 +37,7 @@ function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast<Necromancer
 /** Elixir acceptance queues its launch; only launch spends Blight and selects empowerment. */
 const harbingerElixirActions = {
   'harbinger.elixir-launch'(runtime, context) {
-    if (context.kind !== 'cast' || context.cast.cancelled) return;
+    if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
 
     const cast = context.cast;
     const strike = cast.skill.effects?.find((effect) => effect.type === 'strike');
@@ -63,7 +63,7 @@ const harbingerElixirTasks = {
     };
     const action = requireSkillAction(cast.skill, 'empowered');
     addBlight(
-      harbingerState.from(runtime),
+      harbingerState.from(runtime.profession),
       skillNumber(cast.skill, 'blightGain'),
       runtime.time,
       harbingerBlightMaximum(runtime)

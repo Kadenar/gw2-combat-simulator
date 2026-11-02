@@ -1,5 +1,6 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterBuffPolicies } from '#gw2/professions/thief/specializations/specter/effect-state.js';
 import {
@@ -19,7 +20,7 @@ export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   buffPolicies: specterBuffPolicies,
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill) {
-    specterState.from(runtime).shadowShroudActive = Boolean(skill?.shadowShroudSkill);
+    specterState.from(runtime.profession).shadowShroudActive = Boolean(skill?.shadowShroudSkill);
   },
 
   sideEffectHandlers: {
@@ -27,7 +28,7 @@ export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       if (context.kind === 'cast') completeSiphon(runtime, context.cast);
     },
     'thief.enter-shadow-shroud'(runtime, context) {
-      specterState.from(runtime).shadowShroudExitReadyAt = runtime.time + 0.5;
+      specterState.from(runtime.profession).shadowShroudExitReadyAt = runtime.time + 0.5;
       setShadowShroud(runtime, true, context.skill);
     },
     'thief.exit-shadow-shroud'(runtime, context) {
@@ -46,7 +47,7 @@ export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   availability: specterAvailability,
   onCastStart(runtime, cast) {
     // Shared start payment precedes this conversion of gross initiative cost into Shadow Force.
-    const cost = cast.skill.initiativeCost || 0;
+    const cost = thiefInitiativeCost(cast.skill);
 
     if (cost > 0)
       runtime.resourceController.grant(
@@ -56,7 +57,7 @@ export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   },
   onCooldownReset(runtime) {
     // The training-area reset refills Shadow Force without forcing Specter out of Shadow Shroud.
-    runtime.resourceController.grant('shadowForce', specterState.from(runtime).shadowClock.maximum);
+    runtime.resourceController.grant('shadowForce', specterState.from(runtime.profession).shadowClock.maximum);
   },
 
   tasks: {

@@ -8,7 +8,7 @@ import {
   validateElementalistBuild
 } from '#gw2/professions/elementalist/build/build.js';
 import { elementalistAttunementRechargeDuration } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { ELEMENTALIST_CORE_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/index.js';
+import { ELEMENTALIST_CORE_SKILLS } from '#gw2/professions/elementalist/core/skills/index.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -106,7 +106,7 @@ test('Elementalist build defaults and canonical builds normalize explicitly', ()
 });
 
 test('Elementalist canonical condition timelines preserve their packet start and applications', () => {
-  const frostStorm = ELEMENTALIST_CORE_SKILL_MECHANICS[ID.FROST_STORM];
+  const frostStorm = ELEMENTALIST_CORE_SKILLS.find((skill) => skill.id === ID.FROST_STORM);
   const [strike, bleeding] = frostStorm.effects;
 
   assert.equal(strike.type, 'strike');
@@ -120,8 +120,8 @@ test('Elementalist canonical condition timelines preserve their packet start and
     strike.ticks.slice(1).map(({ atMs }) => atMs)
   );
 
-  const [hurlStrike, hurlBleeding] = ELEMENTALIST_CORE_SKILL_MECHANICS[ID.HURL].effects;
-  assert.equal(ELEMENTALIST_CORE_SKILL_MECHANICS[ID.HURL].effects.length, 2);
+  const [hurlStrike, hurlBleeding] = ELEMENTALIST_CORE_SKILLS.find((skill) => skill.id === ID.HURL).effects;
+  assert.equal(ELEMENTALIST_CORE_SKILLS.find((skill) => skill.id === ID.HURL).effects.length, 2);
   assert.equal(hurlStrike.type, 'strike');
   assert.equal(hurlBleeding.type, 'condition');
 
@@ -136,7 +136,7 @@ test('Elementalist canonical condition timelines preserve their packet start and
 });
 
 test('Elementalist canonical strike timelines retain per-packet combat metadata', () => {
-  const fieryWhirl = ELEMENTALIST_CORE_SKILL_MECHANICS[ID.FIERY_WHIRL];
+  const fieryWhirl = ELEMENTALIST_CORE_SKILLS.find((skill) => skill.id === ID.FIERY_WHIRL);
   const strike = fieryWhirl.effects[0];
 
   assert.equal(strike.type, 'strike');

@@ -8,13 +8,13 @@ import { willbenderVirtueTriggered } from '#gw2/professions/guardian/specializat
 import { bindWillbenderUi } from '#gw2/professions/guardian/specializations/willbender/presentation.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { captureTriggerPoint } from '#tests/helpers/trigger-points.js';
 
 const ui = bindWillbenderUi(guardianCatalog);
 const config = { specialization: 'Willbender' };
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const virtues = [
   ['justice', ID.RUSHING_JUSTICE, STATE.JUSTICE_UNTIL],
   ['resolve', ID.FLOWING_RESOLVE, STATE.RESOLVE_UNTIL],

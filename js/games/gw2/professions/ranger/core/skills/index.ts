@@ -1,8 +1,8 @@
-import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 /**
  * Composes Core Ranger pet, slot, weapon, and simulator-action skill catalogs.
  * Persistent pet and weapon state remain in `core/mechanics/`.
  */
+import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_CORE_ACTION_SKILLS } from '#gw2/professions/ranger/core/skills/actions.js';
 import { RANGER_CORE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/index.js';
@@ -27,7 +27,7 @@ import { RANGER_CORE_SWORD_SKILL_MECHANICS } from '#gw2/professions/ranger/core/
 import { RANGER_CORE_TORCH_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/weapons/torch.js';
 import { RANGER_CORE_WARHORN_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/weapons/warhorn.js';
 
-export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
+const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
   RANGER_CORE_PET_SKILL_MECHANICS,
   RANGER_CORE_SLOT_SKILL_MECHANICS,
   RANGER_CORE_AXE_SKILL_MECHANICS,
@@ -45,7 +45,9 @@ export const RANGER_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
 );
 
 /** Preserves the public declaration order while each family owns its identities. */
-export const RANGER_CORE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
+/** One complete module collection includes authored skills, generated attacks, and simulator actions. */
+export const RANGER_CORE_SKILLS: readonly Skill[] = Object.freeze([
+  ...materializeSkillDefinitions(RANGER_CORE_BASE_SKILL_MECHANICS),
   ...RANGER_CORE_TRAIT_SKILLS,
   ...RANGER_CORE_SPEAR_EXTRA_SKILLS,
   ...RANGER_CORE_AXE_EXTRA_SKILLS,

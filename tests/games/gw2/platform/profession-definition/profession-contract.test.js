@@ -5,6 +5,7 @@ import { defineProfession } from '#gw2/platform/profession-definition/compile-co
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { planningState } from '#gw2/platform/results/planning-state.js';
+import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // JavaScript definitions must fail before obsolete or misspelled declarations can lose their formulas.
@@ -16,15 +17,6 @@ test('profession normalization rejects unsupported modifier declarations', () =>
         message: `Unsupported modifiers field: ${key}.`
       });
     }
-
-    for (const modifiers of [false, 1, []]) {
-      assert.throws(() => define({ id: 'invalid', name: 'Invalid', modifiers }), /modifiers must be an object/);
-    }
-
-    assert.throws(
-      () => define({ id: 'invalid', name: 'Invalid', modifiers: { modifierRules: {} } }),
-      /modifierRules must be an array/
-    );
   }
 });
 
@@ -52,18 +44,13 @@ test('profession contract supplies defaults and deterministic hook ordering', ()
 });
 
 // Projection has one callback; absent or undefined output delegates to the observer's detached fallback.
-test('planning projection preserves the selected callback and rejects hook descriptors', () => {
+test('planning projection preserves the selected callback', () => {
   const project = ({ profession }) => ({ value: profession.value });
   const definition = { id: 'projection-callback', name: 'Projection callback' };
   const selected = defineProfession({ ...definition, resources: { projectPlanningState: project } });
   assert.equal(selected.projectPlanningState, project);
   assert.deepEqual(selected.projectPlanningState({ profession: { value: 3 } }), { value: 3 });
   assert.equal(defineProfession(definition).projectPlanningState({ profession: {} }), undefined);
-  for (const invalid of [[project], { id: 'projection', handler: project }])
-    assert.throws(
-      () => defineProfession({ ...definition, resources: { projectPlanningState: invalid } }),
-      /resources.projectPlanningState must be a function/
-    );
 
   const family = defineTestProfession({ ...definition, resources: { createState: () => ({ nested: { value: 3 } }) } });
   for (const projectPlanningState of [undefined, () => undefined]) {
@@ -174,7 +161,7 @@ test('module projections compose Core and only the selected specialization', () 
       state: {
         create: () => ({ [id]: { value: 1 }, [id + 'Private']: true }),
         project: ({ profession }) => ({
-          [id]: structuredClone((id === 'Core' ? profession.core : profession.specialization.state)[id])
+          [id]: (id === 'Core' ? profession.core : profession.specialization.state)[id]
         })
       }
     })
@@ -183,7 +170,7 @@ test('module projections compose Core and only the selected specialization', () 
   for (const specialization of ['Core', 'First', 'Second']) {
     const runtime = family.runtimeFor({ specialization });
     const profession = runtime.createState({ specialization });
-    const projected = runtime.projectPlanningState({ profession });
+    const projected = projectObservedState(family, { profession });
     assert.deepEqual(Object.keys(projected).sort(), [...new Set(['Core', specialization])].sort());
     projected.Core.value = 9;
     assert.equal(profession.core.Core.value, 1);

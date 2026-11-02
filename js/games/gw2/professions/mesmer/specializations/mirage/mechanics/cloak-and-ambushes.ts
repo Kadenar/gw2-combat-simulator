@@ -65,7 +65,7 @@ export function createMirageActionController({
 
     at = canonicalTime(at);
     // Every creation path discards expired mirrors so no expiry task is needed to bound the live collection.
-    const owner = mirageState.from(state);
+    const owner = mirageState.from(state.profession);
     owner.mirrors = owner.mirrors.filter((mirror) => mirror.expiresAt > at);
     for (let index = 0; index < Math.max(0, count); index += 1) {
       owner.mirrors.push({
@@ -78,7 +78,7 @@ export function createMirageActionController({
   // Executes clone ambush attacks at the specified time, optionally for a given set of clones.
   const executeCloneAmbushes = (
     at: number,
-    clones: readonly MesmerClone[] = professionCoreState(state).clones,
+    clones: readonly MesmerClone[] = professionCoreState(state.profession).clones,
     delivery: EffectDelivery = {}
   ) => {
     state.fireTrigger(mirageCloneAmbushRequested, {
@@ -96,8 +96,11 @@ export function createMirageActionController({
   const grantAmbushWindow = (at: number, source: string, delivery: EffectDelivery = {}) => {
     const duration = balanceNumberFromContext(state, TRAIT.MIRAGE_CLOAK, 'durationPerTier');
     at = canonicalTime(at);
-    mirageState.from(state).ambushUntil = Math.max(mirageState.from(state).ambushUntil, canonicalTime(at + duration));
-    mirageState.from(state).ambushSource = source;
+    mirageState.from(state.profession).ambushUntil = Math.max(
+      mirageState.from(state.profession).ambushUntil,
+      canonicalTime(at + duration)
+    );
+    mirageState.from(state.profession).ambushSource = source;
     {
       const packet = buildMesmerPacket({
         type: 'marker',
@@ -157,13 +160,13 @@ export function createMirageActionController({
     const impactAt = ambush.player.damageAtMs == null ? at : castStart + ambush.player.damageAtMs / 1000;
     state.fireTrigger(mirageAmbushAccepted, { ambush, impactAt, delivery });
 
-    mirageState.from(state).ambushUntil = 0;
-    mirageState.from(state).ambushSource = '';
+    mirageState.from(state.profession).ambushUntil = 0;
+    mirageState.from(state.profession).ambushSource = '';
   };
 
   // Attempts to pick up a Mirage Mirror at the given time, applying damage and granting Mirage Cloak if successful.
   const pickUpMirror = (at: number, skill: MesmerSkill) => {
-    const mirrors = mirageState.from(state).mirrors;
+    const mirrors = mirageState.from(state.profession).mirrors;
     const index = mirrors.findIndex((mirror) => isTimeInWindow(at, mirror.availableAt, mirror.expiresAt));
 
     if (index < 0) return false;
@@ -232,7 +235,7 @@ export function mirageAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
   }
 
   if (skill.id === ID.PICK_UP_MIRAGE_MIRROR) {
-    const mirrors = mirageState.from(context).mirrors;
+    const mirrors = mirageState.from(context.profession).mirrors;
 
     if (mirrors.some((mirror) => isTimeInWindow(context.time, mirror.availableAt, mirror.expiresAt))) {
       return { ready: true };
@@ -241,7 +244,7 @@ export function mirageAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
     // A queued mirror-creation trigger is a valid retry boundary even though
     // the mirror does not enter specialization state until that task executes.
     const retryAt = Math.min(
-      ...mirageState.from(context).pendingMirrorAts,
+      ...mirageState.from(context.profession).pendingMirrorAts,
       ...mirrors.filter((mirror) => mirror.expiresAt > context.time).map((mirror) => mirror.availableAt)
     );
     return {
@@ -257,7 +260,7 @@ export function mirageAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
   // Eligibility needs selected weapon identity and committed windows, not illusion controllers.
   const weapon = gw2ActivePrimaryWeapon(context.config, context.activeWeaponSet === 1 ? 1 : 2) || '';
   const activeAmbush = MESMER_MIRAGE_AMBUSH_SKILLS[weapon];
-  const state = mirageState.from(context);
+  const state = mirageState.from(context.profession);
   // An ambush selected during the preceding cast remains queued through its lockout. A later wait or cooldown
   // cannot extend that queue: the preceding cast must still occupy the lane at this action's start.
   const queuedAmbush = context.facts
@@ -290,7 +293,7 @@ export function mirageAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
 
 /** Binds shared endurance operations to this module's live pool and balance rules. */
 export const mirageEndurance: EndurancePolicy<MesmerRuntime> = {
-  state: (context) => mirageState.from(context).endurance,
+  state: (context) => mirageState.from(context.profession).endurance,
   maximum: () => ENDURANCE.maximum,
   regenerationRate: (_context, vigor) => enduranceRegenerationRate(vigor)
 };

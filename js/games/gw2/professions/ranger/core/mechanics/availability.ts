@@ -23,7 +23,7 @@ export function rangerCoreCastAvailability(
   context: MechanicQueriesOf<RangerRuntime>,
   skill: RangerSkill
 ): AvailabilityResult {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
 
   if (skill.id === ID.PET_SWAP && !state.pet) {
     return denySkillCast(skill, 'ranger.pet-inactive', 'the active specialization has replaced the pet.');

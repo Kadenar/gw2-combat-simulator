@@ -5,11 +5,11 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
-export const SOULBEAST_WARCLAW_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const SOULBEAST_WARCLAW_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.BATTLE_MAUL]: {
     name: 'Battle Maul',
-    description: 'Pounce on foes.',
     icon: 'https://render.guildwars2.com/file/7F07067F9ADD0BB42406165C060F422E63EFB1AC/3379167.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -32,7 +32,6 @@ export const SOULBEAST_WARCLAW_BEAST_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.BOP]: {
     name: 'Bop',
-    description: 'Smack your foe to knock them down.',
     icon: 'https://render.guildwars2.com/file/B7474B75A6C14CE0FF295523AADCA5A5F2C1621B/3379168.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -47,4 +46,4 @@ export const SOULBEAST_WARCLAW_BEAST_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   }
-});
+};

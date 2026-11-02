@@ -29,13 +29,13 @@ export function hasPistolBullet(
 
 /** Elemental Explosion's prerequisite: one stored bullet of every element. */
 export function allPistolBulletsLoaded(context: MechanicQueriesOf<ElementalistRuntime>): boolean {
-  const bullets = professionCoreState(context).pistolBullets;
+  const bullets = professionCoreState(context.profession).pistolBullets;
   return ELEMENTALIST_ATTUNEMENTS.every((element) => bullets[element]);
 }
 
 /** Elemental Explosion empties the whole stock at once rather than spending one element's bullet. */
 export function spendAllPistolBullets(context: MechanicContext<ElementalistRuntimeState, ElementalistSkill>): void {
-  const bullets = professionCoreState(context).pistolBullets;
+  const bullets = professionCoreState(context.profession).pistolBullets;
   for (const element of ELEMENTALIST_ATTUNEMENTS) bullets[element] = false;
 }
 
@@ -48,12 +48,12 @@ export const pistolBulletSideEffectHandlers: RuntimeProfession<
     if (trigger.kind !== 'cast') throw new TypeError('Pistol bullets require a cast trigger.');
 
     const element = trigger.skill.attunement as ElementalistAttunement;
-    const state = professionCoreState(context);
+    const state = professionCoreState(context.profession);
     state.pistolBullets[element] = !state.pistolBullets[element];
   },
   'elementalist.pistol.load'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Pistol bullets require a cast trigger.');
 
-    professionCoreState(context).pistolBullets[trigger.skill.attunement as ElementalistAttunement] = true;
+    professionCoreState(context.profession).pistolBullets[trigger.skill.attunement as ElementalistAttunement] = true;
   }
 };

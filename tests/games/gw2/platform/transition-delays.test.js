@@ -173,7 +173,7 @@ test('overheated Photon Forge applies exit recovery only at the explicit exit', 
   });
   assert.deepEqual(result.warnings, []);
   const overheat = result.events.find((event) => event.type === 'engineer.heat' && event.reason === 'overheat');
-  const exitStep = result.steps.find((step) => step.skill === 'Deactivate Photon Forge');
+  const exitStep = result.steps.find((step) => step.skillName === 'Deactivate Photon Forge');
   assert.ok(overheat.at < exitStep.start / 1000);
   const exits = result.events.filter(
     (event) => event.type === 'gw2.transition-lockout' && event.kind === 'forgeExitMs'
@@ -187,7 +187,7 @@ test('overheated Photon Forge applies exit recovery only at the explicit exit', 
 test('transition recovery is occupied timeline time without an injected Wait shape', () => {
   const result = simulate(['Swap Weapons', 'Next cast']);
   assert.equal(
-    result.steps.some((step) => step.skill === 'Wait'),
+    result.steps.some((step) => step.skillName === 'Wait'),
     false
   );
   // The cast waits another 20 ms for admission after the transition recovery ends.

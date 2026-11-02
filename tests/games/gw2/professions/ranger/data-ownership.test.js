@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import test from 'node:test';
 
-import { RANGER_CORE_BASE_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/index.js';
+import { RANGER_CORE_SKILLS } from '#gw2/professions/ranger/core/skills/index.js';
 import { RANGER_CORE_PET_SKILL_MECHANICS } from '#gw2/professions/ranger/core/skills/pets/index.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { SOULBEAST_BEAST_SKILL_MECHANICS } from '#gw2/professions/ranger/specializations/soulbeast/skills/beast-skills/index.js';
@@ -74,7 +74,11 @@ test('Core Ranger pet catalogs follow maintained pet-family ownership', async ()
   assertDisjointComposition(RANGER_CORE_PET_SKILL_MECHANICS, fragments);
 
   for (const [skillId, mechanics] of Object.entries(RANGER_CORE_PET_SKILL_MECHANICS)) {
-    assert.equal(RANGER_CORE_BASE_SKILL_MECHANICS[skillId], mechanics, skillId);
+    assert.deepEqual(
+      RANGER_CORE_SKILLS.find((skill) => String(skill.id) === skillId),
+      { ...mechanics, id: Number(skillId) },
+      skillId
+    );
   }
 });
 

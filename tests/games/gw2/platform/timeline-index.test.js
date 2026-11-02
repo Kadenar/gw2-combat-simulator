@@ -26,7 +26,7 @@ test('companion recharge windows isolate grants, extensions and retirement', () 
   const skill = { id: 1, rechargeBuffAudience: RECIPIENT.SUMMONS };
   const timeline = createGw2TimelineIndex({ events });
   const ready = (companionId) =>
-    projectRecharge({ startedAt: 0, work: 10 }, timeline.rechargeIntervals(skill, 0, Infinity, companionId));
+    projectRecharge({ workAnchorAt: 0, work: 10 }, timeline.rechargeIntervals(skill, 0, Infinity, companionId));
   assert.equal(ready('a'), 9);
   assert.equal(ready('b'), 9);
   assert.equal(ready('c'), 10);

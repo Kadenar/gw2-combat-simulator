@@ -1,8 +1,8 @@
-import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 /**
  * Composes owner-local Core Revenant skill catalogs without owning runtime behavior.
  * Balance profiles and execution live in sibling owner modules.
  */
+import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_CORE_EXTRA_SKILLS } from '#gw2/professions/revenant/core/skills/actions.js';
 import { REVENANT_LEGEND_CALL_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/legend-call-skills.js';
@@ -23,7 +23,7 @@ import { REVENANT_WEAPONS_STAFF_SKILL_MECHANICS } from '#gw2/professions/revenan
 import { REVENANT_WEAPONS_SWORD_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/weapons/sword.js';
 
 /** Preserves authored declaration order while each skill family owns its definitions. */
-export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
+const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
   REVENANT_LEGEND_CALL_SKILL_MECHANICS,
   REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS,
   REVENANT_DWARF_SKILL_MECHANICS,
@@ -42,4 +42,8 @@ export const REVENANT_CORE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDe
   REVENANT_WEAPONS_SWORD_SKILL_MECHANICS
 );
 
-export { REVENANT_CORE_EXTRA_SKILLS };
+/** One complete module collection includes authored skills, generated attacks, and simulator actions. */
+export const REVENANT_CORE_SKILLS = Object.freeze([
+  ...materializeSkillDefinitions(REVENANT_CORE_BASE_SKILL_MECHANICS),
+  ...REVENANT_CORE_EXTRA_SKILLS
+]);

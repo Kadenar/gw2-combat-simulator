@@ -63,7 +63,7 @@ export function isBuildSkillAvailable(
   skill: Skill,
   { specialization }: { readonly specialization?: string } = {}
 ): boolean {
-  if (skill.simulatorExcluded) return false;
+  if (skill.rotationInputExcluded) return false;
 
   return !skill.specialization || skill.specialization === specialization;
 }

@@ -26,7 +26,7 @@ export function bladeswornBuffPolicies(context: unknown): BuffStatePolicy[] {
 
 /** Observe live owner state so consumption and expiry agree with combat. */
 export function bladeswornEffectStates(runtime: MechanicQueriesOf<WarriorRuntime>): EffectState[] {
-  const state = bladeswornState.from(runtime);
+  const state = bladeswornState.from(runtime.profession);
   const maximum = balanceProfileNumber(balanceProfileFromContext(runtime, TRAIT.GUNS_AND_GLORY)!, 'maximumStacks');
   const latest = state.overchargedCartridgeWindows.at(-1);
   return [

@@ -1,6 +1,9 @@
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createDiscreteResourceClock, type DiscreteResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
@@ -49,16 +52,18 @@ function createFirebrandState(profileContext: {
 
 export const firebrandState = defineProfessionSpecializationState('Firebrand', createFirebrandState);
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectFirebrandPlanningState(input: Gw2PlanningStateInput) {
-  const state = firebrandState.from(input);
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectFirebrandPlanningState(
+  input: Gw2PlanningStateInput<SpecializationRuntimeState & { core: GuardianCoreState }>
+) {
+  const state = firebrandState.from(input.profession);
   // Tome observations include the shared virtue readiness owned by Core.
-  const core = (input.profession as { core: GuardianCoreState }).core;
-  return structuredClone({
+  const core = input.profession.core;
+  return {
     [STATE.ACTIVE_TOME]: state.activeTome,
     [STATE.TOME_PAGES]: state.tomePages,
     [STATE.ASHES]: state.ashes,
     [STATE.VIRTUE_READY_AT]: core.virtueReadyAt,
     [STATE.SWIFT_SCHOLAR_COUNT]: state.swiftScholarCount
-  });
+  };
 }

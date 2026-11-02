@@ -1,4 +1,4 @@
-import { dataField, defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
+import { defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
 
 /** Holosmith heat and Photon Forge fields read only by Holosmith mechanics. */
 export const HOLOSMITH_SKILL_FIELDS = defineFields(
@@ -19,8 +19,6 @@ export const HOLOSMITH_SKILL_FIELDS = defineFields(
     highExtraBlades: numberField({ patch: 'primary' }),
     enhancedExtraBlades: numberField({ patch: 'primary' }),
     kitLockoutDuration: numberField({ patch: 'primary', unit: 'seconds' }),
-    // Marks skills available only inside Photon Forge.
-    forgeSkill: dataField,
     // Heat added when the skill is used.
     heatGain: numberField(),
     // Heat removed when the skill is used.

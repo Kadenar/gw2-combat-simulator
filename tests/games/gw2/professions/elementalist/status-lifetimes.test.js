@@ -69,7 +69,7 @@ test('elemental commands and Lightning Jolt retain the final live microsecond wi
             at,
             priority: 40,
             run: (r) => {
-              const tempest = tempestState.from(r);
+              const tempest = tempestState.from(r.profession);
               tempest.pendingLightningJolt = null;
               r.config.selectedSkillIds = {};
               assert.equal(elementalistCoreAvailability(r, command).ready, at < 120.301);

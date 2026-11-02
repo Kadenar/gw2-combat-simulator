@@ -2,9 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Delayed commands must finish their own animation before the autonomous lane resumes.
 test('queued pet commands retain exclusive ownership of the pet lane', () => {

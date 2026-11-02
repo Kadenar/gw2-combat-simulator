@@ -17,7 +17,7 @@ export function luminaryBuffPolicies(): BuffStatePolicy[] {
 
 /** Observe the owning pools so consumption, replacement, and expiry agree with combat. */
 export function luminaryEffectStates(runtime: MechanicQueriesOf<GuardianRuntime>): EffectState[] {
-  const state = luminaryState.from(runtime);
+  const state = luminaryState.from(runtime.profession);
   const effects: EffectState[] = [];
   // Radiant Armaments replaces its predecessor even when the new weapon grants a shorter window.
   const armament = runtime.combat.buffApplications('guardian-radiant-armaments').at(-1);

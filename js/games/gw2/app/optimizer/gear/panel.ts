@@ -259,7 +259,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
               key: 'equipped',
               equipment: applied?.equipment || optimizerEquipment(runner.request.build),
               score: applied?.score || runner.state.baseline!,
-              represented: '1'
+              representedCombinationCount: '1'
             }
           : displayedResults()[index];
 
@@ -344,7 +344,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
         <div class="optimizer-pair">${Object.entries(OPTIMIZER_REQUIREMENTS)
           .map(
             ([key, label]) =>
-              `<label class="optimizer-infusion-count">${label}<input name="${key}" type="number" min="0" ${key.endsWith('Duration') ? 'max="100"' : ''} step="any" placeholder="No limit"></label>`
+              `<label class="optimizer-infusion-count">${label}<input name="${key}" type="number" min="0" ${key.endsWith('Percent') ? 'max="100"' : ''} step="any" placeholder="No limit"></label>`
           )
           .join('')}</div>
       </details>
@@ -491,7 +491,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
           .map((slot) => `<th scope="col" rowspan="2">${SLOT_LABELS[slot] || escapeHtml(slot)}</th>`)
           .join(
             ''
-          )}${weaponGroups.map((group, index) => `<th scope="colgroup" class="optimizer-set-start" colspan="${group.length + 2}">Weapon set ${sets[index] + 1}</th>`).join('')}<th scope="col" rowspan="2" class="optimizer-set-start">Rune</th><th scope="col" rowspan="2">Relic</th><th scope="col" rowspan="2">Food</th><th scope="col" rowspan="2">Utility</th><th scope="col" rowspan="2">Infusions</th></tr><tr>${weaponHeaders.map((headers) => `${headers}<th scope="colgroup" colspan="2">Sigils</th>`).join('')}</tr></thead><tbody>${candidates.map((candidate, index) => renderRow(candidate, index)).join('')}</tbody><tfoot>${equippedScore && runner.request ? renderRow({ key: 'equipped', equipment: applied?.equipment || optimizerEquipment(runner.request.build), score: equippedScore, represented: '1' }, -1, true) : ''}</tfoot></table></div>`
+          )}${weaponGroups.map((group, index) => `<th scope="colgroup" class="optimizer-set-start" colspan="${group.length + 2}">Weapon set ${sets[index] + 1}</th>`).join('')}<th scope="col" rowspan="2" class="optimizer-set-start">Rune</th><th scope="col" rowspan="2">Relic</th><th scope="col" rowspan="2">Food</th><th scope="col" rowspan="2">Utility</th><th scope="col" rowspan="2">Infusions</th></tr><tr>${weaponHeaders.map((headers) => `${headers}<th scope="colgroup" colspan="2">Sigils</th>`).join('')}</tr></thead><tbody>${candidates.map((candidate, index) => renderRow(candidate, index)).join('')}</tbody><tfoot>${equippedScore && runner.request ? renderRow({ key: 'equipped', equipment: applied?.equipment || optimizerEquipment(runner.request.build), score: equippedScore, representedCombinationCount: '1' }, -1, true) : ''}</tfoot></table></div>`
       : state.status === 'complete'
         ? '<p>No gear combinations met the requirements in this search.</p>'
         : '';

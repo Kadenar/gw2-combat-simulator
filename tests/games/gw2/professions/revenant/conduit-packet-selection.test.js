@@ -49,7 +49,7 @@ test('Beguiling selects its final follow-up before consuming the charge, even wi
     );
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
-    assert.equal(conduitState.from(runtime).beguilingHazeCharges, 0);
+    assert.equal(conduitState.from(runtime.profession).beguilingHazeCharges, 0);
     assert.equal(runtime.cooldownController.readAmmo(skillId).maximum, 1);
     assert.ok(runtime.cooldownController.readAmmo(skillId).nextRechargeAt > runtime.time);
     const followUp = result.events.find(

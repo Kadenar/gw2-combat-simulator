@@ -22,6 +22,7 @@ import { thiefDeadlyArtsTooltips } from '#gw2/professions/thief/app/tooltips/dea
 import { thiefShadowArtsTooltips } from '#gw2/professions/thief/app/tooltips/shadow-arts.js';
 import { stealthAttack } from '#gw2/professions/thief/app/tooltips/shared.js';
 import { thiefTrickeryTooltips } from '#gw2/professions/thief/app/tooltips/trickery.js';
+import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { spearChainStageForSkill } from '#gw2/professions/thief/data/spear-chain-stages.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
@@ -85,9 +86,9 @@ const venomTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
 
 const assassinsSignetTooltip: DescribeSimulationTooltip = skillTooltip(
   'Passively grants power while ready. Activation temporarily replaces the passive bonus with the larger active bonus; the passive returns when recharge ends.',
-  (_context, skill) => [
+  (_context, skill: ThiefSkill) => [
     { name: 'Passive power', detail: String(skill.attributeBonuses!.power) },
-    { name: 'Active power', detail: String(skill.activePowerBonus) },
+    { name: 'Active power', detail: String(skill.activeAttributeBonuses!.power) },
     { name: 'Active duration', detail: tooltipSeconds(tooltipNumber(skill, 'duration')) }
   ]
 );
@@ -168,14 +169,12 @@ const spearChainTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const thiefCoreTooltips = {
   skillFacts: (_c, entity) => [
-    ...[
-      ['initiativeCost', 'Initiative cost'],
-      ['resourceGain', 'Endurance restored']
-    ].flatMap(([field, name]) =>
-      typeof entity[field] === 'number' && entity[field] > 0
-        ? [{ name, detail: tooltipDecimal(tooltipNumber(entity, field)) }]
-        : []
-    ),
+    ...(thiefInitiativeCost(entity) > 0
+      ? [{ name: 'Initiative cost', detail: tooltipDecimal(thiefInitiativeCost(entity)) }]
+      : []),
+    ...(typeof entity.resourceGain === 'number' && entity.resourceGain > 0
+      ? [{ name: 'Endurance restored', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) }]
+      : []),
     ...(entity.flipDuration == null
       ? []
       : [{ name: 'Follow-up window', detail: tooltipSeconds(tooltipNumber(entity, 'flipDuration')) }])

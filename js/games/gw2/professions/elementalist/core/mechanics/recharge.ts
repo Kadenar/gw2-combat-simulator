@@ -7,7 +7,7 @@ import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effect
 import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import { reservePistolRecharge } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /**
  * Handles held cooldowns and skill-owned scaling without spending next-cast empowerments.
@@ -15,7 +15,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
  */
 export function elementalistRechargeWork(
   _context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill,
+  skill: ElementalistSkill,
   duration: number,
   releasing = false
 ): number {
@@ -42,7 +42,7 @@ export function elementalistRechargeWork(
 export function reserveElementalistRecharge(context: ElementalistRuntime, skill: Skill, duration: number): number {
   if (skill.type !== 'Weapon' || String(skill.slot || '') === 'Weapon_1') return duration;
 
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
 
   if (state.spearNextRechargeReduction && skillWeapon(skill) === WEAPON.SPEAR) {
     state.spearNextRechargeReduction = false;

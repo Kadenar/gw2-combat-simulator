@@ -40,7 +40,8 @@ export function eventCausalOrder(event: Pick<QueuedEvent, 'causalOrder' | 'event
 
 interface HeapEntry<T extends QueuedEvent> {
   readonly event: T;
-  readonly time: number;
+  /** Integer microseconds preserve exact queue ordering while public event timestamps remain seconds. */
+  readonly timeKeyMicroseconds: number;
   readonly phase: number;
   readonly causalOrder: number | null;
   readonly sequence: number;
@@ -51,7 +52,7 @@ interface HeapEntry<T extends QueuedEvent> {
 
 function compareHeapEntries<T extends QueuedEvent>(left: HeapEntry<T>, right: HeapEntry<T>): number {
   return (
-    left.time - right.time ||
+    left.timeKeyMicroseconds - right.timeKeyMicroseconds ||
     left.phase - right.phase ||
     left.priority - right.priority ||
     (left.causalOrder ?? Infinity) - (right.causalOrder ?? Infinity) ||
@@ -115,7 +116,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
 
     return {
       event,
-      time: timeKey(at),
+      timeKeyMicroseconds: timeKey(at),
       phase,
       causalOrder: eventCausalOrder(event) ?? this.currentCausalOrder,
       explicitCausalOrder: eventCausalOrder(event),
@@ -151,7 +152,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
 
     // Keys are captured in the heap; reject edits instead of silently dispatching a corrupted packet.
     if (
-      first.event.at !== first.time / 1_000_000 ||
+      first.event.at !== first.timeKeyMicroseconds / 1_000_000 ||
       Number(first.event.priority ?? 0) !== first.priority ||
       eventCausalOrder(first.event) !== first.explicitCausalOrder
     ) {
@@ -177,7 +178,7 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     at = canonicalTime(at);
     this.peek();
 
-    if (this.heap[0] && this.heap[0].time <= timeKey(at)) {
+    if (this.heap[0] && this.heap[0].timeKeyMicroseconds <= timeKey(at)) {
       throw new RangeError(`Cannot advance past pending work at ${at}s from ${source}.`);
     }
 
@@ -206,7 +207,11 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     if (!this.peek()) return undefined;
 
     const first = this.removeHead()!;
-    this.moveFrontier(first.time / 1_000_000, first.phase, String(first.event.sourceId ?? first.event.type ?? 'event'));
+    this.moveFrontier(
+      first.timeKeyMicroseconds / 1_000_000,
+      first.phase,
+      String(first.event.sourceId ?? first.event.type ?? 'event')
+    );
     this.currentCausalOrder = first.causalOrder;
     return first.event;
   }

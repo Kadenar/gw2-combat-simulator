@@ -30,7 +30,6 @@ import {
   artifactsPilfered,
   type ArtifactPilfer
 } from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
-import type { AntiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import {
   METICULOUS_ARTIFACT_STRIKE_IDS,
@@ -72,7 +71,7 @@ const combatHigh = defineTrait({
 
       amount: (context) =>
         activeStackCount(
-          thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpirations || [],
+          thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').combatHighExpirations || [],
           context.time
         ) * balanceNumberFromContext(context, TRAIT.COMBAT_HIGH, 'damageIncreasePerStack'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
@@ -85,7 +84,7 @@ const combatHigh = defineTrait({
 
       amount: (context) =>
         activeStackCount(
-          thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').combatHighExpirations || [],
+          thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').combatHighExpirations || [],
           context.time
         ) * balanceNumberFromContext(context, TRAIT.COMBAT_HIGH, 'conditionDamageIncreasePerStack'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
@@ -124,7 +123,8 @@ const exhilaratingEphemera = defineTrait({
       amount: (context) => balanceNumberFromContext(context, TRAIT.EXHILARATING_EPHEMERA, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        (thiefRuntimeSpecializationState<AntiquaryState>(context, 'Antiquary').antiquaryDamageUntil || 0) > context.time
+        (thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').antiquaryDamageUntil || 0) >
+          context.time
     }
   ],
   triggers: [onTriggerPoint(artifactActivated, { run: applyExhilaratingEphemera })]
@@ -295,7 +295,7 @@ function grantCombatHigh(runtime: ThiefRuntime): void {
   const maximum = Math.max(0, Math.trunc(balanceProfileNumber(profile, 'maximumStacks')));
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   const expiresAt = runtime.time + balanceProfileNumber(profile, 'duration');
-  antiquaryState.from(runtime).combatHighExpirations =
+  antiquaryState.from(runtime.profession).combatHighExpirations =
     interval > 0
       ? purgeExpiredStacks(
           Array.from({ length: maximum }, (_, index) => canonicalTime(expiresAt - index * interval)),
@@ -313,7 +313,7 @@ function applyEnterprisingAristocrat(runtime: ThiefRuntime): void {
 
 /** Applies exhilarating ephemera at the original artifact boundary. */
 function applyExhilaratingEphemera(runtime: ThiefRuntime): void {
-  const state = antiquaryState.from(runtime);
+  const state = antiquaryState.from(runtime.profession);
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EXHILARATING_EPHEMERA);
   const remaining = Math.max(0, (state.antiquaryDamageUntil || 0) - runtime.time);
   state.antiquaryDamageUntil =
@@ -364,7 +364,7 @@ function applyRepeatRansacker(runtime: ThiefRuntime): void {
 
 /** Scoundrel's Luck refreshes to its cap only when its internal cooldown is ready, so charges never bank. */
 function grantScoundrelsLuck(runtime: ThiefRuntime): void {
-  const state = antiquaryState.from(runtime);
+  const state = antiquaryState.from(runtime.profession);
 
   if (!runtime.procs.claim(TRAIT.SCOUNDRELS_LUCK, 'thief.antiquary.scoundrelsLuck', runtime.time)) return;
 

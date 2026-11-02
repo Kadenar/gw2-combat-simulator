@@ -55,7 +55,7 @@ export const crackShot = defineTrait({
 });
 
 /** Owns this trait's tuning and selected contributions. */
-export const burstMastery = defineTrait({
+export const burstMastery = defineTrait<WarriorSkill>({
   id: TRAIT.BURST_MASTERY,
   balance: {
     damageMultiplier: 1.15,
@@ -70,7 +70,8 @@ export const burstMastery = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumberFromContext(context, TRAIT.BURST_MASTERY, 'damageMultiplier'),
       order: 100,
-      when: (context) => Boolean(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.burst)
+      when: (context) =>
+        Boolean(skillForEvent<WarriorSkill>(context.profession?.catalog, context.event, context.skillId)?.burst)
     }
   ],
   triggers: [
@@ -136,7 +137,7 @@ export const versatileRage = defineTrait({
 });
 
 /** Reduce burst recharge, including Dragon Trigger, which owns the recharge for Dragon Slash. */
-export const versatilePower = defineTrait({
+export const versatilePower = defineTrait<WarriorSkill>({
   id: TRAIT.VERSATILE_POWER,
   balance: { rechargeMultiplier: 0.85 },
   rechargeRules: [

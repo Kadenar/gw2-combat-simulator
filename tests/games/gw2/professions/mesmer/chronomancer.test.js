@@ -54,12 +54,15 @@ test('manual and automatic Continuum exits preserve Mimic recharge and its utili
   ]) {
     const before = simulateMesmer(prefix, config);
     assert.deepEqual(before.warnings, []);
-    assert.ok(before.planningState.cooldowns[ID.MIMIC]);
+    assert.ok(before.planningState.cooldownsBySkillId[ID.MIMIC]);
     for (const exit of [[{ name: '__wait', waitMs: 1000 }, 'Continuum Shift'], [{ name: '__wait', waitMs: 8000 }]]) {
       const after = simulateMesmer([...prefix, ...exit], config);
       assert.deepEqual(after.warnings, []);
       assert.ok(after.events.some((event) => event.type === 'marker' && event.name === 'Continuum Shift'));
-      assert.equal(after.planningState.cooldowns[ID.MIMIC].readyAt, before.planningState.cooldowns[ID.MIMIC].readyAt);
+      assert.equal(
+        after.planningState.cooldownsBySkillId[ID.MIMIC].readyAtMs,
+        before.planningState.cooldownsBySkillId[ID.MIMIC].readyAtMs
+      );
     }
   }
 });
@@ -96,7 +99,7 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
   continuum.beginContinuumSplit({ id: 980001 }, 1);
   continuum.restoreContinuum(4, 'test');
   assert.equal(cooldown.readyAt(skill.id), 13);
-  assert.deepEqual(cooldown.rechargeFor(skill.id), { startedAt: 4, work: 13.5 });
+  assert.deepEqual(cooldown.rechargeFor(skill.id), { workAnchorAt: 4, work: 13.5 });
 });
 
 test('Continuum restoration projects ammo without checkpoint-relative fields', () => {
@@ -168,8 +171,8 @@ test('Phantasmal Lancer converts after recovery and Chronophantasma repeats befo
       selectedTraitIds: [TRAIT.CHRONOPHANTASMA]
     })
   );
-  const normalCastEnd = normal.steps.find((step) => step.skill === 'Phantasmal Lancer').end / 1000;
-  const chronoCastEnd = chronophantasma.steps.find((step) => step.skill === 'Phantasmal Lancer').end / 1000;
+  const normalCastEnd = normal.steps.find((step) => step.skillName === 'Phantasmal Lancer').end / 1000;
+  const chronoCastEnd = chronophantasma.steps.find((step) => step.skillName === 'Phantasmal Lancer').end / 1000;
   const normalDamage = normal.resolvedEvents.find(
     (event) => event.type === 'damage' && event.skillName === 'Phantasmal Lancer' && event.source === 'Phantasm'
   );
@@ -217,7 +220,7 @@ test('Chronophantasma conversions preserve clone spends across a Continuum Split
   );
   const spends = result.events
     .filter((event) => event.type === 'resource' && event.reason === 'profession mechanic')
-    .map((event) => [result.steps.find((step) => step.activationId === event.activationId)?.skill, -event.amount]);
+    .map((event) => [result.steps.find((step) => step.activationId === event.activationId)?.skillName, -event.amount]);
 
   assert.deepEqual(spends, [
     ['Continuum Split', 2],
@@ -262,9 +265,9 @@ test('a cooldown-delayed Continuum Split still excludes a skill that remains in 
       secondaryWeapon: 'Sword'
     })
   );
-  const delayedSplit = result.steps.find((step) => step.ri === 5);
-  const firstSwordsman = result.steps.find((step) => step.ri === 4);
-  const restoredSwordsman = result.steps.find((step) => step.ri === 7);
+  const delayedSplit = result.steps.find((step) => step.rotationCommandIndex === 5);
+  const firstSwordsman = result.steps.find((step) => step.rotationCommandIndex === 4);
+  const restoredSwordsman = result.steps.find((step) => step.rotationCommandIndex === 7);
 
   assert.equal(delayedSplit.start, 70040);
   assert.equal(restoredSwordsman.start, firstSwordsman.end);
@@ -309,7 +312,7 @@ test('mid-rotation concurrent Continuum Split does not restore expired cooldowns
     })
   );
 
-  assert.equal(result.steps.find((step) => step.skill === 'Continuum Split').start, 14600);
+  assert.equal(result.steps.find((step) => step.skillName === 'Continuum Split').start, 14600);
   assert.equal(result.steps.at(-1).start, result.steps.at(-2).end);
 });
 

@@ -1,13 +1,11 @@
 import { attributeFields } from '#gw2/platform/skills/attribute-fields.js';
-import { dataField, defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
+import { defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
 
 /** Conduit fields read only by Conduit mechanics. */
 export const CONDUIT_SKILL_FIELDS = defineFields(
   {
     // Release Potential: Dervish unlocks unequipped-legend rewards at this Affinity count.
-    allLegendAffinityThreshold: numberField({ patch: 'advanced' }),
-    // Grants legend affinity when the skill hits.
-    affinityOnHit: dataField
+    allLegendAffinityThreshold: numberField({ patch: 'advanced' })
   },
   'Conduit'
 );

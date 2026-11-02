@@ -35,6 +35,7 @@ import {
 } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
+import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 import type {
   EngineerModifierContext,
   EngineerResolverEvent,
@@ -46,7 +47,7 @@ export function evolveAttributeFactor(context: EngineerModifierContext): number 
   if (hasTrait(context, TRAIT.DOUBLE_HELIX))
     return balanceNumberFromContext(context, TRAIT.DOUBLE_HELIX, 'coefficientMultiplier');
 
-  const skill = requireSkillFromContext(context, ID.EVOLVE_BASE);
+  const skill: AmalgamSkill = requireSkillFromContext(context, ID.EVOLVE_BASE);
   return requireBalanceNumber(skill.attributeMultiplier, `${skill.name} attributeMultiplier`);
 }
 
@@ -231,7 +232,7 @@ export const amalgamTraits = [
 
 /** Willing Host's damage window extends from each committed Morph. */
 function extendWillingHost(context: EngineerRuntime, { at }: AmalgamMorph): void {
-  const state = amalgamState.from(context);
+  const state = amalgamState.from(context.profession);
   state.willingHostUntil = Math.max(
     state.willingHostUntil,
     at + balanceNumberFromContext(context, TRAIT.WILLING_HOST, 'duration')
@@ -299,7 +300,8 @@ function grantNewGenes(context: EngineerRuntime, { morphKind, at }: AmalgamMorph
  * applied silently; reporting it misstated the summed remaining recharge as one Evolve cooldown reduction.
  */
 function resetMorphRecharge(context: EngineerRuntime): void {
-  for (const skillId of amalgamState.from(context).selectedMorphSkillIds) context.cooldownController.clear(skillId);
+  for (const skillId of amalgamState.from(context.profession).selectedMorphSkillIds)
+    context.cooldownController.clear(skillId);
 }
 
 /** Carbolic uses assembled Amalgam ownership for skill hits and accepts the Rapacious effect, excluding summons. */

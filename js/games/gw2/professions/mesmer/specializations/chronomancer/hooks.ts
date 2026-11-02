@@ -40,7 +40,7 @@ export const chronomancerHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = 
   },
   tasks: {
     'mesmer.continuum-expire'(runtime, data) {
-      if (chronomancerState.from(runtime).continuum?.expiresAt !== data) return;
+      if (chronomancerState.from(runtime.profession).continuum?.expiresAt !== data) return;
 
       createChronomancerMechanics(runtime).restoreContinuum(runtime.time, 'split expired');
     },

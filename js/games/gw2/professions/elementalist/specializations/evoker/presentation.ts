@@ -177,7 +177,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
             selectionValue: element,
             optionEntries: ELEMENTALIST_ATTUNEMENTS.map((value) => {
               const skill = catalog?.skillsById.get(ELEMENTALIST_FAMILIAR_SKILL_IDS[FAMILIAR_SKILL_NAMES[value].basic]);
-              return { value, label: `${value} Familiar`, icon: skill?.icon, description: skill?.description };
+              return { value, label: `${value} Familiar`, icon: skill?.icon };
             })
           }
         ]

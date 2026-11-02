@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/engineer/data/trait-lines.js';
 import { ENGINEER_SCRAPPER_PROFILE_FIELDS } from '#gw2/professions/engineer/specializations/scrapper/catalog-fields.js';
 import { bindScrapperUi } from '#gw2/professions/engineer/specializations/scrapper/presentation.js';
@@ -15,7 +16,7 @@ export const scrapperModule = defineNativeModule({
     id: 'Scrapper',
     traitLines: TRAIT_LINES,
     profileFields: ENGINEER_SCRAPPER_PROFILE_FIELDS,
-    skillMechanics: SCRAPPER_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(SCRAPPER_SKILL_MECHANICS)
   }),
   // Scrapper traits share the live state with their actual combo and boon reactions.
   state: { create: scrapperState.create },

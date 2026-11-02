@@ -4,161 +4,159 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
-export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
-  [ID.BLOOD_CURSE]: {
-    name: 'Blood Curse',
-    description: 'Chain. Bleed your foe.',
-    icon: 'https://render.guildwars2.com/file/94DEDA71DAE6C060D1FEF97E5BA7A99BBB574F18/103094.png',
-    type: 'Weapon',
-    weapon: 'Scepter',
-    slot: 'Weapon_1',
-    cooldown: 0,
-    autoattack: true,
-    // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 440,
-    // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 0.35 },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4.5 }
-    ])
-  },
-  [ID.RENDING_CURSE]: {
-    name: 'Rending Curse',
-    description: 'Chain. Bleed your foe.',
-    icon: 'https://render.guildwars2.com/file/78E39426079A026BC3459512BB589538A511BAB4/1228811.png',
-    type: 'Weapon',
-    weapon: 'Scepter',
-    slot: 'Weapon_1',
-    cooldown: 0,
-    autoattack: true,
-    // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 600,
-    // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 0.35 },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4.5 }
-    ])
-  },
-  [ID.PUTRID_CURSE]: {
-    name: 'Putrid Curse',
-    description: 'Chain. Poison and bleed your foe.',
-    icon: 'https://render.guildwars2.com/file/2311C409301F719C471155DDBB49270533940440/1228812.png',
-    type: 'Weapon',
-    weapon: 'Scepter',
-    slot: 'Weapon_1',
-    cooldown: 0,
-    autoattack: true,
-    // Ordinary repeatable attack; excluded from player-input metrics.
-    castTimeMs: 600,
-    // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
-    interruptCommitMs: 480,
-    retainsCastLockoutAfterInterrupt: true,
-    // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects(
-      { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
-      [
-        { type: 'strike', coefficient: 0.5 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4.5 },
-        { type: 'condition', condition: CONDITION.POISONED, stacks: 1, duration: 6 }
+export const NECROMANCER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<NecromancerSkill>>> =
+  {
+    [ID.BLOOD_CURSE]: {
+      name: 'Blood Curse',
+      icon: 'https://render.guildwars2.com/file/94DEDA71DAE6C060D1FEF97E5BA7A99BBB574F18/103094.png',
+      type: 'Weapon',
+      weapon: 'Scepter',
+      slot: 'Weapon_1',
+      cooldown: 0,
+      autoattack: true,
+      // Ordinary repeatable attack; excluded from player-input metrics.
+      castTimeMs: 440,
+      // Share this impact's timing while preserving independent payloads and declaration order.
+      effects: impactEffects({ atMs: 360, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.35 },
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4.5 }
+      ])
+    },
+    [ID.RENDING_CURSE]: {
+      name: 'Rending Curse',
+      icon: 'https://render.guildwars2.com/file/78E39426079A026BC3459512BB589538A511BAB4/1228811.png',
+      type: 'Weapon',
+      weapon: 'Scepter',
+      slot: 'Weapon_1',
+      cooldown: 0,
+      autoattack: true,
+      // Ordinary repeatable attack; excluded from player-input metrics.
+      castTimeMs: 600,
+      // Share this impact's timing while preserving independent payloads and declaration order.
+      effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'cast' }, [
+        { type: 'strike', coefficient: 0.35 },
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4.5 }
+      ])
+    },
+    [ID.PUTRID_CURSE]: {
+      name: 'Putrid Curse',
+      icon: 'https://render.guildwars2.com/file/2311C409301F719C471155DDBB49270533940440/1228812.png',
+      type: 'Weapon',
+      weapon: 'Scepter',
+      slot: 'Weapon_1',
+      cooldown: 0,
+      autoattack: true,
+      // Ordinary repeatable attack; excluded from player-input metrics.
+      castTimeMs: 600,
+      // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
+      interruptCommitMs: 480,
+      retainsCastLockoutAfterInterrupt: true,
+      // Share this impact's timing while preserving independent payloads and declaration order.
+      effects: impactEffects(
+        { atMs: 360, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+        [
+          { type: 'strike', coefficient: 0.5 },
+          { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 4.5 },
+          { type: 'condition', condition: CONDITION.POISONED, stacks: 1, duration: 6 }
+        ]
+      )
+    },
+    [ID.GRASPING_DEAD]: {
+      name: 'Grasping Dead',
+      icon: 'https://render.guildwars2.com/file/CB2DB4DD6E995BB6ED4B463608753F2BBF590BF1/103521.png',
+      type: 'Weapon',
+      weapon: 'Scepter',
+      slot: 'Weapon_2',
+      cooldown: 10,
+      castTimeMs: 880,
+      // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
+      interruptCommitMs: 640,
+      retainsCastLockoutAfterInterrupt: true,
+      // Share this impact's timing while preserving independent payloads and declaration order.
+      effects: impactEffects(
+        { atMs: 560, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+        [
+          { type: 'strike', coefficient: 0.8 },
+          { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 },
+          { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 7 }
+        ]
+      )
+    },
+    [ID.FEAST_OF_CORRUPTION]: {
+      name: 'Feast of Corruption',
+      icon: 'https://render.guildwars2.com/file/1A5ABCCAB674DDF7E4080EB30B372A6425BE0232/103801.png',
+      type: 'Weapon',
+      weapon: 'Scepter',
+      slot: 'Weapon_3',
+      cooldown: 10,
+      castTimeMs: 600,
+      effects: [
+        {
+          type: 'strike',
+          // Accepted strikes apply their declared percentage through the shared resource owner.
+          reactions: [
+            {
+              on: 'damage.resolved',
+              actor: ACTOR.PLAYER,
+              packets: 'first',
+              when: (_runtime, { event }) => Number(event.coefficient) > 0,
+              do: [
+                lifeForceGrant({
+                  id: 'life-force',
+                  unit: 'hit',
+                  grant: { percent: 8, perCondition: { percent: 1, count: { kind: 'live-target', maximum: 5 } } }
+                })
+              ]
+            }
+          ],
+          coefficient: 0.8,
+          hits: 1
+        },
+        {
+          type: 'condition',
+          condition: CONDITION.TORMENT,
+          stacks: 1,
+          duration: 4
+        }
       ]
-    )
-  },
-  [ID.GRASPING_DEAD]: {
-    name: 'Grasping Dead',
-    description: 'Summon skeletal hands to cripple foes in the target area.',
-    icon: 'https://render.guildwars2.com/file/CB2DB4DD6E995BB6ED4B463608753F2BBF590BF1/103521.png',
-    type: 'Weapon',
-    weapon: 'Scepter',
-    slot: 'Weapon_2',
-    cooldown: 10,
-    castTimeMs: 880,
-    // Committed casts retain the full lockout so cancelling cannot skip the aftercast.
-    interruptCommitMs: 640,
-    retainsCastLockoutAfterInterrupt: true,
-    // Share this impact's timing while preserving independent payloads and declaration order.
-    effects: impactEffects(
-      { atMs: 560, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
-      [
-        { type: 'strike', coefficient: 0.8 },
-        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 3, duration: 10 },
-        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 7 }
-      ]
-    )
-  },
-  [ID.FEAST_OF_CORRUPTION]: {
-    name: 'Feast of Corruption',
-    description:
-      'Strike your target, gain life force, and corrupt boons on your foe. For each condition on your target up to the condition threshold, gain additional life force and inflict torment.',
-    icon: 'https://render.guildwars2.com/file/1A5ABCCAB674DDF7E4080EB30B372A6425BE0232/103801.png',
-    type: 'Weapon',
-    weapon: 'Scepter',
-    slot: 'Weapon_3',
-    cooldown: 10,
-    castTimeMs: 600,
-    effects: [
-      {
-        type: 'strike',
-        // Accepted strikes apply their declared percentage through the shared resource owner.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'first',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({
-              id: 'life-force',
-              unit: 'hit',
-              grant: { percent: 8, perCondition: { percent: 1, count: { kind: 'live-target', maximum: 5 } } }
-            })
-          }
-        ],
-        coefficient: 0.8,
-        hits: 1
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.TORMENT,
-        stacks: 1,
-        duration: 4
-      }
-    ]
-  },
-  [ID.DEVOURING_DARKNESS]: {
-    name: 'Devouring Darkness',
-    description:
-      'Corrupt boons from enemies around your target. Inflict torment and gain life force for each condition on your initial target up to the threshold. Gain extra life force for each extra foe struck.',
-    icon: 'https://render.guildwars2.com/file/C6C5B119FBF201FFB46767DDEBE3B11D16FEA96A/2029306.png',
-    type: 'Weapon',
-    weapon: 'Scepter',
-    slot: 'Weapon_3',
-    cooldown: 10,
-    // The replacement handler scales this per-condition payload using the live target state.
-    maximumConditions: 5,
-    castTimeMs: 600,
-    effects: [
-      {
-        type: 'strike',
-        // Accepted strikes apply their declared percentage through the shared resource owner.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'first',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({
-              id: 'life-force',
-              unit: 'hit',
-              grant: { percent: 8, perCondition: { percent: 1, count: { kind: 'packet-snapshot' } } }
-            })
-          }
-        ],
-        coefficient: 1.16
-      },
-      { type: 'condition', condition: CONDITION.TORMENT, stacks: 1, duration: 4 }
-    ],
-    effectVariants: [{ when: () => true, transform: () => [] }],
-    // The skill owns this transaction; its shared helper retains state and lifetime rules.
-    sideEffects: [{ on: 'castStart', do: { type: 'necromancer.devouring-impact' } }]
-  }
-});
+    },
+    [ID.DEVOURING_DARKNESS]: {
+      name: 'Devouring Darkness',
+      icon: 'https://render.guildwars2.com/file/C6C5B119FBF201FFB46767DDEBE3B11D16FEA96A/2029306.png',
+      type: 'Weapon',
+      weapon: 'Scepter',
+      slot: 'Weapon_3',
+      cooldown: 10,
+      // The replacement handler scales this per-condition payload using the live target state.
+      maximumConditions: 5,
+      castTimeMs: 600,
+      effects: [
+        {
+          type: 'strike',
+          // Accepted strikes apply their declared percentage through the shared resource owner.
+          reactions: [
+            {
+              on: 'damage.resolved',
+              actor: ACTOR.PLAYER,
+              packets: 'first',
+              when: (_runtime, { event }) => Number(event.coefficient) > 0,
+              do: [
+                lifeForceGrant({
+                  id: 'life-force',
+                  unit: 'hit',
+                  grant: { percent: 8, perCondition: { percent: 1, count: { kind: 'packet-snapshot' } } }
+                })
+              ]
+            }
+          ],
+          coefficient: 1.16
+        },
+        { type: 'condition', condition: CONDITION.TORMENT, stacks: 1, duration: 4 }
+      ],
+      effectVariants: [{ when: () => true, transform: () => [] }],
+      // The skill owns this transaction; its shared helper retains state and lifetime rules.
+      sideEffects: [{ on: 'castStart', do: { type: 'necromancer.devouring-impact' } }]
+    }
+  };

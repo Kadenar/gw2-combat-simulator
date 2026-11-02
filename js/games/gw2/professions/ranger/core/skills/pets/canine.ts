@@ -8,11 +8,10 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   // Natural Bite uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.CANINE_BITE]: definePetSkill({
     name: 'Bite',
-    description: 'Bite your foe.',
     icon: new URL('@images/wiki/bite-canine.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -35,7 +34,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   // Natural Crippling Leap uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.CANINE_CRIPPLING_LEAP]: definePetSkill({
     name: 'Crippling Leap',
-    description: 'Leap at your foe and cripple them.',
     icon: 'https://render.guildwars2.com/file/09990305A163E3BC2DF2E9D1D2BA93F2ECE8BA3E/103610.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -73,7 +71,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   // Natural Brutal Charge uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.CANINE_BRUTAL_CHARGE]: definePetSkill({
     name: 'Brutal Charge',
-    description: 'Leap at your foe and knock them down.',
     icon: 'https://render.guildwars2.com/file/06614FF537DBD771DE67B341BA0CA565B24F0A67/103239.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -94,7 +91,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'control',
         controlKind: CONTROL.KNOCKDOWN,
-        duration: 2,
         source: 'ranger-pet',
         actorType: ACTOR.SUMMON
       }
@@ -102,7 +98,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.INTIMIDATING_HOWL]: definePetSkill({
     name: 'Intimidating Howl',
-    description: 'Beast. Howl at foes to immobilize them.',
     icon: 'https://render.guildwars2.com/file/45E153B2939D037C4E6FDE1FEF42CF6456280D3E/104046.png',
     petNames: ['Krytan Drakehound'],
     type: 'Profession',
@@ -132,7 +127,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.CHILLING_HOWL]: definePetSkill({
     name: 'Chilling Howl',
-    description: 'Beast. Howl at foes to chill them.',
     icon: 'https://render.guildwars2.com/file/5D97691719F5D52AAA610CCECB13B0F2056A0E08/103607.png',
     petNames: ['Alpine Wolf'],
     type: 'Profession',
@@ -160,7 +154,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.REGENERATE_FERN_HOUND]: definePetSkill({
     name: 'Regenerate',
-    description: 'Beast. Howl to heal and grant regeneration to nearby allies.',
     icon: 'https://render.guildwars2.com/file/3CD0D15B0C0E9CB7BD6709E773DFB2FCFEC25823/103609.png',
     petNames: ['Fern Hound'],
     type: 'Profession',
@@ -182,7 +175,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.HOWL_OF_THE_PACK]: definePetSkill({
     name: 'Howl of the Pack',
-    description: 'Beast. Howl to summon hyena allies to fight with you.',
     icon: 'https://render.guildwars2.com/file/B824F20C4F5F7B739A0634DD79EE0EA2A82D7FC3/103237.png',
     petNames: ['Hyena'],
     type: 'Profession',
@@ -194,7 +186,6 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.TERRIFYING_HOWL]: definePetSkill({
     name: 'Terrifying Howl',
-    description: 'Beast. Howl at foes to send them running in fear.',
     icon: 'https://render.guildwars2.com/file/C016B80FBD257CDD09EACFE7EBC611DF0A7040D6/103520.png',
     petNames: ['Wolf'],
     type: 'Profession',
@@ -212,4 +203,4 @@ export const RANGER_CORE_CANINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   })
-});
+};

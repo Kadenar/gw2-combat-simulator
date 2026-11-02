@@ -13,6 +13,7 @@ import {
   requireCanonicalSkillEffects,
   skillEffectKey
 } from '#gw2/platform/effects/validation.js';
+import { fieldValue } from '#gw2/platform/skills/field-specs.js';
 import type { BalanceProfile, Skill, SkillAttributeKey, SkillId } from '#gw2/platform/skills/types.js';
 
 type SkillEffectByType<TType extends SkillEffect['type']> = TType extends StrikeEffect['type']
@@ -69,9 +70,12 @@ function balanceDataLabel(context: unknown, owner: string, profile?: BalanceProf
   return `profession=${metadata?.professionId ?? source?.profession?.id ?? source?.config?.profession ?? '<unknown>'} patch=${metadata?.patchId ?? source?.config?.patchId ?? '<unknown>'} ${owner}`;
 }
 
-/** Owners carry their selected source, so diagnostics never need the runtime context that resolved them. */
+/**
+ * Owners carry their selected source, so diagnostics never need the runtime context that resolved them. Patched
+ * catalogs stamp the source on profiles; skills never carry it.
+ */
 function ownerDataLabel(owner: Skill | BalanceProfile, subject: string): string {
-  const metadata = owner.balanceDataContext as BalanceProfile['balanceDataContext'];
+  const metadata = 'balanceDataContext' in owner ? owner.balanceDataContext : undefined;
   return `profession=${metadata?.professionId ?? '<unknown>'} patch=${metadata?.patchId ?? '<unknown>'} ${subject}`;
 }
 
@@ -119,7 +123,7 @@ export function attributeBonusNumber(
   attribute: SkillAttributeKey,
   group = 'attributeBonuses'
 ): number {
-  const grants = owner[group] as Skill['attributeBonuses'];
+  const grants = fieldValue(owner, group) as Skill['attributeBonuses'];
   const value = grants?.[attribute];
 
   if (typeof value === 'number' && Number.isFinite(value)) return value;
@@ -164,7 +168,19 @@ export function procChanceFromContext(
   return chance;
 }
 
-/** Resolve a required skill from the selected catalog without falling through to another patch on a miss. */
+/** A context whose selected catalog is typed by its owning profession, either directly or through runtime helpers. */
+export type SkillCatalogSource<TSkill extends Skill> =
+  | { readonly catalog: { readonly skillsById: ReadonlyMap<SkillId, TSkill> } }
+  | { readonly helpers: { readonly skillsById: ReadonlyMap<SkillId, TSkill> } };
+
+/**
+ * Resolve a required skill from the selected catalog without falling through to another patch on a miss. A typed
+ * context returns its profession's skill type; an opaque context returns the base type.
+ */
+export function requireSkillFromContext<TSkill extends Skill>(context: SkillCatalogSource<TSkill>, id: SkillId): TSkill;
+
+export function requireSkillFromContext(context: unknown, id: SkillId): Skill;
+
 export function requireSkillFromContext(context: unknown, id: SkillId): Skill {
   const skill = catalogFromContext(context)?.skillsById?.get(id);
 
@@ -219,7 +235,7 @@ export function requireEffect<TType extends SkillEffect['type']>(
 /** Validate a surviving effect's field without looking up its owner again; the owner supplies diagnostics. */
 export function effectNumber(owner: Skill | BalanceProfile, effect: SkillEffect, field: string): number {
   // Valid hot-path reads need no diagnostic strings; retain the full owner context when validation fails.
-  const value = effect[field];
+  const value = (effect as unknown as Readonly<Record<string, unknown>>)[field];
 
   if (typeof value === 'number' && Number.isFinite(value)) return value;
 

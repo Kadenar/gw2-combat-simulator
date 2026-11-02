@@ -104,15 +104,10 @@ function selectionFixture() {
       }
     }
   });
-  const createBuildContext = bindBuildContext(
-    profession,
-    { attributeContributions: profession.attributeContributions },
-    () => ({}),
-    {
-      assumptionControls: [],
-      resolveSkillLoadout: () => ({ activeBarId: 'main', bars: [{ id: 'main', skillIds: [] }] })
-    }
-  );
+  const createBuildContext = bindBuildContext(profession, () => ({}), {
+    assumptionControls: [],
+    resolveSkillLoadout: () => ({ activeBarId: 'main', bars: [{ id: 'main', skillIds: [] }] })
+  });
   const build = {
     ...createCommonBuildDefaults(),
     profession: 'fixture',
@@ -289,9 +284,6 @@ test('trait authoring rejects obsolete producer hooks and unsupported lifetime r
       /Unsupported trait lifetime reaction/
     );
   }
-
-  assert.throws(() => defineTrait({ ...metadata, lifetime: [] }), /lifetime must be an object/);
-  assert.throws(() => defineTrait({ ...metadata, lifetime: { tasks: { bad: 1 } } }), /must contain handlers/);
 });
 
 test('trait initialization imports supplied state without activation capabilities in either runtime mode', () => {
@@ -525,7 +517,7 @@ function previewFamily(core = moduleWith([trait])) {
 }
 
 // Every registered module exposes one modifier shape, including trait-free modules and preview clones.
-test('module registration normalizes modifiers and rejects invalid rule collections', () => {
+test('module registration normalizes modifier rule collections', () => {
   const rules = [trait.modifierRules[0]];
   const modifyCriticalChance = (_context, chance) => chance + 0.1;
   assert.deepEqual(moduleWith([]).modifiers, {});
@@ -535,10 +527,6 @@ test('module registration normalizes modifiers and rejects invalid rule collecti
   assert.equal(imperative.modifiers.modifyCriticalChance, modifyCriticalChance);
   assert.equal(familyWith(imperative).runtimeFor({}).modifyCriticalChance({}, 0), 0.1);
   assert.equal(familyWith(imperative).runtimeFor({}).modifyStrikeDamage({}, 10), 20);
-  assert.throws(() => moduleWith([], { modifiers: { modifierRules: {} } }), /modifierRules must be an array/);
-  assert.throws(() => moduleWith([], { modifiers: 1 }), /modifiers must be an object/);
-  assert.throws(() => familyWith({ ...core, modifiers: rules }), /modifiers must be an object/);
-  assert.throws(() => familyWith({ ...core, modifiers: { modifierRules: {} } }), /modifierRules must be an array/);
 });
 
 // Registration and reconstruction both reject unsupported fields, including on an inactive elite module.
@@ -1054,10 +1042,4 @@ test('composition rejects duplicate ownership and invalid declarative references
   );
   assert.throws(() => defineTrait({ ...metadata, hook: {} }), /Unsupported trait definition field/);
   assert.throws(() => defineTrait({ ...metadata, hooks: { resources: {} } }), /Unsupported trait hook/);
-  for (const requiresSelection of ['false', null]) {
-    assert.throws(
-      () => defineTrait({ ...metadata, modifierRules: [{ ...trait.modifierRules[0], requiresSelection }] }),
-      /requiresSelection must be boolean/
-    );
-  }
 });

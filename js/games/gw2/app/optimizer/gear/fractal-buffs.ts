@@ -4,7 +4,7 @@ import type {
   BuildContextFactory,
   BuildContextInput,
   BuildContextModule,
-  WeaponSet
+  WeaponSetNumber
 } from '#gw2/build-context/types.js';
 import type { Gw2AttributeMap, Gw2AttributeSeed } from '#gw2/platform/attributes/types.js';
 
@@ -109,7 +109,7 @@ export function createOptimizerBuildContext(
 
   const bonus = fractalAttributes(buffs).Concentration;
   const damage = 1.15 * (1 + FRACTAL_AUGMENTATIONS[buffs.augmentation].damage);
-  const attributes = new Map<WeaponSet, BuildAttributes>();
+  const attributes = new Map<WeaponSetNumber, BuildAttributes>();
   return {
     ...context,
     attributes(weaponSet) {

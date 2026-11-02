@@ -60,7 +60,7 @@ export function grantElectricEnchantments(
     traitId?: SkillId;
   }
 ): void {
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
   state.electricEnchantmentGrants.push({
     ...grantCharges(stacks, gw2EffectExpiresAt(at, duration)),
     at: canonicalTime(at),
@@ -140,7 +140,7 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
 
 /** Consumes one currently active grant at an accepted hit, preferring the earliest expiry. */
 export function consumeElectricEnchantment(context: ElementalistRuntime, event: SimulationEvent): void {
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
   expireElectricEnchantments(state, context.time);
   const grant = state.electricEnchantmentGrants.find(
     (candidate) => event.at >= canonicalTime(candidate.at) && consumeCharge(candidate, event.at)

@@ -10,7 +10,7 @@ import { acrobaticsReworkTraits } from '#gw2/professions/thief/core/rework/trait
 import { twinFangsRework } from '#gw2/professions/thief/core/rework/traits/critical-strikes.js';
 import { thiefPassiveAttributes } from '#gw2/professions/thief/core/skills/attribute-passives.js';
 import { THIEF_CORE_AUTOATTACK_CHAINS } from '#gw2/professions/thief/core/skills/autoattack-chains.js';
-import { THIEF_CORE_EXTRA_SKILLS, THIEF_CORE_SKILL_MECHANICS } from '#gw2/professions/thief/core/skills/index.js';
+import { THIEF_CORE_SKILLS } from '#gw2/professions/thief/core/skills/index.js';
 import { THIEF_CORE_SKILL_FLIPS } from '#gw2/professions/thief/core/skills/skill-flips.js';
 import { distractingThrowModifiers } from '#gw2/professions/thief/core/skills/weapons/spear.js';
 import { projectThiefCorePlanningState } from '#gw2/professions/thief/core/state.js';
@@ -20,52 +20,17 @@ import { TRAIT_LINES } from '#gw2/professions/thief/data/trait-lines.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // This trait rework replaces Core as a unit, retaining its skill chains, follow-up admission, and fields.
-const descriptions: Record<string, string> = {
-  [REWORK.DEFT_INITIATION]:
-    'Your first direct strike in combat grants might and inflicts vulnerability. Completing movement or a shadowstep refreshes it. Payloads and no internal cooldown are provisional.',
-  [TRAIT.FELINE_GRACE]:
-    'Completing movement or a shadowstep grants swiftness. Duration and no internal cooldown are provisional. Improved movement speed is outside simulation scope.',
-  [REWORK.OPPORTUNE_OPENING]:
-    'Deft Initiation inflicts cripple. Deal increased strike damage against crippled, chilled, or immobilized targets. Strike-only multiplicative scaling is provisional; default target assumptions keep this active.',
-  [REWORK.ENDURANCE_TRAINING]:
-    'Gain vigor upon successfully evading an attack. Incoming attacks and successful evades are outside simulation scope.',
-  [TRAIT.ASSASSINS_REWARD]:
-    'Deft Initiation heals you. Healing is outside simulation scope; player health remains full.',
-  [TRAIT.HARD_TO_CATCH]:
-    'Completing a Steal or replacement grants resistance. Duration is provisional; its defensive effect is outside simulation scope.',
-  [REWORK.SHARP_INITIATION]:
-    'Deft Initiation deals an additional strike using the unequipped weapon-strength profile. Coefficient, critical-hit eligibility and strength profile are provisional.',
-  [TRAIT.DONT_STOP]:
-    'Receiving swiftness grants endurance. Amount and no internal cooldown are provisional. Removing conditions from the player is outside simulation scope.',
-  [TRAIT.TWIN_FANGS]:
-    'Gain critical damage. A direct hit against a defiant target grants a temporary critical-chance bonus to later hits. Duration is provisional.'
-};
-
-/** Replace the legal layout without interpreting existing Live positions as different preview choices. */
+/** Replace the legal Acrobatics layout without interpreting existing Live positions as different preview choices. */
 const traitLines = TRAIT_LINES.filter((line) => !line.elite).map((line) => {
-  const describe = (trait: (typeof line.minorTraits)[number]) => ({
-    ...trait,
-    description: descriptions[trait.id] ?? trait.description
-  });
-
-  if (line.name === 'Critical Strikes')
-    return { ...line, majorTraits: line.majorTraits.map((tier) => tier.map(describe)) };
-
   if (line.name !== 'Acrobatics') return line;
 
   const metadata = new Map([...line.minorTraits, ...line.majorTraits.flat()].map((trait) => [trait.id, trait]));
-  const changed = (oldId: number, id: number | string, name: string) => ({
-    ...metadata.get(oldId)!,
-    id,
-    name,
-    description: descriptions[id]
-  });
+  // A replacement keeps the moved trait's artwork under its preview identity and name.
+  const changed = (oldId: number, id: number | string, name: string) => ({ ...metadata.get(oldId)!, id, name });
   return {
     ...line,
     minorTraits: line.minorTraits.map((trait) =>
-      trait.id === TRAIT.EXPEDITIOUS_DODGER
-        ? changed(trait.id, REWORK.DEFT_INITIATION, 'Deft Initiation')
-        : describe(trait)
+      trait.id === TRAIT.EXPEDITIOUS_DODGER ? changed(trait.id, REWORK.DEFT_INITIATION, 'Deft Initiation') : trait
     ),
     majorTraits: [
       [
@@ -74,14 +39,14 @@ const traitLines = TRAIT_LINES.filter((line) => !line.elite).map((line) => {
         metadata.get(TRAIT.PAIN_RESPONSE)!
       ],
       [
-        changed(TRAIT.ASSASSINS_REWARD, TRAIT.ASSASSINS_REWARD, "Assassin's Reward"),
+        metadata.get(TRAIT.ASSASSINS_REWARD)!,
         metadata.get(TRAIT.SWINDLERS_EQUILIBRIUM)!,
-        describe(metadata.get(TRAIT.HARD_TO_CATCH)!)
+        metadata.get(TRAIT.HARD_TO_CATCH)!
       ],
       [
         changed(TRAIT.ASSASSINS_REWARD, REWORK.SHARP_INITIATION, 'Sharp Initiation'),
         metadata.get(TRAIT.UPPER_HAND)!,
-        describe(metadata.get(TRAIT.DONT_STOP)!)
+        metadata.get(TRAIT.DONT_STOP)!
       ]
     ]
   };
@@ -102,8 +67,7 @@ export const thiefCoreReworkModule = defineNativeModule({
     skillFlips: THIEF_CORE_SKILL_FLIPS,
     profileFields: THIEF_CORE_PROFILE_FIELDS,
     skillFields: THIEF_CORE_SKILL_FIELDS,
-    skillMechanics: THIEF_CORE_SKILL_MECHANICS,
-    extraSkills: THIEF_CORE_EXTRA_SKILLS
+    skills: THIEF_CORE_SKILLS
   }),
   traitDefinitions: [
     ...coreTraits.filter((trait) => !replaced.has(trait.id)),

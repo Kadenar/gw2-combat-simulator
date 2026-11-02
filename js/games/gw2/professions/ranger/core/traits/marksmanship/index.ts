@@ -285,7 +285,7 @@ export const predatorsOnslaught = defineTrait({
 
 /** Applies the trait at the accepted Beast-skill boundary. */
 function applyWolfsong(context: RangerRuntime, skill: RangerSkill): void {
-  if (rangerPetForState(professionCoreState(context)).family === 'canine') {
+  if (rangerPetForState(professionCoreState(context.profession)).family === 'canine') {
     const profile = requireBalanceProfileFromContext(context, TRAIT.WOLFSONG);
     const effect = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
@@ -310,7 +310,7 @@ function applyWolfsong(context: RangerRuntime, skill: RangerSkill): void {
 // Spend the player or pet Opening Strike independently on its first qualifying
 // hit and attach Vulnerability plus Alpha Focus when selected.
 function consumeOpeningStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const player = isPlayerStrike(event);
   const pet = isPetStrike(event);
 
@@ -410,7 +410,7 @@ function reactToRangerCoreBuff(context: RangerResolverContext, event: Gw2Resolve
   const kind = (event.kind || '').toLowerCase();
 
   if (kind === boonKey(BOON.FURY) && event.resolvedAudience?.includesSelf) {
-    const state = professionCoreState(context);
+    const state = professionCoreState(context.profession);
     state.player.openingStrikeReady = true;
 
     if (state.pet) state.pet.openingStrikeReady = true;

@@ -6,10 +6,7 @@ import { TROUBADOUR_SKILL_FIELDS } from '#gw2/professions/mesmer/specializations
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
 import { luteModifiers } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
-import {
-  MESMER_TROUBADOUR_EXTRA_SKILLS,
-  MESMER_TROUBADOUR_SKILL_MECHANICS
-} from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
+import { MESMER_TROUBADOUR_SKILLS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
 import {
   projectTroubadourPlanningState,
   troubadourState
@@ -23,8 +20,7 @@ export const troubadourModule = defineNativeModule({
     id: 'Troubadour',
     traitLines: TRAIT_LINES,
     skillFields: TROUBADOUR_SKILL_FIELDS,
-    skillMechanics: MESMER_TROUBADOUR_SKILL_MECHANICS,
-    extraSkills: MESMER_TROUBADOUR_EXTRA_SKILLS
+    skills: MESMER_TROUBADOUR_SKILLS
   }),
   state: {
     create: troubadourState.create,

@@ -9,10 +9,9 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.PORCINE_JAB]: definePetSkill({
     name: 'Jab',
-    description: 'Jab your foe with your tusks.',
     icon: new URL('@images/wiki/jab-porcine.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -30,7 +29,6 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   }),
   [ID.PORCINE_MAUL]: definePetSkill({
     name: 'Maul',
-    description: 'Maul your foes and make them bleed.',
     icon: 'https://render.guildwars2.com/file/24073F5A0566ABE32DFB74204E9FA01025D85D71/104055.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -59,7 +57,6 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   }),
   [ID.PORCINE_BRUTAL_CHARGE]: definePetSkill({
     name: 'Brutal Charge',
-    description: 'Charge your foes and knock them down.',
     icon: 'https://render.guildwars2.com/file/D89C043113B1B24AE538C6F5DC297924459E3EBA/104054.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -90,7 +87,6 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   }),
   [ID.VAMPIRIC_BITE]: definePetSkill({
     name: 'Vampiric Bite',
-    description: 'Bite your foe, siphoning health.',
     icon: 'https://render.guildwars2.com/file/0901C0B004F60F4DB5B4B503BF35B09278AA4491/2604860.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -108,7 +104,6 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   }),
   [ID.WALLOW_MAUL]: definePetSkill({
     name: 'Maul',
-    description: 'Maul your foes and make them bleed.',
     icon: 'https://render.guildwars2.com/file/24073F5A0566ABE32DFB74204E9FA01025D85D71/104055.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -137,7 +132,6 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   }),
   [ID.UNDEAD_PLAGUE_PET]: definePetSkill({
     name: 'Undead Plague',
-    description: 'Emit noxious fumes that poison foes. Poison duration is increased on disabled foes.',
     icon: 'https://render.guildwars2.com/file/28CBACDF0A6D07087766675435495E087F67BE6F/2604859.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -174,7 +168,6 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   }),
   [ID.FORAGE_ROCK]: definePetSkill({
     name: 'Forage Rock',
-    description: 'Beast. Search the area for an improvised weapon.',
     icon: 'https://render.guildwars2.com/file/7FE63F139CC1BC0EB0F1DA49066B0DE5A0CC062B/104053.png',
     petNames: ['Boar'],
     type: 'Profession',
@@ -188,7 +181,6 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   }),
   [ID.FORAGE_SCALE]: definePetSkill({
     name: 'Forage Scale',
-    description: 'Beast. Search the area for an improvised weapon.',
     icon: 'https://render.guildwars2.com/file/7FE63F139CC1BC0EB0F1DA49066B0DE5A0CC062B/104053.png',
     petNames: ['Warthog'],
     type: 'Profession',
@@ -200,7 +192,6 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   }),
   [ID.FORAGE_FEATHERS]: definePetSkill({
     name: 'Forage Feathers',
-    description: 'Beast. Search the area for an improvised weapon.',
     icon: 'https://render.guildwars2.com/file/7FE63F139CC1BC0EB0F1DA49066B0DE5A0CC062B/104053.png',
     petNames: ['Siamoth'],
     type: 'Profession',
@@ -212,7 +203,6 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   }),
   [ID.FORAGE_SWORD]: definePetSkill({
     name: 'Forage Sword',
-    description: 'Beast. Search the area for an improvised weapon.',
     icon: 'https://render.guildwars2.com/file/7FE63F139CC1BC0EB0F1DA49066B0DE5A0CC062B/104053.png',
     petNames: ['Pig'],
     type: 'Profession',
@@ -224,7 +214,6 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
   }),
   [ID.BLOODTHIRSTY_CHARGE]: definePetSkill({
     name: 'Bloodthirsty Charge',
-    description: 'Beast. Charge into a foe, pushing them back and causing them to bleed.',
     icon: 'https://render.guildwars2.com/file/682E7BE8FB06E35ACEF0B7631EB243AF574C533E/2604858.png',
     petNames: ['Wallow'],
     type: 'Profession',
@@ -258,4 +247,4 @@ export const RANGER_CORE_PORCINE_PET_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ])
   })
-});
+};

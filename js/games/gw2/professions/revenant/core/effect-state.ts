@@ -39,7 +39,7 @@ export function revenantEffectStates(
     timedEffectState(
       'crushing-abyss',
       core.crushingAbyss.map((expiresAt) => ({ expiresAt, stacks: 1 })),
-      Number(runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE)?.maximumStacks ?? 0)
+      runtime.helpers.skillsById.get(ID.ABYSSAL_RAZE)?.maximumStacks ?? 0
     )
   );
 

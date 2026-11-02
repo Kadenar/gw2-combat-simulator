@@ -241,7 +241,7 @@ function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSkill, at
 
 /** Advances Kinetic Battery and reports charge progress after its fifth-cast buff package. */
 function chargeKineticBattery(context: EngineerRuntime, { skill, at }: ToolbeltActivation): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const profile = requireBalanceProfileFromContext(context, TRAIT.KINETIC_BATTERY);
   const maximumCharges = balanceProfileNumber(profile, 'maximumStacks');
   // Start the next battery cycle before emitting its reward so reactions see the reset charge count.

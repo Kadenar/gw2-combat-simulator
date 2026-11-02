@@ -10,18 +10,16 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { UNTAMED_WEAPON_AMBUSH_MECHANICS } from '#gw2/professions/ranger/specializations/untamed/skills/weapon-ambushes.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
 import { naturalFortitudeAmbushEffect } from '#gw2/professions/ranger/specializations/untamed/traits/behavior.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
 // Both Unleash actions replace the same F5 tile as control passes between pet and ranger.
 const UNLEASH_PALETTE_TILE = 'ranger-untamed-unleash';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
-export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
-  UNTAMED_WEAPON_AMBUSH_MECHANICS,
-  {
+export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> =
+  composeSkillDefinitions<RangerSkill>(UNTAMED_WEAPON_AMBUSH_MECHANICS, {
     [ID.ENVELOPING_HAZE]: {
       name: 'Enveloping Haze',
-      description:
-        'Summon a swirling spore cloud around your pet, destroying projectiles and chilling disabled or defiant enemies.\nDisables include stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.',
       icon: 'https://render.guildwars2.com/file/39EFE795AEE7A670EAC0CC34C8526A2EB899ED4C/2503727.png',
       type: 'Profession',
       slot: 'Profession_3',
@@ -66,8 +64,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     },
     [ID.NATURES_BINDING]: {
       name: "Nature's Binding",
-      description:
-        'Cantrip. Surround nearby foes with a cage of nature they cannot escape. Enemies that were not struck are unaffected by active cages.',
       icon: 'https://render.guildwars2.com/file/F85F41A1F75C3F04CBAAE94EFF0D77A2219F5623/2503733.png',
       type: 'Utility',
       slot: 'Utility',
@@ -78,8 +74,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     },
     [ID.UNLEASH_RANGER]: {
       name: 'Unleash Ranger',
-      description:
-        'Unleash the raw power of your primal bond with nature and your pet, enhancing your offensive power.',
       icon: 'https://render.guildwars2.com/file/EFC812F33C2A9ECA91F0C1F966E1715FF35E2BDF/2503729.png',
       type: 'Profession',
       slot: 'Profession_5',
@@ -95,8 +89,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     },
     [ID.EXPLODING_SPORES]: {
       name: 'Exploding Spores',
-      description:
-        'Cantrip. Create a ring of spores around yourself that explodes after a short duration. Enemies hit by all spores are knocked down.',
       icon: 'https://render.guildwars2.com/file/DF265CBF73C17E9C96EDE6035CAE9A381E1D11F1/2503730.png',
       type: 'Utility',
       slot: 'Utility',
@@ -129,7 +121,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
           duration: 10,
           timingAnchor: 'castEnd',
           atMs: 0,
-          when: (runtime) => untamedState.from(runtime).rangerUnleashed
+          when: (runtime) => untamedState.from(runtime.profession).rangerUnleashed
         },
         {
           name: 'Pet unleashed Protection',
@@ -139,7 +131,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
           duration: 4,
           timingAnchor: 'castEnd',
           atMs: 0,
-          when: (runtime) => !untamedState.from(runtime).rangerUnleashed
+          when: (runtime) => !untamedState.from(runtime.profession).rangerUnleashed
         },
         {
           type: 'control',
@@ -150,8 +142,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     },
     [ID.FORESTS_FORTIFICATION]: {
       name: "Forest's Fortification",
-      description:
-        'Cantrip. Surround yourself with elements of nature, gaining defensive boons and damage reduction. Striking an enemy while this fortification is active reduces the cooldown of this ability.',
       icon: 'https://render.guildwars2.com/file/387423FEEF4639CFF0A4532C06CBCB5701933331/2503712.png',
       type: 'Elite',
       slot: 'Elite',
@@ -182,8 +172,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     },
     [ID.VENOMOUS_OUTBURST]: {
       name: 'Venomous Outburst',
-      description:
-        'Your pet teleports to your target and lashes out, poisoning enemies and applying vulnerability to disabled or defiant enemies.\nDisables include stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.',
       icon: 'https://render.guildwars2.com/file/DE977DE6D693A71B24AFCC01E6EBF8F30DD4669E/2503725.png',
       type: 'Profession',
       slot: 'Profession_1',
@@ -224,8 +212,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     },
     [ID.RENDING_VINES]: {
       name: 'Rending Vines',
-      description:
-        'Your pet strikes nearby enemies with vines, removing boons. Disabled or defiant enemies are also slowed.\nDisables include stun, daze, knockback, pull, knockdown, sink, float, launch, taunt, and fear.',
       icon: 'https://render.guildwars2.com/file/68D3A9D218CE4F19F0D1E1A2F20F953D103FE99A/2503726.png',
       type: 'Profession',
       slot: 'Profession_2',
@@ -260,8 +246,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     },
     [ID.PERILOUS_GIFT]: {
       name: 'Perilous Gift',
-      description:
-        'Cantrip. While active, you take no damage from incoming attacks or conditions. When the cantrip ends, heal based on a percentage of your missing health.',
       icon: 'https://render.guildwars2.com/file/CF914B52D8B0B47D19245203726BF6C7366F33B5/2503724.png',
       type: 'Heal',
       slot: 'Heal',
@@ -272,7 +256,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     },
     [ID.UNLEASH_PET]: {
       name: 'Unleash Pet',
-      description: 'Unleash your pet to draw on the raw power of its bond with nature, granting it new abilities.',
       icon: 'https://render.guildwars2.com/file/A5E324616977BF624698CA610628B7C3D73ADB1C/2503728.png',
       type: 'Profession',
       slot: 'Profession_5',
@@ -288,7 +271,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     },
     [ID.RELENTLESS_WHIRL]: {
       name: 'Relentless Whirl',
-      description: 'Spin and attack nearby foes. Create an exploding spore on the first hit.',
       icon: 'https://render.guildwars2.com/file/1FD6BA0D5205082CF724026543A9CE3EA9E3AB10/2565748.png',
       type: 'Weapon',
       weapon: 'Hammer',
@@ -348,7 +330,6 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     },
     [ID.DEFT_STRIKE]: {
       name: 'Deft Strike',
-      description: 'Leap forward and strike the ground, creating an exploding spore.',
       icon: 'https://render.guildwars2.com/file/583FF23D285DAFF432CF2C3BFBE27FF4142D4C9B/2565753.png',
       type: 'Weapon',
       weapon: 'Sword',
@@ -394,5 +375,4 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
       // Transfers require commitment; ambush attempts spend their opportunity even on cancellation.
       sideEffects: [{ on: 'castStart', do: { type: 'ranger.ambush-consume' } }]
     }
-  }
-);
+  });

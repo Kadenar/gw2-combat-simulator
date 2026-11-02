@@ -277,7 +277,12 @@ test('Elemental Celerity selects weapon targets and independently owns its spher
             }
           }
 
-          Object.assign(catalystState.from(runtime).sphereExpiry, { Fire: 10, Water: 10, Air: 0.1, Earth: 0 });
+          Object.assign(catalystState.from(runtime.profession).sphereExpiry, {
+            Fire: 10,
+            Water: 10,
+            Air: 0.1,
+            Earth: 0
+          });
         }
       }
     );

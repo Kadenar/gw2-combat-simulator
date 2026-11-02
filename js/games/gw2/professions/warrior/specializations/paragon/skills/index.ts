@@ -2,12 +2,11 @@
 import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
+import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
-export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<WarriorSkill>>> = {
   [ID.WE_WILL_NEVER_YIELD]: {
     name: '"We Will Never Yield!"',
-    description:
-      "Command. Your allies' health cannot be reduced below zero for a short period of time. After this effect ends, grant barrier proportionate to their missing health. Certain boss skills may bypass the effect of this skill.\nEcho. Grant superspeed to nearby allies after a set interval or after you use a burst skill.",
     icon: 'https://render.guildwars2.com/file/C5740F0D6446CA01FCAA302D352D7F453E6A0709/3680223.png',
     type: 'Elite',
     slot: 'Elite',
@@ -23,8 +22,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.WE_SHALL_RETURN]: {
     name: '"We Shall Return!"',
-    description:
-      'Command.  Heal yourself and allies in an area around you. \nEcho.  Heals again and removes conditions on allies after a set interval or after you use a burst skill.',
     icon: 'https://render.guildwars2.com/file/40B2EEC2A1FA4A7D7DFB6BDE1EC3599C0D0EC100/3680224.png',
     type: 'Heal',
     slot: 'Heal',
@@ -40,8 +37,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.CHANT_OF_RECUPERATION]: {
     name: 'Chant of Recuperation',
-    description:
-      'Burst. Chant. Grants barrier to allies in an area around you. \n\nRefrain. After activation, continually pulses healing to allies while removing motivation stacks every interval. This effect lasts until you run out of motivation stacks or another chant is activated. Gain increased effects depending on motivation stacks:',
     icon: 'https://render.guildwars2.com/file/2D4B0C67FACAADD8612746BD6F5C6BE9A828C9A3/3680227.png',
     type: 'Profession',
     slot: 'Profession_3',
@@ -70,8 +65,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.FIND_THEIR_WEAKNESS]: {
     name: '"Find Their Weakness!"',
-    description:
-      'Command. Strike enemies around your target, inflicting vulnerability and spreading vulnerability from your original target to nearby enemies.\nEcho. Apply might to allies and gain adrenaline based on the number of enemies struck after a set interval or after you use a burst skill.',
     icon: 'https://render.guildwars2.com/file/B85CB2974032E620667B713B5A2980039C0A59BA/3680229.png',
     type: 'Utility',
     slot: 'Utility',
@@ -126,8 +119,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.ON_YOUR_KNEES]: {
     name: '"On Your Knees!"',
-    description:
-      'Command. Damage and apply conditions to enemies around you.\nEcho. Damage and immobilize enemies after a set interval or after you use a burst skill.',
     icon: 'https://render.guildwars2.com/file/13DF51701AAAF9B150DEDABC5CB3901D3B430871/3680231.png',
     type: 'Utility',
     slot: 'Utility',
@@ -173,8 +164,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.CHANT_OF_FREEDOM]: {
     name: 'Chant of Freedom',
-    description:
-      'Burst. Chant. Breaks stun from allies in an area around you. \n\nRefrain. When activated, continually applies swiftness to allies while removing motivation stacks every interval. This effect lasts until you run out of motivation stacks or another chant is activated. Gains increased effects depending on motivation stacks:',
     icon: 'https://render.guildwars2.com/file/52720B9628A24FE1034815E10F0AFACF5365F3C4/3680226.png',
     type: 'Profession',
     slot: 'Profession_4',
@@ -205,8 +194,6 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
   },
   [ID.CHANT_OF_ACTION]: {
     name: 'Chant of Action',
-    description:
-      'Burst. Chant. Applies boons to allies in an area around you.\n\nRefrain. After activation, continually applies boons to allies while removing motivation every interval. This effect lasts until you run out of motivation stacks or another chant is activated. Gain increased effects depending on motivation stacks:',
     icon: 'https://render.guildwars2.com/file/A4D0D740CF360E0840EF76282843109C759C63A8/3680225.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -235,7 +222,7 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> 
       }
     ]
   }
-});
+};
 
 /** Skill-owned refrain recipes are reused by both cast activation and Call to Action. */
 export const paragonRefrains: Readonly<

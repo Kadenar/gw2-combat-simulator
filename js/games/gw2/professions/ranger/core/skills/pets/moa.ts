@@ -8,11 +8,10 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   // Natural Peck uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.MOA_PECK]: definePetSkill({
     name: 'Peck',
-    description: 'Peck at your foe.',
     icon: new URL('@images/wiki/peck.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -35,7 +34,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillD
   // Natural Frenzied Attack uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.MOA_FRENZIED_ATTACK]: definePetSkill({
     name: 'Frenzied Attack',
-    description: 'Attack with a pecking frenzy and make your foe vulnerable.',
     icon: 'https://render.guildwars2.com/file/E4C75BA1A9056A684EDDF0CBCB746B36D707A842/103007.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -67,7 +65,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillD
   }),
   [ID.PROTECTING_SCREECH]: definePetSkill({
     name: 'Protecting Screech',
-    description: 'Beast. Screech to grant protection to nearby allies.',
     icon: 'https://render.guildwars2.com/file/103BC1F43615CD02E416E04100022EB0AAEDD618/103238.png',
     petNames: ['Blue Moa'],
     type: 'Profession',
@@ -89,7 +86,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillD
   }),
   [ID.DAZING_SCREECH]: definePetSkill({
     name: 'Dazing Screech',
-    description: 'Beast. Create a high-pitched screech, dazing nearby foes.',
     icon: 'https://render.guildwars2.com/file/103BC1F43615CD02E416E04100022EB0AAEDD618/103238.png',
     petNames: ['Pink Moa'],
     type: 'Profession',
@@ -109,7 +105,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillD
   }),
   [ID.DAZING_SCREECH_ID_12709]: definePetSkill({
     name: 'Dazing Screech',
-    description: 'Beast. Create a cone of sound, dazing foes.',
     icon: 'https://render.guildwars2.com/file/103BC1F43615CD02E416E04100022EB0AAEDD618/103238.png',
     petNames: ['Black Moa'],
     type: 'Profession',
@@ -129,7 +124,6 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillD
   }),
   [ID.FURIOUS_SCREECH]: definePetSkill({
     name: 'Furious Screech',
-    description: 'Beast. Screech angrily to grant fury to nearby allies.',
     icon: 'https://render.guildwars2.com/file/103BC1F43615CD02E416E04100022EB0AAEDD618/103238.png',
     petNames: ['Red Moa'],
     type: 'Profession',
@@ -149,4 +143,4 @@ export const RANGER_CORE_MOA_PET_SKILL_MECHANICS: Readonly<Record<number, SkillD
       }
     ]
   })
-});
+};

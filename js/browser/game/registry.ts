@@ -1,31 +1,17 @@
-import type {
-  GamePlugin,
-  GameRegistryEntry,
-  PlayableContentEntry,
-  PlayableContentPlugin
-} from '#browser/game/contracts.js';
+import type { GamePlugin, GameRegistryEntry, PlayableContentPlugin } from '#browser/game/contracts.js';
 
 const ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-function assertRecord(value: unknown, label: string): asserts value is Record<string, unknown> {
-  if (!value || typeof value !== 'object') throw new TypeError(`${label} must be an object.`);
+function assertId(value: string, label: string): void {
+  if (!ID_PATTERN.test(value)) throw new TypeError(`${label} must be a lowercase kebab-case identifier.`);
 }
 
-function assertId(value: unknown, label: string): asserts value is string {
-  if (typeof value !== 'string' || !ID_PATTERN.test(value)) {
-    throw new TypeError(`${label} must be a lowercase kebab-case identifier.`);
-  }
-}
-
-/** Validates declared content IDs and rejects ambiguous duplicates before loading content. */
-function validateContentEntries(value: unknown): asserts value is readonly PlayableContentEntry[] {
-  if (!Array.isArray(value)) throw new TypeError('GamePlugin.content must be an array.');
-
+/** Validates declared game and content IDs and rejects ambiguous duplicates before loading content. */
+function validateGamePlugin(game: GamePlugin): void {
+  assertId(game.id, 'GamePlugin.id');
   const ids = new Set<string>();
-  for (const [index, entry] of value.entries()) {
-    const label = `GamePlugin.content[${index}]`;
-    assertRecord(entry, label);
-    assertId(entry.id, `${label}.id`);
+  for (const [index, entry] of game.content.entries()) {
+    assertId(entry.id, `GamePlugin.content[${index}].id`);
 
     if (ids.has(entry.id)) throw new TypeError(`GamePlugin.content contains duplicate ID "${entry.id}".`);
 
@@ -33,27 +19,12 @@ function validateContentEntries(value: unknown): asserts value is readonly Playa
   }
 }
 
-/** Checks the coarse game contract at its lazy-loading boundary. */
-function validateGamePlugin(value: unknown): asserts value is GamePlugin {
-  assertRecord(value, 'GamePlugin');
-  assertId(value.id, 'GamePlugin.id');
-  validateContentEntries(value.content);
-
-  if (typeof value.loadContent !== 'function') throw new TypeError('GamePlugin.loadContent must be a function.');
-}
-
-/** Creates an immutable lazy registry after validating IDs, loaders, and uniqueness. */
+/** Creates an immutable lazy registry after validating IDs and uniqueness. */
 export function defineGameRegistry(entries: readonly GameRegistryEntry[]): readonly GameRegistryEntry[] {
-  if (!Array.isArray(entries)) throw new TypeError('Game registry must be an array.');
-
   const ids = new Set<string>();
   return Object.freeze(
-    entries.map((value, index) => {
-      assertRecord(value, `Game registry entry ${index}`);
-      const entry = value as unknown as GameRegistryEntry;
+    entries.map((entry, index) => {
       assertId(entry.id, `Game registry entry ${index}.id`);
-
-      if (typeof entry.load !== 'function') throw new TypeError(`Game registry entry "${entry.id}" needs a loader.`);
 
       if (ids.has(entry.id)) throw new TypeError(`Game registry contains duplicate ID "${entry.id}".`);
 
@@ -104,13 +75,9 @@ export async function loadGameContent(
 
   if (!content) throw new TypeError(`Game "${gameId}" did not load its declared content "${contentId}".`);
 
-  assertRecord(content, 'PlayableContentPlugin');
-
   if (content.gameId !== gameId || content.id !== contentId) {
     throw new TypeError(`Content loader "${gameId}/${contentId}" returned a mismatched plug-in.`);
   }
 
-  if (typeof content.mount !== 'function') throw new TypeError('PlayableContentPlugin.mount must be a function.');
-
-  return content as unknown as PlayableContentPlugin;
+  return content;
 }

@@ -4,10 +4,9 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 
-export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.DUAL_SHOT]: {
     name: 'Dual Shot',
-    description: 'Shoot a pair of arrows at your foe.',
     icon: 'https://render.guildwars2.com/file/F51C183650406C033D965D97D4BA370762AC2F03/103082.png',
     type: 'Weapon',
     weapon: 'Longbow',
@@ -42,7 +41,6 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.FAN_OF_FIRE]: {
     name: 'Fan of Fire',
-    description: 'Fire a spread of three flaming arrows, burning foes.',
     icon: 'https://render.guildwars2.com/file/BF057D09F65B0B11FA11767774715D4209E13869/104141.png',
     type: 'Weapon',
     weapon: 'Longbow',
@@ -70,7 +68,6 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.ARCING_ARROW]: {
     name: 'Arcing Arrow',
-    description: 'Shoot a slow, arcing arrow that explodes on impact.',
     icon: 'https://render.guildwars2.com/file/2557F1F1BC385EC9685C7409A77902AC7BFFFBF0/104114.png',
     type: 'Weapon',
     weapon: 'Longbow',
@@ -104,7 +101,6 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.SMOLDERING_ARROW]: {
     name: 'Smoldering Arrow',
-    description: 'Shoot an arrow that explodes on impact, blinding foes.',
     icon: 'https://render.guildwars2.com/file/AD57051DA007DE23FF0F400820C2DA700C064E96/102783.png',
     type: 'Weapon',
     weapon: 'Longbow',
@@ -142,7 +138,6 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.PIN_DOWN]: {
     name: 'Pin Down',
-    description: 'Fire an arrow that bleeds and immobilizes your target.',
     icon: 'https://render.guildwars2.com/file/7DE4320F3647753F9B3DD1EC4CF972ABADFF93CE/103213.png',
     type: 'Weapon',
     weapon: 'Longbow',
@@ -175,4 +170,4 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ])
   }
-});
+};

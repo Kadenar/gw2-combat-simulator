@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/ranger/data/trait-lines.js';
 import { RANGER_UNTAMED_PROFILE_FIELDS } from '#gw2/professions/ranger/specializations/untamed/catalog-fields.js';
 import { untamedHooks } from '#gw2/professions/ranger/specializations/untamed/hooks.js';
@@ -17,7 +18,7 @@ export const untamedModule = defineNativeModule({
     id: 'Untamed',
     traitLines: TRAIT_LINES,
     profileFields: RANGER_UNTAMED_PROFILE_FIELDS,
-    skillMechanics: UNTAMED_BASE_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(UNTAMED_BASE_SKILL_MECHANICS)
   }),
   state: { create: untamedState.create, project: projectUntamedPlanningState },
   hooks: untamedHooks,

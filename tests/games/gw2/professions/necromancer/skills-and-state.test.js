@@ -451,7 +451,7 @@ test('Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigg
     ['Dusk Strike', 'Fading Twilight', 'Chilling Scythe']
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.steps.filter((step) => step.skill === 'Gravedigger').length, 2);
+  assert.equal(result.steps.filter((step) => step.skillName === 'Gravedigger').length, 2);
   assert.equal(
     result.events.some(
       (event) =>
@@ -484,14 +484,14 @@ test("delayed interrupted weapon damage preserves Reaper's chain while shroud en
 
   assert.deepEqual(interrupted.warnings, []);
   assert.deepEqual(
-    interrupted.steps.map((step) => step.skill),
+    interrupted.steps.map((step) => step.skillName),
     ['Dusk Strike', 'Grasping Darkness', 'Fading Twilight']
   );
   assert.equal(interrupted.steps[1].interrupted, true);
   assert.equal(enteredShroud.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.DUSK_STRIKE], undefined);
   assert.deepEqual(shrouded.warnings, []);
   assert.deepEqual(
-    shrouded.steps.map((step) => step.skill),
+    shrouded.steps.map((step) => step.skillName),
     ['Dusk Strike', "Reaper's Shroud", "Exit Reaper's Shroud", 'Dusk Strike']
   );
 });
@@ -508,12 +508,12 @@ test('non-chain skills reset greatsword and spear autoattacks', () => {
 
   assert.deepEqual(greatsword.warnings, []);
   assert.deepEqual(
-    greatsword.steps.map((step) => step.skill),
+    greatsword.steps.map((step) => step.skillName),
     ['Dusk Strike', 'Well of Suffering', 'Dusk Strike']
   );
   assert.deepEqual(spear.warnings, []);
   assert.deepEqual(
-    spear.steps.map((step) => step.skill),
+    spear.steps.map((step) => step.skillName),
     ['Dark Slash', 'Well of Suffering', 'Dark Slash']
   );
 });
@@ -548,7 +548,7 @@ test('sword autoattack advances through Deathly Enervation before returning to E
   assert.equal(afterEcho.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
   assert.deepEqual(completed.warnings, []);
   assert.deepEqual(
-    completed.steps.map((step) => step.skill),
+    completed.steps.map((step) => step.skillName),
     ['Enervation Blade', 'Enervation Echo', 'Deathly Enervation', 'Enervation Blade']
   );
   assert.equal(completed.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
@@ -566,7 +566,7 @@ test('other weapon skills preserve the exceptional Necromancer sword autoattack 
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     ['Enervation Blade', 'Ravenous Wave', 'Enervation Echo']
   );
   assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
@@ -612,7 +612,7 @@ test('Gravedigger fully recharges when it hits below 50% target health', () => {
       conditions: {}
     }
   });
-  const gravediggers = result.steps.filter((step) => step.skill === 'Gravedigger');
+  const gravediggers = result.steps.filter((step) => step.skillName === 'Gravedigger');
 
   assert.deepEqual(result.warnings, []);
   assert.equal(gravediggers.length, 2);

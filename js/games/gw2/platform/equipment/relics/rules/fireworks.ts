@@ -2,6 +2,10 @@
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { defineRelic, recordTimedBuffProc, timedStrikeBuff } from '#gw2/platform/equipment/relics/rules/shared.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+
+/** Engineer kits and Necromancer shrouds strike at their own strength; those professions declare both fields. */
+type FireworksSkill = Skill & { readonly kitId?: SkillId; readonly shroud?: string };
 
 export const fireworks = defineRelic({
   buffPolicies: [{ kind: 'relic-fireworks', name: 'Relic of Fireworks', maximumStacks: 1 }],
@@ -10,7 +14,8 @@ export const fireworks = defineRelic({
     // The normal eligibility check still excludes flat damage, allies, bundles, and short-recharge skills.
     if (event.coefficient === 0 && event.damageKind !== 'condition') fireworks.afterHit?.(ctx, state, event, skill);
   },
-  afterHit(ctx, _state, event, skill) {
+  afterHit(ctx, _state, event, hitSkill) {
+    const skill: FireworksSkill | null | undefined = hitSkill;
     // Flat strikes (including Binding Blade's tether) ignore weapon strength and cannot activate Fireworks.
     const isFlatStrike =
       event.type === 'damage' &&

@@ -89,7 +89,6 @@ type ComboOutcome =
   | {
       readonly kind: 'cleanse';
       readonly name: string;
-      readonly conditions: number;
     }
   | {
       readonly kind: 'healing';
@@ -119,7 +118,7 @@ const condition = (name: string, conditionName: string, stacks: number, duration
     stacks,
     duration
   });
-const cleanse = (name: string): ComboOutcome => Object.freeze({ kind: 'cleanse', name, conditions: 1 });
+const cleanse = (name: string): ComboOutcome => Object.freeze({ kind: 'cleanse', name });
 const stealth = (name: string): ComboOutcome => Object.freeze({ kind: STATUS.STEALTH, name, duration: 3 });
 // Healing combos retain their identity for proc handling; player health is fixed at full.
 const healing = (name: string): ComboOutcome => Object.freeze({ kind: 'healing', name });

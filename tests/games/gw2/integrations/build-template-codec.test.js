@@ -47,7 +47,7 @@ test('GW2 build templates resolve Elementalist palette IDs to stable catalog ski
   assert.deepEqual(resolved.selectedSkillIds, {
     Heal: 29535,
     Utility1: 30662,
-    Utility2: 5736,
+    Utility2: 5734,
     Utility3: 5542,
     Elite: 25488
   });

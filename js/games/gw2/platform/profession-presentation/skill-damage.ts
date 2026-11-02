@@ -26,6 +26,8 @@ export interface SkillDamageVariant {
 
 /** Damage-relevant state and variants for one assumed activation, independent of prerequisite history. */
 export interface SkillDamageState {
+  /** Selector inputs resolve to one concrete payload in the detached preview context. */
+  readonly resolvedSkillId?: SkillId;
   readonly initialResource?: number;
   readonly config?: SkillDamageConfigPatch;
   readonly inputs?: import('#gw2/platform/skill-damage/types.js').DamageInputs;

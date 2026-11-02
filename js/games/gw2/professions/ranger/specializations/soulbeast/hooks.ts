@@ -18,11 +18,15 @@ export const soulbeastHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkil
     buffPolicies: soulbeastBuffPolicies,
     sideEffectHandlers: {
       'ranger.vulture-stance'(runtime, context) {
-        activateSoulbeastStance(runtime, context.skill, 'vulture-stance');
+        activateSoulbeastStance(runtime, context.skill, 'vulture-stance', runtime.time);
       },
       'ranger.one-wolf-pack'(runtime, context) {
-        soulbeastState.from(runtime).oneWolfPackUntil =
-          runtime.time + activateSoulbeastStance(runtime, context.skill, 'one-wolf-pack');
+        if (context.kind !== 'cast') return;
+
+        // Earlier trap pulses cannot echo until the stance's activation packet actually resolves.
+        const at = context.cast.start + Number(context.skill.interruptCommitMs) / 1000;
+        soulbeastState.from(runtime.profession).oneWolfPackUntil =
+          at + activateSoulbeastStance(runtime, context.skill, 'one-wolf-pack', at);
       }
     },
     reactions: {

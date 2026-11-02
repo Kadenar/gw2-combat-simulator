@@ -11,7 +11,7 @@ import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/profes
  * Runtime behavior remains in the named execution and mechanic owners.
  */
 
-export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
+export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = [
   createDodgeSkill({
     // A late-cancelled dodge commits while keeping the rest of its animation reserved.
     interruptCommitMs: 760,
@@ -20,7 +20,6 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
   }),
   {
     name: 'Swap Pets',
-    description: 'Swap your active pet and trigger pet-swap traits.',
     icon: WEAPON_SWAP_ICON,
     id: ID.PET_SWAP,
     // Pet swapping occupies the fourth profession control on the active pet bar.
@@ -36,7 +35,7 @@ export const RANGER_CORE_ACTION_SKILLS: readonly Skill[] = Object.freeze([
     sideEffects: [{ on: 'castCommit', do: { type: 'ranger.swap-pets' } }]
   },
   createWeaponSwapSkill()
-]);
+];
 
 /** Record outgoing retirement, then publish the swap after the incoming generation is ready. */
 export function swapRangerPets(runtime: RangerRuntime, skill: Skill): void {

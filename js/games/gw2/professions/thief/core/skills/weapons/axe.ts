@@ -3,26 +3,20 @@ import { ACTOR, COMBO_FINISHER, CONDITION, WEAPON } from '#gw2/platform/constant
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 // Separate measured projectile impacts from aftercast so recall and condition applications follow the live axe generation.
-export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSkill>>> = {
   [ID.SPINNING_AXE_ID_71967]: {
     name: 'Spinning Axe',
-    description: 'Throw an axe that bleeds enemies and leaves a spinning axe on the ground.',
     icon: 'https://render.guildwars2.com/file/A00600C596C0A71A3776DF1D9E2AC2BE5F2E1229/3256391.png',
     type: 'Weapon',
     weapon: 'Axe',
     slot: 'Weapon_1',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     // The fast opener and slow follow-up share one tile and alternate through the standard chain controller.
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
-    initiativeCost: 0,
     castTimeMs: 440,
     // This faster throw releases one action tick before its melee impact.
     interruptCommitMs: 360,
@@ -50,20 +44,13 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.SPINNING_AXE]: {
     name: 'Spinning Axe',
-    description: 'Throw an axe that bleeds enemies and leaves a spinning axe on the ground.',
     icon: 'https://render.guildwars2.com/file/A00600C596C0A71A3776DF1D9E2AC2BE5F2E1229/3256391.png',
     type: 'Weapon',
     weapon: 'Axe',
     slot: 'Weapon_1',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
-    initiativeCost: 0,
     // The slower axe releases before its aftercast; a launched projectile can still land after cancellation.
     castTimeMs: 760,
     interruptCommitMs: 480,
@@ -91,14 +78,7 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.CUNNING_SALVO]: {
     name: 'Cunning Salvo',
-    description:
-      'Throw an axe that explodes when it hits a target, crippling nearby enemies. Gain initiative if you strike an enemy.',
     icon: 'https://render.guildwars2.com/file/74E8A2686C3BBBC6E572C42A7824EC070C98F25E/3256393.png',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
     type: 'Weapon',
     slot: 'Weapon_1',
     weapon: 'Axe',
@@ -106,7 +86,6 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     cooldown: 1,
     // The stealth attack's one-second reuse lockout is independent of Alacrity.
     rechargeIgnoresAlacrity: true,
-    initiativeCost: 0,
     requiredMainHand: WEAPON.AXE,
     stealthAttack: true,
     // Salvo's impact precedes its aftercast; keep the projectile alive once it has been thrown.
@@ -124,13 +103,15 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
               actor: ACTOR.PLAYER,
               packets: 'first',
               // Keep the impact refund independently editable without changing its hit requirement.
-              do: {
-                type: 'resourceGrant',
-                id: 'initiative-refunded',
-                label: 'Initiative refunded',
-                resource: 'initiative',
-                amount: 2
-              }
+              do: [
+                {
+                  type: 'resourceGrant',
+                  id: 'initiative-refunded',
+                  label: 'Initiative refunded',
+                  resource: 'initiative',
+                  amount: 2
+                }
+              ]
             }
           ],
           coefficient: 1.5,
@@ -165,19 +146,13 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.VENOMOUS_VOLLEY]: {
     name: 'Venomous Volley',
-    description: 'Throw a fan of poisonous axes that leaves spinning axes on the ground.',
     icon: 'https://render.guildwars2.com/file/9F1A55D17C0CDD42675FC758B797BBCFE610D4A7/3256394.png',
     type: 'Weapon',
     weapon: 'Axe',
     slot: 'Weapon_2',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 3 },
 
     cooldown: 0,
-    initiativeCost: 3,
     castTimeMs: 600,
     // Committed projectiles survive interruption while the next input can start immediately.
     interruptCommitMs: 440,
@@ -208,22 +183,15 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   [ID.HARROWING_STORM]: {
     dualWieldAttack: true,
     name: 'Harrowing Storm',
-    description:
-      'Teleport behind your target and drag any spinning axes back at your target. Returning axes also inflict torment, and enemies struck by a number of axes will be immobilized.',
     icon: 'https://render.guildwars2.com/file/7D952046DA4101E9C5B21F5FCC19040B2B08AD3B/3256389.png',
     type: 'Weapon',
     weapon: 'Axe',
     slot: 'Weapon_3',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     shadowstepSkill: true,
     movementSkill: true,
     cooldown: 0,
-    initiativeCost: 4,
     requiredMainHand: WEAPON.AXE,
     requiredOffHand: WEAPON.DAGGER,
     // Recall begins before aftercast finishes, so returning axes can overlap the next attack.
@@ -236,20 +204,13 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.RECALL_AXES]: {
     name: 'Recall Axes',
-    description:
-      'Pull spinning axes to your target. Axes deal increased strike damage, and enemies struck by a number of axes will be immobilized.',
     icon: 'https://render.guildwars2.com/file/36E32348F31BDE22EF2DB81209D204A81976C2F1/3256395.png',
     type: 'Weapon',
     weapon: 'Axe',
     slot: 'Weapon_3',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     cooldown: 0,
-    initiativeCost: 4,
     requiredMainHand: WEAPON.AXE,
     requiredOffHand: false,
     castTimeMs: 360,
@@ -261,20 +222,13 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   [ID.ORCHESTRATED_ASSAULT]: {
     dualWieldAttack: true,
     name: 'Orchestrated Assault',
-    description:
-      'Pull spinning axes to your target. Axes deal increased strike damage, and enemies struck by a number of axes will be immobilized.',
     icon: 'https://render.guildwars2.com/file/EDAA6A645279109A6FD7064A4439ECE3DDBE05F4/3256390.png',
     type: 'Weapon',
     weapon: 'Axe',
     slot: 'Weapon_3',
-    cost: {
-      resource: 'initiative',
-      skillAmount: 'initiativeCost',
-      spendOn: 'castStart'
-    },
+    cost: { resource: 'initiative', amount: 4 },
 
     cooldown: 0,
-    initiativeCost: 4,
     requiredMainHand: WEAPON.AXE,
     requiredOffHand: WEAPON.PISTOL,
     castTimeMs: 560,
@@ -286,4 +240,4 @@ export const THIEF_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     // The skill owns this transition at successful commitment.
     sideEffects: [{ on: 'castStart', do: { type: 'thief.recall-axes' } }]
   }
-});
+};

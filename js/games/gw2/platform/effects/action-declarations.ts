@@ -61,7 +61,7 @@ export function hasImmutableLiteralReactions(reactions: readonly EffectReaction[
     reactions.every(
       (rule) =>
         rule.on !== 'combo.resolved' &&
-        (Array.isArray(rule.do) ? rule.do : [rule.do]).every(
+        rule.do.every(
           (action: SideEffectAction) => action.type === 'resourceGrant' && typeof action.amount === 'number'
         )
     )
@@ -98,17 +98,19 @@ function readRequirements(catalog: CanonicalCatalog): ActionRequirements {
 /** Canonical catalog construction calls this only after its owned action declarations have been detached and frozen. */
 export function prepareCatalogActionRequirements(catalog: CanonicalCatalog): void {
   // Admission reads only frozen action types and resource keys; opaque payloads do not change these requirements.
-  const stableActions = (rules: readonly { readonly do: SideEffectAction | readonly SideEffectAction[] }[]) =>
-    declarationSnapshots.has(rules) &&
-    rules.every(
-      (rule) =>
-        declarationSnapshots.has(rule) &&
-        (Array.isArray(rule.do) ? rule.do : [rule.do]).every((action) => declarationSnapshots.has(action))
-    );
+  // Cast rules own one action; reaction rules own an action list whose snapshot must also be detached.
+  const stableDeclarations = (values: readonly object[]) =>
+    declarationSnapshots.has(values) && values.every((value) => declarationSnapshots.has(value));
   const immutable = [...catalog.skills, ...catalog.balanceProfiles].every(
     (owner) =>
-      (!(owner as Skill).sideEffects || stableActions((owner as Skill).sideEffects!)) &&
-      (owner.effects ?? []).every((effect) => !effect.reactions || stableActions(effect.reactions))
+      (!(owner as Skill).sideEffects ||
+        (stableDeclarations((owner as Skill).sideEffects!) &&
+          (owner as Skill).sideEffects!.every((rule) => declarationSnapshots.has(rule.do)))) &&
+      (owner.effects ?? []).every(
+        (effect) =>
+          !effect.reactions ||
+          (stableDeclarations(effect.reactions) && effect.reactions.every((rule) => stableDeclarations(rule.do)))
+      )
   );
 
   if (immutable) catalogRequirements.set(catalog, readRequirements(catalog));

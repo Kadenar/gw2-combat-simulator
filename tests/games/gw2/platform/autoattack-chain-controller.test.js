@@ -7,6 +7,7 @@ import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profes
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { cast } from '#tests/helpers/commands.js';
 
 const skill = (id, name, extra = {}) => ({
   id,
@@ -134,7 +135,6 @@ const chainConfig = {
   attributeInputs: baseAttributeInputs({ power: 1000 }),
   target: { armor: 1000, health: 0, conditions: {} }
 };
-const cast = (skillId, flags = {}) => ({ type: 'cast', skillId, ...flags });
 const runChain = (rotation, profession = chainProfession().runtimeFor(chainConfig), extra = {}) =>
   runGw2Runtime({ profession, config: chainConfig, rotation, ...extra });
 
@@ -290,8 +290,8 @@ test('form helpers reset selected or all chains through the shared mutation boun
     }
   };
 
-  resetAutoattackChains(context, [1]);
+  resetAutoattackChains(context.state.profession, [1]);
   assert.deepEqual(context.state.profession.core.autoattackChains, { 4: 5 });
-  resetAutoattackChains(context);
+  resetAutoattackChains(context.state.profession);
   assert.deepEqual(context.state.profession.core.autoattackChains, {});
 });

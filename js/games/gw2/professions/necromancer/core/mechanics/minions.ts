@@ -305,10 +305,10 @@ function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
     });
 }
 
-/** Staggered horrors outlive their creating cast and Lich Form. */
+/** Schedule the skill's declared summon count; staggered horrors outlive their creating cast and Lich Form. */
 export function summonNecromancerHorrors(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const skill = cast.skill;
-  for (let index = 0; index < Number(skill.summons); index++)
+  for (let index = 0; index < Number(skill.summonCount); index++)
     runtime.schedule(HORROR_SPAWN, runtime.time + index * Number(skill.summonInterval), {
       skillId: skill.id,
       activationId: cast.id,

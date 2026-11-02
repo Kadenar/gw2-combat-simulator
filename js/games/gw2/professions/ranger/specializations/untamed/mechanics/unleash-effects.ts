@@ -18,7 +18,7 @@ export function untamedCastAvailability(
   context: MechanicQueriesOf<RangerRuntime>,
   skill: RangerSkill
 ): AvailabilityResult {
-  const state = untamedState.from(context);
+  const state = untamedState.from(context.profession);
 
   if (skill.id === ID.UNLEASH_RANGER && state.rangerUnleashed) {
     return deny(skill, 'ranger.ranger-unleashed', 'the ranger is already unleashed.');
@@ -53,7 +53,7 @@ export function untamedCastAvailability(
 
 /** Each ambush window expires only its own grant, preserving the independent grant cooldown. */
 export function grantAmbush(runtime: RangerRuntime): void {
-  const state = untamedState.from(runtime);
+  const state = untamedState.from(runtime.profession);
   state.ambushReadyUntil = canonicalTime(
     runtime.time + balanceNumberFromContext(runtime, TRAIT.UNLEASHED_POWER, 'duration')
   );
@@ -72,7 +72,7 @@ export const untamedUnleashed = defineTriggerPoint<{ readonly skill: RangerSkill
 
 /** Both toggles share fixed recharge; only an eligible transfer to Ranger claims a new ambush. */
 function unleash(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>, rangerUnleashed: boolean): void {
-  untamedState.from(runtime).rangerUnleashed = rangerUnleashed;
+  untamedState.from(runtime.profession).rangerUnleashed = rangerUnleashed;
   const readyAt = cast.start + skillNumber(cast.skill, 'cooldown');
   runtime.cooldownController.setReadyAt(ID.UNLEASH_RANGER, readyAt);
   runtime.cooldownController.setReadyAt(ID.UNLEASH_PET, readyAt);
@@ -101,7 +101,7 @@ const unleashActions: NonNullable<RuntimeHooks<RangerRuntimeState, RangerSkill>[
     });
   },
   'ranger.ambush-consume'(runtime) {
-    untamedState.from(runtime).ambushReadyUntil = 0;
+    untamedState.from(runtime.profession).ambushReadyUntil = 0;
   },
   'ranger.unleash-ranger'(runtime, context) {
     if (context.kind === 'cast') unleash(runtime, context.cast, true);

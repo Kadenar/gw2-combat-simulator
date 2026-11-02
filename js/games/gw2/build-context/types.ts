@@ -13,7 +13,7 @@ import type { AnyNativeModule } from '#gw2/platform/profession-definition/module
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CatalogEntity, SkillId } from '#gw2/platform/skills/types.js';
 
-export type WeaponSet = 1 | 2;
+export type WeaponSetNumber = 1 | 2;
 
 export type ProfessionModifierType = 'Boon' | 'Target' | 'Sigil' | 'Relic' | 'Food' | 'Utility' | 'Trait' | 'Skill';
 
@@ -27,11 +27,6 @@ export type ProfessionModifier = {
 
 export interface BuildAttributes extends Readonly<Gw2FinalizedAttributeResult> {
   readonly activeTraits: readonly CatalogEntity[];
-}
-
-/** Trait selection is independent of the profession effects evaluated only for requested previews. */
-export interface BuildContextAttributeRules {
-  readonly attributeContributions: Gw2AttributeContributionCalculator;
 }
 
 /** Explicit build dependencies keep headless configuration independent of lazy profession presentation. */
@@ -49,10 +44,9 @@ export interface BuildContextInput<TBuild extends Gw2CanonicalBuild = Gw2Canonic
 }
 
 export interface BuildContext {
-  readonly profession: Gw2ProfessionSource;
   readonly specialization: string;
   readonly selectedSkillIds: readonly SkillId[];
-  attributes(weaponSet: WeaponSet): BuildAttributes;
+  attributes(weaponSet: WeaponSetNumber): BuildAttributes;
   simulationConfig(): Gw2Config;
 }
 
@@ -62,6 +56,8 @@ export type BuildContextFactory<TBuild extends Gw2CanonicalBuild = Gw2CanonicalB
 }['create'];
 
 export type BuildContextProfession = Gw2ProfessionSource & {
+  /** Attribute previews use the calculator owned by this patch-bound profession. */
+  readonly attributeContributions: Gw2AttributeContributionCalculator;
   readonly preview?: PatchPreview | null;
   /** Bound professions resolve the selected patch and reject unavailable patch IDs. */
   readonly resolvePatch: (selection?: PatchSelection) => ResolvedPatch;

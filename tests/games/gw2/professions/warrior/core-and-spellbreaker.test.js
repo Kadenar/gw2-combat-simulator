@@ -307,12 +307,12 @@ test('Dragon Trigger charge time is excluded from timeline dead time', () => {
   const result = simulate('Bladesworn', ['Dragon Trigger', { skillId: 62797, releaseAtCharges: 5 }], {
     initialResource: 100
   });
-  const dragonSlashStep = result.steps.find((step) => step.skill === 'Dragon Slash—Force' && !step.invalid);
+  const dragonSlashStep = result.steps.find((step) => step.skillName === 'Dragon Slash—Force' && !step.invalid);
 
   assert.ok(dragonSlashStep, 'expected a Dragon Slash cast');
 
   const spends = mechanicResourceSpends(result);
-  const chargingSeconds = spends.get(dragonSlashStep.ri)?.chargingSeconds || 0;
+  const chargingSeconds = spends.get(dragonSlashStep.rotationCommandIndex)?.chargingSeconds || 0;
   const chargingMs = Math.round(chargingSeconds * 1000);
 
   assert.ok(chargingMs > 0, 'expected Dragon Slash to spend time charging');
@@ -440,7 +440,7 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
       .resourceViews({
         catalog: warriorCatalog,
         specialization,
-        professionState: { [STATE.ADRENALINE]: { value: 0, maximum, rate: 0, updatedAt: 0 } }
+        professionState: { [STATE.ADRENALINE]: { value: 0, maximum, unitsPerSecond: 0, updatedAt: 0 } }
       })
       .find((view) => view.id === 'adrenaline');
 
@@ -522,20 +522,20 @@ test('Core Warrior weapon swap toggles the active set', () => {
     [0, 0]
   );
   assert.equal(precombat.planningState.activeWeaponSet, 1);
-  assert.equal(precombat.planningState.cooldowns[-3], undefined);
+  assert.equal(precombat.planningState.cooldownsBySkillId[-3], undefined);
 
   const result = simulate('Core', ['__combat_start', 'Swap Weapons'], equipped);
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.activeWeaponSet, 2);
-  assert.equal(result.planningState.cooldowns[-3].readyAt, 5000);
+  assert.equal(result.planningState.cooldownsBySkillId[-3].readyAtMs, 5000);
   assert.equal(
     result.events.some((event) => event.type === 'weapon_set' && event.weaponSet === 2),
     true
   );
 
   const relic = simulate('Core', ['__combat_start', 'Swap Weapons'], { ...equipped, relic: 'Warrior' });
-  assert.equal(relic.planningState.cooldowns[-3].readyAt, 2520);
+  assert.equal(relic.planningState.cooldownsBySkillId[-3].readyAtMs, 2520);
 });
 
 test('Berserker gates primal bursts behind berserk mode', () => {
@@ -570,10 +570,10 @@ test('Outrage queued after a wait clears the remaining Head Butt self-stun', () 
     { boons: { quickness: true } }
   );
 
-  assert.equal(locked.steps.find((step) => step.skill === 'Sundering Leap').start, 1800);
+  assert.equal(locked.steps.find((step) => step.skillName === 'Sundering Leap').start, 1800);
   assert.deepEqual(broken.warnings, []);
   assert.deepEqual(
-    broken.steps.filter((step) => step.skillId != null).map((step) => [step.skill, step.start]),
+    broken.steps.filter((step) => step.skillId != null).map((step) => [step.skillName, step.start]),
     [
       ['Head Butt', 0],
       ['Outrage', 880],
@@ -934,8 +934,8 @@ test('Rifle Butt restores rifle ammunition and readies Kill Shot', () => {
     [ID.VOLLEY, ID.EXPLOSIVE_SHELL, ID.BRUTAL_SHOT].map((id) => result.planningState.ammoBySkillId[String(id)].charges),
     [2, 2, 2]
   );
-  assert.equal(result.planningState.cooldowns[ID.KILL_SHOT], undefined);
-  assert.equal(result.planningState.cooldowns[ID.RIFLE_BUTT].remaining, 9600);
+  assert.equal(result.planningState.cooldownsBySkillId[ID.KILL_SHOT], undefined);
+  assert.equal(result.planningState.cooldownsBySkillId[ID.RIFLE_BUTT].remainingMs, 9600);
 });
 
 test('Spellbreaker control grants independent Insight stacks and No Escape', () => {

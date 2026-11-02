@@ -119,7 +119,7 @@ export const ritualistSpiritActions: NonNullable<
   RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['sideEffectHandlers']
 > = {
   'ritualist.wanderlust-opening'(runtime, context) {
-    if (context.kind !== 'cast' || context.cast.cancelled) return;
+    if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
 
     const cast = context.cast;
     const swing = spiritDefinition(runtime, cast.skill.id)?.summonTicks[0];
@@ -194,7 +194,7 @@ export const ritualistSpiritActions: NonNullable<
       // Cancellation before creation removes the whole field; its emitted pulses become independent afterward.
       runtime.schedule(
         FIELD,
-        Math.min(ritualistState.from(runtime).activeSpirits[key].busyUntil, at),
+        Math.min(ritualistState.from(runtime.profession).activeSpirits[key].busyUntil, at),
         {
           events: strikePackets(runtime, cast, spirit, spirit.lingeringTicks, 'initial'),
           skillId: cast.skill.id,
@@ -256,7 +256,7 @@ export const ritualistSpiritActions: NonNullable<
     for (const id of RITUALIST_SPIRIT_SKILL_IDS) {
       const spirit = spiritDefinition(runtime, id)!;
 
-      const actor = ritualistState.from(runtime).activeSpirits[spirit.key];
+      const actor = ritualistState.from(runtime.profession).activeSpirits[spirit.key];
 
       if (!actor) continue;
 

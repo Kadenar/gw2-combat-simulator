@@ -3,12 +3,11 @@ import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.FRIGID_BLITZ]: {
     name: 'Frigid Blitz',
-    description:
-      'Hurl your axe at your target, damaging and chilling the foes the axe passes through. When the axe reaches your target, shadowstep to it and deliver a large blow.',
     icon: 'https://render.guildwars2.com/file/CF6305B8CDF2C70DDAC7709919A75C3554B09169/961462.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -46,8 +45,6 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   [ID.TEMPORAL_RIFT]: {
     name: 'Temporal Rift',
-    description:
-      'Slice into the Mists, creating an unstable rift. After a short duration, this rift will collapse in on itself, pulling in enemies.',
     icon: 'https://render.guildwars2.com/file/BECD56D7BA6A9175F804305A4B4EB369079AEB1F/961478.png',
     type: 'Weapon',
     weapon: 'Axe',
@@ -81,4 +78,4 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ])
   }
-});
+};

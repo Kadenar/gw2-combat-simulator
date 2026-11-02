@@ -351,7 +351,7 @@ function reconstructWithProfile(
     .map((action) => resolveAction(action, catalog, profile))
     // Capture the same conditional cutoff used by runtime cancellation and replay occupancy.
     .map((action) => ({ ...action, skill: resolveSkill(action, action.skill) }))
-    .filter((action) => action.skill?.simulatorExcluded !== true);
+    .filter((action) => action.skill?.rotationInputExcluded !== true);
 
   // Direct effect timestamps anchor instant inputs, including ammo flips; later idle time cannot move those inputs.
   resolved.sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);

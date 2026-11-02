@@ -310,8 +310,8 @@ function infiniteHorizonCloak(
   state: MesmerRuntime,
   { at, duration, delivery }: TriggerPointInput<typeof mirageCloakGranted>
 ): void {
-  mirageState.from(state).cloneAmbushUntil = canonicalTime(at + duration);
-  createMirageMechanics(state).executeCloneAmbushes(at, professionCoreState(state).clones, delivery);
+  mirageState.from(state.profession).cloneAmbushUntil = canonicalTime(at + duration);
+  createMirageMechanics(state).executeCloneAmbushes(at, professionCoreState(state.profession).clones, delivery);
 }
 
 /** Preserve riddle of sand at its accepted mechanic boundary. */
@@ -319,7 +319,7 @@ function riddleAmbush(
   state: MesmerRuntime,
   { ambush, impactAt, delivery }: TriggerPointInput<typeof mirageAmbushAccepted>
 ): void {
-  const riddleOfSand = mirageState.from(state).riddleOfSandReady
+  const riddleOfSand = mirageState.from(state.profession).riddleOfSandReady
     ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)
     : undefined;
 
@@ -348,7 +348,7 @@ function riddleAmbush(
         detail: '2 confusion'
       }
     });
-    mirageState.from(state).riddleOfSandReady = false;
+    mirageState.from(state.profession).riddleOfSandReady = false;
   }
 }
 
@@ -421,7 +421,7 @@ function infiniteHorizonGain(state: MesmerRuntime, { gain }: TriggerPointInput<t
     traitId === TRAIT.DECEPTIVE_EVASION ||
     (traitId === TRAIT.SELF_DECEPTION && cause.sourceSkillId === ID.ILLUSIONARY_AMBUSH);
   // Preserve the inclusive clone-gain deadline, but never treat the zero sentinel as an active cloak.
-  const cloneAmbushUntil = mirageState.from(state).cloneAmbushUntil;
+  const cloneAmbushUntil = mirageState.from(state.profession).cloneAmbushUntil;
 
   if (triggersCloneAmbush && cloneAmbushUntil > 0 && at <= cloneAmbushUntil) {
     createMirageMechanics(state).executeCloneAmbushes(at, createdClones);
@@ -431,7 +431,7 @@ function infiniteHorizonGain(state: MesmerRuntime, { gain }: TriggerPointInput<t
 /** Preserve riddle of sand at its accepted mechanic boundary. */
 function initializeRiddle(state: MesmerRuntime): void {
   // Riddle of Sand starts armed only for the active Mirage runtime and is re-armed by Mirage shatters.
-  mirageState.from(state).riddleOfSandReady =
+  mirageState.from(state.profession).riddleOfSandReady =
     hasTrait(state, TRAIT.RIDDLE_OF_SAND) &&
     Boolean(
       requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)
@@ -468,7 +468,7 @@ function primeRiddleAfterShatter(
   const { skill, at, delivery } = resolution;
 
   if (requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)) {
-    mirageState.from(state).riddleOfSandReady = true;
+    mirageState.from(state.profession).riddleOfSandReady = true;
     state.effects.emit({
       ...delivery,
       kind: 'announcement',

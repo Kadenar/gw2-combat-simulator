@@ -35,7 +35,7 @@ test('Holosmith initializes one capped heat clock before preheated cooling', () 
     assert.deepEqual(result.warnings, []);
     assert.equal(state.heat.value, maximum);
     assert.equal(state.heat.maximum, maximum);
-    assert.equal(state.heat.rate, 0);
+    assert.equal(state.heat.unitsPerSecond, 0);
     assert.equal(state.forgeExitedAt, 0);
     assert.equal(state.passiveHeatAt, 0.1);
     assert.equal(state.overheated, false);
@@ -71,7 +71,7 @@ test('passive heat retains per-tick nine-decimal rounding with patched rates', (
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession[STATE.HEAT].value, 0.133333332);
-  assert.equal(result.planningState.profession[STATE.HEAT].rate, 0);
+  assert.equal(result.planningState.profession[STATE.HEAT].unitsPerSecond, 0);
 });
 
 // Venting a nearly empty pool must spend only the available heat and retain its combat packet ordering.

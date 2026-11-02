@@ -81,7 +81,7 @@ const enhancedCapacityStorageUnit = defineTrait({
   lifetime: {
     tasks: {
       'engineer.enhanced-capacity-might'(context) {
-        const state = holosmithState.from(context);
+        const state = holosmithState.from(context.profession);
 
         if (state.enhancedCapacityMightAt !== context.time) return;
 
@@ -215,7 +215,7 @@ export const holosmithTraits = [
 
 /** Dodge grants Vigor before invoking the skill-owned vent, unless PBM preserves the current heat. */
 function triggerThermalReleaseValve(context: EngineerRuntime<HolosmithSkill>, skill: EngineerSkill, at: number): void {
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
   emitTraitProfile(context, TRAIT.THERMAL_RELEASE_VALVE, TRAIT.THERMAL_RELEASE_VALVE, undefined, {
     at: at,
     effect: { type: 'boon', name: boonKey(BOON.VIGOR) },
@@ -248,7 +248,7 @@ function crossEnhancedCapacityThreshold(
   context: EngineerRuntime<HolosmithSkill>,
   { at, previousHeat }: HeatGain
 ): void {
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
 
   if (
     previousHeat > balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'threshold') ||
@@ -264,7 +264,7 @@ function crossEnhancedCapacityThreshold(
 
 /** Seed the Might task before passive cooling begins in preheated simulations. */
 function seedEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkill>): void {
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
 
   if (state.heat.value > balanceNumberFromContext(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'threshold')) {
     state.enhancedCapacityMightAt = context.time;
@@ -326,7 +326,7 @@ function grantSolarFocusingLens(
 
 /** Replaces Lens charges only when the Forge transition's grant reaches the resolver. */
 function handleSolarFocusingLens(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
   // Lens keeps its inclusive final-hit policy on the temporary-effect expiry tick.
   state.solarFocusingLens = {
     ...grantCharges(Number(event.stacks), gw2EffectExpiresAt(event.at, Number(event.duration))),
@@ -346,7 +346,7 @@ function consumeSolarFocusingLens(
   )
     return;
 
-  const state = holosmithState.from(context);
+  const state = holosmithState.from(context.profession);
   const solarFocusingLensProfile = requireBalanceProfileFromContext(context, TRAIT.SOLAR_FOCUSING_LENS);
   const condition = requireEffect(solarFocusingLensProfile, 'condition', CONDITION.BURNING);
 

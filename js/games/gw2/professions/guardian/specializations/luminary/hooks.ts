@@ -49,7 +49,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
     observeEffects: luminaryEffectStates,
     /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
     prepareDamageState(runtime, skill, inputs) {
-      const state = luminaryState.from(runtime);
+      const state = luminaryState.from(runtime.profession);
       state.radiantForge = Boolean(skill?.radiantForgeSkill);
       state.radiantForgeEndsAt = Infinity;
       state.radiantWeapon = skill?.radiantWeapon ?? '';
@@ -85,7 +85,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
       return cast.skill.id === ID.GLARING_BURST ? glaringBurstDetail(context) : undefined;
     },
     onCastStart(runtime, cast) {
-      if (cast.cancelled) return;
+      if (cast.cancelledBeforeCommit) return;
 
       // Sovereign admits detonation before replacement auras from the cast or shared virtue rewards.
       runtime.fireTrigger(luminaryCastStarted, { cast });

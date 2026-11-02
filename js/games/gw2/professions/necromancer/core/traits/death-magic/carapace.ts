@@ -21,7 +21,7 @@ export function addCarapace(
   at: number,
   duration: number
 ): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   purgeTimedState(state, at);
   const available = Math.max(0, carapaceCapacity(context) - deathCarapaceStacks(context, state, at));
   state.carapaceExpiries = addTimedStacks(

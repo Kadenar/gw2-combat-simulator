@@ -1,10 +1,11 @@
 {
   "metadata": {
-    "log": "power soulbeast xx+hammer.zevtc",
-    "benchmarkDurationSeconds": 92.242,
+    "log": "https://dps.report/bu52-20260719-220434_golem",
+    "benchmarkDurationSeconds": 92.251,
     "benchmarkDamage": 3986896,
-    "benchmarkDps": 43222.13,
-    "timingSource": "EVTC casts and damage packets rounded to 40 ms action ticks"
+    "benchmarkDps": 43217.91633695027,
+    "timingSource": "Elite Insights cast summaries rounded to 40 ms action ticks; preserve EVTC-derived Path of Scars distance variants",
+    "notes": "One Wolf Pack and Frost Trap precasts are inferred. Reconstructed source gaps, shortened channels, and the opening combined Overbearing Smash preserve the report timeline. The final Unleashed Thump starts at 91.437 s in the report and 91.440 s in the replay; this is a cast start, not the encounter end."
   },
   "rotation": [
     {
@@ -18,11 +19,11 @@
     {
       "type": "cast",
       "skillId": 69262,
-      "interruptAfterMs": 480
+      "interruptAfterMs": 320
     },
     {
       "type": "combat-start",
-      "concurrentOffsetMs": 360
+      "concurrentOffsetMs": 240
     },
     {
       "type": "cast",
@@ -47,6 +48,10 @@
       "skillId": -3
     },
     {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
       "type": "cast",
       "skillId": 41406
     },
@@ -64,7 +69,8 @@
     },
     {
       "type": "cast",
-      "skillId": 12639
+      "skillId": 12639,
+      "interruptAfterMs": 2640
     },
     {
       "type": "cast",
@@ -103,6 +109,10 @@
       "skillId": 12466
     },
     {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
       "type": "cast",
       "skillId": 41406
     },
@@ -118,6 +128,10 @@
     {
       "type": "cast",
       "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
     },
     {
       "type": "cast",
@@ -201,7 +215,8 @@
     },
     {
       "type": "cast",
-      "skillId": 12492
+      "skillId": 12492,
+      "interruptAfterMs": 480
     },
     {
       "type": "cast",
@@ -229,6 +244,10 @@
       "skillId": -3
     },
     {
+      "type": "wait",
+      "durationMs": 120
+    },
+    {
       "type": "cast",
       "skillId": -1001
     },
@@ -242,7 +261,8 @@
     },
     {
       "type": "cast",
-      "skillId": 12639
+      "skillId": 12639,
+      "interruptAfterMs": 2680
     },
     {
       "type": "cast",
@@ -283,6 +303,10 @@
     {
       "type": "cast",
       "skillId": 12466
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
     },
     {
       "type": "cast",
@@ -383,7 +407,12 @@
     },
     {
       "type": "cast",
-      "skillId": 45717
+      "skillId": 45717,
+      "interruptAfterMs": 360
+    },
+    {
+      "type": "wait",
+      "durationMs": 40
     },
     {
       "type": "cast",
@@ -393,6 +422,10 @@
       "type": "cast",
       "skillId": 12633,
       "concurrentOffsetMs": 440
+    },
+    {
+      "type": "wait",
+      "durationMs": 280
     },
     {
       "type": "cast",
@@ -405,6 +438,10 @@
     {
       "type": "cast",
       "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -424,7 +461,8 @@
     },
     {
       "type": "cast",
-      "skillId": 12639
+      "skillId": 12639,
+      "interruptAfterMs": 2640
     },
     {
       "type": "cast",
@@ -461,6 +499,10 @@
     {
       "type": "cast",
       "skillId": 12466
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -480,6 +522,10 @@
       "skillId": -3
     },
     {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
       "type": "cast",
       "skillId": 63131
     },
@@ -528,6 +574,10 @@
       "skillId": 63337
     },
     {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
       "type": "cast",
       "skillId": 63335
     },
@@ -561,7 +611,8 @@
     },
     {
       "type": "cast",
-      "skillId": 12492
+      "skillId": 12492,
+      "interruptAfterMs": 480
     },
     {
       "type": "cast",
@@ -582,11 +633,16 @@
     },
     {
       "type": "cast",
-      "skillId": 63335
+      "skillId": 63335,
+      "interruptAfterMs": 440
     },
     {
       "type": "cast",
       "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 160
     },
     {
       "type": "cast",
@@ -602,7 +658,8 @@
     },
     {
       "type": "cast",
-      "skillId": 12639
+      "skillId": 12639,
+      "interruptAfterMs": 2640
     },
     {
       "type": "cast",

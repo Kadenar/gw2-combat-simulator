@@ -167,7 +167,7 @@ function reactToSpellbreakerControl(context: WarriorRuntime, event: Gw2ResolverE
   if (event.actorType === ACTOR.PLAYER) {
     gainAttackersInsight(
       context,
-      spellbreakerState.from(context),
+      spellbreakerState.from(context.profession),
       event.at,
       attackerInsightApplications(context, event)
     );
@@ -183,7 +183,7 @@ function reactToSpellbreakerDamage(context: WarriorRuntime, event: Gw2ResolverEv
 
   const skill = event.skillId == null ? undefined : context.helpers.skillsById.get(event.skillId);
 
-  if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context), event)) {
+  if (skill?.burst && triggerMagebaneTether(context, spellbreakerState.from(context.profession), event)) {
     context.effects.emit({
       kind: 'announcement',
       announcement: {

@@ -19,7 +19,7 @@ function conjureDuration(context: ElementalistRuntime, weapon: string): number {
 
 /** A conjure creates independent equipped and one-use ground copies before its trait and swap events. */
 export function equipConjure(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const weapon = CONJURE_SKILLS[Number(skill.id)];
   state.conjureEquipped = weapon;
   state.conjurePickups[weapon] = cast.effectiveEnd + conjureDuration(context, weapon);
@@ -29,7 +29,7 @@ export function equipConjure(context: ElementalistRuntime, cast: RuntimeCast<Ele
 
 /** Dropping reports a swap only when a real equipped bundle was removed. */
 export function dropConjure(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
 
   if (!state.conjureEquipped) return;
 
@@ -43,7 +43,7 @@ export function pickUpConjure(context: ElementalistRuntime, cast: RuntimeCast<El
 
   if (typeof expiresAt !== 'number' || !Number.isFinite(expiresAt) || expiresAt <= cast.start) return;
 
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const weapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
   state.conjureEquipped = weapon;
   delete state.conjurePickups[weapon];
@@ -52,13 +52,13 @@ export function pickUpConjure(context: ElementalistRuntime, cast: RuntimeCast<El
 
 /** All real bundle swaps share lifetime scheduling, chain reset, and one sigil-swap notification. */
 function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const at = cast.effectiveEnd;
   state.conjureExpiresAt = state.conjureEquipped ? at + conjureDuration(context, state.conjureEquipped) : 0;
   context.schedule('elementalist.expire-state', state.conjureExpiresAt || at, null);
   for (const deadline of Object.values(state.conjurePickups))
     context.schedule('elementalist.expire-state', deadline, null);
-  resetAutoattackChains(context);
+  resetAutoattackChains(context.profession);
   context.effects.emit({
     kind: 'packet',
     event: {

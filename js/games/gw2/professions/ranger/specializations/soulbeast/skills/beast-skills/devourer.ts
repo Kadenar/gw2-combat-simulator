@@ -5,11 +5,11 @@
 import { CONTROL } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
-export const SOULBEAST_DEVOURER_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const SOULBEAST_DEVOURER_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.DEVOURER_RETREAT]: {
     name: 'Devourer Retreat',
-    description: 'Retreat by tunneling through the ground.',
     icon: 'https://render.guildwars2.com/file/70BE910B2E6366126B9B9F9C91F227CF9D73E99A/103564.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -20,7 +20,6 @@ export const SOULBEAST_DEVOURER_BEAST_SKILL_MECHANICS: Readonly<Record<number, S
   },
   [ID.TAIL_LASH]: {
     name: 'Tail Lash',
-    description: 'Push back a foe with your tail.',
     icon: 'https://render.guildwars2.com/file/086363EFF41571AD74CD1B506DF2B2F6F1F038D1/104029.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -40,4 +39,4 @@ export const SOULBEAST_DEVOURER_BEAST_SKILL_MECHANICS: Readonly<Record<number, S
       }
     ]
   }
-});
+};

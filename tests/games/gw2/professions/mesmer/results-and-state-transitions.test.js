@@ -81,8 +81,8 @@ test('result summary totals the same charge-aware dead-time gaps shown on the ti
       { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }
     ),
     steps: [
-      { ri: 0, skill: 'First Cast', start: 0, end: 500 },
-      { ri: 1, activationId: 'second', skill: 'Second Cast', start: 1250, end: 1750 }
+      { rotationCommandIndex: 0, skillName: 'First Cast', start: 0, end: 500 },
+      { rotationCommandIndex: 1, activationId: 'second', skillName: 'Second Cast', start: 1250, end: 1750 }
     ]
   });
 
@@ -102,9 +102,9 @@ test('result summary includes explicit wait shapes in total idle time', () => {
     deathTime: null,
     ...effectFields([], 1, { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }),
     steps: [
-      { ri: 0, skill: 'First Cast', start: 0, end: 500 },
-      { ri: 1, skill: 'Wait', start: 500, end: 900, type: 'wait' },
-      { ri: 2, skill: 'Second Cast', start: 900, end: 1000 }
+      { rotationCommandIndex: 0, skillName: 'First Cast', start: 0, end: 500 },
+      { rotationCommandIndex: 1, skillName: 'Wait', start: 500, end: 900, type: 'wait' },
+      { rotationCommandIndex: 2, skillName: 'Second Cast', start: 900, end: 1000 }
     ]
   });
 
@@ -126,15 +126,15 @@ test('result summary details legitimate gaps and groups repeated missing-commit 
 
     steps: [
       {
-        ri: 0,
-        skill: 'Opening Skill',
+        rotationCommandIndex: 0,
+        skillName: 'Opening Skill',
         start: 0,
         end: 100,
         activationId: 'cast:1'
       },
       {
-        ri: 1,
-        skill: 'Interrupted Skill',
+        rotationCommandIndex: 1,
+        skillName: 'Interrupted Skill',
         start: 300,
         end: 700,
         activationId: 'cast:2',
@@ -142,8 +142,8 @@ test('result summary details legitimate gaps and groups repeated missing-commit 
         missingInterruptCommit: true
       },
       {
-        ri: 2,
-        skill: 'Interrupted Skill',
+        rotationCommandIndex: 2,
+        skillName: 'Interrupted Skill',
         start: 700,
         end: 800,
         activationId: 'cast:3',
@@ -208,7 +208,7 @@ test('Combat Start is timeline zero while DPS waits for the first subsequent hit
     '0.000s'
   );
   // Timeline labels subtract the combat origin from recorded endpoints, independently of skill tuning.
-  const bladecall = result.steps.find((step) => step.skill === 'Bladecall');
+  const bladecall = result.steps.find((step) => step.skillName === 'Bladecall');
   const combatStart = result.events.find((event) => event.type === 'combat_start').at;
   for (const endpoint of [bladecall.start, bladecall.end]) {
     assert.equal(formatResultTimelineTime(endpoint, result), `${(endpoint / 1000 - combatStart).toFixed(3)}s`);
@@ -588,7 +588,7 @@ test('Continuum Split does not restore weapon-swap cooldown', () => {
   );
 
   assert.deepEqual(
-    result.steps.filter((step) => step.skill === 'Swap Weapons').map((step) => step.start),
+    result.steps.filter((step) => step.skillName === 'Swap Weapons').map((step) => step.start),
     [0, 10000]
   );
 });
@@ -607,7 +607,7 @@ test('Continuum Split does not extend an existing weapon-swap cooldown', () => {
     config
   );
 
-  assert.equal(result.planningState.cooldowns[-3].readyAt, 10000);
+  assert.equal(result.planningState.cooldownsBySkillId[-3].readyAtMs, 10000);
 });
 
 test('a build can open combat on its second weapon set', () => {

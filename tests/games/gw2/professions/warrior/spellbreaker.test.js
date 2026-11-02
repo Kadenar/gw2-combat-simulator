@@ -7,6 +7,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Exercise the registered family with one live Core and specialization owner.
@@ -23,7 +24,6 @@ function run(rotation, overrides = {}, source = warriorProfession, output = 'det
   return observeGw2Runtime({ profession: source.runtimeFor(config), config, rotation, output });
 }
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const state = (result) => observedRuntime(result).profession.specialization.state;
 
 test('Spellbreaker caps at two bars and each burst spends one bar, including a canceled activation', () => {

@@ -3,11 +3,9 @@ import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
-export const GUARDIAN_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const GUARDIAN_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.RAY_OF_JUDGMENT]: {
     name: 'Ray of Judgment',
-    description:
-      'Purge the target area in a ray of light. Allies are healed and cleansed of a condition, while enemies are infused with blinding light, taking damage each interval if they are initially struck.',
     icon: 'https://render.guildwars2.com/file/D50E0BDA07479939275BCB53A2670FC6B808BE29/2010287.png',
     type: 'Weapon',
     weapon: 'Focus',
@@ -34,8 +32,6 @@ export const GUARDIAN_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.SHIELD_OF_WRATH]: {
     name: 'Shield of Wrath',
-    description:
-      'Create a shield to block the next three attacks. If the shield is not destroyed, it explodes and damages nearby foes.',
     icon: 'https://render.guildwars2.com/file/C2065BFF78BB134197076A2C7450013EE390E409/103634.png',
     type: 'Weapon',
     weapon: 'Focus',
@@ -51,4 +47,4 @@ export const GUARDIAN_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   }
-});
+};

@@ -5,11 +5,11 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
-export const SOULBEAST_BRISTLEBACK_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const SOULBEAST_BRISTLEBACK_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.RAIN_OF_SPIKES]: {
     name: 'Rain of Spikes',
-    description: 'Launch spikes at all nearby foes.',
     icon: 'https://render.guildwars2.com/file/081DA91623067F55251BA496B2BDB91E98CDC667/1128606.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -32,7 +32,6 @@ export const SOULBEAST_BRISTLEBACK_BEAST_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.SHARPEN_SPINES]: {
     name: 'Sharpen Spines',
-    description: 'The next several hits apply extra bleeding stacks.',
     icon: 'https://render.guildwars2.com/file/D99AA4CC69C7D510A6632D9FC87852A13524BA7F/1128607.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -48,4 +47,4 @@ export const SOULBEAST_BRISTLEBACK_BEAST_SKILL_MECHANICS: Readonly<Record<number
       }
     ]
   }
-});
+};

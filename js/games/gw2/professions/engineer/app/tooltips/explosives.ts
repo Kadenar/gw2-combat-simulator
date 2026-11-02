@@ -2,10 +2,12 @@ import {
   fromProfile,
   profileFact,
   simulationEffectFacts,
+  tooltipAttributeConversion,
   tooltipDecimal,
   tooltipFactorChange,
   tooltipNumber,
   tooltipPercent,
+  tooltipPercentValue,
   tooltipSeconds,
   traitTooltip,
   type ProfessionTooltips
@@ -82,15 +84,16 @@ export const engineerExplosivesTooltips = {
     ['maximumStacks', 'Maximum stacks']
   ]),
   // Build-only bonuses and imperative triggers need explicit facts alongside profile-owned packets.
-  [TRAIT.BLAST_SHIELD]: traitTooltip('Gain vitality from eligible power.', [
-    ['attributeConversion', 'Eligible power converted to vitality', tooltipPercent]
-  ]),
+  [TRAIT.BLAST_SHIELD]: traitTooltip(
+    'Gain vitality based on power. Bonuses from other attribute conversions do not count.',
+    [['attributeConversion', 'Vitality gained from power', tooltipAttributeConversion]]
+  ),
   [TRAIT.GRAND_ENTRANCE]: traitTooltip(
     'Explosive Entrance opens a temporary critical-chance window and grants resistance.',
     [['criticalChance', 'Critical chance during the window', tooltipPercent]]
   ),
   [TRAIT.SHRAPNEL]: traitTooltip('Explosions can inflict bleeding and crippled.', [
-    ['procChance', 'Chance per eligible explosion', tooltipPercent]
+    ['procChance', 'Chance per eligible explosion', tooltipPercentValue]
   ]),
   [TRAIT.BIG_BOOMER]: traitTooltip(
     "Player-owned strikes deal increased damage when your health percentage exceeds the target's. Player health stays full in combat simulations.",

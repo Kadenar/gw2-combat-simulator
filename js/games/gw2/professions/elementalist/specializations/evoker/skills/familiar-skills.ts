@@ -37,11 +37,9 @@ import type {
  * declared here.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
   [ID.IGNITE]: {
     name: 'Ignite',
-    description:
-      'Command your fire familiar to strike and burn your target. Repeated commands increase the burning tier.',
     icon: 'https://render.guildwars2.com/file/3C20D2FF75DA624828651AD5CEB463AC90A01207/3680117.png',
     tierResetDuration: 15,
     empoweredUnlockDelay: 0.96,
@@ -50,7 +48,6 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     type: 'Profession',
     slot: 'Profession_5',
     attunement: 'Fire',
-    mechanicSlot: 5,
 
     cooldown: 0,
     skillFamily: 'Familiar',
@@ -82,13 +79,10 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.CONFLAGRATION]: {
     name: 'Conflagration',
-    description:
-      'Familiar. Summon the fox to attack your target, inflicting burning and then spreading burning on that foe to nearby enemies.',
     icon: 'https://render.guildwars2.com/file/D20BEA0141B9C458045D0C77C8CF5C16151B3C5F/3680115.png',
     type: 'Profession',
     slot: 'Profession_5',
     attunement: 'Fire',
-    mechanicSlot: 5,
 
     cooldown: 0,
     skillFamily: 'Familiar',
@@ -115,7 +109,6 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.SPLASH]: {
     name: 'Splash',
-    description: 'Command your water familiar to grant regeneration to nearby allies.',
     icon: 'https://render.guildwars2.com/file/2C4C57C5B721422A66D3CEAB4ACE753E4FE69355/3680119.png',
     empoweredUnlockDelay: 0.84,
     // A basic cast within this start-to-start window cancels the preceding empowered activation.
@@ -123,7 +116,6 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     type: 'Profession',
     slot: 'Profession_5',
     attunement: 'Water',
-    mechanicSlot: 5,
 
     cooldown: 0,
     skillFamily: 'Familiar',
@@ -149,13 +141,10 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.BUOYANT_DELUGE]: {
     name: 'Buoyant Deluge',
-    description:
-      'Familiar. Summon the otter to throw a massive ball of water at the target location. When the ball lands, it heals allies in the area and removes conditions from them while stunning enemies.',
     icon: 'https://render.guildwars2.com/file/80B7BBD01BFF65A4E29307D59079EF9875119924/3680116.png',
     type: 'Profession',
     slot: 'Profession_5',
     attunement: 'Water',
-    mechanicSlot: 5,
 
     cooldown: 0,
     skillFamily: 'Familiar',
@@ -186,7 +175,6 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.ZAP]: {
     name: 'Zap',
-    description: 'Command your air familiar to strike your target with lightning.',
     icon: 'https://render.guildwars2.com/file/234FFB056E376AEE0D6D150A3C23C669BEC0359A/3680120.png',
     empoweredUnlockDelay: 0.68,
     // A basic cast within this start-to-start window cancels the preceding empowered activation.
@@ -194,7 +182,6 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     type: 'Profession',
     slot: 'Profession_5',
     attunement: 'Air',
-    mechanicSlot: 5,
 
     cooldown: 0,
     skillFamily: 'Familiar',
@@ -228,13 +215,10 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.LIGHTNING_BLITZ]: {
     name: 'Lightning Blitz',
-    description:
-      'Familiar. Summon the hare to shadowstep to and attack enemies around your target for critical damage. For each unique enemy struck, your next strike creates an arc of chain lightning.',
     icon: 'https://render.guildwars2.com/file/CF99A0354E3667FDE3702CAEA4C3B6AFB2D6ACFD/3680113.png',
     type: 'Profession',
     slot: 'Profession_5',
     attunement: 'Air',
-    mechanicSlot: 5,
 
     cooldown: 0,
     skillFamily: 'Familiar',
@@ -272,7 +256,6 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.CALCIFY]: {
     name: 'Calcify',
-    description: 'Command your earth familiar to damage and daze your target.',
     icon: 'https://render.guildwars2.com/file/C938A2442A5508F415AB72F70AA9A85AFA57FCDD/3680114.png',
     internalCooldown: 0.25,
     empoweredUnlockDelay: 0.28,
@@ -281,7 +264,6 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     type: 'Profession',
     slot: 'Profession_5',
     attunement: 'Earth',
-    mechanicSlot: 5,
 
     cooldown: 0,
     skillFamily: 'Familiar',
@@ -315,13 +297,10 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   },
   [ID.SEISMIC_IMPACT]: {
     name: 'Seismic Impact',
-    description:
-      "Familiar. Summon the toad at your location. The toad leaps up and slams the ground, knocking down enemies and creating a rocky barrier that enemies can't cross. Allies in the area gain protection.",
     icon: 'https://render.guildwars2.com/file/026020B3C3EF9AC03DF8C352E91299562573FCCA/3680118.png',
     type: 'Profession',
     slot: 'Profession_5',
     attunement: 'Earth',
-    mechanicSlot: 5,
 
     cooldown: 0,
     skillFamily: 'Familiar',
@@ -362,7 +341,7 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
       { on: 'castCommit', do: { type: 'elementalist.evoker.settle-empowered-familiar' } }
     ]
   }
-});
+};
 
 /** Basic-to-empowered identity; delays and replacement windows belong to the basic skills. */
 const FAMILIAR_EMPOWERED_BY_BASIC: ReadonlyMap<SkillId, SkillId> = new Map([
@@ -383,7 +362,7 @@ export function beginFamiliarCast(
   cast: RuntimeCast<ElementalistSkill>,
   skill: Skill
 ): void {
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
   const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
 
   // familiar casts block every other action until they finish (enforced in availability.ts)
@@ -430,7 +409,7 @@ export function acceptIgniteEffects(
   cast: RuntimeCast<ElementalistSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
 
   if (state.cancelledFamiliarActivations[cast.id]) return effects;
 
@@ -448,13 +427,13 @@ export function modifyFamiliarEffects(
   cast: RuntimeCast<ElementalistSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
-  return evokerState.from(context).cancelledFamiliarActivations[cast.id] ? [] : effects;
+  return evokerState.from(context.profession).cancelledFamiliarActivations[cast.id] ? [] : effects;
 }
 
 /** Convert basic charges and gate the empowered flip using the selected patch's familiar delay. */
 export function settleBasicFamiliar(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const skill = cast.skill;
-  const state = evokerState.from(context);
+  const state = evokerState.from(context.profession);
   const at = cast.effectiveEnd;
   context.resourceController.replace('familiarCharges', 0);
   // Complete the conversion before publishing its combined reading or flushing deferred rewards.

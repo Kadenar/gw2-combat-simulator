@@ -151,7 +151,7 @@ export function reactToJusticeHitWithOptions(
 
   if (!hitContext || !isGuardianOwnedHit || !(Number(event.coefficient) > 0)) return null;
 
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
 
   if (state.justiceActiveArmed) {
     state.justiceActiveArmed = false;

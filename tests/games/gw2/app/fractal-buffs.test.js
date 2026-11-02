@@ -223,7 +223,7 @@ test('optimizer checks potion attributes and verifies scores under the captured 
   const limits = {
     minToughness: before.Toughness.final + 225,
     minVitality: before.Vitality.final + 225,
-    minBoonDuration: before['Boon Duration'].final + 15
+    minBoonDurationPercent: before['Boon Duration'].final + 15
   };
   const unbuffed = captureGearOptimizerRequest(app, limits);
   assert.equal(createOptimizerEvaluator(unbuffed, warrior).score(optimizerEquipment(build)), null);

@@ -36,13 +36,13 @@ export function createWarriorCoreState(): WarriorCoreState {
   };
 }
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
 export function projectWarriorCorePlanningState(input: Gw2PlanningStateInput) {
   const state = (input.profession as { core: ReturnType<typeof createWarriorCoreState> }).core;
-  return structuredClone({
+  return {
     [STATE.ADRENALINE]: state.adrenaline,
     [STATE.ENDURANCE]: state.endurance,
     [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.AVAILABLE_FLIPS]: state.availableFlips
-  });
+  };
 }

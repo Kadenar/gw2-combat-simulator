@@ -5,18 +5,16 @@ import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { leaderOfThePackStance } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
-import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
+import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /**
  * Owns Soulbeast stance declarations and activation packets, applying the trait-owned duration and sharing policy.
  * Hooks register these actions; specialization mechanics retain window reactions.
  */
 
-export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.VULTURE_STANCE]: {
     name: 'Vulture Stance',
-    description:
-      'Stance. While in this stance, striking a foe inflicts poison and grants you might.\nThis effect can occur once per interval.',
     icon: 'https://render.guildwars2.com/file/77A65F535049BFB5F209186B1E9BA125E6BE32B2/1770571.png',
     type: 'Utility',
     slot: 'Utility',
@@ -30,7 +28,7 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     sideEffects: [
       {
         on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelled,
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
         do: {
           type: 'ranger.vulture-stance',
           id: 'triggered-effects',
@@ -44,8 +42,6 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.BEAR_STANCE]: {
     name: 'Bear Stance',
-    description:
-      'Stance. Heal yourself and your pet. Lose conditions while in this stance, healing for each condition lost.',
     icon: 'https://render.guildwars2.com/file/07944CB363A391A26B21C16F76F52111B32D96CD/1770561.png',
     type: 'Heal',
     slot: 'Heal',
@@ -56,8 +52,6 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.ONE_WOLF_PACK]: {
     name: 'One Wolf Pack',
-    description:
-      'Stance. Your successful attacks will trigger a second strike while in this stance.\nThis effect can occur once per interval.',
     icon: 'https://render.guildwars2.com/file/4E137B09B5CC545211977BFDCEC76119195AC7C9/1770558.png',
     type: 'Elite',
     slot: 'Elite',
@@ -67,15 +61,14 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     duration: 6,
     internalCooldown: 1,
     echoDelay: 0.28,
-    castTimeMs: 360,
-    // The stance commits before recovery ends, so cancelling after activation retains its proc window.
-    interruptCommitMs: 280,
+    castTimeMs: 400,
+    interruptCommitMs: 240,
     effects: [],
-    // Activation opens the personal and trait-shared windows without waiting for recovery.
+    // Queue the personal and shared windows at activation, before the remaining recovery finishes.
     sideEffects: [
       {
         on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelled,
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
         do: {
           type: 'ranger.one-wolf-pack',
           id: 'echo',
@@ -84,13 +77,13 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       }
     ]
   }
-});
+};
 
 /** Activate the ordinary personal stance, then deliver the trait-owned sharing policy. */
-export function activateSoulbeastStance(runtime: RangerRuntime, skill: Skill, kind: string): number {
+export function activateSoulbeastStance(runtime: RangerRuntime, skill: Skill, kind: string, at: number): number {
   const { duration, sharedDuration } = leaderOfThePackStance(runtime, skillNumber(skill, 'duration'));
   const application = {
-    at: runtime.time,
+    at,
     source: 'ranger',
     sourceId: skill.id,
     actorType: ACTOR.PLAYER,

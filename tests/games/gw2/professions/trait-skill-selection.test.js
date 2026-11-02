@@ -130,7 +130,7 @@ for (const entry of cases) {
           rotation: [...entry.preparation.map((skillId) => ({ type: 'cast', skillId })), command]
         });
         assert.deepEqual(result.warnings, []);
-        const step = result.steps.find((step) => step.ri === entry.preparation.length);
+        const step = result.steps.find((step) => step.rotationCommandIndex === entry.preparation.length);
         assert.ok(step && !step.invalid);
         assert.equal(step.skillId, expected);
         assert.deepEqual(commands, original);

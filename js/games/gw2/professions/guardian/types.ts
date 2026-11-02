@@ -85,11 +85,16 @@ export interface GuardianSkill
     NumericSkillFields<typeof LUMINARY_SKILL_FIELDS>,
     NumericSkillFields<typeof GUARDIAN_CORE_SKILL_FIELDS>,
     NumericSkillFields<typeof FIREBRAND_SKILL_FIELDS> {
+  /** Marks skills available only while Radiant Forge is active. */
   readonly radiantForgeSkill?: boolean;
   /** Identifies the actual virtue activation; follow-ups and proc identities leave this absent. */
   readonly virtue?: GuardianVirtue;
+  /** The Radiant Forge weapon this skill belongs to. */
   readonly radiantWeapon?: string;
+  /** The tome whose pages this skill spends. */
   readonly tome?: string;
+  /** Rework-specific trait that can replace the shared Ashes Burning payload. */
+  readonly burningOverrideTrait?: SkillId;
 }
 
 export interface GuardianUiContext extends ProfessionUiCallbackContext<Partial<GuardianPlanningState>> {
@@ -97,4 +102,4 @@ export interface GuardianUiContext extends ProfessionUiCallbackContext<Partial<G
 }
 
 /** UI slice whose callbacks read Guardian end-state projections. */
-export type GuardianUiSlice = Partial<ProfessionUiContract<Partial<GuardianPlanningState>>>;
+export type GuardianUiSlice = Partial<ProfessionUiContract<Partial<GuardianPlanningState>, GuardianSkill>>;

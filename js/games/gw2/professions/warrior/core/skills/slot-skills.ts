@@ -16,11 +16,9 @@ import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/pro
 
 const SIGNET_PULSE = 'warrior.signet-of-rage-pulse';
 
-export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<WarriorSkill>>> = {
   [ID.SIGNET_OF_STAMINA]: {
     name: 'Signet of Stamina',
-    description:
-      'Signet Passive: Faster endurance regeneration.\nSignet Active: Cure all conditions and gain endurance. Gain additional endurance for each condition cured.',
     icon: 'https://render.guildwars2.com/file/3763DF075356FE2A22A56915EB0B982B32F3FBA3/104128.png',
     type: 'Utility',
     slot: 'Utility',
@@ -46,7 +44,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.THROW_BOLAS]: {
     name: 'Throw Bolas',
-    description: 'Physical. Throw bolas to immobilize your foe.',
     icon: 'https://render.guildwars2.com/file/0DC030D5DBE6B5C9ED157DBB1CF86ED6F6D6753E/103015.png',
     type: 'Utility',
     slot: 'Utility',
@@ -80,7 +77,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.SIGNET_OF_RAGE]: {
     name: 'Signet of Rage',
-    description: 'Signet Passive: Grants adrenaline while in combat.\nSignet Active: Gain fury, might, and swiftness.',
     icon: 'https://render.guildwars2.com/file/7A530D5434F9E9E80ED14DBE48EEE90427E33A2B/104113.png',
     type: 'Elite',
     slot: 'Elite',
@@ -120,8 +116,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.STOMP]: {
     name: 'Stomp',
-    description:
-      'Physical. Gain stability and launch nearby foes into the air with a powerful stomp. Gain stability for each enemy struck.',
     icon: 'https://render.guildwars2.com/file/D7040004B112A4075A1038917CEF5FFA0BC100A2/102788.png',
     type: 'Utility',
     slot: 'Utility',
@@ -150,7 +144,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.HEALING_SIGNET]: {
     name: 'Healing Signet',
-    description: 'Signet Passive: Regenerate health.\nSignet Active: Heal yourself, and grant yourself resistance.',
     icon: 'https://render.guildwars2.com/file/BFED9DC9065E01B726E6CF629A5642164B382BA6/102866.png',
     type: 'Heal',
     slot: 'Heal',
@@ -169,7 +162,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.MENDING]: {
     name: 'Mending',
-    description: 'Physical. Remove conditions and heal yourself.',
     icon: 'https://render.guildwars2.com/file/04EB1106C95B7579EA29FA2F08BAFDA649C60715/103295.png',
     type: 'Heal',
     slot: 'Heal',
@@ -180,7 +172,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.TO_THE_LIMIT]: {
     name: '"To the Limit!"',
-    description: 'Shout. Heal yourself and regain all adrenaline. Nearby allies gain endurance.',
     icon: 'https://render.guildwars2.com/file/999EEC803BE421BD0835D8DC1EFE70C3A0EA0903/104117.png',
     type: 'Heal',
     slot: 'Heal',
@@ -206,7 +197,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.SIGNET_OF_MIGHT]: {
     name: 'Signet of Might',
-    description: 'Signet Passive: Improves power.\nSignet Active: Attacks are unblockable and you gain might.',
     icon: 'https://render.guildwars2.com/file/450973A6DE4D0BEE580256F5759F632B7EBC7ADD/103798.png',
     type: 'Utility',
     slot: 'Utility',
@@ -226,8 +216,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.BANNER_OF_STRENGTH]: {
     name: 'Banner of Strength',
-    description:
-      'Banner. Place a banner that damages and dazes foes on initial placement, then pulses boons to you and nearby allies afterward.',
     icon: 'https://render.guildwars2.com/file/311047BE40F8F80E72CFDB2843DF09E55E06A4AA/104118.png',
     type: 'Utility',
     slot: 'Utility',
@@ -255,8 +243,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.BANNER_OF_DISCIPLINE]: {
     name: 'Banner of Discipline',
-    description:
-      'Banner. Place a banner that damages and applies conditions to foes on initial placement, then pulses additional boons to you and nearby allies afterward.',
     icon: 'https://render.guildwars2.com/file/B0BA02176B4E10539B0202CA64286DA97C4FE44E/103087.png',
     type: 'Utility',
     slot: 'Utility',
@@ -292,8 +278,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.SIGNET_OF_FURY]: {
     name: 'Signet of Fury',
-    description:
-      'Signet Passive: Improves precision.\nSignet Active: Gain adrenaline and improve your precision and ferocity.',
     icon: 'https://render.guildwars2.com/file/2F34F119A12F4608685DF0B76106F7B6EABCCBF8/104119.png',
     type: 'Utility',
     slot: 'Utility',
@@ -318,8 +302,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.BATTLE_STANDARD]: {
     name: 'Battle Standard',
-    description:
-      'Banner. Place a battle standard that revives fallen allies and finishes downed foes. Once placed, the banner periodically grants boons to allies.',
     icon: 'https://render.guildwars2.com/file/EFA30928146834B9F1F4C2C3E8DE9A446553DF5C/103707.png',
     type: 'Elite',
     slot: 'Elite',
@@ -357,8 +339,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.RAMPAGE]: {
     name: 'Rampage',
-    description:
-      'Physical. Take the form of a massive juggernaut, reducing the damage you take and the duration of incoming movement-impeding conditions.',
     icon: 'https://render.guildwars2.com/file/D59294B049BF3412990AA9BAAF50809A0AA3EF0F/103571.png',
     type: 'Elite',
     slot: 'Elite',
@@ -382,7 +362,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.KICK]: {
     name: 'Kick',
-    description: 'Physical. Push your foe back with a kick.',
     icon: 'https://render.guildwars2.com/file/E578C9070BCA270818F56304CBE2800CD4691350/103001.png',
     type: 'Utility',
     slot: 'Utility',
@@ -411,7 +390,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.BULLS_CHARGE]: {
     name: "Bull's Charge",
-    description: 'Physical. Charge and knock down your foe.',
     icon: 'https://render.guildwars2.com/file/EE6EF3D05F08D37DF97BA5C657CE191D4C904904/104140.png',
     type: 'Utility',
     slot: 'Utility',
@@ -444,7 +422,6 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.DEFIANT_STANCE]: {
     name: 'Defiant Stance',
-    description: 'Stance. Heal yourself. Absorb all incoming strikes for a period of time.',
     icon: 'https://render.guildwars2.com/file/29C39009CD5230764480DC2404E740A49898AFA0/699533.png',
     type: 'Heal',
     slot: 'Heal',
@@ -453,7 +430,7 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
     castTimeMs: 640,
     effects: []
   }
-});
+};
 
 /** Suppressed rewards keep the combat-anchored cadence; only ready pulses grant resources. */
 const signetOfRagePassive = definePeriodicTask<WarriorRuntime>({
@@ -491,7 +468,6 @@ export const signetOfRageLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSki
 const signetPassives = [
   {
     name: 'Signet of Might',
-    description: 'Signet Passive: Improves power.\nSignet Active: Attacks are unblockable and you gain might.',
     icon: 'https://render.guildwars2.com/file/450973A6DE4D0BEE580256F5759F632B7EBC7ADD/103798.png',
     id: ID.SIGNET_OF_MIGHT,
     attribute: 'power',
@@ -499,8 +475,6 @@ const signetPassives = [
   },
   {
     name: 'Signet of Fury',
-    description:
-      'Signet Passive: Improves precision.\nSignet Active: Gain adrenaline and improve your precision and ferocity.',
     icon: 'https://render.guildwars2.com/file/2F34F119A12F4608685DF0B76106F7B6EABCCBF8/104119.png',
     id: ID.SIGNET_OF_FURY,
     attribute: 'precision',

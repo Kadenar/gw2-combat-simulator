@@ -1,5 +1,8 @@
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -35,8 +38,8 @@ export interface RitualistState {
 }
 
 /** Public spirit membership omits the live actor's scheduler identity and recovery cursors. */
-export function projectRitualistState(input: Gw2PlanningStateInput) {
-  const projected = ritualistState.from(input);
+export function projectRitualistState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const projected = ritualistState.from(input.profession);
   return {
     [STATE.SOUL_TWISTING_AVAILABLE]: projected.soulTwistingAvailable,
     [STATE.ACTIVE_SPIRITS]: Object.fromEntries(Object.keys(projected.activeSpirits as object).map((key) => [key, true]))

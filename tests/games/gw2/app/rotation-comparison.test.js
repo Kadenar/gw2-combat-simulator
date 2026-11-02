@@ -483,10 +483,10 @@ test('preview scheduler conversion highlights concurrent authored steps and igno
   const previewResult = {
     dpsStartTime: 2,
     steps: [
-      { ri: 0, start: 0, end: 1000 },
-      { ri: 1, start: 2200, end: 2700 },
-      { ri: 2, start: 2400, end: 2600 },
-      { ri: -1, start: 2400, end: 2600 }
+      { rotationCommandIndex: 0, start: 0, end: 1000 },
+      { rotationCommandIndex: 1, start: 2200, end: 2700 },
+      { rotationCommandIndex: 2, start: 2400, end: 2600 },
+      { rotationCommandIndex: -1, start: 2400, end: 2600 }
     ]
   };
 

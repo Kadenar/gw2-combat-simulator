@@ -99,9 +99,9 @@ test('Soul Twisting refunds only the first spirit summon after entering Ritualis
     selectedTraitIds: [TRAIT.SOUL_TWISTING]
   });
 
-  assert.ok(baseline.planningState.cooldowns[ID.ANGUISH]);
-  assert.equal(twisting.planningState.cooldowns[ID.ANGUISH], undefined);
-  assert.ok(twisting.planningState.cooldowns[ID.WANDERLUST]);
+  assert.ok(baseline.planningState.cooldownsBySkillId[ID.ANGUISH]);
+  assert.equal(twisting.planningState.cooldownsBySkillId[ID.ANGUISH], undefined);
+  assert.ok(twisting.planningState.cooldownsBySkillId[ID.WANDERLUST]);
   assert.equal(twisting.planningState.profession[STATE.SOUL_TWISTING_AVAILABLE], false);
 });
 
@@ -1028,7 +1028,7 @@ test('Signet of Undeath grants four life force per passive pulse and suspends du
   assert.equal(lifeForcePercent(first.planningState.profession[STATE.LIFE_FORCE]), 4);
   assert.equal(lifeForcePercent(second.planningState.profession[STATE.LIFE_FORCE]), 8);
   assert.equal(lifeForcePercent(recharging.planningState.profession[STATE.LIFE_FORCE]), 0);
-  assert.ok(recharging.planningState.cooldowns[ID.SIGNET_OF_UNDEATH].remaining > 0);
+  assert.ok(recharging.planningState.cooldownsBySkillId[ID.SIGNET_OF_UNDEATH].remainingMs > 0);
   assert.equal(lifeForcePercent(resumed.planningState.profession[STATE.LIFE_FORCE]), 4);
 });
 

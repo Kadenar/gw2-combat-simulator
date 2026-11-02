@@ -212,7 +212,7 @@ const massMomentum = defineTrait<EngineerSkill>({
   lifetime: {
     tasks: {
       'engineer.mass-momentum'(runtime, data) {
-        const state = scrapperState.from(runtime);
+        const state = scrapperState.from(runtime.profession);
 
         if (state.massMomentumAt !== runtime.time) return;
 
@@ -339,7 +339,7 @@ function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEv
 
   const interval = balanceProfileNumber(massMomentumProfile, 'pulseInterval');
   const next = Math.max(event.at + interval, state.deadline('massMomentum') || 0);
-  const live = scrapperState.from(context);
+  const live = scrapperState.from(context.profession);
 
   if (interval > 0 && live.massMomentumAt > next) {
     live.massMomentumAt = next;

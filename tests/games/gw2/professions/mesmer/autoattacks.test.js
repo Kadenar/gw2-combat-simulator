@@ -58,7 +58,7 @@ test('Ether Bolt and Ether Blast do not generate clones', () => {
   const result = simulateMesmer(['Ether Bolt', 'Ether Blast'], config);
 
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     ['Ether Bolt', 'Ether Blast']
   );
   assert.equal(result.planningState.profession[STATE.RESOURCE], 0);
@@ -175,7 +175,7 @@ test('autoattack chain steps unlock only after the preceding attack', () => {
   const skippedStep = simulateMesmer(['Ether Bolt', 'Ether Clone'], config);
 
   assert.deepEqual(
-    skippedStep.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    skippedStep.steps.filter((step) => !step.invalid).map((step) => step.skillName),
     ['Ether Bolt']
   );
   assert.equal(skippedStep.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ETHER_BOLT], ID.ETHER_BLAST);
@@ -196,7 +196,7 @@ test('Scepter weapon skills preserve Ether Bolt chain progress', () => {
   const result = simulateMesmer(['Ether Bolt', 'Confusing Images', 'Ether Blast'], config);
 
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     ['Ether Bolt', 'Confusing Images', 'Ether Blast']
   );
   assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ETHER_BOLT], ID.ETHER_CLONE);
@@ -329,7 +329,7 @@ test('Imaginary Axes preserves the axe auto chain but other skills reset it', ()
   );
 
   assert.deepEqual(
-    preserved.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    preserved.steps.filter((step) => !step.invalid).map((step) => step.skillName),
     ['Lacerating Chop', 'Dodge / Mirage Cloak', 'Imaginary Axes', 'Ethereal Chop']
   );
   assert.equal(preserved.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.LACERATING_CHOP], ID.MIRROR_STRIKES);
@@ -337,7 +337,7 @@ test('Imaginary Axes preserves the axe auto chain but other skills reset it', ()
   const interrupted = simulateMesmer(['Lacerating Chop', { type: 'cast', skillId: 45243 }, 'Ethereal Chop'], config);
 
   assert.deepEqual(
-    interrupted.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    interrupted.steps.filter((step) => !step.invalid).map((step) => step.skillName),
     ['Lacerating Chop', 'Lingering Thoughts']
   );
   assert.equal(interrupted.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.LACERATING_CHOP], ID.LACERATING_CHOP);
@@ -354,7 +354,7 @@ test('other auto chains reset on weapon skills and every chain resets on swap', 
   const interrupted = simulateMesmer(['Mind Slash', 'Blurred Frenzy', 'Mind Gash'], swordConfig);
 
   assert.deepEqual(
-    interrupted.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    interrupted.steps.filter((step) => !step.invalid).map((step) => step.skillName),
     ['Mind Slash', 'Blurred Frenzy']
   );
   assert.equal(interrupted.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.MIND_SLASH], ID.MIND_SLASH);
@@ -370,7 +370,7 @@ test('other auto chains reset on weapon skills and every chain resets on swap', 
   const swapped = simulateMesmer(['Ether Bolt', 'Swap Weapons', 'Ether Blast'], scepterConfig);
 
   assert.deepEqual(
-    swapped.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    swapped.steps.filter((step) => !step.invalid).map((step) => step.skillName),
     ['Ether Bolt', 'Swap Weapons']
   );
   assert.equal(swapped.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ETHER_BOLT], ID.ETHER_BOLT);
@@ -389,7 +389,7 @@ test('short utility casts preserve spear autoattack-chain progress', () => {
   );
 
   assert.deepEqual(
-    result.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    result.steps.filter((step) => !step.invalid).map((step) => step.skillName),
     ['Psycut', 'Well of Eternity', 'Psystrike']
   );
 });
@@ -406,7 +406,7 @@ test('an interrupted Troubadour instrument still resets the spear autoattack cha
   );
 
   assert.deepEqual(
-    result.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    result.steps.filter((step) => !step.invalid).map((step) => step.skillName),
     ['Psycut', 'Harmonious Harp', 'Psycut']
   );
 });
@@ -423,7 +423,7 @@ test('an interrupted spear autoattack leaves the same chain step active', () => 
   );
 
   assert.deepEqual(
-    result.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    result.steps.filter((step) => !step.invalid).map((step) => step.skillName),
     ['Psycut', 'Psystrike', 'Psystrike']
   );
   assert.equal(result.steps[1].interrupted, true);
@@ -442,7 +442,7 @@ test('a long utility cast resets ordinary spear autoattack-chain progress', () =
   );
 
   assert.deepEqual(
-    result.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    result.steps.filter((step) => !step.invalid).map((step) => step.skillName),
     ['Psycut', 'Well of Calamity', 'Psycut']
   );
 });
@@ -475,7 +475,7 @@ test('sword, scepter, axe, and spear auto chains cast as separate attacks', () =
   );
 
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     chain
   );
 });

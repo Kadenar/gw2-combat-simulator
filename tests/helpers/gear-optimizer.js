@@ -31,7 +31,7 @@ export function runOrdinaryOptimizer(request, adapter) {
             observationPolicy: { kind: 'rotation' }
           })
         ),
-        represented: '1'
+        representedCombinationCount: '1'
       },
       request.limit
     );

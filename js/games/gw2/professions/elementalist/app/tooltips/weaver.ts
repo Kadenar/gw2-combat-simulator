@@ -47,21 +47,21 @@ export const weaverTooltips = {
         )
       ])
     ),
-    ...Object.fromEntries(
-      [ID.PRIMORDIAL_STANCE_FIRE, ID.PRIMORDIAL_STANCE_WATER, ID.PRIMORDIAL_STANCE_AIR, ID.PRIMORDIAL_STANCE_EARTH].map(
-        (id) => [
-          id,
-          (balanceContext) => ({
-            description:
-              "Pulse strike damage and conditions throughout the stance. Each pulse reads your current primary and secondary attunements: each hand supplies its element's condition, so a shared attunement applies that condition twice. The strike occurs once per pulse.",
-            facts: simulationEffectFacts(
-              primordialStancePayload(balanceContext).action.effects,
-              'per pulse; conditions depend on current attunements'
-            ).facts
-          })
-        ]
+    [ID.PRIMORDIAL_STANCE]: (balanceContext) => ({
+      description:
+        'Each pulse deals strike damage and applies a condition from each of your current primary and secondary attunements. Matching attunements apply that condition twice.',
+      // Label each alternative by attunement while preserving the selected payload's condition icon and stack count.
+      facts: primordialStancePayload(balanceContext).action.effects.flatMap((effect) =>
+        simulationEffectFacts(
+          [{ ...effect, name: undefined }],
+          effect.type === 'strike' ? 'once per pulse' : ''
+        ).facts.map((fact) =>
+          effect.type === 'condition' && effect.name
+            ? { ...fact, name: effect.name, detail: `${fact.name} · ${fact.detail}` }
+            : fact
+        )
       )
-    ),
+    }),
     ...Object.fromEntries(
       [
         ID.DUAL_ORBITS_FIRE_AND_WATER,
@@ -139,9 +139,7 @@ export const weaverTooltips = {
     [TRAIT.WEAVER]: traitTooltip(
       'Unlock Weaver, sword, stances, and dual attunements. Weapon skills depend on your primary and secondary elements.'
     ),
-    [TRAIT.ELEMENTAL_REFRESHMENT]: traitTooltip('Gain vitality. Barrier does not change outgoing combat results.', [
-      ['attributeBonuses.vitality', 'Vitality']
-    ]),
+    [TRAIT.ELEMENTAL_REFRESHMENT]: traitTooltip('Gain vitality.', [['attributeBonuses.vitality', 'Vitality']]),
     [TRAIT.ELEMENTAL_POLYPHONY]: traitTooltip(
       'Gain attributes from each distinct active attunement: Fire grants power, Water healing power, Air ferocity, and Earth condition damage. Matching elements apply once.',
       [

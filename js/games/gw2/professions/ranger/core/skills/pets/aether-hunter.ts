@@ -9,10 +9,9 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.AETHER_HUNTER_BITE]: definePetSkill({
     name: 'Bite',
-    description: 'Bite at your foe and inflict bleeding.',
     icon: new URL('@images/wiki/bite-aether-hunter.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -38,7 +37,6 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
   }),
   [ID.AETHER_HUNTER_LUNGE]: definePetSkill({
     name: 'Lunge',
-    description: 'Lunge forward, crippling opponents in the path.',
     icon: 'https://render.guildwars2.com/file/B65ECEBB72F4F10C4144510777E899E477DEE5B2/3124960.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -64,7 +62,6 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
   }),
   [ID.AETHER_HUNTER_LEY_LINE_VORTEX]: definePetSkill({
     name: 'Ley-Line Vortex',
-    description: 'Spin around, striking and tormenting nearby enemies.',
     icon: 'https://render.guildwars2.com/file/030E7AB1CB18A4B348FD17B54B2B68FDABDB1DBC/3124961.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -98,7 +95,6 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
   }),
   [ID.DIMENSION_BREACH]: definePetSkill({
     name: 'Dimension Breach',
-    description: "Beast.  Dive between dimensions, resurfacing at your foe's location and knocking them into the air.",
     icon: 'https://render.guildwars2.com/file/090FC4C97ADB55985F67F1FE225803784B3E6FAE/3124959.png',
     petNames: ['Aether Hunter'],
     type: 'Profession',
@@ -120,4 +116,4 @@ export const RANGER_CORE_AETHER_HUNTER_PET_SKILL_MECHANICS: Readonly<Record<numb
       { type: 'control', controlKind: CONTROL.LAUNCH, source: 'ranger-pet', actorType: ACTOR.SUMMON }
     ])
   })
-});
+};

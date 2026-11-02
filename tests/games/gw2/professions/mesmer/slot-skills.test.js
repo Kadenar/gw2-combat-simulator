@@ -110,8 +110,8 @@ test('Signet of Illusions does not recharge Continuum Split or Crescendo', () =>
     })
   );
 
-  assert.ok(chronomancer.planningState.cooldowns[ID.CONTINUUM_SPLIT]);
-  assert.equal(chronomancer.planningState.cooldowns[ID.SPLIT_SECOND], undefined);
+  assert.ok(chronomancer.planningState.cooldownsBySkillId[ID.CONTINUUM_SPLIT]);
+  assert.equal(chronomancer.planningState.cooldownsBySkillId[ID.SPLIT_SECOND], undefined);
 
   const troubadour = simulateMesmer(
     [{ type: 'cast', skillId: 76552 }, 'Crescendo', 'Signet of Illusions'],
@@ -122,8 +122,8 @@ test('Signet of Illusions does not recharge Continuum Split or Crescendo', () =>
     })
   );
 
-  assert.ok(troubadour.planningState.cooldowns[ID.CRESCENDO]);
-  assert.equal(troubadour.planningState.cooldowns[ID.LIVELY_LUTE], undefined);
+  assert.ok(troubadour.planningState.cooldownsBySkillId[ID.CRESCENDO]);
+  assert.equal(troubadour.planningState.cooldownsBySkillId[ID.LIVELY_LUTE], undefined);
 });
 
 test('Signet of the Ether does not generate a clone', () => {
@@ -273,7 +273,7 @@ test('Power Spike opens with two charges and reverts to Mantra of Pain when spen
 
   // The third cast has no charges left, so the flip reverts to its parent.
   assert.deepEqual(
-    result.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    result.steps.filter((step) => !step.invalid).map((step) => step.skillName),
     ['Power Spike', 'Power Spike']
   );
   assert.equal(result.steps[0].start, 0);
@@ -291,7 +291,7 @@ test('Re-channeling Mantra of Pain refills Power Spike to two charges', () => {
   );
 
   assert.deepEqual(
-    result.steps.map((step) => step.skill),
+    result.steps.map((step) => step.skillName),
     ['Power Spike', 'Power Spike', 'Mantra of Pain', 'Power Spike']
   );
   assert.ok(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.POWER_SPIKE]);
@@ -316,12 +316,12 @@ test('Power Spike woven into the Mantra of Pain channel is invalid and unsimulat
     ['Power Spike', 'Power Spike', 'Mantra of Pain', { name: 'Power Spike', offset: 100 }],
     defaultSimulationConfig({ specialization: 'Core' })
   );
-  const woven = result.steps.find((step) => step.ri === 3);
+  const woven = result.steps.find((step) => step.rotationCommandIndex === 3);
 
   assert.equal(woven.invalid, true);
   // Only the two opener spikes are simulated; the woven one is skipped, so the
   // refilled mantra keeps both charges.
-  assert.equal(result.steps.filter((step) => step.skill === 'Power Spike' && !step.invalid).length, 2);
+  assert.equal(result.steps.filter((step) => step.skillName === 'Power Spike' && !step.invalid).length, 2);
   assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.POWER_SPIKE].expiresAt, null);
   assert.equal(result.planningState.ammoBySkillId[ID.POWER_SPIKE].charges, 2);
   assert.match(result.warnings.at(-1).message, /Mantra of Pain is still channeling/);
@@ -341,9 +341,9 @@ test('Power Spike stays invalid even when another instant is chained into the ch
     ],
     defaultSimulationConfig({ specialization: 'Core' })
   );
-  const woven = result.steps.find((step) => step.ri === 4);
+  const woven = result.steps.find((step) => step.rotationCommandIndex === 4);
 
   assert.equal(woven.invalid, true);
-  assert.equal(result.steps.filter((step) => step.skill === 'Power Spike' && !step.invalid).length, 2);
+  assert.equal(result.steps.filter((step) => step.skillName === 'Power Spike' && !step.invalid).length, 2);
   assert.equal(result.planningState.ammoBySkillId[ID.POWER_SPIKE].charges, 2);
 });

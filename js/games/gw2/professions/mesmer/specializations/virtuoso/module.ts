@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { virtuosoPhantasmalFuryRule } from '#gw2/professions/mesmer/core/traits/dueling/index.js';
 import { TRAIT_LINES } from '#gw2/professions/mesmer/data/trait-lines.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -16,7 +17,7 @@ export const virtuosoModule = defineNativeModule({
     id: 'Virtuoso',
     traitLines: TRAIT_LINES,
     profileFields: MESMER_VIRTUOSO_PROFILE_FIELDS,
-    skillMechanics: MESMER_VIRTUOSO_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(MESMER_VIRTUOSO_SKILL_MECHANICS)
   }),
   state: {
     create: virtuosoState.create,

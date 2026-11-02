@@ -1,18 +1,18 @@
 {
   "metadata": {
-    "log": "20260907-164342.zevtc",
+    "log": "https://dps.report/Lrs2-20260907-1643421_golem",
     "sourceSha256": "a58f1171797c2834090a042e2f6921c406ab0a4f6fc977f85e1c139eb0c7b780",
     "arcdpsBuild": "20260816",
     "player": "Gelazy",
     "parser": "ranger:druid",
-    "timingSource": "EVTC animation activations, state changes, and direct instant-skill effects",
+    "timingSource": "EVTC reconstruction with current skill timings; player cast starts verified against Elite Insights on the 40 ms action grid",
     "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-druid-dagger-torch-axe-dagger",
     "warnings": [
       "The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating.",
       "26 instant casts were inferred using explicit Elite Insights rules.",
       "1 animation has no matching stop event."
     ],
-    "notes": "Recorded combat commands retain parser output except the opening Poisonous Cloud: its inferred instant marker is replaced by a precast 40 ms into Instinctive Engage, 760 ms before combat. The pet's animation-stop record occurs 723 ms after combat with 1483 ms elapsed, placing the actual start before combat; this lets the command launch before the opening pet swap. Preparation is authored from the Snow Crows opener: Sharpening Stone, enter/release Celestial Avatar for Natural Balance, two dodges, and Viper's Nest. A pre-combat cooldown reset is an explicit benchmark setup assumption to allow the recorded early Sharpening Stone reuse; it is not recovered from EVTC. The final Natural Convergence has no stop event and retains the parser's default handling.",
+    "notes": "Reconstructed from the original EVTC with current skill timings, including recovery and weapon-swap gaps. Player cast starts match the linked report rounded to 40 ms; final Natural Convergence starts at 90.240 s (recorded 90.236 s). Sharpening Stone, Seed of Life, and Release Celestial Avatar retain recorded instant-input offsets during recovery. Pet commands use EVTC-inferred animation starts rather than report effect markers. The opening Poisonous Cloud remains a precast 40 ms into Instinctive Engage, 760 ms before combat, supported by its animation-stop record. Preparation remains the authored Snow Crows opener, including the explicit pre-combat cooldown reset. The final Natural Convergence has no animation stop; its modeled cast duration remains unchanged.",
     "preparation": [
       {
         "type": "cast",
@@ -99,6 +99,11 @@
     },
     {
       "type": "cast",
+      "skillId": 44980,
+      "concurrentOffsetMs": 240
+    },
+    {
+      "type": "cast",
       "skillId": 43536
     },
     {
@@ -106,17 +111,17 @@
       "skillId": -3
     },
     {
+      "type": "wait",
+      "durationMs": 80
+    },
+    {
       "type": "cast",
       "skillId": 12498
     },
     {
       "type": "cast",
-      "skillId": 44980,
-      "concurrentOffsetMs": 120
-    },
-    {
-      "type": "cast",
-      "skillId": 12537
+      "skillId": 12537,
+      "concurrentOffsetMs": 320
     },
     {
       "type": "cast",
@@ -125,10 +130,6 @@
     {
       "type": "cast",
       "skillId": 12490
-    },
-    {
-      "type": "wait",
-      "durationMs": 40
     },
     {
       "type": "cast",
@@ -141,15 +142,13 @@
     },
     {
       "type": "cast",
-      "skillId": 31869
-    },
-    {
-      "type": "wait",
-      "durationMs": 80
+      "skillId": 31869,
+      "concurrentOffsetMs": 520
     },
     {
       "type": "cast",
-      "skillId": 31406
+      "skillId": 31406,
+      "concurrentOffsetMs": 80
     },
     {
       "type": "wait",
@@ -193,10 +192,6 @@
     {
       "type": "cast",
       "skillId": 12480
-    },
-    {
-      "type": "wait",
-      "durationMs": 40
     },
     {
       "type": "cast",
@@ -318,7 +313,8 @@
     },
     {
       "type": "cast",
-      "skillId": 31411
+      "skillId": 31411,
+      "concurrentOffsetMs": 80
     },
     {
       "type": "wait",
@@ -334,12 +330,12 @@
     },
     {
       "type": "cast",
-      "skillId": 43536
+      "skillId": 44980,
+      "concurrentOffsetMs": 160
     },
     {
       "type": "cast",
-      "skillId": 44980,
-      "concurrentOffsetMs": 480
+      "skillId": 43536
     },
     {
       "type": "cast",
@@ -348,6 +344,10 @@
     {
       "type": "cast",
       "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -361,10 +361,6 @@
       "type": "cast",
       "skillId": -4,
       "concurrentOffsetMs": 160
-    },
-    {
-      "type": "wait",
-      "durationMs": 120
     },
     {
       "type": "cast",
@@ -414,15 +410,13 @@
     },
     {
       "type": "cast",
-      "skillId": 31869
-    },
-    {
-      "type": "wait",
-      "durationMs": 80
+      "skillId": 31869,
+      "concurrentOffsetMs": 520
     },
     {
       "type": "cast",
-      "skillId": 31406
+      "skillId": 31406,
+      "concurrentOffsetMs": 80
     },
     {
       "type": "wait",
@@ -435,7 +429,7 @@
     {
       "type": "cast",
       "skillId": 12675,
-      "concurrentOffsetMs": 1320
+      "concurrentOffsetMs": 520
     },
     {
       "type": "cast",
@@ -474,7 +468,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 120
+      "durationMs": 40
     },
     {
       "type": "cast",
@@ -582,20 +576,28 @@
     },
     {
       "type": "cast",
-      "skillId": 12635
+      "skillId": 44980,
+      "concurrentOffsetMs": 120
     },
     {
       "type": "cast",
-      "skillId": 44980,
-      "concurrentOffsetMs": 400
+      "skillId": 12635
     },
     {
       "type": "cast",
       "skillId": 43536
     },
     {
+      "type": "wait",
+      "durationMs": 40
+    },
+    {
       "type": "cast",
       "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -604,10 +606,6 @@
     {
       "type": "cast",
       "skillId": 12478
-    },
-    {
-      "type": "wait",
-      "durationMs": 160
     },
     {
       "type": "cast",
@@ -628,7 +626,7 @@
     {
       "type": "cast",
       "skillId": 12537,
-      "concurrentOffsetMs": 200
+      "concurrentOffsetMs": 120
     },
     {
       "type": "wait",
@@ -648,7 +646,8 @@
     },
     {
       "type": "cast",
-      "skillId": 12480
+      "skillId": 12480,
+      "interruptAfterMs": 560
     },
     {
       "type": "cast",
@@ -660,7 +659,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 120
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -697,7 +696,8 @@
     },
     {
       "type": "cast",
-      "skillId": 12480
+      "skillId": 12480,
+      "interruptAfterMs": 560
     },
     {
       "type": "cast",
@@ -705,7 +705,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 120
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -789,12 +789,12 @@
     },
     {
       "type": "cast",
-      "skillId": 12496
+      "skillId": 44980,
+      "concurrentOffsetMs": 80
     },
     {
       "type": "cast",
-      "skillId": 44980,
-      "concurrentOffsetMs": 40
+      "skillId": 12496
     },
     {
       "type": "cast",
@@ -817,6 +817,11 @@
     },
     {
       "type": "cast",
+      "skillId": 12675,
+      "concurrentOffsetMs": 120
+    },
+    {
+      "type": "cast",
       "skillId": 12635
     },
     {
@@ -824,13 +829,16 @@
       "skillId": 43536
     },
     {
-      "type": "cast",
-      "skillId": 12675,
-      "concurrentOffsetMs": 80
+      "type": "wait",
+      "durationMs": 40
     },
     {
       "type": "cast",
       "skillId": -3
+    },
+    {
+      "type": "wait",
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -839,10 +847,6 @@
     {
       "type": "cast",
       "skillId": 12478
-    },
-    {
-      "type": "wait",
-      "durationMs": 160
     },
     {
       "type": "cast",
@@ -890,7 +894,8 @@
     },
     {
       "type": "cast",
-      "skillId": 12480
+      "skillId": 12480,
+      "interruptAfterMs": 560
     },
     {
       "type": "cast",
@@ -902,7 +907,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 120
+      "durationMs": 80
     },
     {
       "type": "cast",
@@ -937,7 +942,8 @@
     },
     {
       "type": "cast",
-      "skillId": 12480
+      "skillId": 12480,
+      "interruptAfterMs": 560
     },
     {
       "type": "cast",
@@ -945,7 +951,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 120
+      "durationMs": 80
     },
     {
       "type": "cast",

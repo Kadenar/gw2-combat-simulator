@@ -3,16 +3,16 @@ import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
 // Native and Eclipse effects share the impact, independently of the Avatar animation ending.
 export const SEED_OF_LIFE_DETONATION_MS = 720;
 
 export const LUNAR_IMPACT_HIT_MS = 560;
 
-export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.GLYPH_OF_REJUVENATION]: {
     name: 'Glyph of Rejuvenation',
-    description: 'Glyph. Greatly heal yourself and your pet, while healing nearby allies for a minor amount.',
     icon: 'https://render.guildwars2.com/file/0A3119FC4F62C31A0646B0FF901E701D74BD3EEA/1128605.png',
     type: 'Heal',
     slot: 'Heal',
@@ -23,7 +23,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
   },
   [ID.RELEASE_CELESTIAL_AVATAR]: {
     name: 'Release Celestial Avatar',
-    description: 'Leave the celestial avatar form.',
     icon: 'https://render.guildwars2.com/file/695007D6D2010F49499B43A7EDC3A4701D450F4C/1128602.png',
     type: 'Profession',
     slot: 'Profession_5',
@@ -37,7 +36,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
   },
   [ID.GLYPH_OF_THE_STARS]: {
     name: 'Glyph of the Stars',
-    description: 'Glyph. Channel the power of the stars to prevent harm to your allies.',
     icon: 'https://render.guildwars2.com/file/E04535E0710904BE9841BAC49922200E39B9B413/1128636.png',
     type: 'Elite',
     slot: 'Elite',
@@ -48,7 +46,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
   },
   [ID.CELESTIAL_AVATAR]: {
     name: 'Celestial Avatar',
-    description: 'Consume your accumulated astral force to become a celestial avatar.',
     icon: 'https://render.guildwars2.com/file/0C47C53B414ADB3DA62C47679A6C09B4FB0534D3/1128603.png',
     type: 'Profession',
     slot: 'Profession_5',
@@ -64,7 +61,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
   },
   [ID.COSMIC_RAY]: {
     name: 'Cosmic Ray',
-    description: 'Call down energy onto the targeted area to heal allies.',
     icon: 'https://render.guildwars2.com/file/ADD8B8B5B1EA72760ABB7313EAA8B0DAEC135F5E/1128620.png',
     celestialAvatarSkill: true,
     type: 'Bundle',
@@ -77,7 +73,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
   },
   [ID.SEED_OF_LIFE]: {
     name: 'Seed of Life',
-    description: 'Summon a seed that heals and cleanses nearby allies when it blossoms.',
     icon: 'https://render.guildwars2.com/file/761706674AF9092C98D059AB03BD747BFC7DF506/1128623.png',
     celestialAvatarSkill: true,
     type: 'Bundle',
@@ -97,7 +92,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
   },
   [ID.LUNAR_IMPACT]: {
     name: 'Lunar Impact',
-    description: 'Call down a massive lunar beam to heal allies and daze foes.',
     icon: 'https://render.guildwars2.com/file/2708F4B3239D05C7A063FDC37838C9EFF5FCED50/1128625.png',
     celestialAvatarSkill: true,
     type: 'Bundle',
@@ -122,7 +116,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
   },
   [ID.REJUVENATING_TIDES]: {
     name: 'Rejuvenating Tides',
-    description: 'Gather tidal force to rapidly heal nearby allies.',
     icon: 'https://render.guildwars2.com/file/0C909F99672AC81E95167114B132F4BF03296E33/1128626.png',
     celestialAvatarSkill: true,
     type: 'Bundle',
@@ -150,7 +143,6 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
   },
   [ID.NATURAL_CONVERGENCE]: {
     name: 'Natural Convergence',
-    description: 'Channel celestial power, then trap foes in a black hole.',
     icon: 'https://render.guildwars2.com/file/08A7C5E751190ED5596C9112005D791D20AA3B31/1128629.png',
     celestialAvatarSkill: true,
     type: 'Bundle',
@@ -232,4 +224,4 @@ export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
       }))
     ])
   }
-});
+};

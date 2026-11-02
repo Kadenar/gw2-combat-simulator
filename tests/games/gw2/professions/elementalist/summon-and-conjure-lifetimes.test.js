@@ -21,6 +21,7 @@ import {
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { tempestOverloadDwell } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overload-dwell.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { cast, wait } from '#tests/helpers/commands.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -38,8 +39,6 @@ function preview(skills, balanceProfiles = {}) {
   });
 }
 
-const cast = (skillId) => ({ type: 'cast', skillId });
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 function facts(balance, id) {
   const tooltip = describeSimulationSkill(balance, balance.catalog.skillsById.get(id), elementalistTooltips);
   assert.equal(tooltip.incomplete, false);

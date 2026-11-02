@@ -79,7 +79,7 @@ export interface SkillBreakdownRow {
   // Fraction of eligible strikes with successful seeded critical rolls (0-1), or null when the
   // row has no crit-eligible strike hits (pure-condition rows). critHits and
   // critEligibleHits back the hover tooltip.
-  readonly critChance: number | null;
+  readonly observedCritRate: number | null;
   readonly critHits: number;
   readonly critEligibleHits: number;
 }
@@ -380,7 +380,7 @@ export function skillBreakdownRows(
         // DCT is damage divided by occupied cast time, not encounter duration.
         dct: castTime > 0 ? total / castTime : null,
         casts,
-        critChance: entry.critEligibleHits > 0 ? entry.critHits / entry.critEligibleHits : null,
+        observedCritRate: entry.critEligibleHits > 0 ? entry.critHits / entry.critEligibleHits : null,
         critHits: entry.critHits,
         critEligibleHits: entry.critEligibleHits
       };

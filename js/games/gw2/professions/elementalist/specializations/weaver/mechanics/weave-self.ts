@@ -45,8 +45,8 @@ function handleWeaveSelfActivation(
   data: unknown,
   emissionCast?: EffectDelivery['cast']
 ): void {
-  const state = weaverState.from(context);
-  const core = professionCoreState(context);
+  const state = weaverState.from(context.profession);
+  const core = professionCoreState(context.profession);
   const at = context.time;
   const sourceId = data as Skill['id'];
   const duration = skillNumberFromContext(context, ID.WEAVE_SELF, 'duration');
@@ -83,7 +83,7 @@ export function applyWeaveSelfAttunement(
   source: string,
   sourceId: Skill['id']
 ): void {
-  const state = weaverState.from(context);
+  const state = weaverState.from(context.profession);
 
   if (!(state.weaveSelfUntil > at)) return;
 
@@ -142,7 +142,7 @@ export function weaveSelfAvailability(
   // Weave is up.
   if (skill.id !== ID.TAILORED_VICTORY) return { ready: true };
 
-  const state = weaverState.from(context);
+  const state = weaverState.from(context.profession);
   return state.perfectWeaveUntil > context.time
     ? { ready: true }
     : denySkillCast(skill, 'elementalist.weaver-perfect-weave', `requires Perfect Weave.`);
@@ -152,7 +152,7 @@ export function weaveSelfAvailability(
 const weaveSelfTasks = {
   [WEAVE_SELF_ACTIVATION_TASK]: handleWeaveSelfActivation,
   'elementalist.weaver.consume-perfect-weave'(runtime) {
-    weaverState.from(runtime).perfectWeaveUntil = 0;
+    weaverState.from(runtime.profession).perfectWeaveUntil = 0;
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']>;
 

@@ -213,7 +213,11 @@ test('build edits cancel prior analysis even when browser storage rejects writes
     buildEditor: {}
   };
   // Supply normalized build inputs and a real tab so the edit reaches the failing storage write.
-  const tab = createBuildTab({ rotation: [{ type: 'wait', durationMs: 1000 }], selectedSkillIds: {}, infusions: [] });
+  const tab = createBuildTab({
+    rotation: [{ type: 'wait', durationMs: 1000 }],
+    selectedSkillIds: {},
+    infusions: []
+  });
   const app = Object.assign(Object.create(ProfessionApp.prototype), {
     patch: { id: 'current', catalog: { skills: [], skillsById: new Map() } },
     initialRenderGeneration: 0,
@@ -826,7 +830,7 @@ test('modifier worker batches ignore superseded responses and terminate on compl
   runner.schedule();
   assert.equal(workers.length, 6);
   assert.ok(workers.slice(0, 3).every((worker) => worker.terminated));
-  workers[0].respond({ requestId: 1, scores: [{ id: 'old', name: 'Old', dps: 1 }] });
+  workers[0].respond({ requestId: 1, scores: [{ id: 'old', name: 'Old', dpsWithoutModifier: 1 }] });
   assert.deepEqual(results.contributions, []);
 
   const current = workers.slice(3);
@@ -1046,7 +1050,7 @@ test('relic comparison scheduling publishes availability without simulating', ()
         return {
           rotation: STRIKE_ROTATION,
           baseConfig: { relic: 'Fractal' },
-          opponentRelic: 'Fractal',
+          equippedRelic: 'Fractal',
           comparisonRelic
         };
       },
@@ -1080,9 +1084,9 @@ test('relic comparison scopes assumptions and attributes damage against a no-rel
         rotation: STRIKE_ROTATION,
         // Comparison stacks override the saved main-run value only for the comparison's Thorns relic.
         baseConfig: { relic: 'Fractal', initialThornsStacks: 8 },
-        opponentRelic: 'Fractal',
+        equippedRelic: 'Fractal',
         comparisonRelic,
-        opponentResult: results,
+        baselineResult: results,
         initialStacks: 4
       },
       {},
@@ -1105,7 +1109,7 @@ test('relic comparison scopes assumptions and attributes damage against a no-rel
       { relic: '', initialThornsStacks: 8 }
     ]
   );
-  assert.equal(comparison.opponentRelic, 'Fractal');
+  assert.equal(comparison.equippedRelic, 'Fractal');
   assert.equal(comparison.targetRelic, 'Mirage');
   assert.equal(comparison.opponentFinalDps, results.dps);
   assert.equal(comparison.targetFinalDps, 1050);
@@ -1131,7 +1135,7 @@ async function relicFixture() {
     results: minimalResult(4000),
     adapter: {
       relicComparisonRequest(_app, comparisonRelic) {
-        return { rotation, baseConfig, opponentRelic: 'Fractal', comparisonRelic };
+        return { rotation, baseConfig, equippedRelic: 'Fractal', comparisonRelic };
       }
     }
   };

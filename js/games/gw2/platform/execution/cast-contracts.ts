@@ -14,18 +14,19 @@ export interface RuntimeCast<TSkill extends Skill = Skill> {
   /** Recharge follows the accepted companion incarnation through delayed completion and replacement. */
   readonly rechargeCompanionId?: string;
   readonly ammoLockoutWork: number;
-  readonly ammo: boolean;
+  /** True routes recharge through ammunition spending instead of ordinary skill recharge. */
+  readonly usesAmmo: boolean;
   /**
    * The activation ended before its authored commit point, so its committed effects never happen. Decided once at
    * acceptance from the reserved cast window, so every hook reads the same answer.
    */
-  readonly cancelled: boolean;
+  readonly cancelledBeforeCommit: boolean;
 }
 
 /** The payload a profession task receives when a committed activation schedules its authored skill task. */
 export interface SkillTaskData<TSkill extends Skill = Skill> {
   readonly cast: RuntimeCast<TSkill>;
-  readonly trigger: SkillTask;
+  readonly taskDefinition: SkillTask;
 }
 
 /** Profession transitions query accepted casts and request lockouts without obtaining reservation stores. */

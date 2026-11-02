@@ -40,7 +40,7 @@ test('shared build eligibility follows module labels for weapons, slot skills, a
   assert.equal(isBuildSkillAvailable({ id: -4, type: 'Action', specialization: 'Chronomancer' }, context), false);
   assert.equal(isBuildSkillAvailable({ id: -1, type: 'Action', specialization: 'Mirage' }, context), true);
   assert.equal(isBuildSkillAvailable({ type: 'Utility' }), true);
-  assert.equal(isBuildSkillAvailable({ type: 'Weapon', simulatorExcluded: true }, context), false);
+  assert.equal(isBuildSkillAvailable({ type: 'Weapon', rotationInputExcluded: true }, context), false);
 });
 
 const queryProfession = defineProfession({
@@ -70,9 +70,7 @@ test('palette overrides are optional and validate each authored field', () => {
   }
 });
 
-test('profession composition validates UI callbacks and scheduler refiners', () => {
-  assert.throws(() => normalizeProfessionUi('invalid-ui', { eventLogRow: true }), /ui\.eventLogRow must be a function/);
-
+test('profession composition validates palette overrides and scheduler refiners', () => {
   const invalidAvailability = normalizeProfessionUi('invalid-availability', { paletteOverride: () => true });
 
   assert.throws(() => invalidAvailability.paletteOverride({}, {}), /must return an object/);

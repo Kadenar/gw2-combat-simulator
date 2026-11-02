@@ -52,7 +52,7 @@ for (const [parentId, childId] of [
     assertDisplayed(consumed, parentId, childId, parentId);
     assert.equal(consumed.planningState.profession[STATE.AVAILABLE_FLIPS][childId], undefined);
     assert.equal(consumed.planningState.availability[childId].ready, false);
-    assert.ok(consumed.planningState.cooldowns[parentId].remaining > 0);
+    assert.ok(consumed.planningState.cooldownsBySkillId[parentId].remainingMs > 0);
 
     const expired = simulate('Core', [parentId, { type: 'wait', durationMs: 5000 }]);
     assertDisplayed(expired, parentId, childId, parentId);

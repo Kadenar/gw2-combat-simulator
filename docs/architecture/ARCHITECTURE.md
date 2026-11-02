@@ -55,7 +55,7 @@ with `defineNativeModule()`:
 | Section            | Owns                                                                           |
 | ------------------ | ------------------------------------------------------------------------------ |
 | `data`             | Authored skills, trait lines, weapon hands, and explicit chains                |
-| `state`            | One `create` factory and optional detached public `project` projection         |
+| `state`            | One `create` factory and optional pure public `project` selector               |
 | `hooks`            | Availability, cast hooks, named tasks, resource policies, and combat reactions |
 | `modifiers`        | Declarative formula rules and imperative modifier hooks                        |
 | `attributes`       | Intrinsic mechanic and skill-passive attribute contributions                   |
@@ -77,13 +77,17 @@ the existing attribute conversion pass. Patch previews consume expanded declarat
 
 ### Catalog assembly
 
-`createNativeModuleData()` materializes complete owner declarations and selects the module’s nested specialization
-records. Traits derive from those records; Core owns all non-elite trait lines. `assembleNativeApplicationCatalog()`
-derives the full editor/build catalog from all modules; runtime fragments contain Core plus only the selected elite. The
-contributing module owns each skill, including weapons. Assembly derives `skill.specialization` from that owner,
-omitting it for Core, and rejects authored labels. Shared Weaponmaster Training weapons are declared in Core; elite
-mechanic variants are declared in their elite module. Assembly rejects duplicate IDs or weapon hands and cross-module
-chains or flips.
+`createNativeModuleData()` accepts one `skills` array of complete owner declarations and selects the module’s nested
+specialization records. Traits derive from those records; Core owns all non-elite trait lines.
+`assembleNativeApplicationCatalog()` derives the full editor/build catalog from all modules; runtime fragments contain
+Core plus only the selected elite. The contributing module owns each skill, including weapons. Assembly derives
+`skill.specialization` from that owner, omitting it for Core, and rejects authored labels. Shared Weaponmaster Training
+weapons are declared in Core; elite mechanic variants are declared in their elite module. Assembly rejects duplicate IDs
+or weapon hands and cross-module chains or flips.
+
+Runtime selection reuses these canonical records and compiled chain positions in fresh collections and indexes. It does
+not normalize authored declarations again. Selected catalogs still validate references and prepare their own action
+requirements, so an application-wide reference cannot silently resolve into an inactive module.
 
 ### Build eligibility
 
@@ -96,9 +100,11 @@ slots, weapon variants, resources, cooldowns, and dynamic state are separate che
 ### Source roles
 
 Owner-local skill files hold complete ID-keyed declarations, including presentation, selection metadata, costs,
-recharge, and intrinsic behavior. `data/ids.ts` remains the maintained identity inventory. Module assembly attaches IDs
-and builds indexes without joining skill metadata. Trait policies remain with their trait owners; mechanics own shared
-state and hook files register those contributions. See [MODULES.md](./MODULES.md#profession-file-roles).
+recharge, and intrinsic behavior. `data/ids.ts` remains the maintained identity inventory. Skill indexes use
+`materializeSkillDefinitions()` to attach keyed IDs before combining declarations with generated actions and summons in
+the module's single skill collection. Catalog assembly builds indexes without joining skill metadata. Trait policies
+remain with their trait owners; mechanics own shared state and hook files register those contributions. See
+[MODULES.md](./MODULES.md#profession-file-roles).
 
 ### Authoring workflow
 
@@ -200,8 +206,9 @@ The [platform ownership guide](../../js/games/gw2/platform/README.md) documents 
 - Score and detailed modes share mechanics. Detailed mode retains steps, reports, APM, and optional diagnostics.
 - `planningState` captures resources, cooldowns, ammo, weapon set, and public profession state at the observation end.
   Native `planningState.profession` records use stable `PROFESSION_STATE_IDS` constants. Core and active-elite
-  projectors select facts from their owners, detach mutable values, and reject duplicate IDs during composition. Runtime
-  field names and UI labels are separate contracts; public types are inferred from projector return values. See
+  projectors select facts from their explicit runtime owners without mutation; composition rejects duplicate IDs and the
+  planning observer deep-clones the composed public record once. Runtime field names and UI labels are separate
+  contracts; public types are inferred from projector return values. See
   [Rotation state snapshots](./ROTATION_STATE_SNAPSHOT.md#exposing-runtime-state). After target death, authored commands
   continue while hostile effects and hit-dependent grants are suppressed.
 - The planning observation is deeply detached and is not a checkpoint. Combat reports stop at `combatEndTime`.

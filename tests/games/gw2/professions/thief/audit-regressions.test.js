@@ -12,6 +12,7 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { emitStealth } from '#tests/helpers/stealth.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -31,7 +32,6 @@ const baseConfig = {
   target: { armor: 2597, defiant: true }
 };
 const simulate = createObservedProfessionSimulator(thiefProfession, baseConfig);
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`);
 
 /** Runs a focused scenario on the registered live owners with this file's shared build. */

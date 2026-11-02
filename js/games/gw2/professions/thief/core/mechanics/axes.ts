@@ -36,7 +36,7 @@ export function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContex
 
 /** Release the recalled generation before aftercast so it cannot absorb axes thrown by the following skill. */
 export function scheduleThiefAxeRecall(runtime: ThiefRuntime, context: ActionContext<ThiefSkill>): void {
-  if (context.kind !== 'cast' || context.cast.cancelled) return;
+  if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
 
   const cast = context.cast;
   const at = cast.skill.interruptCommitMs == null ? cast.fullEnd : cast.start + cast.skill.interruptCommitMs / 1000;

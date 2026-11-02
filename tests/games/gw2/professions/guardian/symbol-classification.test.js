@@ -20,7 +20,7 @@ test('Writ and symbol reactions survive renamed skills, including ordinary and s
       },
       {
         // Display text is deliberately unrelated to symbols; authored identity must survive catalog replacement.
-        catalog: (catalog) => withSkill(catalog, id, { name: 'Renamed attack', description: '' })
+        catalog: (catalog) => withSkill(catalog, id, { name: 'Renamed attack' })
       }
     );
     assert.deepEqual(result.warnings, []);
@@ -52,8 +52,7 @@ test('symbol wording and a Light field cannot grant Writ extensions without the 
       catalog: (catalog) =>
         withSkill(catalog, ID.SYMBOL_OF_FAITH, {
           tags: [],
-          name: 'Symbol of Imposture',
-          description: 'Symbol. Creates a symbol.'
+          name: 'Symbol of Imposture'
         })
     }
   );
@@ -62,7 +61,7 @@ test('symbol wording and a Light field cannot grant Writ extensions without the 
   assert.equal(field.expiresAt - field.at, guardianCatalog.skillsById.get(ID.SYMBOL_OF_FAITH).comboFields[0].duration);
 });
 
-test('symbol reactions use delivered packet metadata rather than skill tags, names, or descriptions', () => {
+test('symbol reactions use delivered packet metadata rather than skill tags or names', () => {
   const result = runGuardian(
     [ID.ORB_OF_WRATH, { type: 'wait', durationMs: 2000 }],
     {
@@ -74,7 +73,6 @@ test('symbol reactions use delivered packet metadata rather than skill tags, nam
         withSkill(catalog, ID.ORB_OF_WRATH, {
           tags: ['symbol'],
           name: 'Lesser Symbol of Imposture',
-          description: 'Symbol. Creating a symbol.',
           castTimeMs: 0,
           effects: [
             {

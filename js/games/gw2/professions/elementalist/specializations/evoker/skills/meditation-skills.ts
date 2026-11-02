@@ -10,14 +10,13 @@ import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Declares the meditation catalog while the shared handler applies Altruistic Aspect. */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
   [ID.FOXS_FURY]: {
     name: "Fox's Fury",
-    description:
-      'Meditation. Grant boons to nearby allies, then inflict burning on your target based on the amount of might you have. If fire is your specialized element, this skill breaks stun, grants additional boons, and strikes enemies around your target.',
     icon: 'https://render.guildwars2.com/file/7AE9F87947BFA633B39A0977A211465549442A65/3680121.png',
     // Commit the live-element reward before Altruistic Aspect; acceptance-time damage selection stays independent.
     mightTierThreshold: 10,
@@ -45,7 +44,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDef
         when: () => true,
         transform: (runtime, cast, effects) => {
           // A cancelled meditation must not fall back to emitting every unselected tier.
-          if (cast.cancelled) return [];
+          if (cast.cancelledBeforeCommit) return [];
 
           const might = runtime.config.boons?.might
             ? Number(runtime.config.boons.might)
@@ -103,8 +102,6 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.HARES_AGILITY]: {
     name: "Hare's Agility",
-    description:
-      'Meditation. Gain endurance and swiftness. Your next few strikes create an arc of chain lightning. If air is your specialized element, this skill breaks stun and grants blur.',
     icon: 'https://render.guildwars2.com/file/CD54CEBF6BD8D37902E2EF0565BE0A9FF3CB9414/3680122.png',
     type: 'Utility',
     slot: 'Utility',
@@ -138,8 +135,6 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.TOADS_FORTITUDE]: {
     name: "Toad's Fortitude",
-    description:
-      'Meditation. Block incoming attacks, then strike nearby enemies with shattering rocks. Grant protection to nearby allies if this skill completes successfully. If earth is your specialized element, this skill grants resistance to allies and breaks stun.',
     icon: 'https://render.guildwars2.com/file/A3DE41C7F223D46269FCC406AEFCDF01ABCF4BE1/3680124.png',
     type: 'Utility',
     slot: 'Utility',
@@ -157,7 +152,7 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     sideEffects: [
       {
         on: 'castCommit',
-        when: (runtime) => evokerState.from(runtime).element === 'Earth',
+        when: (runtime) => evokerState.from(runtime.profession as ElementalistRuntimeState).element === 'Earth',
         do: {
           type: 'elementalist.evoker.toads-fortitude',
           id: 'earth-resistance',
@@ -178,7 +173,6 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.ELEMENTAL_PROCESSION]: {
     name: 'Elemental Procession',
-    description: 'Meditation. Summon all four familiars to use their empowered skills.',
     icon: 'https://render.guildwars2.com/file/D401E6E2BE0349A03F37E02AE850CF3419D438C3/3680111.png',
     type: 'Elite',
     slot: 'Elite',
@@ -194,7 +188,6 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.REJUVENATE]: {
     name: 'Rejuvenate',
-    description: 'Meditation. Heal yourself and charge your familiar skill.',
     icon: 'https://render.guildwars2.com/file/0CB5DE5B0D0A4E360C1F0F24E655F478C2DAA6B8/3680112.png',
     type: 'Heal',
     slot: 'Heal',
@@ -206,4 +199,4 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     // Commit the live-element reward before Altruistic Aspect; acceptance-time damage selection stays independent.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.evoker.rejuvenate' } }]
   }
-});
+};

@@ -84,7 +84,7 @@ test('Tempest overload completion preserves a longer attunement lockout', () => 
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).cooldownController.readyAt(id), 48);
-  assert.deepEqual(observedRuntime(result).cooldownController.rechargeFor(id), { startedAt: 0, work: 60 });
+  assert.deepEqual(observedRuntime(result).cooldownController.rechargeFor(id), { workAnchorAt: 0, work: 60 });
 });
 
 // A two-skill rotation isolates the instant-cast scheduling rule without
@@ -97,8 +97,8 @@ test('delayed Tempest shouts do not advance the serial rotation lane', () => {
   });
   const [shout, followingSerialCast] = result.steps;
 
-  assert.equal(shout.skill, 'Feel the Burn!');
-  assert.equal(followingSerialCast.skill, 'Scorching Shot');
+  assert.equal(shout.skillName, 'Feel the Burn!');
+  assert.equal(followingSerialCast.skillName, 'Scorching Shot');
   assert.equal(followingSerialCast.start, shout.start);
   assert.equal(
     result.warnings.some(({ message: warning }) => warning.includes('Feel the Burn!')),

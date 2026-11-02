@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const config = { specialization: 'Untamed', initialUntamedState: 'Pet' };
 const petActions = (result) =>
   result.events.filter((event) => event.type === 'action' && event.source === 'ranger-pet');

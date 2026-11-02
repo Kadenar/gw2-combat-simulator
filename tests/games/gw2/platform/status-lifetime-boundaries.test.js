@@ -58,13 +58,10 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     traits: new Set(selectedTraitIds),
     config,
     hasBuff: () => false,
-    profession: runtime,
+    profession: runtime.createState(config),
     catalog: runtime.catalog,
-    state: {
-      time: 0,
-      activeWeaponSet: 1,
-      profession: runtime.createState(config)
-    },
+    time: 0,
+    activeWeaponSet: 1,
     events,
     effects: captureEffectEmissions({ submit: emit }).effects,
     eventByOrder: () => undefined,
@@ -79,11 +76,11 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     observationEndTime: 0
   };
   // Handler tests use the same recharge owner as the scheduler, with no active recharge-speed boons.
-  context.cooldownController = createCooldownController({ clock: context.state, rechargeDuration: () => 0 });
+  context.cooldownController = createCooldownController({ clock: context, rechargeDuration: () => 0 });
   return context;
 }
 
-const specialization = (context) => context.state.profession.specialization.state;
+const specialization = (context) => context.profession.specialization.state;
 
 // Native services supply the actual state and catalog; collect only the handler's immediate output.
 function elementalistContext(specialization, selectedTraitIds = []) {

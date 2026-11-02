@@ -42,6 +42,12 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Skill recharge': 'https://render.guildwars2.com/file/AAB7C5387A08367C2F023F19FEE70E1556AD4375/1770202.png',
   // Pulse timing uses the game's Interval fact glyph.
   Interval: 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
+  // Flame Expulsion's delayed impact uses the timer clock glyph.
+  'Flame Expulsion delay': 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
+  // Weaver's timed windows use the timer clock glyph to identify their active periods.
+  'Unravel window': 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
+  'Weave Self window': 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
+  'Perfect Weave window': 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
   // Call and Response's repeat delay uses the timer glyph to identify its waiting period.
   'Repeat delay': 'https://render.guildwars2.com/file/B75E91EB22E0DFCC1D08030204055946506D56F6/1770206.png',
   // Nature's Vengeance uses its in-game clock glyph for the simulator's repeat-slam delay.
@@ -102,6 +108,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Light on your Feet': 'https://render.guildwars2.com/file/4D37A694088038DA9266F6107C9604AD9CBC2752/1012649.png',
   // Natural Balance's temporary buff uses its granting trait's icon in tooltip facts.
   'Natural Balance': 'https://render.guildwars2.com/file/5F953BAC2C7EB3340B4EAA9A7D9633320BAB29A6/1128535.png',
+  // Gale Force's temporary buff uses its granting trait's icon in tooltip facts.
+  'Gale Force': 'https://render.guildwars2.com/file/206A95E4F6F236D824F80CF2495B4E6553ABFF34/3679998.png',
   // Biorhythm's stacks and its granted Vow effect use their matching Untamed trait icons.
   Biorhythm: 'https://render.guildwars2.com/file/44B8970EAEBCFC14E11A910C5B5D0FC512FEEBE5/2503639.png',
   'Vow of the Untamed': 'https://render.guildwars2.com/file/6C71F5D550E3CBACBB067376F52DE40A0148776F/2503643.png',

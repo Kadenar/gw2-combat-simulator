@@ -3,7 +3,8 @@
  * only the hits that do not fit on a small target.
  */
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 function hitboxMetadata(hitIndex: number, smallHitboxCap: number) {
   return {
@@ -12,8 +13,14 @@ function hitboxMetadata(hitIndex: number, smallHitboxCap: number) {
   };
 }
 
-/** Keeps each hitbox cap beside its skill while sharing the packet-indexing rules. */
-export function withSmallHitboxCap<T extends Partial<Skill>>(skill: T, smallHitboxCap: number) {
+/**
+ * Keeps each hitbox cap beside its skill while sharing the packet-indexing rules.
+ * The concrete parameter keeps excess-property checks on the authored literal.
+ */
+export function withSmallHitboxCap(
+  skill: SkillDefinition<ElementalistSkill>,
+  smallHitboxCap: number
+): SkillDefinition<ElementalistSkill> {
   const effects = skill.effects || [];
   const chronologicalStrikeIndices = new Map<string, number>();
 

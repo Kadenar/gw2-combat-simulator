@@ -14,10 +14,10 @@ const definitions = encounterPhasePlan('020102', 'normal').phases;
 function fixture() {
   return {
     steps: [
-      { ri: 0, start: 1000, end: 3000, skill: 'Wait' },
-      { ri: 1, start: 3000, end: 6000, skill: 'Wait' },
-      { ri: 2, start: 6000, end: 7000, skill: 'Wait' },
-      { ri: 3, start: 7000, end: 9000, skill: 'Wait' }
+      { rotationCommandIndex: 0, start: 1000, end: 3000, skillName: 'Wait' },
+      { rotationCommandIndex: 1, start: 3000, end: 6000, skillName: 'Wait' },
+      { rotationCommandIndex: 2, start: 6000, end: 7000, skillName: 'Wait' },
+      { rotationCommandIndex: 3, start: 7000, end: 9000, skillName: 'Wait' }
     ],
     events: [{ type: 'combat_start', at: 2 }],
     encounter: {
@@ -196,8 +196,8 @@ test('post-split intermissions appear as distinct timeline sections', () => {
 // Forced intermissions are occupied time; genuine gaps on either side still belong to the idle-time metric.
 test('intermissions do not create idle tiles while ordinary splits remain available rotation time', () => {
   const steps = [
-    { ri: 0, skillId: 1, skill: 'Before', start: 0, end: 1000 },
-    { ri: 1, skillId: 2, skill: 'After', start: 4000, end: 5000 }
+    { rotationCommandIndex: 0, skillId: 1, skillName: 'Before', start: 0, end: 1000 },
+    { rotationCommandIndex: 1, skillId: 2, skillName: 'After', start: 4000, end: 5000 }
   ];
   const pause = { kind: 'intermission', start: 1, end: 4 };
   assert.deepEqual(timelineDeadTimeMarkers(steps, [], { encounterPhases: [pause] }), []);

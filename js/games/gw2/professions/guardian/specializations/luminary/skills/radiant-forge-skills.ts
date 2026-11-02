@@ -29,11 +29,10 @@ import { canonicalTime } from '#kernel/core/clock.js';
  * Persistent forge resources and weapon behavior remain under `mechanics/`.
  */
 
-export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<GuardianSkill>>> = {
   // Slot 1: autoattack.
   [ID.GLARING_BURST]: {
     name: 'Glaring Burst',
-    description: 'Create a burst whose effect changes with the equipped radiant weapon.',
     icon: 'https://render.guildwars2.com/file/7E68406FAAC4FFF878CDD307B257C9D6AECE2935/3680152.png',
     radiantForgeSkill: true,
     type: 'Bundle',
@@ -93,7 +92,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
   // Slot 2: hammer and its follow-up.
   [ID.DAZZLING_HAMMER]: {
     name: 'Dazzling Hammer',
-    description: 'Smash the ground with a radiant hammer, dazing nearby foes.',
     icon: 'https://render.guildwars2.com/file/4ECA0C916F5D54C3C12AC135AB5A1E2D4BC792E5/3680142.png',
     radiantForgeSkill: true,
     radiantWeapon: 'hammer',
@@ -129,7 +127,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
               actor: ACTOR.PLAYER,
               packets: 'each',
               when: (_runtime, trigger) => trigger.event.finisherType === COMBO_FINISHER.BLAST,
-              do: { type: 'guardian.hammer-aura' }
+              do: [{ type: 'guardian.hammer-aura' }]
             }
           ],
           coefficient: 1.2,
@@ -179,14 +177,21 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ],
     // An accepted equip belongs to its captured forge entry, including delayed commitment.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'guardian.snapshot-forge' }
+      },
       { on: 'castCommit', do: { type: 'guardian.equip-forge' } },
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.empower-hammer' } }
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'guardian.empower-hammer' }
+      }
     ]
   },
   [ID.SHINING_SPIN]: {
     name: 'Shining Spin',
-    description: 'Strike nearby foes, dealing increased damage to disabled enemies.',
     icon: 'https://render.guildwars2.com/file/2E5878CE9AFA2634D7F6DBAB10389D20C1BFF75E/3680143.png',
     radiantForgeSkill: true,
     radiantWeapon: 'hammer',
@@ -212,7 +217,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
   // Slot 3: staff and its follow-up.
   [ID.LUMINOUS_STAFF]: {
     name: 'Luminous Staff',
-    description: 'Slam a radiant staff into the ground and create a symbol.',
     icon: 'https://render.guildwars2.com/file/06BD9362B2F9FAE403181D0F9BE96A12664C22CA/3680148.png',
     radiantForgeSkill: true,
     radiantWeapon: 'staff',
@@ -273,7 +277,8 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     // An armed Radiant Resolve is consumed by the next accepted staff and travels with that cast's own packets.
     effectVariants: [
       {
-        when: (runtime, cast) => !cast.cancelled && luminaryState.from(runtime).radiantResolveArmed,
+        when: (runtime, cast) =>
+          !cast.cancelledBeforeCommit && luminaryState.from(runtime.profession).radiantResolveArmed,
         transform: (runtime, _cast, effects) => radiantResolveStaff(runtime, effects)
       },
       {
@@ -284,13 +289,16 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ],
     // An accepted equip belongs to its captured forge entry, including delayed commitment.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'guardian.snapshot-forge' }
+      },
       { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
     ]
   },
   [ID.RESTORATIVE_GLOW]: {
     name: 'Restorative Glow',
-    description: 'Heal and remove conditions from nearby allies.',
     icon: 'https://render.guildwars2.com/file/9B72587791FE50B415B94BE92AA9050F43F6A848/3680149.png',
     radiantForgeSkill: true,
     radiantWeapon: 'staff',
@@ -306,7 +314,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
   // Slot 4: blade and its follow-up.
   [ID.GLEAMING_BLADE]: {
     name: 'Gleaming Blade',
-    description: 'Leap to the target and slash, inflicting cripple and vulnerability.',
     icon: 'https://render.guildwars2.com/file/79B0DCC5E4A0A8BBE04AC0024D01A0F36D0B0C79/3680151.png',
     radiantForgeSkill: true,
     radiantWeapon: 'blade',
@@ -344,7 +351,8 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     // An armed Radiant Courage is consumed by the next accepted blade and travels with that cast's own packets.
     effectVariants: [
       {
-        when: (runtime, cast) => !cast.cancelled && luminaryState.from(runtime).radiantCourageSwordArmed,
+        when: (runtime, cast) =>
+          !cast.cancelledBeforeCommit && luminaryState.from(runtime.profession).radiantCourageSwordArmed,
         transform: (runtime, _cast, effects) => radiantCourageBlade(runtime, effects)
       },
       {
@@ -355,13 +363,16 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ],
     // An accepted equip belongs to its captured forge entry, including delayed commitment.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'guardian.snapshot-forge' }
+      },
       { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
     ]
   },
   [ID.LUCENT_THRUST]: {
     name: 'Lucent Thrust',
-    description: 'Stab your foe and launch a blinding ray that bounces between foes.',
     icon: 'https://render.guildwars2.com/file/1967D3BD670E976B0B554AAE3C0E070E0BF672D8/3680150.png',
     radiantForgeSkill: true,
     radiantWeapon: 'blade',
@@ -402,7 +413,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
   // Slot 5: bulwark and its follow-up.
   [ID.RADIANT_BULWARK]: {
     name: 'Radiant Bulwark',
-    description: 'Block attacks and grant aegis to nearby allies.',
     icon: 'https://render.guildwars2.com/file/06735858B4DE086359A7DB1D4B2B650F97D7DD03/3680144.png',
     radiantForgeSkill: true,
     radiantWeapon: 'bulwark',
@@ -426,13 +436,16 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     ],
     // An accepted equip belongs to its captured forge entry, including delayed commitment.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'guardian.snapshot-forge' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'guardian.snapshot-forge' }
+      },
       { on: 'castCommit', do: { type: 'guardian.equip-forge' } }
     ]
   },
   [ID.BRILLIANT_SLAM]: {
     name: 'Brilliant Slam',
-    description: 'Slam foes with your shield, dazing them.',
     icon: 'https://render.guildwars2.com/file/BAD4D149039913DCF7FA724D4BFE9C9EB17E68D5/3680145.png',
     radiantForgeSkill: true,
     radiantWeapon: 'bulwark',
@@ -455,8 +468,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
   // Profession controls: enter and exit the forge.
   [ID.ENTER_RADIANT_FORGE]: {
     name: 'Enter Radiant Forge',
-    description:
-      'Enter Radiant Forge. The recharge time of this skill is reduced for each unused radiant weapon in shroud.',
     icon: 'https://render.guildwars2.com/file/C64AE4AF57E83451F763B80C125410773909730A/3680147.png',
     type: 'Profession',
     slot: 'Profession_4',
@@ -473,7 +484,6 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
   },
   [ID.EXIT_RADIANT_FORGE]: {
     name: 'Exit Radiant Forge',
-    description: 'Leave Radiant Forge.',
     icon: 'https://render.guildwars2.com/file/72EAE7EF5A1F5CBBD815618094F40A3D01A2FB11/3680146.png',
     type: 'Profession',
     slot: 'Profession_4',
@@ -485,7 +495,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
     // Commit changes the form once through its shared lifetime controller.
     sideEffects: [{ on: 'castCommit', do: { type: 'guardian.exit-forge' } }]
   }
-});
+};
 
 /** Duration and label inspect the same cadence that selection advances only after acceptance. */
 export function glaringBurstDuration(
@@ -493,7 +503,7 @@ export function glaringBurstDuration(
   skill: Skill,
   duration: number
 ): number {
-  const state = luminaryState.from(runtime);
+  const state = luminaryState.from(runtime.profession);
   return state.radiantWeapon === 'blade'
     ? duration * ((state.glaringBurstSwordSlow ? 680 : 440) / (skill.castTimeMs ?? 600))
     : duration;
@@ -519,9 +529,9 @@ function burstEffects(
   cast: RuntimeCast<GuardianSkill>,
   effects: readonly SkillEffect[]
 ): readonly SkillEffect[] {
-  if (cast.cancelled) return [];
+  if (cast.cancelledBeforeCommit) return [];
 
-  const state = luminaryState.from(runtime);
+  const state = luminaryState.from(runtime.profession);
   const weapon = state.radiantWeapon;
   const slow = state.glaringBurstSwordSlow;
   const runtimeMs = (cast.fullEnd - cast.start) * 1000;
@@ -562,7 +572,7 @@ function atFirstStrike(effects: readonly SkillEffect[], trigger: string): readon
 
 /** Consume Radiant Courage once at acceptance; this blade's strikes carry its multiplier and immobilize. */
 function radiantCourageBlade(runtime: GuardianRuntime, effects: readonly SkillEffect[]): readonly SkillEffect[] {
-  luminaryState.from(runtime).radiantCourageSwordArmed = false;
+  luminaryState.from(runtime.profession).radiantCourageSwordArmed = false;
 
   return [
     ...effects
@@ -578,7 +588,7 @@ function radiantCourageBlade(runtime: GuardianRuntime, effects: readonly SkillEf
 
 /** Consume Radiant Resolve once at acceptance; the staff's first symbol pulse grants its Regeneration. */
 function radiantResolveStaff(runtime: GuardianRuntime, effects: readonly SkillEffect[]): readonly SkillEffect[] {
-  luminaryState.from(runtime).radiantResolveArmed = false;
+  luminaryState.from(runtime.profession).radiantResolveArmed = false;
 
   return [
     ...effects.filter((effect) => effect.metadata?.trigger !== 'radiant-resolve'),

@@ -81,7 +81,7 @@ test('selected Warrior clocks seed against patched caps without an earlier facto
       const clock = result.planningState.profession[id];
       assert.equal(clock.maximum, cap);
       assert.equal(clock.value, cap);
-      assert.equal(clock.rate, 0);
+      assert.equal(clock.unitsPerSecond, 0);
       runtime.mechanics.resourceController.replace(key, 0);
       runtime.mechanics.resourceController.grant(key, 0.25);
       assert.equal(runtime.mechanics.resourceController.value(key), Math.min(cap, 0.25));
@@ -167,7 +167,7 @@ test('doubled Dragon Trigger gains cap at selected charges and release reports t
     assert.equal(release.maximumCharges, maximum);
     assert.equal(state.dragonCharges.value, 0);
     assert.equal(state.dragonCharges.maximum, maximum);
-    assert.equal(state.dragonCharges.rate, 0);
+    assert.equal(state.dragonCharges.unitsPerSecond, 0);
     observedRuntime(result).mechanics.resourceController.grant('dragonCharges', 1);
     assert.equal(release.chargesReached, maximum);
     assert.equal(result.planningState.profession[STATE.DRAGON_CHARGES].value, 0);

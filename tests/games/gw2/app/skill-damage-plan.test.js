@@ -36,7 +36,7 @@ function healthPlan(app) {
 }
 
 // The browser app exposes the selected patch catalog through a prototype getter, not an enumerable field.
-test('skill damage preparation retains the active catalog from an app getter', async () => {
+test('skill damage preparation uses the selected catalog without reading results or cursor state', async () => {
   class PreviewApp {
     get activeCatalog() {
       return this.patch.catalog;
@@ -45,6 +45,15 @@ test('skill damage preparation retains the active catalog from an app getter', a
   const { activeCatalog, ...state } = await headlessApp('guardian', await firstPresetBuildPath('guardian'));
   const app = Object.assign(new PreviewApp(), state);
   assert.equal(app.activeCatalog, activeCatalog);
+  // Reading either field would couple isolated enumeration to a previous simulation or trigger prefix work.
+  for (const key of ['results', 'rotationInsertionIndex']) {
+    Object.defineProperty(app, key, {
+      get() {
+        throw new Error(`Isolated preview read ${key}`);
+      }
+    });
+  }
+
   const plan = healthPlan(app);
   assert.ok(plan.rows.size > 0);
   assert.ok(plan.groups.some((group) => group.id.startsWith('weapon-')));

@@ -427,8 +427,8 @@ test('Fresh Air resets both Air Attunement and Overload Air', () => {
     observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsById.get(5494).id),
     undefined
   );
-  assert.equal(result.planningState.cooldowns[5494], undefined);
-  assert.equal(result.planningState.cooldowns[29719], undefined);
+  assert.equal(result.planningState.cooldownsBySkillId[5494], undefined);
+  assert.equal(result.planningState.cooldownsBySkillId[29719], undefined);
 });
 
 test('Fresh Air consumes sampled criticals after scheduled strikes in RNG mode', () => {
@@ -464,8 +464,8 @@ test('Fresh Air consumes sampled criticals after scheduled strikes in RNG mode',
     observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsById.get(5494).id),
     undefined
   );
-  assert.equal(result.planningState.cooldowns[5494], undefined);
-  assert.equal(result.planningState.cooldowns[29719], undefined);
+  assert.equal(result.planningState.cooldownsBySkillId[5494], undefined);
+  assert.equal(result.planningState.cooldownsBySkillId[29719], undefined);
 });
 
 test('Fresh Air resolves a queued critical after an intervening attunement', () => {
@@ -476,7 +476,7 @@ test('Fresh Air resolves a queued critical after an intervening attunement', () 
     startAttunement: 'Air',
     targetHealth: 0
   });
-  const air = result.steps.find((step) => step.skill === 'Air Attunement');
+  const air = result.steps.find((step) => step.skillName === 'Air Attunement');
   const reset = result.events.find(
     (event) => event.type === 'elementalist.fresh-air' && event.sourceSkill === 'Rocky Loop'
   );
@@ -665,8 +665,8 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
         availability: {},
         activeWeaponSet: 1,
         atSeconds: 0,
-        cooldowns: {
-          [elementalistCatalog.skillsById.get(43074).id]: { remaining: 3400, readyAt: 3400 }
+        cooldownsBySkillId: {
+          [elementalistCatalog.skillsById.get(43074).id]: { remainingMs: 3400, readyAtMs: 3400 }
         },
         // Cooldown-only fixtures still provide the canonical empty ammo projection.
         ammoBySkillId: {},
@@ -876,7 +876,7 @@ test('Evoker derives F5 from the selected familiar', () => {
     specialization: 'Evoker',
     professionState: {
       [STATE.ELEMENT]: 'Air',
-      [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, rate: 0, updatedAt: 0 }
+      [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
     },
     catalog: elementalistCatalog
   };
@@ -886,11 +886,13 @@ test('Evoker derives F5 from the selected familiar', () => {
       .find((group) => group.id === 'elementalist-evoker-familiars');
 
   assert.deepEqual(
-    f5({ [STATE.ELEMENT]: 'Air', [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, rate: 0, updatedAt: 0 } }).skillIds,
+    f5({ [STATE.ELEMENT]: 'Air', [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, unitsPerSecond: 0, updatedAt: 0 } })
+      .skillIds,
     [elementalistCatalog.skillsById.get(77370).id]
   );
   assert.deepEqual(
-    f5({ [STATE.ELEMENT]: 'Air', [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, rate: 0, updatedAt: 0 } }).skillIds,
+    f5({ [STATE.ELEMENT]: 'Air', [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, unitsPerSecond: 0, updatedAt: 0 } })
+      .skillIds,
     [elementalistCatalog.skillsById.get(77089).id]
   );
 
@@ -911,7 +913,7 @@ test('Evoker skill selections update the configured familiar independently of si
     specialization: 'Evoker',
     professionState: {
       [STATE.ELEMENT]: 'Earth',
-      [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, rate: 0, updatedAt: 0 }
+      [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
     },
     catalog: elementalistCatalog
   };
@@ -963,8 +965,8 @@ test('Evoker layers familiar charges beside F5', () => {
   });
   const professionState = {
     [STATE.ELEMENT]: 'Air',
-    [STATE.FAMILIAR_CHARGES]: { value: 4, maximum: 6, rate: 0, updatedAt: 0 },
-    [STATE.EMPOWERED_CHARGES]: { value: 2, maximum: 3, rate: 0, updatedAt: 0 }
+    [STATE.FAMILIAR_CHARGES]: { value: 4, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
+    [STATE.EMPOWERED_CHARGES]: { value: 2, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
   };
   const context = {
     build,
@@ -1008,8 +1010,8 @@ test('Evoker layers familiar charges beside F5', () => {
         availability: {},
         profession: {
           ...professionState,
-          [STATE.FAMILIAR_CHARGES]: { value: 6, maximum: 6, rate: 0, updatedAt: 0 },
-          [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, rate: 0, updatedAt: 0 }
+          [STATE.FAMILIAR_CHARGES]: { value: 6, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
+          [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
         }
       }
     }
@@ -1025,8 +1027,8 @@ test('Evoker layers familiar charges beside F5', () => {
         availability: {},
         profession: {
           ...professionState,
-          [STATE.FAMILIAR_CHARGES]: { value: 4, maximum: 6, rate: 0, updatedAt: 0 },
-          [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, rate: 0, updatedAt: 0 }
+          [STATE.FAMILIAR_CHARGES]: { value: 4, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
+          [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
         }
       }
     }
@@ -1125,7 +1127,7 @@ test('core attunements enforce and report their individual recharge', () => {
       alacrity: false
     }
   });
-  const swaps = result.steps.filter((step) => String(step.skill).endsWith(' Attunement'));
+  const swaps = result.steps.filter((step) => String(step.skillName).endsWith(' Attunement'));
 
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(
@@ -1133,8 +1135,8 @@ test('core attunements enforce and report their individual recharge', () => {
     [0, 1040, 6800]
   );
   assert.equal(result.planningState.profession[STATE.PRIMARY_ATTUNEMENT], 'Fire');
-  assert.ok(result.planningState.cooldowns[5494].remaining > 1000);
-  assert.ok(result.planningState.cooldowns[5493].remaining > 1000);
+  assert.ok(result.planningState.cooldownsBySkillId[5494].remainingMs > 1000);
+  assert.ok(result.planningState.cooldownsBySkillId[5493].remainingMs > 1000);
   const waterAvailability = result.planningState.availability[elementalistCatalog.skillsById.get(5493).id];
 
   assert.equal(waterAvailability.ready, false);

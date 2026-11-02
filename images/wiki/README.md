@@ -22,8 +22,7 @@ original attribution is preserved in that directory's README.
 Browser image references use local files. Wiki article links in tooltips and the optional data generators' Wiki metadata
 requests are separate from image loading. ArenaNet render-service images continue to use the existing CDN handling.
 
-The audit also corrected two stale source paths: Phoenix Wing Buffet uses `Wing_Buffet.png`, and Exploding Spores uses
-`/images/2/21/Exploding_Spores.png`.
+The audit also corrected a stale source path: Phoenix Wing Buffet uses `Wing_Buffet.png`.
 
 ## Maintaining the backups
 

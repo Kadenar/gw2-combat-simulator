@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
@@ -39,14 +42,14 @@ export const weaverState = defineProfessionSpecializationState(
   })
 );
 
-/** Publish detached, typed facts from Weaver's owner; unrelated runtime fields cannot overwrite them. */
-export function projectWeaverPlanningState(input: Gw2PlanningStateInput) {
-  const state = weaverState.from(input);
+/** Select Weaver facts under stable IDs; the shared observer detaches the selected values. */
+export function projectWeaverPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = weaverState.from(input.profession);
   return {
     [STATE.SECONDARY_ATTUNEMENT]: state.secondaryAttunement,
     [STATE.UNRAVEL_UNTIL]: state.unravelUntil,
     [STATE.WEAVE_SELF_UNTIL]: state.weaveSelfUntil,
-    [STATE.WEAVE_SELF_VISITED]: [...state.weaveSelfVisited],
+    [STATE.WEAVE_SELF_VISITED]: state.weaveSelfVisited,
     [STATE.PERFECT_WEAVE_UNTIL]: state.perfectWeaveUntil,
     [STATE.FERVENT_STANCE_UNTIL]: state.ferventStanceUntil
   };

@@ -85,7 +85,11 @@ test('multi-hit effects, passive activations and duplicate scheduler records can
   const { scheduled } = analyze(rotation);
   const duplicated = {
     ...scheduled,
-    steps: [...scheduled.steps, ...scheduled.steps, { ...scheduled.steps[0], ri: 50, activationId: 'effect:1' }],
+    steps: [
+      ...scheduled.steps,
+      ...scheduled.steps,
+      { ...scheduled.steps[0], rotationCommandIndex: 50, activationId: 'effect:1' }
+    ],
     events: [...scheduled.events, { type: 'action', activationId: 'effect:1', skillId: 980011, at: 0.5 }]
   };
   assert.equal(rotationApm(duplicated, rotation, catalog).actionCount, 1);
@@ -155,7 +159,7 @@ test('rolling 5s and 10s windows report sustained peaks with their actual timest
     start: metrics.peak5s.startSeconds,
     end: metrics.peak5s.endSeconds,
     count: 12,
-    rate: metrics.peak5s.apm / 60
+    actionsPerSecond: metrics.peak5s.apm / 60
   });
   assert.deepEqual(metrics.peak5s, { startSeconds: 7.52, endSeconds: 12.52, apm: 144 });
   assert.deepEqual(metrics.peak10s, { startSeconds: 7.52, endSeconds: 17.52, apm: 72 });
@@ -216,4 +220,45 @@ test('detailed pipeline exposes input metrics independently of the damage observ
   assert.equal(result.rotationApm.actionCount, 1);
   assert.equal(result.rotationApm.durationSeconds, 1);
   assert.equal(result.rotationApm.apm, 60);
+});
+
+// Input transformations must not discard the accepted actor's occupancy from the activity report.
+test('transformed inputs retain the executed skill occupancy and activation deduplication', () => {
+  const transformed = defineTestProfession({
+    id: 'apm-selector',
+    name: 'APM selector',
+    catalog,
+    hooks: { resolveCastSkill: (_context, skill) => (skill.id === 980004 ? catalog.skillsById.get(980003) : skill) }
+  });
+  const rotation = [
+    { type: 'cast', skillId: 980004 },
+    { type: 'wait', durationMs: 1000 }
+  ];
+  const { scheduled, metrics } = analyze(rotation, { profession: transformed });
+  const explicit = analyze([{ type: 'cast', skillId: 980003 }, rotation[1]]).metrics;
+  assert.ok(metrics.castingTimeSeconds > 0);
+  assert.deepEqual(metrics, explicit);
+  assert.deepEqual(
+    rotationApm({ ...scheduled, steps: [...scheduled.steps, ...scheduled.steps] }, rotation, catalog),
+    metrics
+  );
+});
+
+// An unresolved selector must fail before entering an actor lane as a fabricated instant action.
+test('selector declarations require concrete resolution before execution', () => {
+  const selectorCatalog = createCanonicalCatalog({
+    skills: [
+      { id: 1, name: 'Selector', selector: { choice: 2 } },
+      { id: 2, name: 'Payload', loadoutSkillId: 1 }
+    ]
+  });
+  const unresolved = defineTestProfession({
+    id: 'selector-fixture',
+    name: 'Selector fixture',
+    catalog: selectorCatalog
+  });
+  assert.throws(
+    () => simulateGw2({ profession: unresolved, rotation: [{ type: 'cast', skillId: 1 }] }),
+    /Unresolved skill selector/
+  );
 });

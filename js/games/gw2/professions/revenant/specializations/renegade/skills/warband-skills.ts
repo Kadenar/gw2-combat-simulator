@@ -6,6 +6,7 @@ import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/consta
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Triggered attacks keep their own skill identities across player and allied grants. */
 export const RAZORCLAW_PROC_ID = 'revenant.renegade.razorclaws-rage-proc';
@@ -55,11 +56,9 @@ const BASE_BREAKRAZOR_EFFECTS = Object.freeze([
 ] as const);
 
 // Quantize Icerazor impacts and their conditions together so each volley retains its 160 ms cadence.
-export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.ICERAZORS_IRE]: {
     name: "Icerazor's Ire",
-    description:
-      'Legendary Renegade. Summon Visk Icerazor from the Mists to magically bombard your enemies with debilitating conditions.\n\nBand Together. After using this skill, your next Legendary Renegade skill activates instantly and is enhanced. When this skill is enhanced it also inflicts chilled on enemies that it strikes.',
     icon: 'https://render.guildwars2.com/file/F151D74719642E34672C0837BB0C4071B1E3B4A7/1770605.png',
     type: 'Utility',
     slot: 'Utility',
@@ -106,14 +105,16 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     ]),
     // Skill-owned triggers delegate shared state transitions to the registered mechanic.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.begin-band-together' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'revenant.begin-band-together' }
+      },
       { on: 'castCommit', do: { type: 'revenant.complete-band-together' } }
     ]
   },
   [ID.DARKRAZORS_DARING]: {
     name: "Darkrazor's Daring",
-    description:
-      'Legendary Renegade. Summon Kus Darkrazor to disrupt your enemies.\n\nBand Together. After using this skill, your next Legendary Renegade skill activates instantly and is enhanced. When this skill is enhanced it also grants resistance to nearby allies.',
     icon: 'https://render.guildwars2.com/file/0068FF1E08D9DC9D99097A69B82E9B50D8DB5BE6/1770604.png',
     type: 'Utility',
     slot: 'Utility',
@@ -151,13 +152,16 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     ],
     // Skill-owned triggers delegate shared state transitions to the registered mechanic.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.begin-band-together' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'revenant.begin-band-together' }
+      },
       { on: 'castCommit', do: { type: 'revenant.complete-band-together' } }
     ]
   },
   [ID.DISMISS_LIEUTENANT_SOULCLEAVE]: {
     name: 'Dismiss Lieutenant Soulcleave',
-    description: 'Order Ofela Soulcleave to leave the field.',
     icon: 'https://render.guildwars2.com/file/10D8F54FF11D03FE14C9A94FB0D791D13563C366/1770590.png',
     type: 'Elite',
     slot: 'Elite',
@@ -172,8 +176,6 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.RAZORCLAWS_RAGE]: {
     name: "Razorclaw's Rage",
-    description:
-      'Legendary Renegade. Summon Centurion Jas Razorclaw from the Mists to strike nearby enemies and enhance the attacks of your allies.\n\nBand Together. After using this skill, your next Legendary Renegade skill activates instantly and is enhanced. When this skill is enhanced it also inflicts torment on enemies that it strikes.',
     icon: 'https://render.guildwars2.com/file/2449F064B1D3427FF311D3B4C101009C52250A0C/1770606.png',
     type: 'Utility',
     slot: 'Utility',
@@ -185,15 +187,17 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     effects: BASE_RAZORCLAW_EFFECTS,
     // Skill-owned triggers delegate shared state transitions to the registered mechanic.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.begin-band-together' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'revenant.begin-band-together' }
+      },
       { on: 'castCommit', do: { type: 'revenant.arm-razorclaw' } },
       { on: 'castCommit', do: { type: 'revenant.complete-band-together' } }
     ]
   },
   [ID.BREAKRAZORS_BASTION]: {
     name: "Breakrazor's Bastion",
-    description:
-      'Legendary Renegade. Summon Era Breakrazor to heal your allies while shielding them from condition damage.\n\nBand Together. After using this skill, your next Legendary Renegade skill activates instantly and is enhanced. When this skill is enhanced, it also grants barrier to nearby allies.',
     icon: 'https://render.guildwars2.com/file/E3B802C86752CAD27FCA6D5C73585335F1EAAC0E/1770591.png',
     type: 'Heal',
     slot: 'Heal',
@@ -205,14 +209,16 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     effects: BASE_BREAKRAZOR_EFFECTS,
     // Skill-owned triggers delegate shared state transitions to the registered mechanic.
     sideEffects: [
-      { on: 'castStart', when: (_runtime, cast) => !cast.cancelled, do: { type: 'revenant.begin-band-together' } },
+      {
+        on: 'castStart',
+        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
+        do: { type: 'revenant.begin-band-together' }
+      },
       { on: 'castCommit', do: { type: 'revenant.complete-band-together' } }
     ]
   },
   [ID.SOULCLEAVES_SUMMIT]: {
     name: "Soulcleave's Summit",
-    description:
-      "Legendary Renegade. Summon Lieutenant Ofela Soulcleave to grant your allies' strikes incredible bloodthirst, inflicting damage and restoring health. Soulcleave will also strike enemies and heal allies in the area when you use a Legendary Renegade skill.\nLieutenant Soulcleave can only empower players to siphon life once per interval, and this does not benefit nonplayers.",
     icon: 'https://render.guildwars2.com/file/CFD1582E6B180CA2DE6AD205981CBBAFC7480294/1770589.png',
     type: 'Elite',
     slot: 'Elite',
@@ -234,12 +240,10 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.ICERAZORS_IRE_ID_72359]: {
     name: "Icerazor's Ire",
-    description:
-      'Legendary Renegade. Summon Visk Icerazor from the Mists to magically bombard your enemies with debilitating conditions.',
     icon: 'https://render.guildwars2.com/file/F151D74719642E34672C0837BB0C4071B1E3B4A7/1770605.png',
     type: 'Utility',
     slot: 'Utility',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     slotSelectable: false,
     variantBadge: 'Band Together',
     cooldown: 10,
@@ -286,12 +290,10 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.RAZORCLAWS_RAGE_ID_72363]: {
     name: "Razorclaw's Rage",
-    description:
-      'Legendary Renegade. Summon Centurion Jas Razorclaw from the Mists to strike nearby enemies and enhance the attacks of your allies.',
     icon: 'https://render.guildwars2.com/file/2449F064B1D3427FF311D3B4C101009C52250A0C/1770606.png',
     type: 'Utility',
     slot: 'Utility',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     slotSelectable: false,
     variantBadge: 'Band Together',
     cooldown: 15,
@@ -313,12 +315,10 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.DARKRAZORS_DARING_ID_72366]: {
     name: "Darkrazor's Daring",
-    description:
-      'Legendary Renegade. Summon Kus Darkrazor to disrupt your enemies.\n\nBand Together. After using this skill, your next Legendary Renegade skill activates instantly and is enhanced. When this skill is enhanced it also grants resistance to nearby allies.',
     icon: 'https://render.guildwars2.com/file/0068FF1E08D9DC9D99097A69B82E9B50D8DB5BE6/1770604.png',
     type: 'Utility',
     slot: 'Utility',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     slotSelectable: false,
     variantBadge: 'Band Together',
     cooldown: 12,
@@ -356,12 +356,10 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.BREAKRAZORS_BASTION_ID_72389]: {
     name: "Breakrazor's Bastion",
-    description:
-      'Legendary Renegade. Summon Era Breakrazor to heal your allies while shielding them from condition damage.',
     icon: 'https://render.guildwars2.com/file/E3B802C86752CAD27FCA6D5C73585335F1EAAC0E/1770591.png',
     type: 'Heal',
     slot: 'Heal',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     slotSelectable: false,
     variantBadge: 'Band Together',
     cooldown: 30,
@@ -372,7 +370,6 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.LEGENDARY_RENEGADE_STANCE]: {
     name: 'Legendary Renegade Stance',
-    description: 'Invoke the power of the legendary charr renegade, Kalla Scorchrazor.',
     icon: 'https://render.guildwars2.com/file/6B3205EF5ED0802DB74BBF7F0CAE04FAA2089B74/1770592.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -403,8 +400,6 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.CALL_OF_THE_RENEGADE]: {
     name: 'Call of the Renegade',
-    description:
-      "Strike enemies around you, inflicting bleeding and gaining Kalla's Fervor. Gain additional fervor stacks for each foe you hit.",
     icon: 'https://render.guildwars2.com/file/6B3205EF5ED0802DB74BBF7F0CAE04FAA2089B74/1770592.png',
     type: 'Action',
     slot: 'Action',
@@ -428,14 +423,14 @@ export const RENEGADE_WARBAND_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       }
     ]
   }
-});
+};
 
 function triggeredRenegadeAction(skill: Skill): Skill {
   return {
     type: 'Action',
     slot: 'Action',
     slotSelectable: false,
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     cooldown: 0,
     effects: [],
     ...skill
@@ -445,7 +440,6 @@ function triggeredRenegadeAction(skill: Skill): Skill {
 export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   triggeredRenegadeAction({
     name: "Razorclaw's Rage — Empowered Attack",
-    description: '',
     icon: 'https://render.guildwars2.com/file/2449F064B1D3427FF311D3B4C101009C52250A0C/1770606.png',
     id: RAZORCLAW_PROC_ID,
     // Consecutive allied attacks consume the four buff charges without an internal cooldown.
@@ -463,7 +457,6 @@ export const RENEGADE_EXTRA_SKILLS: readonly Skill[] = Object.freeze([
   }),
   triggeredRenegadeAction({
     name: "Soulcleave's Summit — Triggered Attack",
-    description: '',
     icon: 'https://render.guildwars2.com/file/CFD1582E6B180CA2DE6AD205981CBBAFC7480294/1770589.png',
     id: SOULCLEAVE_PROC_ID,
     cooldown: 1,

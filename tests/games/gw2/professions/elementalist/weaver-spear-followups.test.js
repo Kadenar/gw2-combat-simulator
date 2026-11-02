@@ -10,12 +10,11 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { WEAVER_SPEAR_BUFFS } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { cast, wait } from '#tests/helpers/commands.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const skills = Object.keys(WEAVER_SPEAR_BUFFS).map((id) => elementalistCatalog.skillsById.get(Number(id)));
-const wait = (durationMs) => ({ type: 'wait', durationMs });
-const cast = (skillId, fields = {}) => ({ type: 'cast', skillId, ...fields });
 
 // Minimal native scenarios isolate buff ownership and impact ordering without relying on a saved rotation.
 function run(skill, rotation, options = {}) {

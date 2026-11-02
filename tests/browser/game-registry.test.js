@@ -100,11 +100,9 @@ test('registry validation rejects duplicate IDs and malformed plug-ins', async (
     [{ id: 'Invalid' }, /GamePlugin\.id/],
     [{ content: [{ id: 'Invalid' }] }, /content\[0\]\.id/],
     [{ content: [{ id: 'pilot' }, { id: 'pilot' }] }, /duplicate ID/],
-    [{ loadContent: null }, /loadContent must be a function/],
     [{ loadContent: async () => null }, /did not load its declared content/],
     [{ loadContent: async () => ({ gameId: 'other', id: 'pilot' }) }, /mismatched plug-in/],
-    [{ loadContent: async () => ({ gameId: 'fake', id: 'other' }) }, /mismatched plug-in/],
-    [{ loadContent: async () => ({ gameId: 'fake', id: 'pilot' }) }, /mount must be a function/]
+    [{ loadContent: async () => ({ gameId: 'fake', id: 'other' }) }, /mismatched plug-in/]
   ]) {
     const registry = defineGameRegistry([
       { id: 'fake', load: async () => ({ ...createFakeGamePlugin(), ...overrides }) }

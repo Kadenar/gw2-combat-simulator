@@ -24,7 +24,7 @@ export const holosmithHooks: RuntimeHooks<EngineerRuntimeState, HolosmithSkill> 
   {
     /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
     prepareDamageState(runtime, skill, inputs) {
-      const state = holosmithState.from(runtime);
+      const state = holosmithState.from(runtime.profession);
       state.photonForgeActive = Boolean(skill?.forgeSkill);
       const charges = Number(inputs.lensCharges ?? 0);
       const profile = requireBalanceProfileFromContext(runtime, TRAIT.SOLAR_FOCUSING_LENS);

@@ -1,9 +1,5 @@
 import { bindBuildContext } from '#gw2/build-context/create.js';
-import type {
-  BuildContextAttributeRules,
-  BuildContextInput,
-  BuildContextProfession
-} from '#gw2/build-context/types.js';
+import type { BuildContextInput, BuildContextProfession } from '#gw2/build-context/types.js';
 import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { createBuildContext, toApplicationBuild } from '#gw2/professions/engineer/build/context.js';
@@ -34,11 +30,18 @@ createBuildContext({ ...input, playerHealth: 50 });
 
 // Profession contributions cannot replace common configuration even when inferred from a callback result.
 declare const profession: BuildContextProfession;
-declare const attributeRules: BuildContextAttributeRules;
 bindBuildContext<EngineerCanonicalBuild>(
   profession,
-  attributeRules,
   // @ts-expect-error A profession contribution cannot replace target configuration.
   () => ({ initialResource: 1, target: { armor: 1 } }),
+  { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
+);
+
+// A build-context profession must own its attribute calculator.
+declare const withoutCalculator: Omit<BuildContextProfession, 'attributeContributions'>;
+bindBuildContext<EngineerCanonicalBuild>(
+  // @ts-expect-error Attribute previews require the bound profession's calculator.
+  withoutCalculator,
+  () => ({}),
   { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
 );

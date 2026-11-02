@@ -3,8 +3,8 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
-import type { AuraName } from '#gw2/platform/constants.js';
 import { ACTOR, AURA, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import type { AuraName } from '#gw2/platform/constants.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -22,7 +22,6 @@ import {
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import type { ElementalistCastCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
@@ -127,7 +126,7 @@ export const baseEmpowermentPassive = definePeriodicTask<ElementalistRuntime>({
   name: 'elementalist.catalyst-base-empowerment',
   background: true,
   priority: 0,
-  state: (runtime) => catalystState.from(runtime).baseEmpowerment,
+  state: (runtime) => catalystState.from(runtime.profession).baseEmpowerment,
   rearmBeforeRun: true,
   nextAt: nextBaseEmpowermentAt,
   run: grantBaseEmpowerment
@@ -157,7 +156,7 @@ const elementalEmpowerment = defineTrait({
   triggers: [
     onTriggerPoint(catalystCombatStarted, {
       run(runtime: ElementalistRuntime) {
-        const state = catalystState.from(runtime);
+        const state = catalystState.from(runtime.profession);
 
         if (state.baseEmpowerment.generation > 0) return;
 
@@ -260,7 +259,7 @@ export const catalystTraits = [
 function applySphereStartTraits(
   context: ElementalistRuntime,
   cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill
+  skill: ElementalistSkill
 ): void {
   // Spectacular Sphere pays party quickness plus the attunement's boon on deployment.
   // Sphere Specialist scales these procedural payouts once, separately from authored sphere packets.
@@ -314,7 +313,7 @@ function applySphereStartTraits(
 function applyEnergizedElements(context: ElementalistRuntime, event: SimulationEvent): boolean {
   // Energized Elements refunds energy and grants fury on every attunement swap.
   if (event.type === 'elementalist.attunement') {
-    const state = catalystState.from(context);
+    const state = catalystState.from(context.profession);
     const before = context.resourceController.value('catalystEnergy');
     const energizedElementsProfile = requireBalanceProfileFromContext(context, TRAIT.ENERGIZED_ELEMENTS);
     const energyGain = balanceProfileNumber(energizedElementsProfile, 'resourceGain');
@@ -367,7 +366,7 @@ function applyEnergizedElements(context: ElementalistRuntime, event: SimulationE
 /** Refresh Empowering Auras before Epitome grants an empowerment stack from the same aura. */
 function applyEmpoweringAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   const { maximumStacks, duration } = empoweringAurasParameters(context);
-  const state = catalystState.from(context);
+  const state = catalystState.from(context.profession);
   const activeStacks = activeRefreshedStacks(state.empoweringAuras, event.at, 'exclusive');
   // Refresh survivors now, including at cap; new stacks still arrive at their queued buff-application boundary.
   const expiresAt = gw2EffectExpiresAt(event.at, duration);
@@ -441,7 +440,7 @@ function applyEpitomeAura(context: ElementalistRuntime, event: Gw2ResolverEvent)
 
 /** Epitome claims its per-element combo interval before emitting the selected aura. */
 function applyEpitomeCombo(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
-  const core = professionCoreState(context);
+  const core = professionCoreState(context.profession);
   const attunement = core.primaryAttunement;
 
   if (
@@ -476,7 +475,7 @@ function applyEpitomeCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
 
 /** Synergy follows Epitome on an independent per-element combo interval. */
 function applySynergyCombo(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
-  const core = professionCoreState(context);
+  const core = professionCoreState(context.profession);
   const attunement = core.primaryAttunement;
 
   if (
@@ -573,7 +572,7 @@ function applyViciousEmpowerment(context: MechanicCombatContext, event: Gw2Resol
 export function applyEmpoweringAurasBuff(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
   if (event.kind !== 'empowering auras' || !event.resolvedAudience?.includesSelf) return;
 
-  const state = catalystState.from(context);
+  const state = catalystState.from(context.profession);
   const { maximumStacks } = empoweringAurasParameters(context);
   state.empoweringAuras = grantRefreshedStacks(
     state.empoweringAuras,

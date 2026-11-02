@@ -25,7 +25,7 @@ const equipForge = new WeakMap<RuntimeCast<GuardianSkill>, string | null>();
 
 /** Forge exits start real recharge once, using distinct completed weapon equips and the shared rate controller. */
 function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>): void {
-  const state = luminaryState.from(runtime);
+  const state = luminaryState.from(runtime.profession);
 
   if (!state.radiantForge) return;
 
@@ -50,7 +50,7 @@ function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>):
   state.forgeActivationId = null;
   state.radiantWeapon = '';
   state.glaringBurstSwordSlow = false;
-  resetAutoattackChains(runtime);
+  resetAutoattackChains(runtime.profession);
   // Leaving the forge dismisses only its own bar; ordinary weapon follow-ups retain their independent lifetimes.
   for (const id of Object.keys(runtime.profession.core.availableFlips)) {
     const skill = runtime.helpers.skillsById.get(Number(id));
@@ -86,14 +86,14 @@ function enterForge(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>):
 
   if (!effect) return;
 
-  const state = luminaryState.from(runtime);
+  const state = luminaryState.from(runtime.profession);
   state.radiantForge = true;
   state.radiantForgeEndsAt = canonicalTime(runtime.time + effectNumber(skill, effect, 'duration'));
   state.forgeActivationId = cast.id;
   state.radiantWeapon = '';
   state.glaringBurstSwordSlow = false;
   state.radiantWeaponsUsed = {};
-  resetAutoattackChains(runtime);
+  resetAutoattackChains(runtime.profession);
   armSkillFlip(runtime.profession.core.availableFlips, ID.EXIT_RADIANT_FORGE, runtime.time);
   runtime.schedule(EXIT, state.radiantForgeEndsAt, cast.id, undefined, -220);
   runtime.effects.emit({
@@ -118,13 +118,13 @@ const radiantForgeActions: NonNullable<RuntimeHooks<GuardianRuntimeState, Guardi
     if (context.kind === 'cast') exitForge(runtime, context.cast);
   },
   'guardian.snapshot-forge'(runtime, context) {
-    if (context.kind === 'cast') equipForge.set(context.cast, luminaryState.from(runtime).forgeActivationId);
+    if (context.kind === 'cast') equipForge.set(context.cast, luminaryState.from(runtime.profession).forgeActivationId);
   },
   'guardian.equip-forge'(runtime, context) {
     if (context.kind !== 'cast') return;
 
     const cast = context.cast;
-    const state = luminaryState.from(runtime);
+    const state = luminaryState.from(runtime.profession);
 
     if (state.radiantForge && equipForge.get(cast) === state.forgeActivationId) {
       state.radiantWeapon = String(cast.skill.radiantWeapon);
@@ -156,7 +156,7 @@ function radiantForgeAvailability(
   runtime: MechanicQueriesOf<GuardianRuntime>,
   skill: GuardianSkill
 ): AvailabilityResult {
-  const active = luminaryState.from(runtime).radiantForge;
+  const active = luminaryState.from(runtime.profession).radiantForge;
 
   if (skill.type === 'Weapon' && active)
     return denyCast(
@@ -176,7 +176,7 @@ function radiantForgeAvailability(
 /** Keep scheduled work with the state and generation that own its lifetime. */
 const radiantForgeTasks: NonNullable<RuntimeHooks<GuardianRuntimeState, GuardianSkill>['tasks']> = {
   [EXIT](runtime, data) {
-    if (luminaryState.from(runtime).forgeActivationId === data) exitForge(runtime);
+    if (luminaryState.from(runtime.profession).forgeActivationId === data) exitForge(runtime);
   },
   // Same-time equip rewards retain boon, armament, then recharge ordering.
   [EQUIP]: (runtime, data) =>

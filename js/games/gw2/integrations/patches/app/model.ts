@@ -3,8 +3,10 @@ import { numericFieldSpec, patchFieldLabel } from '#gw2/integrations/patches/aut
 import { type NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import { AURA, BOON, CONDITION } from '#gw2/platform/constants.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 import type { NumericFieldSpec } from '#gw2/platform/skills/field-specs.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 export interface PatchAuthoringSkillGroup {
   readonly key: string;
@@ -31,7 +33,9 @@ const ELEMENTALIST_ATTUNEMENT_ORDER = new Map(
 
 /** Normalizes a skill's attunement into the small set of authoring navigation buckets. */
 function skillAttunementGroup(entry: NativePatchAuthoringSkill): string | null {
-  const attunement = String(entry.skill.attunement || '');
+  // Elementalist declares attunement; other professions leave it absent and fall into no bucket.
+  const skill: Skill & Partial<Pick<ElementalistSkill, 'attunement'>> = entry.skill;
+  const attunement = String(skill.attunement || '');
 
   if (!attunement) return null;
 
@@ -184,8 +188,11 @@ export function createEffectTemplate(type: string): SkillEffect {
 
 /** Shows both an effect's context label and payload without requiring raw metadata inspection. */
 export function effectDetail(effect: Readonly<SkillEffect>): string {
-  const firstTick = Array.isArray(effect.ticks) ? effect.ticks[0] : undefined;
-  const details = [effect.name, effect.condition, effect.boon, effect.aura, effect.kind, firstTick?.condition].filter(
+  // Variant identity fields are read generically; only condition ticks name their own condition.
+  const fields = effect as unknown as Readonly<Record<string, unknown>>;
+  const firstTick = effectTicks(effect)?.[0];
+  const tickCondition = firstTick && 'condition' in firstTick ? firstTick.condition : undefined;
+  const details = [effect.name, fields.condition, fields.boon, fields.aura, fields.kind, tickCondition].filter(
     (detail): detail is string => typeof detail === 'string' && detail.length > 0
   );
   return [...new Set(details)].join(' · ');

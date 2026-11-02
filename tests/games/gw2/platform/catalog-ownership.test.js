@@ -9,7 +9,7 @@ import {
 } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import { composeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
+import { composeSkillDefinitions, materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 
 const replaceHandler = Object.freeze({
   mode: 'replace',
@@ -19,7 +19,6 @@ const skill = (id, name, extra = {}) =>
   Object.freeze({
     id,
     name,
-    description: `${name} fixture.`,
     icon: 'fixture.png',
     castTimeMs: 0,
     effects: [],
@@ -57,11 +56,11 @@ const eliteModule = () =>
 
 test('native module data rejects missing owner presentation', () => {
   // Missing authoring data fails at composition instead of being supplied by another catalog.
-  for (const field of ['name', 'description', 'icon']) {
-    const declaration = { name: 'Fixture', description: 'Fixture action.', icon: 'fixture.png' };
+  for (const field of ['name', 'icon']) {
+    const declaration = { name: 'Fixture', icon: 'fixture.png' };
     delete declaration[field];
     assert.throws(
-      () => createNativeModuleData({ id: 'Core', skillMechanics: { 1: declaration } }),
+      () => createNativeModuleData({ id: 'Core', skills: materializeSkillDefinitions({ 1: declaration }) }),
       new RegExp(`Core skill 1 requires an authored ${field}`)
     );
   }
@@ -70,15 +69,13 @@ test('native module data rejects missing owner presentation', () => {
 test('native module data materializes only complete owner declarations', () => {
   const declaration = Object.freeze({
     name: 'Authored',
-    description: 'Fixture.',
     icon: 'fixture.png',
     cooldown: 0,
     effects: []
   });
   const data = createNativeModuleData({
     id: 'Core',
-    skillMechanics: { 1: declaration },
-    extraSkills: [skill(5, 'Explicit action')]
+    skills: [...materializeSkillDefinitions({ 1: declaration }), skill(5, 'Explicit action')]
   });
   assert.deepEqual(
     data.skills.map(({ id }) => id),
@@ -94,7 +91,7 @@ test('assembly rejects authored specialization labels on every contribution path
     for (const type of ['Weapon', 'Action']) {
       const data = createNativeModuleData({
         id,
-        extraSkills: [skill(7, 'Mislabeled', { type, specialization: 'Elite' })]
+        skills: [skill(7, 'Mislabeled', { type, specialization: 'Elite' })]
       });
       const module = defineNativeModule({ id, data, state: { create: () => ({}) } });
       assert.throws(
@@ -103,16 +100,6 @@ test('assembly rejects authored specialization labels on every contribution path
       );
     }
   }
-});
-
-// Empty text is intentional for internal Actions; selectable skills still require a useful description.
-test('native module descriptions allow explicit empty text only for Actions', () => {
-  const declaration = { name: 'Internal', description: '', icon: 'fixture.png', type: 'Action', effects: [] };
-  assert.doesNotThrow(() => createNativeModuleData({ id: 'Core', skillMechanics: { 1: declaration } }));
-  assert.throws(
-    () => createNativeModuleData({ id: 'Core', skillMechanics: { 1: { ...declaration, type: 'Weapon' } } }),
-    /requires an authored description/
-  );
 });
 
 // Authored declarations retain availability and trait ownership through assembly.
@@ -124,10 +111,14 @@ test('profession catalog binding preserves authored admission and trait-line sel
   ];
   const createData = (id, options) => createNativeModuleData({ id, traitLines, ...options });
   const core = createData('Core', {
-    skillMechanics: { 1: skill(1, 'Core skill', { cooldown: 5 }), 3: skill(3, 'Core action') },
-    extraSkills: [skill(5, 'Explicit extra')]
+    skills: [
+      ...materializeSkillDefinitions({ 1: skill(1, 'Core skill', { cooldown: 5 }), 3: skill(3, 'Core action') }),
+      skill(5, 'Explicit extra')
+    ]
   });
-  const elite = createData('Elite', { skillMechanics: { 2: skill(2, 'Elite skill'), 4: skill(4, 'Elite action') } });
+  const elite = createData('Elite', {
+    skills: materializeSkillDefinitions({ 2: skill(2, 'Elite skill'), 4: skill(4, 'Elite action') })
+  });
   assert.deepEqual(
     core.skills.map(({ id }) => id),
     [1, 3, 5]
@@ -282,10 +273,6 @@ test('module-first assembly rejects duplicate and incomplete contributions', () 
       ]),
     /Unsupported native module field: execution/
   );
-  assert.throws(
-    () => defineNativeModule({ id: 'Broken', data: {}, state: {} }),
-    /Broken\.state\.create must be a function/
-  );
 });
 
 test('resolved critical-hit helper shares sampled outcomes and strict ICDs across modes', () => {
@@ -380,7 +367,9 @@ test('selected runtime assembly binds profession side-effect handlers', () => {
               {
                 type: 'strike',
                 coefficient: 1,
-                reactions: [{ on: 'damage.resolved', actor: 'player', packets: 'each', do: { type: 'fixture.impact' } }]
+                reactions: [
+                  { on: 'damage.resolved', actor: 'player', packets: 'each', do: [{ type: 'fixture.impact' }] }
+                ]
               }
             ]
           })
@@ -417,15 +406,14 @@ test('native assembly normalizes explicit combo descriptors and rejects invalid 
         id: 'Core',
         data: createNativeModuleData({
           id: 'Core',
-          skillMechanics: {
+          skills: materializeSkillDefinitions({
             1: {
               name: 'Combo fixture',
-              description: 'Declares a field and a finisher.',
               icon: 'fixture.png',
               comboFields: [{ ownerId, fieldType: 'fire', duration: 4 }],
               effects: [{ type: 'strike', coefficient: 1, comboFinishers: [{ ownerId, finisherType: 'blast' }] }]
             }
-          }
+          })
         }),
         state: { create: () => ({}) }
       })
@@ -442,8 +430,8 @@ test('native assembly normalizes explicit combo descriptors and rejects invalid 
 
 // Family composition must fail before duplicate keys can disappear into a module's catalog input.
 test('skill definition composition rejects repeated identities across families', () => {
-  const first = { name: 'First', description: 'First skill.', icon: 'fixture.png' };
-  const second = { name: 'Second', description: 'Second skill.', icon: 'fixture.png' };
+  const first = { name: 'First', icon: 'fixture.png' };
+  const second = { name: 'Second', icon: 'fixture.png' };
   assert.deepEqual(Object.keys(composeSkillDefinitions({ 1: first }, { 2: second })), ['1', '2']);
   assert.throws(() => composeSkillDefinitions({ 1: first }, { 1: second }), /Duplicate skill definition ID 1/);
 });
@@ -462,27 +450,6 @@ test('native assembly rejects authored derived chain and flip fields', () => {
         ]),
       new RegExp('must not author ' + field)
     );
-  }
-});
-
-// Presentation is stored as plain text so tooltip rendering does not need source-format cleanup.
-test('catalog assembly rejects API and wiki markup in skill and trait presentation', () => {
-  for (const text of ['<c=reminder>Text</c>', 'Line<br>break', '{{gray|Text}}']) {
-    for (const field of ['name', 'description', 'icon']) {
-      for (const entity of ['skills', 'traits']) {
-        assert.throws(
-          () =>
-            assembleNativeApplicationCatalog([
-              defineNativeModule({
-                id: 'Core',
-                data: { [entity]: [skill(1, 'Fixture', { [field]: text })] },
-                state: { create: () => ({}) }
-              })
-            ]),
-          /must use plain text/
-        );
-      }
-    }
   }
 });
 
@@ -506,4 +473,97 @@ test('trait profiles inherit canonical names and preserve explicit proc labels',
   ]);
   assert.equal(catalog.balanceProfilesById.get(301).name, 'Canonical trait');
   assert.equal(catalog.balanceProfilesById.get(302).name, 'Short proc');
+});
+
+// Selection borrows compiled owners while keeping each runtime's lookup collections independent.
+test('runtime selection reuses canonical records and compiled chains without sharing indexes', () => {
+  const core = defineNativeModule({
+    id: 'Core',
+    data: {
+      skills: [skill(1, 'First'), skill(2, 'Second'), skill(3, 'Follow-up')],
+      autoattackChains: [[1, 2]],
+      skillFlips: [{ parentId: 2, followUpId: 3 }],
+      traits: [{ id: 10, name: 'Trait' }],
+      traitLines: [{ id: 20, name: 'Core line', elite: false }]
+    },
+    traitDefinitions: [{ id: 10, balance: { duration: 5 } }],
+    state: { create: () => ({}) }
+  });
+  const assembly = getNativeCatalogAssembly([core]);
+  const fragments = [assembly.fragments.get('Core')];
+  const selected = assembleNativeRuntimeCatalog(fragments);
+  const other = assembleNativeRuntimeCatalog(fragments);
+  const full = assembly.catalog;
+
+  for (const key of ['skills', 'balanceProfiles', 'traits', 'specializations', 'autoattackChains', 'skillFlips']) {
+    assert.notEqual(selected[key], full[key], key);
+    assert.equal(Object.isFrozen(selected[key]), true, key);
+    assert.equal(selected[key][0], full[key][0], key);
+  }
+
+  assert.equal(selected.autoattackChainPositions.get(1), full.autoattackChainPositions.get(1));
+  assert.equal(selected.skillFields, full.skillFields);
+  assert.equal(selected.profileFields, full.profileFields);
+  assert.equal(selected.skillsById.get(2).nextChainId, null);
+  assert.equal(selected.skillsById.get(2).flipSkillId, 3);
+
+  selected.skillsById.delete(1);
+  selected.balanceProfilesById.delete(10);
+  selected.autoattackChainPositions.delete(1);
+  for (const catalog of [full, other]) {
+    assert.ok(catalog.skillsById.has(1));
+    assert.ok(catalog.balanceProfilesById.has(10));
+    assert.ok(catalog.autoattackChainPositions.has(1));
+  }
+
+  assert.throws(() => assembleNativeRuntimeCatalog([...fragments, ...fragments]), /Duplicate balance profile id/);
+});
+
+// Application-wide references must resolve inside the selected subset before execution is possible.
+test('runtime selection rejects skill and profile references into inactive modules', () => {
+  for (const [fields, error] of [
+    [{ parentId: 2 }, /missing parent 2/],
+    [{ sideEffects: [{ on: 'castCommit', do: { type: 'emitProfile', profileId: 11 } }] }, /missing profile 11/]
+  ]) {
+    const core = defineNativeModule({
+      id: 'Core',
+      data: { skills: [skill(1, 'Core reference', fields)] },
+      state: { create: () => ({}) }
+    });
+    const elite = defineNativeModule({
+      id: 'Elite',
+      data: { skills: [skill(2, 'Elite skill')], traits: [{ id: 11, name: 'Elite trait' }] },
+      traitDefinitions: [{ id: 11, balance: { duration: 5 } }],
+      state: { create: () => ({}) }
+    });
+    const { fragments } = getNativeCatalogAssembly([core, elite]);
+    assert.doesNotThrow(() => assembleNativeRuntimeCatalog([...fragments.values()]));
+    assert.throws(() => assembleNativeRuntimeCatalog([fragments.get('Core')]), error);
+  }
+});
+
+// Proc-rate selectors are catalog references too, even though their owning profile is already normalized.
+test('runtime selection validates proc-rate trait references against selected traits', () => {
+  const core = defineNativeModule({
+    id: 'Core',
+    data: { traits: [{ id: 10, name: 'Core proc' }] },
+    traitDefinitions: [
+      {
+        id: 10,
+        balance: {
+          procChance: 0.5,
+          procRate: { id: 'fixture.proc', traitId: 11, field: 'procChance', opportunity: 'critical hit' }
+        }
+      }
+    ],
+    state: { create: () => ({}) }
+  });
+  const elite = defineNativeModule({
+    id: 'Elite',
+    data: { traits: [{ id: 11, name: 'Elite trait' }] },
+    state: { create: () => ({}) }
+  });
+  const { fragments } = getNativeCatalogAssembly([core, elite]);
+  assert.doesNotThrow(() => assembleNativeRuntimeCatalog([...fragments.values()]));
+  assert.throws(() => assembleNativeRuntimeCatalog([fragments.get('Core')]), /invalid or duplicate procRate/);
 });

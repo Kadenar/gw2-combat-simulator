@@ -16,147 +16,134 @@ import type { MechanistSkill } from '#gw2/professions/engineer/specializations/m
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Supplies Mechanist signet definitions to specialization composition. */
-export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<MechanistSkill>>> =
-  Object.freeze({
-    [ID.RECTIFIER_SIGNET]: {
-      name: 'Rectifier Signet',
-      description:
-        'Signet Passive: Heal yourself and your mech every second.\nSignet Active: Heal yourself and your mech.',
-      icon: 'https://render.guildwars2.com/file/C1060E52F505962C04A32B0267CA0C75475D1105/2503669.png',
-      type: 'Heal',
-      slot: 'Heal',
+export const MECHANIST_SIGNET_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<MechanistSkill>>> = {
+  [ID.RECTIFIER_SIGNET]: {
+    name: 'Rectifier Signet',
+    icon: 'https://render.guildwars2.com/file/C1060E52F505962C04A32B0267CA0C75475D1105/2503669.png',
+    type: 'Heal',
+    slot: 'Heal',
 
-      cooldown: 30,
-      castTimeMs: 520,
-      effects: []
-    },
-    [ID.OVERCLOCK_SIGNET]: {
-      name: 'Overclock Signet',
-      description:
-        'Signet Passive: Reduces recharge of other signets.\nSignet Active: Order your mech to fire its ultimate weapon, the jade buster cannon.',
-      icon: 'https://render.guildwars2.com/file/A82F0980D5ED24F305FA57F3A929C1E90D26327F/2503668.png',
-      type: 'Elite',
-      slot: 'Elite',
+    cooldown: 30,
+    castTimeMs: 520,
+    effects: []
+  },
+  [ID.OVERCLOCK_SIGNET]: {
+    name: 'Overclock Signet',
+    icon: 'https://render.guildwars2.com/file/A82F0980D5ED24F305FA57F3A929C1E90D26327F/2503668.png',
+    type: 'Elite',
+    slot: 'Elite',
 
-      // Intrinsic tuning follows this selected skill through patches and deferred work.
-      rechargeMultiplier: 0.8,
-      cooldown: 90,
-      // Orders the active mech to channel Jade Buster Cannon; see `mechanist/mechanics/mech.ts`.
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    rechargeMultiplier: 0.8,
+    cooldown: 90,
+    // Orders the active mech to channel Jade Buster Cannon; see `mechanist/mechanics/mech.ts`.
 
-      castTimeMs: 0,
-      effects: [],
-      sideEffects: [{ on: 'castCommit', do: { type: 'engineer.overclock-signet' } }]
-    },
-    [ID.SHIFT_SIGNET]: {
-      name: 'Shift Signet',
-      description:
-        'Signet Passive: Increases movement speed. Boons you gain are copied to your mech.\nSignet Active: You and your mech shadowstep to the target location. Remove conditions on you and your mech.',
-      icon: 'https://render.guildwars2.com/file/EB1BBD04D00E70E40117034CE91F5DC2A9E3C334/2503689.png',
-      type: 'Utility',
-      slot: 'Utility',
+    castTimeMs: 0,
+    effects: [],
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.overclock-signet' } }]
+  },
+  [ID.SHIFT_SIGNET]: {
+    name: 'Shift Signet',
+    icon: 'https://render.guildwars2.com/file/EB1BBD04D00E70E40117034CE91F5DC2A9E3C334/2503689.png',
+    type: 'Utility',
+    slot: 'Utility',
 
-      cooldown: 25,
-      castTimeMs: 0,
-      effects: []
-    },
-    [ID.SUPERCONDUCTING_SIGNET]: {
-      name: 'Superconducting Signet',
-      description:
-        'Signet Passive: Increases condition damage dealt.\nSignet Active: Creates a damaging field around you that applies conditions to nearby foes. If your mech is active, the field instead radiates from and follows the mech.',
-      icon: 'https://render.guildwars2.com/file/99C42595B3D1FA7C96C3703B66F241792F08B107/2503691.png',
-      type: 'Utility',
-      slot: 'Utility',
+    cooldown: 25,
+    castTimeMs: 0,
+    effects: []
+  },
+  [ID.SUPERCONDUCTING_SIGNET]: {
+    name: 'Superconducting Signet',
+    icon: 'https://render.guildwars2.com/file/99C42595B3D1FA7C96C3703B66F241792F08B107/2503691.png',
+    type: 'Utility',
+    slot: 'Utility',
 
-      // Intrinsic tuning follows this selected skill through patches and deferred work.
-      conditionDamageIncrease: 0.1,
-      cooldown: 30,
-      castTimeMs: 880,
-      interruptCommitMs: 560,
-      // Share timing defaults while preserving each packet, effect order, and local schedule.
-      effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
-        {
-          type: 'strike',
-          ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: 560 + index * 1000, coefficient: 2.4 / 6 })),
-          intervalTimingScale: 'fixed',
-          comboFields: [{ ownerId: 'engineer', fieldType: COMBO_FIELD.LIGHTNING, duration: 5, startAnchor: 'event' }],
-          name: 'Superconducting Signet',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.VULNERABILITY,
-          atMs: 560,
-          applications: 6,
-          intervalMs: 1000,
-          intervalTimingScale: 'fixed',
-          stacks: 1,
-          duration: 3,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.CONFUSION,
-          atMs: 560,
-          applications: 6,
-          intervalMs: 1000,
-          intervalTimingScale: 'fixed',
-          stacks: 1,
-          duration: 3,
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'condition',
-          condition: CONDITION.BURNING,
-          atMs: 560,
-          applications: 6,
-          intervalMs: 1000,
-          intervalTimingScale: 'fixed',
-          stacks: 1,
-          duration: 3,
-          actorType: ACTOR.PLAYER
-        }
-      ])
-    },
-    [ID.FORCE_SIGNET]: {
-      name: 'Force Signet',
-      description:
-        'Signet Passive: Increases strike damage dealt.\nSignet Active: Knock foes away from yourself and away from your mech.',
-      icon: 'https://render.guildwars2.com/file/C540CA603AE4BDE57698082CE62396075699DD63/2503690.png',
-      type: 'Utility',
-      slot: 'Utility',
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    conditionDamageIncrease: 0.1,
+    cooldown: 30,
+    castTimeMs: 880,
+    interruptCommitMs: 560,
+    // Share timing defaults while preserving each packet, effect order, and local schedule.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true }, [
+      {
+        type: 'strike',
+        ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: 560 + index * 1000, coefficient: 2.4 / 6 })),
+        intervalTimingScale: 'fixed',
+        comboFields: [{ ownerId: 'engineer', fieldType: COMBO_FIELD.LIGHTNING, duration: 5, startAnchor: 'event' }],
+        name: 'Superconducting Signet',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.VULNERABILITY,
+        atMs: 560,
+        applications: 6,
+        intervalMs: 1000,
+        intervalTimingScale: 'fixed',
+        stacks: 1,
+        duration: 3,
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.CONFUSION,
+        atMs: 560,
+        applications: 6,
+        intervalMs: 1000,
+        intervalTimingScale: 'fixed',
+        stacks: 1,
+        duration: 3,
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        atMs: 560,
+        applications: 6,
+        intervalMs: 1000,
+        intervalTimingScale: 'fixed',
+        stacks: 1,
+        duration: 3,
+        actorType: ACTOR.PLAYER
+      }
+    ])
+  },
+  [ID.FORCE_SIGNET]: {
+    name: 'Force Signet',
+    icon: 'https://render.guildwars2.com/file/C540CA603AE4BDE57698082CE62396075699DD63/2503690.png',
+    type: 'Utility',
+    slot: 'Utility',
 
-      // Intrinsic tuning follows this selected skill through patches and deferred work.
-      damageIncrease: 0.15,
-      cooldown: 30,
-      castTimeMs: 520,
-      effects: [
-        {
-          type: 'strike',
-          coefficient: 1,
-          hits: 1,
-          name: 'Force Signet',
-          actorType: ACTOR.PLAYER
-        },
-        {
-          type: 'control',
-          actorType: ACTOR.PLAYER,
-          controlKind: CONTROL.KNOCKBACK
-        }
-      ]
-    },
-    [ID.BARRIER_SIGNET]: {
-      name: 'Barrier Signet',
-      description:
-        'Signet Passive: Incoming strike and condition damage is reduced.\nSignet Active: Create a projectile-blocking dome around yourself. You and allies inside the dome gain barrier every second. If your mech is active, the dome is centered on it and is larger. \n\nThe mech does not count against the target count for this skill.',
-      icon: 'https://render.guildwars2.com/file/EB737C0D4462F5C5572166DEC2801DD56148AFE6/2503688.png',
-      type: 'Utility',
-      slot: 'Utility',
+    // Intrinsic tuning follows this selected skill through patches and deferred work.
+    damageIncrease: 0.15,
+    cooldown: 30,
+    castTimeMs: 520,
+    effects: [
+      {
+        type: 'strike',
+        coefficient: 1,
+        hits: 1,
+        name: 'Force Signet',
+        actorType: ACTOR.PLAYER
+      },
+      {
+        type: 'control',
+        actorType: ACTOR.PLAYER,
+        controlKind: CONTROL.KNOCKBACK
+      }
+    ]
+  },
+  [ID.BARRIER_SIGNET]: {
+    name: 'Barrier Signet',
+    icon: 'https://render.guildwars2.com/file/EB737C0D4462F5C5572166DEC2801DD56148AFE6/2503688.png',
+    type: 'Utility',
+    slot: 'Utility',
 
-      cooldown: 30,
-      castTimeMs: 360,
-      effects: []
-    }
-  });
+    cooldown: 30,
+    castTimeMs: 360,
+    effects: []
+  }
+};
 
 /** Checks the normalized active loadout for a named Mechanist signet. */
 export function selectedSignet(context: Gw2ModifierContext, id: number): boolean {

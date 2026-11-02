@@ -19,20 +19,26 @@ export function projectIgniteEffects(
   effects: readonly SkillEffect[],
   burning: SkillEffect | undefined
 ): readonly SkillEffect[] {
+  // Only a condition replacement supplies a Burning duration; anything else removes the native Burning packets.
+  const burningDuration = burning?.type === 'condition' ? Number(burning.duration) : undefined;
   return effects.flatMap<SkillEffect>((effect) => {
     if (effect.type !== 'condition') return [effect];
 
     if (effect.ticks) {
       const ticks = effect.ticks.flatMap((tick) =>
-        tick.condition !== CONDITION.BURNING ? [tick] : burning ? [{ ...tick, duration: Number(burning.duration) }] : []
+        tick.condition !== CONDITION.BURNING
+          ? [tick]
+          : burningDuration != null
+            ? [{ ...tick, duration: burningDuration }]
+            : []
       );
       return ticks.length ? [{ ...effect, ticks }] : [];
     }
 
     return effect.condition !== CONDITION.BURNING
       ? [effect]
-      : burning
-        ? [{ ...effect, duration: Number(burning.duration) }]
+      : burningDuration != null
+        ? [{ ...effect, duration: burningDuration }]
         : [];
   });
 }

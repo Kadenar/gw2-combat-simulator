@@ -5,11 +5,11 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
-export const SOULBEAST_RIVER_OTTER_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const SOULBEAST_RIVER_OTTER_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.TAIL_WHIP]: {
     name: 'Tail Whip',
-    description: 'Slam your foe with your tail.',
     icon: 'https://render.guildwars2.com/file/A7179EB9654498EC366C0012246DCE91AD3D68B5/3772577.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -32,7 +32,6 @@ export const SOULBEAST_RIVER_OTTER_BEAST_SKILL_MECHANICS: Readonly<Record<number
   },
   [ID.JET]: {
     name: 'Jet',
-    description: 'Dash at your foe with a wave of water.',
     icon: 'https://render.guildwars2.com/file/E839D32DEC66ACF974A59478370BA810C54CCC5D/3772575.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -47,4 +46,4 @@ export const SOULBEAST_RIVER_OTTER_BEAST_SKILL_MECHANICS: Readonly<Record<number
       }
     ]
   }
-});
+};

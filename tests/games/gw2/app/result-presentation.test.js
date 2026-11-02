@@ -47,7 +47,19 @@ test('damage contribution percentages share a denominator and handle empty damag
 test('result sorting handles defaults, numeric directions, strings, and cycling', () => {
   assert.deepEqual(
     SKILL_COLS.map((column) => column.key),
-    ['name', 'strike', 'condition', 'total', 'damagePercent', 'dps', 'average', 'dct', 'casts', 'hits', 'critChance']
+    [
+      'name',
+      'strike',
+      'condition',
+      'total',
+      'damagePercent',
+      'dps',
+      'average',
+      'dct',
+      'casts',
+      'hits',
+      'observedCritRate'
+    ]
   );
   const rows = [
     { name: 'Beta', total: 20, dps: 5 },

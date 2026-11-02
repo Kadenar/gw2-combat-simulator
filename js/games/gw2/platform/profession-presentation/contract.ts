@@ -1,54 +1,6 @@
 import type { PaletteOverride, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
-const UI_CALLBACK_NAMES = Object.freeze([
-  'previewControls',
-  'prepareAttributePreview',
-  'skillDamageGroups',
-  'skillDamageState',
-  'prepareSkillDamagePreview',
-  'chartApplications',
-  'timelineMarkers',
-  'timelineOverlays',
-  'timelineAnnotation',
-  'paletteWeaponGroups',
-  'paletteSelectedSlotSkills',
-  'chargeReleaseProjection',
-  'effectPresentations',
-  'eventLogRow',
-  'isPaletteSkillInstant',
-  'paletteOverride',
-  'isSlotSkillSelectable',
-  'paletteGroups',
-  'paletteActionSkills',
-  'paletteWeaponSkills',
-  'renderWeaponPalette',
-  'resolvePaletteAction',
-  'resourceViews',
-  'skillBarGroups',
-  'startControls',
-  'targetHealthThresholds',
-  'rotationStateSnapshot',
-  'timelineWeaponLineTransition',
-  'timelineSkillIcon',
-  'updatePaletteControl',
-  'updateSkillBarSelection'
-]);
-
-function assertUiDefinition(ui: UnvalidatedFields): void {
-  for (const name of UI_CALLBACK_NAMES) {
-    if (ui[name] != null && typeof ui[name] !== 'function') throw new TypeError(`ui.${name} must be a function.`);
-  }
-
-  if (ui.assumptionControls != null && !Array.isArray(ui.assumptionControls)) {
-    throw new TypeError('ui.assumptionControls must be an array.');
-  }
-
-  if (ui.slotLoadout != null && (typeof ui.slotLoadout !== 'object' || Array.isArray(ui.slotLoadout))) {
-    throw new TypeError('ui.slotLoadout must be an object.');
-  }
-}
-
 /** Validate narrow presentation exceptions without inventing a runtime verdict. */
 function normalizePaletteOverride(value: unknown, professionId: string): PaletteOverride | undefined {
   if (value === undefined) return undefined;
@@ -75,7 +27,6 @@ export function normalizeProfessionUi(
   professionId: string,
   ui: Partial<ProfessionUiContract> = {}
 ): Readonly<ProfessionUiContract> {
-  assertUiDefinition(ui);
   // Resource presentation is plural throughout the contract; professions
   // without resource UI normalize directly to an empty collection.
   const resourceViews = ui.resourceViews || (() => []);

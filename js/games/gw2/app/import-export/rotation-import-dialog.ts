@@ -67,7 +67,9 @@ interface RotationImportDialogElements {
 
 /** Validate imported command identities against the active catalog before applying the rotation. */
 function normalizeImportedRotation(items: readonly unknown[], app: ProfessionAppState): RotationCommand[] {
-  return normalizeRotation(items, app.activeCatalog, { strict: true });
+  // A standalone save has no build schema; let its profession upgrade retired identities at this boundary.
+  const migrated = app.adapter.profession.migrateRotation?.(items) ?? items;
+  return normalizeRotation(migrated, app.activeCatalog, { strict: true });
 }
 
 /** Reads and validates a rotation file without replacing the active rotation until the user applies the preview. */

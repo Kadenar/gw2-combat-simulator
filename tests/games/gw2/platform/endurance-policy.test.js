@@ -30,7 +30,7 @@ for (const [id, specialization, capacity] of [
     // The selected policy initializes one live clock; reporting owns a detached copy with no scalar mirrors.
     assert.equal(state.endurance.maximum, capacity);
     assert.equal(state.endurance.updatedAt, 0);
-    assert.ok(Number.isFinite(state.endurance.rate));
+    assert.ok(Number.isFinite(state.endurance.unitsPerSecond));
     assert.equal(Object.hasOwn(state, 'enduranceUpdatedAt'), false);
     assert.equal(Object.hasOwn(result.planningState.profession, 'maximumEndurance'), false);
     assert.deepEqual(result.planningState.profession[STATE.ENDURANCE], state.endurance);
@@ -68,7 +68,7 @@ test('Elementalist Energy makes the next dodge affordable on attunement swap', a
     { profession }
   );
   const swap = result.events.find((event) => event.type === 'sigil_swap');
-  const dodge = result.steps.filter((step) => step.skill === 'Dodge').at(-1);
+  const dodge = result.steps.filter((step) => step.skillName === 'Dodge').at(-1);
   assert.deepEqual(result.warnings, []);
   assert.ok(swap);
   assert.equal(dodge.start, swap.at * 1000);
@@ -102,7 +102,7 @@ test('malformed declared endurance fails rather than silently dropping grants', 
     id: 'bad-pool',
     name: 'Bad pool',
     resources: {
-      createState: () => ({ endurance: { value: 0, maximum: 100, updatedAt: 0, rate: 0 } })
+      createState: () => ({ endurance: { value: 0, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } })
     },
     hooks: {
       endurance: { state: (context) => context.profession.endurance, maximum: () => NaN, regenerationRate: () => 5 }

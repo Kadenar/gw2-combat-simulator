@@ -32,13 +32,11 @@ export const WEAVER_SPEAR_BUFFS: Readonly<Record<number, string>> = Object.freez
  * `WEAVER_SKILL_MECHANICS`: one entry per attunement pair.
  */
 // Ordinary effects apply immediately; each action owns its arming buff and deferred strike/condition payload.
-export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
   // Fire+Water. The only spear dual that grants an aura: its declared effect
   // grants the three-second Fire Aura on cast end.
   [ID.FROSTFIRE_WARD]: {
     name: 'Frostfire Ward',
-    description:
-      'Dual Attack. Gain fire and frost aura. Reduce the recharge of your primary attunement. Your next strike will deal additional damage to enemies around your target and remove conditions from you.',
     icon: 'https://render.guildwars2.com/file/DD1B9616EB330DC50729663B497B31D40104290C/3379105.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -81,8 +79,6 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   // three stacks of Might rather than any condition.
   [ID.GALVANIZE]: {
     name: 'Galvanize',
-    description:
-      'Dual Attack. Gain might and superspeed. Reduce the recharge of your primary attunement. Your next strike will deal additional damage to enemies around your target.',
     icon: 'https://render.guildwars2.com/file/14A70A6CE40336397DAA5C0F03940C08C7622376/3379106.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -124,8 +120,6 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   // and three stacks of Bleeding.
   [ID.FIERY_IMPACT]: {
     name: 'Fiery Impact',
-    description:
-      'Dual Attack. Gain stability. Reduce the recharge of your primary attunement. Your next strike will deal additional damage to enemies around your target and inflict conditions.',
     icon: 'https://render.guildwars2.com/file/69FB136A0D3615BBBE1B04DCBE09407D7E9297F3/3379107.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -183,8 +177,6 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.ELUTRIATE]: {
     name: 'Elutriate',
-    description:
-      'Dual Attack. Remove a damaging and a nondamaging condition from yourself. Reduce the recharge of your primary attunement. Your next strike will deal additional damage to enemies around your target and inflict conditions.',
     icon: 'https://render.guildwars2.com/file/1EF742E5936B0D160F3869511D2EBEC6745EEA18/3379108.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -237,8 +229,6 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   // and no boons.
   [ID.SOOTHING_BURST]: {
     name: 'Soothing Burst',
-    description:
-      'Dual Attack. Heal yourself. Reduce the recharge of your primary attunement. Your next strike will deal additional damage to enemies around your target and heal you.',
     icon: 'https://render.guildwars2.com/file/110F9A310F3A6D0E999B36DAB4F5390F70727DEB/3379109.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -285,8 +275,6 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
   },
   [ID.SHALE_STORM]: {
     name: 'Shale Storm',
-    description:
-      'Dual Attack. Create a brief storm of whirling rocks that destroy incoming projectiles. Reduce the recharge of your primary attunement. Your next strike will deal additional damage to enemies around your target and inflict conditions.',
     icon: 'https://render.guildwars2.com/file/53AD3D92123744A13D0D2434661EFA3608213D06/3379110.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -335,7 +323,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
       }
     ]
   }
-});
+};
 
 /** Activation grants only the arming buff; the next qualifying hit emits the action's hostile payload. */
 export const weaverSpearLifecycle = {

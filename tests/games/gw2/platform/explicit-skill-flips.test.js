@@ -70,7 +70,7 @@ test('declared same-name flips survive renaming, absent API links, and contradic
 test('secondary commands share a parent while one declared follow-up owns the default face', () => {
   const declarations = [
     { parentId: 1, followUpId: 2 },
-    { parentId: 1, followUpId: 3, defaultFollowUp: false }
+    { parentId: 1, followUpId: 3, isDefaultFollowUp: false }
   ];
   const catalog = createCanonicalCatalog({ skills, skillFlips: declarations });
   assert.equal(catalog.skillsById.get(1).flipSkillId, 2);
@@ -164,7 +164,7 @@ for (const professionId of [
       for (const skill of catalog.skills) {
         const parent = expected.find((flip) => flip.followUpId === skill.id)?.parentId ?? null;
         const followUp =
-          expected.find((flip) => flip.parentId === skill.id && flip.defaultFollowUp !== false)?.followUpId ?? null;
+          expected.find((flip) => flip.parentId === skill.id && flip.isDefaultFollowUp !== false)?.followUpId ?? null;
         assert.equal(skill.flipParentId, parent);
         assert.equal(skill.flipSkillId, followUp);
       }

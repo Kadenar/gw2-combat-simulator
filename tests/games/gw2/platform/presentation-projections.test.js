@@ -3,7 +3,6 @@ import test from 'node:test';
 
 import { professionTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { createProfessionFamilyUi, uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { elementalistAttunementResourceAnchor } from '#gw2/professions/elementalist/family-presentation.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { bindGuardianCoreUi } from '#gw2/professions/guardian/core/presentation.js';
@@ -81,8 +80,6 @@ test('presentation lists include Core, the selected elite, and family contributi
       ['core', 'family']
     );
   }
-
-  assert.throws(() => normalizeProfessionUi('fixture', { timelineMarkers: [] }), /must be a function/);
 });
 
 // An elite may deliberately keep a single unlabelled bar even when Core would split variants.
@@ -115,8 +112,8 @@ test('profession markers ignore invalid steps and append after the final valid s
   const markers = [0.5, 1, 2].map((at) => ({ at, badge: 'AUTO', title: (time) => time }));
   const result = {
     steps: [
-      { ri: 0, start: 500, invalid: true },
-      { ri: 1, start: 1000 }
+      { rotationCommandIndex: 0, start: 500, invalid: true },
+      { rotationCommandIndex: 1, start: 1000 }
     ]
   };
   assert.deepEqual(

@@ -44,6 +44,9 @@ export function createRotationDriver<T extends object>(
 
         if (skill) skill = profession.resolveCastSkill?.(runtime.mechanicQueries, skill) ?? skill;
 
+        // Selector inputs must resolve before lane reservation; their empty declarations are never executable.
+        if (skill?.selector) throw new Error('Unresolved skill selector: ' + skill.name);
+
         // A forbidden overlap is permanently invalid, so it cannot reserve a lane or wait for cooldown readiness.
         if (command.type === 'cast' && command.concurrentOffsetMs != null && skill?.canCastConcurrently === false) {
           advanceFrontier('command rejection');
@@ -77,8 +80,8 @@ export function createRotationDriver<T extends object>(
             // Every authored command retains its timeline row, including waits and environment controls.
             if (runtime.output !== 'score')
               runtime.steps.push({
-                ri: cursor.index,
-                skill: 'Wait',
+                rotationCommandIndex: cursor.index,
+                skillName: 'Wait',
                 start: Math.round(runtime.time * 1000),
                 end: Math.round(end * 1000)
               });
@@ -90,8 +93,8 @@ export function createRotationDriver<T extends object>(
           if (command.type === 'combat-start') {
             if (runtime.output !== 'score')
               runtime.steps.push({
-                ri: cursor.index,
-                skill: 'Combat Start',
+                rotationCommandIndex: cursor.index,
+                skillName: 'Combat Start',
                 start: Math.round(runtime.time * 1000),
                 end: Math.round(runtime.time * 1000)
               });
@@ -114,8 +117,8 @@ export function createRotationDriver<T extends object>(
           if (command.type === 'cooldown-reset') {
             if (runtime.output !== 'score')
               runtime.steps.push({
-                ri: cursor.index,
-                skill: 'Cooldown Reset',
+                rotationCommandIndex: cursor.index,
+                skillName: 'Cooldown Reset',
                 start: Math.round(runtime.time * 1000),
                 end: Math.round(runtime.time * 1000)
               });

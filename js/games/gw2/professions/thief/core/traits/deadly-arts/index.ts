@@ -41,7 +41,7 @@ import {
 import { thiefRuntimeState } from '#gw2/professions/thief/core/state-queries.js';
 import { thiefCastCondition } from '#gw2/professions/thief/core/traits/cast-condition.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import type { ThiefResolverContext, ThiefResolverEvent } from '#gw2/professions/thief/types.js';
+import type { ThiefResolverContext, ThiefResolverEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Owns Dagger Training tuning and behavior at the existing execution boundaries. */
 export const daggerTraining = defineTrait({
@@ -254,7 +254,7 @@ export const potentPoison = defineTrait({
 });
 
 /** Owns Revealed Training tuning and behavior at the existing execution boundaries. */
-export const revealedTraining = defineTrait({
+export const revealedTraining = defineTrait<ThiefSkill>({
   id: TRAIT.REVEALED_TRAINING,
   balance: {
     attributeBonuses: { power: 80 },
@@ -263,10 +263,10 @@ export const revealedTraining = defineTrait({
   // Keep the permanent bonus and live Revealed bonus under the same selected trait.
   attributes(context) {
     const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.REVEALED_TRAINING);
-    const state = thiefRuntimeState(context);
+    const state = thiefRuntimeState(context.runtime?.profession);
     // Exclude only a revealing activation's first landed hit. Judgment reveals before firing;
     // attacks that do not reveal and recalled axes use the live Revealed state without that exclusion.
-    const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
+    const skill: ThiefSkill | undefined = skillForEvent(context.profession?.catalog, context.event, context.skillId);
     const activationId = context.event?.activationId;
     const revealingAttack =
       skill?.stealthAttack &&
@@ -384,14 +384,14 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
 
   if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
-  const skill = skillForEvent(context.helpers, event);
+  const skill: ThiefSkill | undefined = skillForEvent(context.helpers, event);
 
   if (!skill || event.sourceId !== skill.id) return;
 
   // The skill owns eligibility, including empty-offhand variants and newer weapon pairs.
   if (!skill.dualWieldAttack) return;
 
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
 
   const deadlyAmbitionProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_AMBITION);
   const poison = requireEffect(deadlyAmbitionProfile, 'condition', CONDITION.POISONED);

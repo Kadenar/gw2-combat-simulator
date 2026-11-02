@@ -10,12 +10,10 @@ import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-ski
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
 // Share adjacent impact timing while preserving local payloads, attribution, and independent timelines.
-export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   // Natural Phase Pounce uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.FELINE_PHASE_POUNCE]: definePetSkill({
     name: 'Phase Pounce',
-    description:
-      "Leap through a rift in the Mists, shadowstepping briefly to the target's location and inflicting damage and conditions.",
     icon: 'https://render.guildwars2.com/file/F16B4742E83542D8406DDAEBD7BE06EEA8061E16/2604865.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -47,7 +45,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.MIGHTY_ROAR]: definePetSkill({
     name: 'Mighty Roar',
-    description: 'Beast. Give extreme might to nearby allies.',
     icon: 'https://render.guildwars2.com/file/FC1F050E63ACD1504A2E71FD01C279ED26CFE423/103240.png',
     petNames: ['Jungle Stalker'],
     type: 'Profession',
@@ -69,7 +66,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.RENDING_POUNCE]: definePetSkill({
     name: 'Rending Pounce',
-    description: 'Beast. Leap at a foe and make them bleed.',
     icon: 'https://render.guildwars2.com/file/43210A51F17CF8FA6E600CD8D0495458471C4CDA/103959.png',
     petNames: ['Lynx'],
     type: 'Profession',
@@ -98,7 +94,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.ICY_POUNCE]: definePetSkill({
     name: 'Icy Pounce',
-    description: 'Beast. Leap at your foe, chilling them.',
     icon: 'https://render.guildwars2.com/file/43210A51F17CF8FA6E600CD8D0495458471C4CDA/103959.png',
     petNames: ['Snow Leopard'],
     type: 'Profession',
@@ -127,8 +122,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.STALK]: definePetSkill({
     name: 'Stalk',
-    description:
-      'Beast. Gain stealth and increased critical-strike chance and ferocity for a short duration. Grant your ranger stealth.\nThis skill will not grant your ranger stealth if they are downed.',
     icon: 'https://render.guildwars2.com/file/15780BCEBC0C20E7403191DEA92DB365AB380AE6/103960.png',
     petNames: ['Jaguar'],
     type: 'Profession',
@@ -141,7 +134,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.FURIOUS_POUNCE]: definePetSkill({
     name: 'Furious Pounce',
-    description: 'Beast. Pounce on your target and grant fury to nearby allies.',
     icon: 'https://render.guildwars2.com/file/ACDDD2A75BEE6C4FDDA26D0C9F3D4F94C85C9412/1128614.png',
     petNames: ['Tiger'],
     type: 'Profession',
@@ -172,7 +164,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.FELINE_SLASH]: definePetSkill({
     name: 'Slash',
-    description: 'Slash at your foe.',
     icon: 'https://render.guildwars2.com/file/D5420B910EE4DA1D2F63AEC71F4DF862E414D6E1/103515.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -196,7 +187,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.FELINE_BITE]: definePetSkill({
     name: 'Bite',
-    description: 'Bite your foe for severe damage.',
     icon: 'https://render.guildwars2.com/file/520693759A79FD464CA7AD08947D10B4B50F7A96/103516.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -227,7 +217,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.FELINE_MAUL]: definePetSkill({
     name: 'Maul',
-    description: 'Slash a foe multiple times and make them bleed.',
     icon: 'https://render.guildwars2.com/file/D5420B910EE4DA1D2F63AEC71F4DF862E414D6E1/103515.png',
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -259,7 +248,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.SAVANNAH_STRIKE]: definePetSkill({
     name: 'Savannah Strike',
-    description: 'Beast. Shadowstep to your target and strike them. Grant nearby allies swiftness.',
     icon: 'https://render.guildwars2.com/file/2FC4CC6A29447D5DAE0557DA747CADA35B09A1AE/1770565.png',
     petNames: ['Cheetah'],
     type: 'Profession',
@@ -289,7 +277,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.BLINDING_ROAR]: definePetSkill({
     name: 'Blinding Roar',
-    description: 'Beast. Release a powerful roar that blinds nearby foes.',
     icon: 'https://render.guildwars2.com/file/06EFCDD57F325D6A5E472660E993BF62E0CADD0A/1770552.png',
     petNames: ['Sand Lion'],
     type: 'Profession',
@@ -310,7 +297,6 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.GUARDIANS_ROAR]: definePetSkill({
     name: "Guardian's Roar",
-    description: 'Beast. Roar and grant aegis to nearby allies.',
     icon: 'https://render.guildwars2.com/file/AC019F149969B613AF6245F8715CBFE132B20239/2604864.png',
     petNames: ['White Tiger'],
     type: 'Profession',
@@ -330,4 +316,4 @@ export const RANGER_CORE_FELINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   })
-});
+};

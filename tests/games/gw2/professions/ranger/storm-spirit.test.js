@@ -6,10 +6,9 @@ import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurren
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
-
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // A committed summon resolves its child even after pet replacement; an abandoned summon produces no child.
 test('Storm Spirit invokes Call Lightning independently of the active pet lifetime', () => {

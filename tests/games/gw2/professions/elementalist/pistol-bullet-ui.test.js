@@ -38,7 +38,7 @@ function createPistolApp() {
         availability: {},
         activeWeaponSet: 1,
         atSeconds: 0,
-        cooldowns: {},
+        cooldownsBySkillId: {},
         // Palette fixtures use the same ID-keyed ammo projection as simulation results.
         ammoBySkillId: {},
         profession: {

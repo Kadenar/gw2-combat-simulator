@@ -7,6 +7,7 @@ import {
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
 import type { ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import { createPaletteContext, paletteSkillIsInstant, type PaletteContext } from '#gw2/app/rotation/palette/model.js';
+import type { RotationSkill } from '#gw2/app/rotation/skill-views.js';
 import { clearTimelineDropIndicators } from '#gw2/app/rotation/timeline/interactions.js';
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import { WAIT_ICON } from '#gw2/app/shared/icons.js';
@@ -206,7 +207,10 @@ export function dispatchPaletteActivation(
     return;
   }
 
-  const skill = skillId == null ? undefined : app.activeCatalog.skillsById.get(skillId);
+  // Editors inspect the live bar face; every authored command retains the canonical input identity.
+  const displaySkillId = icon.dataset.displaySkillId == null ? skillId : Number(icon.dataset.displaySkillId);
+  const skill: RotationSkill | undefined =
+    displaySkillId == null ? undefined : app.activeCatalog.skillsById.get(displaySkillId);
 
   if (skill?.dragonSlash) {
     const insertionIndex =
@@ -338,7 +342,7 @@ export function resolvePaletteDrop(
   insertAt: number
 ): RotationCommand | RotationCommand[] | null {
   const parsedSkillId = Number(drag?.skillId);
-  const skill = resolveEntrySkill(app, {
+  const skill: RotationSkill | undefined = resolveEntrySkill(app, {
     name,
     skillId: drag?.skillId
   });

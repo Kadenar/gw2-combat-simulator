@@ -9,6 +9,7 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { fieldValue } from '#gw2/platform/skills/field-specs.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { revenantCorruptionTooltips } from '#gw2/professions/revenant/app/tooltips/corruption.js';
 import { revenantDevastationTooltips } from '#gw2/professions/revenant/app/tooltips/devastation.js';
@@ -22,6 +23,7 @@ import {
   vindicatorDodgeTooltip
 } from '#gw2/professions/revenant/app/tooltips/shared.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 const weaponSwapTooltip: DescribeSimulationTooltip = skillTooltip(
   'Switch weapon sets. At maximum Crushing Abyss, swapping to a different weapon loadout consumes the stacks and triggers Abyssal Raze. The triggered strike uses its base coefficient and retains the stack-scaled torment.'
@@ -141,14 +143,14 @@ const detonateBlossomingAuraTooltip: DescribeSimulationTooltip = skillTooltip(
 export const revenantCoreTooltips = {
   skillFacts: (_c, entity) => [
     // Fixed dodge costs come from the action declaration rather than patchable fields.
-    ...(entity.cost?.resource === 'endurance' && entity.cost.amount != null
+    ...(entity.cost?.resource === 'endurance'
       ? [{ name: 'Endurance spent', detail: tooltipDecimal(entity.cost.amount) }]
       : []),
     ...[
       ['energyCost', 'Base energy cost'],
       ['upkeepCost', 'Energy upkeep per second']
     ].flatMap(([field, name]) =>
-      entity[field] == null ? [] : [{ name, detail: tooltipDecimal(tooltipNumber(entity, field)) }]
+      fieldValue(entity, field) == null ? [] : [{ name, detail: tooltipDecimal(tooltipNumber(entity, field)) }]
     ),
     ...(entity.manualReleaseCooldown == null
       ? []
@@ -218,7 +220,7 @@ export const revenantCoreTooltips = {
       'Apply the supported bond effects and open the temporary scepter follow-up window.'
     ),
     [ID.ETERNITYS_REQUIEM]: (balanceContext, entity) => ({
-      description: 'Strike repeatedly. Additional packets hit only a target configured with a large hitbox.',
+      description: 'Strike repeatedly, with additional hits against targets configured with a large hitbox.',
       // The separately gated strike owns the large-target component in both the tooltip and simulation.
       facts: (balanceContext.catalog.skillsById.get(entity.id)!.effects || []).flatMap((effect) =>
         effect.type === 'strike'
@@ -237,4 +239,4 @@ export const revenantCoreTooltips = {
     ...revenantCorruptionTooltips,
     ...revenantDevastationTooltips
   }
-} satisfies ProfessionTooltips;
+} satisfies ProfessionTooltips<RevenantSkill>;

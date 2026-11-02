@@ -1,4 +1,7 @@
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
@@ -24,10 +27,10 @@ function createBerserkerState(): BerserkerState {
 
 export const berserkerState = defineProfessionSpecializationState('Berserker', createBerserkerState);
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectBerserkerPlanningState(input: Gw2PlanningStateInput) {
-  const state = berserkerState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectBerserkerPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = berserkerState.from(input.profession);
+  return {
     [STATE.BERSERK_UNTIL]: state.berserkUntil
-  });
+  };
 }

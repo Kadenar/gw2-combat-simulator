@@ -12,9 +12,8 @@ import { THIEF_SKILL_IDS as T } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { WARRIOR_SKILL_IDS as W } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { wait } from '#tests/helpers/commands.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
-
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Explicit skill IDs keep eligibility regressions visible; setups unlock native flips and profession states.
 const groups = [

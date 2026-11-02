@@ -8,11 +8,10 @@ import { RANGER_PET_SKILL_TIMINGS } from '#gw2/professions/ranger/core/mechanics
 import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-skill.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   // Natural Slash uses wiki PvE effects; the selected pet profile supplies its measured action cadence.
   [ID.URSINE_SLASH]: definePetSkill({
     name: 'Slash',
-    description: 'Slash your foe with your claws.',
     icon: new URL('@images/wiki/slash-bear.png', import.meta.url).href,
     petFamilySkill: true,
     petAutonomousSkill: true,
@@ -34,7 +33,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.SHAKE_IT_OFF]: definePetSkill({
     name: 'Shake It Off',
-    description: 'Beast. Cure a condition on yourself and all nearby allies.',
     icon: 'https://render.guildwars2.com/file/4D234DA072DE77DEFC0605ED401CB93EDC2AC84B/103009.png',
     petNames: ['Brown Bear'],
     type: 'Profession',
@@ -46,7 +44,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.POISON_CLOUD_MURELLOW]: definePetSkill({
     name: 'Poison Cloud',
-    description: 'Beast. Emit a noxious cloud that poisons and damages foes.',
     icon: 'https://render.guildwars2.com/file/F80934FEC30547EAE2022A22D06E00CFDBB4B328/104038.png',
     petNames: ['Murellow'],
     type: 'Profession',
@@ -74,7 +71,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.ENFEEBLING_ROAR]: definePetSkill({
     name: 'Enfeebling Roar',
-    description: 'Beast. Roar fiercely, weakening nearby foes.',
     icon: 'https://render.guildwars2.com/file/F4ECC4EA13941443755D0F9B3344C4B015F1DAA7/103927.png',
     petNames: ['Black Bear'],
     type: 'Profession',
@@ -102,7 +98,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.ICY_ROAR]: definePetSkill({
     name: 'Icy Roar',
-    description: 'Beast. Roar fiercely, freezing nearby foes.',
     icon: 'https://render.guildwars2.com/file/F4ECC4EA13941443755D0F9B3344C4B015F1DAA7/103927.png',
     petNames: ['Polar Bear'],
     type: 'Profession',
@@ -130,7 +125,6 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
   }),
   [ID.RENDING_MAUL]: definePetSkill({
     name: 'Rending Maul',
-    description: 'Beast. Make your foe bleed with a fierce mauling.',
     icon: 'https://render.guildwars2.com/file/695DA2E83CF23F527DD9109333CCB5239053DB94/104027.png',
     petNames: ['Arctodus'],
     type: 'Profession',
@@ -157,4 +151,4 @@ export const RANGER_CORE_URSINE_PET_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   })
-});
+};

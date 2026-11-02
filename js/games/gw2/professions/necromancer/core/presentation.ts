@@ -60,7 +60,7 @@ export function necromancerUiState(context: NecromancerUiContext = {}): Necroman
 // Order the live shroud palette by slot, keeping each flip skill after its parent.
 function shroudSkillIds(catalog: Readonly<CanonicalCatalog<NecromancerSkill>>, shroud: string): SkillId[] {
   return catalog.skills
-    .filter((skill) => skill.shroud === shroud && !skill.simulatorExcluded)
+    .filter((skill) => skill.shroud === shroud && !skill.rotationInputExcluded)
     .sort((left, right) => {
       const slotOrder = (left.shroudSlot || 0) - (right.shroudSlot || 0);
 

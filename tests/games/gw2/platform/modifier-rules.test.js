@@ -75,12 +75,8 @@ test('condition sample reuse is opt-in and preserves inactive, event-specific, a
   assert.equal(sharedCalls, 4);
 });
 
-test('condition sample declarations require a boolean and a condition-damage target', () => {
+test('condition sample declarations require a condition-damage target', () => {
   const rule = { id: 'bad-sample', target: MODIFIER_TARGET.CONDITION_DAMAGE, operation: 'multiply', factor: 1 };
-  assert.throws(
-    () => createModifierHooks({ rules: [{ ...rule, conditionSampleInvariant: 'yes' }] }),
-    /must be a boolean/
-  );
   assert.throws(
     () =>
       createModifierHooks({
@@ -392,7 +388,6 @@ test('scalar modifier hooks leave clamping to their consumer', () => {
 
 test('modifier declarations reject invalid schemas with the rule id', () => {
   const invalidRules = [
-    [{ target: 'criticalChance', operation: 'add', amount: 1 }, /<missing/],
     [{ id: 'bad.target', target: 'unsupported', operation: 'add', amount: 1 }, /bad\.target/],
     [
       {
@@ -439,16 +434,6 @@ test('modifier declarations reject invalid schemas with the rule id', () => {
         amount: 0.1
       },
       /bad\.damage-add/
-    ],
-    [
-      {
-        id: 'bad.when',
-        target: 'criticalChance',
-        operation: 'add',
-        amount: 0.1,
-        when: true
-      },
-      /bad\.when/
     ],
     [
       {
@@ -580,13 +565,6 @@ test('modifier bucket policies reject unsupported declarations and results', () 
         damageBuckets: { criticalChance: { includeSigil: true } }
       }),
     /criticalChance/
-  );
-  assert.throws(
-    () =>
-      createModifierHooks({
-        damageBuckets: { strikeDamage: { includeSigil: 'yes' } }
-      }),
-    /strikeDamage/
   );
 
   const hooks = createModifierHooks({

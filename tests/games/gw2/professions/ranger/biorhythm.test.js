@@ -5,6 +5,7 @@ import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-p
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { BIORHYTHM, VOW_OF_THE_UNTAMED } from '#gw2/professions/ranger/specializations/untamed/effect-state.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
@@ -13,7 +14,6 @@ const config = {
   primaryWeapon: 'Hammer',
   selectedTraitIds: [TRAIT.BIORHYTHM, TRAIT.VOW_OF_THE_UNTAMED]
 };
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const player = { source: 'ranger', actorType: 'player' };
 
 function simulate(rotation, overrides = {}) {
@@ -24,7 +24,7 @@ function simulate(rotation, overrides = {}) {
     result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === kind).map((event) => event.at);
   return {
     runtime,
-    state: untamedState.from(runtime),
+    state: untamedState.from(runtime.profession),
     stacks: (at) => runtime.mechanics.combat.activeBuffStacks(BIORHYTHM, at),
     stackApplications: applications(BIORHYTHM),
     vowApplications: applications(VOW_OF_THE_UNTAMED),

@@ -4,12 +4,12 @@ import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, RECIPIENT } from '
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Defines the Elixir Gun equip action and packet-level palette mechanics, including fields and finishers. */
-export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition>> = Object.freeze({
+export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<EngineerSkill>>> = {
   [ID.ELIXIR_GUN]: {
     name: 'Elixir Gun',
-    description: 'Engineering Kit. Arm yourself with an elixir gun that replaces your weapon skills.',
     icon: 'https://render.guildwars2.com/file/5D6E07C3D17AD7C701B199684C641F0E024961C8/103437.png',
     type: 'Utility',
     slot: 'Utility',
@@ -25,7 +25,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
   },
   [ID.TRANQUILIZER_DART]: {
     name: 'Tranquilizer Dart',
-    description: 'Fire a dart that bleeds and weakens foes.',
     icon: 'https://render.guildwars2.com/file/AD30E269B4CFC6A3DF609FEDF4626802F6F5DCA9/103438.png',
     type: 'Weapon',
     slot: 'Weapon_1',
@@ -69,8 +68,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
   },
   [ID.GLOB_SHOT]: {
     name: 'Glob Shot',
-    description:
-      'Fire a bouncing glob that cripples foes and grants swiftness to you and your allies. The first enemy struck is immobilized.',
     icon: 'https://render.guildwars2.com/file/02D0621609F209D943C6E4FFFEE4030A0FAD4E5E/103439.png',
     type: 'Weapon',
     slot: 'Weapon_2',
@@ -112,8 +109,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
   },
   [ID.FUMIGATE]: {
     name: 'Fumigate',
-    description:
-      'Spray a cone of elixir fumes, inflicting poison and vulnerability to foes and curing conditions on allies with every strike.',
     icon: 'https://render.guildwars2.com/file/FEC6520A677BD915091E0911023DD8B7EFBFEFA5/103451.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -154,7 +149,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
   },
   [ID.ACID_BOMB]: {
     name: 'Acid Bomb',
-    description: 'Leap backward, spraying an acidic elixir on the ground that damages nearby foes.',
     icon: 'https://render.guildwars2.com/file/D17CEA181773C2B17F9F05212D352BCACE55BCC3/103440.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -198,7 +192,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
   },
   [ID.SUPER_ELIXIR]: {
     name: 'Super Elixir',
-    description: 'Shoot an elixir orb, healing allies when it bursts and creating an area of continual healing.',
     icon: 'https://render.guildwars2.com/file/ACF8D7350B7D37FFE4E73D150B7F5B73243A72B1/103441.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -218,7 +211,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
   },
   [ID.HEALING_MIST]: {
     name: 'Healing Mist',
-    description: 'Vent a healing mist, granting regeneration to yourself and allies.',
     icon: 'https://render.guildwars2.com/file/F877C354CBE4413DD7FA205D78B96C90110F4D32/103452.png',
     type: 'Profession',
     slot: 'Action',
@@ -238,7 +230,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
   },
   [ID.SUPER_ELIXIR_CHAIN_SKILL]: {
     name: 'Super Elixir (chain skill)',
-    description: 'Burst the orb, instantly healing your allies and creating an area of continual healing.',
     icon: 'https://render.guildwars2.com/file/ACF8D7350B7D37FFE4E73D150B7F5B73243A72B1/103441.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -250,7 +241,6 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
   },
   [ID.STOW_ELIXIR_GUN]: {
     name: 'Stow Elixir Gun',
-    description: 'Stow your elixir gun.',
     icon: 'https://render.guildwars2.com/file/7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png',
     type: 'Utility',
     slot: 'Utility',
@@ -266,4 +256,4 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
     // Commit the bar transition before cast traits observe the selected kit.
     sideEffects: [{ on: 'castCommit', do: { type: 'engineer.kit-transition' } }]
   }
-});
+};

@@ -79,8 +79,8 @@ function scheduleThornsRetaliation(context: EngineerRuntime, skill: EngineerSkil
 /** Activates the casting skill's Plasmatic State duration with its first strike. */
 function activatePlasmaticState(context: EngineerRuntime, skill: EngineerSkill): void {
   const at = context.time;
-  amalgamState.from(context).plasmaticStateUntil = Math.max(
-    amalgamState.from(context).plasmaticStateUntil,
+  amalgamState.from(context.profession).plasmaticStateUntil = Math.max(
+    amalgamState.from(context.profession).plasmaticStateUntil,
     at + requireBalanceNumber(skill.duration, `${skill.name} duration`)
   );
 }
@@ -88,7 +88,7 @@ function activatePlasmaticState(context: EngineerRuntime, skill: EngineerSkill):
 /** Activates Evolved, grants selected strains, and resolves Evolve trait interactions. */
 function evolveAmalgam(context: EngineerRuntime, skill: EngineerSkill): void {
   const at = context.time;
-  const state = amalgamState.from(context);
+  const state = amalgamState.from(context.profession);
   // The accepted variant owns its patched lifetime independently of trait-owned attribute scaling.
   state.evolvedUntil = at + requireBalanceNumber(skill.duration, `${skill.name} duration`);
 

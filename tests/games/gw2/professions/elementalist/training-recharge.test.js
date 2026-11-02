@@ -69,7 +69,7 @@ for (const release of ['manual', 'expiry']) {
           at: 3,
           run(runtime) {
             const progress = runtime.cooldownController.rechargeFor(ID.ROCK_BARRIER);
-            assert.equal(progress.startedAt, release === 'manual' ? 1.5 : 2);
+            assert.equal(progress.workAnchorAt, release === 'manual' ? 1.5 : 2);
             assert.equal(progress.work, 3);
             close(runtime);
             assert.deepEqual(runtime.cooldownController.rechargeFor(ID.ROCK_BARRIER), progress);

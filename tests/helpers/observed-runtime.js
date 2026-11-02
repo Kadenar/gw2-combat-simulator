@@ -1,3 +1,4 @@
+import { planningState } from '#gw2/platform/results/planning-state.js';
 import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
 import { runGw2Runtime, runRuntime } from '#gw2/platform/simulation/runtime.js';
 import { prepareSimulationConfig } from '#tests/helpers/simulation-config.js';
@@ -62,9 +63,28 @@ export function observedRuntime(result) {
   return runtime;
 }
 
-/** Supplies a complete planning input for minimal fixtures through the selected runtime contract. */
+/** Observe selected public fields through the production detachment boundary, without running combat. */
 export function projectObservedState(family, input) {
   const config = { ...input.config, specialization: input.profession.specialization.kind };
   const runtime = family.runtimeFor(config);
-  return runtime.projectPlanningState({ time: 0, activeWeaponSet: 1, catalog: runtime.catalog, ...input, config });
+  return planningState(
+    {
+      time: input.time ?? 0,
+      activeWeaponSet: input.activeWeaponSet ?? 1,
+      catalog: input.catalog ?? runtime.catalog,
+      profession: input.profession,
+      combatActive: false,
+      // Profession-only observations never read the caller's unrelated engine collaborators.
+      cooldownController: {
+        cooldownSkillIds: () => [],
+        ammoSkillIds: () => [],
+        readyAt: () => undefined,
+        readAmmo: () => undefined
+      },
+      config
+    },
+    runtime.projectPlanningState,
+    () => ({ ready: true }),
+    []
+  ).profession;
 }

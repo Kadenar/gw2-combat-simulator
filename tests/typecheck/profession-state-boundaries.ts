@@ -1,9 +1,5 @@
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import {
-  cloneStateFields,
-  defineProfessionSpecializationState,
-  professionCoreState
-} from '#gw2/platform/profession-definition/state.js';
+import { defineProfessionSpecializationState, professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
@@ -35,6 +31,7 @@ import type { RenegadeState } from '#gw2/professions/revenant/specializations/re
 import type { VindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import type { RevenantPlanningState } from '#gw2/professions/revenant/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import type { DeadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { ThiefPlanningState } from '#gw2/professions/thief/types.js';
 import type { WarriorCoreState } from '#gw2/professions/warrior/core/state.js';
@@ -116,35 +113,28 @@ export type ProfessionModuleStateBoundaryAssertions = [
 declare const context: EngineerRuntime;
 declare const elementalistContext: ElementalistRuntime;
 
-professionCoreState(context).endurance;
-holosmithState.from(context).heat;
-mechanistState.from(context).mech;
-professionCoreState(elementalistContext).primaryAttunement;
-weaverState.from(elementalistContext).unravelUntil;
-catalystState.from(elementalistContext).catalystEnergy.value;
+professionCoreState(context.profession).endurance;
+holosmithState.from(context.profession).heat;
+mechanistState.from(context.profession).mech;
+professionCoreState(elementalistContext.profession).primaryAttunement;
+weaverState.from(elementalistContext.profession).unravelUntil;
+catalystState.from(elementalistContext.profession).catalystEnergy.value;
 
 // @ts-expect-error Core does not own Weaver state.
-professionCoreState(elementalistContext).unravelUntil;
+professionCoreState(elementalistContext.profession).unravelUntil;
 // @ts-expect-error Weaver cannot access its Catalyst sibling.
-weaverState.from(elementalistContext).catalystEnergy;
+weaverState.from(elementalistContext.profession).catalystEnergy;
 
 // @ts-expect-error Core does not own Holosmith state.
-professionCoreState(context).heat;
+professionCoreState(context.profession).heat;
 // @ts-expect-error Holosmith cannot access its Mechanist sibling.
-holosmithState.from(context).mech;
+holosmithState.from(context.profession).mech;
 // @ts-expect-error Mechanist cannot access its Holosmith sibling.
-mechanistState.from(context).heat;
+mechanistState.from(context.profession).heat;
 // @ts-expect-error A module state factory cannot return an array.
 defineProfessionSpecializationState('ArrayState', () => []);
 // @ts-expect-error A module state factory cannot return a primitive.
 defineProfessionSpecializationState('PrimitiveState', () => 1);
-
-// Selected runtime fields retain precise types and reject misspelled owner properties.
-declare const firebrandState: GuardianFirebrandState;
-const pages = cloneStateFields(firebrandState, ['tomePages']);
-pages.tomePages.value.toFixed();
-// @ts-expect-error Unknown runtime fields cannot enter a public projection.
-cloneStateFields(firebrandState, ['tomePagez']);
 
 // Public projection types preserve selected fields without claiming private runtime counters exist.
 declare const planningInput: Gw2PlanningStateInput;
@@ -174,3 +164,18 @@ export type PublicPlanningIdentityAssertions = [
   Assert<Rejects<ThiefPlanningState, 'initiative'>>,
   Assert<Owns<ThiefPlanningState, typeof STATE.INITIATIVE>>
 ];
+
+// State access requires the owned runtime slice, not an execution, resolver, or planning wrapper.
+// @ts-expect-error Context wrappers are not runtime state.
+professionCoreState(context);
+// @ts-expect-error Active-specialization access also requires the runtime slice.
+holosmithState.from(context);
+// @ts-expect-error A different wrapper cannot restore the removed context dispatch.
+holosmithState.from({ runtime: { profession: context.profession } });
+
+const deadeyePreview = thiefRuntimeSpecializationState(undefined, 'Deadeye');
+deadeyePreview.markExpiresAt?.toFixed();
+// @ts-expect-error The discriminant determines the state; Deadeye has no Antiquary damage window.
+deadeyePreview.antiquaryDamageUntil;
+// @ts-expect-error Unknown specialization names cannot request an arbitrary state shape.
+thiefRuntimeSpecializationState(undefined, 'Holosmith');

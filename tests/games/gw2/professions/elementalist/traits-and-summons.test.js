@@ -26,7 +26,7 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 test('Gale Song and Bolstered Elements expand their selected boon profile at completion', () => {
   for (const [specialization, trait, name] of [
     ['Tempest', TRAIT.GALE_SONG, 'Glyph of Elemental Harmony'],
-    ['Weaver', TRAIT.BOLSTERED_ELEMENTS, 'Primordial Stance (Fire)']
+    ['Weaver', TRAIT.BOLSTERED_ELEMENTS, 'Primordial Stance']
   ]) {
     const config = {
       specialization,
@@ -462,7 +462,7 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
   });
 
   assert.deepEqual(
-    flow.steps.filter((step) => String(step.skill).endsWith(' Attunement')).map((step) => step.start),
+    flow.steps.filter((step) => String(step.skillName).endsWith(' Attunement')).map((step) => step.start),
     [0, 2400]
   );
 
@@ -491,10 +491,10 @@ test('Weaver traits enforce dual-attunement, boon, modifier, and recharge rules'
 
   const pursuit = runNative({
     lines: [['Fire'], ['Air'], ['Weaver', '2-3-1']],
-    rotation: ['Updraft', 'Primordial Stance (Air)'],
+    rotation: ['Updraft', 'Primordial Stance'],
     startAttunement: 'Air',
     secondaryAttunement: 'Air',
-    selectedSkillIds: { Heal: 34743, Utility1: -1168, Utility2: 5542, Utility3: 5638, Elite: 43638 }
+    selectedSkillIds: { Heal: 34743, Utility1: 40183, Utility2: 5542, Utility3: 5638, Elite: 43638 }
   });
 
   assert.equal(
@@ -665,7 +665,7 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
     result.planningState.profession[STATE.AVAILABLE_FLIPS][elementalistCatalog.skillsById.get(2662).id]?.expiresAt,
     result.planningState.profession[STATE.SUMMONED_ELEMENTAL].activeUntil
   );
-  assert.equal(result.planningState.cooldowns[25488], undefined);
+  assert.equal(result.planningState.cooldownsBySkillId[25488], undefined);
 });
 
 test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => {
@@ -939,14 +939,14 @@ test('Elementalist small-hitbox caps exclude only excess multi-hit packets', () 
       skill: 'Glyph of Storms (Air)',
       small: 20,
       large: 36,
-      selectedSkill: 'Glyph of Storms (Air)',
+      selectedSkill: 'Glyph of Storms',
       startAttunement: 'Air'
     },
     {
       skill: 'Glyph of Storms (Water)',
       small: 11,
       large: 18,
-      selectedSkill: 'Glyph of Storms (Water)',
+      selectedSkill: 'Glyph of Storms',
       startAttunement: 'Water'
     },
     {

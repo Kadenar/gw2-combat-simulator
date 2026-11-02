@@ -44,7 +44,7 @@ export function createContinuumController({
 }: ContinuumControllerOptions): MesmerContinuumController {
   // Restore captured recharge exactly once; autoattack chains continue independently of the rewind.
   const restoreContinuum = (at: number, reason: string) => {
-    const chronomancer = chronomancerState.from(state);
+    const chronomancer = chronomancerState.from(state.profession);
     const continuum = chronomancer.continuum;
 
     if (!continuum) return;
@@ -91,7 +91,7 @@ export function createContinuumController({
     const spent = consumeResources(at, spendDetails);
     // The mechanic selects exclusions; the shared service owns pool representation and earned-work snapshots.
     const recharge = cooldownController.checkpoint(at, unaffectedCooldownIds, skill.id);
-    const chronomancer = chronomancerState.from(state);
+    const chronomancer = chronomancerState.from(state.profession);
     // Fragmentation extends the base window once, independently of the number of clones spent.
     const duration = durationPerSource * (spent + 1) + bonusDuration;
     chronomancer.continuum = {
@@ -144,7 +144,7 @@ export function chronomancerAvailability(
   context: MechanicQueriesOf<MesmerRuntime>,
   skill: MesmerSkill
 ): AvailabilityResult {
-  if (skill.id !== ID.CONTINUUM_SHIFT || chronomancerState.from(context).continuum) {
+  if (skill.id !== ID.CONTINUUM_SHIFT || chronomancerState.from(context.profession).continuum) {
     return { ready: true };
   }
 

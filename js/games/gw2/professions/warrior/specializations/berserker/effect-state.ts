@@ -13,7 +13,7 @@ export function berserkerBuffPolicies(): BuffStatePolicy[] {
 
 /** Observe live owner state so consumption and expiry agree with combat. */
 export function berserkerEffectStates(runtime: MechanicQueriesOf<WarriorRuntime>): EffectState[] {
-  const state = berserkerState.from(runtime);
+  const state = berserkerState.from(runtime.profession);
   return [
     timedEffectState('berserk', state.berserkUntil != null ? [{ stacks: 1, expiresAt: state.berserkUntil }] : [], 1),
     timedEffectState('fire-aura', [{ stacks: 1, expiresAt: state.fireAuraUntil }], 1)

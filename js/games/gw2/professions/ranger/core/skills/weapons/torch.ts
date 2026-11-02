@@ -4,10 +4,9 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 
-export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.THROW_TORCH]: {
     name: 'Throw Torch',
-    description: 'Throw your torch and burn your foes in an area.',
     icon: 'https://render.guildwars2.com/file/10A02F01D7021C39049292DAEEC14E690CE5460B/102988.png',
     type: 'Weapon',
     weapon: 'Torch',
@@ -40,7 +39,6 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillDef
   },
   [ID.BONFIRE]: {
     name: 'Bonfire',
-    description: 'Set a fire around you, damaging and burning foes.',
     icon: 'https://render.guildwars2.com/file/9C7194F175325315B12FC274F1CA48D094C25AD3/103532.png',
     type: 'Weapon',
     weapon: 'Torch',
@@ -81,4 +79,4 @@ export const RANGER_CORE_TORCH_SKILL_MECHANICS: Readonly<Record<number, SkillDef
       }
     ])
   }
-});
+};

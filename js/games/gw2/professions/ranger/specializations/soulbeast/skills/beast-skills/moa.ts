@@ -5,11 +5,11 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
-export const SOULBEAST_MOA_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const SOULBEAST_MOA_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.FRENZIED_ATTACK]: {
     name: 'Frenzied Attack',
-    description: 'Attack with a pecking frenzy and make your foe vulnerable.',
     icon: 'https://render.guildwars2.com/file/E4C75BA1A9056A684EDDF0CBCB746B36D707A842/103007.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -33,7 +33,6 @@ export const SOULBEAST_MOA_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillD
   },
   [ID.HARMONIC_CRY]: {
     name: 'Harmonic Cry',
-    description: 'Heal yourself and nearby allies.',
     icon: 'https://render.guildwars2.com/file/C8E6011DF9B8665510E9BC12186A01B64006A62A/103556.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -42,4 +41,4 @@ export const SOULBEAST_MOA_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillD
     castTimeMs: 0,
     effects: []
   }
-});
+};

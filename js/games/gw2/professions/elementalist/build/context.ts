@@ -13,7 +13,6 @@ export const profession: BoundProfession = withActivePatchPreview(elementalistPr
 
 export const createBuildContext = bindBuildContext<ElementalistCanonicalBuild>(
   profession,
-  { attributeContributions: profession.attributeContributions },
   (build) => ({
     startAttunement: build.startAttunement,
     secondaryAttunement: build.secondaryAttunement,

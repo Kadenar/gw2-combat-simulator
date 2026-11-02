@@ -1,15 +1,14 @@
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Guild actor attacks own their selected packets and repeat recharge; shared AI keeps engagement and lifetime. */
-export const DAREDEVIL_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
+export const DAREDEVIL_GUILD_ATTACK_SKILLS: readonly Skill[] = [
   {
     name: 'Thieves Guild (Daredevil) \u2014 Vault',
-    description: 'Automatically triggered Thieves Guild (Daredevil) — Vault effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 41056,
     displayName: 'Vault',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 11.36,
     effects: [
@@ -25,12 +24,11 @@ export const DAREDEVIL_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Thieves Guild (Daredevil) \u2014 Impairing Daggers',
-    description: 'Automatically triggered Thieves Guild (Daredevil) — Impairing Daggers effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 40482,
     displayName: 'Impairing Daggers',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 0,
     effects: [
@@ -70,12 +68,11 @@ export const DAREDEVIL_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
   },
   {
     name: 'Thieves Guild (Daredevil) \u2014 Weakening Charge',
-    description: 'Automatically triggered Thieves Guild (Daredevil) — Weakening Charge effect.',
     icon: 'https://render.guildwars2.com/file/C314B19D687453E02BC5B5BB4137903A12267AF1/104093.png',
     id: 40005,
     displayName: 'Weakening Charge',
     type: 'Proc',
-    simulatorExcluded: true,
+    rotationInputExcluded: true,
     castTimeMs: 0,
     cooldown: 3.36,
     effects: [
@@ -89,4 +86,4 @@ export const DAREDEVIL_GUILD_ATTACK_SKILLS: readonly Skill[] = Object.freeze([
       }
     ]
   }
-]);
+];

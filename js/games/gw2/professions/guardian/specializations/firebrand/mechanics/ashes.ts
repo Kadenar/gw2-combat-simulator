@@ -37,7 +37,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 const ASHES = 'guardian.firebrand.ashes';
 
-export const FIREBRAND_ASHES_EXPIRE = 'guardian.firebrand.ashes-expiry';
+const FIREBRAND_ASHES_EXPIRE = 'guardian.firebrand.ashes-expiry';
 
 interface AshesGrantAdmission {
   readonly buff: SkillEffect;
@@ -68,7 +68,7 @@ export function resolveAshesGrantData(
  */
 export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest): void {
   const expiresAt = gw2EffectExpiresAt(runtime.time, request.lifetimeSeconds);
-  const state = firebrandState.from(runtime);
+  const state = firebrandState.from(runtime.profession);
   const install = (previous: ChargeGrant | undefined) =>
     grantCharges(request.charges, expiresAt, request.source === 'epilogue' ? undefined : previous, runtime.time);
 
@@ -92,7 +92,7 @@ export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest)
   runtime.alliedStrikes.registerRecipients(
     (allyIndex) => {
       state.alliedAshes[allyIndex] = install(state.alliedAshes[allyIndex]);
-      const current = () => firebrandState.from(runtime).alliedAshes[allyIndex];
+      const current = () => firebrandState.from(runtime.profession).alliedAshes[allyIndex];
       return {
         id: `ashes:${allyIndex}`,
         isActive: (at) => activeChargeCount(current(), at, true) > 0,
@@ -196,7 +196,7 @@ export function reactToAshesHit(
 ): void {
   if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
 
-  const resolved = spendAshesCharge(context, firebrandState.from(context).ashes, event.at);
+  const resolved = spendAshesCharge(context, firebrandState.from(context.profession).ashes, event.at);
 
   if (resolved) emitPersonalAshes(context, event, resolved, 'self');
 }
@@ -303,7 +303,7 @@ const firebrandAshesTasks = {
     grantFirebrandAshes(runtime, (data as { cast: RuntimeCast<GuardianSkill> }).cast);
   },
   [FIREBRAND_ASHES_EXPIRE](runtime: GuardianRuntime) {
-    expireCharges(firebrandState.from(runtime).ashes, runtime.time);
+    expireCharges(firebrandState.from(runtime.profession).ashes, runtime.time);
   }
 };
 

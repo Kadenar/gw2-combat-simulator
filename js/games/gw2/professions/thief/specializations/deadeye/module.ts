@@ -7,8 +7,7 @@ import { TRAIT_LINES } from '#gw2/professions/thief/data/trait-lines.js';
 import { DEADEYE_SKILL_FIELDS } from '#gw2/professions/thief/specializations/deadeye/catalog-fields.js';
 import { deadeyeHooks } from '#gw2/professions/thief/specializations/deadeye/hooks.js';
 import { deadeyeUi } from '#gw2/professions/thief/specializations/deadeye/presentation.js';
-import { DEADEYE_GUILD_ATTACK_SKILLS } from '#gw2/professions/thief/specializations/deadeye/skills/guild-attacks.js';
-import { DEADEYE_SKILL_MECHANICS } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
+import { DEADEYE_SKILLS } from '#gw2/professions/thief/specializations/deadeye/skills/index.js';
 import { maliciousAttackModifiers } from '#gw2/professions/thief/specializations/deadeye/skills/malicious-attacks.js';
 import { THIEF_DEADEYE_SKILL_FLIPS } from '#gw2/professions/thief/specializations/deadeye/skills/skill-flips.js';
 import { deadeyeSlotModifiers } from '#gw2/professions/thief/specializations/deadeye/skills/slot-skills.js';
@@ -23,9 +22,9 @@ export const deadeyeModule = defineNativeModule({
     id: 'Deadeye',
     traitLines: TRAIT_LINES,
     skillFlips: THIEF_DEADEYE_SKILL_FLIPS,
-    extraSkills: DEADEYE_GUILD_ATTACK_SKILLS,
+
     skillFields: DEADEYE_SKILL_FIELDS,
-    skillMechanics: DEADEYE_SKILL_MECHANICS
+    skills: DEADEYE_SKILLS
   }),
   state: {
     create: () => deadeyeState.create(),

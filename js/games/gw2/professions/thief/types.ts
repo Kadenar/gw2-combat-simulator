@@ -101,30 +101,36 @@ export interface ThiefSkill
     NumericSkillFields<typeof SPECTER_SKILL_FIELDS>,
     NumericSkillFields<typeof ANTIQUARY_SKILL_FIELDS>,
     NumericSkillFields<typeof THIEF_CORE_SKILL_FIELDS> {
+  /** Artifact this skill stocks or spends. */
   readonly artifactKind?: ThiefArtifactKind;
+  /** Has a backfire outcome selected in the rotation. */
   readonly backfire?: boolean;
+  /** Uses the off-hand weapon's dual-wield opener. */
   readonly dualWieldOpener?: boolean;
   /** Marks attacks eligible for dual-attack traits, including the supported empty-offhand variants. */
   readonly dualWieldAttack?: boolean;
+  /** Available only while kneeling. */
   readonly kneelSkill?: boolean;
+  /** Spends malice for its enhanced variant. */
   readonly malicious?: boolean;
   readonly movementSkill?: boolean;
+  /** Does not reveal the player when used from stealth. */
   readonly preservesStealth?: boolean;
   readonly shadowShroudSkill?: boolean;
   /** Marks the two Shadow Shroud bar transitions so replay and live owners can order and select them. */
   readonly shadowShroudTransition?: 'enter' | 'exit';
+  /** Spear stealth attack replacing the autoattack. */
   readonly spearStealthAttack?: boolean;
   readonly stealthAttack?: boolean;
+  /** Steal variant selected by a trait. */
   readonly stealTraitSkill?: boolean;
+  /** How Specter Steal variants share their recharge. */
   readonly stealRechargeMode?: 'multiplicative' | 'additive';
+  /** Attack performed by the summoned thieves. */
   readonly summonAttack?: ThiefSummonAttack;
 }
 
 export type ThiefSimulationEvent = SimulationEvent & {
-  readonly application?: ThiefSimulationEvent;
-  readonly cancelled?: boolean;
-  readonly coefficient?: number;
-  readonly condition?: string;
   readonly deadeyeMaliceSnapshot?: number;
 };
 

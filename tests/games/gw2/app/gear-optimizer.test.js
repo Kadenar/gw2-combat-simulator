@@ -154,7 +154,7 @@ test('equal integer vectors merge before evaluation without losing coverage or r
   const cached = full.evaluateRange(0n, full.space.count);
   assert.equal(full.space.count, 7n);
   assert.equal(full.space.ordinary.rawCount, 8n);
-  assert.equal(cached.represented, '8');
+  assert.equal(cached.representedCombinationCount, '8');
   assert.equal(cached.simulations, '7');
   const ordinary = runOrdinaryOptimizer({ ...captured, limit: 20 }, adapter);
   const distinct = [];
@@ -184,7 +184,7 @@ test('local top twenty merging deduplicates before truncation and uses unrounded
     ...base,
     key: String(index).padStart(2, '0'),
     score: { ...base.score, dps: index / 1000 },
-    represented: '1'
+    representedCombinationCount: '1'
   }));
   const left = [],
     right = [],
@@ -401,7 +401,7 @@ test('selectable worker pools evaluate each unique candidate once and retain ide
     const multiple = await run(count);
     assert.deepEqual(multiple.baseline, single.baseline);
     assert.deepEqual(single.winners, multiple.winners);
-    assert.equal(multiple.represented, 32n);
+    assert.equal(multiple.representedCombinationCount, 32n);
     assert.equal(multiple.count, 28n);
     assert.equal(multiple.simulations, 28n);
     assert.equal(multiple.completed, multiple.count);
@@ -432,7 +432,7 @@ test('bounded refinement stays deterministic across worker counts without rescor
             assert.ok(runner.state.simulations > 256n, 'refinement must add new candidates after sampling');
             assert.ok(runner.state.simulations <= BigInt(OPTIMIZER_SEARCH_BUDGET));
             assert.ok(
-              runner.state.represented < runner.state.rawCount,
+              runner.state.representedCombinationCount < runner.state.rawCount,
               'bounded completion must not imply exhaustive coverage'
             );
             resolve(runner.state);
@@ -588,9 +588,9 @@ test('unique totals preserve every ordinary vector and multiplicity with unequal
   const collect = (count, at) => {
     const vectors = new Map();
     for (let i = 0n; i < count; i++) {
-      const { equipment, represented } = at(i);
+      const { equipment, representedCombinationCount } = at(i);
       const key = optimizerEquivalenceKey(equipment, ordinary, adapter);
-      vectors.set(key, (vectors.get(key) || 0n) + represented);
+      vectors.set(key, (vectors.get(key) || 0n) + representedCombinationCount);
     }
 
     return vectors;
@@ -598,7 +598,10 @@ test('unique totals preserve every ordinary vector and multiplicity with unequal
 
   assert.deepEqual(
     collect(grouped.count, (i) => groupedEquipmentAt(grouped, i)),
-    collect(ordinary.rawCount, (i) => ({ equipment: ordinaryEquipmentAt(ordinary, i), represented: 1n }))
+    collect(ordinary.rawCount, (i) => ({
+      equipment: ordinaryEquipmentAt(ordinary, i),
+      representedCombinationCount: 1n
+    }))
   );
   const evaluator = createOptimizerEvaluator(captured, adapter);
   const bruteScores = new Map();
@@ -655,12 +658,18 @@ test('optimizer relic candidates inherit the captured workspace Thorns stacks', 
 });
 
 test('optimizer requirements validate numeric bounds and reject inverted toughness ranges', () => {
-  for (const key of ['minToughness', 'maxToughness', 'minVitality', 'minBoonDuration', 'minQuicknessDuration']) {
+  for (const key of [
+    'minToughness',
+    'maxToughness',
+    'minVitality',
+    'minBoonDurationPercent',
+    'minQuicknessDurationPercent'
+  ]) {
     for (const value of [null, '', '10', NaN, Infinity, -1]) assert.throws(() => request({ [key]: value }), /Invalid/);
     assert.doesNotThrow(() => request({ [key]: 0 }));
   }
 
-  for (const key of ['minBoonDuration', 'minQuicknessDuration'])
+  for (const key of ['minBoonDurationPercent', 'minQuicknessDurationPercent'])
     assert.throws(() => request({ [key]: 100.1 }), /Invalid/);
   assert.throws(() => request({ minToughness: 1200, maxToughness: 1100 }), /must not exceed/);
 });
@@ -698,8 +707,8 @@ test('requirements use inclusive finalized stats and reject before simulation co
       minToughness: toughness,
       maxToughness: toughness,
       minVitality: vitality,
-      minBoonDuration: boon,
-      minQuicknessDuration: quickness
+      minBoonDurationPercent: boon,
+      minQuicknessDurationPercent: quickness
     },
     overrides
   );
@@ -715,8 +724,8 @@ test('requirements use inclusive finalized stats and reject before simulation co
     { minToughness: toughness + 1 },
     { maxToughness: toughness - 1 },
     { minVitality: vitality + 1 },
-    { minBoonDuration: boon + 0.01 },
-    { minQuicknessDuration: quickness + 0.01 }
+    { minBoonDurationPercent: boon + 0.01 },
+    { minQuicknessDurationPercent: quickness + 0.01 }
   ]) {
     const rejected = request(limits, overrides);
     assert.equal(createOptimizerEvaluator(rejected, mustNotPrepareCombat).score(rejected.build), null);
@@ -749,7 +758,7 @@ test('requirements check alternate weapon stats even when the starting set quali
 
 test('exact and fast searches discard failing runes while retaining coverage and display groups', () => {
   const captured = request(
-    { rune: ['Firebrand', 'Fireworks'], minQuicknessDuration: 40 },
+    { rune: ['Firebrand', 'Fireworks'], minQuicknessDurationPercent: 40 },
     {
       food: '',
       utility: '',
@@ -763,7 +772,7 @@ test('exact and fast searches discard failing runes while retaining coverage and
   for (const create of [createGroupedOptimizer, createFastOptimizer]) {
     const job = create(captured, adapter);
     const result = job.evaluateRange(0n, job.space.count);
-    assert.equal(result.represented, '2');
+    assert.equal(result.representedCombinationCount, '2');
     assert.equal(result.simulations, '1');
     assert.deepEqual(
       result.winners.map(({ equipment }) => equipment.rune),
@@ -907,7 +916,7 @@ test('workers finish exact and fast searches when every candidate fails requirem
     });
     assert.equal(state.simulations, 0n);
     assert.equal(state.completed, state.count);
-    assert.equal(state.represented, 1n);
+    assert.equal(state.representedCombinationCount, 1n);
     assert.deepEqual(state.winners, []);
   }
 });
@@ -956,7 +965,7 @@ test(
         });
         assert.equal(state.simulations, scenario.expected);
         assert.equal(state.completed, state.count);
-        assert.equal(state.represented, state.rawCount);
+        assert.equal(state.representedCombinationCount, state.rawCount);
         assert.deepEqual(
           state.winners.map(({ equipment, score }) => ({ equipment, score })),
           runOrdinaryOptimizer(captured, adapter).map(({ equipment, score }) => ({ equipment, score }))
@@ -1037,7 +1046,7 @@ test('unique ordinals preserve independent weapon budgets, upgrades, and canonic
     const encoded = JSON.stringify(equipment);
     const previous = expected.get(key);
     expected.set(key, {
-      represented: (previous?.represented || 0n) + 1n,
+      representedCombinationCount: (previous?.representedCombinationCount || 0n) + 1n,
       encoded: previous && previous.encoded < encoded ? previous.encoded : encoded
     });
   }
@@ -1045,10 +1054,10 @@ test('unique ordinals preserve independent weapon budgets, upgrades, and canonic
   assert.equal(grouped.count, BigInt(expected.size));
   const actual = new Map();
   for (let i = 0n; i < grouped.count; i++) {
-    const { equipment, represented } = groupedEquipmentAt(grouped, i);
+    const { equipment, representedCombinationCount } = groupedEquipmentAt(grouped, i);
     const key = optimizerEquivalenceKey(equipment, ordinary, adapter);
     assert.ok(!actual.has(key), 'every dispatched ordinal must have a distinct combat key');
-    actual.set(key, { represented, encoded: JSON.stringify(equipment) });
+    actual.set(key, { representedCombinationCount, encoded: JSON.stringify(equipment) });
   }
 
   assert.deepEqual(actual, expected);
@@ -1154,13 +1163,13 @@ test('gear, rune and infusion totals merge with exact score and representative p
         key,
         score,
         equipment: prior && JSON.stringify(prior.equipment) < JSON.stringify(equipment) ? prior.equipment : equipment,
-        represented: String(BigInt(prior?.represented || '0') + 1n)
+        representedCombinationCount: String(BigInt(prior?.representedCombinationCount || '0') + 1n)
       });
     }
 
     assert.equal(job.space.count, job.space.ordinary.rawCount - 1n);
     const result = job.evaluateRange(0n, job.space.count);
-    assert.equal(result.represented, job.space.ordinary.rawCount.toString());
+    assert.equal(result.representedCombinationCount, job.space.ordinary.rawCount.toString());
     assert.deepEqual(result.winners, [...expected.values()].sort(compareOptimizerCandidates).slice(0, captured.limit));
   }
 });

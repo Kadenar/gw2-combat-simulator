@@ -3,8 +3,8 @@ import {
   outsideScopeTooltip,
   simulationEffectFacts,
   skillTooltip,
+  tooltipAttributeConversion,
   tooltipFactorChange,
-  tooltipPercent,
   tooltipProfile,
   tooltipSeconds,
   traitTooltip,
@@ -117,7 +117,7 @@ export const scourgeTooltips = {
       'on barrier application'
     ),
     [TRAIT.FELL_BEACON]: traitTooltip('Gain expertise from condition damage and increase burning damage.', [
-      ['attributeConversion', 'Condition damage converted to expertise', tooltipPercent],
+      ['attributeConversion', 'Expertise gained from condition damage', tooltipAttributeConversion],
       fromProfile(TRAIT.FELL_BEACON, 'conditionDamageMultiplier', 'Burning damage', tooltipFactorChange)
     ]),
     [TRAIT.NOURISHING_ASHES]: traitTooltip(

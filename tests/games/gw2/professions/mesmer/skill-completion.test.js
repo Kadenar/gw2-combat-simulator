@@ -173,7 +173,7 @@ test('Harp start protection is independent of its later playing-state commitment
   // A canceled start must not reach either emission or instrument state even when manually dispatched.
   applySkillSideEffects(
     {},
-    { skill: mesmerCatalog.skillsById.get(ID.HARMONIOUS_HARP), cancelled: true },
+    { skill: mesmerCatalog.skillsById.get(ID.HARMONIOUS_HARP), cancelledBeforeCommit: true },
     'castStart',
     troubadourHooks.sideEffectHandlers
   );

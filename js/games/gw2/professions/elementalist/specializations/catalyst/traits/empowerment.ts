@@ -20,7 +20,11 @@ import { burningRage } from '#gw2/professions/elementalist/core/traits/fire/inde
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type { CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import type { ElementalistModifierContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistModifierContext,
+  ElementalistRuntime,
+  ElementalistRuntimeState
+} from '#gw2/professions/elementalist/types.js';
 
 /**
  * Adds timed Elemental Empowerment stacks: expired stacks are dropped first, and
@@ -45,14 +49,17 @@ export function grantCatalystElementalEmpowerment(
 }
 
 /** Track accepted empowerment grants independently of current selection so applied effects retain their lifetime. */
-export function applyCatalystEmpowerment(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
+export function applyCatalystEmpowerment(
+  context: MechanicCombatContext<ElementalistRuntimeState>,
+  event: Gw2ResolverEvent
+): void {
   const kind = (event.kind || '').toLowerCase();
 
   if (kind !== 'elemental empowerment' || !event.resolvedAudience?.includesSelf) {
     return;
   }
 
-  const state = catalystState.from(context);
+  const state = catalystState.from(context.profession);
   grantCatalystElementalEmpowerment(
     state,
     event.at,

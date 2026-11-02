@@ -55,7 +55,7 @@ test('Ferocious Symbiosis buffs the tiger only when the ranger attacks', () => {
 test('Ferocious Symbiosis independently throttles, caps, refreshes, and expires each beneficiary', () => {
   // Use the live proc controller with precisely spaced hits to isolate the cooldown and refresh contract.
   const runtime = observedRuntime(runRanger([], { ...config, selectedTraitIds: [TRAIT.FEROCIOUS_SYMBIOSIS] }));
-  const state = untamedState.from(runtime);
+  const state = untamedState.from(runtime.profession);
   const pet = runtime.profession.core.pet;
   const hit = (at, pet = false) =>
     runtime.fireTrigger(untamedStrike, {
@@ -104,7 +104,7 @@ test('Ferocious Symbiosis independently throttles, caps, refreshes, and expires 
 
 test('Ranger-owned pet skill damage uses player Symbiosis even when the pet has different stacks', () => {
   const runtime = observedRuntime(runRanger([], { ...config, selectedTraitIds: [TRAIT.FEROCIOUS_SYMBIOSIS] }));
-  const state = untamedState.from(runtime);
+  const state = untamedState.from(runtime.profession);
   const pet = runtime.profession.core.pet;
   // Caster provenance remains pet-owned, but damage modifiers follow the packet's player ownership.
   const cloud = { source: 'ranger-pet', actorType: 'player', summonOwner: pet.id };

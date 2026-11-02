@@ -4,14 +4,28 @@ import type { CastCommand, CooldownResetCommand, RotationCommand } from '#gw2/pl
 import { quantizeGw2ActionDurationUp, quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
+import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 const OBSERVED_CAST_TOLERANCE_MS = 20;
+
+/**
+ * Tied replay actions order by profession transitions: shroud entry and exit, and the attunement a weapon skill
+ * belongs to. Their owning profession types declare these fields.
+ */
+type ReplaySkill = Skill &
+  Partial<
+    Pick<ElementalistSkill, 'attunement'> &
+      Pick<NecromancerSkill, 'shroud' | 'shroudEntry' | 'shroudExit'> &
+      Pick<ThiefSkill, 'shadowShroudSkill' | 'shadowShroudTransition'>
+  >;
 
 export interface ReplayTimelineAction {
   readonly start: number;
   readonly end: number;
   readonly eventIndex: number;
-  readonly skill: Skill | null;
+  readonly skill: ReplaySkill | null;
   readonly name: string;
   readonly skillId: string | number;
   readonly independentTimeline?: boolean;

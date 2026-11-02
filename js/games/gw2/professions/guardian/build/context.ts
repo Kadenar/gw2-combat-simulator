@@ -12,9 +12,6 @@ export const profession: BoundProfession = withActivePatchPreview(guardianProfes
 
 export const createBuildContext = bindBuildContext<GuardianCanonicalBuild>(
   profession,
-  {
-    attributeContributions: profession.attributeContributions
-  },
   (build) => ({ initialTomePages: build.initialTomePages }),
   { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
 );

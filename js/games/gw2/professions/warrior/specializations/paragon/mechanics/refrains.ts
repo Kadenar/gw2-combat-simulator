@@ -22,7 +22,7 @@ const REFRAIN = 'warrior.paragon-refrain';
 
 /** Replacing even the same chant invalidates the old pulse before arming a new cadence. */
 export function startRefrain(runtime: WarriorRuntime): void {
-  const state = paragonState.from(runtime);
+  const state = paragonState.from(runtime.profession);
   runtime.cancelOwner({ id: REFRAIN, generation: state.refrainGeneration });
   state.refrainGeneration++;
   const interval = balanceNumberFromContext(runtime, TRAIT.RALLY_THE_VALIANT, 'pulseInterval');
@@ -40,7 +40,7 @@ export function startRefrain(runtime: WarriorRuntime): void {
 /** Motivation starts empty and changes only through rewards and the existing refrain tasks, never passive recovery. */
 const paragonMotivationPolicy: ResourcePolicy<WarriorRuntime> = {
   kind: 'continuous',
-  state: (runtime) => paragonState.from(runtime).motivation,
+  state: (runtime) => paragonState.from(runtime.profession).motivation,
   maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.RALLY_THE_VALIANT, 'maximumStacks'),
   initial: () => 0,
   recovery: () => 0
@@ -78,7 +78,7 @@ function enduringRefrainMotivation(runtime: WarriorRuntime): number {
 
 /** Each pulse uses the tier before spending, rewards actual spend, and stops when Motivation is exhausted. */
 function pulseRefrain(runtime: WarriorRuntime): void {
-  const state = paragonState.from(runtime);
+  const state = paragonState.from(runtime.profession);
   const skill = state.activeRefrainId == null ? undefined : runtime.helpers.skillsById.get(state.activeRefrainId);
   const motivation = runtime.resourceController.value('motivation');
 
@@ -146,7 +146,7 @@ function pulseRefrain(runtime: WarriorRuntime): void {
 
 /** A completed chant opens its selected packets and reduces only the other chants' existing recharge. */
 function activateChant(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
-  const state = paragonState.from(runtime);
+  const state = paragonState.from(runtime.profession);
   state.activeRefrainId = cast.skill.id;
   const action = requireSkillAction(cast.skill, 'chant');
   runtime.resourceController.grant(
@@ -186,7 +186,7 @@ export const paragonRefrainLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorS
   /** Hold the selected preview state while evaluating detached damage queries. */
   prepareDamageState(runtime, _skill, inputs) {
     runtime.resourceController.replace('motivation', Number(inputs.motivation ?? 0));
-    paragonState.from(runtime).activeRefrainId = inputs.refrain ? Number(inputs.refrain) : null;
+    paragonState.from(runtime.profession).activeRefrainId = inputs.refrain ? Number(inputs.refrain) : null;
   },
   onCombatStart(runtime) {
     runtime.fireTrigger(paragonCombatStarted);

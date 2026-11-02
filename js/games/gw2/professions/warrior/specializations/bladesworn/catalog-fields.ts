@@ -1,15 +1,13 @@
-import { dataField, defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
+import { defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
 
 /** Bladesworn gunsaber and Dragon Slash fields read only by Bladesworn mechanics. */
 export const BLADESWORN_SKILL_FIELDS = defineFields(
   {
-    // Available only while the gunsaber is drawn.
-    gunsaberSkill: dataField,
     // Dragon Trigger owns its baseline charge capacity and entry charge.
     maximumCharges: numberField({ patch: 'primary' }),
+    // Flow drained per charge interval while Dragon Trigger charges.
+    resourceCost: numberField({ patch: 'primary' }),
     entryResourceCost: numberField({ patch: 'primary' }),
-    // Dragon Trigger charge skill.
-    dragonTriggerSkill: dataField,
     // Milliseconds from release to the Dragon Slash impact.
     dragonSlashImpactOffsetMs: numberField({ unit: 'milliseconds' }),
     // Strike coefficient at the minimum charge.

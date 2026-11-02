@@ -19,7 +19,7 @@ export function harbingerBuffPolicies(): BuffStatePolicy[] {
 
 /** Observe the retained Blight pools and shroud flags used by combat. */
 export function harbingerEffectStates(runtime: MechanicQueriesOf<NecromancerRuntime>): EffectState[] {
-  const state = harbingerState.from(runtime);
+  const state = harbingerState.from(runtime.profession);
   return [
     timedEffectState(
       'harbinger-blight',

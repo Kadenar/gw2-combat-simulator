@@ -68,8 +68,8 @@ test('Gunsaber equip and stow put the opposite action on a five-second cooldown'
 
   const unsheathed = simulate(['__combat_start', ID.UNSHEATHE_GUNSABER]);
   const sheathed = simulate(['__combat_start', ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER]);
-  assert.equal(unsheathed.planningState.cooldowns[ID.SHEATHE_GUNSABER].remaining, 4000);
-  assert.equal(sheathed.planningState.cooldowns[ID.UNSHEATHE_GUNSABER].remaining, 4000);
+  assert.equal(unsheathed.planningState.cooldownsBySkillId[ID.SHEATHE_GUNSABER].remainingMs, 4000);
+  assert.equal(sheathed.planningState.cooldownsBySkillId[ID.UNSHEATHE_GUNSABER].remainingMs, 4000);
 });
 
 test('Dragon Trigger starts Unsheathe recharge only when entering from normal weapons', () => {
@@ -82,18 +82,18 @@ test('Dragon Trigger starts Unsheathe recharge only when entering from normal we
   ]) {
     const result = simulate(['__combat_start', ...beforeTrigger, ID.DRAGON_TRIGGER]);
     assert.deepEqual(result.warnings, []);
-    assert.equal(result.planningState.cooldowns[ID.UNSHEATHE_GUNSABER].remaining, remaining);
-    assert.equal(result.planningState.cooldowns[ID.SHEATHE_GUNSABER].remaining, remaining);
-    assert.equal(result.planningState.cooldowns[ID.DRAGON_TRIGGER], undefined);
+    assert.equal(result.planningState.cooldownsBySkillId[ID.UNSHEATHE_GUNSABER].remainingMs, remaining);
+    assert.equal(result.planningState.cooldownsBySkillId[ID.SHEATHE_GUNSABER].remainingMs, remaining);
+    assert.equal(result.planningState.cooldownsBySkillId[ID.DRAGON_TRIGGER], undefined);
   }
 });
 
 // Dragon Trigger only allows instant casts; a cast bar drops back to plain Gunsaber, so the slash cannot follow.
 test('casting a skill with a cast bar exits Dragon Trigger', () => {
   const result = simulate(['__combat_start', ID.DRAGON_TRIGGER, ID.MENDING, ID.DRAGON_SLASH_FORCE]);
-  const slash = result.steps.find((step) => step.ri === 3);
+  const slash = result.steps.find((step) => step.rotationCommandIndex === 3);
 
-  assert.equal(result.steps.find((step) => step.ri === 2).invalid, undefined);
+  assert.equal(result.steps.find((step) => step.rotationCommandIndex === 2).invalid, undefined);
   assert.equal(slash.invalid, true);
   assert.match(slash.invalidReason, /Enter Dragon Trigger/);
   assert.equal(result.planningState.profession[STATE.GUNSABER_ACTIVE], true);
@@ -112,8 +112,8 @@ test('Gunsaber swaps and Dragon Trigger entry leave both swap actions ready befo
     ]);
     assert.deepEqual(result.warnings, []);
     assert.ok(result.steps.every((step) => step.start === 0));
-    assert.equal(result.planningState.cooldowns[ID.UNSHEATHE_GUNSABER].remaining, 0);
-    assert.equal(result.planningState.cooldowns[ID.SHEATHE_GUNSABER].remaining, 0);
+    assert.equal(result.planningState.cooldownsBySkillId[ID.UNSHEATHE_GUNSABER].remainingMs, 0);
+    assert.equal(result.planningState.cooldownsBySkillId[ID.SHEATHE_GUNSABER].remainingMs, 0);
   }
 });
 

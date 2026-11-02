@@ -20,10 +20,9 @@ const RESET_SKILLS: readonly SkillId[] = [ID.FLOURISH, ID.OAKEN_CUDGEL, ID.THIST
 
 // Measured from 20261015-192637.zevtc with Quickness, rounded to the 40 ms action grid.
 // Cast durations include normal recovery; impact offsets keep on-hit rewards ahead of that recovery.
-export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   [ID.GERMINATE]: {
     name: 'Germinate',
-    description: 'Chain. Strike with your mace.',
     icon: 'https://render.guildwars2.com/file/A0B8C463DCB432B6FC5BDC3031A3F8B10C9B14B9/3256381.png',
     type: 'Weapon',
     weapon: 'Mace',
@@ -39,7 +38,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.BURGEON]: {
     name: 'Burgeon',
-    description: 'Chain. Slam your target.',
     icon: 'https://render.guildwars2.com/file/632E78226233B20B4A16C2E42EC0280D470D2F09/3256382.png',
     type: 'Weapon',
     weapon: 'Mace',
@@ -55,8 +53,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.CULTIVATE]: {
     name: 'Cultivate',
-    description:
-      "Swing an uppercut at your target, crippling them and granting vigor to nearby allies. Gain Nature's Strength if you hit an enemy. \nThis skill cannot activate Force of Nature.",
     icon: 'https://render.guildwars2.com/file/FCA9D855E86CAF0B069CB3FEC6F220125F164803/3256383.png',
     type: 'Weapon',
     weapon: 'Mace',
@@ -82,8 +78,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.FLOURISH]: {
     name: 'Flourish',
-    description:
-      "Strike the earth, damaging nearby enemies and healing nearby allies. The ground flourishes in response, repeating stronger effects after a delay. Gain Nature's Strength if the initial strike hits an enemy.",
     icon: 'https://render.guildwars2.com/file/A3CAFE3F4F60F5BA30DBF3511AEF2EB03D75673E/3256384.png',
     type: 'Weapon',
     weapon: 'Mace',
@@ -114,8 +108,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.OAKEN_CUDGEL]: {
     name: 'Oaken Cudgel',
-    description:
-      "Imbue your mace with verdant energy and then leap to your target. Stun enemies, grant nearby allies protection, and heal your pet. Gain Nature's Strength if you hit an enemy.",
     icon: 'https://render.guildwars2.com/file/AF04C49117A8634CDDAA1AB3B35B25111B394FEC/3256385.png',
     type: 'Weapon',
     weapon: 'Mace',
@@ -139,8 +131,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.THISTLEGUARD]: {
     name: 'Thistleguard',
-    description:
-      "Envelop yourself in thorns, striking nearby enemies and gaining stability for a brief duration. Gain additional bonuses and Nature's Strength if you strike an enemy.",
     icon: 'https://render.guildwars2.com/file/D246F868FF56A5DA990D4C0593BC6FD4082456DD/3256386.png',
     type: 'Weapon',
     weapon: 'Mace',
@@ -155,8 +145,6 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
   },
   [ID.WILD_STRIKES]: {
     name: 'Wild Strikes',
-    description:
-      "Repeatedly slam the ground, damaging nearby enemies. The final slam does increased damage, dazes enemies, and grants Nature's Strength.",
     icon: 'https://render.guildwars2.com/file/4063516E170663BE3C0B07A744F2A4A142E90FC3/3256387.png',
     type: 'Weapon',
     weapon: 'Mace',
@@ -192,7 +180,7 @@ export const RANGER_CORE_MACE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       }
     ]
   }
-});
+};
 
 /** Only the authored qualifying hit grants stacks; secondary packets and pet attacks cannot advance the cycle. */
 export function naturesStrengthReaction(stacks = 1): EffectReaction {
@@ -201,7 +189,7 @@ export function naturesStrengthReaction(stacks = 1): EffectReaction {
     actor: ACTOR.PLAYER,
     packets: 'first',
     when: (_runtime, { event }) => Number(event.coefficient) > 0,
-    do: { type: 'ranger.natures-strength', amount: stacks }
+    do: [{ type: 'ranger.natures-strength', amount: stacks }]
   };
 }
 

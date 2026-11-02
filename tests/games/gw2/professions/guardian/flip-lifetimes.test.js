@@ -6,10 +6,9 @@ import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime, projectObservedState } from '#tests/helpers/observed-runtime.js';
-
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // Actual parent completions arm the lifetime used by eligibility, public projections, and palettes.
 test('Guardian weapon flips share exact deadlines across availability, snapshots, palette, and cleanup', () => {
@@ -143,11 +142,11 @@ for (const { rootId, normalId, finalId } of MANTRAS) {
     assert.equal(observedRuntime(depleted).profession.core.availableFlips[normalId], undefined);
     assert.equal(observedRuntime(depleted).profession.core.availableFlips[finalId], undefined);
     assert.equal(depleted.planningState.ammoBySkillId[normalId], undefined);
-    assert.ok(depleted.planningState.cooldowns[rootId].remaining > 0);
+    assert.ok(depleted.planningState.cooldownsBySkillId[rootId].remainingMs > 0);
 
     const rearmed = runGuardian([normalId, normalId, finalId, normalId], config);
     assert.deepEqual(rearmed.warnings, []);
-    assert.equal(rearmed.steps.at(-1).start, depleted.planningState.cooldowns[rootId].readyAt);
+    assert.equal(rearmed.steps.at(-1).start, depleted.planningState.cooldownsBySkillId[rootId].readyAtMs);
     assert.ok(observedRuntime(rearmed).profession.core.availableFlips[normalId]);
     assert.equal(rearmed.planningState.ammoBySkillId[normalId].charges, 2);
   });
@@ -167,5 +166,5 @@ test('Voice of Truth refunds Weighty Terms pages only when the final charge is s
   assert.deepEqual(final.warnings, []);
   assert.equal(normal.planningState.profession[STATE.TOME_PAGES].value, 0);
   assert.equal(final.planningState.profession[STATE.TOME_PAGES].value, 2);
-  assert.ok(final.planningState.cooldowns[ID.MANTRA_OF_TRUTH].remaining > 0);
+  assert.ok(final.planningState.cooldownsBySkillId[ID.MANTRA_OF_TRUTH].remainingMs > 0);
 });

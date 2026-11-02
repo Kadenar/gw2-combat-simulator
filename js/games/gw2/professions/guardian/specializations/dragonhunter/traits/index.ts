@@ -20,7 +20,7 @@ import {
   type DragonhunterControl
 } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/trigger-points.js';
 import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
-import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
+import type { GuardianRuntime, GuardianRuntimeState } from '#gw2/professions/guardian/types.js';
 
 /** Owns Soaring Devastation's tuning and behavior at the existing Dragonhunter boundaries. */
 const soaringDevastation = defineTrait({
@@ -64,7 +64,8 @@ const bigGameHunter = defineTrait({
       order: 100,
       // Uses context.time (resolver clock), not event.at, because modifier rules
       // are evaluated at the moment damage resolves, not when it was scheduled.
-      when: (context) => dragonhunterState.from(context).tetherUntil > context.time
+      when: (context) =>
+        dragonhunterState.from(context.runtime!.profession as GuardianRuntimeState).tetherUntil > context.time
     }
   ],
   triggers: [
@@ -76,7 +77,7 @@ const bigGameHunter = defineTrait({
         event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
         (details.hitContext?.damage ?? 0) > 0 &&
-        dragonhunterState.from(runtime).tetherUntil > runtime.time,
+        dragonhunterState.from(runtime.profession).tetherUntil > runtime.time,
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.VULNERABILITY,
       attribution: (_runtime, event) => ({
         source: 'guardian',

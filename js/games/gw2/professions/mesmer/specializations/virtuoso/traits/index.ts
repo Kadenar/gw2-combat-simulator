@@ -133,7 +133,7 @@ export const bloodsong = defineTrait<MesmerSkill>({
       run(runtime, event) {
         if (event.condition !== CONDITION.BLEEDING) return;
 
-        const state = virtuosoState.from(runtime);
+        const state = virtuosoState.from(runtime.profession);
         const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODSONG);
         const threshold = balanceProfileNumber(profile, 'threshold');
         // The resolver dispatches each stack individually; reset before rewarding so the next application starts a new cycle.
@@ -243,7 +243,7 @@ export const infiniteForgePassive = definePeriodicTask<MesmerRuntime>({
   name: 'mesmer.infinite-forge',
   background: true,
   priority: -20,
-  state: (runtime) => virtuosoState.from(runtime).infiniteForge,
+  state: (runtime) => virtuosoState.from(runtime.profession).infiniteForge,
   nextAt(runtime) {
     const interval = balanceNumberFromContext(runtime, TRAIT.INFINITE_FORGE, 'pulseInterval');
     return interval > 0 ? runtime.time + interval : Infinity;

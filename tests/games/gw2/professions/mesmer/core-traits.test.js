@@ -11,6 +11,7 @@ import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Critical trait handlers read selected traits and patched profiles from the same live runtime as the proc registry.
@@ -440,3 +441,78 @@ function controlOpportunity(runtime, event) {
   bindTriggerPoints(runtime, mesmerProfession);
   runtime.fireTrigger(mesmerControlAccepted, { event });
 }
+
+test('Phantasmal Fury keeps Core and Virtuoso tuning behind its current selection', () => {
+  // Virtuoso registers the extra contribution without changing Core or requiring Quiet Intensity selection.
+  const family = patchTraitProfession(mesmerProfession, {
+    balanceProfiles: {
+      [TRAIT.PHANTASMAL_FURY]: { fields: { criticalChance: 0.3 } },
+      [TRAIT.QUIET_INTENSITY]: { fields: { phantasmCriticalChance: 0.2 } }
+    }
+  });
+  for (const specialization of ['Core', 'Virtuoso']) {
+    for (const [patchId, expected] of [
+      ['current', specialization === 'Core' ? 0.25 : 0.4],
+      ['s4-preview', specialization === 'Core' ? 0.3 : 0.5]
+    ]) {
+      const runtime = family.runtimeFor({ specialization, patchId });
+      const context = {
+        catalog: runtime.catalog,
+        config: { selectedTraitIds: [TRAIT.PHANTASMAL_FURY] },
+        event: { actorType: 'summon', summonKind: 'phantasm' },
+        time: 0
+      };
+      assert.equal(runtime.modifyCriticalChance(context, 0), expected);
+      assert.equal(runtime.modifyCriticalChance({ ...context, config: { selectedTraitIds: [] } }, 0), 0);
+      assert.equal(
+        runtime.modifyCriticalChance({ ...context, event: { actorType: 'summon', summonKind: 'clone' } }, 0),
+        0
+      );
+    }
+  }
+});
+
+test('Dazzling keeps accepted-control actor gates and effect removal through registered composition', () => {
+  const family = patchTraitProfession(mesmerProfession, {
+    balanceProfiles: { [TRAIT.DAZZLING]: { removeEffects: [{ type: 'condition', name: 'Vulnerability' }] } }
+  });
+  for (const actorType of ['player', 'summon', 'environment']) {
+    for (const [patchId, selected] of [
+      ['current', true],
+      ['current', false],
+      ['s4-preview', true]
+    ]) {
+      const config = { specialization: 'Core', patchId, selectedTraitIds: selected ? [TRAIT.DAZZLING] : [] };
+      const native = family.runtimeFor(config);
+      const result = observeGw2Runtime({
+        config,
+        rotation: [{ type: 'wait', durationMs: 2000 }],
+        profession: {
+          ...native,
+          initialize(runtime) {
+            native.initialize(runtime);
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'control',
+                at: 1,
+                actorType,
+                source: 'mesmer',
+                sourceId: ID.MAGIC_BULLET,
+                skillId: ID.MAGIC_BULLET,
+                skillName: 'Magic Bullet',
+                controlKind: 'stun',
+                duration: 1
+              }
+            });
+          }
+        }
+      });
+      assert.deepEqual(result.warnings, []);
+      const effect = result.events.find((event) => event.type === 'condition' && event.sourceId === TRAIT.DAZZLING);
+      assert.equal(Boolean(effect), patchId === 'current' && selected && actorType !== 'environment');
+
+      if (effect) assert.equal(effect.ownerActorType, 'player');
+    }
+  }
+});

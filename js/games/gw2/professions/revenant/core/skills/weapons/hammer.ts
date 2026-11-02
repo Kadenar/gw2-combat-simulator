@@ -4,12 +4,12 @@ import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#g
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
+import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // Snap measured impact offsets to 40 ms action ticks instead of retaining EVTC timestamp jitter.
-export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.HAMMER_BOLT]: {
     name: 'Hammer Bolt',
-    description: 'Hurl your weapon at enemies, striking foes in its path.',
     icon: 'https://render.guildwars2.com/file/C6A83F71A055385DEA0A20DE4DD99FED07D2CD6D/961480.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -42,7 +42,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.COALESCENCE_OF_RUIN]: {
     name: 'Coalescence of Ruin',
-    description: 'Slam the ground with your hammer, creating a cascading eruption of energy.',
     icon: 'https://render.guildwars2.com/file/48731D970B1F37F42A091E3028F86E37D6E90421/961476.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -78,8 +77,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.PHASE_SMASH]: {
     name: 'Phase Smash',
-    description:
-      'Leap through the Mists to the target area. When you land, damage and chill foes in an area, then teleport back to your previous location.',
     icon: 'https://render.guildwars2.com/file/70B93CAE02ACD667CEECE90D4B56674E734EEC77/961473.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -114,8 +111,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.FIELD_OF_THE_MISTS]: {
     name: 'Field of the Mists',
-    description:
-      'Create a field from the Mists that blocks incoming projectiles in front of you, then fire bolts at foes around your target.',
     icon: 'https://render.guildwars2.com/file/06CBE0372AFC3AA3077DF9E57093724149EF54BA/961469.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -160,8 +155,6 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.DROP_THE_HAMMER]: {
     name: 'Drop the Hammer',
-    description:
-      'Summon a massive hammer from the Mists to strike the ground. Recharge Coalescence of Ruin if you strike an enemy.',
     icon: 'https://render.guildwars2.com/file/79B637C1950F37239C3D3ED91F0B665CAA4D1728/961474.png',
     type: 'Weapon',
     weapon: 'Hammer',
@@ -180,7 +173,7 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
             actor: ACTOR.PLAYER,
             packets: 'each',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'rechargeReset', skillIds: [ID.COALESCENCE_OF_RUIN] }
+            do: [{ type: 'rechargeReset', skillIds: [ID.COALESCENCE_OF_RUIN] }]
           }
         ],
         coefficient: 3.2,
@@ -202,4 +195,4 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ])
   }
-});
+};

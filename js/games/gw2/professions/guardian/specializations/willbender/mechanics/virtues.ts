@@ -55,7 +55,7 @@ const flameOwner = (generation: number) => ({ id: 'willbender-flames', generatio
 function activate(runtime: GuardianRuntime, data: unknown): void {
   const { cast, virtue } = data as { cast: RuntimeCast<GuardianSkill>; virtue: GuardianVirtue };
   const { owner: profile, effect: window } = willbenderVirtueWindow(runtime, virtue);
-  const state = willbenderState.from(runtime);
+  const state = willbenderState.from(runtime.profession);
   const cause = guardianCastCause(runtime, cast);
   state[`${virtue}Until`] = window ? gw2EffectExpiresAt(runtime.time, effectNumber(profile, window, 'duration')) : 0;
 
@@ -84,7 +84,7 @@ function flames(runtime: GuardianRuntime, data: unknown): void {
 
   if (!strike.ticks?.length) throw new Error('Willbender Flames requires an explicit strike timeline.');
 
-  const state = willbenderState.from(runtime);
+  const state = willbenderState.from(runtime.profession);
 
   if (state.flameVirtue !== virtue) {
     runtime.cancelOwner(flameOwner(state.flameGeneration));
@@ -128,7 +128,7 @@ function reactToWillbenderHit(
   )
     return;
 
-  const state = willbenderState.from(runtime);
+  const state = willbenderState.from(runtime.profession);
   for (const virtue of ['justice', 'resolve', 'courage'] as const) {
     const until = state[`${virtue}Until`];
 
@@ -239,7 +239,7 @@ const willbenderVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianS
 
 /** Capture virtue readiness at acceptance before the skill changes its window. */
 function prepareWillbenderVirtue(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>): void {
-  if (cast.cancelled) return;
+  if (cast.cancelledBeforeCommit) return;
 
   const virtue = VIRTUES.find(([id]) => id === cast.skill.id)?.[1];
 

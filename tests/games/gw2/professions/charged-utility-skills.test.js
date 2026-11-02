@@ -7,6 +7,7 @@ import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js'
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Short synthetic rotations isolate trap timing and finite on-hit charges from benchmark totals.
@@ -19,7 +20,6 @@ const config = {
 };
 const ranger = createObservedProfessionSimulator(rangerProfession, config);
 const thief = createObservedProfessionSimulator(thiefProfession, config);
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 // Live venom grants keep their own deadlines; only unexpired batches still hold charges.
 const liveVenomCharges = (result, id) => {
   const runtime = observedRuntime(result);
@@ -39,7 +39,7 @@ test("Viper's Nest triggers after placement and preserves the pending dagger cha
       selectedSkillIds: [12496]
     });
     assert.deepEqual(result.warnings, []);
-    const cast = result.steps.find((step) => step.skill === "Viper's Nest");
+    const cast = result.steps.find((step) => step.skillName === "Viper's Nest");
     const hits = result.events.filter((event) => event.type === 'damage' && event.skillId === RANGER.VIPERS_NEST);
     assert.ok(hits[0].at * 1000 > cast.end);
     const poison = result.events.filter((event) => event.type === 'condition' && event.skillId === RANGER.VIPERS_NEST);

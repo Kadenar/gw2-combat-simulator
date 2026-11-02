@@ -192,7 +192,7 @@ export function triggerRitualistWeaponSpell(
   spell: 'nightmare' | 'splinter',
   keys: readonly string[]
 ): void {
-  const active = ritualistState.from(context).weaponSpells[spell];
+  const active = ritualistState.from(context.profession).weaponSpells[spell];
 
   if (!active) return;
 

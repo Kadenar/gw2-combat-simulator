@@ -5,6 +5,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 // Inject boundary events through the real queue so expiration and completion use their native owners.
@@ -32,7 +33,6 @@ function run(specialization, rotation, selectedTraitIds = [], initialize = () =>
   return result;
 }
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const combat = { type: 'combat-start' };
 const state = (result) => observedRuntime(result).profession.specialization.state;
 

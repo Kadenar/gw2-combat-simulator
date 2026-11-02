@@ -4,9 +4,8 @@ import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
 import { REVENANT_RENEGADE_PROFILE_FIELDS } from '#gw2/professions/revenant/specializations/renegade/catalog-fields.js';
 import { renegadeHooks } from '#gw2/professions/revenant/specializations/renegade/hooks.js';
 import { renegadeUi } from '#gw2/professions/revenant/specializations/renegade/presentation.js';
-import { RENEGADE_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/renegade/skills/index.js';
+import { RENEGADE_SKILLS } from '#gw2/professions/revenant/specializations/renegade/skills/index.js';
 import { REVENANT_RENEGADE_SKILL_FLIPS } from '#gw2/professions/revenant/specializations/renegade/skills/skill-flips.js';
-import { RENEGADE_EXTRA_SKILLS } from '#gw2/professions/revenant/specializations/renegade/skills/warband-skills.js';
 import {
   projectRenegadePlanningState,
   renegadeState
@@ -23,8 +22,7 @@ export const renegadeModule = defineNativeModule({
     traitLines: TRAIT_LINES,
     skillFlips: REVENANT_RENEGADE_SKILL_FLIPS,
     profileFields: REVENANT_RENEGADE_PROFILE_FIELDS,
-    skillMechanics: RENEGADE_BASE_SKILL_MECHANICS,
-    extraSkills: RENEGADE_EXTRA_SKILLS
+    skills: RENEGADE_SKILLS
   }),
   state: { create: renegadeState.create, project: projectRenegadePlanningState },
   hooks: renegadeHooks,

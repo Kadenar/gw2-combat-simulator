@@ -133,10 +133,6 @@ test('duration and flip patches reject obsolete names while real multipliers rem
     () => applySkillPatch(thiefCatalog, { skills: { [ID.PREPARE_PITFALL]: { fields: { durationMultiplier: 7 } } } }),
     /unsupported patch field durationMultiplier/
   );
-  assert.throws(
-    () => createCanonicalCatalog({ skills: [{ id: 1, name: 'Retired', durationMultiplier: 3 }] }),
-    /unsupported field: durationMultiplier/
-  );
   const factors = createCanonicalCatalog({
     balanceProfiles: [{ id: 1, name: 'Factor', durationMultiplier: 1.5 }]
   });

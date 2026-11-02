@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/guardian/data/trait-lines.js';
 import {
   FIREBRAND_SKILL_FIELDS,
@@ -25,9 +26,9 @@ export const firebrandModule = defineNativeModule({
     traitLines: TRAIT_LINES,
     skillFlips: GUARDIAN_FIREBRAND_SKILL_FLIPS,
     profileFields: GUARDIAN_FIREBRAND_PROFILE_FIELDS,
-    extraSkills: [ashesBurningSkill],
+
     skillFields: FIREBRAND_SKILL_FIELDS,
-    skillMechanics: FIREBRAND_SKILL_MECHANICS
+    skills: [...materializeSkillDefinitions(FIREBRAND_SKILL_MECHANICS), ashesBurningSkill]
   }),
   state: {
     // Initialize pages from the selected patch's compiled trait profiles.

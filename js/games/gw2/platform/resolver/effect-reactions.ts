@@ -54,7 +54,7 @@ export function createEffectReactions<T extends object>(
       if (!effect.reactions.length) return undefined;
 
       for (const rule of effect.reactions)
-        for (const action of Array.isArray(rule.do) ? rule.do : [rule.do]) {
+        for (const action of rule.do) {
           // Mutable and transformed declarations must still support their grants even when their group was interned.
           actions.validate(skill, action);
 
@@ -114,8 +114,8 @@ export function createEffectReactions<T extends object>(
 
         const trigger: ResolvedEffectTrigger =
           on === 'damage.resolved' ? { on, skill, event, details } : { on, skill, event };
-        for (const action of Array.isArray(rule.do) ? rule.do : [rule.do])
-          actions.apply(runtime.mechanics, { kind: 'effect', skill, trigger }, action);
+        // Preserve authored action order after the reaction's packet and predicate gates pass.
+        for (const action of rule.do) actions.apply(runtime.mechanics, { kind: 'effect', skill, trigger }, action);
       }
     }
   };

@@ -17,18 +17,18 @@ import {
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /**
  * Skill-id keyed definitions the Core module contributes to the focus catalog.
  * Each entry declares the packet timeline the scheduler materializes for that skill.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
   // Persistent fire field whose damage packets are tagged `field-tick`, letting Persisting Flames
   // recognize and extend both the field and its ticks.
   [ID.FLAMEWALL]: {
     name: 'Flamewall',
-    description: 'Create a wall of flame at the target area that burns foes.',
     icon: 'https://render.guildwars2.com/file/B84B697E69B44D5EC3A0306AA2FB3128BBF30F78/103271.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -71,8 +71,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Instant Fire Aura grant that flips the slot to Transmute Fire; the declared effect grants the aura.
   [ID.FIRE_SHIELD]: {
     name: 'Fire Shield',
-    description:
-      'Envelop yourself in a fiery shield that burns foes and grants might each time you are struck (cooldown of 1 second per attacker).',
     icon: 'https://render.guildwars2.com/file/2AE8672D7A08BB4129B6F0F40C2BC10642D55C28/102884.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -87,7 +85,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Consumes the Fire Aura for a strike, Burning, and five Might, then flips back to Fire Shield.
   [ID.TRANSMUTE_FIRE]: {
     name: 'Transmute Fire',
-    description: 'Use the energy of the fire aura to cause an explosion, damaging enemies and benefiting allies.',
     icon: 'https://render.guildwars2.com/file/7AD6E1794841A50751E02F0C367E920CF5066F65/2029300.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -118,7 +115,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
   },
   [ID.FREEZING_GUST]: {
     name: 'Freezing Gust',
-    description: 'Chill your foe for a brief time.',
     icon: 'https://render.guildwars2.com/file/C518536FBD1734CD9A19F4480153977BD09CBFD2/103344.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -136,7 +132,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Blast finisher and crowd-control application landing together shortly after the cast ends.
   [ID.COMET]: {
     name: 'Comet',
-    description: 'Drop a comet of ice on target foe, damaging and dazing foes in the area.',
     icon: 'https://render.guildwars2.com/file/CE2D206242C6DDB571784315ABF4B51CBAC090A9/103319.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -166,7 +161,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Projectile-destruction bubble with no offensive packets; the definition only models its cast time and recharge.
   [ID.SWIRLING_WINDS]: {
     name: 'Swirling Winds',
-    description: 'Create a swirling wind that blocks projectiles.',
     icon: 'https://render.guildwars2.com/file/2931CBED030FDBF30F0A0B293A0010925B90FDA6/103250.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -181,7 +175,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Pure crowd control: a control application with no strike, so it contributes no damage.
   [ID.GALE]: {
     name: 'Gale',
-    description: 'Knock down your foe with a charged wind blast.',
     icon: 'https://render.guildwars2.com/file/54C5B6544376D03C1205955030300318E922083A/103345.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -205,7 +198,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Instant cast, so its blast finisher and Cripple both resolve at cast start.
   [ID.MAGNETIC_WAVE]: {
     name: 'Magnetic Wave',
-    description: 'Damage foes, cure three of your conditions, and reflect projectiles with a magnetic surge.',
     icon: 'https://render.guildwars2.com/file/BBF16D6BF9CDA755420759F7D5F8D3FF6B2065DA/103343.png',
     type: 'Weapon',
     slot: 'Weapon_4',
@@ -233,7 +225,6 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
   // Defensive channel with no packets; its long cast time is the cost the rotation has to pay for it.
   [ID.OBSIDIAN_FLESH]: {
     name: 'Obsidian Flesh',
-    description: 'Envelop yourself in stony armor, making yourself invulnerable.',
     icon: 'https://render.guildwars2.com/file/F12B0EDB12DD216E110ADA44A238559AF27396AD/103330.png',
     type: 'Weapon',
     slot: 'Weapon_5',
@@ -245,4 +236,4 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 3800,
     effects: []
   }
-});
+};

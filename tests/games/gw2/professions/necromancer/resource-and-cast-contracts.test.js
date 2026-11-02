@@ -12,6 +12,7 @@ import {
   purgeHarbingerTimedState
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { wait } from '#tests/helpers/commands.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import {
   createObservedProfessionSimulator,
@@ -27,7 +28,6 @@ const baseConfig = {
 };
 
 const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 // A queued observation before launch sees the original state; canceled throws never spend it.
 test('elixir state commits chronologically and cancelled throws leave it untouched', () => {
@@ -231,19 +231,25 @@ test('shroud exits before combat leave entry ready without weakening combat rech
       initialResource: 100
     });
     assert.deepEqual(precombat.warnings, [], specialization);
-    assert.equal(precombat.steps.filter((step) => step.skill === entry).at(-1).start / 1000, precombat.combatStartTime);
+    assert.equal(
+      precombat.steps.filter((step) => step.skillName === entry).at(-1).start / 1000,
+      precombat.combatStartTime
+    );
     for (const prefix of [[], [{ type: 'combat-start' }]]) {
       const combat = simulate(specialization, [...prefix, entry, exit], { initialResource: 100 });
       assert.ok(
-        combat.planningState.cooldowns[necromancerCatalog.skills.find((candidate) => candidate.name === entry).id]
-          .remaining > 0,
+        combat.planningState.cooldownsBySkillId[
+          necromancerCatalog.skills.find((candidate) => candidate.name === entry).id
+        ].remainingMs > 0,
         specialization
       );
     }
 
     const depleted = simulate(specialization, [entry, wait(40000), { type: 'combat-start' }], { initialResource: 100 });
     assert.equal(
-      depleted.planningState.cooldowns[necromancerCatalog.skills.find((candidate) => candidate.name === entry).id],
+      depleted.planningState.cooldownsBySkillId[
+        necromancerCatalog.skills.find((candidate) => candidate.name === entry).id
+      ],
       undefined,
       specialization
     );
@@ -507,7 +513,7 @@ test('Spiteful Fortitude and Gravedigger share the actual half-health transition
       target: { health, startingHealthFraction: 0.5 + duskStrike / (2 * health), conditions: {} }
     })
   );
-  const gravediggers = result.steps.filter((step) => step.skill === 'Gravedigger');
+  const gravediggers = result.steps.filter((step) => step.skillName === 'Gravedigger');
   assert.deepEqual(result.warnings, []);
   assert.equal(result.deathTime, null);
   assert.equal(gravediggers[1].start, gravediggers[0].end);

@@ -9,7 +9,7 @@ export function mechanistCastAvailability(
   context: MechanicQueriesOf<EngineerRuntime>,
   skill: EngineerSkill
 ): AvailabilityResult {
-  const state = mechanistState.from(context);
+  const state = mechanistState.from(context.profession);
 
   if (skill.toolbeltParentId) {
     return denyEngineerCast(skill, 'engineer.toolbelt-replaced', 'Mechanist mech commands replace tool-belt skills.');

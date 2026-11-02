@@ -81,7 +81,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
   // Recipient pools already own replacement and charge consumption; publish their retained grants directly.
   buffPolicies: ritualistBuffPolicies,
   observeEffects(runtime) {
-    return Object.entries(ritualistState.from(runtime).weaponSpells).flatMap(([spell, state]) =>
+    return Object.entries(ritualistState.from(runtime.profession).weaponSpells).flatMap(([spell, state]) =>
       Object.entries(state.recipients ?? {}).map(([recipient, grant]) =>
         timedEffectState(spell + '-weapon', [{ stacks: grant.charges, expiresAt: grant.expiresAt }], null, {
           recipient:
@@ -100,7 +100,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
       recovery(runtime) {
         if (
           !runtime.profession.core.activeShroud &&
-          Object.keys(ritualistState.from(runtime).activeSpirits).length &&
+          Object.keys(ritualistState.from(runtime.profession).activeSpirits).length &&
           lingeringSpiritsActive(runtime)
         )
           return (
@@ -120,7 +120,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
   },
   availability(runtime, skill) {
     const key = INNERVATE.get(skill.id);
-    return key && !ritualistState.from(runtime).activeSpirits[key]
+    return key && !ritualistState.from(runtime.profession).activeSpirits[key]
       ? denySkillCast(skill, 'necromancer.spirit', `requires an active ${key} spirit.`)
       : { ready: true };
   },

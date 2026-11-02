@@ -23,10 +23,10 @@ import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 import { setThiefKneeling } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const preview = (family, profession, edits) =>
   withPatchPreview(family, {
     id: 'direct-ownership',

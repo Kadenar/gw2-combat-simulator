@@ -27,6 +27,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
+import { displayedSkill, resolveSkillSelector } from '#gw2/platform/skills/selectors.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
 import {
@@ -196,12 +197,12 @@ function paletteWeaponSkills(
 
   const primaryAttunement = state[STATE.PRIMARY_ATTUNEMENT] || context.build?.startAttunement || 'Fire';
   let replaced = false;
-  return ordinarySkills.map((skill) => {
+  return ordinarySkills.map((skill: ElementalistSkill) => {
     const replacesActiveAutoattack =
       !replaced &&
       skill.weapon === WEAPON.PISTOL &&
       skill.slot === 'Weapon_1' &&
-      String(skill.attunement || '') === primaryAttunement;
+      (skill.attunement || '') === primaryAttunement;
 
     if (!replacesActiveAutoattack) return skill;
 
@@ -433,7 +434,12 @@ function elementalistSkillDamageOccurrence(
 /** Captures this UI's catalog so other profession instances cannot change its projections. */
 export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<ElementalistSkill>>): ElementalistUiSlice {
   return Object.freeze({
-    skillDamageState: elementalistSkillDamageOccurrence,
+    // Resolve generic preview selections against detached preview state before measuring a concrete payload.
+    skillDamageState(context, skill) {
+      const resolved = resolveSkillSelector(context.catalog, skill, String(context.values.damageAttunement));
+      const state = elementalistSkillDamageOccurrence(context, resolved);
+      return resolved.id === skill.id ? state : { ...state, resolvedSkillId: resolved.id };
+    },
     /** Declare this module's conditional inputs without adding simulation settings. */
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
@@ -553,21 +559,13 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
     paletteWeaponGroups: (_context, skills) => elementalistWeaponGroups(skills),
     // Selected utilities follow the live primary attunement without mutating the saved loadout.
     paletteSelectedSlotSkills: (context, skills) => {
-      const primary = elementalistUiState(context)[STATE.PRIMARY_ATTUNEMENT] || context.build?.startAttunement || '';
+      const live = elementalistUiState(context)[STATE.PRIMARY_ATTUNEMENT];
+      const initial = context.build?.startAttunement;
+      const primary = isElementalistAttunement(live) ? live : isElementalistAttunement(initial) ? initial : 'Fire';
       const activeCatalog = context.catalog || catalog;
-      return skills.map((skill) => {
-        if (!skill.attunement) return skill;
-
-        // Variant identity comes from the authored loadout group, independent of localized names.
-        const loadoutId = skill.loadoutSkillId;
-        return (
-          (loadoutId == null
-            ? undefined
-            : activeCatalog.skills.find(
-                (candidate) => candidate.attunement === primary && candidate.loadoutSkillId === loadoutId
-              )) ?? skill
-        );
-      });
+      return skills.map((skill) =>
+        skill.selector ? { ...displayedSkill(activeCatalog, skill, primary), inputSkillId: skill.id } : skill
+      );
     },
 
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.

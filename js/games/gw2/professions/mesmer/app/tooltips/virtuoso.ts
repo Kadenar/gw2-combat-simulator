@@ -2,6 +2,7 @@ import {
   fromProfile,
   outsideScopeTooltip,
   skillTooltip,
+  tooltipAttributeConversion,
   tooltipFactorChange,
   tooltipPercent,
   tooltipSeconds,
@@ -35,7 +36,7 @@ export const virtuosoTooltips = {
     [TRAIT.QUIET_INTENSITY]: traitTooltip(
       'Gain ferocity from vitality and additional personal critical-strike chance while fury is active.',
       [
-        ['vitalityConversion', 'Vitality converted to ferocity', tooltipPercent],
+        ['vitalityConversion', 'Ferocity gained from vitality', tooltipAttributeConversion],
         ['criticalChance', 'Additional critical chance with fury', tooltipPercent]
       ]
     ),

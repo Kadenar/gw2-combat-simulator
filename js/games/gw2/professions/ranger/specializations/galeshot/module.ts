@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/ranger/data/trait-lines.js';
 import { GALESHOT_SKILL_FIELDS } from '#gw2/professions/ranger/specializations/galeshot/catalog-fields.js';
 import { galeshotHooks } from '#gw2/professions/ranger/specializations/galeshot/hooks.js';
@@ -20,7 +21,7 @@ export const galeshotModule = defineNativeModule({
     id: 'Galeshot',
     traitLines: TRAIT_LINES,
     skillFields: GALESHOT_SKILL_FIELDS,
-    skillMechanics: GALESHOT_BASE_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(GALESHOT_BASE_SKILL_MECHANICS)
   }),
   state: { create: galeshotState.create, project: projectGaleshotPlanningState },
   // The skill modifier keeps its position after Galeshot's trait rules.

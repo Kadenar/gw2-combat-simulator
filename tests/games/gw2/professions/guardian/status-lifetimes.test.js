@@ -9,11 +9,11 @@ import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { luminaryModule } from '#gw2/professions/guardian/specializations/luminary/module.js';
 import { bindLuminaryUi } from '#gw2/professions/guardian/specializations/luminary/presentation.js';
+import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const config = { specialization: 'Luminary' };
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 const state = (result) => observedRuntime(result).profession.specialization.state;
 const ui = bindLuminaryUi(guardianCatalog);
 const cause = {

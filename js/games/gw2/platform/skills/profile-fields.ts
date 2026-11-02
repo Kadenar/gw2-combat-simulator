@@ -13,7 +13,6 @@ export const SHARED_PROFILE_FIELDS: FieldSpecs = defineFields({
   // Identity, presentation, and executable declarations.
   id: dataField,
   name: dataField,
-  description: dataField,
   icon: dataField,
   variantBadge: dataField,
   skillFamily: dataField,

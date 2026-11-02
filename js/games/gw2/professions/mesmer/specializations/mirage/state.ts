@@ -2,7 +2,10 @@ import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { cloneStateFields, defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { MESMER_MIRAGE_AMBUSH_SKILLS } from '#gw2/professions/mesmer/specializations/mirage/skills/index.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -39,14 +42,13 @@ function createMirageState(): MesmerMirageState {
 
 export const mirageState = defineProfessionSpecializationState('Mirage', createMirageState);
 
-/** Detach the public clock and derive the ambush display without copying private mirror or cast state. */
-export function projectMiragePlanningState(input: Gw2PlanningStateInput) {
-  const state = mirageState.from(input);
-  const publicState = cloneStateFields(state, ['endurance']);
+/** Select the public clock and derive the ambush display without copying private mirror or cast state. */
+export function projectMiragePlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = mirageState.from(input.profession);
   const at = canonicalTime(input.time);
   const weapon = gw2ActivePrimaryWeapon(input.config, input.activeWeaponSet === 1 ? 1 : 2) || '';
   return {
-    [STATE.ENDURANCE]: publicState.endurance,
+    [STATE.ENDURANCE]: state.endurance,
     [STATE.AVAILABLE_AMBUSH]:
       state.ambushSource && state.ambushUntil > at
         ? {

@@ -48,7 +48,11 @@ import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistResolverContext, ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistResolverContext,
+  ElementalistRuntime,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Air definitions keep active tuning beside their behavior; explicit calls preserve mechanic ordering. */
@@ -258,7 +262,7 @@ export const ragingStorm = defineTrait({
   ]
 });
 
-export const aeromancersTraining = defineTrait({
+export const aeromancersTraining = defineTrait<ElementalistSkill>({
   id: TRAIT.AEROMANCERS_TRAINING,
   balance: {
     attributeBonuses: { ferocity: 150 },
@@ -352,7 +356,7 @@ function applyInscriptionPostCast(context: ElementalistRuntime, { cast }: Elemen
 
   if (skill.skillFamily !== 'Glyph') return;
 
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   emitTraitProfile(context, TRAIT.INSCRIPTION, TRAIT.INSCRIPTION, undefined, {
     at: cast.effectiveEnd,
     fullEnd: cast.effectiveEnd,

@@ -45,9 +45,6 @@ function currentProfession(app: ProfessionAppState): BuildTemplateProfession {
 
 /** Returns the resolver's frozen selections for review without changing application state. */
 export function previewBuildTemplateCode(app: ProfessionAppState, chatCode: string): ResolvedGw2BuildTemplate {
-  const current = app.build as ProfessionAppState['build'] & {
-    readonly startAttunement?: string;
-  };
   const expectedProfession = currentProfession(app);
   const decoded = decodeGw2BuildTemplate(chatCode);
   const actualProfession = BUILD_TEMPLATE_PROFESSIONS_BY_CODE.get(decoded.professionCode);
@@ -58,8 +55,7 @@ export function previewBuildTemplateCode(app: ProfessionAppState, chatCode: stri
 
   return resolveGw2BuildTemplate(decoded, {
     catalog: app.activeCatalog,
-    expectedProfession,
-    preferredAttunement: String(current.startAttunement || 'Fire')
+    expectedProfession
   });
 }
 

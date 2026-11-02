@@ -43,7 +43,7 @@ export function reactToGaleshotMissile(context: RangerRuntime, event: Gw2Resolve
 /** Path of Scars keeps the outgoing contact's enhancement on its return, without extending other projectiles' window. */
 function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
   const at = event.at;
-  const state = galeshotState.from(context);
+  const state = galeshotState.from(context.profession);
   // An armed Mistral includes missiles landing at expiry; zero never arms it.
   let enhanced = state.mistralUntil > 0 && at <= state.mistralUntil;
 
@@ -118,7 +118,7 @@ export function galeshotCastAvailability(
   context: MechanicQueriesOf<RangerRuntime>,
   skill: RangerSkill
 ): AvailabilityResult {
-  const state = galeshotState.from(context);
+  const state = galeshotState.from(context.profession);
 
   if (skill.cycloneBowSkill && !state.cycloneBowActive) {
     return deny(skill, 'ranger.cyclone-bow-inactive', 'summon the Cyclone Bow first.');
@@ -163,7 +163,7 @@ export const missileResolved = defineTriggerPoint<{ readonly event: Gw2ResolverE
 /** Wind Force starts empty; owned cast-relative tasks grant it without passive recovery. */
 const galeshotWindForce: ResourcePolicy<RangerRuntime> = {
   kind: 'continuous',
-  state: (context) => galeshotState.from(context).windForce,
+  state: (context) => galeshotState.from(context.profession).windForce,
   maximum: (context) => balanceNumberFromContext(context, TRAIT.TEACHINGS_OF_THE_TENGU, 'minimumStacks'),
   initial: () => 0,
   recovery: () => 0
@@ -172,7 +172,7 @@ const galeshotWindForce: ResourcePolicy<RangerRuntime> = {
 /** Fixed-cadence arrows use the selected profile without profession-owned clock advancement. */
 const galeshotArrows: ResourcePolicy<RangerRuntime> = {
   kind: 'discrete',
-  state: (context) => galeshotState.from(context).arrows,
+  state: (context) => galeshotState.from(context.profession).arrows,
   maximum: (context) => balanceNumberFromContext(context, TRAIT.TEACHINGS_OF_THE_TENGU, 'maximumStacks'),
   initial: (context, maximum) => context.config.initialArrows ?? maximum,
   recovery: (context) => ({
@@ -196,19 +196,19 @@ export function scheduleWindForce(runtime: RangerRuntime, cast: RuntimeCast<Rang
 
 /** Later projectiles consume this live window through the shared Mistral observer. */
 function activateMistral(runtime: RangerRuntime): void {
-  galeshotState.from(runtime).mistralUntil = canonicalTime(
+  galeshotState.from(runtime.profession).mistralUntil = canonicalTime(
     runtime.time + skillNumber(requireSkillFromContext(runtime, ID.MISTRAL), 'duration')
   );
 }
 
 /** Keep bar state, dismiss-only resource clearing, chain reset, and swap notification ordered together. */
 function setCycloneBow(runtime: RangerRuntime, skill: Skill, active: boolean): void {
-  const state = galeshotState.from(runtime);
+  const state = galeshotState.from(runtime.profession);
   state.cycloneBowActive = active;
 
   if (!active) runtime.resourceController.replace('windForce', 0);
 
-  resetAutoattackChains(runtime);
+  resetAutoattackChains(runtime.profession);
   runtime.effects.emit({
     kind: 'packet',
     event: buildRangerPacket(
@@ -237,9 +237,13 @@ export const galeshotCastCompleted = defineTriggerPoint<{ readonly skill: Ranger
   [TRAIT.FLOCK_TOGETHER]
 );
 
-/** Hawkeye grants its damage window and Bluster primes its pet strike before Cloudburst party boons. */
+/** Hawkeye opens its damage window at release, before projectile impact and animation recovery. */
+export const hawkeyeReleased = defineTriggerPoint<{ readonly skill: RangerSkill }>('ranger.hawkeye-released', [
+  TRAIT.GALE_FORCE
+]);
+
+/** Bluster primes its pet strike before Cloudburst party boons at completion. */
 export const cycloneBowCompleted = defineTriggerPoint<{ readonly skill: RangerSkill }>('ranger.cyclone-bow-completed', [
-  TRAIT.GALE_FORCE,
   TRAIT.WUTHERING_WIND,
   TRAIT.CLOUDBURST
 ]);
@@ -248,7 +252,7 @@ export const cycloneBowCompleted = defineTriggerPoint<{ readonly skill: RangerSk
 export const cycloneBowLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill) {
-    galeshotState.from(runtime).cycloneBowActive = Boolean(skill?.cycloneBowSkill);
+    galeshotState.from(runtime.profession).cycloneBowActive = Boolean(skill?.cycloneBowSkill);
   },
   resources: { arrows: galeshotArrows, windForce: galeshotWindForce },
   availability: galeshotCastAvailability,
@@ -256,8 +260,14 @@ export const cycloneBowLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> 
     'ranger.arrow-spend'(runtime, context) {
       runtime.resourceController.spend('arrows', Number(context.skill.arrowCost));
     },
-    'ranger.hawkeye'(runtime) {
-      runtime.resourceController.replace('windForce', 0);
+    'ranger.hawkeye'(runtime, context) {
+      // Register the release at acceptance so bow dismissal cannot delay it until after the first hit.
+      if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
+
+      const at = canonicalTime(context.cast.start + skillNumber(context.skill, 'galeForceApplyMs') / 1000);
+
+      if (!castWasInterrupted(context.cast) || at <= context.cast.effectiveEnd)
+        runtime.schedule('ranger.hawkeye-release', at, context.skill.id);
     },
     'ranger.wind-force-start'(runtime, context) {
       if (context.kind === 'cast') scheduleWindForce(runtime, context.cast);
@@ -278,6 +288,11 @@ export const cycloneBowLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> 
     runtime.fireTrigger(galeshotCastCompleted, { skill });
   },
   tasks: {
+    'ranger.hawkeye-release'(runtime, skillId) {
+      // Convert Wind Force at release, preserving its bonus during windup and leaving cancelled attempts unspent.
+      runtime.resourceController.replace('windForce', 0);
+      runtime.fireTrigger(hawkeyeReleased, { skill: requireSkillFromContext(runtime, Number(skillId)) });
+    },
     // Scheduled rewards survive bar dismissal; only their original cast gate decides whether to enqueue them.
     'ranger.wind-force'(runtime, gain) {
       runtime.resourceController.grant('windForce', Number(gain));

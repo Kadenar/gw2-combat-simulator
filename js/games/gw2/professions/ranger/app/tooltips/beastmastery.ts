@@ -83,14 +83,12 @@ export const rangerBeastmasteryTooltips = {
         {
           name: 'Pet strike damage',
           detail: tooltipFactorChange(
-            1 + Number(requireEffect(skill, 'buff', 'lesser-sic-em-pet')?.damageIncreasePerStack ?? 0)
+            1 + (requireEffect(skill, 'buff', 'lesser-sic-em-pet')?.damageIncreasePerStack ?? 0)
           )
         },
         {
           name: 'Merged player strike damage',
-          detail: tooltipFactorChange(
-            1 + Number(requireEffect(skill, 'buff', 'lesser-sic-em')?.damageIncreasePerStack ?? 0)
-          )
+          detail: tooltipFactorChange(1 + (requireEffect(skill, 'buff', 'lesser-sic-em')?.damageIncreasePerStack ?? 0))
         }
       ];
     }

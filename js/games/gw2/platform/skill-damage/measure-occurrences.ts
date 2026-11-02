@@ -233,8 +233,8 @@ function conditionRows(
       durationMultiplier: calculation?.durationMultiplier ?? 1,
       baseDurationMultiplier: calculation?.baseDurationMultiplier ?? 1,
       durationContributors: calculation?.durationContributors ?? [],
-      conditionDamage: calculation?.conditionDamage ?? null,
-      rate: calculation?.rate ?? null,
+      conditionDamageAttribute: calculation?.conditionDamage ?? null,
+      damagePerStackSecond: calculation?.rate ?? null,
       multiplier: calculation?.multiplier ?? null,
       damageContributors: calculation?.damageContributors ?? []
     };

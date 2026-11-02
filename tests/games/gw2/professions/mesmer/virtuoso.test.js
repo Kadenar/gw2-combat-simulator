@@ -3,11 +3,15 @@ import test from 'node:test';
 
 import { mechanicResourceSpends } from '#gw2/app/rotation/timeline/model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
 // Virtuoso packets and trait reactions preserve blade generation, spending, and timing.
 test('Deadly Blades activates only after a completed Virtuoso Bladesong', () => {
@@ -295,7 +299,7 @@ test('Earth bleeding grants a scheduler-visible Bloodsong blade', () => {
     (event) => event.type === 'condition' && event.skillName === 'Sigil of Earth'
   );
   const bloodsong = result.events.find((event) => event.type === 'resource' && event.reason === 'Bloodsong');
-  const harmony = result.steps.find((step) => step.skill === 'Bladesong Harmony');
+  const harmony = result.steps.find((step) => step.skillName === 'Bladesong Harmony');
 
   assert.equal(earth.length, 5);
   assert.ok(bloodsong);
@@ -308,7 +312,7 @@ test('Earth bleeding grants a scheduler-visible Bloodsong blade', () => {
     withoutBloodsong.events.some((event) => event.type === 'resource' && event.reason === 'Bloodsong'),
     false
   );
-  assert.equal(withoutBloodsong.steps.find((step) => step.skill === 'Bladesong Harmony')?.invalid, true);
+  assert.equal(withoutBloodsong.steps.find((step) => step.skillName === 'Bladesong Harmony')?.invalid, true);
 });
 
 test('Geomancy crosses Bloodsong after four canonical trait bleeds', () => {
@@ -336,7 +340,7 @@ test('Geomancy crosses Bloodsong after four canonical trait bleeds', () => {
   );
   const geomancy = result.events.find((event) => event.type === 'condition' && event.skillName === 'Sigil of Geomancy');
   const bloodsong = result.events.find((event) => event.type === 'resource' && event.reason === 'Bloodsong');
-  const harmony = result.steps.find((step) => step.skill === 'Bladesong Harmony');
+  const harmony = result.steps.find((step) => step.skillName === 'Bladesong Harmony');
 
   assert.ok(geomancy);
   assert.ok(bloodsong);
@@ -377,4 +381,85 @@ test('interrupting a bladesong restores its reserved blades', () => {
     result.resolvedEvents.some((event) => event.type === 'damage' && event.skillName === 'Bladesong Harmony'),
     false
   );
+});
+
+test('Virtuoso definitions share patched build conversion and live modifiers without leaking between builds', () => {
+  const family = patchTraitProfession(mesmerProfession, {
+    balanceProfiles: {
+      [TRAIT.QUIET_INTENSITY]: { fields: { vitalityConversion: 0.2, criticalChance: 0.25 } },
+      [TRAIT.MENTAL_FOCUS]: { fields: { damageMultiplier: 1.2 } }
+    }
+  });
+  const runtime = family.runtimeFor({ specialization: 'Virtuoso', patchId: 's4-preview', selectedTraitIds: [] });
+  assert.equal(
+    runtime,
+    family.runtimeFor({
+      specialization: 'Virtuoso',
+      patchId: 's4-preview',
+      selectedTraitIds: [TRAIT.QUIET_INTENSITY, TRAIT.MENTAL_FOCUS]
+    })
+  );
+  const context = {
+    time: 0,
+    catalog: runtime.catalog,
+    event: { actorType: 'player' },
+    config: {
+      selectedTraitIds: [TRAIT.QUIET_INTENSITY, TRAIT.MENTAL_FOCUS],
+      attributeInputs: baseAttributeInputs({ vitality: 1000 })
+    },
+    query: { furyActiveAt: () => true }
+  };
+  assert.equal(
+    runtime.modifyAttributes({ ...context, config: { ...context.config, boons: { fury: true } } }, {})
+      .professionCriticalChanceBonus,
+    25
+  );
+  assert.equal(runtime.modifyAttributes(context, { ferocity: 0 }).ferocity, 200);
+  assert.equal(runtime.modifyStrikeDamage(context, 100), 120);
+  assert.equal(
+    runtime.modifyStrikeDamage({ ...context, event: { actorType: 'summon', summonKind: 'phantasm' } }, 100),
+    100
+  );
+  assert.equal(runtime.modifyCriticalChance({ ...context, config: { selectedTraitIds: [] } }, 0), 0);
+  // Phantasmal Fury is still its own selection gate while reading the shared Virtuoso tuning profile.
+  assert.equal(
+    runtime.modifyCriticalChance(
+      {
+        ...context,
+        event: { actorType: 'summon', summonKind: 'phantasm' },
+        config: { selectedTraitIds: [TRAIT.PHANTASMAL_FURY] }
+      },
+      0
+    ),
+    0.4
+  );
+
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(mesmerCatalog),
+    family.attributeContributions
+  );
+  const build = { specializations: [{ name: 'Virtuoso', traits: '0-0-0' }], assumptions: { fury: true } };
+  const live = calculate(build, [], 1, null, null, family.resolvePatch({ id: 'current' }).balanceContext);
+  const preview = calculate(build, [], 1, null, null, family.resolvePatch({ id: 's4-preview' }).balanceContext);
+  assert.equal(live.attributes.Ferocity.traits, 100);
+  assert.equal(preview.attributes.Ferocity.traits, 200);
+  assert.equal(preview.attributes['Critical Chance'].final - live.attributes['Critical Chance'].final, 10);
+  assert.equal(
+    calculate(build, [], 1, 'Quiet Intensity', null, family.resolvePatch({ id: 's4-preview' }).balanceContext)
+      .attributes.Ferocity.traits,
+    0
+  );
+  assert.equal(
+    runtime.modifyAttributes(
+      {
+        ...context,
+        config: {
+          ...context.config
+        }
+      },
+      { ferocity: 0 }
+    ).ferocity,
+    200
+  );
+  assert.equal(family.catalog.balanceProfilesById.get(TRAIT.QUIET_INTENSITY).vitalityConversion, 0.1);
 });

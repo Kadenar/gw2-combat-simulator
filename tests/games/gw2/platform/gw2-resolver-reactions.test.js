@@ -6,7 +6,11 @@ import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-bud
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
-import { createGw2ResolverReactionRegistry, GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';
+import {
+  composeGw2Reactions,
+  createGw2ResolverReactionRegistry,
+  GW2_RESOLVER_STAGES
+} from '#gw2/platform/resolver/reaction-registry.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { testProfession } from '#tests/fixtures/profession.js';
@@ -31,6 +35,12 @@ test('GW2 resolver registry orders notifications stably and discards their resul
           order: -100,
           handler: () => calls.push('early')
         },
+        // The profession is appended after contributions, so equal-order hooks must still precede it.
+        {
+          id: 'common.zero',
+          order: 0,
+          handler: () => calls.push('zero')
+        },
         {
           id: 'common.tie-a',
           order: 100,
@@ -50,7 +60,7 @@ test('GW2 resolver registry orders notifications stably and discards their resul
   });
 
   assert.equal(registry.dispatch('damage.resolved', {}, { type: 'damage', at: 0 }), undefined);
-  assert.deepEqual(calls, ['early', 'profession', 'tie-a', 'tie-b']);
+  assert.deepEqual(calls, ['early', 'zero', 'profession', 'tie-a', 'tie-b']);
   assert.equal(
     registry.dispatch(
       'condition.applied',
@@ -128,7 +138,13 @@ test('relic boon reactions accept standard boons and ignore generic buffs', () =
   assert.deepEqual(seen, [boon, legacyBoon]);
 });
 
-test('GW2 resolver registry rejects unknown stages and duplicate hook ids', () => {
+// Direct stage compilation retains validation at both public composition boundaries and dispatch.
+test('GW2 resolver composition rejects unknown stages, duplicate hook ids, and invalid handlers', () => {
+  assert.throws(() => composeGw2Reactions([{ damage: () => {} }]), /unknown stage: damage/);
+  assert.throws(() => createGw2ResolverReactionRegistry({ contributions: { damage: [] } }), /unknown stage: damage/);
+  const empty = createGw2ResolverReactionRegistry();
+  assert.throws(() => empty.dispatch('damage', {}, {}), /Unknown GW2 resolver stage: damage/);
+  assert.equal(empty.dispatch('damage.resolving', {}, {}), undefined);
   assert.throws(
     () => createGw2ResolverReactionRegistry({ professionReactions: { damage: () => {} } }),
     /unknown stage: damage/
@@ -144,6 +160,21 @@ test('GW2 resolver registry rejects unknown stages and duplicate hook ids', () =
         }
       }),
     /Duplicate reaction buff\.applied hook id: same/
+  );
+  assert.throws(
+    () =>
+      createGw2ResolverReactionRegistry({
+        professionReactions: { 'buff.applied': () => {} },
+        contributions: { 'buff.applied': [{ id: 'profession.buff.applied', order: 0, handler: () => {} }] }
+      }),
+    /Duplicate reaction buff\.applied hook id: profession.buff.applied/
+  );
+  assert.throws(
+    () =>
+      createGw2ResolverReactionRegistry({
+        contributions: { 'buff.applied': [{ id: 'invalid', order: 0, handler: null }] }
+      }),
+    /Invalid reaction buff\.applied handler: invalid/
   );
 });
 

@@ -5,9 +5,7 @@ export const SCOURGE_SKILL_FIELDS = defineFields(
   {
     // Manifest owns shade capacity and its Dhuumfire interaction; Desert Shroud owns its delayed impact.
     dhuumfireInterval: numberField({ unit: 'seconds', patch: 'advanced' }),
-    impactDelayMs: numberField({ unit: 'milliseconds', patch: 'advanced' }),
-    // Fixed life-force points paid by the shared skill-cost lifecycle through the skill's cost amount.
-    lifeForceCost: numberField({ patch: 'primary' })
+    impactDelayMs: numberField({ unit: 'milliseconds', patch: 'advanced' })
   },
   'Scourge'
 );

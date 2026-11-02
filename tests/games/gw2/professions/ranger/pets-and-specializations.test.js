@@ -3,13 +3,14 @@ import { test } from 'node:test';
 
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import {
-  currentAutoattackSkill,
+  createPaletteContext,
   paletteActionSkills,
   weaponPaletteRows,
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup, paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { rangerAppAdapter } from '#gw2/professions/ranger/app/app-definition.js';
@@ -20,7 +21,9 @@ import { RANGER_HAMMER_VARIANT_PAIRS } from '#gw2/professions/ranger/data/hammer
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { soulbeastArchetypeAttributes } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/archetype-attributes.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -316,9 +319,9 @@ test('Core Ranger exposes only the selected pet Beast skill', () => {
   const overlapping = simulate('Core', ['Rapid Fire', 'Rending Pounce', 'Point-Blank Shot'], {
     primaryWeapon: 'Longbow'
   });
-  const rapidFire = overlapping.steps.find((step) => step.skill === 'Rapid Fire');
-  const rendingPounce = overlapping.steps.find((step) => step.skill === 'Rending Pounce');
-  const pointBlankShot = overlapping.steps.find((step) => step.skill === 'Point-Blank Shot');
+  const rapidFire = overlapping.steps.find((step) => step.skillName === 'Rapid Fire');
+  const rendingPounce = overlapping.steps.find((step) => step.skillName === 'Rending Pounce');
+  const pointBlankShot = overlapping.steps.find((step) => step.skillName === 'Point-Blank Shot');
 
   assert.equal(rendingPounce.start, rapidFire.start);
   assert.equal(pointBlankShot.start, rapidFire.end);
@@ -341,7 +344,7 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
 
   const endurance = rangerProfession.ui.resourceViews({
     specialization: 'Galeshot',
-    professionState: { [STATE.ENDURANCE]: { value: 35, maximum: 100, updatedAt: 0, rate: 0 } }
+    professionState: { [STATE.ENDURANCE]: { value: 35, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } }
   })[0];
 
   assert.equal(endurance.value, 35);
@@ -353,7 +356,7 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
     results: {
       planningState: {
         availability: {},
-        profession: { [STATE.ENDURANCE]: { value: 35, maximum: 100, updatedAt: 0, rate: 0 } }
+        profession: { [STATE.ENDURANCE]: { value: 35, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } }
       }
     }
   };
@@ -377,9 +380,9 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
     ['__combat_start', 'Rapid Fire', 'Poisonous Cloud', 'Point-Blank Shot', { type: 'wait', durationMs: 4000 }],
     { primaryWeapon: 'Longbow', selectedPet: 'Carrion Devourer' }
   );
-  const rapidFire = result.steps.find((step) => step.skill === 'Rapid Fire');
-  const poison = result.steps.find((step) => step.skill === 'Poisonous Cloud');
-  const pointBlankShot = result.steps.find((step) => step.skill === 'Point-Blank Shot');
+  const rapidFire = result.steps.find((step) => step.skillName === 'Rapid Fire');
+  const poison = result.steps.find((step) => step.skillName === 'Poisonous Cloud');
+  const pointBlankShot = result.steps.find((step) => step.skillName === 'Point-Blank Shot');
   const poisonAction = result.events.find((event) => event.type === 'action' && event.skillId === ID.POISONOUS_CLOUD);
 
   // The timeline follows the companion's actual start while the player retains its independent reservation.
@@ -414,8 +417,8 @@ test('queued Beast commands never delay player skills', () => {
     ],
     { primaryWeapon: 'Longbow', selectedPet: 'Carrion Devourer' }
   );
-  const rapidFire = result.steps.find((step) => step.skill === 'Rapid Fire');
-  const pointBlankShot = result.steps.find((step) => step.skill === 'Point-Blank Shot');
+  const rapidFire = result.steps.find((step) => step.skillName === 'Rapid Fire');
+  const pointBlankShot = result.steps.find((step) => step.skillName === 'Point-Blank Shot');
   const poisonActions = result.events.filter(
     (event) => event.type === 'action' && event.skillId === ID.POISONOUS_CLOUD
   );
@@ -499,7 +502,7 @@ test('pet command readiness includes Alacrity received after recharge started', 
     }
   );
   const commands = result.steps.filter((step) => step.skillId === ID.FURIOUS_POUNCE);
-  const requestAt = result.steps.filter((step) => step.skill === 'Wait')[1].end;
+  const requestAt = result.steps.filter((step) => step.skillName === 'Wait')[1].end;
 
   assert.deepEqual(result.warnings, []);
   assert.equal(commands[1].start, requestAt);
@@ -520,10 +523,10 @@ test('Ranger pet commands require received Alacrity', () => {
     config
   );
   const rechargeMs = (result) => {
-    const step = result.steps.find((candidate) => candidate.skill === 'Fang Grapple');
+    const step = result.steps.find((candidate) => candidate.skillName === 'Fang Grapple');
 
     const action = result.events.find((event) => event.type === 'action' && event.skillId === step.skillId);
-    return result.planningState.cooldowns[step.skillId].readyAt - action.at * 1000;
+    return result.planningState.cooldownsBySkillId[step.skillId].readyAtMs - action.at * 1000;
   };
 
   assert.equal(rechargeMs(playerAlacrity), 20000);
@@ -1095,10 +1098,10 @@ test('Untamed Hammer pairs retain recharge across unleash transfers in both dire
       const config = { primaryWeapon: 'Hammer', initialUntamedState: rangerUnleashed ? 'Ranger' : 'Pet' };
       const initial = simulate('Untamed', [first], config);
       assert.deepEqual(initial.warnings, []);
-      const readyAt = initial.planningState.cooldowns[first].readyAt;
-      assert.equal(initial.planningState.cooldowns[second].readyAt, readyAt);
+      const readyAt = initial.planningState.cooldownsBySkillId[first].readyAtMs;
+      assert.equal(initial.planningState.cooldownsBySkillId[second].readyAtMs, readyAt);
       const other = RANGER_HAMMER_VARIANT_PAIRS.find((candidate) => candidate !== pair)[0];
-      assert.equal(initial.planningState.cooldowns[other], undefined);
+      assert.equal(initial.planningState.cooldownsBySkillId[other], undefined);
       const result = simulate('Untamed', [first, rangerUnleashed ? ID.UNLEASH_PET : ID.UNLEASH_RANGER, second], config);
       assert.deepEqual(result.warnings, []);
       assert.ok(result.steps.find((step) => step.skillId === second).start >= readyAt);
@@ -1127,9 +1130,9 @@ test('Cancelled Hammer casts also share their recharge with the other variant', 
     primaryWeapon: 'Hammer'
   });
   assert.deepEqual(result.warnings, []);
-  const cooldowns = result.planningState.cooldowns;
-  assert.ok(cooldowns[ID.WILD_SWING].readyAt > 0);
-  assert.equal(cooldowns[ID.WILD_SWING].readyAt, cooldowns[ID.UNLEASHED_WILD_SWING].readyAt);
+  const cooldowns = result.planningState.cooldownsBySkillId;
+  assert.ok(cooldowns[ID.WILD_SWING].readyAtMs > 0);
+  assert.equal(cooldowns[ID.WILD_SWING].readyAtMs, cooldowns[ID.UNLEASHED_WILD_SWING].readyAtMs);
 });
 
 test('Untamed exposes and executes all three natural pet commands only with the ranger unleashed', () => {
@@ -1255,11 +1258,11 @@ test('Ranger Hammer autoattacks advance their palette chain', () => {
     results: afterStrike
   };
 
-  assert.equal(currentAutoattackSkill(app).id, ID.HAMMER_SLAM);
+  assert.equal(createPaletteContext(app).activeAutoattack.id, ID.HAMMER_SLAM);
   app.results = afterSlam;
-  assert.equal(currentAutoattackSkill(app).id, ID.HEAVY_SMASH);
+  assert.equal(createPaletteContext(app).activeAutoattack.id, ID.HEAVY_SMASH);
   app.results = afterSmash;
-  assert.equal(currentAutoattackSkill(app).id, ID.HAMMER_STRIKE);
+  assert.equal(createPaletteContext(app).activeAutoattack.id, ID.HAMMER_STRIKE);
 });
 
 test('Ranger rejects out-of-order autoattack chain steps', () => {
@@ -1274,7 +1277,7 @@ test('Ranger rejects out-of-order autoattack chain steps', () => {
   });
 
   assert.deepEqual(
-    result.steps.filter((step) => !step.invalid).map((step) => step.skill),
+    result.steps.filter((step) => !step.invalid).map((step) => step.skillName),
     ['Hammer Strike']
   );
   assert.match(result.warnings.map(({ message }) => message).join(' '), /cast Hammer Strike first/);
@@ -1359,13 +1362,13 @@ test('Untamed Unleash forms share a fixed one-second recharge', () => {
     initialUntamedState: 'Ranger',
     boons: { alacrity: true }
   });
-  const unleashSteps = result.steps.filter((step) => ['Unleash Pet', 'Unleash Ranger'].includes(step.skill));
+  const unleashSteps = result.steps.filter((step) => ['Unleash Pet', 'Unleash Ranger'].includes(step.skillName));
 
   assert.deepEqual(
-    unleashSteps.map(({ skill, start }) => ({ skill, start })),
+    unleashSteps.map(({ skillName, start }) => ({ skillName, start })),
     [
-      { skill: 'Unleash Pet', start: 0 },
-      { skill: 'Unleash Ranger', start: 1000 }
+      { skillName: 'Unleash Pet', start: 0 },
+      { skillName: 'Unleash Ranger', start: 1000 }
     ]
   );
   assert.equal(observedRuntime(result).cooldownController.readyAt(ID.UNLEASH_RANGER), 2);
@@ -1675,5 +1678,70 @@ test('Venomous Outburst applies authored Vulnerability only to defiant targets',
       assert.equal(vulnerability.stacks, 8);
       assert.equal(vulnerability.duration, 10);
     }
+  }
+});
+
+// Fixed archetypes expose their named attributes and cannot be edited as balance profiles.
+test('Soulbeast archetypes use fixed merge bonuses and reject removed profile targets', () => {
+  for (const [archetype, attributes] of [
+    ['Stout', { toughness: 200, vitality: 100 }],
+    ['Deadly', { conditionDamage: 150, precision: 100 }],
+    ['Versatile', { vitality: 200, concentration: 225 }],
+    ['Ferocious', { power: 150, ferocity: 100 }],
+    ['Supportive', { vitality: 100 }]
+  ]) {
+    assert.deepEqual(soulbeastArchetypeAttributes(archetype), attributes);
+    const id = `ranger.soulbeast.archetype.${archetype.toLowerCase()}`;
+    assert.equal(rangerCatalog.balanceProfilesById.has(id), false);
+    assert.throws(
+      () => applyBalanceProfilePatch(rangerCatalog, { balanceProfiles: { [id]: { fields: { attributeBonus: 1 } } } }),
+      /unknown balance profile/
+    );
+  }
+
+  assert.deepEqual(soulbeastArchetypeAttributes('unknown'), {});
+});
+
+// Merge state and the current pet select intrinsic attributes from the same common seed.
+test('Soulbeast evaluates archetypes across merge state and pet changes', () => {
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(rangerCatalog),
+    rangerProfession.attributeContributions
+  );
+  const build = createRangerBuildDefaults();
+  const pig = calculate({ ...build, selectedPet: 'Pig' }).attributes;
+  const lynx = calculate({ ...build, selectedPet: 'Lynx' }).attributes;
+  assert.equal(pig.Power.final - lynx.Power.final, 150);
+  assert.equal(lynx['Condition Damage'].final - pig['Condition Damage'].final, 150);
+
+  for (const merged of [false, true]) {
+    const input = {
+      power: 1000,
+      ferocity: 0,
+      conditionDamage: 0,
+      precision: 1000,
+      vitality: 1000
+    };
+    const actual = rangerProfession.runtimeFor({ specialization: 'Soulbeast' }).modifyAttributes(
+      {
+        config: { specialization: 'Soulbeast', selectedPet: 'Pig' },
+        catalog: rangerCatalog,
+        runtime: {
+          profession: {
+            core: { petNames: ['Pig', 'Lynx'], activePetSlot: 2, pet: null },
+            specialization: { kind: 'Soulbeast', state: { beastmodeActive: merged } }
+          }
+        }
+      },
+      input
+    );
+    assert.deepEqual(actual, {
+      power: 1000,
+      ferocity: 0,
+      conditionDamage: merged ? 150 : 0,
+      precision: merged ? 1100 : 1000,
+      vitality: 1050
+    });
+    assert.equal(input.power, 1000);
   }
 });

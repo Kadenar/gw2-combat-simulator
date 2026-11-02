@@ -6,11 +6,11 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
-export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<NecromancerSkill>>> = {
   [ID.NECROTIC_SLASH]: {
     name: 'Necrotic Slash',
-    description: 'Chain. Slash your foe twice.',
     icon: 'https://render.guildwars2.com/file/05EE0A5CE7B645C83F3008FCD8C9AD2002C744D1/103095.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -33,7 +33,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.NECROTIC_STAB]: {
     name: 'Necrotic Stab',
-    description: 'Chain. Strike your foe again.',
     icon: 'https://render.guildwars2.com/file/05EE0A5CE7B645C83F3008FCD8C9AD2002C744D1/103095.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -52,7 +51,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 4 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 4 } })]
           }
         ],
         ticks: [{ atMs: 160, coefficient: 0.9 }],
@@ -63,7 +62,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.NECROTIC_BITE]: {
     name: 'Necrotic Bite',
-    description: 'Strike your foe and gain life force.',
     icon: 'https://render.guildwars2.com/file/0BED96F7290CECDDDA5DD1CB5B4FC07BAD5115F6/103852.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -82,7 +80,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 8 } })
+            do: [lifeForceGrant({ id: 'life-force', unit: 'hit', grant: { percent: 8 } })]
           }
         ],
         coefficient: 1.3,
@@ -92,7 +90,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.LIFE_SIPHON]: {
     name: 'Life Siphon',
-    description: 'Bleed yourself, then siphon health from your foe. Damage increases if your foe is bleeding.',
     icon: 'https://render.guildwars2.com/file/DC2F5B32DF6D77CF2B7C3B9AAF30381FE11A97FE/103037.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -125,7 +122,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.life-siphon' }
+            do: [{ type: 'necromancer.life-siphon' }]
           }
         ],
         ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: 480 + index * 160, coefficient: 2.7 / 9 })),
@@ -136,7 +133,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.DARK_PACT]: {
     name: 'Dark Pact',
-    description: 'Bleed yourself. Immobilize your foe and remove their boons. Gain life force for each boon removed.',
     icon: 'https://render.guildwars2.com/file/A99518F9D00A760DE474B803522824415141493B/103800.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -179,7 +175,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
               actor: ACTOR.PLAYER,
               packets: 'first',
               when: (_runtime, { event }) => Number(event.coefficient) > 0,
-              do: { type: 'necromancer.dark-pact' }
+              do: [{ type: 'necromancer.dark-pact' }]
             }
           ],
           coefficient: 2.4
@@ -190,7 +186,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.DEATHLY_SWARM]: {
     name: 'Deathly Swarm',
-    description: 'Unleash an insect swarm to blind and transfer conditions to your enemies.',
     icon: 'https://render.guildwars2.com/file/37CB51AAB9B396156995DA692F019C266A919C33/103279.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -209,7 +204,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
             actor: ACTOR.PLAYER,
             packets: 'first',
             when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: { type: 'necromancer.transfer' }
+            do: [{ type: 'necromancer.transfer' }]
           }
         ],
         coefficient: 1.2,
@@ -225,7 +220,6 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
   },
   [ID.ENFEEBLING_BLOOD]: {
     name: 'Enfeebling Blood',
-    description: 'Inflict weakness and bleeding on foes in the target area.',
     icon: 'https://render.guildwars2.com/file/3566470D2DCB5A01CE4E1D2EF09503B07108B9BD/103010.png',
     type: 'Weapon',
     weapon: 'Dagger',
@@ -245,7 +239,7 @@ export const NECROMANCER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number,
       ]
     )
   }
-});
+};
 
 /** Intrinsic impact-time formula; the existing modifier registry preserves its operation and ordering. */
 export const lifeSiphonBleedingModifier: Gw2ModifierRule = {

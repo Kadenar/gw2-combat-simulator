@@ -938,13 +938,6 @@
   grid-template-columns: minmax(120px, 1fr) 72px;
 }
 
-.mesmer-skill-breakdown .res-hdr,
-.mesmer-skill-breakdown .res-row,
-.mesmer-skill-breakdown .res-skill-group-heading {
-  grid-template-columns: minmax(180px, 1fr) repeat(3, 72px) 60px repeat(3, 72px) 48px 48px 56px;
-  min-width: 880px;
-}
-
 .res-row.res-total {
   border-top: 1px solid var(--border);
   margin-top: 2px;

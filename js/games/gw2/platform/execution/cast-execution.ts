@@ -81,8 +81,10 @@ export function createCastExecution<T extends object>(
   const reservations = createCastReservations<Omit<RuntimeCast, 'id'> & { firstStrikeAt: number }>();
   /** Authored skill tasks become live work at their deadlines; cast-scaled offsets follow the reserved duration. */
   function scheduleSkillTasks(cast: RuntimeCast): void {
-    for (const trigger of cast.skill.tasks ?? [])
-      runtime.scheduleForCast(trigger.type, skillTaskAt(cast, trigger, runtime.time), cast, { trigger });
+    for (const taskDefinition of cast.skill.tasks ?? [])
+      runtime.scheduleForCast(taskDefinition.type, skillTaskAt(cast, taskDefinition, runtime.time), cast, {
+        taskDefinition
+      });
   }
 
   /** Settle the accepted reservation once, preserving commitment before completion observers. */
@@ -95,19 +97,19 @@ export function createCastExecution<T extends object>(
 
     if (!inFlight.get(cast.skill.id)?.size) inFlight.delete(cast.skill.id);
 
-    if (cast.ammo) {
+    if (cast.usesAmmo) {
       cooldownController.spendAmmo(cast.skill, cast.rechargeStart, cast.rechargeWork);
       cooldownController.setAmmoLockout(cast.skill, cast.ammoLockoutWork, cast.rechargeStart);
     } else if (cast.rechargeWork > 0 && cast.skill.rechargeOwner !== 'actor')
       cooldownController.startRecharge(cast.skill, cast.rechargeStart, cast.rechargeWork, cast.rechargeCompanionId);
 
-    const cancelled = cast.cancelled;
+    const cancelled = cast.cancelledBeforeCommit;
 
     // Ordinary swaps commit one actual set transition before completion hooks and queued equipment reactions.
     if (cast.skill.inputCategory === 'weapon-swap' && !castWasInterrupted(cast)) {
       const weaponSwapFromSet = runtime.activeWeaponSet;
       runtime.activeWeaponSet = runtime.activeWeaponSet === 1 ? 2 : 1;
-      resetAutoattackChains(runtime);
+      resetAutoattackChains(runtime.profession);
       runtime.effects.emit({
         kind: 'packet',
         event: {
@@ -132,7 +134,7 @@ export function createCastExecution<T extends object>(
       !cancelled && (cast.skill.interruptMode !== 'per-packet' || !castWasInterrupted(cast) || strikeReached);
     const interrupts = !cancelled && !cast.skill.independentCast && cast.fullEnd > cast.start && strikeReached;
     const transition = advanceAutoattackChains(
-      runtime,
+      runtime.profession,
       profession.catalog,
       cast.skill,
       committed,
@@ -141,10 +143,11 @@ export function createCastExecution<T extends object>(
     );
     profession.onAutoattackChainTransition?.(runtime.mechanics, cast, transition);
 
-    if (cast.skill.cost?.spendOn === 'castCommit' && !cast.cancelled) execution.spendCost?.(runtime, cast.skill);
+    if (cast.skill.cost?.spendOn === 'castCommit' && !cast.cancelledBeforeCommit)
+      execution.spendCost?.(runtime, cast.skill);
 
     // One successful-cast phase owns rewards and tasks; cancelled attempts only release profession state.
-    if (cast.cancelled) profession.onCastCancel?.(runtime.mechanics, cast);
+    if (cast.cancelledBeforeCommit) profession.onCastCancel?.(runtime.mechanics, cast);
     else {
       applySkillSideEffects(runtime.mechanics, cast, 'castCommit', profession.sideEffectHandlers);
       profession.onCastCommit?.(runtime.mechanics, cast);
@@ -162,7 +165,7 @@ export function createCastExecution<T extends object>(
       skillType: cast.skill.type,
       activationId: cast.id,
       offTarget: cast.command.offTarget,
-      cancelled: cast.cancelled,
+      cancelled: cast.cancelledBeforeCommit,
       // Preparation relics follow authored command order even when hostile eligibility includes the marker timestamp.
       precombat: !runtime.engagement.preparationComplete(runtime.time)
     });
@@ -193,8 +196,8 @@ export function createCastExecution<T extends object>(
 
     if (runtime.output !== 'score')
       runtime.steps.push({
-        ri: cursor.index,
-        skill: name,
+        rotationCommandIndex: cursor.index,
+        skillName: name,
         ...(command?.type === 'cast' ? { skillId: command.skillId } : {}),
         start: runtime.time * 1000,
         end: runtime.time * 1000,
@@ -251,7 +254,7 @@ export function createCastExecution<T extends object>(
     const rechargeWork = cancelled
       ? baseWork
       : (profession.reserveRecharge?.(runtime.mechanics, skill, baseWork) ?? baseWork);
-    const ammo = cooldownController.ensureAmmo(skill) != null;
+    const usesAmmo = cooldownController.ensureAmmo(skill) != null;
     // Resolve the selected anchor once before reservation, retaining the same value through completion.
     const canonicalRechargeStart =
       start +
@@ -260,7 +263,7 @@ export function createCastExecution<T extends object>(
     const rechargeStart =
       profession.rechargeStart?.(
         rechargeStartContext,
-        { skill, start, fullEnd, effectiveEnd, cancelled },
+        { skill, start, fullEnd, effectiveEnd, cancelledBeforeCommit: cancelled },
         canonicalRechargeStart
       ) ?? canonicalRechargeStart;
 
@@ -279,9 +282,9 @@ export function createCastExecution<T extends object>(
       rechargeCompanionId: profession.rechargeCompanionId?.(runtime.mechanicQueries, skill),
       // Persistent recharge modifiers also govern the gap between charges; one-shot entitlements do not.
       ammoLockoutWork:
-        ammo && Number(skill.ammoCastLockout) > 0 ? rechargeWorkFor(skill, Number(skill.ammoCastLockout)) : 0,
-      ammo,
-      cancelled
+        usesAmmo && Number(skill.ammoCastLockout) > 0 ? rechargeWorkFor(skill, Number(skill.ammoCastLockout)) : 0,
+      usesAmmo,
+      cancelledBeforeCommit: cancelled
     });
 
     if (inputControl)
@@ -307,8 +310,8 @@ export function createCastExecution<T extends object>(
 
     if (runtime.output !== 'score')
       runtime.steps.push({
-        ri: cursor.index,
-        skill: skill.name,
+        rotationCommandIndex: cursor.index,
+        skillName: skill.name,
         skillId: skill.id,
         start: Math.round(start * 1000),
         end: Math.round(effectiveEnd * 1000),
@@ -452,7 +455,7 @@ export function createCastExecution<T extends object>(
     }
 
     // A wrong chain command is invalid now; waiting for recharge must not let its flip expire into validity.
-    const chainAvailability = autoattackChainAvailability(runtime, profession.catalog, skill);
+    const chainAvailability = autoattackChainAvailability(runtime.profession, profession.catalog, skill);
 
     if (!chainAvailability.ready) {
       return chainAvailability;

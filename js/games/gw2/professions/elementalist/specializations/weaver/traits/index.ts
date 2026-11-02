@@ -247,7 +247,7 @@ function applyElementsOfRageAttunement(context: ElementalistRuntime, event: Simu
     previous = event.from,
     sourceId = event.skillId ?? event.sourceId,
     source = event.skillName || event.source || 'Attunement',
-    unravelActive = weaverState.from(context).unravelUntil > at;
+    unravelActive = weaverState.from(context.profession).unravelUntil > at;
 
   if (target === previous || unravelActive) {
     context.effects.emit(
@@ -272,7 +272,7 @@ function applyWeaversProwess(context: ElementalistRuntime, event: SimulationEven
     target = event.to,
     previous = event.from,
     sourceId = event.skillId ?? event.sourceId,
-    unravelActive = weaverState.from(context).unravelUntil > at;
+    unravelActive = weaverState.from(context.profession).unravelUntil > at;
 
   if (unravelActive || target === previous) {
     const weaversProwessProfile = requireBalanceProfileFromContext(context, TRAIT.WEAVERS_PROWESS);

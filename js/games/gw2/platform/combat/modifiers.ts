@@ -133,11 +133,7 @@ function normalizeResolver(
 }
 
 function normalizeParameters(rule: Gw2ModifierRule): Readonly<Record<string, number>> {
-  if (!Object.hasOwn(rule, 'parameters')) return EMPTY_MODIFIER_PARAMETERS;
-
-  if (!rule.parameters || typeof rule.parameters !== 'object' || Array.isArray(rule.parameters)) {
-    throw ruleError(rule.id, 'parameters must be an object.');
-  }
+  if (!rule.parameters) return EMPTY_MODIFIER_PARAMETERS;
 
   const parameters: Record<string, number> = {};
   for (const [name, value] of Object.entries(rule.parameters)) {
@@ -187,19 +183,15 @@ function normalizeTargets(rule: Gw2ModifierRule): readonly Gw2ModifierTarget[] {
  * Declaration order is the final sort tie-breaker.
  */
 function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonly<Gw2NormalizedModifierRule> {
-  if (!rule || typeof rule !== 'object' || Array.isArray(rule)) {
-    throw ruleError(`<missing at index ${declarationIndex}>`, 'must be an object.');
-  }
-
-  const id = typeof rule.id === 'string' ? rule.id.trim() : '';
+  const id = rule.id.trim();
 
   if (!id) {
     throw ruleError(`<missing at index ${declarationIndex}>`, 'id is required.');
   }
 
-  const label = typeof rule.label === 'string' ? rule.label.trim() : '';
+  const label = rule.label?.trim() ?? '';
 
-  if (Object.hasOwn(rule, 'label') && !label) {
+  if (rule.label != null && !label) {
     throw ruleError(id, 'label must be a non-empty string.');
   }
 
@@ -211,21 +203,13 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
 
   const targets = normalizeTargets({ ...rule, id });
 
-  if (rule.conditionSampleInvariant != null && typeof rule.conditionSampleInvariant !== 'boolean') {
-    throw ruleError(id, 'conditionSampleInvariant must be a boolean.');
-  }
-
   if (rule.conditionSampleInvariant && !targets.includes(MODIFIER_TARGET.CONDITION_DAMAGE)) {
     throw ruleError(id, 'conditionSampleInvariant requires a condition-damage target.');
   }
 
-  if (Object.hasOwn(rule, 'when') && typeof rule.when !== 'function') {
-    throw ruleError(id, 'when must be a function.');
-  }
+  const order = rule.order ?? 0;
 
-  const order = Object.hasOwn(rule, 'order') ? rule.order : 0;
-
-  if (typeof order !== 'number' || !Number.isFinite(order)) {
+  if (!Number.isFinite(order)) {
     throw ruleError(id, 'order must be a finite number.');
   }
 
@@ -271,10 +255,6 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
  * Normalizes a complete rule list and enforces globally unique rule ids.
  */
 function normalizeRules(rules: readonly Gw2ModifierRule[]): readonly Readonly<Gw2NormalizedModifierRule>[] {
-  if (!Array.isArray(rules)) {
-    throw new TypeError('Modifier rules must be an array.');
-  }
-
   const ids = new Set<string>();
   const normalized = rules.map((rule, index) => {
     const result = normalizeRule(rule, index);
@@ -299,10 +279,6 @@ function normalizeRules(rules: readonly Gw2ModifierRule[]): readonly Readonly<Gw
 function normalizeBucketPolicies(
   damageBuckets: Gw2DamageBucketPolicies
 ): Readonly<Record<Gw2DamageModifierTarget, Gw2DamageBucketPolicy>> {
-  if (damageBuckets == null || typeof damageBuckets !== 'object' || Array.isArray(damageBuckets)) {
-    throw new TypeError('Modifier damageBuckets must be an object.');
-  }
-
   const policies: Partial<Record<Gw2DamageModifierTarget, Gw2DamageBucketPolicy>> = {};
   for (const target of DAMAGE_TARGETS) {
     if (!Object.hasOwn(damageBuckets, target)) {
@@ -312,18 +288,7 @@ function normalizeBucketPolicies(
       continue;
     }
 
-    const declared = damageBuckets[target];
-
-    if (declared == null || typeof declared !== 'object' || Array.isArray(declared)) {
-      throw new TypeError(`Modifier bucket policy "${target}" must be an object.`);
-    }
-
-    const includeSigil = Object.hasOwn(declared, 'includeSigil') ? declared.includeSigil : true;
-
-    if (typeof includeSigil !== 'boolean' && typeof includeSigil !== 'function') {
-      throw new TypeError(`Modifier bucket policy "${target}" has an unsupported includeSigil value.`);
-    }
-
+    const includeSigil = damageBuckets[target]!.includeSigil ?? true;
     policies[target] = Object.freeze({ includeSigil });
   }
 

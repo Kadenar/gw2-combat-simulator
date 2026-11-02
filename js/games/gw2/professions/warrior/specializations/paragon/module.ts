@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/warrior/data/trait-lines.js';
 import {
   PARAGON_SKILL_FIELDS,
@@ -19,7 +20,7 @@ export const paragonModule = defineNativeModule({
     id: 'Paragon',
     traitLines: TRAIT_LINES,
     profileFields: WARRIOR_PARAGON_PROFILE_FIELDS,
-    skillMechanics: PARAGON_SKILL_MECHANICS,
+    skills: materializeSkillDefinitions(PARAGON_SKILL_MECHANICS),
     skillFields: PARAGON_SKILL_FIELDS
   }),
   state: { create: paragonState.create, project: projectParagonPlanningState },

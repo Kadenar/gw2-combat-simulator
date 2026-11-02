@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { TRAIT_LINES } from '#gw2/professions/engineer/data/trait-lines.js';
 import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
 import { AMALGAM_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/amalgam/catalog-fields.js';
@@ -20,7 +21,7 @@ export const amalgamModule = defineNativeModule({
     id: 'Amalgam',
     traitLines: TRAIT_LINES,
     skillFields: AMALGAM_SKILL_FIELDS,
-    skillMechanics: AMALGAM_SKILL_MECHANICS
+    skills: materializeSkillDefinitions(AMALGAM_SKILL_MECHANICS)
   }),
   state: { create: amalgamState.create, project: projectAmalgamPlanningState },
   attributes: amalgamAttributes,

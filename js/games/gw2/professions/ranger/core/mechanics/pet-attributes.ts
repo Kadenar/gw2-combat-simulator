@@ -21,7 +21,7 @@ import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 export function rangerPetCompanionId(context: Pick<MechanicQueriesOf<RangerRuntime>, 'profession'>): string {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
 
   if (!state.pet) throw new Error('An active pet is required for companion identity.');
 
@@ -37,7 +37,7 @@ function signetOfTheWildBonus(context: unknown, selected: boolean, ready = true)
 
 /** Snapshot independent-pet attributes after trait inheritance and the live signet passive. */
 function rangerPetAttributes(context: RangerRuntime | RangerResolverContext) {
-  const pet = rangerPetForState(professionCoreState(context));
+  const pet = rangerPetForState(professionCoreState(context.profession));
   const attributes = { ...rangerPetBaseAttributes(pet.name) };
   const family = pet.family;
   const bonuses = resolveAttributeContributions({ conversionPool: {}, conversions: [] }, [
@@ -68,7 +68,7 @@ export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverC
   const attributes = rangerPetAttributes(context);
   // New families may declare a different pet weapon without changing established damage baselines.
   const weaponStrength =
-    rangerPetAutoProfile(rangerPetForState(professionCoreState(context)).name)?.weaponStrength ?? 2880;
+    rangerPetAutoProfile(rangerPetForState(professionCoreState(context.profession)).name)?.weaponStrength ?? 2880;
   return {
     weaponStrength: undefined,
     weaponStrengthProfileId: undefined,
@@ -81,7 +81,7 @@ export function rangerPetCombatMetadata(context: RangerRuntime | RangerResolverC
     summonBaseConditionDamage: attributes.conditionDamage,
     summonBaseExpertise: attributes.expertise,
     summonOwner: rangerPetCompanionId(context),
-    entityName: rangerPetForState(professionCoreState(context)).name,
+    entityName: rangerPetForState(professionCoreState(context.profession)).name,
     // Pets crit like players: the level-80 base chance plus Precision above the baseline, matching the pet panel.
     summonCriticalChance: criticalChanceFractionFromPrecision(attributes.precision),
     // Share the canonical Ferocity scaling so pet critical damage stays aligned with combat formulas.

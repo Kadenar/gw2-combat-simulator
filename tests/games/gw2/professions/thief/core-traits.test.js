@@ -21,11 +21,10 @@ import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/profession
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
-
-const wait = (durationMs) => ({ type: 'wait', durationMs });
 
 test('Thief critical boons read pre-hit Fury with same-time ordering and expiry', () => {
   // Two same-time hits distinguish the hit granting Fury from the next hit permitted to extend it.
@@ -399,9 +398,13 @@ test('Lead Attacks replaces oldest stacks across and at the cap while preserving
       { selectedTraitIds: [TRAIT.LEAD_ATTACKS, TRAIT.PREPAREDNESS], initialInitiative: 30 },
       {
         catalog: (live) =>
-          withProfile(withSkill(live, ID.HEARTSEEKER, { castTimeMs: 0, initiativeCost: 4 }), TRAIT.PREPAREDNESS, {
-            maximumStacks: 30
-          })
+          withProfile(
+            withSkill(live, ID.HEARTSEEKER, { castTimeMs: 0, cost: { resource: 'initiative', amount: 4 } }),
+            TRAIT.PREPAREDNESS,
+            {
+              maximumStacks: 30
+            }
+          )
       }
     );
     assert.deepEqual(result.warnings, []);
@@ -892,10 +895,10 @@ test('Lead Attacks receives the captured initiative cost across deferred complet
   const skill = thiefCatalog.skillsById.get(ID.INFILTRATORS_STRIKE);
   thiefCoreHooks.onCastCommit(context, {
     id: 'captured-spend',
-    cancelled: false,
-    skill: { ...skill, initiativeCost: 3 }
+    cancelledBeforeCommit: false,
+    skill: { ...skill, cost: { resource: 'initiative', amount: 3 } }
   });
-  const cast = { ...scheduled.cast, skill: { ...skill, initiativeCost: 0 } };
+  const cast = { ...scheduled.cast, skill: { ...skill, cost: { resource: 'initiative', amount: 0 } } };
   thiefCoreHooks.tasks[scheduled.name](context, { ...scheduled.data, cast });
   assert.equal(runtime.profession.core.leadAttackExpirations.length, 3);
 });

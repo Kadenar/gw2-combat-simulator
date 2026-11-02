@@ -7,10 +7,9 @@ import { bindRitualistUi } from '#gw2/professions/necromancer/specializations/ri
 import {
   anguishConditionModifier,
   essenceBlastSpiritModifier,
-  RITUALIST_BASE_SKILL_MECHANICS
+  RITUALIST_SKILLS
 } from '#gw2/professions/necromancer/specializations/ritualist/skills/index.js';
 import { NECROMANCER_RITUALIST_SKILL_FLIPS } from '#gw2/professions/necromancer/specializations/ritualist/skills/skill-flips.js';
-import { RITUALIST_SPIRIT_ATTACK_SKILLS } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
 import { projectRitualistState, ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
 import { necromancerRitualistTraits } from '#gw2/professions/necromancer/specializations/ritualist/traits/index.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
@@ -22,9 +21,9 @@ export const ritualistModule = defineNativeModule({
     id: 'Ritualist',
     traitLines: TRAIT_LINES,
     skillFlips: NECROMANCER_RITUALIST_SKILL_FLIPS,
-    extraSkills: RITUALIST_SPIRIT_ATTACK_SKILLS,
+
     skillFields: RITUALIST_SKILL_FIELDS,
-    skillMechanics: RITUALIST_BASE_SKILL_MECHANICS
+    skills: RITUALIST_SKILLS
   }),
   // One state factory supplies the live combat owner.
   state: { create: ritualistState.create, project: projectRitualistState },

@@ -2,16 +2,16 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
-import { skillCostAmount } from '#gw2/platform/skills/cost.js';
+import { announceRelic, defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
 
 export const thief = defineRelic({
   createState: () => ({ refreshedStacks: { stacks: 0, expiresAt: 0 } }),
   afterHit(ctx, state, event, skill) {
+    // A missing cost contributes no resource price to the weapon trigger.
     if (
       !isGw2PlayerActorEvent(event) ||
       skill?.type !== 'Weapon' ||
-      !((skill.cooldown || 0) > 0 || skillCostAmount(skill) > 0 || skill.resource)
+      !((skill.cooldown || 0) > 0 || (skill.cost?.amount ?? 0) > 0 || skill.resource)
     ) {
       return;
     }
@@ -26,19 +26,12 @@ export const thief = defineRelic({
       'exclusive'
     );
     state.refreshedStacks = buff;
-    ctx.effects.emit({
-      kind: 'announcement',
-      announcement: {
-        type: 'relic',
-        name: 'Relic of the Thief',
-        at: event.at,
-        sourceSkill: event.skillName,
-        detail: `${buff.stacks}/5 stacks`,
-        icon: '',
-        cooldownReduction: null,
-        expiresAt: buff.expiresAt,
-        effectState: { stacks: buff.stacks, maximumStacks: 5 }
-      }
+    announceRelic(ctx, event, 'Relic of the Thief', {
+      detail: `${buff.stacks}/5 stacks`,
+      icon: '',
+      cooldownReduction: null,
+      expiresAt: buff.expiresAt,
+      effectState: { stacks: buff.stacks, maximumStacks: 5 }
     });
   },
   // Returns 1 (not 0) when no stacks are active — it's a multiplier, not additive.

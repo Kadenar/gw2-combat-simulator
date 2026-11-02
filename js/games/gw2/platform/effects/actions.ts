@@ -56,8 +56,6 @@ export type SideEffectAction =
   | {
       readonly type: 'emitProfile';
       readonly profileId: SkillId;
-      /** Select the trigger's own effects from a shared profile without duplicating its balance data. */
-      readonly effects?: (effect: SkillEffect) => boolean;
       /** Preserve the existing proc label when a skill moves onto profile emission. */
       readonly attribution?: Partial<EffectEventBase> & { readonly name?: string };
     }
@@ -89,7 +87,7 @@ export function isCustomSideEffectAction(value: unknown): value is CustomSideEff
 /** A custom action that owns an inline effect payload. */
 export type PayloadSideEffectAction = CustomSideEffectAction & { readonly effects: readonly SkillEffect[] };
 
-/** Only inline effect arrays are payloads; emitProfile's effects predicate is a different existing action field. */
+/** Only custom actions with inline effect arrays own payloads; profile filters select existing effects. */
 export function hasActionEffects(value: unknown): value is PayloadSideEffectAction {
   return isCustomSideEffectAction(value) && Array.isArray(value.effects);
 }

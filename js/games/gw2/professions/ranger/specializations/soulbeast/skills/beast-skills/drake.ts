@@ -5,11 +5,11 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
-export const SOULBEAST_DRAKE_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = Object.freeze({
+export const SOULBEAST_DRAKE_BEAST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
   [ID.CHOMP]: {
     name: 'Chomp',
-    description: 'Bite a foe and gain health.',
     icon: 'https://render.guildwars2.com/file/B2BF7C5345F094BA02D83575BC4DB8A0B9DCB490/103595.png',
     type: 'Profession',
     slot: 'Profession_1',
@@ -26,7 +26,6 @@ export const SOULBEAST_DRAKE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Skil
   },
   [ID.TAIL_SWIPE]: {
     name: 'Tail Swipe',
-    description: 'Attack all surrounding foes with a tail swipe.',
     icon: 'https://render.guildwars2.com/file/150DEE60799B04CF20A66DE020A81DA7D4D139A4/103596.png',
     type: 'Profession',
     slot: 'Profession_2',
@@ -47,4 +46,4 @@ export const SOULBEAST_DRAKE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Skil
       }
     ]
   }
-});
+};

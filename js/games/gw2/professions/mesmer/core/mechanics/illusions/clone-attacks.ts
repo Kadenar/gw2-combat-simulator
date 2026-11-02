@@ -26,7 +26,7 @@ export function createCloneAttackScheduler({
   scheduleTask
 }: CloneAttackSchedulerOptions): MesmerCloneAttackScheduler {
   // Clone ownership comes from the scheduler Core slice in every caller.
-  const profession = professionCoreState(state);
+  const profession = professionCoreState(state.profession);
   const attackFor = (clone: MesmerClone) => cloneAttacks[clone.weapon] || cloneAttacks.Sword;
 
   const sequenceStep = (clone: MesmerClone, attack: MesmerCloneAttack): MesmerCloneAttackStep => {

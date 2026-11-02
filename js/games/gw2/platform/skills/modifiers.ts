@@ -60,13 +60,14 @@ export function nativeSkillModifierRules(data: NativeModuleCatalogData): readonl
       ...normalizeSkillDamageModifiers(skill.modifiers ?? [], `Skill ${id}`).map((rule) => scoped(rule, false))
     );
     for (const effect of skill.effects ?? []) {
-      if (effect.modifiers == null) continue;
+      // Patched and untyped declarations can still place modifiers on another effect variant.
+      const { modifiers } = effect as { readonly modifiers?: readonly SkillDamageModifier[] };
+
+      if (modifiers == null) continue;
 
       if (effect.type !== 'strike') throw new TypeError(`Skill ${id} modifiers require a strike effect.`);
 
-      rules.push(
-        ...normalizeSkillDamageModifiers(effect.modifiers, `Skill ${id} effect`).map((rule) => scoped(rule, true))
-      );
+      rules.push(...normalizeSkillDamageModifiers(modifiers, `Skill ${id} effect`).map((rule) => scoped(rule, true)));
     }
   }
 

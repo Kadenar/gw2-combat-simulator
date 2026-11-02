@@ -1,8 +1,8 @@
 /** Akeem relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import { defineRelic } from '#gw2/platform/equipment/relics/rules/shared.js';
+import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
@@ -29,11 +29,8 @@ export const akeem = defineRelic({
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
 function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: SimulationEvent): void {
-  ctx.effects.emit({
-    kind: 'announcement',
-    announcement: { type: 'relic', name: 'Relic of Akeem', at: event.at, sourceSkill: event.skillName }
-  });
-  // Relic conditions carry their own actor identity instead of relying on source-label inference.
+  announceRelic(ctx, event, 'Relic of Akeem');
+  // Relic conditions remain effect-sourced while inheriting the player's outgoing condition modifiers.
   ctx.effects.emit({
     kind: 'packet',
     settlement: 'reaction',
@@ -45,9 +42,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       condition: CONDITION.CONFUSION,
       duration: 10,
       stacks: 2,
-      source: 'Relic',
-      sourceId: RELIC_IDS.AKEEM,
-      actorType: ACTOR.EFFECT
+      ...playerOwnedRelicSource(RELIC_IDS.AKEEM)
     }
   });
   ctx.effects.emit({
@@ -61,9 +56,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       condition: CONDITION.TORMENT,
       duration: 10,
       stacks: 2,
-      source: 'Relic',
-      sourceId: RELIC_IDS.AKEEM,
-      actorType: ACTOR.EFFECT
+      ...playerOwnedRelicSource(RELIC_IDS.AKEEM)
     }
   });
 }

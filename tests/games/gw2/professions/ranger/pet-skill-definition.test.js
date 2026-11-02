@@ -9,7 +9,6 @@ import { definePetSkill } from '#gw2/professions/ranger/core/skills/pets/pet-ski
 test('pet declarations share independent actor recharge rules without changing authored payloads', () => {
   const authored = Object.freeze({
     name: 'Pet action',
-    description: 'Fixture.',
     icon: 'pet.png',
     cooldown: 12,
     effects: []

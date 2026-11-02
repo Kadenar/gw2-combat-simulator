@@ -3,6 +3,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
+import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -107,7 +108,7 @@ export const leadAttacks = defineTrait({
         return (
           Math.min(
             balanceProfileNumber(profile, 'maximumStacks'),
-            activeStackCount(thiefRuntimeState(context).leadAttackExpirations || [], context.time)
+            activeStackCount(thiefRuntimeState(context.runtime?.profession).leadAttackExpirations || [], context.time)
           ) * balanceProfileNumber(profile, 'damageIncreasePerStack')
         );
       },
@@ -161,7 +162,7 @@ export const sleightOfHand = defineTrait({
   id: TRAIT.SLEIGHT_OF_HAND,
   balance: {
     rechargeMultiplier: 0.8,
-    effects: [{ type: 'control', name: CONTROL.DAZE, kind: CONTROL.DAZE }]
+    effects: [{ type: 'control', name: CONTROL.DAZE, controlKind: CONTROL.DAZE }]
   },
   rechargeRules: [
     {
@@ -201,9 +202,9 @@ function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): 
       attribution: { source: 'Trait', sourceId: TRAIT.BOUNTIFUL_THEFT, actorType: ACTOR.PLAYER },
       transform: (event, effect) => ({
         ...event,
-        name: 'Steal \u2014 ' + String(effect.boon),
-        kind: String(effect.boon).toLowerCase(),
-        boon: String(effect.boon),
+        name: 'Steal \u2014 ' + String((effect as StatusEffect).boon),
+        kind: String((effect as StatusEffect).boon).toLowerCase(),
+        boon: String((effect as StatusEffect).boon),
         fixedDuration: false,
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       })
@@ -273,9 +274,9 @@ function applyThrillOfTheCrime(runtime: ThiefRuntime, { cast }: StealAcceptance)
     attribution: { source: 'Trait', sourceId: TRAIT.THRILL_OF_THE_CRIME, actorType: ACTOR.PLAYER },
     transform: (event, effect) => ({
       ...event,
-      name: 'Steal \u2014 ' + String(effect.boon),
-      kind: String(effect.boon).toLowerCase(),
-      boon: String(effect.boon),
+      name: 'Steal \u2014 ' + String((effect as StatusEffect).boon),
+      kind: String((effect as StatusEffect).boon).toLowerCase(),
+      boon: String((effect as StatusEffect).boon),
       fixedDuration: false,
       audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
     })

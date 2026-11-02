@@ -3,6 +3,7 @@ import {
   profileFact,
   simulationEffectFacts,
   skillTooltip,
+  tooltipAttributeConversion,
   tooltipDecimal,
   tooltipNumber,
   tooltipPercent,
@@ -93,9 +94,9 @@ export const heraldTooltips = {
     [TRAIT.SHINING_ASPECTS]: outsideScopeTooltip,
     [TRAIT.HARDENING_PERSISTENCE]: outsideScopeTooltip,
     [TRAIT.ELEVATED_COMPASSION]: traitTooltip(
-      'Gain concentration from the common power attribute pool. Maintaining enough aggregate upkeep periodically grants party quickness.',
+      'Gain concentration based on power before profession bonuses and attribute conversions. Maintaining enough aggregate upkeep periodically grants party quickness.',
       [
-        ['attributeConversion', 'Power converted to concentration', tooltipPercent],
+        ['attributeConversion', 'Concentration gained from power', tooltipAttributeConversion],
         ['threshold', 'Required aggregate upkeep'],
         ['cooldown', 'Quickness interval', tooltipSeconds]
       ]

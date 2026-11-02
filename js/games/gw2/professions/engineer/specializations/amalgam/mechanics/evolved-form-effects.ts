@@ -28,7 +28,7 @@ function reactToAmalgamDamage(context: EngineerRuntime, event: EngineerResolverE
   const state = context.procs;
   context.fireTrigger(amalgamStruck, { cause: event });
 
-  const strain = amalgamState.from(context);
+  const strain = amalgamState.from(context.profession);
 
   if (
     event.actorType === ACTOR.SUMMON ||

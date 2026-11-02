@@ -1,7 +1,10 @@
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { defineProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
+import {
+  defineProfessionSpecializationState,
+  type SpecializationRuntimeState
+} from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import type { ThiefConfig } from '#gw2/professions/thief/types.js';
@@ -27,7 +30,7 @@ function createSpecterState(config: ThiefConfig = {}): SpecterState {
       value: boundedNumber(config.initialShadowForce || 0, 0, 0, 100),
       maximum: 100,
       updatedAt: 0,
-      rate: 0
+      unitsPerSecond: 0
     },
     shadowShroudActive: false,
     shadowShroudExitReadyAt: 0,
@@ -37,11 +40,11 @@ function createSpecterState(config: ThiefConfig = {}): SpecterState {
 
 export const specterState = defineProfessionSpecializationState('Specter', createSpecterState);
 
-/** Publish detached, typed observations from this module's owner under stable public IDs. */
-export function projectSpecterPlanningState(input: Gw2PlanningStateInput) {
-  const state = specterState.from(input);
-  return structuredClone({
+/** Select public fields without mutating their owner; the planning observer detaches the result. */
+export function projectSpecterPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = specterState.from(input.profession);
+  return {
     [STATE.SHADOW_CLOCK]: state.shadowClock,
     [STATE.SHADOW_SHROUD_ACTIVE]: state.shadowShroudActive
-  });
+  };
 }

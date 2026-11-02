@@ -79,6 +79,12 @@ function engineerKitActions(context: EvtcProfessionReconstructionContext): EvtcR
   if (context.profile.professionId !== 'engineer') return [...context.recordedActions];
 
   const swaps = context.recordedActions.filter((a) => a.weaponSet != null);
+  // Bundle animations identify their kit through the recorded action's Engineer catalog skill.
+  const kitIdOf = (recorded: EvtcRecordedRotationAction): EngineerSkill['kitId'] => {
+    const skill: EngineerSkill | null = recordedActionSkill(recorded, context);
+    return skill?.kitId;
+  };
+
   return context.recordedActions.map((action) => {
     if (action.weaponSet !== 2) return action;
 
@@ -88,9 +94,9 @@ function engineerKitActions(context: EvtcProfessionReconstructionContext): EvtcR
         a.start >= action.start + 75 &&
         a.start < (nextSwap?.start ?? Infinity) &&
         (a.evidence === 'animation' || a.evidence === 'legacy-activation') &&
-        recordedActionSkill(a, context)?.kitId
+        kitIdOf(a)
     );
-    const kit = bundle ? recordedActionSkill(bundle, context)?.kitId : null;
+    const kit = bundle ? kitIdOf(bundle) : null;
     const equip = kit
       ? context.catalog?.skills.find((s) => (s as EngineerSkill).kitTransition === 'equip' && s.id === kit)
       : undefined;

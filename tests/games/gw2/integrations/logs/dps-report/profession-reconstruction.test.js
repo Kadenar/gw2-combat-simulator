@@ -124,7 +124,7 @@ test('Mirage cloak sources import once without spending endurance or applying Du
   assert.deepEqual(actual.warnings, []);
   assert.equal(actual.planningState.profession[STATE.ENDURANCE].value, 100);
   assert.equal(actual.planningState.profession[STATE.AVAILABLE_AMBUSH].source, 'Dune Cloak');
-  assert.deepEqual(actual.planningState.cooldowns, expected.planningState.cooldowns);
+  assert.deepEqual(actual.planningState.cooldownsBySkillId, expected.planningState.cooldownsBySkillId);
   assert.ok(imported.sourceActions.some((action) => action.rawSkillId === -17));
 });
 
@@ -747,7 +747,7 @@ test('normalizes Renegade warband variants and ignores generated Spear mine sign
     }),
     skill(73149, 'Blitz Mines', { type: 'weapon', weapon: 'Spear', castTimeMs: 0 }),
     skill(41220, "Darkrazor's Daring", { castTimeMs: 500 }),
-    skill(72366, "Darkrazor's Daring", { castTimeMs: 0, simulatorExcluded: true }),
+    skill(72366, "Darkrazor's Daring", { castTimeMs: 0, rotationInputExcluded: true }),
     // A release is identified by its upkeep flip parent.
     skill(26693, 'Resist the Darkness', { castTimeMs: 0, flipParentId: 28287 }),
     skill(41858, 'Legendary Renegade Stance', { castTimeMs: 0 }),

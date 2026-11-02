@@ -4,14 +4,17 @@ import test from 'node:test';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
 const config = {
   attributeInputs: baseAttributeInputs({
@@ -99,16 +102,16 @@ test('Radiant Forge precombat exits leave entry ready', () => {
   const precombat = run(['Enter Radiant Forge', 'Exit Radiant Forge', { type: 'combat-start' }, 'Enter Radiant Forge']);
   assert.deepEqual(precombat.warnings, []);
   assert.equal(
-    precombat.steps.filter((step) => step.skill === 'Enter Radiant Forge').at(-1).start / 1000,
+    precombat.steps.filter((step) => step.skillName === 'Enter Radiant Forge').at(-1).start / 1000,
     precombat.combatStartTime
   );
   for (const prefix of [[], [{ type: 'combat-start' }]]) {
     const combat = run([...prefix, 'Enter Radiant Forge', 'Exit Radiant Forge']);
-    assert.ok(combat.planningState.cooldowns[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE].remaining > 0);
+    assert.ok(combat.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE].remainingMs > 0);
   }
 
   const expired = run(['Enter Radiant Forge', { type: 'wait', durationMs: 30000 }, { type: 'combat-start' }]);
-  assert.equal(expired.planningState.cooldowns[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE], undefined);
+  assert.equal(expired.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE], undefined);
 });
 
 // Reductions cap at readiness and leave unrelated or already-ready cooldowns alone.
@@ -289,7 +292,7 @@ test('Resplendent Weaponry grants scaled party boons only on traited, completed 
         (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.RESPLENDENT_WEAPONRY
       );
       // Equip boons belong to the completed state transition, with no extra elapsed time.
-      const equip = result.steps.find((step) => step.skill === weapon);
+      const equip = result.steps.find((step) => step.skillName === weapon);
       assert.ok(equip, weapon);
       assert.ok(
         boons.every((event) => event.at === equip.end / 1000),
@@ -404,7 +407,7 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
   const glaring = result.resolvedEvents.find((event) => event.skillId === GUARDIAN_SKILL_IDS.GLARING_BURST);
 
   assert.equal(glaring.metadata?.radiantWeapon, 'hammer');
-  assert.equal(Object.hasOwn(result.planningState.cooldowns, GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE), false);
+  assert.equal(Object.hasOwn(result.planningState.cooldownsBySkillId, GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE), false);
   assert.ok(result.totalDamage > 0);
 });
 
@@ -611,8 +614,8 @@ test('Radiant Forge recharge is reduced when at most one weapon is used', () => 
       undefined,
       ['Enter Radiant Forge', ...radiantWeapons, 'Exit Radiant Forge', 'Enter Radiant Forge']
     );
-    const exit = result.steps.find((step) => step.skill === 'Exit Radiant Forge');
-    const reentry = result.steps.filter((step) => step.skill === 'Enter Radiant Forge')[1];
+    const exit = result.steps.find((step) => step.skillName === 'Exit Radiant Forge');
+    const reentry = result.steps.filter((step) => step.skillName === 'Enter Radiant Forge')[1];
 
     return reentry.start - exit.start;
   };
@@ -641,8 +644,8 @@ test('Radiant Forge expiry starts the same reduced recharge as manual exit', () 
   assert.equal(exit.at, expiresAt);
   assert.equal(expired.planningState.profession[STATE.RADIANT_FORGE], false);
   assert.equal(
-    expired.planningState.cooldowns[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE].remaining,
-    manual.planningState.cooldowns[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE].remaining
+    expired.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE].remainingMs,
+    manual.planningState.cooldownsBySkillId[GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE].remainingMs
   );
 });
 
@@ -817,8 +820,8 @@ test('Radiant weapon equips replace the prior flip and preserve its parent coold
     assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][flip], undefined, parent);
     assert.ok(result.planningState.profession[STATE.AVAILABLE_FLIPS][nextFlip], nextParent);
     assert.ok(
-      result.planningState.cooldowns[guardianCatalog.skills.find((candidate) => candidate.name === parent).id]
-        .remaining > 0,
+      result.planningState.cooldownsBySkillId[guardianCatalog.skills.find((candidate) => candidate.name === parent).id]
+        .remainingMs > 0,
       parent
     );
   }
@@ -1368,9 +1371,95 @@ test('Luminary recharge traits alter the intended cooldown families', () => {
   })(undefined, inspirationRotation);
 
   // Each trait shortens the intended family's wait without asserting its current base cooldown.
-  const secondCast = (result, name) => result.steps.filter((step) => step.skill === name)[1].start;
+  const secondCast = (result, name) => result.steps.filter((step) => step.skillName === name)[1].start;
   for (const result of [withMaster, withoutMaster, withInspiration, withoutInspiration])
     assert.deepEqual(result.warnings, []);
   assert.ok(secondCast(withMaster, 'Dazzling Hammer') < secondCast(withoutMaster, 'Dazzling Hammer'));
   assert.ok(secondCast(withInspiration, 'Radiant Justice') < secondCast(withoutInspiration, 'Radiant Justice'));
+});
+
+// Exercise exits directly so a large time advance cannot silently move the cooldown's origin.
+test('Forge exits finalize once at the actual transition and clear weapon state', () => {
+  for (const automatic of [false, true]) {
+    const result = runGuardian(
+      [
+        GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE,
+        GUARDIAN_SKILL_IDS.GLEAMING_BLADE,
+        ...(automatic ? [] : [GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE]),
+        { type: 'wait', durationMs: 40000 }
+      ],
+      { specialization: 'Luminary' }
+    );
+    const runtime = observedRuntime(result);
+    const state = runtime.profession.specialization.state;
+    const exits = result.events.filter(
+      (event) => event.type === 'weapon_set' && event.skillId === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE
+    );
+    assert.equal(exits.length, 1);
+    assert.equal(exits[0].automatic, automatic);
+    assert.equal(
+      runtime.cooldownController.rechargeFor(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE).workAnchorAt,
+      exits[0].at
+    );
+    assert.equal(runtime.cooldownController.rechargeFor(GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE).work, 5);
+    assert.equal(state.radiantForge, false);
+    assert.equal(state.radiantWeapon, '');
+    assert.equal(state.glaringBurstSwordSlow, false);
+    assert.deepEqual(runtime.profession.core.availableFlips, {});
+    assert.deepEqual(runtime.profession.core.autoattackChains, {});
+  }
+});
+
+test('Luminary definitions preserve eligible build grants and applied armament windows', () => {
+  // Imported buffs retain their lifetime without current trait selection; live patches still own their amounts.
+  const family = patchTraitProfession(guardianProfession, {
+    balanceProfiles: {
+      [GUARDIAN_TRAIT_IDS.LIGHTS_GIFT]: { fields: { 'attributeBonuses.vitality': 240 } },
+      [GUARDIAN_TRAIT_IDS.EMPOWERED_ARMAMENTS]: { fields: { damageIncrease: 0.2 } },
+      [GUARDIAN_TRAIT_IDS.RADIANT_ARMAMENTS]: { fields: { damageIncrease: 0.1 } }
+    }
+  });
+  const calculate = createCalculateAttributes(
+    createProfessionBuildAttributeRules(guardianCatalog),
+    family.attributeContributions
+  );
+  const build = {
+    specializations: [
+      { name: 'Luminary', traits: '1-1-1' },
+      { name: 'Virtues', traits: '1-1-1' }
+    ]
+  };
+  const balance = family.resolvePatch({ id: 's4-preview' }).balanceContext;
+  const attributes = calculate(build, [], 1, null, null, balance).attributes;
+  assert.equal(attributes.Vitality.traits, 240);
+  assert.equal(attributes['Condition Damage'].traits, 87);
+  const disabled = calculate(build, [], 1, "Light's Gift", null, balance).attributes;
+  assert.equal(disabled.Vitality.traits, 0);
+  assert.equal(disabled['Condition Damage'].traits, 70);
+  const events = ['guardian-empowered-armaments', 'guardian-radiant-armaments'].map((kind) => ({
+    type: 'buff',
+    at: 0,
+    duration: 2,
+    stacks: 1,
+    kind,
+    resolvedAudience: { includesSelf: true, alliedPlayerCount: 0 },
+    metadata: { radiantWeapon: 'hammer' }
+  }));
+  const timeline = createGw2TimelineIndex({ events });
+  for (const [patchId, expected] of [
+    ['current', 117],
+    ['s4-preview', 130]
+  ]) {
+    const runtime = family.runtimeFor({ specialization: 'Luminary', patchId });
+    const context = {
+      catalog: runtime.catalog,
+      config: { selectedTraitIds: [] },
+      events,
+      timeline,
+      time: 1,
+      event: { actorType: 'player' }
+    };
+    assert.ok(Math.abs(runtime.modifyStrikeDamage(context, 100) - expected) < 1e-10);
+    assert.equal(runtime.modifyStrikeDamage({ ...context, time: 2 }, 100), 100);
+  }
 });

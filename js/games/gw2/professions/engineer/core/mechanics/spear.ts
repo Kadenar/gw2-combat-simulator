@@ -366,7 +366,7 @@ export function engineerSpearAvailability(
   context: MechanicQueriesOf<EngineerRuntime>,
   skill: EngineerSkill
 ): AvailabilityResult {
-  const state = professionCoreState(context);
+  const state = professionCoreState(context.profession);
   const artillery = state.availableFlips[ID.ELECTRIC_ARTILLERY];
 
   if (skill.id === ID.ELECTRIC_ARTILLERY && !skillFlipReady(artillery, context.time)) {

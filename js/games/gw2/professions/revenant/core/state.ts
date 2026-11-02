@@ -4,7 +4,6 @@ import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import { cloneStateFields } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -66,7 +65,7 @@ export function createRevenantCoreState(config: RevenantConfig): RevenantCoreSta
     energy: {
       ...createResourceClock(revenantStartingEnergy(config)),
       maximum: REVENANT_MAXIMUM_ENERGY,
-      rate: REVENANT_ENERGY_REGENERATION,
+      unitsPerSecond: REVENANT_ENERGY_REGENERATION,
       recoveryMaximum: REVENANT_PRECOMBAT_ENERGY_CEILING
     },
     activationClaims: {},
@@ -94,20 +93,7 @@ export function createRevenantCoreState(config: RevenantConfig): RevenantCoreSta
 
 /** Derive the shared loadout identity from the current legend without storing a second live identity. */
 export function projectRevenantPlanningState(input: Gw2PlanningStateInput) {
-  const state = cloneStateFields((input.profession as { core: ReturnType<typeof createRevenantCoreState> }).core, [
-    'energy',
-    'activeLegendId',
-    'selectedLegendIds',
-    'activeUpkeeps',
-    'availableFlips',
-    'autoattackChains',
-    'endurance',
-
-    'enchantedDaggers',
-    'crushingAbyss',
-    'combatBeganAt',
-    'selfConditions'
-  ]);
+  const state = (input.profession as { core: ReturnType<typeof createRevenantCoreState> }).core;
   return {
     [STATE.ENERGY]: state.energy,
     [STATE.ACTIVE_LEGEND_ID]: state.activeLegendId,

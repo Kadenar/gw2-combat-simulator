@@ -4,6 +4,7 @@ import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { createSkillSelectionContext } from '#gw2/platform/profession-definition/runtime-context.js';
+import { displayedSkill } from '#gw2/platform/skills/selectors.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
@@ -45,6 +46,28 @@ export function resolveEntrySkill(
   if (typeof identity !== 'string' && typeof identity !== 'number') return undefined;
 
   return app.activeCatalog.skillsById.get(selectedSkillId(app, identity));
+}
+
+/** Editors and timeline rows inspect an executed payload, or the profession's displayed choice while results are pending. */
+export function resolveEntryDisplaySkill(
+  app: ProfessionAppState,
+  entry: RotationCommand,
+  executedSkillId?: SkillId
+): Skill | undefined {
+  const skill = resolveEntrySkill(app, entry);
+
+  if (!skill) return undefined;
+
+  // The accepted payload outranks projection for every profession, including trait-selected ordinary skills.
+  const executed = executedSkillId == null ? undefined : app.activeCatalog.skillsById.get(executedSkillId);
+
+  if (executed && !executed.selector) return executed;
+
+  if (!skill.selector) return skill;
+
+  const projected =
+    app.profession.ui.paletteSelectedSlotSkills({ build: app.build, catalog: app.activeCatalog }, [skill])[0] ?? skill;
+  return displayedSkill(app.activeCatalog, projected);
 }
 
 /**

@@ -317,7 +317,7 @@ function grantResplendentWeaponry(runtime: GuardianRuntime, { cast }: LuminaryCa
 /** Completed equips extend the capped damage window without revoking already-applied buffs. */
 function extendEmpoweredArmaments(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
   const cause = guardianCastCause(runtime, cast);
-  const state = luminaryState.from(runtime);
+  const state = luminaryState.from(runtime.profession);
   const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWERED_ARMAMENTS);
   const duration = Math.min(
     balanceProfileNumber(profile, 'maximumStacks'),
@@ -362,7 +362,7 @@ function reduceVirtueRecharge(runtime: GuardianRuntime, { cast }: LuminaryCast):
 
 /** A surviving strike consumes the aura before queuing its hostile outcome, even on a miss. */
 function detonate(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
-  const state = luminaryState.from(runtime);
+  const state = luminaryState.from(runtime.profession);
 
   if (state.lightAuraUntil <= runtime.time) return;
 

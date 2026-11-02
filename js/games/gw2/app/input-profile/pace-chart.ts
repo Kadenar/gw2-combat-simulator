@@ -2,7 +2,7 @@ import type { InputAnalysisSummary } from '#gw2/app/input-profile/summary.js';
 
 interface ChartScale {
   readonly x: (at: number) => number;
-  readonly y: (rate: number) => number;
+  readonly y: (actionsPerSecond: number) => number;
 }
 
 const scales = new WeakMap<HTMLElement, ChartScale>();
@@ -42,7 +42,7 @@ export function drawInputPaceChart(
   const compact = width < 520;
   const margin = { left: 28, right: 12, top: 24, bottom: 74 };
   const duration = summary.duration;
-  const peak = Math.max(0, ...summary.samples.map((sample) => sample.rate));
+  const peak = Math.max(0, ...summary.samples.map((sample) => sample.actionsPerSecond));
   const top = Math.max(3, Math.ceil(peak + 0.2));
   const x = (at: number): number => margin.left + (at / duration) * (width - margin.left - margin.right);
   // Keep labels visible beneath their ranges; stagger nearby labels when they would overlap on narrow charts.
@@ -60,12 +60,13 @@ export function drawInputPaceChart(
   });
   margin.bottom += Math.max(0, rowEnds.length - 1) * 36;
   const height = (compact ? 146 : 166) + margin.bottom;
-  const y = (rate: number): number => margin.top + (1 - rate / top) * (height - margin.top - margin.bottom);
+  const y = (actionsPerSecond: number): number =>
+    margin.top + (1 - actionsPerSecond / top) * (height - margin.top - margin.bottom);
   scales.set(host, { x, y });
 
   let grid = '';
-  for (let rate = 0; rate <= top; rate++)
-    grid += `<line class="is-grid" x1="${margin.left}" x2="${width - margin.right}" y1="${y(rate)}" y2="${y(rate)}"></line><text class="input-chart-tick" x="${margin.left - 6}" y="${y(rate) + 3}" text-anchor="end">${rate}</text>`;
+  for (let actionsPerSecond = 0; actionsPerSecond <= top; actionsPerSecond++)
+    grid += `<line class="is-grid" x1="${margin.left}" x2="${width - margin.right}" y1="${y(actionsPerSecond)}" y2="${y(actionsPerSecond)}"></line><text class="input-chart-tick" x="${margin.left - 6}" y="${y(actionsPerSecond) + 3}" text-anchor="end">${actionsPerSecond}</text>`;
   const step = duration > 120 ? 30 : duration > 60 ? 15 : duration > 20 ? 10 : 5;
   for (let at = 0; at <= duration; at += step)
     grid += `<text class="input-chart-tick" x="${x(at)}" y="${height - 6}" text-anchor="middle">${at}${at ? ' s' : ''}</text>`;
@@ -75,7 +76,7 @@ export function drawInputPaceChart(
       return `<rect class="input-chart-section${selected ? ' is-selected' : ''}" x="${x(section.start)}" y="${margin.top}" width="${x(section.end) - x(section.start)}" height="${height - margin.top - margin.bottom}"></rect>`;
     })
     .join('');
-  const points = summary.samples.map((sample) => `${x(sample.at).toFixed(1)},${y(sample.rate).toFixed(1)}`);
+  const points = summary.samples.map((sample) => `${x(sample.at).toFixed(1)},${y(sample.actionsPerSecond).toFixed(1)}`);
   const line = points.length ? `M${points.join('L')}` : '';
   const area = line ? `${line}L${x(duration)},${y(0)}L${x(0)},${y(0)}Z` : '';
   // Put selection handles and persistent details beneath their ranges, above the separate time tick row.
@@ -86,7 +87,7 @@ export function drawInputPaceChart(
         middle = (left + right) / 2;
       const baseline = y(0) + 5,
         radius = Math.min(5, (right - left) / 4);
-      const label = `Section ${index + 1}: ${section.start.toFixed(1)} to ${section.end.toFixed(1)} seconds, ${section.rate.toFixed(1)} actions per second, ${section.count} inputs`;
+      const label = `Section ${index + 1}: ${section.start.toFixed(1)} to ${section.end.toFixed(1)} seconds, ${section.actionsPerSecond.toFixed(1)} actions per second, ${section.count} inputs`;
       const labelX = labels[index].center;
       const labelY = y(0) + 34 + labels[index].row * 36;
       return `<g class="input-chart-bracket" data-select-section="${index}" role="button" tabindex="0" aria-pressed="${index === selectedSection}" aria-label="${label}">
@@ -94,7 +95,7 @@ export function drawInputPaceChart(
       <path d="M${left},${baseline} v3 q0,${radius} ${radius},${radius} H${right - radius} q${radius},0 ${radius},-${radius} v-3 M${middle},${baseline + radius + 3} v5"></path>
       <rect x="${labelX - labelWidth / 2}" y="${labelY - 12}" width="${labelWidth}" height="30" fill="transparent"></rect>
       <text class="input-chart-range-label" x="${labelX}" y="${labelY}" text-anchor="middle">Section ${index + 1} &middot; ${section.start.toFixed(1)}&ndash;${section.end.toFixed(1)} s</text>
-      <text class="input-chart-range-detail" x="${labelX}" y="${labelY + 14}" text-anchor="middle">${section.rate.toFixed(1)} actions/s &middot; ${section.count} inputs</text>
+      <text class="input-chart-range-detail" x="${labelX}" y="${labelY + 14}" text-anchor="middle">${section.actionsPerSecond.toFixed(1)} actions/s &middot; ${section.count} inputs</text>
     </g>`;
     })
     .join('');
@@ -127,14 +128,14 @@ export function drawInputPaceChart(
     cross.querySelector('line')!.setAttribute('x1', String(x(sample.at)));
     cross.querySelector('line')!.setAttribute('x2', String(x(sample.at)));
     cross.querySelector('circle')!.setAttribute('cx', String(x(sample.at)));
-    cross.querySelector('circle')!.setAttribute('cy', String(y(sample.rate)));
+    cross.querySelector('circle')!.setAttribute('cy', String(y(sample.actionsPerSecond)));
     const section = sectionAt(sample.at);
     placeInputTooltip(
       host,
       tooltip,
       event.clientX,
       event.clientY,
-      `<div><b>${sample.at.toFixed(1)} s</b></div><div>${sample.rate.toFixed(2)} actions/s</div>${section >= 0 ? `<div>Section ${section + 1} &middot; click to select</div>` : ''}`
+      `<div><b>${sample.at.toFixed(1)} s</b></div><div>${sample.actionsPerSecond.toFixed(2)} actions/s</div>${section >= 0 ? `<div>Section ${section + 1} &middot; click to select</div>` : ''}`
     );
   });
   hit.addEventListener('pointerleave', () => {

@@ -1045,7 +1045,7 @@ export const activePatchPreview: PatchPreview = {
       }
     },
     engineer: {
-      // Expose the unknown explosion bonus as a fraction, matching other percentage-based preview controls.
+      // Default the provisional explosion bonus to 5%, stored as a fraction for percentage-based preview controls.
       provisional: [
         {
           id: 'grenadierExplosionDamage',
@@ -1062,11 +1062,11 @@ export const activePatchPreview: PatchPreview = {
       ],
       balanceProfiles: {
         '514': {
-          assumption: 'TBD: final Grenadier explosion-damage percentage pending; 10% assumed for this preview.',
+          assumption: 'TBD: final Grenadier explosion-damage percentage pending; 5% assumed for this preview.',
           fields: {
             damageIncrease: {
               from: 0,
-              to: 0.1
+              to: 0.05
             }
           }
         },
