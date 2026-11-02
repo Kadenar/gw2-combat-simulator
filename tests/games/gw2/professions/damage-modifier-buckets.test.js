@@ -140,6 +140,7 @@ const EXPECTED = {
       'Altered Chord': { strike: 'additive' },
       Bloodsong: { condition: 'multiplier' },
       Chronophantasma: { strike: 'multiplier' },
+      'Bountiful Blades': { strike: 'multiplier' },
       'Compounding Power': { strike: 'additive', condition: 'additive' },
       'Deadly Blades': { strike: 'additive', condition: 'additive' },
       Egotism: { strike: 'multiplier' },
@@ -237,6 +238,7 @@ const EXPECTED = {
   },
   revenant: {
     traits: {
+      "Reaver's Curse": { strike: 'multiplier' },
       'Acolyte of Torment': { condition: 'multiplier' },
       'Destructive Impulses': { strike: 'additive', condition: 'additive' },
       'Draconic Echo': { strike: 'multiplier', condition: 'multiplier' },
@@ -287,6 +289,7 @@ const EXPECTED = {
       'Weakening Strikes': { strike: 'multiplier' }
     },
     rules: {
+      'thief.malicious-ashen-assault-malice': { strike: 'multiplier' },
       'thief.backstab-defiant': { strike: 'multiplier' },
       'thief.larcenous-strike': { strike: 'multiplier' },
       'thief.falling-spider-empowered': { strike: 'multiplier' },

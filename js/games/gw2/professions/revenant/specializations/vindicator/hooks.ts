@@ -2,6 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -24,10 +25,7 @@ import {
   VINDICATOR_LANDING_TASK
 } from '#gw2/professions/revenant/specializations/vindicator/skills/dodge-skills.js';
 import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
-import {
-  forerunnerOfDeathActive,
-  reaversCurseMultiplier
-} from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
+import { forerunnerOfDeathActive } from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 const ENERGY_MELD_IDS = new Set<SkillId>([ID.ENERGY_MELD, ID.ENERGY_MELD_ID_72058]);
@@ -45,6 +43,10 @@ function land(runtime: RevenantRuntime, data: unknown): void {
 
   if (effect.type === 'strike' && strikeEffectCoefficient(effect) > 0) {
     const forerunnerActive = forerunnerOfDeathActive(runtime);
+    // Consume once, then retain the selected factor on every landing strike.
+    const reaversCurseDamageFactor = reaversCurse
+      ? Math.max(0, balanceNumberFromContext(runtime, TRAIT.REAVERS_CURSE, 'damageMultiplier'))
+      : undefined;
     runtime.effects.emit({
       kind: 'profile',
       profile: profile,
@@ -61,7 +63,7 @@ function land(runtime: RevenantRuntime, data: unknown): void {
       transform: (event) => ({
         ...event,
         name: profile.name,
-        coefficient: Number(event.coefficient) * reaversCurseMultiplier(runtime, reaversCurse),
+        reaversCurseDamageFactor,
         skillWeapon: 'Unequipped',
         forerunnerOfDeathActive: forerunnerActive
       })

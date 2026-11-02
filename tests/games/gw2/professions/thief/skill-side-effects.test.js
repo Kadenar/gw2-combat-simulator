@@ -373,11 +373,13 @@ test('Malicious Ashen declarations retain accepted malice and refund a fully lan
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.resolvedEvents.find((event) => event.name === 'Ordinary packet').coefficient, 1);
-  assert.equal(
-    result.resolvedEvents.find((event) => event.name === 'Malicious Ashen Assault - Final Strike').coefficient,
-    5
-  );
+  const ordinary = result.resolvedEvents.find((event) => event.name === 'Ordinary packet');
+  const final = result.resolvedEvents.find((event) => event.name === 'Malicious Ashen Assault - Final Strike');
+  assert.equal(ordinary.coefficient, 1);
+  assert.equal(final.coefficient, 2);
+  assert.equal(ordinary.metadata?.thiefMaliciousAshenDamageFactor, undefined);
+  assert.equal(final.metadata.thiefMaliciousAshenDamageFactor, 2.5);
+  assertFlooredDamageMultiplier(final.damage, ordinary.damage, 5);
   const runtime = observedRuntime(result);
   assert.ok(Math.abs(runtime.resourceController.value('initiative') - runtime.time - 7) < 1e-9);
   assert.equal(observedRuntime(result).profession.specialization.state.malice.value, 0);
@@ -455,5 +457,40 @@ test('Backstab and Larcenous Strike use selected modifiers without changing thei
         result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId !== id);
       assert.equal(opening(boosted).damage, opening(baseline).damage);
     }
+  }
+});
+
+// Eligibility belongs to acceptance: a later mark cannot create malice damage or its separate Torment application.
+test('Malicious Ashen keeps marked-malice eligibility after the live mark changes', () => {
+  for (const marked of [false, true]) {
+    const result = runThief(
+      [ID.MALICIOUS_ASHEN_ASSAULT],
+      { specialization: 'Deadeye', primaryWeapon: 'Spear', secondaryWeapon: '' },
+      {
+        initialize(runtime) {
+          runtime.profession.core.stealthUntil = 10;
+          runtime.resourceController.replace('malice', 5);
+          runtime.profession.specialization.state.markedTargetId = 'primary-target';
+          runtime.profession.specialization.state.markExpiresAt = marked ? 10 : 0;
+        },
+        probes: [
+          [
+            0.1,
+            (runtime) => {
+              runtime.profession.specialization.state.markExpiresAt = marked ? 0 : 10;
+              runtime.resourceController.replace('malice', 1);
+            }
+          ]
+        ]
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const final = result.resolvedEvents.find((event) => event.name === 'Malicious Ashen Assault - Final Strike');
+    assert.equal(final.coefficient, 0.3);
+    assert.equal(final.metadata.thiefMaliciousAshenDamageFactor, marked ? 1.1 : 1);
+    const torment = result.events.find((event) => event.type === 'condition' && event.condition === 'Torment');
+    assert.equal(Boolean(torment), marked);
+
+    if (marked) assert.equal(torment.duration, 3);
   }
 });

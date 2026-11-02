@@ -247,12 +247,17 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
     conditionSampleInvariant: rule.conditionSampleInvariant === true
   };
   const field = operation === 'multiply' ? 'factor' : 'amount';
-  // A zero base-duration factor suppresses an application; other multipliers remain strictly positive.
+  // Zero suppresses strike damage or a base-duration application; other scalar multipliers stay positive.
   const resolver = normalizeResolver(
     { ...rule, id },
     field,
     field === 'factor'
-      ? { positive: true, allowZero: targets.every((target) => target === MODIFIER_TARGET.CONDITION_BASE_DURATION) }
+      ? {
+          positive: true,
+          allowZero: targets.every(
+            (target) => target === MODIFIER_TARGET.CONDITION_BASE_DURATION || target === MODIFIER_TARGET.STRIKE_DAMAGE
+          )
+        }
       : undefined
   );
 
@@ -329,7 +334,10 @@ function resolveNumeric(
   const declared = rule[field];
   const value = typeof declared === 'function' ? declared(context, target, rule.parameters) : declared;
 
-  const allowZero = rule.targets.length === 1 && target === MODIFIER_TARGET.CONDITION_BASE_DURATION;
+  const allowZero = rule.targets.every(
+    (ruleTarget) =>
+      ruleTarget === MODIFIER_TARGET.CONDITION_BASE_DURATION || ruleTarget === MODIFIER_TARGET.STRIKE_DAMAGE
+  );
 
   if (
     typeof value !== 'number' ||
@@ -569,7 +577,7 @@ function createDamageHook(
  * - `target`: one `MODIFIER_TARGET` value or an array of values.
  * - `operation`: `add`, `damage-additive`, or `multiply`.
  * - `amount`: finite number or `(context, target) => number` for additive rules.
- * - `factor`: positive finite number or resolver for multiplicative rules; base duration also permits zero.
+ * - `factor`: positive finite number or resolver for multiplicative rules; strike damage and base duration also permit zero.
  * - `parameters`: optional finite named inputs passed to a resolver as its third
  *   argument so preview overlays can patch dynamic formulas safely.
  * - `when`: optional `(context) => boolean` predicate.

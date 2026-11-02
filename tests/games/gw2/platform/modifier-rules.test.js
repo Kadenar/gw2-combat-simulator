@@ -3,8 +3,8 @@ import test from 'node:test';
 
 import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 
-// Zero base duration suppresses a condition without relaxing validation for damage or other scalar factors.
-test('base-duration factors admit zero while rejecting negative and non-finite values', () => {
+// Zero can suppress strike damage or a condition application; other scalar factors remain positive.
+test('strike and base-duration factors admit zero while rejecting negative and non-finite values', () => {
   for (const dynamic of [false, true]) {
     const rule = (target, value) => ({
       id: 'duration-suppression',
@@ -12,27 +12,30 @@ test('base-duration factors admit zero while rejecting negative and non-finite v
       operation: 'multiply',
       factor: dynamic ? () => value : value
     });
-    const hooks = createModifierHooks({ rules: [rule(MODIFIER_TARGET.CONDITION_BASE_DURATION, 0)] });
-    assert.equal(hooks.modifyConditionBaseDuration({}, 2), 0);
-    for (const value of [-1, NaN, Infinity]) {
-      assert.throws(
-        () =>
-          createModifierHooks({
-            rules: [rule(MODIFIER_TARGET.CONDITION_BASE_DURATION, value)]
-          }).modifyConditionBaseDuration({}, 2),
-        /non-negative/
-      );
+    for (const target of [
+      MODIFIER_TARGET.CONDITION_BASE_DURATION,
+      MODIFIER_TARGET.STRIKE_DAMAGE,
+      [MODIFIER_TARGET.CONDITION_BASE_DURATION, MODIFIER_TARGET.STRIKE_DAMAGE]
+    ]) {
+      const apply = (hooks) =>
+        target === MODIFIER_TARGET.CONDITION_BASE_DURATION
+          ? hooks.modifyConditionBaseDuration({}, 2)
+          : hooks.modifyStrikeDamage({}, 2);
+      assert.equal(apply(createModifierHooks({ rules: [rule(target, 0)] })), 0);
+      for (const value of [-1, NaN, Infinity]) {
+        assert.throws(() => apply(createModifierHooks({ rules: [rule(target, value)] })), /non-negative/);
+      }
     }
 
     for (const target of [
-      MODIFIER_TARGET.STRIKE_DAMAGE,
+      MODIFIER_TARGET.CRITICAL_DAMAGE,
       MODIFIER_TARGET.CONDITION_DURATION,
       [MODIFIER_TARGET.CONDITION_BASE_DURATION, MODIFIER_TARGET.CONDITION_DURATION]
     ]) {
       assert.throws(() => {
         const invalid = createModifierHooks({ rules: [rule(target, 0)] });
 
-        if (target === MODIFIER_TARGET.STRIKE_DAMAGE) invalid.modifyStrikeDamage({}, 1);
+        if (target === MODIFIER_TARGET.CRITICAL_DAMAGE) invalid.modifyCriticalDamage({}, 1);
         else invalid.modifyConditionDuration({}, 1);
       }, /positive/);
     }

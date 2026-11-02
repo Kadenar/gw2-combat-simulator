@@ -130,6 +130,17 @@ const reaversCurse = defineTrait({
       }
     ]
   },
+  // Consumed charges belong to the landing packet; later state cannot grant the bonus to another dodge.
+  modifierRules: [
+    {
+      id: 'revenant.reavers-curse',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      requiresSelection: false,
+      factor: (context) => Number(context.event?.reaversCurseDamageFactor),
+      when: (context) => context.event?.actorType === ACTOR.PLAYER && context.event.reaversCurseDamageFactor != null
+    }
+  ],
   rechargeRules: [
     {
       when: (_runtime, skill) => ENERGY_MELD_IDS.has(skill.id),

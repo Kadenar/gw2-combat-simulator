@@ -5,6 +5,7 @@ import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/pat
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
+import { mesmerCoreModule } from '#gw2/professions/mesmer/core/module.js';
 import { cryOfPainConfusion } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -290,4 +291,70 @@ test('Crescendo owns instrument scaling and Fragmentation replacement for scalar
         assert.equal(hooks.modifyStrikeDamage({ ...context, event: other }, 100), 100);
     }
   }
+});
+
+// Spawn count is independent of damage tuning, and both cycles retain the same captured trait factor.
+test('Bountiful Blades composes captured Berserker damage with Chronophantasma without scaling player hits', () => {
+  const run = (factor) => {
+    const profession = withPatchPreview(mesmerProfession, {
+      id: 'bountiful-owner',
+      label: 'Bountiful owner',
+      professions: {
+        mesmer: {
+          balanceProfiles: { [TRAIT.BOUNTIFUL_BLADES]: { fields: { damageMultiplier: factor } } }
+        }
+      }
+    });
+    return runMesmer(
+      ['Phantasmal Berserker', { type: 'wait', durationMs: 10000 }],
+      {
+        ...createDefaultConfig(),
+        specialization: 'Chronomancer',
+        patchId: 'bountiful-owner',
+        primaryWeapon: 'Greatsword',
+        secondaryWeapon: '',
+        initialResource: 0,
+        selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES, TRAIT.CHRONOPHANTASMA]
+      },
+      { profession }
+    );
+  };
+
+  const baseline = run(1);
+  const reduced = run(0.5);
+  const suppressed = run(0);
+  assert.deepEqual(suppressed.warnings, []);
+  const suppressedStrike = suppressed.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.summonKind === 'phantasm'
+  );
+  assert.ok(suppressedStrike.coefficient > 0);
+  assert.equal(suppressedStrike.damage, 0);
+  assert.deepEqual(baseline.warnings, []);
+  assert.deepEqual(reduced.warnings, []);
+  const hooks = createModifierHooks({
+    rules: [
+      ...mesmerCoreModule.modifiers.modifierRules.filter(({ id }) => id === 'mesmer.bountiful-blades-phantasm'),
+      ...chronomancerModule.modifiers.modifierRules.filter(({ id }) => id === 'mesmer.chronophantasma-repeat')
+    ]
+  });
+  for (const repeated of [false, true]) {
+    const strike = (result) =>
+      result.resolvedEvents.find(
+        (event) =>
+          event.type === 'damage' &&
+          event.summonKind === 'phantasm' &&
+          (event.chronophantasmaDamageFactor != null) === repeated
+      );
+    const event = strike(reduced);
+    assert.equal(event.coefficient, strike(baseline).coefficient);
+    assert.equal(event.bountifulBladesDamageFactor, 0.5);
+    assertFlooredDamageMultiplier(event.damage, strike(baseline).damage, 0.5);
+    const context = { event, config: { selectedTraitIds: [] }, catalog: mesmerCatalog, time: event.at + 100 };
+    assert.equal(hooks.modifyStrikeDamage(context, 100), repeated ? 52.5 : 50);
+    assert.equal(hooks.modifyStrikeDamage({ ...context, event: { ...event, actorType: 'player' } }, 100), 100);
+  }
+
+  const player = (result) =>
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.actorType === 'player');
+  assert.equal(player(reduced).damage, player(baseline).damage);
 });

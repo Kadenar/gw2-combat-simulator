@@ -464,6 +464,19 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     // Malicious Ashen Assault shares the measured spear channel and finishes its damage before aftercast.
     castTimeMs: 1200,
     interruptMode: 'per-packet',
+    // Only the final strike carries the marked-malice factor captured at acceptance.
+    modifiers: [
+      {
+        id: 'thief.malicious-ashen-assault-malice',
+        label: 'Malicious Ashen Assault',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: (context) => Number(context.event?.metadata?.thiefMaliciousAshenDamageFactor),
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) &&
+          context.event?.metadata?.thiefMaliciousAshenDamageFactor != null
+      }
+    ],
     effects: [
       {
         type: 'strike' as const,
@@ -543,12 +556,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
                   }
                 : effect.type !== 'strike' || effect.name !== 'Malicious Ashen Assault - Final Strike'
                   ? effect
-                  : effect.ticks?.length
-                    ? {
-                        ...effect,
-                        ticks: effect.ticks.map((tick) => ({ ...tick, coefficient: tick.coefficient * factor }))
-                      }
-                    : { ...effect, coefficient: (effect.coefficient || 0) * factor }
+                  : { ...effect, metadata: { ...effect.metadata, thiefMaliciousAshenDamageFactor: factor } }
             );
           // Independent finisher templates survive strike removal and retain partial-channel cancellation.
           return scaled;

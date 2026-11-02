@@ -27,6 +27,7 @@ const METADATA_VALUE_KINDS = Object.freeze({
   guardianSymbol: 'boolean',
   guardianRadiantCourage: 'boolean',
   thiefFallingSpiderDamageFactor: 'number',
+  thiefMaliciousAshenDamageFactor: 'number',
   hitboxIndex: 'number',
   largeHitboxOnly: 'boolean',
   legendId: 'string',

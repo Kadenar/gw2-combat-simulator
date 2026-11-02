@@ -123,7 +123,7 @@ export interface MesmerPhantasmExecution {
   readonly skill: MesmerSkill;
   // Index among co-spawned entities (e.g. Bountiful Blades spawns 2 Berserkers: 0 and 1).
   readonly entityIndex: number;
-  // Scales coefficient down when multiple phantasms share a skill's total damage budget (Bountiful Blades: 0.66).
+  // Captures Bountiful Blades' spawn-time factor for both initial and repeated phantasm strikes.
   readonly damageMultiplier: number;
   readonly summonAt: number;
   readonly damageAt: number;

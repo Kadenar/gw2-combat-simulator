@@ -46,6 +46,8 @@ export interface MesmerEventExtra {
   readonly count?: number;
   /** Repeat damage retains the Chronophantasma factor accepted with this phantasm batch. */
   readonly chronophantasmaDamageFactor?: number;
+  /** Initial and repeated phantasm attacks retain Bountiful Blades' accepted spawn factor. */
+  readonly bountifulBladesDamageFactor?: number;
   /** Crescendo samples its active instruments and selected effectiveness together at its scheduled strike. */
   readonly crescendoInstrumentCount?: number;
   readonly crescendoEffectiveness?: number;

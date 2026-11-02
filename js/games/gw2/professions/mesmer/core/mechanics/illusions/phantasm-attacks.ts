@@ -62,25 +62,12 @@ export function schedulePhantasmStrike(
   group: MesmerStrikeEffect,
   castStart: number
 ): void {
-  const sourcedGroup: Partial<MesmerStrikeEffect> = {
+  // The spawn policy's captured damage factor is applied by its trait, leaving authored coefficients intact.
+  const damageGroup: Partial<MesmerStrikeEffect> = {
     ...group,
     source: 'Phantasm',
     actorType: ACTOR.SUMMON,
     summonKind: 'phantasm'
-  };
-  const baseTicks = sourcedGroup.ticks?.length ? sourcedGroup.ticks : null;
-  const damageGroup: Partial<MesmerStrikeEffect> = {
-    ...sourcedGroup,
-    ...(baseTicks
-      ? {
-          coefficient: undefined,
-          hits: undefined,
-          ticks: baseTicks.map((tick) => ({
-            ...tick,
-            coefficient: tick.coefficient * execution.damageMultiplier
-          }))
-        }
-      : { coefficient: (sourcedGroup.coefficient || 0) * execution.damageMultiplier })
   };
   const groupName = group.name || '';
   // Distinct attacks carry their own label and parent attribution in the effect declaration.
@@ -411,7 +398,7 @@ function emitAttackPacket(state: MesmerRuntime, execution: MesmerPhantasmExecuti
   state.effects.emit({
     ...execution.delivery,
     kind: 'packet',
-    event: packet,
+    event: packet.type === 'damage' ? { ...packet, bountifulBladesDamageFactor: execution.damageMultiplier } : packet,
     owner: mesmerPacketOwner(packet),
     priority: Number(packet.priority ?? 0)
   });

@@ -117,7 +117,7 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
           balanceContext,
           ID.MALICIOUS_ASHEN_ASSAULT,
           'coefficientPerMalice',
-          'Final strike coefficient increase per malice',
+          'Final strike damage increase per malice',
           tooltipPercent
         ),
         skillFact(

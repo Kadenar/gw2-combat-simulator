@@ -33,6 +33,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
@@ -1139,13 +1140,17 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
     boons: { quickness: true, alacrity: true, vigor: true }
   };
   const result = simulate('Vindicator', ['Dodge', { type: 'cast', skillId: 62757 }, 'Dodge', 'Dodge'], config);
-  const dodges = result.events.filter((event) => event.type === 'damage' && event.skillName === 'Death Drop');
+  const dodges = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Death Drop');
   const meld = result.steps.find((step) => step.skillName === 'Energy Meld');
 
   assert.deepEqual(result.warnings, []);
   // Reaver's Curse enhances exactly the next dodge; later dodges return to normal damage.
   assert.equal(dodges.length, 3);
-  assert.equal(dodges[1].coefficient, dodges[0].coefficient * 2);
+  assert.equal(dodges[1].coefficient, dodges[0].coefficient);
+  assert.equal(dodges[0].reaversCurseDamageFactor, undefined);
+  assert.equal(dodges[1].reaversCurseDamageFactor, 2);
+  assert.equal(dodges[2].reaversCurseDamageFactor, undefined);
+  assertFlooredDamageMultiplier(dodges[1].damage, dodges[2].damage, 2);
   assert.equal(dodges[2].coefficient, dodges[0].coefficient);
   assert.equal(result.planningState.profession[STATE.REAVERS_CURSE_UNTIL], 0);
   assert.equal(

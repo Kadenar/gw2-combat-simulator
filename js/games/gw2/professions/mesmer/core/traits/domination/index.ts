@@ -1,5 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { isGw2PhantasmEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { remainingTargetHealthBelow } from '#gw2/platform/combat/state/target-health.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -154,7 +155,22 @@ export const bountifulBlades = defineTrait<MesmerSkill>({
         timingScale: 'fixed'
       }
     ]
-  }
+  },
+  // The accepted spawn policy owns eligibility even if trait selection changes before an initial or repeated hit.
+  modifierRules: [
+    {
+      id: 'mesmer.bountiful-blades-phantasm',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      requiresSelection: false,
+      order: 94,
+      factor: (context) => Number(context.event?.bountifulBladesDamageFactor),
+      when: (context) =>
+        isGw2PhantasmEvent(context.event) &&
+        context.event?.skillId === ID.PHANTASMAL_BERSERKER &&
+        context.event.bountifulBladesDamageFactor != null
+    }
+  ]
 });
 
 /** Shatters apply Vulnerability per source; instrument impacts use their own resolved hit packets. */

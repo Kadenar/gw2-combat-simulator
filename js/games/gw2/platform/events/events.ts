@@ -216,6 +216,8 @@ export interface EffectMetadata {
   readonly guardianRadiantCourage?: boolean;
   /** Falling Spider retains the factor earned by its predecessor at cast acceptance. */
   readonly thiefFallingSpiderDamageFactor?: number;
+  /** Malicious Ashen Assault's final strike retains its accepted marked-malice factor. */
+  readonly thiefMaliciousAshenDamageFactor?: number;
   readonly hitboxIndex?: number;
   readonly largeHitboxOnly?: boolean;
   readonly legendId?: string;
