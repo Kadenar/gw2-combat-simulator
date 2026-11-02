@@ -388,6 +388,8 @@ export type SimulationEvent = DamageEvent | ConditionEvent | CommonSimulationEve
 
 /** Detached formula facts captured only for requested detailed damage diagnostics. */
 export interface Gw2DamageCalculation {
+  /** Player boons and ordinary buffs at resolution, before after-hit grants or consumption; detached from live state. */
+  readonly activeBuffs: readonly { readonly kind: string; readonly stacks: number; readonly name?: string }[];
   readonly phase: 'Sample' | 'Settle' | 'Ordinary';
   readonly targetHealthBefore: number | null;
   readonly targetHealthFractionBefore: number | null;

@@ -23,6 +23,7 @@ import {
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { gw2ResolverBoonDuration } from '#gw2/platform/resolver/boon-duration.js';
 import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
+import { snapshotActivePlayerBuffs } from '#gw2/platform/resolver/damage-diagnostics.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { HandlerRegistry, OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
@@ -85,7 +86,10 @@ export function createEffectDelivery<T extends object>(
   const handlers = new HandlerRegistry<Gw2Runtime<T>, Gw2ResolverEvent>()
     .registerAll(
       createGw2ResolverEventHandlers({
-        hitResolution: createGw2HitResolution({ strikeMultiplier: relicStrikeMultiplier }),
+        hitResolution: createGw2HitResolution({
+          strikeMultiplier: relicStrikeMultiplier,
+          activeBuffs: () => snapshotActivePlayerBuffs(runtime, profession)
+        }),
         conditions: { ...conditions, applyCondition: (_context, event) => applyConditionNow(event) },
         reactions
       })

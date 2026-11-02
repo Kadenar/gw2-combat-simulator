@@ -17,6 +17,7 @@ import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.j
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
+import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
@@ -77,10 +78,18 @@ type OrderedEventLogRow = EventLogRow & {
 };
 
 /** Show recorded formula inputs at full clock precision; the log's activation grouping is not an execution trace. */
-function damageCalculationDetails(event: SimulationEvent): string[] {
+function damageCalculationDetails(
+  event: SimulationEvent,
+  presentations: readonly ProfessionEffectPresentation[]
+): string[] {
   const calculation = event.damageCalculation!;
+  // These are captured player effects, not a claim that every effect contributes to this packet's multiplier.
+  const buffs = calculation.activeBuffs.map(
+    ({ kind, stacks, name }) => `${name ?? effectName(kind, {}, presentations)} x${stacks}`
+  );
   return [
     `Simulation time: ${event.at.toFixed(6)}s; phase: ${calculation.phase}`,
+    `Active player buffs and boons: ${buffs.join(', ') || 'None'}`,
     `Target health before: ${calculation.targetHealthBefore ?? 'unbounded'}; fraction: ${calculation.targetHealthFractionBefore ?? 'unbounded'}`,
     `Power: ${calculation.power}`,
     ...(calculation.precision == null ? [] : [`Precision: ${calculation.precision}`]),
@@ -94,6 +103,11 @@ function damageCalculationDetails(event: SimulationEvent): string[] {
     `Base damage: ${calculation.baseDamage}`,
     `Critical chance: ${event.criticalChance}; critical multiplier: ${calculation.criticalMultiplier}`,
     `Outgoing multiplier: ${calculation.outgoingMultiplier}`,
+    ...(calculation.outgoingContributors ?? []).map(({ label, bucket, value }) =>
+      bucket === 'additive'
+        ? `Outgoing additive: ${label} ${value >= 0 ? '+' : ''}${value}`
+        : `Outgoing factor: ${label} ×${value}`
+    ),
     `Unrounded damage: ${calculation.unroundedDamage}; rounding: ${calculation.rounding}; damage: ${event.damage}`
   ];
 }
@@ -151,7 +165,9 @@ export function simulationEventLogRows(
       at: Math.abs(displayAt) < 1e-12 ? 0 : displayAt,
       type,
       description,
-      ...(type === 'damage' && event.damageCalculation ? { details: damageCalculationDetails(event) } : {}),
+      ...(type === 'damage' && event.damageCalculation
+        ? { details: damageCalculationDetails(event, effectPresentations) }
+        : {}),
       className,
       activationOrder: activationOrder(event),
       order: EVENT_LOG_ORDER[type] ?? 80,

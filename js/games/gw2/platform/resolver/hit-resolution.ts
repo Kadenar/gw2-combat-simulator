@@ -24,10 +24,12 @@ interface ResolvedStrikeParts {
  * Creates timestamp-aware strike resolution shared by GW2 professions.
  */
 export function createGw2HitResolution({
-  strikeMultiplier: equipmentStrikeMultiplier = () => 1
+  strikeMultiplier: equipmentStrikeMultiplier = () => 1,
+  activeBuffs
 }: {
   readonly strikeMultiplier?: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => number;
-} = {}): Readonly<Gw2HitResolution> {
+  readonly activeBuffs: () => Gw2DamageCalculation['activeBuffs'];
+}): Readonly<Gw2HitResolution> {
   // Remaining target health as a fraction, or null when the encounter has no
   // configured target health. Shared by every "target-health-below" gate.
   function currentHealthFraction(ctx: Gw2ResolverRuntime): number | null {
@@ -232,6 +234,7 @@ export function createGw2HitResolution({
       const maximum = Number(ctx.encounter?.maximumHealth ?? ctx.config.target?.health);
       const healthFraction = hitContext.targetHealthFractionBefore;
       const damageCalculation: Gw2DamageCalculation = {
+        activeBuffs: activeBuffs(),
         phase: (['Sample', 'Settle', 'Ordinary'] as const)[ctx.queue.currentPhase] ?? 'Ordinary',
         targetHealthBefore: healthFraction == null || !Number.isFinite(maximum) ? null : maximum * healthFraction,
         targetHealthFractionBefore: healthFraction,

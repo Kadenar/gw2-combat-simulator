@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
@@ -172,6 +173,86 @@ test('diagnostics capture settlement and environment health before the following
   assert.ok(Math.abs(calculation.targetHealthFractionBefore - 0.478) < 1e-12);
   assert.equal('precision' in calculation, false);
   assert.equal('ferocity' in calculation, false);
+});
+
+// Hit snapshots must preserve executed order, recipient filtering, and state before on-hit consumption or grants.
+test('active buff diagnostics preserve player stacks before same-time grants and after-hit reactions', () => {
+  let charges = 2;
+  const profession = defineTestProfession({
+    id: 'diagnostic-buffs',
+    name: 'Diagnostic buffs',
+    hooks: {
+      observeEffects: () => [
+        timedEffectState('native-charge', [{ stacks: charges, expiresAt: 10 }], 2, { name: 'Native Charge' })
+      ]
+    }
+  });
+  const owner = { source: 'Player', sourceId: 'probe', actorType: 'player' };
+  const buff = (kind, extra = {}) => ({
+    ...owner,
+    type: 'buff',
+    at: 0,
+    kind,
+    stacks: 1,
+    duration: 10,
+    audience: { recipients: 'self' },
+    ...extra
+  });
+  const hit = (name, at, priority = 0) => ({ ...owner, type: 'damage', name, at, priority, flatDamage: 1 });
+  const result = resolveTestGw2Events({
+    profession,
+    damageDiagnostics: true,
+    config: { boons: { might: 20, alacrity: true } },
+    buffPolicies: [
+      { kind: 'charge', maximumStacks: 2 },
+      ...['party-only', 'later', 'after-hit', 'future'].map((kind) => ({ kind, maximumStacks: 1 }))
+    ],
+    endTime: 3,
+    events: [
+      buff('might', { stacks: 10 }),
+      buff('fury', { duration: 1 }),
+      buff('quickness', { duration: 1 }),
+      buff('quickness', { duration: 1 }),
+      buff('charge', { stacks: 3 }),
+      buff('party-only', { audience: { recipients: 'party', affectsSelf: false, maximumRecipients: 5 } }),
+      hit('Before', 1),
+      buff('later', { at: 1, priority: 100 }),
+      hit('After', 1, 200),
+      hit('Expired', 2),
+      buff('future', { at: 3 })
+    ],
+    engineReactions: {
+      'damage.resolved': (ctx, event) => {
+        if (event.name !== 'Before') return;
+
+        // Mutating the live applications cannot retroactively alter the retained hit's facts.
+        charges -= 1;
+        ctx.buffs.set(
+          'charge',
+          ctx.buffs.get('charge').map((application) => ({ ...application, expiresAt: event.at }))
+        );
+        ctx.effects.emit({ kind: 'packet', event: buff('after-hit', { at: event.at }) });
+      }
+    }
+  });
+  const snapshots = Object.fromEntries(
+    result.resolvedEvents
+      .filter((event) => event.type === 'damage')
+      .map((event) => [
+        event.name,
+        Object.fromEntries(event.damageCalculation.activeBuffs.map(({ kind, stacks }) => [kind, stacks]))
+      ])
+  );
+  assert.deepEqual(snapshots.Before, { alacrity: 1, might: 25, quickness: 1, charge: 2, 'native-charge': 2 });
+  assert.deepEqual(snapshots.After, {
+    alacrity: 1,
+    might: 25,
+    quickness: 1,
+    'after-hit': 1,
+    later: 1,
+    'native-charge': 1
+  });
+  assert.deepEqual(snapshots.Expired, { alacrity: 1, might: 25, 'after-hit': 1, later: 1, 'native-charge': 1 });
 });
 
 // Capture observes the same actual execution and never adds a gameplay pass.

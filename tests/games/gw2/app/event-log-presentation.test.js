@@ -93,7 +93,7 @@ test('event-log mounting keeps the search, escapes descriptions, and configures 
   assert.match(html, /value="safe"/);
 });
 
-// Calculation details retain microseconds and actual factors without changing rows from older results.
+// Calculation details retain captured state and distinguish additive bonuses from multiplicative factors.
 test('event log exposes optional damage calculations at full simulation precision', () => {
   const event = {
     type: 'damage',
@@ -109,6 +109,10 @@ test('event log exposes optional damage calculations at full simulation precisio
   const result = { events: [], ...effectFields([event], 120) };
   assert.equal(simulationEventLogRows(result)[0].details, undefined);
   const damageCalculation = {
+    activeBuffs: [
+      { kind: 'might', stacks: 25 },
+      { kind: 'test-charge', stacks: 2 }
+    ],
     phase: 'Ordinary',
     targetHealthBefore: null,
     targetHealthFractionBefore: null,
@@ -116,15 +120,38 @@ test('event log exposes optional damage calculations at full simulation precisio
     coefficientMultiplier: 1,
     baseDamage: 10,
     criticalMultiplier: 1,
-    outgoingMultiplier: 1,
+    outgoingMultiplier: 1.32,
+    outgoingContributors: [
+      { id: 'additive', label: 'Additive bonus', bucket: 'additive', value: 0.1 },
+      { id: 'factor', label: 'Multiplicative bonus', bucket: 'multiplier', value: 1.2 }
+    ],
     unroundedDamage: 10,
     rounding: 'floor'
   };
-  const row = simulationEventLogRows({ ...result, ...effectFields([{ ...event, damageCalculation }], 120) })[0];
+  const profession = { ui: { effectPresentations: () => [{ kind: 'test-charge', name: 'Test Charge' }] } };
+  const row = simulationEventLogRows(
+    { ...result, ...effectFields([{ ...event, damageCalculation }], 120) },
+    null,
+    profession
+  )[0];
   assert.ok(row.details.includes('Simulation time: 0.600001s; phase: Ordinary'));
   assert.ok(row.details.includes('Target health before: unbounded; fraction: unbounded'));
   assert.ok(row.details.includes('Unrounded damage: 10; rounding: floor; damage: 10'));
   assert.ok(!row.details.some((detail) => detail.startsWith('Weapon strength:')));
+  assert.ok(row.details.includes('Active player buffs and boons: Might x25, Test Charge x2'));
+  assert.ok(row.details.includes('Outgoing additive: Additive bonus +0.1'));
+  assert.ok(row.details.includes('Outgoing factor: Multiplicative bonus ×1.2'));
+  const empty = simulationEventLogRows({
+    ...result,
+    ...effectFields(
+      [{ ...event, damageCalculation: { ...damageCalculation, activeBuffs: [], outgoingContributors: [] } }],
+      120
+    )
+  })[0];
+  assert.ok(empty.details.includes('Active player buffs and boons: None'));
+  assert.ok(
+    !empty.details.some((detail) => detail.startsWith('Outgoing factor:') || detail.startsWith('Outgoing additive:'))
+  );
 });
 
 test('event log distinguishes phantasm summon, attack, and clone conversion', () => {
