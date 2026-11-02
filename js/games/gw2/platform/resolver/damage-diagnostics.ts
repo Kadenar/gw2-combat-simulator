@@ -2,7 +2,6 @@
 import { GW2_STANDARD_BOONS, standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
-import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2DamageCalculation } from '#gw2/platform/events/events.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
@@ -22,10 +21,8 @@ export function snapshotActivePlayerBuffs<T extends object>(
     if (stacks > 0) buffs.push({ kind, stacks });
   }
 
-  // Owner observations replace generic histories for charge pools and apply each buff's declared stack limit.
-  for (const state of observeRuntimeEffects(runtime, profession)) {
-    if (state.category !== 'buff' || state.recipient !== RECIPIENT.SELF) continue;
-
+  // Scope observation to player buffs while retaining native charge ownership and each buff's declared stack limit.
+  for (const state of observeRuntimeEffects(runtime, profession, 'player-buffs')) {
     const { count } = effectStateValue(state, runtime.time);
 
     if (count > 0) buffs.push({ kind: state.kind, stacks: count, ...(state.name ? { name: state.name } : {}) });

@@ -30,8 +30,11 @@ interface BuffObservation {
   readonly maximumDuration: number | undefined;
   readonly at: number;
   readonly until: number;
-  readonly states: readonly EffectState[];
+  readonly selfStates: readonly EffectState[];
+  readonly states: readonly EffectState[] | undefined;
 }
+
+type EffectObservationScope = 'all' | 'player-buffs';
 
 // Cache only generic immutable grant histories, scoped to their runtime; native charge pools are always observed.
 const buffObservations = new WeakMap<object, Map<string, BuffObservation>>();
@@ -42,11 +45,12 @@ function observeGenericBuff(
   kind: string,
   applications: readonly Gw2TimedBuffApplication[],
   at: number,
-  policy: BuffStatePolicy
+  policy: BuffStatePolicy,
+  playerOnly: boolean
 ): readonly EffectState[] {
   const previous = cache.get(kind);
 
-  if (
+  const reusable =
     previous &&
     at >= previous.at &&
     at < previous.until &&
@@ -54,23 +58,27 @@ function observeGenericBuff(
     previous.maximumStacks === policy.maximumStacks &&
     previous.maximumDuration === policy.maximumDuration &&
     previous.applications.length === applications.length &&
-    applications.every((application, index) => application === previous.applications[index])
-  )
-    return previous.states;
+    applications.every((application, index) => application === previous.applications[index]);
 
-  const states = [observeBuffState(kind, applications, at, policy)];
+  if (reusable && (playerOnly || previous.states)) return playerOnly ? previous.selfStates : previous.states!;
+
+  // A diagnostic read can seed the self observation; a later report expands it without rebuilding player windows.
+  const selfStates = reusable ? previous.selfStates : [observeBuffState(kind, applications, at, policy)];
+  const states = [...selfStates];
   let allies = 0;
   let wildcard = false;
   let until = Infinity;
   const companions = new Set<string>();
   for (const application of applications) {
+    if (application.at > at) until = Math.min(until, application.at);
+
+    if (playerOnly) continue;
+
     const audience = application.resolvedAudience;
     allies = Math.max(allies, audience.alliedPlayerCount, audience.alliedPlayerIndex ?? 0);
     for (const id of audience.companionIds) companions.add(id);
 
     if (audience.includesSummons && !audience.companionIds.length) wildcard = true;
-
-    if (application.at > at) until = Math.min(until, application.at);
   }
 
   for (let index = 1; index <= allies; index++)
@@ -112,9 +120,10 @@ function observeGenericBuff(
     maximumDuration: policy.maximumDuration,
     at,
     until,
-    states
+    selfStates,
+    states: playerOnly ? undefined : states
   });
-  return states;
+  return playerOnly ? selfStates : states;
 }
 
 const retirementObservations = new WeakMap<
@@ -131,16 +140,18 @@ const sharedPolicies: ReadonlyMap<string, BuffStatePolicy> = new Map([
   ...[STATUS.STEALTH, STATUS.SUPERSPEED].map((kind): [string, BuffStatePolicy] => [kind, { kind, maximumStacks: 1 }])
 ]);
 
-/** Visit complete kind scopes; native observations replace only their own generic recipients. */
+/** Select observation work before projecting tracks; native owners still replace only their own generic recipients. */
 function visitRuntimeEffects<T extends object>(
   runtime: Gw2Runtime<T>,
   profession: RuntimeProfession<T>,
-  visitor: (scope: string, states: readonly EffectState[]) => void
+  visitor: (scope: string, states: readonly EffectState[]) => void,
+  scope: EffectObservationScope = 'all'
 ): void {
+  const playerOnly = scope === 'player-buffs';
   // Reuse clipped scopes until another entity retires, preserving unchanged report capture identity.
-  let retirement = retirementObservations.get(runtime);
+  let retirement = playerOnly ? undefined : retirementObservations.get(runtime);
 
-  if (runtime.retiredCompanions.size && retirement?.count !== runtime.retiredCompanions.size) {
+  if (!playerOnly && runtime.retiredCompanions.size && retirement?.count !== runtime.retiredCompanions.size) {
     retirement = { count: runtime.retiredCompanions.size, states: new WeakMap() };
     retirementObservations.set(runtime, retirement);
   }
@@ -189,7 +200,10 @@ function visitRuntimeEffects<T extends object>(
     }
   }
 
+  // Retain native kind order and ownership without projecting sources for recipients outside the requested scope.
   const owned = (profession.observeEffects?.(runtime.mechanicQueries) ?? []).map((state) => {
+    if (playerOnly && (state.recipient !== RECIPIENT.SELF || state.category !== 'buff')) return state;
+
     if (state.source != null) return { ...state };
 
     const applications = (isStandardBoon(state.kind) ? runtime.boons : runtime.buffs).get(state.kind);
@@ -218,7 +232,9 @@ function visitRuntimeEffects<T extends object>(
   const nativeScopes = new Map<string, EffectState[]>();
   for (const state of owned) {
     const scope = nativeScopes.get(state.kind) ?? [];
-    scope.push(state);
+
+    if (!playerOnly || state.recipient === RECIPIENT.SELF) scope.push(state);
+
     nativeScopes.set(state.kind, scope);
   }
 
@@ -230,7 +246,7 @@ function visitRuntimeEffects<T extends object>(
   }
 
   // Both stores share policy enforcement and recipient-specific native overrides.
-  for (const store of [runtime.boons, runtime.buffs])
+  for (const store of playerOnly ? [runtime.buffs] : [runtime.boons, runtime.buffs])
     for (const [kind, applications] of store) {
       // Registration makes new reportable effects declare their owner instead of silently bypassing caps.
       const policy = policies.get(kind) ?? sharedPolicies.get(kind);
@@ -239,7 +255,9 @@ function visitRuntimeEffects<T extends object>(
 
       if (policy.owner === 'profession') continue;
 
-      const generic = observeGenericBuff(cache, kind, applications, runtime.time, policy);
+      if (playerOnly && ownedRecipients.get(kind)?.has(RECIPIENT.SELF)) continue;
+
+      const generic = observeGenericBuff(cache, kind, applications, runtime.time, policy, playerOnly);
       const native = nativeScopes.get(kind);
 
       if (native) {
@@ -248,6 +266,9 @@ function visitRuntimeEffects<T extends object>(
     }
 
   for (const [kind, states] of nativeScopes) visit(`buff:${kind}`, states);
+
+  if (playerOnly) return;
+
   for (const [kind, state] of runtime.conditionState)
     visit(`condition:${kind}`, observeCondition(kind, state, runtime.time));
 }
@@ -333,14 +354,24 @@ function observeAssumptions(runtime: Gw2Runtime): EffectState[] {
   return result;
 }
 
-/** Planning reads remain complete and independent of which scopes combat reporting last submitted. */
+/** Planning reads remain complete; hit diagnostics request only player buffs and omit configured assumptions. */
 export function observeRuntimeEffects<T extends object>(
   runtime: Gw2Runtime<T>,
-  profession: RuntimeProfession<T>
+  profession: RuntimeProfession<T>,
+  scope: EffectObservationScope = 'all'
 ): EffectState[] {
   const result: EffectState[] = [];
-  visitRuntimeEffects(runtime, profession, (_scope, states) => result.push(...states));
-  result.push(...observeAssumptions(runtime));
+  visitRuntimeEffects(
+    runtime,
+    profession,
+    (_scope, states) => {
+      for (const state of states) if (scope === 'all' || state.category === 'buff') result.push(state);
+    },
+    scope
+  );
+
+  if (scope === 'all') result.push(...observeAssumptions(runtime));
+
   return result;
 }
 
