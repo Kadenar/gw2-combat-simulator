@@ -104,19 +104,20 @@ test('preparation detaches builds, rotations, and patch configurations without i
 test('preparation returns adapter configuration without invoking the simulator or forcing deterministic settings', () => {
   const config = { randomness: { mode: 'stochastic', seed: 42 }, boons: { might: 7 } };
   const patch = { id: 'preview' };
-  const profession = {};
+  // Match the module contract: the adapter owns the profession, while its context only supplies calculations.
+  const profession = {
+    resolvePatch: ({ id }) => {
+      assert.equal(id, patch.id);
+      return patch;
+    }
+  };
   const adapter = {
-    profession: {
-      resolvePatch: ({ id }) => {
-        assert.equal(id, patch.id);
-        return patch;
-      }
-    },
+    profession,
     toApplicationBuild: (build) => build,
     createBuildContext(input) {
       assert.equal(input.patch, patch);
       assert.ok(input.transitionDelays);
-      return { profession, simulationConfig: () => config };
+      return { simulationConfig: () => config };
     }
   };
   const prepared = prepareBenchmarkPreset({ adapter, savedBuild: {}, savedRotation: [] }, patch.id);

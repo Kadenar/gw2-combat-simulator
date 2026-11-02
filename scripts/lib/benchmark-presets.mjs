@@ -67,7 +67,8 @@ export function prepareBenchmarkPreset({ identity, adapter, savedBuild, savedRot
   return {
     identity,
     build,
-    profession: context.profession,
+    // The adapter owns the simulation runtime; build contexts only calculate build-derived values.
+    profession: adapter.profession,
     rotation: build.rotation,
     config: context.simulationConfig()
   };
