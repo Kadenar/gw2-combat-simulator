@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { attributeEffectControls } from '#gw2/app/build/attribute-effects.js';
+import { attributeEffectControls, attributePreviewContext } from '#gw2/app/build/attribute-effects.js';
 import { calculateBuffedAttributes, calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
 import { clearedValues, createSkillDamagePlan, skillDamageControls } from '#gw2/app/build/skill-damage/plan.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
@@ -10,6 +11,7 @@ import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lo
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { queryDamagePreview } from '#gw2/platform/skill-damage/query-preview.js';
 import { ENGINEER_SKILL_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
+import { headlessApp } from '#tests/helpers/skill-damage.js';
 
 const adapters = {};
 for (const name of [
@@ -81,6 +83,81 @@ const stats = (app, input = {}) => {
   const controls = skillDamageControls(app);
   return calculateSkillDamageAttributes(app, { ...clearedValues(controls), ...input }, controls).attributes;
 };
+
+// Preset loading renders both preview panels, whose composition is not exercised by combat benchmarks.
+test('shipped presets compose preview controls for both equipped weapon sets', async () => {
+  for (const profession of Object.keys(adapters)) {
+    const manifest = JSON.parse(
+      await readFile(new URL(`../../../../data/gw2/builds/${profession}/manifest.json`, import.meta.url), 'utf8')
+    );
+    for (const preset of manifest.flatMap((section) => section.presets)) {
+      const app = await headlessApp(profession, preset.build);
+      assert.doesNotThrow(() => {
+        for (const weaponSet of [1, 2]) {
+          app.attributeWeaponSet = weaponSet;
+          attributeEffectControls(app);
+        }
+
+        skillDamageControls(app);
+      }, preset.build);
+    }
+  }
+});
+
+// Core weapon and elite trait dependencies must compose before either panel can render or save a build.
+test('Ranger shares one target-health input for Spear and Oppressive Superiority', () => {
+  for (const specialization of [null, 'Soulbeast']) {
+    for (const trait of specialization ? [[], ['Oppressive Superiority']] : [[]]) {
+      for (const weapons of [
+        ['Spear', ''],
+        ['Axe', 'Axe']
+      ]) {
+        const app = previewApp('ranger', trait, specialization);
+        app.build.weapons = weapons;
+        app.build.alternateWeapons = ['', ''];
+        const expected = weapons[0] === 'Spear' || trait.length > 0;
+        const controls = app.profession.ui.previewControls(attributePreviewContext(app, 1));
+        assert.equal(controls.filter((control) => control.key === 'targetHealth').length, Number(expected));
+        assert.equal(
+          attributeEffectControls(app).some((control) => control.key === 'targetHealth'),
+          false
+        );
+        const damageControls = skillDamageControls(app);
+        assert.equal(damageControls.filter((control) => control.key === 'targetHealth').length, 1);
+        assert.equal(
+          createSkillDamagePlan(app, damageControls, clearedValues(damageControls)).usesTargetHealth,
+          expected
+        );
+      }
+    }
+  }
+});
+
+// Health inputs follow the hand that owns the attack, while trait and alternate-set dependencies stay visible.
+test('off-hand Dagger and Axe do not expose ineffective target-health sliders', () => {
+  for (const [profession, weapon, trait] of [
+    ['thief', 'Dagger', 'Executioner'],
+    ['warrior', 'Axe', "Warrior's Cunning"]
+  ]) {
+    for (const [weapons, alternateWeapons, traits, expected] of [
+      [['Sword', weapon], ['', ''], [], false],
+      [[weapon, ''], ['', ''], [], true],
+      [['Sword', weapon], [weapon, ''], [], true],
+      [['Sword', weapon], ['', ''], [trait], true]
+    ]) {
+      const app = previewApp(profession, traits);
+      app.build.weapons = weapons;
+      app.build.alternateWeapons = alternateWeapons;
+      app.build.relic = 'None';
+      const controls = skillDamageControls(app);
+      assert.equal(
+        createSkillDamagePlan(app, controls, clearedValues(controls)).usesTargetHealth,
+        expected,
+        `${profession}: ${JSON.stringify({ weapons, alternateWeapons, traits })}`
+      );
+    }
+  }
+});
 
 // Insight contributes temporary attributes without feeding conversions or mutating the saved build.
 test('Spellbreaker previews share capped Insight stacks independently of Signet Mastery', () => {

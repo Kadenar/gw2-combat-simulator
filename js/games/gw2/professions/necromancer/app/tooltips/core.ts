@@ -86,34 +86,50 @@ const addleTooltip: DescribeSimulationTooltip = skillTooltip(
   'Strike and daze your target, gaining Soul Shards. Having enough Soul Shards before activation also immobilizes the target. Against a defiant target or one activating skills, gain additional life force and Soul Shards.'
 );
 
-const perforateTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Strike repeatedly. Each hit can consume an available Soul Shard for an additional life-steal strike. Soul Shard damage increases against a low-health target.',
-  (balanceContext) => [
-    modifierFact(
-      balanceContext,
-      'necromancer.perforate-target-health',
-      'factor',
-      'Strike damage below 50% target health',
-      tooltipFactorChange
-    ),
-    ...simulationEffectFacts(requireSkillFromContext(balanceContext, ID.SOUL_SHARDS).effects, 'per Soul Shard consumed')
-      .facts,
-    skillFact(
-      balanceContext,
-      ID.SOUL_SHARDS,
-      'threshold',
-      'Soul Shard target health threshold',
-      (value) => `${tooltipDecimal(value * 100)}%`
-    ),
-    skillFact(
-      balanceContext,
-      ID.SOUL_SHARDS,
-      'damageMultiplier',
-      'Soul Shard damage below threshold',
-      tooltipFactorChange
-    )
-  ]
-);
+// Present Perforate's separate impacts as one coefficient total while retaining the selected balance values.
+const perforateTooltip: DescribeSimulationTooltip = (balanceContext) => {
+  const strikes = (requireSkillFromContext(balanceContext, ID.PERFORATE).effects ?? []).filter(
+    (effect) => effect.type === 'strike'
+  );
+  return {
+    description:
+      'Strike repeatedly. Each hit can consume an available Soul Shard for an additional life-steal strike. Soul Shard damage increases against a low-health target.',
+    facts: [
+      ...simulationEffectFacts([
+        {
+          type: 'strike',
+          coefficient: strikes.reduce((sum, effect) => sum + tooltipNumber(effect, 'coefficient'), 0),
+          hits: strikes.length
+        }
+      ]).facts,
+      modifierFact(
+        balanceContext,
+        'necromancer.perforate-target-health',
+        'factor',
+        'Strike damage below 50% target health',
+        tooltipFactorChange
+      ),
+      ...simulationEffectFacts(
+        requireSkillFromContext(balanceContext, ID.SOUL_SHARDS).effects,
+        'per Soul Shard consumed'
+      ).facts,
+      skillFact(
+        balanceContext,
+        ID.SOUL_SHARDS,
+        'threshold',
+        'Soul Shard target health threshold',
+        (value) => `${tooltipDecimal(value * 100)}%`
+      ),
+      skillFact(
+        balanceContext,
+        ID.SOUL_SHARDS,
+        'damageMultiplier',
+        'Soul Shard damage below threshold',
+        tooltipFactorChange
+      )
+    ]
+  };
+};
 
 const distressTooltip: DescribeSimulationTooltip = skillTooltip(
   "Consume this follow-up, reset Perforate's recharge, and gain Soul Shards. Includes the additional Soul Shards for the simulator's single target."

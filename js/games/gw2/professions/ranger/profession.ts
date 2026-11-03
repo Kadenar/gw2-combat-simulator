@@ -7,6 +7,7 @@ import {
 import { rangerWeaponSkillMatchesSet } from '#gw2/professions/ranger/build/weapon-matching.js';
 import { rangerNativeModules } from '#gw2/professions/ranger/catalog.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { rangerFamilyUi } from '#gw2/professions/ranger/family-presentation.js';
 
 export { rangerCatalog, rangerNativeModules } from '#gw2/professions/ranger/catalog.js';
 
@@ -21,6 +22,7 @@ export const rangerProfession = defineNativeProfession({
   },
   weaponSkillMatchesSet: rangerWeaponSkillMatchesSet,
   modules: rangerNativeModules,
+  presentation: rangerFamilyUi,
   autoattackChains: {
     overrides: [
       {

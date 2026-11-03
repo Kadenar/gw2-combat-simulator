@@ -21,6 +21,27 @@ const moduleFor = (skills, modifiers) =>
     modifiers
   });
 
+// References and damage contributors receive canonical skill names, preserving deliberate rule-specific labels.
+test('skill-owned modifier labels follow their owner unless explicitly named', () => {
+  const unnamed = { id: 'internal-rule-id', target: 'strikeDamage', operation: 'multiply', factor: 1.2 };
+  const owner = skill(1, [unnamed], [strike([{ ...unnamed, id: 'internal-effect-id' }, bonus('named', 1.1)])]);
+  const core = moduleFor([owner]);
+  const rules = core.modifiers.modifierRules;
+  assert.deepEqual(
+    rules.map((rule) => rule.label),
+    ['Skill 1', 'Skill 1', 'named']
+  );
+  const damageContributors = [];
+  createModifierHooks({ rules }).modifyStrikeDamage(
+    { event: packet(owner, owner.effects[0]), damageContributors },
+    100
+  );
+  assert.deepEqual(
+    damageContributors.map((entry) => entry.label),
+    ['Skill 1', 'Skill 1', 'named']
+  );
+});
+
 // Materialize real packets so ownership survives serialization and never depends on a display name or effect index.
 function packet(owner, effect, baseEvent = {}) {
   return JSON.parse(

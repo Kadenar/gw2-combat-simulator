@@ -230,10 +230,10 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
   previewControls(context: ProfessionAttributePreviewContext) {
     const preview = createPreviewControls(context);
-    // Weapon execute modifiers need target health in isolated damage previews.
+    // Throw Axe belongs to main-hand Axe; an off-hand Axe must not expose an ineffective health input.
     preview.damageTargetHealth(
       preview.hasId(TRAIT.WARRIORS_CUNNING) ||
-        context.weapons.includes(WEAPON.AXE) ||
+        context.weapons[0] === WEAPON.AXE ||
         (context.weapons.includes(WEAPON.GREATSWORD) &&
           !['Berserker', 'Bladesworn'].includes(context.specialization)) ||
         (context.weapons.includes(WEAPON.RIFLE) && !['Berserker', 'Bladesworn'].includes(context.specialization))

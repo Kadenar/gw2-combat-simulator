@@ -7,6 +7,28 @@ import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.j
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 
+// Perforate summarizes its selected strike coefficients without exposing the packet representation in its tooltip.
+test('Perforate tooltip presents a coefficient total and hit count', () => {
+  const profession = withPatchPreview(necromancerProfession, {
+    id: 'perforate-tooltip',
+    label: 'Perforate tooltip',
+    professions: {
+      necromancer: { skills: { [ID.PERFORATE]: { effects: [{ type: 'strike', all: true, coefficient: 0.6 }] } } }
+    }
+  });
+  for (const [patchId, coefficient] of [
+    ['current', '3.5'],
+    ['perforate-tooltip', '4.2']
+  ]) {
+    const context = profession.resolvePatch({ id: patchId }).balanceContext;
+    const model = describeSimulationSkill(context, context.catalog.skillsById.get(ID.PERFORATE), necromancerTooltips);
+    const damage = model.facts.find((fact) => fact.name === 'Strike damage');
+    assert.equal(damage.detail, `${coefficient} coefficient total · 7 hits`);
+    assert.equal(damage.applications, 1);
+    assert.ok(model.facts.some((fact) => fact.name === 'Strike damage below 50% target health'));
+  }
+});
+
 // Signet's flat formula lives on its ticks, so presentation must follow the selected packets rather than their zero coefficient.
 test('Signet of Vampirism tooltip exposes the selected per-tick damage formula', () => {
   const profession = withPatchPreview(necromancerProfession, {

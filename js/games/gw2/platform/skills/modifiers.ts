@@ -107,6 +107,8 @@ export function nativeSkillModifierRules(data: NativeModuleCatalogData): readonl
     const id = skill.id;
     const scoped = ({ scope = 'skill', ...rule }: SkillModifier, effect: boolean): Gw2ModifierRule => ({
       ...rule,
+      // Intrinsic rules inherit their canonical skill name for references and damage contributors.
+      label: rule.label ?? skill.name,
       // Ownership remains the declaring skill even when a buff affects other skills or actors.
       sourceSkillId: id,
       when: (context) =>

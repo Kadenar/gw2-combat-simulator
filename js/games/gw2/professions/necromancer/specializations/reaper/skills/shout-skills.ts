@@ -25,6 +25,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
       {
         // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
         id: 'necromancer.you-are-all-weaklings-melee',
+        label: 'Reaper shouts — melee bonus',
         order: 0,
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',
@@ -47,6 +48,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
       {
         // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
         id: 'necromancer.nothing-can-save-you-melee',
+        label: 'Reaper shouts — melee bonus',
         order: 0,
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',
@@ -72,6 +74,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
       {
         // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
         id: 'necromancer.chilled-to-the-bone-melee',
+        label: 'Reaper shouts — melee bonus',
         order: 0,
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',
@@ -98,6 +101,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
       {
         // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
         id: 'necromancer.your-soul-is-mine-melee',
+        label: 'Reaper shouts — melee bonus',
         order: 0,
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',
@@ -138,6 +142,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
       {
         // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
         id: 'necromancer.suffer-melee',
+        label: 'Reaper shouts — melee bonus',
         order: 0,
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',
@@ -177,6 +182,7 @@ export const REAPER_SHOUT_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
       {
         // The simulator's target is always nearby, so player shout packets always receive the melee bonus.
         id: 'necromancer.rise-melee',
+        label: 'Reaper shouts — melee bonus',
         order: 0,
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',

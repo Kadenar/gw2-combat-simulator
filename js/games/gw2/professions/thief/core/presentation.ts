@@ -212,10 +212,10 @@ export const thiefCoreUi = Object.freeze({
       description: 'Stealthed; Critical Chance'
     });
     preview.targetHealth(TRAIT.FEROCIOUS_STRIKES);
-    // Unsuspecting Strike's health-dependent Bleeding is procedural, without a coefficient modifier to inspect.
+    // Heartseeker requires main-hand Dagger; off-hand Dagger alone has no health-dependent payload.
+    // Unsuspecting Strike's health-dependent Bleeding also requires its main-hand weapon.
     preview.damageTargetHealth(
-      preview.hasId(TRAIT.EXECUTIONER) ||
-        context.weapons.some((weapon) => weapon === WEAPON.SPEAR || weapon === WEAPON.DAGGER)
+      preview.hasId(TRAIT.EXECUTIONER) || context.weapons[0] === WEAPON.SPEAR || context.weapons[0] === WEAPON.DAGGER
     );
     preview.playerHealth(['Keen Observer', 'Twin Fangs'], preview.has('Keen Observer') ? 50 : 100);
 
