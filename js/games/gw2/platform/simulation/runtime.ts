@@ -25,6 +25,7 @@ import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { sigilBuffPolicies } from '#gw2/platform/equipment/sigils/runtime.js';
 import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { createAutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { createCastExecution } from '#gw2/platform/execution/cast-execution.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
@@ -248,7 +249,6 @@ export function runRuntime<T extends object>(
     professionState: profession.createState(config),
     helpers: { conditionName: canonicalTargetConditionName, ...profession.catalog },
     onFirstDamage: conditions.startDamageClock,
-    reactions,
     random: execution.random
   });
   const precastRelics = normalizePrecastRelics(config.precastRelics)
@@ -295,6 +295,8 @@ export function runRuntime<T extends object>(
     rotationEndTime: null,
     cursor,
     cooldownController,
+    // Chain progress survives profession-state replacement and remains local to this execution.
+    autoattackController: createAutoattackChainController(profession.catalog),
     history,
     facts: facts.reader,
     observations: facts.writer,

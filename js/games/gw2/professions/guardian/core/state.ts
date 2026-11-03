@@ -5,7 +5,6 @@ import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface GuardianCoreState {
@@ -13,7 +12,6 @@ export interface GuardianCoreState {
   justiceActiveArmed: boolean;
   justiceHitCount: number;
   virtueReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
-  autoattackChains: Record<string, SkillId>;
   symbolicAvengerExpirations: number[];
   symbolIgnitionStartsAt: number;
   symbolIgnitionUntil: number;
@@ -38,7 +36,6 @@ export function createGuardianCoreState(): GuardianCoreState {
       resolve: 0,
       courage: 0
     },
-    autoattackChains: {},
     symbolicAvengerExpirations: [],
     symbolIgnitionStartsAt: -1,
     symbolIgnitionUntil: -1,
@@ -62,7 +59,6 @@ export function projectGuardianPlanningState(input: Gw2PlanningStateInput) {
   const state = (input.profession as { core: ReturnType<typeof createGuardianCoreState> }).core;
   // Project only live entitlement without consuming the runtime's captured grant.
   return {
-    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.ENDURANCE]: state.endurance,
     [STATE.JUSTICE_ACTIVE_ARMED]: state.justiceActiveArmed,
     [STATE.SYMBOLIC_AVENGER_EXPIRATIONS]: activeSymbolicAvengerExpirations(state, input.time),

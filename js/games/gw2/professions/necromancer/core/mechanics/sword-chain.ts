@@ -3,10 +3,7 @@
  * Sword skill definitions remain in `skills/weapons/sword.ts`; the profession observes shared chain transitions here.
  */
 
-import {
-  resetAutoattackChains,
-  type AutoattackChainTransitionResult
-} from '#gw2/platform/execution/autoattack-chains.js';
+import type { AutoattackChainTransitionResult } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
@@ -46,7 +43,7 @@ function observeNecromancerAutoattackTransition(
 
 const necromancerSwordTasks = {
   [SWORD_AUTOATTACK_EXPIRY_TASK](runtime: NecromancerRuntime) {
-    resetAutoattackChains(runtime.profession, [ID.ENERVATION_BLADE]);
+    runtime.autoattackController.reset([ID.ENERVATION_BLADE]);
   }
 };
 

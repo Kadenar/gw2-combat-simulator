@@ -2,7 +2,6 @@ import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-pol
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -208,7 +207,7 @@ function setCycloneBow(runtime: RangerRuntime, skill: Skill, active: boolean): v
 
   if (!active) runtime.resourceController.replace('windForce', 0);
 
-  resetAutoattackChains(runtime.profession);
+  runtime.autoattackController.reset();
   runtime.effects.emit({
     kind: 'packet',
     event: buildRangerPacket(

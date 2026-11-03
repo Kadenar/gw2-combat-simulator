@@ -9,6 +9,7 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ElementalistCanonicalBuild, ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
@@ -37,9 +38,8 @@ export interface ElementalistRuntimeState {
 }
 
 /** Public consumers receive only the ID/value pairs published by active owners. */
-export type ElementalistPlanningState = ReturnType<
-  typeof import('#gw2/professions/elementalist/core/state.js').projectElementalistCorePlanningState
-> &
+export type ElementalistPlanningState = Gw2SharedProfessionPlanningState &
+  ReturnType<typeof import('#gw2/professions/elementalist/core/state.js').projectElementalistCorePlanningState> &
   ReturnType<
     typeof import('#gw2/professions/elementalist/specializations/catalyst/state.js').projectCatalystPlanningState
   > &

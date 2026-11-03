@@ -12,7 +12,7 @@ import { scrapperState } from '#gw2/professions/engineer/specializations/scrappe
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
-import { controlTestDetails } from '#tests/helpers/gw2-resolver.js';
+import { emitTestCombo } from '#tests/helpers/gw2-resolver.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const cast = (name) => ({
@@ -137,37 +137,45 @@ test('Mercurial Tendencies admits only selected non-summon recharge reductions a
     for (const traitTriggers of [false, true])
       for (const actorType of ['player', 'effect', 'summon']) {
         const active = selected && traitTriggers && actorType !== 'summon';
+        let expectedReadyAt;
         run(
           'Amalgam',
           { traitTriggers, selectedTraitIds: selected ? [TRAIT.MERCURIAL_TENDENCIES] : [] },
           {
             timeline: [
+              emitAt(cause(0.5, { type: 'control', actorType })),
               {
                 at: 1,
                 run(runtime) {
-                  const react = (at) =>
-                    runtime.mechanics.combat.react(
-                      'control.resolved',
-                      cause(at, { type: 'control', actorType }),
-                      controlTestDetails(runtime.config)
-                    );
-                  react(1);
+                  const evolve = runtime.helpers.skillsById.get(ID.EVOLVE_BASE);
+                  runtime.cooldownController.startRecharge(evolve, 1, 10);
+                  const before = runtime.cooldownController.readyAt(evolve.id);
+                  const rate = runtime.cooldownController.rate(evolve, 1);
+                  expectedReadyAt = before - (active ? 2.5 / rate : 0);
+                  runtime.effects.emit({ kind: 'packet', event: cause(1, { type: 'control', actorType }) });
+                }
+              },
+              emitAt(cause(1.24, { type: 'control', actorType }))
+            ],
+            // Observe resolved controls separately: idle reductions cannot claim a cooldown, and its boundary is strict.
+            probes: [
+              [
+                0.5,
+                (runtime) => {
                   assert.equal(
                     runtime.procs.deadline('mercurialTendencies'),
                     0,
                     'no-op reductions cannot consume the interval'
                   );
-                  const evolve = runtime.helpers.skillsById.get(ID.EVOLVE_BASE);
-                  runtime.cooldownController.startRecharge(evolve, 1, 10);
-                  const before = runtime.cooldownController.readyAt(evolve.id);
-                  const rate = runtime.cooldownController.rate(evolve, 1);
-                  react(1);
-                  assert.equal(runtime.cooldownController.readyAt(evolve.id), before - (active ? 2.5 / rate : 0));
-                  assert.equal(runtime.procs.deadline('mercurialTendencies'), active ? 1.24 : 0);
-                  react(1.24);
-                  assert.equal(runtime.cooldownController.readyAt(evolve.id), before - (active ? 2.5 / rate : 0));
                 }
-              }
+              ],
+              ...[1, 1.24].map((at) => [
+                at,
+                (runtime) => {
+                  assert.equal(runtime.cooldownController.readyAt(ID.EVOLVE_BASE), expectedReadyAt);
+                  assert.equal(runtime.procs.deadline('mercurialTendencies'), active ? 1.24 : 0);
+                }
+              ])
             ]
           }
         );
@@ -439,7 +447,7 @@ test('Kinetic Accelerators isolates the selected Function Gyro finisher and acce
             {
               at: 1,
               run(runtime) {
-                runtime.mechanics.combat.react('combo.resolved', cause(1, { type: 'combo', finisherType: 'Whirl' }));
+                emitTestCombo(runtime, cause(1), 'Whirl');
               }
             }
           ]

@@ -35,7 +35,6 @@ export interface RevenantCoreState {
   activeLegendId: string;
   selectedLegendIds: string[];
   activeUpkeeps: RevenantUpkeepState[];
-  autoattackChains: Record<string, SkillId>;
   endurance: ResourceClock;
   enchantedDaggers: ChargeGrant;
   battleScars: number[];
@@ -70,7 +69,6 @@ export function createRevenantCoreState(config: RevenantConfig): RevenantCoreSta
     activeLegendId,
     selectedLegendIds,
     activeUpkeeps: [],
-    autoattackChains: {},
     endurance: createResourceClock(ENDURANCE.maximum),
     enchantedDaggers: {
       charges: 0,
@@ -96,7 +94,6 @@ export function projectRevenantPlanningState(input: Gw2PlanningStateInput) {
     [STATE.ACTIVE_LEGEND_ID]: state.activeLegendId,
     [STATE.SELECTED_LEGEND_IDS]: state.selectedLegendIds,
     [STATE.ACTIVE_UPKEEPS]: state.activeUpkeeps,
-    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.ENDURANCE]: state.endurance,
     [STATE.ENCHANTED_DAGGERS]: state.enchantedDaggers,
     [STATE.CRUSHING_ABYSS]: state.crushingAbyss,

@@ -1379,8 +1379,10 @@ test('Luminary recharge traits alter the intended cooldown families', () => {
 });
 
 // Exercise exits directly so a large time advance cannot silently move the cooldown's origin.
-test('Forge exits finalize once at the actual transition and clear weapon state', () => {
-  for (const automatic of [false, true]) {
+for (const automatic of [false, true]) {
+  test(`Forge ${automatic ? 'automatic' : 'manual'} exits finalize once at the actual transition and clear weapon state`, () => {
+    let owner;
+    let seeded = false;
     const result = runGuardian(
       [
         GUARDIAN_SKILL_IDS.ENTER_RADIANT_FORGE,
@@ -1388,10 +1390,32 @@ test('Forge exits finalize once at the actual transition and clear weapon state'
         ...(automatic ? [] : [GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE]),
         { type: 'wait', durationMs: 40000 }
       ],
-      { specialization: 'Luminary' }
+      { specialization: 'Luminary' },
+      {
+        initialize(runtime) {
+          owner = runtime;
+        },
+        extend: (native) => ({
+          onCastCommit(context, cast) {
+            native.onCastCommit?.(context, cast);
+
+            if (cast.skill.id !== GUARDIAN_SKILL_IDS.GLEAMING_BLADE) return;
+
+            // Seed real roots after entry/equip so only the subsequent exit can clear this pending progress.
+            for (const [root, next] of native.catalog.autoattackChains) {
+              owner.autoattackController.advance(native.catalog.skillsById.get(root), true, false);
+              assert.equal(owner.autoattackController.read(root), next);
+            }
+
+            seeded = true;
+          }
+        })
+      }
     );
     const runtime = observedRuntime(result);
     const state = runtime.profession.specialization.state;
+    assert.equal(seeded, true);
+    assert.deepEqual(result.warnings, []);
     const exits = result.events.filter(
       (event) => event.type === 'weapon_set' && event.skillId === GUARDIAN_SKILL_IDS.EXIT_RADIANT_FORGE
     );
@@ -1406,9 +1430,12 @@ test('Forge exits finalize once at the actual transition and clear weapon state'
     assert.equal(state.radiantWeapon, '');
     assert.equal(state.glaringBurstSwordSlow, false);
     assert.deepEqual(runtime.flips, {});
-    assert.deepEqual(runtime.profession.core.autoattackChains, {});
-  }
-});
+    assert.deepEqual(
+      runtime.autoattackController.snapshot(),
+      Object.fromEntries(runtime.helpers.autoattackChains.map(([root]) => [root, root]))
+    );
+  });
+}
 
 test('Luminary definitions preserve eligible build grants and applied armament windows', () => {
   // Imported buffs retain their lifetime without current trait selection; live patches still own their amounts.

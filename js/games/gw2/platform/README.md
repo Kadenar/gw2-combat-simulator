@@ -4,25 +4,25 @@ Put a module beside the domain that guarantees its behavior. Shared platform cod
 does not import concrete professions, application code, or integrations. `simulation/simulate.ts` exposes the public
 simulation entry point, `simulateGw2`; consumers import every contract directly from its canonical owner.
 
-| Directory                  | Owns                                                                                                                                          | Delegates                                                        |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `constants.ts` | Shared boon, condition, aura, control, combo, actor, recipient, weapon, and status vocabulary | Domain behavior |
-| `builds/`                  | Saved schemas and rotation commands, normalization, validation, loadouts, selections, assumptions | Live resources, scheduling, rendering                            |
-| `skills/`                  | Skill identities, immutable catalogs, validation, balance profiles, shared actions, chain indexes                                             | Cast acceptance, recharge, effect application                    |
-| `events/`                  | Event schemas, the shared resolver packet type, audience/metadata validation, actor identities, packet identity contracts                                                                                    | Queues, clocks, handlers, history                                |
-| `attributes/` | Attribute inputs and seeds, stat contracts, common/finalized calculation, contributions, passives | Saved-build schemas, live-state mutation and damage resolution |
-| `effects/`                 | Effect declarations, validation, materialization, emission, actions, packet builders                                         | Cast acceptance, target gating, hit resolution, resource storage |
+| Directory                  | Owns                                                                                                                                                           | Delegates                                                        |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `constants.ts`             | Shared boon, condition, aura, control, combo, actor, recipient, weapon, and status vocabulary                                                                  | Domain behavior                                                  |
+| `builds/`                  | Saved schemas and rotation commands, normalization, validation, loadouts, selections, assumptions                                                              | Live resources, scheduling, rendering                            |
+| `skills/`                  | Skill identities, immutable catalogs, validation, balance profiles, shared actions, chain indexes                                                              | Cast acceptance, recharge, effect application                    |
+| `events/`                  | Event schemas, the shared resolver packet type, audience/metadata validation, actor identities, packet identity contracts                                      | Queues, clocks, handlers, history                                |
+| `attributes/`              | Attribute inputs and seeds, stat contracts, common/finalized calculation, contributions, passives                                                              | Saved-build schemas, live-state mutation and damage resolution   |
+| `effects/`                 | Effect declarations, validation, materialization, emission, actions, packet builders                                                                           | Cast acceptance, target gating, hit resolution, resource storage |
 | `combat/`                  | Formulas, modifiers, primitive state queries, target/boon state, resources, procs, executed history, action ticks, effect duration/expiry, recharge arithmetic | Equipment aggregation, rotation driving and result assembly      |
-| `combat-calculation/`      | Effective combat attributes and multipliers from combat primitives, equipment rules, profession hooks, and timestamped state                  | State mutation, scheduling and isolated skill measurement        |
-| `combos/`                  | Fields, finishers, descriptors, combo state and rules                                                                                         | Clock ownership and damage resolution                            |
-| `equipment/`               | Gear, consumables, weapons, sigils, relics, item-owned state and proc rules                                                                   | Global scheduling and rotation traversal                         |
-| `execution/`               | Rotation traversal, cast lifecycle, readiness, cooldown/ammo progress, lockouts, flips, live attack chains                                     | Hit/condition resolution and reporting                           |
-| `resolver/`                | Packet admission/delivery, event phases, handlers, reactions, strikes, conditions, combos                                                     | Rotation decisions and clock advancement                         |
-| `profession-definition/`   | Authoring APIs, module/catalog assembly, compilation, runtime/family contracts, capability contexts                                           | Concrete profession mechanics and browser integration            |
-| `profession-presentation/` | Headless UI contracts/composition, display groups and preview-control hooks                                                                   | Saved-build validation and damage calculation contracts          |
-| `skill-damage/`            | Isolated occurrence inputs, driver, measurement, variants, cache, calculation errors                                                          | A separate damage formula or runtime loop                        |
-| `results/`                 | Optional observers, detached combat/planning projections, result queries, APM, boon summaries                                                 | Authoritative gameplay history and live-state mutation           |
-| `simulation/`              | Public run options/configuration, owner construction, one queue/clock, causal scope, stop policy                                              | Domain rules and build-control definitions                       |
+| `combat-calculation/`      | Effective combat attributes and multipliers from combat primitives, equipment rules, profession hooks, and timestamped state                                   | State mutation, scheduling and isolated skill measurement        |
+| `combos/`                  | Fields, finishers, descriptors, combo state and rules                                                                                                          | Clock ownership and damage resolution                            |
+| `equipment/`               | Gear, consumables, weapons, sigils, relics, item-owned state and proc rules                                                                                    | Global scheduling and rotation traversal                         |
+| `execution/`               | Rotation traversal, cast lifecycle, readiness, cooldown/ammo progress, lockouts, flips, live attack chains                                                     | Hit/condition resolution and reporting                           |
+| `resolver/`                | Packet admission/delivery, event phases, handlers, reactions, strikes, conditions, combos                                                                      | Rotation decisions and clock advancement                         |
+| `profession-definition/`   | Authoring APIs, module/catalog assembly, compilation, runtime/family contracts, capability contexts                                                            | Concrete profession mechanics and browser integration            |
+| `profession-presentation/` | Headless UI contracts/composition, display groups and preview-control hooks                                                                                    | Saved-build validation and damage calculation contracts          |
+| `skill-damage/`            | Isolated occurrence inputs, driver, measurement, variants, cache, calculation errors                                                                           | A separate damage formula or runtime loop                        |
+| `results/`                 | Optional observers, detached combat/planning projections, result queries, APM, boon summaries                                                                  | Authoritative gameplay history and live-state mutation           |
+| `simulation/`              | Public run options/configuration, owner construction, one queue/clock, causal scope, stop policy                                                               | Domain rules and build-control definitions                       |
 
 Profession implementations live in `../professions/<profession>/`. Optional patch authoring and overlays belong in
 `../integrations/patches/`; equipment picker icons belong in `../app/shared/equipment/icons.ts`. See
@@ -40,7 +40,10 @@ privately owns cooldown deadlines, recharge progress, and ammo pools. Cast readi
 projections use its operations and observations; `Gw2Runtime` exposes no recharge maps. Live formula queries retain
 unrounded deadlines and settle only the requested magazine; cast admission and public deadlines retain action-tick
 rounding. Recharge rate and progress arithmetic is a combat primitive in `combat/recharge.ts`. Static chain indexes live
-in `skills/autoattack-chain-index.ts`, while `execution/autoattack-chains.ts` owns live transitions.
+in `skills/autoattack-chain-index.ts`, while `execution/autoattack-chains.ts` privately owns per-run progress and live
+transitions. Mechanics can read or reset that progress; only execution advances it. Replacing profession state does not
+replace chain progress. Planning publishes detached expected steps under `STATE.AUTOATTACK_CHAINS`, including root
+defaults for every declared chain.
 
 `skills/input-controls.ts` owns logical control identities, selected skill bars, and replacement ancestry lookup.
 `skills/autoattack-chain-index.ts` classifies automatic versus manual activations. `execution/input-controls.ts`
@@ -119,8 +122,8 @@ reporting history, but reporting cannot advance gameplay or supply required game
 death. Combat results use the earlier combat boundary. These observations are not resumable checkpoints.
 
 Live clock and event timestamps use seconds; authored `*Ms` fields, rotation step times, and public cooldown projections
-use milliseconds. `execution/cast-timing.ts` owns cast timing. `combat/effect-timing.ts` keeps duration rounding separate from
-absolute expiry; both can use the shared GW2 action-tick arithmetic in `combat/action-tick.ts`.
+use milliseconds. `execution/cast-timing.ts` owns cast timing. `combat/effect-timing.ts` keeps duration rounding
+separate from absolute expiry; both can use the shared GW2 action-tick arithmetic in `combat/action-tick.ts`.
 
 Player health is fixed at 100% during every combat simulation. Only the isolated attribute preview may vary player
 health; its inputs remain separate from saved builds and simulation configuration. Target health remains modeled by

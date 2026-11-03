@@ -129,6 +129,8 @@ function fixture(hooks = {}) {
       energy: { value: 0, maximum: 10, updatedAt: 0, unitsPerSecond: 0 },
       log: []
     }),
+    // Resource contracts observe a detached energy clock after execution settles.
+    projectPlanningState: ({ profession }) => ({ energy: profession.energy }),
     resources: {
       energy: {
         kind: 'continuous',

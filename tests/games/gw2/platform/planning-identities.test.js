@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createAutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
 import { planningState } from '#gw2/platform/results/planning-state.js';
 import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
@@ -24,6 +25,7 @@ function fixture(flips = {}) {
         time: 0,
         profession: {},
         flips,
+        autoattackController: createAutoattackChainController(catalog),
         config: {},
         activeWeaponSet: 1,
         catalog,

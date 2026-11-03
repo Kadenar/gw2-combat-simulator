@@ -1,4 +1,3 @@
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { AutoattackChainTransitionResult } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -36,5 +35,5 @@ export function expireThiefScepterChain(runtime: ThiefRuntime, data: unknown): v
   if ((data as { at: number }).at !== core.scepterChainExpiresAt) return;
 
   core.scepterChainExpiresAt = null;
-  resetAutoattackChains(runtime.profession, [ID.SHADOW_BOLT]);
+  runtime.autoattackController.reset([ID.SHADOW_BOLT]);
 }

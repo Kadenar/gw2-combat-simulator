@@ -2,6 +2,7 @@ import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/p
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -34,9 +35,8 @@ export interface NecromancerConfig extends Gw2Config {
 }
 
 /** Public consumers receive only the ID/value pairs published by active owners. */
-export type NecromancerPlanningState = ReturnType<
-  typeof import('#gw2/professions/necromancer/core/state.js').projectNecromancerPlanningState
-> &
+export type NecromancerPlanningState = Gw2SharedProfessionPlanningState &
+  ReturnType<typeof import('#gw2/professions/necromancer/core/state.js').projectNecromancerPlanningState> &
   ReturnType<
     typeof import('#gw2/professions/necromancer/specializations/harbinger/state.js').projectHarbingerPlanningState
   > &

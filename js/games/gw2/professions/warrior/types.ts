@@ -1,6 +1,7 @@
 import type { Gw2Build, Gw2BuildSpecialization, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -24,9 +25,8 @@ export interface WarriorCanonicalBuild extends Gw2CanonicalBuild {
 }
 
 /** Public consumers receive only the ID/value pairs published by active owners. */
-export type WarriorPlanningState = ReturnType<
-  typeof import('#gw2/professions/warrior/core/state.js').projectWarriorCorePlanningState
-> &
+export type WarriorPlanningState = Gw2SharedProfessionPlanningState &
+  ReturnType<typeof import('#gw2/professions/warrior/core/state.js').projectWarriorCorePlanningState> &
   ReturnType<
     typeof import('#gw2/professions/warrior/specializations/berserker/state.js').projectBerserkerPlanningState
   > &

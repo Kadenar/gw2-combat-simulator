@@ -4,7 +4,6 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import type { ProfessionDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { createEffectDelivery } from '#gw2/platform/resolver/effect-delivery.js';
 import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-reactions.js';
-import type { MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { mapGw2Reactions } from '#gw2/platform/resolver/reaction-registry.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type {
@@ -36,14 +35,9 @@ export function checkReactionResults(
   mapped['damage.resolved']?.({ runtime }, event, {});
   // @ts-expect-error Mapping cannot attach damage facts to a control notification.
   mapped['control.resolved']?.({ runtime }, event, details);
-  runtime.dispatchReaction('damage.resolved', event, details) satisfies void;
   // @ts-expect-error Notification dispatch does not return an event patch.
   const patch: Record<string, unknown> = registry.dispatch('buff.applied', runtime, event, undefined);
   return { updates, notification, patch };
-}
-
-export function checkMechanicReaction(services: MechanicCombatServices, event: Gw2ResolverEvent) {
-  services.react('aura.applied', event, undefined) satisfies void;
 }
 
 // Planning projection accepts its observation input directly, not an ordered modifier descriptor.
@@ -66,7 +60,6 @@ export const invalidProjection: ProfessionDefinition = {
 export function checkStagePayloads(
   registry: Gw2ResolverReactionRegistry,
   runtime: Gw2ResolverRuntime,
-  services: MechanicCombatServices,
   event: Gw2ResolverEvent,
   damage: NativeResolvedDamageDetails,
   condition: Gw2ResolverStageDetails['condition.applied'],
@@ -76,7 +69,6 @@ export function checkStagePayloads(
   delivery: ReturnType<typeof createEffectDelivery>
 ) {
   registry.dispatch('condition.applied', runtime, event, condition) satisfies void;
-  services.react('damage.resolved', event, damage) satisfies void;
   effects.dispatch(mechanics, 'damage.resolved', event, damage);
   delivery.react(registry, 'damage.resolved', runtime, event, damage) satisfies void;
   // @ts-expect-error Damage dispatch requires resolved-hit facts.
@@ -91,12 +83,6 @@ export function checkStagePayloads(
   registry.dispatch('buff.applied', runtime, event, damage);
   // @ts-expect-error A union stage cannot accept an independently chosen damage payload.
   registry.dispatch(stage, runtime, event, damage);
-  // @ts-expect-error The runtime facade must require the same resolved facts.
-  runtime.dispatchReaction('damage.resolved', event, {});
-  // @ts-expect-error The mechanic facade must require the same resolved facts.
-  services.react('damage.resolved', event, {});
-  // @ts-expect-error Forwarding cannot decouple a union stage from its payload.
-  services.react(stage, event, damage);
   // @ts-expect-error Effect dispatch cannot accept fictitious hit facts for condition applications.
   effects.dispatch(mechanics, 'condition.applied', event, damage);
   // @ts-expect-error Delivery cannot erase the stage/detail pairing.

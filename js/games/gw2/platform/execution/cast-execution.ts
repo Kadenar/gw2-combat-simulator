@@ -9,11 +9,6 @@ import { relicWeaponSwapRechargeReduction } from '#gw2/platform/equipment/relics
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/events/events.js';
-import {
-  advanceAutoattackChains,
-  autoattackChainAvailability,
-  resetAutoattackChains
-} from '#gw2/platform/execution/autoattack-chains.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
@@ -105,7 +100,7 @@ export function createCastExecution<T extends object>(
     if (cast.skill.inputCategory === 'weapon-swap' && !castWasInterrupted(cast)) {
       const weaponSwapFromSet = runtime.activeWeaponSet;
       runtime.activeWeaponSet = runtime.activeWeaponSet === 1 ? 2 : 1;
-      resetAutoattackChains(runtime.profession);
+      runtime.autoattackController.reset();
       runtime.effects.emit({
         kind: 'packet',
         event: {
@@ -129,9 +124,7 @@ export function createCastExecution<T extends object>(
     const committed =
       !cancelled && (cast.skill.interruptMode !== 'per-packet' || !castWasInterrupted(cast) || strikeReached);
     const interrupts = !cancelled && !cast.skill.independentCast && cast.fullEnd > cast.start && strikeReached;
-    const transition = advanceAutoattackChains(
-      runtime.profession,
-      profession.catalog,
+    const transition = runtime.autoattackController.advance(
       cast.skill,
       committed,
       interrupts,
@@ -445,7 +438,7 @@ export function createCastExecution<T extends object>(
     }
 
     // A wrong chain command is invalid now; waiting for recharge must not let its flip expire into validity.
-    const chainAvailability = autoattackChainAvailability(runtime.profession, profession.catalog, skill);
+    const chainAvailability = runtime.autoattackController.availability(skill);
 
     if (!chainAvailability.ready) {
       return chainAvailability;

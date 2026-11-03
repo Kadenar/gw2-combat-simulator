@@ -14,18 +14,22 @@ test('shared weapon swap commits canonical state and event before profession ext
   const profession = defineTestProfession({
     id: 'swap-fixture',
     name: 'Swap fixture',
-    catalog: createCanonicalCatalog({ skills: [gw2WeaponSwapSkill] }),
-    resources: {
-      createState: () => ({ core: { autoattackChains: { 100: 101 } }, specialization: { kind: 'Core', state: {} } })
-    },
+    catalog: createCanonicalCatalog({
+      skills: [gw2WeaponSwapSkill, { id: 100, name: 'Root', effects: [] }, { id: 101, name: 'Next', effects: [] }],
+      autoattackChains: [[100, 101]]
+    }),
     hooks: {
       onCastCommit(runtime, cast) {
-        observed.push([runtime.activeWeaponSet, { ...runtime.profession.core.autoattackChains }, cast.skill.id]);
+        // The swap must reset progress before profession extensions observe its commitment.
+        observed.push([runtime.activeWeaponSet, runtime.autoattackController.read(100), cast.skill.id]);
       }
     }
   });
-  const result = simulateGw2({ profession, rotation: ['Swap Weapons'] });
-  assert.deepEqual(observed, [[2, {}, gw2WeaponSwapSkill.id]]);
+  const result = simulateGw2({ profession, rotation: ['Root', 'Swap Weapons'] });
+  assert.deepEqual(observed, [
+    [1, 101, 100],
+    [2, 100, gw2WeaponSwapSkill.id]
+  ]);
   assert.equal(result.events.find((event) => event.type === 'weapon_set').weaponSet, 2);
 });
 

@@ -88,15 +88,13 @@ export function weaponAttunementAvailable(
 /** Captures the mid-chain autoattack of the attunement being left so its progress survives the swap. */
 export function progressedAutoattackCarryover(
   context: ElementalistRuntime,
-  state: ElementalistCoreState,
   attunement: ElementalistAttunement
 ): ElementalistCoreState['autoattackCarryover'] {
-  for (const [rawRoot, rawExpected] of Object.entries(state.autoattackChains)) {
-    const root = Number(rawRoot);
-
+  // Execution owns ordinary progress; Elementalist captures only the attunement eligibility it carries across swaps.
+  for (const [root] of context.helpers.autoattackChains) {
     if (!isAttunementCarryoverChain(root)) continue;
 
-    if (rawExpected === root) continue;
+    if (context.autoattackController.read(root) === root) continue;
 
     const rootSkill = context.helpers.skillsById.get(root);
 

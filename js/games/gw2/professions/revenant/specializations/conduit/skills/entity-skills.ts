@@ -3,6 +3,7 @@ import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { conditionEffectTicks, impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
+import { effectApplicationCount } from '#gw2/platform/effects/expansion-budget.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -92,14 +93,13 @@ function hexEaterEffects(
   if (cast.cancelledBeforeCommit) return [];
 
   const core = runtime.profession.core;
+  // Count validated declarations without expanding them; derived empty components contribute no capacity.
   const maximum = Math.max(
     0,
     ...effects.map((effect) =>
-      effect.type === 'strike'
-        ? strikeEffectTicks(effect).length
-        : effect.type === 'condition'
-          ? conditionEffectTicks(effect).length
-          : 0
+      (effect.type === 'strike' || effect.type === 'condition') && effect.ticks?.length !== 0
+        ? effectApplicationCount(effect, 'Hex-Eater Vortex')
+        : 0
     )
   );
   // Reserve the actual surviving applications so commitment cannot cleanse later arrivals with identical expiries.

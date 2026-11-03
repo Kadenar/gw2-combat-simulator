@@ -11,7 +11,6 @@ export interface EngineerCoreState {
   endurance: ResourceClock;
   /** The equip skill identifies the active bundle independently of its display name. */
   activeKit: SkillId | null;
-  autoattackChains: Record<string, SkillId>;
   lightningRodChargeExpiries: number[];
   lightningRodGeneration: number;
   healingTurretGeneration: number;
@@ -32,7 +31,6 @@ export function createEngineerCoreState(): EngineerCoreState {
   return {
     endurance: createResourceClock(ENDURANCE.maximum),
     activeKit: null,
-    autoattackChains: {},
     lightningRodChargeExpiries: [],
     lightningRodGeneration: 0,
     healingTurretGeneration: 0,
@@ -50,7 +48,6 @@ export function projectEngineerCorePlanningState(input: Gw2PlanningStateInput) {
   return {
     [STATE.ENDURANCE]: state.endurance,
     [STATE.ACTIVE_KIT]: state.activeKit,
-    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.LIGHTNING_ROD_CHARGE_EXPIRIES]: state.lightningRodChargeExpiries,
     [STATE.KINETIC_CHARGES]: state.kineticCharges
   };

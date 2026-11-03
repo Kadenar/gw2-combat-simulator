@@ -1,6 +1,4 @@
-import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
-
-/** Capture all active runtime fields for test observations without retaining references to live state. */
+/** Snapshot owned Core and active-specialization fields for tests, independently of public planning projections. */
 export function snapshotProfessionState(professionState) {
-  return structuredClone(flattenProfessionState(professionState));
+  return structuredClone({ ...professionState.core, ...professionState.specialization.state });
 }

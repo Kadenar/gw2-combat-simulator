@@ -4,6 +4,7 @@ import type { ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import type { EnduranceController, ResourceController } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { AlliedStrikeGrants } from '#gw2/platform/combat/state/allied-strikes.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
+import type { AutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
 import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { SkillFlipCommands, SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
@@ -24,6 +25,7 @@ export type MechanicQueriesOf<TContext extends { profession: object; helpers: Ca
 export interface MechanicQueryContext<T extends object = object, TSkill extends Skill = Skill> {
   readonly profession: ReadonlyMechanicState<T>;
   readonly flips: Readonly<SkillFlipWindows>;
+  readonly autoattackController: Pick<AutoattackChainController, 'read'>;
   readonly config: Gw2Config;
   readonly helpers: CanonicalCatalog<TSkill>;
   readonly traits: ReadonlySet<SkillId>;
@@ -85,6 +87,8 @@ export interface MechanicContext<T extends object = object, TSkill extends Skill
   /** Cast acceptance and authored resets remain exclusive to the execution owner. */
   readonly cooldownController: Omit<CooldownController, 'resetAll' | 'spendAmmo' | 'setAmmoLockout'>;
   readonly castController: CastControl;
+  /** Mechanics inspect or reset progress; cast execution alone advances it. */
+  readonly autoattackController: Pick<AutoattackChainController, 'read' | 'reset'>;
   readonly resourceController: ResourceController;
   readonly endurance: EnduranceController;
   readonly facts: ExecutedFactsReader;

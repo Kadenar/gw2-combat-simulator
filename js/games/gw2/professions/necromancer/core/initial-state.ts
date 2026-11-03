@@ -42,7 +42,6 @@ export function createNecromancerCoreState(
     minionGenerations: {},
     minionAttackGenerations: {},
     minionAttackCursors: {},
-    autoattackChains: {},
     swordChainGeneration: 0,
     selfConditions: [],
     plagueSendingArmed: false,

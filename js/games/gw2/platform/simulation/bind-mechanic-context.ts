@@ -13,6 +13,7 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
   readonly endurance: MechanicQueryContext<T, TSkill>['endurance'];
   readonly facts: MechanicQueryContext<T, TSkill>['facts'];
   readonly cooldownController: MechanicQueryContext<T, TSkill>['cooldownController'];
+  readonly autoattackController: MechanicQueryContext<T, TSkill>['autoattackController'];
   constructor(runtime: Gw2Runtime<T, TSkill>) {
     this.#runtime = runtime;
     const combat = runtime.combat;
@@ -62,6 +63,7 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
       project: recharge.project,
       remaining: recharge.remaining
     });
+    this.autoattackController = Object.freeze({ read: runtime.autoattackController.read });
   }
 
   get profession() {
@@ -110,6 +112,7 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
   readonly combat: MechanicContext<T, TSkill>['combat'];
   readonly procs: MechanicContext<T, TSkill>['procs'];
   readonly cooldownController: MechanicContext<T, TSkill>['cooldownController'];
+  readonly autoattackController: MechanicContext<T, TSkill>['autoattackController'];
   readonly facts: MechanicContext<T, TSkill>['facts'];
   readonly observations: MechanicContext<T, TSkill>['observations'];
   readonly effectReactions: MechanicContext<T, TSkill>['effectReactions'];
@@ -125,6 +128,11 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
     this.#runtime = runtime;
     this.combat = runtime.combat;
     this.procs = runtime.procs;
+    // Keep cast-driven advancement inaccessible to author callbacks, including JavaScript callers.
+    this.autoattackController = Object.freeze({
+      read: runtime.autoattackController.read,
+      reset: runtime.autoattackController.reset
+    });
     // Bind only mechanic operations so cast-only commands are absent even for JavaScript callers.
     const {
       resetAll: _resetAll,

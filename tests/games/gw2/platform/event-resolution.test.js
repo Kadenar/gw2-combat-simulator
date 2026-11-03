@@ -10,23 +10,25 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { controlTestDetails, resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
-// Repeated resolution starts from resolver state and connects both runtime and condition dispatch to profession hooks.
+// Each resolution pass starts fresh and delivers control and condition notifications through their resolver owners.
 test('resolver setup shares reactions and creates fresh profession state for each pass', () => {
   const profession = defineTestProfession({
     id: 'resolver-setup',
     name: 'Resolver Setup',
     resources: {
-      createState: () => ({ count: 0 })
+      createState: () => ({ count: 0 }),
+      // Observe reaction state through an explicit, detached planning field.
+      projectPlanningState: ({ profession }) => ({ count: profession.count })
     },
     hooks: {
       eventHandlers: {
         'fixture.trigger': (context, event) => {
-          context.combat.react('control.resolved', event, controlTestDetails(context.config));
+          context.effects.emit({ kind: 'packet', event: { ...event, type: 'control' } });
           context.effects.emit({
             kind: 'packet',
             settlement: 'reaction',
@@ -297,7 +299,11 @@ test('resolver profession state changes are chronological and preserve counters'
   assert.equal(Math.round(hits[2].damage / hits[0].damage), 2);
   assert.equal(hitCount, 3);
   // The projector selects public state; shared execution publishes its flip windows beside it.
-  assert.deepEqual(result.planningState.profession, { active: true, [SHARED_STATE_IDS.AVAILABLE_FLIPS]: {} });
+  assert.deepEqual(result.planningState.profession, {
+    active: true,
+    [SHARED_STATE_IDS.AVAILABLE_FLIPS]: {},
+    [SHARED_STATE_IDS.AUTOATTACK_CHAINS]: {}
+  });
   assert.equal(result.planningState.profession.active, true);
 
   const configured = simulateGw2({

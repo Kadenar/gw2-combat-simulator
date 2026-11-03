@@ -488,7 +488,11 @@ test("delayed interrupted weapon damage preserves Reaper's chain while shroud en
     ['Dusk Strike', 'Grasping Darkness', 'Fading Twilight']
   );
   assert.equal(interrupted.steps[1].interrupted, true);
-  assert.equal(enteredShroud.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.DUSK_STRIKE], undefined);
+  // Shroud entry must clear all weapon progress, not only the greatsword exercised by this rotation.
+  assert.deepEqual(
+    enteredShroud.planningState.profession[STATE.AUTOATTACK_CHAINS],
+    Object.fromEntries(necromancerCatalog.autoattackChains.map(([root]) => [root, root]))
+  );
   assert.deepEqual(shrouded.warnings, []);
   assert.deepEqual(
     shrouded.steps.map((step) => step.skillName),

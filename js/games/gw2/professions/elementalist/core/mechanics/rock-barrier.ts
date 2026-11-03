@@ -1,4 +1,3 @@
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -32,7 +31,7 @@ function releaseRockBarrier(runtime: ElementalistRuntime): void {
       runtime.time,
       rockBarrierTrainingRecharge(runtime, root, elementalistRechargeWork(runtime, root, root.cooldown ?? 0, true))
     );
-    resetAutoattackChains(runtime.profession, [root.id]);
+    runtime.autoattackController.reset([root.id]);
   }
 }
 

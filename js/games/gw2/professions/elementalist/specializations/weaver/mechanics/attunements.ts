@@ -79,7 +79,7 @@ function weaverAvailability(
     Number(skill.id) !== chainPosition.rootSkillId &&
     core.autoattackCarryover?.root === chainPosition.rootSkillId &&
     core.autoattackCarryover.attunement === skill.attunement &&
-    core.autoattackChains[chainPosition.rootSkillId] === Number(skill.id);
+    context.autoattackController.read(chainPosition.rootSkillId) === Number(skill.id);
 
   if (skill.type === 'Weapon' && skill.attunement && !carriedLink) {
     const state = weaverState.from(context.profession);

@@ -60,7 +60,6 @@ export interface NecromancerCoreState {
     }
   >;
   /** Expiry timestamps for armed flip skills; persistent exits and minion commands use Infinity. */
-  autoattackChains: Record<string, SkillId>;
   /** Each sword continuation replaces its prior expiry owner. */
   swordChainGeneration: number;
   selfConditions: NecromancerSelfCondition[];
@@ -93,7 +92,6 @@ export function projectNecromancerPlanningState(input: Gw2PlanningStateInput) {
   const state = (input.profession as { core: NecromancerCoreState }).core;
   // Derive capped observations without changing the authoritative resource grants.
   return {
-    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.ENDURANCE]: state.endurance,
     [STATE.LIFE_FORCE]: { ...state.lifeForce, value: cappedResource(state.lifeForce.value, state.lifeForce.maximum) },
     [STATE.ACTIVE_SHROUD]: state.activeShroud,

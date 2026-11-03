@@ -2,12 +2,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { autoattackChainSkillAvailable, resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
+import {
+  autoattackChainSkillAvailable,
+  createAutoattackChainController
+} from '#gw2/platform/execution/autoattack-chains.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { professionRegistry } from '#gw2/profession-registry.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { cast } from '#tests/helpers/commands.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 const skill = (id, name, extra = {}) => ({
   id,
@@ -111,10 +116,7 @@ function chainProfession(autoattackChains) {
         })
       ]
     },
-    state: {
-      create: () => ({ autoattackChains: {} }),
-      project: ({ profession }) => ({ [STATE.AUTOATTACK_CHAINS]: structuredClone(profession.core.autoattackChains) })
-    },
+    state: { create: () => ({}) },
     hooks: {}
   });
 
@@ -141,25 +143,31 @@ const runChain = (rotation, profession = chainProfession().runtimeFor(chainConfi
 test('live chains reject out-of-order steps and commit each completion once', () => {
   const rejected = runChain([cast(3)]);
   assert.equal(rejected.warnings.length, 1);
-  assert.deepEqual(rejected.planningState.profession[STATE.AUTOATTACK_CHAINS], {});
+  assert.deepEqual(rejected.planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 1, 4: 4 });
   const advanced = runChain([cast(1), cast(2)]);
   assert.deepEqual(advanced.warnings, []);
-  assert.deepEqual(advanced.planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 3 });
+  assert.deepEqual(advanced.planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 3, 4: 4 });
   const rotation = [cast(1), cast(2), cast(3)];
   const complete = runChain(rotation);
-  assert.deepEqual(complete.planningState.profession[STATE.AUTOATTACK_CHAINS], {});
+  assert.deepEqual(complete.planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 1, 4: 4 });
   assert.deepEqual(complete.warnings, []);
   assert.equal(runChain(rotation, undefined, { output: 'score' }).totalDamage, complete.totalDamage);
 });
 
 test('live chain interruptions use selected packet boundaries, including travel and cast-end ties', () => {
   for (const interrupting of [cast(7), cast(7, { offTarget: true }), cast(11)])
-    assert.deepEqual(runChain([cast(1), interrupting]).planningState.profession[STATE.AUTOATTACK_CHAINS], {});
+    assert.deepEqual(runChain([cast(1), interrupting]).planningState.profession[STATE.AUTOATTACK_CHAINS], {
+      1: 1,
+      4: 4
+    });
   for (const preserving of [cast(8), cast(9), cast(10), cast(12), cast(7, { impactDelayMs: 2000 })])
-    assert.deepEqual(runChain([cast(1), preserving]).planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 2 });
+    assert.deepEqual(runChain([cast(1), preserving]).planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 2, 4: 4 });
   const native = chainProfession().runtimeFor(chainConfig);
   const removed = { ...native, modifyEffects: (_runtime, cast, effects) => (cast.skill.id === 7 ? [] : effects) };
-  assert.deepEqual(runChain([cast(1), cast(7)], removed).planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 2 });
+  assert.deepEqual(runChain([cast(1), cast(7)], removed).planningState.profession[STATE.AUTOATTACK_CHAINS], {
+    1: 2,
+    4: 4
+  });
 });
 
 test('live native composition keeps overrides scoped to their pending root', () => {
@@ -167,7 +175,7 @@ test('live native composition keeps overrides scoped to their pending root', () 
     overrides: [{ id: 'preserve-a', chainRootIds: [1], decision: 'preserve' }]
   }).runtimeFor(chainConfig);
   const result = runChain([cast(1), cast(4), cast(7)], profession);
-  assert.deepEqual(result.planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 2 });
+  assert.deepEqual(result.planningState.profession[STATE.AUTOATTACK_CHAINS], { 1: 2, 4: 4 });
   assert.deepEqual(result.warnings, []);
 });
 
@@ -199,9 +207,9 @@ test('native professions automatically gate and advance autoattack chains', () =
   const completed = simulateGw2({ profession, rotation: ['Root A', 'Second A', 'Third A'] });
 
   assert.match(outOfOrder.warnings[0].message, /cast Root A first/);
-  assert.deepEqual(chainState(afterRoot), { 1: 2 });
-  assert.deepEqual(chainState(afterSecond), { 1: 3 });
-  assert.deepEqual(chainState(completed), {});
+  assert.deepEqual(chainState(afterRoot), { 1: 2, 4: 4 });
+  assert.deepEqual(chainState(afterSecond), { 1: 3, 4: 4 });
+  assert.deepEqual(chainState(completed), { 1: 1, 4: 4 });
 });
 
 test('only nonzero player casts with damage by cast end reset pending roots', () => {
@@ -214,17 +222,17 @@ test('only nonzero player casts with damage by cast end reset pending roots', ()
   const inclusive = simulateGw2({ profession, rotation: ['Root A', 'Cast-end Damage', 'Root A'] });
 
   assert.deepEqual(instant.warnings, []);
-  assert.deepEqual(chainState(instant), { 1: 3 });
+  assert.deepEqual(chainState(instant), { 1: 3, 4: 4 });
   assert.deepEqual(nonDamaging.warnings, []);
-  assert.deepEqual(chainState(nonDamaging), { 1: 3 });
+  assert.deepEqual(chainState(nonDamaging), { 1: 3, 4: 4 });
   assert.deepEqual(delayed.warnings, []);
-  assert.deepEqual(chainState(delayed), { 1: 3 });
+  assert.deepEqual(chainState(delayed), { 1: 3, 4: 4 });
   assert.deepEqual(independent.warnings, []);
-  assert.deepEqual(chainState(independent), { 1: 3 });
+  assert.deepEqual(chainState(independent), { 1: 3, 4: 4 });
   assert.deepEqual(weapon.warnings, []);
-  assert.deepEqual(chainState(weapon), { 1: 2 });
+  assert.deepEqual(chainState(weapon), { 1: 2, 4: 4 });
   assert.deepEqual(inclusive.warnings, []);
-  assert.deepEqual(chainState(inclusive), { 1: 2 });
+  assert.deepEqual(chainState(inclusive), { 1: 2, 4: 4 });
 });
 
 test('a cancelled unrelated weapon preserves pending roots by default', () => {
@@ -236,7 +244,7 @@ test('a cancelled unrelated weapon preserves pending roots by default', () => {
 
   assert.equal(result.steps[1].cancelledBeforeCommit, true);
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(chainState(result), { 1: 3 });
+  assert.deepEqual(chainState(result), { 1: 3, 4: 4 });
 });
 
 test('an explicit per-root rule may reset on a cancelled interrupting cast', () => {
@@ -257,7 +265,7 @@ test('an explicit per-root rule may reset on a cancelled interrupting cast', () 
 
   assert.equal(result.steps[1].cancelledBeforeCommit, true);
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(chainState(result), { 1: 2 });
+  assert.deepEqual(chainState(result), { 1: 2, 4: 4 });
 });
 
 test('overrides are evaluated per pending root', () => {
@@ -275,23 +283,76 @@ test('overrides are evaluated per pending root', () => {
   const reset = simulateGw2({ profession, rotation: ['Root B', 'Interrupting Weapon', 'Second B'] });
 
   assert.deepEqual(preserved.warnings, []);
-  assert.deepEqual(chainState(preserved), { 1: 3 });
+  assert.deepEqual(chainState(preserved), { 1: 3, 4: 4 });
   assert.match(reset.warnings[0].message, /cast Root B first/);
-  assert.deepEqual(chainState(reset), {});
+  assert.deepEqual(chainState(reset), { 1: 1, 4: 4 });
+});
+
+// Invalid roots must fail before an unchanged ID can be mistaken for reset progress.
+test('chain reads accept declared roots and reject later steps, unchained skills, and unknown IDs', () => {
+  const catalog = chainProfession().catalog;
+  const controller = createAutoattackChainController(catalog);
+  assert.equal(controller.read(1), 1);
+  controller.advance(catalog.skillsById.get(1), true, false);
+  assert.equal(controller.read(1), 2);
+  for (const id of [2, 3, 7, 999])
+    assert.throws(() => controller.read(id), {
+      name: 'RangeError',
+      message: `Skill ${id} is not an autoattack chain root.`
+    });
 });
 
 test('form helpers reset selected or all chains through the shared mutation boundary', () => {
-  const context = {
-    state: {
-      profession: {
-        core: { autoattackChains: { 1: 2, 4: 5 } },
-        specialization: { kind: 'Core', state: {} }
-      }
+  const catalog = chainProfession().catalog;
+  const controller = createAutoattackChainController(catalog);
+  controller.advance(catalog.skillsById.get(1), true, false);
+  controller.advance(catalog.skillsById.get(4), true, false);
+  controller.reset([1]);
+  assert.deepEqual(controller.snapshot(), { 1: 1, 4: 5 });
+  controller.reset();
+  assert.deepEqual(controller.snapshot(), { 1: 1, 4: 4 });
+});
+
+// Progress belongs to execution even when a mechanic replaces its entire state or a caller edits an observation.
+test('chain ownership survives profession replacement and isolates runs, snapshots, and author capabilities', () => {
+  const native = chainProfession().runtimeFor(chainConfig);
+  let replaced = false;
+  const profession = {
+    ...native,
+    onCastCommit(context, cast) {
+      if (cast.skill.id !== 1) return;
+
+      assert.equal(context.autoattackController.read(1), 2);
+      assert.equal('advance' in context.autoattackController, false);
+      assert.equal('reset' in context.queries.autoattackController, false);
+      context.profession = native.createState(chainConfig);
+      assert.equal(context.autoattackController.read(1), 2);
+      replaced = true;
     }
   };
-
-  resetAutoattackChains(context.state.profession, [1]);
-  assert.deepEqual(context.state.profession.core.autoattackChains, { 4: 5 });
-  resetAutoattackChains(context.state.profession);
-  assert.deepEqual(context.state.profession.core.autoattackChains, {});
+  const result = observeGw2Runtime({ profession, config: chainConfig, rotation: [cast(1), cast(2)] });
+  const owner = observedRuntime(result);
+  assert.equal(replaced, true);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(owner.autoattackController.read(1), 3);
+  const snapshot = owner.autoattackController.snapshot();
+  snapshot[1] = 99;
+  chainState(result)[1] = 99;
+  assert.equal(owner.autoattackController.read(1), 3);
+  assert.deepEqual(chainState(runChain([])), { 1: 1, 4: 4 });
+  owner.mechanics.autoattackController.reset([1]);
+  assert.equal(owner.autoattackController.read(1), 1);
 });
+
+// Real initializers must not recreate a second chain store in any profession or specialization.
+for (const entry of professionRegistry) {
+  test(`${entry.name} initializes owned state without an autoattack-chain store`, async () => {
+    const family = await entry.loadProfession();
+    for (const { id: specialization } of family.nativeDefinition.modules) {
+      const config = { specialization };
+      const state = family.runtimeFor(config).createState(config);
+      assert.equal(Object.hasOwn(state.core, 'autoattackChains'), false, specialization);
+      assert.equal(Object.hasOwn(state.specialization.state, 'autoattackChains'), false, specialization);
+    }
+  });
+}

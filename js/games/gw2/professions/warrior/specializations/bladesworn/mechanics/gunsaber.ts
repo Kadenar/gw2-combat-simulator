@@ -1,5 +1,4 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
@@ -15,7 +14,7 @@ export function swapGunsaber(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
   bladeswornState.from(runtime.profession).gunsaberActive = active;
   // Every actual Gunsaber entry or exit shares weapon-swap recovery, including entry through Dragon Trigger.
   lockTransitionInput(runtime, 'weaponSwapMs', cast.skill);
-  resetAutoattackChains(runtime.profession);
+  runtime.autoattackController.reset();
   runtime.fireTrigger(focusReset);
   const swapId = cast.skill.id === ID.DRAGON_TRIGGER ? ID.UNSHEATHE_GUNSABER : cast.skill.id;
 

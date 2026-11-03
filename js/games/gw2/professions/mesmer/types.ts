@@ -4,6 +4,7 @@ import type { ConditionEffect, StrikeEffect } from '#gw2/platform/effects/types.
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type {
@@ -29,9 +30,8 @@ export interface MesmerRuntimeState {
 }
 
 /** Public consumers receive only the ID/value pairs published by active owners. */
-export type MesmerPlanningState = ReturnType<
-  typeof import('#gw2/professions/mesmer/core/state.js').projectMesmerCorePlanningState
-> &
+export type MesmerPlanningState = Gw2SharedProfessionPlanningState &
+  ReturnType<typeof import('#gw2/professions/mesmer/core/state.js').projectMesmerCorePlanningState> &
   ReturnType<
     typeof import('#gw2/professions/mesmer/specializations/chronomancer/state.js').projectChronomancerPlanningState
   > &

@@ -56,7 +56,6 @@ export interface ThiefCoreState extends StealthState {
   /** Each assumed ally's venom batches, keyed by `${allyIndex}:${skillId}`; the allied controller supplies strikes. */
   alliedVenomChargeBatches: Record<string, AlliedVenomBatch[]>;
   activeThievesGuild: ThievesGuildState | null;
-  autoattackChains: Record<string, SkillId>;
   activationClaims: ActivationClaims;
   /** Revealed Training excludes only the first landed revealing hit of each stealth activation. */
   revealedTrainingHitActivations: Record<string, true>;
@@ -107,7 +106,6 @@ export function createThiefCoreState(
     venomChargeBatches: {},
     alliedVenomChargeBatches: {},
     activeThievesGuild: null,
-    autoattackChains: {},
     activationClaims: {},
     revealedTrainingHitActivations: {},
 
@@ -135,7 +133,6 @@ export function projectThiefCorePlanningState(input: Gw2PlanningStateInput) {
     [STATE.SPINNING_AXES]: state.spinningAxes,
     [STATE.OUTBOUND_AXES]: state.outboundAxes,
     [STATE.VENOM_CHARGE_BATCHES]: state.venomChargeBatches,
-    [STATE.ACTIVE_THIEVES_GUILD]: state.activeThievesGuild,
-    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains
+    [STATE.ACTIVE_THIEVES_GUILD]: state.activeThievesGuild
   };
 }

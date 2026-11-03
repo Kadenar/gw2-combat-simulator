@@ -1,3 +1,4 @@
+import { createAutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
 import { planningState } from '#gw2/platform/results/planning-state.js';
 import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
 import { runGw2Runtime, runRuntime } from '#gw2/platform/simulation/runtime.js';
@@ -74,6 +75,9 @@ export function projectObservedPlanningState(family, input) {
       catalog: input.catalog ?? runtime.catalog,
       profession: input.profession,
       flips: input.flips ?? {},
+      // Isolated projection fixtures start with fresh execution state unless they supply an observed controller.
+      autoattackController:
+        input.autoattackController ?? createAutoattackChainController(input.catalog ?? runtime.catalog),
       combatActive: false,
       // Profession-only observations never read the caller's unrelated engine collaborators.
       cooldownController: {

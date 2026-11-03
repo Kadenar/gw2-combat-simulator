@@ -1,7 +1,6 @@
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -49,7 +48,7 @@ function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>):
   state.forgeActivationId = null;
   state.radiantWeapon = '';
   state.glaringBurstSwordSlow = false;
-  resetAutoattackChains(runtime.profession);
+  runtime.autoattackController.reset();
   // Leaving the forge dismisses only its own bar; ordinary weapon follow-ups retain their independent lifetimes.
   for (const id of Object.keys(runtime.flips)) {
     const skill = runtime.helpers.skillsById.get(Number(id));
@@ -91,7 +90,7 @@ function enterForge(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>):
   state.radiantWeapon = '';
   state.glaringBurstSwordSlow = false;
   state.radiantWeaponsUsed = {};
-  resetAutoattackChains(runtime.profession);
+  runtime.autoattackController.reset();
   runtime.armFlip(ID.EXIT_RADIANT_FORGE);
   runtime.schedule(EXIT, state.radiantForgeEndsAt, cast.id, undefined, -220);
   runtime.effects.emit({

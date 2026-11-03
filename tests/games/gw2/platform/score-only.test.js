@@ -5,7 +5,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
-import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { loadProfession } from '#gw2/profession-registry.js';
 import { acceptElementalistAuraReaction } from '#gw2/professions/elementalist/core/mechanics/auras.js';
@@ -72,19 +72,21 @@ test('combo and aura handlers skip score report rows while preserving state and 
       traits: new Set(),
       profession: { core: { activeAuras: [] } },
       observations: facts.writer,
-      schedule() {},
-      dispatchReaction: (name, event) => dispatched.push([name, event])
+      schedule() {}
     };
-    // Bind real owner operations for this focused mechanic fixture.
-    context.combat = createMechanicCombatServices(context);
+    // Resolver handlers notify the registry even when reporting is disabled.
     const handlers = createGw2ComboResolution({
-      reactions: {
-        dispatch(name, ctx, event) {
-          if (name === 'aura.applied') acceptElementalistAuraReaction(ctx, event);
-
-          ctx.combat.react(name, event);
+      reactions: createGw2ResolverReactionRegistry({
+        professionReactions: {
+          'combo.resolved': (_ctx, event) => {
+            dispatched.push(['combo.resolved', event]);
+          },
+          'aura.applied': (ctx, event) => {
+            acceptElementalistAuraReaction(ctx, event);
+            dispatched.push(['aura.applied', event]);
+          }
         }
-      }
+      })
     });
     const combo = { type: 'combo', at: 1 };
     const aura = {

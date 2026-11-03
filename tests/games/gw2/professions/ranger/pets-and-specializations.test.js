@@ -1242,7 +1242,7 @@ test('Ranger Hammer autoattacks advance their palette chain', () => {
 
   assert.equal(afterStrike.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.HAMMER_STRIKE], ID.HAMMER_SLAM);
   assert.equal(afterSlam.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.HAMMER_STRIKE], ID.HEAVY_SMASH);
-  assert.equal(afterSmash.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.HAMMER_STRIKE], undefined);
+  assert.equal(afterSmash.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.HAMMER_STRIKE], ID.HAMMER_STRIKE);
 
   const build = {
     ...createRangerBuildDefaults(),

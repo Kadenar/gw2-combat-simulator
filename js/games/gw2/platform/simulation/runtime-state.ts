@@ -2,6 +2,7 @@ import type { CombatEngagement } from '#gw2/platform/combat/engagement.js';
 import type { EnduranceController, ResourceController } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { AutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
 import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
@@ -28,6 +29,7 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   readonly castController: CastControl;
   readonly effectReactions: EffectReactionRegistry<T>;
   readonly cooldownController: CooldownController;
+  readonly autoattackController: AutoattackChainController;
   readonly mechanics: MechanicContext<T, TSkill>;
   readonly mechanicQueries: MechanicQueryContext<T, TSkill>;
   readonly history: Gw2ResolverEvent[];

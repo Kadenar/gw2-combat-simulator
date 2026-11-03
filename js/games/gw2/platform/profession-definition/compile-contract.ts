@@ -89,8 +89,8 @@ export function defineProfession<TProfessionState extends object, TSkill extends
     // A stateless definition has no fields for its declared state type to require.
     createState: (config, balanceContext) =>
       resources.createState?.(config, balanceContext) ?? ({} as TProfessionState),
-    // An absent projector delegates to the planning observer's detached state fallback.
-    projectPlanningState: resources.projectPlanningState ?? (() => undefined),
+    // Only declared observations are public; definitions without a projector contribute no fields.
+    projectPlanningState: resources.projectPlanningState ?? (() => ({})),
     ...attributePhases(definition.attributeContributions, compiled.modifyAttributes),
     modifyCriticalChance: compiled.modifyCriticalChance,
     modifyCriticalDamage: compiled.modifyCriticalDamage,

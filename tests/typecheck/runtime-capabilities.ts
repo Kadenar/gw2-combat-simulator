@@ -27,6 +27,9 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     const slash: boolean | undefined = skill.dragonSlash;
     context.endurance.readyAt(50);
     context.cooldownController.readAmmo(skill.id);
+    context.autoattackController.read(skill.id);
+    // @ts-expect-error Availability cannot reset execution-owned chain progress.
+    context.autoattackController.reset();
     // Gameplay observations are readable here, but recording is reserved for lifecycle/event handlers.
     context.facts.read();
     // @ts-expect-error Readiness cannot acquire the history writer.
@@ -126,6 +129,12 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
 composeRuntimeHooks([hooks]);
 
 function castStores(runtime: Gw2Runtime<WarriorRuntimeState, WarriorSkill>) {
+  runtime.mechanics.autoattackController.read(1);
+  runtime.mechanics.autoattackController.reset([1]);
+  // @ts-expect-error Advancement belongs to execution, not mechanic callbacks.
+  runtime.mechanics.autoattackController.advance({}, true, false);
+  // @ts-expect-error Core no longer owns chain progress.
+  runtime.profession.core.autoattackChains;
   runtime.castController.hasInFlight(1);
   const release = runtime.castController.pendingChargeRelease();
 

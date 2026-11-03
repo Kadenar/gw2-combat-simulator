@@ -1,4 +1,3 @@
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -35,7 +34,7 @@ export const mesmerScepterChainLifecycle = {
       if ((data as { at: number }).at !== runtime.profession.core.scepterChainExpiresAt) return;
 
       runtime.profession.core.scepterChainExpiresAt = null;
-      resetAutoattackChains(runtime.profession, [ID.ETHER_BOLT]);
+      runtime.autoattackController.reset([ID.ETHER_BOLT]);
     }
   }
 } satisfies RuntimeHooks<MesmerRuntimeState, MesmerSkill>;

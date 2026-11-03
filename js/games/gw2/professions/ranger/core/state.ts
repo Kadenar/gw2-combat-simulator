@@ -9,7 +9,6 @@ import {
   readProfessionSpecializationState
 } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
   createRangerActorProcState,
   type RangerActorProcState
@@ -32,7 +31,6 @@ export interface RangerCoreState extends StealthState {
   pet: RangerPetState | null;
   nextPetInstance: number;
   endurance: ResourceClock;
-  autoattackChains: Record<string, SkillId>;
   winterBiteReady: boolean;
 
   quickDraw: ChargeGrant;
@@ -60,7 +58,6 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     nextPetInstance: 1,
     endurance: createResourceClock(ENDURANCE.maximum),
     ...createStealthState(),
-    autoattackChains: {},
     winterBiteReady: false,
 
     quickDraw: grantCharges(0, 0),
@@ -75,7 +72,6 @@ export function projectRangerCoreState(input: Gw2PlanningStateInput) {
   const { pet } = readProfessionCoreState<RangerCoreState>(input.profession);
   const state = (input.profession as { core: RangerCoreState }).core;
   return {
-    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.ENDURANCE]: state.endurance,
     [STATE.ACTIVE_PET_SLOT]: state.activePetSlot,
     [STATE.PET_NAMES]: state.petNames,

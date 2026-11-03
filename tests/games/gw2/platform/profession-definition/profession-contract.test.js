@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createAutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
 import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
@@ -69,24 +70,32 @@ test('profession contract supplies neutral calculation defaults', () => {
   assert.equal(Object.hasOwn(profession, 'createBuildDefaults'), false);
 });
 
-// Projection has one callback; absent or undefined output delegates to the observer's detached fallback.
+// Compilation preserves explicit selectors and gives definitions without observations an empty projection.
 test('planning projection preserves the selected callback', () => {
   const project = ({ profession }) => ({ value: profession.value });
   const definition = { id: 'projection-callback', name: 'Projection callback' };
   const selected = defineProfession({ ...definition, resources: { projectPlanningState: project } });
   assert.equal(selected.projectPlanningState, project);
   assert.deepEqual(selected.projectPlanningState({ profession: { value: 3 } }), { value: 3 });
-  assert.equal(defineProfession(definition).projectPlanningState({ profession: {} }), undefined);
+  assert.deepEqual(defineProfession(definition).projectPlanningState({ profession: { privateValue: 3 } }), {});
+});
 
-  const family = defineTestProfession({ ...definition, resources: { createState: () => ({ nested: { value: 3 } }) } });
-  for (const projectPlanningState of [undefined, () => undefined]) {
+// The observer detaches declared fields and never exports private fields when the selector contributes nothing.
+test('planning observations require explicit projection and retain shared execution fields', () => {
+  const family = defineTestProfession({
+    id: 'projection-isolation',
+    name: 'Projection isolation',
+    resources: { createState: () => ({ nested: { value: 3 }, privateValue: 1 }) }
+  });
+  const project = ({ profession }) => ({ observed: profession.nested });
+  for (const projectPlanningState of [family.projectPlanningState, undefined, () => undefined, () => ({}), project]) {
     const runtime = { ...family.runtimeFor({}), projectPlanningState };
-    // The result boundary, rather than callback normalization, owns the detached fallback.
     const state = runtime.createState({});
     const result = planningState(
       {
         profession: state,
         flips: {},
+        autoattackController: createAutoattackChainController(runtime.catalog),
         time: 0,
         activeWeaponSet: 1,
         config: {},
@@ -98,8 +107,18 @@ test('planning projection preserves the selected callback', () => {
       () => ({ ready: true }),
       []
     );
-    result.profession.nested.value = 9;
-    assert.equal(state.nested.value, 3);
+    assert.deepEqual(result.profession, {
+      ...(projectPlanningState === project ? { observed: { value: 3 } } : {}),
+      [SHARED_STATE_IDS.AVAILABLE_FLIPS]: {},
+      [SHARED_STATE_IDS.AUTOATTACK_CHAINS]: {}
+    });
+
+    if (projectPlanningState === project) {
+      result.profession.observed.value = 9;
+      assert.equal(state.nested.value, 3);
+      state.nested.value = 7;
+      assert.equal(result.profession.observed.value, 9);
+    }
   }
 });
 
@@ -179,7 +198,9 @@ test('module projections compose Core and only the selected specialization', () 
     const projected = projectObservedState(family, { profession });
     assert.deepEqual(
       Object.keys(projected).sort(),
-      [...new Set(['Core', specialization, SHARED_STATE_IDS.AVAILABLE_FLIPS])].sort()
+      [
+        ...new Set(['Core', specialization, SHARED_STATE_IDS.AVAILABLE_FLIPS, SHARED_STATE_IDS.AUTOATTACK_CHAINS])
+      ].sort()
     );
     projected.Core.value = 9;
     assert.equal(profession.core.Core.value, 1);
@@ -188,5 +209,34 @@ test('module projections compose Core and only the selected specialization', () 
       projected[specialization].value = 7;
       assert.equal(profession.specialization.state[specialization].value, 1);
     }
+  }
+});
+
+// Either owner may omit its selector, including both at once, without exposing its private slice.
+test('modules without public observations can omit their projectors', () => {
+  for (const publicOwner of [undefined, 'Core', 'Elite']) {
+    const modules = ['Core', 'Elite'].map((id) =>
+      defineNativeModule({
+        id,
+        data: {},
+        state: {
+          create: () => ({ [id + 'Private']: { value: id } }),
+          ...(id === publicOwner
+            ? {
+                project: ({ profession }) => ({
+                  [id]: (id === 'Core' ? profession.core : profession.specialization.state)[id + 'Private']
+                })
+              }
+            : {})
+        }
+      })
+    );
+    const family = defineNativeProfession({ id: 'optional-projection', name: 'Optional projection', modules });
+    const profession = family.runtimeFor({ specialization: 'Elite' }).createState({});
+    assert.deepEqual(projectObservedState(family, { profession }), {
+      ...(publicOwner ? { [publicOwner]: { value: publicOwner } } : {}),
+      [SHARED_STATE_IDS.AVAILABLE_FLIPS]: {},
+      [SHARED_STATE_IDS.AUTOATTACK_CHAINS]: {}
+    });
   }
 });

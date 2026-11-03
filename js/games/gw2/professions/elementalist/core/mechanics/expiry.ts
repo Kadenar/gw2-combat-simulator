@@ -1,4 +1,3 @@
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
@@ -19,7 +18,7 @@ export function expireElementalistState(runtime: ElementalistRuntime): void {
   if (state.conjureEquipped && state.conjureExpiresAt <= at) {
     state.conjureEquipped = null;
     state.conjureExpiresAt = 0;
-    resetAutoattackChains(runtime.profession);
+    runtime.autoattackController.reset();
   }
 
   for (const [weapon, expiresAt] of Object.entries(state.conjurePickups))

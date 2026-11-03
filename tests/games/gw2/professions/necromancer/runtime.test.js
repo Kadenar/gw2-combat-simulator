@@ -27,6 +27,9 @@ const base = {
 const simulate = (rotation, config = base, extra = {}) =>
   observeGw2Runtime({ profession: necromancerProfession.runtimeFor(config), config, rotation, ...extra });
 
+// Reset contracts cover every catalog root so unrelated pending progress cannot escape the assertion.
+const resetChains = Object.fromEntries(necromancerProfession.catalog.autoattackChains.map(([root]) => [root, root]));
+
 // Ordinary swaps change command legality, clear chains, and deliver destination equipment effects before the next input.
 test('live weapon swaps commit the destination set and its sigils before subsequent commands', () => {
   const config = {
@@ -42,10 +45,6 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
   let owner;
   const profession = {
     ...native,
-    initialize(runtime) {
-      native.initialize(runtime);
-      runtime.profession.core.autoattackChains[ID.DUSK_STRIKE] = ID.FADING_TWILIGHT;
-    },
     onCastStart(runtime, cast) {
       native.onCastStart(runtime, cast);
 
@@ -61,6 +60,8 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
       combatStartTime: 0,
       engineInitialize(runtime) {
         owner = runtime;
+        // Establish pending execution progress without adding a profession-owned store.
+        runtime.autoattackController.advance(native.catalog.skillsById.get(ID.DUSK_STRIKE), true, false);
       }
     }
   );
@@ -70,7 +71,7 @@ test('live weapon swaps commit the destination set and its sigils before subsequ
   assert.ok(result.warnings.every(({ message: warning }) => warning.includes('required weapon is not equipped')));
   assert.deepEqual(seen, [[2, true, 0.12]]);
   assert.equal(result.planningState.activeWeaponSet, 2);
-  assert.deepEqual(result.planningState.profession[STATE.AUTOATTACK_CHAINS], {});
+  assert.deepEqual(result.planningState.profession[STATE.AUTOATTACK_CHAINS], resetChains);
   assert.equal(result.events.filter((event) => event.type === 'weapon_set').length, 1);
   assert.equal(
     result.resolvedEvents
@@ -259,15 +260,12 @@ test('condition-only hands grant spendable life force at their accepted target a
 });
 
 // A focused finisher case starts with its earlier chain steps already completed.
-function withChainStep(config, skillId) {
-  const native = necromancerProfession.runtimeFor(config);
+function chainStepSetup(skillId) {
   return {
-    ...native,
-    initialize(runtime) {
-      native.initialize(runtime);
-      const position = native.catalog.autoattackChainPositions.get(skillId);
-
-      if (position) runtime.profession.core.autoattackChains[position.rootSkillId] = skillId;
+    engineInitialize(runtime) {
+      const chain = runtime.helpers.autoattackChains.find((ids) => ids.includes(skillId));
+      for (const preceding of chain?.slice(0, chain.indexOf(skillId)) ?? [])
+        runtime.autoattackController.advance(runtime.helpers.skillsById.get(preceding), true, false);
     }
   };
 }
@@ -275,10 +273,10 @@ function withChainStep(config, skillId) {
 test('live sword chains advance, complete, and expire at their exclusive continuation deadline', () => {
   const complete = simulate([cast(ID.ENERVATION_BLADE), cast(ID.ENERVATION_ECHO), cast(ID.DEATHLY_ENERVATION)]);
   assert.deepEqual(complete.warnings, []);
-  assert.deepEqual(complete.planningState.profession[STATE.AUTOATTACK_CHAINS], {});
+  assert.deepEqual(complete.planningState.profession[STATE.AUTOATTACK_CHAINS], resetChains);
   const expired = simulate([cast(ID.ENERVATION_BLADE), wait(3000), cast(ID.ENERVATION_ECHO)]);
   assert.ok(expired.warnings.some(({ message: warning }) => warning.includes('cast Enervation Blade first')));
-  assert.deepEqual(expired.planningState.profession[STATE.AUTOATTACK_CHAINS], {});
+  assert.deepEqual(expired.planningState.profession[STATE.AUTOATTACK_CHAINS], resetChains);
   const active = simulate([cast(ID.ENERVATION_BLADE), wait(2960), cast(ID.ENERVATION_ECHO)]);
   assert.deepEqual(active.warnings, []);
   assert.equal(active.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.DEATHLY_ENERVATION);
@@ -290,39 +288,38 @@ test('a later sword transition cancels the old expiry without extending a preser
   const preserved = simulate([cast(ID.ENERVATION_BLADE), cast(ID.GHASTLY_CLAWS)]);
   assert.equal(preserved.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
   const expired = simulate([cast(ID.ENERVATION_BLADE), cast(ID.GHASTLY_CLAWS), wait(1600)]);
-  assert.equal(expired.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], undefined);
+  assert.deepEqual(expired.planningState.profession[STATE.AUTOATTACK_CHAINS], resetChains);
 });
 
 test('live Necromancer form transitions reset weapon chains while cancelled attacks preserve them', () => {
   const config = { ...base, initialResource: 100 };
   const transformed = simulate([cast(ID.ENERVATION_BLADE), cast(ID.REAPERS_SHROUD)], config);
-  assert.equal(transformed.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], undefined);
+  assert.deepEqual(transformed.planningState.profession[STATE.AUTOATTACK_CHAINS], resetChains);
   const cancelled = simulate([cast(ID.ENERVATION_BLADE), { ...cast(ID.ENERVATION_ECHO), interruptAfterMs: 40 }]);
   assert.equal(cancelled.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.ENERVATION_BLADE], ID.ENERVATION_ECHO);
   const ordinary = simulate([cast(ID.DUSK_STRIKE), cast(ID.GHASTLY_CLAWS)]);
-  assert.equal(ordinary.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.DUSK_STRIKE], undefined);
+  assert.deepEqual(ordinary.planningState.profession[STATE.AUTOATTACK_CHAINS], resetChains);
   const depleted = simulate([cast(ID.REAPERS_SHROUD), cast(ID.LIFE_REND), wait(6000)], {
     ...base,
     initialResource: 10
   });
   assert.equal(depleted.planningState.profession[STATE.ACTIVE_SHROUD], '');
-  assert.deepEqual(depleted.planningState.profession[STATE.AUTOATTACK_CHAINS], {});
+  assert.deepEqual(depleted.planningState.profession[STATE.AUTOATTACK_CHAINS], resetChains);
   assert.deepEqual(depleted.warnings, []);
 });
 
 // Minimal live resource scenarios isolate spear state from saved-rotation aggregates.
 test('spear shard gains require landed hits and refreshed grants survive their old expiry', () => {
   for (const skillId of [ID.DEADLY_SLICE, ID.SINISTER_STAB, ID.EXTIRPATE]) {
-    const profession = withChainStep(base, skillId);
+    const setup = chainStepSetup(skillId);
     assert.equal(
-      simulate([cast(skillId)], base, { profession }).planningState.profession[STATE.SOUL_SHARD_GRANT].charges,
+      simulate([cast(skillId)], base, setup).planningState.profession[STATE.SOUL_SHARD_GRANT].charges,
       skillId === ID.EXTIRPATE ? 2 : 1
     );
     for (const flags of [{ offTarget: true }, { impactDelayMs: 10000 }])
       assert.equal(
-        simulate([{ ...cast(skillId), ...flags }], base, { profession }).planningState.profession[
-          STATE.SOUL_SHARD_GRANT
-        ].charges,
+        simulate([{ ...cast(skillId), ...flags }], base, setup).planningState.profession[STATE.SOUL_SHARD_GRANT]
+          .charges,
         0
       );
   }
@@ -1427,9 +1424,9 @@ test('allied siphon cadence starts once at an explicit combat marker', () => {
 
 test('delivered Taste for Blood charges are independent and obey the party recipient cap', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.OVERFLOWING_THIRST], allies: { count: 3, strikesPerSecond: 2 } };
-  const profession = withChainStep(config, ID.NECROTIC_BITE);
+  const setup = chainStepSetup(ID.NECROTIC_BITE);
   const rotation = [cast(ID.SUMMON_BONE_MINIONS), cast(ID.NECROTIC_BITE), wait(5000)];
-  const result = simulate(rotation, config, { profession });
+  const result = simulate(rotation, config, setup);
   const grant = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === 'taste-for-blood');
   assert.deepEqual(grant.resolvedAudience.companionIds, ['minion:bone-minion:0']);
   const pools = observedRuntime(result).profession.core.tasteForBloodGrants;
@@ -1439,8 +1436,8 @@ test('delivered Taste for Blood charges are independent and obey the party recip
     result.events.some((event) => event.type === 'necromancer.taste-for-blood-grant'),
     false
   );
-  assert.equal(simulate(rotation, config, { profession, output: 'score' }).totalDamage, result.totalDamage);
-  const missed = simulate([{ ...cast(ID.NECROTIC_BITE), offTarget: true }], config, { profession });
+  assert.equal(simulate(rotation, config, { ...setup, output: 'score' }).totalDamage, result.totalDamage);
+  const missed = simulate([{ ...cast(ID.NECROTIC_BITE), offTarget: true }], config, setup);
   assert.equal(observedRuntime(missed).profession.core.tasteForBloodGrants.self[0].charges, 1);
 });
 

@@ -225,7 +225,9 @@ test('tasks during a cast run before a later concurrent command', () => {
     name: 'Temporal Order',
     catalog: temporalCatalog(),
     resources: {
-      createState: () => ({ log: [] })
+      createState: () => ({ log: [] }),
+      // Expose causal ordering observations without publishing other runtime state.
+      projectPlanningState: ({ profession }) => ({ log: profession.log })
     },
     hooks: {
       initialize(context) {

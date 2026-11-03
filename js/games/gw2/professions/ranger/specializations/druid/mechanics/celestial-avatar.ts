@@ -1,5 +1,4 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -48,7 +47,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
 
   runtime.fireTrigger(avatarExited);
 
-  resetAutoattackChains(runtime.profession);
+  runtime.autoattackController.reset();
   const skill = runtime.helpers.skillsById.get(active ? ID.CELESTIAL_AVATAR : ID.RELEASE_CELESTIAL_AVATAR)!;
   runtime.effects.emit({
     kind: 'packet',

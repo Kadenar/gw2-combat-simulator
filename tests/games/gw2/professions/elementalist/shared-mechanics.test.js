@@ -252,7 +252,7 @@ test('Aerial Agility expires while its original cooldown keeps counting down', (
     weapons: ['Pistol', 'Dagger']
   });
 
-  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.AERIAL_AGILITY], undefined);
+  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][ID.AERIAL_AGILITY], ID.AERIAL_AGILITY);
   assert.ok(result.planningState.cooldownsBySkillId[ID.AERIAL_AGILITY].remainingMs > 0);
 });
 
@@ -283,7 +283,7 @@ test('advancing Aerial Agility replaces the previous stage expiry', () => {
   // Cross the old deadline while the dash is still offered, then let its replacement deadline expire.
   for (const [wait, expected] of [
     [3000, ID.AERIAL_AGILITY_DASH],
-    [5500, undefined]
+    [5500, ID.AERIAL_AGILITY]
   ]) {
     const result = runNative({
       lines: [['Fire'], ['Air'], ['Arcane']],

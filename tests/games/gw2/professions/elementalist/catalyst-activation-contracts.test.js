@@ -16,7 +16,7 @@ import {
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
-import { controlTestDetails, resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
+import { emitTestCombo } from '#tests/helpers/gw2-resolver.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const cause = (at, fields = {}) => ({
@@ -27,7 +27,8 @@ const cause = (at, fields = {}) => ({
   actorType: 'player',
   ...fields
 });
-const combo = (runtime) => runtime.mechanics.combat.react('combo.resolved', cause(runtime.time, { type: 'combo' }));
+// Resolve packets before notifying traits so the fixture follows native delivery and causal ordering.
+const combo = (runtime) => emitTestCombo(runtime, cause(runtime.time));
 const aura = (runtime) =>
   applyElementalistAura(runtime.mechanics, { ...cause(runtime.time), aura: 'Fire Aura', duration: 4 });
 const buffs = (result, id) => result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === id);
@@ -161,11 +162,7 @@ test('Catalyst removed combo and control payloads still consume their admitted c
           at: 1,
           run(runtime) {
             combo(runtime);
-            runtime.mechanics.combat.react(
-              'control.resolved',
-              cause(1, { type: 'control' }),
-              controlTestDetails(runtime.config)
-            );
+            runtime.effects.emit({ kind: 'packet', event: cause(1, { type: 'control' }) });
           }
         }
       ]
@@ -276,6 +273,7 @@ test('Explicit Catalyst stacks keep recipient rules, passive attributes and expi
 
 test('Air combo grants capped endurance while intrinsic Catalyst energy remains available under isolation', () => {
   for (const traitTriggers of [false, true]) {
+    let before;
     run(
       {
         traitTriggers,
@@ -289,17 +287,24 @@ test('Air combo grants capped endurance while intrinsic Catalyst energy remains 
             at: 1,
             run(runtime) {
               runtime.endurance.spend(25);
-              const before = runtime.profession.core.endurance.value;
+              before = runtime.profession.core.endurance.value;
               combo(runtime);
-              assert.equal(runtime.profession.core.endurance.value, traitTriggers ? 100 : before);
-              runtime.mechanics.combat.react(
-                'damage.resolved',
-                cause(1, { type: 'damage', coefficient: 1 }),
-                resolvedTestHitDetails()
-              );
-              assert.equal(runtime.resourceController.value('catalystEnergy'), 30);
+              runtime.effects.emit({
+                kind: 'packet',
+                event: cause(1, { type: 'damage', coefficient: 1, weaponStrength: 1000, canCrit: false })
+              });
             }
           }
+        ],
+        // Observe resources after same-clock combo and hit resolution have applied their rewards.
+        probes: [
+          [
+            1,
+            (runtime) => {
+              assert.equal(runtime.profession.core.endurance.value, traitTriggers ? 100 : before);
+              assert.equal(runtime.resourceController.value('catalystEnergy'), 30);
+            }
+          ]
         ]
       }
     );

@@ -207,7 +207,7 @@ test('Weaver can cancel a carried autoattack by starting the current primary cha
 
   assert.deepEqual(result.warnings, []);
   assert.equal(result.planningState.profession[STATE.AUTOATTACK_CARRYOVER], null);
-  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][airRoot], undefined);
+  assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][airRoot], airRoot);
   assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][fireRoot], fireSecond);
 });
 

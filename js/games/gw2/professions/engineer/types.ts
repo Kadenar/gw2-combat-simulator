@@ -4,6 +4,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -32,9 +33,8 @@ export interface EngineerConfig extends Gw2Config {
 }
 
 /** Public consumers receive only the ID/value pairs published by active owners. */
-export type EngineerPlanningState = ReturnType<
-  typeof import('#gw2/professions/engineer/core/state.js').projectEngineerCorePlanningState
-> &
+export type EngineerPlanningState = Gw2SharedProfessionPlanningState &
+  ReturnType<typeof import('#gw2/professions/engineer/core/state.js').projectEngineerCorePlanningState> &
   ReturnType<typeof import('#gw2/professions/engineer/specializations/amalgam/state.js').projectAmalgamPlanningState> &
   ReturnType<
     typeof import('#gw2/professions/engineer/specializations/holosmith/state.js').projectHolosmithPlanningState

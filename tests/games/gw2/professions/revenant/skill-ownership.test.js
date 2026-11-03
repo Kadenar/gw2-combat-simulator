@@ -61,7 +61,7 @@ test('shared Dodge completion and cancellation reset airborne autoattack chains'
     const dodge = result.steps.find((step) => step.skillId === SHARED_SKILL_IDS.DODGE);
     const auto = result.steps.find((step) => step.skillId === ID.BRUTAL_BLADE);
     assert.ok(auto.start >= dodge.start && auto.end < dodge.end);
-    assert.equal(core(result).autoattackChains[ID.PREPARATION_THRUST], ID.BRUTAL_BLADE);
+    assert.equal(observedRuntime(result).autoattackController.read(ID.PREPARATION_THRUST), ID.BRUTAL_BLADE);
     assert.equal(
       result.events.some((event) => event.skillName === 'Death Drop'),
       interruptAfterMs == null

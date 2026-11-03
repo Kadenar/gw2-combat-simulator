@@ -1,5 +1,4 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -61,7 +60,7 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   if (!state.activeShroud || state.activeShroud === 'lich') return;
 
   // Depletion has no cast completion; the actual form exit still invalidates its pending attack chain.
-  resetAutoattackChains(runtime.profession);
+  runtime.autoattackController.reset();
   const entry =
     state.activeShroudEntryId == null ? undefined : runtime.helpers.skillsById.get(state.activeShroudEntryId);
 

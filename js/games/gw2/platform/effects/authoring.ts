@@ -1,3 +1,4 @@
+import { effectApplicationCount } from '#gw2/platform/effects/expansion-budget.js';
 import type {
   ConditionEffect,
   ConditionTick,
@@ -92,9 +93,25 @@ export function conditionEffectTicks(effect: ConditionEffect): readonly Conditio
   }));
 }
 
-/** Returns the aggregate coefficient while allowing callers to ignore the authored strike representation. */
+/** Sum existing ticks or multiply repeated coefficients without allocating descriptors for aggregate queries. */
 export function strikeEffectCoefficient(effect: StrikeEffect): number {
-  return strikeEffectTicks(effect).reduce((total, tick) => total + (tick.coefficient || 0), 0);
+  // Derived empty timelines produce no output; catalog validation still rejects authored empty timelines.
+  if (effect.ticks?.length === 0) return 0;
+
+  effectApplicationCount(effect, 'strike coefficient');
+
+  if (effect.ticks) {
+    let total = 0;
+    for (const tick of effect.ticks) {
+      requireBalanceNumber(tick.atMs, 'strike tick offset');
+      total += requireBalanceNumber(tick.coefficient, 'strike tick coefficient');
+    }
+
+    return total;
+  }
+
+  // Simultaneous hits share one coefficient; each repeated application contributes that coefficient again.
+  return requireBalanceNumber(effect.coefficient ?? 0, 'strike coefficient') * (effect.applications ?? 1);
 }
 
 /** Returns the first authored packet offset without inventing timing for an inherited effect. */

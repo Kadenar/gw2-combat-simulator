@@ -60,6 +60,8 @@ export interface Gw2PlanningAmmo {
 /** Shared observations are projected centrally alongside profession-owned public fields. */
 export interface Gw2SharedProfessionPlanningState {
   readonly [STATE.AVAILABLE_FLIPS]: Readonly<SkillFlipWindows>;
+  /** Expected step for every declared chain, including the root when no progress is pending. */
+  readonly [STATE.AUTOATTACK_CHAINS]: Readonly<Record<string, SkillId>>;
 }
 
 export interface Gw2SimulationPlanningState {

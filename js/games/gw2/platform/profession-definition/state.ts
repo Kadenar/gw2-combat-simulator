@@ -15,36 +15,6 @@ export function composePlanningState(projections: readonly object[]): object {
   return result;
 }
 
-/**
- * Profession state ownership helpers. Keeps Core and active-specialization
- * state explicitly separated while providing stable public projections.
- */
-
-/**
- * Flattens runtime slices for generic observations and internal test snapshots.
- * Native profession planning projectors select their own fields under registered IDs.
- */
-export function flattenProfessionState(professionState: unknown): UnvalidatedFields {
-  if (!professionState || typeof professionState !== 'object') return {};
-
-  const runtime = professionState as UnvalidatedFields;
-  const specialization = runtime.specialization as { readonly state?: unknown } | undefined;
-
-  if (
-    runtime.core &&
-    typeof runtime.core === 'object' &&
-    specialization?.state &&
-    typeof specialization.state === 'object'
-  ) {
-    return {
-      ...(runtime.core as UnvalidatedFields),
-      ...(specialization.state as UnvalidatedFields)
-    };
-  }
-
-  return { ...runtime };
-}
-
 /** Reads only the owned Core runtime slice; public projections are read by their presentation consumers. */
 export function readProfessionCoreState<TCoreState extends object = DynamicFields>(
   professionState: unknown

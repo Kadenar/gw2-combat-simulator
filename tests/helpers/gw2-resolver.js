@@ -1,18 +1,36 @@
-import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
-import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
-import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
 import { runRuntime } from '#gw2/platform/simulation/runtime.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
-/** Synthetic control notifications use the resolver's live stack counter, including configured ambient conditions. */
-export function controlTestDetails(config = {}) {
-  const { activeConditionStackCount } = createGw2ConditionResolution({
-    config,
-    expansionBudget: createEffectExpansionBudget(),
-    reactions: createGw2ResolverReactionRegistry()
+/** Resolve a Light-field combo so trait fixtures receive native metadata without incidental damage or aura grants. */
+export function emitTestCombo(runtime, origin, finisherType = 'Blast') {
+  const fieldId = `fixture.field:${origin.sourceId}:${origin.at}`;
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...origin,
+      type: 'combo_field',
+      fieldId,
+      fieldType: 'Light',
+      expiresAt: origin.at + 1,
+      ownerId: 'fixture',
+      ownerActorType: origin.actorType
+    }
   });
-  return { activeConditionStackCount };
+  runtime.effects.emit({
+    kind: 'packet',
+    event: {
+      ...origin,
+      type: 'combo_finisher',
+      attemptId: `fixture.finisher:${origin.sourceId}:${origin.at}`,
+      finisherType,
+      fieldId,
+      effectAt: origin.at,
+      chance: 1,
+      applications: 1,
+      successfulCombos: 1
+    }
+  });
 }
 
 /** Synthetic reaction callers use a real resolved noncritical hit instead of an empty damage payload. */

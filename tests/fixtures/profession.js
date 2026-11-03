@@ -37,7 +37,9 @@ export const testProfession = defineTestProfession({
   name: 'Fixture',
   catalog,
   resources: {
-    createState: () => ({ charge: 0, controlEvents: 0 })
+    createState: () => ({ charge: 0, controlEvents: 0 }),
+    // Publish the counters used by end-to-end reaction assertions.
+    projectPlanningState: ({ profession }) => ({ charge: profession.charge, controlEvents: profession.controlEvents })
   },
   modifiers: {
     modifierRules: [

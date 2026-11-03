@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import { createAutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
@@ -419,6 +420,7 @@ test('conjure pickup availability and consumption require a finite, unexpired gr
       const events = [];
       const context = {
         helpers: elementalistCatalog,
+        autoattackController: createAutoattackChainController(elementalistCatalog),
         profession: { core },
         time: 0,
         start: 0,
@@ -510,6 +512,6 @@ test('Weaver preserves the next autoattack link across completed and concurrent 
       true
     );
     assert.equal(result.planningState.profession[STATE.AUTOATTACK_CARRYOVER], null);
-    assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][root], undefined);
+    assert.equal(result.planningState.profession[STATE.AUTOATTACK_CHAINS][root], root);
   }
 });

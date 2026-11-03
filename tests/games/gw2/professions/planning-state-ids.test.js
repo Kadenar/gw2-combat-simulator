@@ -76,12 +76,13 @@ for (const entry of professionRegistry) {
       for (const value of objectsIn(projected)) assert.equal(liveObjects.has(value), false, specialization);
 
       // Shared execution contributes its key centrally; profession selectors contribute only their owned fields.
-      const activeIds = new Set([SHARED_STATE_IDS.AVAILABLE_FLIPS]);
+      const activeIds = new Set([SHARED_STATE_IDS.AVAILABLE_FLIPS, SHARED_STATE_IDS.AUTOATTACK_CHAINS]);
       for (const module of family.nativeDefinition.modules.filter(({ id }) => id === 'Core' || id === specialization)) {
         if (!module.state?.project) continue;
 
         const ownedProjection = module.state.project(input);
         assert.equal(Object.hasOwn(ownedProjection, SHARED_STATE_IDS.AVAILABLE_FLIPS), false);
+        assert.equal(Object.hasOwn(ownedProjection, SHARED_STATE_IDS.AUTOATTACK_CHAINS), false);
         for (const id of Object.keys(ownedProjection)) activeIds.add(id);
       }
 

@@ -9,6 +9,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -53,9 +54,8 @@ export type ThiefArtifactKind = 'offensive' | 'defensive' | 'unstable';
 export type ThiefDoubleEdgeOutcome = 'success' | 'backfire';
 
 /** Public consumers receive only the ID/value pairs published by active owners. */
-export type ThiefPlanningState = ReturnType<
-  typeof import('#gw2/professions/thief/core/state.js').projectThiefCorePlanningState
-> &
+export type ThiefPlanningState = Gw2SharedProfessionPlanningState &
+  ReturnType<typeof import('#gw2/professions/thief/core/state.js').projectThiefCorePlanningState> &
   ReturnType<typeof import('#gw2/professions/thief/specializations/antiquary/state.js').projectAntiquaryPlanningState> &
   ReturnType<typeof import('#gw2/professions/thief/specializations/daredevil/state.js').projectDaredevilPlanningState> &
   ReturnType<typeof import('#gw2/professions/thief/specializations/deadeye/state.js').projectDeadeyePlanningState> &

@@ -76,7 +76,7 @@ export function onAttunementComplete(
   );
   // Preserve chain progress for the attunement being left; a cast still in flight
   // is only held as pending until it commits.
-  state.autoattackCarryover = progressedAutoattackCarryover(context, state, previous);
+  state.autoattackCarryover = progressedAutoattackCarryover(context, previous);
   state.pendingAutoattackCarryover = state.autoattackCarryover ? null : inFlightAutoattackCarryover(context, previous);
   // Specializations may supply their own transition and recharge policy while Core keeps shared entry effects here.
   const dualAttunement = transition.rechargeDuration != null;

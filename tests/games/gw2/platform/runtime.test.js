@@ -100,6 +100,12 @@ function fixture(hooks = {}) {
       completed: [],
       hits: 0
     }),
+    // Select the resource and execution observations asserted at the planning boundary.
+    projectPlanningState: ({ profession }) => ({
+      energy: profession.energy,
+      accepted: profession.accepted,
+      hits: profession.hits
+    }),
     resources: {
       energy: {
         kind: 'continuous',

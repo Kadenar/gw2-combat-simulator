@@ -148,7 +148,11 @@ test('Gunsaber transitions share recharge, reset chains, and retain the configur
   close(swaps[2].at - swaps[1].at, 4);
   assert.equal(owner.activeWeaponSet, 1);
   assert.equal(state(result).gunsaberActive, true);
-  assert.deepEqual(owner.profession.core.autoattackChains, {});
+  // A bar transition resets every declared root, including chains outside the two weapons exercised here.
+  assert.deepEqual(
+    owner.autoattackController.snapshot(),
+    Object.fromEntries(owner.helpers.autoattackChains.map(([root]) => [root, root]))
+  );
   assert.equal(
     owner.cooldownController.readyAt(ID.UNSHEATHE_GUNSABER),
     owner.cooldownController.readyAt(ID.SHEATHE_GUNSABER)
@@ -193,7 +197,7 @@ test('Sharp as the Wind resolves either action identity before chain checks and 
         .map((step) => step.skillId),
       expected
     );
-    assert.deepEqual(observedRuntime(result).profession.core.autoattackChains, {});
+    assert.equal(observedRuntime(result).autoattackController.read(expected[0]), expected[0]);
   }
 });
 

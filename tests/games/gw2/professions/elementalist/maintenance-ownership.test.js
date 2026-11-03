@@ -14,6 +14,7 @@ import { armElementalLightningJolt } from '#gw2/professions/elementalist/special
 import { tempestState } from '#gw2/professions/elementalist/specializations/tempest/state.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { emitTestCombo } from '#tests/helpers/gw2-resolver.js';
 
 const glyph = elementalistCatalog.skillsById.get(25488);
 const summon = (runtime) => completeElementalistGlyphCast(runtime.mechanics, { effectiveEnd: runtime.time }, glyph);
@@ -136,7 +137,7 @@ test('profession aura sources adjust duration once and record one accepted appli
     [
       'Catalyst',
       [TRAIT.ELEMENTAL_EPITOME],
-      (runtime) => runtime.mechanics.combat.react('combo.resolved', { type: 'combo', at: runtime.time, sourceId: 1 }),
+      (runtime) => emitTestCombo(runtime, { at: runtime.time, source: 'Fixture', sourceId: 1, actorType: 'player' }),
       8
     ]
   ]) {

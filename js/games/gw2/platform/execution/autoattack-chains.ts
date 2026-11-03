@@ -1,17 +1,45 @@
-import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
-import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { resolveAutoattackChainStep } from '#gw2/platform/skills/autoattack-chain-index.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
-
 /**
  * GW2-wide runtime ownership for autoattack-chain availability and state.
  * Native professions only declare narrow interruption overrides and optional
  * transition observers; this controller performs every live map mutation.
  */
+import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
+import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
+import { resolveAutoattackChainStep } from '#gw2/platform/skills/autoattack-chain-index.js';
+import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
-interface AutoattackChainCoreState {
-  readonly autoattackChains?: Record<string, SkillId>;
+export interface AutoattackChainController {
+  read(root: SkillId): SkillId;
+  snapshot(): Record<string, SkillId>;
+  reset(chainRootIds?: readonly SkillId[]): void;
+  availability(skill: Skill): AvailabilityResult;
+  advance(
+    skill: Skill,
+    committed: boolean,
+    interrupts: boolean,
+    overrides?: readonly AutoattackChainOverride[]
+  ): AutoattackChainTransitionResult;
+}
+
+/** Each execution owns its progress independently of replaceable profession state; observations include root defaults. */
+export function createAutoattackChainController(catalog: CanonicalCatalog): AutoattackChainController {
+  const chains: Record<string, SkillId> = {};
+  // Only declared roots have an unstarted default; invalid IDs must not masquerade as reset progress.
+  const read = (root: SkillId): SkillId => {
+    if (catalog.autoattackChainPositions.get(Number(root))?.index !== 0)
+      throw new RangeError(`Skill ${root} is not an autoattack chain root.`);
+
+    return chains[root] ?? root;
+  };
+
+  return Object.freeze({
+    read,
+    snapshot: () => Object.fromEntries(catalog.autoattackChains.map(([root]) => [root, read(root)])),
+    reset: (roots?: readonly SkillId[]) => resetAutoattackChains(chains, roots),
+    availability: (skill: Skill) => autoattackChainAvailability(chains, catalog, skill),
+    advance: (skill: Skill, committed: boolean, interrupts: boolean, overrides?: readonly AutoattackChainOverride[]) =>
+      advanceAutoattackChains(chains, catalog, skill, committed, interrupts, overrides)
+  });
 }
 
 interface AutoattackChainContext {
@@ -56,18 +84,8 @@ export function autoattackChainSkillAvailable(
   return skill.id === expected;
 }
 
-/** Optional chain ownership is read from the supplied profession state, never inferred from an execution context. */
-function chainState(professionState: object): Record<string, SkillId> | null {
-  const chains = readProfessionCoreState<AutoattackChainCoreState>(professionState).autoattackChains;
-  return chains && typeof chains === 'object' && !Array.isArray(chains) ? chains : null;
-}
-
 /** Clears all pending roots, or only the supplied roots, without replacing the shared state object. */
-export function resetAutoattackChains(professionState: object, chainRootIds?: readonly SkillId[]): void {
-  const chains = chainState(professionState);
-
-  if (!chains) return;
-
+function resetAutoattackChains(chains: Record<string, SkillId>, chainRootIds?: readonly SkillId[]): void {
   const roots = chainRootIds == null ? Object.keys(chains).map(Number) : [...new Set(chainRootIds.map(Number))];
   for (const root of roots) {
     if (!Object.hasOwn(chains, root)) continue;
@@ -110,16 +128,12 @@ export function validateAutoattackChainOptions(options: Gw2AutoattackChainOption
   }
 }
 
-/** Both execution owners validate the same canonical chain map without changing its current step. */
-export function autoattackChainAvailability(
-  professionState: object,
+/** Cast admission checks execution-owned progress without changing the expected step. */
+function autoattackChainAvailability(
+  chains: Readonly<Record<string, SkillId>>,
   catalog: Pick<CanonicalCatalog, 'autoattackChainPositions' | 'skillsById'>,
   skill: Skill
 ): AvailabilityResult {
-  const chains = chainState(professionState);
-
-  if (!chains) return CAST_READY;
-
   const chain = resolveAutoattackChainStep(catalog.autoattackChainPositions, chains, skill.id);
 
   if (!chain || chain.matchesExpectedStep) return CAST_READY;
@@ -132,21 +146,16 @@ export function autoattackChainAvailability(
 }
 
 /** Mutates each pending root once from committed cast facts, independently of scheduling or combat-history queries. */
-export function advanceAutoattackChains(
-  professionState: object,
+function advanceAutoattackChains(
+  chains: Record<string, SkillId>,
   catalog: Pick<CanonicalCatalog, 'autoattackChainPositions'>,
   skill: Skill,
   committed: boolean,
   interrupts: boolean,
   overrides: readonly AutoattackChainOverride[] = []
 ): AutoattackChainTransitionResult {
-  const chains = chainState(professionState);
   const position = catalog.autoattackChainPositions.get(Number(skill.id));
   const castChainRootId = position?.rootSkillId ?? null;
-
-  if (!chains) {
-    return Object.freeze({ committed, castChainRootId, transitions: Object.freeze([]) });
-  }
 
   const changes: AutoattackChainTransition[] = [];
   const pending = Object.entries(chains)

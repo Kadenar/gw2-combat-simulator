@@ -1,5 +1,4 @@
 import { ACTOR } from '#gw2/platform/constants.js';
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -56,7 +55,7 @@ function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast<Eleme
   context.schedule('elementalist.expire-state', state.conjureExpiresAt || at, null);
   for (const deadline of Object.values(state.conjurePickups))
     context.schedule('elementalist.expire-state', deadline, null);
-  resetAutoattackChains(context.profession);
+  context.autoattackController.reset();
   context.effects.emit({
     kind: 'packet',
     event: {

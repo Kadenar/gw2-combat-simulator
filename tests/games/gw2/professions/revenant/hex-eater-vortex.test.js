@@ -2,11 +2,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { conditionEffectTicks, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
+import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
 import {
   REVENANT_SKILL_IDS as ID,
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
+import {
+  cleanseHexEater,
+  CONDUIT_ENTITY_SKILL_MECHANICS
+} from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
@@ -20,6 +26,75 @@ const config = {
 };
 const wait = { type: 'wait', durationMs: 1500 };
 const selfCondition = (expiresAt = 10) => ({ expiresAt });
+
+// Synthetic payloads cover representation-independent selection, packet ownership, and exact cleanse reservations.
+test('Hex-Eater counts implicit and explicit components while retaining only eligible projectiles', () => {
+  const select = CONDUIT_ENTITY_SKILL_MECHANICS[ID.HEX_EATER_VORTEX].effectVariants[0].transform;
+  for (const representation of ['simultaneous', 'repeated', 'explicit']) {
+    const effects = normalizeSkillEffects(
+      [
+        {
+          type: 'strike',
+          coefficient: 1.5,
+          atMs: 0,
+          ...(representation === 'repeated' ? { applications: 3, intervalMs: 40 } : { hits: 3 }),
+          metadata: { trigger: 'selection-fixture' },
+          reactions: [
+            { on: 'damage.resolved', actor: 'player', packets: 'each', do: [{ type: 'revenant.entity-hit-affinity' }] }
+          ]
+        },
+        { type: 'condition', condition: 'Torment', stacks: 1, duration: 1, applications: 2, intervalMs: 40 }
+      ],
+      'selection fixture'
+    );
+    const selectedEffects =
+      representation === 'explicit'
+        ? effects.map((effect) => ({
+            type: effect.type,
+            metadata: effect.metadata,
+            reactions: effect.reactions,
+            ticks: effect.type === 'strike' ? strikeEffectTicks(effect) : conditionEffectTicks(effect)
+          }))
+        : effects;
+    for (const available of [1, 4]) {
+      const initial = Array.from({ length: available }, () => selfCondition());
+      const core = { selectedLegendIds: [LEGEND.ENTITY], selfConditions: [...initial] };
+      const runtime = { profession: { core }, time: 1 };
+      const cast = { effectiveEnd: 1 };
+      const selected = select(runtime, cast, selectedEffects);
+      const capacity = Math.min(3, available);
+      assert.equal(selected[0].ticks.length, capacity);
+      assert.equal(selected[1].ticks.length, Math.min(2, capacity));
+      assert.equal(selected[0].metadata, effects[0].metadata);
+      assert.equal(selected[0].reactions, effects[0].reactions);
+      const arriving = selfCondition();
+      core.selfConditions.push(arriving);
+      cleanseHexEater(runtime, cast);
+      const expected = [...initial.slice(capacity), arriving];
+      assert.equal(core.selfConditions.length, expected.length);
+      expected.forEach((condition, index) => assert.equal(core.selfConditions[index], condition));
+    }
+  }
+});
+
+// Empty derived components cannot create projectiles or reserve conditions, even with Demon resonance.
+test('Hex-Eater preserves zero-output derived timelines', () => {
+  const select = CONDUIT_ENTITY_SKILL_MECHANICS[ID.HEX_EATER_VORTEX].effectVariants[0].transform;
+  const condition = selfCondition();
+  const core = { selectedLegendIds: [LEGEND.ENTITY, LEGEND.DEMON], selfConditions: [condition] };
+  const runtime = { profession: { core }, time: 1 };
+  const cast = { effectiveEnd: 1 };
+  assert.deepEqual(
+    select(runtime, cast, [
+      { type: 'strike', ticks: [] },
+      { type: 'condition', ticks: [] }
+    ]),
+    []
+  );
+  cleanseHexEater(runtime, cast);
+  assert.equal(core.selfConditions.length, 1);
+  assert.equal(core.selfConditions[0], condition);
+});
 
 test('Hex-Eater cleanses its acceptance selection only when the cast commits', () => {
   // A two-projectile fixture reserves surviving applications; later arrivals and excess conditions must survive.

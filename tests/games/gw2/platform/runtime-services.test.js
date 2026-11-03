@@ -88,6 +88,12 @@ function native(hooks = {}, modifiers = {}) {
         endurancePool: { value: 0, maximum: 100, updatedAt: 0, unitsPerSecond: 0 },
         starts: [],
         grants: 0
+      }),
+      // Select only the resource and entitlement observations used by these service contracts.
+      project: ({ profession }) => ({
+        energy: profession.core.energy,
+        endurancePool: profession.core.endurancePool,
+        grants: profession.core.grants
       })
     },
     modifiers,
@@ -248,7 +254,11 @@ test('native field selection composes before cast-start mutations and registers 
         }
       ]
     },
-    state: { create: () => ({ duration: 2 }) },
+    state: {
+      create: () => ({ duration: 2 }),
+      // Observe the mutation separately from the field duration captured at acceptance.
+      project: ({ profession }) => ({ duration: profession.core.duration })
+    },
     hooks: {
       modifyComboFields(runtime, _cast, fields) {
         order.push('Core');
@@ -294,7 +304,9 @@ test('native hook composition creates each selected state once and supports data
       create() {
         creates.push('Core');
         return { value: 1 };
-      }
+      },
+      // Only Core publishes an observation; the selected elite can keep all of its state private.
+      project: ({ profession }) => ({ value: profession.core.value })
     },
     hooks: {}
   });

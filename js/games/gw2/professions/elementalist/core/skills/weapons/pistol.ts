@@ -12,7 +12,6 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
@@ -826,10 +825,10 @@ export const elementalistPistolLifecycle = {
   },
   tasks: {
     'elementalist.aerial-agility-expire'(context, data) {
-      if (professionCoreState(context.profession).autoattackChains[ID.AERIAL_AGILITY] !== Number(data)) return;
+      if (context.autoattackController.read(ID.AERIAL_AGILITY) !== Number(data)) return;
 
       // This slot-three flip never carries across attunements; expiry resets only its own chain.
-      resetAutoattackChains(context.profession, [ID.AERIAL_AGILITY]);
+      context.autoattackController.reset([ID.AERIAL_AGILITY]);
     },
     // Grant the current attunement's aura before consuming all four bullets.
     'elementalist.core.consume-elemental-explosion'(runtime, data) {

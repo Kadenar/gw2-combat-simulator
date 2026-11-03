@@ -276,7 +276,11 @@ test('the shared six-axe pool protects Salvo and Volley axes from lower-priority
 
             // Isolate each replacement formula with its tested autoattack stage already available.
             if (skillId === ID.SPINNING_AXE)
-              runtime.profession.core.autoattackChains[ID.SPINNING_AXE_ID_71967] = skillId;
+              runtime.autoattackController.advance(
+                runtime.helpers.skillsById.get(ID.SPINNING_AXE_ID_71967),
+                true,
+                false
+              );
 
             if (skillId === salvo) runtime.profession.core.stealthUntil = 10;
           }
