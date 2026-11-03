@@ -21,9 +21,11 @@ import type {
   Gw2ConditionBreakdownEntry,
   Gw2EnvironmentConditionBreakdownEntry,
   Gw2EventQueue,
+  Gw2ResolverDispatchArgs,
   Gw2ResolverHelpers,
+  Gw2ResolverReactionArgs,
   Gw2ResolverReactionRegistry,
-  Gw2ResolverStage
+  Gw2ResolverReactionResult
 } from '#gw2/platform/resolver/types.js';
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
@@ -110,8 +112,12 @@ export function createGw2ResolverRuntimeState({
     weaponStrengthRolls: new Map(),
     weaponStrengthActivationOrder: 0,
 
-    dispatchReaction(stage, event, details) {
-      return reactions?.dispatch(stage, this, event, details);
+    dispatchReaction<Args extends Gw2ResolverReactionArgs>(...args: Args) {
+      const [stage, event, details] = args;
+      // Inserting this runtime leaves the caller's stage and payload paired.
+      return reactions?.dispatch(
+        ...([stage, this, event, details] as Gw2ResolverDispatchArgs)
+      ) as Gw2ResolverReactionResult<Args[0]>;
     },
 
     // Detailed reports keep every resolved row, measurements keep only the packets they return, and scores keep none.
@@ -256,21 +262,7 @@ export interface Gw2ResolverRuntime {
   random: Readonly<SimulationRandom>;
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;
-  dispatchReaction(
-    stage: 'damage.resolving',
-    event: Gw2ResolverEvent,
-    details?: Record<string, unknown>
-  ): Record<string, unknown> | void;
-  dispatchReaction(
-    stage: Exclude<Gw2ResolverStage, 'damage.resolving'>,
-    event: Gw2ResolverEvent,
-    details?: Record<string, unknown>
-  ): void;
-  dispatchReaction(
-    stage: Gw2ResolverStage,
-    event: Gw2ResolverEvent,
-    details?: Record<string, unknown>
-  ): Record<string, unknown> | void;
+  dispatchReaction<Args extends Gw2ResolverReactionArgs>(...args: Args): Gw2ResolverReactionResult<Args[0]>;
   addBreakdown(
     name: string,
     damage: number,

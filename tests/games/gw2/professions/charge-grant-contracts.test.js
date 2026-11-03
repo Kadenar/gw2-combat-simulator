@@ -38,6 +38,7 @@ import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -441,5 +442,9 @@ function grantTasteForBlood(runtime, event) {
 }
 
 function spendTasteForBlood(runtime, event) {
-  overflowingThirst.lifetime.reactions['damage.resolved'](runtime, { coefficient: 1, ...event });
+  overflowingThirst.lifetime.reactions['damage.resolved'](
+    runtime,
+    { coefficient: 1, ...event },
+    resolvedTestHitDetails()
+  );
 }

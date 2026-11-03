@@ -57,8 +57,7 @@ export const DRAGONHUNTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
             on: 'damage.resolved',
             actor: ACTOR.PLAYER,
             packets: 'each',
-            when: (_runtime, { event, details }) =>
-              Number(event.coefficient) > 0 && Number(details.hitContext?.damage) > 0,
+            when: (_runtime, { event, details }) => Number(event.coefficient) > 0 && details.hitContext.damage > 0,
             do: [{ type: 'guardian.attach-tether' }]
           }
         ],

@@ -6,6 +6,7 @@ import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profes
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { planningState } from '#gw2/platform/results/planning-state.js';
 import { SHARED_STATE_IDS } from '#gw2/platform/results/state-ids.js';
+import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
@@ -148,7 +149,7 @@ test('structured definition containers preserve state, recharge rules, and resol
   const resolverState = profession.createState({});
   const context = { profession: resolverState };
   profession.eventHandlers['structured.damage'](context, { amount: 3 });
-  profession.reactions['damage.resolved'](context, {});
+  profession.reactions['damage.resolved'](context, {}, resolvedTestHitDetails());
 
   assert.deepEqual(firstState.core, { charges: 2, damage: 0 });
   assert.deepEqual(profession.createState({}).core, { charges: 0, damage: 0 });

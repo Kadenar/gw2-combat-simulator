@@ -4,5 +4,5 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 
 /** Core critical traits share player-hit eligibility while keeping separate accumulation and ICD state. */
 export function criticalTraitEligible(event: Gw2ResolverEvent, details: NativeResolvedDamageDetails): boolean {
-  return event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0 && details.hitContext?.critEligible === true;
+  return event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0 && details.hitContext.critEligible;
 }

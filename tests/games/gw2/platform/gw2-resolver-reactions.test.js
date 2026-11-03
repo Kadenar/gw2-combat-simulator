@@ -9,13 +9,88 @@ import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/
 import {
   composeGw2Reactions,
   createGw2ResolverReactionRegistry,
-  GW2_RESOLVER_STAGES
+  GW2_RESOLVER_STAGES,
+  mapGw2Reactions
 } from '#gw2/platform/resolver/reaction-registry.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { createDamageExecution } from '#gw2/platform/skill-damage/occurrence-driver.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+
+// Composition fixtures replay actual resolver facts and verify that each handler receives the same payload object.
+const stageDetails = {};
+resolveTestGw2Events({
+  endTime: 2,
+  events: [
+    {
+      type: 'damage',
+      at: 0,
+      actorType: 'player',
+      source: 'Fixture',
+      sourceId: 'fixture.hit',
+      coefficient: 1,
+      weaponStrength: 1000,
+      canCrit: false
+    },
+    {
+      type: 'condition',
+      at: 0,
+      actorType: 'player',
+      source: 'Fixture',
+      sourceId: 'fixture.bleed',
+      condition: 'Bleeding',
+      stacks: 1,
+      duration: 2
+    },
+    {
+      type: 'control',
+      at: 0,
+      actorType: 'player',
+      source: 'Fixture',
+      sourceId: 'fixture.control',
+      control: 'Daze',
+      duration: 1
+    }
+  ],
+  engineReactions: Object.fromEntries(
+    GW2_RESOLVER_STAGES.map((stage) => [
+      stage,
+      (_context, _event, details) => {
+        stageDetails[stage] = details;
+      }
+    ])
+  )
+});
+
+// Binding changes the context only; filters retain authored-stage validation and wrappers preserve facts and patches.
+test('reaction mapping preserves context, payload identity and transform results while filtering handlers', () => {
+  const source = { name: 'profession' };
+  const event = { type: 'damage', at: 0 };
+  const details = stageDetails['damage.resolved'];
+  const patch = { coefficient: 2 };
+  const seen = [];
+  const mapped = mapGw2Reactions(
+    {
+      'damage.resolved': (context, actual, facts) => seen.push([context, actual, facts]),
+      'damage.resolving': () => patch,
+      'buff.applied': () => assert.fail('filtered handler must not run'),
+      'combo.resolved': undefined
+    },
+    (stage, handler) =>
+      stage === 'buff.applied' ? undefined : (context, actual, facts) => handler(context.source, actual, facts)
+  );
+  mapped['damage.resolved']({ source }, event, details);
+  assert.deepEqual(seen, [[source, event, details]]);
+  assert.equal(seen[0][0], source);
+  assert.equal(seen[0][1], event);
+  assert.equal(seen[0][2], details);
+  assert.equal(mapped['damage.resolving']({ source }, event, undefined), patch);
+  assert.equal('buff.applied' in mapped, false);
+  assert.equal('combo.resolved' in mapped, false);
+  assert.throws(() => mapGw2Reactions({ unknown: undefined }, () => undefined), /unknown stage: unknown/);
+});
 
 test('GW2 resolver registry orders notifications stably and discards their results', () => {
   const calls = [];
@@ -59,13 +134,17 @@ test('GW2 resolver registry orders notifications stably and discards their resul
     }
   });
 
-  assert.equal(registry.dispatch('damage.resolved', {}, { type: 'damage', at: 0 }), undefined);
+  assert.equal(
+    registry.dispatch('damage.resolved', {}, { type: 'damage', at: 0 }, stageDetails['damage.resolved']),
+    undefined
+  );
   assert.deepEqual(calls, ['early', 'zero', 'profession', 'tie-a', 'tie-b']);
   assert.equal(
     registry.dispatch(
       'condition.applied',
       {},
-      { type: 'condition', condition: 'Blindness', stacks: 1, duration: 3, at: 0 }
+      { type: 'condition', condition: 'Blindness', stacks: 1, duration: 3, at: 0 },
+      stageDetails['condition.applied']
     ),
     undefined
   );
@@ -108,7 +187,8 @@ test('every notification stage preserves the original event and returns nothing'
     const first = { reactions: { [stage]: () => ({ coefficient: 99 }) } };
     const next = {
       reactions: {
-        [stage]: (_context, actual) => {
+        [stage]: (_context, actual, details) => {
+          assert.equal(details, stageDetails[stage]);
           calls++;
           assert.equal(actual, event);
           return { coefficient: 100 };
@@ -117,10 +197,10 @@ test('every notification stage preserves the original event and returns nothing'
     };
     const single = composeRuntimeHooks([first]);
     const nested = composeRuntimeHooks([single, composeRuntimeHooks([next])]);
-    assert.equal(single.reactions[stage]({}, event, {}), undefined);
-    assert.equal(nested.reactions[stage]({}, event, {}), undefined);
+    assert.equal(single.reactions[stage]({}, event, stageDetails[stage]), undefined);
+    assert.equal(nested.reactions[stage]({}, event, stageDetails[stage]), undefined);
     const registry = createGw2ResolverReactionRegistry({ professionReactions: nested.reactions });
-    assert.equal(registry.dispatch(stage, {}, event), undefined);
+    assert.equal(registry.dispatch(stage, {}, event, stageDetails[stage]), undefined);
     assert.equal(calls, 2);
   }
 });
@@ -141,6 +221,12 @@ test('relic boon reactions accept standard boons and ignore generic buffs', () =
 // Direct stage compilation retains validation at both public composition boundaries and dispatch.
 test('GW2 resolver composition rejects unknown stages, duplicate hook ids, and invalid handlers', () => {
   assert.throws(() => composeGw2Reactions([{ damage: () => {} }]), /unknown stage: damage/);
+  // Context binding and isolated execution must reject unknown keys instead of filtering them away.
+  assert.throws(() => resolveTestGw2Events({ professionReactions: { damage() {} } }), /unknown stage: damage/);
+  assert.throws(
+    () => createDamageExecution({ reactions: { damage() {} } }, { accepts: () => true }),
+    /unknown stage: damage/
+  );
   assert.throws(() => createGw2ResolverReactionRegistry({ contributions: { damage: [] } }), /unknown stage: damage/);
   const empty = createGw2ResolverReactionRegistry();
   assert.throws(() => empty.dispatch('damage', {}, {}), /Unknown GW2 resolver stage: damage/);

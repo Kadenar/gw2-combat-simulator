@@ -3,9 +3,8 @@ import { validateEffectReactions } from '#gw2/platform/effects/action-validation
 import type { ActionContext, SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { EffectReaction, EffectReactionStage, ResolvedEffectTrigger } from '#gw2/platform/effects/reactions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { Gw2ResolverReactionArgs } from '#gw2/platform/resolver/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 
 /** Resolution selects reactions; the composition root supplies action validation and mutation capabilities. */
@@ -21,9 +20,7 @@ export interface EffectReactionRegistry<T extends object> {
   register(skill: Skill, effect: SkillEffect): number | undefined;
   dispatch(
     runtime: { readonly mechanics: MechanicContext<T>; readonly mechanicQueries: MechanicQueryContext<T> },
-    on: EffectReactionStage,
-    event: Gw2ResolverEvent,
-    details: NativeResolvedDamageDetails & { readonly conditionStackIndex?: number }
+    ...args: Gw2ResolverReactionArgs<EffectReactionStage>
   ): void;
 }
 
@@ -76,9 +73,7 @@ export function createEffectReactions<T extends object>(
     },
     dispatch(
       runtime: { readonly mechanics: MechanicContext<T>; readonly mechanicQueries: MechanicQueryContext<T> },
-      on: EffectReactionStage,
-      event: Gw2ResolverEvent,
-      details: NativeResolvedDamageDetails & { readonly conditionStackIndex?: number }
+      ...[on, event, details]: Gw2ResolverReactionArgs<EffectReactionStage>
     ) {
       const ref = event.effectReaction;
 
@@ -90,33 +85,44 @@ export function createEffectReactions<T extends object>(
         throw new TypeError('Invalid resolved-effect reaction reference.');
 
       const { skill, rules } = group;
+      // Construct one discriminated trigger for both the predicate and its ordered actions.
+      const trigger: ResolvedEffectTrigger =
+        on === 'damage.resolved' ? { on, skill, event, details } : { on, skill, event };
+      const conditionStackIndex = on === 'condition.applied' ? details.conditionStackIndex : 1;
       for (const rule of rules) {
         // Splitting the first authored condition packet must not repeat a first-packet action for every stack.
         if (
           rule.on !== on ||
           rule.actor !== event.actorType ||
-          (rule.packets === 'first' && (ref.packet !== 1 || (details.conditionStackIndex ?? 1) !== 1))
+          (rule.packets === 'first' && (ref.packet !== 1 || conditionStackIndex !== 1))
         )
           continue;
 
-        const eligible =
-          rule.on === 'damage.resolved'
-            ? !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event, details })
-            : rule.on === 'condition.applied'
-              ? !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event })
-              : rule.on === 'control.resolved'
-                ? !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event })
-                : rule.on === 'buff.applied'
-                  ? !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event })
-                  : !rule.when || rule.when(runtime.mechanicQueries, { on: rule.on, skill, event });
+        if (!eligibleReaction(rule, runtime.mechanicQueries, trigger)) continue;
 
-        if (!eligible) continue;
-
-        const trigger: ResolvedEffectTrigger =
-          on === 'damage.resolved' ? { on, skill, event, details } : { on, skill, event };
         // Preserve authored action order after the reaction's packet and predicate gates pass.
         for (const action of rule.do) actions.apply(runtime.mechanics, { kind: 'effect', skill, trigger }, action);
       }
     }
   };
+}
+
+/** Match discriminants before invoking a stage-specific predicate, without manufacturing damage details. */
+function eligibleReaction<T extends object>(
+  rule: EffectReaction,
+  runtime: MechanicQueryContext<T>,
+  trigger: ResolvedEffectTrigger
+): boolean {
+  switch (rule.on) {
+    case 'damage.resolved':
+      return trigger.on === rule.on && (!rule.when || rule.when(runtime, trigger));
+    case 'condition.applied':
+      return trigger.on === rule.on && (!rule.when || rule.when(runtime, trigger));
+    case 'control.resolved':
+      return trigger.on === rule.on && (!rule.when || rule.when(runtime, trigger));
+    case 'buff.applied':
+      return trigger.on === rule.on && (!rule.when || rule.when(runtime, trigger));
+    case 'combo.resolved':
+      return trigger.on === rule.on && (!rule.when || rule.when(runtime, trigger));
+  }
 }

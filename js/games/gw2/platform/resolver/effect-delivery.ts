@@ -27,7 +27,11 @@ import { snapshotActivePlayerBuffs } from '#gw2/platform/resolver/damage-diagnos
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { HandlerRegistry, OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { createGw2HitResolution } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
+import type {
+  Gw2ResolverDispatchArgs,
+  Gw2ResolverReactionRegistry,
+  Gw2ResolverReactionResult
+} from '#gw2/platform/resolver/types.js';
 import { weaponStrengthProfileIdForEvent } from '#gw2/platform/resolver/weapon-strength-resolution.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
@@ -55,7 +59,7 @@ interface DeliveryHost {
   identify<E extends PacketIdentity>(event: E): E;
   reactionParent(event: PacketIdentity): number | undefined;
   eventOrder(): number;
-  nextEventOrder(): number;
+  allocateIdentity<E extends PacketIdentity>(event: E): E;
   withCause<R>(cause: Gw2ResolverEvent | null, run: () => R): R;
   observePacket(event: Gw2ResolverEvent): void;
   weaponSwap?(event: Gw2ResolverEvent): void;
@@ -188,8 +192,8 @@ export function createEffectDelivery<T extends object>(
 
     if (event.kind === 'internal') throw new TypeError('Internal work must use the work factory.');
 
-    const order = host.nextEventOrder();
-    const parent = reactionParent(event);
+    // Reserve before validation/admission so suppressed submissions retain their place in causal ordering.
+    const identified = host.allocateIdentity(event);
     const equippedProfileId =
       !cancelledByCast &&
       !deferPreparation &&
@@ -203,12 +207,9 @@ export function createEffectDelivery<T extends object>(
           })
         : null;
     const packet = assertSimulationEvent({
-      ...event,
+      ...identified,
       ...(equippedProfileId ? { weaponStrengthProfileId: equippedProfileId } : {}),
-      at: canonicalTime(event.at),
-      eventOrder: order,
-      causalOrder: event.causalOrder ?? queue.currentCausalOrder ?? order,
-      ...(event.parentEventOrder == null && parent != null ? { parentEventOrder: parent } : {})
+      at: canonicalTime(event.at)
     });
 
     if (packet.at < runtime.time) throw new RangeError('Events cannot backdate the live clock.');
@@ -490,16 +491,15 @@ export function createEffectDelivery<T extends object>(
     executed,
     owner: (event: Gw2ResolverEvent) => packetDelivery.get(event)?.owner,
     /** Both equipment and profession reactions stop granting hostile rewards after the lethal packet. */
-    react(
-      stage: Parameters<Gw2ResolverReactionRegistry['dispatch']>[0],
-      context: Parameters<Gw2ResolverReactionRegistry['dispatch']>[1],
-      event: Gw2ResolverEvent,
-      details: Parameters<Gw2ResolverReactionRegistry['dispatch']>[3],
-      registry: Gw2ResolverReactionRegistry
-    ) {
+    react<Args extends Gw2ResolverDispatchArgs>(
+      registry: Gw2ResolverReactionRegistry,
+      ...args: Args
+    ): Gw2ResolverReactionResult<Args[0]> {
+      const event = args[2];
+
       if (runtime.deathTime != null && (isHostileTargetEvent(event) || event.comboId != null)) return;
 
-      return withCause(event, () => registry.dispatch(stage, context, event, details));
+      return withCause(event, () => registry.dispatch(...args));
     }
   };
 }

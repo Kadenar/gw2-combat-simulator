@@ -335,7 +335,7 @@ const unrelentingStrikesCriticalReaction = Object.freeze({
   id: 'thief.unrelenting-strikes',
   actorTypes: [ACTOR.PLAYER] as const,
   when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: NativeResolvedDamageDetails) =>
-    Boolean(details.hitContext?.critEligible) && criticalBoonEligible(context, event, TRAIT.UNRELENTING_STRIKES),
+    details.hitContext.critEligible && criticalBoonEligible(context, event, TRAIT.UNRELENTING_STRIKES),
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
       balanceNumberFromContext(context, TRAIT.UNRELENTING_STRIKES, 'internalCooldown'),
@@ -425,9 +425,9 @@ const noQuarterCriticalReaction = Object.freeze({
   id: 'thief.no-quarter',
   actorTypes: [ACTOR.PLAYER] as const,
   when: (context: ThiefResolverContext, event: ThiefResolverEvent, details: NativeResolvedDamageDetails) =>
-    Boolean(details.hitContext?.critEligible) &&
+    details.hitContext.critEligible &&
     criticalBoonEligible(context, event, TRAIT.NO_QUARTER) &&
-    details.hitContext?.critical.furyActive === true,
+    details.hitContext.critical.furyActive === true,
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
       balanceNumberFromContext(context, TRAIT.NO_QUARTER, 'internalCooldown'),

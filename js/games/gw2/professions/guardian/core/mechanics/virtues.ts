@@ -9,7 +9,6 @@ import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -127,11 +126,10 @@ export function applyJusticeBurn(
   return active ? 'active' : 'passive';
 }
 
-/** Apply Justice from resolved-hit details and report only the burn emitted by this hit. */
+/** Count accepted Guardian hits and report only the Justice burn emitted by this hit. */
 export function reactToJusticeHitWithOptions(
   context: GuardianResolverContext,
   event: GuardianResolverEvent,
-  { hitContext }: Pick<NativeResolvedDamageDetails, 'hitContext'> = {},
   {
     retainsPassive = false,
     skillId = GUARDIAN_SKILL_IDS.JUSTICE,
@@ -149,7 +147,7 @@ export function reactToJusticeHitWithOptions(
   const isGuardianOwnedHit =
     isGw2PlayerActorEvent(event) || (event.source === 'guardian' && isGw2PlayerModifierOwnedEvent(event));
 
-  if (!hitContext || !isGuardianOwnedHit || !(Number(event.coefficient) > 0)) return null;
+  if (!isGuardianOwnedHit || !(Number(event.coefficient) > 0)) return null;
 
   const state = professionCoreState(context.profession);
 

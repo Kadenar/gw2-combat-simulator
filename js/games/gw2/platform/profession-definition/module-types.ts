@@ -49,9 +49,9 @@ interface NativeStateDefinition<TState extends object, TProjectOptions extends o
   readonly project?: (options: TProjectOptions) => TProjectedState;
 }
 
+/** Damage notifications always carry the hit sampled and applied by the resolver. */
 export interface NativeResolvedDamageDetails {
-  readonly hitContext?: Gw2HitResolutionContext;
-  readonly criticalChance?: number;
+  readonly hitContext: Gw2HitResolutionContext;
 }
 
 /** Runtime callbacks a module contributes; the platform composes Core and the selected specialization in order. */

@@ -13,6 +13,7 @@ import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
+import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
@@ -20,7 +21,7 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 const explosiveEntranceStrike = (runtime, event) =>
   compileProfessionRules({
     traitTriggers: explosiveEntrance.triggers.map((rule) => ({ ...rule, trait: explosiveEntrance.id }))
-  }).reactions['damage.resolved'](runtime, event, {});
+  }).reactions['damage.resolved'](runtime, event, resolvedTestHitDetails());
 
 const cases = [
   {

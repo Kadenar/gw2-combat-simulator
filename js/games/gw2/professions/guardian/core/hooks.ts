@@ -5,7 +5,6 @@ import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -117,8 +116,8 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
     onCooldownReset: refreshGuardianVirtues,
     reactions: {
       'damage.resolved'(runtime, event, details) {
-        const hit = (details as NativeResolvedDamageDetails).hitContext;
-        const damage = hit?.damage ?? 0;
+        const hit = details.hitContext;
+        const damage = hit.damage;
 
         // Weapon ignition precedes Zeal rewards, which precede Core passive Justice.
         if (event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0 && damage > 0)
@@ -127,13 +126,13 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
         if (event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0 && damage > 0)
           runtime.fireTrigger(guardianStruck, {
             cause: event,
-            targetHealthFractionBefore: hit!.targetHealthFractionBefore
+            targetHealthFractionBefore: hit.targetHealthFractionBefore
           });
 
         if (runtime.profession.specialization.kind !== 'Core') return;
 
         refreshGuardianVirtues(runtime);
-        reactToJusticeHitWithOptions(runtime, event, details);
+        reactToJusticeHitWithOptions(runtime, event);
       },
       'buff.applied'(runtime, event) {
         if (event.kind === boonKey(BOON.ALACRITY)) refreshGuardianVirtues(runtime);

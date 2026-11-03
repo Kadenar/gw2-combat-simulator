@@ -88,26 +88,19 @@ test('cast labels receive live profession data and the selected skill in combat 
 
 const skillId = 991001;
 
-// Query families are bound at their actual selection, reservation and application phases, with no engine escape hatch.
-test('identity, recharge-anchor and boon-duration policies receive only their declared queries', () => {
+// Query families stay narrow while cooldown completion consumes the skill's reserved declarative anchor.
+test('identity and boon-duration policies receive only their declared queries', () => {
   const selections = new Set();
-  const anchors = new Set();
   const durations = new Set();
   const reservations = [];
   const family = fixture({
-    skill: { cooldown: 1, effects: [{ type: 'boon', boon: 'might', duration: 2, stacks: 1 }] },
+    skill: { cooldown: 1, rechargeOffsetMs: 2000, effects: [{ type: 'boon', boon: 'might', duration: 2, stacks: 1 }] },
     hooks: {
       modifySkillId(context, id) {
         selections.add(context);
         assert.deepEqual(Object.keys(context), ['hasTrait']);
         assert.equal(context.hasTrait('test.trait'), true);
         return id;
-      },
-      rechargeStart(context, cast, at) {
-        anchors.add(context);
-        assert.deepEqual(Object.keys(context).sort(), ['requireBalanceProfile', 'time']);
-        assert.equal(context.time, cast.start);
-        return at + Number(context.requireBalanceProfile('test.proc').maximumStacks);
       },
       boonDuration(context, event, base, scaled) {
         durations.add(context);
@@ -132,7 +125,7 @@ test('identity, recharge-anchor and boon-duration policies receive only their de
     ]
   });
   assert.deepEqual(result.warnings, []);
-  for (const contexts of [selections, anchors, durations]) {
+  for (const contexts of [selections, durations]) {
     assert.equal(contexts.size, 1);
     assert.equal(Object.isFrozen([...contexts][0]), true);
   }

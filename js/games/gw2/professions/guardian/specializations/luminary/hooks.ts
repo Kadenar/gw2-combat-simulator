@@ -1,5 +1,4 @@
 import { ACTOR, AURA } from '#gw2/platform/constants.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import {
@@ -103,9 +102,9 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
     },
     reactions: {
       'damage.resolved'(runtime, event, details) {
-        countEffulgentHit(runtime, event, (details as NativeResolvedDamageDetails).hitContext?.damage ?? 0);
+        countEffulgentHit(runtime, event, details.hitContext.damage);
         refreshGuardianVirtues(runtime);
-        reactToJusticeHitWithOptions(runtime, event, details, {
+        reactToJusticeHitWithOptions(runtime, event, {
           skillId: ID.RADIANT_JUSTICE,
           skillName: 'Radiant Justice',
           passiveBurnDuration: 2

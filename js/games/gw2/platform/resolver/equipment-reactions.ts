@@ -12,9 +12,8 @@ import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2ResolverReactionContributions } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverReactionContributions, Gw2ResolverStageDetails } from '#gw2/platform/resolver/types.js';
 
 const GW2_REACTION_ORDER = Object.freeze({
   EARLY_COMMON: -200,
@@ -25,9 +24,11 @@ const GW2_REACTION_ORDER = Object.freeze({
 
 const SIGIL_PROC_LOOKUP = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;
 
-function conditionHelpers(context: Gw2ResolverRuntime, details: Record<string, unknown>): Gw2ConditionHelpers {
-  const activeConditionStackCount =
-    details.activeConditionStackCount as Gw2ConditionResolution['activeConditionStackCount'];
+function conditionHelpers(
+  context: Gw2ResolverRuntime,
+  details: Gw2ResolverStageDetails['control.resolved']
+): Gw2ConditionHelpers {
+  const { activeConditionStackCount } = details;
   return {
     activeConditionStackCount: (_relicContext, condition, at) => activeConditionStackCount(context, condition, at)
   };
@@ -39,9 +40,7 @@ function createResolvedCriticalSigilEffects(
   event: Gw2ResolverEvent,
   details: NativeResolvedDamageDetails
 ): void {
-  const critical = details.hitContext?.critical;
-
-  if (!critical) return;
+  const critical = details.hitContext.critical;
 
   const decision = decideCriticalSigils(event, gw2SigilIds(ctx.config, ctx.activeWeaponSet), critical, ctx.procs);
   const sourceSkill = event.skillName || '';
@@ -128,7 +127,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: 'sigil.critical-strike',
         order: GW2_REACTION_ORDER.EARLY_COMMON,
-        handler(ctx, event, details = {}) {
+        handler(ctx, event, details) {
           createResolvedCriticalSigilEffects(ctx, event, details);
         }
       },
@@ -147,9 +146,9 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: 'relic.after-hit',
         order: GW2_REACTION_ORDER.FINAL_COMMON,
-        handler(ctx, event, details = {}) {
+        handler(ctx, event, details) {
           // Eligibility uses the resolved profile even when the authored packet inherited its weapon strength.
-          const profile = (details as NativeResolvedDamageDetails).hitContext?.weaponStrength?.profileId;
+          const profile = details.hitContext.weaponStrength?.profileId;
           ctx.relic.rules.afterHit?.(
             ctx,
             ctx.relic.state,
@@ -163,7 +162,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: 'relic.fear',
         order: GW2_REACTION_ORDER.COMMON,
-        handler(ctx, application, details = {}) {
+        handler(ctx, application, details) {
           // Disable-triggered relics also accept Fear, once its condition is present on the target.
           if (application.condition === CONDITION.FEAR)
             ctx.relic.rules.control?.(ctx, ctx.relic.state, application, conditionHelpers(ctx, details));
@@ -172,11 +171,11 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: 'relic.condition',
         order: GW2_REACTION_ORDER.LATE_COMMON,
-        handler(ctx, application, details = {}) {
+        handler(ctx, application, details) {
           // Forward the original target count so relic thresholds do not include sibling stacks.
           ctx.relic.rules.condition?.(ctx, ctx.relic.state, application, {
             ...conditionHelpers(ctx, details),
-            stacksBeforeApplication: details.stacksBeforeApplication as number
+            stacksBeforeApplication: details.stacksBeforeApplication
           });
         }
       }
@@ -185,7 +184,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
       {
         id: 'relic.control',
         order: GW2_REACTION_ORDER.COMMON,
-        handler(ctx, event, details = {}) {
+        handler(ctx, event, details) {
           ctx.relic.rules.control?.(ctx, ctx.relic.state, event, conditionHelpers(ctx, details));
         }
       }

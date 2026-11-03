@@ -15,7 +15,7 @@ import {
   type TraitAttribution
 } from '#gw2/platform/profession-definition/trait-emission.js';
 import { isTriggerPoint, type TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { Gw2ResolverStage } from '#gw2/platform/resolver/types.js';
+import type { Gw2ResolverStage, Gw2ResolverStageDetails } from '#gw2/platform/resolver/types.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export interface RechargeRule<T extends object, TSkill extends Skill = Skill> {
@@ -323,32 +323,41 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
         prior?.(runtime, cast);
       };
     } else {
-      const stage = rule.on as Gw2ResolverStage;
-      const prior = compiled.reactions?.[stage];
-      compiled.reactions = {
-        ...compiled.reactions,
-        [stage]: (runtime: MechanicContext<T, TSkill>, event: Gw2ResolverEvent, details: Record<string, unknown>) => {
-          const context = runtime as unknown as MechanicContext;
+      // Capture the stage before wrapping its handler so the prior callback retains the same detail type.
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- The captured stage correlates the wrapped callback and prior handler.
+      const addReaction = <Stage extends Gw2ResolverStage>(stage: Stage) => {
+        const prior = compiled.reactions?.[stage];
+        compiled.reactions = {
+          ...compiled.reactions,
+          [stage]: (
+            runtime: MechanicContext<T, TSkill>,
+            event: Gw2ResolverEvent,
+            details: Gw2ResolverStageDetails[Stage]
+          ) => {
+            const context = runtime as unknown as MechanicContext;
 
-          // Hit predicates consume the resolved outcome, never a prediction from the packet.
-          if (
-            selected(runtime, rule) &&
-            (rule.when?.(runtime.queries as never, event as never, details as never) ?? true) &&
-            admitCooldown(context, rule)
-          ) {
-            if (rule.run) rule.run(runtime as never, event as never, details as never);
-            else if (rule.invoke != null)
-              invokeTraitSkill(runtime, rule.trait, rule.invoke, event, { announce: rule.announce });
-            else
-              emitTraitProfile(runtime, rule.trait, rule.emit!, event, {
-                effects: rule.effects,
-                attribution: resolveAttribution(rule, context, event)
-              });
+            // Hit predicates consume the resolved outcome, never a prediction from the packet.
+            if (
+              selected(runtime, rule) &&
+              (rule.when?.(runtime.queries as never, event as never, details as never) ?? true) &&
+              admitCooldown(context, rule)
+            ) {
+              if (rule.run) rule.run(runtime as never, event as never, details as never);
+              else if (rule.invoke != null)
+                invokeTraitSkill(runtime, rule.trait, rule.invoke, event, { announce: rule.announce });
+              else
+                emitTraitProfile(runtime, rule.trait, rule.emit!, event, {
+                  effects: rule.effects,
+                  attribution: resolveAttribution(rule, context, event)
+                });
+            }
+
+            return prior?.(runtime, event, details);
           }
-
-          return prior?.(runtime, event, details);
-        }
+        };
       };
+
+      addReaction(rule.on as Gw2ResolverStage);
     }
   }
 

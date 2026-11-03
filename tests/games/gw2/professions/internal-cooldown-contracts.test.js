@@ -515,11 +515,11 @@ test('Guardian charge procs stay blocked at the exact ICD boundary', () => {
   });
   const event = { type: 'damage', actorType: 'player', coefficient: 1, at: READY_AT };
 
-  reactToAshesHit(context, event, { hitContext: {} });
+  reactToAshesHit(context, event);
   assert.equal(state.ashes.charges, 2);
   assert.equal(conditions.length, 0);
 
-  reactToAshesHit(context, { ...event, at: AFTER_READY_AT }, { hitContext: {} });
+  reactToAshesHit(context, { ...event, at: AFTER_READY_AT });
   assert.equal(state.ashes.charges, 1);
   assert.equal(conditions.length, 1);
   assert.equal(procs.length, 1);

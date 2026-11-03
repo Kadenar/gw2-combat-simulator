@@ -12,6 +12,7 @@ import { scrapperState } from '#gw2/professions/engineer/specializations/scrappe
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
+import { controlTestDetails } from '#tests/helpers/gw2-resolver.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const cast = (name) => ({
@@ -145,7 +146,11 @@ test('Mercurial Tendencies admits only selected non-summon recharge reductions a
                 at: 1,
                 run(runtime) {
                   const react = (at) =>
-                    runtime.mechanics.combat.react('control.resolved', cause(at, { type: 'control', actorType }));
+                    runtime.mechanics.combat.react(
+                      'control.resolved',
+                      cause(at, { type: 'control', actorType }),
+                      controlTestDetails(runtime.config)
+                    );
                   react(1);
                   assert.equal(
                     runtime.procs.deadline('mercurialTendencies'),

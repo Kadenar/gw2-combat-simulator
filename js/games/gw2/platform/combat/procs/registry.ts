@@ -27,25 +27,40 @@ export interface ProcRegistry {
   claimCooldown(key: SkillId, at: number, duration: number): boolean;
 }
 
+/** Fixed proc deadlines and summon recharge work are mutually exclusive authorities for a key. */
+type ProcTimer = { kind: 'fixed'; readyAt: number } | { kind: 'work'; skill: Skill; progress: RechargeProgress };
+
 /** One registry per simulation owns proc deadlines; profile IDs and equipment namespaces isolate unrelated claims. */
 export function createProcRegistry(context: () => ProcRegistryContext): ProcRegistry {
-  const readyAt: Record<string, number> = Object.create(null);
-  const recharges = new Map<string, { skill: Skill; progress: RechargeProgress }>();
-  // Summon proc work integrates the captured companion's received recharge boons.
+  const timers = new Map<string, ProcTimer>();
+  // Read live received boons without storing a second deadline alongside the captured companion's work.
+  const project = (timer: ProcTimer): number => {
+    if (timer.kind === 'fixed') return timer.readyAt;
+
+    const { skill, progress } = timer;
+    return canonicalTime(
+      projectRecharge(
+        progress,
+        context().query.timeline.rechargeIntervals(skill, progress.workAnchorAt, Infinity, progress.companionId)
+      )
+    );
+  };
+
   const deadline = (key: SkillId): number => {
-    const recharge = recharges.get(String(key));
+    const timer = timers.get(String(key));
+    return timer ? project(timer) : 0;
+  };
 
-    if (recharge) {
-      const { skill, progress } = recharge;
-      readyAt[key] = canonicalTime(
-        projectRecharge(
-          progress,
-          context().query.timeline.rechargeIntervals(skill, progress.workAnchorAt, Infinity, progress.companionId)
-        )
-      );
-    }
+  // Eligible claims validate completely before replacing work or fixed deadlines, then reserve before child effects.
+  const reserveCooldown = (key: SkillId, at: number, duration: number): boolean => {
+    if (!Number.isFinite(duration) || duration < 0)
+      throw new TypeError('Proc cooldown duration must be a finite non-negative number.');
 
-    return readyAt[key] ?? 0;
+    const readyAt = at + duration;
+    timeKey(readyAt);
+    // Preserve caller arithmetic; comparisons canonicalize, and zero at time zero remains unarmed.
+    timers.set(String(key), { kind: 'fixed', readyAt });
+    return true;
   };
 
   return {
@@ -53,8 +68,7 @@ export function createProcRegistry(context: () => ProcRegistryContext): ProcRegi
     setDeadline(key: SkillId, at: number): void {
       if (typeof at !== 'number' || Number.isNaN(at)) throw new TypeError('Proc cooldown readyAt must be a number.');
 
-      recharges.delete(String(key));
-      readyAt[key] = at;
+      timers.set(String(key), { kind: 'fixed', readyAt: at });
     },
     /** Unarmed owners are ready at zero; callers with mechanic-specific boundary rules can inspect the deadline. */
     deadline,
@@ -87,30 +101,20 @@ export function createProcRegistry(context: () => ProcRegistryContext): ProcRegi
           name: profile.name,
           rechargeBuffAudience: RECIPIENT.SUMMONS
         };
-        const progress = { workAnchorAt: at, work, companionId };
-        const projected = canonicalTime(
-          projectRecharge(progress, runtime.query.timeline.rechargeIntervals(skill, at, Infinity, progress.companionId))
-        );
-        // Reserve before emitting children; reproject summon work when later boon applications become known.
-        recharges.set(String(key), { skill, progress });
-        readyAt[key] = projected;
+        const timer: ProcTimer = { kind: 'work', skill, progress: { workAnchorAt: at, work, companionId } };
+        // Validate projection before committing; subsequent reads incorporate later received-boon grants.
+        project(timer);
+        timers.set(String(key), timer);
         return true;
       }
 
-      const claimed = tryConsumeProcCooldown(readyAt, key, at, balanceProfileNumber(profile, 'internalCooldown'));
-
-      if (claimed) recharges.delete(String(key));
-
-      return claimed;
+      return reserveCooldown(key, at, balanceProfileNumber(profile, 'internalCooldown'));
     },
     // Scoped owners and non-ICD profile fields use the same deadline validation and exclusive boundary.
     claimCooldown(key: SkillId, at: number, duration: number): boolean {
-      deadline(key);
-      const claimed = tryConsumeProcCooldown(readyAt, key, at, duration);
+      if (!isInternalCooldownReady(at, deadline(key))) return false;
 
-      if (claimed) recharges.delete(String(key));
-
-      return claimed;
+      return reserveCooldown(key, at, duration);
     }
   };
 }
@@ -125,31 +129,4 @@ export function isInternalCooldownReady(at: number, readyAt = 0): boolean {
   const blockedThrough = Number.isFinite(readyAt) ? canonicalTime(readyAt) : readyAt;
   // Existing state models use 0 to mean that the ICD has never been armed.
   return blockedThrough === 0 ? triggerAt >= 0 : triggerAt > blockedThrough;
-}
-
-/** Claims a caller-owned ICD after eligibility checks, before effects can trigger another reaction. */
-export function tryConsumeProcCooldown(
-  readyAtByKey: Record<string, number>,
-  key: string | number,
-  at: number,
-  duration: number
-): boolean {
-  const readyAt = readyAtByKey[key] ?? 0;
-
-  if (typeof readyAt !== 'number' || Number.isNaN(readyAt)) {
-    throw new TypeError('Proc cooldown readyAt must be a number.');
-  }
-
-  if (!isInternalCooldownReady(at, readyAt)) return false;
-
-  if (!Number.isFinite(duration) || duration < 0) {
-    throw new TypeError('Proc cooldown duration must be a finite non-negative number.');
-  }
-
-  const deadline = at + duration;
-  timeKey(deadline);
-  // Keep caller arithmetic unchanged; the proc predicate canonicalizes comparisons.
-  // Zero at time zero remains unarmed, so a zero-duration claim is not a deduplication gate.
-  readyAtByKey[key] = deadline;
-  return true;
 }

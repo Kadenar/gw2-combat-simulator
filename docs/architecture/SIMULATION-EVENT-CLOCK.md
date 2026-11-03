@@ -98,11 +98,12 @@ reserved once for accepted commit-eligible casts; rejection or pre-commit cancel
 ### Cooldown and ammo timestamps
 
 Recharge uses ordinary cooldown or ammo-recharge metadata plus shared/profession rules. The default anchor is
-`effectiveEnd`; `rechargeAnchor: 'castStart'` selects `start`. Negative offsets are clamped at cast start:
+`effectiveEnd`; `rechargeAnchor: 'castStart'` selects `start`. Authored progress defaults to one. The anchor is reserved
+once at acceptance, with negative offsets clamped at cast start:
 
 ```text
-baseRechargeStart = selectedAnchor + rechargeOffsetMs / 1000
-rechargeStart     = max(start, professionModifiedRechargeStart)
+baseRechargeStart = start + (selectedAnchor - start) * rechargeProgress + rechargeOffsetMs / 1000
+rechargeStart     = canonicalTime(max(start, baseRechargeStart))
 ordinaryReadyAt   = rechargeStart + rechargeDuration
 ```
 

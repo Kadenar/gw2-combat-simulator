@@ -193,7 +193,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
         Number(event.coefficient) > 0
       ) {
         const firstBurst = firstBurstHit(runtime, event);
-        resolveCriticalOpportunity(runtime, event, details.hitContext as Gw2HitResolutionContext, firstBurst);
+        resolveCriticalOpportunity(runtime, event, details.hitContext, firstBurst);
       }
 
       // Only adrenaline builds gain resource from ordinary player or Sigil strikes.

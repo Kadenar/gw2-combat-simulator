@@ -9,6 +9,7 @@ import { catalystState } from '#gw2/professions/elementalist/specializations/cat
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const sphere = elementalistCatalog.skillsById.get(62813);
@@ -103,15 +104,19 @@ test('Catalyst hit rewards preserve eligibility, sphere suppression, and actual 
         catalog: (catalog) => withProfile(catalog, TRAIT.DEPTH_OF_ELEMENTS, { resourceGain: 1.5 }),
         initialize(runtime) {
           catalystState.from(runtime.profession).sphereActiveUntil = sphereActive ? 10 : 0;
-          catalystHooks.reactions['damage.resolved'](runtime.mechanics, {
-            type: 'damage',
-            at: 0,
-            actorType,
-            coefficient,
-            hits: 7,
-            sourceId: 42,
-            skillName: 'Accepted fixture'
-          });
+          catalystHooks.reactions['damage.resolved'](
+            runtime.mechanics,
+            {
+              type: 'damage',
+              at: 0,
+              actorType,
+              coefficient,
+              hits: 7,
+              sourceId: 42,
+              skillName: 'Accepted fixture'
+            },
+            resolvedTestHitDetails()
+          );
         }
       }
     );
@@ -125,14 +130,18 @@ test('Catalyst hit rewards preserve eligibility, sphere suppression, and actual 
     {
       initialize(runtime) {
         for (let index = 0; index < 2; index++)
-          catalystHooks.reactions['damage.resolved'](runtime.mechanics, {
-            type: 'damage',
-            at: 0,
-            actorType: 'player',
-            coefficient: 1,
-            sourceId: 42,
-            skillName: 'Overflow fixture'
-          });
+          catalystHooks.reactions['damage.resolved'](
+            runtime.mechanics,
+            {
+              type: 'damage',
+              at: 0,
+              actorType: 'player',
+              coefficient: 1,
+              sourceId: 42,
+              skillName: 'Overflow fixture'
+            },
+            resolvedTestHitDetails()
+          );
       }
     }
   );

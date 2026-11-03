@@ -8,7 +8,6 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import {
   balanceNumberFromContext,
   requireBalanceProfileFromContext,
@@ -163,7 +162,7 @@ const kingOfFires = defineTrait({
       run(runtime, event, details) {
         if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
-        const hit = details.hitContext as Gw2HitResolutionContext;
+        const hit = details.hitContext;
         const state = berserkerState.from(runtime.profession);
 
         if (

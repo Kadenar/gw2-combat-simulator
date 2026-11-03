@@ -1,6 +1,5 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
@@ -57,7 +56,7 @@ export const deadeyeHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
     reactions: {
       'damage.resolving': deadeyeMaliceSnapshot,
       'damage.resolved'(runtime, event, details) {
-        reactDeadeyeMalice(runtime, event, (details as { hitContext?: Gw2HitResolutionContext }).hitContext);
+        reactDeadeyeMalice(runtime, event, details.hitContext);
       }
     },
     tasks: {

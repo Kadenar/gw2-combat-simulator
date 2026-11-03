@@ -1,5 +1,6 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { Gw2ConditionWork } from '#gw2/platform/resolver/condition-resolution.js';
+import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { Gw2ConditionResolution, Gw2ConditionWork } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { StableEventQueue } from '#kernel/events/queue.js';
@@ -46,26 +47,52 @@ type Gw2ResolverEventHandler = (context: Gw2ResolverRuntime, event: Gw2ResolverE
 
 export type Gw2ResolverEventHandlers = Readonly<Record<string, Gw2ResolverEventHandler>>;
 
-export type Gw2ResolverStage =
-  | 'aura.applied'
-  | 'combo.resolved'
-  | 'buff.applied'
-  | 'damage.resolving'
-  | 'damage.resolved'
-  | 'condition.applied'
-  | 'condition-tick.resolved'
-  | 'control.resolved';
+/** Each notification carries only the facts produced by its resolution stage. */
+export interface Gw2ResolverStageDetails {
+  'aura.applied': undefined;
+  'combo.resolved': undefined;
+  'buff.applied': undefined;
+  'damage.resolving': undefined;
+  'damage.resolved': NativeResolvedDamageDetails;
+  'condition.applied': {
+    readonly application: ReturnType<Gw2ConditionResolution['applyCondition']>[number];
+    readonly conditionStackIndex: number;
+    readonly stacksBeforeApplication: number;
+    readonly activeConditionStackCount: Gw2ConditionResolution['activeConditionStackCount'];
+  };
+  'condition-tick.resolved': {
+    readonly resolved: NonNullable<ReturnType<Gw2ConditionResolution['handleConditionTick']>>;
+  };
+  'control.resolved': {
+    readonly activeConditionStackCount: Gw2ConditionResolution['activeConditionStackCount'];
+  };
+}
+
+export type Gw2ResolverStage = keyof Gw2ResolverStageDetails;
+
+export type Gw2ResolverReactionResult<Stage extends Gw2ResolverStage> = Stage extends 'damage.resolving'
+  ? Record<string, unknown> | void
+  : void;
+
+/** Correlated tuples prevent forwarders from separating a stage from its required payload. */
+export type Gw2ResolverReactionArgs<Stage extends Gw2ResolverStage = Gw2ResolverStage> = {
+  [S in Stage]: [stage: S, event: Gw2ResolverEvent, details: Gw2ResolverStageDetails[S]];
+}[Stage];
+
+export type Gw2ResolverDispatchArgs<Stage extends Gw2ResolverStage = Gw2ResolverStage> = {
+  [S in Stage]: [stage: S, context: Gw2ResolverRuntime, event: Gw2ResolverEvent, details: Gw2ResolverStageDetails[S]];
+}[Stage];
 
 /** Only pre-hit resolution transforms a packet; all other stages observe accepted facts. */
 export type Gw2ResolverReactions<TContext = Gw2ResolverRuntime> = Readonly<{
   [Stage in Gw2ResolverStage]?: (
     context: TContext,
     event: Gw2ResolverEvent,
-    details: Record<string, unknown>
-  ) => Stage extends 'damage.resolving' ? Record<string, unknown> | void : void;
+    details: Gw2ResolverStageDetails[Stage]
+  ) => Gw2ResolverReactionResult<Stage>;
 }>;
 
-interface Gw2ResolverReactionHook<Stage extends Gw2ResolverStage> {
+export interface Gw2ResolverReactionHook<Stage extends Gw2ResolverStage> {
   readonly id: string;
   readonly order: number;
   readonly handler: NonNullable<Gw2ResolverReactions[Stage]>;
@@ -76,22 +103,5 @@ export type Gw2ResolverReactionContributions = Readonly<{
 }>;
 
 export interface Gw2ResolverReactionRegistry {
-  dispatch(
-    stage: 'damage.resolving',
-    context: Gw2ResolverRuntime,
-    event: Gw2ResolverEvent,
-    details?: Record<string, unknown>
-  ): Record<string, unknown> | void;
-  dispatch(
-    stage: Exclude<Gw2ResolverStage, 'damage.resolving'>,
-    context: Gw2ResolverRuntime,
-    event: Gw2ResolverEvent,
-    details?: Record<string, unknown>
-  ): void;
-  dispatch(
-    stage: Gw2ResolverStage,
-    context: Gw2ResolverRuntime,
-    event: Gw2ResolverEvent,
-    details?: Record<string, unknown>
-  ): Record<string, unknown> | void;
+  dispatch<Args extends Gw2ResolverDispatchArgs>(...args: Args): Gw2ResolverReactionResult<Args[0]>;
 }

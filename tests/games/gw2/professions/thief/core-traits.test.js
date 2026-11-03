@@ -22,6 +22,7 @@ import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
+import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -209,7 +210,12 @@ for (const [name, traitId, invoke, output] of [
   [
     'Panic Strike',
     TRAIT.PANIC_STRIKE,
-    (c) => reactThiefCoreDamage(c, { type: 'damage', at: c.effectiveEnd, actorType: 'player', coefficient: 1 }, {}),
+    (c) =>
+      reactThiefCoreDamage(
+        c,
+        { type: 'damage', at: c.effectiveEnd, actorType: 'player', coefficient: 1 },
+        resolvedTestHitDetails()
+      ),
     'settleCondition'
   ]
 ]) {
@@ -346,7 +352,7 @@ test('Potent Poison adjusts each moved player poison packet', () => {
       skillName: 'Death Blossom',
       activationId: 'dual-test'
     },
-    {}
+    resolvedTestHitDetails()
   );
   assert.equal(ambition.conditions.find((event) => event.sourceId === TRAIT.DEADLY_AMBITION).stacks, 2);
 
@@ -473,7 +479,7 @@ test('Deadly Ambition applies once on the first hit of each dual attack', () => 
         skillId: skill.id,
         skillName: skill.name
       },
-      {}
+      resolvedTestHitDetails()
     );
   }
 
@@ -617,13 +623,13 @@ test('Spider Venom remains a base effect and Leeching Venoms stays nested after 
   const strike = { type: 'damage', at: 1, actorType: 'player', coefficient: 1, skillId: 900006, skillName: 'Strike' };
   const withoutTrait = traitContext();
   withoutTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ charges: 1, expiresAt: 10 }];
-  reactThiefCoreDamage(withoutTrait.context, strike, {});
+  reactThiefCoreDamage(withoutTrait.context, strike, resolvedTestHitDetails());
   assert.equal(withoutTrait.conditions[0].skillId, ID.SPIDER_VENOM);
   assert.equal(withoutTrait.context.queue.pending().length, 0);
 
   const withTrait = traitContext([TRAIT.LEECHING_VENOMS]);
   withTrait.core.venomChargeBatches[ID.SPIDER_VENOM] = [{ charges: 1, expiresAt: 10 }];
-  reactThiefCoreDamage(withTrait.context, strike, {});
+  reactThiefCoreDamage(withTrait.context, strike, resolvedTestHitDetails());
   assert.equal(withTrait.conditions[0].skillId, ID.SPIDER_VENOM);
   assert.equal(withTrait.context.queue.dequeue().sourceId, TRAIT.LEECHING_VENOMS);
 });
@@ -679,7 +685,7 @@ test('Panic Strike applies immobilize then its poison follow-up', () => {
       coefficient: 1,
       skillName: 'Threshold Strike'
     },
-    {}
+    resolvedTestHitDetails()
   );
   assert.equal(conditions[0].condition, 'Immobilized');
   context.fireTrigger(thiefConditionApplied, { cause: conditions[0] });

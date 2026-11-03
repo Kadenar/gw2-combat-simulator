@@ -9,6 +9,7 @@ import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 test('Kinetic Battery resets before its reward and admits only qualifying toolbelt casts', () => {
@@ -77,7 +78,7 @@ test('Aim-Assisted Rocket claims its ICD and cumulative progress before emitting
   const strike = bindTriggerPoints(context, engineerProfession).reactions['damage.resolved'];
   const applyAimAssistedRocket = (_context, hit) => {
     context.time = hit.at;
-    strike(context, hit, {});
+    strike(context, hit, resolvedTestHitDetails());
   };
 
   const event = { at: 1, actorType: 'player', projectile: true, skillName: 'Projectile', coefficient: 1 };

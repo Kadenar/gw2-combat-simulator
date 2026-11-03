@@ -1,6 +1,5 @@
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import {
@@ -71,15 +70,12 @@ export const firebrandHooks = composeRuntimeHooks<GuardianRuntimeState, Guardian
       firebrandTomeAvailability(runtime, skill) ?? firebrandMantraAvailability(runtime, skill),
     reactions: {
       'damage.resolved'(runtime, event, details) {
-        if (
-          event.actorType === ACTOR.PLAYER &&
-          ((details as NativeResolvedDamageDetails).hitContext?.damage ?? 0) > 0
-        ) {
-          reactToAshesHit(runtime, event, details);
+        if (event.actorType === ACTOR.PLAYER && details.hitContext.damage > 0) {
+          reactToAshesHit(runtime, event);
           runtime.fireTrigger(firebrandStruck, { cause: event });
         }
 
-        reactToTomeJusticeHit(runtime, event, details);
+        reactToTomeJusticeHit(runtime, event);
       },
       'buff.applied'(runtime, event) {
         // Executed history is appended after dispatch; reproject once the applied Alacrity window is queryable.

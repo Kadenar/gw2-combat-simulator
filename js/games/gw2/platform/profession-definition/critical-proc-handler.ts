@@ -44,14 +44,14 @@ export function criticalProcHandler<
   TDetails extends NativeResolvedDamageDetails
 >(
   options: ResolvedCriticalHitOptions<TContext, TEvent, TDetails>
-): (context: TContext, event: TEvent, details?: TDetails) => void {
+): (context: TContext, event: TEvent, details: TDetails) => void {
   if (!(options.id || '').trim() || typeof options.handler !== 'function') {
     throw new TypeError('Critical proc requires id and handler.');
   }
 
   const actorTypes = new Set(options.actorTypes || [ACTOR.PLAYER]);
 
-  return (context, event, details = {} as TDetails) => {
+  return (context, event, details) => {
     // Reject ineligible actors and profession predicates before
     // reading cooldowns or consuming a secondary random stream.
     if (!actorTypes.has(event.actorType)) return;
@@ -69,12 +69,12 @@ export function criticalProcHandler<
         ? options.internalCooldown.duration(context)
         : options.internalCooldown.duration
       : 0;
-    const criticalChance = details.hitContext?.critical.chance ?? details.criticalChance ?? 0;
+    const criticalChance = details.hitContext.critical.chance;
 
     // Professions own deadlines; both modes consume the canonical seeded critical outcome.
     const state = options.internalCooldown ? { readyAt: options.internalCooldown.readyAt(context) } : undefined;
     const application = advanceCriticalProc(
-      criticalOpportunity(criticalChance, details.hitContext?.critical.didCrit),
+      criticalOpportunity(criticalChance, details.hitContext.critical.didCrit),
       {
         id: options.id,
         at: event.at,

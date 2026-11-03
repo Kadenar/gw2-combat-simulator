@@ -100,7 +100,7 @@ export const WARRIOR_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Ski
             when: (_runtime, { event, details }) =>
               Number(event.coefficient) > 0 &&
               Boolean(
-                details.hitContext?.critEligible &&
+                details.hitContext.critEligible &&
                 details.hitContext.critical.chance > 0 &&
                 details.hitContext.critical.didCrit
               ),

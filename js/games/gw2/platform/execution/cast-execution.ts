@@ -31,10 +31,7 @@ import {
 } from '#gw2/platform/execution/cast-timing.js';
 import { resolveInputControl } from '#gw2/platform/execution/input-controls.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
-import {
-  createCastDetailContext,
-  createRechargeStartContext
-} from '#gw2/platform/profession-definition/runtime-context.js';
+import { createCastDetailContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
@@ -75,7 +72,6 @@ export function createCastExecution<T extends object>(
 ) {
   const { config, query, cursor, cooldownController } = runtime;
   const castDetailContext = createCastDetailContext(() => runtime.profession);
-  const rechargeStartContext = createRechargeStartContext(() => runtime.time, profession.catalog);
   const inFlight = new Map<SkillId, Set<string>>();
   const lockouts = new Map<string, number>();
   const reservations = createCastReservations<Omit<RuntimeCast, 'id'> & { firstStrikeAt: number }>();
@@ -255,17 +251,11 @@ export function createCastExecution<T extends object>(
       ? baseWork
       : (profession.reserveRecharge?.(runtime.mechanics, skill, baseWork) ?? baseWork);
     const usesAmmo = cooldownController.ensureAmmo(skill) != null;
-    // Resolve the selected anchor once before reservation, retaining the same value through completion.
-    const canonicalRechargeStart =
+    // Reserve the selected skill's declarative recharge anchor once so completion uses the accepted value.
+    const rechargeStart =
       start +
       (skill.rechargeAnchor === 'castStart' ? 0 : effectiveEnd - start) * (skill.rechargeProgress ?? 1) +
       (skill.rechargeOffsetMs ?? 0) / 1000;
-    const rechargeStart =
-      profession.rechargeStart?.(
-        rechargeStartContext,
-        { skill, start, fullEnd, effectiveEnd, cancelledBeforeCommit: cancelled },
-        canonicalRechargeStart
-      ) ?? canonicalRechargeStart;
 
     if (!Number.isFinite(rechargeStart)) throw new RangeError('Recharge start must be finite.');
 

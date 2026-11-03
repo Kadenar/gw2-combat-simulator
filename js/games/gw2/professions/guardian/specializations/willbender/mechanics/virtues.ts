@@ -122,7 +122,7 @@ function reactToWillbenderHit(
   details: NativeResolvedDamageDetails
 ): void {
   if (
-    !((details.hitContext?.damage ?? 0) > 0) ||
+    !(details.hitContext.damage > 0) ||
     !(Number(event.coefficient) > 0) ||
     (event.actorType !== ACTOR.PLAYER && event.sourceId !== `sigil.${SIGIL_IDS.AIR}`)
   )

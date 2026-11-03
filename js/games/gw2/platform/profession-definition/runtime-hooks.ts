@@ -40,7 +40,6 @@ export type RuntimeHooks<State extends object, TSkill extends Skill = Skill> = P
     | 'eventHandlers'
     | 'reactions'
     | 'rechargeWork'
-    | 'rechargeStart'
     | 'maximumAmmo'
     | 'reserveRecharge'
     | 'rechargeCompanionId'
@@ -217,7 +216,6 @@ const CALLBACK_RULES = {
   modifyEffects: transformThird,
   // Core and specialization modifiers compose before the runtime reserves the selected work.
   rechargeWork: transformThird,
-  rechargeStart: transformThird,
   // Read-only capacity policies transform in declaration order; zero intentionally disables the pool.
   maximumAmmo: transformThird,
   reserveRecharge: transformThird,

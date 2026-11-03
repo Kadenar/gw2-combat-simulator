@@ -284,7 +284,7 @@ const searingPact = defineTrait({
       on: 'damage.resolved',
       when: (_runtime, event, details) =>
         Boolean(event.willbenderFlames) &&
-        (details.hitContext?.damage ?? 0) > 0 &&
+        details.hitContext.damage > 0 &&
         Number(event.coefficient) > 0 &&
         (event.actorType === ACTOR.PLAYER || event.sourceId === `sigil.${SIGIL_IDS.AIR}`),
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BURNING,

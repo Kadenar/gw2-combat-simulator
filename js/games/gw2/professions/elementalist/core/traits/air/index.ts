@@ -99,7 +99,7 @@ export const freshAir = defineTrait({
     }),
     onTriggerPoint(elementalistDamageResolved, {
       run: (runtime: ElementalistRuntime, { cause, details }: ElementalistDamageResolved) =>
-        applyFreshAirCritical(runtime, cause, details.hitContext!.critical)
+        applyFreshAirCritical(runtime, cause, details.hitContext.critical)
     }),
     onTriggerPoint(elementalistEventPreparing, {
       run: (runtime: ElementalistRuntime, { event }: { readonly event: SimulationEventBase }) =>

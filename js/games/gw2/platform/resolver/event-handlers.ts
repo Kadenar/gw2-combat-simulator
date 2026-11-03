@@ -53,7 +53,7 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
   // Accepted standard boons and ordinary buffs have exclusive stores, shared recipients and causal ordering.
   recordBuffApplication(isStandardBoon(kind) ? ctx.boons : ctx.buffs, event);
   recordCompanionBuff(ctx.companions, event);
-  reactions.dispatch('buff.applied', ctx, event);
+  reactions.dispatch('buff.applied', ctx, event, undefined);
 }
 
 /**
@@ -97,7 +97,7 @@ export function createGw2ResolverEventHandlers({
 
     damage(ctx, event) {
       // Apply impact-time adjustments to both scheduled hits and resolver-created procs before calculating damage.
-      const updates = reactions.dispatch('damage.resolving', ctx, event);
+      const updates = reactions.dispatch('damage.resolving', ctx, event, undefined);
 
       if (updates) event = { ...event, ...updates };
 

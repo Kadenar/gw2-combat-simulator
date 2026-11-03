@@ -75,7 +75,7 @@ export const symbolicExposure = defineTrait({
       when: (_runtime, event, details) =>
         event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
-        (details.hitContext?.damage ?? 0) > 0 &&
+        details.hitContext.damage > 0 &&
         event.metadata?.guardianSymbol === true,
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.VULNERABILITY,
       attribution: {

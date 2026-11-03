@@ -16,6 +16,7 @@ import type { ComboFieldEvent } from '#gw2/platform/combos/types.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
+import type { Gw2ResolverReactionArgs } from '#gw2/platform/resolver/types.js';
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
@@ -168,6 +169,6 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
       runtime.warnings.push(diagnostic);
     },
     // Resolve the dispatcher when used so query-only contexts need not provide reaction capabilities.
-    react: (...args: Parameters<Gw2ResolverRuntime['dispatchReaction']>) => runtime.dispatchReaction(...args)
+    react: <Args extends Gw2ResolverReactionArgs>(...args: Args) => runtime.dispatchReaction(...args)
   });
 }

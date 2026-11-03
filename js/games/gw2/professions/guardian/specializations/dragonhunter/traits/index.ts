@@ -76,7 +76,7 @@ const bigGameHunter = defineTrait({
       when: (runtime, event, details) =>
         event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
-        (details.hitContext?.damage ?? 0) > 0 &&
+        details.hitContext.damage > 0 &&
         dragonhunterState.from(runtime.profession).tetherUntil > runtime.time,
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.VULNERABILITY,
       attribution: (_runtime, event) => ({

@@ -36,6 +36,7 @@ import {
   type SkillFlipWindows
 } from '#gw2/platform/execution/skill-flips.js';
 import type { FlipWindowOptions } from '#gw2/platform/execution/skill-flips.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { createMaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
@@ -43,9 +44,14 @@ import { createEffectDelivery } from '#gw2/platform/resolver/effect-delivery.js'
 import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
 import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
 import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
-import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
+import { createGw2ResolverReactionRegistry, mapGw2Reactions } from '#gw2/platform/resolver/reaction-registry.js';
+import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
-import type { Gw2ResolverReactionRegistry } from '#gw2/platform/resolver/types.js';
+import type {
+  Gw2ResolverReactionArgs,
+  Gw2ResolverReactionRegistry,
+  Gw2ResolverStageDetails
+} from '#gw2/platform/resolver/types.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { captureRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
@@ -177,12 +183,13 @@ export function runRuntime<T extends object>(
     apply: (context, trigger, action) => applySideEffect(context, trigger, action, profession.sideEffectHandlers)
   });
   // Skill-owned actions run immediately before the composed profession reactions, through the same acceptance gates.
-  function effectReactionContribution(stage: EffectReactionStage) {
+  function effectReactionContribution<Stage extends EffectReactionStage>(stage: Stage) {
     return {
       id: `skill.${stage}`,
       order: -1,
-      handler: (_context: unknown, event: Gw2ResolverEvent, details: Record<string, unknown> = {}) =>
-        effectReactions.dispatch(runtime, stage, event, details)
+      handler: (_context: unknown, event: Gw2ResolverEvent, details: Gw2ResolverStageDetails[Stage]) =>
+        // This contribution captures one stage; its handler supplies that same stage's details.
+        effectReactions.dispatch(runtime, ...([stage, event, details] as Gw2ResolverReactionArgs<EffectReactionStage>))
     };
   }
 
@@ -200,18 +207,14 @@ export function runRuntime<T extends object>(
       'damage.resolved': [...(contributions['damage.resolved'] ?? []), effectReactionContribution('damage.resolved')],
       'control.resolved': [...(contributions['control.resolved'] ?? []), effectReactionContribution('control.resolved')]
     },
-    professionReactions: Object.fromEntries(
-      Object.entries(execution.professionReactions ?? {}).map(([stage, handler]) => [
-        stage,
-        (_context, event, details) => {
-          return handler(runtime.mechanics, event, details);
-        }
-      ])
+    professionReactions: mapGw2Reactions<MechanicContext<T>, Gw2ResolverRuntime>(
+      execution.professionReactions ?? {},
+      (_stage, handler) => (_context, event, details) => handler(runtime.mechanics, event, details)
     )
   });
   const reactions: Gw2ResolverReactionRegistry = {
-    dispatch(stage, context, event, details) {
-      return deliveryOwner.react(stage, context, event, details, actualReactions);
+    dispatch(...args) {
+      return deliveryOwner.react(actualReactions, ...args);
     }
   };
   // Packet creation and condition-stack expansion share a run budget independent of scheduler iteration limits.
@@ -435,7 +438,7 @@ export function runRuntime<T extends object>(
     reactionParent,
     withCause,
     eventOrder: coordinator.eventOrder,
-    nextEventOrder: coordinator.nextEventOrder,
+    allocateIdentity: coordinator.allocateIdentity,
     observePacket: casts.observePacket,
     weaponSwap: producers.weaponSwap
   });

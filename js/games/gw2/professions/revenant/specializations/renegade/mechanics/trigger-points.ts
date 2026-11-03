@@ -14,7 +14,7 @@ export const renegadeCastCompleted = defineTriggerPoint<{ readonly cast: Runtime
 /** Fervor from the actual critical result settles before Razorclaw and Soulcleave. */
 export const renegadeStruck = defineTriggerPoint<{
   readonly cause: Gw2ResolverEvent;
-  readonly hit?: Gw2HitResolutionContext;
+  readonly hit: Gw2HitResolutionContext;
 }>('revenant.renegade-struck', [TRAIT.AMBUSH_COMMANDER]);
 
 /** Received Fury advances Fervor at the original boon-reaction boundary. */

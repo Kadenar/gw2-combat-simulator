@@ -408,7 +408,7 @@ function applyBladeCritical(
 
   if (!effect) return;
 
-  const critical = details.hitContext!.critical;
+  const critical = details.hitContext.critical;
   const application = advanceCriticalProc(criticalOpportunity(critical.chance, critical.didCrit), {
     id: proc,
     at: runtime.time

@@ -1,32 +1,47 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createProcRegistry, tryConsumeProcCooldown } from '#gw2/platform/combat/procs/registry.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
+
+// Explicit fixed claims need no profile lookup or received-boon timeline.
+function fixedRegistry() {
+  return createProcRegistry(() => {
+    throw new Error('Fixed cooldowns must not query recharge context.');
+  });
+}
 
 // Exercise ordinary proc claims independently of profession effects and critical progress.
 test('proc cooldown claims preserve canonical boundaries and isolate keys and owners', () => {
-  const state = {};
-  assert.equal(tryConsumeProcCooldown(state, 'trait', 0, 1), true);
-  assert.deepEqual(state, { trait: 1 });
+  const procs = fixedRegistry();
+  assert.equal(procs.claimCooldown('trait', 0, 1), true);
+  assert.equal(procs.deadline('trait'), 1);
   for (const at of [0, 0.999999, 1, 1.0000004]) {
-    assert.equal(tryConsumeProcCooldown(state, 'trait', at, 1), false);
-    assert.deepEqual(state, { trait: 1 });
+    assert.equal(procs.claimCooldown('trait', at, 1), false);
+    assert.equal(procs.deadline('trait'), 1);
   }
 
-  assert.equal(tryConsumeProcCooldown(state, 'trait', 1.000001, 1), true);
-  assert.equal(state.trait, 2.000001);
-  assert.equal(tryConsumeProcCooldown(state, 42, 0, 1), true);
-  const otherOwner = {};
-  assert.equal(tryConsumeProcCooldown(otherOwner, 'trait', 0, 1), true);
-  assert.deepEqual(otherOwner, { trait: 1 });
+  assert.equal(procs.claimCooldown('trait', 1.000001, 1), true);
+  assert.equal(procs.deadline('trait'), 2.000001);
+  assert.equal(procs.claimCooldown(42, 0, 1), true);
+  assert.equal(procs.claimCooldown('42', 0, 1), false);
+  assert.equal(procs.deadline('42'), 1);
+  const otherOwner = fixedRegistry();
+  assert.equal(otherOwner.claimCooldown('trait', 0, 1), true);
+  assert.equal(otherOwner.deadline('trait'), 1);
+  assert.equal(procs.deadline('trait'), 2.000001);
 });
 
 test('proc cooldown validation rejects invalid claims without mutating state', () => {
-  for (const readyAt of [NaN, 'invalid', Number.MAX_VALUE]) {
-    const state = { trait: readyAt };
-    assert.throws(() => tryConsumeProcCooldown(state, 'trait', 0, 1));
-    assert.deepEqual(state, { trait: readyAt });
+  const procs = fixedRegistry();
+  procs.setDeadline('trait', 2);
+  for (const readyAt of [NaN, 'invalid']) {
+    assert.throws(() => procs.setDeadline('trait', readyAt), /readyAt must be a number/);
+    assert.equal(procs.deadline('trait'), 2);
   }
+
+  procs.setDeadline('oversized', Number.MAX_VALUE);
+  assert.throws(() => procs.claimCooldown('oversized', 0, 1), /safe integer microseconds/);
+  assert.equal(procs.deadline('oversized'), Number.MAX_VALUE);
 
   for (const [at, duration] of [
     [0, NaN],
@@ -36,27 +51,28 @@ test('proc cooldown validation rejects invalid claims without mutating state', (
     [NaN, 1],
     [Infinity, 1]
   ]) {
-    const state = {};
-    assert.throws(() => tryConsumeProcCooldown(state, 'trait', at, duration));
-    assert.deepEqual(state, {});
+    const empty = fixedRegistry();
+    assert.throws(() => empty.claimCooldown('trait', at, duration));
+    assert.equal(empty.deadline('trait'), 0);
   }
 
-  const blocked = { trait: 2 };
-  assert.equal(tryConsumeProcCooldown(blocked, 'trait', 1, NaN), false);
-  assert.deepEqual(blocked, { trait: 2 });
+  assert.equal(procs.claimCooldown('trait', 1, NaN), false);
+  assert.equal(procs.deadline('trait'), 2);
 });
 
 test('proc cooldowns preserve infinite sentinels and zero-duration behavior', () => {
-  const state = { blocked: Infinity, unarmed: -Infinity };
-  assert.equal(tryConsumeProcCooldown(state, 'blocked', 10, 1), false);
-  assert.equal(state.blocked, Infinity);
-  assert.equal(tryConsumeProcCooldown(state, 'unarmed', 0, 1), true);
-  assert.equal(state.unarmed, 1);
-  assert.equal(tryConsumeProcCooldown(state, 'zero', 0, 0), true);
-  assert.equal(tryConsumeProcCooldown(state, 'zero', 0, 0), true);
-  assert.equal(tryConsumeProcCooldown(state, 'zero', 1, 0), true);
-  assert.equal(tryConsumeProcCooldown(state, 'zero', 1, 0), false);
-  assert.equal(tryConsumeProcCooldown(state, 'zero', 1.000001, 0), true);
+  const procs = fixedRegistry();
+  procs.setDeadline('blocked', Infinity);
+  procs.setDeadline('unarmed', -Infinity);
+  assert.equal(procs.claimCooldown('blocked', 10, 1), false);
+  assert.equal(procs.deadline('blocked'), Infinity);
+  assert.equal(procs.claimCooldown('unarmed', 0, 1), true);
+  assert.equal(procs.deadline('unarmed'), 1);
+  assert.equal(procs.claimCooldown('zero', 0, 0), true);
+  assert.equal(procs.claimCooldown('zero', 0, 0), true);
+  assert.equal(procs.claimCooldown('zero', 1, 0), true);
+  assert.equal(procs.claimCooldown('zero', 1, 0), false);
+  assert.equal(procs.claimCooldown('zero', 1.000001, 0), true);
 });
 
 // Resolver callers supply event time explicitly; scoped claims retain independent recipient deadlines.

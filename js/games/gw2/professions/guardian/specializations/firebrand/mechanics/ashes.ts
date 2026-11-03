@@ -15,7 +15,6 @@ import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
@@ -189,12 +188,8 @@ function ashesTriggerAttribution(trigger: AshesTrigger) {
 }
 
 /** Consume exactly one eligible personal charge; condition settlement retains same-timestamp reaction ordering. */
-export function reactToAshesHit(
-  context: GuardianResolverContext,
-  event: GuardianResolverEvent,
-  { hitContext }: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
-): void {
-  if (!hitContext || !isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
+export function reactToAshesHit(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+  if (!isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
 
   const resolved = spendAshesCharge(context, firebrandState.from(context.profession).ashes, event.at);
 

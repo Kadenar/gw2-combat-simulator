@@ -5,6 +5,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { mechanistHooks } from '#gw2/professions/engineer/specializations/mechanist/hooks.js';
+import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 
 const simulate = createObservedProfessionSimulator(engineerProfession, {});
@@ -32,7 +33,11 @@ test('mech consumers require explicit event or condition-application ownership',
     };
     assert.ok(Math.abs(profession.modifyCriticalChance(context, 0.1) - (owned ? 0.3 : 0.1)) < 1e-12);
     const rewards = [];
-    mechanistHooks.reactions['damage.resolved']({ fireTrigger: (...args) => rewards.push(args) }, event, {});
+    mechanistHooks.reactions['damage.resolved'](
+      { fireTrigger: (...args) => rewards.push(args) },
+      event,
+      resolvedTestHitDetails()
+    );
     assert.equal(rewards.length, owned ? 1 : 0);
   }
 });

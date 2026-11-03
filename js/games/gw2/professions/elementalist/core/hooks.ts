@@ -1,6 +1,5 @@
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR } from '#gw2/platform/constants.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { resolveSkillSelector } from '#gw2/platform/skills/selectors.js';
@@ -156,8 +155,7 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
     },
     reactions: {
       'damage.resolved'(runtime, event, details) {
-        const damage = details as NativeResolvedDamageDetails;
-        runtime.fireTrigger(elementalistDamageResolved, { cause: event, details: damage });
+        runtime.fireTrigger(elementalistDamageResolved, { cause: event, details });
         triggerShatteringStone(runtime, event);
       },
       'condition.applied': (runtime, event) => runtime.fireTrigger(elementalistConditionApplied, { cause: event }),

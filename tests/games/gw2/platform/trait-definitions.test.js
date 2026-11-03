@@ -259,7 +259,6 @@ test('trait authoring rejects obsolete producer hooks and unsupported lifetime r
     'eventHandlers',
     'sideEffectHandlers',
     'rechargeWork',
-    'rechargeStart',
     'castDetail'
   ]) {
     assert.throws(() => defineTrait({ ...metadata, hooks: { [key]: () => undefined } }), /Unsupported trait hook/);

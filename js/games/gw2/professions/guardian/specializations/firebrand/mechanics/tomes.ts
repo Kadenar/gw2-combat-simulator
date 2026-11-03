@@ -6,7 +6,6 @@ import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { skillNumber, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -39,12 +38,8 @@ import type {
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** The tome passive tracks the shared Justice hit counter; Quickfire keeps it through dormancy. */
-export function reactToTomeJusticeHit(
-  context: GuardianResolverContext,
-  event: GuardianResolverEvent,
-  dependencies: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
-): void {
-  reactToJusticeHitWithOptions(context, event, dependencies, {
+export function reactToTomeJusticeHit(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+  reactToJusticeHitWithOptions(context, event, {
     retainsPassive: quickfireRetainsTomePassive(context),
     skillId: ID.TOME_OF_JUSTICE,
     skillName: 'Tome of Justice',

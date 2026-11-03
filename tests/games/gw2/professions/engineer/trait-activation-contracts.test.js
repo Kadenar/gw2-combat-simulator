@@ -8,6 +8,7 @@ import { createEngineerCoreState } from '#gw2/professions/engineer/core/state.js
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
+import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 /** Bind the real trait listeners to isolated per-run state and the shared emission service. */
@@ -82,11 +83,11 @@ test('Steel-Packed Powder settles Vulnerability before subsequent explosion reac
   };
   const react = profession.reactions['damage.resolved'];
   const hit = { at: 1, actorType: 'effect', ownerActorType: 'player', coefficient: 1, explosion: true };
-  react(runtime, { ...hit, coefficient: 0 }, {});
-  react(runtime, { ...hit, explosion: false }, {});
+  react(runtime, { ...hit, coefficient: 0 }, resolvedTestHitDetails());
+  react(runtime, { ...hit, explosion: false }, resolvedTestHitDetails());
   assert.equal(vulnerability, 0);
   assert.equal(rolls, 0);
-  react(runtime, hit, {});
+  react(runtime, hit, resolvedTestHitDetails());
   assert.equal(vulnerability, 1);
   assert.equal(rolls, 1);
 });

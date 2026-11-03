@@ -10,7 +10,7 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
+import { controlTestDetails, resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -26,7 +26,7 @@ test('resolver setup shares reactions and creates fresh profession state for eac
     hooks: {
       eventHandlers: {
         'fixture.trigger': (context, event) => {
-          context.combat.react('control.resolved', event);
+          context.combat.react('control.resolved', event, controlTestDetails(context.config));
           context.effects.emit({
             kind: 'packet',
             settlement: 'reaction',
@@ -35,7 +35,8 @@ test('resolver setup shares reactions and creates fresh profession state for eac
         }
       },
       reactions: {
-        'control.resolved': (context) => {
+        'control.resolved': (context, _event, details) => {
+          assert.equal(typeof details.activeConditionStackCount, 'function');
           context.profession.count += 1;
         },
         'condition.applied': (context) => {

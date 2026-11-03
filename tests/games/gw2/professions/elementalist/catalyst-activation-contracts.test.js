@@ -16,6 +16,7 @@ import {
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
+import { controlTestDetails, resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const cause = (at, fields = {}) => ({
@@ -124,10 +125,11 @@ test('Vicious Empowerment retains actor, condition and precombat eligibility', (
           {
             at: event.at ?? 1,
             run(runtime) {
-              runtime.mechanics.combat.react(
-                event.type === 'control' ? 'control.resolved' : 'condition.applied',
-                cause(runtime.time, event)
-              );
+              // Resolve the authored input so each notification receives the facts produced by its own stage.
+              runtime.effects.emit({
+                kind: 'packet',
+                event: cause(runtime.time, { duration: 1, stacks: 1, ...event })
+              });
             }
           }
         ]
@@ -159,7 +161,11 @@ test('Catalyst removed combo and control payloads still consume their admitted c
           at: 1,
           run(runtime) {
             combo(runtime);
-            runtime.mechanics.combat.react('control.resolved', cause(1, { type: 'control' }));
+            runtime.mechanics.combat.react(
+              'control.resolved',
+              cause(1, { type: 'control' }),
+              controlTestDetails(runtime.config)
+            );
           }
         }
       ]
@@ -286,7 +292,11 @@ test('Air combo grants capped endurance while intrinsic Catalyst energy remains 
               const before = runtime.profession.core.endurance.value;
               combo(runtime);
               assert.equal(runtime.profession.core.endurance.value, traitTriggers ? 100 : before);
-              runtime.mechanics.combat.react('damage.resolved', cause(1, { type: 'damage', coefficient: 1 }), {});
+              runtime.mechanics.combat.react(
+                'damage.resolved',
+                cause(1, { type: 'damage', coefficient: 1 }),
+                resolvedTestHitDetails()
+              );
               assert.equal(runtime.resourceController.value('catalystEnergy'), 30);
             }
           }

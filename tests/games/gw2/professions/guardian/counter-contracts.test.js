@@ -40,27 +40,29 @@ test('passive Justice resets before Burning while active entitlement and cooldow
       }
     }).effects
   };
-  assert.equal(reactToJusticeHitWithOptions(context, hit, details), 'active');
+  assert.equal(reactToJusticeHitWithOptions(context, hit), 'active');
   assert.equal(core.justiceActiveArmed, false);
   assert.equal(core.justiceHitCount, 2);
-  assert.equal(reactToJusticeHitWithOptions(context, hit, details), null);
+  assert.equal(reactToJusticeHitWithOptions(context, hit), null);
   assert.equal(core.justiceHitCount, 2);
   assert.equal(
-    reactToJusticeHitWithOptions(
-      context,
-      { ...hit, at: 2, actorType: 'effect', source: 'sigil', ownerActorType: 'player' },
-      details
-    ),
+    reactToJusticeHitWithOptions(context, {
+      ...hit,
+      at: 2,
+      actorType: 'effect',
+      source: 'sigil',
+      ownerActorType: 'player'
+    }),
     null
   );
   assert.equal(core.justiceHitCount, 2);
-  assert.equal(reactToJusticeHitWithOptions(context, { ...hit, at: 2 }, details), 'passive');
+  assert.equal(reactToJusticeHitWithOptions(context, { ...hit, at: 2 }), 'passive');
   assert.deepEqual(observations, [
     ['guardian.justice-active', 2],
     ['guardian.justice-passive', 0]
   ]);
   assert.equal(core.justiceHitCount, 0);
-  assert.equal(reactToJusticeHitWithOptions(context, { ...hit, at: 2 }, details), null);
+  assert.equal(reactToJusticeHitWithOptions(context, { ...hit, at: 2 }), null);
   assert.equal(core.justiceHitCount, 1);
   assert.equal(observations.length, 2);
 });
@@ -86,13 +88,13 @@ test('removed Justice effects cannot grant an outcome or consume passive progres
       profession: { core },
       effects: emissions.effects
     };
-    assert.equal(reactToJusticeHitWithOptions(context, hit, details), null);
+    assert.equal(reactToJusticeHitWithOptions(context, hit), null);
     assert.equal(core.justiceActiveArmed, false);
     assert.equal(core.justiceHitCount, 4);
     assert.deepEqual(emissions.events, []);
     assert.deepEqual(emissions.announcements, []);
     // A later hit can complete the surviving passive cycle; the removed active hit must not fall through to it.
-    assert.equal(reactToJusticeHitWithOptions(context, hit, details), active ? 'passive' : null);
+    assert.equal(reactToJusticeHitWithOptions(context, hit), active ? 'passive' : null);
     assert.deepEqual(
       emissions.events.map((event) => event.sourceId),
       active ? ['guardian.justice-passive'] : []

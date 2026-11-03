@@ -34,22 +34,6 @@ export function createSelectedContentContext(
   });
 }
 
-/** Recharge anchor policies read the current clock and selected tuning without controlling time or reservations. */
-export interface RechargeStartContext {
-  readonly time: number;
-  readonly requireBalanceProfile: (id: SkillId) => BalanceProfile;
-}
-
-export function createRechargeStartContext(now: () => number, catalog: CanonicalCatalog): RechargeStartContext {
-  const selectedContent = { catalog };
-  return Object.freeze({
-    get time() {
-      return now();
-    },
-    requireBalanceProfile: (id: SkillId) => requireBalanceProfileFromContext(selectedContent, id)
-  });
-}
-
 /** Labels may inspect nested mechanic data, but cannot invoke stateful operations or mutate collections. */
 export type ReadonlyMechanicState<T> = T extends (...args: never[]) => unknown
   ? never

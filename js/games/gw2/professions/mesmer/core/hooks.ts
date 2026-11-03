@@ -2,7 +2,6 @@ import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/al
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { mesmerBuffPolicies, mesmerEffectStates } from '#gw2/professions/mesmer/core/effect-state.js';
@@ -167,7 +166,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
     reactions: {
       'buff.applied': applyMesmerClarity,
       'damage.resolved'(runtime, event, details) {
-        const critical = (details as NativeResolvedDamageDetails).hitContext!.critical;
+        const critical = details.hitContext.critical;
         runtime.fireTrigger(mesmerCritical, {
           event: { ...event, didCrit: critical.didCrit },
           chance: critical.chance

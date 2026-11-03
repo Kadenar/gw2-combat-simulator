@@ -52,16 +52,6 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     context.cursor;
     return skillId;
   },
-  rechargeStart(context, cast, at) {
-    const dragonSlash: boolean | undefined = cast.skill.dragonSlash;
-    context.requireBalanceProfile(1);
-    // @ts-expect-error Recharge anchor policies cannot move the clock.
-    context.time = 0;
-    // @ts-expect-error Recharge anchor policies cannot mutate existing recharge.
-    context.cooldownController;
-    void dragonSlash;
-    return at;
-  },
   boonDuration(context, _event, _base, scaled) {
     context.hasTrait(1);
     context.requireBalanceProfile(1);

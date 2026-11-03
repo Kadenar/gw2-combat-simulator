@@ -233,7 +233,7 @@ const endlessEnmity = defineTrait({
       when: (runtime, event, details) =>
         event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
-        Boolean(details.hitContext?.critEligible && details.hitContext.critical.didCrit) &&
+        Boolean(details.hitContext.critEligible && details.hitContext.critical.didCrit) &&
         Boolean(
           requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.ENDLESS_ENMITY), 'boon', boonKey(BOON.FURY))
         ),
@@ -389,8 +389,8 @@ function grantAllForOneEnergy(runtime: RevenantRuntime, enhanced: boolean): void
 }
 
 /** Actual critical and positional facts drive Ambush Commander and Endless Enmity. */
-function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit?: Gw2HitResolutionContext): void {
-  const critical = Boolean(hit?.critEligible && hit.critical.didCrit);
+function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit: Gw2HitResolutionContext): void {
+  const critical = Boolean(hit.critEligible && hit.critical.didCrit);
 
   // A defiant golem never rotates, so flanking/behind positional triggers always apply.
   if (Boolean(runtime.config.target?.defiant) || critical)

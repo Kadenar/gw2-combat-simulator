@@ -17,7 +17,6 @@ import type {
   CastDetailContext,
   EffectOwnershipContext,
   MaximumAmmoContext,
-  RechargeStartContext,
   SelectedContentContext,
   TraitSelectionContext
 } from '#gw2/platform/profession-definition/runtime-context.js';
@@ -99,12 +98,6 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   castDurationMs?(runtime: MechanicQueryContext<T, TSkill>, skill: TSkill, durationMs: number): number;
   /** Capture the selected cast variant once so reports do not query later profession state. */
   castDetail?(context: CastDetailContext<T>, cast: RuntimeCast<TSkill>): string | undefined;
-  /** Selected mechanics may move the recharge anchor while retaining one immutable cast reservation. */
-  rechargeStart?(
-    context: RechargeStartContext,
-    cast: Pick<RuntimeCast<TSkill>, 'skill' | 'start' | 'fullEnd' | 'effectiveEnd' | 'cancelledBeforeCommit'>,
-    at: number
-  ): number;
   /** Capacity selection cannot mutate the pools whose initialization it controls. */
   maximumAmmo?(context: MaximumAmmoContext<T>, skill: TSkill, maximum: number): number;
   availability?(runtime: MechanicQueryContext<T, TSkill>, skill: TSkill, command: CastCommand): AvailabilityResult;

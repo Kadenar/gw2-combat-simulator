@@ -33,11 +33,7 @@ export const deadeyeMalice: ResourcePolicy<ThiefRuntime> = {
  * Malicious attacks spend once on their first marked hit. Initiative attacks earn separate once-per-activation
  * grants for a marked hit and a marked critical hit, so a later strike can still earn the critical bonus.
  */
-export function reactDeadeyeMalice(
-  runtime: ThiefRuntime,
-  event: Gw2ResolverEvent,
-  hit?: Gw2HitResolutionContext
-): void {
+export function reactDeadeyeMalice(runtime: ThiefRuntime, event: Gw2ResolverEvent, hit: Gw2HitResolutionContext): void {
   if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0) || typeof event.activationId !== 'string')
     return;
 
@@ -67,9 +63,10 @@ export function reactDeadeyeMalice(
     return;
   }
 
-  const criticals = hit
-    ? criticalOpportunity(hit.critEligible ? hit.critical.chance : 0, hit.critical.didCrit).sampledCriticals
-    : 0;
+  const criticals = criticalOpportunity(
+    hit.critEligible ? hit.critical.chance : 0,
+    hit.critical.didCrit
+  ).sampledCriticals;
   const firstHit = claimActivation(state.deadeyeActivationClaims, 'thief.deadeye.malice-hit', event.activationId);
   const firstCritical =
     criticals > 0 &&

@@ -3,7 +3,6 @@ import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
-import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   effectNumber,
@@ -35,12 +34,8 @@ import type {
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Reuse Justice's hit counter and passive suppression, adding Dragonhunter's Crippled only when that hit procs Burning. */
-function reactToDragonhunterJusticeHit(
-  context: GuardianResolverContext,
-  event: GuardianResolverEvent,
-  dependencies: Pick<NativeResolvedDamageDetails, 'hitContext'> = {}
-): void {
-  const outcome = reactToJusticeHitWithOptions(context, event, dependencies, {
+function reactToDragonhunterJusticeHit(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+  const outcome = reactToJusticeHitWithOptions(context, event, {
     retainsPassive: false,
     skillId: ID.SPEAR_OF_JUSTICE,
     skillName: 'Spear of Justice'
@@ -236,11 +231,10 @@ export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, Gua
   reactions: {
     'damage.resolved'(runtime, event, details) {
       refreshGuardianVirtues(runtime);
-      const damage = details as NativeResolvedDamageDetails;
 
-      if (!(Number(event.coefficient) > 0) || !(Number(damage.hitContext?.damage) > 0)) return;
+      if (!(Number(event.coefficient) > 0) || !(details.hitContext.damage > 0)) return;
 
-      reactToDragonhunterJusticeHit(runtime, event, damage);
+      reactToDragonhunterJusticeHit(runtime, event);
     }
   }
 };

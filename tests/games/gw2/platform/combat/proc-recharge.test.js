@@ -90,3 +90,78 @@ test('recharge profiles reject invalid work and obsolete ICD fields', () => {
   assert.equal(procs.claim(3, 3, 1, 'pet-a'), false);
   assert.equal(procs.claim(3, 3, 1.000001, 'pet-a'), true);
 });
+
+// Both fixed-claim APIs replace summon work, and a later summon claim captures its new companion incarnation.
+for (const [label, claimFixed] of [
+  ['profile', (procs, key, at) => procs.claim(1, key, at)],
+  ['explicit', (procs, key, at) => procs.claimCooldown(key, at, 10)]
+]) {
+  test(`timer kinds replace each other through ${label} claims`, () => {
+    const { procs, events } = fixture();
+    assert.equal(procs.claim(3, 3, 1, 'pet-a'), true);
+    assert.equal(claimFixed(procs, '3', 11), false);
+    assert.equal(claimFixed(procs, '3', 12), true);
+    assert.equal(procs.deadline(3), 22);
+    events.push({
+      type: 'buff',
+      at: 3,
+      kind: 'alacrity',
+      duration: 40,
+      stacks: 1,
+      resolvedAudience: {
+        includesSelf: false,
+        includesSummons: true,
+        alliedPlayerCount: 0,
+        recipientCount: 1,
+        companionIds: ['pet-a']
+      }
+    });
+    assert.equal(procs.deadline(3), 22);
+    assert.equal(procs.claim(3, 3, 22, 'pet-b'), false);
+    assert.equal(procs.claim(3, 3, 23, 'pet-b'), true);
+    assert.equal(procs.deadline('3'), 33);
+    events.push({ ...events[0], at: 25, resolvedAudience: { ...events[0].resolvedAudience, companionIds: ['pet-b'] } });
+    assert.equal(procs.deadline(3), 31.4);
+  });
+}
+
+// A rejected replacement must retain work ownership so subsequent boon grants can still affect its deadline.
+test('failed fixed claims and explicit replacements preserve summon recharge work', () => {
+  const { procs, events } = fixture();
+  assert.equal(procs.claim(3, 3, 1, 'pet-a'), true);
+  assert.equal(procs.claimCooldown('3', 11, NaN), false);
+  assert.throws(() => procs.claimCooldown('3', 12, NaN), /duration/);
+  assert.throws(() => procs.claimCooldown('3', 12, Number.MAX_VALUE), /safe integer microseconds/);
+  assert.throws(() => procs.setDeadline('3', NaN), /readyAt/);
+  assert.equal(procs.deadline(3), 11);
+  events.push({
+    type: 'buff',
+    at: 3,
+    kind: 'alacrity',
+    duration: 4,
+    stacks: 1,
+    resolvedAudience: {
+      includesSelf: false,
+      includesSummons: true,
+      alliedPlayerCount: 0,
+      recipientCount: 1,
+      companionIds: ['pet-a']
+    }
+  });
+  assert.equal(procs.deadline(3), 10);
+});
+
+// Validate a new summon projection before replacing an existing fixed timer, including failures after profile checks.
+test('invalid summon claims preserve the existing fixed deadline', () => {
+  const { procs, profiles } = fixture();
+  procs.setDeadline(3, 2);
+  assert.equal(procs.claim(3, '3', 2), false);
+  assert.throws(() => procs.claim(3, '3', 3), /companion identity/);
+  assert.equal(procs.deadline(3), 2);
+  const profile = profiles.get(3);
+  for (const cooldown of [-1, Infinity, Number.MAX_VALUE]) {
+    profiles.set(3, { ...profile, cooldown });
+    assert.throws(() => procs.claim(3, '3', 3, 'pet-b'));
+    assert.equal(procs.deadline(3), 2);
+  }
+});

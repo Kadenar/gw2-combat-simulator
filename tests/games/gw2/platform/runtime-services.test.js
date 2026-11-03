@@ -331,20 +331,21 @@ test('native hook composition creates each selected state once and supports data
   );
 });
 
-// Core and the selected specialization reserve one recharge anchor, before either completion hook observes it.
-test('live recharge anchors compose once per cast and reject nonfinite results', () => {
-  const calls = [];
+// Both completion hooks observe the accepted declarative anchor and its committed cooldown work.
+test('declarative recharge anchors govern cooldown eligibility and composed completion hooks', () => {
   const completions = [];
   const module = (id) =>
     defineNativeModule({
       id,
-      data: id === 'Core' ? { skills: skills, weapons: ['Sword'] } : {},
+      data:
+        id === 'Core'
+          ? {
+              skills: skills.map((skill) => (skill.id === 991002 ? { ...skill, rechargeOffsetMs: -500 } : skill)),
+              weapons: ['Sword']
+            }
+          : {},
       state: { create: () => ({}) },
       hooks: {
-        rechargeStart(runtime, cast, at) {
-          calls.push([id, runtime.time, cast.start]);
-          return at - 0.25;
-        },
         onCastCommit(runtime, cast) {
           completions.push([
             id,
@@ -363,27 +364,12 @@ test('live recharge anchors compose once per cast and reject nonfinite results',
   const result = observeGw2Runtime({ profession: runtime, config, rotation: [cast(991002), cast(991002)] });
   assert.deepEqual(result.warnings, []);
   assert.equal(result.steps[1].start, 2120);
-  assert.deepEqual(calls, [
-    ['Core', 0, 0],
-    ['Elite', 0, 0],
-    ['Core', 2.12, 2.12],
-    ['Elite', 2.12, 2.12]
-  ]);
   assert.deepEqual(completions, [
     ['Core', 0.5, 0.5],
     ['Elite', 0.5, 0.5],
     ['Core', 2.62, 2.62],
     ['Elite', 2.62, 2.62]
   ]);
-  assert.throws(
-    () =>
-      observeGw2Runtime({
-        profession: { ...runtime, rechargeStart: () => Infinity },
-        config,
-        rotation: [cast(991002)]
-      }),
-    /Recharge start must be finite/
-  );
 });
 
 test('live public projections observe planning after death without exposing controllers or mutable report state', () => {

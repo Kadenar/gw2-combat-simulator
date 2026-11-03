@@ -1,7 +1,6 @@
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import { balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
@@ -128,7 +127,7 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
 
       runtime.fireTrigger(renegadeStruck, {
         cause: event,
-        hit: (details as { hitContext?: Gw2HitResolutionContext }).hitContext
+        hit: details.hitContext
       });
       razorclawProc(runtime, event);
       soulcleavePlayer(runtime, event);

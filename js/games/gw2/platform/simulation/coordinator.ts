@@ -99,6 +99,11 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
   function identify<E extends PacketIdentity>(event: E): E {
     if (event.eventOrder != null || SHARED_PULSE_TYPES.has(event.type)) return event;
 
+    return allocateIdentity(event);
+  }
+
+  // Fresh emissions reserve a new identity even when derived from an already identified packet.
+  function allocateIdentity<E extends PacketIdentity>(event: E): E {
     const order = ++eventOrder;
     const parent = event.parentEventOrder ?? reactionParent(event);
     return {
@@ -257,6 +262,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     queue,
     packets,
     identify,
+    allocateIdentity,
     reactionParent,
     withCause,
     currentCause: () => currentCause,
@@ -264,7 +270,6 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     pendingEffects,
     run,
     eventOrder: () => eventOrder,
-    nextEventOrder: () => ++eventOrder,
     recordAction: (id: string, event: Gw2ResolverEvent) => castActions.set(id, event),
     castAction: (id: string) => castActions.get(id),
     workCause: (work: RuntimeWork) => workCauses.get(work)

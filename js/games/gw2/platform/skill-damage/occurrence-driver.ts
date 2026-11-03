@@ -1,8 +1,10 @@
 import { COMBO_RANDOM_STREAM_PREFIX } from '#gw2/platform/combos/resolution.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { isTraitEffect } from '#gw2/platform/profession-definition/trait-emission.js';
+import { mapGw2Reactions } from '#gw2/platform/resolver/reaction-registry.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import type { DamageInputs, SkillDamageCastOptions } from '#gw2/platform/skill-damage/types.js';
@@ -60,21 +62,21 @@ export function createDamageExecution<T extends object>(
     },
     bindProducers: () => ({ contributions: {} }),
     // Without trait procs the skill is measured alone, so per-hit reactions stay unregistered; trait procs need them.
-    professionReactions: Object.fromEntries(
-      Object.entries(profession.reactions ?? {})
-        .filter(([stage]) => options.includeTraitProcs || stage !== 'damage.resolved')
-        .map(([stage, handler]) => [
-          stage,
-          (runtime, event, details) => {
-            const holds = !started || String(event.sourceId).startsWith('assumption.');
-            held += Number(holds);
-            try {
-              return handler(runtime, event, details);
-            } finally {
-              held -= Number(holds);
-            }
+    professionReactions: mapGw2Reactions<MechanicContext<T>, MechanicContext<T>>(
+      profession.reactions ?? {},
+      (stage, handler) => {
+        if (!options.includeTraitProcs && stage === 'damage.resolved') return undefined;
+
+        return (runtime, event, details) => {
+          const holds = !started || String(event.sourceId).startsWith('assumption.');
+          held += Number(holds);
+          try {
+            return handler(runtime, event, details);
+          } finally {
+            held -= Number(holds);
           }
-        ])
+        };
+      }
     ),
     driver: {
       cursor: new RotationCursor([]),

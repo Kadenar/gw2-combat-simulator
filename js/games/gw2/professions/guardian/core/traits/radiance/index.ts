@@ -264,7 +264,7 @@ export const innerFire = defineTrait({
       cooldown: 'profile',
       when: (runtime, event, details) =>
         event.actorType === ACTOR.PLAYER &&
-        (details.hitContext?.damage ?? 0) > 0 &&
+        details.hitContext.damage > 0 &&
         runtime.combat.targetConditionStacks(CONDITION.BURNING, event.at) >=
           balanceNumberFromContext(runtime, TRAIT.INNER_FIRE, 'threshold')
     }
