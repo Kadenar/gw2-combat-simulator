@@ -55,7 +55,7 @@ export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCas
       0,
       skillNumberFromContext(runtime, ID.BEGUILING_HAZE_FOLLOW_UP, 'maximumStacks')
     );
-    state.beguilingHazeRecharge = structuredClone(runtime.cooldownController.readAmmo(skill.id)?.recharges[0] ?? null);
+    state.beguilingHazeRecharge = runtime.cooldownController.readAmmo(skill.id)?.recharges[0] ?? null;
     state.beguilingHazeReadyAt =
       runtime.cooldownController.readyAt(skill.id) ??
       runtime.cooldownController.readAmmo(skill.id)?.nextRechargeAt ??
