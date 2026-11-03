@@ -1,4 +1,3 @@
-import { MODIFIER_HOOK_NAMES } from '#gw2/platform/profession-definition/compile-contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
@@ -41,10 +40,15 @@ export const testProfession = defineTestProfession({
     createState: () => ({ charge: 0, controlEvents: 0 })
   },
   modifiers: {
-    modifyAttributes: (context, attributes) => ({
-      ...attributes,
-      power: attributes.power + (context.config.selectedTraitIds?.includes('fixture.power') ? 100 : 0)
-    })
+    modifierRules: [
+      {
+        id: 'fixture.power',
+        target: 'attributePower',
+        operation: 'add',
+        amount: 100,
+        when: (context) => context.config.selectedTraitIds?.includes('fixture.power')
+      }
+    ]
   },
   hooks: {
     eventHandlers: {
@@ -63,6 +67,15 @@ export const testProfession = defineTestProfession({
 // Minimal runtime fixtures share only modifier capabilities, without inheriting state or catalog behavior.
 export const testProfessionModifiers = Object.freeze(
   Object.fromEntries(
-    [...MODIFIER_HOOK_NAMES, 'modifyStrikeDamage', 'modifyConditionDamage'].map((name) => [name, testProfession[name]])
+    [
+      'modifyAttributes',
+      'modifyConditionAttributes',
+      'modifyCriticalChance',
+      'modifyCriticalDamage',
+      'modifyConditionBaseDuration',
+      'modifyConditionDuration',
+      'modifyStrikeDamage',
+      'modifyConditionDamage'
+    ].map((name) => [name, testProfession[name]])
   )
 );

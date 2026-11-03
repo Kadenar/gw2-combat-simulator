@@ -231,8 +231,8 @@ test('Shadow Flare uses the shared follow-up window', () => {
             flipDuration: 0.5
           }),
         probes: [
-          [0.7, (runtime) => windows.push(Boolean(runtime.profession.core.availableFlips[THIEF.SHADOW_SWAP]))],
-          [1.2, (runtime) => windows.push(Boolean(runtime.profession.core.availableFlips[THIEF.SHADOW_SWAP]))]
+          [0.7, (runtime) => windows.push(Boolean(runtime.flips[THIEF.SHADOW_SWAP]))],
+          [1.2, (runtime) => windows.push(Boolean(runtime.flips[THIEF.SHADOW_SWAP]))]
         ]
       }
     );
@@ -245,7 +245,7 @@ test('Shadow Flare uses the shared follow-up window', () => {
     selectedSkillIds: [41158]
   });
   assert.deepEqual(used.warnings, []);
-  assert.equal(observedRuntime(used).profession.core.availableFlips[THIEF.SHADOW_SWAP], undefined);
+  assert.equal(observedRuntime(used).flips[THIEF.SHADOW_SWAP], undefined);
 });
 
 // Celerity restores ammo and ordinary cooldowns in the selected attunement; boon removal never changes that reset.

@@ -1,5 +1,5 @@
 import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
-import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
+import { professionPlanningState } from '#gw2/app/rotation/context.js';
 import { skillTooltipAttributes, wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { SlotLoadoutSelector } from '#gw2/platform/builds/slot-loadout.js';
@@ -8,8 +8,8 @@ import type {
   ProfessionSkillBarGroup,
   ProfessionSkillBarSelectionOption
 } from '#gw2/platform/profession-presentation/types.js';
+import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { requiredElement } from '#ui/shared/dom.js';
 import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
@@ -21,8 +21,7 @@ export function skillBarDisplaySkill(
 ): Skill | null | undefined {
   if (!selected) return selected;
 
-  const professionState = app.results?.planningState?.profession as RotationProfessionState | undefined;
-  const availableFlips = professionState?.[STATE.AVAILABLE_FLIPS];
+  const availableFlips = professionPlanningState(app.results)[STATE.AVAILABLE_FLIPS];
 
   if (!availableFlips || typeof availableFlips !== 'object') return selected;
 

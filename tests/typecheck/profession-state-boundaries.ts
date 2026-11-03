@@ -82,7 +82,7 @@ export type ProfessionModuleStateBoundaryAssertions = [
   Assert<HolosmithState['heat'] extends ResourceClock ? true : false>,
   Assert<Rejects<HolosmithState, 'maximumHeat'>>,
   Assert<Rejects<EngineerCoreState, 'heat'>>,
-  Assert<Owns<GuardianCoreState, 'availableFlips'>>,
+  Assert<Rejects<GuardianCoreState, 'availableFlips'>>,
   Assert<Rejects<GuardianFirebrandState, 'availableFlips'>>,
   Assert<Owns<GuardianFirebrandState, 'tomePages'>>,
   Assert<Rejects<GuardianCoreState, 'tomePages'>>,

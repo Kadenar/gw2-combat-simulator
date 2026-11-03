@@ -39,11 +39,16 @@ declare const canonical: Gw2CanonicalBuild;
 declare const modifiers: ProfessionModifierDefinition;
 // @ts-expect-error Build property misspellings must not be accepted as dynamic fields.
 canonical.targetHeath;
-// @ts-expect-error Hook names must stay closed through composition.
+// @ts-expect-error Modifier declaration fields must stay closed through composition.
 modifiers.modifyAttribtes;
-// @ts-expect-error Rule slots accept hooks, not arbitrary saved data.
-const invalidRules: ProfessionModifierDefinition = { modifyAttributes: 42 };
+// @ts-expect-error Imperative attribute hooks are not a modifier authoring surface.
+const invalidRules: ProfessionModifierDefinition = { modifyAttributes: () => ({ power: 42 }) };
 void invalidRules;
+const invalidHooks: ProfessionModifierDefinition = {
+  // @ts-expect-error Ordered scalar hook arrays are not a modifier authoring surface.
+  modifyCriticalChance: [{ id: 'crit', order: 1, handler: () => 1 }]
+};
+void invalidHooks;
 // @ts-expect-error Bucket eligibility accepts only a boolean or context predicate.
 const invalidPolicy: ProfessionModifierDefinition = { damageBuckets: { strikeDamage: { includeSigil: 42 } } };
 void invalidPolicy;

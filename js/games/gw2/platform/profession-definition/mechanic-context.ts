@@ -6,7 +6,7 @@ import type { AlliedStrikeGrants } from '#gw2/platform/combat/state/allied-strik
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
-import type { FlipWindowOptions, SkillFlipWindow } from '#gw2/platform/execution/skill-flips.js';
+import type { SkillFlipCommands, SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-reactions.js';
@@ -23,6 +23,7 @@ export type MechanicQueriesOf<TContext extends { profession: object; helpers: Ca
 /** Selection and observation inspect current mechanic data and executed facts without scheduling or mutation capabilities. */
 export interface MechanicQueryContext<T extends object = object, TSkill extends Skill = Skill> {
   readonly profession: ReadonlyMechanicState<T>;
+  readonly flips: Readonly<SkillFlipWindows>;
   readonly config: Gw2Config;
   readonly helpers: CanonicalCatalog<TSkill>;
   readonly traits: ReadonlySet<SkillId>;
@@ -77,10 +78,8 @@ export interface MechanicCombatContext<T extends object = object, TSkill extends
 }
 
 /** Stateful lifecycle handlers can schedule named work and settle owned services, never traverse commands or edit engine stores. */
-export interface MechanicContext<T extends object = object, TSkill extends Skill = Skill> extends MechanicCombatContext<
-  T,
-  TSkill
-> {
+export interface MechanicContext<T extends object = object, TSkill extends Skill = Skill>
+  extends MechanicCombatContext<T, TSkill>, SkillFlipCommands {
   readonly queries: MechanicQueryContext<T, TSkill>;
   readonly time: number;
   /** Cast acceptance and authored resets remain exclusive to the execution owner. */
@@ -91,8 +90,6 @@ export interface MechanicContext<T extends object = object, TSkill extends Skill
   readonly facts: ExecutedFactsReader;
   readonly observations: ExecutedFactsWriter;
   readonly effectReactions: Pick<EffectReactionRegistry<T>, 'register'>;
-  armFlip(skillId: SkillId, window?: FlipWindowOptions): SkillFlipWindow;
-  consumeFlip(skillId: SkillId): SkillFlipWindow | undefined;
   schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number): void;
   scheduleForCast(
     name: string,

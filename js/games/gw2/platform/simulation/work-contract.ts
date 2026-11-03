@@ -4,6 +4,9 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { QueuedEvent } from '#kernel/events/queue.js';
 
+/** Reserved for flip retirement after all queued gameplay at a deadline, before the next rotation command. */
+export const FLIP_EXPIRY_PRIORITY = Number.MAX_VALUE;
+
 export type RuntimeWork =
   | InternalWork<'runtime.allied-strike', { sequence: number }>
   | InternalWork<'runtime.encounter', { generation: number }>

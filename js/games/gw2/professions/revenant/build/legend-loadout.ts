@@ -1,7 +1,7 @@
 import { createFixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { SlotLoadoutContext } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2SlotLoadout } from '#gw2/platform/builds/types.js';
-import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/profession-skills.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
@@ -24,9 +24,8 @@ interface RevenantLegend {
 }
 
 interface RevenantLegendLoadoutContext extends SlotLoadoutContext {
-  professionState?: {
+  professionState?: Partial<Gw2SharedProfessionPlanningState> & {
     [STATE.ACTIVE_LOADOUT_ID]?: string;
-    [STATE.AVAILABLE_FLIPS]?: SkillFlipWindows;
   };
 }
 

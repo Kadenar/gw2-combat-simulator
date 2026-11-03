@@ -2,7 +2,6 @@ import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/c
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -75,7 +74,6 @@ export interface ElementalistCoreState {
   conjureEquipped: string | null;
   conjureExpiresAt: number;
   conjurePickups: Record<string, number>;
-  availableFlips: SkillFlipWindows;
   summonedElemental: ElementalistSummonedElementalState;
 
   arcaneEchoUntil: number;
@@ -129,7 +127,6 @@ export function createElementalistCoreState(config: ElementalistConfig = {}): El
     conjureEquipped: null,
     conjureExpiresAt: 0,
     conjurePickups: {},
-    availableFlips: {},
     summonedElemental: {
       element: null,
       summonGeneration: 0,
@@ -161,7 +158,6 @@ export function projectElementalistCorePlanningState(input: Gw2PlanningStateInpu
     [STATE.CONJURE_EQUIPPED]: state.conjureEquipped,
     [STATE.CONJURE_EXPIRES_AT]: state.conjureExpiresAt,
     [STATE.CONJURE_PICKUPS]: state.conjurePickups,
-    [STATE.AVAILABLE_FLIPS]: state.availableFlips,
     [STATE.SUMMONED_ELEMENTAL]: state.summonedElemental
   };
 }

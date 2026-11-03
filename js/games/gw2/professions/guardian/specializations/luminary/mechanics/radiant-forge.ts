@@ -5,7 +5,6 @@ import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { CAST_READY, denyCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -52,11 +51,10 @@ function exitForge(runtime: GuardianRuntime, cast?: RuntimeCast<GuardianSkill>):
   state.glaringBurstSwordSlow = false;
   resetAutoattackChains(runtime.profession);
   // Leaving the forge dismisses only its own bar; ordinary weapon follow-ups retain their independent lifetimes.
-  for (const id of Object.keys(runtime.profession.core.availableFlips)) {
+  for (const id of Object.keys(runtime.flips)) {
     const skill = runtime.helpers.skillsById.get(Number(id));
 
-    if (skill?.radiantForgeSkill || skill?.id === ID.EXIT_RADIANT_FORGE)
-      consumeSkillFlip(runtime.profession.core.availableFlips, id);
+    if (skill?.radiantForgeSkill || skill?.id === ID.EXIT_RADIANT_FORGE) runtime.consumeFlip(id);
   }
 
   runtime.effects.emit({
@@ -94,7 +92,7 @@ function enterForge(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>):
   state.glaringBurstSwordSlow = false;
   state.radiantWeaponsUsed = {};
   resetAutoattackChains(runtime.profession);
-  armSkillFlip(runtime.profession.core.availableFlips, ID.EXIT_RADIANT_FORGE, runtime.time);
+  runtime.armFlip(ID.EXIT_RADIANT_FORGE);
   runtime.schedule(EXIT, state.radiantForgeEndsAt, cast.id, undefined, -220);
   runtime.effects.emit({
     kind: 'packet',
@@ -132,14 +130,14 @@ const radiantForgeActions: NonNullable<RuntimeHooks<GuardianRuntimeState, Guardi
 
       if (cast.skill.radiantWeapon === 'blade') state.glaringBurstSwordSlow = false;
 
-      const flips = runtime.profession.core.availableFlips;
+      const flips = runtime.flips;
       for (const id of Object.keys(flips)) {
         const skill = runtime.helpers.skillsById.get(Number(id));
 
-        if (skill?.radiantWeapon && skill.flipParentId != null) consumeSkillFlip(flips, id);
+        if (skill?.radiantWeapon && skill.flipParentId != null) runtime.consumeFlip(id);
       }
 
-      if (cast.skill.flipSkillId != null) armSkillFlip(flips, cast.skill.flipSkillId, runtime.time);
+      if (cast.skill.flipSkillId != null) runtime.armFlip(cast.skill.flipSkillId);
 
       runtime.effects.emit({
         kind: 'packet',

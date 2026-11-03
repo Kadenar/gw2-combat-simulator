@@ -2,6 +2,7 @@ import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js'
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -61,9 +62,8 @@ export interface RevenantTimedStack {
 }
 
 /** Public consumers receive only the ID/value pairs published by active owners. */
-export type RevenantPlanningState = ReturnType<
-  typeof import('#gw2/professions/revenant/core/state.js').projectRevenantPlanningState
-> &
+export type RevenantPlanningState = Gw2SharedProfessionPlanningState &
+  ReturnType<typeof import('#gw2/professions/revenant/core/state.js').projectRevenantPlanningState> &
   ReturnType<typeof import('#gw2/professions/revenant/specializations/conduit/state.js').projectConduitPlanningState> &
   ReturnType<
     typeof import('#gw2/professions/revenant/specializations/renegade/state.js').projectRenegadePlanningState

@@ -5,7 +5,7 @@ import { skillAuthoringReference } from '#gw2/integrations/patches/authoring/fie
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { skillCostAvailability } from '#gw2/platform/execution/skill-cost.js';
-import { weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
+import { skillFlipReady, weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
@@ -126,7 +126,6 @@ function fixture(hooks = {}) {
     id: 'kernel-fixture',
     catalog,
     createState: () => ({
-      core: { availableFlips: {} },
       energy: { value: 0, maximum: 10, updatedAt: 0, unitsPerSecond: 0 },
       log: []
     }),
@@ -222,11 +221,50 @@ test('a follow-up window retires at its own deadline while a later rearm survive
     },
     [cast(991001), wait(1000), cast(991001), wait(4000)],
     [
-      { at: 2.5, run: (runtime) => observed.push(runtime.profession.core.availableFlips['follow-up']?.expiresAt) },
-      { at: 3.5, run: (runtime) => observed.push(runtime.profession.core.availableFlips['follow-up']) }
+      { at: 2.5, run: (runtime) => observed.push(runtime.flips['follow-up']?.expiresAt) },
+      { at: 3.5, run: (runtime) => observed.push(runtime.flips['follow-up']) }
     ]
   );
   assert.deepEqual(observed, [3, undefined]);
+});
+
+// Shared execution state survives profession replacement and keeps identities unique after every window is consumed.
+test('flip ownership survives profession replacement and stays isolated between runs', () => {
+  let grant;
+  run(
+    {
+      initialize(runtime) {
+        assert.deepEqual(runtime.flips, {});
+        grant = runtime.armFlip('follow-up', { expiresAt: 2, uses: 2 });
+        runtime.profession = { ...runtime.profession, log: ['replaced'] };
+        assert.equal(runtime.queries.flips['follow-up'], grant);
+        runtime.consumeFlip('follow-up');
+        assert.deepEqual(runtime.flips['follow-up'], { ...grant, remainingUses: 1 });
+      }
+    },
+    [wait(3000)],
+    [
+      {
+        at: 2.000001,
+        run(runtime) {
+          assert.equal(runtime.flips['follow-up'], undefined);
+          const replacement = runtime.armFlip('follow-up');
+          assert.ok(replacement.identity > grant.identity);
+          assert.equal(runtime.expireFlip('follow-up', grant.identity), undefined);
+          assert.equal(runtime.flips['follow-up'], replacement);
+        }
+      }
+    ]
+  );
+  run(
+    {
+      initialize(runtime) {
+        assert.deepEqual(runtime.flips, {});
+        assert.equal(runtime.armFlip('follow-up').identity, grant.identity);
+      }
+    },
+    []
+  );
 });
 
 test('declared costs are paid on acceptance, or only by activations that pass their commit point', () => {
@@ -400,12 +438,12 @@ test('declared reset, ammo, flip, and profile effects settle before completion h
           observed.push([
             runtime.cooldownController.readAmmo(991007).charges,
             runtime.cooldownController.readyAt(991007),
-            runtime.profession.core.availableFlips.flip.expiresAt
+            runtime.flips.flip.expiresAt
           ]);
       }
     },
     [cast(991007), cast(991006), wait(1500)],
-    [{ at: 1.1, run: (runtime) => observed.push(runtime.profession.core.availableFlips.flip) }]
+    [{ at: 1.1, run: (runtime) => observed.push(runtime.flips.flip) }]
   );
   assert.deepEqual(observed, [[2, undefined, 1], undefined]);
   assert.equal(result.events.filter((event) => event.sourceId === 'test.proc' && event.kind === 'might').length, 1);
@@ -838,22 +876,66 @@ test('authored and procedural status caps apply after scaling and remain patchab
     );
 });
 
-// Authored cleanup ordering must retain the default while allowing a follow-up to retire before same-time work.
-test('declared flip expiry priority orders cleanup against other work at its deadline', () => {
-  for (const expiryPriority of [undefined, -220]) {
-    const observed = [];
-    const profession = fixture({
-      initialize(runtime) {
-        runtime.schedule('test.inspect-flip', 1, undefined, undefined, -100);
+// Queued gameplay and its consequences can claim the window; commands observe completed retirement.
+test('flip cleanup follows queued consequences and precedes deadline commands and their work', () => {
+  const observed = [];
+
+  const inspect = (runtime, label) => {
+    observed.push([label, runtime.time, Boolean(runtime.flips.flip), skillFlipReady(runtime.flips.flip, runtime.time)]);
+  };
+
+  const profession = fixture({
+    initialize(runtime) {
+      runtime.armFlip('flip', { expiresAt: 1 });
+      runtime.schedule('test.deadline', 1, undefined, undefined, Number.MAX_VALUE / 2);
+    },
+    onCastStart(runtime) {
+      inspect(runtime, 'command');
+      runtime.schedule('test.command-work', runtime.time);
+    },
+    tasks: {
+      'test.deadline'(runtime) {
+        inspect(runtime, 'queued');
+        runtime.schedule('test.consequence', runtime.time);
       },
-      tasks: { 'test.inspect-flip': (runtime) => observed.push(Boolean(runtime.profession.core.availableFlips.flip)) }
-    });
-    profession.catalog = withSkill(catalog, 991001, {
-      sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: 'flip', durationSec: 1, expiryPriority } }]
-    });
-    runGw2Runtime({ profession, config, rotation: [cast(991001), wait(1100)] });
-    assert.deepEqual(observed, [expiryPriority === undefined]);
-  }
+      'test.consequence': (runtime) => inspect(runtime, 'consequence'),
+      'test.command-work': (runtime) => inspect(runtime, 'command work')
+    }
+  });
+  const result = runGw2Runtime({ profession, config, rotation: [wait(1000), cast(991001)] });
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(observed, [
+    ['queued', 1, true, false],
+    ['consequence', 1, true, false],
+    ['command', 1, false, false],
+    ['command work', 1, false, false]
+  ]);
+});
+
+// Zero-duration declarations are legal and retire within the same observation boundary.
+test('zero-duration declared flips close immediately and retire after same-time queued work', () => {
+  let owner;
+  const observed = [];
+  const profession = fixture({
+    initialize(runtime) {
+      owner = runtime;
+    },
+    onCastStart(runtime) {
+      runtime.schedule('test.inspect', runtime.time, null, undefined, 100);
+    },
+    tasks: {
+      'test.inspect': (runtime) =>
+        observed.push([Boolean(runtime.flips.flip), skillFlipReady(runtime.flips.flip, runtime.time)])
+    }
+  });
+  profession.catalog = withSkill(catalog, 991001, {
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: 'flip', durationSec: 0 } }]
+  });
+  // The command creates the grant and the probe; cleanup must drain before returning at this same timestamp.
+  const result = runGw2Runtime({ profession, config, rotation: [cast(991001)] });
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(observed, [[true, false]]);
+  assert.equal(owner.flips.flip, undefined);
 });
 
 // A declaration chooses the consumption boundary; cancelling before commitment must not spend the window.
@@ -883,9 +965,9 @@ test('declared flip consumption respects cast phase and safely consumes an absen
       });
       assert.deepEqual(result.warnings, []);
       const retained = on === 'castCommit' && interruptAfterMs !== undefined;
-      assert.equal(Boolean(runtime.profession.core.availableFlips.flip), retained);
+      assert.equal(Boolean(runtime.flips.flip), retained);
 
-      if (retained) assert.equal(runtime.profession.core.availableFlips.flip.expiresAt, null);
+      if (retained) assert.equal(runtime.flips.flip.expiresAt, null);
 
       runtime.consumeFlip('flip');
       assert.equal(runtime.consumeFlip('flip'), undefined);
@@ -923,5 +1005,5 @@ test('consumed flip expiry cannot clear a later declarative rearm', () => {
     rotation: [cast(991001), cast('flip'), cast(991006), wait(2000)]
   });
   assert.deepEqual(result.warnings, []);
-  assert.equal(runtime.profession.core.availableFlips.flip.expiresAt, null);
+  assert.equal(runtime.flips.flip.expiresAt, null);
 });

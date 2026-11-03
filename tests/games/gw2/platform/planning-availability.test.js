@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { planningState } from '#gw2/platform/results/planning-state.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
@@ -12,6 +11,7 @@ import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runt
 function snapshot(runtime) {
   return structuredClone({
     profession: runtime.profession,
+    flips: runtime.flips,
     cooldowns: [...runtime.cooldownController.cooldownSkillIds()].map((id) => [
       id,
       runtime.cooldownController.readyAt(id),
@@ -57,8 +57,8 @@ for (const { id } of professionOptions) {
       sweep();
 
       // Follow-up queries cover visible-but-arming, ready, and exact-expiry boundaries without executing the queue.
-      if (runtime.profession.core.availableFlips) {
-        for (const skill of candidates) runtime.profession.core.availableFlips[skill.id] = armSkillFlip({}, 0, 1, 2);
+      if (runtime.flips) {
+        for (const skill of candidates) runtime.armFlip(skill.id, { availableAt: 1, expiresAt: 2 });
         for (const at of [0, 1, 2]) {
           runtime.time = at;
           sweep();
@@ -146,7 +146,7 @@ test('planning verdicts and state are detached; score runs never capture candida
   );
   const before = structuredClone(observation);
   verdict.reason = 'Changed';
-  runtime.profession.core.availableFlips = {};
+  runtime.armFlip(123, { expiresAt: 2 });
   runtime.profession.specialization.state.gunsaberActive = true;
   runtime.cooldownController.setReadyAt(123, 99);
   assert.deepEqual(observation, before);

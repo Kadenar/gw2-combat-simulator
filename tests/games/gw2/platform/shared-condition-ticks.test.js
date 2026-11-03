@@ -44,17 +44,16 @@ test('samples and strikes see cooldown resets, checkpoint restoration, and swaps
             }
           }
         },
-        modifiers: {
-          modifyAttributes(context, attributes) {
-            const cooldown = context.timeline.skillOnCooldownAt(1, context.time);
-            const weaponSet = context.timeline.activeWeaponSetAt(context.time);
+        // A declaration samples live readiness once for each attribute query, including same-time resets.
+        attributeContributions(context) {
+          const cooldown = context.timeline.skillOnCooldownAt(1, context.time);
+          const weaponSet = context.timeline.activeWeaponSetAt(context.time);
 
-            if ([1, 2].includes(context.time)) {
-              seen.push([context.time, context.event.type, cooldown, weaponSet]);
-            }
-
-            return { ...attributes, conditionDamage: cooldown ? 0 : 180 };
+          if ([1, 2].includes(context.time)) {
+            seen.push([context.time, context.event.type, cooldown, weaponSet]);
           }
+
+          return [{ transforms: [{ kind: 'project', attributes: { conditionDamage: cooldown ? 0 : 180 } }] }];
         }
       });
       const owner = { source: 'Player', sourceId: 'probe', actorType: 'player' };

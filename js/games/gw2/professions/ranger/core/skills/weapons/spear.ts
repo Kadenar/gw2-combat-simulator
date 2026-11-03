@@ -5,7 +5,6 @@ import { endStealth } from '#gw2/platform/combat/stealth.js';
 import { BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SPEAR_STEALTH_FLIP_BY_PARENT } from '#gw2/professions/ranger/core/mechanics/weapon-state.js';
@@ -392,13 +391,13 @@ function synchronizeSpearRecharge(runtime: RangerRuntime, cast: RuntimeCast<Rang
 /** Reuse the shared flip ledger so stale expiry cannot clear a later Prowess grant. */
 function armHuntersProwess(runtime: RangerRuntime): void {
   for (const flip of Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT))
-    armSkillFlip(runtime.profession.core.availableFlips, flip, runtime.time, runtime.time + 3);
+    runtime.armFlip(flip, { availableAt: runtime.time, expiresAt: runtime.time + 3 });
 }
 
 /** Spending either Prowess or external stealth uses the shared reveal transition and closes all spear alternatives. */
 function consumeSpearOpportunity(runtime: RangerRuntime): void {
   const state = runtime.profession.core;
-  for (const flip of Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT)) consumeSkillFlip(state.availableFlips, flip);
+  for (const flip of Object.values(RANGER_SPEAR_STEALTH_FLIP_BY_PARENT)) runtime.consumeFlip(flip);
   endStealth(state, runtime.time);
 }
 

@@ -5,10 +5,10 @@ import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
 import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
+import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { event as evtcEvent, log, EVTC_FIXTURE_PLAYER as PLAYER } from '#tests/helpers/evtc-fixture.js';

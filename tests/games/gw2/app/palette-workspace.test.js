@@ -122,7 +122,9 @@ test('weapon palette families display one live autoattack or flip skill', () => 
       planningState: {
         availability: {},
         profession: {
-          [STATE.AUTOATTACK_CHAINS]: { 1: 2 },
+          ...{
+            [STATE.AUTOATTACK_CHAINS]: { 1: 2 }
+          },
           [STATE.AVAILABLE_FLIPS]: { 4: armSkillFlip({}, 0, 0, Infinity) }
         }
       }
@@ -134,7 +136,8 @@ test('weapon palette families display one live autoattack or flip skill', () => 
     ['Second Strike', 'Counter Attack']
   );
 
-  app.results.planningState.profession = { autoattackChains: {}, availableFlips: {} };
+  app.results.planningState.profession = { [STATE.AUTOATTACK_CHAINS]: {} };
+  app.results.planningState.profession[STATE.AVAILABLE_FLIPS] = {};
   assert.deepEqual(
     displayedWeaponSkills(app, skills).map((skill) => skill.name),
     ['First Strike', 'Counter Stance']
@@ -155,7 +158,7 @@ test('palette flip projection follows canonical children and honors timed expiry
       planningState: {
         availability: {},
         atSeconds: 1.5,
-        profession: { [STATE.AVAILABLE_FLIPS]: { 11: armSkillFlip({}, 0, 0, 2) } }
+        profession: { ...{}, [STATE.AVAILABLE_FLIPS]: { 11: armSkillFlip({}, 0, 0, 2) } }
       }
     }
   };
@@ -412,7 +415,7 @@ test('Firebrand mantra flips replace their selected skill-bar parent', async () 
   const app = {
     patch: patchSelectionFixture({ skillsById: skillById }),
     activeCatalog: { skillsById: skillById },
-    results: { planningState: { availability: {}, profession: { [STATE.AVAILABLE_FLIPS]: {} } } }
+    results: { planningState: { availability: {}, profession: { ...{}, [STATE.AVAILABLE_FLIPS]: {} } } }
   };
 
   assert.equal(skillBarDisplaySkill(app, parent), parent);

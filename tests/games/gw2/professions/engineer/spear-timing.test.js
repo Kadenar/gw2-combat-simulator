@@ -5,7 +5,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
-import { armSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { engineerSpearLifecycle } from '#gw2/professions/engineer/core/mechanics/spear.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -226,7 +226,7 @@ test('Artillery damage and conditions wait for impact without delaying the next 
 test('Artillery snapshots release charges and preserves the armed sequence on cancellation', () => {
   const initialize = (runtime) => {
     runtime.profession.core.lightningRodChargeExpiries = [0, 0.1, 100];
-    armSkillFlip(runtime.profession.core.availableFlips, ID.ELECTRIC_ARTILLERY, 0);
+    runtime.armFlip(ID.ELECTRIC_ARTILLERY, { availableAt: 0 });
   };
 
   const cancelled = runEngineer([{ skillId: ID.ELECTRIC_ARTILLERY, interruptMs: 0 }], {}, { initialize });
@@ -239,5 +239,5 @@ test('Artillery snapshots release charges and preserves the armed sequence on ca
   const projectile = released.events.find((event) => event.type === 'engineer.electric-artillery');
   assert.equal(projectile.charges, 1);
   assert.deepEqual(observedRuntime(released).profession.core.lightningRodChargeExpiries, []);
-  assert.equal(observedRuntime(released).profession.core.availableFlips[ID.ELECTRIC_ARTILLERY], undefined);
+  assert.equal(observedRuntime(released).flips[ID.ELECTRIC_ARTILLERY], undefined);
 });

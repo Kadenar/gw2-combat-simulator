@@ -21,7 +21,7 @@ import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/sk
 import type { Gw2WeaponDataEntry, Gw2WeaponSkillMatcher } from '#gw2/platform/equipment/weapons/types.js';
 import { autoattackChainSkillAvailable } from '#gw2/platform/execution/autoattack-chains.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
-import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
+import { skillFlipVisible, type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type {
   ProfessionCatalogContext,
   ProfessionPaletteContext,
@@ -231,11 +231,7 @@ interface WeaponPaletteRow {
   readonly skills: PaletteSkill[];
 }
 
-function paletteFlipAvailable(
-  skill: PaletteSkill,
-  availableFlips: NonNullable<RotationProfessionState[typeof STATE.AVAILABLE_FLIPS]>,
-  at: number
-): boolean {
+function paletteFlipAvailable(skill: PaletteSkill, availableFlips: Readonly<SkillFlipWindows>, at: number): boolean {
   return skillFlipVisible(availableFlips[skill.id], at);
 }
 

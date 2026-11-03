@@ -22,10 +22,9 @@ function closedFollowUpAvailability(
   runtime: MechanicQueriesOf<ThiefRuntime>,
   skill: ThiefSkill
 ): AvailabilityResult | null {
-  const core = runtime.profession.core;
   const now = runtime.time;
 
-  if (skill.type === 'Weapon' && skill.flipParentId != null && !skillFlipReady(core.availableFlips[skill.id], now)) {
+  if (skill.type === 'Weapon' && skill.flipParentId != null && !skillFlipReady(runtime.flips[skill.id], now)) {
     const parent = runtime.helpers.skillsById.get(Number(skill.flipParentId));
     return denySkillCast(
       skill,
@@ -42,11 +41,10 @@ function activeFollowUpAvailability(
   runtime: MechanicQueriesOf<ThiefRuntime>,
   skill: ThiefSkill
 ): AvailabilityResult | null {
-  const core = runtime.profession.core;
   const now = runtime.time;
 
   // A closed follow-up already answered above with its opener-specific reason.
-  if (weaponFollowUpOpen(core.availableFlips, skill, now))
+  if (weaponFollowUpOpen(runtime.flips, skill, now))
     return denySkillCast(skill, 'thief.follow-up-active', 'use or wait out the active follow-up skill.');
 
   return null;

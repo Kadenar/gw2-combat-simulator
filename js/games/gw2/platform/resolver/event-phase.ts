@@ -9,6 +9,9 @@ export function gw2ResolverPhase(
 
   if (event.type === 'condition_tick') return GW2_RESOLVER_PHASE.Settle;
 
+  // Zero-duration grants armed during settlement retire only after ordinary gameplay has finished.
+  if (event.type === 'runtime.flip-expiry') return GW2_RESOLVER_PHASE.Ordinary;
+
   if (event.type !== 'damage' && current?.at === event.at && current.phase === GW2_RESOLVER_PHASE.Settle) {
     return GW2_RESOLVER_PHASE.Settle;
   }

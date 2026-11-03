@@ -4,7 +4,6 @@ import test from 'node:test';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
@@ -32,7 +31,7 @@ test('Rock Barrier availability precedes weapon-bar restrictions and retains its
   const check = (id) => elementalistCoreAvailability(runtime.mechanics.queries, runtime.helpers.skillsById.get(id));
 
   assert.equal(check(ID.HURL).code, 'elementalist.rock-barrier');
-  armSkillFlip(core.availableFlips, ID.HURL, runtime.time, runtime.time + 5);
+  runtime.armFlip(ID.HURL, { availableAt: runtime.time, expiresAt: runtime.time + 5 });
   const barrier = check(ID.ROCK_BARRIER);
   assert.equal(barrier.code, 'elementalist.rock-barrier-active');
   assert.equal(barrier.retryAt, runtime.time + 5);

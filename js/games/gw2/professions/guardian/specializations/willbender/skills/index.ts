@@ -56,7 +56,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
     sideEffects: [
       {
         on: 'castCommit',
-        do: { type: 'flipArm', skillId: ID.QUICK_RETRIBUTION, durationSec: 15, expiryPriority: -220 }
+        do: { type: 'flipArm', skillId: ID.QUICK_RETRIBUTION, durationSec: 15 }
       }
     ]
   },
@@ -275,9 +275,7 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
       }
     ],
     // Committed combos arm Repose, including shortened channels; old occurrences expire before same-time casts.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'flipArm', skillId: ID.REPOSE, durationSec: 6, expiryPriority: -220 } }
-    ]
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.REPOSE, durationSec: 6 } }]
   },
   [ID.WILLBENDER_FLAMES_ID_62618]: {
     name: 'Willbender Flames',

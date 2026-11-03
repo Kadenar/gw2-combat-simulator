@@ -2,7 +2,7 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { resourceDepletionAt } from '#gw2/platform/combat/resources/clock.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -57,10 +57,8 @@ export function removeRevenantUpkeep(runtime: RevenantRuntime, skillId: SkillId)
 
 /** Legend follow-ups belong to the invoked legend; weapon follow-ups keep their own lifetimes. */
 export function clearRevenantLegendFlips(runtime: RevenantRuntime): void {
-  const core = runtime.profession.core;
-  core.availableFlips = Object.fromEntries(
-    Object.entries(core.availableFlips).filter(([id]) => runtime.helpers.skillsById.get(Number(id))?.type === 'Weapon')
-  );
+  for (const id of Object.keys(runtime.flips))
+    if (runtime.helpers.skillsById.get(Number(id))?.type !== 'Weapon') runtime.clearFlip(Number(id));
 }
 
 /** Aggregate drain includes only upkeeps whose activation has completed. */
@@ -111,12 +109,11 @@ export function activateRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCa
   runtime.resourceController.refresh('energy');
   const release = skill.flipSkillId == null ? null : runtime.helpers.skillsById.get(Number(skill.flipSkillId));
 
-  if (release) armSkillFlip(core.availableFlips, release.id, runtime.time);
+  if (release) runtime.armFlip(release.id);
 }
 
 /** Releasing removes the parent's drain and follow-up, then applies its manual-release recharge. */
 export function releaseRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const core = runtime.profession.core;
   const parent =
     cast.skill.flipParentId == null ? undefined : runtime.helpers.skillsById.get(Number(cast.skill.flipParentId));
 
@@ -124,7 +121,7 @@ export function releaseRevenantUpkeep(runtime: RevenantRuntime, cast: RuntimeCas
 
   removeRevenantUpkeep(runtime, parent.id);
   runtime.resourceController.refresh('energy');
-  consumeSkillFlip(core.availableFlips, cast.skill.id);
+  runtime.consumeFlip(cast.skill.id);
   const cooldown = Math.max(0, parent.manualReleaseCooldown || 0);
 
   // Recharge modifiers apply at release using the parent's release-specific base cooldown.
@@ -142,7 +139,7 @@ export function revenantUpkeepAvailability(
   skill: Skill
 ): AvailabilityResult | null {
   const core = runtime.profession.core;
-  const flips = core.availableFlips;
+  const flips = runtime.flips;
   const now = runtime.time;
 
   if (upkeepRelease(runtime, skill) && !skillFlipReady(flips[skill.id], now))

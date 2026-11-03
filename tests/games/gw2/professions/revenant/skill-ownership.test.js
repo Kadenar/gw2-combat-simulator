@@ -106,13 +106,13 @@ test('Crushing Abyss resolves before Brutality observes the committed weapon swa
 
 // Removing an intrinsic declaration must remove its transition, rather than leave a second hook dispatcher active.
 for (const [skillId, specialization, legend, active] of [
-  [ID.IMPERIAL_GUARD, 'Core', LEGEND.ASSASSIN, (result) => Boolean(core(result).availableFlips[ID.TRUE_STRIKE])],
+  [ID.IMPERIAL_GUARD, 'Core', LEGEND.ASSASSIN, (result) => Boolean(observedRuntime(result).flips[ID.TRUE_STRIKE])],
   [ID.ENCHANTED_DAGGERS, 'Core', LEGEND.ASSASSIN, (result) => core(result).enchantedDaggers.charges > 0],
   [
     ID.BLOSSOMING_AURA,
     'Core',
     LEGEND.ASSASSIN,
-    (result) => Boolean(core(result).availableFlips[ID.DETONATE_BLOSSOMING_AURA])
+    (result) => Boolean(observedRuntime(result).flips[ID.DETONATE_BLOSSOMING_AURA])
   ],
   [ID.ABYSSAL_RAZE, 'Core', LEGEND.ASSASSIN, (result) => core(result).crushingAbyss.length > 0],
   [ID.IMPOSSIBLE_ODDS, 'Core', LEGEND.ASSASSIN, (result) => core(result).activeUpkeeps.length > 0],
@@ -121,7 +121,7 @@ for (const [skillId, specialization, legend, active] of [
     ID.FACET_OF_NATURE,
     'Herald',
     LEGEND.ASSASSIN,
-    (result) => Boolean(core(result).availableFlips[ID.TRUE_NATURE_ASSASSIN])
+    (result) => Boolean(observedRuntime(result).flips[ID.TRUE_NATURE_ASSASSIN])
   ],
   [
     ID.RAZORCLAWS_RAGE,
@@ -174,7 +174,7 @@ test('cancelled True Strike consumes the window opened by a shortened blocking c
     { skillId: ID.TRUE_STRIKE, interruptMs: 0 }
   ]);
   assert.deepEqual(result.warnings, []);
-  assert.equal(core(result).availableFlips[ID.TRUE_STRIKE], undefined);
+  assert.equal(observedRuntime(result).flips[ID.TRUE_STRIKE], undefined);
   const blocking = result.events.find((event) => event.kind === 'blocking');
   const guard = result.steps.find((step) => step.skillId === ID.IMPERIAL_GUARD);
   assert.equal(blocking.duration, (guard.end - guard.start) / 1000);

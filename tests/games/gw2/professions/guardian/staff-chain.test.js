@@ -31,7 +31,7 @@ test('staff advances and completes through shared chain state without arming fli
     assert.equal(result.rotationApm.apm, 0);
     const core = observedRuntime(result).profession.core;
     assert.equal(core.autoattackChains[ID.BOLT_OF_WRATH], chain[length]);
-    assert.deepEqual(core.availableFlips, {});
+    assert.deepEqual(observedRuntime(result).flips, {});
   }
 
   const repeated = runGuardian([...chain, ID.BOLT_OF_WRATH], config);

@@ -1,7 +1,6 @@
 import { produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -69,8 +68,8 @@ const engineerTurretTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill
     });
   },
   'engineer.turret-flip'(runtime) {
-    consumeSkillFlip(runtime.profession.core.availableFlips, ID.DETONATE_HEALING_TURRET);
-    armSkillFlip(runtime.profession.core.availableFlips, ID.CLEANSING_BURST, runtime.time);
+    runtime.consumeFlip(ID.DETONATE_HEALING_TURRET);
+    runtime.armFlip(ID.CLEANSING_BURST);
   }
 };
 

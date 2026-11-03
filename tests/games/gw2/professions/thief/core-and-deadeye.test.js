@@ -261,8 +261,8 @@ test('Deadeye live runtime and palette enforce the same flip expiry boundary', (
   const swap = thiefCatalog.skillsById.get(ID.SHADOW_SWAP);
   const flare = thiefCatalog.skillsById.get(ID.SHADOW_FLARE);
   for (const expiresAt of [undefined, 4, 5, 6]) {
-    const core = { availableFlips: expiresAt == null ? {} : { [ID.SHADOW_SWAP]: armSkillFlip({}, 0, 0, expiresAt) } };
-    const result = deadeyeCastAvailability(core.availableFlips, swap, 5);
+    const flips = expiresAt == null ? {} : { [ID.SHADOW_SWAP]: armSkillFlip({}, 0, 0, expiresAt) };
+    const result = deadeyeCastAvailability(flips, swap, 5);
     assert.equal(result.ready, expiresAt > 5);
 
     if (!result.ready) {
@@ -270,7 +270,7 @@ test('Deadeye live runtime and palette enforce the same flip expiry boundary', (
       assert.equal(result.retryAt, null);
     }
 
-    assert.equal(deadeyeCastAvailability(core.availableFlips, flare, 5).ready, true);
+    assert.equal(deadeyeCastAvailability(flips, flare, 5).ready, true);
   }
 });
 

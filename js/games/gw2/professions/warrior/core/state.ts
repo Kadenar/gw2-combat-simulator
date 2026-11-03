@@ -2,7 +2,6 @@ import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-cla
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -13,7 +12,6 @@ export interface WarriorCoreState {
   endurance: ResourceClock;
 
   autoattackChains: Record<string, SkillId>;
-  availableFlips: SkillFlipWindows;
 
   activationClaims: ActivationClaims;
   /** Readiness waits for the next actual signet pulse instead of crediting future adrenaline. */
@@ -28,7 +26,6 @@ export function createWarriorCoreState(): WarriorCoreState {
     endurance: createResourceClock(ENDURANCE.maximum),
 
     autoattackChains: {},
-    availableFlips: {},
 
     activationClaims: {},
     signetOfRagePassive: createPeriodicTaskState(),
@@ -42,7 +39,6 @@ export function projectWarriorCorePlanningState(input: Gw2PlanningStateInput) {
   return {
     [STATE.ADRENALINE]: state.adrenaline,
     [STATE.ENDURANCE]: state.endurance,
-    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
-    [STATE.AVAILABLE_FLIPS]: state.availableFlips
+    [STATE.AUTOATTACK_CHAINS]: state.autoattackChains
   };
 }

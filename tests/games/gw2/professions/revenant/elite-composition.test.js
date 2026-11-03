@@ -131,9 +131,9 @@ test('Nature activation arms the declared consume for each supported legend', ()
     });
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
-    assert.ok(skillFlipReady(runtime.profession.core.availableFlips[consumeId], runtime.time));
+    assert.ok(skillFlipReady(runtime.flips[consumeId], runtime.time));
     for (const other of Object.values(relationships).filter((id) => id !== consumeId))
-      assert.ok(!skillFlipReady(runtime.profession.core.availableFlips[other], runtime.time));
+      assert.ok(!skillFlipReady(runtime.flips[other], runtime.time));
   }
 });
 
@@ -156,9 +156,9 @@ test('selected Nature relationships drive activation, swaps, teardown, and prese
     for (const result of [active, swapped, consumed]) assert.deepEqual(result.warnings, []);
     const first = observedRuntime(active);
     const second = observedRuntime(swapped);
-    assert.ok(skillFlipReady(first.profession.core.availableFlips[selected[LEGEND.ASSASSIN]], first.time));
-    assert.ok(skillFlipReady(second.profession.core.availableFlips[selected[LEGEND.DRAGON]], second.time));
-    assert.ok(!skillFlipReady(second.profession.core.availableFlips[selected[LEGEND.ASSASSIN]], second.time));
+    assert.ok(skillFlipReady(first.flips[selected[LEGEND.ASSASSIN]], first.time));
+    assert.ok(skillFlipReady(second.flips[selected[LEGEND.DRAGON]], second.time));
+    assert.ok(!skillFlipReady(second.flips[selected[LEGEND.ASSASSIN]], second.time));
     assert.ok(second.profession.core.activeUpkeeps.some(({ skillId }) => skillId === nature.id));
     const finished = observedRuntime(consumed);
     assert.ok(!finished.profession.core.activeUpkeeps.some(({ skillId }) => skillId === nature.id));
@@ -167,6 +167,7 @@ test('selected Nature relationships drive activation, swaps, teardown, and prese
       specialization: 'Herald',
       catalog,
       build: heraldConfig,
+
       professionState: active.planningState.profession,
       time: first.time
     };
@@ -195,6 +196,7 @@ test('ordinary facet children, palette replacement, and cooldown parent follow t
     specialization: 'Herald',
     catalog,
     build: config,
+
     professionState: active.planningState.profession
   };
   assert.deepEqual(revenantLegendLoadout.skillChildren(context, ID.FACET_OF_STRENGTH), [ID.ELEMENTAL_BLAST]);
@@ -223,7 +225,7 @@ test('missing destination mappings end Nature on swap and never use its ordinary
   assert.deepEqual(result.warnings, []);
   const runtime = observedRuntime(result);
   assert.deepEqual(runtime.profession.core.activeUpkeeps, []);
-  assert.ok(!skillFlipReady(runtime.profession.core.availableFlips[ID.TRUE_NATURE_DRAGON], runtime.time));
+  assert.ok(!skillFlipReady(runtime.flips[ID.TRUE_NATURE_DRAGON], runtime.time));
   const group = revenantProfession.ui
     .paletteGroups({ specialization: 'Herald', catalog: selected, build: heraldConfig })
     .find(({ skillIds }) => skillIds.includes(ID.FACET_OF_NATURE));

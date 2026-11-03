@@ -1,7 +1,7 @@
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -83,7 +83,7 @@ export function startFacet(runtime: RevenantRuntime, skill: RevenantSkill): void
   delete state.lingeringFacets[skill.id];
   const consumeId = revenantUpkeepConsumeId(skill, core.activeLegendId);
 
-  if (consumeId != null) armSkillFlip(core.availableFlips, consumeId, runtime.time);
+  if (consumeId != null) runtime.armFlip(consumeId);
 
   if (!skill.upkeepPulse) return;
 
@@ -103,7 +103,7 @@ export function startConsume(runtime: RevenantRuntime, cast: RuntimeCast<Revenan
   const facet = consumedFacet(runtime, cast);
   const wasActive = Boolean(facet && removeRevenantUpkeep(runtime, facet.id));
   runtime.resourceController.refresh('energy');
-  consumeSkillFlip(runtime.profession.core.availableFlips, cast.skill.id);
+  runtime.consumeFlip(cast.skill.id);
 
   if (facet) consumedFacets.set(cast, { facet, wasActive });
 }
@@ -128,9 +128,7 @@ export function heraldFacetAvailability(
   runtime: MechanicQueriesOf<RevenantRuntime>,
   skill: RevenantSkill
 ): AvailabilityResult {
-  const core = runtime.profession.core;
-
-  if (skill.consume && !skillFlipReady(core.availableFlips[skill.id], runtime.time))
+  if (skill.consume && !skillFlipReady(runtime.flips[skill.id], runtime.time))
     return denySkillCast(skill, 'revenant.facet-inactive', 'activate the matching facet first.');
 
   if (skill.facet && activeRevenantUpkeep(runtime, skill.id))

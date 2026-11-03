@@ -14,7 +14,7 @@ function weaponFlipAvailability(
     skill.flipParentId != null &&
     !skill.shroudExit &&
     !runtime.helpers.autoattackChainPositions.has(Number(skill.id)) &&
-    !skillFlipReady(runtime.profession.core.availableFlips[skill.id], runtime.time)
+    !skillFlipReady(runtime.flips[skill.id], runtime.time)
   )
     return denySkillCast(skill, 'necromancer.flip-not-armed', 'not currently armed.');
 

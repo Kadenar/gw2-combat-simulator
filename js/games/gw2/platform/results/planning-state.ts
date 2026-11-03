@@ -2,7 +2,9 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import type { EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
-import { flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { skillFlipVisible, type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import { composePlanningState, flattenProfessionState } from '#gw2/platform/profession-definition/state.js';
+import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import type { Gw2PlanningStateInput, Gw2SimulationPlanningState } from '#gw2/platform/results/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -10,6 +12,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export function planningState<T extends object>(
   input: Gw2PlanningStateInput<T> & {
     readonly combatActive: boolean;
+    readonly flips: Readonly<SkillFlipWindows>;
     readonly cooldownController: Pick<CooldownController, 'cooldownSkillIds' | 'readyAt' | 'ammoSkillIds' | 'readAmmo'>;
   },
   project: ((input: Gw2PlanningStateInput<T>) => unknown) | undefined,
@@ -66,6 +69,16 @@ export function planningState<T extends object>(
     ammoBySkillId,
     activeWeaponSet: input.activeWeaponSet,
     // Projectors select public fields without mutation; this boundary alone detaches them from live owners.
-    profession: structuredClone(projected ?? flattenProfessionState(input.profession))
+    profession: structuredClone(
+      composePlanningState([
+        projected ?? flattenProfessionState(input.profession),
+        // Shared windows appear under the public state key without returning storage ownership to professions.
+        {
+          [STATE.AVAILABLE_FLIPS]: Object.fromEntries(
+            Object.entries(input.flips).filter(([, window]) => skillFlipVisible(window, endTime))
+          )
+        }
+      ])
+    )
   };
 }

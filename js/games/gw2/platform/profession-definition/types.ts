@@ -24,26 +24,8 @@ export interface ProfessionResourceDefinition<TProfessionState extends object = 
   readonly projectPlanningState?: (input: Gw2PlanningStateInput<TProfessionState>) => unknown;
 }
 
-/** One composable hook: a bare function, or a function with ordering metadata. */
-export type ProfessionHook =
-  | ((...args: never[]) => unknown)
-  | {
-      readonly id?: string;
-      readonly order?: number;
-      readonly handler: (...args: never[]) => unknown;
-    };
-
-/** A hook slot accepts one hook or an ordered list of them. */
-type ProfessionHookEntry = ProfessionHook | readonly ProfessionHook[];
-
-/** Attribute-phase rules a module contributes, plus its declarative modifier fragments. */
+/** Modules contribute declarative rules and bucket policies; shared attribute phases belong to compilation. */
 export interface ProfessionModifierDefinition {
-  readonly modifyAttributes?: ProfessionHookEntry;
-  readonly modifyConditionAttributes?: ProfessionHookEntry;
-  readonly modifyCriticalChance?: ProfessionHookEntry;
-  readonly modifyCriticalDamage?: ProfessionHookEntry;
-  readonly modifyConditionBaseDuration?: ProfessionHookEntry;
-  readonly modifyConditionDuration?: ProfessionHookEntry;
   /** Declarative modifier fragments compiled once per selection with standard GW2 damage buckets. */
   readonly modifierRules?: readonly Gw2ModifierRule[];
   /** Each damage target has one policy owner; all selected rules share its equipment eligibility. */

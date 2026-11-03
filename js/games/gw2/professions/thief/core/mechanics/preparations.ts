@@ -2,7 +2,7 @@ import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { armSkillFlip, consumeSkillFlip, skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
+import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -37,7 +37,7 @@ export function thiefTrapAvailability(
 
   if (!trap) return null;
 
-  const window = runtime.profession.core.availableFlips[trap.triggerId];
+  const window = runtime.flips[trap.triggerId];
 
   if (skill.id === trap.prepareId && skillFlipVisible(window, runtime.time))
     return denySkillCast(skill, `thief.${trap.reason}-prepared`, `activate ${trap.name} before preparing it again.`);
@@ -61,7 +61,7 @@ export function prepareTrap(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>
   // The placement owns its arming duration; missing selected tuning must never fall back to a default.
   const delay =
     requireBalanceNumber(skill.duration, `skill=${skill.id} field=duration`) / runtime.cooldownController.rate(skill);
-  armSkillFlip(runtime.profession.core.availableFlips, trap.triggerId, runtime.time + delay, Infinity, runtime.time);
+  runtime.armFlip(trap.triggerId, { availableAt: runtime.time + delay, expiresAt: Infinity, visibleAt: runtime.time });
 }
 
 /** Triggering consumes the trap and mirrors its short rearm onto an already-recharged placement skill. */
@@ -70,7 +70,7 @@ export function activateTrap(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill
 
   if (!trap) return;
 
-  consumeSkillFlip(runtime.profession.core.availableFlips, trap.triggerId);
+  runtime.consumeFlip(trap.triggerId);
   const triggerReadyAt = runtime.cooldownController.readyAt(trap.triggerId);
 
   if (triggerReadyAt == null || triggerReadyAt <= (runtime.cooldownController.readyAt(trap.prepareId) || 0)) return;

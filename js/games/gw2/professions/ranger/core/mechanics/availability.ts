@@ -48,7 +48,7 @@ export function rangerCoreCastAvailability(
 
   // Spear choices can come from any stealth source; do not misidentify the base attack as their prerequisite.
   if (isSpearStealthAttack || spearStealthFlipId != null) {
-    const available = rangerSpearStealthAvailable(state, context.time);
+    const available = rangerSpearStealthAvailable(state, context.time, context.flips);
 
     if (isSpearStealthAttack && !available)
       return denySkillCast(skill, 'ranger.flip-inactive', "use Panther's Prowl or gain stealth first.");
@@ -60,7 +60,7 @@ export function rangerCoreCastAvailability(
   }
 
   // Only declared temporal follow-ups carry canonical flip links and require a window.
-  const flipBlock = weaponFlipBlock(state.availableFlips, context.helpers.skillsById, skill, context.time);
+  const flipBlock = weaponFlipBlock(context.flips, context.helpers.skillsById, skill, context.time);
 
   if (flipBlock?.kind === 'closed')
     return denySkillCast(

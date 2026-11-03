@@ -109,7 +109,7 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
 const guardianTorchActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.arm-zealots-fire'(runtime, context) {
     const duration = Number(context.skill.flipDuration) * radiantFireDurationMultiplier(runtime);
-    runtime.armFlip(ID.ZEALOTS_FIRE, { expiresAt: canonicalTime(runtime.time + duration), expiryPriority: -220 });
+    runtime.armFlip(ID.ZEALOTS_FIRE, { expiresAt: canonicalTime(runtime.time + duration) });
   },
   'guardian.zealots-fire-lockout'(runtime) {
     for (const lockout of runtime.helpers.skillsById.get(ID.ZEALOTS_FLAME)?.lockouts ?? [])
@@ -145,8 +145,7 @@ export const guardianTorchLifecycle = {
   sideEffectHandlers: guardianTorchActions,
   // Radiant Fire's second charge can leave Flame off recharge, but its slot stays replaced while Fire is armed.
   availability(runtime, skill) {
-    return skill.id === ID.ZEALOTS_FLAME &&
-      weaponFollowUpOpen(runtime.profession.core.availableFlips, skill, runtime.time)
+    return skill.id === ID.ZEALOTS_FLAME && weaponFollowUpOpen(runtime.flips, skill, runtime.time)
       ? denySkillCast(skill, 'guardian.flip-parent-active', 'use the active flip skill first.')
       : { ready: true };
   },

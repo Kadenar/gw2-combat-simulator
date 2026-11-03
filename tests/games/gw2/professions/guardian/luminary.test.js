@@ -1405,7 +1405,7 @@ test('Forge exits finalize once at the actual transition and clear weapon state'
     assert.equal(state.radiantForge, false);
     assert.equal(state.radiantWeapon, '');
     assert.equal(state.glaringBurstSwordSlow, false);
-    assert.deepEqual(runtime.profession.core.availableFlips, {});
+    assert.deepEqual(runtime.flips, {});
     assert.deepEqual(runtime.profession.core.autoattackChains, {});
   }
 });

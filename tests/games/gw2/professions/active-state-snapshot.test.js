@@ -14,7 +14,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
-import { projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { projectObservedPlanningState, projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 
 test('planning projections omit private mechanic state while retaining visible observations', () => {
@@ -154,12 +154,16 @@ test('filtered public windows remain deeply detached from their live owners', ()
   const guardian = guardianProfession.runtimeFor({ specialization: 'Core' }).createState({ specialization: 'Core' });
   const expiredFlip = { identity: 1, visibleAt: 0, availableAt: 0, expiresAt: 5, remainingUses: 1 };
   const visibleFlip = { identity: 2, visibleAt: 0, availableAt: 0, expiresAt: 7, remainingUses: 1 };
-  guardian.core.availableFlips = { expired: expiredFlip, visible: visibleFlip };
-  const guardianProjection = projectObservedState(guardianProfession, { profession: guardian, time: 5 });
-  assert.deepEqual(guardianProjection[STATE.AVAILABLE_FLIPS], { visible: visibleFlip });
-  guardianProjection[STATE.AVAILABLE_FLIPS].visible.expiresAt = 99;
+  const guardianFlips = { expired: expiredFlip, visible: visibleFlip };
+  const guardianProjection = projectObservedPlanningState(guardianProfession, {
+    profession: guardian,
+    flips: guardianFlips,
+    time: 5
+  });
+  assert.deepEqual(guardianProjection.profession[STATE.AVAILABLE_FLIPS], { visible: visibleFlip });
+  guardianProjection.profession[STATE.AVAILABLE_FLIPS].visible.expiresAt = 99;
   assert.equal(visibleFlip.expiresAt, 7);
-  assert.equal(guardian.core.availableFlips.expired, expiredFlip);
+  assert.equal(guardianFlips.expired, expiredFlip);
 
   const config = { specialization: 'Bladesworn' };
   const bladesworn = warriorProfession.runtimeFor(config).createState(config);
@@ -188,13 +192,13 @@ test('Mesmer public projectors do not traverse private cast history', () => {
       }
     });
     const flip = { identity: 1, visibleAt: 0, availableAt: 0, expiresAt: 7, remainingUses: 1 };
-    profession.core.availableFlips = { visible: flip, expired: { ...flip, identity: 2, expiresAt: 5 } };
-    const projected = projectObservedState(mesmerProfession, { profession, config, time: 5 });
-    assert.equal(Object.hasOwn(projected, 'castDetails'), false);
-    assert.deepEqual(projected[STATE.AVAILABLE_FLIPS], { visible: flip });
-    projected[STATE.AVAILABLE_FLIPS].visible.expiresAt = 99;
+    const flips = { visible: flip, expired: { ...flip, identity: 2, expiresAt: 5 } };
+    const projected = projectObservedPlanningState(mesmerProfession, { profession, config, flips, time: 5 });
+    assert.equal(Object.hasOwn(projected.profession, 'castDetails'), false);
+    assert.deepEqual(projected.profession[STATE.AVAILABLE_FLIPS], { visible: flip });
+    projected.profession[STATE.AVAILABLE_FLIPS].visible.expiresAt = 99;
     assert.equal(flip.expiresAt, 7);
-    assert.equal(profession.core.availableFlips.expired.expiresAt, 5);
+    assert.equal(flips.expired.expiresAt, 5);
   }
 });
 

@@ -473,8 +473,10 @@ test('legend palette shows only the destination legend with the shared swap cool
     build: baseConfig,
     specialization: 'Core',
     professionState: {
-      [STATE.ACTIVE_LEGEND_ID]: LEGEND.ASSASSIN,
-      [STATE.ACTIVE_LOADOUT_ID]: LEGEND.ASSASSIN,
+      ...{
+        [STATE.ACTIVE_LEGEND_ID]: LEGEND.ASSASSIN,
+        [STATE.ACTIVE_LOADOUT_ID]: LEGEND.ASSASSIN
+      },
       [STATE.AVAILABLE_FLIPS]: {}
     }
   };

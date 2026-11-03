@@ -37,7 +37,6 @@ import {
 } from '#gw2/platform/execution/skill-flips.js';
 import type { FlipWindowOptions } from '#gw2/platform/execution/skill-flips.js';
 import { createMaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
-import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createEffectDelivery } from '#gw2/platform/resolver/effect-delivery.js';
@@ -64,7 +63,12 @@ import type {
 } from '#gw2/platform/simulation/run-contract.js';
 import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import { isRuntimeWork, type RuntimeQueueEntry, type RuntimeWork } from '#gw2/platform/simulation/work-contract.js';
+import {
+  FLIP_EXPIRY_PRIORITY,
+  isRuntimeWork,
+  type RuntimeQueueEntry,
+  type RuntimeWork
+} from '#gw2/platform/simulation/work-contract.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { normalizeObservationPolicy } from '#kernel/execution/observation.js';
@@ -248,7 +252,9 @@ export function runRuntime<T extends object>(
     .map(createRelicRuntime)
     .filter((relic) => relic.id !== base.relic.id);
   // Capacity queries share one selected-content capability and follow the live profession state across replacements.
-  const maximumAmmoContext = createMaximumAmmoContext(() => runtime.profession, base.traits, profession.catalog);
+  // Execution owns every follow-up; profession state replacement cannot discard windows or their identity sequence.
+  const flips: SkillFlipWindows = {};
+  const maximumAmmoContext = createMaximumAmmoContext(() => runtime.profession, base.traits, profession.catalog, flips);
   // The recharge owner keeps its stores private and reads the single live runtime clock.
   const cooldownController = createCooldownController({
     clock: {
@@ -289,34 +295,20 @@ export function runRuntime<T extends object>(
     observations: facts.writer,
     steps: [],
     inputActions: [],
+    flips,
     armFlip(
       skillId: SkillId,
-      {
-        availableAt = runtime.time,
-        expiresAt = Infinity,
-        visibleAt,
-        identity,
-        uses,
-        expiryPriority = -20
-      }: FlipWindowOptions = {}
+      { availableAt = runtime.time, expiresAt = Infinity, visibleAt, identity, uses }: FlipWindowOptions = {}
     ) {
-      const window = armSkillFlip(
-        flipWindows(),
-        skillId,
-        availableAt,
-        expiresAt,
-        visibleAt ?? availableAt,
-        identity,
-        uses
-      );
+      const window = armSkillFlip(flips, skillId, availableAt, expiresAt, visibleAt ?? availableAt, identity, uses);
 
-      // The expiry only retires stale state: readiness already closes at the exclusive deadline.
+      // Retire after queued gameplay and before deadline commands; readiness already closes at the deadline.
       if (window.expiresAt != null)
         enqueueWork(
           makeWork({
             type: 'runtime.flip-expiry',
             at: window.expiresAt,
-            priority: expiryPriority,
+            priority: FLIP_EXPIRY_PRIORITY,
             payload: { skillId, identity: window.identity }
           })
         );
@@ -324,7 +316,13 @@ export function runRuntime<T extends object>(
       return window;
     },
     consumeFlip(skillId: SkillId) {
-      return consumeSkillFlip(flipWindows(), skillId);
+      return consumeSkillFlip(flips, skillId);
+    },
+    clearFlip(skillId: SkillId) {
+      delete flips[skillId];
+    },
+    expireFlip(skillId: SkillId, identity: number | string) {
+      return expireSkillFlip(flips, skillId, runtime.time, identity);
     },
     schedule(name: string, at: number, data: unknown = null, owner?: { id: string; generation: number }, priority = 0) {
       if (!profession.tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
@@ -383,15 +381,6 @@ export function runRuntime<T extends object>(
       deliveryOwner.publishAnnouncement(work.payload.request, assertSimulationEvent(work.payload.event));
   });
 
-  /** Every profession keeps its follow-up windows under one conventional key on its Core state. */
-  function flipWindows(): SkillFlipWindows {
-    const flips = readProfessionCoreState<{ availableFlips: SkillFlipWindows }>(runtime.profession).availableFlips;
-
-    if (!flips) throw new TypeError(`${profession.id} keeps no follow-up windows on its Core state.`);
-
-    return flips;
-  }
-
   internal.register('runtime.cast-task', (_context, work) => {
     if (work.type !== 'runtime.cast-task') return;
 
@@ -408,8 +397,7 @@ export function runRuntime<T extends object>(
     );
   });
   internal.register('runtime.flip-expiry', (_context, work) => {
-    if (work.type === 'runtime.flip-expiry')
-      expireSkillFlip(flipWindows(), work.payload.skillId, runtime.time, work.payload.identity);
+    if (work.type === 'runtime.flip-expiry') runtime.expireFlip(work.payload.skillId, work.payload.identity);
   });
   internal.register('runtime.task', (_context, work) => {
     if (work.type === 'runtime.task') profession.tasks![work.payload.name](runtime.mechanics, work.payload.data);

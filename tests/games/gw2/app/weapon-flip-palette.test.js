@@ -3,12 +3,12 @@ import test from 'node:test';
 
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
 import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 
 const AUDITED_WEAPON_FLIPS = Object.freeze([
@@ -53,7 +53,8 @@ test('audited weapon flip families project one live palette identity', () => {
       results: {
         planningState: {
           atSeconds: 0,
-          profession: { [STATE.AVAILABLE_FLIPS]: {} }
+
+          profession: { ...{}, [STATE.AVAILABLE_FLIPS]: {} }
         }
       }
     };

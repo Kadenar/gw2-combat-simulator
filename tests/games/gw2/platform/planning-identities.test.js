@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { planningState } from '#gw2/platform/results/planning-state.js';
+import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 
 // Matching labels must never merge independent cooldowns or ammunition in public observations.
-function fixture() {
+function fixture(flips = {}) {
   const catalog = createCanonicalCatalog({
     skills: [990101, 990102].map((id) => ({ id, name: 'Shared Name', effects: [] }))
   });
@@ -25,6 +26,7 @@ function fixture() {
       {
         time: 0,
         profession: {},
+        flips,
         config: {},
         activeWeaponSet: 1,
         catalog,
@@ -41,6 +43,24 @@ function fixture() {
     );
   return { ammo, capture };
 }
+
+// Public grouping stays independent of live ownership, including windows visible before they can be used.
+test('shared flips are filtered and detached under the profession state key', () => {
+  const visible = { identity: 1, visibleAt: 0, availableAt: 2, expiresAt: 3, remainingUses: 2 };
+  const flips = {
+    990101: visible,
+    990102: { ...visible, identity: 2, visibleAt: -2, availableAt: -1, expiresAt: 0 },
+    990103: { ...visible, identity: 3, visibleAt: 1 }
+  };
+  const { capture } = fixture(flips);
+  const result = capture();
+  assert.equal(Object.hasOwn(result, 'flips'), false);
+  assert.deepEqual(result.profession[STATE.AVAILABLE_FLIPS], { 990101: visible });
+  result.profession[STATE.AVAILABLE_FLIPS][990101].remainingUses = 1;
+  assert.equal(visible.remainingUses, 2);
+  assert.equal(capture().profession[STATE.AVAILABLE_FLIPS][990101].remainingUses, 2);
+  assert.equal(flips[990102].expiresAt, 0);
+});
 
 test('same-name skills retain independent planning identities', () => {
   const { capture } = fixture();

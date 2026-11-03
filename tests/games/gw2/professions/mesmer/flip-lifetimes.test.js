@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import { mesmerAvailability } from '#gw2/professions/mesmer/core/mechanics/availability.js';
 import { armMesmerSkillFlip } from '#gw2/professions/mesmer/core/mechanics/flips.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { observedRuntime, observeGw2Runtime, projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime, projectObservedPlanningState } from '#tests/helpers/observed-runtime.js';
 
 // Use real runtime expiry and scheduled probes to isolate window contracts from weapon cast durations.
 function flipScenario(initialize, tasks = {}) {
@@ -48,12 +48,12 @@ test('Mesmer flip creation, availability, projection, and cleanup share exact bo
     (context) => {
       context.schedule('test.arm', 0.35);
       checks.forEach(([at], index) => context.schedule('test.check', at, { index }, undefined, 1));
-      context.schedule('test.after-expiry', 0.5, null, undefined, 51);
+      context.schedule('test.after-expiry', 0.500001);
     },
     {
       'test.arm'(context) {
         armMesmerSkillFlip(context, parentCast());
-        assert.deepEqual(context.profession.core.availableFlips[ID.COUNTERSPELL], {
+        assert.deepEqual(context.flips[ID.COUNTERSPELL], {
           identity: 'parent',
           remainingUses: 1,
           visibleAt: 0.35,
@@ -67,26 +67,27 @@ test('Mesmer flip creation, availability, projection, and cleanup share exact bo
         const availability = mesmerAvailability(context, flip);
         assert.equal(availability.ready, ready, `availability at ${at}`);
         assert.equal(availability.code, code);
-        const projected = projectObservedState(mesmerProfession, {
+        const projected = projectObservedPlanningState(mesmerProfession, {
           profession: context.profession,
+          flips: context.flips,
           config: context.config,
           time: context.time
         });
-        assert.equal(Boolean(projected[STATE.AVAILABLE_FLIPS][ID.COUNTERSPELL]), visible);
+        assert.equal(Boolean(projected.profession[STATE.AVAILABLE_FLIPS][ID.COUNTERSPELL]), visible);
 
-        // Eligibility closes at the deadline even though priority-50 cleanup has not run yet.
-        if (at === 0.5) assert.ok(context.profession.core.availableFlips[ID.COUNTERSPELL]);
+        // Eligibility closes at the deadline even though cleanup has not run yet.
+        if (at === 0.5) assert.ok(context.flips[ID.COUNTERSPELL]);
 
         checked.push(at);
       },
       'test.after-expiry'(context) {
-        assert.equal(context.profession.core.availableFlips[ID.COUNTERSPELL], undefined);
+        assert.equal(context.flips[ID.COUNTERSPELL], undefined);
         checked.push('expired');
       }
     }
   );
   assert.deepEqual(checked, [...checks.map(([at]) => at), 'expired']);
-  assert.equal(runtime.profession.core.availableFlips[ID.COUNTERSPELL], undefined);
+  assert.equal(runtime.flips[ID.COUNTERSPELL], undefined);
 });
 
 test('Mesmer completion cannot arm an already expired flip and cleanup preserves persistent flips', () => {
@@ -98,12 +99,12 @@ test('Mesmer completion cannot arm an already expired flip and cleanup preserves
     {
       'test.arm'(context) {
         armMesmerSkillFlip(context, parentCast());
-        assert.equal(context.profession.core.availableFlips[ID.COUNTERSPELL], undefined);
+        assert.equal(context.flips[ID.COUNTERSPELL], undefined);
       }
     }
   );
-  assert.equal(runtime.profession.core.availableFlips[ID.COUNTERSPELL], undefined);
-  assert.equal(runtime.profession.core.availableFlips[ID.POWER_SPIKE].expiresAt, null);
+  assert.equal(runtime.flips[ID.COUNTERSPELL], undefined);
+  assert.equal(runtime.flips[ID.POWER_SPIKE].expiresAt, null);
 });
 
 test('Mesmer flip endpoints canonicalize arithmetic residue without snapping to action ticks', () => {
@@ -111,7 +112,7 @@ test('Mesmer flip endpoints canonicalize arithmetic residue without snapping to 
   flipScenario((context) => context.schedule('test.arm', 0.15), {
     'test.arm'(context) {
       armMesmerSkillFlip(context, parentCast('parent', 0.1, { delay: 0.2, duration: 0.333333 }));
-      assert.deepEqual(context.profession.core.availableFlips[ID.COUNTERSPELL], {
+      assert.deepEqual(context.flips[ID.COUNTERSPELL], {
         identity: 'parent',
         remainingUses: 1,
         visibleAt: 0.15,
@@ -124,25 +125,30 @@ test('Mesmer flip endpoints canonicalize arithmetic residue without snapping to 
   assert.equal(checked, true);
 });
 
-test('a replaced Mesmer flip survives its predecessor expiry at the same deadline', () => {
+// Observe after the old deadline so stale cleanup must actually run before checking its replacement.
+test('a replaced Mesmer flip survives its predecessor expiry until its later deadline', () => {
   let checked = false;
+  const arm = { anchor: 'castCommit', duration: 0.5 };
   const runtime = flipScenario(
     (context) => {
-      // Equal-priority insertion order puts the probe between the two shared expiry operations.
-      const arm = { anchor: 'castCommit', duration: 0.5 };
       armMesmerSkillFlip(context, parentCast('old', -1, arm));
-      context.schedule('test.between-expiries', 0.5, null, undefined, 50);
-      armMesmerSkillFlip(context, parentCast('new', -1, arm));
+      context.schedule('test.rearm', 0.25);
+      context.schedule('test.after-old-expiry', 0.500001);
     },
     {
-      'test.between-expiries'(context) {
-        assert.equal(context.profession.core.availableFlips[ID.COUNTERSPELL].identity, 'new');
+      'test.rearm'(context) {
+        armMesmerSkillFlip(context, parentCast('new', -1, arm));
+      },
+      'test.after-old-expiry'(context) {
+        assert.equal(context.flips[ID.COUNTERSPELL].identity, 'new');
+        assert.equal(context.flips[ID.COUNTERSPELL].expiresAt, 0.75);
+        assert.equal(mesmerAvailability(context, context.helpers.skillsById.get(ID.COUNTERSPELL)).ready, true);
         checked = true;
       }
     }
   );
   assert.equal(checked, true);
-  assert.equal(runtime.profession.core.availableFlips[ID.COUNTERSPELL], undefined);
+  assert.equal(runtime.flips[ID.COUNTERSPELL], undefined);
 });
 
 test('consumed Mesmer flips remain closed when their pending expiry runs', () => {
@@ -161,5 +167,5 @@ test('consumed Mesmer flips remain closed when their pending expiry runs', () =>
     }
   );
   assert.equal(consumed, true);
-  assert.equal(runtime.profession.core.availableFlips[ID.COUNTERSPELL], undefined);
+  assert.equal(runtime.flips[ID.COUNTERSPELL], undefined);
 });

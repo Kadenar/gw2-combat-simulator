@@ -47,8 +47,7 @@ export const deadeyeHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
       state.markExpiresAt = Infinity;
     },
 
-    availability: (runtime, skill) =>
-      deadeyeCastAvailability(runtime.profession.core.availableFlips, skill, runtime.time),
+    availability: (runtime, skill) => deadeyeCastAvailability(runtime.flips, skill, runtime.time),
     onCastStart: captureDeadeyeMalice,
     onCastCommit(runtime, cast) {
       // Completion carries the accepted malice and stealth facts across the detached cast-task boundary.

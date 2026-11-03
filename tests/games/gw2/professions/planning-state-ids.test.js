@@ -75,12 +75,13 @@ for (const entry of professionRegistry) {
       for (const id of Object.keys(projected)) assert.ok(registeredIds.has(id), `${specialization}: ${id}`);
       for (const value of objectsIn(projected)) assert.equal(liveObjects.has(value), false, specialization);
 
-      // Pure owner selectors contribute identities; only the public observation boundary owns detachment.
-      const activeIds = new Set();
+      // Shared execution contributes its key centrally; profession selectors contribute only their owned fields.
+      const activeIds = new Set([SHARED_STATE_IDS.AVAILABLE_FLIPS]);
       for (const module of family.nativeDefinition.modules.filter(({ id }) => id === 'Core' || id === specialization)) {
         if (!module.state?.project) continue;
 
         const ownedProjection = module.state.project(input);
+        assert.equal(Object.hasOwn(ownedProjection, SHARED_STATE_IDS.AVAILABLE_FLIPS), false);
         for (const id of Object.keys(ownedProjection)) activeIds.add(id);
       }
 

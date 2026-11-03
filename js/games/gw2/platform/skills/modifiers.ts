@@ -1,4 +1,4 @@
-import { createModifierHooks, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import { normalizeModifierRules, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import type { NativeModuleCatalogData } from '#gw2/platform/profession-definition/module-types.js';
 
 export type SkillModifierScope = 'skill' | 'profession';
@@ -61,9 +61,8 @@ export function normalizeSkillModifiers(value: unknown, label: string): readonly
     }
   }
 
-  // Shared validation owns scalar operations and permits zero only for base-duration suppression.
-  // Scope belongs to skill registration, not the shared modifier compiler's schema.
-  createModifierHooks({ rules: value.map(({ scope: _scope, ...rule }) => rule) });
+  // Share declaration validation without building evaluators; scope remains owned by skill registration.
+  normalizeModifierRules(value.map(({ scope: _scope, ...rule }) => rule));
   return Object.freeze(
     value.map((rule) =>
       Object.freeze({

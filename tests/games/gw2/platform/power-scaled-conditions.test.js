@@ -45,20 +45,27 @@ for (const [name, catalog, modifiers, trait, condition, other, damage, coefficie
         id: 'power-condition',
         name,
         catalog: selectedCatalog,
-        modifiers: {
-          modifyConditionAttributes: modifiers.modifyConditionAttributes,
-          modifyAttributes(context, attributes) {
-            if (context.time > 0) {
-              const key = `${context.time}:${context.event.sourceId}`;
-              reads.set(key, (reads.get(key) || 0) + 1);
-            }
-
-            return {
-              ...attributes,
-              power: context.time < 2 ? 2000 : 2400,
-              conditionDamage: context.event.condition === other ? 2000 : 1000
-            };
+        // Sample native final-condition declarations alongside a controlled ordinary attribute projection.
+        attributeContributions(context) {
+          if (context.time > 0) {
+            const key = `${context.time}:${context.event.sourceId}`;
+            reads.set(key, (reads.get(key) || 0) + 1);
           }
+
+          return [
+            ...modifiers.attributeContributions(context),
+            {
+              transforms: [
+                {
+                  kind: 'project',
+                  attributes: {
+                    power: context.time < 2 ? 2000 : 2400,
+                    conditionDamage: context.event?.condition === other ? 2000 : 1000
+                  }
+                }
+              ]
+            }
+          ];
         }
       });
       const config = { selectedTraitIds: [trait], target: { conditions: {} } };

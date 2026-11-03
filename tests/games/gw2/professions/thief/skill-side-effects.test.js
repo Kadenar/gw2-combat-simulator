@@ -180,7 +180,7 @@ test('Thief activation declarations are the sole owners of their state transitio
     {
       id: ID.PREPARE_PITFALL,
       config: { selectedSkillIds: [13057] },
-      active: (runtime) => Boolean(runtime.profession.core.availableFlips[ID.PITFALL])
+      active: (runtime) => Boolean(runtime.flips[ID.PITFALL])
     },
     {
       id: ID.SPIDER_VENOM,

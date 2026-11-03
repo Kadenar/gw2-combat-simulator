@@ -339,6 +339,7 @@ function testModule(id, options = {}) {
       create: () => (id === 'Core' ? { coreReady: true } : { eliteReady: true })
     },
     modifiers: options.modifiers,
+    attributes: options.attributes,
     presentation: options.presentation
   });
 }
@@ -435,46 +436,49 @@ test('profession families resolve Core or one known elite and cache contracts', 
   );
 });
 
-test('family hook order is deterministic and duplicate hook ids fail', () => {
-  const calls = [];
+// Ordinary contributions precede the combined declarative rules, whose order spans Core and elite modules.
+test('family attribute phases preserve rule order and reject duplicate rule identities', () => {
   const core = testModule('Core', {
+    attributes: () => [{ attributeEffects: [{ kind: 'flat', to: 'Power', amount: 10, feedsConversions: 'none' }] }],
     modifiers: {
-      modifyAttributes: {
-        id: 'core.initialize',
-        order: 20,
-        handler: () => calls.push('core')
-      }
+      modifierRules: [{ id: 'core.power', target: 'attributePower', operation: 'multiply', factor: 2, order: 20 }]
     }
   });
   const elite = testModule('Elite', {
     modifiers: {
-      modifyAttributes: {
-        id: 'elite.initialize',
-        order: 10,
-        handler: () => calls.push('elite')
-      }
+      modifierRules: [
+        { id: 'elite.power', target: 'attributePower', operation: 'add', amount: 5, order: 10 },
+        { id: 'elite.power-factor', target: 'attributePower', operation: 'multiply', factor: 3, order: 10 }
+      ]
     }
   });
 
-  testFamily(core, elite).resolveProfession({ specialization: 'Elite' }).modifyAttributes({}, {});
-  assert.deepEqual(calls, ['elite', 'core']);
+  const attributes = { power: 100 };
+  const family = testFamily(core, elite);
+  const config = { specialization: 'Elite' };
+  const query = family.resolveProfession(config);
+  assert.equal(query.modifyAttributes({ config, time: 0 }, attributes).power, 690);
+  assert.deepEqual(attributes, { power: 100 });
+  assert.equal(family.runtimeFor(config).modifyAttributes, query.modifyAttributes);
 
   const duplicate = {
-    id: 'same.initialize',
-    handler: () => undefined
+    id: 'same.power',
+    target: 'attributePower',
+    operation: 'add',
+    amount: 1
   };
 
   assert.throws(
     () =>
       testFamily(
         testModule('Core', {
-          modifiers: { modifyAttributes: duplicate }
+          modifiers: { modifierRules: [duplicate] }
         }),
         testModule('Elite', {
-          modifiers: { modifyAttributes: duplicate }
+          modifiers: { modifierRules: [duplicate] }
         })
       ).resolveProfession({ specialization: 'Elite' }),
-    /Duplicate modifyAttributes hook id: same\.initialize/
+    /Duplicate modifier rule same\.power/
   );
 });
 

@@ -3,7 +3,6 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -50,7 +49,7 @@ export function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
     const consumeId =
       upkeep?.upkeepConsumeByLegendId != null ? revenantUpkeepConsumeId(upkeep, core.activeLegendId) : undefined;
 
-    if (consumeId != null) armSkillFlip(core.availableFlips, consumeId, runtime.time);
+    if (consumeId != null) runtime.armFlip(consumeId);
     else removeRevenantUpkeep(runtime, active.skillId);
   }
 

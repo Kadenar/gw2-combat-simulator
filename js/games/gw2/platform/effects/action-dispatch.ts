@@ -101,9 +101,7 @@ export function applySideEffect<TContext extends SideEffectServices>(
         expiresAt:
           action.durationSec === null
             ? Infinity
-            : runtime.time + sideEffectAmount(runtime, action.durationSec ?? Number(context.skill.flipDuration)),
-        // Some follow-ups must expire before same-time cast work, matching their previous lifecycle owner.
-        expiryPriority: action.expiryPriority
+            : runtime.time + sideEffectAmount(runtime, action.durationSec ?? Number(context.skill.flipDuration))
       });
       return;
     case 'flipConsume':

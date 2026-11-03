@@ -1,5 +1,4 @@
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
@@ -22,7 +21,7 @@ const rockBarrierTrainingRecharge = compileRechargeRules<ElementalistRuntimeStat
 
 /** Releasing or expiring the stored barrier starts the root skill's held recharge once. */
 function releaseRockBarrier(runtime: ElementalistRuntime): void {
-  if (!consumeSkillFlip(runtime.profession.core.availableFlips, ID.HURL)) return;
+  if (!runtime.consumeFlip(ID.HURL)) return;
 
   runtime.cancelOwner({ id: 'elementalist.rock-barrier', generation: 0 });
   const root = runtime.helpers.skillsById.get(ID.ROCK_BARRIER);
@@ -41,7 +40,8 @@ function releaseRockBarrier(runtime: ElementalistRuntime): void {
 const elementalistRockBarrierTasks = {
   'elementalist.core.open-rock-barrier'(runtime: ElementalistRuntime): void {
     const expiresAt = runtime.time + skillNumberFromContext(runtime, ID.ROCK_BARRIER, 'flipDuration');
-    armSkillFlip(runtime.profession.core.availableFlips, ID.HURL, runtime.time, expiresAt);
+    // Held recharge starts from the release task before shared retirement removes the grant.
+    runtime.armFlip(ID.HURL, { expiresAt });
     runtime.cancelOwner({ id: 'elementalist.rock-barrier', generation: 0 });
     runtime.schedule('elementalist.core.release-rock-barrier', expiresAt, null, {
       id: 'elementalist.rock-barrier',

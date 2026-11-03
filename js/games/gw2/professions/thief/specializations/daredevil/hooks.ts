@@ -53,10 +53,7 @@ export const daredevilHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.PHYSICAL_SUPREMACY, 'maximumStacks')
   },
   availability(runtime, skill) {
-    if (
-      skill.id !== ID.PALM_STRIKE ||
-      skillFlipReady(runtime.profession.core.availableFlips[ID.PALM_STRIKE], runtime.time)
-    )
+    if (skill.id !== ID.PALM_STRIKE || skillFlipReady(runtime.flips[ID.PALM_STRIKE], runtime.time))
       return { ready: true };
 
     // No timer can open the window; only a connecting Fist Flurry does.

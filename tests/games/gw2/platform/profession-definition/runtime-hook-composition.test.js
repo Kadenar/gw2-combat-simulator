@@ -12,13 +12,23 @@ import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime
 // A selected catalog owns missing-data errors even when a different run has a matching live profile.
 test('ammunition profile lookup never borrows content from another context', () => {
   const profile = { id: 'capacity', maximumStacks: 2 };
-  const live = createMaximumAmmoContext(() => ({}), new Set([1]), {
-    balanceProfilesById: new Map([['capacity', profile]])
-  });
-  const preview = createMaximumAmmoContext(() => ({}), new Set(), {
-    balanceProfilesById: new Map(),
-    balanceDataContext: { professionId: 'fixture', patchId: 'preview' }
-  });
+  const live = createMaximumAmmoContext(
+    () => ({}),
+    new Set([1]),
+    {
+      balanceProfilesById: new Map([['capacity', profile]])
+    },
+    {}
+  );
+  const preview = createMaximumAmmoContext(
+    () => ({}),
+    new Set(),
+    {
+      balanceProfilesById: new Map(),
+      balanceDataContext: { professionId: 'fixture', patchId: 'preview' }
+    },
+    {}
+  );
   assert.equal(live.hasTrait('1'), true);
   assert.equal(preview.hasTrait(1), false);
   assert.equal(live.requireBalanceProfile('capacity'), profile);
@@ -27,7 +37,7 @@ test('ammunition profile lookup never borrows content from another context', () 
 
 // Capacity transforms share one capability and preserve an intentional zero before later contributors run.
 test('maximum ammunition composes ordered transforms including a disabled pool', () => {
-  const context = createMaximumAmmoContext(() => ({}), new Set(), {});
+  const context = createMaximumAmmoContext(() => ({}), new Set(), {}, {});
   const skill = { id: 1 };
   const calls = [];
   const contribution = (transform) => ({

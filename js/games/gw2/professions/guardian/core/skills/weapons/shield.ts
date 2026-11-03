@@ -31,9 +31,7 @@ export const GUARDIAN_WEAPONS_SHIELD_SKILL_MECHANICS: Readonly<Record<number, Sk
     castTimeMs: 520,
     effects: [],
     // Expose the follow-up on commitment; its declaration owns the window.
-    sideEffects: [
-      { on: 'castCommit', do: { type: 'flipArm', skillId: ID.SHIELD_OF_ABSORPTION_ID_DETONATE, expiryPriority: -220 } }
-    ]
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.SHIELD_OF_ABSORPTION_ID_DETONATE } }]
   },
   [ID.SHIELD_OF_ABSORPTION_ID_DETONATE]: {
     name: 'Shield of Absorption',

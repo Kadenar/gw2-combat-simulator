@@ -137,12 +137,22 @@ test('score and damage measurements omit unused report collections while preserv
     const profession = defineTestProfession({
       id: 'output-observers',
       name: 'Output observers',
+      // Declarative evaluation observes whether the selected output requested contribution tracing.
+      modifiers: {
+        modifierRules: [
+          {
+            id: 'fixture',
+            label: 'Fixture',
+            target: 'criticalChance',
+            operation: 'add',
+            amount(context) {
+              traceRequests.push(context.criticalChanceContributors !== undefined);
+              return 0.1;
+            }
+          }
+        ]
+      },
       hooks: {
-        modifyCriticalChance(context, chance) {
-          traceRequests.push(context.criticalChanceContributors !== undefined);
-          context.criticalChanceContributors?.push({ id: 'fixture', label: 'Fixture', amount: 0.1 });
-          return chance + 0.1;
-        },
         reactions: {
           'damage.resolved'(_context, _event, { hitContext }) {
             criticals.push(hitContext.critical);

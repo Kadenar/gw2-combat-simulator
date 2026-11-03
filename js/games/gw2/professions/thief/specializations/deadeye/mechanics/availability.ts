@@ -1,12 +1,12 @@
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
-import type { ThiefCoreState } from '#gw2/professions/thief/core/state.js';
+import type { SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** The live runtime and palette supply their flip deadlines directly so both enforce the same lifetime. */
 export function deadeyeCastAvailability(
-  flips: ThiefCoreState['availableFlips'] | undefined,
+  flips: Readonly<SkillFlipWindows> | undefined,
   skill: ThiefSkill,
   at: number
 ): AvailabilityResult {

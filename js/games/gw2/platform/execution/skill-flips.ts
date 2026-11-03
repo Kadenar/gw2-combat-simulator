@@ -12,6 +12,19 @@ export interface SkillFlipWindow {
 
 export type SkillFlipWindows = Record<string, SkillFlipWindow>;
 
+/** Mechanics read shared windows and request mutations without owning the execution store. */
+export interface SkillFlipCommands {
+  readonly flips: Readonly<SkillFlipWindows>;
+  /** Open a grant and queue identity-checked retirement for a finite deadline. */
+  armFlip(skillId: SkillId, window?: FlipWindowOptions): SkillFlipWindow;
+  /** Spend one use without refreshing the deadline; the final use removes the window. */
+  consumeFlip(skillId: SkillId): SkillFlipWindow | undefined;
+  /** End a lifetime, discarding every remaining use without resetting occurrence identities. */
+  clearFlip(skillId: SkillId): void;
+  /** Claim a matching natural expiry before resolving its profession-owned consequences. */
+  expireFlip(skillId: SkillId, identity: number | string): SkillFlipWindow | undefined;
+}
+
 // Per-registry sequences keep repeated simulations deterministic and do not reuse consumed occurrences.
 const sequences = new WeakMap<SkillFlipWindows, number>();
 
@@ -86,11 +99,6 @@ export function expireSkillFlip(
   return window as SkillFlipWindow & { readonly expiresAt: number };
 }
 
-/** Prunes ordinary windows; callers retain payload-bearing expiries until their effect handler runs. */
-export function pruneSkillFlips(flips: SkillFlipWindows, at: number): void {
-  for (const id of Object.keys(flips)) expireSkillFlip(flips, id, at);
-}
-
 /** Why the weapon follow-up rule blocks a skill: its window is closed, or its follow-up's window has replaced it. */
 type WeaponFlipBlock = { readonly kind: 'closed'; readonly parent: Skill } | { readonly kind: 'open' };
 
@@ -100,7 +108,7 @@ type WeaponFlipBlock = { readonly kind: 'closed'; readonly parent: Skill } | { r
  * without a window, so it never hides its parent. Runtime availability and the palette both read this rule.
  */
 export function weaponFlipBlock(
-  flips: SkillFlipWindows | undefined,
+  flips: Readonly<SkillFlipWindows> | undefined,
   skillsById: ReadonlyMap<SkillId, Skill>,
   skill: Skill,
   at: number
@@ -116,7 +124,7 @@ export function weaponFlipBlock(
 
 /** The parent half of the rule: a weapon skill is hidden while its own follow-up's window is ready. */
 export function weaponFollowUpOpen(
-  flips: SkillFlipWindows | undefined,
+  flips: Readonly<SkillFlipWindows> | undefined,
   skill: Pick<Skill, 'type' | 'flipSkillId'>,
   at: number
 ): boolean {
@@ -133,6 +141,4 @@ export interface FlipWindowOptions {
   readonly visibleAt?: number;
   /** A caller-owned identity, such as the arming cast, for expiries the caller also tracks. */
   readonly identity?: number | string;
-  /** Queue priority of the expiry, so it can precede or follow same-instant casts. */
-  readonly expiryPriority?: number;
 }

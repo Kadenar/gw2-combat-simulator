@@ -52,11 +52,7 @@ export function mesmerMaximumAmmo(
   maximum: number
 ): number {
   // Inactive mantra flips have no charge pool; only their parent can rearm and refill them. The flip is its own face.
-  if (
-    skill.flipParentId &&
-    !preparedMagazineMaximum(context.readProfessionState().core.availableFlips, { faceIds: [skill.id] }, maximum)
-  )
-    return 0;
+  if (skill.flipParentId && !preparedMagazineMaximum(context.flips, { faceIds: [skill.id] }, maximum)) return 0;
 
   return shatterStormMaximumAmmo(context, skill, maximum);
 }

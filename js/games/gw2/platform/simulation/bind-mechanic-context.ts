@@ -68,6 +68,10 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
     return this.#runtime.profession as ReadonlyMechanicState<T>;
   }
 
+  get flips() {
+    return this.#runtime.flips;
+  }
+
   get config() {
     return this.#runtime.config;
   }
@@ -111,6 +115,8 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
   readonly effectReactions: MechanicContext<T, TSkill>['effectReactions'];
   readonly armFlip: MechanicContext<T, TSkill>['armFlip'];
   readonly consumeFlip: MechanicContext<T, TSkill>['consumeFlip'];
+  readonly clearFlip: MechanicContext<T, TSkill>['clearFlip'];
+  readonly expireFlip: MechanicContext<T, TSkill>['expireFlip'];
   readonly schedule: MechanicContext<T, TSkill>['schedule'];
   readonly scheduleForCast: MechanicContext<T, TSkill>['scheduleForCast'];
   readonly cancelOwner: MechanicContext<T, TSkill>['cancelOwner'];
@@ -132,6 +138,8 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
     this.effectReactions = Object.freeze({ register: runtime.effectReactions.register });
     this.armFlip = runtime.armFlip;
     this.consumeFlip = runtime.consumeFlip;
+    this.clearFlip = runtime.clearFlip;
+    this.expireFlip = runtime.expireFlip;
     this.schedule = runtime.schedule;
     this.scheduleForCast = runtime.scheduleForCast;
     this.cancelOwner = runtime.cancelOwner;
@@ -140,6 +148,10 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
 
   get queries() {
     return this.#runtime.mechanicQueries;
+  }
+
+  get flips() {
+    return this.#runtime.flips;
   }
 
   get profession() {

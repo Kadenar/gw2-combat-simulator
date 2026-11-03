@@ -160,7 +160,9 @@ test('Necromancer resources and palette change with specialization state', () =>
   const reaperBar = necromancerProfession.ui.paletteGroups({
     specialization: 'Reaper',
     professionState: {
-      [STATE.ACTIVE_SHROUD]: 'reaper',
+      ...{
+        [STATE.ACTIVE_SHROUD]: 'reaper'
+      },
       [STATE.AVAILABLE_FLIPS]: { [ID.EXIT_REAPERS_SHROUD]: armSkillFlip({}, 0, 0, Infinity) }
     }
   });

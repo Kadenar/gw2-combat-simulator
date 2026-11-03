@@ -74,7 +74,7 @@ export interface NativeModuleDefinition<
   readonly traitDefinitions?: readonly TraitDefinition<TSkill>[];
   /** Skill passives and intrinsic mechanics share the trait attribute evaluator without pretending to be traits. */
   readonly attributes?: Gw2AttributeContributionCalculator;
-  /** Declarative modifier rules, or rules plus imperative `modify*` callbacks for ordered or stateful math. */
+  /** Declarative modifier rules, optionally accompanied by shared damage-bucket policies. */
   readonly modifiers?: readonly Gw2ModifierRule[] | TModifiers;
   /** Runtime hooks execute against the single chronological owner. */
   readonly hooks?: NativeModuleHooks<TSkill>;
@@ -94,7 +94,7 @@ export interface NativeModule<
   'modifiers'
 > {
   readonly kind: 'native-profession-module';
-  /** Registration normalizes rule arrays to the same object shape as imperative modifiers. */
+  /** Registration normalizes rule arrays to one declaration shape before composition. */
   readonly modifiers: ProfessionModifierDefinition;
 }
 

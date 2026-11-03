@@ -38,10 +38,6 @@ function validateSideEffectAmount(catalog: CanonicalCatalog, amount: unknown, la
     throw new TypeError(`${label} must be finite and non-negative.`);
 }
 
-function validateFinitePriority(value: unknown, label: string): void {
-  if (typeof value !== 'number' || !Number.isFinite(value)) throw new TypeError(`${label} priority must be finite.`);
-}
-
 /** Reject grants whose pool is absent from the selected runtime before their actions can execute. */
 export function validateResourceGrantSupport(
   action: SideEffectAction,
@@ -96,8 +92,6 @@ export function validateSideEffectAction(
       // Reject invalid charge grants before a cast can mutate the active follow-up.
       if (action.uses !== undefined && (!Number.isSafeInteger(action.uses) || action.uses < 1))
         throw new TypeError(`${label} uses must be a positive safe integer.`);
-
-      if (action.expiryPriority !== undefined) validateFinitePriority(action.expiryPriority, label);
 
       if (!catalog.skillsById.has(action.skillId))
         throw new TypeError(`${label} references missing skill ${action.skillId}.`);

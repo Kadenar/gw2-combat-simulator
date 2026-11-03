@@ -20,6 +20,7 @@ function projectionApp(
   {
     specialization = 'Core',
     professionState = {},
+    flips = {},
     time = 0,
     cooldownsBySkillId = {},
     ammoBySkillId = {},
@@ -43,7 +44,8 @@ function projectionApp(
         activeWeaponSet: 1,
         cooldownsBySkillId,
         ammoBySkillId,
-        profession: professionState
+
+        profession: { ...professionState, [STATE.AVAILABLE_FLIPS]: flips }
       }
     }
   };
@@ -91,12 +93,12 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
 });
 
 // Tiny catalogs keep family expectations independent of the production grouping algorithm.
-function catalogApp(skills, professionState = {}) {
+function catalogApp(skills, { professionState = {}, flips = {} } = {}) {
   const catalog = {
     skills,
     skillsById: new Map(skills.map((skill) => [skill.id, skill]))
   };
-  return projectionApp({ catalog }, { professionState, useProfessionUi: false });
+  return projectionApp({ catalog }, { professionState, flips, useProfessionUi: false });
 }
 
 // Display labels do not couple independent variants' countdowns, disabled states, or charge counts.
@@ -218,7 +220,7 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
 test('a denied follow-up stays in the shared palette slot', () => {
   const root = { id: 990010, name: 'Root', type: 'Weapon', flipSkillId: 990011 };
   const followup = { id: 990011, name: 'Follow-up', type: 'Weapon', flipParentId: 990010 };
-  const app = catalogApp([root, followup], { [STATE.AVAILABLE_FLIPS]: { [followup.id]: armSkillFlip({}, 0, 0, 10) } });
+  const app = catalogApp([root, followup], { flips: { [followup.id]: armSkillFlip({}, 0, 0, 10) } });
   app.results.planningState.availability[followup.id] = {
     ready: false,
     code: 'fixture.cost',
@@ -352,7 +354,7 @@ for (const [label, skills, states] of [
 ]) {
   test(`shared ${label} selects one live tile from the full family or its root alone`, () => {
     for (const [availableFlips, expected] of states) {
-      const app = catalogApp(skills, { [STATE.AVAILABLE_FLIPS]: availableFlips });
+      const app = catalogApp(skills, { flips: availableFlips });
       for (const input of [skills, [skills[0]]]) {
         assert.deepEqual(
           displayedSkillTiles(app, input).map((skill) => skill.id),
@@ -379,8 +381,8 @@ test('autoattack links, replacements, and excluded flips never expand a root-onl
       { id: 2, name: 'Excluded', flipParentId: 1, ...child }
     ];
     const app = catalogApp(skills, {
-      [STATE.AVAILABLE_FLIPS]: { 2: armSkillFlip({}, 0, 0, Infinity) },
-      [STATE.AUTOATTACK_CHAINS]: { 1: 2 }
+      flips: { 2: armSkillFlip({}, 0, 0, Infinity) },
+      professionState: { [STATE.AUTOATTACK_CHAINS]: { 1: 2 } }
     });
     assert.deepEqual(
       displayedSkillTiles(app, [skills[0]]).map((skill) => skill.id),
@@ -552,19 +554,14 @@ test('stateful transforms select one live tile across professions', async () => 
       ['Keen Shot'],
       'Hawkeye'
     ],
+    ['elementalist', 'Core', { [STATE.PRIMARY_ATTUNEMENT]: 'Earth' }, ['Rock Barrier'], 'Rock Barrier'],
     [
       'elementalist',
       'Core',
-      { [STATE.PRIMARY_ATTUNEMENT]: 'Earth', [STATE.AVAILABLE_FLIPS]: {} },
+      { [STATE.PRIMARY_ATTUNEMENT]: 'Earth' },
       ['Rock Barrier'],
-      'Rock Barrier'
-    ],
-    [
-      'elementalist',
-      'Core',
-      { [STATE.PRIMARY_ATTUNEMENT]: 'Earth', [STATE.AVAILABLE_FLIPS]: { 5780: armSkillFlip({}, 0, 0, 30) } },
-      ['Rock Barrier'],
-      'Hurl'
+      'Hurl',
+      { 5780: armSkillFlip({}, 0, 0, 30) }
     ],
     [
       'elementalist',
@@ -586,10 +583,10 @@ test('stateful transforms select one live tile across professions', async () => 
     ['guardian', 'Luminary', { [STATE.RADIANT_FORGE]: true }, ['Enter Radiant Forge'], 'Exit Radiant Forge']
   ];
 
-  for (const [professionId, specialization, state, names, expected] of cases) {
+  for (const [professionId, specialization, state, names, expected, flips = {}] of cases) {
     const profession = professions.get(professionId);
     // Renamed labels must not change which skill ID occupies a stateful tile.
-    const app = projectionApp(profession, { specialization, professionState: state });
+    const app = projectionApp(profession, { specialization, professionState: state, flips });
     const renamedSkills = app.activeCatalog.skills.map((skill) => ({ ...skill, name: `Renamed ${skill.name}` }));
     // Keep every lookup consistent while isolating renamed labels from the shared profession catalog.
     app.activeCatalog = {
@@ -663,7 +660,8 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
   const profession = await loadProfession('elementalist');
   const app = projectionApp(profession, {
     specialization: 'Core',
-    professionState: { [STATE.AVAILABLE_FLIPS]: {} },
+    professionState: {},
+    flips: {},
     time: 1,
     cooldownsBySkillId: {
       [profession.catalog.skillsById.get(5695).id]: { remainingMs: 8000, readyAtMs: 9000 }
@@ -731,11 +729,11 @@ test('Herald legend-dependent True Nature variants use one shared Facet tile', a
   const profession = await loadProfession('revenant');
   const project = (availableFlips) => {
     const professionState = {
-      [STATE.ACTIVE_LEGEND_ID]: 'LegendaryAssassin',
-      [STATE.AVAILABLE_FLIPS]: availableFlips
+      [STATE.ACTIVE_LEGEND_ID]: 'LegendaryAssassin'
     };
     const app = projectionApp(profession, {
       specialization: 'Herald',
+      flips: availableFlips,
       professionState
     });
     const group = profession.ui
@@ -769,7 +767,8 @@ test('undeclared reciprocal links never become palette flips', () => {
     { catalog },
     {
       useProfessionUi: false,
-      professionState: { [STATE.AVAILABLE_FLIPS]: { 990202: armSkillFlip({}, 0, 0) } }
+      professionState: {},
+      flips: { 990202: armSkillFlip({}, 0, 0) }
     }
   );
   assert.deepEqual(

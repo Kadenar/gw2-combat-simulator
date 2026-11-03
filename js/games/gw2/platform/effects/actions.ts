@@ -50,7 +50,6 @@ export type SideEffectAction =
       readonly uses?: number;
       /** Null keeps the flip exposed until its owner consumes it; omission uses the skill's flipDuration. */
       readonly durationSec?: ProfileAmount | null;
-      readonly expiryPriority?: number;
     }
   | { readonly type: 'flipConsume'; readonly skillId: SkillId }
   | {

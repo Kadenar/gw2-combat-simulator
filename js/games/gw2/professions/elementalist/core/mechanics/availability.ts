@@ -132,20 +132,18 @@ function rockBarrierAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,
   skill: Skill
 ): AvailabilityResult | null {
-  const state = professionCoreState(context.profession);
-
   // Hurl and Rock Barrier share one barrier: Hurl needs it live, while a second
   // Rock Barrier waits for the current one to be thrown or to expire.
-  if (Number(skill.id) === ID.HURL && !skillFlipReady(state.availableFlips[ID.HURL], context.time)) {
+  if (Number(skill.id) === ID.HURL && !skillFlipReady(context.flips[ID.HURL], context.time)) {
     return unavailable(skill, 'elementalist.rock-barrier', 'requires an active Rock Barrier.');
   }
 
-  if (Number(skill.id) === ID.ROCK_BARRIER && skillFlipReady(state.availableFlips[ID.HURL], context.time)) {
+  if (Number(skill.id) === ID.ROCK_BARRIER && skillFlipReady(context.flips[ID.HURL], context.time)) {
     return unavailable(
       skill,
       'elementalist.rock-barrier-active',
       'Hurl or wait for the current barrier to expire.',
-      state.availableFlips[ID.HURL].expiresAt
+      context.flips[ID.HURL].expiresAt
     );
   }
 

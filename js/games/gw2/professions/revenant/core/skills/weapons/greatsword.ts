@@ -4,7 +4,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -283,8 +283,7 @@ function startRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast<
   runtime.armFlip(ID.TRUE_STRIKE, {
     availableAt: cast.start,
     expiresAt: canonicalTime(cast.effectiveEnd + 4),
-    identity: cast.id,
-    expiryPriority: 0
+    identity: cast.id
   });
   runtime.effects.emit({
     kind: 'packet',
@@ -311,7 +310,7 @@ function startRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast<
 
 /** A cancelled True Strike still consumes the window its Imperial Guard channel opened. */
 function completeRevenantImperialGuard(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  if (cast.skill.id === ID.TRUE_STRIKE) consumeSkillFlip(runtime.profession.core.availableFlips, ID.TRUE_STRIKE);
+  if (cast.skill.id === ID.TRUE_STRIKE) runtime.consumeFlip(ID.TRUE_STRIKE);
 }
 
 /** Answer channel-specific gates before shared weapon-flip checks choose a generic denial. */
@@ -319,7 +318,7 @@ export function imperialGuardAvailability(
   runtime: MechanicQueriesOf<RevenantRuntime>,
   skill: Skill
 ): AvailabilityResult | undefined {
-  const flips = runtime.profession.core.availableFlips;
+  const flips = runtime.flips;
   const now = runtime.time;
 
   if (skill.id === ID.TRUE_STRIKE && !skillFlipReady(flips[ID.TRUE_STRIKE], now))

@@ -1,161 +1,104 @@
 # Simulation event clock specification
 
-This document defines the timeline contract used by the current simulation engine. It covers timestamp representation,
-rotation scheduling, internal tasks, emitted events, resolver ordering, observation boundaries, and condition pulses.
-
-The clock is a deterministic logical clock. It is not wall-clock time, and the engine does not advance in fixed-size
-steps.
+The engine uses a deterministic logical clock, advancing directly to the next work or boundary rather than in fixed-size
+steps. This document owns exact time, readiness, expiry, and observation semantics. See
+[event ordering](./SKILL-EVENT-ORDERING.md) for priority authoring and
+[programmatic simulation](./PROGRAMMATIC-SIMULATION.md) for command/configuration shapes.
 
 ## Contract summary
 
-| Property                    | Contract                                                                                      |
-| --------------------------- | --------------------------------------------------------------------------------------------- |
-| Internal time unit          | Seconds                                                                                       |
-| Rotation and skill metadata | Milliseconds where the field name ends in `Ms`; cooldown and effect durations are seconds     |
-| Canonical precision         | One microsecond                                                                               |
-| General event progression   | Jump directly to the next command, task, event, or final boundary                             |
-| Event horizon               | Inclusive: an event exactly at the resolution end is processed                                |
-| Status lifetime             | Half-open: `[startsAt, expiresAt)`                                                            |
-| Task ordering               | Timestamp, phase, ascending priority, causal order, insertion order                           |
-| Resolver ordering           | Timestamp, phase, ascending priority, causal order, insertion order                           |
-| Default observation         | Through the end of the entered rotation                                                       |
-| Runaway-work limit          | 100,000 normalized commands, runtime iterations, or same-time dequeues, depending on the loop |
+| Property            | Contract                                                                   |
+| ------------------- | -------------------------------------------------------------------------- |
+| Internal time       | Seconds, canonicalized to one microsecond                                  |
+| Authored units      | `*Ms` fields use milliseconds; cooldown/effect durations use seconds       |
+| Resolution horizon  | Inclusive: work at the endpoint executes                                   |
+| Status lifetime     | Half-open: `[startsAt, expiresAt)`                                         |
+| Queue order         | Timestamp, phase, ascending priority, causal placement, insertion sequence |
+| Default observation | Through rotation end                                                       |
 
 ## 1. Canonical time
-
-Public events carry seconds in `event.at`. Most rotation authoring fields use milliseconds and are divided by `1000`
-when placed on the internal timeline.
-
-Every timestamp that enters the clock is canonicalized as follows:
 
 ```text
 timeKey(seconds)      = round(seconds * 1,000,000)
 canonicalTime(seconds) = timeKey(seconds) / 1,000,000
 ```
 
-`timeKey` must be a safe integer and the input must be finite. This gives the clock exact, transitive equality at one
-microsecond without forcing events onto a coarser combat grid. For example, `0.56 + 0.04` and `0.6` are the same
-instant, while `0.600000` and `0.600001` remain distinct.
+Inputs must be finite and `timeKey` a safe integer. Arithmetic aliases such as `0.56 + 0.04` and `0.6` share one
+instant; `0.600001` remains distinct. Platform packet timestamps must also be non-negative.
 
-Platform events additionally require a non-negative finite `at` value. They also require `type`, `source`, `sourceId`,
-and `actorType`. Common event types are registered by the platform; a custom type must contain a period, such as
-`profession.effect`.
-
-### Exact boundaries
-
-Timestamp comparisons use canonical microsecond instants, without a grace window. Canonicalize calculated deadlines
-before comparing them; elapsed interval counts use integer `timeKey` arithmetic. Recurring intervals must be finite and
-span at least one canonical microsecond. Invalid intervals are rejected instead of replaced with a tiny delay. Resource
-amounts use their own arithmetic policy and never borrow a clock tolerance.
+Canonicalize calculated deadlines before comparing them. Use exact canonical comparisons without grace windows; elapsed
+interval counts use integer keys. Recurring intervals must span at least one canonical microsecond. Resource amounts use
+their own arithmetic policy, never clock tolerance.
 
 ### The 40 ms GW2 action tick
 
-The event queue retains canonical microsecond precision. Every rotation cast is accepted on an absolute 40 ms action
-tick, including instant and independent casts, concurrent inputs, and casts following off-grid waits or resource wakes.
-Cast completion and interruption reservations also round up to an action tick, capped by full completion. Additionally:
+All rotation casts are accepted on absolute 40 ms ticks, including instant/independent casts, concurrent inputs, and
+casts following off-grid waits or resource wakes. Completion and interruption reservations round up to an action tick,
+with interruption capped by full completion. Positive action durations round up where required; imported observed action
+timing may round to the nearest tick. Independent summon Quickness conversion uses a 1.5 rate and tick rounding unless
+an explicit measured duration exists. Player durations already include permanent Quickness.
 
-- imported observed action timing can be rounded to the nearest 40 ms;
-- calculated positive action durations can be rounded up to the next 40 ms;
-- summon Quickness timing uses the 1.5 action-rate conversion and rounds up to an action tick unless an explicit
-  measured duration exists;
-- temporary effect expiry is rounded up to the next absolute 40 ms boundary.
+Temporary-effect expiry rounds up to an absolute action tick where its owner requires it. Exact mechanic timers and
+authored packet offsets retain microsecond precision; the queue itself never applies an action grid.
 
-All other authored packet timestamps remain on the canonical microsecond timeline.
+## 2. Runtime advancement
 
-## 2. One live runtime
+One cursor, heap, profession/target state, resource controller, and RNG own the run. Score and detailed modes share
+execution. Time advances to the earliest queued work, readiness boundary, or observation endpoint. Continuous resources
+and cooldowns settle before discrete work; due work drains before another command is accepted.
 
-`simulateGw2()` validates input and invokes `simulation/runtime.ts` once. One command cursor, stable heap, profession
-instance, target state, resource controller, and RNG own execution. Score and detailed outputs share this execution;
-only retained reporting collections differ.
+Tasks share the packet heap and carry detached serializable data. Owner generations cancel obsolete lifetimes;
+activation attribution alone does not cancel committed projectiles. Only executed facts become gameplay history.
 
-## 3. Runtime clock
+## 3. Rotation commands and cast lanes
 
-Time advances to the next queued event, command readiness boundary, or observation end. Continuous resources and
-cooldowns settle before discrete work at that instant. Due work drains before another command is accepted. Accepted
-casts reserve their lanes and enqueue packets and completion work; pending packets are not visible history. Only
-executed state facts enter combat queries. Resource gains from a hit therefore affect the next command directly.
+Malformed commands stop the run. Unknown or permanently unavailable skills produce invalid steps and warnings.
 
-Internal tasks use the same heap as damage and conditions. Payloads are detached, serializable data, and handlers are
-registered once. An optional owner generation cancels obsolete lifetime work. Activation identity attributes a cast; it
-does not automatically cancel a projectile that has already committed.
+- Ordinary player casts use the serial lane.
+- Instant skills can overlap when permitted, but preserve command order and wait for the actual interruption point.
+- Independent actors use their own serial lane unless overlap is explicitly allowed.
+- Waits and the final rotation boundary remain behind every outstanding reservation on every lane.
 
-## 4. Rotation commands and cast lanes
-
-Rotation input is normalized strictly into four command types: `cast`, `wait`, `combat-start`, and `cooldown-reset`.
-Malformed commands stop the run. Unknown or non-retryably unavailable skills instead produce invalid steps and warnings.
-
-The cursor tracks separate timing lanes:
-
-- ordinary player casts use the serial cast lane;
-- instant player skills may overlap a cast when their metadata permits it, but preserve command order and wait until the
-  actual interruption point of preceding work;
-- independent actors, such as summons, use a separate serial lane unless the skill explicitly permits independent
-  overlap;
-- waits and the final rotation boundary remain behind every outstanding reservation on every lane.
-
-A concurrent command's `concurrentOffsetMs` is anchored to the previous player cast's start. It is not relative to the
-current clock or the previous cast's end. If the requested instant has already passed for an instant or independent
-action, it is moved to the current clock rather than backdating the event.
-
-An ordinary wait begins only after `runtime.time`, the serial lane, and every outstanding cast reservation have reached
-the same point. Its end is:
-
-```text
-waitEnd = waitStart + durationMs / 1000
-```
+`concurrentOffsetMs` is relative to the preceding player cast's start. A requested instant that has passed moves to the
+current clock for instant/independent actions; work is never backdated. A wait starts after the live clock, serial lane,
+and outstanding reservations have converged, then adds `durationMs / 1000`.
 
 ### Cast timestamps
 
-For an accepted cast:
-
 ```text
-start        = first absolute 40 ms tick allowed by lanes, input recovery, cooldowns, resources, and profession rules
+start        = first absolute action tick allowed by lanes, input recovery, cooldowns, resources, and profession rules
 fullEnd      = gw2CooldownReadyAt(start + effectiveCastDurationSeconds)
 effectiveEnd = fullEnd, or min(fullEnd, gw2CooldownReadyAt(start + interruptAfterMs / 1000))
 ```
 
-`castTimeMs` is already the effective player duration stored in skill metadata. Shared game rules then profession rules
-may modify the duration. Only independent summon casts apply runtime Quickness conversion in the shared policy.
-
-An interrupted skill can reserve the lane through `fullEnd` when its metadata says a committed interruption retains the
-remaining cast as aftercast. Otherwise it releases the lane at `effectiveEnd`. The action event is emitted at `start`;
-the cast-completion task runs at `effectiveEnd`.
+Shared and profession rules may modify authored duration. Metadata may retain the lane through `fullEnd` after a
+committed interruption; otherwise it releases at `effectiveEnd`. The action occurs at `start`, and completion work runs
+at `effectiveEnd`.
 
 ### Effect packet timestamps
 
-An effect packet uses either `castStart` or `castEnd` as its origin. `castEnd` means `fullEnd`, including for an
-interrupted cast. The default origin is cast end. An effect with neither a packet offset nor explicit ticks occurs at
-`fullEnd`.
+Effects use `castStart` or `castEnd` as their origin; `castEnd` means `fullEnd` even for interruptions and is the
+default. Without offsets or ticks, effects occur there. Packet times add `atMs / 1000`; repeated applications add
+`(applicationIndex - 1) * intervalMs / 1000`. Explicit ticks supply individual offsets; aggregate hits share a
+timestamp. Cast-scaled offsets follow runtime duration, while fixed offsets retain elapsed time.
 
-```text
-packetAt = origin + atMs / 1000
-repeatAt = firstPacketAt + (applicationIndex - 1) * intervalMs / 1000
-```
-
-Explicit tick arrays supply each packet's own offset. Aggregate multi-hit strikes share one timestamp. Cast-scaled
-effects project offsets onto the runtime cast duration; fixed effects preserve wall-clock offsets.
-
-Interruption filtering is applied after materialization. Per-packet channels keep packets through the canonical
-`effectiveEnd` inclusively and discard later packets. Commit-mode effects follow their skill/effect commit cutoff and
-persistence metadata.
+Interruption filtering follows materialization. Per-packet channels retain packets through `effectiveEnd` inclusively;
+commit-mode effects follow their commit cutoff and persistence metadata.
 
 ### Resource and proc lifecycle
 
-Every resource mutation settles elapsed work at the old rate before changing value, capacity, or rate. Continuous and
-discrete resources use the shared controller; stale readiness/depletion wakes carry generations and cannot mutate
-replacement lifetimes. Grants are actual executed facts. Charge spending and expiry never replay earlier grants.
+Resource mutation settles elapsed work at the old rate before changing value, capacity, or rate. Readiness/depletion
+wakes carry generations so stale work cannot mutate replacement lifetimes. Spending or expiry does not replay grants.
 
-Eligibility gates run before critical draws or proc claims. An accepted hit samples one critical outcome, shared by
-eligible traits and equipment; secondary proc chances have their own seeded streams and strict ICD deadlines. A derived
-strike with a different source owns an independent activation and weapon-strength roll. Related condition/control
-packets keep their originating attribution. Recharge entitlements are reserved once at accepted commit-eligible casts;
-rejected or pre-commit-cancelled commands leave them available. Diagnostics record these actual decisions.
+Eligibility precedes critical draws and proc claims. One hit's critical outcome is shared by eligible traits/equipment;
+separate proc chances use their own seeded streams and strict ICDs. Derived strikes with different sources own separate
+activations/weapon-strength rolls; related condition/control packets retain attribution. Recharge entitlements are
+reserved once for accepted commit-eligible casts; rejection or pre-commit cancellation leaves them available.
 
 ### Cooldown and ammo timestamps
 
-Recharge duration is selected from ordinary cooldown metadata or ammo recharge metadata, then modified by shared game
-rules and profession rules. The default recharge anchor is `effectiveEnd`; `rechargeAnchor: "castStart"` selects
-`start`. A negative `rechargeOffsetMs` starts recharge before the anchor and is bounded by the cast-start clamp.
+Recharge uses ordinary cooldown or ammo-recharge metadata plus shared/profession rules. The default anchor is
+`effectiveEnd`; `rechargeAnchor: 'castStart'` selects `start`. Negative offsets are clamped at cast start:
 
 ```text
 baseRechargeStart = selectedAnchor + rechargeOffsetMs / 1000
@@ -163,52 +106,37 @@ rechargeStart     = max(start, professionModifiedRechargeStart)
 ordinaryReadyAt   = rechargeStart + rechargeDuration
 ```
 
-Cooldown and ammo state commits in the completion task at `effectiveEnd`, even when the computed recharge anchor is
-earlier. Player Alacrity is permanent; summon recharge integrates received Alacrity grants and expiry over the recharge
-interval. Skills with `rechargeIgnoresAlacrity` retain their base rate. Ammo charge recharge and the optional
-between-cast ammo lockout are independent deadlines; availability uses the later applicable deadline. See
-`combat/recharge.ts`.
+Cooldown/ammo state commits in the completion task, even if its computed anchor is earlier. Player Alacrity is
+permanent; summon recharge integrates received Alacrity windows. Explicit exemptions keep the base rate. Ammo recharge
+and between-cast lockout are independent deadlines; readiness uses the later applicable boundary.
 
-Retryable availability does not fail the command. The GW2 rotation driver rounds a future retry deadline up to the first
-absolute 40 ms action tick at or after that deadline. The clock advances to the earlier of that tick and the next
-state-changing task, then checks again. The game-neutral kernel retains its microsecond event clock. Cost admission uses
-exact readiness deadlines; resource owners use their shared amount-rounding tolerance for readiness and payment. A
-non-retryable denial records an invalid zero-duration step.
+Retryable availability rounds a future retry to the next absolute action tick. The clock advances to that tick or an
+earlier state-changing task and checks again. Cost admission uses exact readiness deadlines and the resource owner's
+amount tolerance. A permanent denial records an invalid zero-duration step.
 
-Ordinary cooldown availability uses the shared canonical readiness calculation. Internal proc cooldowns use a stricter
-contract: a previously armed cooldown remains blocked at its exact `readyAt` boundary and becomes ready only at a later
-timestamp. The sentinel `readyAt = 0` means never armed and is ready at time zero.
+Ordinary cooldowns use canonical readiness. An armed internal proc cooldown is still blocked exactly at `readyAt`,
+becoming ready only later. Its `readyAt = 0` sentinel means never armed and is ready at time zero.
 
-## 5. Rotation end and observation end
+## 4. Rotation end and observation end
 
-The runtime distinguishes the entered rotation from the period resolved for delayed effects.
+`rotationEndTime` is the canonical maximum of live time, the serial lane, and outstanding reservations, including final
+input recovery. Delayed damage alone does not extend it.
 
-`rotationEndTime` is the canonical maximum of the current runtime time, the serial lane, and every outstanding cast
-reservation. Final input recovery is included. It does not automatically extend to every delayed damage packet.
+Observation defaults to rotation end. A tail adds its duration once; an absolute policy supplies an endpoint that must
+not precede canonical rotation end. Durations/endpoints must be finite and non-negative. Arithmetic values rounding to
+the same microsecond represent the same endpoint.
 
-`observationEndTime` is selected by the observation policy:
+The heap drains through that endpoint inclusively. Work one microsecond later remains pending and cannot affect the
+observation. Recurring tail work never recursively extends rotation or observation duration. Policy shapes are in
+[observation boundaries](./PROGRAMMATIC-SIMULATION.md#observation-boundaries).
 
-| Policy                            | Resolution end                        |
-| --------------------------------- | ------------------------------------- |
-| omitted or `{ kind: "rotation" }` | `rotationEndTime`                     |
-| `{ kind: "tail", durationMs }`    | `rotationEndTime + durationMs / 1000` |
-| `{ kind: "absolute", endTimeMs }` | `endTimeMs / 1000`                    |
+## 5. Shared queue ordering
 
-Durations and absolute endpoints must be non-negative and finite. Rotation and observation endpoints use the canonical
-microsecond clock. An absolute endpoint earlier than the canonical rotation end is rejected, without an epsilon
-allowance; inputs that round to the same microsecond represent the same instant. A tail is added to the canonical
-rotation end once and the result is canonicalized; recurring work inside the tail does not recursively extend it.
+The key is `(canonical timestamp, phase, priority, causal placement, insertion sequence)`. Emission assigns monotone
+`eventOrder` identities; derived work inherits causal placement unless explicitly supplied. Stable insertion breaks
+ties. There is no stream handoff or replay. See [event ordering](./SKILL-EVENT-ORDERING.md) for authoring examples.
 
-The runtime drains the shared heap through the inclusive horizon. Work exactly at that instant is eligible; work one
-microsecond later remains pending and does not change state. Tail work never extends rotation duration.
-
-## 6. Shared queue ordering
-
-The ordering key is `(canonical timestamp, phase, priority, causal placement, insertion sequence)`. Emission assigns
-monotone `eventOrder` identities; derived packets inherit their cause's placement. Stable insertion order breaks ties.
-Explicit causal metadata overrides inherited placement. There is no stream handoff or replay.
-
-## 7. Event phases and combat boundaries
+## 6. Event phases and cleanup
 
 | Phase    | Value | Work                                                               |
 | -------- | ----: | ------------------------------------------------------------------ |
@@ -216,120 +144,61 @@ Explicit causal metadata overrides inherited placement. There is no stream hando
 | Settle   |     1 | Condition payouts and same-time non-damage reactions               |
 | Ordinary |     2 | Cast completions, tasks, actions, strikes, and other state changes |
 
-Phase outranks priority. The queue rejects past work and same-time phase rewinds; future work starts in its normal
-phase. A new command starts a fresh causal root after due work settles. Fields and finishers settle before their owning
-hit samples modifiers. Reactions enqueue follow-up work rather than recursively executing it.
+Phase outranks priority. Past work and same-time phase rewinds are rejected; future work receives its normal phase.
+Commands start fresh causal roots after due work settles. Fields and finishers settle before their hit samples
+modifiers; reactions enqueue follow-up work rather than recursively resolving it.
+
+Flip retirement always uses Ordinary, including zero-duration grants armed during settlement. Its reserved
+`Number.MAX_VALUE` priority puts cleanup after queued gameplay and its same-time consequences, before rotation commands
+at that deadline. Work created by those commands runs afterward. Readiness and visibility close at the deadline
+independently of deletion; identity checks protect replacements. Other work cannot use the reserved priority.
+
+## 7. Combat boundaries
 
 Explicit Combat Start gates target damage and conditions, including precombat carryover. Self buffs, combo finishers,
-auras, and eligible relic effects may execute before the marker. Inherited prefix boundaries remain pending until their
-marker executes. Control-use notifications remain observable while their target effects are gated.
+auras, and eligible relic effects may execute beforehand. Inherited prefix boundaries remain pending until their marker
+executes. Control-use notifications remain observable even when target effects are gated.
 
-Target death freezes the combat projection after the lethal timestamp finishes. Sibling packets with the lethal
-activation identity and the simultaneous condition-tick batch finish; distinct later attacks and hit-dependent grants
-are suppressed. Authored command continuation still advances resources, cooldowns, and self state to the planning
-boundary. Both snapshots are detached observations of this one state, not resumable checkpoints.
+Target death freezes combat output after the lethal timestamp finishes. Sibling packets from the lethal activation and
+the simultaneous condition batch finish; distinct later attacks and hit-dependent grants are suppressed. Commands still
+advance resources, cooldowns, and self state to the planning boundary. Both snapshots are detached observations, not
+checkpoints.
 
-DPS starts at the first surviving positive player-damage event. Explicit Combat Start supplies the damage-free fallback
-and precombat gate, not the condition pulse phase:
+DPS starts at first surviving positive player damage. Explicit Combat Start provides the damage-free fallback and gate,
+not the condition phase:
 
-`dpsWindow = max(0, (deathTime ?? observationEndTime) - (firstHitTime ?? combatStartFallback))`.
+```text
+dpsWindow = max(0, (deathTime ?? observationEndTime) - (firstHitTime ?? combatStartFallback))
+```
 
-Player health is always full; target-health-dependent mechanics use actual target state.
+Player health is fixed at full; target-health mechanics use live target state.
 
 ## 8. Status and condition clocks
 
-Timed status queries use exact canonical half-open windows:
+Statuses are active exactly when `startsAt <= at && at < expiresAt`. Standard boon durations round to whole milliseconds
+with half-even rounding after modifiers, then expiry rounds up to the next absolute 40 ms tick. Exact form, field, and
+delayed-attack timers instead store `canonicalTime(start + duration)`. A mechanic may explicitly include a final pulse
+or charge timestamp through exact comparisons and queue ordering, never an epsilon extension.
 
-```text
-active(at) = startsAt <= at && at < expiresAt
-```
+Conditions use a shared clock anchored to first positive player damage. Sample precedes Settle so owners see coherent
+target state before payouts change health. Off-grid expiry buffering, provisional pre-damage wakes, attribution, and
+rounding belong to [Shared condition ticks](./SHARED-CONDITION-TICKS.md). Observation clipping must not change a
+condition's natural semantic expiry.
 
-A status is active at its application timestamp and inactive at its expiry timestamp. Standard boon durations are
-rounded to whole milliseconds using half-even rounding after duration modifiers. Their actual expiry is then rounded up
-to the next absolute 40 ms action-tick boundary.
+## Safety and determinism
 
-Exact form, field, and delayed-attack timers instead store `canonicalTime(start + duration)`. A mechanic may explicitly
-include its final timestamp: for example, a queued final tether pulse or Dragon Trigger charge. Such exceptions use an
-exact inclusive comparison and the mechanic's event ordering, never an epsilon extension.
+The engine throws on runaway or invalid work instead of silently truncating it. Limits include 100,000 normalized
+commands and bounded runtime iterations/same-time dequeues. Effect expansion has a cumulative 100,000-record budget:
+each packet, announcement, or condition stack (including a fractional stack) costs one. Profiles reserve packets before
+materialization; conditions reserve stacks before insertion/reactions. Filtering and cancellation do not refund budget.
 
-Conditions use a shared clock relative to first positive player damage (`origin`), matching DPS and Kill Time:
+Hit/repetition counts must be positive safe integers at most 100,000. Effect lists and tick arrays are bounded before
+traversal/copying; standalone materialization enforces the same batch ceiling. Unknown handlers, unserializable
+payloads, past work, and phase rewinds fail. Stable insertion and queue-local causality keep runs deterministic
+independently of seeded combat randomness.
 
-- the next payout for a condition applied at `t` is at `origin + floor(t - origin) + 1`;
-- one owner/condition group shares a wake and is rounded as one damage packet;
-- condition rates are sampled at whole-second boundaries and at exact off-grid expirations;
-- an off-grid expiry remainder is buffered and paid at the group's next whole-second wake;
-- applications are semantically active through `[appliedAt, naturalExpiresAt)`;
-- the observation horizon clips scheduled damage but does not change the application's natural semantic expiry;
-- ambient target conditions use the same first-damage phase;
-- before first damage, provisional encounter-second pulses allow a condition-only opener to start the clock;
-- an off-grid direct opener replaces provisional wakes and discards pre-fight accrual; application expiry is unchanged;
-- explicit Combat Start gates damage but does not set the tick phase.
-
-The Sample phase runs before the Settle phase at a shared second, so all condition owners use one coherent target-state
-sample before any condition payout changes health.
-
-## 9. Boundary examples
-
-### Same canonical instant
-
-These values share one clock key and are ordered by phase/priority/causality rather than floating-point residue:
-
-```text
-0.56 + 0.04 seconds -> 600000 -> 0.600000 seconds
-0.60 seconds        -> 600000 -> 0.600000 seconds
-```
-
-An event at `0.600001` remains a later event.
-
-### Horizon
-
-For `observationEndTime = 2.000000`:
-
-```text
-event.at = 2.000000  processed
-event.at = 2.000001  excluded
-```
-
-### Status expiry
-
-For a status with `startsAt = 1.0` and `expiresAt = 2.0`:
-
-```text
-at = 1.0       active
-at = 1.999999  active
-at = 2.0       inactive
-```
-
-### Same-time resolver work
-
-At `t = 3.0`, the resolver samples condition rates first, settles condition payouts second, and resolves ordinary damage
-last, regardless of an ordinary event's lower numeric priority.
-
-## 10. Safety and determinism
-
-The engine fails instead of silently truncating runaway work:
-
-- More than 100,000 normalized commands is rejected.
-- The runtime loop and same-time queue chains have action safety limits.
-- Effect expansion has a separate cumulative budget of 100,000 records per simulation: each emitted packet or
-  announcement costs one record, and each condition stack created at application costs one (a fractional final stack
-  also costs one). A profile reserves all its packets before materialization or submission; a condition application
-  reserves all its stacks before state insertion or reactions. Filtered and cancelled work is not refunded.
-- Hits and repeated applications require positive safe integers no greater than 100,000. Effect-list and explicit
-  tick-array lengths are bounded before traversal or copying, and standalone materialization enforces the same batch
-  ceiling. Oversized batches throw with source context rather than allocating or partially emitting the batch.
-- Unknown internal handlers, unserializable payloads, past work, and same-time phase rewinds throw.
-
-Stable insertion ordering and queue-local causal inheritance keep independent simulations deterministic. Stochastic
-combat choices are a separate seeded-randomness concern and do not alter the clock contract.
-
-## Source of truth
-
-- [Clock primitives](../../js/kernel/core/clock.ts)
-- [Stable event queue](../../js/kernel/events/queue.ts)
-- [Observation policy](../../js/kernel/execution/observation.ts)
-- [Unified runtime](../../js/games/gw2/platform/simulation/runtime.ts)
-- [Internal work](../../js/games/gw2/platform/simulation/internal-work.ts)
-- [Effect materialization](../../js/games/gw2/platform/effects/materializer.ts)
-- [Condition resolution](../../js/games/gw2/platform/resolver/condition-resolution.ts)
-- [GW2 timing helpers](../../js/games/gw2/platform/execution/cast-timing.ts)
+Implementation owners: [clock](../../js/kernel/core/clock.ts), [queue](../../js/kernel/events/queue.ts),
+[observation](../../js/kernel/execution/observation.ts),
+[coordinator](../../js/games/gw2/platform/simulation/coordinator.ts),
+[cast timing](../../js/games/gw2/platform/execution/cast-timing.ts), and
+[materialization](../../js/games/gw2/platform/effects/materializer.ts).

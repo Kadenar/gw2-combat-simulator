@@ -11,32 +11,44 @@ import { defineTestProfession } from '#tests/helpers/profession.js';
 // JavaScript definitions must fail before obsolete or misspelled declarations can lose their formulas.
 test('profession normalization rejects unsupported modifier declarations', () => {
   for (const define of [defineProfession, defineTestProfession]) {
-    for (const key of ['modifyStrikeDamage', 'modifyConditionDamage', 'compileModifierRules', 'unknownModifier']) {
-      assert.throws(() => define({ id: 'invalid', name: 'Invalid', modifiers: { [key]: () => 99 } }), {
-        name: 'TypeError',
-        message: `Unsupported modifiers field: ${key}.`
-      });
+    for (const key of [
+      'modifyAttributes',
+      'modifyConditionAttributes',
+      'modifyCriticalChance',
+      'modifyCriticalDamage',
+      'modifyConditionBaseDuration',
+      'modifyConditionDuration',
+      'modifyStrikeDamage',
+      'modifyConditionDamage',
+      'compileModifierRules',
+      'unknownModifier'
+    ]) {
+      for (const value of [() => 99, { id: 'ordered', order: 1, handler: () => 99 }, [() => 99]])
+        assert.throws(() => define({ id: 'invalid', name: 'Invalid', modifiers: { [key]: value } }), {
+          name: 'TypeError',
+          message: `Unsupported modifiers field: ${key}.`
+        });
     }
   }
 });
 
-// Profession contracts provide neutral defaults and deterministic hooks for every implementation.
-test('profession contract supplies defaults and deterministic hook ordering', () => {
-  const calls = [];
+// Empty declarations retain the query API without installing an imperative authoring path.
+test('profession contract supplies neutral calculation defaults', () => {
   const profession = defineProfession({
     id: 'ordered',
-    name: 'Ordered',
-    modifiers: {
-      modifyAttributes: [
-        { id: 'later', order: 20, handler: () => calls.push('later') },
-        { id: 'first', order: 10, handler: () => calls.push('first') },
-        { id: 'same', order: 10, handler: () => calls.push('same') }
-      ]
-    }
+    name: 'Ordered'
   });
 
-  profession.modifyAttributes({}, {});
-  assert.deepEqual(calls, ['first', 'same', 'later']);
+  const attributes = { power: 123 };
+  assert.equal(profession.modifyAttributes({}, attributes), attributes);
+  assert.equal(profession.modifyConditionAttributes({}, attributes), attributes);
+  for (const name of [
+    'modifyCriticalChance',
+    'modifyCriticalDamage',
+    'modifyConditionBaseDuration',
+    'modifyConditionDuration'
+  ])
+    assert.equal(profession[name]({}, 1.5), 1.5);
   assert.deepEqual(profession.createState({}), {});
   assert.equal(profession.modifyStrikeDamage({}, 12), 12);
   assert.equal(Object.hasOwn(profession, 'ui'), false);
@@ -60,6 +72,7 @@ test('planning projection preserves the selected callback', () => {
     const result = planningState(
       {
         profession: state,
+        flips: {},
         time: 0,
         activeWeaponSet: 1,
         config: {},
@@ -73,28 +86,6 @@ test('planning projection preserves the selected callback', () => {
     );
     result.profession.nested.value = 9;
     assert.equal(state.nested.value, 3);
-  }
-});
-
-// Chained hooks receive the previous result even when an intermediate hook only observes it.
-test('attribute modifiers preserve values through observing hooks', () => {
-  for (const [container, hook] of [['modifiers', 'modifyAttributes']]) {
-    const observed = [];
-    const profession = defineProfession({
-      id: 'chained',
-      name: 'Chained',
-      [container]: {
-        [hook]: [
-          (_context, value) => ({ ...value, power: value.power + 1 }),
-          (_context, value) => {
-            observed.push(value.power);
-          },
-          (_context, value) => ({ ...value, power: value.power * 2 })
-        ]
-      }
-    });
-    assert.deepEqual(profession[hook]({}, { power: 2 }), { power: 6 });
-    assert.deepEqual(observed, [3]);
   }
 });
 

@@ -7,6 +7,7 @@ import { skillPatchableNumericFields } from '#gw2/integrations/patches/authoring
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
@@ -72,7 +73,10 @@ test('patched preparation duration governs recharge-scaled availability without 
       const skill = catalog.skillsById.get(placement);
       const runtime = {
         time: 10,
-        profession: { core: { availableFlips: {} } },
+        flips: {},
+        armFlip(id, { availableAt, expiresAt = Infinity, visibleAt = availableAt }) {
+          return armSkillFlip(this.flips, id, availableAt, expiresAt, visibleAt);
+        },
         cooldownController: { rate: () => rate }
       };
       prepareTrap(runtime, { skill });
@@ -82,7 +86,7 @@ test('patched preparation duration governs recharge-scaled availability without 
       assert.equal(availability.retryAt, 10 + 5 / rate);
       runtime.time = availability.retryAt;
       assert.equal(thiefTrapAvailability(runtime, child), null);
-      assert.equal(runtime.profession.core.availableFlips[trigger].expiresAt, null);
+      assert.equal(runtime.flips[trigger].expiresAt, null);
       assert.equal(thiefTrapAvailability(runtime, skill).retryAt, null);
       const context = { catalog };
       const { facts } = describeSimulationSkill(context, skill, thiefTooltips);

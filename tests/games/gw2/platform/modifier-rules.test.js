@@ -1,7 +1,34 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createModifierHooks, MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { createModifierHooks, MODIFIER_TARGET, normalizeModifierRules } from '#gw2/platform/combat/modifiers.js';
+
+// Catalog admission snapshots static rule data without sampling the live state its callbacks require.
+test('modifier normalization detaches declarations without invoking live callbacks', () => {
+  const rule = {
+    id: 'live.bonus',
+    target: ['criticalChance', 'criticalDamage'],
+    operation: 'add',
+    parameters: { bonus: 0.1 },
+    when: () => {
+      throw new Error('Predicate requires live state');
+    },
+    amount: () => {
+      throw new Error('Amount requires live state');
+    }
+  };
+  const normalized = normalizeModifierRules([rule]);
+  rule.target.push('conditionDuration');
+  rule.parameters.bonus = 0.2;
+  assert.deepEqual(normalized[0].targets, ['criticalChance', 'criticalDamage']);
+  assert.deepEqual(normalized[0].parameters, { bonus: 0.1 });
+  assert.equal(normalized[0].when, rule.when);
+  assert.equal(normalized[0].amount, rule.amount);
+  assert.equal(Object.isFrozen(normalized), true);
+  assert.equal(Object.isFrozen(normalized[0]), true);
+  assert.equal(Object.isFrozen(normalized[0].targets), true);
+  assert.equal(Object.isFrozen(normalized[0].parameters), true);
+});
 
 // Zero can suppress strike damage or a condition application; other scalar factors remain positive.
 test('strike and base-duration factors admit zero while rejecting negative and non-finite values', () => {
@@ -241,8 +268,7 @@ test('attribute plans preserve predicates, rule order, and dynamic validation wi
   current.event.bonus = NaN;
   assert.throws(() => hooks.modifyAttributes(current, initial), /amount must resolve to a finite number/);
   const empty = createModifierHooks().modifyAttributes(current, initial);
-  assert.deepEqual(empty, initial);
-  assert.notEqual(empty, initial);
+  assert.equal(empty, initial);
 });
 
 test('critical chance rules expose their active contributions', () => {
@@ -400,6 +426,8 @@ test('empty modifier sets preserve scalar and coherent damage inputs', () => {
   const hooks = createModifierHooks();
 
   assert.equal(hooks.modifyCriticalChance(context(), 0.5), 0.5);
+  assert.equal(hooks.modifyCriticalDamage(context(), 1.5), 1.5);
+  assert.equal(hooks.modifyConditionBaseDuration(context(), 1.25), 1.25);
   assert.equal(hooks.modifyConditionDuration(context(), 1.25), 1.25);
   assert.equal(hooks.modifyStrikeDamage(context(), 1), 1.08);
   assert.equal(hooks.modifyConditionDamage(context(), 1), 1.05);
@@ -516,29 +544,20 @@ test('modifier declarations reject invalid schemas with the rule id', () => {
   ];
 
   for (const [rule, pattern] of invalidRules) {
+    assert.throws(() => normalizeModifierRules([rule]), pattern);
     assert.throws(() => createModifierHooks({ rules: [rule] }), pattern);
   }
 
-  assert.throws(
-    () =>
-      createModifierHooks({
-        rules: [
-          {
-            id: 'bad.duplicate',
-            target: 'criticalChance',
-            operation: 'add',
-            amount: 0.1
-          },
-          {
-            id: 'bad.duplicate',
-            target: 'criticalDamage',
-            operation: 'add',
-            amount: 0.1
-          }
-        ]
-      }),
-    /bad\.duplicate/
-  );
+  // Separate owners can each validate a rule; compilation must still reject collisions in their combined list.
+  const duplicateRules = ['criticalChance', 'criticalDamage'].map((target) => ({
+    id: 'bad.duplicate',
+    target,
+    operation: 'add',
+    amount: 0.1
+  }));
+  for (const rule of duplicateRules) normalizeModifierRules([rule]);
+  assert.throws(() => normalizeModifierRules(duplicateRules), /bad\.duplicate/);
+  assert.throws(() => createModifierHooks({ rules: duplicateRules }), /bad\.duplicate/);
 });
 
 test('modifier declarations and resolvers reject invalid runtime values', () => {

@@ -24,7 +24,7 @@ export const willbenderHooks = composeRuntimeHooks<GuardianRuntimeState, Guardia
       )
         return denySkillCast(skill, 'guardian.flames-autonomous', 'flames are created automatically by virtues.');
 
-      return skill.id === ID.REPOSE && !skillFlipReady(runtime.profession.core.availableFlips[ID.REPOSE], runtime.time)
+      return skill.id === ID.REPOSE && !skillFlipReady(runtime.flips[ID.REPOSE], runtime.time)
         ? denySkillCast(skill, 'guardian.flip-not-armed', 'not currently armed.')
         : { ready: true };
     }

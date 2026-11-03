@@ -161,7 +161,6 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
     { type: 'flipArm', skillId: 2, durationSec: 10, uses: 3 },
     { type: 'flipArm', skillId: 2, durationSec: null },
     { type: 'flipConsume', skillId: 2 },
-    { type: 'flipArm', skillId: 2, durationSec: 1, expiryPriority: -220 },
     { type: 'emitProfile', profileId: 'test.profile' },
     { type: 'test.action', amount: 0 }
   ])
@@ -187,12 +186,6 @@ test('catalogs validate side-effect payloads, amounts, and variant references', 
     { type: 'flipConsume' },
     ...[-1, Infinity, NaN, '3'].map((durationSec) => ({ type: 'flipArm', skillId: 2, durationSec })),
     { type: 'flipArm', skillId: 2 },
-    ...[NaN, Infinity, 'early'].map((expiryPriority) => ({
-      type: 'flipArm',
-      skillId: 2,
-      durationSec: 1,
-      expiryPriority
-    })),
     { type: 'emitProfile', profileId: 'missing' },
     { type: 'emitProfile', profileId: 'test.profile', attribution: [] },
     { type: 'typo' }

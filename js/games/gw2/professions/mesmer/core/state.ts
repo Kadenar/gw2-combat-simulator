@@ -1,5 +1,4 @@
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
-import { skillFlipVisible, type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -19,7 +18,6 @@ export interface MesmerCoreState {
   trackedSkillHits: Record<string, number[]>;
 
   mimic: ChargeGrant;
-  availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   scepterChainExpiresAt: number | null;
   clarity: ChargeGrant;
@@ -35,7 +33,6 @@ export function createMesmerCoreState(): MesmerCoreState {
     trackedSkillHits: {},
 
     mimic: { charges: 0, expiresAt: 0 },
-    availableFlips: {},
     autoattackChains: {},
     scepterChainExpiresAt: null,
     clarity: { charges: 0, expiresAt: 0 },
@@ -58,9 +55,6 @@ export function projectMesmerCorePlanningState(input: Gw2PlanningStateInput) {
     // The display timer projects the grant without consuming or pruning its owner.
     [STATE.CLARITY_REMAINING]:
       state.clarity.charges > 0 ? Math.max(0, Math.round((state.clarity.expiresAt - at) * 1000)) : 0,
-    [STATE.AVAILABLE_FLIPS]: Object.fromEntries(
-      Object.entries(state.availableFlips).filter(([, window]) => skillFlipVisible(window, at))
-    ),
     [STATE.AUTOATTACK_CHAINS]: Object.fromEntries(
       input.catalog.autoattackChains.map((chain) => [chain[0], state.autoattackChains[chain[0]] || chain[0]])
     )

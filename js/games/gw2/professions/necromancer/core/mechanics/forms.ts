@@ -1,7 +1,6 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -33,7 +32,7 @@ export function exitLich(runtime: NecromancerRuntime): void {
   runtime.cancelOwner({ id: LICH_EXPIRY, generation: state.lichGeneration });
   state.activeShroud = '';
   state.lichEndsAt = 0;
-  consumeSkillFlip(state.availableFlips, ID.EXIT_LICH_FORM);
+  runtime.consumeFlip(ID.EXIT_LICH_FORM);
   runtime.resourceController.refresh('lifeForce');
   grantNecromancerLifeForce(runtime, 15);
 }
@@ -66,7 +65,7 @@ export function exitNecromancerShroud(runtime: NecromancerRuntime): void {
   const entry =
     state.activeShroudEntryId == null ? undefined : runtime.helpers.skillsById.get(state.activeShroudEntryId);
 
-  if (state.activeShroudExitId != null) consumeSkillFlip(state.availableFlips, state.activeShroudExitId);
+  if (state.activeShroudExitId != null) runtime.consumeFlip(state.activeShroudExitId);
 
   state.activeShroud = '';
   state.activeShroudEntryId = null;
@@ -91,7 +90,7 @@ export function enterLich(runtime: NecromancerRuntime): void {
   state.activeShroud = 'lich';
   state.lichEndsAt = canonicalTime(runtime.time + 20);
   state.lichGeneration++;
-  armSkillFlip(state.availableFlips, ID.EXIT_LICH_FORM, runtime.time, state.lichEndsAt);
+  runtime.armFlip(ID.EXIT_LICH_FORM, { availableAt: runtime.time, expiresAt: state.lichEndsAt });
   runtime.resourceController.refresh('lifeForce');
   runtime.schedule(LICH_EXPIRY, state.lichEndsAt, null, { id: LICH_EXPIRY, generation: state.lichGeneration }, -20);
 }
@@ -111,7 +110,7 @@ export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: Runtim
   const exit = [...runtime.helpers.skillsById.values()].find((candidate) => candidate.shroudExit === skill.shroudEntry);
   state.activeShroudExitId = exit?.id ?? null;
 
-  if (exit) armSkillFlip(state.availableFlips, exit.id, runtime.time);
+  if (exit) runtime.armFlip(exit.id);
 
   runtime.cooldownController.setReadyAt(skill.id, Infinity);
   runNecromancerShroudEnter(runtime, skill);

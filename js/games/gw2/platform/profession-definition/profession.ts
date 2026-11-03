@@ -1,8 +1,4 @@
-import {
-  applyAttributeContributions,
-  applyFinalConditionAttributes,
-  attributeContext
-} from '#gw2/platform/attributes/evaluation.js';
+import { applyAttributeContributions, attributeContext } from '#gw2/platform/attributes/evaluation.js';
 import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
 import type {
   Gw2AttributeContext,
@@ -31,8 +27,7 @@ import {
 import {
   assertDefinition,
   assertModifierDefinition,
-  defineProfession,
-  MODIFIER_HOOK_NAMES
+  defineProfession
 } from '#gw2/platform/profession-definition/compile-contract.js';
 import type { Gw2ProfessionContract } from '#gw2/platform/profession-definition/family-contract.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -60,7 +55,6 @@ import {
 import type {
   NormalizedProfessionContract,
   ProfessionConfig,
-  ProfessionHook,
   ProfessionModifierDefinition
 } from '#gw2/platform/profession-definition/types.js';
 import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
@@ -247,15 +241,6 @@ function composeModuleModifiers(
   modules: readonly Pick<AnyNativeModule, 'id' | 'modifiers'>[]
 ): ProfessionModifierDefinition {
   const modifiers = modules.map((module) => module.modifiers);
-  const result = Object.fromEntries(
-    MODIFIER_HOOK_NAMES.map((name) => [
-      name,
-      modifiers.flatMap((source) => {
-        const value = source[name];
-        return (value == null ? [] : Array.isArray(value) ? value : [value]) as ProfessionHook[];
-      })
-    ])
-  ) as Record<(typeof MODIFIER_HOOK_NAMES)[number], ProfessionHook[]>;
   const declarations = modifiers.flatMap((source) => source.modifierRules ?? []);
   const damageBuckets: NonNullable<ProfessionModifierDefinition['damageBuckets']> = {};
   const policyOwners = new Map<string, string>();
@@ -276,7 +261,7 @@ function composeModuleModifiers(
     Object.assign(damageBuckets, policies);
   }
 
-  return { ...result, modifierRules: declarations, damageBuckets };
+  return { modifierRules: declarations, damageBuckets };
 }
 
 /** Creates fresh Core/elite state while rejecting invalid fragments and conflicting field ownership. */
@@ -495,23 +480,6 @@ export function defineNativeProfession<
       return calculateContributions(attributeContext(input, selectedBalance));
     };
 
-    // Query phases consume the already sampled values; direct modifier callers sample their own live facts once.
-    const queryContributions = (input: import('#gw2/platform/combat/modifiers.js').Gw2ModifierContext) =>
-      input.attributeContributions ?? selectedContributions(input);
-    const modifiers = composeModuleModifiers(selected);
-    const ordinaryAttributes = {
-      id: 'gw2.attribute-contributions',
-      order: -10000,
-      handler: (
-        context: import('#gw2/platform/combat/modifiers.js').Gw2ModifierContext,
-        attributes: import('#gw2/platform/attributes/stats.js').Gw2Stats
-      ) =>
-        applyAttributeContributions(
-          attributeSeed(context.config ?? {}, context.runtime?.activeWeaponSet ?? context.config?.startingWeaponSet),
-          attributes,
-          queryContributions(context)
-        )
-    };
     const source = defineProfession<State, TSkill>({
       id: definition.id,
       name: definition.name,
@@ -536,32 +504,7 @@ export function defineNativeProfession<
             }
           : {})
       },
-      modifiers: {
-        ...modifiers,
-        modifyConditionAttributes: [
-          ...(Array.isArray(modifiers.modifyConditionAttributes)
-            ? modifiers.modifyConditionAttributes
-            : modifiers.modifyConditionAttributes
-              ? [modifiers.modifyConditionAttributes]
-              : []),
-          {
-            id: 'gw2.final-condition-attributes',
-            order: 10000,
-            handler: (
-              context: import('#gw2/platform/combat/modifiers.js').Gw2ModifierContext,
-              attributes: import('#gw2/platform/attributes/stats.js').Gw2Stats
-            ) => applyFinalConditionAttributes(context, attributes, queryContributions(context))
-          }
-        ],
-        modifyAttributes: [
-          ordinaryAttributes,
-          ...(Array.isArray(modifiers.modifyAttributes)
-            ? modifiers.modifyAttributes
-            : modifiers.modifyAttributes
-              ? [modifiers.modifyAttributes]
-              : [])
-        ]
-      }
+      modifiers: composeModuleModifiers(selected)
     });
     const selection: NonNullable<ReturnType<typeof selections.get>> = {
       modules: selected,

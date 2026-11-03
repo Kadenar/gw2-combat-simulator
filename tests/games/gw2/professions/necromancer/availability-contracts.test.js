@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { necromancerAvailability } from '#gw2/professions/necromancer/core/mechanics/availability.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -38,7 +37,7 @@ test('minion ownership precedes generic flip and shroud denials', () => {
   assert.equal(check(command.id).code, 'necromancer.minion-inactive');
   core.activeMinions[command.minionKey] = 1;
   assert.equal(check(command.id).code, 'necromancer.flip-not-armed');
-  armSkillFlip(core.availableFlips, command.id, runtime.time);
+  runtime.armFlip(command.id, { availableAt: runtime.time });
   assert.equal(check(command.id).code, 'necromancer.in-shroud');
   core.activeShroud = null;
   assert.deepEqual(check(command.id), { ready: true });

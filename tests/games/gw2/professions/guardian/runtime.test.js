@@ -65,7 +65,7 @@ test('Luminary forge owns exact expiry, distinct-weapon recharge, and precombat 
   const expired = run([ID.ENTER_RADIANT_FORGE, wait(20000)], luminary);
   assert.equal(lum(expired).radiantForge, false);
   assert.equal(observedRuntime(expired).cooldownController.rechargeFor(ID.ENTER_RADIANT_FORGE).workAnchorAt, 20);
-  assert.equal(core(expired).availableFlips[ID.EXIT_RADIANT_FORGE], undefined);
+  assert.equal(observedRuntime(expired).flips[ID.EXIT_RADIANT_FORGE], undefined);
   const precombat = run(
     [ID.ENTER_RADIANT_FORGE, wait(20000), { type: 'combat-start' }, ID.ENTER_RADIANT_FORGE],
     luminary
@@ -95,15 +95,15 @@ test('Luminary equips replace only forge flips and canceled attempts grant no eq
   });
   assert.deepEqual(lum(canceled).radiantWeaponsUsed, {});
   assert.equal(lum(canceled).empoweredArmamentsUntil, 0);
-  assert.equal(core(canceled).availableFlips[ID.SHINING_SPIN], undefined);
+  assert.equal(observedRuntime(canceled).flips[ID.SHINING_SPIN], undefined);
   const equipped = run([ID.ENTER_RADIANT_FORGE, ID.DAZZLING_HAMMER, ID.LUMINOUS_STAFF, wait(1)], {
     ...luminary,
     selectedTraitIds: traits,
     allies: { count: 2 }
   });
   assert.equal(lum(equipped).radiantWeapon, 'staff');
-  assert.equal(core(equipped).availableFlips[ID.SHINING_SPIN], undefined);
-  assert.ok(core(equipped).availableFlips[ID.RESTORATIVE_GLOW]);
+  assert.equal(observedRuntime(equipped).flips[ID.SHINING_SPIN], undefined);
+  assert.ok(observedRuntime(equipped).flips[ID.RESTORATIVE_GLOW]);
   assert.ok(lum(equipped).empoweredArmamentsUntil > observedRuntime(equipped).time);
   const boon = equipped.resolvedEvents.find((event) => event.kind === 'alacrity');
   assert.equal(boon.resolvedAudience.alliedPlayerCount, 2);
@@ -126,7 +126,7 @@ test('an in-flight radiant weapon cannot equip itself after its forge entry is r
   assert.equal(lum(result).radiantForge, true);
   assert.equal(lum(result).radiantWeapon, '');
   assert.deepEqual(lum(result).radiantWeaponsUsed, {});
-  assert.equal(core(result).availableFlips[ID.LUCENT_THRUST], undefined);
+  assert.equal(observedRuntime(result).flips[ID.LUCENT_THRUST], undefined);
 });
 
 test('Luminary support bursts retain boons and shared vulnerability without inventing strikes', () => {
@@ -470,18 +470,18 @@ test('Restorative Virtues reduces only the currently equipped weapon cooldowns',
 
 test('Willbender Repose belongs to a committed Flash Combo and expires without touching a later occurrence', () => {
   const full = run([ID.FLASH_COMBO], willbender);
-  assert.ok(core(full).availableFlips[ID.REPOSE]);
+  assert.ok(observedRuntime(full).flips[ID.REPOSE]);
   const shortened = run([{ type: 'cast', skillId: ID.FLASH_COMBO, interruptAfterMs: 400 }], willbender);
-  assert.ok(core(shortened).availableFlips[ID.REPOSE]);
+  assert.ok(observedRuntime(shortened).flips[ID.REPOSE]);
   const used = run([ID.FLASH_COMBO, ID.REPOSE], willbender);
-  assert.equal(core(used).availableFlips[ID.REPOSE], undefined);
+  assert.equal(observedRuntime(used).flips[ID.REPOSE], undefined);
   const expired = run([ID.FLASH_COMBO, wait(6000), ID.REPOSE], willbender);
   assert.equal(expired.steps.at(-1).invalid, true);
   const replaced = run(
     [ID.FLASH_COMBO, wait(1000), { type: 'cooldown-reset' }, ID.FLASH_COMBO, wait(5000)],
     willbender
   );
-  assert.ok(core(replaced).availableFlips[ID.REPOSE]);
+  assert.ok(observedRuntime(replaced).flips[ID.REPOSE]);
 });
 
 test('removed Willbender window components preserve independent fields and activation boons', () => {
@@ -586,8 +586,8 @@ test('Firebrand normal and final mantra charges share lockout and automatically 
   assert.equal(result.steps[2].start, 1600);
   assert.equal(result.steps[3].start, 17600);
   assert.equal(observedRuntime(result).cooldownController.readAmmo(ID.FLAME_RUSH).charges, 2);
-  assert.ok(core(result).availableFlips[ID.FLAME_RUSH]);
-  assert.equal(core(result).availableFlips[ID.FLAME_SURGE], undefined);
+  assert.ok(observedRuntime(result).flips[ID.FLAME_RUSH]);
+  assert.equal(observedRuntime(result).flips[ID.FLAME_SURGE], undefined);
 });
 
 // The first sequential refill restores the normal variant while the second charge remains queued.
@@ -595,8 +595,8 @@ test('Firebrand individual mantra recovery replaces the final variant without co
   const result = run([ID.FLAME_RUSH, ID.FLAME_RUSH, wait(10000)], firebrand);
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).cooldownController.readAmmo(ID.FLAME_RUSH).charges, 2);
-  assert.ok(core(result).availableFlips[ID.FLAME_RUSH]);
-  assert.equal(core(result).availableFlips[ID.FLAME_SURGE], undefined);
+  assert.ok(observedRuntime(result).flips[ID.FLAME_RUSH]);
+  assert.equal(observedRuntime(result).flips[ID.FLAME_SURGE], undefined);
 });
 
 test('Firebrand explicit recharge resets invalidate pending mantra wakes and restore the prepared pool', () => {
@@ -606,7 +606,7 @@ test('Firebrand explicit recharge resets invalidate pending mantra wakes and res
   );
   assert.deepEqual(result.warnings, []);
   assert.equal(observedRuntime(result).cooldownController.readAmmo(ID.FLAME_RUSH).charges, 3);
-  assert.ok(core(result).availableFlips[ID.FLAME_RUSH]);
+  assert.ok(observedRuntime(result).flips[ID.FLAME_RUSH]);
   assert.equal(observedRuntime(result).cooldownController.hasCooldown(ID.MANTRA_OF_FLAME), false);
 });
 
@@ -946,24 +946,24 @@ test('removed Justice packets cannot arm an active charge or advance the passive
 test('Guardian weapon follow-ups expire autonomously and committed replacements survive obsolete wakes', () => {
   const opened = run([ID.ZEALOTS_FLAME], { secondaryWeapon: 'Torch' });
   assert.deepEqual(opened.warnings, []);
-  const window = core(opened).availableFlips[ID.ZEALOTS_FIRE];
+  const window = observedRuntime(opened).flips[ID.ZEALOTS_FIRE];
   assert.equal(window.expiresAt - window.availableAt, 3);
   const expired = run([ID.ZEALOTS_FLAME, wait(3000)], { secondaryWeapon: 'Torch' });
-  assert.deepEqual(core(expired).availableFlips, {});
+  assert.deepEqual(observedRuntime(expired).flips, {});
   const replaced = run(
     [ID.ZEALOTS_FLAME, ID.ZEALOTS_FIRE, 'Orb of Wrath', { type: 'cooldown-reset' }, ID.ZEALOTS_FLAME, wait(2500)],
     { secondaryWeapon: 'Torch' }
   );
   assert.deepEqual(replaced.warnings, []);
-  assert.ok(core(replaced).availableFlips[ID.ZEALOTS_FIRE].identity > window.identity);
+  assert.ok(observedRuntime(replaced).flips[ID.ZEALOTS_FIRE].identity > window.identity);
   assert.ok(observedRuntime(replaced).time >= window.expiresAt);
-  assert.ok(core(replaced).availableFlips[ID.ZEALOTS_FIRE].expiresAt > observedRuntime(replaced).time);
+  assert.ok(observedRuntime(replaced).flips[ID.ZEALOTS_FIRE].expiresAt > observedRuntime(replaced).time);
 });
 
 test('Guardian flip cancellation requires a committed parent before accepting its follow-up', () => {
   const canceled = run([{ skillId: ID.BINDING_BLADE, interruptAfterMs: 1 }], { primaryWeapon: 'Greatsword' });
   assert.deepEqual(canceled.warnings, []);
-  assert.deepEqual(core(canceled).availableFlips, {});
+  assert.deepEqual(observedRuntime(canceled).flips, {});
   const denied = run([ID.PULL], { primaryWeapon: 'Greatsword' });
   assert.ok(denied.warnings.some(({ message: warning }) => warning.includes('not currently armed')));
 });
@@ -1577,7 +1577,7 @@ test('Dragonhunter misses cannot attach a tether or arm Verdict, while commitmen
   const result = run([{ skillId: ID.SPEAR_OF_JUSTICE, offTarget: true }, wait(2000)], dragonhunter);
   assert.deepEqual(result.warnings, []);
   assert.equal(dh(result).tetherUntil, 0);
-  assert.equal(core(result).availableFlips[ID.HUNTERS_VERDICT], undefined);
+  assert.equal(observedRuntime(result).flips[ID.HUNTERS_VERDICT], undefined);
   assert.ok(core(result).virtueReadyAt.justice > observedRuntime(result).time);
   assert.equal(
     result.resolvedEvents.some((event) => event.name === 'Spear of Justice - Active Burning'),
@@ -1589,7 +1589,7 @@ test('Dragonhunter tether waits for a delayed impact and its burn retains the sp
   const rotation = [{ skillId: ID.SPEAR_OF_JUSTICE, impactDelayMs: 1000 }];
   const before = run(rotation, dragonhunter);
   assert.equal(dh(before).tetherUntil, 0);
-  assert.equal(core(before).availableFlips[ID.HUNTERS_VERDICT], undefined);
+  assert.equal(observedRuntime(before).flips[ID.HUNTERS_VERDICT], undefined);
   const after = run([...rotation, wait(1500)], dragonhunter);
   assert.deepEqual(after.warnings, []);
   const hit = after.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.SPEAR_OF_JUSTICE);
@@ -1597,7 +1597,7 @@ test('Dragonhunter tether waits for a delayed impact and its burn retains the sp
   assert.equal(burn.at, hit.at);
   assert.equal(burn.activationId, hit.activationId);
   assert.equal(dh(after).tetherUntil, hit.at + 6);
-  assert.equal(core(after).availableFlips[ID.HUNTERS_VERDICT].expiresAt, dh(after).tetherUntil);
+  assert.equal(observedRuntime(after).flips[ID.HUNTERS_VERDICT].expiresAt, dh(after).tetherUntil);
 });
 
 test('Verdict consumes its occurrence and stops subsequent tether work', () => {
@@ -1607,7 +1607,7 @@ test('Verdict consumes its occurrence and stops subsequent tether work', () => {
   const burns = result.resolvedEvents.filter((event) => event.name === 'Spear of Justice - Active Burning');
   assert.ok(burns.length > 0);
   assert.ok(burns.every((event) => event.at <= verdict.end / 1000));
-  assert.equal(core(result).availableFlips[ID.HUNTERS_VERDICT], undefined);
+  assert.equal(observedRuntime(result).flips[ID.HUNTERS_VERDICT], undefined);
   assert.equal(dh(result).tetherUntil, 0);
 });
 
@@ -1615,7 +1615,7 @@ test('Dragonhunter tether expiry and replacement invalidate old burns and flip w
   const expired = run([ID.SPEAR_OF_JUSTICE, wait(7000)], dragonhunter);
   assert.deepEqual(expired.warnings, []);
   assert.equal(expired.planningState.profession[STATE.TETHER_UNTIL], 0);
-  assert.equal(core(expired).availableFlips[ID.HUNTERS_VERDICT], undefined);
+  assert.equal(observedRuntime(expired).flips[ID.HUNTERS_VERDICT], undefined);
   const replaced = run(
     [ID.SPEAR_OF_JUSTICE, wait(1000), { type: 'cooldown-reset' }, ID.SPEAR_OF_JUSTICE, wait(4800)],
     dragonhunter
@@ -1630,7 +1630,7 @@ test('Dragonhunter tether expiry and replacement invalidate old burns and flip w
   );
   assert.ok(later.length > 0);
   assert.ok(later.every((event) => event.activationId === newest.activationId));
-  assert.ok(core(replaced).availableFlips[ID.HUNTERS_VERDICT]);
+  assert.ok(observedRuntime(replaced).flips[ID.HUNTERS_VERDICT]);
 });
 
 test('Dragonhunter Furious Focus lands before tether amplification and preserves one activation through later pulses', () => {
@@ -1844,7 +1844,7 @@ test('Dragonhunter rejects post-death tether attachment', () => {
     { initialize: (runtime) => strike(runtime, 0.1) }
   );
   assert.equal(dh(killed).tetherUntil, 0);
-  assert.equal(core(killed).availableFlips[ID.HUNTERS_VERDICT], undefined);
+  assert.equal(observedRuntime(killed).flips[ID.HUNTERS_VERDICT], undefined);
 });
 
 // Additive variants must retain live base packets, including edits that were not present in the authored skill.
@@ -1939,7 +1939,7 @@ test('Big Game Hunter preserves hit eligibility, tether expiry, attribution, and
 // Removing a declaration must remove its intrinsic transition instead of exposing a second global skill-ID owner.
 test('Guardian activation transitions are owned by their selected skill declarations', () => {
   for (const [skillId, specialization, weapon, active] of [
-    [ID.ZEALOTS_FLAME, 'Core', 'Sword', (result) => Boolean(core(result).availableFlips[ID.ZEALOTS_FIRE])],
+    [ID.ZEALOTS_FLAME, 'Core', 'Sword', (result) => Boolean(observedRuntime(result).flips[ID.ZEALOTS_FIRE])],
     [ID.JUSTICE, 'Core', 'Scepter', (result) => core(result).justiceActiveArmed],
     [ID.SYMBOL_OF_LUMINANCE, 'Core', 'Spear', (result) => core(result).spearLuminanceUntil > 0],
     [ID.SYMBOL_OF_IGNITION, 'Core', 'Pistol', (result) => core(result).symbolIgnitionUntil > 0],

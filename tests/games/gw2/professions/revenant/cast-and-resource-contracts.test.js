@@ -208,9 +208,9 @@ test('Imperial Guard expiry retains its cast identity after early consumption', 
   const result = simulate('Vindicator', rotation, config);
   assert.deepEqual(result.warnings, []);
   // The first channel's expiry falls inside the second window and must not clear the newer follow-up.
-  assert.ok(core(result).availableFlips[SKILL.TRUE_STRIKE]);
+  assert.ok(observedRuntime(result).flips[SKILL.TRUE_STRIKE]);
   const guards = result.events.filter((event) => event.type === 'action' && event.name === 'Imperial Guard');
-  assert.equal(core(result).availableFlips[SKILL.TRUE_STRIKE].identity, guards[1].activationId);
+  assert.equal(observedRuntime(result).flips[SKILL.TRUE_STRIKE].identity, guards[1].activationId);
 });
 
 // These minimal casts exercise commit ownership without pinning animation thresholds or saved rotations.

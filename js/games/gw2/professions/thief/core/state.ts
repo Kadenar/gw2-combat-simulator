@@ -5,7 +5,6 @@ import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
@@ -57,7 +56,6 @@ export interface ThiefCoreState extends StealthState {
   /** Each assumed ally's venom batches, keyed by `${allyIndex}:${skillId}`; the allied controller supplies strikes. */
   alliedVenomChargeBatches: Record<string, AlliedVenomBatch[]>;
   activeThievesGuild: ThievesGuildState | null;
-  availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   activationClaims: ActivationClaims;
   /** Revealed Training excludes only the first landed revealing hit of each stealth activation. */
@@ -109,7 +107,6 @@ export function createThiefCoreState(
     venomChargeBatches: {},
     alliedVenomChargeBatches: {},
     activeThievesGuild: null,
-    availableFlips: {},
     autoattackChains: {},
     activationClaims: {},
     revealedTrainingHitActivations: {},
@@ -139,7 +136,6 @@ export function projectThiefCorePlanningState(input: Gw2PlanningStateInput) {
     [STATE.OUTBOUND_AXES]: state.outboundAxes,
     [STATE.VENOM_CHARGE_BATCHES]: state.venomChargeBatches,
     [STATE.ACTIVE_THIEVES_GUILD]: state.activeThievesGuild,
-    [STATE.AVAILABLE_FLIPS]: state.availableFlips,
     [STATE.AUTOATTACK_CHAINS]: state.autoattackChains
   };
 }

@@ -1,4 +1,8 @@
-import { compileGw2ModifierRules } from '#gw2/platform/combat/modifiers.js';
+/** Compile declarative modifiers with explicit ordinary and final-condition attribute phases. */
+import { applyAttributeContributions, applyFinalConditionAttributes } from '#gw2/platform/attributes/evaluation.js';
+import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
+import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
+import { createModifierHooks, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionFamilyContract } from '#gw2/platform/profession-definition/family-contract.js';
 import type {
@@ -8,34 +12,8 @@ import type {
 } from '#gw2/platform/profession-definition/types.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import type { DynamicFields } from '#kernel/core/dynamic-fields.js';
-import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
-/**
- * Profession contract normalization. Validates sparse profession definitions
- * and composes deterministic no-op-safe hooks for the neutral engine.
- */
-
-type ComposableHook = (...args: unknown[]) => unknown;
-
-interface OrderedHook {
-  readonly id: string;
-  readonly order: number;
-  readonly handler: ComposableHook;
-  readonly index: number;
-}
-
-/** Only modifier transforms compose here; the selected modules already compose their planning projection. */
-export const MODIFIER_HOOK_NAMES = Object.freeze([
-  'modifyAttributes',
-  'modifyConditionAttributes',
-  'modifyCriticalChance',
-  'modifyCriticalDamage',
-  'modifyConditionBaseDuration',
-  'modifyConditionDuration'
-] as const);
-
-const MODIFIER_FIELDS: readonly string[] = [...MODIFIER_HOOK_NAMES, 'modifierRules', 'damageBuckets'];
+const MODIFIER_FIELDS: readonly string[] = ['modifierRules', 'damageBuckets'];
 
 /** Reject unsupported declarations before normalization can silently discard their behavior. */
 export function assertModifierDefinition(value: object, scope = 'modifiers'): void {
@@ -44,60 +22,8 @@ export function assertModifierDefinition(value: object, scope = 'modifiers'): vo
   }
 }
 
-const IDENTITY_SECOND_ARGUMENT: ComposableHook = (...args) => args[1];
-
 /**
- * Normalizes one hook or hook list into an order-stable array.
- */
-function orderedHooks(value: unknown, hookName: string): OrderedHook[] {
-  const entries = value == null ? [] : Array.isArray(value) ? value : [value];
-  const hooks = entries
-    .map((entry, index) => {
-      if (typeof entry === 'function') {
-        return {
-          id: `${hookName}:${index}`,
-          order: 0,
-          handler: entry as ComposableHook,
-          index
-        };
-      }
-
-      const candidate = entry as UnvalidatedFields;
-      return {
-        id: String(candidate.id || `${hookName}:${index}`),
-        order: Number(candidate.order || 0),
-        handler: candidate.handler as ComposableHook,
-        index
-      };
-    })
-    .sort((left, right) => left.order - right.order || left.index - right.index || left.id.localeCompare(right.id));
-  const ids = new Set<string>();
-  for (const hook of hooks) {
-    if (ids.has(hook.id)) {
-      throw new TypeError(`Duplicate ${hookName} hook id: ${hook.id}.`);
-    }
-
-    ids.add(hook.id);
-  }
-
-  return hooks;
-}
-
-/** Chain modifier values in order, preserving the input when a contributor only observes it. */
-function composeModifierHooks(value: unknown, hookName: string): ComposableHook {
-  const hooks = orderedHooks(value, hookName);
-
-  if (!hooks.length) return IDENTITY_SECOND_ARGUMENT;
-
-  return (context: unknown, initialValue: unknown) =>
-    hooks.reduce((value: unknown, hook) => {
-      const next = hook.handler(context, value);
-      return next === undefined ? value : next;
-    }, initialValue);
-}
-
-/**
- * Rejects malformed profession definitions before hook composition begins.
+ * Rejects malformed profession definitions before compilation begins.
  */
 export function assertDefinition(definition: { readonly id: string; readonly name: string }): void {
   if (!/^[a-z][a-z0-9-]*$/.test(definition.id)) {
@@ -122,17 +48,14 @@ export function defineProfession<TProfessionState extends object, TSkill extends
   const modifiers = definition.modifiers ?? {};
   assertModifierDefinition(modifiers);
   // Compile even empty declarations so equipment always participates exactly once in the damage bucket.
-  const compiled = compileGw2ModifierRules(modifiers.modifierRules ?? [], modifiers.damageBuckets);
-  const composedHooks: DynamicFields = {};
-  for (const name of MODIFIER_HOOK_NAMES) {
-    const source = modifiers[name];
-    const ruleHook = name === 'modifyConditionAttributes' ? undefined : compiled[name];
-    const hooks = source == null ? [] : Array.isArray(source) ? source : [source];
-    composedHooks[name] = composeModifierHooks(ruleHook ? [...hooks, ruleHook] : hooks, name);
-  }
+  const compiled = createModifierHooks({ rules: modifiers.modifierRules, damageBuckets: modifiers.damageBuckets });
+  const attributeContributions = definition.attributeContributions;
+  // Combat queries supply one sample across phases; direct evaluator callers sample current facts themselves.
+  const contributions = (context: Gw2ModifierContext) =>
+    context.attributeContributions ?? attributeContributions?.(context) ?? [];
 
   const profession = {
-    attributeContributions: definition.attributeContributions,
+    attributeContributions,
     canSwapWeaponSetsInCombat: definition.canSwapWeaponSetsInCombat ?? true,
     id: definition.id,
     name: definition.name,
@@ -142,7 +65,27 @@ export function defineProfession<TProfessionState extends object, TSkill extends
       resources.createState?.(config, balanceContext) ?? {},
     // An absent projector delegates to the planning observer's detached state fallback.
     projectPlanningState: resources.projectPlanningState ?? (() => undefined),
-    ...composedHooks,
+    modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
+      // Ordinary conversions and projections precede declarative attribute rules; Might is already in the input.
+      const ordinary = attributeContributions
+        ? applyAttributeContributions(
+            attributeSeed(context.config ?? {}, context.runtime?.activeWeaponSet ?? context.config?.startingWeaponSet),
+            attributes,
+            contributions(context)
+          )
+        : attributes;
+      return compiled.modifyAttributes(context, ordinary);
+    },
+    modifyConditionAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
+      // The combat query calls this after equipment bonuses and actor projections have produced final Power.
+      return attributeContributions
+        ? applyFinalConditionAttributes(context, attributes, contributions(context))
+        : attributes;
+    },
+    modifyCriticalChance: compiled.modifyCriticalChance,
+    modifyCriticalDamage: compiled.modifyCriticalDamage,
+    modifyConditionBaseDuration: compiled.modifyConditionBaseDuration,
+    modifyConditionDuration: compiled.modifyConditionDuration,
     modifyStrikeDamage: compiled.modifyStrikeDamage,
     modifyConditionDamage: compiled.modifyConditionDamage
   };

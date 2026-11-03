@@ -4,7 +4,6 @@ import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { createStealthState, type StealthState } from '#gw2/platform/combat/stealth.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
-import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import {
   readProfessionCoreState,
   readProfessionSpecializationState
@@ -33,7 +32,6 @@ export interface RangerCoreState extends StealthState {
   pet: RangerPetState | null;
   nextPetInstance: number;
   endurance: ResourceClock;
-  availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   winterBiteReady: boolean;
 
@@ -61,7 +59,6 @@ export function createRangerCoreState(config: RangerConfig = {}): RangerCoreStat
     pet: createRangerPetState(rangerPetInstanceId(1, 0)),
     nextPetInstance: 1,
     endurance: createResourceClock(ENDURANCE.maximum),
-    availableFlips: {},
     ...createStealthState(),
     autoattackChains: {},
     winterBiteReady: false,
@@ -80,7 +77,6 @@ export function projectRangerCoreState(input: Gw2PlanningStateInput) {
   return {
     [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.ENDURANCE]: state.endurance,
-    [STATE.AVAILABLE_FLIPS]: state.availableFlips,
     [STATE.ACTIVE_PET_SLOT]: state.activePetSlot,
     [STATE.PET_NAMES]: state.petNames,
     [STATE.WINTER_BITE_READY]: state.winterBiteReady,

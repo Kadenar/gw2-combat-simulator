@@ -178,15 +178,15 @@ test('Engineer flip declarations expose and consume windows from their explicit 
           assert.equal(engineerCoreCastAvailability(runtime, flip).ready, false);
           complete({ ...skill, flipSkillId: ID.RIFLE_BURST });
           assert.equal(engineerCoreCastAvailability(runtime, flip).ready, true);
-          assert.equal(runtime.profession.core.availableFlips[ID.RIFLE_BURST], undefined);
+          assert.equal(runtime.flips[ID.RIFLE_BURST], undefined);
           complete(flip);
           assert.equal(engineerCoreCastAvailability(runtime, flip).ready, false);
         }
 
-        const before = structuredClone(runtime.profession.core.availableFlips);
+        const before = structuredClone(runtime.flips);
         // An API link alone cannot create a runtime window; only an authored action can.
         complete({ id: -999, name: 'Unowned API flip', flipSkillId: ID.MAGNETIC_INVERSION });
-        assert.deepEqual(runtime.profession.core.availableFlips, before);
+        assert.deepEqual(runtime.flips, before);
       }
     }
   );

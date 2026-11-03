@@ -38,7 +38,7 @@ for (const [prepareId, triggerId] of [
       { profession }
     );
     assert.deepEqual(result.warnings, []);
-    assert.equal(observedRuntime(result).profession.core.availableFlips[triggerId], undefined);
+    assert.equal(observedRuntime(result).flips[triggerId], undefined);
     assert.ok(result.events.some((event) => event.type === 'damage' && event.skillId === triggerId));
   });
 }

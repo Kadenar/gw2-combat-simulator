@@ -5,7 +5,6 @@ import {
   armSkillFlip,
   consumeSkillFlip,
   expireSkillFlip,
-  pruneSkillFlips,
   skillFlipReady,
   skillFlipVisible
 } from '#gw2/platform/execution/skill-flips.js';
@@ -73,13 +72,14 @@ test('stale flip expiry cannot consume a rearmed window', () => {
   assert.equal(expireSkillFlip(flips, 1, 5, rearmed.identity), rearmed);
 });
 
-// Persistent choices survive pruning and JSON round trips; finite siblings still expire independently.
-test('persistent flips survive pruning and repeated simulations are deterministic', () => {
+// Persistent choices survive expiry checks and JSON round trips; finite siblings still expire independently.
+test('persistent flips survive expiry checks and repeated simulations are deterministic', () => {
   const flips = {};
   const permanent = armSkillFlip(flips, 1, 0);
   assert.deepEqual(permanent, armSkillFlip({}, 1, 0));
   armSkillFlip(flips, 2, 0, 3);
-  pruneSkillFlips(flips, 100);
+  expireSkillFlip(flips, 1, 100);
+  expireSkillFlip(flips, 2, 100);
   assert.deepEqual(Object.keys(flips), ['1']);
   assert.equal(skillFlipReady(JSON.parse(JSON.stringify(permanent)), 100), true);
   assert.equal(consumeSkillFlip(flips, 1), permanent);

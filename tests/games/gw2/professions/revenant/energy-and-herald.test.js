@@ -191,8 +191,10 @@ test('profession palette deduplicates actions and shows only active Conduit rele
           startingLegend: activeLegendId
         },
         professionState: {
-          [STATE.ACTIVE_LEGEND_ID]: activeLegendId,
-          [STATE.ACTIVE_LOADOUT_ID]: activeLegendId,
+          ...{
+            [STATE.ACTIVE_LEGEND_ID]: activeLegendId,
+            [STATE.ACTIVE_LOADOUT_ID]: activeLegendId
+          },
           [STATE.AVAILABLE_FLIPS]: {}
         }
       })
@@ -235,7 +237,7 @@ test('Revenant upkeep releases require an armed flip in the active legend', () =
         (runtime) => {
           runtime.profession.core.activeLegendId = release.legendId || runtime.profession.core.activeLegendId;
 
-          if (armed) armSkillFlip(runtime.profession.core.availableFlips, release.id, 0);
+          if (armed) runtime.armFlip(release.id, { availableAt: 0 });
         }
       );
       assert.equal(state.availability[release.id].ready, armed, release.name);
@@ -250,19 +252,28 @@ test('Soulcleave stays on its parent tile at zero Energy until its release is ar
     for (const energy of [0, 4, 5]) {
       const professionState = {
         [STATE.ACTIVE_LEGEND_ID]: activeLegendId,
-        [STATE.ENERGY]: { value: energy, maximum: 100, unitsPerSecond: 5, updatedAt: 0 },
-        [STATE.AVAILABLE_FLIPS]: {}
+        [STATE.ENERGY]: { value: energy, maximum: 100, unitsPerSecond: 5, updatedAt: 0 }
       };
+      const flips = {};
       const app = {
         profession: revenantProfession,
         activeCatalog: revenantCatalog,
-        results: { planningState: { availability: {}, profession: professionState, atSeconds: 0 } }
+        results: {
+          planningState: {
+            availability: {},
+            profession: { ...professionState, [STATE.AVAILABLE_FLIPS]: flips },
+            atSeconds: 0
+          }
+        }
       };
-      const context = { specialization: 'Renegade', professionState };
+      const context = {
+        specialization: 'Renegade',
+        professionState: { ...professionState, [STATE.AVAILABLE_FLIPS]: flips }
+      };
       assert.equal(displayedSkillTiles(app, [parent], context)[0].id, parent.id);
 
       if (activeLegendId === LEGEND.RENEGADE) {
-        armSkillFlip(professionState[STATE.AVAILABLE_FLIPS], release.id, 0);
+        armSkillFlip(flips, release.id, 0);
         assert.equal(displayedSkillTiles(app, [parent], context)[0].id, release.id);
       }
     }
@@ -1136,6 +1147,7 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
     catalog: revenantCatalog,
     specialization: 'Core',
     build: baseConfig,
+
     professionState: active.planningState.profession
   };
   const assassin = revenantLegendLoadout.paletteGroups(context).find((group) => group.label === 'Assassin');
@@ -1175,8 +1187,10 @@ test('Herald palette replaces active facets with their consume skills', () => {
       startingLegend: LEGEND.DRAGON
     },
     professionState: {
-      [STATE.ACTIVE_LEGEND_ID]: LEGEND.DRAGON,
-      [STATE.ACTIVE_LOADOUT_ID]: LEGEND.DRAGON,
+      ...{
+        [STATE.ACTIVE_LEGEND_ID]: LEGEND.DRAGON,
+        [STATE.ACTIVE_LOADOUT_ID]: LEGEND.DRAGON
+      },
       [STATE.AVAILABLE_FLIPS]: {
         [SKILL.INFUSE_LIGHT]: armSkillFlip({}, 0, 0, Infinity),
         [SKILL.BURST_OF_STRENGTH]: armSkillFlip({}, 0, 0, Infinity),
@@ -1227,6 +1241,7 @@ test('Call to Anguish arms Unyielding Impact in the rotation palette', () => {
     catalog: revenantCatalog,
     specialization: 'Core',
     build: { ...baseConfig, ...config },
+
     professionState: armed.planningState.profession,
     time: armed.rotationEndTime
   };

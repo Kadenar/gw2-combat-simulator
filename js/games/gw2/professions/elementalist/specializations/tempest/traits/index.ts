@@ -414,7 +414,7 @@ function applyTempestuousAria(context: ElementalistResolverContext, { cause: eve
       detail: '',
       icon: '',
       cooldownReduction: null,
-      expiresAt: expiresAt
+      expiresAt
     }
   });
 }

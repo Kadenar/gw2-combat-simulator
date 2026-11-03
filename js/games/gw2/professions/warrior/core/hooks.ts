@@ -153,12 +153,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
   availability(runtime, skill) {
     // Every weapon follow-up (Riposte, Impale, Counterblow) uses the shared bar-slot rule: the follow-up exists only
     // while its window is ready, and its parent stays hidden behind it for that window.
-    const block = weaponFlipBlock(
-      runtime.profession.core.availableFlips,
-      runtime.helpers.skillsById,
-      skill,
-      runtime.time
-    );
+    const block = weaponFlipBlock(runtime.flips, runtime.helpers.skillsById, skill, runtime.time);
 
     if (block?.kind === 'closed')
       return {

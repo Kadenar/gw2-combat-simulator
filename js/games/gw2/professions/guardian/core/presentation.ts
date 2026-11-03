@@ -72,7 +72,7 @@ export function guardianUiSkillIds(
   ids: readonly SkillId[],
   context: GuardianUiContext = {}
 ): SkillId[] {
-  const activeFlips = guardianUiState(context)[STATE.AVAILABLE_FLIPS] ?? {};
+  const activeFlips = context.professionState?.[STATE.AVAILABLE_FLIPS] ?? {};
   return ids.flatMap((id) => {
     const skill = catalog.skillsById.get(id);
 

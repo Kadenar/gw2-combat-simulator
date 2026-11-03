@@ -64,7 +64,7 @@ export function observedRuntime(result) {
 }
 
 /** Observe selected public fields through the production detachment boundary, without running combat. */
-export function projectObservedState(family, input) {
+export function projectObservedPlanningState(family, input) {
   const config = { ...input.config, specialization: input.profession.specialization.kind };
   const runtime = family.runtimeFor(config);
   return planningState(
@@ -73,6 +73,7 @@ export function projectObservedState(family, input) {
       activeWeaponSet: input.activeWeaponSet ?? 1,
       catalog: input.catalog ?? runtime.catalog,
       profession: input.profession,
+      flips: input.flips ?? {},
       combatActive: false,
       // Profession-only observations never read the caller's unrelated engine collaborators.
       cooldownController: {
@@ -86,5 +87,10 @@ export function projectObservedState(family, input) {
     runtime.projectPlanningState,
     () => ({ ready: true }),
     []
-  ).profession;
+  );
+}
+
+/** Inspect just the profession projection when shared execution observations are irrelevant. */
+export function projectObservedState(family, input) {
+  return projectObservedPlanningState(family, input).profession;
 }

@@ -14,7 +14,7 @@ function revenantWeaponAvailability(
   runtime: MechanicQueriesOf<RevenantRuntime>,
   skill: Skill
 ): AvailabilityResult | null {
-  const flips = runtime.profession.core.availableFlips;
+  const flips = runtime.flips;
   const now = runtime.time;
   const imperialGuardBlock = imperialGuardAvailability(runtime, skill);
 

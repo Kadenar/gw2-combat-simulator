@@ -8,7 +8,7 @@ import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/ski
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { observedRuntime, projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, projectObservedPlanningState } from '#tests/helpers/observed-runtime.js';
 
 // Actual parent completions arm the lifetime used by eligibility, public projections, and palettes.
 test('Guardian weapon flips share exact deadlines across availability, snapshots, palette, and cleanup', () => {
@@ -25,7 +25,7 @@ test('Guardian weapon flips share exact deadlines across availability, snapshots
     const native = guardianProfession.runtimeFor(config);
     const parent = guardianCatalog.skillsById.get(id);
     const flip = guardianCatalog.skillsById.get(parent.flipSkillId);
-    const window = runtime.profession.core.availableFlips[flip.id];
+    const window = runtime.flips[flip.id];
     const end = result.events.find((event) => event.type === 'action').endsAt;
     assert.equal(window.expiresAt, end + duration);
     for (const at of [window.expiresAt - 0.000001, window.expiresAt, window.expiresAt + 0.000001]) {
@@ -35,20 +35,25 @@ test('Guardian weapon flips share exact deadlines across availability, snapshots
 
       if (id === ID.ZEALOTS_FLAME) assert.equal(native.availability(current, parent).ready, !active);
 
-      const projected = projectObservedState(guardianProfession, { profession: runtime.profession, time: at });
-      assert.equal(Object.hasOwn(projected[STATE.AVAILABLE_FLIPS], flip.id), active);
+      const projected = projectObservedPlanningState(guardianProfession, {
+        profession: runtime.profession,
+        flips: runtime.flips,
+        time: at
+      });
+      assert.equal(Object.hasOwn(projected.profession[STATE.AVAILABLE_FLIPS], flip.id), active);
       assert.equal(
         guardianUiSkillIds(guardianCatalog, [parent.id], {
-          professionState: projected,
+          professionState: projected.profession,
+
           atSeconds: at
         }).includes(flip.id),
         active
       );
-      assert.equal(runtime.profession.core.availableFlips[flip.id], window);
+      assert.equal(runtime.flips[flip.id], window);
     }
 
     const expired = runGuardian([id, wait(duration * 1000)], config);
-    assert.equal(observedRuntime(expired).profession.core.availableFlips[flip.id], undefined);
+    assert.equal(observedRuntime(expired).flips[flip.id], undefined);
     assert.equal(observedRuntime(expired).cooldownController.readyAt(id), runtime.cooldownController.readyAt(id));
   }
 });
@@ -121,33 +126,33 @@ for (const { rootId, normalId, finalId } of MANTRAS) {
 
     const prepared = runGuardian([wait(25000)], config);
     assert.deepEqual(prepared.warnings, []);
-    assert.ok(observedRuntime(prepared).profession.core.availableFlips[normalId]);
+    assert.ok(observedRuntime(prepared).flips[normalId]);
     assert.equal(prepared.planningState.ammoBySkillId[normalId].charges, 3);
     for (const other of MANTRAS.filter((entry) => entry.rootId !== rootId)) {
-      assert.equal(observedRuntime(prepared).profession.core.availableFlips[other.normalId], undefined);
+      assert.equal(observedRuntime(prepared).flips[other.normalId], undefined);
     }
 
     const normal = runGuardian([normalId], config);
     assert.deepEqual(normal.warnings, []);
-    assert.ok(observedRuntime(normal).profession.core.availableFlips[normalId]);
+    assert.ok(observedRuntime(normal).flips[normalId]);
     assert.equal(normal.planningState.ammoBySkillId[normalId].charges, 2);
 
     const final = runGuardian([normalId, normalId], config);
     assert.deepEqual(final.warnings, []);
-    assert.equal(observedRuntime(final).profession.core.availableFlips[normalId], undefined);
-    assert.ok(observedRuntime(final).profession.core.availableFlips[finalId]);
+    assert.equal(observedRuntime(final).flips[normalId], undefined);
+    assert.ok(observedRuntime(final).flips[finalId]);
 
     const depleted = runGuardian([normalId, normalId, finalId], config);
     assert.deepEqual(depleted.warnings, []);
-    assert.equal(observedRuntime(depleted).profession.core.availableFlips[normalId], undefined);
-    assert.equal(observedRuntime(depleted).profession.core.availableFlips[finalId], undefined);
+    assert.equal(observedRuntime(depleted).flips[normalId], undefined);
+    assert.equal(observedRuntime(depleted).flips[finalId], undefined);
     assert.equal(depleted.planningState.ammoBySkillId[normalId], undefined);
     assert.ok(depleted.planningState.cooldownsBySkillId[rootId].remainingMs > 0);
 
     const rearmed = runGuardian([normalId, normalId, finalId, normalId], config);
     assert.deepEqual(rearmed.warnings, []);
     assert.equal(rearmed.steps.at(-1).start, depleted.planningState.cooldownsBySkillId[rootId].readyAtMs);
-    assert.ok(observedRuntime(rearmed).profession.core.availableFlips[normalId]);
+    assert.ok(observedRuntime(rearmed).flips[normalId]);
     assert.equal(rearmed.planningState.ammoBySkillId[normalId].charges, 2);
   });
 }
@@ -167,4 +172,53 @@ test('Voice of Truth refunds Weighty Terms pages only when the final charge is s
   assert.equal(normal.planningState.profession[STATE.TOME_PAGES].value, 0);
   assert.equal(final.planningState.profession[STATE.TOME_PAGES].value, 2);
   assert.ok(final.planningState.cooldownsBySkillId[ID.MANTRA_OF_TRUTH].remainingMs > 0);
+});
+
+// Native grants close casting and presentation at the deadline while queued gameplay can still claim their state.
+test('all six finite Guardian follow-ups retain deadline state until queued gameplay finishes', () => {
+  for (const [parentId, flipId, config] of [
+    [ID.ROILING_LIGHT, ID.QUICK_RETRIBUTION, { specialization: 'Willbender' }],
+    [ID.FLASH_COMBO, ID.REPOSE, { specialization: 'Willbender' }],
+    [ID.SPEAR_OF_JUSTICE, ID.HUNTERS_VERDICT, { specialization: 'Dragonhunter' }],
+    [ID.ZEALOTS_FLAME, ID.ZEALOTS_FIRE, { primaryWeapon: 'Sword', secondaryWeapon: 'Torch' }],
+    [
+      ID.SHIELD_OF_ABSORPTION,
+      ID.SHIELD_OF_ABSORPTION_ID_DETONATE,
+      { primaryWeapon: 'Sword', secondaryWeapon: 'Shield' }
+    ],
+    [ID.BINDING_BLADE, ID.PULL, { primaryWeapon: 'Greatsword' }]
+  ]) {
+    const armed = runGuardian([parentId], config);
+    assert.deepEqual(armed.warnings, []);
+    const deadline = observedRuntime(armed).flips[flipId].expiresAt;
+    const native = guardianProfession.runtimeFor(config);
+    const checked = [];
+    const result = runGuardian([parentId, wait(20000)], config, {
+      probes: [
+        [
+          deadline,
+          (runtime) => {
+            assert.ok(runtime.flips[flipId]);
+            assert.equal(native.availability(runtime, guardianCatalog.skillsById.get(flipId)).ready, false);
+            const projected = projectObservedPlanningState(guardianProfession, {
+              profession: runtime.profession,
+              flips: runtime.flips,
+              time: runtime.time
+            });
+            assert.equal(projected.profession[STATE.AVAILABLE_FLIPS][flipId], undefined);
+            checked.push('gameplay');
+          }
+        ],
+        [
+          deadline + 0.000001,
+          (runtime) => {
+            assert.equal(runtime.flips[flipId], undefined);
+            checked.push('retired');
+          }
+        ]
+      ]
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(checked, ['gameplay', 'retired']);
+  }
 });

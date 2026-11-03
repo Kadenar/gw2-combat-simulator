@@ -3,7 +3,6 @@ import type { AvailabilityResult } from '#gw2/platform/execution/availability.js
 import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { engineerKitAvailability } from '#gw2/professions/engineer/core/mechanics/kits.js';
 import { engineerSpearAvailability } from '#gw2/professions/engineer/core/mechanics/spear.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
@@ -13,7 +12,6 @@ export function engineerCoreCastAvailability(
   context: MechanicQueriesOf<EngineerRuntime>,
   skill: EngineerSkill
 ): AvailabilityResult {
-  const state = professionCoreState(context.profession);
   const spear = engineerSpearAvailability(context, skill);
 
   if (!spear.ready) return spear;
@@ -24,8 +22,8 @@ export function engineerCoreCastAvailability(
 
   if (
     skill.requiresArmedFlip &&
-    // availableFlips is populated by the parent skill's handler; absent = parent hasn't fired yet
-    !skillFlipReady(state.availableFlips[skill.id], context.time)
+    // The parent's handler opens the shared window; absence means the follow-up is not armed.
+    !skillFlipReady(context.flips[skill.id], context.time)
   ) {
     return denyEngineerCast(
       skill,

@@ -4,7 +4,7 @@ import test from 'node:test';
 import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
 import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
-import { isRuntimeWork } from '#gw2/platform/simulation/work-contract.js';
+import { FLIP_EXPIRY_PRIORITY, isRuntimeWork } from '#gw2/platform/simulation/work-contract.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 
 // Internal handlers use detached data on the common heap, with explicit lifetime cancellation and cast attribution.
@@ -128,4 +128,54 @@ test('work and packet scheduling share the current settlement phase and causal o
   assert.equal(coordinator.packets.currentPhase, 1);
   assert.equal(coordinator.queue.dequeue(), hit);
   assert.equal(coordinator.packets.currentPhase, 2);
+});
+
+// Reserving the highest finite priority prevents gameplay from tying or overtaking shared retirement.
+test('coordinator reserves flip cleanup priority at both admission paths', () => {
+  const coordinator = createExecutionCoordinator(() => ({ time: 0 }));
+  const handlers = new HandlerRegistry().register('runtime.task', () => {}).register('runtime.flip-expiry', () => {});
+  const create = createInternalWorkFactory(handlers);
+  assert.equal(FLIP_EXPIRY_PRIORITY, Number.MAX_VALUE);
+  assert.throws(
+    () => coordinator.packets.enqueue({ type: 'damage', at: 1, priority: FLIP_EXPIRY_PRIORITY }),
+    /reserved for flip expiry/
+  );
+  assert.throws(
+    () =>
+      coordinator.enqueueWork(
+        create({ type: 'runtime.task', at: 1, priority: FLIP_EXPIRY_PRIORITY, payload: { name: 'gameplay' } })
+      ),
+    /reserved for flip expiry/
+  );
+  const expiry = create({
+    type: 'runtime.flip-expiry',
+    at: 1,
+    priority: FLIP_EXPIRY_PRIORITY,
+    payload: { skillId: 'flip', identity: 1 }
+  });
+  coordinator.enqueueWork(expiry);
+  assert.equal(coordinator.queue.dequeue(), expiry);
+});
+
+// A grant expiring during settlement must survive through ordinary work at that same timestamp.
+test('current-time flip expiry skips settlement inheritance and follows ordinary consequences', () => {
+  const coordinator = createExecutionCoordinator(() => ({ time: 1 }));
+  const handlers = new HandlerRegistry().register('runtime.task', () => {}).register('runtime.flip-expiry', () => {});
+  const create = createInternalWorkFactory(handlers);
+  const pulse = coordinator.packets.enqueue({ type: 'condition_tick', at: 1 });
+  assert.equal(coordinator.queue.dequeue(), pulse);
+  const expiry = create({
+    type: 'runtime.flip-expiry',
+    at: 1,
+    priority: FLIP_EXPIRY_PRIORITY,
+    payload: { skillId: 'flip', identity: 1 }
+  });
+  coordinator.enqueueWork(expiry);
+  const hit = coordinator.packets.enqueue({ type: 'damage', at: 1, priority: 100 });
+  assert.equal(coordinator.queue.dequeue(), hit);
+  const consequence = create({ type: 'runtime.task', at: 1, priority: 0, payload: { name: 'consequence' } });
+  coordinator.enqueueWork(consequence);
+  assert.equal(coordinator.queue.dequeue(), consequence);
+  assert.equal(coordinator.queue.dequeue(), expiry);
+  assert.equal(coordinator.queue.currentPhase, 2);
 });

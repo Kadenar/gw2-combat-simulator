@@ -5,7 +5,7 @@ import type {
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type { Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
-import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
+import { activeRevenantLegend } from '#gw2/professions/revenant/core/presentation.js';
 import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill, RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
@@ -50,7 +50,7 @@ export const heraldUi: RevenantUiSlice = Object.freeze({
     return {
       tileActive:
         skill.id === consumes[activeRevenantLegend(context)] &&
-        skillFlipReady(revenantUiState(context)[STATE.AVAILABLE_FLIPS]?.[skill.id], context.time || 0)
+        skillFlipReady(context.professionState?.[STATE.AVAILABLE_FLIPS]?.[skill.id], context.time || 0)
     };
   },
   paletteGroups: (context) => {

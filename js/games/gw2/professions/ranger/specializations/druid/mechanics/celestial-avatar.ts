@@ -1,7 +1,6 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import { resetAutoattackChains } from '#gw2/platform/execution/autoattack-chains.js';
 import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
@@ -38,14 +37,9 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
   runtime.resourceController.refresh('astralForce');
 
   if (state.celestialAvatarEndsAt !== null) {
-    armSkillFlip(
-      runtime.profession.core.availableFlips,
-      ID.RELEASE_CELESTIAL_AVATAR,
-      runtime.time,
-      state.celestialAvatarEndsAt
-    );
+    runtime.armFlip(ID.RELEASE_CELESTIAL_AVATAR, { availableAt: runtime.time, expiresAt: state.celestialAvatarEndsAt });
   } else {
-    consumeSkillFlip(runtime.profession.core.availableFlips, ID.RELEASE_CELESTIAL_AVATAR);
+    runtime.consumeFlip(ID.RELEASE_CELESTIAL_AVATAR);
     const retained = exhausted
       ? 0
       : balanceNumberFromContext(runtime, TRAIT.CELESTIAL_BEING, 'astralForceRetentionMultiplier');

@@ -2,7 +2,6 @@ import type { AvailabilityResult } from '#gw2/platform/execution/availability.js
 import { preparedMagazineOpen } from '#gw2/platform/execution/prepared-magazines.js';
 import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -13,7 +12,7 @@ export function mesmerAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
   const at = canonicalTime(context.time);
 
   if (skill.flipParentId) {
-    const flip = professionCoreState(state.profession).availableFlips[skill.id];
+    const flip = state.flips[skill.id];
 
     if (!skillFlipVisible(flip, at)) {
       const parent = context.helpers.skillsById.get(skill.flipParentId);
@@ -52,7 +51,7 @@ export function mesmerAvailability(context: MechanicQueriesOf<MesmerRuntime>, sk
   if (
     preparedFlip?.flipParentId === skill.id &&
     Number(preparedFlip.ammo) > 0 &&
-    preparedMagazineOpen(professionCoreState(state.profession).availableFlips, { faceIds: [preparedFlip.id] })
+    preparedMagazineOpen(state.flips, { faceIds: [preparedFlip.id] })
   ) {
     return {
       ready: false,

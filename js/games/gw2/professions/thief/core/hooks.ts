@@ -1,7 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { pruneSkillFlips } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
@@ -87,7 +86,6 @@ const THIEF_CORE_COMPLETE = 'thief.core-complete';
 function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, initiativeCost: number): void {
   const skill = cast.skill;
   const committed = !cast.cancelledBeforeCommit;
-  pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
 
   if (committed && skill.stealthAttack) runtime.fireTrigger(stealthAttackCompleted, { cast });
 
@@ -195,7 +193,6 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       : work,
   onCastStart(runtime, cast) {
     const skill = cast.skill;
-    pruneSkillFlips(runtime.profession.core.availableFlips, runtime.time);
 
     if (skill.id === SHARED_SKILL_IDS.DODGE) runtime.fireTrigger(thiefDodgeStarted, { cast });
 

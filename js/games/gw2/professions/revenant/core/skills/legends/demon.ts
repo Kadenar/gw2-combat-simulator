@@ -309,7 +309,7 @@ export function demonAvailability(
   runtime: MechanicQueriesOf<RevenantRuntime>,
   skill: Skill
 ): AvailabilityResult | null {
-  const flips = runtime.profession.core.availableFlips;
+  const flips = runtime.flips;
   const now = runtime.time;
 
   if (skill.id === ID.UNYIELDING_IMPACT && !skillFlipReady(flips[ID.UNYIELDING_IMPACT], now))

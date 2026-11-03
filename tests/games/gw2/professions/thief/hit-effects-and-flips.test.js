@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import { thiefTooltips } from '#gw2/professions/thief/app/tooltips.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';

@@ -5,11 +5,10 @@ import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
-import { armSkillFlip, consumeSkillFlip, skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
+import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import {
@@ -39,7 +38,7 @@ const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState, E
     const owner = { id: 'engineer.lightning-rod', generation: ++state.lightningRodGeneration };
     state.lightningRodChargeExpiries = [];
     const readyAt = cast.start + 4.2;
-    armSkillFlip(state.availableFlips, ID.ELECTRIC_ARTILLERY, readyAt, readyAt + 8);
+    runtime.armFlip(ID.ELECTRIC_ARTILLERY, { availableAt: readyAt, expiresAt: readyAt + 8 });
     for (let index = 0; index < 8; index++)
       runtime.scheduleForCast('engineer.rod-pulse', at + 0.16 + index * 0.5, cast, { index }, owner);
     runtime.schedule('engineer.rod-expire', readyAt + 8, undefined, owner);
@@ -74,7 +73,7 @@ const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState, E
     ).forEach((packet) => runtime.effects.emit({ kind: 'packet', event: packet }));
     runtime.cancelOwner({ id: 'engineer.lightning-rod', generation: state.lightningRodGeneration });
     state.lightningRodChargeExpiries = [];
-    consumeSkillFlip(state.availableFlips, ID.ELECTRIC_ARTILLERY);
+    runtime.consumeFlip(ID.ELECTRIC_ARTILLERY);
   },
   'engineer.roiling-skies'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Roiling Skies requires a cast trigger.');
@@ -112,7 +111,7 @@ const engineerSpearTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill>
   },
   'engineer.rod-expire'(runtime) {
     runtime.profession.core.lightningRodChargeExpiries = [];
-    consumeSkillFlip(runtime.profession.core.availableFlips, ID.ELECTRIC_ARTILLERY);
+    runtime.consumeFlip(ID.ELECTRIC_ARTILLERY);
   },
   'engineer.devastation'(runtime, data) {
     // Focused is sampled at the authored task deadline, after any intervening target-state changes.
@@ -368,8 +367,7 @@ export function engineerSpearAvailability(
   context: MechanicQueriesOf<EngineerRuntime>,
   skill: EngineerSkill
 ): AvailabilityResult {
-  const state = professionCoreState(context.profession);
-  const artillery = state.availableFlips[ID.ELECTRIC_ARTILLERY];
+  const artillery = context.flips[ID.ELECTRIC_ARTILLERY];
 
   if (skill.id === ID.ELECTRIC_ARTILLERY && !skillFlipReady(artillery, context.time)) {
     // The stored window carries readiness even while its palette tile is hidden.

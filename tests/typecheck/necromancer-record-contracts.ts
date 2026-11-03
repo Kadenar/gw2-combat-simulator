@@ -1,6 +1,6 @@
 /** Keep Necromancer flip expiries and canonical mutable stats tied to their owned fields. */
 import type { Gw2MutableStats } from '#gw2/platform/attributes/stats.js';
-import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
+import type { SkillFlipCommands, SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { NecromancerCanonicalBuild } from '#gw2/professions/necromancer/types.js';
 
 type Assert<T extends true> = T;
@@ -12,8 +12,12 @@ export type NecromancerRecordAssertions = [
 ];
 
 declare const attributes: Attributes;
-declare const state: NecromancerCoreState;
+declare const flips: SkillFlipWindows;
+declare const commands: SkillFlipCommands;
 // @ts-expect-error Attribute copies reject misspelled conversion fields.
 attributes.conditonDamage;
 // @ts-expect-error Flip availability requires a complete window with identity and readiness.
-state.availableFlips['exit'] = { expiresAt: 10 };
+flips['exit'] = { expiresAt: 10 };
+
+// @ts-expect-error Mechanics read windows but must request changes through shared commands.
+commands.flips['exit'] = flips['exit'];

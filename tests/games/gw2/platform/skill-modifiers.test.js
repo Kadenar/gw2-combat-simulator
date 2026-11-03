@@ -115,6 +115,10 @@ test('catalog validation rejects malformed intrinsic modifiers and registration 
   for (const declaration of [
     { ...bonus('bad', 1), target: 'attributePower' },
     { ...bonus('bad', 1), typo: true },
+    { ...bonus('bad', 1), id: ' ' },
+    { ...bonus('bad', 1), label: ' ' },
+    { ...bonus('bad', 1), parameters: { bonus: NaN }, factor: () => 1 },
+    { ...bonus('bad', 1), order: Infinity },
     bonus('bad', NaN),
     { ...bonus('bad', 1), operation: 'add' },
     { ...bonus('bad', 1), target: 'criticalDamage', operation: 'damage-additive', amount: 0.1 }
@@ -141,6 +145,33 @@ test('catalog validation rejects malformed intrinsic modifiers and registration 
     () => defineNativeProfession({ id: 'duplicate', name: 'Duplicate', modules: [core] }),
     /Duplicate modifier rule/
   );
+});
+
+// Rebuilt catalogs revalidate current declarations while earlier catalogs retain their detached balance data.
+test('skill modifier validation preserves snapshots and rejects invalid rebuilt declarations', () => {
+  let factor = 1.5;
+  const declaration = {
+    ...bonus('live', 1),
+    parameters: { bonus: 0.1 },
+    factor: (_context, _target, parameters) => factor + parameters.bonus
+  };
+  const owner = skill(1, [declaration]);
+  const catalog = createCanonicalCatalog({ skills: [owner] });
+  const core = moduleFor([owner]);
+  const family = defineNativeProfession({ id: 'rebuild', name: 'Rebuild', modules: [core] });
+  const compiled = family.runtimeFor({});
+  const context = { event: { skillId: 1 } };
+  assert.equal(compiled.modifyStrikeDamage(context, 10), 16);
+
+  declaration.parameters.bonus = NaN;
+  assert.throws(() => createCanonicalCatalog({ skills: [owner] }), /parameter bonus must be a finite number/);
+  assert.throws(() => moduleFor([owner]), /parameter bonus must be a finite number/);
+  assert.equal(catalog.skills[0].modifiers[0].parameters.bonus, 0.1);
+  assert.equal(compiled.modifyStrikeDamage(context, 10), 16);
+
+  // Static validation retains executable numeric callbacks, whose results are checked during combat evaluation.
+  factor = NaN;
+  assert.throws(() => compiled.modifyStrikeDamage(context, 10), /factor must resolve to a non-negative finite number/);
 });
 
 test('critical modifiers preserve scalar ordering, predicates, and skill/effect ownership', () => {

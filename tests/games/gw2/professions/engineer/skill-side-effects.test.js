@@ -65,18 +65,18 @@ test('Engineer lifecycle state follows the skill declarations', () => {
       { specialization: 'Amalgam', selectedSkillIds: [77209] },
       (state) => state[STATE.PLASMATIC_STATE_UNTIL] > 0
     ],
-    [
-      ID.HEALING_TURRET,
-      { selectedSkillIds: [5857] },
-      (state) => Boolean(state[STATE.AVAILABLE_FLIPS][ID.DETONATE_HEALING_TURRET])
-    ]
+    [ID.HEALING_TURRET, { selectedSkillIds: [5857] }, (_state, flips) => Boolean(flips[ID.DETONATE_HEALING_TURRET])]
   ]) {
     for (const declared of [true, false]) {
       const result = runEngineer([skillId], config, {
         extend: (native) => (declared ? {} : { catalog: withSkill(native.catalog, skillId, { sideEffects: [] }) })
       });
       assert.deepEqual(result.warnings, []);
-      assert.equal(active(result.planningState.profession), declared, String(skillId));
+      assert.equal(
+        active(result.planningState.profession, result.planningState.profession[STATE.AVAILABLE_FLIPS]),
+        declared,
+        String(skillId)
+      );
     }
   }
 });

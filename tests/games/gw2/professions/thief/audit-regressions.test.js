@@ -321,8 +321,8 @@ test('THF-003: cancelled activations preserve persistent state while successful 
       { primaryWeapon: 'Spear', secondaryWeapon: '' },
       (state) => state[STATE.SPEAR_CHAIN_STAGE] === 1
     ],
-    ['Daredevil', 'Fist Flurry', {}, (state) => state[STATE.AVAILABLE_FLIPS][ID.PALM_STRIKE]?.expiresAt > 0],
-    ['Deadeye', 'Shadow Flare', {}, (state) => state[STATE.AVAILABLE_FLIPS][ID.SHADOW_SWAP]?.expiresAt > 0],
+    ['Daredevil', 'Fist Flurry', {}, (_state, flips) => flips[ID.PALM_STRIKE]?.expiresAt > 0],
+    ['Deadeye', 'Shadow Flare', {}, (_state, flips) => flips[ID.SHADOW_SWAP]?.expiresAt > 0],
     ['Specter', 'Siphon', {}, (state) => state[STATE.SHADOW_CLOCK].value > 0],
     ['Antiquary', 'Skritt Scuffle', {}, (state) => state[STATE.ARTIFACT_USES_REMAINING] > 0]
   ];
@@ -331,7 +331,11 @@ test('THF-003: cancelled activations preserve persistent state while successful 
       const result = simulate(specialization, [cancelled ? { name, interruptMs: 100 } : name], config);
       assert.deepEqual(result.warnings, [], name);
       assert.equal(result.events.find((event) => event.type === 'action').cancelled === true, cancelled, name);
-      assert.equal(committed(result.planningState.profession), !cancelled, name);
+      assert.equal(
+        committed(result.planningState.profession, result.planningState.profession[STATE.AVAILABLE_FLIPS]),
+        !cancelled,
+        name
+      );
     }
   }
 });

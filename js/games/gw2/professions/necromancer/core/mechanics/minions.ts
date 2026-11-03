@@ -7,7 +7,6 @@ import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effec
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -339,7 +338,7 @@ export function summonNecromancerMinion(runtime: NecromancerRuntime, cast: Runti
     activationId: cast.id
   });
 
-  if (definition.commandId != null) armSkillFlip(state.availableFlips, definition.commandId, runtime.time);
+  if (definition.commandId != null) runtime.armFlip(definition.commandId);
 
   if (skill.rechargeOnMinionDeath) runtime.cooldownController.clear(skill.id);
 
@@ -408,7 +407,7 @@ export function commandNecromancerMinion(runtime: NecromancerRuntime, cast: Runt
 
     if (!state.activeMinions[key]) {
       delete state.activeMinions[key];
-      consumeSkillFlip(state.availableFlips, skill.id);
+      runtime.consumeFlip(skill.id);
       replaceAttacks(runtime, key);
 
       if (summon?.rechargeOnMinionDeath)

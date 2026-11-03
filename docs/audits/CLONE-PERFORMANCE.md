@@ -1,5 +1,8 @@
 # Internal simulation clone performance
 
+This report records the October 22, 2026 audit and benchmark. See the
+[module ownership guide](../architecture/MODULES.md#gw2-engine-and-platform) for the helper's placement.
+
 `cloneData` exists to reduce copying costs in packet emission and result construction. Its supported input contract is
 deliberately narrower than `structuredClone`: primitive data, plain objects (including null prototypes), and dense
 ordinary arrays, with enumerable data properties. Shared references and cycles within this graph are supported.

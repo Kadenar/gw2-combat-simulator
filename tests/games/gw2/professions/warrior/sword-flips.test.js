@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { skillBarDisplaySkill } from '#gw2/app/build/panels/skills.js';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';

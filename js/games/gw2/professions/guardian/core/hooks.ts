@@ -92,7 +92,7 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
       return writOfPersistenceFields(runtime, cast.skill, masterOfConsecrationsFields(runtime, cast, fields));
     },
     availability(runtime, skill) {
-      const flips = runtime.profession.core.availableFlips;
+      const flips = runtime.flips;
 
       if (
         skill.flipParentId != null &&

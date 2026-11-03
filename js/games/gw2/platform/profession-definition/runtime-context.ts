@@ -1,4 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import type { SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
@@ -76,15 +77,18 @@ export function createCastDetailContext<TState extends object>(readState: () => 
 /** Capacity policies inspect mechanic data and selected content; only the recharge service may change ammo pools. */
 export interface MaximumAmmoContext<TState extends object> extends SelectedContentContext {
   readonly readProfessionState: () => ReadonlyMechanicState<TState>;
+  readonly flips: Readonly<SkillFlipWindows>;
 }
 
 /** Bind once per run so state replacement stays visible and missing profiles cannot fall back to another patch. */
 export function createMaximumAmmoContext<TState extends object>(
   readState: () => TState,
   traits: ReadonlySet<SkillId>,
-  catalog: CanonicalCatalog
+  catalog: CanonicalCatalog,
+  flips: Readonly<SkillFlipWindows>
 ): MaximumAmmoContext<TState> {
   return Object.freeze({
+    flips,
     readProfessionState: () => readState() as ReadonlyMechanicState<TState>,
     ...createSelectedContentContext(traits, catalog)
   });

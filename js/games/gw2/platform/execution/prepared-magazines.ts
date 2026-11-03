@@ -1,5 +1,5 @@
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
-import { armSkillFlip, consumeSkillFlip, type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
+import { type SkillFlipCommands, type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /**
@@ -43,16 +43,16 @@ export function preparedMagazineMaximum(
 
 /** Opens one face over a full pool, discarding spent charges, queued recharge, and cast lockout. */
 export function openPreparedMagazine(
-  flips: SkillFlipWindows,
+  flips: Pick<SkillFlipCommands, 'armFlip' | 'consumeFlip'>,
   cooldowns: Pick<CooldownController, 'retireAmmo' | 'ensureAmmo' | 'linkAmmo'>,
   magazine: PreparedMagazine,
   faceId: SkillId,
   at: number
 ): void {
-  for (const id of magazine.faceIds) if (id !== faceId) consumeSkillFlip(flips, id);
+  for (const id of magazine.faceIds) if (id !== faceId) flips.consumeFlip(id);
 
   // The face opens before the pool is created because the capacity gate reports no pool while every face is closed.
-  armSkillFlip(flips, faceId, at);
+  flips.armFlip(faceId, { availableAt: at });
   retireMagazine(cooldowns, magazine);
   cooldowns.ensureAmmo(magazine.pool);
   for (const id of magazine.faceIds) if (id !== magazine.pool.id) cooldowns.linkAmmo(magazine.pool.id, id);
@@ -60,11 +60,11 @@ export function openPreparedMagazine(
 
 /** Spending the final charge closes every face and discards the pool with its deadline. */
 export function closePreparedMagazine(
-  flips: SkillFlipWindows,
+  flips: Pick<SkillFlipCommands, 'consumeFlip'>,
   cooldowns: Pick<CooldownController, 'retireAmmo'>,
   magazine: PreparedMagazine
 ): void {
-  for (const id of magazine.faceIds) consumeSkillFlip(flips, id);
+  for (const id of magazine.faceIds) flips.consumeFlip(id);
 
   retireMagazine(cooldowns, magazine);
 }

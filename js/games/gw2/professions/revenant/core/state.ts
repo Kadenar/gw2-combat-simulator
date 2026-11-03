@@ -3,7 +3,6 @@ import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { type SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -36,7 +35,6 @@ export interface RevenantCoreState {
   activeLegendId: string;
   selectedLegendIds: string[];
   activeUpkeeps: RevenantUpkeepState[];
-  availableFlips: SkillFlipWindows;
   autoattackChains: Record<string, SkillId>;
   endurance: ResourceClock;
   enchantedDaggers: ChargeGrant;
@@ -72,7 +70,6 @@ export function createRevenantCoreState(config: RevenantConfig): RevenantCoreSta
     activeLegendId,
     selectedLegendIds,
     activeUpkeeps: [],
-    availableFlips: {},
     autoattackChains: {},
     endurance: createResourceClock(ENDURANCE.maximum),
     enchantedDaggers: {
@@ -99,7 +96,6 @@ export function projectRevenantPlanningState(input: Gw2PlanningStateInput) {
     [STATE.ACTIVE_LEGEND_ID]: state.activeLegendId,
     [STATE.SELECTED_LEGEND_IDS]: state.selectedLegendIds,
     [STATE.ACTIVE_UPKEEPS]: state.activeUpkeeps,
-    [STATE.AVAILABLE_FLIPS]: state.availableFlips,
     [STATE.AUTOATTACK_CHAINS]: state.autoattackChains,
     [STATE.ENDURANCE]: state.endurance,
     [STATE.ENCHANTED_DAGGERS]: state.enchantedDaggers,

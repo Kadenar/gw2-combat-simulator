@@ -1,4 +1,9 @@
-import type { Gw2ResolvedStats } from '#gw2/platform/attributes/stats.js';
+/**
+ * Validates declarative modifiers independently of compilation. Selected rules compile into complete profession
+ * evaluators; predicates and numeric callbacks read live state only when those evaluators run. Scalar operations
+ * apply in order, while damage additions share one outgoing bucket before independent multipliers.
+ */
+import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import type {
   Gw2CombatQuery,
   Gw2ConditionSample,
@@ -20,21 +25,6 @@ interface CreateModifierHooksOptions {
   readonly rules?: readonly Gw2ModifierRule[];
   readonly damageBuckets?: Gw2DamageBucketPolicies;
 }
-
-/**
- * Compiles declarative GW2 combat modifiers into profession hooks.
- *
- * Rule declarations are validated and indexed once when
- * `createModifierHooks` is called. Predicates and functional numeric values
- * are evaluated later for each hook invocation because they may depend on the
- * current event, timeline, weapon set, or profession state.
- *
- * Scalar targets apply `add` and `multiply` sequentially. Strike and condition
- * damage instead collect `damage-additive` rules into GW2's shared outgoing
- * damage bucket, then apply true `multiply` rules after that bucket.
- *
- * @module platform/gw2/modifier-rules
- */
 
 /**
  * Supported rule targets. Scalar combat targets map one-to-one to profession
@@ -86,17 +76,10 @@ const ATTRIBUTE_TARGETS: ReadonlySet<Gw2ModifierTarget> = new Set(
   Object.keys(ATTRIBUTE_KEY_BY_TARGET) as Gw2ModifierTarget[]
 );
 const OPERATIONS: ReadonlySet<Gw2ModifierOperation> = new Set(['add', 'damage-additive', 'multiply']);
-const HOOK_BY_TARGET: Readonly<
-  Partial<Record<Gw2ModifierTarget, Exclude<keyof Gw2ModifierHooks, 'modifyAttributes'>>>
-> = Object.freeze({
-  [MODIFIER_TARGET.CRITICAL_CHANCE]: 'modifyCriticalChance',
-  [MODIFIER_TARGET.CRITICAL_DAMAGE]: 'modifyCriticalDamage',
-  [MODIFIER_TARGET.STRIKE_DAMAGE]: 'modifyStrikeDamage',
-  [MODIFIER_TARGET.CONDITION_DAMAGE]: 'modifyConditionDamage',
-  [MODIFIER_TARGET.CONDITION_DURATION]: 'modifyConditionDuration',
-  [MODIFIER_TARGET.CONDITION_BASE_DURATION]: 'modifyConditionBaseDuration'
-});
 const EMPTY_MODIFIER_PARAMETERS: Readonly<Record<string, number>> = Object.freeze({});
+
+/** Unauthored targets preserve their read-only input without allocating per-selection evaluators or attribute copies. */
+const unchangedValue = Object.freeze(<T>(_context: Gw2ModifierContext, value: T): T => value);
 
 /**
  * Creates an error tied to a declaration's stable id so invalid profession
@@ -271,10 +254,10 @@ function normalizeRule(rule: Gw2ModifierRule, declarationIndex: number): Readonl
   });
 }
 
-/**
- * Normalizes a complete rule list and enforces globally unique rule ids.
- */
-function normalizeRules(rules: readonly Gw2ModifierRule[]): readonly Readonly<Gw2NormalizedModifierRule>[] {
+/** Validate and detach rule data without compiling evaluators or invoking live predicates and numeric resolvers. */
+export function normalizeModifierRules(
+  rules: readonly Gw2ModifierRule[]
+): readonly Readonly<Gw2NormalizedModifierRule>[] {
   const ids = new Set<string>();
   const normalized = rules.map((rule, index) => {
     const result = normalizeRule(rule, index);
@@ -376,6 +359,8 @@ function createScalarHook(
   rules: readonly Readonly<Gw2NormalizedModifierRule>[],
   target: Gw2ModifierTarget
 ): Gw2ModifierHook {
+  if (!rules.length) return unchangedValue;
+
   return Object.freeze((context: Gw2ModifierContext, initialValue: number): number => {
     let result = initialValue;
     // Scalar operations are sequential, so explicit rule order can make
@@ -457,7 +442,11 @@ function createAttributeHook(
         };
       })
     }));
-  return Object.freeze((context: Gw2ModifierContext, initialValue: Gw2ResolvedStats): Gw2ResolvedStats => {
+
+  if (!targets.length) return unchangedValue;
+
+  // Attribute phases accept sparse direct-query inputs as well as fully resolved combat stats.
+  return Object.freeze((context: Gw2ModifierContext, initialValue: Gw2Stats): Gw2Stats => {
     const result = { ...initialValue };
     for (const { key, rules } of targets) {
       let value = result[key] || 0;
@@ -565,8 +554,8 @@ function createDamageHook(
 }
 
 /**
- * Compiles declarative profession scalar modifiers into the existing
- * profession hook contract.
+ * Compiles one complete evaluator object: unused scalar/attribute targets are identities,
+ * while damage targets always evaluate equipment participation, even without authored rules.
  *
  * Rules declare a unique id, one or more targets, an operation, and either an
  * amount or factor. Optional `when(context)` gates a rule; `order` controls
@@ -595,7 +584,7 @@ export function createModifierHooks({
   rules = [],
   damageBuckets = {}
 }: CreateModifierHooksOptions = {}): Readonly<Gw2ModifierHooks> {
-  const normalizedRules = normalizeRules(rules);
+  const normalizedRules = normalizeModifierRules(rules);
   const policies = normalizeBucketPolicies(damageBuckets);
   const rulesByTarget = Object.fromEntries([...TARGETS].map((target) => [target, []])) as unknown as Record<
     Gw2ModifierTarget,
@@ -615,56 +604,15 @@ export function createModifierHooks({
 
   Object.freeze(rulesByTarget);
 
-  const hooks: {
-    -readonly [K in keyof Gw2ModifierHooks]?: Gw2ModifierHooks[K];
-  } = {};
-  for (const target of TARGETS) {
-    if (ATTRIBUTE_TARGETS.has(target)) continue;
-
-    const hook = HOOK_BY_TARGET[target];
-
-    if (!hook) continue;
-
-    if (target === MODIFIER_TARGET.STRIKE_DAMAGE || target === MODIFIER_TARGET.CONDITION_DAMAGE) {
-      hooks[hook] = createDamageHook(rulesByTarget[target], target, policies[target]);
-    } else {
-      hooks[hook] = createScalarHook(rulesByTarget[target], target);
-    }
-  }
-
-  hooks.modifyAttributes = createAttributeHook(rulesByTarget);
-  return Object.freeze(hooks) as Readonly<Gw2ModifierHooks>;
-}
-
-/** Every profession gets equipment-aware damage evaluators; other hooks are included only when authored. */
-export function compileGw2ModifierRules(
-  rules: readonly Gw2ModifierRule[],
-  damageBuckets: Gw2DamageBucketPolicies = {}
-): Readonly<Partial<Gw2ModifierHooks> & Pick<Gw2ModifierHooks, 'modifyStrikeDamage' | 'modifyConditionDamage'>> {
-  const hooks: { -readonly [K in keyof Gw2ModifierHooks]?: Gw2ModifierHooks[K] } = {
-    ...createModifierHooks({ rules, damageBuckets })
-  };
-  const targets = new Set(
-    rules.flatMap((rule) => (typeof rule.target === 'string' ? [rule.target] : [...rule.target]))
-  );
-  for (const target of TARGETS) {
-    if (
-      ATTRIBUTE_TARGETS.has(target) ||
-      target === MODIFIER_TARGET.STRIKE_DAMAGE ||
-      target === MODIFIER_TARGET.CONDITION_DAMAGE
-    )
-      continue;
-
-    const hook = HOOK_BY_TARGET[target];
-
-    if (hook && !targets.has(target)) delete hooks[hook];
-  }
-
-  if (![...ATTRIBUTE_TARGETS].some((target) => targets.has(target))) delete hooks.modifyAttributes;
-
-  return Object.freeze(hooks) as Readonly<
-    Partial<Gw2ModifierHooks> & Pick<Gw2ModifierHooks, 'modifyStrikeDamage' | 'modifyConditionDamage'>
-  >;
+  return Object.freeze({
+    modifyAttributes: createAttributeHook(rulesByTarget),
+    modifyCriticalChance: createScalarHook(rulesByTarget.criticalChance, 'criticalChance'),
+    modifyCriticalDamage: createScalarHook(rulesByTarget.criticalDamage, 'criticalDamage'),
+    modifyConditionBaseDuration: createScalarHook(rulesByTarget.conditionBaseDuration, 'conditionBaseDuration'),
+    modifyConditionDuration: createScalarHook(rulesByTarget.conditionDuration, 'conditionDuration'),
+    modifyStrikeDamage: createDamageHook(rulesByTarget.strikeDamage, 'strikeDamage', policies.strikeDamage),
+    modifyConditionDamage: createDamageHook(rulesByTarget.conditionDamage, 'conditionDamage', policies.conditionDamage)
+  });
 }
 
 type Gw2ModifierTarget =
@@ -791,7 +739,7 @@ export interface Gw2DamageInputs {
 
 export type Gw2ModifierHook = (context: Gw2ModifierContext, initialValue: number) => number;
 
-type Gw2AttributeModifierHook = (context: Gw2ModifierContext, initialValue: Gw2ResolvedStats) => Gw2ResolvedStats;
+type Gw2AttributeModifierHook = (context: Gw2ModifierContext, initialValue: Gw2Stats) => Gw2Stats;
 
 interface Gw2ModifierHooks {
   readonly modifyAttributes: Gw2AttributeModifierHook;

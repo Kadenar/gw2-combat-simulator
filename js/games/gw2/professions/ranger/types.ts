@@ -2,6 +2,7 @@ import type { Gw2Build, Gw2CanonicalBuild, ProfessionBuildAssumptions } from '#g
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -50,9 +51,8 @@ export interface RangerPetDefinition {
 }
 
 /** Public consumers receive only the ID/value pairs published by active owners. */
-export type RangerPlanningState = ReturnType<
-  typeof import('#gw2/professions/ranger/core/state.js').projectRangerCoreState
-> &
+export type RangerPlanningState = Gw2SharedProfessionPlanningState &
+  ReturnType<typeof import('#gw2/professions/ranger/core/state.js').projectRangerCoreState> &
   ReturnType<typeof import('#gw2/professions/ranger/specializations/druid/state.js').projectDruidPlanningState> &
   ReturnType<typeof import('#gw2/professions/ranger/specializations/galeshot/state.js').projectGaleshotPlanningState> &
   ReturnType<

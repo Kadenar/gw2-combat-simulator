@@ -6,7 +6,12 @@ import { gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
 import type { Gw2EventQueue } from '#gw2/platform/resolver/types.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import { isRuntimeWork, type RuntimeQueueEntry, type RuntimeWork } from '#gw2/platform/simulation/work-contract.js';
+import {
+  FLIP_EXPIRY_PRIORITY,
+  isRuntimeWork,
+  type RuntimeQueueEntry,
+  type RuntimeWork
+} from '#gw2/platform/simulation/work-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { canonicalEvent, StableEventQueue } from '#kernel/events/queue.js';
 import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
@@ -25,6 +30,10 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
   const packets: Gw2EventQueue = {
     enqueue(event) {
       if (event.kind === 'internal') throw new TypeError('Internal work must use the work factory.');
+
+      // Gameplay cannot tie cleanup, which must run after every queued consequence at this timestamp.
+      if (Number(event.priority) === FLIP_EXPIRY_PRIORITY)
+        throw new RangeError('Priority is reserved for flip expiry.');
 
       const packet = canonicalEvent(identify(event));
       queue.enqueue(packet);
@@ -117,6 +126,9 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
   /** Internal work shares queue ordering without acquiring public packet identity. */
   function enqueueWork(work: RuntimeWork, independent = false): void {
     if (work.at < getRuntime().time) throw new RangeError('Internal work cannot backdate the live clock.');
+
+    if (work.priority === FLIP_EXPIRY_PRIORITY && work.type !== 'runtime.flip-expiry')
+      throw new RangeError('Priority is reserved for flip expiry.');
 
     const previousOrder = queue.currentCausalOrder;
 

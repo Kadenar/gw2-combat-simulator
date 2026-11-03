@@ -3,7 +3,6 @@ import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
-import { armSkillFlip, consumeSkillFlip, expireSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
@@ -84,8 +83,6 @@ const TETHER = 'guardian.dragonhunter.tether';
 
 const BURN = 'guardian.dragonhunter.tether-burn';
 
-const EXPIRY = 'guardian.dragonhunter.tether-expiry';
-
 /** Dragonhunter gates its attributed Aegis packet on actual recharge and retains Indomitable Courage tuning. */
 const couragePulse = createPassiveCourageTask({
   taskId: COURAGE,
@@ -134,13 +131,7 @@ function attachTether(runtime: GuardianRuntime, data: unknown): void {
 
   state.tetherActivationId = event.activationId ?? null;
   state.tetherUntil = canonicalTime(runtime.time + duration);
-  const window = armSkillFlip(
-    runtime.profession.core.availableFlips,
-    ID.HUNTERS_VERDICT,
-    runtime.time,
-    state.tetherUntil
-  );
-  runtime.schedule(EXPIRY, state.tetherUntil, { identity: window.identity }, undefined, -220);
+  runtime.armFlip(ID.HUNTERS_VERDICT, { expiresAt: state.tetherUntil });
   runtime.schedule(BURN, runtime.time, { event, activationId: state.tetherActivationId, deadline: state.tetherUntil });
 }
 
@@ -194,7 +185,7 @@ export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, Gua
     // Breaking a tether retires its follow-up without touching parent recharge.
     'guardian.break-tether'(runtime) {
       dragonhunterState.from(runtime.profession).tetherUntil = 0;
-      consumeSkillFlip(runtime.profession.core.availableFlips, ID.HUNTERS_VERDICT);
+      runtime.consumeFlip(ID.HUNTERS_VERDICT);
     },
     'guardian.attach-tether'(runtime, context) {
       if (context.kind !== 'effect') return;
@@ -240,11 +231,7 @@ export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, Gua
     // The deferred spear grants Furious Focus at its own impact, later than the shared virtue rewards.
     [FURIOUS]: (runtime, data) => runtime.fireTrigger(justiceActivated, { cast: data as JusticeActivation['cast'] }),
     [TETHER]: attachTether,
-    [BURN]: tetherBurn,
-    [EXPIRY](runtime, data) {
-      const { identity } = data as { identity: number | string };
-      expireSkillFlip(runtime.profession.core.availableFlips, ID.HUNTERS_VERDICT, runtime.time, identity);
-    }
+    [BURN]: tetherBurn
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {

@@ -171,7 +171,7 @@ test('elemental teardown clears the command and starts the glyph recharge once',
     );
     const r = observedRuntime(result);
     assert.equal(r.profession.core.summonedElemental.element, null);
-    assert.deepEqual(r.profession.core.availableFlips, {});
+    assert.deepEqual(r.flips, {});
     assert.equal(r.cooldownController.readyAt(glyph.id), 152.301);
     assert.ok(!result.events.some((e) => e.type === 'action' && e.actorType === 'summon' && e.at >= 120.301));
   }
@@ -190,7 +190,7 @@ test('replacing an elemental interrupts its action, removes its flip, and reject
       { at: 0.5, run: (r) => complete(r, glyphFor('Earth'), completeElementalistGlyphCast) },
       {
         at: 1,
-        run: (r) => assert.deepEqual(Object.keys(r.profession.core.availableFlips), [String(commandFor('Earth').id)])
+        run: (r) => assert.deepEqual(Object.keys(r.flips), [String(commandFor('Earth').id)])
       }
     ]
   });

@@ -6,7 +6,6 @@ import type { StrikeEffect } from '#gw2/platform/effects/types.js';
 import { CAST_READY, denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -275,8 +274,7 @@ function startRevenantBond(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
   });
   const window = runtime.armFlip(ID.OTHERWORLDLY_ATTRACTION_ENEMY, {
     availableAt: matureAt,
-    expiresAt,
-    expiryPriority: 1
+    expiresAt
   });
   runtime.schedule(REVENANT_BOND_EXPIRY, expiresAt, window.identity);
 }
@@ -319,7 +317,7 @@ function startRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeCast
 
 /** Manual and automatic detonation share scaling and consume the one armed fuse. */
 function detonateAura(runtime: RevenantRuntime, activationId?: string): void {
-  const flips = runtime.profession.core.availableFlips;
+  const flips = runtime.flips;
   const expiresAt = flips[ID.DETONATE_BLOSSOMING_AURA]?.expiresAt || 0;
 
   if (!expiresAt) return;
@@ -373,7 +371,7 @@ function detonateAura(runtime: RevenantRuntime, activationId?: string): void {
           duration: Number(effect.duration)
         })
       });
-  consumeSkillFlip(flips, ID.DETONATE_BLOSSOMING_AURA);
+  runtime.consumeFlip(ID.DETONATE_BLOSSOMING_AURA);
 }
 
 /** The first pulse arms detonation; later pulses and the fuse run only while that same aura remains armed. */
@@ -381,10 +379,11 @@ function revenantBlossomingAuraPulse(runtime: RevenantRuntime, data: unknown): v
   const { index, expiresAt, activationId } = data as AuraPulse;
   const skill = auraSkill(runtime);
   const { pulse, ticks } = auraPulseTicks(skill);
-  const flips = runtime.profession.core.availableFlips;
+  const flips = runtime.flips;
 
   // Manual detonation removes the flip. A replacement aura has a different deadline, so old tasks cannot affect it.
-  if (index === 0) armSkillFlip(flips, ID.DETONATE_BLOSSOMING_AURA, runtime.time, expiresAt);
+  // Natural detonation reads the stored fuse before shared retirement at the same deadline.
+  if (index === 0) runtime.armFlip(ID.DETONATE_BLOSSOMING_AURA, { expiresAt });
   else if (Number(flips[ID.DETONATE_BLOSSOMING_AURA]?.expiresAt) !== expiresAt) return;
 
   if (index === ticks.length) {
@@ -419,7 +418,7 @@ function detonateRevenantBlossomingAura(runtime: RevenantRuntime, cast: RuntimeC
 /** Aura owns its pulses and detonation; its templates must not also emit automatically. */
 export const scepterLifecycle = {
   availability(runtime, skill) {
-    const bond = runtime.profession.core.availableFlips[ID.OTHERWORLDLY_ATTRACTION_ENEMY];
+    const bond = runtime.flips[ID.OTHERWORLDLY_ATTRACTION_ENEMY];
 
     if (skill.id === ID.OTHERWORLDLY_BOND && bond && runtime.time < (bond.expiresAt ?? Infinity))
       return denySkillCast(skill, 'revenant.bond-active', 'release the active tether first.');
@@ -448,8 +447,7 @@ export const scepterLifecycle = {
     [REVENANT_BLOSSOMING_AURA]: revenantBlossomingAuraPulse,
     [REVENANT_BOND_EXPIRY](runtime, identity) {
       // A stale expiry must not release a replacement tether.
-      if (runtime.profession.core.availableFlips[ID.OTHERWORLDLY_ATTRACTION_ENEMY]?.identity === identity)
-        releaseRevenantBond(runtime);
+      if (runtime.flips[ID.OTHERWORLDLY_ATTRACTION_ENEMY]?.identity === identity) releaseRevenantBond(runtime);
     }
   }
 } satisfies RuntimeHooks<RevenantRuntimeState, RevenantSkill>;

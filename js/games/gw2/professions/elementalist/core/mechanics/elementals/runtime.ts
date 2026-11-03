@@ -1,7 +1,6 @@
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { armSkillFlip, consumeSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
@@ -125,10 +124,7 @@ function expireElemental(
   elemental.currentActivationId = null;
   retireElemental(context, captured.summonGeneration);
   elemental.started = false;
-  consumeSkillFlip(
-    state.availableFlips,
-    element === 'Earth' ? ID.STOMP_ELEMENTAL_COMMAND : ID.FLAME_BARRAGE_ELEMENTAL_COMMAND
-  );
+  context.consumeFlip(element === 'Earth' ? ID.STOMP_ELEMENTAL_COMMAND : ID.FLAME_BARRAGE_ELEMENTAL_COMMAND);
   const glyph = glyphSkillForElement(context, element);
 
   if (glyph) {
@@ -167,10 +163,7 @@ function summonElemental(context: ElementalistRuntime, at: number, element: Elem
   const previousElement = state.summonedElemental.element;
 
   if (previousElement === 'Fire' || previousElement === 'Earth')
-    consumeSkillFlip(
-      state.availableFlips,
-      previousElement === 'Earth' ? ID.STOMP_ELEMENTAL_COMMAND : ID.FLAME_BARRAGE_ELEMENTAL_COMMAND
-    );
+    context.consumeFlip(previousElement === 'Earth' ? ID.STOMP_ELEMENTAL_COMMAND : ID.FLAME_BARRAGE_ELEMENTAL_COMMAND);
 
   const previousGeneration = state.summonedElemental.summonGeneration;
   retireElemental(context, previousGeneration);
@@ -195,12 +188,10 @@ function summonElemental(context: ElementalistRuntime, at: number, element: Elem
     { id: ELEMENTAL_TASK_OWNER, generation: summonGeneration },
     50
   );
-  armSkillFlip(
-    state.availableFlips,
-    element === 'Earth' ? ID.STOMP_ELEMENTAL_COMMAND : ID.FLAME_BARRAGE_ELEMENTAL_COMMAND,
-    at,
+  context.armFlip(element === 'Earth' ? ID.STOMP_ELEMENTAL_COMMAND : ID.FLAME_BARRAGE_ELEMENTAL_COMMAND, {
+    availableAt: at,
     expiresAt
-  );
+  });
   startElemental(context, at);
 }
 

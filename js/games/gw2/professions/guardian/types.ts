@@ -2,6 +2,7 @@ import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
+import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -23,9 +24,8 @@ export interface GuardianConfig extends Gw2Config {
 }
 
 /** Public consumers receive only the ID/value pairs published by active owners. */
-export type GuardianPlanningState = ReturnType<
-  typeof import('#gw2/professions/guardian/core/state.js').projectGuardianPlanningState
-> &
+export type GuardianPlanningState = Gw2SharedProfessionPlanningState &
+  ReturnType<typeof import('#gw2/professions/guardian/core/state.js').projectGuardianPlanningState> &
   ReturnType<
     typeof import('#gw2/professions/guardian/specializations/dragonhunter/state.js').projectDragonhunterPlanningState
   > &

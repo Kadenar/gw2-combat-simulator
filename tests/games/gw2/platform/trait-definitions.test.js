@@ -407,6 +407,7 @@ test('attribute phases sample declarations once per query and refresh after a sa
     moduleWith([
       defineTrait({
         ...metadata,
+        modifierRules: [{ id: 'fixture.power-phase', target: 'attributePower', operation: 'multiply', factor: 2 }],
         attributes() {
           samples++;
           return {
@@ -423,14 +424,14 @@ test('attribute phases sample declarations once per query and refresh after a sa
   const event = { type: 'condition', condition: 'Burning', actorType: 'player', at: 5 };
   const first = query.statsAt(5, event);
   assert.equal(samples, 1);
-  assert.equal(first.power, 1820);
-  assert.equal(first.conditionDamage, 182);
+  assert.equal(first.power, 3640);
+  assert.equal(first.conditionDamage, 364);
   bonus = 40;
   const second = query.statsAt(5, event);
   assert.equal(samples, 2);
-  assert.equal(second.power, 1840);
-  assert.equal(second.conditionDamage, 184);
-  assert.equal(first.power, 1820);
+  assert.equal(second.power, 3680);
+  assert.equal(second.conditionDamage, 368);
+  assert.equal(first.power, 3640);
 });
 
 // Reusing a build's selection array across runs must not couple their compiled attribute contributors.
@@ -519,21 +520,28 @@ function previewFamily(core = moduleWith([trait])) {
 // Every registered module exposes one modifier shape, including trait-free modules and preview clones.
 test('module registration normalizes modifier rule collections', () => {
   const rules = [trait.modifierRules[0]];
-  const modifyCriticalChance = (_context, chance) => chance + 0.1;
   assert.deepEqual(moduleWith([]).modifiers, {});
   const core = moduleWith([], { modifiers: rules });
   assert.deepEqual(core.modifiers, { modifierRules: rules });
-  const imperative = moduleWith([], { modifiers: { modifierRules: rules, modifyCriticalChance } });
-  assert.equal(imperative.modifiers.modifyCriticalChance, modifyCriticalChance);
-  assert.equal(familyWith(imperative).runtimeFor({}).modifyCriticalChance({}, 0), 0.1);
-  assert.equal(familyWith(imperative).runtimeFor({}).modifyStrikeDamage({}, 10), 20);
+  assert.equal(familyWith(core).runtimeFor({}).modifyStrikeDamage({}, 10), 20);
 });
 
 // Registration and reconstruction both reject unsupported fields, including on an inactive elite module.
 test('native modules reject unsupported modifier declarations before composition', () => {
   const core = moduleWith([]);
   const elite = defineNativeModule({ id: 'Elite', data: {}, state: { create: () => ({}) } });
-  for (const key of ['modifyStrikeDamage', 'modifyConditionDamage', 'compileModifierRules', 'unknownModifier']) {
+  for (const key of [
+    'modifyAttributes',
+    'modifyConditionAttributes',
+    'modifyCriticalChance',
+    'modifyCriticalDamage',
+    'modifyConditionBaseDuration',
+    'modifyConditionDuration',
+    'modifyStrikeDamage',
+    'modifyConditionDamage',
+    'compileModifierRules',
+    'unknownModifier'
+  ]) {
     const modifiers = { [key]: () => 99 };
     assert.throws(() => moduleWith([], { modifiers }), {
       name: 'TypeError',
@@ -550,12 +558,12 @@ test('native modules reject unsupported modifier declarations before composition
   }
 });
 
-// Trait expansion preserves non-damage hooks and evaluates trait selection on each query.
-test('trait expansion preserves scalar hooks, damage policies, and cached runtime selection isolation', () => {
+// Trait expansion preserves scalar rules and evaluates trait selection on each query.
+test('trait expansion preserves scalar rules, damage policies, and cached runtime selection isolation', () => {
   const family = familyWith(
     moduleWith([trait], {
       modifiers: {
-        modifyCriticalChance: (_context, chance) => chance + 0.1,
+        modifierRules: [{ id: 'fixture.critical', target: 'criticalChance', operation: 'add', amount: 0.1 }],
         damageBuckets: { strikeDamage: { includeSigil: false } }
       }
     }),

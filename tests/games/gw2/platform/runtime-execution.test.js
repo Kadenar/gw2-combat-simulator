@@ -161,8 +161,14 @@ test('ammunition capacity uses per-run state and selected balance profiles at th
           states.add(context.readProfessionState().core.energy.value);
           assert.equal(skill, selected);
           assert.equal(Object.isFrozen(context), true);
-          assert.deepEqual(Object.keys(context).sort(), ['hasTrait', 'readProfessionState', 'requireBalanceProfile']);
+          assert.deepEqual(Object.keys(context).sort(), [
+            'flips',
+            'hasTrait',
+            'readProfessionState',
+            'requireBalanceProfile'
+          ]);
           assert.equal(context.readProfessionState(), owner.profession);
+          assert.equal(context.flips, owner.flips);
           return context.hasTrait('test.trait')
             ? Number(context.requireBalanceProfile('test.proc').maximumStacks)
             : maximum;

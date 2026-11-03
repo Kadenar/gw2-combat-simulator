@@ -216,12 +216,12 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
             stealth ===
             rangerSpearStealthAvailable(
               {
-                availableFlips: rangerUiState(context)[STATE.AVAILABLE_FLIPS],
                 stealthStartedAt: rangerUiState(context)[STATE.STEALTH_STARTED_AT],
                 stealthUntil: rangerUiState(context)[STATE.STEALTH_UNTIL],
                 revealedUntil: rangerUiState(context)[STATE.REVEALED_UNTIL]
               },
-              context.time || 0
+              context.time || 0,
+              context.professionState?.[STATE.AVAILABLE_FLIPS] ?? {}
             )
         };
     },

@@ -894,6 +894,7 @@ test('Luminary UI excludes virtue aliases and lists the forge exit once', () => 
   );
   const professionSkillIds = guardianProfession.ui.paletteGroups({
     specialization: 'Luminary',
+
     professionState: result.planningState.profession
   })[0].skillIds;
   const professionSkillNames = professionSkillIds.map((id) => guardianCatalog.skillsById.get(id)?.name);
