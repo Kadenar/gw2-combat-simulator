@@ -109,8 +109,8 @@ export const ENGINEER_BOMB_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDef
     cooldown: 16,
     kitId: ID.BOMB_KIT,
     castTimeMs: 600,
-    // Once placement commits at 520 ms, retain the full cast lockout and delayed explosion, confusion, and daze.
-    interruptCommitMs: 520,
+    // Once placement commits at 480 ms, retain the full cast lockout and delayed explosion, confusion, and daze.
+    interruptCommitMs: 480,
     retainsCastLockoutAfterInterrupt: true,
     comboFinishers: [
       {

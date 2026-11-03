@@ -194,7 +194,33 @@
         }
       },
       {
-        "label": "Condition Spear (3 Kit)",
+        "label": "Condition Alacrity (Pistol / Pistol - 3 Kits)",
+        "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-pistol-pistol-3kit.json",
+        "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-pistol-pistol-3kit-bench.json",
+        "benchmarkDps": 36274,
+        "upToDate": true,
+        "benchmarkApm": 122.5,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 38212, "phase": 38212 },
+          "80-60": { "cumulative": 36453, "phase": 34817 },
+          "60-40": { "cumulative": 36444, "phase": 36425 },
+          "40-20": { "cumulative": 36280, "phase": 35790 },
+          "20-0": { "cumulative": 36274, "phase": 36274 }
+        },
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 36210,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 38142, "phase": 38142 },
+            "80-60": { "cumulative": 36509, "phase": 34991 },
+            "60-40": { "cumulative": 36377, "phase": 36120 },
+            "40-20": { "cumulative": 36215, "phase": 35728 },
+            "20-0": { "cumulative": 36210, "phase": 36210 }
+          }
+        }
+      },
+      {
+        "label": "Condition (Spear - 3 Kits)",
         "build": "data/gw2/builds/engineer/b-condi-amalgam-3kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-amalgam-3kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-amalgam-three-kits-spear",

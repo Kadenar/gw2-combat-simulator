@@ -184,6 +184,9 @@ const obliterate: Partial<SkillDefinition<AmalgamSkill>> = {
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 800,
+  // All protocol slots commit Obliterate at 680 ms and retain the original cast lockout after interruption.
+  interruptCommitMs: 680,
+  retainsCastLockoutAfterInterrupt: true,
   // Share one impact timing while preserving independent payloads and declaration order.
   effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
     {
