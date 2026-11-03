@@ -91,7 +91,6 @@ test('Continuum snapshots restore recharge work at the permanent Chronomancer ra
     state,
     cooldownController: cooldown,
     unaffectedCooldownIds: new Set(),
-    refreshAmmo: cooldown.refreshAmmo,
     consumeResources: () => 0,
     durationPerSource: 3
   });

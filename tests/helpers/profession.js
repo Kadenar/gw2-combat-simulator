@@ -4,6 +4,11 @@ import { defineProfession } from '#gw2/platform/profession-definition/compile-co
 /** Fixtures keep state and modifiers separate from executable policies, validating the final hook overrides. */
 export function defineTestProfession({ hooks, ...definition }) {
   const profession = defineProfession(definition);
+  // Evaluators come only from compiled declarations; runtime hooks such as modifyEffects are not on the contract.
+  for (const key of Object.keys(hooks ?? {})) {
+    if (key.startsWith('modify') && key in profession) throw new TypeError(`Unsupported hooks field: ${key}.`);
+  }
+
   return {
     ...profession,
     runtimeFor() {

@@ -61,8 +61,8 @@ export function normalizeSkillModifiers(value: unknown, label: string): readonly
     }
   }
 
-  // Share declaration validation without building evaluators; scope remains owned by skill registration.
-  normalizeModifierRules(value.map(({ scope: _scope, ...rule }) => rule));
+  // Share declaration validation without building evaluators; it ignores scope, which skill registration owns.
+  normalizeModifierRules(value);
   return Object.freeze(
     value.map((rule) =>
       Object.freeze({

@@ -273,7 +273,8 @@ test('Elemental Celerity selects weapon targets and independently owns its spher
 
             if (skill.ammo > 0) {
               runtime.cooldownController.ensureAmmo(skill);
-              runtime.cooldownController.readAmmo(skill.id).charges = 0;
+              // Seed depleted resources through the owner; observations are detached and cannot mutate a pool.
+              runtime.cooldownController.replaceAmmoCharges(skill, skill.ammo, 0, []);
             }
           }
 

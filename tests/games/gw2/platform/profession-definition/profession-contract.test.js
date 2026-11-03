@@ -5,6 +5,7 @@ import { defineProfession } from '#gw2/platform/profession-definition/compile-co
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { planningState } from '#gw2/platform/results/planning-state.js';
+import { SHARED_STATE_IDS } from '#gw2/platform/results/state-ids.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
@@ -30,6 +31,18 @@ test('profession normalization rejects unsupported modifier declarations', () =>
         });
     }
   }
+
+  // Fixture runtime overrides cannot restore imperative evaluators, while genuine runtime hooks stay available.
+  const definition = { id: 'fixture', name: 'Fixture' };
+  assert.throws(() => defineTestProfession({ ...definition, hooks: { modifyCriticalChance: () => 99 } }), {
+    name: 'TypeError',
+    message: 'Unsupported hooks field: modifyCriticalChance.'
+  });
+  const modifyEffects = () => [];
+  assert.equal(
+    defineTestProfession({ ...definition, hooks: { modifyEffects } }).runtimeFor().modifyEffects,
+    modifyEffects
+  );
 });
 
 // Empty declarations retain the query API without installing an imperative authoring path.
@@ -144,6 +157,7 @@ test('structured definition containers preserve state, recharge rules, and resol
 });
 
 // Each selected owner publishes independent fields without leaking siblings or sharing mutable values.
+// Shared execution adds only its own visible flip windows beside them.
 test('module projections compose Core and only the selected specialization', () => {
   const modules = ['Core', 'First', 'Second'].map((id) =>
     defineNativeModule({
@@ -162,7 +176,10 @@ test('module projections compose Core and only the selected specialization', () 
     const runtime = family.runtimeFor({ specialization });
     const profession = runtime.createState({ specialization });
     const projected = projectObservedState(family, { profession });
-    assert.deepEqual(Object.keys(projected).sort(), [...new Set(['Core', specialization])].sort());
+    assert.deepEqual(
+      Object.keys(projected).sort(),
+      [...new Set(['Core', specialization, SHARED_STATE_IDS.AVAILABLE_FLIPS])].sort()
+    );
     projected.Core.value = 9;
     assert.equal(profession.core.Core.value, 1);
 

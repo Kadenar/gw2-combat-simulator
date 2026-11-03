@@ -3,6 +3,7 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { normalizeProfessionBuild } from '#gw2/platform/builds/profession-build.js';
 import { createFixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2Build, Gw2CanonicalBuild, ProfessionBuildDefinition } from '#gw2/platform/builds/types.js';
+import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
 import type { ProfessionModifierDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import { toApplicationBuild as elementalistApplicationBuild } from '#gw2/professions/elementalist/build/build.js';
@@ -52,6 +53,15 @@ void invalidHooks;
 // @ts-expect-error Bucket eligibility accepts only a boolean or context predicate.
 const invalidPolicy: ProfessionModifierDefinition = { damageBuckets: { strikeDamage: { includeSigil: 42 } } };
 void invalidPolicy;
+// Module inference must stay closed even when a removed hook accompanies a valid declaration field.
+const invalidModule = defineNativeModule({
+  id: 'invalid-module',
+  data: {},
+  state: { create: () => ({}) },
+  // @ts-expect-error Imperative hooks cannot accompany declarative rules on a module.
+  modifiers: { modifierRules: [], modifyAttributes: () => ({ power: 42 }) }
+});
+void invalidModule;
 
 // Presentation carries the canonical loadout methods and validates build-owned selector keys.
 declare const loadout: NonNullable<ProfessionUiContract['slotLoadout']>;

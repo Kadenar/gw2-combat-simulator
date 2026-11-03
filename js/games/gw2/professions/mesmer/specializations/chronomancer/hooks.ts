@@ -58,7 +58,6 @@ function createChronomancerMechanics(context: MesmerRuntime) {
     state: context,
     cooldownController: context.cooldownController,
     unaffectedCooldownIds: CONTINUUM_UNAFFECTED_COOLDOWN_IDS,
-    refreshAmmo: context.cooldownController.refreshAmmo,
     consumeResources: actions.consumeResources,
     durationPerSource: skillNumberFromContext(context, ID.CONTINUUM_SPLIT, 'durationPerTier'),
     bonusDuration: masterOfFragmentationDuration(context),

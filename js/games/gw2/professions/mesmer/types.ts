@@ -2,7 +2,6 @@ import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js'
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { ConditionEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { AmmoObservation } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -140,5 +139,3 @@ export interface MesmerProfessionActionController {
   reserveResources(): number;
   restoreReservedResources(spent: number): void;
 }
-
-export type MesmerRefreshAmmo = (skill: MesmerSkill, at: number) => AmmoObservation | null;

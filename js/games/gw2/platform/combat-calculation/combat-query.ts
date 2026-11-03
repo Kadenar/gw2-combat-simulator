@@ -100,7 +100,7 @@ function traceBonus(contributors: Gw2ModifierContribution[], id: string, label: 
 
 /**
  * Keeps a traced list faithful to the returned multiplier: (1 + Σ additive) × Π multipliers must equal the total, so
- * any effect a hook applied without tracing (for example an imperative profession hook) appears as one remainder.
+ * any factor not traced individually appears as one remainder.
  */
 function closeContributions(contributors: Gw2ModifierContribution[], total: number): void {
   let additive = 0;
@@ -176,20 +176,25 @@ export function createGw2CombatQuery({
 
   const activeConfigsByWeaponSet = new Map<number, Gw2Config>();
   const staticAttributesByWeaponSet = new Map<number, Gw2ResolvedStats>();
-  /** Reuses immutable weapon-set inputs while returning fresh mutable attribute results to profession hooks. */
+  /**
+   * Shares one weapon-set input across samples because every later attribute phase copies on write.
+   * Freezing turns any missed in-place write into an immediate failure rather than a leak between samples.
+   */
   const staticAttributesAt = (weaponSet: number): Gw2ResolvedStats => {
     const normalizedWeaponSet = weaponSet === 2 ? 2 : 1;
     let base = staticAttributesByWeaponSet.get(normalizedWeaponSet);
 
     if (!base) {
-      base = gw2StaticAttributes(activeConfigForWeaponSet(normalizedWeaponSet), normalizedWeaponSet);
+      const attributes = gw2StaticAttributes(activeConfigForWeaponSet(normalizedWeaponSet), normalizedWeaponSet);
+      base = Object.freeze({
+        ...attributes,
+        boonDurationBonuses: Object.freeze(attributes.boonDurationBonuses),
+        conditionDurationBonuses: Object.freeze(attributes.conditionDurationBonuses)
+      });
       staticAttributesByWeaponSet.set(normalizedWeaponSet, base);
     }
 
-    return {
-      ...base,
-      conditionDurationBonuses: { ...base.conditionDurationBonuses }
-    };
+    return base;
   };
 
   /** Builds each weapon-set-specific hook configuration once per combat query. */

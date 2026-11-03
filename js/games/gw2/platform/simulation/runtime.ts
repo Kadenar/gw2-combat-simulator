@@ -262,7 +262,9 @@ export function runRuntime<T extends object>(
         return runtime.time;
       }
     },
-    rechargeDuration: (skill, at) => casts.rechargeWorkFor(skill) / cooldownController.rate(skill, at),
+    // Default work calculation must use the same captured summon owner as projection and reduction.
+    rechargeDuration: (skill, at, companionId) =>
+      casts.rechargeWorkFor(skill) / cooldownController.rate(skill, at, companionId),
     maximumAmmo: (skill) => profession.maximumAmmo?.(maximumAmmoContext, skill, skill.ammo ?? 0) ?? skill.ammo ?? 0,
     rechargeIntervals: (skill, start, end, companionId) =>
       query.timeline.rechargeIntervals(skill, start, end, companionId),

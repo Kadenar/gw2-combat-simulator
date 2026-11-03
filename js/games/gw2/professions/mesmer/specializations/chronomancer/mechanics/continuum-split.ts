@@ -15,17 +15,13 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
 import type { MesmerContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/types.js';
-import type { MesmerRefreshAmmo, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 interface ContinuumControllerOptions {
   readonly state: MesmerRuntime;
   /** Continuum snapshots and restores recharge without acquiring cast acceptance operations. */
-  readonly cooldownController: Pick<
-    CooldownController,
-    'restoreCheckpoint' | 'refresh' | 'ammoSkillIds' | 'checkpoint' | 'readyAt'
-  >;
+  readonly cooldownController: Pick<CooldownController, 'restoreCheckpoint' | 'checkpoint' | 'readyAt'>;
   readonly unaffectedCooldownIds: ReadonlySet<SkillId>;
-  readonly refreshAmmo: MesmerRefreshAmmo;
   readonly consumeResources: (at: number, details?: MesmerResourceSpendDetails) => number;
   readonly durationPerSource: number;
   readonly bonusDuration?: number;
@@ -36,7 +32,6 @@ export function createContinuumController({
   state,
   cooldownController,
   unaffectedCooldownIds,
-  refreshAmmo,
   consumeResources,
   durationPerSource,
   bonusDuration = 0,
@@ -57,12 +52,6 @@ export function createContinuumController({
       unaffectedCooldownIds,
       splitReady ? [{ skillId: continuum.splitId, readyAt: at + splitReady - openAt }] : []
     );
-    cooldownController.refresh(at);
-    for (const id of cooldownController.ammoSkillIds()) {
-      const ammoSkill = state.helpers.skillsById.get(id);
-
-      if (ammoSkill) refreshAmmo(ammoSkill, at);
-    }
 
     {
       const packet = buildMesmerPacket({

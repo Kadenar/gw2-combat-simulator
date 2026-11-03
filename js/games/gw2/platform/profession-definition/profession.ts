@@ -125,12 +125,11 @@ export function defineNativeModule<
   TState extends object,
   TProjectOptions extends object = object,
   TProjectedState extends object = object,
-  TModifiers extends ProfessionModifierDefinition = object,
   TPresentation extends object = object,
   TSkill extends Skill = Skill
 >(
-  definition: NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation, TSkill>
-): NativeModule<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation, TSkill> {
+  definition: NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TPresentation, TSkill>
+): NativeModule<TId, TState, TProjectOptions, TProjectedState, TPresentation, TSkill> {
   assertNativeModuleDefinition(definition);
 
   const traits = definition.traitDefinitions?.map(defineTrait<TSkill>) ?? [];
@@ -240,8 +239,7 @@ function createModuleUi<TSkill extends Skill>(
 function composeModuleModifiers(
   modules: readonly Pick<AnyNativeModule, 'id' | 'modifiers'>[]
 ): ProfessionModifierDefinition {
-  const modifiers = modules.map((module) => module.modifiers);
-  const declarations = modifiers.flatMap((source) => source.modifierRules ?? []);
+  const declarations = modules.flatMap((module) => module.modifiers.modifierRules ?? []);
   const damageBuckets: NonNullable<ProfessionModifierDefinition['damageBuckets']> = {};
   const policyOwners = new Map<string, string>();
   for (const module of modules) {

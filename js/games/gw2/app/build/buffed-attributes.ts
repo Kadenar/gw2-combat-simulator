@@ -9,6 +9,7 @@ import {
   boonKey,
   GW2_STANDARD_BOONS,
   isStandardBoon,
+  recordBuffApplication,
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
@@ -121,15 +122,18 @@ function calculatePreview(
   const profession = resolveProfessionContract(app.profession, queryConfig);
   const professionState = profession.createState(queryConfig);
   const events: SimulationEvent[] = [];
-  const previewBoons = new Map<string, Gw2TimedBuffApplication[]>();
-  const previewBuffs = new Map<string, Gw2TimedBuffApplication[]>();
   const addBuff = (kind: string, stacks: number, name: string): void => {
     if (!stacks) return;
 
-    const application = {
+    // Author one detached grant; its application is derived after profession preparation finishes.
+    events.push({
+      type: 'buff',
+      kind,
+      source: name,
+      sourceId: 'stat-preview',
+      actorType: ACTOR.PLAYER,
       at: 0,
       duration: 60,
-      expiresAt: 60,
       stacks,
       resolvedAudience: {
         includesSelf: true,
@@ -138,17 +142,6 @@ function calculatePreview(
         companionIds: [],
         recipientCount: 1
       }
-    };
-    // Preview grants use the same exclusive stores as accepted combat applications.
-    (isStandardBoon(kind) ? previewBoons : previewBuffs).set(kind, [application]);
-    // Preview events obey the same explicit player-ownership contract as simulated buffs.
-    events.push({
-      ...application,
-      type: 'buff',
-      kind,
-      source: name,
-      sourceId: 'stat-preview',
-      actorType: ACTOR.PLAYER
     });
   };
 
@@ -181,6 +174,17 @@ function calculatePreview(
     targetConditions,
     queryOptions
   });
+
+  const previewBoons = new Map<string, Gw2TimedBuffApplication[]>();
+  const previewBuffs = new Map<string, Gw2TimedBuffApplication[]>();
+  // Preview assumptions replace earlier grants of the same kind; shared recording retains audience and event metadata.
+  for (const event of events) {
+    if (event.type !== 'buff') continue;
+
+    const applications = isStandardBoon(event.kind) ? previewBoons : previewBuffs;
+    applications.delete((event.kind || '').toLowerCase());
+    recordBuffApplication(applications, event);
+  }
 
   const event: SimulationEvent = {
     type: 'action',

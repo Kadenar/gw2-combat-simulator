@@ -5,6 +5,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import { createGw2ResolverEventHandlers } from '#gw2/platform/resolver/event-handlers.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
+import { SHARED_STATE_IDS } from '#gw2/platform/results/state-ids.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { testProfession } from '#tests/fixtures/profession.js';
@@ -294,7 +295,8 @@ test('resolver profession state changes are chronological and preserve counters'
   assert.equal(Math.round(hits[1].damage / hits[0].damage), 2);
   assert.equal(Math.round(hits[2].damage / hits[0].damage), 2);
   assert.equal(hitCount, 3);
-  assert.deepEqual(result.planningState.profession, { active: true });
+  // The projector selects public state; shared execution publishes its flip windows beside it.
+  assert.deepEqual(result.planningState.profession, { active: true, [SHARED_STATE_IDS.AVAILABLE_FLIPS]: {} });
   assert.equal(result.planningState.profession.active, true);
 
   const configured = simulateGw2({

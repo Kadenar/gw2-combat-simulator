@@ -209,7 +209,10 @@ test('Firebrand final mantra face shows the shared charges and next charge timer
       },
       surge
     );
-  const final = runGuardian([FLAME_RUSH, FLAME_RUSH], { specialization: 'Firebrand' });
+  // Observe the next resource recovery once the shared face is usable, so the tile displays its charge timer.
+  const final = runGuardian([FLAME_RUSH, FLAME_RUSH, { type: 'wait', durationMs: 1000 }], {
+    specialization: 'Firebrand'
+  });
   const { ammoBySkillId, atSeconds } = final.planningState;
   assert.deepEqual(view(final).ammo, { current: 1, maximum: 3, pips: [true, false, false] });
   assert.match(

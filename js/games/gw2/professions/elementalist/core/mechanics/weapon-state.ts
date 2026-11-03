@@ -31,8 +31,7 @@ function ready(): AvailabilityResult {
   return { ready: true };
 }
 
-// Attunement variants are alternate faces of one utility slot, so copy both
-// cooldown and ammo state to every variant after any one face is used.
+// Attunement variants share one magazine, or copy an ordinary timer when the utility has no magazine.
 export function shareAttunementVariantRecharge(context: ElementalistRuntime, skill: ElementalistSkill): void {
   if (!['Heal', 'Utility', 'Elite'].includes(String(skill.type)) || !skill.attunement) {
     return;
@@ -46,9 +45,8 @@ export function shareAttunementVariantRecharge(context: ElementalistRuntime, ski
 
   for (const candidate of context.helpers.skills) {
     if (candidate.type === skill.type && elementalistLoadoutIdentity(candidate.id, context.helpers) === identity) {
-      if (readyAt != null) context.cooldownController.copy(skill.id, candidate.id);
-
       if (ammo) context.cooldownController.linkAmmo(skill.id, candidate.id);
+      else context.cooldownController.copy(skill.id, candidate.id);
     }
   }
 }

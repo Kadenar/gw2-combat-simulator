@@ -7,7 +7,6 @@ import {
   FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
   PRECISION_PER_CRITICAL_CHANCE_FRACTION
 } from '#gw2/platform/combat/formulas.js';
-import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
 import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
@@ -267,7 +266,7 @@ test('target-health modifiers resolve remaining health per hit', () => {
   const profession = defineTestProfession({
     id: 'threshold-fixture',
     name: 'Threshold Fixture',
-    hooks: createModifierHooks({ rules: thresholdModifier }),
+    modifiers: { modifierRules: thresholdModifier },
     catalog
   });
   const opening = simulateGw2({

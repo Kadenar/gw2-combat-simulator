@@ -11,10 +11,7 @@ function fixture(flips = {}) {
     skills: [990101, 990102].map((id) => ({ id, name: 'Shared Name', effects: [] }))
   });
   const ammo = new Map([
-    [
-      990101,
-      { charges: 0, maximum: 1, recharges: [{ workAnchorAt: 0, work: 5 }], nextRechargeAt: 4, lockoutReadyAt: 2 }
-    ],
+    [990101, { charges: 0, maximum: 1, recharges: [{ workAnchorAt: 0, work: 5 }], nextRechargeAt: 4 }],
     [990102, { charges: 1, maximum: 2, recharges: [{ workAnchorAt: 0, work: 10 }], nextRechargeAt: 8 }]
   ]);
   const deadlines = new Map([
@@ -70,7 +67,7 @@ test('same-name skills retain independent planning identities', () => {
     990102: { readyAtMs: 8000, remainingMs: 8000 }
   });
   assert.deepEqual(Object.keys(state.ammoBySkillId), ['990101', '990102']);
-  // Public ammo contains only display facts, even when the owner retains recharge work and a lockout.
+  // Public ammo contains only display facts, even when the observation includes recharge work.
   assert.deepEqual(state.ammoBySkillId[990101], { charges: 0, maximum: 1, nextRechargeAt: 4 });
   assert.deepEqual(state.ammoBySkillId[990102], { charges: 1, maximum: 2, nextRechargeAt: 8 });
   assert.equal(Object.hasOwn(state, 'ammo'), false);

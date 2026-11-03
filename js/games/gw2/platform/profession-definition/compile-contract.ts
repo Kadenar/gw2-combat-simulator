@@ -1,9 +1,7 @@
 /** Compile declarative modifiers with explicit ordinary and final-condition attribute phases. */
 import { applyAttributeContributions, applyFinalConditionAttributes } from '#gw2/platform/attributes/evaluation.js';
 import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
-import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import { createModifierHooks, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionFamilyContract } from '#gw2/platform/profession-definition/family-contract.js';
 import type {
   NormalizedProfessionContract,
@@ -35,11 +33,41 @@ export function assertDefinition(definition: { readonly id: string; readonly nam
   }
 }
 
+type AttributePhases = Pick<NormalizedProfessionContract, 'modifyAttributes' | 'modifyConditionAttributes'>;
+
+/**
+ * Selects both attribute phases once. Without declarations, only compiled rules apply and final conditions are kept.
+ * Combat queries supply one sample across phases; direct evaluator callers sample current facts themselves.
+ */
+function attributePhases(
+  calculate: ProfessionDefinition['attributeContributions'],
+  applyRules: AttributePhases['modifyAttributes']
+): AttributePhases {
+  if (!calculate)
+    return { modifyAttributes: applyRules, modifyConditionAttributes: (_context, attributes) => attributes };
+
+  const sampled = (context: Gw2ModifierContext) => context.attributeContributions ?? calculate(context);
+  return {
+    // Ordinary conversions and projections precede declarative attribute rules; Might is already in the input.
+    modifyAttributes: (context, attributes) =>
+      applyRules(
+        context,
+        applyAttributeContributions(
+          attributeSeed(context.config ?? {}, context.runtime?.activeWeaponSet),
+          attributes,
+          sampled(context)
+        )
+      ),
+    // The combat query calls this after equipment bonuses and actor projections have produced final Power.
+    modifyConditionAttributes: (context, attributes) =>
+      applyFinalConditionAttributes(context, attributes, sampled(context))
+  };
+}
+
 /**
  * Creates immutable state and modifier capabilities with stable defaults.
  * Executable resource policies are validated separately with the runtime hooks.
  */
-
 export function defineProfession<TProfessionState extends object, TSkill extends Skill = Skill>(
   definition: ProfessionDefinition<TProfessionState, TSkill>
 ): Readonly<NormalizedProfessionContract<TProfessionState, TSkill>> {
@@ -49,39 +77,21 @@ export function defineProfession<TProfessionState extends object, TSkill extends
   assertModifierDefinition(modifiers);
   // Compile even empty declarations so equipment always participates exactly once in the damage bucket.
   const compiled = createModifierHooks({ rules: modifiers.modifierRules, damageBuckets: modifiers.damageBuckets });
-  const attributeContributions = definition.attributeContributions;
-  // Combat queries supply one sample across phases; direct evaluator callers sample current facts themselves.
-  const contributions = (context: Gw2ModifierContext) =>
-    context.attributeContributions ?? attributeContributions?.(context) ?? [];
 
-  const profession = {
-    attributeContributions,
+  // Annotating the contract keeps the compiler checking every evaluator in this explicit list.
+  const profession: NormalizedProfessionContract<TProfessionState, TSkill> = {
+    attributeContributions: definition.attributeContributions,
     canSwapWeaponSetsInCombat: definition.canSwapWeaponSetsInCombat ?? true,
     id: definition.id,
     name: definition.name,
     weaponSkillMatchesSet: definition.weaponSkillMatchesSet,
     catalog: definition.catalog ?? createCanonicalCatalog<TSkill>(),
-    createState: (config: Readonly<ProfessionConfig>, balanceContext?: ProfessionBalanceContext) =>
-      resources.createState?.(config, balanceContext) ?? {},
+    // A stateless definition has no fields for its declared state type to require.
+    createState: (config, balanceContext) =>
+      resources.createState?.(config, balanceContext) ?? ({} as TProfessionState),
     // An absent projector delegates to the planning observer's detached state fallback.
     projectPlanningState: resources.projectPlanningState ?? (() => undefined),
-    modifyAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
-      // Ordinary conversions and projections precede declarative attribute rules; Might is already in the input.
-      const ordinary = attributeContributions
-        ? applyAttributeContributions(
-            attributeSeed(context.config ?? {}, context.runtime?.activeWeaponSet ?? context.config?.startingWeaponSet),
-            attributes,
-            contributions(context)
-          )
-        : attributes;
-      return compiled.modifyAttributes(context, ordinary);
-    },
-    modifyConditionAttributes(context: Gw2ModifierContext, attributes: Gw2Stats): Gw2Stats {
-      // The combat query calls this after equipment bonuses and actor projections have produced final Power.
-      return attributeContributions
-        ? applyFinalConditionAttributes(context, attributes, contributions(context))
-        : attributes;
-    },
+    ...attributePhases(definition.attributeContributions, compiled.modifyAttributes),
     modifyCriticalChance: compiled.modifyCriticalChance,
     modifyCriticalDamage: compiled.modifyCriticalDamage,
     modifyConditionBaseDuration: compiled.modifyConditionBaseDuration,
@@ -89,7 +99,7 @@ export function defineProfession<TProfessionState extends object, TSkill extends
     modifyStrikeDamage: compiled.modifyStrikeDamage,
     modifyConditionDamage: compiled.modifyConditionDamage
   };
-  return Object.freeze(profession) as unknown as Readonly<NormalizedProfessionContract<TProfessionState, TSkill>>;
+  return Object.freeze(profession);
 }
 
 /** Selects the family's runtime for the supplied configuration; callers must supply a family contract. */

@@ -186,7 +186,7 @@ function mechanicBoundaries(context: WarriorRuntime) {
   // @ts-expect-error Only cast execution can commit an ammunition lockout.
   context.cooldownController.setAmmoLockout;
   // @ts-expect-error Internal lockout work is not an ammunition observation.
-  context.cooldownController.readAmmo(1)!.lockoutProgress;
+  context.cooldownController.readAmmo(1)!.lockout;
   context.castController.lockInputUntil(2);
   context.procs.setDeadline('trait', 2);
   // @ts-expect-error Only the coordinator controls the clock.

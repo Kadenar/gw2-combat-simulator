@@ -1,21 +1,22 @@
-/**
- * Shared cooldown and ammo-charge recharge state machine. Owns the common
- * between-cast lockout and charge bookkeeping (recharge timers, charge
- * depletion, recharge reduction) so professions only override maximum ammo and
- * recharge duration instead of reimplementing the mechanics.
- */
+/** Shared execution owns recharge work and magazine identity; availability is derived without a second ammo deadline. */
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { projectRecharge, type RechargeProgress } from '#gw2/platform/combat/recharge.js';
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
-import type { AmmoState, CooldownController, RechargeCheckpoint } from '#gw2/platform/execution/cooldown-contracts.js';
+import type {
+  AmmoObservation,
+  CooldownController,
+  RechargeCheckpoint,
+  RechargeTimerSnapshot,
+  RechargeWorkSnapshot
+} from '#gw2/platform/execution/cooldown-contracts.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 interface CooldownControllerOptions {
   readonly clock: { readonly time: number };
-  readonly rechargeDuration: (skill: Skill, at: number) => number;
+  readonly rechargeDuration: (skill: Skill, at: number, companionId?: string) => number;
   readonly rechargeIntervals?: (
     skill: Skill,
     start: number,
@@ -26,11 +27,18 @@ interface CooldownControllerOptions {
   readonly maximumAmmo?: (skill: Skill) => number;
 }
 
-/**
- * Owns common cooldown and ammo recharge bookkeeping. Professions may override
- * maximum ammo and recharge calculation without duplicating the state machine.
- *
- */
+/** Fixed deadlines are authority; work deadlines are caches owned by the same record as their progress. */
+type RechargeTimer =
+  { kind: 'fixed'; readyAt: number } | { kind: 'work'; progress: RechargeProgress; projectedReadyAt: number };
+
+interface AmmoPool {
+  readonly skill: Skill;
+  charges: number;
+  maximum: number;
+  recharges: RechargeProgress[];
+  lockout?: RechargeTimer;
+}
+
 export function createCooldownController({
   clock,
   rechargeDuration,
@@ -38,10 +46,8 @@ export function createCooldownController({
   skillFor = () => undefined,
   maximumAmmo = (skill) => skill.ammo || 0
 }: CooldownControllerOptions): Readonly<CooldownController> {
-  // Recharge stores belong exclusively to this controller; callers supply only the live clock.
-  const readyAtBySkillId = new Map<SkillId, number>();
-  const rechargeProgress = new Map<SkillId, RechargeProgress>();
-  const ammoPools = new Map<SkillId, AmmoState>();
+  const timers = new Map<SkillId, RechargeTimer>();
+  const ammoPools = new Map<SkillId, AmmoPool>();
 
   // Only received summon Alacrity can change a running recharge's projected deadline.
   const hasVariableRechargeRate = (skill: Skill): boolean =>
@@ -51,8 +57,16 @@ export function createCooldownController({
     throw new TypeError('Cooldown controller requires rechargeDuration.');
   }
 
-  const rate = (skill: Skill, at = clock.time): number => {
-    for (const interval of rechargeIntervals(skill, at, Infinity)) return interval.rate;
+  const requireSkill = (id: SkillId): Skill => {
+    const skill = skillFor(id);
+
+    if (!skill) throw new Error(`Missing recharging skill ${id}`);
+
+    return skill;
+  };
+
+  const rate = (skill: Skill, at = clock.time, companionId?: string): number => {
+    for (const interval of rechargeIntervals(skill, at, Infinity, companionId)) return interval.rate;
     return 1;
   };
 
@@ -72,7 +86,6 @@ export function createCooldownController({
   };
 
   const project = (skill: Skill, progress: RechargeProgress): number => {
-    // Published readiness is a canonical deadline, even after fractional recharge reductions.
     const deadline = projectRecharge(
       progress,
       rechargeIntervals(skill, progress.workAnchorAt, Infinity, progress.companionId)
@@ -80,95 +93,97 @@ export function createCooldownController({
     return Number.isFinite(deadline) ? canonicalTime(deadline) : deadline;
   };
 
+  const workTimer = (skill: Skill, progress: RechargeProgress): RechargeTimer => ({
+    kind: 'work',
+    progress,
+    projectedReadyAt: project(skill, progress)
+  });
+  const deadline = (timer: RechargeTimer): number => (timer.kind === 'fixed' ? timer.readyAt : timer.projectedReadyAt);
+  const liveDeadline = (skill: Skill, timer: RechargeTimer): number =>
+    timer.kind === 'work' && hasVariableRechargeRate(skill) ? project(skill, timer.progress) : deadline(timer);
+  const cloneTimer = (timer: RechargeTimer): RechargeTimer =>
+    timer.kind === 'fixed' ? { ...timer } : { ...timer, progress: { ...timer.progress } };
+
   const startRecharge = (skill: Skill, at: number, work?: number, companionId?: string): number => {
-    const progress = {
+    const timer = workTimer(skill, {
       workAnchorAt: at,
-      work: Math.max(0, work ?? rechargeDuration(skill, at) * rate(skill, at)),
+      work: Math.max(0, work ?? rechargeDuration(skill, at, companionId) * rate(skill, at, companionId)),
       ...(companionId == null ? {} : { companionId })
-    };
-    rechargeProgress.set(skill.id, progress);
-    const readyAt = project(skill, progress);
-    readyAtBySkillId.set(skill.id, readyAt);
-    return readyAt;
+    });
+    timers.set(skill.id, timer);
+    return deadline(timer);
   };
 
-  const setReadyAt = (skillId: SkillId, readyAt: number): void => {
-    rechargeProgress.delete(skillId);
-    readyAtBySkillId.set(skillId, Number.isFinite(readyAt) ? canonicalTime(readyAt) : readyAt);
+  const fixedTimer = (readyAt: number): RechargeTimer => ({
+    kind: 'fixed',
+    readyAt: Number.isFinite(readyAt) ? canonicalTime(readyAt) : readyAt
+  });
+  const setReadyAt = (id: SkillId, readyAt: number): void => {
+    timers.set(id, fixedTimer(readyAt));
   };
 
-  const clear = (skillId: SkillId): void => {
-    rechargeProgress.delete(skillId);
-    readyAtBySkillId.delete(skillId);
+  const clear = (id: SkillId): void => {
+    timers.delete(id);
   };
 
   const copy = (sourceId: SkillId, targetId: SkillId): void => {
     if (sourceId === targetId) return;
 
-    const readyAt = readyAtBySkillId.get(sourceId);
+    const timer = timers.get(sourceId);
 
-    if (readyAt == null) {
-      clear(targetId);
-      return;
-    }
-
-    setReadyAt(targetId, readyAt);
-    const progress = rechargeProgress.get(sourceId);
-
-    if (progress) rechargeProgress.set(targetId, { ...progress });
+    if (timer) timers.set(targetId, cloneTimer(timer));
+    else clear(targetId);
   };
 
-  const syncAmmoCooldown = (skill: Skill, ammo: AmmoState, at: number): void => {
-    // Only the front charge is recharging; later spends never reset its progress.
-    ammo.nextRechargeAt = ammo.recharges.length ? project(skill, ammo.recharges[0]!) : null;
-    // Derive availability from independent deadlines so returning a charge cannot erase a cast lockout.
-    const activeLockout = ammo.lockoutReadyAt || 0;
-    const readyAt = Math.max(
-      gw2CooldownReadyAt(activeLockout) > at ? activeLockout : 0,
-      ammo.charges === 0 ? ammo.nextRechargeAt || 0 : 0
+  const nextRechargeAt = (ammo: AmmoPool): number | null =>
+    ammo.recharges.length ? project(ammo.skill, ammo.recharges[0]!) : null;
+
+  // Availability belongs to the pool, including every linked face, rather than to an ordinary timer mirror.
+  const ammoReadyAt = (ammo: AmmoPool, at: number): number | undefined => {
+    const lockout = ammo.lockout ? liveDeadline(ammo.skill, ammo.lockout) : 0;
+    const ready = Math.max(
+      gw2CooldownReadyAt(lockout) > at ? lockout : 0,
+      ammo.charges === 0 ? (nextRechargeAt(ammo) ?? 0) : 0
     );
-
-    if (gw2CooldownReadyAt(readyAt) > at) {
-      readyAtBySkillId.set(skill.id, readyAt);
-    } else {
-      readyAtBySkillId.delete(skill.id);
-    }
+    return gw2CooldownReadyAt(ready) > at ? ready : undefined;
   };
 
-  /**
-   * Lazily initializes ammo tracking for skills that use charges.
-   */
-  const ensureAmmo = (skill: Skill): AmmoState | null => {
+  const readyAt = (id: SkillId): number | undefined => {
+    const ammo = ammoPools.get(id);
+
+    if (ammo) return ammoReadyAt(ammo, clock.time);
+
+    const timer = timers.get(id);
+    return timer ? deadline(timer) : undefined;
+  };
+
+  // Observations are detached so a caller cannot mutate the resource or retain a hidden writable queue.
+  const observeAmmo = (ammo: AmmoPool): AmmoObservation => ({
+    charges: ammo.charges,
+    maximum: ammo.maximum,
+    recharges: ammo.recharges.map((progress) => ({ ...progress })),
+    nextRechargeAt: nextRechargeAt(ammo)
+  });
+
+  const ensurePool = (skill: Skill): AmmoPool | null => {
+    // Capacity gates read current profession state even when a previously prepared pool exists.
     const maximum = Math.max(0, maximumAmmo(skill) || 0);
 
     if (!maximum) return null;
 
-    if (!ammoPools.has(skill.id)) {
-      ammoPools.set(skill.id, {
-        charges: maximum,
-        maximum,
-        recharges: [],
-        nextRechargeAt: null
-      });
-    }
+    const existing = ammoPools.get(skill.id);
 
-    return ammoPools.get(skill.id) ?? null;
+    if (existing) return existing;
+
+    const ammo: AmmoPool = { skill, charges: maximum, maximum, recharges: [] };
+    ammoPools.set(skill.id, ammo);
+    return ammo;
   };
 
-  /**
-   * Advances ammo recharge state to a specific time and mirrors full
-   * depletion into the shared cooldown map.
-   */
-  const refreshAmmo = (skill: Skill, at: number): AmmoState | null => {
-    const ammo = ensureAmmo(skill);
-
-    if (!ammo) return null;
-
-    if (ammo.lockoutProgress) ammo.lockoutReadyAt = project(skill, ammo.lockoutProgress);
-
-    // Each skill regenerates one charge at a time, including magazines spent in one activation.
+  // The next round starts only after the front completes; reservations may impose a later minimum anchor.
+  const settleAmmo = (ammo: AmmoPool, at: number): void => {
     while (ammo.recharges.length) {
-      const completedAt = gw2CooldownReadyAt(project(skill, ammo.recharges[0]!));
+      const completedAt = gw2CooldownReadyAt(project(ammo.skill, ammo.recharges[0]!));
 
       if (completedAt > at) break;
 
@@ -180,165 +195,186 @@ export function createCooldownController({
     }
 
     if (ammo.charges >= ammo.maximum) ammo.recharges = [];
+  };
 
-    syncAmmoCooldown(skill, ammo, at);
+  const refreshPool = (skill: Skill, at: number): AmmoPool | null => {
+    const ammo = ensurePool(skill);
+
+    if (ammo) settleAmmo(ammo, at);
+
     return ammo;
   };
 
-  /**
-   * Spends one charge, queuing serial rounds behind the active recharge.
-   */
   const spendAmmo = (skill: Skill, at: number, committedRechargeWork?: number): void => {
-    const ammo = refreshAmmo(skill, at);
+    const ammo = refreshPool(skill, at);
 
     if (!ammo || ammo.charges <= 0) return;
 
     ammo.charges -= 1;
-    // A cast carries its selected recharge through completion; direct resource spends still query at their anchor.
+    // A committed cast retains its selected work; direct resource spends calculate work at their own anchor.
     const work = Math.max(0, committedRechargeWork ?? rechargeDuration(skill, at) * rate(skill, at));
     ammo.recharges.push({ workAnchorAt: at, work });
-
-    syncAmmoCooldown(skill, ammo, at);
   };
 
-  /** Restore the last queued rounds first, preserving active progress and cast lockouts. */
+  // Restore waiting rounds first, preserving the active round's earned work.
   const restoreAmmo = (skill: Skill, count: number, at: number): number => {
-    const ammo = refreshAmmo(skill, at);
+    const ammo = refreshPool(skill, at);
 
     if (!ammo) return 0;
 
-    // Restore only available capacity; negative requests or an already-full pool grant nothing.
     const restored = clamp(Math.floor(count || 0), 0, ammo.maximum - ammo.charges);
 
     if (!restored) return 0;
 
     ammo.charges += restored;
     ammo.recharges.splice(Math.max(0, ammo.recharges.length - restored));
-
-    syncAmmoCooldown(skill, ammo, at);
     return restored;
   };
 
-  /**
-   * Apply a reduction once across the recharge queue, carrying excess into waiting charges.
-   * Returns recovered wall time after applying the current recharge rate.
-   */
+  // Apply reduction once across the queue; only the front round has earned elapsed work.
   const reduceAmmoRecharge = (skill: Skill, requested: number, at: number): number => {
-    const ammo = refreshAmmo(skill, at);
+    const ammo = refreshPool(skill, at);
 
-    if (!ammo || ammo.nextRechargeAt == null) return 0;
+    if (!ammo || !ammo.recharges.length) return 0;
 
+    const rechargeRate = rate(ammo.skill, at, ammo.recharges[0]!.companionId);
     let reducedWork = 0;
     let remainingReduction = requested;
     ammo.recharges = ammo.recharges.map((progress, index) => {
-      // Magazine reservations may precede their recharge anchor; reductions only affect timers already running.
+      // Reservations may precede their recharge anchor; reductions cannot advance a timer that has not started.
       if (progress.workAnchorAt > at) return progress;
 
-      // Waiting rounds have not earned elapsed work; only excess reduction reaches their full interval.
-      const work = index === 0 ? remaining(skill, progress, at) : progress.work;
+      const work = index === 0 ? remaining(ammo.skill, progress, at) : progress.work;
       const reduction = Math.min(remainingReduction, work);
       remainingReduction -= reduction;
       reducedWork += reduction;
-      return { workAnchorAt: index === 0 ? at : progress.workAnchorAt, work: work - reduction };
+      return { ...progress, workAnchorAt: index === 0 ? at : progress.workAnchorAt, work: work - reduction };
     });
-    refreshAmmo(skill, at);
-    return reducedWork / rate(skill, at);
+    settleAmmo(ammo, at);
+    return reducedWork / rechargeRate;
   };
 
-  /** Applies game-adjusted recharge progress to ammo or an ordinary cooldown without passing its ready time. */
   const reduceSkillRecharge = (skill: Skill, reduction: number, at = clock.time): number => {
     const requested = Math.max(0, reduction || 0);
 
     if (requested <= 0) return 0;
 
-    if (ammoPools.has(skill.id)) {
-      return reduceAmmoRecharge(skill, requested, at);
-    }
+    if (ammoPools.has(skill.id)) return reduceAmmoRecharge(skill, requested, at);
 
-    const progress = rechargeProgress.get(skill.id);
+    const timer = timers.get(skill.id);
 
-    if (!progress) {
-      // Explicit fixed deadlines keep their existing policy when reduced.
-      const readyAt = readyAtBySkillId.get(skill.id) || 0;
-      const reducedBy = clamp(requested / rate(skill, at), 0, readyAt - at);
+    if (!timer) return 0;
 
-      if (reducedBy) setReadyAt(skill.id, readyAt - reducedBy);
+    if (timer.kind === 'fixed') {
+      // Fixed summon deadlines have no boon owner (including retired pets); ordinary fixed timers keep player scaling.
+      const rechargeRate = skill.rechargeBuffAudience === RECIPIENT.SUMMONS ? 1 : rate(skill, at);
+      const reducedBy = clamp(requested / rechargeRate, 0, timer.readyAt - at);
+
+      if (reducedBy) setReadyAt(skill.id, timer.readyAt - reducedBy);
 
       return reducedBy;
     }
 
-    const work = remaining(skill, progress, at);
+    const work = remaining(skill, timer.progress, at);
     const reducedWork = Math.min(requested, work);
 
     if (!reducedWork) return 0;
 
-    startRecharge(skill, at, work - reducedWork);
-    return reducedWork / rate(skill, at);
+    // Query the captured incarnation before mutation so a failed rate lookup cannot partially apply the reduction.
+    const rechargeRate = rate(skill, at, timer.progress.companionId);
+    startRecharge(skill, at, work - reducedWork, timer.progress.companionId);
+    return reducedWork / rechargeRate;
   };
 
-  /**
-   * Applies base work for the short between-cast recharge independently from count recharge.
-   */
+  // Between-use recharge is independent of the serial resource queue and keeps the longer active timer.
   const setAmmoLockout = (skill: Skill, work: number, at = clock.time): void => {
-    const ammo = ensureAmmo(skill);
+    const ammo = ensurePool(skill);
 
     if (!ammo) return;
 
-    const progress = { workAnchorAt: at, work: Math.max(0, work) };
-    const projected = project(skill, progress);
-    const previous = ammo.lockoutProgress ? project(skill, ammo.lockoutProgress) : ammo.lockoutReadyAt || 0;
+    const timer = workTimer(ammo.skill, { workAnchorAt: at, work: Math.max(0, work) });
 
-    // Extending a lockout preserves work already accrued on the longer timer.
-    if (projected >= previous) ammo.lockoutProgress = progress;
-
-    ammo.lockoutReadyAt = Math.max(previous, projected);
-    syncAmmoCooldown(skill, ammo, at);
+    if (!ammo.lockout || deadline(timer) >= liveDeadline(ammo.skill, ammo.lockout)) ammo.lockout = timer;
   };
 
+  // Only ordinary timers and the front ammo round earn elapsed work; waiting rounds retain their full queued work.
+  const snapshotWork = (skill: Skill, progress: RechargeProgress, at: number, active = true): RechargeWorkSnapshot => ({
+    work: active ? remaining(skill, progress, at) : progress.work,
+    startDelay: Math.max(0, progress.workAnchorAt - at),
+    ...(progress.companionId == null ? {} : { companionId: progress.companionId })
+  });
+  const restoreWork = (snapshot: RechargeWorkSnapshot, at: number): RechargeProgress => ({
+    workAnchorAt: at + snapshot.startDelay,
+    work: snapshot.work,
+    ...(snapshot.companionId == null ? {} : { companionId: snapshot.companionId })
+  });
+  const snapshotTimer = (skillId: SkillId, timer: RechargeTimer, at: number): RechargeTimerSnapshot =>
+    timer.kind === 'fixed'
+      ? { kind: 'fixed', remaining: Math.max(0, timer.readyAt - at) }
+      : { kind: 'work', progress: snapshotWork(requireSkill(skillId), timer.progress, at) };
+  const restoreTimer = (skillId: SkillId, snapshot: RechargeTimerSnapshot, at: number): RechargeTimer =>
+    snapshot.kind === 'fixed'
+      ? fixedTimer(at + snapshot.remaining)
+      : workTimer(requireSkill(skillId), restoreWork(snapshot.progress, at));
+
   return Object.freeze({
-    // Live formula queries settle only this magazine and retain their unrounded deadline comparison.
+    // Live formula reads settle only the requested pool and retain unrounded deadline comparisons.
     isOnCooldown(id: SkillId, at = clock.time) {
       if (at !== clock.time) throw new RangeError('Live cooldown queries must use the current clock.');
 
+      const ammo = ammoPools.get(id);
+
+      if (ammo) {
+        settleAmmo(ammo, at);
+        return (ammoReadyAt(ammo, at) ?? 0) > at;
+      }
+
+      const timer = timers.get(id);
       const skill = skillFor(id);
-
-      if (skill && ammoPools.has(id)) refreshAmmo(skill, at);
-
-      const progress = rechargeProgress.get(id);
-      // Same-timestamp summon boon changes must be visible before the next clock refresh.
-      const readyAt =
-        skill && progress && hasVariableRechargeRate(skill)
-          ? project(skill, progress)
-          : (readyAtBySkillId.get(id) ?? 0);
-      return readyAt > at;
+      return timer ? (skill ? liveDeadline(skill, timer) : deadline(timer)) > at : false;
     },
-    readyAt: (id: SkillId) => readyAtBySkillId.get(id),
-    hasCooldown: (id: SkillId) => readyAtBySkillId.has(id),
-    readAmmo: (id: SkillId) => ammoPools.get(id),
+    readyAt,
+    hasCooldown: (id: SkillId) => readyAt(id) !== undefined,
+    readAmmo(id: SkillId) {
+      const ammo = ammoPools.get(id);
+      return ammo ? observeAmmo(ammo) : undefined;
+    },
     hasAmmo: (id: SkillId) => ammoPools.has(id),
-    rechargeFor: (id: SkillId) => rechargeProgress.get(id),
-    cooldownSkillIds: () => readyAtBySkillId.keys(),
+    rechargeFor(id: SkillId) {
+      const timer = timers.get(id);
+      return timer?.kind === 'work' ? timer.progress : undefined;
+    },
+    *cooldownSkillIds() {
+      for (const id of timers.keys()) if (!ammoPools.has(id)) yield id;
+      for (const [id, ammo] of ammoPools) if (ammoReadyAt(ammo, clock.time) !== undefined) yield id;
+    },
     ammoSkillIds: () => ammoPools.keys(),
     retireAmmo(id: SkillId) {
-      // The cooldown entry of an ammo skill mirrors its pool, so retiring the pool drops that deadline and lockout too.
       ammoPools.delete(id);
       clear(id);
     },
     linkAmmo(sourceId: SkillId, targetId: SkillId) {
-      // Alternate skill identities intentionally share one magazine and queue, rather than copying charge counts.
       const ammo = ammoPools.get(sourceId);
 
-      if (ammo) ammoPools.set(targetId, ammo);
+      if (!ammo || sourceId === targetId) return;
+
+      const target = requireSkill(targetId);
+
+      // Linked faces may select different work at acceptance, but their running work must use the same rate policy.
+      if (
+        Boolean(ammo.skill.rechargeIgnoresAlacrity) !== Boolean(target.rechargeIgnoresAlacrity) ||
+        (ammo.skill.rechargeBuffAudience === RECIPIENT.SUMMONS) !== (target.rechargeBuffAudience === RECIPIENT.SUMMONS)
+      ) {
+        throw new Error(`Cannot link ammo with different recharge policies: ${sourceId}, ${targetId}`);
+      }
+
+      ammoPools.set(targetId, ammo);
     },
     replaceSkillRecharge(skill: Skill, work: number, at: number) {
-      // Mechanics may replace availability recharge while the controller preserves spent charge queues.
       const ammo = ammoPools.get(skill.id);
 
-      if (ammo) {
-        ammo.lockoutReadyAt = 0;
-        delete ammo.lockoutProgress;
-        setAmmoLockout(skill, work, at);
-      } else startRecharge(skill, at, work);
+      if (ammo) ammo.lockout = workTimer(ammo.skill, { workAnchorAt: at, work: Math.max(0, work) });
+      else startRecharge(skill, at, work);
     },
     reserveAmmo(skill: Skill, count: number, recharge: RechargeProgress) {
       const ammo = ammoPools.get(skill.id);
@@ -349,8 +385,8 @@ export function createCooldownController({
       ammo.charges -= reserved;
       for (let index = 0; index < reserved; index++) ammo.recharges.push({ ...recharge });
 
-      // Acceptance may precede the recharge anchor; only the live clock can settle existing timers.
-      if (reserved) refreshAmmo(skill, clock.time);
+      // Acceptance precedes future recharge anchors; only the live clock may settle existing rounds.
+      if (reserved) settleAmmo(ammo, clock.time);
 
       return reserved;
     },
@@ -362,49 +398,53 @@ export function createCooldownController({
       ammo.maximum = maximum;
       ammo.charges = charges;
       ammo.recharges = recharges.map((progress) => ({ ...progress }));
-      ammo.nextRechargeAt = ammo.recharges.length ? project(skill, ammo.recharges[0]!) : null;
     },
     checkpoint(
       at: number,
       preservedCooldownIds: ReadonlySet<SkillId>,
       independentCooldownId: SkillId
     ): RechargeCheckpoint {
-      // Capture work without advancing clocks; only the front queued charge has earned elapsed recharge.
-      return {
-        remainingCooldowns: new Map(
-          [...readyAtBySkillId]
-            .filter(([id]) => id !== independentCooldownId && !preservedCooldownIds.has(id))
-            .map(([id, ready]) => [id, ready - at])
-        ),
-        remainingRechargeWork: new Map(
-          [...rechargeProgress].flatMap(([id, progress]) => {
-            const skill = skillFor(id);
-            return skill && !preservedCooldownIds.has(id) && gw2CooldownReadyAt(project(skill, progress)) > at
-              ? [[id, remaining(skill, progress, at)] as const]
-              : [];
-          })
-        ),
-        ammo: new Map(
-          [...ammoPools].map(([id, ammo]) => {
-            const skill = skillFor(id);
-            return [
-              id,
-              {
-                charges: ammo.charges,
-                maximum: ammo.maximum,
-                pendingRechargeWork: ammo.recharges.map((progress, index) =>
-                  index > 0 ? progress.work : remaining(skill!, progress, at)
-                ),
-                ...(ammo.lockoutProgress && gw2CooldownReadyAt(ammo.lockoutReadyAt ?? 0) > at && skill
-                  ? { pendingLockoutWork: remaining(skill, ammo.lockoutProgress, at) }
-                  : {}),
-                nextRechargeRemaining: ammo.nextRechargeAt == null ? null : Math.max(0, ammo.nextRechargeAt - at),
-                lockoutRemaining: Math.max(0, (ammo.lockoutReadyAt ?? 0) - at)
-              }
-            ];
-          })
-        )
-      };
+      if (preservedCooldownIds.has(independentCooldownId))
+        throw new Error('Independent and preserved cooldowns must be disjoint.');
+
+      const capturedTimers = new Map<SkillId, RechargeTimerSnapshot>();
+      for (const [id, timer] of timers) {
+        if (id === independentCooldownId || preservedCooldownIds.has(id)) continue;
+
+        const ready = timer.kind === 'work' ? liveDeadline(requireSkill(id), timer) : deadline(timer);
+
+        if (gw2CooldownReadyAt(ready) > at) capturedTimers.set(id, snapshotTimer(id, timer, at));
+      }
+
+      // Settle detached copies: capturing a future boundary must not consume live charges or advance the clock.
+      const pools: RechargeCheckpoint['pools'][number][] = [];
+      const poolIndexes = new Map<AmmoPool, number>();
+      const ammoBindings = new Map<SkillId, number>();
+      for (const [id, ammo] of ammoPools) {
+        let index = poolIndexes.get(ammo);
+
+        if (index === undefined) {
+          index = pools.length;
+          poolIndexes.set(ammo, index);
+          const settled = { ...ammo, recharges: ammo.recharges.map((progress) => ({ ...progress })) };
+          settleAmmo(settled, at);
+          pools.push({
+            skillId: ammo.skill.id,
+            charges: settled.charges,
+            maximum: settled.maximum,
+            recharges: settled.recharges.map((progress, position) =>
+              snapshotWork(ammo.skill, progress, at, position === 0)
+            ),
+            ...(ammo.lockout && gw2CooldownReadyAt(liveDeadline(ammo.skill, ammo.lockout)) > at
+              ? { lockout: snapshotTimer(ammo.skill.id, ammo.lockout, at) }
+              : {})
+          });
+        }
+
+        ammoBindings.set(id, index);
+      }
+
+      return { timers: capturedTimers, pools, ammoBindings };
     },
     restoreCheckpoint(
       checkpoint: RechargeCheckpoint,
@@ -412,54 +452,54 @@ export function createCooldownController({
       preservedCooldownIds: ReadonlySet<SkillId>,
       deadlines: readonly { readonly skillId: SkillId; readonly readyAt: number }[]
     ) {
-      // Restore relative work/deadlines atomically before reprojecting against the current recharge rate.
-      const preservedCooldowns = [...readyAtBySkillId].filter(([id]) => preservedCooldownIds.has(id));
-      const progress = [...rechargeProgress].filter(([id]) => preservedCooldownIds.has(id));
-      readyAtBySkillId.clear();
-      for (const [id, ready] of preservedCooldowns) readyAtBySkillId.set(id, ready);
-      for (const [id, duration] of checkpoint.remainingCooldowns)
-        if (duration > 0) readyAtBySkillId.set(id, at + duration);
-      for (const deadline of deadlines) readyAtBySkillId.set(deadline.skillId, deadline.readyAt);
-      rechargeProgress.clear();
-      for (const [id, value] of progress) rechargeProgress.set(id, value);
-      // Restored work must publish its deadline now; constant-rate timers no longer reproject during refresh.
-      for (const [id, work] of checkpoint.remainingRechargeWork) {
-        const restored = { workAnchorAt: at, work };
-        rechargeProgress.set(id, restored);
-        const skill = skillFor(id);
-
-        if (skill) readyAtBySkillId.set(id, project(skill, restored));
+      // Build authoritative objects before publishing; preserved timers and explicit deadlines have unambiguous precedence.
+      if (deadlines.some(({ skillId }) => preservedCooldownIds.has(skillId))) {
+        throw new Error('Independent and preserved cooldowns must be disjoint.');
       }
 
+      const restoredTimers = new Map([...timers].filter(([id]) => preservedCooldownIds.has(id)));
+      const independentIds = new Set(deadlines.map(({ skillId }) => skillId));
+      for (const [id, snapshot] of checkpoint.timers) {
+        if (!preservedCooldownIds.has(id) && !independentIds.has(id))
+          restoredTimers.set(id, restoreTimer(id, snapshot, at));
+      }
+
+      for (const { skillId, readyAt: ready } of deadlines) restoredTimers.set(skillId, fixedTimer(ready));
+      const pools = checkpoint.pools.map((snapshot): AmmoPool => {
+        const pool: AmmoPool = {
+          skill: requireSkill(snapshot.skillId),
+          charges: snapshot.charges,
+          maximum: snapshot.maximum,
+          recharges: snapshot.recharges.map((progress) => restoreWork(progress, at)),
+          ...(snapshot.lockout ? { lockout: restoreTimer(snapshot.skillId, snapshot.lockout, at) } : {})
+        };
+        settleAmmo(pool, at);
+        return pool;
+      });
+      const bindings = new Map<SkillId, AmmoPool>();
+      for (const [id, index] of checkpoint.ammoBindings) {
+        const pool = pools[index];
+
+        if (!pool) throw new Error(`Missing checkpoint ammo pool ${index}`);
+
+        bindings.set(id, pool);
+      }
+
+      timers.clear();
+      for (const [id, timer] of restoredTimers) timers.set(id, timer);
       ammoPools.clear();
-      for (const [id, ammo] of checkpoint.ammo)
-        ammoPools.set(id, {
-          charges: ammo.charges,
-          maximum: ammo.maximum,
-          recharges: ammo.pendingRechargeWork.map((work) => ({ workAnchorAt: at, work })),
-          ...(ammo.pendingLockoutWork == null
-            ? {}
-            : { lockoutProgress: { workAnchorAt: at, work: ammo.pendingLockoutWork } }),
-          nextRechargeAt: ammo.nextRechargeRemaining == null ? null : at + ammo.nextRechargeRemaining,
-          lockoutReadyAt: ammo.lockoutRemaining > 0 ? at + ammo.lockoutRemaining : 0
-        });
+      for (const [id, pool] of bindings) ammoPools.set(id, pool);
     },
     retireCompanion(companionId: string, at: number) {
-      // Freeze remaining pet work at the normal rate; no discarded boon history is needed after retirement.
-      for (const [id, progress] of rechargeProgress) {
-        if (progress.companionId !== companionId) continue;
-
-        const skill = skillFor(id);
-
-        if (!skill) throw new Error(`Missing recharging companion skill ${id}`);
-
-        setReadyAt(id, at + remaining(skill, progress, at));
+      // Freeze remaining pet work at the normal rate before its received-boon history is discarded.
+      for (const [id, timer] of timers) {
+        if (timer.kind === 'work' && timer.progress.companionId === companionId) {
+          setReadyAt(id, at + remaining(requireSkill(id), timer.progress, at));
+        }
       }
     },
     resetAll() {
-      // Discard every skill's deadline, recharge work, and ammo lockout so no old queue survives the reset.
-      readyAtBySkillId.clear();
-      rechargeProgress.clear();
+      timers.clear();
       ammoPools.clear();
     },
     startRecharge,
@@ -470,22 +510,25 @@ export function createCooldownController({
     project,
     remaining,
     refresh(at: number) {
-      // Retain completed progress for mechanic consumers while skipping constant-rate projection work.
-      for (const [id, progress] of rechargeProgress) {
+      // Keep completed ordinary work for mechanics, reuse constant-rate caches, and settle each shared pool once.
+      for (const [id, timer] of timers) {
         const skill = skillFor(id);
 
-        if (skill && hasVariableRechargeRate(skill)) readyAtBySkillId.set(id, project(skill, progress));
+        if (timer.kind === 'work' && skill && hasVariableRechargeRate(skill))
+          timer.projectedReadyAt = project(skill, timer.progress);
       }
 
-      for (const id of ammoPools.keys()) {
-        const skill = skillFor(id);
-
-        if (skill) refreshAmmo(skill, at);
-      }
+      for (const ammo of new Set(ammoPools.values())) settleAmmo(ammo, at);
     },
-    ensureAmmo,
+    ensureAmmo(skill: Skill) {
+      const ammo = ensurePool(skill);
+      return ammo ? observeAmmo(ammo) : null;
+    },
+    refreshAmmo(skill: Skill, at: number) {
+      const ammo = refreshPool(skill, at);
+      return ammo ? observeAmmo(ammo) : null;
+    },
     reduceSkillRecharge,
-    refreshAmmo,
     restoreAmmo,
     setAmmoLockout,
     spendAmmo

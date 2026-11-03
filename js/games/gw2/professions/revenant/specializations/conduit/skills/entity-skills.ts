@@ -55,11 +55,7 @@ export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCas
       0,
       skillNumberFromContext(runtime, ID.BEGUILING_HAZE_FOLLOW_UP, 'maximumStacks')
     );
-    state.beguilingHazeRecharge = structuredClone(
-      runtime.cooldownController.rechargeFor(skill.id) ??
-        runtime.cooldownController.readAmmo(skill.id)?.recharges[0] ??
-        null
-    );
+    state.beguilingHazeRecharge = structuredClone(runtime.cooldownController.readAmmo(skill.id)?.recharges[0] ?? null);
     state.beguilingHazeReadyAt =
       runtime.cooldownController.readyAt(skill.id) ??
       runtime.cooldownController.readAmmo(skill.id)?.nextRechargeAt ??
@@ -72,7 +68,6 @@ export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCas
 
   if (state.beguilingHazeCharges > 0) {
     runtime.cooldownController.replaceAmmoCharges(skill, state.beguilingHazeCharges, state.beguilingHazeCharges, []);
-    runtime.cooldownController.clear(skill.id);
   } else {
     if (!state.beguilingHazeRecharge) throw new Error('Beguiling Haze follow-ups require a main-cast recharge.');
 

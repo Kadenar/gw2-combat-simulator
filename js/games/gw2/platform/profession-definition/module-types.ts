@@ -62,7 +62,6 @@ export interface NativeModuleDefinition<
   TState extends object,
   TProjectOptions extends object,
   TProjectedState extends object,
-  TModifiers extends ProfessionModifierDefinition,
   TPresentation extends object,
   TSkill extends Skill = Skill
 > {
@@ -75,7 +74,7 @@ export interface NativeModuleDefinition<
   /** Skill passives and intrinsic mechanics share the trait attribute evaluator without pretending to be traits. */
   readonly attributes?: Gw2AttributeContributionCalculator;
   /** Declarative modifier rules, optionally accompanied by shared damage-bucket policies. */
-  readonly modifiers?: readonly Gw2ModifierRule[] | TModifiers;
+  readonly modifiers?: readonly Gw2ModifierRule[] | ProfessionModifierDefinition;
   /** Runtime hooks execute against the single chronological owner. */
   readonly hooks?: NativeModuleHooks<TSkill>;
   readonly presentation?: TPresentation | ((catalog: Readonly<CanonicalCatalog<TSkill>>) => TPresentation);
@@ -86,11 +85,10 @@ export interface NativeModule<
   TState extends object = object,
   TProjectOptions extends object = object,
   TProjectedState extends object = object,
-  TModifiers extends ProfessionModifierDefinition = object,
   TPresentation extends object = object,
   TSkill extends Skill = Skill
 > extends Omit<
-  NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TModifiers, TPresentation, TSkill>,
+  NativeModuleDefinition<TId, TState, TProjectOptions, TProjectedState, TPresentation, TSkill>,
   'modifiers'
 > {
   readonly kind: 'native-profession-module';
@@ -104,7 +102,6 @@ export type AnyNativeModule<TId extends string = string, TSkill extends Skill = 
   TId,
   object,
   never,
-  object,
   object,
   object,
   TSkill

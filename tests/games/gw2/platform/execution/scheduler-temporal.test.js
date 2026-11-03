@@ -44,17 +44,18 @@ test('ammo charges recover sequentially and partial restoration preserves active
 
     if (reload) {
       assert.equal(controller.restoreAmmo(skill, 1, 5), 1);
-      assert.equal(ammo.charges, 1);
-      assert.deepEqual(ammo.recharges, [{ workAnchorAt: 0.6, work: 20 }]);
-      assert.equal(ammo.nextRechargeAt, 16.6);
+      const restored = controller.readAmmo(skill.id);
+      assert.equal(restored.charges, 1);
+      assert.deepEqual(restored.recharges, [{ workAnchorAt: 0.6, work: 20 }]);
+      assert.equal(restored.nextRechargeAt, 16.6);
     }
 
     assert.equal(controller.refreshAmmo(skill, 16.599).charges, reload ? 1 : 0);
     assert.equal(controller.refreshAmmo(skill, 16.6).charges, reload ? 2 : 1);
-    assert.equal(ammo.nextRechargeAt, reload ? null : 32.6);
+    assert.equal(controller.readAmmo(skill.id).nextRechargeAt, reload ? null : 32.6);
     assert.equal(controller.refreshAmmo(skill, 17.6).charges, reload ? 2 : 1);
     assert.equal(controller.refreshAmmo(skill, 32.6).charges, 2);
-    assert.deepEqual(ammo.recharges, []);
+    assert.deepEqual(controller.readAmmo(skill.id).recharges, []);
   }
 });
 

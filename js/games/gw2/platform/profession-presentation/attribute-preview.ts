@@ -54,7 +54,7 @@ export interface ProfessionAttributePreviewPreparation extends ProfessionAttribu
   readonly config: Gw2Config;
   readonly professionState: unknown;
   readonly events: SimulationEvent[];
-  /** Seed an owner-selected buff in both the isolated store and its observation history. */
+  /** Author one detached buff event; application stores are derived after all preview preparation completes. */
   readonly addBuff: (kind: string, stacks: number, name: string) => void;
   /** Suppress a selected skill's ready-state passive without removing it from the detached loadout. */
   readonly setSkillOnCooldown: (skillId: SkillId) => void;

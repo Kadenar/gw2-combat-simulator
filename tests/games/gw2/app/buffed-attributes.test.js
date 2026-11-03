@@ -5,8 +5,10 @@ import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/bui
 import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
+import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
+import { latestRadiantArmaments } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { MESMER_SKILL_IDS as MESMER_SKILL } from '#gw2/professions/mesmer/data/ids.js';
 
 const adapters = {};
@@ -72,6 +74,78 @@ function previewApp(name, traitNames = [], specialization = null) {
 
 const stats = (app, input = {}) => calculateBuffedAttributes(app, input).attributes;
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, actual + ' != ' + expected);
+
+// Preparation owns the final assumptions; repeated grants replace rather than accumulate in either effect store.
+test('preview grants use the final prepared stacks, audience and expiry without leaking into later queries', () => {
+  const app = previewApp('mesmer', ["Fencer's Finesse"]);
+  const profession = app.profession;
+  const kind = attributeEffectControls(app).find((control) => control.key === 'fencer').field;
+  const base = stats(app);
+  const saved = structuredClone({ build: app.build, attributes: app.attributeData });
+  for (const visibility of ['active', 'other-recipient', 'expired']) {
+    app.profession = {
+      ...profession,
+      ui: {
+        ...profession.ui,
+        prepareAttributePreview(context) {
+          profession.ui.prepareAttributePreview(context);
+          context.addBuff('might', 5, 'Earlier Might');
+          context.addBuff('might', 2, 'Replacement Might');
+          context.addBuff(kind, 2, 'Replacement Finesse');
+          const replacement = context.events.at(-1);
+
+          if (visibility === 'other-recipient') replacement.resolvedAudience.includesSelf = false;
+
+          if (visibility === 'expired') replacement.duration = 1;
+        }
+      }
+    };
+    const current = stats(app, { fencer: 5 });
+    assert.equal(current.Power.final, base.Power.final + 60);
+    assert.equal(current.Ferocity.final, base.Ferocity.final + (visibility === 'active' ? 30 : 0));
+    assert.deepEqual({ build: app.build, attributes: app.attributeData }, saved);
+  }
+
+  app.profession = profession;
+  assert.equal(stats(app).Ferocity.final, base.Ferocity.final);
+  assert.equal(stats(app).Power.final, base.Power.final);
+});
+
+// Metadata-dependent rules must see the same replacement grant as ordinary stack queries.
+test('preview applications retain the final grant metadata for profession queries', () => {
+  const app = previewApp('guardian');
+  const profession = app.profession;
+  const kind = 'guardian-radiant-armaments';
+  let observation;
+  app.profession = {
+    ...profession,
+    ui: {
+      ...profession.ui,
+      prepareAttributePreview(context) {
+        profession.ui.prepareAttributePreview(context);
+        context.addBuff(kind, 1, 'Earlier Armament');
+        context.events.at(-1).metadata = { radiantWeapon: 'hammer' };
+        context.addBuff(kind, 1, 'Replacement Armament');
+        context.events.at(-1).metadata = { radiantWeapon: 'staff' };
+      }
+    },
+    resolveProfession(config) {
+      const selected = profession.resolveProfession(config);
+      return {
+        ...selected,
+        modifyAttributes(context, attributes) {
+          observation = {
+            stacks: activeBuffStacks(context, kind),
+            weapon: latestRadiantArmaments(context)?.metadata?.radiantWeapon
+          };
+          return selected.modifyAttributes(context, attributes);
+        }
+      };
+    }
+  };
+  stats(app);
+  assert.deepEqual(observation, { stacks: 1, weapon: 'staff' });
+});
 
 // Titanic augments selected Might; Evolve scales its static pool independently of temporary boon attributes.
 test('Amalgam previews Titanic Might scaling and both Evolve variants without changing the build', () => {
