@@ -1592,6 +1592,6 @@
   "metadata": {
     "log": "https://dps.report/19d1-20260414-205010_golem",
     "benchmarkDurationSeconds": 114.968,
-    "timingSource": "Report combat-relative cast starts rounded to 40 ms. Existing manual preparations retained; final activation clipped to the recorded encounter end. See docs/audits/RANGER-AXE-ROTATION-TIMING.md for reconstruction evidence and limitations."
+    "timingSource": "Report combat-relative cast starts rounded to 40 ms. Existing manual preparations retained; final activation clipped to the recorded encounter end."
   }
 }

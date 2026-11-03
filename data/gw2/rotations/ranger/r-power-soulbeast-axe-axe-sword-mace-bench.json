@@ -4,7 +4,7 @@
     "benchmarkDurationSeconds": 94.688,
     "benchmarkDamage": 3991548,
     "benchmarkDps": 42154.73977695167,
-    "timingSource": "Report combat-relative cast starts rounded to 40 ms. Existing manual preparations retained; final activation clipped to the recorded encounter end. See docs/audits/RANGER-AXE-ROTATION-TIMING.md for reconstruction evidence and limitations.",
+    "timingSource": "Report combat-relative cast starts rounded to 40 ms. Existing manual preparations retained; final activation clipped to the recorded encounter end.",
     "openerNotes": "Frost Trap and One Wolf Pack precasts are restored from the guide. The precast wait and instant Sic Em during Path of Scars reproduce the opening stance and shout expiry windows.",
     "equipmentNotes": "Axe-Axe uses Force/Air as recorded by Lightning Strike procs; Sword-Mace uses Force/Impact. The current Snow Crows page lists Force/Impact on both sets."
   },

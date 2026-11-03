@@ -24,14 +24,15 @@ export function relicDamageSummary(
 /** Ignore volatile opener crossovers that do not represent a useful fight-duration decision. */
 export const CROSSOVER_EVALUATION_START_MS = 8000;
 
-/** A comparison needs two distinct, selected relics. */
+/** Availability depends only on distinct selections and a supported alternative, without preparing combat inputs. */
 export function relicComparisonAvailable(
   equippedRelic: string | null | undefined,
-  targetRelic: string | null | undefined
+  targetRelic: string | null | undefined,
+  relicNames: readonly string[]
 ): boolean {
   const opponent = String(equippedRelic || '');
   const target = String(targetRelic || '');
-  return Boolean(opponent && target && opponent !== target);
+  return Boolean(opponent && target && opponent !== target && relicNames.includes(target));
 }
 
 export interface RelicComparisonPoint {

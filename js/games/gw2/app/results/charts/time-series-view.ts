@@ -169,7 +169,7 @@ function healthBreakpointMarkers(
 }
 
 function fightPhases(series: ChartSeries, markers: readonly ChartMarker[], options: ChartOptions): ChartFightPhase[] {
-  const cumulativeDamage = series.cumulativeDamage || [];
+  const cumulativeDamage = series.cumulativeDamage;
   const finalDamage = Number(cumulativeDamage.at(-1)?.v);
   const boundaries = new Map<number, { readonly timeMs: number; readonly damage: number }>([
     [options.targetStartingHealthPercent, { timeMs: 0, damage: 0 }]
@@ -236,13 +236,7 @@ function dpsViewForPhase(series: ChartSeries, markers: readonly ChartMarker[], p
 
   return {
     durationMs: phase.endMs - phase.startMs,
-    dps: buildPhaseDpsSeries(
-      series.cumulativeDamage || [],
-      phase.startMs,
-      phase.endMs,
-      phase.startDamage,
-      phase.endDamage
-    ),
+    dps: buildPhaseDpsSeries(series.cumulativeDamage, phase.startMs, phase.endMs, phase.startDamage, phase.endDamage),
     markers: markers
       .filter((marker) => marker.timeMs >= phase.startMs && marker.timeMs <= phase.endMs)
       .map((marker) => ({
@@ -717,12 +711,8 @@ export function mountTimeSeriesCharts(
     effectSummaries: series?.effectSummaries || {},
     boonGeneration: series?.boonGeneration || {},
     alliedPlayerCount: series?.alliedPlayerCount || 0,
-    cumulativeDamage:
-      series?.cumulativeDamage ||
-      resolvedDps.map((point) => ({
-        t: point.t,
-        v: Number(point.v) * (Number(point.t) / 1000)
-      }))
+    // The model owns cumulative damage; mounting a chart never reconstructs it from sampled DPS.
+    cumulativeDamage: series.cumulativeDamage
   };
   const resolvedOptions: ChartOptions = {
     ...DEFAULT_OPTIONS,
@@ -834,7 +824,7 @@ export function mountTimeSeriesCharts(
 
     const cumulativeDamage =
       activePhase.id === 'full'
-        ? resolvedSeries.cumulativeDamage!
+        ? resolvedSeries.cumulativeDamage
         : dpsView.dps.map((point) => ({ t: point.t, v: (point.v * point.t) / 1000 }));
     for (const panel of panels) {
       const title = container.querySelector<HTMLElement>(`[data-role="${panel.kind}-panel-title"]`);

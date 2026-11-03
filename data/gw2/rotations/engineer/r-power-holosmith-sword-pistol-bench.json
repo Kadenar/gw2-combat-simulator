@@ -9,8 +9,7 @@
     "importWarnings": [
       "The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating.",
       "Interrupted cast: 8 casts were kept at the recorded shortened duration."
-    ],
-    "comparison": "docs/analysis/power-holosmith-benchmark-comparison.md"
+    ]
   },
   "rotation": [
     {

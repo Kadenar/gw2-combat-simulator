@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   buildContributionDamageSeries,
+  buildDamageSeries,
   buildPhaseDpsSeries,
   buildPhaseEffectSeries,
   buildRollingDpsSeries,
@@ -14,6 +15,108 @@ import { baseResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 
 // GW2 results preserve chart projections, result controls, and escaped event-log rendering.
+test('comparison curves preserve full-chart windows, payout histories, and bounded sample grids', () => {
+  const resolvedEvents = Object.freeze([
+    Object.freeze({ type: 'damage', at: 2.125, damage: 40 }),
+    Object.freeze({ type: 'damage', at: 1, damage: 100 }),
+    Object.freeze({ type: 'condition', at: 1, condition: 'Burning', damage: 999, damageTicks: Object.freeze([]) }),
+    Object.freeze({
+      type: 'condition',
+      at: 1,
+      condition: 'Bleeding',
+      damage: 900,
+      damageTicks: Object.freeze([
+        Object.freeze({ at: 2.25, damage: 1000 }),
+        Object.freeze({ at: 1.25, damage: 20 }),
+        Object.freeze({ at: 2.125, damage: 30 })
+      ])
+    }),
+    Object.freeze({ type: 'condition', at: 1.25, condition: 'Torment', damage: 10 })
+  ]);
+  const result = { ...effectFields([], 2.125), dpsStartTime: 1, combatEndTime: 2.125, resolvedEvents };
+  for (const sampleStepMs of [0, 1, 250, 1000, 2000]) {
+    const curves = buildDamageSeries(result, sampleStepMs);
+    const full = buildTimeSeries(result, sampleStepMs);
+    assert.deepEqual(curves, { durationMs: full.durationMs, dps: full.dps, cumulativeDamage: full.cumulativeDamage });
+    assert.equal(curves.durationMs, 1125);
+    assert.equal(curves.cumulativeDamage.at(-1).v, 200);
+    assert.equal(curves.dps.at(-1).v, 200 / 1.125);
+    assert.deepEqual(curves.dps[0], { t: 0, v: 0 });
+    assert.equal(curves.dps[1].t, sampleStepMs === 0 ? 250 : Math.min(1000, Math.max(50, sampleStepMs)));
+  }
+
+  // Empty and zero-length combat windows retain the minimum drawable span and first-hit origin fallback.
+  for (const empty of [
+    { combatEndTime: 0, resolvedEvents: [] },
+    { firstHitTime: 2, combatEndTime: 2, resolvedEvents: [] }
+  ]) {
+    const curves = buildDamageSeries(empty);
+    assert.equal(curves.durationMs, 1);
+    assert.deepEqual(curves.dps, [
+      { t: 0, v: 0 },
+      { t: 1, v: 0 }
+    ]);
+    assert.deepEqual(curves.cumulativeDamage, curves.dps);
+  }
+});
+
+// Comparison calculations must work with combat payouts alone, without touching chart-only metadata.
+test('damage curves do not read effect histories or condition inspection labels', () => {
+  const curves = buildDamageSeries({
+    dpsStartTime: 1,
+    combatEndTime: 2,
+    get effectReport() {
+      return assert.fail('Damage curves must not read effect histories');
+    },
+    resolvedEvents: [
+      {
+        type: 'condition',
+        at: 1,
+        damageTicks: [{ at: 2, damage: 50 }],
+        get condition() {
+          return assert.fail('Damage curves must not construct condition inspection records');
+        }
+      }
+    ]
+  });
+  assert.equal(curves.dps.at(-1).v, 50);
+});
+
+// Each call owns its payout buckets; zero-damage shares still explain a positive combined packet.
+test('condition inspection accumulates shares without mutating input or previously published charts', () => {
+  const event = (name, damage) =>
+    Object.freeze({
+      type: 'condition',
+      at: 1,
+      condition: 'Burning',
+      name,
+      actorType: 'player',
+      stacks: 1,
+      damageTicks: Object.freeze([Object.freeze({ at: 2, damage, fraction: 0.5 })])
+    });
+  const result = {
+    ...effectFields([], 2),
+    dpsStartTime: 1,
+    combatEndTime: 2,
+    resolvedEvents: Object.freeze([event('First', 0), event('Second', 10)])
+  };
+  const first = buildTimeSeries(result);
+  const payout = first.conditionDamage.Burning[0];
+  assert.equal(payout.v, 10);
+  assert.deepEqual(
+    payout.contributions.map(({ source, damage, fraction }) => ({ source, damage, fraction })),
+    [
+      { source: 'First', damage: 0, fraction: 0.5 },
+      { source: 'Second', damage: 10, fraction: 0.5 }
+    ]
+  );
+  Object.freeze(payout.contributions);
+  Object.freeze(payout);
+  const second = buildTimeSeries(result);
+  assert.deepEqual(second.conditionDamage, first.conditionDamage);
+  assert.notEqual(second.conditionDamage.Burning[0].contributions, payout.contributions);
+});
+
 test('shared chart lookup and series cover damage timing and configurable effects', () => {
   assert.equal(chartValueAt([], 10), 0);
   assert.equal(
@@ -186,6 +289,7 @@ test('DPS samples accumulate unordered hits and ticks without changing reporting
 test('strike and condition contributions sum to total DPS for full fights and phases', () => {
   const series = buildTimeSeries(
     {
+      ...effectFields([], 7),
       combatEndTime: 7,
       dpsStartTime: 1,
       resolvedEvents: [
@@ -206,8 +310,7 @@ test('strike and condition contributions sum to total DPS for full fights and ph
         }
       ]
     },
-    500,
-    { includeEffects: false }
+    500
   );
   assert.equal(series.damageContributions.strike.at(-1).v, 650);
   assert.equal(series.damageContributions.condition.at(-1).v, 400);

@@ -1,7 +1,7 @@
 import { enterRotationFocus } from '#browser/shell/rotation-workspace.js';
 import { bindRotationImportDialog } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { buildDamageSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import type { DamageSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { beginRotationComparison } from '#gw2/app/rotation/comparison-state.js';
 import { palettePlanningState } from '#gw2/app/rotation/context.js';
 import { openRotationInsights, renderRotationInsights } from '#gw2/app/rotation/insights/rotation-insights-view.js';
@@ -23,15 +23,16 @@ export interface RotationComparisonMetrics {
   readonly damagePercentDifference: number | null;
 }
 
-const seriesByResult = new WeakMap<Gw2SimulationResult, ReturnType<typeof buildTimeSeries>>();
+const seriesByResult = new WeakMap<Gw2SimulationResult, DamageSeries>();
 let comparisonScrollLifecycle: AbortController | null = null;
 
-function preparedSeries(result: Gw2SimulationResult): ReturnType<typeof buildTimeSeries> {
+/** Cache only the curves used by comparison metrics, without retaining chart inspection records. */
+function preparedSeries(result: Gw2SimulationResult): DamageSeries {
   const cached = seriesByResult.get(result);
 
   if (cached) return cached;
 
-  const series = buildTimeSeries(result, 250, { includeEffects: false });
+  const series = buildDamageSeries(result);
   seriesByResult.set(result, series);
   return series;
 }
@@ -58,8 +59,8 @@ export function rotationComparisonTimeMs(app: ProfessionAppState): number | null
 export function rotationComparisonMetricsFromSeries(
   referenceResult: Gw2SimulationResult,
   currentResult: Gw2SimulationResult,
-  referenceSeries: ChartSeries,
-  currentSeries: ChartSeries,
+  referenceSeries: DamageSeries,
+  currentSeries: DamageSeries,
   previewTimeMs: number | null
 ): RotationComparisonMetrics {
   // Compare preview samples only within the time span shared by both rotations.
@@ -68,13 +69,9 @@ export function rotationComparisonMetricsFromSeries(
   const referenceDps = timeMs == null ? Number(referenceResult.dps || 0) : chartValueAt(referenceSeries.dps, timeMs);
   const currentDps = timeMs == null ? Number(currentResult.dps || 0) : chartValueAt(currentSeries.dps, timeMs);
   const referenceDamage =
-    timeMs == null
-      ? Number(referenceResult.totalDamage || 0)
-      : chartValueAt(referenceSeries.cumulativeDamage || [], timeMs);
+    timeMs == null ? Number(referenceResult.totalDamage || 0) : chartValueAt(referenceSeries.cumulativeDamage, timeMs);
   const currentDamage =
-    timeMs == null
-      ? Number(currentResult.totalDamage || 0)
-      : chartValueAt(currentSeries.cumulativeDamage || [], timeMs);
+    timeMs == null ? Number(currentResult.totalDamage || 0) : chartValueAt(currentSeries.cumulativeDamage, timeMs);
 
   return {
     timeMs,

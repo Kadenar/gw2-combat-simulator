@@ -3,7 +3,7 @@ import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.j
 import type { BuildLibraryState } from '#gw2/app/build/library/state.js';
 import type { ProfessionDefaultOffhand, ProfessionIsSkillAvailable } from '#gw2/app/build/types.js';
 import type { ModifierPresentation } from '#gw2/app/modifier-reference/presentation.js';
-import type { RelicComparisonRequest, RelicComparisonResultState } from '#gw2/app/optimizer/relic-comparison/types.js';
+import type { RelicComparisonRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
 import type { ResultViewState } from '#gw2/app/results/state.js';
 import type { RotationComparisonSession } from '#gw2/app/rotation/comparison-state.js';
 import type { RotationActionOptions, RotationEditingState } from '#gw2/app/rotation/editing/state.js';
@@ -83,7 +83,7 @@ export interface ProfessionAppState
   simulationError: string;
   modifierContributionRunner: ProfessionFeatureRunner;
   randomDistributionRunner: ProfessionFeatureRunner;
-  relicComparisonRunner: ProfessionFeatureRunner;
+  relicComparisonRunner: import('#gw2/app/optimizer/relic-comparison/runner.js').RelicComparisonRunner;
   baselineSimulationRunner: {
     schedule(revision: number): void;
   };
@@ -110,11 +110,7 @@ export interface ProfessionChangeOptions {
 
 /** Combines baseline output with session state owned by each optional analysis feature. */
 export interface ProfessionAppResult
-  extends
-    BaselineSimulationResult,
-    ModifierContributionResultState,
-    RandomDistributionResultState,
-    RelicComparisonResultState {}
+  extends BaselineSimulationResult, ModifierContributionResultState, RandomDistributionResultState {}
 
 export interface ProfessionAppFilenames {
   readonly build: string;
@@ -132,7 +128,7 @@ export interface ProfessionRuntimeApi {
   readonly createBuildContext: BuildContextFactory;
   modifierContributionRequest(app: ProfessionAppState, baselineDps: number): ModifierContributionRequest;
   calculateModifierContributions(request: ModifierContributionRequest): ModifierContribution[];
-  randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest | null;
+  randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest;
   relicComparisonRequest(app: ProfessionAppState, comparisonRelic?: string): RelicComparisonRequest | null;
   calculateRandomDistribution(
     request: RandomDistributionRequest,

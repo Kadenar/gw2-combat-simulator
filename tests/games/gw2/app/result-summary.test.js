@@ -180,6 +180,7 @@ test('summary metric click-away dismissal binds before the native details click 
 // Views may display aggregate-only events, but target health must follow actual condition payouts.
 test('damage reports share packet expansion while health milestones require recorded condition payouts', () => {
   const result = {
+    ...effectFields([], 4),
     dpsStartTime: 0,
     combatEndTime: 4,
     deathTime: null,
@@ -192,7 +193,7 @@ test('damage reports share packet expansion while health milestones require reco
       { type: 'damage', at: 3, damage: 50, didCrit: true, averagedCriticalDamage: true }
     ]
   };
-  const series = buildTimeSeries(result, 250, { includeEffects: false, skillKey: (event) => event.type });
+  const series = buildTimeSeries(result, 250, { skillKey: (event) => event.type });
   assert.equal(series.cumulativeDamage.at(-1).v, 190);
   assert.equal(comparisonResult(result).damage.at(-1).v, 190);
   assert.equal(

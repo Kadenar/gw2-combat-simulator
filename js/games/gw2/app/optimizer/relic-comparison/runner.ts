@@ -1,11 +1,17 @@
 import { calculateRelicComparison } from '#gw2/app/optimizer/relic-comparison/calculate.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
+import { relicComparisonAvailable } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
+import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
+import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 
 /** Runs one user-selected relic simulation against the equipped relic already on screen. */
 export class RelicComparisonRunner {
   readonly app: ProfessionAppState;
   comparisonRelic: string;
   initialStacks: number;
+  comparison: RelicComparisonModel | null = null;
+  error = '';
+  private baseline: ProfessionAppResult | null = null;
+  private revision = -1;
   readonly onUpdate: () => void;
 
   constructor(app: ProfessionAppState, onUpdate: () => void = () => {}) {
@@ -26,75 +32,78 @@ export class RelicComparisonRunner {
         : (alternatives[0] ?? '');
   }
 
-  /** Publishes picker availability without paying for another simulation. */
-  schedule(): void {
+  /** Availability follows the active build without preparing combat inputs or storing another copy on results. */
+  get available(): boolean {
     const app = this.app;
+    return Boolean(
+      app.results &&
+      app.build.rotation.length &&
+      relicComparisonAvailable(app.build.relic, this.comparisonRelic, app.relicNames)
+    );
+  }
 
-    const results = app.results;
+  /** Shared controls survive tab switches and baseline replacement; edits discard the previous calculation. */
+  select(comparisonRelic: string, initialStacks: number): boolean {
+    const relic = this.selectedComparisonRelic(comparisonRelic);
+    const stacks = Math.min(10, Math.max(0, Math.trunc(Number(initialStacks) || 0)));
 
-    if (!results) return;
+    const changed = relic !== this.comparisonRelic || stacks !== this.initialStacks;
 
-    this.comparisonRelic = this.selectedComparisonRelic();
-    const request = app.build.rotation.length ? app.adapter.relicComparisonRequest(app, this.comparisonRelic) : null;
+    if (changed) this.invalidate();
 
-    if (!request) {
-      results.relicComparisonAvailable = false;
-      results.relicComparisonError = '';
-      results.relicComparison = undefined;
-      results.relicComparisonOpponent = '';
-      results.relicComparisonTarget = '';
-      return;
-    }
+    this.comparisonRelic = relic;
+    this.initialStacks = stacks;
+    return changed;
+  }
 
-    results.relicComparisonAvailable = true;
-    results.relicComparisonInitialStacks = this.initialStacks;
-    results.relicComparisonError = '';
+  private invalidate(): void {
+    this.comparison = null;
+    this.error = '';
+    this.baseline = null;
+    this.revision = -1;
+  }
+
+  /** Only the baseline and revision that produced the output may display it, including cached-tab restoration. */
+  schedule(): void {
+    this.select(this.comparisonRelic, this.initialStacks);
 
     if (
-      results.relicComparison &&
-      (results.relicComparison.equippedRelic !== request.equippedRelic ||
-        results.relicComparison.targetRelic !== request.comparisonRelic)
-    ) {
-      results.relicComparison = undefined;
-    }
-
-    results.relicComparisonOpponent = request.equippedRelic;
-    results.relicComparisonTarget = request.comparisonRelic;
+      !this.available ||
+      this.baseline !== this.app.results ||
+      this.revision !== this.app.buildRevision ||
+      this.app.resultRevision !== this.app.buildRevision ||
+      (this.comparison && this.comparison.equippedRelic !== this.app.build.relic)
+    )
+      this.invalidate();
   }
 
   /** Applies each relic's configured assumptions to its comparison simulation. */
   run(comparisonRelic: string = this.comparisonRelic, initialStacks: number = this.initialStacks): void {
     const app = this.app;
 
+    this.select(comparisonRelic, initialStacks);
+    this.invalidate();
     const results = app.results;
 
-    if (!results) return;
-
-    this.comparisonRelic = this.selectedComparisonRelic(String(comparisonRelic || ''));
-    this.initialStacks = Math.min(10, Math.max(0, Math.trunc(Number(initialStacks) || 0)));
-    results.relicComparisonInitialStacks = this.initialStacks;
-    const request = app.build.rotation.length ? app.adapter.relicComparisonRequest(app, this.comparisonRelic) : null;
-
-    if (!request) {
-      this.schedule();
+    if (!results || !this.available || app.resultRevision !== app.buildRevision || app.simulationStatus !== 'idle') {
       this.onUpdate();
       return;
     }
 
-    results.relicComparisonAvailable = true;
-    results.relicComparisonError = '';
-    results.relicComparisonOpponent = request.equippedRelic;
-    results.relicComparisonTarget = request.comparisonRelic;
+    this.baseline = results;
+    this.revision = app.buildRevision;
 
     // Finish this lightweight comparison on the calling thread, with no pending job or cloned baseline.
     try {
-      results.relicComparison = calculateRelicComparison(
-        { ...request, baselineResult: results, initialStacks: this.initialStacks },
-        app.profession
-      );
+      const request = app.adapter.relicComparisonRequest(app, this.comparisonRelic);
+
+      if (request)
+        this.comparison = calculateRelicComparison(
+          { ...request, baselineResult: results, initialStacks: this.initialStacks },
+          app.profession
+        );
     } catch (error) {
-      results.relicComparisonError =
-        error instanceof Error ? error.message : String(error || 'Relic comparison failed.');
+      this.error = error instanceof Error ? error.message : String(error || 'Relic comparison failed.');
     }
 
     this.onUpdate();

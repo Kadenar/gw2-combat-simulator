@@ -10,6 +10,7 @@ import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { calculateContributionBatch } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
+import { DEFAULT_RANDOM_DISTRIBUTION_TRIALS } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
@@ -232,6 +233,7 @@ test('build edits cancel prior analysis even when browser storage rejects writes
     adapter,
     randomDistributionRunner: { cancel: () => cancelled.push('random') },
     modifierContributionRunner: { cancel: () => cancelled.push('modifiers') },
+    relicComparisonRunner: { schedule() {} },
     baselineSimulationRunner: {
       schedule(revision) {
         scheduledRevision = revision;
@@ -872,6 +874,105 @@ test('modifier worker batches ignore superseded responses and terminate on compl
   assert.equal(runner.isRunning, false);
 });
 
+// Idle refreshes invalidate old work without preparing inputs; requested runs capture inputs before their timer.
+test('RNG availability skips preparation and cancels old jobs while runs capture the current rotation', (t) => {
+  const originals = ['Worker', 'navigator'].map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
+  t.after(() => {
+    for (const [key, descriptor] of originals) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else delete globalThis[key];
+    }
+  });
+  const timers = [];
+  t.mock.method(globalThis, 'setTimeout', (callback) => {
+    timers.push(callback);
+    return timers.length;
+  });
+  t.mock.method(globalThis, 'clearTimeout', () => {});
+  const workers = [];
+  class PendingWorker {
+    listeners = new Map();
+    constructor() {
+      workers.push(this);
+    }
+    addEventListener(type, listener) {
+      this.listeners.set(type, listener);
+    }
+    postMessage(message) {
+      this.message = message;
+    }
+    terminate() {
+      this.terminated = true;
+    }
+  }
+  Object.defineProperty(globalThis, 'Worker', { configurable: true, value: PendingWorker });
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { hardwareConcurrency: 2 } });
+  const prepared = [];
+  const runtime = createProfessionRuntime({
+    profession: { id: 'test', catalog: { specializations: [] } },
+    createBuildContext(input) {
+      prepared.push(input);
+      return { simulationConfig: () => ({ randomness: { mode: 'deterministic' } }) };
+    }
+  });
+  const results = {};
+  const app = {
+    build: { rotation: [{ type: 'wait', durationMs: 10 }] },
+    patch: { id: 'preview', values: { test: 2 } },
+    results,
+    adapter: { ...runtime, presentation: testPresentation(() => assert.fail('Canceled job rendered')) }
+  };
+  const runner = new RandomDistributionRunner(app);
+  runner.schedule();
+  assert.equal(prepared.length, 0);
+  assert.equal(timers.length, 0);
+  assert.equal(results.randomDistributionRequested, true);
+  assert.equal(results.randomDistributionStale, false);
+  assert.equal(results.randomDistributionTrials, DEFAULT_RANDOM_DISTRIBUTION_TRIALS);
+  assert.deepEqual(results.randomDistributionProgress, {
+    completed: 0,
+    total: DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
+    percent: 0
+  });
+
+  app.build.rotation = [];
+  runner.schedule(true);
+  assert.equal(results.randomDistributionRequested, false);
+  app.results = null;
+  runner.schedule(true);
+  assert.equal(prepared.length, 0);
+
+  app.results = results;
+  app.build.rotation = [{ type: 'wait', durationMs: 10 }];
+  runner.schedule(true);
+  assert.equal(prepared.length, 1, 'request preparation happens before deferred execution');
+  assert.equal(prepared[0].patch, app.patch);
+  app.build.rotation[0].durationMs = 20;
+  timers.shift()();
+  assert.equal(workers.length, 1);
+  const worker = workers[0];
+  assert.deepEqual(worker.message.request.rotation, [{ type: 'wait', durationMs: 10 }]);
+  assert.equal(worker.message.request.baseConfig.randomness.mode, 'stochastic');
+
+  runner.schedule();
+  assert.equal(prepared.length, 1, 'idle replacement must not prepare another configuration');
+  assert.equal(worker.terminated, true);
+  assert.equal(runner.isRunning, false);
+  worker.listeners.get('message')({
+    data: { requestId: worker.message.requestId, outcomes: [{ dps: 100, metrics: [] }] }
+  });
+  worker.listeners.get('message')({ data: { requestId: worker.message.requestId, error: 'Late error' } });
+  assert.equal(results.randomDistribution, undefined);
+  assert.equal(results.randomDistributionError, '');
+  assert.equal(results.randomDistributionStale, false);
+
+  runner.schedule(true);
+  runner.schedule();
+  timers.shift()();
+  assert.equal(workers.length, 1, 'idle refresh also cancels a run whose timer has not fired');
+  assert.equal(prepared.length, 2);
+});
+
 test('RNG worker errors preserve the ErrorEvent cause', (t) => {
   runTimersImmediately(t);
   const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
@@ -1032,7 +1133,7 @@ function minimalResult(damageAt1s) {
   };
 }
 
-test('relic comparison scheduling publishes availability without simulating', () => {
+test('relic comparison derives availability without preparing requests or simulating', () => {
   const results = minimalResult(4000);
   let simulated = 0;
   const app = {
@@ -1046,13 +1147,8 @@ test('relic comparison scheduling publishes availability without simulating', ()
       }
     },
     adapter: {
-      relicComparisonRequest(_app, comparisonRelic) {
-        return {
-          rotation: STRIKE_ROTATION,
-          baseConfig: { relic: 'Fractal' },
-          equippedRelic: 'Fractal',
-          comparisonRelic
-        };
+      relicComparisonRequest() {
+        assert.fail('Availability must not prepare a simulation request');
       },
       presentation: testPresentation()
     }
@@ -1060,10 +1156,30 @@ test('relic comparison scheduling publishes availability without simulating', ()
   const runner = new RelicComparisonRunner(app);
 
   runner.schedule();
-  assert.equal(results.relicComparisonAvailable, true);
-  assert.equal(results.relicComparisonOpponent, 'Fractal');
-  assert.equal(results.relicComparisonTarget, 'Thorns');
+  assert.equal(runner.available, true);
+  assert.equal(app.build.relic, 'Fractal');
+  assert.equal(runner.comparisonRelic, 'Thorns');
   assert.equal(simulated, 0, 'scheduling must not run the second simulation');
+
+  runner.comparison = { equippedRelic: 'Fractal', targetRelic: 'Thorns' };
+  app.build.relic = 'Thorns';
+  runner.schedule();
+  assert.equal(runner.comparisonRelic, 'Akeem');
+  assert.equal(runner.comparison, null, 'changed selections discard the previous comparison');
+  app.relicNames = ['Thorns'];
+  runner.schedule();
+  assert.equal(runner.available, false, 'the equipped relic cannot compare with itself');
+  app.relicNames = ['Thorns', 'Akeem'];
+  app.build.relic = '';
+  runner.schedule();
+  assert.equal(runner.available, false);
+  app.build.relic = 'Thorns';
+  app.build.rotation = [];
+  runner.schedule();
+  assert.equal(runner.available, false);
+  assert.equal(runner.comparisonRelic, 'Akeem', 'empty rotations retain the shared selection');
+  app.results = null;
+  runner.schedule();
 });
 
 // The calculation owns relic assumptions and counterfactual attribution independently of the runner.
@@ -1121,28 +1237,39 @@ test('relic comparison scopes assumptions and attributes damage against a no-rel
 async function relicFixture() {
   const adapter = await loadProfessionAppAdapter('engineer');
   const rotation = [{ type: 'wait', durationMs: 1000 }];
-  const baseConfig = adapter
-    .createBuildContext({
-      build: adapter.profession.createBuildDefaults(),
-      patch: adapter.profession.resolvePatch({ id: 'current' })
-    })
-    .simulationConfig();
+  const build = adapter.profession.createBuildDefaults();
+  build.rotation = rotation;
+  build.relic = 'Fractal';
+  const prepared = [];
   let updates = 0;
   const app = {
     profession: adapter.profession,
-    build: { rotation, relic: 'Fractal' },
+    build,
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
     relicNames: ['Akeem', 'Fractal', 'Thorns'],
+    buildRevision: 1,
+    resultRevision: 1,
+    simulationStatus: 'idle',
     results: minimalResult(4000),
-    adapter: {
-      relicComparisonRequest(_app, comparisonRelic) {
-        return { rotation, baseConfig, equippedRelic: 'Fractal', comparisonRelic };
+    adapter: createProfessionRuntime({
+      profession: adapter.profession,
+      createBuildContext(input) {
+        const context = adapter.createBuildContext(input);
+        return {
+          ...context,
+          simulationConfig() {
+            const config = context.simulationConfig();
+            prepared.push(config);
+            return config;
+          }
+        };
       }
-    }
+    })
   };
   const runner = new RelicComparisonRunner(app, () => {
     updates++;
   });
-  return { app, runner, updates: () => updates };
+  return { app, runner, prepared, updates: () => updates };
 }
 
 test('relic comparison publishes synchronously without workers and preserves its baseline', async (t) => {
@@ -1159,22 +1286,30 @@ test('relic comparison publishes synchronously without workers and preserves its
     if (previous) Object.defineProperty(globalThis, 'Worker', previous);
     else delete globalThis.Worker;
   });
-  const { app, runner, updates } = await relicFixture();
+  const { app, runner, prepared, updates } = await relicFixture();
   const baseline = app.results;
+  runner.schedule();
+  assert.equal(prepared.length, 0);
+  app.build.targetArmor = 3000;
   runner.run('Thorns', 4);
+  assert.equal(prepared.length, 1);
+  assert.equal(prepared[0].target.armor, 3000, 'execution prepares the current build rather than the idle refresh');
   assert.equal(app.results, baseline);
   assert.equal(app.results.dps, 1000);
-  assert.equal(app.results.relicComparison.targetRelic, 'Thorns');
-  assert.equal(app.results.relicComparisonInitialStacks, 4);
-  assert.equal(app.results.relicComparisonError, '');
+  assert.equal(runner.comparison.targetRelic, 'Thorns');
+  assert.equal(runner.initialStacks, 4);
+  assert.equal(runner.error, '');
   assert.equal(updates(), 1);
   runner.run('Akeem');
-  assert.equal(app.results.relicComparison.targetRelic, 'Akeem');
+  assert.equal(prepared.length, 2);
+  assert.equal(runner.comparison.targetRelic, 'Akeem');
   assert.equal(updates(), 2);
 });
 
 test('local relic comparison reports calculation failures and recovers on retry', async () => {
   const { app, runner, updates } = await relicFixture();
+  runner.run();
+  assert.ok(runner.comparison);
   const profession = app.profession;
   app.profession = {
     ...profession,
@@ -1183,12 +1318,74 @@ test('local relic comparison reports calculation failures and recovers on retry'
     }
   };
   assert.doesNotThrow(() => runner.run());
-  assert.equal(app.results.relicComparisonError, 'Comparison simulation failed.');
-  assert.equal(app.results.relicComparison, undefined);
-  assert.equal(updates(), 1);
+  assert.equal(runner.error, 'Comparison simulation failed.');
+  assert.equal(runner.comparison, null);
+  assert.equal(updates(), 2);
   app.profession = profession;
   runner.run();
-  assert.equal(app.results.relicComparisonError, '');
-  assert.equal(app.results.relicComparison.targetRelic, 'Thorns');
-  assert.equal(updates(), 2);
+  assert.equal(runner.error, '');
+  assert.equal(runner.comparison.targetRelic, 'Thorns');
+  assert.equal(updates(), 3);
+});
+
+// The controls belong to the tool; output belongs to the exact baseline and build revision used by the calculation.
+test('relic controls survive baseline changes while stale output is discarded before execution', async () => {
+  const { app, runner, prepared } = await relicFixture();
+  runner.run('Thorns', 4);
+  const comparison = runner.comparison;
+  runner.schedule();
+  assert.equal(runner.comparison, comparison, 'refreshing the same inputs retains completed output');
+
+  runner.select('Thorns', 8);
+  assert.equal(runner.comparison, null, 'changing assumptions invalidates the curve immediately');
+  runner.run();
+  assert.ok(runner.comparison);
+  app.buildRevision++;
+  app.simulationStatus = 'queued';
+  runner.schedule();
+  assert.equal(runner.comparison, null);
+  const before = prepared.length;
+  runner.run();
+  assert.equal(prepared.length, before, 'a queued or stale baseline cannot run a comparison');
+  assert.equal(runner.comparisonRelic, 'Thorns');
+  assert.equal(runner.initialStacks, 8);
+
+  app.resultRevision = app.buildRevision;
+  app.simulationStatus = 'idle';
+  runner.run();
+  assert.ok(runner.comparison);
+  app.results = minimalResult(5000);
+  runner.schedule();
+  assert.equal(runner.comparison, null, 'replacement baselines invalidate output even at the same revision');
+  runner.run();
+  assert.equal(runner.comparison.opponentFinalDps, 1250);
+
+  app.results = null;
+  runner.schedule();
+  assert.equal(runner.available, false);
+  assert.equal(runner.comparison, null);
+  assert.equal(runner.initialStacks, 8);
+  app.build.relic = 'Thorns';
+  runner.schedule();
+  assert.equal(runner.comparisonRelic, 'Akeem', 'an equipped alternative is replaced with a usable choice');
+  runner.select('Akeem', 20.9);
+  assert.equal(runner.initialStacks, 10);
+  runner.select('Akeem', -5);
+  assert.equal(runner.initialStacks, 0);
+});
+
+test('relic preparation failures invalidate prior output and remain visible until inputs change or retry', async () => {
+  const { app, runner } = await relicFixture();
+  runner.run();
+  assert.ok(runner.comparison);
+  app.adapter.relicComparisonRequest = () => {
+    throw new Error('Invalid comparison inputs');
+  };
+
+  runner.run();
+  assert.equal(runner.comparison, null);
+  runner.schedule();
+  assert.equal(runner.error, 'Invalid comparison inputs');
+  runner.select('Akeem', 0);
+  assert.equal(runner.error, '');
 });

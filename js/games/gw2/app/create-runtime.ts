@@ -51,6 +51,7 @@ export function createProfessionRuntime({
     );
   }
 
+  /** Capture the requested rotation before deferred execution so later editor mutations cannot alter the job. */
   function randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest {
     const config = createBuildContext({
       build: app.build,
@@ -67,7 +68,7 @@ export function createProfessionRuntime({
     return {
       gameId: 'gw2',
       contentId: profession.id,
-      rotation: app.build.rotation,
+      rotation: cloneRotation(app.build.rotation),
       baseConfig,
       trials: DEFAULT_RANDOM_DISTRIBUTION_TRIALS
     };
@@ -78,7 +79,7 @@ export function createProfessionRuntime({
     const equippedRelic = String(app.build.relic || '');
     const targetRelic = String(comparisonRelic || '');
 
-    if (!app.relicNames.includes(targetRelic) || !relicComparisonAvailable(equippedRelic, targetRelic)) return null;
+    if (!relicComparisonAvailable(equippedRelic, targetRelic, app.relicNames)) return null;
 
     return {
       rotation: app.build.rotation,

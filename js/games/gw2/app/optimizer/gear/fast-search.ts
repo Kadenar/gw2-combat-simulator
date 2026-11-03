@@ -1,7 +1,7 @@
 import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import {
+  createOptimizerRangeScorer,
   optimizerEquivalenceKey,
-  scoreOptimizerRange,
   type OptimizerRangeProgress
 } from '#gw2/app/optimizer/gear/search-space.js';
 import {
@@ -21,7 +21,8 @@ const ROUND_SIZE = 256;
 /** Sample legal builds, then expand promising neighbors without ever constructing the full stat index. */
 export function createFastOptimizer(request: GearOptimizerRequest, adapter: OptimizerContext) {
   const ordinary = createOptimizerSpace(request, adapter);
-  const evaluator = createOptimizerEvaluator(request, adapter);
+  const evaluator = createOptimizerEvaluator(ordinary, adapter);
+  const scoreRange = createOptimizerRangeScorer(ordinary, adapter, evaluator);
   const seen = new Set<string>();
   let candidates: OptimizerEquipment[] = [];
   const space = { ordinary, count: 0n };
@@ -103,10 +104,7 @@ export function createFastOptimizer(request: GearOptimizerRequest, adapter: Opti
   const evaluateRange = (start: bigint, end: bigint, onProgress?: OptimizerRangeProgress) => {
     if (start < 0n || end > space.count || end <= start) throw new RangeError('Invalid optimizer chunk.');
 
-    return scoreOptimizerRange(
-      ordinary,
-      adapter,
-      evaluator,
+    return scoreRange(
       start,
       end,
       (ordinal) => ({

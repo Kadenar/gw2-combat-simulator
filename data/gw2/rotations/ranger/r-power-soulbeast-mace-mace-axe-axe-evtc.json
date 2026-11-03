@@ -10,7 +10,7 @@
     "benchmarkDurationSeconds": 96.514,
     "benchmarkDamage": 3973134,
     "benchmarkDps": 41166.400729427856,
-    "notes": "Starts on maces. Equipment and sigils are preserved from the attached build with weapon-set order reversed. One Wolf Pack and Frost Trap reconstruct the omitted setup; the initial stance remaining duration supports this timing, but the precast animations are not recorded. Log damage excludes golem-owned conditions. See docs/SOULBEAST-MACE-LOG-FINDINGS.md.",
+    "notes": "Starts on maces. Equipment and sigils are preserved from the attached build with weapon-set order reversed. One Wolf Pack and Frost Trap reconstruct the omitted setup; the initial stance remaining duration supports this timing, but the precast animations are not recorded. Log damage excludes golem-owned conditions.",
     "warnings": [
       "The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating."
     ]

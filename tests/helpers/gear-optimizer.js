@@ -10,7 +10,7 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 /** Exhaustive detailed simulations provide a small-search correctness reference for the production optimizers. */
 export function runOrdinaryOptimizer(request, adapter) {
   const space = createOptimizerSpace(request, adapter);
-  const evaluator = createOptimizerEvaluator(request, adapter);
+  const evaluator = createOptimizerEvaluator(space, adapter);
   const winners = [];
   for (let ordinal = 0n; ordinal < space.rawCount; ordinal++) {
     const equipment = ordinaryEquipmentAt(space, ordinal);

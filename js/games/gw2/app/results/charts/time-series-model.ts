@@ -1,4 +1,4 @@
-import type { SkillHit } from '#gw2/app/results/charts/hit-timeline-model.js';
+import type { ConditionTickContribution, SkillHit } from '#gw2/app/results/charts/hit-timeline-model.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { type BoonGenerationByAudience } from '#gw2/platform/results/boon-generation.js';
@@ -58,9 +58,14 @@ export interface ChartEffectSummary {
   readonly maximumStackUptime?: number;
 }
 
-export interface ChartSeries {
+/** Comparison consumers retain only the shared damage window and sampled curves. */
+export interface DamageSeries {
   readonly durationMs: number;
   readonly dps: readonly ChartPoint[];
+  readonly cumulativeDamage: readonly ChartPoint[];
+}
+
+export interface ChartSeries extends DamageSeries {
   /** Exact cumulative player damage by type, including same-time packets for phase boundaries. */
   readonly damageContributions: Readonly<Record<'strike' | 'condition', readonly ChartPoint[]>>;
   readonly effects: Readonly<Record<string, readonly ChartPoint[]>>;
@@ -79,7 +84,6 @@ export interface ChartSeries {
     >
   >;
   readonly alliedPlayerCount?: number;
-  readonly cumulativeDamage?: readonly ChartPoint[];
   // Individual hits/ticks per skill breakdown row key (`group|name`), each
   // timestamped relative to the DPS window. Backs the per-skill damage-events
   // timeline in the expanded table row.
@@ -90,8 +94,6 @@ export interface ChartSeries {
 }
 
 export interface BuildChartSeriesOptions {
-  /** Damage-only comparisons do not require effect histories or party projections. */
-  readonly includeEffects?: boolean;
   readonly effectName?: (value: unknown, event: EffectSource) => string;
   // Attributes a resolved damage/condition event to a skill breakdown row key
   // (`group|name`), or null to omit it from the per-skill damage series.
@@ -113,14 +115,11 @@ export function chartValueAt(points: readonly ChartPoint[], time: number): numbe
 }
 
 // Damage-only consumers can omit chart enrichment and unrelated simulation state.
-type TimeSeriesResult = Pick<Gw2ResolverResult, 'dpsStartTime' | 'firstHitTime' | 'combatEndTime' | 'resolvedEvents'> &
-  Partial<Pick<Gw2ResolverResult, 'effectReport' | 'boonGeneration'>>;
+type DamageSeriesResult = Pick<Gw2ResolverResult, 'dpsStartTime' | 'firstHitTime' | 'combatEndTime' | 'resolvedEvents'>;
+type TimeSeriesResult = DamageSeriesResult & Partial<Pick<Gw2ResolverResult, 'effectReport' | 'boonGeneration'>>;
 
-export function buildTimeSeries(
-  result: TimeSeriesResult,
-  sampleStepMs = 250,
-  { effectName = (value) => String(value || ''), skillKey, includeEffects = true }: BuildChartSeriesOptions = {}
-): ChartSeries {
+/** Prepare one sorted payout timeline for either comparisons or full chart construction. */
+function prepareDamageTimeline(result: DamageSeriesResult, sampleStepMs: number) {
   // Chart time is relative to the DPS window, while simulation events use
   // absolute seconds. Keep the conversion at this boundary.
   const dpsStartMs = Math.max(0, Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000);
@@ -145,10 +144,16 @@ export function buildTimeSeries(
       }));
     })
     .sort((left, right) => Number(left.at || 0) - Number(right.at || 0));
+  return { dpsStartMs, endMs, durationMs, times, damageEvents, damageHits };
+}
+
+/** One inclusive sweep owns DPS sampling; full charts may also record exact damage-type contributions. */
+function sampleDamageSeries(
+  { dpsStartMs, durationMs, times, damageHits }: ReturnType<typeof prepareDamageTimeline>,
+  recordHit?: (hit: ReturnType<typeof prepareDamageTimeline>['damageHits'][number]) => void
+): DamageSeries {
   let hitIndex = 0;
   let damage = 0;
-  const damageContributions: Record<'strike' | 'condition', ChartPoint[]> = { strike: [], condition: [] };
-  const totals = { strike: 0, condition: 0 };
   const dps = times.map((time) => {
     const elapsed = time / 1000;
 
@@ -159,27 +164,46 @@ export function buildTimeSeries(
       const hit = damageHits[hitIndex]!;
       const amount = Number(hit.damage || 0);
       damage += amount;
-      totals[hit.kind] += amount;
-      const points = damageContributions[hit.kind];
-      const t = Math.max(0, Number(hit.at || 0) * 1000 - dpsStartMs);
-
-      // Collapse simultaneous hits so a phase boundary includes the whole damage packet.
-      if (points.at(-1)?.t === t) points[points.length - 1] = { t, v: totals[hit.kind] };
-      else points.push({ t, v: totals[hit.kind] });
-
+      recordHit?.(hit);
       hitIndex++;
     }
 
     return { t: time, v: damage / elapsed };
   });
-  const effectSeries = includeEffects
-    ? buildEffectSeries(result, times, dpsStartMs, endMs, durationMs, effectName)
-    : { effects: {} };
+  return {
+    durationMs,
+    dps,
+    cumulativeDamage: dps.map((point) => ({ t: point.t, v: point.v * (point.t / 1000) }))
+  };
+}
 
-  const cumulativeDamage = dps.map((point) => ({
-    t: point.t,
-    v: point.v * (point.t / 1000)
-  }));
+/** Build comparison curves without allocating effect, per-skill, or condition-inspection records. */
+export function buildDamageSeries(result: DamageSeriesResult, sampleStepMs = 250): DamageSeries {
+  return sampleDamageSeries(prepareDamageTimeline(result, sampleStepMs));
+}
+
+/** Full charts require collected effects and enrich the shared damage sweep with phase contributions and inspection histories. */
+export function buildTimeSeries(
+  result: TimeSeriesResult,
+  sampleStepMs = 250,
+  { effectName = (value) => String(value || ''), skillKey }: BuildChartSeriesOptions = {}
+): ChartSeries {
+  const timeline = prepareDamageTimeline(result, sampleStepMs);
+  const { dpsStartMs, endMs, durationMs, times, damageEvents } = timeline;
+  const resolved = result.resolvedEvents || [];
+  const damageContributions: Record<'strike' | 'condition', ChartPoint[]> = { strike: [], condition: [] };
+  const totals = { strike: 0, condition: 0 };
+  const damageSeries = sampleDamageSeries(timeline, (hit) => {
+    totals[hit.kind] += Number(hit.damage || 0);
+    const points = damageContributions[hit.kind];
+    const t = Math.max(0, Number(hit.at || 0) * 1000 - dpsStartMs);
+
+    // Collapse simultaneous hits so a phase boundary includes the whole damage packet.
+    if (points.at(-1)?.t === t) points[points.length - 1] = { t, v: totals[hit.kind] };
+    else points.push({ t, v: totals[hit.kind] });
+  });
+  const effectSeries = buildEffectSeries(result, times, dpsStartMs, endMs, durationMs, effectName);
+
   const skillDamage: Record<string, SkillHit[]> = {};
 
   if (skillKey) {
@@ -226,7 +250,9 @@ export function buildTimeSeries(
   }
 
   // Use the first-damage observation origin for both payouts and applications, matching the engine's fight clock.
-  const conditionTicks = new Map<string, Map<number, SkillHit>>();
+  // These accumulators are private to this construction, so adding a share need not copy earlier contributions.
+  type ConditionPayout = SkillHit & { v: number; contributions: ConditionTickContribution[] };
+  const conditionTicks = new Map<string, Map<number, ConditionPayout>>();
   for (const event of resolved) {
     if (event.type !== 'condition') continue;
 
@@ -242,36 +268,31 @@ export function buildTimeSeries(
       if (time < 0 || time > Math.round(endMs - dpsStartMs) || damage < 0 || !(damage > 0 || Number(tick.fraction) > 0))
         continue;
 
-      const payouts = conditionTicks.get(conditionType) || new Map<number, SkillHit>();
-      const previous = payouts.get(time);
-      payouts.set(time, {
-        t: time,
-        v: (previous?.v || 0) + damage,
-        crit: null,
-        damageType: 'condition',
-        conditionType,
-        contributions: [
-          ...(previous?.contributions || []),
-          {
-            source: event.name || event.skillName || event.sourceSkill || 'Unknown source',
-            actor: String(event.summonOwner || event.summonKind || event.actorType || event.source || 'Unknown'),
-            appliedAtMs: Math.round(Number(event.at) * 1000 - dpsStartMs),
-            stacks: Number(event.stacks || 0),
-            fraction: tick.fraction,
-            damage
-          }
-        ]
+      const payouts = conditionTicks.get(conditionType) || new Map<number, ConditionPayout>();
+      let payout = payouts.get(time);
+
+      if (!payout) {
+        payout = { t: time, v: 0, crit: null, damageType: 'condition', conditionType, contributions: [] };
+        payouts.set(time, payout);
+      }
+
+      payout.v += damage;
+      payout.contributions.push({
+        source: event.name || event.skillName || event.sourceSkill || 'Unknown source',
+        actor: String(event.summonOwner || event.summonKind || event.actorType || event.source || 'Unknown'),
+        appliedAtMs: Math.round(Number(event.at) * 1000 - dpsStartMs),
+        stacks: Number(event.stacks || 0),
+        fraction: tick.fraction,
+        damage
       });
       conditionTicks.set(conditionType, payouts);
     }
   }
 
   return {
-    durationMs,
-    dps,
+    ...damageSeries,
     damageContributions,
     ...effectSeries,
-    cumulativeDamage,
     skillDamage,
     conditionDamage: Object.fromEntries(
       [...conditionTicks].map(([name, ticks]) => [

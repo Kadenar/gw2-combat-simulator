@@ -74,6 +74,8 @@ export interface OptimizerDimension {
 
 export interface OptimizerSpace {
   readonly request: GearOptimizerRequest;
+  /** Captured weapon types and rotation determine usable sets for the entire search. */
+  readonly weaponSets: readonly number[];
   readonly dimensions: readonly OptimizerDimension[];
   readonly rawCount: bigint;
 }
@@ -265,6 +267,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
     throw new TypeError('Infusion counts must be numbers.');
   }
 
+  const weaponSets = optimizerWeaponSets(build, adapter);
   const slots = optimizerSlots(build, adapter);
   const upgradeKeys = ['rune', 'relic', 'food', 'utility'] as const;
   const sigilKeys = [0, 1].flatMap((set) => [0, 1].map((slot) => `sigil${set + 1}-${slot + 1}`));
@@ -340,7 +343,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
       return locks.includes(`sigil${set + 1}-${slot + 1}`) ? [build.weaponSigils[set][slot]] : selected;
     });
 
-    if (!optimizerWeaponSets(build, adapter).includes(set)) {
+    if (!weaponSets.includes(set)) {
       if (selections.sigils?.[set]?.some((list) => list.length))
         throw new TypeError(`Weapon set ${set + 1} is not available for this build.`);
 
@@ -388,6 +391,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
   dimensions.push({ key: 'infusions', choices: splits });
   return {
     request,
+    weaponSets,
     dimensions,
     rawCount: optimizerCardinality(dimensions.map((dimension) => BigInt(dimension.choices.length)))
   };
@@ -437,9 +441,15 @@ export function ordinaryEquipmentAt(space: OptimizerSpace, ordinal: bigint): Opt
   return equipment;
 }
 
-/** Use the runtime's lower-level path; no presentation, persistence, or secondary analyses run here. */
-export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter: OptimizerContext) {
-  createOptimizerSpace(request, adapter);
+/** Bind fixed inputs from the validated space once; each candidate still owns its context and combat simulation. */
+export function createOptimizerEvaluator(space: OptimizerSpace, adapter: OptimizerContext) {
+  const { request, weaponSets } = space;
+  const patch = adapter.profession.resolvePatch(request.patch);
+  const transitionDelays = normalizeTransitionDelays(request.simulationSettings?.transitionDelays);
+  const limits = request.selections;
+  const hasRequirements = Object.keys(OPTIMIZER_REQUIREMENTS).some(
+    (key) => limits[key as keyof typeof OPTIMIZER_REQUIREMENTS] !== undefined
+  );
   function prepare(equipment: OptimizerEquipment): Gw2Config;
   function prepare(equipment: OptimizerEquipment, enforceRequirements: true): Gw2Config | null;
   function prepare(equipment: OptimizerEquipment, enforceRequirements = false): Gw2Config | null {
@@ -459,21 +469,15 @@ export function createOptimizerEvaluator(request: GearOptimizerRequest, adapter:
       adapter,
       {
         build: { ...request.build, ...equipment },
-        patch: adapter.profession.resolvePatch(request.patch),
-        transitionDelays: normalizeTransitionDelays(request.simulationSettings?.transitionDelays)
+        patch,
+        transitionDelays
       },
       request.selections.fractal
     );
-    // Reject candidates using finalized build attributes on every usable set before creating a combat simulation.
-    const limits = request.selections;
 
-    if (
-      enforceRequirements &&
-      Object.keys(OPTIMIZER_REQUIREMENTS).some(
-        (key) => limits[key as keyof typeof OPTIMIZER_REQUIREMENTS] !== undefined
-      )
-    ) {
-      for (const set of optimizerWeaponSets(request.build, adapter)) {
+    // Reject candidates using finalized build attributes on every usable set before creating a combat simulation.
+    if (enforceRequirements && hasRequirements) {
+      for (const set of weaponSets) {
         const attributes = context.attributes(set === 0 ? 1 : 2).attributes;
         const toughness = attributes.Toughness.final;
         const boonDuration = attributes['Boon Duration']?.final || 0;

@@ -252,6 +252,7 @@ test('chart canvases stay fluid when their initial container width is unavailabl
     durationMs: 1000,
     damageContributions: { strike: [], condition: [] },
     dps: [{ t: 0, v: 100 }],
+    cumulativeDamage: [{ t: 0, v: 0 }],
     effects: {}
   });
 
@@ -317,6 +318,11 @@ test('effect counts render as steps for both audiences while duration and DPS cu
       durationMs: 1000,
       damageContributions: { strike: [{ t: 1000, v: 1000 }], condition: [] },
       dps: points,
+      cumulativeDamage: [
+        { t: 0, v: 0 },
+        { t: 500, v: 1.5 },
+        { t: 1000, v: 0 }
+      ],
       effects: Object.fromEntries(Object.keys(colors).map((name) => [name, points])),
       alliedEffects: { Might: points },
       effectTypes: { Might: 'boon', Buff: 'buff', Burning: 'condition', Duration: 'buff' },

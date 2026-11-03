@@ -9,7 +9,7 @@
     "benchmarkDamage": 3976184,
     "benchmarkDps": 41576.226525576145,
     "diagnosticOnly": true,
-    "notes": "User-corrected opener: Panther Prowl, One Wolf Pack, Frost Trap, Predator Ambush with Sic Em at +120 ms. No added wait before Predator. One Wolf Pack activates at 240 ms; its recorded 280 ms interruption is preserved and the opening cast remains full. Precasts are reconstruction, not recovered source animations. See docs/SOULBEAST-SPEAR-LOG-FINDINGS.md. Spear timing reconciliation preserves saved cast starts: Falcon recovery waits are folded into its 720 ms animation, with explicit recovery cancellation where the saved cadence is shorter; 40 ms is added after each shortened spear leap.",
+    "notes": "User-corrected opener: Panther Prowl, One Wolf Pack, Frost Trap, Predator Ambush with Sic Em at +120 ms. No added wait before Predator. One Wolf Pack activates at 240 ms; its recorded 280 ms interruption is preserved and the opening cast remains full. Precasts are reconstruction, not recovered source animations. Spear timing reconciliation preserves saved cast starts: Falcon recovery waits are folded into its 720 ms animation, with explicit recovery cancellation where the saved cadence is shorter; 40 ms is added after each shortened spear leap.",
     "warnings": [
       "The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating."
     ],

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { loadOptimizerContext } from '#gw2/app/optimizer/gear/context.js';
-import { createOptimizerEvaluator } from '#gw2/app/optimizer/gear/search.js';
+import { createOptimizerEvaluator, createOptimizerSpace } from '#gw2/app/optimizer/gear/search.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
 import { loadBuildContext } from '#gw2/build-context/load.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -259,14 +259,20 @@ test('optimizer requirements reuse cached sets, reject early, and keep each cand
     limit: 20
   };
   // Configuration-only candidates never evaluate preview contributions.
-  const unconstrained = createOptimizerEvaluator({ ...request, selections: {} }, adapter);
+  const unconstrained = createOptimizerEvaluator(
+    createOptimizerSpace({ ...request, selections: {} }, adapter),
+    adapter
+  );
   assert.ok(unconstrained.prepare(build, true));
   assert.deepEqual(calls, []);
-  const rejected = createOptimizerEvaluator(request, adapter);
+  const rejected = createOptimizerEvaluator(createOptimizerSpace(request, adapter), adapter);
   assert.equal(rejected.prepare(build, true), null);
   assert.deepEqual(calls, [1]);
   calls.length = 0;
-  const accepted = createOptimizerEvaluator({ ...request, selections: { minToughness: 0 } }, adapter);
+  const accepted = createOptimizerEvaluator(
+    createOptimizerSpace({ ...request, selections: { minToughness: 0 } }, adapter),
+    adapter
+  );
   assert.ok(accepted.prepare(build, true));
   assert.deepEqual(calls, [1, 2]);
   accepted.prepare(build, true);

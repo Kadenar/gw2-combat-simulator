@@ -18,6 +18,7 @@ import {
   workspaceStorageKey
 } from '#gw2/app/build/state/workspace.js';
 import { previewRotationFile } from '#gw2/app/import-export/rotation-import-dialog.js';
+import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { recordRotationHistory, undoRotation } from '#gw2/app/rotation/editing/history.js';
@@ -568,6 +569,33 @@ test('switching preserves independent rotations, history, templates, comparisons
   app.activateBuildTab(other.id);
   assert.equal(app.build.rotation[0].durationMs, 30);
   assert.deepEqual(cancelled.slice(0, 3), ['baseline', 'rng', 'modifiers']);
+});
+
+// Shared comparison controls follow the tool across fresh and stale tabs instead of restoring from tab results.
+test('relic comparison selections follow the active tool across build tabs', (t) => {
+  storage(t);
+  const { app, tab } = appFixture();
+  app.relicNames = ['Akeem', 'Fractal', 'Thorns'];
+  app.build.relic = 'Fractal';
+  app.build.rotation = [{ type: 'wait', durationMs: 1000 }];
+  app.results = { dps: 10 };
+  app.relicComparisonRunner = new RelicComparisonRunner(app);
+  const runner = app.relicComparisonRunner;
+  runner.select('Thorns', 7);
+  addBuildTab(app, { ...build('other'), relic: 'Fractal' }, 'Other');
+  const other = app.workspace.tabs.at(-1);
+  assert.equal(app.results, null);
+  assert.equal(runner.comparisonRelic, 'Thorns');
+  assert.equal(runner.initialStacks, 7);
+  runner.select('Akeem', 3);
+  app.activateBuildTab(tab.id);
+  assert.equal(app.results.dps, 10, 'the first tab restores its cached baseline');
+  assert.equal(runner.comparisonRelic, 'Akeem', 'cached tabs use the current shared choice');
+  assert.equal(runner.initialStacks, 3);
+  app.activateBuildTab(other.id);
+  assert.equal(app.results, null, 'the second tab still needs a baseline');
+  assert.equal(runner.comparisonRelic, 'Akeem');
+  assert.equal(runner.initialStacks, 3);
 });
 
 // Session capture changes invalidate cached results without persisting diagnostic preferences in builds.

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { buildDamageSeries, buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
@@ -45,10 +45,7 @@ for (const [id, name, primaryWeapon, specialization = 'Core'] of [
     assert.deepEqual(editor.rotationApm, complete.rotationApm);
     assert.deepEqual(editor.planningState, complete.planningState);
     assert.deepEqual(editor.warnings, []);
-    assert.deepEqual(
-      buildTimeSeries(editor, 250, { includeEffects: false }).dps,
-      buildTimeSeries(complete, 250, { includeEffects: false }).dps
-    );
+    assert.deepEqual(buildDamageSeries(editor).dps, buildTimeSeries(complete).dps);
     assert.throws(() => buildTimeSeries(editor), /require collected chart data/);
   });
 }

@@ -1,5 +1,6 @@
 import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/game/worker-harness.js';
 import {
+  DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
   partitionRandomDistributionTrials,
   randomDistributionWorkerCount,
   summarizeRandomDistributionOutcomes
@@ -72,25 +73,21 @@ export class RandomDistributionRunner {
       return;
     }
 
-    const request = app.adapter.randomDistributionRequest(app);
-
-    if (!request) {
-      results.randomDistributionRequested = false;
-      results.randomDistributionStale = false;
-      return;
-    }
+    // Availability needs only the trial default; capture simulation inputs only for a requested run, before its timer.
+    const request = run ? app.adapter.randomDistributionRequest(app) : null;
+    const trials = request?.trials ?? DEFAULT_RANDOM_DISTRIBUTION_TRIALS;
 
     results.randomDistributionRequested = true;
     results.randomDistributionStale = run;
-    results.randomDistributionTrials = request.trials;
+    results.randomDistributionTrials = trials;
     results.randomDistributionError = '';
     results.randomDistributionProgress = {
       completed: 0,
-      total: request.trials,
+      total: trials,
       percent: 0
     };
 
-    if (!run) return;
+    if (!request) return;
 
     const applyProgress = (progress: RandomDistributionProgress): void => {
       if (requestId !== this.requestId || !app.results) return;

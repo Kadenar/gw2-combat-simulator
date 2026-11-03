@@ -110,7 +110,7 @@ test('optimizer rejects incompatible pairs and cross-set candidates before prepa
   assert.throws(() => captureGearOptimizerRequest(app, { sigils: [[['Bloodlust'], ['Corruption']]] }), /legal pair/);
   const request = captureGearOptimizerRequest(app, {});
   assert.doesNotThrow(() => createOptimizerSpace(request, adapter));
-  const evaluator = createOptimizerEvaluator(request, adapter);
+  const evaluator = createOptimizerEvaluator(createOptimizerSpace(request, adapter), adapter);
   for (const pair of [
     ['Bloodlust', 'Corruption'],
     ['Stars', 'Stars']

@@ -469,8 +469,8 @@ test('timed metrics clamp to the shorter window and avoid invalid zero-baseline 
   const projection = rotationComparisonMetricsFromSeries(
     result('reference', 0, 0),
     result('current', 10, 10),
-    { durationMs: 4000, dps: [{ t: 0, v: 0 }], cumulativeDamage: [{ t: 0, v: 0 }], effects: {} },
-    { durationMs: 2250, dps: [{ t: 0, v: 10 }], cumulativeDamage: [{ t: 0, v: 10 }], effects: {} },
+    { durationMs: 4000, dps: [{ t: 0, v: 0 }], cumulativeDamage: [{ t: 0, v: 0 }] },
+    { durationMs: 2250, dps: [{ t: 0, v: 10 }], cumulativeDamage: [{ t: 0, v: 10 }] },
     9000
   );
 

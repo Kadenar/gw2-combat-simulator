@@ -1,20 +1,19 @@
 import type { createFastOptimizer } from '#gw2/app/optimizer/gear/fast-search.js';
 import type { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js';
-import type { GearOptimizerRequest, OptimizerCandidate } from '#gw2/app/optimizer/gear/search.js';
-
-type GearOptimizerWorkerRequest = { readonly requestId: number } & (
-  | { readonly kind: 'init'; readonly request: GearOptimizerRequest; readonly bootstrap: boolean }
-  | { readonly kind: 'chunk'; readonly chunkId: number; readonly start: string; readonly end: string }
-  | { readonly kind: 'verify'; readonly candidates: readonly OptimizerCandidate[] }
-  | { readonly kind: 'refine'; readonly candidates: readonly OptimizerCandidate[] }
-);
+import type {
+  GearOptimizerWorkerPayload,
+  GearOptimizerWorkerRequest,
+  GearOptimizerWorkerResponse
+} from '#gw2/app/optimizer/gear/worker-protocol.js';
 
 let activeId = -1;
 let job: ReturnType<typeof createGroupedOptimizer> | ReturnType<typeof createFastOptimizer> | null = null;
 
 /** Each worker validates and prepares once, then evaluates bounded ranges until its owner terminates it. */
 self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWorkerRequest>) => {
-  const post = (payload: object): void => self.postMessage({ requestId: data.requestId, ...payload });
+  // Every success and error reply is checked against the same contract consumed by the runner.
+  const post = (payload: GearOptimizerWorkerPayload): void =>
+    self.postMessage({ requestId: data.requestId, ...payload } satisfies GearOptimizerWorkerResponse);
   try {
     // Keep shared code out of the entry chunk so WebKit cannot reimport it and install an uninitialized listener.
     const { optimizerEquipment, optimizerScore, verifyOptimizerScore } =

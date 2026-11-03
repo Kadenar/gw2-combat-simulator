@@ -5,11 +5,12 @@ import { encounterAnalysisPhases, encounterDpsSnapshots } from '#gw2/app/boss-sc
 import { mountEncounterAnalysis } from '#gw2/app/boss-scenarios/analysis-view.js';
 import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import { layoutChartMarkerLabels } from '#gw2/app/results/charts/marker-layout.js';
-import { buildPhaseDpsSeries, buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { buildDamageSeries, buildPhaseDpsSeries, buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
 import { mountResultSummary } from '#gw2/app/results/summary-view.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
 import { inertContainer } from '#tests/helpers/dom.js';
+import { effectFields } from '#tests/helpers/effect-report.js';
 
 const definitions = [
   { id: 'boss', label: '100% to 50%' },
@@ -130,7 +131,7 @@ test('zero-duration splits stay visible without dividing by zero or inventing el
 
 test('full-fight charts decline during splits while phase curves restart their damage clock', () => {
   const result = fixture();
-  const series = buildTimeSeries(
+  const series = buildDamageSeries(
     {
       ...result,
       resolvedEvents: [
@@ -138,8 +139,7 @@ test('full-fight charts decline during splits while phase curves restart their d
         { type: 'damage', at: 16, damage: 500 }
       ]
     },
-    250,
-    { includeEffects: false }
+    250
   );
   const at = (time) => series.dps.find((point) => point.t === time).v;
   assert.equal(at(5000), 200);
@@ -255,7 +255,7 @@ test('intermissions preserve phase numbering and stay out of damage analysis con
     ['Phase 1', 'Phase 2']
   );
   const container = inertContainer();
-  mountTimeSeriesCharts(container, buildTimeSeries({ ...result, resolvedEvents: [] }, 250, { includeEffects: false }), {
+  mountTimeSeriesCharts(container, buildTimeSeries({ ...result, ...effectFields([], result.combatEndTime) }), {
     encounterPhases: phases
   });
   assert.doesNotMatch(container.innerHTML, /data-chart-phase="encounter-2"/);

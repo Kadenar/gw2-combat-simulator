@@ -12,7 +12,6 @@ import {
   optimizerCardinality,
   optimizerEquipment,
   optimizerScore,
-  optimizerWeaponSets,
   retainOptimizerCandidate,
   type GearOptimizerRequest,
   type OptimizerCandidate,
@@ -62,7 +61,7 @@ function contribution(
         )
       : attributes?.[name] || 0
   );
-  const vectors = optimizerWeaponSets(space.request.build, adapter).flatMap((set) => {
+  const vectors = space.weaponSets.flatMap((set) => {
     const included = alternate ? set === 1 : !key.includes('Weapon') || set === 0;
     return included ? primary : primary.map(() => 0);
   });
@@ -206,7 +205,7 @@ export function optimizerEquivalenceKey(
     equipment.relic,
     equipment.food,
     equipment.utility,
-    optimizerWeaponSets(space.request.build, adapter).map((set) => equipment.weaponSigils[set])
+    space.weaponSets.map((set) => equipment.weaponSigils[set])
   ]);
 }
 
@@ -221,38 +220,25 @@ export function createGroupedOptimizer(request: GearOptimizerRequest, adapter: O
   const ordinary = createOptimizerSpace(request, adapter);
   // ponytail: workers rebuild this index; share a packed index if preparation becomes the bottleneck.
   const space = groupOptimizerSpace(ordinary, adapter);
-  const evaluator = createOptimizerEvaluator(request, adapter);
+  const evaluator = createOptimizerEvaluator(ordinary, adapter);
+  const scoreRange = createOptimizerRangeScorer(ordinary, adapter, evaluator);
   const evaluateRange = (start: bigint, end: bigint, onProgress?: OptimizerRangeProgress) => {
     if (start < 0n || end > space.count || end <= start) throw new RangeError('Invalid optimizer chunk.');
 
-    return scoreOptimizerRange(
-      ordinary,
-      adapter,
-      evaluator,
-      start,
-      end,
-      (ordinal) => groupedEquipmentAt(space, ordinal),
-      onProgress
-    );
+    return scoreRange(start, end, (ordinal) => groupedEquipmentAt(space, ordinal), onProgress);
   };
 
   return { space, evaluator, evaluateRange };
 }
 
-/** Exact and bounded searches share scoring, warning retention and top-result limits. */
-export function scoreOptimizerRange(
+/** Bind request-wide display identities once; each chunk retains independent results and progress counters. */
+export function createOptimizerRangeScorer(
   ordinary: OptimizerSpace,
   adapter: OptimizerContext,
-  evaluator: ReturnType<typeof createOptimizerEvaluator>,
-  start: bigint,
-  end: bigint,
-  equipmentAt: (ordinal: bigint) => { equipment: OptimizerEquipment; representedCombinationCount: bigint },
-  onProgress?: OptimizerRangeProgress
+  evaluator: ReturnType<typeof createOptimizerEvaluator>
 ) {
-  const winners: OptimizerCandidate[] = [];
-  const groups = createOptimizerResultGroups();
   const equippedIdentity = optimizerEquipmentIdentity(optimizerEquipment(ordinary.request.build));
-  const sets = optimizerWeaponSets(ordinary.request.build, adapter);
+  const sets = ordinary.weaponSets;
   // Equal-stat rune names still need separate display groups even though they share a combat simulation.
   const runeAliases = new Map<string, string[]>();
   for (const rune of ordinary.dimensions.find(({ key }) => key === 'rune')!.choices as readonly string[]) {
@@ -260,68 +246,79 @@ export function scoreOptimizerRange(
     runeAliases.set(key, [...(runeAliases.get(key) || []), rune]);
   }
 
-  let representedCombinationCount = 0n;
-  let simulations = 0n;
-  const warnings = new Map<string, number>();
-  for (let ordinal = start; ordinal < end; ordinal++) {
-    const candidate = equipmentAt(ordinal);
-    // Rejected assignments still count toward coverage but never run combat or enter result groups.
-    representedCombinationCount += candidate.representedCombinationCount;
-    const result = evaluator.score(candidate.equipment);
+  const aliasesByRune = new Map<string, readonly string[]>();
+  for (const aliases of runeAliases.values()) for (const rune of aliases) aliasesByRune.set(rune, aliases);
 
-    if (!result) {
+  return (
+    start: bigint,
+    end: bigint,
+    equipmentAt: (ordinal: bigint) => { equipment: OptimizerEquipment; representedCombinationCount: bigint },
+    onProgress?: OptimizerRangeProgress
+  ) => {
+    const winners: OptimizerCandidate[] = [];
+    const groups = createOptimizerResultGroups();
+
+    let representedCombinationCount = 0n;
+    let simulations = 0n;
+    const warnings = new Map<string, number>();
+    for (let ordinal = start; ordinal < end; ordinal++) {
+      const candidate = equipmentAt(ordinal);
+      // Rejected assignments still count toward coverage but never run combat or enter result groups.
+      representedCombinationCount += candidate.representedCombinationCount;
+      const result = evaluator.score(candidate.equipment);
+
+      if (!result) {
+        onProgress?.(ordinal - start + 1n, representedCombinationCount, simulations);
+        continue;
+      }
+
+      const key = optimizerEquivalenceKey(candidate.equipment, ordinary, adapter);
+      const score = optimizerScore(result);
+      simulations++;
+
+      // Worker progress aggregates display text; the timestamp keeps distinct failures in separate categories.
+      for (const warning of score.warnings.map(formatSimulationDiagnostic)) {
+        const category =
+          warnings.has(warning) || warnings.size < 32 ? warning : 'Additional warnings (see retained candidates)';
+        warnings.set(category, (warnings.get(category) || 0) + 1);
+      }
+
+      retainOptimizerCandidate(
+        winners,
+        {
+          key,
+          equipment: candidate.equipment,
+          score,
+          representedCombinationCount: candidate.representedCombinationCount.toString()
+        },
+        ordinary.request.limit
+      );
+      for (const rune of aliasesByRune.get(candidate.equipment.rune)!) {
+        const result = {
+          key,
+          equipment: { ...candidate.equipment, rune },
+          score,
+          representedCombinationCount: candidate.representedCombinationCount.toString()
+        };
+
+        // The pinned row owns the equipped setup; keep the strongest alternative for each display group.
+        if (optimizerEquipmentIdentity(result.equipment) === equippedIdentity) continue;
+
+        for (const filter of Object.keys(groups) as OptimizerGroupedFilter[])
+          retainOptimizerGroup(groups[filter], result, filter, sets);
+      }
+
+      // Report finished candidates even while a large range is still being scored.
       onProgress?.(ordinal - start + 1n, representedCombinationCount, simulations);
-      continue;
     }
 
-    const key = optimizerEquivalenceKey(candidate.equipment, ordinary, adapter);
-    const score = optimizerScore(result);
-    simulations++;
-
-    // Worker progress aggregates display text; the timestamp keeps distinct failures in separate categories.
-    for (const warning of score.warnings.map(formatSimulationDiagnostic)) {
-      const category =
-        warnings.has(warning) || warnings.size < 32 ? warning : 'Additional warnings (see retained candidates)';
-      warnings.set(category, (warnings.get(category) || 0) + 1);
-    }
-
-    retainOptimizerCandidate(
+    return {
+      completed: (end - start).toString(),
       winners,
-      {
-        key,
-        equipment: candidate.equipment,
-        score,
-        representedCombinationCount: candidate.representedCombinationCount.toString()
-      },
-      ordinary.request.limit
-    );
-    for (const rune of runeAliases.get(
-      JSON.stringify(contribution('rune', candidate.equipment.rune, ordinary, adapter))
-    )!) {
-      const result = {
-        key,
-        equipment: { ...candidate.equipment, rune },
-        score,
-        representedCombinationCount: candidate.representedCombinationCount.toString()
-      };
-
-      // The pinned row owns the equipped setup; keep the strongest alternative for each display group.
-      if (optimizerEquipmentIdentity(result.equipment) === equippedIdentity) continue;
-
-      for (const filter of Object.keys(groups) as OptimizerGroupedFilter[])
-        retainOptimizerGroup(groups[filter], result, filter, sets);
-    }
-
-    // Report finished candidates even while a large range is still being scored.
-    onProgress?.(ordinal - start + 1n, representedCombinationCount, simulations);
-  }
-
-  return {
-    completed: (end - start).toString(),
-    winners,
-    groups,
-    representedCombinationCount: representedCombinationCount.toString(),
-    simulations: simulations.toString(),
-    warnings: [...warnings]
+      groups,
+      representedCombinationCount: representedCombinationCount.toString(),
+      simulations: simulations.toString(),
+      warnings: [...warnings]
+    };
   };
 }

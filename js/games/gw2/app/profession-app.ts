@@ -261,6 +261,7 @@ export class ProfessionApp implements ProfessionAppState {
 
     this.simulationStatus = 'queued';
     this.simulationError = '';
+    this.relicComparisonRunner.schedule();
     saveBuildWorkspace(this);
     renderBuildTabs(this);
 
@@ -443,10 +444,7 @@ export class ProfessionApp implements ProfessionAppState {
       })
       .attributes(this.attributeWeaponSet === 2 ? 2 : 1);
 
-    if (this.relicComparisonRunner instanceof RelicComparisonRunner) {
-      this.relicComparisonRunner.comparisonRelic = this.results?.relicComparisonTarget || '';
-      this.relicComparisonRunner.initialStacks = this.results?.relicComparisonInitialStacks || 0;
-    }
+    this.relicComparisonRunner.schedule();
 
     if (!tab.resultsFresh || this.rotationComparison?.referenceStatus === 'queued') {
       this.baselineSimulationRunner.schedule(this.buildRevision);

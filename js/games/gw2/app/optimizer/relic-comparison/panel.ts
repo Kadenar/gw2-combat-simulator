@@ -21,7 +21,8 @@ export interface RelicComparisonPanelModel {
 export function mountRelicComparison(
   container: HTMLElement,
   model: RelicComparisonPanelModel,
-  onRunRelicComparison?: (comparisonRelic: string, initialStacks: number) => unknown
+  onRunRelicComparison?: (comparisonRelic: string, initialStacks: number) => unknown,
+  onSelect?: (comparisonRelic: string, initialStacks: number) => boolean
 ): void {
   const relicComparison = model.relicComparison || null;
   const relicComparisonAvailable = model.relicComparisonAvailable === true;
@@ -68,7 +69,7 @@ export function mountRelicComparison(
       </div>
     </div>
     <div class="relic-cmp-manual">${relicComparisonAction}</div>
-    ${
+    <div data-role="relic-comparison-output">${
       relicComparisonError
         ? `<div class="relic-cmp-status relic-cmp-error">${escapeHtml(relicComparisonError)}</div>`
         : relicComparison
@@ -76,7 +77,7 @@ export function mountRelicComparison(
               opponentLabel: relicComparisonOpponent ? `Relic of ${relicComparisonOpponent}` : undefined
             })
           : ''
-    }
+    }</div>
   </section>`
       : ''
   }`;
@@ -90,12 +91,26 @@ export function mountRelicComparison(
   const relicComparisonStacksControl = container.querySelector<HTMLElement>(
     '[data-role="relic-comparison-stacks-control"]'
   );
+  const stackInput = container.querySelector<HTMLInputElement>('[data-role="relic-comparison-stacks"]');
+  // Commit control edits to the shared owner before a tab switch or baseline refresh can replace this panel.
+  const selectionChanged = () => {
+    if (!onSelect?.(relicComparisonTargetInput?.value || relicComparisonTarget, Number(stackInput?.value || 0))) return;
+
+    // Remove stale output without replacing the focused picker or numeric input.
+    container.querySelector('[data-role="relic-comparison-output"]')?.replaceChildren();
+
+    if (runRelicComparison) runRelicComparison.textContent = 'Run comparison';
+  };
+
+  if (stackInput) stackInput.oninput = selectionChanged;
 
   if (relicComparisonTargetInput) {
     // Show only the selected relic's assumption controls.
     relicComparisonTargetInput.onchange = () => {
       if (relicComparisonStacksControl)
         relicComparisonStacksControl.hidden = relicComparisonTargetInput.value !== 'Thorns';
+
+      selectionChanged();
     };
   }
 
@@ -123,7 +138,8 @@ export function renderRelicComparison(app: ProfessionAppState): void {
 
   if (!container || document.body?.dataset.simulatorView !== 'gear-optimizer') return;
 
-  const result = app.results;
+  const runner = app.relicComparisonRunner;
+  runner.schedule();
 
   // Keep the comparison UI empty until a rotation exists to compare.
   if (!app.build.rotation.length) {
@@ -131,7 +147,7 @@ export function renderRelicComparison(app: ProfessionAppState): void {
     return;
   }
 
-  if (!result?.relicComparisonAvailable) {
+  if (!runner.available) {
     container.innerHTML =
       '<p class="optimizer-empty">Add a rotation and equip a relic in the <a href="#workspace">Workspace</a> to run a relic comparison.</p>';
     return;
@@ -140,15 +156,16 @@ export function renderRelicComparison(app: ProfessionAppState): void {
   mountRelicComparison(
     container,
     {
-      relicComparison: result.relicComparison || null,
-      relicComparisonAvailable: result.relicComparisonAvailable === true,
-      relicComparisonError: result.relicComparisonError || '',
-      relicComparisonOpponent: result.relicComparisonOpponent || '',
-      relicComparisonTarget: result.relicComparisonTarget || '',
-      relicComparisonTargets: (app.relicNames || []).filter((name) => name !== result.relicComparisonOpponent),
-      relicComparisonInitialStacks: result.relicComparisonInitialStacks || 0
+      relicComparison: runner.comparison,
+      relicComparisonAvailable: runner.available,
+      relicComparisonError: runner.error,
+      relicComparisonOpponent: app.build.relic,
+      relicComparisonTarget: runner.comparisonRelic,
+      relicComparisonTargets: app.relicNames.filter((name) => name !== app.build.relic),
+      relicComparisonInitialStacks: runner.initialStacks
     },
-    (relic, stacks) => app.runRelicComparison(relic, stacks)
+    (relic, stacks) => app.runRelicComparison(relic, stacks),
+    (relic, stacks) => runner.select(relic, stacks)
   );
   // A queued baseline must finish before its output can be used as the comparison opponent.
   const button = container.querySelector<HTMLButtonElement>('[data-role="relic-comparison-run"]');

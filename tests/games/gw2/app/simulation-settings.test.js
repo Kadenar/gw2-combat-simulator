@@ -15,7 +15,11 @@ import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/st
 import { createBuildTab, emptyBuildTabSession } from '#gw2/app/build/state/workspace.js';
 import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
 import { getBuildWithRotationExportPayload } from '#gw2/app/import-export/files.js';
-import { captureGearOptimizerRequest, createOptimizerEvaluator } from '#gw2/app/optimizer/gear/search.js';
+import {
+  captureGearOptimizerRequest,
+  createOptimizerEvaluator,
+  createOptimizerSpace
+} from '#gw2/app/optimizer/gear/search.js';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { beginRotationComparison, setRotationReference } from '#gw2/app/rotation/comparison-state.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
@@ -101,7 +105,9 @@ test('optimizer workers retain a snapshot of simulation preferences outside the 
   };
   const request = captureGearOptimizerRequest(app, {});
   app.simulationSettings.transitionDelays.weaponSwapMs = 200;
-  const result = createOptimizerEvaluator(request, mesmerAppAdapter).evaluate(request.build);
+  const result = createOptimizerEvaluator(createOptimizerSpace(request, mesmerAppAdapter), mesmerAppAdapter).evaluate(
+    request.build
+  );
   const recovery = result.events.find((event) => event.type === 'gw2.transition-lockout');
   assert.equal(recovery.duration, 0.1);
   assert.equal(JSON.stringify(request.build).includes('transitionDelays'), false);

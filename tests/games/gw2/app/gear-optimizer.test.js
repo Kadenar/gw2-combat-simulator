@@ -30,7 +30,7 @@ import {
   retainOptimizerCandidate,
   verifyOptimizerScore
 } from '#gw2/app/optimizer/gear/search.js';
-import { RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
+import { RUNE_DATA, RUNE_NAMES } from '#gw2/platform/equipment/gear/runes.js';
 import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
@@ -245,6 +245,60 @@ test('baseline validation gates worker pool expansion', () => {
     assert.equal(workers.length, 1);
     assert.equal(messages.length, 1);
     assert.equal(workers[0].terminated, true);
+  }
+});
+
+// Required collections must not silently become empty results; numeric and causal guards still apply to typed replies.
+test('invalid chunk results and progress fail the job and reject late verification', () => {
+  const captured = request();
+  const baseline = optimizerScore(
+    createOptimizerEvaluator(createOptimizerSpace(captured, adapter), adapter).evaluate(captured.build)
+  );
+  for (const invalid of ['winners', 'groups', 'warnings', 'progress']) {
+    const messages = [];
+    const worker = new OptimizerTestWorker();
+    worker.postMessage = (message) => messages.push(message);
+    const runner = new GearOptimizerRunner(
+      { buildRevision: captured.revision },
+      () => {},
+      () => worker,
+      1
+    );
+    runner.run(captured);
+    const requestId = messages[0].requestId;
+    const respond = (message) => worker.listeners.get('message')({ data: { requestId, ...message } });
+    respond({ kind: 'ready', count: '1', rawCount: '1', baseline });
+    const chunkId = messages.at(-1).chunkId;
+    const response = {
+      kind: 'chunk',
+      chunkId,
+      completed: '1',
+      representedCombinationCount: '1',
+      simulations: '1',
+      winners: [],
+      groups: createOptimizerResultGroups(),
+      warnings: [],
+      elapsedMs: 150
+    };
+
+    if (invalid === 'progress') {
+      respond({ kind: 'progress', chunkId, completed: '2', representedCombinationCount: '2', simulations: '2' });
+    } else {
+      delete response[invalid];
+      respond(response);
+    }
+
+    assert.equal(runner.state.status, 'failed', invalid);
+    assert.equal(worker.terminated, true);
+    assert.equal(runner.isRunning, false);
+    const error = runner.state.error;
+
+    if (invalid === 'progress') assert.match(error, /progress counts/);
+
+    respond({ kind: 'verified' });
+    respond({ error: 'Late worker failure' });
+    assert.equal(runner.state.status, 'failed');
+    assert.equal(runner.state.error, error);
   }
 });
 
@@ -603,7 +657,7 @@ test('unique totals preserve every ordinary vector and multiplicity with unequal
       representedCombinationCount: 1n
     }))
   );
-  const evaluator = createOptimizerEvaluator(captured, adapter);
+  const evaluator = createOptimizerEvaluator(ordinary, adapter);
   const bruteScores = new Map();
   for (let i = 0n; i < ordinary.rawCount; i++) {
     const equipment = ordinaryEquipmentAt(ordinary, i);
@@ -646,10 +700,101 @@ test('snapshot is immutable; empty selections retain current equipment', () => {
   assert.throws(() => ordinaryEquipmentAt(space, 1n), /outside search/);
 });
 
+// Prepared inputs belong to the captured job, even when another job changes patch, preferences, or constraints.
+for (const createJob of [createGroupedOptimizer, createFastOptimizer]) {
+  // Today's rune vectors are distinct; temporarily equalize two to exercise alias recovery after deduplication.
+  test(`${createJob.name} retains every equal-stat rune name in display groups`, (t) => {
+    const original = RUNE_DATA.Scholar;
+    t.after(() => {
+      RUNE_DATA.Scholar = original;
+    });
+    RUNE_DATA.Scholar = structuredClone(RUNE_DATA.Dragonhunter);
+    const captured = request({ rune: ['Scholar', 'Dragonhunter', 'Eagle'] }, { rune: '' });
+    const job = createJob(captured, adapter);
+    assert.equal(job.space.ordinary.rawCount, 3n);
+    assert.equal(job.space.count, 2n, 'equal-stat names share a combat candidate');
+    const names = [];
+    for (let ordinal = 0n; ordinal < job.space.count; ordinal++) {
+      const chunk = job.evaluateRange(ordinal, ordinal + 1n);
+      assert.equal(chunk.simulations, '1');
+      const representative = chunk.winners[0];
+      const expected = representative.equipment.rune === 'Eagle' ? ['Eagle'] : ['Dragonhunter', 'Scholar'];
+      for (const filter of ['rune', 'all']) {
+        assert.deepEqual(chunk.groups[filter].map(({ equipment }) => equipment.rune).sort(), expected);
+        for (const candidate of chunk.groups[filter]) {
+          assert.equal(candidate.key, representative.key);
+          assert.deepEqual(candidate.score, representative.score);
+        }
+      }
+
+      names.push(...chunk.groups.rune.map(({ equipment }) => equipment.rune));
+    }
+
+    assert.deepEqual(names.sort(), ['Dragonhunter', 'Eagle', 'Scholar']);
+  });
+
+  // Interleave jobs with the same choices but different pinned equipment to expose accidental shared identity state.
+  test(`${createJob.name} excludes only its own equipped identity from display groups`, () => {
+    const selections = { rune: ['Scholar', 'Dragonhunter'] };
+    const first = createJob(request(selections, { rune: 'Scholar' }), adapter);
+    const firstResult = first.evaluateRange(0n, first.space.count);
+    const second = createJob(request(selections, { rune: 'Dragonhunter' }), adapter);
+    const secondResult = second.evaluateRange(0n, second.space.count);
+    assert.deepEqual(
+      firstResult.groups.rune.map(({ equipment }) => equipment.rune),
+      ['Dragonhunter']
+    );
+    assert.deepEqual(
+      secondResult.groups.rune.map(({ equipment }) => equipment.rune),
+      ['Scholar']
+    );
+    assert.deepEqual(first.evaluateRange(0n, first.space.count), firstResult);
+  });
+
+  test(`${createJob.name} isolates prepared requests and chunk results`, () => {
+    const initial = request();
+    const app = {
+      contentId: adapter.id,
+      adapter,
+      profession: adapter.profession,
+      build: structuredClone(initial.build),
+      buildRevision: 1,
+      patch: adapter.profession.resolvePatch({ id: 'current' }),
+      simulationSettings: { transitionDelays: { weaponSwapMs: 100 } }
+    };
+    const firstRequest = captureGearOptimizerRequest(app, { rune: ['Scholar', 'Dragonhunter'] });
+    const first = createJob(firstRequest, adapter);
+    const equipment = optimizerEquipment(firstRequest.build);
+    const original = first.evaluator.prepare(equipment);
+    app.patch = adapter.profession.resolvePatch({ id: adapter.profession.preview.id });
+    app.simulationSettings.transitionDelays.weaponSwapMs = 200;
+    const secondRequest = captureGearOptimizerRequest(app, { minToughness: 99999 });
+    const second = createJob(secondRequest, adapter);
+    const next = second.evaluator.prepare(optimizerEquipment(secondRequest.build));
+    assert.equal(original.patchId, 'current');
+    assert.equal(next.patchId, app.patch.id);
+    assert.equal(original.transitionDelays.weaponSwapMs, 100);
+    assert.equal(next.transitionDelays.weaponSwapMs, 200);
+    assert.equal(second.evaluator.prepare(equipment, true), null);
+    assert.ok(first.evaluator.prepare(equipment, true));
+    assert.deepEqual(first.evaluator.prepare(equipment), original);
+
+    const chunk = first.evaluateRange(0n, 1n);
+    const saved = structuredClone(chunk);
+    const repeated = first.evaluateRange(0n, 1n);
+    assert.deepEqual(repeated, saved);
+    repeated.winners.length = 0;
+    repeated.groups.rune.length = 0;
+    assert.deepEqual(chunk, saved);
+    assert.deepEqual(first.evaluateRange(0n, 1n), saved);
+    assert.equal(second.evaluateRange(0n, 1n).simulations, '0');
+  });
+}
+
 // Candidate equipment changes retain the workspace's captured Thorns opening stacks.
 test('optimizer relic candidates inherit the captured workspace Thorns stacks', () => {
   const captured = request({ relic: ['Thorns', 'Fractal'] }, { relic: 'Thorns', initialThornsStacks: 7 });
-  const evaluator = createOptimizerEvaluator(captured, adapter);
+  const evaluator = createOptimizerEvaluator(createOptimizerSpace(captured, adapter), adapter);
   for (const relic of ['Thorns', 'Fractal']) {
     const config = evaluator.prepare({ ...optimizerEquipment(captured.build), relic });
     assert.equal(config.relic, relic);
@@ -712,8 +857,14 @@ test('requirements use inclusive finalized stats and reject before simulation co
     },
     overrides
   );
-  assert.notEqual(createOptimizerEvaluator(inclusive, adapter).score(inclusive.build), null);
-  assert.notEqual(createOptimizerEvaluator(captured, adapter).score(captured.build), null);
+  assert.notEqual(
+    createOptimizerEvaluator(createOptimizerSpace(inclusive, adapter), adapter).score(inclusive.build),
+    null
+  );
+  assert.notEqual(
+    createOptimizerEvaluator(createOptimizerSpace(captured, adapter), adapter).score(captured.build),
+    null
+  );
   const mustNotPrepareCombat = {
     ...adapter,
     simulationConfig() {
@@ -728,7 +879,12 @@ test('requirements use inclusive finalized stats and reject before simulation co
     { minQuicknessDurationPercent: quickness + 0.01 }
   ]) {
     const rejected = request(limits, overrides);
-    assert.equal(createOptimizerEvaluator(rejected, mustNotPrepareCombat).score(rejected.build), null);
+    assert.equal(
+      createOptimizerEvaluator(createOptimizerSpace(rejected, mustNotPrepareCombat), mustNotPrepareCombat).score(
+        rejected.build
+      ),
+      null
+    );
   }
 });
 
@@ -748,12 +904,12 @@ test('requirements check alternate weapon stats even when the starting set quali
       startingWeaponSet: 1
     }
   );
-  assert.equal(createOptimizerEvaluator(captured, adapter).score(captured.build), null);
+  assert.equal(createOptimizerEvaluator(createOptimizerSpace(captured, adapter), adapter).score(captured.build), null);
   const allowed = {
     ...captured,
     build: { ...captured.build, alternateWeaponPrefixes: ["Berserker's", "Berserker's"] }
   };
-  assert.notEqual(createOptimizerEvaluator(allowed, adapter).score(allowed.build), null);
+  assert.notEqual(createOptimizerEvaluator(createOptimizerSpace(allowed, adapter), adapter).score(allowed.build), null);
 });
 
 test('exact and fast searches discard failing runes while retaining coverage and display groups', () => {
@@ -826,9 +982,9 @@ test('minimum vitality checks every usable weapon set', () => {
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   assert.ok(app.attributeData.attributes.Vitality.final >= minVitality);
   const captured = { ...initial, selections: { minVitality } };
-  assert.equal(createOptimizerEvaluator(captured, adapter).score(captured.build), null);
+  assert.equal(createOptimizerEvaluator(createOptimizerSpace(captured, adapter), adapter).score(captured.build), null);
   const allowed = { ...captured, build: { ...captured.build, alternateWeaponPrefixes: ['Celestial', 'Celestial'] } };
-  assert.notEqual(createOptimizerEvaluator(allowed, adapter).score(allowed.build), null);
+  assert.notEqual(createOptimizerEvaluator(createOptimizerSpace(allowed, adapter), adapter).score(allowed.build), null);
 });
 
 // Forced prefixes can be outside the shared pool and must survive grouping and fast-search refinement.
@@ -1066,10 +1222,12 @@ test('unique ordinals preserve independent weapon budgets, upgrades, and canonic
 test('only usable weapon sets contribute search dimensions and equivalence', async () => {
   const both = request({}, { weapons: ['Axe', 'Axe'], alternateWeapons: ['Greatsword', ''], startingWeaponSet: 2 });
   assert.deepEqual(optimizerWeaponSets(both.build, adapter), [0, 1]);
+  assert.deepEqual(createOptimizerSpace(both, adapter).weaponSets, [0, 1]);
   assert.ok(optimizerSlots(both.build, adapter).includes('AlternateWeapon1'));
   const empty = request({}, { alternateWeapons: ['', ''] });
   assert.deepEqual(optimizerWeaponSets(empty.build, adapter), [0]);
   const single = createOptimizerSpace(empty, adapter);
+  assert.deepEqual(single.weaponSets, [0]);
   const equipment = ordinaryEquipmentAt(single, 0n);
   const hidden = structuredClone(equipment);
   hidden.alternateWeaponPrefixes = ["Viper's", "Viper's"];
@@ -1106,6 +1264,7 @@ test('only usable weapon sets contribute search dimensions and equivalence', asy
     }
   );
   assert.deepEqual(optimizerWeaponSets(bladesworn.build, adapter), [1]);
+  assert.deepEqual(createOptimizerSpace(bladesworn, adapter).weaponSets, [1]);
 });
 
 test('a rotation swapping to a valid second set retains its independent equipment and damage', () => {
@@ -1205,16 +1364,16 @@ test('optimizer scores skipped rotation skills without suppressing warnings', ()
     {},
     { rotation: adapter.toApplicationBuild({ rotation: ['Chop', 'Chop'] }).rotation, weapons: ['Greatsword', ''] }
   );
-  const result = createOptimizerEvaluator(captured, adapter).evaluate(captured.build);
+  const result = createOptimizerEvaluator(createOptimizerSpace(captured, adapter), adapter).evaluate(captured.build);
   assert.ok(result.steps.some((step) => step.invalid));
   assert.ok(result.warnings.length > 0);
   assert.deepEqual(optimizerScore(result).warnings, result.warnings);
   assert.deepEqual(
     optimizerScore(result),
-    optimizerScore(createOptimizerEvaluator(captured, adapter).score(captured.build))
+    optimizerScore(createOptimizerEvaluator(createOptimizerSpace(captured, adapter), adapter).score(captured.build))
   );
   const valid = request({}, { rotation: [], weapons: ['Greatsword', ''] });
-  const detailed = createOptimizerEvaluator(valid, adapter).evaluate(valid.build);
+  const detailed = createOptimizerEvaluator(createOptimizerSpace(valid, adapter), adapter).evaluate(valid.build);
   const warnings = [{ message: 'A non-blocking simulation warning.', at: 1 }];
   assert.deepEqual(optimizerScore({ ...detailed, warnings }).warnings, warnings);
 });
@@ -1255,6 +1414,17 @@ test('life-force warnings survive optimizer baseline, search, and detailed verif
       const result = job.evaluateRange(0n, job.space.count);
       assert.ok(result.winners.length > 0);
       assert.ok(result.warnings.length > 0);
+      // Every range owns warning counts, including repeated ranges and the next dispatched candidate.
+      assert.ok(job.space.count >= 2n);
+      const firstChunk = job.evaluateRange(0n, 1n);
+      assert.ok(firstChunk.warnings.length > 0);
+      assert.deepEqual(job.evaluateRange(0n, 1n).warnings, firstChunk.warnings);
+      const secondChunk = job.evaluateRange(1n, 2n);
+      assert.deepEqual(secondChunk.warnings, firstChunk.warnings);
+      const totals = new Map();
+      for (const [warning, count] of [...firstChunk.warnings, ...secondChunk.warnings])
+        totals.set(warning, (totals.get(warning) || 0) + count);
+      assert.deepEqual(new Map(result.warnings), totals);
       for (const candidate of result.winners) {
         const detailed = optimizerScore(job.evaluator.evaluate(candidate.equipment));
         verifyOptimizerScore(candidate.score, detailed);
@@ -1270,8 +1440,9 @@ test('ordinary evaluator preserves deterministic configuration and isolates cons
     {},
     { rotation: adapter.toApplicationBuild({ rotation: ['Chop'] }).rotation, weapons: ['Axe', 'Axe'] }
   );
-  const evaluator = createOptimizerEvaluator(captured, adapter);
-  const equipment = ordinaryEquipmentAt(createOptimizerSpace(captured, adapter), 0n);
+  const space = createOptimizerSpace(captured, adapter);
+  const evaluator = createOptimizerEvaluator(space, adapter);
+  const equipment = ordinaryEquipmentAt(space, 0n);
   const original = optimizerScore(evaluator.evaluate(equipment));
   const other = structuredClone(equipment);
   other.gear.Helm = "Viper's";

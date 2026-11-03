@@ -15,6 +15,7 @@ import {
   applyOptimizerCandidate,
   captureGearOptimizerRequest,
   createOptimizerEvaluator,
+  createOptimizerSpace,
   optimizerEquipment,
   optimizerScore,
   verifyOptimizerScore
@@ -226,7 +227,10 @@ test('optimizer checks potion attributes and verifies scores under the captured 
     minBoonDurationPercent: before['Boon Duration'].final + 15
   };
   const unbuffed = captureGearOptimizerRequest(app, limits);
-  assert.equal(createOptimizerEvaluator(unbuffed, warrior).score(optimizerEquipment(build)), null);
+  assert.equal(
+    createOptimizerEvaluator(createOptimizerSpace(unbuffed, warrior), warrior).score(optimizerEquipment(build)),
+    null
+  );
   const savedBuild = structuredClone(build);
   const selections = { ...limits, fractal: { ...enabled, augmentation: 'god' } };
   const request = captureGearOptimizerRequest(app, selections);
@@ -234,11 +238,13 @@ test('optimizer checks potion attributes and verifies scores under the captured 
   assert.equal(request.selections.fractal.agonyResistance, 150);
   assert.deepEqual(request.build, savedBuild);
   assert.deepEqual(build, savedBuild);
-  const evaluator = createOptimizerEvaluator(request, warrior);
+  const evaluator = createOptimizerEvaluator(createOptimizerSpace(request, warrior), warrior);
   const equipment = optimizerEquipment(request.build);
   const score = evaluator.score(equipment);
   assert.ok(score && score.dps > 0);
-  const unbuffedDamage = createOptimizerEvaluator(unbuffed, warrior).evaluate(equipment).totalDamage;
+  const unbuffedDamage = createOptimizerEvaluator(createOptimizerSpace(unbuffed, warrior), warrior).evaluate(
+    equipment
+  ).totalDamage;
   // The two runs independently round damage to whole points after applying the multiplier.
   assert.ok(Math.abs(score.totalDamage - unbuffedDamage * 1.15 * 1.07) < 2);
   verifyOptimizerScore(optimizerScore(score), optimizerScore(evaluator.evaluate(equipment)));
@@ -246,7 +252,10 @@ test('optimizer checks potion attributes and verifies scores under the captured 
     ...request,
     selections: { fractal: request.selections.fractal, maxToughness: before.Toughness.final }
   };
-  assert.equal(createOptimizerEvaluator(tooMuchToughness, warrior).score(equipment), null);
+  assert.equal(
+    createOptimizerEvaluator(createOptimizerSpace(tooMuchToughness, warrior), warrior).score(equipment),
+    null
+  );
   const job = createGroupedOptimizer(request, warrior);
   const result = job.evaluateRange(0n, job.space.count);
   assert.equal(result.winners.length, 1);

@@ -4,7 +4,7 @@ import {
   type RelicComparisonModel
 } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { RelicComparisonCalculationRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
-import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
+import { buildDamageSeries } from '#gw2/app/results/charts/time-series-model.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
@@ -24,8 +24,9 @@ export function calculateRelicComparison(
     },
     collectChartData: false
   });
-  const opponentSeries = buildTimeSeries(request.baselineResult, 250, { includeEffects: false });
-  const targetSeries = buildTimeSeries(targetResult, 250, { includeEffects: false });
+  // Comparison curves do not need the condition and skill inspection histories used by full charts.
+  const opponentSeries = buildDamageSeries(request.baselineResult);
+  const targetSeries = buildDamageSeries(targetResult);
   // One shared no-relic run attributes both direct damage and modifier effects.
   const withoutRelic = simulate({
     profession,

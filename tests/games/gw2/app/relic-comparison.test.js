@@ -51,11 +51,13 @@ test('break-even chart hover shows the time and both relic DPS values', () => {
 });
 
 test('relic comparison requires two distinct relics', () => {
-  assert.equal(relicComparisonAvailable('Fractal', 'Thorns'), true);
-  assert.equal(relicComparisonAvailable('Thorns', 'Akeem'), true);
-  assert.equal(relicComparisonAvailable('Thorns', 'Thorns'), false);
-  assert.equal(relicComparisonAvailable('', 'Krait'), false);
-  assert.equal(relicComparisonAvailable(null, 'Krait'), false);
+  const relicNames = ['Fractal', 'Thorns', 'Akeem', 'Krait'];
+  assert.equal(relicComparisonAvailable('Fractal', 'Thorns', relicNames), true);
+  assert.equal(relicComparisonAvailable('Thorns', 'Akeem', relicNames), true);
+  assert.equal(relicComparisonAvailable('Thorns', 'Thorns', relicNames), false);
+  assert.equal(relicComparisonAvailable('', 'Krait', relicNames), false);
+  assert.equal(relicComparisonAvailable(null, 'Krait', relicNames), false);
+  assert.equal(relicComparisonAvailable('Fractal', 'Unknown', relicNames), false);
 });
 
 test('break-even samples share timestamps and stop at the shorter simulation endpoint', () => {
@@ -305,6 +307,12 @@ test('relic comparison passes assumptions and shows the selected relic controls'
   const targetInput = { value: 'Thorns' };
   const stackInput = { value: '4' };
   const stackControl = { hidden: false };
+  let cleared = 0;
+  const output = {
+    replaceChildren() {
+      cleared++;
+    }
+  };
   const container = {
     ...inertContainer(),
     querySelector: (selector) =>
@@ -316,10 +324,13 @@ test('relic comparison passes assumptions and shows the selected relic controls'
             ? stackControl
             : selector === '[data-role="relic-comparison-stacks"]'
               ? stackInput
-              : null
+              : selector === '[data-role="relic-comparison-output"]'
+                ? output
+                : null
   };
   let targetRelic = null;
   let startingStacks = null;
+  const selections = [];
 
   mountRelicComparison(
     container,
@@ -333,6 +344,10 @@ test('relic comparison passes assumptions and shows the selected relic controls'
     (relic, stacks) => {
       targetRelic = relic;
       startingStacks = stacks;
+    },
+    (relic, stacks) => {
+      selections.push([relic, stacks]);
+      return true;
     }
   );
 
@@ -347,6 +362,13 @@ test('relic comparison passes assumptions and shows the selected relic controls'
   targetInput.value = 'Akeem';
   targetInput.onchange();
   assert.equal(stackControl.hidden, true);
+  assert.deepEqual(selections, [['Akeem', 4]], 'picker edits publish without running a simulation');
+  stackInput.value = '6';
+  stackInput.oninput();
+  assert.deepEqual(selections.at(-1), ['Akeem', 6]);
+  assert.equal(cleared, 2, 'each changed selection clears the previous output without remounting the controls');
+  assert.equal(runButton.textContent, 'Run comparison');
+  stackInput.value = '4';
   runButton.onclick();
   assert.equal(targetRelic, 'Akeem');
   assert.equal(startingStacks, 4);

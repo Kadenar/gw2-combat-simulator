@@ -35,7 +35,7 @@ for (const profession of professions.length
     {}
   );
   const space = createOptimizerSpace(request, adapter);
-  const evaluator = createOptimizerEvaluator(request, adapter);
+  const evaluator = createOptimizerEvaluator(space, adapter);
   const coldSetupMs = performance.now() - setupStart;
   const timings = [];
   const scoreTimings = [];
