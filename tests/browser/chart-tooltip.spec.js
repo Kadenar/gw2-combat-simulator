@@ -18,6 +18,11 @@ test('graph tooltips stay inside the chart at desktop and mobile widths', async 
       document.querySelector('#charts'),
       {
         durationMs: 10000,
+        // Chart phases read cumulative damage directly from the model.
+        cumulativeDamage: [
+          { t: 0, v: 0 },
+          { t: 10000, v: 300000 }
+        ],
         damageContributions: { strike: [{ t: 10000, v: 300000 }], condition: [] },
         dps: [
           { t: 0, v: 30000 },
