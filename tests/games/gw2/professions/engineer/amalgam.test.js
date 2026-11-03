@@ -355,6 +355,26 @@ test('Carbolic Composition poisons only Amalgam skill hits', () => {
   );
 });
 
+// A protocol-granted strain must work without Evolve and stop at its own expiry.
+test('Silver Lining enables Rapacious damage outside Evolve until the strain expires', () => {
+  const result = simulate('Amalgam', [77104, 'Puncturing Jab', { type: 'wait', durationMs: 9000 }, 'Rending Strike'], {
+    selectedMorphSkillIds: [77103, 77104, 76705],
+    selectedTraitIds: [TRAIT.SILVER_LINING]
+  });
+  const state = observedRuntime(result).profession.specialization.state;
+  const procs = result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Rapacious Strain');
+  const attacks = result.resolvedEvents.filter(
+    (event) => event.type === 'damage' && ['Puncturing Jab', 'Rending Strike'].includes(event.skillName)
+  );
+
+  assert.deepEqual(result.warnings, []);
+  assert.equal(state.evolvedUntil, 0);
+  assert.ok(attacks.some((event) => event.at < state.rapaciousUntil));
+  assert.ok(attacks.some((event) => event.at >= state.rapaciousUntil));
+  assert.ok(procs.some((event) => event.damage > 0));
+  assert.ok(procs.every((event) => event.at < state.rapaciousUntil));
+});
+
 test('Silver Lining moves strain activation from Evolve to each morph', () => {
   const selectedMorphSkillIds = [76959, 76866, 76954];
   const baseMorph = simulate('Amalgam', [76959], {

@@ -114,6 +114,33 @@
         }
       },
       {
+        "label": "Power Alacrity (Hammer - Silver Lining)",
+        "build": "data/gw2/builds/engineer/b-power-alac-amalgam-hammer-silver-lining.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-alac-amalgam-hammer-silver-lining-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-alacrity-amalgam-hammer",
+        "benchmarkDps": 35071,
+        "upToDate": true,
+        "benchmarkApm": 90.7,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 37855, "phase": 37855 },
+          "80-60": { "cumulative": 36208, "phase": 34692 },
+          "60-40": { "cumulative": 35013, "phase": 32843 },
+          "40-20": { "cumulative": 34976, "phase": 34866 },
+          "20-0": { "cumulative": 35071, "phase": 35071 }
+        },
+        "patchPreview": {
+          "patchId": "nov-10-balance-preview",
+          "benchmarkDps": 35071,
+          "benchmarkDpsByHealth": {
+            "100-80": { "cumulative": 37855, "phase": 37855 },
+            "80-60": { "cumulative": 36208, "phase": 34692 },
+            "60-40": { "cumulative": 35013, "phase": 32843 },
+            "40-20": { "cumulative": 34976, "phase": 34866 },
+            "20-0": { "cumulative": 35071, "phase": 35071 }
+          }
+        }
+      },
+      {
         "label": "Condition Alacrity Spear (2 Kit)",
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",

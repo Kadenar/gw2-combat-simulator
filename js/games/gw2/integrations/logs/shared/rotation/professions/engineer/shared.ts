@@ -70,6 +70,8 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
   const kitSwapSignals = context.recordedActions.filter(
     (action) => action.isSwap && normalized(action.rawName) === 'weapon swap'
   );
+  // Pair corroborating bundle signals before traversal: EI's skill-group order can put the signal first.
+  const pairedKitSwapSignals = new Set<number>();
   const sorted = context.recordedActions
     .map((action) => restoreLegacyDevastatorCast(context, action))
     .map((action) => {
@@ -81,6 +83,9 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
       const signal = kitSwapSignals.find(
         (candidate) => candidate.start >= action.start && candidate.start - action.start <= KIT_SWAP_SIGNAL_WINDOW_MS
       );
+
+      if (signal) pairedKitSwapSignals.add(signal.eventIndex);
+
       const outgoingCast = signal
         ? context.recordedActions.find((candidate) => {
             const skill: EngineerSkill | null = recordedActionSkill(candidate, context);
@@ -89,24 +94,28 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
             );
           })
         : null;
-      return outgoingCast && signal ? { ...action, start: signal.start, end: signal.start } : action;
+      return outgoingCast && signal
+        ? { ...action, start: signal.start, end: signal.start, eventIndex: outgoingCast.eventIndex + 0.5 }
+        : action;
     })
     .sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);
   const result: RecordedLogAction[] = [];
   const forgeTransitions = sorted.filter((action) => PHOTON_FORGE_TRANSITION_IDS.has(action.rawSkillId));
   let activeKit: SkillId | null = null;
-  let lastKitEquip: RecordedLogAction | null = null;
 
   for (const [index, action] of sorted.entries()) {
     // EI reports do not always label known trait procs, so reject their fixed IDs before reconstructing player inputs.
     if (TRIGGERED_PROC_SKILL_IDS.has(action.rawSkillId)) continue;
 
-    const skill = recordedActionSkill(action, context);
+    const skill: EngineerSkill | null = recordedActionSkill(action, context);
+
+    // A recorded kit attack proves which bundle is active even when its opening equip was omitted.
+    // Track that evidence for later stows without inventing the missing preparation input.
+    if (normalized(skill?.type) === 'weapon' && skill?.kitId != null) activeKit = skill.kitId;
 
     // Forge replaces the kit itself, even when the log omits its paired bundle-change signal.
     if (PHOTON_FORGE_TRANSITION_IDS.has(action.rawSkillId)) {
       activeKit = null;
-      lastKitEquip = null;
     }
 
     const equippedKit = equippedKitId(skill);
@@ -114,20 +123,15 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
     if (equippedKit) {
       result.push(action);
       activeKit = equippedKit;
-      lastKitEquip = action;
       continue;
     }
 
     if (action.isSwap && normalized(action.rawName) === 'weapon swap') {
+      if (pairedKitSwapSignals.has(action.eventIndex)) continue;
+
       // Suppress Forge bundle changes before they can become redundant kit stows, including earlier tied signals.
       if (forgeTransitions.some((forge) => Math.abs(action.start - forge.start) <= KIT_SWAP_SIGNAL_WINDOW_MS)) {
         activeKit = null;
-        lastKitEquip = null;
-        continue;
-      }
-
-      if (lastKitEquip && action.start - lastKitEquip.start <= KIT_SWAP_SIGNAL_WINDOW_MS) {
-        lastKitEquip = null;
         continue;
       }
 
@@ -137,7 +141,6 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
         if (stow) result.push(stow);
 
         activeKit = null;
-        lastKitEquip = null;
         continue;
       }
 
@@ -159,7 +162,6 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
             canonicalName: kit.name
           });
           activeKit = kit.id;
-          lastKitEquip = null;
           continue;
         }
       }
@@ -176,7 +178,6 @@ export function reconstructEngineerDependencies(context: LogActionNormalizationC
     }
 
     result.push(action);
-    lastKitEquip = null;
   }
 
   return result.sort((left, right) => left.start - right.start || left.eventIndex - right.eventIndex);

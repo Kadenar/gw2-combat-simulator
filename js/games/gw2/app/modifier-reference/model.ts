@@ -25,24 +25,32 @@ export interface ModifierReferenceEntry {
   readonly rules: readonly ReferenceRule[];
 }
 
-/** Only outgoing damage rules participate in the additive/multiplicative inventory. */
+// Critical damage has its own category because it scales only the critical portion of strike damage.
+const DAMAGE_TARGET_LABELS = new Map([
+  ['strikeDamage', 'Strike'],
+  ['conditionDamage', 'Condition'],
+  ['criticalDamage', 'Critical']
+]);
+
+/** Include outgoing and critical damage while leaving chance, duration, and attribute rules outside this reference. */
 function damageRule(rule: Gw2ModifierRule): boolean {
-  return [rule.target].flat().some((target) => target === 'strikeDamage' || target === 'conditionDamage');
+  return [rule.target].flat().some((target) => DAMAGE_TARGET_LABELS.has(target));
 }
 
 function describeRule(rule: Gw2ModifierRule, qualifier?: string): ReferenceRule {
-  const value = rule.operation === 'damage-additive' ? rule.amount : rule.factor;
+  const additive = rule.operation === 'damage-additive' || rule.operation === 'add';
+  const value = additive ? rule.amount : rule.factor;
   return {
     qualifier,
-    targets: [rule.target]
-      .flat()
-      .filter((target) => target === 'strikeDamage' || target === 'conditionDamage')
-      .map((target) => (target === 'strikeDamage' ? 'Strike' : 'Condition')),
-    bucket: rule.operation === 'damage-additive' ? 'additive' : 'multiplier',
+    targets: [rule.target].flat().flatMap((target) => {
+      const label = DAMAGE_TARGET_LABELS.get(target);
+      return label ? [label] : [];
+    }),
+    bucket: additive ? 'additive' : 'multiplier',
     value:
       typeof value === 'number'
-        ? rule.operation === 'damage-additive'
-          ? `${Number((value * 100).toFixed(4))}%`
+        ? additive
+          ? `${Number((value * 100).toFixed(4))}${rule.operation === 'add' ? ' percentage points' : '%'}`
           : `${Number(value.toFixed(4))}×`
         : // Resolver-backed amounts are described by the existing skill/trait facts, not guessed from execution.
           undefined
@@ -164,7 +172,9 @@ export function createModifierReference(
           ? {
               description: [...new Set([previous.tooltip.description, tooltip.description])].filter(Boolean).join('\n'),
               facts: uniqueFacts([...previous.tooltip.facts, ...tooltip.facts]),
-              factTabs: uniqueFacts([...(previous.tooltip.factTabs ?? []), ...(tooltip.factTabs ?? [])])
+              factTabs: uniqueFacts([...(previous.tooltip.factTabs ?? []), ...(tooltip.factTabs ?? [])]),
+              // Preserve conditional groups when several mechanic sources share one reference entry.
+              factSections: uniqueFacts([...(previous.tooltip.factSections ?? []), ...(tooltip.factSections ?? [])])
             }
           : tooltip,
         rules: [...(previous?.rules ?? []), describeRule(rule, presentation?.qualifier)]

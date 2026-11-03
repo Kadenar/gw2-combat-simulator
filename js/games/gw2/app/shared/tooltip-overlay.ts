@@ -9,11 +9,12 @@ export function wikiTooltipAttributes(
   description: unknown = '',
   wikiName: unknown = name,
   facts: readonly TooltipFact[] = [],
-  factTabs: SimulationTooltip['factTabs'] = []
+  factTabs: SimulationTooltip['factTabs'] = [],
+  factSections: SimulationTooltip['factSections'] = []
 ): string {
   if (!name || name === 'None') return '';
 
-  return `data-wiki-name="${esc(name)}" data-wiki-description="${esc(String(description ?? ''))}" data-wiki-page="${esc(wikiName)}" data-wiki-effects="${esc(JSON.stringify(facts))}" data-wiki-effect-tabs="${esc(JSON.stringify(factTabs))}"`;
+  return `data-wiki-name="${esc(name)}" data-wiki-description="${esc(String(description ?? ''))}" data-wiki-page="${esc(wikiName)}" data-wiki-effects="${esc(JSON.stringify(facts))}" data-wiki-effect-tabs="${esc(JSON.stringify(factTabs))}" data-wiki-effect-sections="${esc(JSON.stringify(factSections))}"`;
 }
 
 /** Renders a locally described model; the selected simulation definitions own every numeric fact. */
@@ -43,7 +44,8 @@ export function skillTooltipAttributes(
       skill.displayName || skill.name,
       // Heading costs use the selected model and appear only once, beside the skill name.
       tooltip.facts.filter((fact) => fact !== recharge && fact !== energy && fact !== upkeep),
-      tooltip.factTabs
+      tooltip.factTabs,
+      tooltip.factSections
     ) +
     (energy && Number(energy.detail) > 0 ? ` data-wiki-energy="${esc(energy.detail)}"` : '') +
     (recharge ? ` data-wiki-recharge="${esc(recharge.detail.replace(/s$/, ''))}"` : '') +
@@ -57,7 +59,14 @@ export function traitTooltipAttributes(trait: CatalogEntity, tooltip: Simulation
   const description = [tooltip.description, tooltip.incomplete ? 'Some simulation details are not yet described.' : '']
     .filter(Boolean)
     .join('\n');
-  return wikiTooltipAttributes(trait.name, description, trait.name, tooltip.facts, tooltip.factTabs);
+  return wikiTooltipAttributes(
+    trait.name,
+    description,
+    trait.name,
+    tooltip.facts,
+    tooltip.factTabs,
+    tooltip.factSections
+  );
 }
 
 let refreshTooltip: (() => void) | undefined;
@@ -264,7 +273,10 @@ export function bindWikiTooltips(): void {
     recharge.hidden = !element.dataset.wikiRecharge;
     const facts: TooltipFact[] = JSON.parse(element.dataset.wikiEffects || '[]');
     const factTabs: NonNullable<SimulationTooltip['factTabs']> = JSON.parse(element.dataset.wikiEffectTabs || '[]');
-    effects.hidden = !facts.length && !factTabs.length;
+    const factSections: NonNullable<SimulationTooltip['factSections']> = JSON.parse(
+      element.dataset.wikiEffectSections || '[]'
+    );
+    effects.hidden = !facts.length && !factTabs.length && !factSections.length;
     effects.innerHTML = `${facts.length && !factTabs.length && !element.dataset.wikiEquipment ? '<div class="wiki-tooltip-effects-label">Base effects</div>' : ''}${renderFacts(facts)}${
       factTabs.length
         ? `
@@ -272,6 +284,13 @@ export function bindWikiTooltips(): void {
       ${factTabs.map((tab, index) => `<div role="tabpanel" id="wiki-tooltip-tabpanel-${index}" aria-labelledby="wiki-tooltip-tab-${index}" tabindex="0"${index ? ' hidden' : ''}>${renderFacts(tab.facts)}</div>`).join('')}`
         : ''
     }`;
+    // Persistent sections separate conditional bonuses without hiding their trigger or facts behind a tab.
+    effects.innerHTML += factSections
+      .map(
+        (section, index) =>
+          `<section class="wiki-tooltip-effect-section" aria-labelledby="wiki-tooltip-section-${index}"><h3 id="wiki-tooltip-section-${index}">${esc(section.label)}</h3>${section.description ? `<p>${esc(section.description)}</p>` : ''}${renderFacts(section.facts)}</section>`
+      )
+      .join('');
     link.href = `https://wiki.guildwars2.com/wiki/${encodeURIComponent((element.dataset.wikiPage || heading.textContent).replaceAll(' ', '_'))}`;
     element.setAttribute('aria-describedby', description.id);
     // A manual popover stays above equipment menus; a modal's contents must own it to remain interactive.

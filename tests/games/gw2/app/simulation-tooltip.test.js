@@ -1020,14 +1020,25 @@ test('Amalgam strain tooltips and activation use the same patched Stability pack
     ['strain-tooltip', 3, 4]
   ]) {
     const context = profession.resolvePatch({ id: patchId }).balanceContext;
+    // Protocol tooltips own strain details for both activation routes; Evolve describes only the form itself.
+    const protocol = context.catalog.skillsById.get(skills.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954);
+    const model = describeSimulationSkill(context, protocol, engineerTooltips);
+    const strain = model.factSections.find((section) => section.label === 'Berserker Strain');
+    const fact = strain.facts.find((fact) => fact.name === 'Stability');
+    assert.equal(fact?.stacks, stacks);
+    assert.equal(fact.detail, `${duration}s`);
+    assert.match(strain.description, /Evolve.*Silver Lining/);
+    assert.ok(!model.facts.some((fact) => fact.name === 'Stability'));
+    // The overlay transport must preserve conditional sections, independently of heading costs.
+    const attributes = skillTooltipAttributes(protocol, model);
+    assert.ok(
+      attributes.includes(`data-wiki-effect-sections="${JSON.stringify(model.factSections).replaceAll('"', '&quot;')}"`)
+    );
+    assert.doesNotMatch(JSON.stringify(model), /Packet 1|Smash Damage|displays.*window/);
     for (const [skillId, selectedTraitIds] of [
       [skills.EVOLVE_BASE, []],
       [skills.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954, [traits.SILVER_LINING]]
     ]) {
-      const model = describeSimulationSkill(context, context.catalog.skillsById.get(skillId), engineerTooltips);
-      const fact = model.facts.find((fact) => fact.name === 'Stability' && fact.detail.includes('Berserker Strain'));
-      assert.equal(fact?.stacks, stacks);
-      assert.ok(fact.detail.startsWith(`${duration}s`));
       const result = simulate('Amalgam', [skillId], {
         patchId,
         selectedMorphSkillIds: [77103, 77203, skills.OFFENSIVE_PROTOCOL_DEMOLISH_ID_76954],

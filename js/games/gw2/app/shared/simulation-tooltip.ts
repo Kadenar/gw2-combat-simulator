@@ -18,6 +18,12 @@ import type { BalanceProfile, CatalogEntity, Skill, SkillId, TooltipFact } from 
 export interface SimulationTooltip {
   readonly description: string;
   readonly facts: readonly TooltipFact[];
+  /** Related effects stay visible together, with their activation rule stated once per section. */
+  readonly factSections?: readonly {
+    readonly label: string;
+    readonly description?: string;
+    readonly facts: readonly TooltipFact[];
+  }[];
   /** Alternative payloads use tabs while shared costs remain visible above them. */
   readonly factTabs?: readonly { readonly label: string; readonly facts: readonly TooltipFact[] }[];
   readonly incomplete?: boolean;

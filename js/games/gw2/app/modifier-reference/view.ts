@@ -60,6 +60,7 @@ function referenceEntryHtml(entry: ModifierReferenceEntry): string {
       <dl class="modifier-reference-rules">${entry.rules.map((rule) => `<div><dt>${rule.qualifier ? `${esc(rule.qualifier)} · ` : ''}${esc(rule.targets.join(' / '))} damage</dt><dd>${rule.value ? `${esc(rule.value)} · ` : ''}${rule.bucket === 'additive' ? 'Additive' : 'Multiplicative'}</dd></div>`).join('')}</dl>
       ${factsHtml(entry.tooltip.facts)}
       ${(entry.tooltip.factTabs ?? []).map((tab) => `<h4>${esc(tab.label)}</h4>${factsHtml(tab.facts)}`).join('')}
+      ${(entry.tooltip.factSections ?? []).map((section) => `<h4>${esc(section.label)}</h4>${section.description ? `<p>${esc(section.description)}</p>` : ''}${factsHtml(section.facts)}`).join('')}
     </div>
   </details>`;
 }

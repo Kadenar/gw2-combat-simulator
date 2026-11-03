@@ -329,19 +329,62 @@ test('ties a jittered Engineer kit transition after its outgoing weapon cast', (
     s5812: { name: 'Bomb Kit', isInstantCast: true, isNotAccurate: true }
   };
 
-  const result = reconstructDpsReportRotation(parseDpsReport(fixture), engineerCatalog);
-  const names = result.rotation.map((command) => engineerCatalog.skillsById.get(command.skillId)?.name);
-  const electroIndex = names.indexOf('Electro-whirl');
-  const kitIndex = names.indexOf('Grenade Kit');
-  const grenadeIndex = names.indexOf('Shrapnel Grenade');
+  const [hammer, kit, swap, ...later] = fixture.players[0].rotation;
+  // EI groups by skill, so every traversal order must preserve one kit entry after the outgoing weapon input.
+  for (const groups of [
+    [hammer, kit, swap],
+    [hammer, swap, kit],
+    [kit, hammer, swap],
+    [kit, swap, hammer],
+    [swap, hammer, kit],
+    [swap, kit, hammer]
+  ]) {
+    fixture.players[0].rotation = [...groups, ...later];
+    const result = reconstructDpsReportRotation(parseDpsReport(fixture), engineerCatalog);
+    const names = result.rotation.map((command) => engineerCatalog.skillsById.get(command.skillId)?.name);
+    const electroIndex = names.indexOf('Electro-whirl');
+    const kitIndex = names.indexOf('Grenade Kit');
+    const grenadeIndex = names.indexOf('Shrapnel Grenade');
 
-  // One transition must equip the kit after the hammer input without inventing an immediate stow.
-  assert.ok(electroIndex < kitIndex && kitIndex < grenadeIndex);
-  assert.equal(names.slice(kitIndex, grenadeIndex).includes('Stow Grenade Kit'), false);
-  assert.equal(
-    result.actions.find((action) => action.name === 'Electro-whirl').timestampMs,
-    result.actions.find((action) => action.name === 'Grenade Kit').timestampMs
-  );
+    assert.ok(electroIndex < kitIndex && kitIndex < grenadeIndex);
+    assert.equal(names.includes('Swap Weapons'), false);
+    assert.equal(names.slice(kitIndex, grenadeIndex).includes('Stow Grenade Kit'), false);
+    assert.equal(
+      result.actions.find((action) => action.name === 'Electro-whirl').timestampMs,
+      result.actions.find((action) => action.name === 'Grenade Kit').timestampMs
+    );
+  }
+});
+
+test('an opening kit attack identifies its later stow without cancelling a utility or inventing preparation', () => {
+  const fixture = reportFixture();
+  fixture.players[0].rotation = [
+    { id: 5822, skills: [{ castTime: 0, duration: 600 }] },
+    { id: 6161, skills: [{ castTime: 600, duration: 360 }] },
+    { id: -2, skills: [{ castTime: 720, duration: 0 }] },
+    { id: 6162, skills: [{ castTime: 1000, duration: 0 }] }
+  ];
+  fixture.skillMap = {
+    s5822: { name: 'Galvanic Bomb' },
+    s6161: { name: 'Throw Mine' },
+    's-2': { name: 'Weapon Swap', isSwap: true },
+    s6162: { name: 'Detonate' }
+  };
+  const imported = reconstructDpsReportRotation(parseDpsReport(fixture), engineerCatalog);
+  const names = imported.rotation.map((command) => engineerCatalog.skillsById.get(command.skillId)?.name);
+  assert.ok(names.includes('Stow Bomb Kit'));
+  assert.equal(names.includes('Swap Weapons'), false);
+  assert.equal(names.includes('Bomb Kit'), false);
+
+  // Supply the omitted preparation explicitly; the represented stow must allow the mine's follow-up to become ready.
+  const result = simulateGw2({
+    profession: engineerProfession,
+    rotation: [{ type: 'cast', skillId: 5812 }, ...imported.rotation],
+    config: { specialization: 'Amalgam', selectedSkillIds: [5812, 6161] }
+  });
+  assert.deepEqual(result.warnings, []);
+  const detonate = result.steps.find((step) => step.skillId === 6162);
+  assert.ok(detonate && !detonate.invalid);
 });
 
 test('paired Engineer bundle swaps recover an unused kit only for an unambiguous loadout', () => {

@@ -177,6 +177,26 @@
   font-size: 11px;
 }
 
+/* Keep conditional effect groups readable while leaving their requirements beside their values. */
+.wiki-tooltip-effect-section {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #b8aa6c30;
+}
+
+.wiki-tooltip-effect-section h3 {
+  margin: 0 0 5px;
+  color: #d9bc64;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.wiki-tooltip-effect-section p {
+  margin: 0 0 6px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 /* Requirement tabs wrap to keep every option reachable inside narrow tooltips. */
 .wiki-tooltip-tabs {
   display: flex;

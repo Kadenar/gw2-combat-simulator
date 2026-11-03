@@ -32,7 +32,7 @@ async function initializeReference(host: HTMLElement, options: ReferenceOptions)
       <label class="filter-field modifier-reference-search">Search<input name="q" type="search" placeholder="Modifier name…" autocomplete="off"></label>
       <label class="filter-field">Profession<select name="profession"><option value="">All professions</option>${professionRegistry.map((entry) => `<option value="${esc(entry.id)}">${esc(entry.name)}</option>`).join('')}</select></label>
       <label class="filter-field">Specialization / trait line<select name="specialization"><option value="">All specializations</option></select></label>
-      <label class="filter-field">Damage type<select name="target"><option value="">All damage</option><option>Strike</option><option>Condition</option></select></label>
+      <label class="filter-field">Damage type<select name="target"><option value="">All damage</option><option>Strike</option><option>Condition</option><option value="Critical">Critical damage</option></select></label>
       <label class="filter-field">Stacking<select name="bucket"><option value="">All stacking</option><option value="additive">Additive</option><option value="multiplier">Multiplicative</option></select></label>
       <label class="filter-field">Balance version<select name="patch"><option value="current">Live</option></select></label>
       <button type="button" class="btn" data-reference-reset>Reset filters</button>

@@ -17,38 +17,64 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
+import {
+  AMALGAM_MORPH_KIND_BY_SKILL_ID,
+  type AmalgamMorphKind
+} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
 import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 
-/** Strain wording records the state transition; numerical durations and proc packets stay with their simulation owners. */
-function strainFacts(
-  balanceContext: ProfessionBalanceContext,
-  skillId: SkillId,
-  qualifier: string
-): readonly TooltipFact[] {
+// Describe each protocol's purpose; section headings name the strain so individual facts need not repeat it.
+const protocolDescriptions: Record<AmalgamMorphKind, { description: string; strain: string }> = {
+  thorns: {
+    description: 'Strike your foe. Retaliation pulses require the damaging-field assumption.',
+    strain: 'Rapacious Strain'
+  },
+  obliterate: { description: 'Strike your foe and inflict bleeding.', strain: 'Titanic Strain' },
+  demolish: { description: 'Spin to strike foes, then finish with a smash.', strain: 'Berserker Strain' },
+  shred: { description: 'Fire projectiles that damage and immobilize your foe.', strain: 'Predator Strain' },
+  pierce: { description: 'Strike your foe, stunning them and applying vulnerability.', strain: 'Volatile Strain' },
+  cleanse: { description: 'Gain protection.', strain: 'Replicating Strain' },
+  protect: { description: 'Activate this protocol to trigger Morph and tool-belt traits.', strain: 'Resiliant Strain' }
+};
+
+/** Keep recognizable attack phases while omitting repeated skill names and internal packet labels. */
+function protocolFacts(effects: readonly SkillEffect[] = []): readonly TooltipFact[] {
+  return effects.flatMap((effect) => {
+    const strikeLabel =
+      effect.name === 'Offensive Protocol: Demolish - Packet 1'
+        ? 'Spin damage'
+        : effect.name === 'Smash Damage'
+          ? 'Smash damage'
+          : effect.name === 'Initial Damage'
+            ? 'Initial damage'
+            : 'Strike damage';
+    return simulationEffectFacts([{ ...effect, name: undefined }]).facts.map((fact) => ({
+      ...fact,
+      name: fact.name === 'Strike damage' ? strikeLabel : fact.name
+    }));
+  });
+}
+
+/** Section context owns the strain's name and trigger; numeric facts still read its simulation owner. */
+function strainFacts(balanceContext: ProfessionBalanceContext, skillId: SkillId): readonly TooltipFact[] {
   const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skillId);
   skillId = amalgamStrainOwnerId(skillId);
   const skill = balanceContext.catalog.skillsById.get(skillId)!;
   const effects = requireSkillAction(skill, 'strain').effects;
-  const facts = simulationEffectFacts(
-    effects,
-    kind === 'thorns' ? `${qualifier} · per eligible subsequent strike` : qualifier
-  ).facts.slice();
+  const facts = protocolFacts(effects).map((fact) => ({
+    ...fact,
+    name: kind === 'thorns' && fact.name === 'Strike damage' ? 'Bonus strike damage' : fact.name
+  }));
 
   if (kind === 'thorns')
     facts.push(
-      skillFact(balanceContext, skillId, 'rapaciousDuration', 'Rapacious Strain duration', tooltipSeconds),
-      skillFact(
-        balanceContext,
-        skillId,
-        'rapaciousInternalCooldown',
-        'Rapacious Strain internal cooldown',
-        tooltipSeconds
-      )
+      skillFact(balanceContext, skillId, 'rapaciousDuration', 'Duration', tooltipSeconds),
+      skillFact(balanceContext, skillId, 'rapaciousInternalCooldown', 'Internal cooldown', tooltipSeconds)
     );
 
   if (kind === 'obliterate')
@@ -57,7 +83,8 @@ function strainFacts(
         balanceContext,
         skillId,
         'titanicAttributePerStack',
-        'Additional Power and Condition Damage per Might stack'
+        'Power and Condition Damage per Might stack',
+        (value) => `${value > 0 ? '+' : ''}${tooltipDecimal(value)}`
       )
     );
 
@@ -66,38 +93,48 @@ function strainFacts(
 
 const amalgamMorphTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-  const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(entity.id);
-  const facts = [...simulationEffectFacts(selected.effects).facts];
-  let description =
-    'Activate this protocol and apply supported Morph and tool-belt traits. Silver Lining grants its corresponding strain on activation; otherwise Evolve grants selected strains.';
+  const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(entity.id)!;
+  const { description, strain } = protocolDescriptions[kind];
+  const facts = [...protocolFacts(selected.effects)];
 
   if (kind === 'thorns') {
-    description += ' Retaliation pulses require the damaging-field assumption.';
     facts.push(
-      ...simulationEffectFacts(
-        requireSkillAction(selected, 'retaliation').effects,
-        'per retaliation pulse; requires damaging-field assumption'
-      ).facts,
-      skillFact(balanceContext, selected.id, 'maximumStacks', 'Retaliation pulses'),
+      ...protocolFacts(requireSkillAction(selected, 'retaliation').effects).map((fact) => ({
+        ...fact,
+        name: fact.name === 'Strike damage' ? 'Damage per retaliation pulse' : fact.name
+      })),
+      // Present the retaliation window as the named effect, using its skill icon and selected pulse tuning.
+      {
+        name: `Thorns (${tooltipDecimal(tooltipNumber(selected, 'maximumStacks') * tooltipNumber(selected, 'retaliationInterval'))} sec)`,
+        detail: 'Deal damage to nearby enemies when struck.',
+        icon: selected.icon
+      },
       skillFact(balanceContext, selected.id, 'retaliationInterval', 'Retaliation interval', tooltipSeconds)
     );
   }
 
-  if (kind) facts.push(...strainFacts(balanceContext, selected.id, 'requires Silver Lining'));
-
-  // Predator and Berserker windows display strain uptime; only their authored boons affect combat.
-  if (kind === 'demolish') description += ' Its strain grants stability and displays the Berserker Strain window.';
-
-  if (kind === 'obliterate') description += ' Its strain also grants power per might stack.';
-
-  if (kind === 'shred')
-    description += ' Its strain grants quickness and superspeed and displays the Predator Strain window.';
-
-  return { description, facts };
+  const strainDescription = 'Granted by Evolve, or by this protocol with Silver Lining.';
+  return {
+    description,
+    facts,
+    factSections: [
+      {
+        label: strain,
+        description:
+          kind === 'thorns'
+            ? `${strainDescription} Adds damage to eligible subsequent strikes.`
+            : kind === 'obliterate'
+              ? `${strainDescription} Might grants extra attributes while the strain lasts.`
+              : strainDescription,
+        facts: strainFacts(balanceContext, selected.id)
+      }
+    ]
+  };
 };
 
+// Keep Evolve focused on its form bonus; each protocol tooltip owns its strain details instead of repeating every slot.
 const evolveTooltip: DescribeSimulationTooltip = skillTooltip<AmalgamSkill>(
-  'Enter Evolved form, increasing eligible attributes. Apply strains for the selected protocols, unless Silver Lining moved those grants to protocol activations. Symbiotic Synergy also recharges selected protocols. Double Helix selects the ammunition variant and larger attribute bonus.',
+  'Enter Evolved form, increasing attributes and granting the strains of your equipped protocols. See each protocol tooltip for its strain effects. With Silver Lining, activating protocols grants strains instead. With Symbiotic Synergy, Evolve also recharges your protocols.',
   (balanceContext, skill) => [
     { name: 'Evolved duration', detail: tooltipSeconds(tooltipNumber(skill, 'duration')) },
     skill.id === ID.EVOLVE_DOUBLE_HELIX
@@ -111,15 +148,7 @@ const evolveTooltip: DescribeSimulationTooltip = skillTooltip<AmalgamSkill>(
       : {
           name: 'Eligible attribute increase',
           detail: tooltipFactorChange(tooltipNumber(skill, 'attributeMultiplier'))
-        },
-    // Slot identities can be patched independently; report each actual owner.
-    ...[...AMALGAM_MORPH_KIND_BY_SKILL_ID].flatMap(([id, kind]) =>
-      strainFacts(
-        balanceContext,
-        id,
-        `${kind} protocol in F${balanceContext.catalog.skillsById.get(id)!.mechanicSlot}; without Silver Lining`
-      )
-    )
+        }
   ]
 );
 

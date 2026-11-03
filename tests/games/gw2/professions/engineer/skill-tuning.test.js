@@ -379,7 +379,10 @@ for (const id of [
     assert.ok(procs.every((event) => event.coefficient === 0.9));
     const selected = family.resolvePatch({ id: 'engineer-ownership' }).balanceContext;
     const tooltip = describeSimulationSkill(selected, selected.catalog.skillsById.get(id), engineerTooltips);
-    assert.equal(tooltip.facts.find((fact) => fact.name === 'Rapacious Strain duration').detail, '1.5s');
+    const strain = tooltip.factSections.find((section) => section.label === 'Rapacious Strain');
+    assert.equal(strain.facts.find((fact) => fact.name === 'Duration').detail, '1.5s');
+    assert.equal(strain.facts.find((fact) => fact.name === 'Internal cooldown').detail, '0.6s');
+    assert.equal(strain.facts.find((fact) => fact.name === 'Bonus strike damage').detail, '0.9 coefficient');
     assert.equal(engineerCatalog.skillsById.get(ID.DEFENSIVE_PROTOCOL_THORNS).rapaciousDuration, baseline);
   });
 }

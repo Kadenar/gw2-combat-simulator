@@ -33,14 +33,14 @@ function reactToAmalgamDamage(context: EngineerRuntime, event: EngineerResolverE
   if (
     event.actorType === ACTOR.SUMMON ||
     event.sourceId === 'engineer.rapacious-strain' ||
-    strain.evolvedUntil <= event.at ||
     strain.rapaciousUntil <= event.at
   )
     return;
 
   // The shared strain owner keeps one cooldown regardless of the last granting slot.
   const skill = requireSkillFromContext(context, ID.DEFENSIVE_PROTOCOL_THORNS);
-  // Rapacious requires both states and cannot trigger itself, even with a zero authored ICD.
+  // The strain's own lifetime authorizes procs, including Silver Lining grants outside Evolve.
+  // Rapacious cannot trigger itself, even with a zero authored ICD.
   const cooldown = skillNumber(skill, 'rapaciousInternalCooldown');
 
   if (cooldown === 0 || isInternalCooldownReady(event.at, state.deadline('rapacious') || 0)) {

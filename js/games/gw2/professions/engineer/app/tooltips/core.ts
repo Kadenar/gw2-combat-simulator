@@ -2,6 +2,7 @@ import {
   simulationEffectFacts,
   skillFact,
   skillTooltip,
+  tooltipFactorChange,
   tooltipNumber,
   tooltipSeconds,
   type DescribeSimulationTooltip,
@@ -149,6 +150,19 @@ export const engineerCoreTooltips = {
     ...Object.fromEntries([ID.THROW_MINE, ID.MAGNETIC_SHIELD, ID.STATIC_SHIELD].map((id) => [id, armFlipTooltip])),
     ...Object.fromEntries([ID.THROW_SHIELD, ID.MAGNETIC_INVERSION].map((id) => [id, consumeFlipTooltip])),
     [ID.MINE_FIELD]: mineFieldTooltip,
+    // The modifier reference uses the proc's skill card, so expose its selected critical multiplier here too.
+    [ID.STATIC_DISCHARGE_TRAIT_SKILL]: skillTooltip(
+      'An additional strike triggered by completing a toolbelt skill. Its critical damage is amplified independently of ordinary strike damage.',
+      (context) => [
+        skillFact(
+          context,
+          ID.STATIC_DISCHARGE_TRAIT_SKILL,
+          'criticalDamage',
+          'Critical damage amplification',
+          tooltipFactorChange
+        )
+      ]
+    ),
     [ID.GLEAM_SABER_NON_HOLOSMITH]: gleamSaberTooltip,
     [SHARED_SKILL_IDS.DODGE]: dodgeTooltip,
     [ID.CONDUIT_SURGE]: conduitSurgeTooltip,
