@@ -344,6 +344,92 @@
   color: var(--text-dim);
 }
 
+/* Mobile summaries lead with DPS, group activity metrics, and align damage totals in two columns. */
+@media (max-width: 700px) {
+  .rotation-dps-summary .res-summary {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px 8px;
+    width: 100%;
+    padding: 12px;
+  }
+
+  .rotation-dps-summary .res-stat {
+    grid-column: span 3;
+    min-width: 0;
+    align-items: flex-start;
+  }
+
+  .rotation-dps-summary .res-stat-target-start {
+    padding-left: 0;
+    margin-left: 0;
+    border-left: 0;
+  }
+
+  .rotation-dps-summary .res-stat:is(:first-child, :has(.apm, .idle-time)) {
+    grid-column: span 2;
+    order: -1;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .rotation-dps-summary .res-stat:has(.dps) {
+    grid-column: 1 / -1;
+    order: -2;
+    align-items: center;
+    padding-bottom: 4px;
+  }
+
+  .rotation-dps-summary .res-val {
+    font-size: 16px;
+  }
+
+  .rotation-dps-summary .res-val.dps {
+    font-size: 28px;
+    line-height: 1.2;
+  }
+
+  .rotation-dps-summary .res-label-row {
+    flex-wrap: wrap;
+  }
+
+  /* Anchor help panels to the metric cell even when its label wraps on a narrow phone. */
+  .rotation-dps-summary .res-metric-info {
+    position: static;
+  }
+
+  .rotation-dps-summary .res-label {
+    letter-spacing: 0;
+  }
+
+  .rotation-dps-summary .res-stat:has(.target-damage) {
+    grid-column: 1 / -1;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .rotation-dps-summary .res-dps-snapshots-panel {
+    right: auto;
+    left: 50%;
+    width: min(440px, calc(100vw - 64px));
+    transform: translateX(-50%);
+  }
+
+  .rotation-dps-summary .res-stat:has(.idle-time, .environment) .res-metric-info-panel {
+    right: 0;
+    left: auto;
+    transform: none;
+  }
+
+  .rotation-dps-summary .res-stat:has(.apm) .res-metric-info-panel {
+    right: auto;
+    left: 50%;
+    min-width: 0;
+    width: min(300px, calc(100vw - 64px));
+    transform: translateX(-50%);
+  }
+}
+
 .rng-distribution-heading {
   display: flex;
   align-items: start;
@@ -1652,32 +1738,6 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
 .log-owner-none {
   cursor: default;
   border-right-color: transparent;
-}
-
-.log-trace {
-  min-height: 36px;
-  margin-top: 6px;
-  padding: 6px 10px;
-  background: var(--bg-panel-alt);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text-dim);
-  font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 11px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
-
-.log-trace-node {
-  color: var(--text-bright);
-}
-
-.log-trace-hop {
-  white-space: nowrap;
-}
-
-.log-trace-inferred {
-  color: #d95926;
 }
 
 .log-empty {

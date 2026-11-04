@@ -249,6 +249,32 @@ body[data-profession] .rotation-section {
   color: inherit;
 }
 
+/* Touch guidance replaces modifier-key instructions only on devices without hover. */
+.palette-hint-touch {
+  display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .palette-hint-pointer {
+    display: none;
+  }
+
+  .palette-hint-touch {
+    display: inline;
+  }
+}
+
+/* Desktop keeps the options in the existing toolbar flow; phones use the native disclosure. */
+.rotation-options,
+.rotation-options::details-content,
+.rotation-options-content {
+  display: contents;
+}
+
+.rotation-options > summary {
+  display: none;
+}
+
 /* Keep transient simulation feedback beneath the title, with a stable line even when idle. */
 .rotation-builder-label {
   display: grid;
@@ -501,36 +527,55 @@ body[data-rotation-focus] .rotation-dps-summary .res-summary {
   white-space: nowrap;
 }
 
-/* The config sidebar narrows the rotation panel without changing the viewport,
-   so responsive rotation layouts need to follow the panel's actual width. */
-@container rotation-builder (min-width: 701px) and (max-width: 1050px) {
-  body[data-profession]:not(.elementalist-theme) .rotation-mid {
+/* Group settings and actions in aligned rows until the panel can fit them together. */
+@container rotation-builder (min-width: 701px) {
+  body[data-profession] .rotation-mid {
     display: grid;
     grid-template-areas:
       'label size start'
-      'buttons buttons buttons';
+      'label buttons buttons';
     grid-template-columns: max-content max-content minmax(0, 1fr);
     align-items: center;
+    gap: 10px 24px;
   }
 
-  body[data-profession]:not(.elementalist-theme) .rotation-tl-label {
+  body[data-profession] .rotation-tl-label {
     grid-area: label;
+    align-self: start;
+    padding-top: 4px;
   }
 
-  body[data-profession]:not(.elementalist-theme) .rotation-display-controls {
+  body[data-profession] .rotation-display-controls {
     grid-area: size;
   }
 
-  body[data-profession]:not(.elementalist-theme) .start-att-selector {
+  body[data-profession] .start-att-selector {
     min-width: 0;
     grid-area: start;
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
 
-  body[data-profession]:not(.elementalist-theme) .rotation-btns {
+  body[data-profession] .rotation-btns {
     grid-area: buttons;
-    justify-self: end;
-    flex-wrap: wrap;
+    justify-self: start;
+  }
+}
+
+/* Wide panels keep actions beside settings; explicit columns prevent uneven flex spacing. */
+@container rotation-builder (min-width: 1250px) {
+  body[data-profession] .rotation-mid {
+    grid-template-areas: 'label size start buttons';
+    grid-template-columns: max-content max-content minmax(0, 1fr) max-content;
+    column-gap: 16px;
+  }
+
+  body[data-profession] .rotation-tl-label {
+    align-self: center;
+    padding-top: 0;
+  }
+
+  body[data-profession] .rotation-btns {
+    flex-wrap: nowrap;
   }
 }
 

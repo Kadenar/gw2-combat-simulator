@@ -986,6 +986,15 @@ body[data-profession] #app > header .community-actions {
     outline-offset: -2px;
   }
 
+  /* Replace the native blue tap overlay with a quiet pressed surface; keyboard focus keeps its outline. */
+  #app > header :is(.mobile-header-trigger, .build-switcher) {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #app > header :is(.mobile-header-trigger, .build-switcher):active {
+    background-color: color-mix(in srgb, var(--text-bright) 7%, transparent);
+  }
+
   .mobile-workspace-trigger {
     width: 100%;
     padding-top: 14px;
