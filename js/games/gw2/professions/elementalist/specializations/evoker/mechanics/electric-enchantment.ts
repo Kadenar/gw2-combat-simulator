@@ -35,8 +35,8 @@ function announceElectricEnchantment(
   );
 }
 
-/** Discards spent or expired grants at the scheduler clock, preserving future queued-hit eligibility. */
-function expireElectricEnchantments(state: EvokerState, at: number): void {
+/** Normalize new grants into earliest-expiry order, discarding spent or expired batches only when granting. */
+function normalizeElectricEnchantments(state: EvokerState, at: number): void {
   state.electricEnchantmentGrants = activeChargeGrants(state.electricEnchantmentGrants, at);
 }
 
@@ -66,7 +66,7 @@ export function grantElectricEnchantments(
     at: canonicalTime(at),
     ...(traitId == null ? {} : { traitId })
   });
-  expireElectricEnchantments(state, at);
+  normalizeElectricEnchantments(state, at);
   announceElectricEnchantment(context, {
     at,
     procType: traitId == null ? 'skill' : 'trait',
@@ -138,10 +138,9 @@ function emitElectricEnchantment(context: ElementalistRuntime, event: Simulation
     });
 }
 
-/** Consumes one currently active grant at an accepted hit, preferring the earliest expiry. */
+/** Consume in grant-established expiry order; start and expiry guards skip ineligible batches without refreshing. */
 export function consumeElectricEnchantment(context: ElementalistRuntime, event: SimulationEvent): void {
   const state = evokerState.from(context.profession);
-  expireElectricEnchantments(state, context.time);
   const grant = state.electricEnchantmentGrants.find(
     (candidate) => event.at >= canonicalTime(candidate.at) && consumeCharge(candidate, event.at)
   );

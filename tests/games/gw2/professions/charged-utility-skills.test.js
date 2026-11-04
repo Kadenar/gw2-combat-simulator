@@ -163,8 +163,13 @@ test('Sharpening Stone applications expire independently at thirty seconds', () 
     { selectedSkillIds: [12537] }
   );
   assert.deepEqual(result.warnings, []);
+  // Expired private batches may remain stored; entitlement is observed at the live runtime clock.
+  const runtime = observedRuntime(result);
   assert.equal(
-    observedRuntime(result).profession.core.sharpeningStoneGrants.reduce((sum, grant) => sum + grant.charges, 0),
+    activeChargeGrants(runtime.profession.core.sharpeningStoneGrants, runtime.time).reduce(
+      (sum, grant) => sum + grant.charges,
+      0
+    ),
     9
   );
   assert.equal(conditions(result, RANGER.SHARPENING_STONE).length, 1);

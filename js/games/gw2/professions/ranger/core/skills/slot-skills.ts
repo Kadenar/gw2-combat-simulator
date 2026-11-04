@@ -1,12 +1,7 @@
 // Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import {
-  activeChargeGrants,
-  appendChargeGrant,
-  consumeChargeBatch,
-  grantCharges
-} from '#gw2/platform/combat/resources/charges.js';
+import { appendChargeGrant, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { type SkillEffect, type StatusEffect } from '#gw2/platform/effects/types.js';
@@ -873,8 +868,7 @@ export function handleRangerSharpeningStone(context: RangerResolverContext, even
 /** A positive player strike can consume one live stone and attribute its Bleeding to the utility rather than the weapon. */
 export function triggerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context.profession);
-  // Grants sort by expiry: spend the earliest deadline, and still prune on ineligible hits.
-  state.sharpeningStoneGrants = activeChargeGrants(state.sharpeningStoneGrants, event.at);
+  // Grant creation orders expiry; consumption skips expired batches without refreshing the pool on each hit.
 
   if (!isPlayerStrike(event) || !(Number(event.coefficient) > 0)) return;
 

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
@@ -154,7 +155,7 @@ test('Taste for Blood preserves charges when its authored strike is removed', ()
   assert.deepEqual(context.events, []);
 });
 
-test('Sharpening Stone batches spend earliest expiry and prune without spending on excluded or removed hits', () => {
+test('Sharpening Stone batches spend earliest expiry without spending on expired, excluded, or removed hits', () => {
   const context = contextFor(rangerProfession, 'Core');
   const core = context.profession.core;
   handleRangerSharpeningStone(context, { at: 1, charges: 2.9, duration: 10 });
@@ -172,12 +173,18 @@ test('Sharpening Stone batches spend earliest expiry and prune without spending 
     core.sharpeningStoneGrants.map((grant) => grant.charges),
     [1, 2]
   );
-  triggerSharpeningStone(context, { ...hit, at: 5, actorType: 'effect' });
+  // Observe live entitlement at each hit boundary independently of retained expired storage.
+  for (const fields of [{ actorType: 'effect' }, { actorType: 'summon' }, { coefficient: 0 }])
+    triggerSharpeningStone(context, { ...hit, at: 5, ...fields });
   assert.deepEqual(
-    core.sharpeningStoneGrants.map((grant) => [grant.charges, grant.expiresAt]),
+    activeChargeGrants(core.sharpeningStoneGrants, 5).map((grant) => [grant.charges, grant.expiresAt]),
     [[2, 11]]
   );
+  assert.equal(context.events.length, 1);
+  triggerSharpeningStone(context, { ...hit, at: 5 });
+  assert.equal(activeChargeGrants(core.sharpeningStoneGrants, 5)[0].charges, 1);
   // Remove only the skill-owned follow-up while retaining the independently expiring charge batches.
+  const catalog = context.catalog;
   context.catalog = applySkillPatch(context.catalog, {
     skills: {
       [RANGER.SHARPENING_STONE]: {
@@ -186,10 +193,11 @@ test('Sharpening Stone batches spend earliest expiry and prune without spending 
     }
   });
   triggerSharpeningStone(context, { ...hit, at: 6 });
-  assert.equal(core.sharpeningStoneGrants[0].charges, 2);
+  assert.equal(activeChargeGrants(core.sharpeningStoneGrants, 6)[0].charges, 1);
+  context.catalog = catalog;
   triggerSharpeningStone(context, { ...hit, at: 11 });
-  assert.deepEqual(core.sharpeningStoneGrants, []);
-  assert.equal(context.events.length, 1);
+  assert.deepEqual(activeChargeGrants(core.sharpeningStoneGrants, 11), []);
+  assert.equal(context.events.length, 2);
 });
 
 test('Shattering Stone replaces self grants and spends player or effect hits before exclusive expiry', () => {

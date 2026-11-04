@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { damageOccurrences } from '#gw2/platform/skill-damage/list-occurrences.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -123,7 +124,7 @@ test('skill and trait providers share grant announcements while retaining patche
       skillName: 'Zap'
     });
     assert.equal(
-      state.electricEnchantmentGrants.reduce((sum, grant) => sum + grant.charges, 0),
+      activeChargeGrants(state.electricEnchantmentGrants, context.time).reduce((sum, grant) => sum + grant.charges, 0),
       remaining
     );
     const packets = emittedEvents.slice(before);

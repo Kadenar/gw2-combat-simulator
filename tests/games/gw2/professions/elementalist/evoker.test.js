@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { GW2_ALACRITY_RECHARGE_RATE, gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
+import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -193,7 +194,7 @@ test('Electric Enchantment keeps overlapping grants independent of future queued
         at: 8.001,
         run: (r) =>
           assert.deepEqual(
-            evokerState.from(r.profession).electricEnchantmentGrants.map((g) => g.charges),
+            activeChargeGrants(evokerState.from(r.profession).electricEnchantmentGrants, r.time).map((g) => g.charges),
             [1, 2]
           )
       },
@@ -201,7 +202,7 @@ test('Electric Enchantment keeps overlapping grants independent of future queued
         at: 9.001,
         run: (r) =>
           assert.deepEqual(
-            evokerState.from(r.profession).electricEnchantmentGrants.map((g) => g.charges),
+            activeChargeGrants(evokerState.from(r.profession).electricEnchantmentGrants, r.time).map((g) => g.charges),
             [1]
           )
       }
