@@ -96,11 +96,6 @@ scratch script. `.lavish/` remains tool-managed review output, separate from man
 - `npm run build:modules && node scripts/analysis/reconstruct-dps-report-rotation.mjs <dps.report URL>` reconstructs
   simulator commands from public Elite Insights JSON. Add `--build=<build.json>` when polymorphic skill choices must
   match a saved build.
-- `npm run build:modules && node scripts/analysis/analyze-overload-fire.mjs <fight.zevtc> [--json]` counts Burning Bolt
-  missile creations during each Tempest's recorded Overload Fire casts. Also accepts `.evtc` and single-entry
-  `.evtc.zip` revision 1 logs. Counts represent projectiles, not whirl pulses or confirmed hits. Missing projectile data
-  and incomplete casts produce warnings; JSON separately reports bolts outside recorded casts. A missing stop is bounded
-  by the next animation or log end.
 - `node scripts/analysis/analyze-dps-report.mjs <report.html|dps.report URL>` inspects Elite Insights data embedded in a
   saved or remote report. Add `--summary`, `--player=<index|name|account>`, or `--phase=<index|name>` to narrow the
   output.

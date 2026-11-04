@@ -6,8 +6,7 @@
  * that has a rotation through the profession's build context, and records duration,
  * DPS, APM, cumulative and phase DPS by target health, total/strike/condition damage, the final damaging packet,
  * and any warnings. Non-killing runs use final overall DPS for both final-band measurements.
- * The output is a stable baseline that other tooling diffs against (see
- * render-supported-build-metrics-report.mjs).
+ * Benchmark comparison consumes these metrics to report drift and update manifests.
  *
  * Also exported as `captureSupportedBuildMetrics(professions?)` for reuse without
  * spawning the CLI. When run directly, positional args pick professions; with none

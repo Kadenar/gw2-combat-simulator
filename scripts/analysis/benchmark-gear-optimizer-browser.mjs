@@ -84,8 +84,10 @@ try {
                     app,
                     () => {
                       const state = runner.state;
+                      // Measure through the current update so completion includes finalist verification.
+                      const elapsedMs = performance.now() - state.started;
 
-                      if (state.winners.length && firstResultMs === null) firstResultMs = state.elapsedMs;
+                      if (state.winners.length && firstResultMs === null) firstResultMs = elapsedMs;
 
                       if (state.status === 'failed') {
                         cancelAnimationFrame(frame);
@@ -95,7 +97,7 @@ try {
                       if (state.status === 'complete') {
                         cancelAnimationFrame(frame);
                         resolve({
-                          elapsedMs: state.elapsedMs,
+                          elapsedMs,
                           firstResultMs,
                           maxFrameGapMs,
                           rawCount: state.rawCount.toString(),

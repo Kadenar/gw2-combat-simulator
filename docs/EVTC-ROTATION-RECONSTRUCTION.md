@@ -80,7 +80,7 @@ node scripts/analysis/reconstruct-evtc-rotation.mjs <fight.evtc|fight.evtc.zip|f
 ```
 
 Add `--timeline` to reconstruction output for source and normalized actions. See the
-[script guide](../scripts/README.md#analysis-tools) for other diagnostics, including Overload Fire projectile counts.
+[script guide](../scripts/README.md#analysis-tools) for other log-analysis tools.
 
 The original EVTC is preferred when available. For reconstruction from a public Elite Insights report, use the
 [dps.report adapter](../js/games/gw2/integrations/logs/dps-report/README.md).

@@ -37,9 +37,8 @@ test('capture leaves saved input unchanged and rejects unknown patches', async (
 });
 
 test('analysis modules stay inert on import and execute their CLI when launched directly', () => {
-  // Help and invalid arguments exercise entry points without reading logs or changing benchmark manifests.
+  // Invalid arguments exercise entry points without changing benchmark manifests.
   for (const [script, args, status, output] of [
-    ['analyze-overload-fire.mjs', ['--help'], 0, /Usage: node/],
     ['compare-supported-build-dps.mjs', ['--unknown'], 1, /Unknown argument/],
     ['capture-supported-build-metrics.mjs', ['unknown'], 1, /Unknown professions/]
   ]) {

@@ -30,8 +30,10 @@ for (const profession of professions.length
   const saved = JSON.parse(await readFile(preset.build, 'utf8'));
   const rotation = JSON.parse(await readFile(preset.rotation, 'utf8'));
   const build = adapter.toApplicationBuild({ ...saved, rotation: rotation.rotation ?? rotation });
+  // Capture the resolved live patch just as the application does for optimizer requests.
+  const patch = adapter.profession.resolvePatch({ id: 'current' });
   const request = captureGearOptimizerRequest(
-    { build, adapter, profession: adapter.profession, contentId: profession, buildRevision: 0, patchId: 'current' },
+    { build, adapter, profession: adapter.profession, contentId: profession, buildRevision: 0, patch },
     {}
   );
   const space = createOptimizerSpace(request, adapter);
@@ -91,7 +93,7 @@ for (const profession of professions.length
 
   // A small but mixed-prefix space measures generation, cache reuse, and detailed finalist verification end to end.
   const searchRequest = captureGearOptimizerRequest(
-    { build, adapter, profession: adapter.profession, contentId: profession, buildRevision: 0, patchId: 'current' },
+    { build, adapter, profession: adapter.profession, contentId: profession, buildRevision: 0, patch },
     {
       prefixes: ["Berserker's", "Assassin's"],
       locks: Object.keys(build.gear)

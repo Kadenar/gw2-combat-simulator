@@ -5,12 +5,14 @@ import { captureGearOptimizerRequest, createOptimizerSpace } from '#gw2/app/opti
 
 const adapter = await loadOptimizerContext('warrior');
 const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());
+// Supply the resolved live patch expected by application request capture.
+const patch = adapter.profession.resolvePatch({ id: 'current' });
 for (const prefixes of [
   ["Berserker's", "Assassin's"],
   ["Berserker's", "Assassin's", "Dragon's"]
 ]) {
   const request = captureGearOptimizerRequest(
-    { build, adapter, profession: adapter.profession, contentId: adapter.id, buildRevision: 0, patchId: 'current' },
+    { build, adapter, profession: adapter.profession, contentId: adapter.id, buildRevision: 0, patch },
     { prefixes }
   );
   const ordinary = createOptimizerSpace(request, adapter);
@@ -46,7 +48,7 @@ const combinedRequest = captureGearOptimizerRequest(
     profession: elementalist.profession,
     contentId: elementalist.id,
     buildRevision: 0,
-    patchId: 'current'
+    patch: elementalist.profession.resolvePatch({ id: 'current' })
   },
   {
     prefixes: ["Berserker's", "Assassin's"],

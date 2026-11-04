@@ -91,9 +91,6 @@ for (let round = -warmups; round < repetitions; round += 1) {
       executedEvents: result.events?.length,
       resolvedEvents: result.resolvedEvents?.length,
       rotationEndTime: result.rotationEndTime,
-      burningApplications: result.resolvedEvents?.filter(
-        (event) => event.type === 'condition' && event.condition === 'Burning'
-      ).length,
       dps: result.dps,
       warnings: result.warnings
     };
@@ -112,7 +109,8 @@ for (const entry of cases) {
   StableEventQueue.prototype.enqueue = function (event) {
     const result = methods.enqueue.call(this, event);
     counts.enqueued++;
-    counts.peakQueue = Math.max(counts.peakQueue, this.length);
+    // Observe live entries rather than cancelled heap storage; this scan stays outside timed runs.
+    counts.peakQueue = Math.max(counts.peakQueue, this.pending().length);
     return result;
   };
 
