@@ -195,9 +195,10 @@ test('event log tree starts collapsed, traces causes, and reveals rows from the 
   await expect(rows).toHaveCount(4);
 
   await rows.filter({ hasText: 'BUFF Might' }).hover();
-  await expect(page.locator('[data-role="event-log-trace"]')).toHaveText(
-    'BUFF Might ← triggered by ← HIT Strike ← part of ← CAST Strike (500ms) · #1'
-  );
+  await expect(rows.filter({ hasText: 'BUFF Might' })).toHaveClass(/log-chain/);
+  await expect(rows.filter({ hasText: 'HIT Strike' })).toHaveClass(/log-chain/);
+  await expect(rows.filter({ hasText: 'CAST Strike' })).toHaveClass(/log-chain/);
+  await expect(rows.filter({ hasText: 'HIT Echo' })).toHaveClass(/log-family/);
 
   await page.getByRole('button', { name: 'Collapse all', exact: true }).click();
   await expect(rows).toHaveCount(1);

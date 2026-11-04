@@ -228,15 +228,27 @@
               <h3>
                 <span class="rotation-builder-title">Rotation builder</span>
                 <span class="palette-hint">
-                  Click to queue · <b>Shift+click</b> an instant-cast skill to fire it during the previous cast ·
-                  <b>Ctrl+click</b> a non-instant skill to interrupt it · <b>Shift+click x</b> on a skill to remove it
-                  and everything after it
+                  <span class="palette-hint-pointer">
+                    Click to queue · <b>Shift+click</b> an instant-cast skill to fire it during the previous cast ·
+                    <b>Ctrl+click</b> a non-instant skill to interrupt it · <b>Shift+click x</b> on a skill to remove it
+                    and everything after it
+                  </span>
+                  <span class="palette-hint-touch"
+                    >Tap a skill to queue it. Use its timeline controls to edit or remove it.</span
+                  >
                 </span>
               </h3>
               <div id="rotation-palette" class="rotation-palette"></div>
               <div class="rotation-mid">
                 <div class="rotation-tl-label">Rotation</div>
-                <div id="start-att-selector" class="start-att-selector"></div>
+                <!-- Mobile keeps occasional display and starting-state edits behind one disclosure. -->
+                <details class="rotation-options" open>
+                  <summary>Options</summary>
+                  <div class="rotation-options-content">
+                    <div class="rotation-display-controls"></div>
+                    <div id="start-att-selector" class="start-att-selector"></div>
+                  </div>
+                </details>
                 <div class="rotation-btns">
                   <button id="btn-sim-undo" class="btn btn-undo" title="Undo rotation change (Ctrl+Z)" disabled>
                     ↶ Undo

@@ -454,29 +454,6 @@ function flatLinesHtml<TRow extends EventLogRow>(
     .join('');
 }
 
-/** Names every hop from a row up to its group, including how each link was established. */
-function traceHtml<TRow extends EventLogRow>(node: LogNode<TRow>): string {
-  const parts: string[] = [];
-  for (let current: LogNode<TRow> | null = node; current; current = current.parent) {
-    parts.push(`<span class="log-trace-node">${escapeHtml(current.row.description)}</span>`);
-
-    if (!current.parent) continue;
-
-    const link = current.row.parentLink;
-    const inferred = link?.kind === 'inferred';
-    parts.push(
-      ` <span class="log-trace-hop${inferred ? ' log-trace-inferred' : ''}">← ${escapeHtml(link?.label || 'owned by')} ←</span> `
-    );
-  }
-
-  const root = (node.root ?? node).row;
-
-  if (node.row.orphan) parts.push(' <span class="log-trace-hop">· no owner found</span>');
-  else if (root.ordinal != null) parts.push(` <span class="log-trace-hop">· #${root.ordinal}</span>`);
-
-  return parts.join('');
-}
-
 /** Copies the facts rendered beside the button, so copying needs no row lookup in any layout. */
 async function copyCalculationFacts(button: HTMLButtonElement): Promise<void> {
   const facts = [...(button.closest('.log-calc')?.querySelectorAll('.log-calc-raw li') ?? [])]
@@ -615,11 +592,9 @@ export function mountEventLog<TRow extends EventLogRow>(
     </div>
     ${sourceControls}
     <div class="res-log" data-role="event-log-rows">${linesHtml()}</div>
-    ${model.hasTree ? '<div class="log-trace" data-role="event-log-trace" aria-live="polite">Hover or focus a row to trace it back to its cause.</div>' : ''}
   </details>`;
 
   const logElement = container.querySelector<HTMLElement>('[data-role="event-log-rows"]');
-  const traceElement = container.querySelector<HTMLElement>('[data-role="event-log-trace"]');
   const treeTools = container.querySelector<HTMLElement>('[data-role="event-log-tree-tools"]');
 
   // Filter and layout changes rebuild the rows without moving the reader.
@@ -745,10 +720,8 @@ export function mountEventLog<TRow extends EventLogRow>(
     return element && Number.isInteger(key) ? model.nodes[key] : undefined;
   };
 
-  // Highlight the hovered row's whole group and its ancestor chain, and name each hop below the log.
+  // Highlight the hovered row's whole group and ancestor chain directly in the log.
   const trace = (node: LogNode<TRow>): void => {
-    if (traceElement) traceElement.innerHTML = traceHtml(node);
-
     for (const line of logElement.querySelectorAll('.log-family, .log-chain')) {
       line.classList.remove('log-family', 'log-chain');
     }

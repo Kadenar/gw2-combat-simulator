@@ -62,7 +62,7 @@ export function timelineIdleTimeMetric(result: Gw2SimulationResult): ResultSumma
   return {
     label: 'Total Idle Time',
     value: formatTimelineDuration(deadTimeMs),
-    className: '',
+    className: 'idle-time',
     details: deadTimeBreakdownDetails(deadTimeMarkers)
   };
 }

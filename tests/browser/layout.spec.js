@@ -141,7 +141,7 @@ test('mobile focus mode keeps one viewport-wide scrolling workspace', async ({ p
     paletteScrollable: false,
     timelineScrollable: false,
     resultsDisplay: 'none',
-    controlRows: '"label size" "start start" "buttons buttons"'
+    controlRows: '"label settings" "buttons buttons"'
   });
 });
 

@@ -164,11 +164,15 @@ test('rotation toolbar adapts display preferences and keeps load accessible', as
   for (const width of [1440, 1100, 390]) {
     await page.setViewportSize({ width, height: 900 });
     const toolbar = page.locator('.rotation-mid');
+
+    // Phones keep occasional preferences inside the Options disclosure.
+    if (width <= 700) await toolbar.locator('.rotation-options > summary').click();
+
     const size = await toolbar.getByRole('combobox', { name: 'Timeline size', exact: true }).boundingBox();
     const display = await toolbar.getByRole('combobox', { name: 'Display', exact: true }).boundingBox();
     const sectionWidth = await page.locator('.rotation-section').evaluate((section) => section.clientWidth);
 
-    if (sectionWidth <= 1050) {
+    if (width > 700 && sectionWidth <= 1050) {
       expect(display.y).toBeGreaterThanOrEqual(size.y + size.height);
     } else {
       expect(display.y).toBeLessThan(size.y + size.height);

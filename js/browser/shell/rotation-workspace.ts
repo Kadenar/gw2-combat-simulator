@@ -205,6 +205,16 @@ export function mountRotationWorkspace(): void {
 
   const focusButton = mountRotationHeading(document, rotationHeading);
 
+  // Phones collapse occasional toolbar settings; desktop always exposes them after a breakpoint change.
+  const options = rotationPanel.querySelector<HTMLDetailsElement>('.rotation-options');
+  const mobileToolbar = window.matchMedia('(max-width: 700px)');
+  const syncToolbarOptions = (): void => {
+    if (options) options.open = !mobileToolbar.matches;
+  };
+
+  syncToolbarOptions();
+  mobileToolbar.addEventListener('change', syncToolbarOptions);
+
   const controller: RotationWorkspaceController = {
     document,
     focusButton,
