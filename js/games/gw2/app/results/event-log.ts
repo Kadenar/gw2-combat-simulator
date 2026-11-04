@@ -387,12 +387,40 @@ export function simulationEventLogRows(
   return consolidateTraitBuffRows(attributedRows, profession?.catalog?.traits ?? []);
 }
 
+const EVENT_LOG_DETAILS = '[data-role="event-log-details"]';
+
+/** Collapsed logs stay idle: only opening one prepares rows, always from the latest result. */
 export function renderEventLog(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-event-log');
   const result = app.results;
 
   if (!element || !app.build.rotation.length || !result) {
     if (element) element.innerHTML = '';
+
+    return;
+  }
+
+  if (!element.querySelector(EVENT_LOG_DETAILS))
+    element.innerHTML =
+      '<details class="res-log-wrap" data-role="event-log-details"><summary>Event Log</summary></details>';
+
+  const details = element.querySelector<HTMLDetailsElement>(EVENT_LOG_DETAILS);
+
+  if (details && !details.open) {
+    const summary = details.querySelector('summary');
+
+    // An exact count needs prepared rows, so a render while collapsed drops any count from an earlier result.
+    if (summary) summary.textContent = 'Event Log';
+
+    details.ontoggle = () => {
+      if (!details.open) return;
+
+      // Mounting replaces the summary the reader just activated, so focus moves to its replacement.
+      const focused = summary === document.activeElement;
+      renderEventLog(app);
+
+      if (focused) element.querySelector<HTMLElement>(`${EVENT_LOG_DETAILS} > summary`)?.focus({ preventScroll: true });
+    };
 
     return;
   }

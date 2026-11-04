@@ -512,6 +512,7 @@ function downloadCsv(rows: readonly EventLogRow[], filename: string): void {
   URL.revokeObjectURL(url);
 }
 
+/** Renders every row immediately; callers keep collapsed logs idle by mounting only when the log opens. */
 export function mountEventLog<TRow extends EventLogRow>(
   container: HTMLElement | null | undefined,
   rows: readonly TRow[],
@@ -601,7 +602,6 @@ export function mountEventLog<TRow extends EventLogRow>(
           .join('')}</div>`
       : '';
 
-  const initialLines = open ? linesHtml() : '';
   container.innerHTML = `<details class="res-log-wrap" data-role="event-log-details"${open ? ' open' : ''}>
     <summary>${escapeHtml(title)} (${resolvedRows.filter((row) => row.layout !== 'tree').length} events)</summary>
     <div class="log-controls">
@@ -614,44 +614,24 @@ export function mountEventLog<TRow extends EventLogRow>(
       ${treeControls}
     </div>
     ${sourceControls}
-    <div class="res-log" data-role="event-log-rows"${open ? ' data-rendered="true"' : ''}>${initialLines}</div>
+    <div class="res-log" data-role="event-log-rows">${linesHtml()}</div>
     ${model.hasTree ? '<div class="log-trace" data-role="event-log-trace" aria-live="polite">Hover or focus a row to trace it back to its cause.</div>' : ''}
   </details>`;
 
-  const details = container.querySelector<HTMLDetailsElement>('[data-role="event-log-details"]');
   const logElement = container.querySelector<HTMLElement>('[data-role="event-log-rows"]');
   const traceElement = container.querySelector<HTMLElement>('[data-role="event-log-trace"]');
   const treeTools = container.querySelector<HTMLElement>('[data-role="event-log-tree-tools"]');
-  const restoreScroll = (): void => {
-    if (logElement) logElement.scrollTop = followEnd ? logElement.scrollHeight : scrollTop;
-  };
 
-  const renderLogLines = (force = false): void => {
-    // Large logs are rendered lazily the first time the details element opens.
-    if (!logElement || (!force && logElement.dataset.rendered === 'true')) {
-      return;
-    }
+  // Filter and layout changes rebuild the rows without moving the reader.
+  const rerender = (): void => {
+    if (!logElement) return;
 
     const previousTop = logElement.scrollTop;
     logElement.innerHTML = linesHtml();
-    logElement.dataset.rendered = 'true';
     logElement.scrollTop = previousTop;
   };
 
-  const rerender = (): void => {
-    if (details?.open) renderLogLines(true);
-  };
-
-  if (details?.open) restoreScroll();
-
-  if (details) {
-    details.ontoggle = () => {
-      if (details.open && logElement?.dataset.rendered !== 'true') {
-        renderLogLines();
-        restoreScroll();
-      }
-    };
-  }
+  if (logElement) logElement.scrollTop = followEnd ? logElement.scrollHeight : scrollTop;
 
   // Explicit jumps avoid dragging through long logs and leave normal reading under user control.
   for (const edge of ['start', 'end']) {

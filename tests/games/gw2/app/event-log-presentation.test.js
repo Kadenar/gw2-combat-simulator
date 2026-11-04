@@ -1,13 +1,72 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
+import { renderEventLog, simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { eventLogCsv, mountEventLog } from '#ui/results/event-log.js';
+
+// Deferred logs must not read simulation events until opened, and opening must use only the latest result.
+test('collapsed event logs prepare nothing until opened, then use the latest result', (t) => {
+  let html = '';
+  let details = null;
+  const summary = { textContent: 'Event Log' };
+  const container = {
+    get innerHTML() {
+      return html;
+    },
+    set innerHTML(value) {
+      html = value;
+      details = value ? { open: value.includes('event-log-details" open'), querySelector: () => summary } : null;
+    },
+    querySelector: (selector) => (selector === '[data-role="event-log-details"]' ? details : null),
+    querySelectorAll: () => []
+  };
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: { activeElement: null, getElementById: () => container }
+  });
+  t.after(() => {
+    if (original) Object.defineProperty(globalThis, 'document', original);
+    else delete globalThis.document;
+  });
+  const superseded = {
+    get events() {
+      return assert.fail('Superseded results must never be prepared');
+    }
+  };
+  const app = { build: { rotation: [{ type: 'wait', durationMs: 1000 }] }, profession: {}, results: superseded };
+  renderEventLog(app);
+  const shell = details;
+  app.results = { events: [{ type: 'marker', at: 0, name: 'Latest result' }], resolvedEvents: [] };
+  renderEventLog(app);
+  assert.equal(details, shell);
+  assert.doesNotMatch(html, /Latest result/);
+
+  details.open = true;
+  details.ontoggle();
+  assert.match(html, /Latest result/);
+
+  // A result published after mounting waits for the next opening and retires the prepared count.
+  details.open = false;
+  summary.textContent = 'Event Log (1 events)';
+  app.results = { events: [{ type: 'marker', at: 0, name: 'New result' }], resolvedEvents: [] };
+  renderEventLog(app);
+  assert.doesNotMatch(html, /New result/);
+  assert.equal(summary.textContent, 'Event Log');
+
+  details.open = true;
+  details.ontoggle();
+  assert.match(html, /New result/);
+
+  app.build.rotation = [];
+  renderEventLog(app);
+  assert.equal(html, '');
+});
 
 test('event log CSV escapes cells', () => {
   const rows = [{ at: 0, type: 'action', description: 'CAST Quote "skill"' }];
