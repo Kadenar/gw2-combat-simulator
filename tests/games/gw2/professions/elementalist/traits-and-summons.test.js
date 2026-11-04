@@ -155,79 +155,32 @@ test('Evoker familiar flip interruption cancels both familiar attacks', () => {
   }
 });
 
-// Trait tuning is authored in balances; resolver rules retain their operations and eligibility.
-test('core damage traits expose balances consumed by their resolver modifiers', () => {
+// Modifier operations and disabled-trait exclusion remain stable when authored balance values change.
+test('core damage traits preserve additive operations and disabled-trait exclusion', () => {
   const rules = new Map(
     [...elementalistCoreModule.modifiers.modifierRules, ...weaverModule.modifiers.modifierRules].map((rule) => [
       rule.id,
       rule
     ])
   );
+  for (const id of [
+    'elementalist.weave-self-fire',
+    'elementalist.elements-of-rage-condition',
+    'elementalist.persisting-flames'
+  ]) {
+    assert.equal(rules.get(id).operation, 'damage-additive');
+  }
 
-  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.PYROMANCERS_TRAINING).damageMultiplier, 1.07);
-  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.SERRATED_STONES).damageMultiplier, 1.05);
-  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.STORMSOUL).damageMultiplier, 1.07);
-  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.FLOW_LIKE_WATER).damageMultiplier, 1.1);
-  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.BOLT_TO_THE_HEART).damageMultiplier, 1.2);
-  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.BOUNTIFUL_POWER).damageIncrease, 0.2);
-  assert.equal(
-    elementalistProfession.runtimeFor({}).modifyAttributes({ config: { selectedTraitIds: [TRAIT.ZEPHYRS_SPEED] } }, {})
-      .professionCriticalChanceBonus,
-    5
-  );
-  assert.equal(rules.get('elementalist.superior-elements').amount({ catalog: elementalistCatalog }), 0.2);
-  assert.equal(rules.get('elementalist.weave-self-fire').amount, 0.2);
-  assert.equal(rules.get('elementalist.weave-self-fire').operation, 'damage-additive');
-  assert.equal(rules.get('elementalist.weave-self-air').amount, 0.1);
-  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.ELEMENTS_OF_RAGE).conditionDamageIncrease, 0.1);
-  assert.equal(rules.get('elementalist.elements-of-rage-condition').operation, 'damage-additive');
-  assert.equal(elementalistCatalog.balanceProfilesById.get(TRAIT.ELEMENTS_OF_RAGE).damageIncrease, 0.15);
-  assert.equal(rules.get('elementalist.persisting-flames').operation, 'damage-additive');
-  const { app: core } = createNativeApp({
-    lines: [['Fire'], ['Air'], ['Arcane']]
-  });
-
-  assert.equal(core.attributeData.attributes['Condition Damage'].traits, 180);
-  assert.equal(core.attributeData.attributes.Ferocity.traits, 150);
-  assert.equal(core.attributeData.attributes.Concentration.traits, 180);
-  assert.equal(core.attributeData.attributes['Critical Chance'].traits, 5);
-  assert.equal(core.attributeData.attributes['Burning Duration'].traits, 20);
-
-  const { app: water } = createNativeApp({
-    lines: [['Water', '1-1-3'], ['Air'], ['Arcane']]
-  });
-
-  assert.equal(water.attributeData.attributes.Vitality.traits, 300);
+  const { app: water } = createNativeApp({ lines: [['Water', '1-1-3'], ['Air'], ['Arcane']] });
   const withoutSoothingPower = calculateAttributes(water.build, [], 1, 'Soothing Power');
-
-  assert.equal(withoutSoothingPower.attributes.Vitality.traits, 0);
+  const vitality = elementalistCatalog.balanceProfilesById.get(TRAIT.SOOTHING_POWER).attributeBonuses.vitality;
+  assert.equal(
+    water.attributeData.attributes.Vitality.traits - withoutSoothingPower.attributes.Vitality.traits,
+    vitality
+  );
   assert.equal(
     withoutSoothingPower.activeTraits.some((trait) => trait.name === 'Soothing Power'),
     false
-  );
-
-  const { app: tempest } = createNativeApp({
-    lines: [['Fire'], ['Air'], ['Tempest']]
-  });
-
-  assert.equal(tempest.attributeData.attributes.Concentration.traits, 240);
-
-  const { app: weaver } = createNativeApp({
-    lines: [['Fire'], ['Earth'], ['Weaver']]
-  });
-
-  assert.equal(weaver.attributeData.attributes.Vitality.traits, 180);
-
-  const persistingFlames = runNative({
-    lines: [['Fire', '1-3-1'], ['Air'], ['Tempest']],
-    rotation: ['Flame Uprising', 5000],
-    startAttunement: 'Fire',
-    weapons: ['Sword', 'Warhorn']
-  });
-
-  assert.equal(
-    persistingFlames.events.filter((event) => event.type === 'damage' && event.skillName === 'Flame Uprising').length,
-    5
   );
 });
 

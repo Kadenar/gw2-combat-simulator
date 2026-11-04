@@ -2,28 +2,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
-import { rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { RANGER_PETS } from '#gw2/professions/ranger/data/ranger-pet-data.js';
 import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 // Wallow retains Porcine traits while exposing its own unmerged attacks and merged bar.
-test('Wallow loads its attributes, autonomous attacks, command, and merged skills', () => {
+test('Wallow retains its autonomous attacks, command, and merged skills', () => {
   const pet = RANGER_PETS.find((entry) => entry.name === 'Wallow');
   assert.equal(pet.family, 'porcine');
   assert.equal(pet.archetype, 'Supportive');
   assert.deepEqual(pet.beastmodeSkillIds, [ID.MAUL_ID_41406, ID.UNDEAD_PLAGUE, ID.SPIRITUAL_REPRIEVE]);
-  assert.deepEqual(rangerPetBaseAttributes('Wallow'), {
-    power: 1524,
-    precision: 1524,
-    toughness: 2211,
-    vitality: 2898,
-    conditionDamage: 700,
-    ferocity: 0,
-    expertise: 0,
-    healingPower: 0
-  });
   for (const skillId of [...pet.skillIds, ...pet.beastmodeSkillIds]) assert.ok(rangerCatalog.skillsById.has(skillId));
 
   const result = runRanger(['__combat_start', wait(30000)], { selectedPet: 'Wallow' });
@@ -32,13 +21,8 @@ test('Wallow loads its attributes, autonomous attacks, command, and merged skill
   for (const skillId of [ID.VAMPIRIC_BITE, ID.WALLOW_MAUL, ID.UNDEAD_PLAGUE_PET])
     assert.ok(actions.some((event) => event.skillId === skillId));
   assert.ok(actions.every((event) => event.skillId !== ID.BLOODTHIRSTY_CHARGE));
-  const bite = result.events.find((event) => event.type === 'damage' && event.skillId === ID.VAMPIRIC_BITE);
-  assert.equal(bite.coefficient, 0.42);
-  assert.equal(bite.summonBaseConditionDamage, 700);
-  for (const [skillId, cooldown] of [
-    [ID.WALLOW_MAUL, 12],
-    [ID.UNDEAD_PLAGUE_PET, 20]
-  ]) {
+  for (const skillId of [ID.WALLOW_MAUL, ID.UNDEAD_PLAGUE_PET]) {
+    const cooldown = rangerCatalog.skillsById.get(skillId).cooldown;
     const casts = actions.filter((event) => event.skillId === skillId);
     assert.ok(casts.length >= 2);
     for (let index = 1; index < casts.length; index++) assert.ok(casts[index].at - casts[index - 1].at >= cooldown);
@@ -52,11 +36,11 @@ test('Wallow loads its attributes, autonomous attacks, command, and merged skill
   assert.ok(merged.events.some((event) => event.type === 'buff' && event.kind === 'resistance'));
 });
 
-// Minimal casts verify the per-hit formulas without imposing a saved-rotation regression.
-test('Wallow and merged Porcine Maul apply the correct bleeding with each hit', () => {
-  for (const [specialization, skillId, coefficient, stacks] of [
-    ['Untamed', ID.WALLOW_MAUL, 0.33, 2],
-    ['Soulbeast', ID.MAUL_ID_41406, 1.1, 1]
+// Pet and merged Maul conditions must follow their matching strikes so hit reactions observe causal order.
+test('Wallow and merged Porcine Maul apply bleeding after each matching hit', () => {
+  for (const [specialization, skillId] of [
+    ['Untamed', ID.WALLOW_MAUL],
+    ['Soulbeast', ID.MAUL_ID_41406]
   ]) {
     const result = runRanger([skillId, wait(2000)], {
       specialization,
@@ -69,10 +53,7 @@ test('Wallow and merged Porcine Maul apply the correct bleeding with each hit', 
     assert.ok(hits.length > 0);
     assert.ok(bleeds.length > 0);
     for (const [index, hit] of hits.entries()) {
-      assert.equal(hit.coefficient, coefficient);
       assert.equal(bleeds[index].condition, 'Bleeding');
-      assert.equal(bleeds[index].stacks, stacks);
-      assert.equal(bleeds[index].duration, 6);
       assert.equal(bleeds[index].at, hit.at);
       assert.ok(bleeds[index].eventOrder > hit.eventOrder);
     }

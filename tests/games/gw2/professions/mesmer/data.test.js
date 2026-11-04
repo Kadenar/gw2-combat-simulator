@@ -251,7 +251,6 @@ test('Mesmer weapon autoattacks are cataloged as individual chain skills', () =>
       const nextChainId = chain[index + 1] ?? null;
 
       assert.equal(mesmerCatalog.skillsById.get(skillId).nextChainId, nextChainId);
-      assert.equal(mesmerCatalog.skillsById.get(skillId).nextChainId, nextChainId);
     });
   }
 });

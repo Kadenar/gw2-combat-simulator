@@ -23,46 +23,12 @@ import { severanceCriticalContribution } from '#gw2/platform/equipment/sigils/se
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
 import { captureAcceptedBuffEmissions, captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
-import { createDefaultConfig, runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-
-test('Mesmer test scenarios use the registered live runtime', () => {
-  const config = {
-    ...createDefaultConfig(),
-    target: {
-      ...createDefaultConfig().target,
-      health: 0
-    }
-  };
-  const canonical = runMesmer([{ type: 'cast', skillId: 69311 }], config, { profession: mesmerProfession });
-  const fixture = simulateMesmer([{ type: 'cast', skillId: 69311 }], config);
-
-  assert.equal(canonical.totalDamage, fixture.totalDamage);
-  assert.equal(canonical.strikeDamage, fixture.strikeDamage);
-  assert.equal(canonical.conditionDamage, fixture.conditionDamage);
-  assert.ok(canonical.totalDamage > 0);
-  assert.deepEqual(
-    Object.keys(canonical.planningState).sort(),
-    [
-      'activeWeaponSet',
-      'ammoBySkillId',
-      'atSeconds',
-      'availability',
-      'combatActive',
-      'cooldownsBySkillId',
-      'effects',
-      'profession'
-    ].sort()
-  );
-  // Virtuoso's initialized blade clock is the canonical balance in both execution paths.
-  assert.equal(canonical.planningState.profession[STATE.BLADES].value, 5);
-  assert.equal(fixture.planningState.profession[STATE.BLADES].value, 5);
-});
 
 test('canonical catalog validation rejects duplicate ids', () => {
   assert.throws(

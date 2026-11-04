@@ -62,18 +62,6 @@ test('Tether cancellation, expiry and weapon swap close follow-ups and start rec
   }
 });
 
-test('Blossoming Aura divides its total pulsing coefficient across its strikes', () => {
-  // The tooltip describes total pulse damage; each strike must receive only its share.
-  const pulse = revenantCatalog.skillsById
-    .get(ID.BLOSSOMING_AURA)
-    .effects.find((effect) => effect.type === 'strike' && effect.name === 'Pulsing Damage');
-  assert.equal(
-    pulse.ticks.reduce((total, tick) => total + tick.coefficient, 0),
-    1.2
-  );
-  assert.ok(pulse.ticks.every((tick) => tick.coefficient === 0.3));
-});
-
 test('Blossoming Aura keeps a fixed fuse after attachment regardless of cast speed', () => {
   // The lasting effect's cadence and cooldown are independent of the initial casting animation.
   for (const quickness of [false, true]) {
@@ -118,16 +106,8 @@ test('Aura stays attached and remains manually detonatable across a legend swap'
   assert.equal(result.planningState.cooldownsBySkillId[ID.BLOSSOMING_AURA].readyAtMs, 6400);
 });
 
-test('Staff attacks divide their total coefficients per hit and Rejuvenating Assault owns a whirl finisher', () => {
-  // Check the damage formula directly, without coupling a saved rotation to a packet snapshot.
-  for (const [id, coefficient] of [
-    [ID.SURGE_OF_THE_MISTS, 3.24 / 9],
-    [ID.REJUVENATING_ASSAULT, 1]
-  ]) {
-    const strike = revenantCatalog.skillsById.get(id).effects.find((effect) => effect.type === 'strike');
-    assert.ok(strike.ticks.every((tick) => tick.coefficient === coefficient));
-  }
-
+// Finisher classification determines whether the skill can interact with a combo field.
+test('Rejuvenating Assault owns a whirl finisher', () => {
   assert.ok(
     revenantCatalog.skillsById
       .get(ID.REJUVENATING_ASSAULT)

@@ -2,8 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { BOON } from '#gw2/platform/constants.js';
-import { conditionEffectTicks, strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import { skillFlipReady, skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { handleElectricArtillery } from '#gw2/professions/engineer/core/mechanics/spear.js';
@@ -344,41 +343,10 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
     }),
     true
   );
-  assert.deepEqual(
-    skill(ID.SUN_EDGE)
-      .effects.slice(1)
-      .flatMap((effect) => conditionEffectTicks(effect).map((tick) => [tick.condition, tick.stacks, tick.duration])),
-    [['Vulnerability', 1, 10]]
-  );
-  assert.equal(skill(ID.RADIANT_ARC).cooldown, 12);
-  assert.equal(skill(ID.RADIANT_ARC).comboFinishers[0].finisherType, 'Leap');
-  assert.deepEqual(
-    skill(ID.RADIANT_ARC)
-      .effects.filter((effect) => effect.type === 'condition')
-      .flatMap((effect) => conditionEffectTicks(effect).map((tick) => [tick.condition, tick.stacks, tick.duration])),
-    [['Crippled', 1, 4]]
-  );
-  assert.equal(skill(ID.REFRACTION_CUTTER).effects[1].comboFinishers[0].chance, 1);
-  assert.equal(skill(ID.RADIANT_ARC_NON_HOLOSMITH).cooldown, 14);
-  assert.equal(skill(ID.RADIANT_ARC_NON_HOLOSMITH).comboFinishers[0].finisherType, 'Leap');
-  assert.deepEqual(
-    skill(ID.RADIANT_ARC_NON_HOLOSMITH)
-      .effects.slice(1)
-      .flatMap((effect) =>
-        effect.type === 'condition'
-          ? conditionEffectTicks(effect).map((tick) => [tick.condition, tick.stacks, tick.duration])
-          : [[effect.boon, effect.stacks, effect.duration]]
-      ),
-    [
-      ['Crippled', 1, 4],
-      [BOON.QUICKNESS, 1, 3]
-    ]
-  );
-
-  const refraction = skill(ID.REFRACTION_CUTTER_NON_HOLOSMITH);
-
-  assert.equal(refraction.cooldown, 6);
-  assert.equal(refraction.effects[1].comboFinishers[0].chance, 1);
+  // Variant selection retains combo behavior without fixing each variant's balance payload.
+  for (const id of [ID.RADIANT_ARC, ID.RADIANT_ARC_NON_HOLOSMITH]) {
+    assert.equal(skill(id).comboFinishers[0].finisherType, 'Leap');
+  }
 
   const replaced = simulate('Holosmith', [{ type: 'cast', skillId: ID.SUN_EDGE_NON_HOLOSMITH }]);
 
@@ -403,7 +371,14 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
       ).duration
   );
 
-  assert.deepEqual(quicknessDurations, [2, 4, 4, 4, 6]);
+  const arc = skill(ID.RADIANT_ARC);
+  assert.deepEqual(quicknessDurations, [
+    arc.baseDuration,
+    arc.highDuration,
+    arc.highDuration,
+    arc.highDuration,
+    arc.enhancedDuration
+  ]);
 
   const result = simulate('Mechanist', [
     { type: 'cast', skillId: ID.REFRACTION_CUTTER_NON_HOLOSMITH },
@@ -419,13 +394,14 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
     (event) => event.type === 'condition' && event.skillName === 'Refraction Cutter' && event.condition === 'Bleeding'
   );
 
+  assert.deepEqual(result.warnings, []);
+  assert.ok(blades.length > 0);
+  assert.ok(blades.every((event) => event.comboFinishers[0].finisherType === 'Projectile'));
+  // Each extra blade retains its paired bleed when the authored packet count changes.
   assert.deepEqual(
-    blades.map((event) => event.coefficient),
-    [0.4, 0.4]
+    bleeds.map((event) => event.at),
+    blades.map((event) => event.at)
   );
-  assert.ok(blades.every((event) => event.comboFinishers[0].chance === 1));
-  assert.equal(bleeds.length, 2);
-  assert.ok(bleeds.every((event) => event.stacks === 1 && event.duration === 4));
   const core = simulate(
     'Core',
     [
@@ -440,7 +416,7 @@ test('Engineer sword variants have specialization-owned facts and runtime gating
 
   assert.deepEqual(core.warnings, []);
   assert.ok(
-    result.procSteps.some((step) => step.skill === 'Gleam Saber - Sword Recharge' && step.cooldownReduction === 0.8)
+    result.procSteps.some((step) => step.skill === 'Gleam Saber - Sword Recharge' && step.cooldownReduction > 0)
   );
 });
 

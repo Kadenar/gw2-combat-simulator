@@ -12,7 +12,7 @@ import {
   minionDefinitionForSkill
 } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
 import { NECROMANCER_MINION_SUMMON_IDS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
-import { rangerPetAutoProfile, rangerPetBaseAttributes } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
+import { rangerPetAutoProfile } from '#gw2/professions/ranger/core/mechanics/pet-profiles.js';
 
 test('elemental profile selection is independent from scheduler state', () => {
   assert.equal(selectedElementalFromSkills(new Set([ELEMENTALIST_ID.GLYPH_OF_ELEMENTALS_EARTH])), 'Earth');
@@ -20,10 +20,8 @@ test('elemental profile selection is independent from scheduler state', () => {
   assert.equal(elementalRuntimeProfile('Earth').stomp.skillId, ELEMENTALIST_ID.STOMP_ELEMENTAL_COMMAND);
 });
 
-test('pet profile data exposes base attributes and autonomous cadence', () => {
-  assert.equal(rangerPetBaseAttributes('Tiger').precision, 2211);
-  assert.equal(rangerPetBaseAttributes('Jacaranda').healingPower, 1200);
-  assert.equal(rangerPetAutoProfile('Carrion Devourer').basic.recovery, 1.88);
+// Unknown pets cannot acquire an autonomous attack profile.
+test('unknown pets have no autonomous profile', () => {
   assert.equal(rangerPetAutoProfile('Unknown'), null);
 });
 

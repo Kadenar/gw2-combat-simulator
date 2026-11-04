@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/actions.js';
@@ -100,14 +99,6 @@ test('specialization filters come from unique manifest section names', () => {
   ];
 
   assert.deepEqual(templateSpecializations(manifest), ['Weaver', 'Tempest']);
-});
-
-// Keep the editor contiguous; browser tests cover the dynamically mounted template dialog.
-test('shared template keeps build and simulation controls in one editor', () => {
-  const template = readFileSync(new URL('../../../../templates/profession.html', import.meta.url), 'utf8');
-
-  assert.match(template, /<section class="build-editor panel">[\s\S]*\n {8}<div class="simulation-workspace">/);
-  assert.doesNotMatch(template, /\n {6}<div class="simulation-workspace">/);
 });
 
 // Independent template assets must start together even when the build download has not completed.

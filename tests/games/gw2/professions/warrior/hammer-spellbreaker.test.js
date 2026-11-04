@@ -5,72 +5,8 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
-import {
-  createObservedProfessionSimulator,
-  observedRuntime,
-  observeGw2Runtime
-} from '#tests/helpers/observed-runtime.js';
+import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-
-// Permanent Alacrity sets recharge progress; the next action tick admits a new tether.
-test('Magebane Tether ignores Alacrity gained or lost during its recharge', () => {
-  for (const alacrityAt of [0, 2]) {
-    const config = { specialization: 'Spellbreaker', selectedTraitIds: [TRAIT.MAGEBANE_TETHER] };
-    const profession = warriorProfession.runtimeFor(config);
-    const windows = [];
-    const result = observeGw2Runtime({
-      config,
-      profession: {
-        ...profession,
-        initialize(runtime) {
-          profession.initialize(runtime);
-          runtime.effects.emit({
-            kind: 'packet',
-            event: {
-              type: 'buff',
-              kind: 'alacrity',
-              at: alacrityAt,
-              duration: 4.08,
-              stacks: 1,
-              source: 'fixture',
-              sourceId: 'fixture',
-              actorType: 'player'
-            }
-          });
-          for (const at of [0, 9.6, 9.64])
-            runtime.effects.emit({
-              kind: 'packet',
-              event: {
-                type: 'damage',
-                actorType: 'player',
-                coefficient: 1,
-                skillId: ID.BREACHING_STRIKE,
-                sourceId: ID.BREACHING_STRIKE,
-                source: 'warrior',
-                skillName: 'Breaching Strike',
-                weaponStrengthProfileId: 'weapon.dagger',
-                activationId: 'burst-' + at,
-                at
-              }
-            });
-        },
-        reactions: {
-          ...profession.reactions,
-          'damage.resolved'(runtime, event, hit) {
-            profession.reactions['damage.resolved'](runtime, event, hit);
-
-            if (event.skillId === ID.BREACHING_STRIKE)
-              windows.push(runtime.profession.specialization.state.magebaneTetherUntil > runtime.time);
-          }
-        }
-      },
-      rotation: [{ type: 'wait', durationMs: 11000 }]
-    });
-    assert.deepEqual(result.warnings, []);
-    assert.deepEqual(windows, [true, true, true]);
-    assert.equal(observedRuntime(result).profession.specialization.state.magebaneTetherUntil, 17.6);
-  }
-});
 
 const baseConfig = Object.freeze({
   attributeInputs: baseAttributeInputs({

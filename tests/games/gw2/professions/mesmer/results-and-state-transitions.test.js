@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { nextResultSortState, sortResultRows } from '#gw2/app/results/breakdown/model.js';
-import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
@@ -313,43 +311,6 @@ test('result summary includes kill time when target health is exhausted', () => 
   assert.equal(buildChartSeries(result).durationMs, Math.max(1, result.dpsWindow * 1000));
 });
 
-test('result table sorting cycles consistently across profession views', () => {
-  assert.deepEqual(nextResultSortState(null, null, 'dps'), {
-    column: 'dps',
-    direction: 'desc'
-  });
-  assert.deepEqual(nextResultSortState('dps', 'desc', 'dps'), {
-    column: 'dps',
-    direction: 'asc'
-  });
-  assert.deepEqual(nextResultSortState('dps', 'asc', 'dps'), {
-    column: null,
-    direction: null
-  });
-
-  const rows = [
-    { name: 'Beta', total: 20, dps: 5 },
-    { name: 'Alpha', total: 10, dps: 8 }
-  ];
-  const columns = [
-    { key: 'name', numeric: false },
-    { key: 'dps', numeric: true }
-  ];
-
-  assert.deepEqual(
-    sortResultRows(rows, columns, null, null).map((row) => row.name),
-    ['Beta', 'Alpha']
-  );
-  assert.deepEqual(
-    sortResultRows(rows, columns, 'dps', 'desc').map((row) => row.name),
-    ['Alpha', 'Beta']
-  );
-  assert.deepEqual(
-    sortResultRows(rows, columns, 'name', 'asc').map((row) => row.name),
-    ['Alpha', 'Beta']
-  );
-});
-
 test('skill breakdown combines strike and condition damage by source skill', () => {
   const result = simulateMesmer(
     ['Confusing Images', { name: '__wait', waitMs: 3000 }],
@@ -366,7 +327,6 @@ test('skill breakdown combines strike and condition damage by source skill', () 
   assert.ok(row.condition > 0);
   assert.equal(row.total, row.strike + row.condition);
   assert.equal(row.casts, 1);
-  assert.equal(row.hits, 7);
   assert.ok(row.average > 0);
   assert.ok(row.dct > 0);
 });
@@ -403,20 +363,6 @@ test('chart series expose first-hit-anchored average DPS and condition stacks', 
   assert.ok(series.dps.length > 2);
   assert.ok(series.effects.Confusion.some((point) => point.v > 0));
   assert.ok(Math.abs(series.dps.at(-1).v - result.dps) < 0.001);
-});
-
-test('chart hover values use the latest sample at the hovered timestamp', () => {
-  const points = [
-    { t: 0, v: 0 },
-    { t: 250, v: 12 },
-    { t: 500, v: 8 }
-  ];
-
-  assert.equal(chartValueAt(points, 249), 0);
-  assert.equal(chartValueAt(points, 250), 12);
-  assert.equal(chartValueAt(points, 499), 12);
-  assert.equal(chartValueAt(points, 500), 8);
-  assert.equal(chartValueAt([], 500), 0);
 });
 
 test('Vulnerability chart series caps at 25 stacks', () => {

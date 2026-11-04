@@ -45,6 +45,9 @@ test('boundedInteger truncates before clamping and applies its fallback', () => 
   assert.equal(boundedInteger('4.9', 2, 0, 5), 4);
   assert.equal(boundedInteger('invalid', 2, 0, 5), 2);
   assert.equal(boundedInteger(Number.NEGATIVE_INFINITY, 2, 0, 5), 0);
+  // Zero remains explicit, and truncation still respects the upper bound.
+  assert.equal(boundedInteger(0, 5, 0, 25), 0);
+  assert.equal(boundedInteger(99, 0, 0, 25), 25);
 });
 
 test('finiteNumber coerces numeric input and rejects non-finite results', () => {
@@ -53,23 +56,9 @@ test('finiteNumber coerces numeric input and rejects non-finite results', () => 
   assert.equal(finiteNumber(Number.POSITIVE_INFINITY, -1), -1);
 });
 
-// boundedNumber clamps an infinite input into range; finiteNumber takes the fallback instead.
-test('finiteNumber and boundedNumber diverge on infinite input', () => {
-  assert.equal(finiteNumber(Number.POSITIVE_INFINITY, 3), 3);
-  assert.equal(boundedNumber(Number.POSITIVE_INFINITY, 3, 0, 5), 5);
-});
-
 test('bounded helpers substitute the fallback for input that coerces to NaN', () => {
   for (const unusable of ['abc', {}, [1, 2], undefined, Number.NaN]) {
     assert.equal(boundedInteger(unusable, 0, 0, 25), 0);
     assert.equal(boundedNumber(unusable, 8, 0, 8), 8);
   }
-});
-
-test('bounded helpers leave usable input exactly as clamping did', () => {
-  assert.equal(boundedInteger('7.9', 0, 0, 25), 7);
-  assert.equal(boundedInteger(0, 5, 0, 25), 0);
-  assert.equal(boundedInteger(99, 0, 0, 25), 25);
-  assert.equal(boundedNumber('4.5', 2, 0, 5), 4.5);
-  assert.equal(boundedNumber(-3, 0, 0, 5), 0);
 });

@@ -839,64 +839,44 @@ test('Engineer mine and healing turret detonations are armed by their parent ski
   );
 });
 
-test('Elixir Gun packets, fields, finishers, and HGH use their authored contracts', () => {
+// Elixir kit casts retain combo classifications, while HGH extends the field and emits its selected boon payloads.
+test('Elixir Gun fields and finishers retain their HGH interaction', () => {
   const selectedSkillIds = [...baseConfig.selectedSkillIds, 5933];
-  const result = simulate(
-    'Core',
-    [
-      'Elixir Gun',
-      'Tranquilizer Dart',
-      'Glob Shot',
-      'Fumigate',
-      'Acid Bomb',
-      'Super Elixir',
-      { type: 'wait', durationMs: 6000 }
-    ],
-    { selectedSkillIds }
-  );
-  const conditions = (name, condition) =>
-    result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.skillName === name && event.condition === condition
-    );
-
+  const result = simulate('Core', ['Elixir Gun', 'Acid Bomb', 'Super Elixir', { type: 'wait', durationMs: 6500 }], {
+    selectedSkillIds
+  });
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(
-    conditions('Tranquilizer Dart', 'Bleeding').map((event) => [event.stacks, event.duration]),
-    [[1, 4]]
-  );
-  assert.deepEqual(
-    conditions('Tranquilizer Dart', 'Weakness').map((event) => [event.stacks, event.duration]),
-    [[1, 1]]
-  );
-  assert.equal(engineerCatalog.skillsById.get(ID.TRANQUILIZER_DART).comboFinishers[0].chance, 0.2);
-  assert.deepEqual(
-    conditions('Glob Shot', 'Crippled').map((event) => event.duration),
-    [3]
-  );
-  assert.deepEqual(
-    conditions('Glob Shot', 'Immobilized').map((event) => event.duration),
-    [2]
-  );
-  assert.equal(engineerCatalog.skillsById.get(ID.GLOB_SHOT).cooldown, 8);
-  assert.equal(engineerCatalog.skillsById.get(ID.FUMIGATE).cooldown, 12);
   assert.equal(
     result.events.filter((event) => event.type === 'combo_finisher' && event.skillName === 'Acid Bomb').length,
     1
   );
   assert.equal(engineerCatalog.skillsById.get(ID.ACID_BOMB).effects[0].comboFinishers[0].finisherType, 'Blast');
-  assert.equal(engineerCatalog.skillsById.get(ID.SUPER_ELIXIR).cooldown, 16);
   assert.equal(engineerCatalog.skillsById.get(ID.SUPER_ELIXIR).comboFields[0].fieldType, 'Light');
+  assert.ok(!result.events.some((event) => event.type === 'buff' && event.sourceId === TRAIT.HGH));
 
   const hgh = simulate('Core', ['Elixir Gun', 'Acid Bomb', { type: 'wait', durationMs: 6500 }], {
     selectedSkillIds,
     selectedTraitIds: [TRAIT.HGH]
   });
-  const hghField = hgh.events.find((event) => event.type === 'combo_field' && event.skillName === 'Acid Bomb');
-  const hghBuff = (kind) =>
-    hgh.events.find((event) => event.type === 'buff' && event.sourceId === TRAIT.HGH && event.kind === kind);
-  assert.equal(hghField.expiresAt - hghField.at, 6);
-  assert.deepEqual([hghBuff('might').stacks, hghBuff('might').duration], [2, 12]);
-  assert.deepEqual([hghBuff('fury').stacks, hghBuff('fury').duration], [1, 4]);
+  assert.deepEqual(hgh.warnings, []);
+  const field = (simulation) =>
+    simulation.events.find((event) => event.type === 'combo_field' && event.skillName === 'Acid Bomb');
+  const baselineField = field(result);
+  const hghField = field(hgh);
+  const profile = engineerCatalog.balanceProfilesById.get(TRAIT.HGH);
+  assert.equal(
+    hghField.expiresAt - hghField.at,
+    (baselineField.expiresAt - baselineField.at) * profile.durationMultiplier
+  );
+  const boons = profile.effects.filter((effect) => effect.type === 'boon');
+  assert.ok(boons.length > 0);
+  for (const effect of boons) {
+    const emitted = hgh.events.find(
+      (event) => event.type === 'buff' && event.sourceId === TRAIT.HGH && event.kind === effect.name
+    );
+    assert.ok(emitted, effect.name);
+    assert.deepEqual([emitted.stacks, emitted.duration], [effect.stacks, effect.duration]);
+  }
 });
 
 test('Engineer contextual weapon follow-ups are not standalone selections', () => {

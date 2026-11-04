@@ -118,27 +118,17 @@ test('condition inspection accumulates shares without mutating input or previous
 });
 
 test('shared chart lookup and series cover damage timing and configurable effects', () => {
+  // Each sample becomes visible at its boundary and remains current until the next one.
+  const points = [
+    { t: 0, v: 0 },
+    { t: 250, v: 12 },
+    { t: 500, v: 8 }
+  ];
   assert.equal(chartValueAt([], 10), 0);
-  assert.equal(
-    chartValueAt(
-      [
-        { t: 0, v: 1 },
-        { t: 100, v: 4 }
-      ],
-      99
-    ),
-    1
-  );
-  assert.equal(
-    chartValueAt(
-      [
-        { t: 0, v: 1 },
-        { t: 100, v: 4 }
-      ],
-      100
-    ),
-    4
-  );
+  assert.equal(chartValueAt(points, 249), 0);
+  assert.equal(chartValueAt(points, 250), 12);
+  assert.equal(chartValueAt(points, 499), 12);
+  assert.equal(chartValueAt(points, 500), 8);
 
   const series = buildTimeSeries(
     {

@@ -119,6 +119,11 @@ test('selected shade costs use vitality and Soul Battery in shared admission and
         const initialResource = cost === 0 ? 0 : cost + 0.01;
         const allowed = run([cast(ID.DESERT_SHROUD)], { ...config, initialResource }, { profession });
         assert.deepEqual(allowed.warnings, []);
+        // The public percentage meter must project the same post-payment balance as the resource pool.
+        assert.ok(
+          Math.abs(lifeForcePercent(allowed.planningState.profession[STATE.LIFE_FORCE]) - (initialResource - cost)) <
+            1e-8
+        );
         assert.ok(
           Math.abs(
             allowed.planningState.profession[STATE.LIFE_FORCE].value -

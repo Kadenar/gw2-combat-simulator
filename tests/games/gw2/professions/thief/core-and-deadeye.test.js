@@ -275,10 +275,6 @@ test('Deadeye live runtime and palette enforce the same flip expiry boundary', (
 });
 
 test('Thief catalog retains valid effect schemas and skill metadata', () => {
-  assert.equal(thiefCatalog.skillsById.get(40436).id, 40436);
-  assert.equal(thiefCatalog.skillsById.get(77230).id, 77230);
-  assert.equal(thiefCatalog.skillsById.get(13006).cost.amount, 4);
-
   // Thief strike timelines stay explicit unless every hit shares one timestamp.
   for (const skill of thiefCatalog.skills) {
     for (const effect of skill.effects || []) {

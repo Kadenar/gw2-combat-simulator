@@ -354,29 +354,6 @@ test('every Necromancer specialization converts the starting percentage to life-
   }
 });
 
-// A fixed 4,606-point cost must become cheaper with vitality or Soul Battery in both gating and spending.
-test('Scourge fixed costs preserve build scaling on the percentage meter', () => {
-  for (const vitality of [1000, 2000]) {
-    for (const battery of [false, true]) {
-      const config = {
-        attributeInputs: baseAttributeInputs({ vitality }),
-        selectedTraitIds: battery ? [TRAIT.SOUL_BATTERY] : []
-      };
-      // Life-force capacity reads final Vitality, including the universal armor reinforcement.
-      const expectedCost = (4606 * 100) / ((9212 + vitality * 1.05 * 10) * 0.69 * (battery ? 1.2 : 1));
-      const allowed = simulate('Scourge', ['Desert Shroud'], { ...config, initialResource: expectedCost + 0.01 });
-      const denied = simulate('Scourge', ['Desert Shroud'], { ...config, initialResource: expectedCost - 0.01 });
-      assert.deepEqual(allowed.warnings, []);
-      assert.ok(Math.abs(lifeForcePercent(allowed.planningState.profession[STATE.LIFE_FORCE]) - 0.01) < 1e-10);
-      assert.equal(denied.warnings.length, 1);
-      assert.match(denied.warnings[0].message, /requires .*lifeForce/);
-      assert.ok(
-        Math.abs(lifeForcePercent(denied.planningState.profession[STATE.LIFE_FORCE]) - (expectedCost - 0.01)) < 1e-8
-      );
-    }
-  }
-});
-
 // Runtime initialization must replace detached defaults with the active patch's vitality and capacity tuning.
 test('Scourge point capacity and fixed costs use the selected balance profiles', () => {
   const run = (capacityMultiplier, initialResource = 50, rotation = ['Desert Shroud']) =>

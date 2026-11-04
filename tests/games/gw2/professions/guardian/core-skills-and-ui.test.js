@@ -5,12 +5,10 @@ import { displayedSkillTiles, paletteSkillView } from '#gw2/app/rotation/palette
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { guardianAppAdapter } from '#gw2/professions/guardian/app/app-definition.js';
-import { createGuardianBuildDefaults } from '#gw2/professions/guardian/build/build.js';
 import { powerOfTheVirtuous } from '#gw2/professions/guardian/core/traits/virtues/index.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import {
   createObservedProfessionSimulator,
@@ -18,12 +16,6 @@ import {
   planningFixture
 } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-
-// Attribute assertions use the same calculator composed into the Guardian adapter.
-const calculateGuardianAttributes = createCalculateAttributes(
-  createProfessionBuildAttributeRules(guardianCatalog),
-  guardianProfession.attributeContributions
-);
 
 const config = {
   attributeInputs: baseAttributeInputs({
@@ -254,27 +246,6 @@ test('Virtue of Resolution extends delivered boons once without creating extra s
     assert.equal(exposure(traited).length, exposure(baseline).length);
     assert.deepEqual(traited.warnings, []);
   }
-});
-
-test('Masterful Writ utilities grant their flat attributes', () => {
-  const baseline = createGuardianBuildDefaults();
-
-  baseline.utility = '';
-  const strength = structuredClone(baseline);
-
-  strength.utility = 'Writ of Masterful Strength';
-  const malice = structuredClone(baseline);
-
-  malice.utility = 'Writ of Masterful Malice';
-
-  const baselineAttributes = calculateGuardianAttributes(baseline, []).attributes;
-  const strengthAttributes = calculateGuardianAttributes(strength, []).attributes;
-  const maliceAttributes = calculateGuardianAttributes(malice, []).attributes;
-
-  assert.equal(strengthAttributes.Power.utility, 200);
-  assert.equal(strengthAttributes.Power.final - baselineAttributes.Power.final, 200);
-  assert.equal(maliceAttributes['Condition Damage'].utility, 200);
-  assert.equal(maliceAttributes['Condition Damage'].final - baselineAttributes['Condition Damage'].final, 200);
 });
 
 test('Justice active burning resolves through simulateGw2', () => {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { paletteSkillView, weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
+import { paletteSkillView, weaponPaletteRows, weaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup, renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
@@ -633,7 +633,10 @@ test('weapon palette rows group Elementalist skills by attunement and slot', () 
   );
   const dual = weaverRows.find((row) => row.label === 'Dual');
 
-  assert.equal(dual.skills.length, 6);
+  // Group every eligible dual attack from the equipped weapon without fixing the catalog's size.
+  const dualSkills = weaponSkills(app, 1).filter((skill) => skill.attunement?.includes('+'));
+  assert.ok(dualSkills.length > 0);
+  assert.deepEqual(new Set(dual.skills.map((skill) => skill.id)), new Set(dualSkills.map((skill) => skill.id)));
   assert.equal(
     dual.skills.every((skill) => skill.slot === 'Weapon_3'),
     true

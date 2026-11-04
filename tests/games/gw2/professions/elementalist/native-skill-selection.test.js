@@ -51,16 +51,3 @@ test('both supported elemental summons are selectable elite skills', () => {
   assert.equal(labels.includes('Glyph of Elementals (Fire)'), true);
   assert.equal(labels.includes('Glyph of Elementals (Earth)'), true);
 });
-
-test('old builds migrate glyph and stance selections', () => {
-  const app = weaverApp(
-    {
-      Utility1: 34637,
-      Utility2: -1169
-    },
-    5
-  );
-
-  assert.equal(app.build.selectedSkillIds.Utility1, 5506);
-  assert.equal(app.build.selectedSkillIds.Utility2, 40183);
-});

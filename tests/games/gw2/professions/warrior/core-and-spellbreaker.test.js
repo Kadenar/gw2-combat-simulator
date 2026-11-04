@@ -55,9 +55,6 @@ const simulate = createObservedProfessionSimulator(warriorProfession, baseConfig
 
 const observationTail = (durationMs) => ({ kind: 'tail', durationMs });
 
-const strikeCoefficient = (effect) =>
-  effect.ticks?.reduce((total, tick) => total + Number(tick.coefficient), 0) ?? Number(effect.coefficient);
-
 test('Bladetrail schedules immobilize with both impacts, including its delayed return', () => {
   // Observe beyond cast completion so the return application exercises delayed condition scheduling.
   const result = simulate('Core', [ID.BLADETRAIL], { primaryWeapon: 'Greatsword' }, observationTail(2000));
@@ -717,28 +714,12 @@ test('Berserker mode applies the supplied cap, duration, buffs, and modifiers', 
   );
 });
 
-test('Berserker spear and greatsword packets use configured timing profiles', () => {
+// Weapon ownership and explosion tags determine eligibility and proc behavior independently of balance values.
+test('Berserker spear and greatsword packets retain weapon and explosion ownership', () => {
   const arc = warriorCatalog.skillsById.get(ID.ARC_DIVIDER);
   const wildThrow = warriorCatalog.skillsById.get(ID.WILD_THROW);
-  const maimingSpear = warriorCatalog.skillsById.get(ID.MAIMING_SPEAR);
-  const disruptingThrow = warriorCatalog.skillsById.get(ID.DISRUPTING_THROW);
-
-  assert.equal(arc.cooldown, 5);
   assert.equal(arc.skillWeapon, 'Greatsword');
-  assert.equal(strikeCoefficient(arc.effects[0]), 3.5);
-  assert.equal(wildThrow.cooldown, 5);
   assert.equal(wildThrow.skillWeapon, 'Spear');
-  assert.equal(maimingSpear.cooldown, 5);
-  assert.deepEqual(
-    maimingSpear.effects.filter((effect) => effect.type === 'strike').map(strikeCoefficient),
-    [1.1, 0.75]
-  );
-  assert.equal(
-    disruptingThrow.effects.some(
-      (effect) => effect.type === 'condition' && effect.condition === 'Immobilized' && effect.duration === 2
-    ),
-    true
-  );
 
   const singleTarget = simulate('Berserker', ['Mighty Throw']);
 

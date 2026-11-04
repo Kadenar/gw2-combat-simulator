@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -101,29 +100,4 @@ test('cross-profession imports identify the build and offer its simulator', () =
       return true;
     }
   );
-});
-
-test('GW2 contributes build-code controls that use a review dialog instead of browser prompts', () => {
-  const pageControls = readFileSync(
-    new URL('../../../../js/games/gw2/app/session-controls.ts', import.meta.url),
-    'utf8'
-  );
-  const buildEditor = readFileSync(new URL('../../../../js/games/gw2/app/build/editor.ts', import.meta.url), 'utf8');
-  const dialog = readFileSync(
-    new URL('../../../../js/games/gw2/app/import-export/build-template-import-dialog.ts', import.meta.url),
-    'utf8'
-  );
-
-  assert.doesNotMatch(pageControls, /\bprompt\s*\(/);
-  assert.match(pageControls, /buildEditor\.bindControls/);
-  assert.doesNotMatch(pageControls, /\.selectable-skills-title|Import GW2 Build/);
-  // The shared Gear header keeps import reachable when the profession's skills panel is hidden.
-  assert.match(buildEditor, /\.build-template-import-host/);
-  assert.match(buildEditor, /build-template-import/);
-  assert.match(buildEditor, /title\.append\(button\)/);
-  assert.doesNotMatch(pageControls, /importBuildButton\.insertAdjacentElement/);
-  assert.match(dialog, /createElement\(['"]dialog['"]\)/);
-  assert.match(dialog, /data-build-template-weapon-select/);
-  assert.match(dialog, /Preview build/);
-  assert.match(dialog, /Apply build/);
 });

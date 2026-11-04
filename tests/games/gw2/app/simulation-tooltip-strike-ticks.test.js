@@ -16,17 +16,20 @@ test('Perforate tooltip presents a coefficient total and hit count', () => {
       necromancer: { skills: { [ID.PERFORATE]: { effects: [{ type: 'strike', all: true, coefficient: 0.6 }] } } }
     }
   });
-  for (const [patchId, coefficient] of [
-    ['current', '3.5'],
-    ['perforate-tooltip', '4.2']
-  ]) {
-    const context = profession.resolvePatch({ id: patchId }).balanceContext;
-    const model = describeSimulationSkill(context, context.catalog.skillsById.get(ID.PERFORATE), necromancerTooltips);
-    const damage = model.facts.find((fact) => fact.name === 'Strike damage');
-    assert.equal(damage.detail, `${coefficient} coefficient total · 7 hits`);
-    assert.equal(damage.applications, 1);
-    assert.ok(model.facts.some((fact) => fact.name === 'Strike damage below 50% target health'));
-  }
+  // The patch controls each coefficient; the live declaration supplies how many packets receive it.
+  const hits = necromancerProfession.catalog.skillsById
+    .get(ID.PERFORATE)
+    .effects.filter((effect) => effect.type === 'strike')
+    .reduce((sum, effect) => sum + (effect.ticks?.length ?? effect.hits ?? 1), 0);
+  assert.ok(hits > 0);
+  const context = profession.resolvePatch({ id: 'perforate-tooltip' }).balanceContext;
+  const model = describeSimulationSkill(context, context.catalog.skillsById.get(ID.PERFORATE), necromancerTooltips);
+  const damage = model.facts.find((fact) => fact.name === 'Strike damage');
+  const coefficient = Number((0.6 * hits).toFixed(6));
+  const detail = hits > 1 ? `${coefficient} coefficient total · ${hits} hits` : `${coefficient} coefficient`;
+  assert.equal(damage.detail, detail);
+  assert.equal(damage.applications, 1);
+  assert.ok(model.facts.some((fact) => fact.name === 'Strike damage below 50% target health'));
 });
 
 // Signet's flat formula lives on its ticks, so presentation must follow the selected packets rather than their zero coefficient.
@@ -52,22 +55,17 @@ test('Signet of Vampirism tooltip exposes the selected per-tick damage formula',
       }
     }
   });
-  for (const [patchId, base, power] of [
-    ['current', 163, 0.05],
-    ['vampirism-tooltip', 250, 0.1]
-  ]) {
-    const context = profession.resolvePatch({ id: patchId }).balanceContext;
-    const model = describeSimulationSkill(
-      context,
-      context.catalog.skillsById.get(ID.SIGNET_OF_VAMPIRISM),
-      necromancerTooltips
-    );
-    const damage = model.facts.find((fact) => fact.name === 'Strike damage');
-    assert.ok(damage.detail.includes(`${base} base damage`));
-    assert.ok(damage.detail.includes(`${power} × power`));
-    assert.doesNotMatch(damage.detail, /0 coefficient/);
-    assert.equal(model.incomplete, false);
-  }
+  const context = profession.resolvePatch({ id: 'vampirism-tooltip' }).balanceContext;
+  const model = describeSimulationSkill(
+    context,
+    context.catalog.skillsById.get(ID.SIGNET_OF_VAMPIRISM),
+    necromancerTooltips
+  );
+  const damage = model.facts.find((fact) => fact.name === 'Strike damage');
+  assert.ok(damage.detail.includes('250 base damage'));
+  assert.ok(damage.detail.includes('0.1 × power'));
+  assert.doesNotMatch(damage.detail, /0 coefficient/);
+  assert.equal(model.incomplete, false);
 });
 
 // Inherited formula fields and tick overrides must remain distinct while identical packets combine.

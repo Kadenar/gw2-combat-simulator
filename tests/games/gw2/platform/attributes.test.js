@@ -22,6 +22,7 @@ import {
 import { attributeSeedFromCommon } from '#gw2/platform/attributes/inputs.js';
 import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { UTILITY_STAT_DATA } from '#gw2/platform/equipment/consumables/utilities.js';
 import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { aggregateSigilSet, setWeaponSigil } from '#gw2/platform/equipment/sigils/loadout.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
@@ -54,8 +55,11 @@ test('flat writ attributes feed conversions while converted utility attributes d
     ['Writ of Masterful Malice', 'Condition Damage']
   ]) {
     const result = calculateCommonAttributes({ ...build, utility });
-    assert.equal(result.attributes[stat].final - baseline.attributes[stat].final, 200);
-    assert.equal(result.commonContext.conversionPool[stat] - baseline.commonContext.conversionPool[stat], 200);
+    const amount = UTILITY_STAT_DATA[utility][stat];
+    // Authored flat grants retain utility provenance and feed conversion exactly once.
+    assert.equal(result.attributes[stat].utility, amount);
+    assert.equal(result.attributes[stat].final - baseline.attributes[stat].final, amount);
+    assert.equal(result.commonContext.conversionPool[stat] - baseline.commonContext.conversionPool[stat], amount);
   }
 
   const converted = calculateCommonAttributes({ ...build, utility: 'Superior Sharpening Stone' });
