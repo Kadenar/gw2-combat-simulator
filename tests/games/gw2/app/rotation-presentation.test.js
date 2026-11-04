@@ -301,6 +301,9 @@ test('palette primitives escape values and render state, ammo, cooldowns, and gr
 
   assert.match(html, /pal-disabled/);
   assert.match(html, /draggable="false"/);
+  assert.match(html, /aria-disabled="false"/);
+  assert.match(html, /aria-label="Title&quot;&gt;&lt;bad&gt;, 1\/2 charges, Cooldown: &lt;5s"/);
+  assert.match(paletteSkillHtml({ name: 'Unavailable', contextDisabled: true }), /aria-disabled="true"/);
   assert.match(html, /1\/2/);
   assert.equal((html.match(/pal-ammo-pip filled/g) || []).length, 1);
   assert.match(html, /&lt;5s/);
@@ -391,6 +394,91 @@ test('palette controls delegate neutral control identities', () => {
 
   control.onclick({});
   assert.equal(activated, 'profession-resource:one');
+});
+
+// Cooldown styling must not block queueing, and only real pointer clicks relinquish keyboard focus.
+test('palette activation distinguishes context restrictions and pointer focus', () => {
+  const calls = [];
+  let contextDisabled = false;
+  const icon = {
+    dataset: { skill: 'Recharge' },
+    getAttribute: (name) => (name === 'aria-disabled' ? String(contextDisabled) : 'false'),
+    blur: () => calls.push('blur')
+  };
+  bindPaletteInteractions(
+    {
+      querySelectorAll: (selector) => (selector === '.pal-skill[data-skill]' ? [icon] : [])
+    },
+    { onActivate: (name) => calls.push(name) }
+  );
+  icon.onclick({ detail: 1 });
+  assert.deepEqual(calls.splice(0), ['blur', 'Recharge']);
+  icon.onclick({ detail: 0 });
+  assert.deepEqual(calls.splice(0), ['Recharge']);
+  contextDisabled = true;
+  icon.onclick({ detail: 0 });
+  assert.deepEqual(calls, []);
+  contextDisabled = false;
+  for (const key of ['Enter', ' ']) {
+    let consumed = false;
+    icon.onkeydown({
+      key,
+      ctrlKey: true,
+      preventDefault: () => {
+        consumed = true;
+      }
+    });
+    assert.equal(consumed, true);
+    assert.deepEqual(calls.splice(0), ['Recharge']);
+  }
+});
+
+// Rebound native buttons must cancel repeat defaults while preserving the first activation of each press.
+test('palette and timeline removal suppress repeated native activation keys', () => {
+  const icon = { dataset: { skill: 'Skill' }, getAttribute: () => 'false' };
+  const control = { dataset: { paletteControlId: 'control' } };
+  bindPaletteInteractions({
+    querySelectorAll: (selector) =>
+      selector === '.pal-skill[data-skill]'
+        ? [icon]
+        : selector === '.pal-control[data-palette-control-id]'
+          ? [control]
+          : []
+  });
+  const remove = { setAttribute() {} };
+  const item = { dataset: { idx: '0' }, querySelector: (selector) => (selector === '.rot-x' ? remove : null) };
+  bindTimelineInteractions(
+    {
+      querySelectorAll: (selector) => (selector === '.rot-skill[data-idx]:not(.rot-injected)' ? [item] : [])
+    },
+    {
+      rotation: [],
+      getDragState: () => null,
+      setDragState() {},
+      moveEntry: () => false,
+      insertEntries: () => false
+    }
+  );
+  for (const [handler, target] of [
+    [icon.onkeydown, icon],
+    [control.onkeydown, control],
+    [item.onkeydown, remove]
+  ]) {
+    for (const key of ['Enter', ' ', 'ArrowDown']) {
+      for (const repeat of [false, true]) {
+        let prevented = false;
+        handler({
+          key,
+          repeat,
+          target,
+          preventDefault: () => {
+            prevented = true;
+          }
+        });
+        assert.equal(prevented, repeat && key !== 'ArrowDown', `${key}, repeat=${repeat}`);
+      }
+    }
+  }
 });
 
 test('palette disclosures restore and persist their visibility', () => {

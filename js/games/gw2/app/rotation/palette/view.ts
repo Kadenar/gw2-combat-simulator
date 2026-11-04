@@ -17,7 +17,7 @@ import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js'
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import { COMBAT_START_ICON, COOLDOWN_RESET_ICON, WAIT_ICON } from '#gw2/app/shared/icons.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
-import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
+import { restoreFocusWithoutTooltip, skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type {
   ProfessionPaletteContext,
@@ -36,8 +36,8 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
   const hotkeyAction = String(view.hotkeyAction || '');
   const disabled = Boolean(view.disabled);
   const contextDisabled = Boolean(view.contextDisabled);
-  // Permanent and context-sensitive disablement have distinct CSS, but either
-  // one must suppress native drag behavior.
+  // Cooldowns still allow queueing a future cast; only context restrictions block activation.
+  // Both states retain the existing restriction on dragging.
   const draggable = Boolean(view.draggable) && !disabled && !contextDisabled;
   const classes = [
     'pal-skill',
@@ -56,7 +56,14 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
         .map((filled) => `<span class="pal-ammo-pip${filled ? ' filled' : ''}"></span>`)
         .join('')}</span>`
     : '';
-  const ariaLabel = ammo ? `${view.name || ''}: ${ammo.current}/${ammo.maximum} charges` : '';
+  const accessibleName = view.title || view.name || 'Skill';
+  const ariaLabel = [
+    accessibleName,
+    ammo ? `${ammo.current}/${ammo.maximum} charges` : '',
+    view.cooldownLabel ? `Cooldown: ${view.cooldownLabel}` : ''
+  ]
+    .filter(Boolean)
+    .join(', ');
   const resourceMaximum = Math.max(0, Number(resource?.maximum || 0));
   const resourceValue = boundedNumber(resource?.value || 0, 0, 0, resourceMaximum);
   const resourcePercent = resourceMaximum ? (resourceValue / resourceMaximum) * 100 : 0;
@@ -71,19 +78,19 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
         aria-hidden="true">${Math.round(resourceValue)}/${resourceMaximum}</span>`
     : '';
   // Delayed wiki cards let rapid palette clicks and drags finish without an overlay appearing under the pointer.
-  return `<div class="${classes}" data-skill="${esc(view.name)}"
+  return `<button type="button" class="${classes}" data-skill="${esc(view.name)}"
     ${skillId ? `data-skill-id="${esc(skillId)}"` : ''}
     ${view.displaySkillId != null ? `data-display-skill-id="${esc(view.displaySkillId)}"` : ''}
     ${hotkeyAction ? `data-hotkey-action="${esc(hotkeyAction)}"` : ''}
-    ${view.skill && view.tooltip ? `${skillTooltipAttributes(view.skill, view.tooltip, { details: view.castDetails, detailsTitle: 'Cast details', notice: view.notice })} data-wiki-delay="700" tabindex="0"` : `title="${esc(view.title || view.name)}"`} draggable="${draggable ? 'true' : 'false'}"
-    ${ariaLabel ? `aria-label="${esc(ariaLabel)}"` : ''}
+    ${view.skill && view.tooltip ? `${skillTooltipAttributes(view.skill, view.tooltip, { details: view.castDetails, detailsTitle: 'Cast details', notice: view.notice })} data-wiki-delay="700"` : `title="${esc(view.title || view.name)}"`} draggable="${draggable ? 'true' : 'false'}"
+    aria-label="${esc(ariaLabel)}" aria-disabled="${contextDisabled}"
     style="--att-border:${esc(view.color || '#a88be8')}">
     <img src="${esc(view.icon || PLACEHOLDER_ICON)}" alt="" />
     ${view.variantBadge ? `<span class="skill-variant-badge pal-variant-badge">${esc(view.variantBadge)}</span>` : ''}
     ${view.cooldownLabel ? `<span class="pal-cd">${esc(view.cooldownLabel)}</span>` : ''}
     ${ammoIndicator}
     ${resourceIndicator}
-  </div>`;
+  </button>`;
 }
 
 export function virtualPaletteSkillHtml(view: PaletteSkillView = {}): string {
@@ -440,7 +447,8 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
               name: '__combat_start',
               title: 'Combat Start',
               icon: COMBAT_START_ICON,
-              disabled: app.build.rotation.some((item) => rotationEntryName(item) === '__combat_start')
+              // Combat Start is a one-per-rotation action, not a skill waiting on cooldown.
+              contextDisabled: app.build.rotation.some((item) => rotationEntryName(item) === '__combat_start')
             })}</div>
         </div>
         <div class="pal-group"><div class="pal-label" style="color:#7e9ac7">Rst</div>
@@ -504,9 +512,34 @@ export function renderPalette(app: ProfessionAppState): void {
 
   if (!element) return;
 
+  // Simulation replaces the tiles; keep keyboard users on the same action, including advancing autoattack chains.
+  const focused =
+    document.activeElement?.matches('button.pal-skill, button.pal-control') && element.contains(document.activeElement)
+      ? (document.activeElement as HTMLButtonElement)
+      : null;
+  const focusIdentity = focused?.dataset;
+  const focusIndex = focused ? [...element.querySelectorAll('button')].indexOf(focused) : -1;
   const paletteContext = createPaletteContext(app);
   element.innerHTML = paletteHtml(app, paletteContext);
   updatePaletteFreshness(app);
 
   bindAppPaletteInteractions(app, element, paletteContext);
+
+  if (focusIdentity) {
+    const buttons = [...element.querySelectorAll<HTMLButtonElement>('button')];
+    const replacement =
+      buttons.find((button) =>
+        focusIdentity.paletteControlId
+          ? button.dataset.paletteControlId === focusIdentity.paletteControlId
+          : button.dataset.skill === focusIdentity.skill &&
+            button.dataset.skillId === focusIdentity.skillId &&
+            button.dataset.hotkeyAction === focusIdentity.hotkeyAction
+      ) ||
+      buttons.find(
+        (button) => focusIdentity.hotkeyAction && button.dataset.hotkeyAction === focusIdentity.hotkeyAction
+      ) ||
+      buttons[focusIndex];
+
+    if (replacement) restoreFocusWithoutTooltip(replacement);
+  }
 }

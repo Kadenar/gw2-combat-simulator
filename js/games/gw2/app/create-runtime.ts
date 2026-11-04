@@ -1,7 +1,9 @@
 import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
+import { buildWithPatchSkillSelections } from '#gw2/app/build/state/skill-selection.js';
 import { relicComparisonAvailable } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { RelicComparisonRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
+import { needsPatchComparison } from '#gw2/app/patch-preview/results.js';
 import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
 import { calculateBaselineSimulation as calculateBaseline } from '#gw2/app/simulation/baseline/baseline-simulation.js';
 import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
@@ -102,10 +104,13 @@ export function createProfessionRuntime({
   }
 
   function baselineSimulationConfig(app: ProfessionAppState, patchId = app.patch.id): Gw2Config {
+    const patch = profession.resolvePatch({ id: patchId, values: app.patch.values });
+    // An unvisited version needs the same loadout mapping as an actual switch, on a copy.
+    const build = patchId === app.patch.id ? app.build : buildWithPatchSkillSelections(app, patch.catalog);
     const config = deterministicSimulationConfig(
       createBuildContext({
-        build: app.build,
-        patch: profession.resolvePatch({ id: patchId, values: app.patch.values }),
+        build,
+        patch,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
       }).simulationConfig()
     );
@@ -139,32 +144,34 @@ export function createProfessionRuntime({
 
   /** Captures a clone-safe baseline job before later edits can mutate the rotation. */
   function baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest {
-    // Only Golem displays patch comparison; Bosses runs the selected patch without preparing an unused second run.
-    const patchConfigs =
-      profession.preview?.id && !app.workspace?.scenario
-        ? {
-            current: baselineSimulationConfig(app, 'current'),
-            preview: baselineSimulationConfig(app, profession.preview.id)
-          }
-        : undefined;
-    const baseConfig = patchConfigs
-      ? app.patch.id === patchConfigs.preview.patchId
-        ? patchConfigs.preview
-        : patchConfigs.current
-      : baselineSimulationConfig(app);
+    // Workspace runs only the displayed version. Analysis refreshes an absent comparison on demand.
+    const baseConfig = baselineSimulationConfig(app);
+    const comparisonPatchId =
+      analysisViewIsActive() && profession.preview && needsPatchComparison(app)
+        ? app.patch.id === 'current'
+          ? profession.preview.id
+          : 'current'
+        : null;
     return {
       gameId: 'gw2',
       contentId: profession.id,
       rotation: cloneRotation(app.build.rotation),
       damageDiagnostics: app.damageDiagnostics,
-      // Comparison requests exact effect histories for both runs under the same configuration.
+      // Only the displayed version needs chart histories; the opposite patch supplies damage totals and events.
       collectChartData: analysisViewIsActive() || Boolean(app.rotationComparison?.referenceRotation.length),
       ...(app.rotationComparison?.referenceStatus === 'queued'
         ? { referenceRotation: cloneRotation(app.rotationComparison.referenceRotation) }
         : null),
       baseConfig,
       selectedPatchId: app.patch.id,
-      ...(patchConfigs ? { patchConfigs } : null)
+      ...(comparisonPatchId
+        ? {
+            comparisonConfig: {
+              ...baselineSimulationConfig(app, comparisonPatchId),
+              patchId: comparisonPatchId
+            }
+          }
+        : null)
     };
   }
 

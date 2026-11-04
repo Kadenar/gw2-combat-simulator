@@ -13,6 +13,8 @@ type RotationWorkspaceController = {
   document: Document;
   focusButton: HTMLButtonElement;
   rotationSection: HTMLElement;
+  focusLauncher?: HTMLElement;
+  inertBackground: Map<HTMLElement, boolean>;
   stopFocusViewport?: () => void;
   focusScrollPosition?: Readonly<{ left: number; top: number }>;
   state: RotationWorkspaceState;
@@ -50,6 +52,9 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
   const view = controller.document.defaultView;
 
   if (!previous.focus && state.focus) {
+    const active = controller.document.activeElement;
+    controller.focusLauncher =
+      active instanceof HTMLElement && active !== controller.document.body ? active : undefined;
     const scrollingElement = controller.document.scrollingElement;
     controller.focusScrollPosition = {
       left: view?.scrollX ?? scrollingElement?.scrollLeft ?? 0,
@@ -62,8 +67,43 @@ function applyWorkspaceState(controller: RotationWorkspaceController, state: Rot
   const body = controller.document.body;
   body.toggleAttribute('data-rotation-focus', state.focus);
 
+  // The header is inert in Focus view; use a dedicated DPS status without reading every summary metric.
+  controller.document.getElementById('rotation-dps-status')?.setAttribute('aria-live', state.focus ? 'polite' : 'off');
+
   controller.focusButton.setAttribute('aria-pressed', String(state.focus));
   controller.focusButton.textContent = state.focus ? 'Exit focus' : 'Focus';
+  controller.focusButton.title = state.focus ? 'Return to your build workspace' : 'Maximize the rotation builder';
+
+  // Remove hidden background controls from keyboard navigation while keeping top-layer rotation editors usable.
+  if (!previous.focus && state.focus) {
+    let branch: HTMLElement = controller.rotationSection;
+    while (branch.parentElement) {
+      for (const sibling of branch.parentElement.children) {
+        if (
+          !(sibling instanceof HTMLElement) ||
+          sibling === branch ||
+          sibling.matches('dialog, [popover], script, style')
+        )
+          continue;
+
+        controller.inertBackground.set(sibling, sibling.inert);
+        sibling.inert = true;
+      }
+
+      branch = branch.parentElement;
+
+      if (branch === body) break;
+    }
+
+    controller.focusButton.focus({ preventScroll: true });
+  } else if (previous.focus && !state.focus) {
+    for (const [element, inert] of controller.inertBackground) element.inert = inert;
+    controller.inertBackground.clear();
+    const launcher = controller.focusLauncher;
+    controller.focusLauncher = undefined;
+
+    if (launcher?.isConnected && launcher.getClientRects().length) launcher.focus({ preventScroll: true });
+  }
 
   // Place focus where the host is already scrolled instead of jumping to the top of a tall iframe.
   if (previous.focus !== state.focus && controller.document.documentElement.classList.contains('embed')) {
@@ -138,7 +178,12 @@ export function mountRotationDpsSummary(root: Document, rotationPanel: HTMLEleme
   const summary = root.createElement('div');
   summary.id = 'rotation-dps-summary';
   summary.className = 'rotation-dps-summary';
-  timeline.after(summary);
+  const status = root.createElement('output');
+  status.id = 'rotation-dps-status';
+  status.className = 'rotation-dps-status';
+  status.setAttribute('aria-live', 'off');
+  status.setAttribute('aria-atomic', 'true');
+  timeline.after(summary, status);
 }
 
 /** Mounts the rotation builder while native inline settings remain available in normal and focus modes. */
@@ -164,6 +209,7 @@ export function mountRotationWorkspace(): void {
     document,
     focusButton,
     rotationSection,
+    inertBackground: new Map(),
     state: DEFAULT_ROTATION_WORKSPACE_STATE
   };
   controllers.set(document, controller);
@@ -172,4 +218,28 @@ export function mountRotationWorkspace(): void {
   focusButton.addEventListener('click', () => {
     applyWorkspaceState(controller, toggleRotationFocusState(controller.state));
   });
+
+  // Escape dismisses transient edits; an active comparison ends only through its explicit exit controls.
+  document.addEventListener(
+    'keydown',
+    (event) => {
+      if (
+        event.key !== 'Escape' ||
+        !controller.state.focus ||
+        document.body.hasAttribute('data-rotation-comparison') ||
+        document.querySelector('dialog[open], :popover-open, .rotation-hotkeys-active')
+      )
+        return;
+
+      document.defaultView?.setTimeout(() => {
+        if (
+          !event.defaultPrevented &&
+          controller.state.focus &&
+          !document.body.hasAttribute('data-rotation-comparison')
+        )
+          applyWorkspaceState(controller, DEFAULT_ROTATION_WORKSPACE_STATE);
+      }, 0);
+    },
+    { capture: true }
+  );
 }

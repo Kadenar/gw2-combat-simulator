@@ -86,6 +86,7 @@ export interface ProfessionAppState
   relicComparisonRunner: import('#gw2/app/optimizer/relic-comparison/runner.js').RelicComparisonRunner;
   baselineSimulationRunner: {
     schedule(revision: number): void;
+    ensureCharts(): void;
   };
   publishBaselineSimulation(output: BaselineSimulationOutput, revision: number, chartsOnly?: boolean): void;
   failBaselineSimulation(error: unknown, revision: number, chartsOnly?: boolean): void;
@@ -106,6 +107,8 @@ export interface ProfessionAppState
 export interface ProfessionChangeOptions {
   /** Holds replacement-heavy rotation UI until its matching simulation result is ready. */
   readonly deferRotationRender?: boolean;
+  /** Only switching game-data versions can retain the unchanged build's previously visited patch results. */
+  readonly patchSwitch?: boolean;
 }
 
 /** Combines baseline output with session state owned by each optional analysis feature. */

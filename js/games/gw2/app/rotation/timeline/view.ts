@@ -5,6 +5,7 @@ import { refreshRotationTimelineHotkeys } from '#gw2/app/rotation/hotkeys.js';
 import { bindTimelineInteractions } from '#gw2/app/rotation/timeline/interactions.js';
 import { currentTimelineResults, procFilterKey } from '#gw2/app/rotation/timeline/model.js';
 import { timelineRowsView, type TimelineRowRender } from '#gw2/app/rotation/timeline/rows.js';
+import { restoreFocusWithoutTooltip } from '#gw2/app/shared/tooltip-overlay.js';
 import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
@@ -142,6 +143,11 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
 
   if (!element) return;
 
+  // Worker publication replaces edited rows; preserve keyboard removal at the same surviving position.
+  const focused = element.ownerDocument.activeElement;
+  const focusedRemoval = focused?.matches('.rot-x') && element.contains(focused) ? focused : null;
+  const removalIndex = Number(focusedRemoval?.closest<HTMLElement>('.rot-skill')?.dataset.idx);
+
   element.dataset.buildRevision = String(app.buildRevision);
   element.dataset.resultRevision = String(app.resultRevision);
   // Explicit reference results are ready; live timelines stay busy until their revisions match.
@@ -212,9 +218,11 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
 
     delete element.dataset.skillHighlightKey;
     element.classList.add('is-empty');
+    // Explain automatic simulation at the moment a new rotation needs its first action.
     element.innerHTML = `<div class="rot-empty">
             <strong>Build your rotation</strong>
-            <span>Click or drag skills from the palette above</span>
+            <span>Select skills from the palette above to queue your first action.</span>
+            <span>DPS updates automatically. Use Analysis to explore damage and effects.</span>
         </div>`;
     timelineRowsByRoot.delete(element);
 
@@ -223,6 +231,12 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
     if (!readOnly) {
       bindInsertionCursor();
       bindTimelineInteractions(element, interactionOptions);
+
+      if (focusedRemoval) {
+        const paletteSkill = element.ownerDocument.querySelector<HTMLElement>('#rotation-palette .pal-skill');
+
+        if (paletteSkill) restoreFocusWithoutTooltip(paletteSkill);
+      }
     }
 
     return;
@@ -368,6 +382,13 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   }
 
   if (!readOnly) bindTimelineInteractions(element, interactionOptions);
+
+  if (focusedRemoval && !focusedRemoval.isConnected) {
+    const controls = [...element.querySelectorAll<HTMLElement>('.rot-x')];
+    const replacement = controls[Math.min(removalIndex, controls.length - 1)];
+
+    if (replacement) restoreFocusWithoutTooltip(replacement);
+  }
 
   applyTimelinePreviewHighlight(element, results, options.previewTimeMs);
 }

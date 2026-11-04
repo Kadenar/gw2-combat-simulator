@@ -449,6 +449,29 @@
     justify-content: flex-end;
   }
 
+  /* Keep instructions readable within the phone editor's compact heading. */
+  .rotation-builder-heading-title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .rotation-builder-heading .palette-hint {
+    flex: none;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .rotation-builder-controls .btn {
+    min-height: 36px;
+    font-size: 12px;
+  }
+
+  /* Comparison needs a completed rotation; reserve scarce phone space for actions that can be used now. */
+  .rotation-builder-controls :is(.rotation-compare-button, [data-insights-open]):disabled {
+    display: none;
+  }
+
   body:not([data-rotation-focus]) .rotation-panel {
     max-height: none;
   }

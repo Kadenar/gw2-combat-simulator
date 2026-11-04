@@ -142,7 +142,8 @@ function tutorialDialog(root: Document): HTMLDialogElement {
         <div class="tutorial-guide-copy">
           <ol class="tutorial-step-list">
             <li><strong>Edit gear and traits</strong><span>Click a gear slot to choose its stats. Select major traits within each specialization and use the skill icons above Traits to change equipped skills.</span></li>
-            <li><strong>Queue skills manually</strong><span>Click available skills in the palette to add them to the timeline in order.</span></li>
+            <li><strong>Queue skills manually</strong><span>Select skills in the palette to add them to the timeline in order; skills on cooldown wait until ready. DPS recalculates automatically. Focus a skill and press Enter or Space to queue it, or Alt+Down to inspect its tooltip and wiki link.</span></li>
+            <li><strong>Use advanced edits</strong><span>Hold Shift while clicking a skill or pressing Enter or Space to cast an eligible instant skill during the previous cast. Hold Ctrl instead to edit a non-instant skill's interruption. Focus a timeline entry and press Delete or Backspace to remove it, or activate its remove button. Hold Shift to remove that entry and everything after it.</span></li>
             <li><strong>Review and refine</strong><span>Inspect the timeline, then use Undo, Redo, Clear, or the insertion cursor to make changes.</span></li>
             <li><strong>Save the rotation</strong><span>Use Save Rotation to download the current sequence as a portable JSON file.</span></li>
             <li><strong>Load a rotation</strong><span>Use Load Rotation, then Upload file for saved JSON or an EVTC combat log, or Paste link for dps.report and gw2wingman links. Review imports before applying them.</span></li>

@@ -33,10 +33,16 @@ export function mountHeaderDps(root: Document = document): void {
 export function updateHeaderDps(value: string | null | undefined, root: Document = document): void {
   const indicator = root.getElementById('header-dps');
   const valueElement = indicator?.querySelector<HTMLElement>('.header-dps-value');
+  const displayValue = value?.trim() || HEADER_DPS_PLACEHOLDER;
+
+  // Publish only a changed DPS value in Focus view, independently of the larger visual summary.
+  const status = root.getElementById('rotation-dps-status');
+  const announcement = displayValue === HEADER_DPS_PLACEHOLDER ? 'DPS unavailable' : `DPS: ${displayValue}`;
+
+  if (status && status.textContent !== announcement) status.textContent = announcement;
 
   if (!indicator || !valueElement) return;
 
-  const displayValue = value?.trim() || HEADER_DPS_PLACEHOLDER;
   valueElement.textContent = displayValue;
   indicator.setAttribute(
     'aria-label',

@@ -78,6 +78,8 @@ export function mountRotationInsertionCursor({
   const handleEscape = (event: KeyboardEvent): void => {
     if (event.key !== 'Escape' || activeIndex === null) return;
 
+    // Clearing the cursor consumes Escape; the surrounding Focus view must stay open.
+    event.preventDefault();
     onClear();
   };
 

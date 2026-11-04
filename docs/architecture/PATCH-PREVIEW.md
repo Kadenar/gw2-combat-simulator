@@ -166,11 +166,17 @@ link and code review provide their context.
 With an active preview, **Game data** selects Live or the preview for the detailed result. This is application state,
 not saved-build identity. Build exports remain usable with either data set.
 
-The automatic comparison runs the same build and rotation against both catalogs and shows total and per-skill DPS
-differences. It uses deterministic mode and the same seed, midpoint weapon strength, and the selected critical-damage
-policy (averaged by default). Proc outcomes still use seeded draws. Changes to eligibility or event order can change
-which rolls are consumed, so a single-seed difference can include proc variation and, with rolled damage selected,
-critical-damage variation.
+Workspace calculates only the selected game-data version when needed. Opening Analysis requests a missing or stale
+comparison; previously computed matching results are reused across version switches and later Analysis visits. Build,
+rotation, and simulation-setting edits invalidate the comparison. Switching versions preserves eligible cached results.
+A failed comparison shows an error and can be retried in place. The comparison maps reciprocal skill-role swaps into a
+build copy, so its selections match a real version switch without editing the displayed build. Only the displayed
+version collects chart histories.
+
+The comparison shows total and per-skill DPS differences for the same rotation. It uses deterministic mode and the same
+seed, midpoint weapon strength, and the selected critical-damage policy (averaged by default). Proc outcomes still use
+seeded draws. Changes to eligibility or event order can change which rolls are consumed, so a single-seed difference can
+include proc variation and, with rolled damage selected, critical-damage variation.
 
 ## Validation and promotion
 

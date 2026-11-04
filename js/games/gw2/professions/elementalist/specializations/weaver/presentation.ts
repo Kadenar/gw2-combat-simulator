@@ -364,6 +364,7 @@ function renderWeaverWeaponPalette(
       </div>`,
     weaponGroupsHtml: [
       `<details class="weaver-weapon-palette" data-role="weaver-weapon-palette"
+          data-palette-collapse-query="(max-width: 700px)"
           data-palette-storage-key="gw2-weaver-cooldowns-expanded" open>
         <summary class="weaver-cooldown-toggle">All weapon skill cooldowns</summary>
         <div class="weaver-cooldown-bank" data-role="weaver-cooldown-bank">

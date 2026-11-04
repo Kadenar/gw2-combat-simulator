@@ -5,11 +5,35 @@ import { inertContainer } from '#tests/helpers/dom.js';
 import { validateDurationMs } from '#ui/rotation/editing/duration-editor.js';
 import { positionFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
 import {
+  mountRotationInsertionCursor,
   normalizeRotationInsertionIndex,
   rotationInsertionGapHtml,
   rotationTimelineEntryHtml
 } from '#ui/rotation/insertion-cursor.js';
 import { mountRotationWarnings } from '#ui/rotation/warnings.js';
+
+// Nested Escape consumers must leave the outer workspace open when clearing a cursor.
+test('insertion Escape is consumed only when a cursor is active', () => {
+  const listeners = new Set();
+  const root = {
+    closest: () => null,
+    querySelectorAll: () => [],
+    ownerDocument: {
+      addEventListener: (_name, handler) => listeners.add(handler),
+      removeEventListener: (_name, handler) => listeners.delete(handler)
+    }
+  };
+  let clears = 0;
+  for (const insertionIndex of [0, null]) {
+    mountRotationInsertionCursor({ root, insertionIndex, rotationLength: 2, onSelect() {}, onClear: () => clears++ });
+    const event = new Event('keydown', { cancelable: true });
+    Object.defineProperty(event, 'key', { value: 'Escape' });
+    for (const handler of listeners) handler(event);
+    assert.equal(event.defaultPrevented, insertionIndex !== null);
+  }
+
+  assert.equal(clears, 1);
+});
 
 // Game-neutral rotation controls validate input and render accessible, escaped markup.
 test('floating editors flip and clamp beside connected anchors', () => {

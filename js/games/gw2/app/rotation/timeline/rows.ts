@@ -560,8 +560,10 @@ export function timelineRowsView(
       // Expose the displayed combat clock for comparison scrolling; unsimulated or invalid casts cannot anchor it.
       const combatTimeAttribute = step && !invalid ? ` data-combat-time-ms="${step.start - combatReferenceMs}"` : '';
       // Escape the complete title once so imported diagnostic and resource text cannot become HTML attributes.
+      // Named native removal controls also support keyboard activation on editable entries.
       const entryHtml = `${deadTimeHtml}<div class="rot-skill${item.concurrentOffsetMs != null ? ' rot-concurrent' : ''}${invalid ? ' rot-invalid' : ''}${outcomeMismatch ? ' rot-charge-mismatch' : ''}${cancelledWithoutDamage ? ' rot-cancelled' : ''}"${readOnly ? '' : ' draggable="true"'}${hotkeyAttribute}
-                    data-idx="${index}"${combatTimeAttribute}${encounterAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patch, app.build), { details: (skillTooltip === display ? '' : skillTooltip) + titleSuffix + resourceTitle + encounterTitle, detailsTitle: 'Rotation details' })} data-wiki-delay="700" tabindex="0"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle + encounterTitle)}"`} style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
+                    role="group" aria-label="${esc(time ? `${display}, ${time}` : display)}" tabindex="0"
+                    data-idx="${index}"${combatTimeAttribute}${encounterAttribute} data-skill-highlight-key="${esc(highlightKey)}" ${skill ? `${skillTooltipAttributes(skill, app.adapter.skillTooltip(skill, app.patch, app.build), { details: (skillTooltip === display ? '' : skillTooltip) + titleSuffix + resourceTitle + encounterTitle, detailsTitle: 'Rotation details' })} data-wiki-delay="700"` : `title="${esc(skillTooltip + titleSuffix + resourceTitle + encounterTitle)}"`} style="--att-border:${cancelledWithoutDamage ? '#ff3b45' : '#9d7bd0'}">
                     <img src="${esc(icon)}" alt="" />
                     ${skill?.variantBadge ? `<span class="skill-variant-badge rot-variant-badge">${esc(skill.variantBadge)}</span>` : ''}
                     ${
@@ -573,7 +575,7 @@ export function timelineRowsView(
                         title="Edit wait duration" aria-label="Edit Wait duration" aria-haspopup="dialog">&#9998;</button>`
                           : ''
                     }
-                    ${readOnly ? '' : '<span class="rot-x" title="Remove (Shift: remove this and everything after)">×</span>'}
+                    ${readOnly ? '' : `<button type="button" class="rot-x" aria-label="Remove ${esc(display)}" title="Remove (Shift: remove this and everything after)">×</button>`}
                     ${invalid ? '<span class="rot-invalid-badge" title="Invalid - not simulated">✕</span>' : ''}
                     ${
                       // A release badge already carries the timestamp, leaving room for the edit affordance.

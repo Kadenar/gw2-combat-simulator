@@ -4,7 +4,9 @@ import test from 'node:test';
 import { availableSlotSkills, swapSelectedSkillsForPatch } from '#gw2/app/build/state/skill-selection.js';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
+import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
+import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 const utility = { type: 'Utility', slot: 'Utility', weapon: '' };
 const focus = { type: 'Weapon', slot: 'Weapon_5', weapon: 'Focus' };
@@ -19,6 +21,47 @@ const preview = catalog([
   { id: 2, ...utility },
   { id: 3, ...utility }
 ]);
+
+// Direct Analysis and actual patch visits must simulate the same loadout despite reciprocal skill-role changes.
+test('Mesmer comparison projects Warden and Disenchanter selections without mutating the displayed build', async (t) => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: { body: { dataset: { simulatorView: 'analysis' } } }
+  });
+  t.after(() => {
+    if (previous) Object.defineProperty(globalThis, 'document', previous);
+    else delete globalThis.document;
+  });
+  const adapter = await loadProfessionAppAdapter('mesmer');
+  const profession = adapter.profession;
+  const build = adapter.toApplicationBuild(profession.createBuildDefaults());
+  build.weapons = ['Sword', 'Focus'];
+  build.selectedSkillIds.Utility1 = MESMER_SKILL_IDS.PHANTASMAL_DISENCHANTER;
+  build.selectedSkillIds.Utility2 = null;
+  build.selectedSkillIds.Utility3 = null;
+  // Keep the observation window open for the summoned phantasm to deal damage.
+  build.rotation = [
+    { type: 'cast', skillId: MESMER_SKILL_IDS.PHANTASMAL_WARDEN },
+    { type: 'wait', durationMs: 10000 }
+  ];
+  const app = { adapter, profession, build, patch: profession.resolvePatch({ id: 'current' }), simulationSettings: {} };
+  Object.defineProperty(app, 'activeCatalog', { get: () => app.patch.catalog });
+  const original = structuredClone(build);
+  const direct = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
+  assert.deepEqual(build, original);
+  assert.ok(direct.comparisonResult.result.dps > 0);
+  assert.doesNotMatch(JSON.stringify(direct.comparisonResult.result.warnings), /not equipped/);
+
+  const target = profession.resolvePatch({ id: profession.preview.id });
+  swapSelectedSkillsForPatch(app, target.catalog);
+  app.patch = target;
+  assert.equal(build.selectedSkillIds.Utility1, MESMER_SKILL_IDS.PHANTASMAL_WARDEN);
+  const visited = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
+  assert.equal(visited.result.dps, direct.comparisonResult.result.dps);
+  assert.equal(visited.comparisonResult.result.dps, direct.result.dps);
+  assert.equal(build.selectedSkillIds.Utility1, MESMER_SKILL_IDS.PHANTASMAL_WARDEN);
+});
 
 // Reciprocal role changes retain the same utility position and leave other selections and empty slots intact.
 test('patch role swaps preserve the selected utility slot in both directions', () => {
@@ -79,6 +122,7 @@ test('patch selection refreshes skill lists and ID lookups from the new catalog'
     })
   );
   const refreshed = [];
+  let cancelled = 0;
   const app = Object.assign(Object.create(ProfessionApp.prototype), {
     patch: patchSelectionFixture(catalogs.current),
 
@@ -99,7 +143,13 @@ test('patch selection refreshes skill lists and ID lookups from the new catalog'
       createBuildContext: () => ({ simulationConfig: () => ({ selectedTraitIds: [] }) })
     },
     build: { selectedSkillIds: { Utility1: 1 } },
-    changed() {
+    baselineSimulationRunner: {
+      cancel() {
+        cancelled++;
+      }
+    },
+    changed(_static, _gear, options) {
+      assert.equal(options.patchSwitch, true);
       const selected = this.activeCatalog.skillsById.get(this.build.selectedSkillIds.Utility1);
       assert.equal(resolveEntrySkill(this, { type: 'cast', skillId: selected.id }), selected);
       assert.deepEqual(
@@ -110,12 +160,15 @@ test('patch selection refreshes skill lists and ID lookups from the new catalog'
     }
   });
   app.selectPatch('preview');
+  app.selectPatch('preview');
+  assert.equal(cancelled, 1, 'reselecting the active patch does not restart its simulation');
   // Rejected patch IDs must not mutate the active patch, selection, or displayed catalog.
   assert.throws(() => app.selectPatch('removed-preview'), /Unknown patch/);
   assert.equal(app.patch.id, 'preview');
   assert.equal(app.activeCatalog, catalogs.preview);
   assert.equal(app.build.selectedSkillIds.Utility1, 2);
   app.selectPatch('current');
+  assert.equal(cancelled, 2);
   assert.deepEqual(refreshed, [
     ['preview', 2],
     ['current', 1]

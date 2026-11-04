@@ -112,7 +112,10 @@ test('Bloodstone appears only after the insertion prefix includes Detonate', asy
       adapter,
       profession: adapter.profession,
       build,
-      patch: adapter.profession.resolvePatch({ id: 'current' })
+      patch: adapter.profession.resolvePatch({ id: 'current' }),
+      get activeCatalog() {
+        return this.patch.catalog;
+      }
     };
     app.results = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app)).result;
     assert.deepEqual(app.results.warnings, []);

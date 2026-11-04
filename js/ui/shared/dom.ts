@@ -1,5 +1,13 @@
 // Shared DOM lookup and interaction guards.
 
+/** Prevent held activation keys from issuing another native button click, including after a rerender. */
+export function suppressRepeatedButtonActivation(event: KeyboardEvent): boolean {
+  if (!event.repeat || (event.key !== 'Enter' && event.key !== ' ')) return false;
+
+  event.preventDefault();
+  return true;
+}
+
 /** Installs one lazily loaded feature stylesheet once per document. */
 export function ensureDocumentStyles(document: Document, id: string, textContent: string): void {
   if (document.getElementById(id)) return;

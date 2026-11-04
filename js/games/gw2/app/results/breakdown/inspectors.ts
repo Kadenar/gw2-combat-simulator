@@ -46,6 +46,12 @@ export function renderSkillInspector(
   const timeline = doc.createElement('div');
   timeline.className = 'res-skill-timeline';
   timeline.setAttribute('data-role', 'skill-timeline');
+  // Expanded inspection occupies one spanning cell without interrupting the table's row structure.
+  timeline.setAttribute('role', 'row');
+  const cell = doc.createElement('div');
+  cell.setAttribute('role', 'cell');
+  cell.setAttribute('aria-colspan', String(model.skillColumns.length));
+  timeline.append(cell);
   target.after(timeline);
 
   if (procs.length) {
@@ -58,7 +64,7 @@ export function renderSkillInspector(
     }
 
     // Scroll each timestamp list independently so trigger summaries stay outside the scrolling area.
-    timeline.innerHTML = `<div data-role="skill-procs">
+    cell.innerHTML = `<div data-role="skill-procs">
         <div class="chart-panel-title">Procs (${procs.length})</div>
         ${[...timesBySource]
           .map(([source, times]) => {
@@ -80,7 +86,7 @@ export function renderSkillInspector(
 
   if (hits.length) {
     const damageTimeline = doc.createElement('div');
-    timeline.append(damageTimeline);
+    cell.append(damageTimeline);
     // Pair strikes with their pulse applications; later condition payouts do not represent pulse empowerment.
     const empowerment = new Map(applications.map((application) => [application.t, application.empowered]));
     const pulseHits = hits.map((hit) =>

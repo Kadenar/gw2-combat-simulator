@@ -1333,7 +1333,9 @@ test('Selected unleashed Hammer skills remain castable after Overbearing Smash',
     // Loadout variants have no temporal flip prerequisite.
     assert.equal(skill.flipParentId, null);
     const markup = paletteElement.innerHTML.match(
-      new RegExp(`<div class="([^"]*)" data-skill="${skill.name}"\\s+data-skill-id="${skill.id}"[^>]*>`)
+      new RegExp(
+        `<button type="button" class="([^"]*)" data-skill="${skill.name}"\\s+data-skill-id="${skill.id}"[^>]*>`
+      )
     );
 
     assert.ok(markup, `${skill.name} should be rendered`);

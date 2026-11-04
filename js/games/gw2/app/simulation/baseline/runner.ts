@@ -1,5 +1,6 @@
 import { LatestWorkerQueue } from '#browser/game/latest-worker-queue.js';
 import { analysisViewIsActive } from '#browser/shell/result-view.js';
+import { needsPatchComparison, reusablePatchResult } from '#gw2/app/patch-preview/results.js';
 import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
@@ -63,6 +64,17 @@ export class BaselineSimulationRunner {
 
     const request = this.app.adapter.baselineSimulationRequest(this.app);
 
+    // A return visit can publish the matching baseline immediately; enrichment and pinned references still run.
+    const cached =
+      !chartsOnly && !request.comparisonConfig && !request.referenceRotation ? reusablePatchResult(this.app) : null;
+
+    if (cached) {
+      this.cancel();
+      this.app.publishBaselineSimulation({ result: cached }, revision);
+      this.ensureCharts();
+      return;
+    }
+
     // Clearing abandons the old rotation instead of queueing behind its simulation or cold load.
     if (this.queue.inFlight && request.rotation.length === 0) this.cancel();
 
@@ -75,7 +87,7 @@ export class BaselineSimulationRunner {
     });
   }
 
-  /** Enrich a current editor result once on Analysis entry; reuse cached histories on subsequent visits. */
+  /** Ensure chart histories and both patch results on Analysis entry, reusing fresh data on subsequent visits. */
   ensureCharts(): void {
     if (
       !analysisViewIsActive() ||
@@ -83,19 +95,23 @@ export class BaselineSimulationRunner {
       !this.app.results ||
       !this.app.build.rotation.length ||
       this.app.resultRevision !== this.app.buildRevision ||
-      this.app.results.effectReport
+      (this.app.results.effectReport && !needsPatchComparison(this.app))
     )
       return;
 
     this.schedule(this.app.buildRevision, true);
   }
 
-  /** Leaving Analysis abandons only chart work; an ordinary editor baseline must still finish. */
+  /** Leaving Analysis cancels dual-patch work and resumes any outstanding edit with only the selected version. */
   cancelCharts(): void {
-    if (!this.queue.inFlight?.chartsOnly && !this.queue.pending?.chartsOnly) return;
+    const analysisJob = (job: BaselineJob | null): boolean => Boolean(job?.chartsOnly || job?.request.comparisonConfig);
+
+    if (!analysisJob(this.queue.inFlight) && !analysisJob(this.queue.pending)) return;
 
     this.cancel();
     this.app.simulationStatus = this.app.resultRevision === this.app.buildRevision ? 'idle' : 'queued';
+
+    if (this.app.resultRevision !== this.app.buildRevision) this.schedule(this.app.buildRevision);
 
     if (typeof document !== 'undefined' && document.body)
       document.body.dataset.simulationStatus = this.app.simulationStatus;

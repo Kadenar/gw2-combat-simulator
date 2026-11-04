@@ -1,5 +1,6 @@
 /** Present game-data selection in place on desktop and as a compact dropdown on phones. */
 import { mountMobileMenu } from '#browser/shell/mobile-menu.js';
+import { buildWithPatchSkillSelections } from '#gw2/app/build/state/skill-selection.js';
 import { bindPreviewAssumptionNotice, previewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import type { PatchComparison } from '#gw2/app/simulation/baseline/types.js';
@@ -126,7 +127,37 @@ export function renderPatchComparison(container: HTMLElement, app: ProfessionApp
   const preview = app.profession.preview;
   const comparison = app.patchComparison;
 
-  if (!preview || !comparison) return;
+  if (!preview) return;
+
+  // The Analysis runner refreshes missing versions; presentation never schedules a second Workspace baseline.
+  if (!comparison) {
+    const failed = app.simulationStatus === 'error';
+    const pending = app.simulationStatus === 'queued' || app.simulationStatus === 'running';
+    const prompt = document.createElement('div');
+    prompt.className = 'patch-comparison';
+    prompt.setAttribute('aria-label', 'Patch preview comparison');
+    // Publish failures as alerts rather than leaving an idle panel labelled as ongoing work.
+    prompt.innerHTML = `<p class="patch-preview-empty" role="${failed ? 'alert' : 'status'}" aria-atomic="true">${
+      failed
+        ? `Unable to update Live and ${escapeHtml(preview.label)} comparison. ${escapeHtml(app.simulationError)}`
+        : pending
+          ? `Updating Live and ${escapeHtml(preview.label)} comparison…`
+          : `Live and ${escapeHtml(preview.label)} comparison is not available yet.`
+    }</p>${!pending ? '<button type="button" class="btn btn-io" data-patch-comparison-retry>Retry comparison</button>' : ''}`;
+    const retry = prompt.querySelector<HTMLButtonElement>('[data-patch-comparison-retry]');
+
+    if (retry)
+      retry.onclick = () => {
+        if (app.resultRevision !== app.buildRevision || !app.build.rotation.length)
+          app.baselineSimulationRunner.schedule(app.buildRevision);
+        else app.baselineSimulationRunner.ensureCharts();
+
+        app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
+      };
+
+    container.prepend(prompt);
+    return;
+  }
 
   const missing = missingPatchTraits(
     app.profession.resolvePatch({ id: preview.id }).catalog,
@@ -159,12 +190,13 @@ export function renderPatchComparison(container: HTMLElement, app: ProfessionApp
   const observedIds = [...comparison.current.events, ...comparison.preview.events].flatMap((event) =>
     [event.skillId, event.sourceId].filter((id): id is string | number => id != null)
   );
+  const previewPatch = app.profession.resolvePatch({ id: preview.id, values: app.patch.values });
   // Notes describe the preview run, including its trait layout and session tuning, on either tab.
   const overview = app.profession.patchOverviewFor(
     app.adapter
       .createBuildContext({
-        build: app.build,
-        patch: app.profession.resolvePatch({ id: preview.id, values: app.patch.values }),
+        build: buildWithPatchSkillSelections(app, previewPatch.catalog),
+        patch: previewPatch,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
       })
       .simulationConfig(),

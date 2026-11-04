@@ -100,13 +100,17 @@ test("skill details group proc counts by trigger and disclose only that skill's 
   await expect(procs.locator('signet')).toHaveCount(0);
 
   await page.locator('[data-sort-col="name"]').click();
-  await expect(trait).toHaveAttribute('aria-pressed', 'true');
+  await expect(trait.getByRole('button', { name: 'Inspect Strength of Stone' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  );
   await expect(procs).toBeVisible();
-  await source.focus();
-  await source.press('Enter');
+  const sourceButton = source.getByRole('button', { name: 'Inspect Earthen Rush' });
+  await sourceButton.focus();
+  await sourceButton.press('Enter');
   await expect(procs).toHaveCount(0);
   await expect(page.locator('[data-role="skill-timeline"] canvas')).not.toHaveCount(0);
-  await source.press('Space');
+  await sourceButton.press('Space');
   await expect(page.locator('[data-role="skill-timeline"]')).toHaveCount(0);
 
   for (const key of ['Player|Other skill', 'Entities|Earthen Rush']) {

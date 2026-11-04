@@ -64,6 +64,18 @@
   margin-top: 8px;
 }
 
+/* Keep the concise live announcement available to assistive technology without adding visible chrome. */
+.rotation-dps-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .rotation-dps-summary:empty {
   display: none;
 }
@@ -115,6 +127,14 @@ body[data-rotation-comparison] .rotation-panel-shell > .rotation-panel {
 }
 
 /* Keep the disclosure with its palette while the timelines share the remaining space. */
+#rotation-comparison-editor {
+  display: contents;
+}
+
+#rotation-comparison-editor > * {
+  flex-shrink: 0;
+}
+
 #rotation-comparison-skills {
   flex: 0 0 auto;
   min-width: 0;
@@ -295,6 +315,16 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
     overflow-y: auto;
   }
 
+  /* Wrapped controls share a bounded scroller instead of pushing the reference timeline beyond the viewport. */
+  #rotation-comparison-editor {
+    display: flex;
+    flex-direction: column;
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
   body[data-rotation-comparison] .rotation-comparison-metrics {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -302,7 +332,7 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
   body[data-rotation-comparison] :is(#rotation-timeline, .rotation-reference-timeline) {
     height: auto;
     min-height: 80px;
-    flex: 1 1 0;
+    flex: 1 1 120px;
     overflow-y: auto;
   }
 }
@@ -431,6 +461,9 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
 }
 
 .rot-x {
+  border: 0;
+  padding: 0;
+  font-family: inherit;
   position: absolute;
   top: -2px;
   right: -2px;
@@ -448,8 +481,15 @@ body[data-rotation-comparison] .rot-skill.rot-preview-active {
   z-index: 2;
 }
 
-.rot-skill:hover .rot-x {
+/* Reveal removal while navigating any control within a timeline entry. */
+.rot-skill:hover .rot-x,
+.rot-skill:focus-within .rot-x {
   opacity: 1;
+}
+
+.rot-x:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Touch devices have no hover, so the remove button would stay invisible and

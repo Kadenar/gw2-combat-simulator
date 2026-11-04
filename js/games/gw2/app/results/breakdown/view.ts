@@ -28,7 +28,9 @@ function skillCellHtml(row: ResultRow, column: ResultColumn, options: DamageBrea
   if (column.key === 'name') {
     const icon = options.resolveSkillIcon?.(row) || options.placeholderIcon || '';
     // Keep breakdown skill labels passive so hovering does not open a tooltip over the results.
-    return `<span class="res-skill"><img src="${escapeHtml(icon)}" alt="" />${escapeHtml(value)}</span>`;
+    const label = `<img src="${escapeHtml(icon)}" alt="" />${escapeHtml(value)}`;
+    // Keep inspection on a named button while preserving the table's row and cell semantics.
+    return `<span role="cell" data-result-column="name">${row.key ? `<button type="button" class="res-skill res-skill-inspect" aria-label="Inspect ${escapeHtml(value)}" aria-pressed="false">${label}</button>` : `<span class="res-skill">${label}</span>`}</span>`;
   }
 
   const formatted = column.format
@@ -41,15 +43,17 @@ function skillCellHtml(row: ResultRow, column: ResultColumn, options: DamageBrea
   const classAttr = column.className ? ` class="${escapeHtml(column.className)}"` : '';
   const titleText = column.title ? column.title(value, row) : '';
   const titleAttr = titleText ? ` title="${escapeHtml(titleText)}"` : '';
+  // Keep column identities available without changing their visual or reading order.
+  const columnAttr = ['total', 'dps'].includes(column.key) ? ` data-result-column="${column.key}"` : '';
   // Custom formatters return display text, not trusted HTML.
-  return `<span${classAttr}${titleAttr}>${column.format ? escapeHtml(formatted) : formatted}</span>`;
+  return `<span role="cell"${classAttr}${titleAttr}${columnAttr}>${column.format ? escapeHtml(formatted) : formatted}</span>`;
 }
 
 function skillRowHtml(row: ResultRow, columns: readonly ResultColumn[], options: DamageBreakdownOptions): string {
   const skillKey = typeof row.key === 'string' ? row.key : '';
-  const keyAttr = skillKey ? ` data-skill-key="${escapeHtml(skillKey)}" role="button" tabindex="0"` : '';
+  const keyAttr = skillKey ? ` data-skill-key="${escapeHtml(skillKey)}"` : '';
   const selectable = skillKey ? ' res-row-selectable' : '';
-  return `<div class="res-row${selectable}"${keyAttr}>${columns
+  return `<div role="row" class="res-row${selectable}"${keyAttr}>${columns
     .map((column) => skillCellHtml(row, column, options))
     .join('')}</div>`;
 }
@@ -88,28 +92,29 @@ function skillRowsHtml(
   const headingHtml = (group: string, groupRows: readonly ResultRow[], entity = false): string => {
     // Namespace entity identities so a named summon cannot share the player's disclosure state.
     const ownerKey = entity ? `Entities|${group}` : group;
-    return `<div class="res-skill-group-heading${entity ? ' res-entity-group-heading' : ''}" ${entity ? 'data-entity-group' : 'data-skill-group'}="${escapeHtml(group)}">
+    return `<div role="row" class="res-skill-group-heading${entity ? ' res-entity-group-heading' : ''}" ${entity ? 'data-entity-group' : 'data-skill-group'}="${escapeHtml(group)}">
       ${columns
         .map((column) => {
           if (column.key === 'name') {
-            return `<span class="res-skill-group-name">${escapeHtml(group)}</span>`;
+            return `<span role="rowheader" class="res-skill-group-name" data-result-column="name">${escapeHtml(group)}</span>`;
           }
 
           if (!summaryColumns.has(column.key)) {
-            return '<span aria-hidden="true"></span>';
+            return '<span role="cell"></span>';
           }
 
           const total = groupRows.reduce((sum, row) => sum + Number(row[column.key] || 0), 0);
           const formatted = column.format ? String(column.format(total)) : number(total);
           const label = column.label || column.key;
           const classAttr = column.className ? ` ${escapeHtml(column.className)}` : '';
+          const columnAttr = ` data-result-column="${escapeHtml(column.key)}"`;
 
           if (column.key === 'condition' && ownerConditions.some((row) => row.ownerKey === ownerKey)) {
             // A native button makes the subtotal operable with mouse, Enter, and Space without selecting a skill.
-            return `<span class="res-skill-group-total${classAttr}"><button type="button" class="res-owner-condition-toggle" data-owner-conditions-toggle="${escapeHtml(ownerKey)}" aria-expanded="${expandedOwners.has(ownerKey)}" aria-label="${escapeHtml(`${group} condition damage breakdown: ${formatted}`)}"><span aria-hidden="true">${expandedOwners.has(ownerKey) ? '&#9662;' : '&#9656;'}</span> ${escapeHtml(formatted)}</button></span>`;
+            return `<span role="cell" class="res-skill-group-total${classAttr}"${columnAttr}><button type="button" class="res-owner-condition-toggle" data-owner-conditions-toggle="${escapeHtml(ownerKey)}" aria-expanded="${expandedOwners.has(ownerKey)}" aria-label="${escapeHtml(`${group} condition damage breakdown: ${formatted}`)}"><span aria-hidden="true">${expandedOwners.has(ownerKey) ? '&#9662;' : '&#9656;'}</span> ${escapeHtml(formatted)}</button></span>`;
           }
 
-          return `<span class="res-skill-group-total${classAttr}" aria-label="${escapeHtml(`${group} ${label}: ${formatted}`)}">${escapeHtml(formatted)}</span>`;
+          return `<span role="cell" class="res-skill-group-total${classAttr}"${columnAttr} aria-label="${escapeHtml(`${group} ${label}: ${formatted}`)}">${escapeHtml(formatted)}</span>`;
         })
         .join('')}
     </div>`;
@@ -123,7 +128,7 @@ function skillRowsHtml(
       if (group !== 'Entities' || !groupRows.some((row) => row.entityName)) {
         return (
           heading +
-          ownerConditionsHtml(group, ownerConditions, expandedOwners.has(group)) +
+          ownerConditionsHtml(group, ownerConditions, expandedOwners.has(group), columns.length) +
           groupRows.map((row) => skillRowHtml(row, columns, options)).join('')
         );
       }
@@ -143,7 +148,12 @@ function skillRowsHtml(
           .map(
             ([name, entityRows]) =>
               headingHtml(name, entityRows, true) +
-              ownerConditionsHtml(`Entities|${name}`, ownerConditions, expandedOwners.has(`Entities|${name}`)) +
+              ownerConditionsHtml(
+                `Entities|${name}`,
+                ownerConditions,
+                expandedOwners.has(`Entities|${name}`),
+                columns.length
+              ) +
               entityRows.map((row) => skillRowHtml(row, columns, options)).join('')
           )
           .join('')
@@ -153,13 +163,18 @@ function skillRowsHtml(
 }
 
 /** Disclose each condition's contribution without widening the main damage table. */
-function ownerConditionsHtml(ownerKey: string, conditions: readonly OwnerConditionDamage[], expanded: boolean): string {
+function ownerConditionsHtml(
+  ownerKey: string,
+  conditions: readonly OwnerConditionDamage[],
+  expanded: boolean,
+  columnCount: number
+): string {
   const rows = conditions.filter((row) => row.ownerKey === ownerKey);
 
   if (!rows.length) return '';
 
   const ownerName = rows[0]!.ownerName;
-  return `<div class="res-owner-conditions" data-owner-conditions-panel="${escapeHtml(ownerKey)}" role="region" aria-label="${escapeHtml(`${ownerName} condition damage breakdown`)}"${expanded ? '' : ' hidden'}>
+  return `<div class="res-owner-conditions" data-owner-conditions-panel="${escapeHtml(ownerKey)}" role="row"${expanded ? '' : ' hidden'}><div role="cell" aria-colspan="${columnCount}"><section aria-label="${escapeHtml(`${ownerName} condition damage breakdown`)}">
     <div class="res-owner-conditions-title">${escapeHtml(ownerName)} condition damage</div>
     <table><thead><tr><th scope="col">Condition</th><th scope="col">Damage</th><th scope="col">DPS</th><th scope="col">Share of ${ownerKey === 'Player' ? ACTOR.PLAYER : 'entity'} condition damage</th></tr></thead>
     <tbody>${rows
@@ -168,14 +183,18 @@ function ownerConditionsHtml(ownerKey: string, conditions: readonly OwnerConditi
         return `<tr><th scope="row"><span class="res-skill">${icon ? `<img src="${escapeHtml(icon)}" alt="" />` : ''}${escapeHtml(row.name)}</span></th><td>${number(row.damage)}</td><td>${number(row.dps)}</td><td><div class="res-owner-condition-share"><span class="res-owner-condition-track" aria-hidden="true"><span style="width: ${Math.max(0, Math.min(100, row.share))}%"></span></span><span>${row.share.toFixed(1)}%</span></div></td></tr>`;
       })
       .join('')}</tbody></table>
-  </div>`;
+  </section></div></div>`;
 }
 
 function skillHeaderHtml(columns: readonly ResultColumn[], sortState: ResultSortState): string {
+  // The default ordering is total descending, and each sortable header exposes its actual state.
+  const activeColumn = sortState.column || 'total';
   return columns
     .map((column) => {
       const indicator = sortState.column === column.key ? (sortState.direction === 'asc' ? ' ▲' : ' ▼') : '';
-      return `<span data-sort-col="${escapeHtml(column.key)}">${escapeHtml(column.label || column.key)}${indicator}</span>`;
+      const direction =
+        activeColumn === column.key ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none';
+      return `<span role="columnheader" aria-sort="${direction}" data-result-column="${escapeHtml(column.key)}"><button type="button" data-sort-col="${escapeHtml(column.key)}">${escapeHtml(column.label || column.key)}${indicator}</button></span>`;
     })
     .join('');
 }
@@ -210,11 +229,14 @@ export function mountDamageBreakdown(
         skillColumns.length
           ? `<div class="res-breakdown-part res-damage-breakdown">
       <div class="res-section-title">Damage Breakdown</div>
-      <div class="${escapeHtml(breakdownClassName)}" data-role="skill-breakdown">
-        <div class="res-hdr res-hdr-sortable" data-role="skill-header">
+      <p class="res-scroll-hint">Swipe or scroll horizontally for all metrics <span aria-hidden="true">↔</span></p>
+      <div class="res-skill-scroll" role="region" aria-label="Skill damage metrics; scroll horizontally for more columns" tabindex="0">
+      <div class="${escapeHtml(breakdownClassName)}" data-role="skill-breakdown" role="table" aria-label="Skill damage breakdown">
+        <div class="res-hdr res-hdr-sortable" data-role="skill-header" role="row">
           ${skillHeaderHtml(skillColumns, sortState)}
         </div>
-        <div class="res-skill-rows" data-role="skill-rows">${skillRowsHtml(initialSkillRows, skillColumns, options, ownerConditions, expandedOwners)}</div>
+        <div class="res-skill-rows" data-role="skill-rows" role="rowgroup">${skillRowsHtml(initialSkillRows, skillColumns, options, ownerConditions, expandedOwners)}</div>
+      </div>
       </div>
     </div>`
           : ''
@@ -288,9 +310,18 @@ export function mountDamageBreakdown(
     const header = container.querySelector<HTMLElement>('[data-role="skill-header"]');
 
     if (header) {
+      const focusedColumn = header.contains(container.ownerDocument.activeElement)
+        ? (container.ownerDocument.activeElement as HTMLElement).dataset.sortCol
+        : undefined;
       header.innerHTML = skillHeaderHtml(skillColumns, sortState);
       // Replacing header markup discards its handlers, so bind the new cells.
       bindSort();
+
+      // Sorting replaces the controls; keep keyboard navigation at the selected column.
+      if (focusedColumn)
+        [...header.querySelectorAll<HTMLButtonElement>('[data-sort-col]')]
+          .find((button) => button.dataset.sortCol === focusedColumn)
+          ?.focus({ preventScroll: true });
     }
   };
 
@@ -332,7 +363,7 @@ export function mountDamageBreakdown(
     for (const rowElement of container.querySelectorAll<HTMLElement>('[data-role="skill-rows"] .res-row-selectable')) {
       const active = rowElement.dataset.skillKey === selectedSkillKey;
       rowElement.classList.toggle('res-row-selected', active);
-      rowElement.setAttribute('aria-pressed', String(active));
+      rowElement.querySelector('.res-skill-inspect')?.setAttribute('aria-pressed', String(active));
     }
   };
 
@@ -346,12 +377,6 @@ export function mountDamageBreakdown(
   const bindSkillSelection = (): void => {
     for (const rowElement of container.querySelectorAll<HTMLElement>('[data-role="skill-rows"] .res-row-selectable')) {
       rowElement.onclick = () => selectSkill(rowElement.dataset.skillKey || null);
-      rowElement.onkeydown = (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          selectSkill(rowElement.dataset.skillKey || null);
-        }
-      };
     }
 
     applySkillRowSelection();

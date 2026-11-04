@@ -71,10 +71,55 @@ function appFor(patchId = 'current') {
     contentId: 'guardian',
     build,
     patch: profession.resolvePatch({ id: patchId, values: { fervidCharges: 3 } }),
+    get activeCatalog() {
+      return this.patch.catalog;
+    },
 
     changed() {}
   };
 }
+
+test('Preview comparison presentation leaves refresh scheduling to the Analysis runner', () => {
+  const app = appFor();
+  app.simulationStatus = 'queued';
+  app.changed = () => assert.fail('Comparison presentation must not request a simulation');
+  const container = element('div');
+  const previous = globalThis.document;
+  globalThis.document = { createElement: element };
+  try {
+    renderPatchComparison(container, app);
+  } finally {
+    globalThis.document = previous;
+  }
+
+  assert.match(container.children[0].innerHTML, /Updating Live and/);
+  assert.match(container.children[0].innerHTML, /role="status"/);
+});
+
+// A failed background comparison must identify the failure and expose a retry instead of claiming work is running.
+test('Preview comparison reports failed and idle requests accurately', () => {
+  const app = appFor();
+  const previous = globalThis.document;
+  globalThis.document = { createElement: element };
+  try {
+    for (const status of ['error', 'idle']) {
+      app.simulationStatus = status;
+      app.simulationError = 'Worker <failed>';
+      const container = element('div');
+      renderPatchComparison(container, app);
+      const html = container.children[0].innerHTML;
+      assert.doesNotMatch(html, /Updating Live/);
+      assert.match(html, /data-patch-comparison-retry/);
+
+      if (status === 'error') {
+        assert.match(html, /role="alert"/);
+        assert.match(html, /Worker &lt;failed&gt;/);
+      }
+    }
+  } finally {
+    globalThis.document = previous;
+  }
+});
 
 test('Preview comparison notes use preview trait positions and experimental tuning', () => {
   const app = appFor(preview.id);

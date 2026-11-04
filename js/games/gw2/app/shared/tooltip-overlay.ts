@@ -70,6 +70,17 @@ export function traitTooltipAttributes(trait: CatalogEntity, tooltip: Simulation
 }
 
 let refreshTooltip: (() => void) | undefined;
+const silentFocusTargets = new WeakSet<HTMLElement>();
+
+/** Restore an editing position after a rerender without reopening its inspection card. */
+export function restoreFocusWithoutTooltip(element: HTMLElement): void {
+  silentFocusTargets.add(element);
+  try {
+    element.focus({ preventScroll: true });
+  } finally {
+    silentFocusTargets.delete(element);
+  }
+}
 
 /** Share one interactive overlay across rerenders, with time to move from an icon onto its wiki link. */
 export function bindWikiTooltips(): void {
@@ -346,7 +357,7 @@ export function bindWikiTooltips(): void {
   document.addEventListener('focusin', (event) => {
     const element = findTrigger(event.target);
 
-    if (element && !pointerInteraction) {
+    if (element && !pointerInteraction && !silentFocusTargets.has(event.target as HTMLElement)) {
       // Native picker transitions restore focus synchronously; open only after that popover operation finishes.
       clearTimeout(openTimer);
       openTimer = setTimeout(
@@ -365,7 +376,7 @@ export function bindWikiTooltips(): void {
     cancelClose();
   });
   panel.addEventListener('pointerleave', scheduleClose);
-  // Enter the portal's tabs or wiki link in logical order; Escape returns focus without selecting anything.
+  // Rotation controls skip inspection links; Alt+Down explicitly enters a palette or timeline card.
   document.addEventListener(
     'keydown',
     (event) => {
@@ -376,8 +387,13 @@ export function bindWikiTooltips(): void {
         if (panel.contains(document.activeElement)) (returnFocus || trigger)?.focus();
 
         close();
-      } else if (focused && event.key === 'Tab' && !event.shiftKey) {
+      } else if (
+        focused &&
+        ((event.key === 'ArrowDown' && event.altKey && !event.ctrlKey && !event.metaKey) ||
+          (event.key === 'Tab' && !event.shiftKey && !focused.matches('.pal-skill, .pal-control, .rot-skill')))
+      ) {
         event.preventDefault();
+        event.stopPropagation();
         const source = document.activeElement as HTMLElement;
         show(focused);
         returnFocus = source;
@@ -400,6 +416,8 @@ export function bindWikiTooltips(): void {
         if (event.shiftKey) event.preventDefault();
 
         (returnFocus || trigger).focus();
+        close();
+      } else if (focused?.matches('.pal-skill, .pal-control, .rot-skill') && event.key === 'Tab') {
         close();
       } else if (focused?.dataset.wikiDelay && ['Enter', ' '].includes(event.key)) {
         close();

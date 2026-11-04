@@ -193,7 +193,7 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
     assert.equal(verdict.ready, false, name);
     assert.ok(verdict.retryAt > app.results.planningState.atSeconds, name);
     const tiles = () => [
-      ...renderPaletteMarkup(app).matchAll(new RegExp(`<div[^>]*data-skill-id="${skill.id}"[^>]*>`, 'g'))
+      ...renderPaletteMarkup(app).matchAll(new RegExp(`<button[^>]*data-skill-id="${skill.id}"[^>]*>`, 'g'))
     ];
     const tile = tiles()[0]?.[0];
     assert.ok(tile, name);

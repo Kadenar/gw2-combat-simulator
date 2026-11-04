@@ -1,5 +1,7 @@
 import type { ProfessionRotationDragState } from '#gw2/app/rotation/editing/state.js';
+import { restoreFocusWithoutTooltip } from '#gw2/app/shared/tooltip-overlay.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
+import { suppressRepeatedButtonActivation } from '#ui/shared/dom.js';
 
 export interface TimelineInteractionOptions {
   readonly rotation: RotationCommand[];
@@ -105,6 +107,25 @@ export function bindTimelineInteractions(
     const remove = item.querySelector<HTMLElement>('.rot-x');
 
     if (remove) {
+      // Keep repeated deletion available after focus moves from the entry to its remove button.
+      item.onkeydown = (event) => {
+        if (event.target === remove && suppressRepeatedButtonActivation(event)) return;
+
+        if ((event.target !== item && event.target !== remove) || !['Delete', 'Backspace'].includes(event.key)) return;
+
+        if (event.ctrlKey || event.altKey || event.metaKey) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (event.repeat) return;
+
+        const MouseEventConstructor = root.ownerDocument.defaultView?.MouseEvent;
+
+        if (MouseEventConstructor)
+          remove.dispatchEvent(new MouseEventConstructor('click', { shiftKey: event.shiftKey }));
+      };
+
       remove.setAttribute('draggable', 'false');
       remove.onmousedown = (event) => {
         event.preventDefault();
@@ -122,6 +143,8 @@ export function bindTimelineInteractions(
 
         if (!canInteract() || !Number.isInteger(index)) return;
 
+        const restoreKeyboardFocus = event.detail === 0 && item.contains(root.ownerDocument.activeElement);
+
         if (event.shiftKey) {
           // Shift-remove is the fast "truncate rotation here" gesture.
           if (!options.onTruncate) return;
@@ -132,6 +155,9 @@ export function bindTimelineInteractions(
 
           options.onRemove(index);
         }
+
+        // The renderer carries this removal position across synchronous or deferred row replacement.
+        if (restoreKeyboardFocus) restoreFocusWithoutTooltip(remove);
 
         changed();
       };

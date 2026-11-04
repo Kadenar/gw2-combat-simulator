@@ -868,6 +868,20 @@
   font-weight: 700;
 }
 
+/* Filters remain easy to open with a thumb without widening the compact template dialog. */
+@media (max-width: 600px) {
+  .template-filters {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+
+  .template-filter > summary,
+  .template-filter-menu button {
+    min-height: 44px;
+    font-size: 12px;
+  }
+}
+
 .template-filter-empty {
   margin: 8px 0 2px;
   color: var(--text-dim);
@@ -2798,6 +2812,35 @@ body[data-profession='revenant'] .workspace-build-choices .selectable-skills-pan
 .spec-trait-minor.dim:hover img {
   opacity: 0.9;
   filter: grayscale(0);
+}
+
+/* On phones, spend decorative portrait space on distinct, comfortably sized trait choices. */
+@media (max-width: 600px) {
+  .spec-portrait-frame,
+  .spec-line,
+  .spec-tier::before {
+    display: none;
+  }
+
+  .spec-tiers {
+    justify-content: space-evenly;
+    gap: 8px;
+  }
+
+  .spec-tier {
+    gap: 8px;
+  }
+
+  .spec-trait-minor,
+  .spec-trait-major {
+    width: 36px;
+    height: 36px;
+    padding: 2px;
+  }
+
+  .spec-trait-majors {
+    gap: 8px;
+  }
 }
 
 /* ─── Skills Section ─── */

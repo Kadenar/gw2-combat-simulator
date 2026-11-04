@@ -13,6 +13,7 @@ import { renderRelicComparison } from '#gw2/app/optimizer/relic-comparison/panel
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
 import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
 import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
+import { invalidatePatchResults, recordPatchResult, reusablePatchResult } from '#gw2/app/patch-preview/results.js';
 import { mountPatchPreviewControls } from '#gw2/app/patch-preview/view.js';
 import { renderEventLog } from '#gw2/app/results/event-log.js';
 import { renderModifierContributions } from '#gw2/app/results/view.js';
@@ -204,6 +205,11 @@ export class ProfessionApp implements ProfessionAppState {
 
   changed(rebuildStatic = true, rebuildGear = rebuildStatic, options: ProfessionChangeOptions = {}): void {
     this.initialRenderGeneration += 1;
+
+    // Edits invalidate both comparison sides; switching versions keeps only results already calculated by a visit.
+    if (!options.patchSwitch) invalidatePatchResults(this);
+    else this.patchComparison = null;
+
     // A drag started on the prior timeline must not carry its source index into a later render.
     this.dragState = null;
     const revision = this.prepareSimulationState();
@@ -257,7 +263,8 @@ export class ProfessionApp implements ProfessionAppState {
     this.modifierContributionRunner?.cancel?.();
 
     // Carried comparisons become stale immediately, including while the replacement baseline is pending.
-    if (this.results?.contributions) this.results.modifierContributionsStale = true;
+    // Mark only the pending display stale; cached versions retain their completed analysis state.
+    if (this.results?.contributions) this.results = { ...this.results, modifierContributionsStale: true };
 
     this.simulationStatus = 'queued';
     this.simulationError = '';
@@ -287,7 +294,11 @@ export class ProfessionApp implements ProfessionAppState {
         effectReport: output.result.effectReport,
         boonGeneration: output.result.boonGeneration
       });
-      this.patchComparison = output.patchComparison;
+      this.patchComparison = recordPatchResult(this, this.results);
+
+      if (output.comparisonResult)
+        this.patchComparison = recordPatchResult(this, output.comparisonResult.result, output.comparisonResult.patchId);
+
       this.simulationStatus = 'idle';
       this.simulationError = '';
 
@@ -324,24 +335,36 @@ export class ProfessionApp implements ProfessionAppState {
 
     if (renderDeferredRotation) this.deferredRotationRenderRevision = null;
 
+    // A validated cached result already owns the analyses for these exact inputs.
+    const restored = output.result === reusablePatchResult(this);
     const previousContributions = this.results?.contributions;
     this.results = output.result as ProfessionAppResult;
-    this.patchComparison = output.patchComparison;
+    this.patchComparison = recordPatchResult(this, output.result);
+
+    if (output.comparisonResult)
+      this.patchComparison = recordPatchResult(this, output.comparisonResult.result, output.comparisonResult.patchId);
+
     // Optional reference output only exists for shared-context refreshes; ordinary rotation edits preserve it.
     comparisonState.publishRotationReference(this, output.referenceResult);
 
-    if (Array.isArray(previousContributions)) this.results.contributions = previousContributions;
+    if (!restored) {
+      if (Array.isArray(previousContributions)) this.results.contributions = previousContributions;
 
-    // Each baseline invalidates comparisons, even when Workspace defers their calculation.
-    this.results.modifierContributionsStale = this.build.rotation.length > 0;
-    this.results.modifierContributionsError = '';
+      // New simulations invalidate comparisons, even when Workspace defers their calculation.
+      this.results.modifierContributionsStale = this.build.rotation.length > 0;
+      this.results.modifierContributionsError = '';
+    }
+
     this.resultRevision = revision;
     this.simulationStatus = 'idle';
     this.simulationError = '';
 
     if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
 
-    this.randomDistributionRunner.schedule();
+    // Preserve completed sampling; cancelled sampling returns to its explicit Calculate action.
+    if (!restored || !this.results.randomDistributionRequested || this.results.randomDistributionStale)
+      this.randomDistributionRunner.schedule();
+
     this.modifierContributionRunner.schedule();
     this.relicComparisonRunner.schedule();
 
@@ -558,9 +581,11 @@ export class ProfessionApp implements ProfessionAppState {
 
     if (patchId === this.patch.id) return;
 
+    // Abandon the outgoing version immediately instead of waiting behind an invisible simulation.
+    this.baselineSimulationRunner.cancel();
     swapSelectedSkillsForPatch(this, patch.catalog);
     this.patch = patch;
-    this.changed();
+    this.changed(true, true, { patchSwitch: true });
   }
 
   /** Invokes game-owned editor contributions while preserving the existing render order. */

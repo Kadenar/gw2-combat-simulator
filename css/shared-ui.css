@@ -9,7 +9,8 @@
   --border: #2a2a3a;
   --border-light: #3a3a4a;
   --text: #d8d8e0;
-  --text-dim: #888899;
+  /* Secondary labels remain quieter than values without fading into dark panels. */
+  --text-dim: #a3a3b3;
   --text-bright: #f0f0ff;
   --health: #44bb44;
   --condi: #cc4444;
@@ -197,7 +198,7 @@ header h1 {
   display: block;
   margin-bottom: 4px;
   color: var(--text-dim);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -221,6 +222,10 @@ header h1 {
 
 .simulator-profession-control {
   position: relative;
+}
+
+.simulator-mobile-profession {
+  display: none;
 }
 
 .simulator-profession-control::before {
@@ -813,7 +818,7 @@ body[data-profession] #app > header .community-actions {
 
 .patch-preview-picker-label {
   color: var(--text-dim);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -842,7 +847,7 @@ body[data-profession] #app > header .community-actions {
   background: transparent;
   color: var(--text-dim);
   font: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.035em;
   line-height: 1.2;
@@ -879,6 +884,13 @@ body[data-profession] #app > header .community-actions {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.24);
 }
 
+/* Keyboard position stays distinct from the selected workspace or game-data state. */
+.simulator-workspace-option:focus-visible,
+.patch-preview-option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .mobile-header-trigger,
 #simulator-global-menu:not([popover]) {
   display: none;
@@ -906,6 +918,27 @@ body[data-profession] #app > header .community-actions {
   .simulator-workspace-control {
     flex: 1;
     min-width: 0;
+  }
+
+  /* The profession remains visible above its workspace, including on deep links and compact screens. */
+  .simulator-header-identity {
+    position: relative;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .simulator-mobile-profession {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    padding: 0 4px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    pointer-events: none;
   }
 
   .simulator-header-global {
@@ -955,6 +988,7 @@ body[data-profession] #app > header .community-actions {
 
   .mobile-workspace-trigger {
     width: 100%;
+    padding-top: 14px;
     font-weight: 600;
   }
 

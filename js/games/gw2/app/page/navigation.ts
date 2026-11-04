@@ -228,6 +228,11 @@ export function mountSimulatorNavigation(): void {
   selector.setAttribute('aria-label', 'Choose profession');
   selector.setAttribute('aria-expanded', 'false');
   selector.textContent = professionRegistry.find(({ id }) => id === professionId)?.name || professionId;
+  // Keep profession context visible on phones while its full picker lives in the navigation menu.
+  const mobileProfession = document.createElement('span');
+  mobileProfession.className = 'simulator-mobile-profession';
+  mobileProfession.textContent = selector.textContent;
+  identity.prepend(mobileProfession);
   const professionMenu = document.createElement('div');
   professionMenu.id = 'simulator-profession-menu';
   professionMenu.className = 'simulator-profession-menu';

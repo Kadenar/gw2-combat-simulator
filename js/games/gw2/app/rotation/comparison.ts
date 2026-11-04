@@ -184,6 +184,13 @@ function removeComparisonView(): void {
 
   if (palette) skills?.replaceWith(palette);
 
+  const editor = document.getElementById('rotation-comparison-editor');
+  const focused = document.activeElement as HTMLElement | null;
+  const restoreFocus = focused && editor?.contains(focused);
+  editor?.replaceWith(...editor.childNodes);
+
+  if (restoreFocus) focused.focus({ preventScroll: true });
+
   document.body?.removeAttribute('data-rotation-comparison');
   document.getElementById('rotation-comparison-summary')?.remove();
   document.getElementById('rotation-comparison-current-label')?.remove();
@@ -245,6 +252,18 @@ function createComparisonView(
     palette.before(skills);
     skills.append(label, palette);
   }
+
+  // Let wrapped editing controls scroll together on phones while both comparison timelines retain usable space.
+  const panel = currentTimeline.parentElement!;
+  const editor = document.createElement('div');
+  editor.id = 'rotation-comparison-editor';
+  const controls = [...panel.children].slice(0, [...panel.children].indexOf(currentTimeline));
+  const focused = document.activeElement as HTMLElement | null;
+  const restoreFocus = focused && controls.some((control) => control.contains(focused));
+  panel.insertBefore(editor, panel.firstChild);
+  editor.append(...controls);
+
+  if (restoreFocus) focused.focus({ preventScroll: true });
 
   const summary = document.createElement('section');
   summary.id = 'rotation-comparison-summary';

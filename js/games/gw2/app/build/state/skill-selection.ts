@@ -1,4 +1,5 @@
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 export function isSlotSkillSelectable(
@@ -54,6 +55,16 @@ function samePlacement(left: Skill | undefined, right: Skill): boolean {
   return Boolean(
     left && left.type === right.type && left.slot === right.slot && (left.weapon || '') === (right.weapon || '')
   );
+}
+
+/** Project reciprocal role swaps into a private selection map without changing the displayed build. */
+export function buildWithPatchSkillSelections(
+  app: Pick<ProfessionAppState, 'build' | 'activeCatalog'>,
+  nextCatalog: Readonly<CanonicalCatalog>
+): Gw2CanonicalBuild {
+  const build = { ...app.build, selectedSkillIds: { ...app.build.selectedSkillIds } };
+  swapSelectedSkillsForPatch({ build, activeCatalog: app.activeCatalog }, nextCatalog);
+  return build;
 }
 
 /** Preserve the selected slot across reciprocal patch role swaps before ordinary loadout validation repairs it. */

@@ -72,12 +72,12 @@ test('skill details distinguish normal and empowered applications', async ({ pag
   await expect(page.locator('[data-skill-key]').first()).toHaveAttribute('data-skill-key', 'other');
   await page.locator('[data-sort-col="damagePercent"]').click();
   await expect(page.locator('[data-skill-key]').first()).toHaveAttribute('data-skill-key', 'embrace');
-  await embraceRow.focus();
-  await embraceRow.press('Enter');
+  await embraceRow.getByRole('button', { name: 'Inspect Embrace' }).focus();
+  await embraceRow.getByRole('button', { name: 'Inspect Embrace' }).press('Enter');
   const timeline = page.locator('[data-role="skill-timeline"]');
   // Sorting replaces the rows, so the expanded inspector must follow the selected skill into its new position.
   await page.locator('[data-sort-col="name"]').click();
-  await expect(embraceRow).toHaveAttribute('aria-pressed', 'true');
+  await expect(embraceRow.getByRole('button', { name: 'Inspect Embrace' })).toHaveAttribute('aria-pressed', 'true');
   await expect(timeline).toBeVisible();
   await expect(page.locator('[data-skill-key="embrace"] + [data-role="skill-timeline"]')).toHaveCount(1);
   await expect(page.locator('[data-role="result-charts"] [data-role="dps-hit-strip"]')).toHaveCount(0);

@@ -1,4 +1,4 @@
-/** Defines baseline requests and results, including optional patch comparisons. */
+/** Defines selected-patch baseline requests and results. */
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
@@ -32,13 +32,13 @@ export interface BaselineSimulationRequest extends GameContentAddress {
   readonly referenceRotation?: readonly RotationCommand[];
   readonly baseConfig: Gw2Config;
   readonly selectedPatchId: string;
-  /** Each side resolves its own trait layout and experimental values before entering the worker. */
-  readonly patchConfigs?: { readonly current: Gw2Config; readonly preview: Gw2Config };
+  /** Analysis may request the missing opposite-patch result; Workspace never includes this configuration. */
+  readonly comparisonConfig?: Gw2Config & { readonly patchId: string };
 }
 
-/** Complete baseline output, including both sides of an optional patch preview. */
+/** Selected-patch output, with an opposite-patch result only when explicitly requested by Analysis. */
 export interface BaselineSimulationOutput {
   readonly result: BaselineSimulationResult;
-  readonly patchComparison: PatchComparison | null;
+  readonly comparisonResult?: { readonly patchId: string; readonly result: BaselineSimulationResult };
   readonly referenceResult?: BaselineSimulationResult;
 }

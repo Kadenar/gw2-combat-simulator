@@ -105,7 +105,8 @@ test('Elementalist pistol palette toggles the selected starting bullet', () => {
   };
   try {
     renderPalette(app);
-    bulletButtons[1].onclick();
+    // Native activation always supplies an event, including keyboard clicks with detail zero.
+    bulletButtons[1].onclick({ detail: 0 });
   } finally {
     globalThis.document = previousDocument;
   }

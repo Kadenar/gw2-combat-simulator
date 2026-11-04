@@ -310,6 +310,12 @@ body[data-profession] .rotation-section {
   white-space: nowrap;
 }
 
+/* Keep keyboard focus visible on the rotation toolbar's existing controls. */
+.rotation-builder-controls .btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 body[data-rotation-focus] {
   overflow: hidden;
 }

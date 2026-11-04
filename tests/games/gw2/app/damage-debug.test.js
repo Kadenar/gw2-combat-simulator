@@ -67,26 +67,70 @@ test('baseline debug capture preserves seeded combat and snapshots export inputs
   assert.equal(exported.result.damageEvents[0].damageCalculation.power, 1500);
 });
 
-test('patch and reference baselines retain their own capture context', () => {
+// Switching or editing recaptures only the selected patch; no implicit comparison execution is allowed.
+test('each baseline executes only its selected balance version', () => {
+  const calculated = [];
+  const tracked = {
+    ...profession,
+    runtimeFor(config) {
+      calculated.push(config.patchId);
+      return profession.runtimeFor(config);
+    }
+  };
+  for (const patchId of ['current', 'current', 'preview', 'preview', 'current']) {
+    const input = request();
+    calculateBaselineSimulation(
+      { ...input, selectedPatchId: patchId, baseConfig: { ...input.baseConfig, patchId } },
+      tracked
+    );
+  }
+
+  assert.deepEqual(calculated, ['current', 'current', 'preview', 'preview', 'current']);
+});
+
+test('selected patch and reference baselines retain their own capture context', () => {
   const output = calculateBaselineSimulation(
     {
       ...request(),
       damageDiagnostics: true,
       selectedPatchId: 'preview',
       baseConfig: { ...request().baseConfig, patchId: 'preview' },
-      patchConfigs: {
-        current: { ...request().baseConfig, patchId: 'current' },
-        preview: { ...request().baseConfig, patchId: 'preview' }
-      },
       referenceRotation: [{ type: 'wait', durationMs: 2000 }]
     },
     profession
   );
-  assert.equal(output.result, output.patchComparison.preview);
-  assert.equal(damageDebugPayload(output.patchComparison.current).config.patchId, 'current');
   assert.equal(damageDebugPayload(output.result).config.patchId, 'preview');
   const reference = damageDebugPayload(output.referenceResult);
   assert.equal(reference.config.patchId, 'preview');
   assert.equal(reference.rotation[0].durationMs, 2000);
   assert.ok(reference.result.damageEvents[0].damageCalculation);
+});
+
+// Analysis explicitly requests the opposite patch; it never replaces the selected result or reference configuration.
+test('Analysis comparison executes only its requested opposite patch and captures each result independently', () => {
+  const calculated = [];
+  const tracked = {
+    ...profession,
+    runtimeFor(config) {
+      calculated.push(config.patchId);
+      return profession.runtimeFor(config);
+    }
+  };
+  const input = request();
+  const output = calculateBaselineSimulation(
+    {
+      ...input,
+      collectChartData: true,
+      damageDiagnostics: true,
+      baseConfig: { ...input.baseConfig, patchId: 'current' },
+      comparisonConfig: { ...input.baseConfig, patchId: 'preview' }
+    },
+    tracked
+  );
+  assert.deepEqual(calculated, ['current', 'preview']);
+  assert.equal(damageDebugPayload(output.result).config.patchId, 'current');
+  assert.equal(output.comparisonResult.patchId, 'preview');
+  assert.equal(damageDebugPayload(output.comparisonResult.result).config.patchId, 'preview');
+  assert.ok(output.result.effectReport);
+  assert.equal(output.comparisonResult.result.effectReport, null);
 });

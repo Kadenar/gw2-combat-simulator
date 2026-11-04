@@ -6,6 +6,7 @@ import { createBuildTab } from '#gw2/app/build/state/workspace.js';
 import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { calculateRelicComparison } from '#gw2/app/optimizer/relic-comparison/calculate.js';
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
+import { invalidatePatchResults } from '#gw2/app/patch-preview/results.js';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { calculateContributionBatch } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
@@ -81,7 +82,7 @@ test('chart collection waits for the current baseline, caches completion, and re
   const chartJob = workers[0].messages[1];
   assert.equal(chartJob.request.collectChartData, true);
   assert.equal(runner.queue.inFlight.chartsOnly, true);
-  workers[0].respond(chartJob, { result: { dps: 999, effectReport: {}, boonGeneration: {} }, patchComparison: null });
+  workers[0].respond(chartJob, { result: { dps: 999, effectReport: {}, boonGeneration: {} } });
   assert.equal(app.results, result, 'enrichment retains the editor result identity');
   assert.equal(result.dps, 100);
   assert.deepEqual(result.contributions, [{ id: 'kept' }]);
@@ -113,6 +114,87 @@ test('chart collection waits for the current baseline, caches completion, and re
 function testPresentation(render = () => {}) {
   return { createViewModel: () => ({}), render };
 }
+
+// Analysis entry refreshes the missing patch even with cached charts; Workspace must abandon that extra work.
+test('Analysis refreshes both patch results and leaving Analysis resumes only the selected edit', (t) => {
+  runTimersImmediately(t);
+  const originals = ['document', 'Worker'].map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
+  t.after(() => {
+    for (const [key, descriptor] of originals) {
+      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
+      else delete globalThis[key];
+    }
+  });
+  const body = { dataset: { simulatorView: 'analysis' } };
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { body } });
+  const workers = [];
+  class ControlledWorker {
+    listeners = new Map();
+    messages = [];
+    constructor() {
+      workers.push(this);
+    }
+    addEventListener(type, listener) {
+      this.listeners.set(type, listener);
+    }
+    postMessage(message) {
+      this.messages.push(message);
+    }
+    terminate() {
+      this.terminated = true;
+    }
+    respond(output) {
+      this.listeners.get('message')({ data: { requestId: this.messages.at(-1).requestId, output } });
+    }
+  }
+  Object.defineProperty(globalThis, 'Worker', { configurable: true, value: ControlledWorker });
+  const current = { dps: 10, effectReport: {} };
+  const catalog = { skills: [], skillsById: new Map() };
+  const app = Object.assign(Object.create(ProfessionApp.prototype), {
+    build: { rotation: STRIKE_ROTATION, selectedSkillIds: {} },
+    profession: { preview: { id: 'preview' }, resolvePatch: ({ id }) => ({ id, catalog }) },
+    patch: { id: 'current', catalog },
+    buildRevision: 1,
+    resultRevision: 1,
+    results: current,
+    patchComparison: null,
+    adapter: {
+      baselineSimulationRequest: () => ({
+        rotation: STRIKE_ROTATION,
+        baseConfig: { patchId: 'current' },
+        ...(body.dataset.simulatorView === 'analysis' ? { comparisonConfig: { patchId: 'preview' } } : {})
+      }),
+      presentation: testPresentation()
+    },
+    modifierContributionRunner: { schedule() {} }
+  });
+  const runner = new BaselineSimulationRunner(app);
+  runner.ensureCharts();
+  assert.equal(workers[0].messages.length, 1, 'missing comparison refreshes even when chart histories exist');
+  const preview = { dps: 20 };
+  workers[0].respond({
+    result: { effectReport: {}, boonGeneration: {} },
+    comparisonResult: { patchId: 'preview', result: preview }
+  });
+  assert.equal(app.results, current, 'Analysis enrichment preserves the active editor result');
+  assert.deepEqual(app.patchComparison, { current, preview });
+  runner.ensureCharts();
+  assert.equal(workers[0].messages.length, 1, 'fresh Analysis is reused');
+
+  app.buildRevision = 2;
+  invalidatePatchResults(app);
+  runner.schedule(2);
+  assert.equal(workers[0].messages.at(-1).request.comparisonConfig.patchId, 'preview');
+  body.dataset.simulatorView = 'workspace';
+  runner.cancelCharts();
+  assert.equal(workers[0].terminated, true);
+  assert.equal(workers[1].messages[0].request.comparisonConfig, undefined);
+  assert.equal(workers[1].messages[0].request.baseConfig.patchId, 'current');
+  assert.equal(runner.queue.inFlight.revision, 2);
+  workers[0].respond({ result: { dps: 999 }, comparisonResult: { patchId: 'preview', result: preview } });
+  assert.equal(app.patchComparison, null, 'abandoned comparison cannot publish after returning to Workspace');
+  runner.cancel();
+});
 
 function runTimersImmediately(t) {
   t.mock.method(globalThis, 'setTimeout', (callback) => {
@@ -167,7 +249,7 @@ test('rotation-only changes paint the builder once with their matching result', 
   assert.equal(scheduledRevision, 2);
   assert.deepEqual(renderedResults, [], 'the prior builder remains until the worker result is ready');
 
-  app.publishBaselineSimulation({ result: { id: 'new' }, patchComparison: null }, 2);
+  app.publishBaselineSimulation({ result: { id: 'new' } }, 2);
   assert.deepEqual(renderedResults, ['new']);
   assert.equal(app.resultRevision, 2);
   assert.equal(app.deferredRotationRenderRevision, null);
@@ -241,7 +323,9 @@ test('build edits cancel prior analysis even when browser storage rejects writes
     }
   });
 
+  const outgoing = app.results;
   assert.doesNotThrow(() => app.changed(false));
+  assert.equal(outgoing.modifierContributionsStale, false, 'pending edits must not mutate cached analysis metadata');
   assert.equal(storageWrites, 1);
   assert.ok(app.workspace.storageError);
   assert.equal(app.buildRevision, 1);
@@ -371,14 +455,14 @@ test('baseline runner coalesces edits, cancels cleared work, and reuses idle wor
 
   workers[0].respond({
     requestId: 1,
-    output: { result: { id: 'old' }, referenceResult: { id: 'old-reference' }, patchComparison: null }
+    output: { result: { id: 'old' }, referenceResult: { id: 'old-reference' } }
   });
   assert.deepEqual(published, [], 'the superseded result is not published');
   assert.equal(workers[0].messages.length, 2);
 
   workers[0].respond({
     requestId: 2,
-    output: { result: { id: 'new' }, referenceResult: { id: 'new-reference' }, patchComparison: null }
+    output: { result: { id: 'new' }, referenceResult: { id: 'new-reference' } }
   });
   assert.deepEqual(published, [['new', 'new-reference', 2]]);
   assert.equal(workers.length, 1, 'the persistent worker handles both jobs');
@@ -467,15 +551,22 @@ test('superseded baseline fallbacks release the slot and publish only the newest
   assert.equal(runner.queue.pending, null);
 });
 
-// Golem captures both comparison patches; Bosses prepares only its selected patch, including when preview is selected.
-test('baseline requests prepare comparison patches only for Golem and share the selected snapshot', () => {
+// Workspace prepares one patch; Analysis requests a missing opposite patch only for Golem.
+test('baseline requests scope patch comparison to visible Analysis and reuse fresh comparisons', (t) => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  const body = { dataset: { simulatorView: 'workspace' } };
+  Object.defineProperty(globalThis, 'document', { configurable: true, value: { body } });
+  t.after(() => {
+    if (previous) Object.defineProperty(globalThis, 'document', previous);
+    else delete globalThis.document;
+  });
   for (const preview of [undefined, { id: 'preview' }]) {
     const prepared = [];
     const profession = {
       id: 'fixture',
       catalog: { specializations: [] },
       preview,
-      resolvePatch: (patch) => patch
+      resolvePatch: (patch) => ({ ...patch, catalog: { skills: [], skillsById: new Map() } })
     };
     const runtime = createProfessionRuntime({
       profession,
@@ -488,16 +579,29 @@ test('baseline requests prepare comparison patches only for Golem and share the 
       for (const bosses of [false, true]) {
         prepared.length = 0;
         const build = { profession: 'fixture', rotation: [] };
-        const request = runtime.baselineSimulationRequest({
+        const app = {
+          profession,
           build,
           patch: { id, values: {} },
           workspace: bosses ? { scenario: createBossScenario('020102', build, 'Fixture', id) } : undefined
-        });
-        assert.deepEqual(prepared, preview && !bosses ? ['current', 'preview'] : [id]);
+        };
+        body.dataset.simulatorView = 'workspace';
+        const request = runtime.baselineSimulationRequest(app);
+        assert.deepEqual(prepared, [id]);
         assert.equal(request.baseConfig.patchId, id);
+        assert.equal(request.comparisonConfig, undefined);
 
-        if (preview && !bosses) assert.equal(request.baseConfig, request.patchConfigs[id]);
-        else assert.equal(request.patchConfigs, undefined);
+        prepared.length = 0;
+        body.dataset.simulatorView = 'analysis';
+        const analysis = runtime.baselineSimulationRequest(app);
+        const opposite = id === 'current' ? 'preview' : 'current';
+        assert.deepEqual(prepared, preview && !bosses ? [id, opposite] : [id]);
+        assert.equal(analysis.comparisonConfig?.patchId, preview && !bosses ? opposite : undefined);
+
+        prepared.length = 0;
+        app.patchComparison = { current: {}, preview: {} };
+        assert.equal(runtime.baselineSimulationRequest(app).comparisonConfig, undefined);
+        assert.deepEqual(prepared, [id]);
       }
     }
   }
@@ -575,10 +679,7 @@ test('comparison reference commits only while comparison is still active', (t) =
     adapter: { renderRotationBuilder() {} }
   });
 
-  app.publishBaselineSimulation(
-    { result: { id: 'new-current' }, referenceResult: { id: 'new-reference' }, patchComparison: null },
-    3
-  );
+  app.publishBaselineSimulation({ result: { id: 'new-current' }, referenceResult: { id: 'new-reference' } }, 3);
   assert.equal(app.results.id, 'new-current');
   assert.equal(app.rotationComparison.referenceResult.id, 'new-reference');
   assert.equal(app.rotationComparison.referenceStatus, 'fresh');
@@ -586,10 +687,7 @@ test('comparison reference commits only while comparison is still active', (t) =
   app.rotationComparison = null;
   app.buildRevision = 4;
   app.deferredRotationRenderRevision = 4;
-  app.publishBaselineSimulation(
-    { result: { id: 'after-exit' }, referenceResult: { id: 'ignored-reference' }, patchComparison: null },
-    4
-  );
+  app.publishBaselineSimulation({ result: { id: 'after-exit' }, referenceResult: { id: 'ignored-reference' } }, 4);
   assert.equal(app.results.id, 'after-exit');
   assert.equal(app.rotationComparison, null);
 });
@@ -668,7 +766,7 @@ test('baseline runner recovers after Worker construction fails', (t) => {
   assert.deepEqual(failures, [['SecurityError', 1]]);
   assert.equal(attempts, 2);
   assert.equal(workers[0].messages.length, 1);
-  workers[0].respond({ requestId: 2, output: { result: { id: 'new' }, patchComparison: null } });
+  workers[0].respond({ requestId: 2, output: { result: { id: 'new' } } });
   assert.deepEqual(published, [['new', 2]]);
 });
 
@@ -1388,4 +1486,45 @@ test('relic preparation failures invalidate prior output and remain visible unti
   assert.equal(runner.error, 'Invalid comparison inputs');
   runner.select('Akeem', 0);
   assert.equal(runner.error, '');
+});
+
+// Restored patch baselines reuse their own relic result, but changed controls or a new baseline cannot reuse it.
+test('relic comparisons survive validated baseline restoration without another simulation', async () => {
+  const { app, runner, prepared } = await relicFixture();
+  const live = app.results;
+  runner.run('Thorns', 4);
+  const liveComparison = runner.comparison;
+  const preview = minimalResult(5000);
+  app.results = preview;
+  app.resultRevision = ++app.buildRevision;
+  runner.schedule();
+  assert.equal(runner.comparison, null);
+  runner.run();
+  const previewComparison = runner.comparison;
+  const requests = prepared.length;
+  for (const [result, comparison] of [
+    [live, liveComparison],
+    [preview, previewComparison]
+  ]) {
+    app.buildRevision++;
+    runner.schedule();
+    assert.equal(runner.comparison, null, 'pending baselines cannot display completed comparisons');
+    app.results = result;
+    app.resultRevision = app.buildRevision;
+    runner.schedule();
+    assert.equal(runner.comparison, comparison);
+  }
+
+  assert.equal(prepared.length, requests);
+  runner.select('Thorns', 5);
+  runner.schedule();
+  assert.equal(runner.comparison, null, 'different starting stacks invalidate the saved comparison');
+  runner.select('Akeem', 4);
+  runner.schedule();
+  assert.equal(runner.comparison, null, 'different relics invalidate the saved comparison');
+  runner.select('Thorns', 4);
+  app.results = minimalResult(6000);
+  runner.schedule();
+  assert.equal(runner.comparison, null, 'newly simulated inputs need a new comparison');
+  assert.equal(prepared.length, requests);
 });

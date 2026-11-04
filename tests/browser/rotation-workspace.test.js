@@ -17,10 +17,10 @@ test('rotation workspace toggles focus independently of simulation settings', ()
 });
 
 test('rotation DPS summary mounts directly after the timeline', () => {
-  let inserted = null;
+  let inserted = [];
   const timeline = {
-    after(element) {
-      inserted = element;
+    after(...elements) {
+      inserted = elements;
     }
   };
   const panel = {
@@ -28,15 +28,25 @@ test('rotation DPS summary mounts directly after the timeline', () => {
   };
   const root = {
     getElementById: () => null,
-    createElement: () => ({ id: '', className: '' })
+    createElement: () => ({
+      id: '',
+      className: '',
+      attributes: new Map(),
+      setAttribute(name, value) {
+        this.attributes.set(name, value);
+      }
+    })
   };
 
   mountRotationDpsSummary(root, panel);
 
-  assert.deepEqual(inserted, {
-    id: 'rotation-dps-summary',
-    className: 'rotation-dps-summary'
-  });
+  const [summary, status] = inserted;
+  assert.equal(summary.id, 'rotation-dps-summary');
+  assert.equal(summary.className, 'rotation-dps-summary');
+  assert.equal(summary.attributes.has('aria-live'), false);
+  assert.equal(status.id, 'rotation-dps-status');
+  assert.equal(status.attributes.get('aria-atomic'), 'true');
+  assert.equal(status.attributes.get('aria-live'), 'off');
 });
 
 test('header DPS mounts once and tracks the latest result', () => {
@@ -70,17 +80,31 @@ test('header DPS mounts once and tracks the latest result', () => {
     }
   };
 
+  // The Focus status announces only DPS, and rerenders with an unchanged value do not repeat it.
+  const announcements = [];
+  const status = element();
+  Object.defineProperty(status, 'textContent', {
+    get: () => announcements.at(-1) || '',
+    set: (text) => {
+      announcements.push(text);
+    }
+  });
+  elements.set('rotation-dps-status', status);
+
   mountHeaderDps(root);
   const indicator = root.getElementById('header-dps');
   mountHeaderDps(root);
   updateHeaderDps('12,345', root);
 
-  assert.equal(elements.size, 1);
+  assert.equal(elements.size, 2);
   assert.equal(indicator.querySelector('.header-dps-label').textContent, 'DPS');
   assert.equal(indicator.querySelector('.header-dps-value').textContent, '12,345');
   assert.equal(indicator.attributes.get('aria-label'), 'Current rotation DPS: 12,345');
+  updateHeaderDps('12,345', root);
+  assert.deepEqual(announcements, ['DPS: 12,345']);
 
   updateHeaderDps(null, root);
   assert.equal(indicator.querySelector('.header-dps-value').textContent, '-');
   assert.equal(indicator.attributes.get('aria-label'), 'Current rotation DPS unavailable');
+  assert.deepEqual(announcements, ['DPS: 12,345', 'DPS unavailable']);
 });

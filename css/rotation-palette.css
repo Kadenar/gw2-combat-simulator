@@ -502,6 +502,10 @@
 
 .pal-skill {
   position: relative;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   width: 42px;
   height: 42px;
   border-radius: 4px;
@@ -510,6 +514,13 @@
   cursor: pointer;
   transition: all 0.12s;
   flex-shrink: 0;
+}
+
+/* A visible keyboard ring identifies the action that Enter or Space will queue. */
+.pal-skill:focus-visible {
+  outline: 2px solid var(--accent, #c3a0ff);
+  outline-offset: 3px;
+  z-index: 3;
 }
 
 .pal-skill img {

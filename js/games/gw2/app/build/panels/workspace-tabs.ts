@@ -13,6 +13,25 @@ const CHEVRON_ICON =
 const PIN_ICON =
   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6l-1 7 4 4v2H6v-2l4-4-1-7Zm3 13v6"/></svg>';
 
+/** Open the library from build menus and return keyboard focus to the actual launcher. */
+function openBuildLibrary(app: ProfessionAppState, launcher: HTMLButtonElement, newBuild: boolean): void {
+  if (app.templateContainer) app.templateContainer.dataset.newBuild = String(newBuild);
+
+  const dialog = document.querySelector<HTMLDialogElement>('#build-templates-dialog');
+
+  if (!dialog) return;
+
+  dialog.addEventListener(
+    'close',
+    () => {
+      const target = launcher.checkVisibility() ? launcher : document.getElementById('build-actions-trigger');
+      target?.focus({ preventScroll: true });
+    },
+    { once: true }
+  );
+  showDialog(dialog);
+}
+
 /** Give build actions consistent decorative icons while their visible labels remain the accessible names. */
 function buildActionIcon(paths: string): string {
   return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
@@ -276,28 +295,10 @@ export function mountBuildTabs(app: ProfessionAppState): void {
     }
 
     if (action === 'browse' || action === 'load') {
-      if (app.templateContainer) app.templateContainer.dataset.newBuild = String(action === 'browse');
-
-      const dialog = document.querySelector<HTMLDialogElement>('#build-templates-dialog');
-
-      if (dialog) {
-        // Closing a modal hides its launching popovers; return to a visible control even after a resize.
-        const launcher = strip.querySelector<HTMLButtonElement>(
-          action === 'browse' ? '.build-tab-new' : '#build-switcher'
-        )!;
-        dialog.addEventListener(
-          'close',
-          () => {
-            const target = launcher.checkVisibility()
-              ? launcher
-              : strip.querySelector<HTMLButtonElement>('#build-actions-trigger')!;
-            target.focus({ preventScroll: true });
-          },
-          { once: true }
-        );
-        showDialog(dialog);
-      }
-
+      const launcher = strip.querySelector<HTMLButtonElement>(
+        action === 'browse' ? '.build-tab-new' : '#build-switcher'
+      )!;
+      openBuildLibrary(app, launcher, action === 'browse');
       return;
     }
 

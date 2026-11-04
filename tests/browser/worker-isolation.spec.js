@@ -1,7 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-// Prepared jobs load their engine without browser UI imports. An active preview patch is used because the
-// baseline's patch comparison then simulates both the current and preview patches in the same worker.
+// Prepared jobs load their engine without browser UI imports, reusing the worker across selected patch versions.
 test('simulation workers load current and preview patches without UI dependencies', async ({ page, context }) => {
   const patchId = 'worker-preview';
   await context.route('**/integrations/patches/active-preview.ts*', (route) =>
@@ -34,27 +33,34 @@ test('simulation workers load current and preview patches without UI dependencie
   );
   const baseline = await page.evaluate(() => {
     const app = window.professionApp;
-    const request = app.adapter.baselineSimulationRequest(app);
+    const previewRequest = app.adapter.baselineSimulationRequest(app);
+    app.patch = app.profession.resolvePatch({ id: 'current' });
+    const liveRequest = app.adapter.baselineSimulationRequest(app);
+    app.patch = app.profession.resolvePatch({ id: previewRequest.selectedPatchId });
     return new Promise((resolve, reject) => {
+      let liveOutput;
       const worker = new Worker('/js/games/gw2/app/simulation/baseline/worker.ts', {
         type: 'module'
       });
       worker.addEventListener('error', (event) => reject(new Error(event.message)));
       worker.addEventListener('message', ({ data }) => {
         if (data.error) reject(new Error(data.error));
-        else if (data.requestId === 1) worker.postMessage({ requestId: 2, request });
-        else resolve(data);
+        else if (data.requestId === 1) worker.postMessage({ requestId: 2, request: liveRequest });
+        else if (data.requestId === 2) {
+          liveOutput = data.output;
+          worker.postMessage({ requestId: 3, request: previewRequest });
+        } else resolve({ ...data, liveOutput });
       });
       // Warmup loads the same engine as the actual job without publishing a simulated result.
-      worker.postMessage({ requestId: 1, request, warmup: true });
+      worker.postMessage({ requestId: 1, request: liveRequest, warmup: true });
     });
   });
-  expect(baseline.requestId).toBe(2);
+  expect(baseline.requestId).toBe(3);
   expect(baseline.output.result.totalDamage).toBeGreaterThan(0);
   expect(baseline.output.result.warnings).toEqual([]);
-  // The worker must publish both comparison results after loading the selected preview.
-  expect(baseline.output.patchComparison.current.totalDamage).toBeGreaterThan(0);
-  expect(baseline.output.patchComparison.preview.totalDamage).toBe(baseline.output.result.totalDamage);
+  // Live and preview are separate jobs, each publishing just the requested result.
+  expect(baseline.liveOutput.result.totalDamage).toBeGreaterThan(0);
+  expect(baseline.liveOutput.result.warnings).toEqual([]);
   expect(await uiImports(await baselineWorkerReady)).toEqual([]);
 
   const modifierWorkerReady = page.waitForEvent('worker', (worker) =>
@@ -111,4 +117,35 @@ test('simulation workers load current and preview patches without UI dependencie
   expect(random.outcomes).toHaveLength(2);
   expect(random.outcomes.every((outcome) => outcome.dps > 0 && Array.isArray(outcome.metrics))).toBe(true);
   expect(await uiImports(await randomWorkerReady)).toEqual([]);
+
+  // Native navigation asks the baseline worker for a missing comparison, then Workspace edits drop it again.
+  expect(await page.evaluate(() => window.professionApp.patchComparison)).toBeNull();
+  await page.locator('.simulator-view-tab[data-simulator-view="analysis"]').click();
+  await page.waitForFunction(
+    () => window.professionApp.patchComparison && window.professionApp.simulationStatus === 'idle'
+  );
+  expect(
+    await page.evaluate(() => {
+      const app = window.professionApp;
+      return app.patchComparison.preview === app.results && Boolean(app.patchComparison.current);
+    })
+  ).toBe(true);
+  await page.locator('.simulator-view-tab[data-simulator-view="workspace"]').click();
+  await page.evaluate(() => {
+    const app = window.professionApp;
+    app.build.rotation.push({ type: 'wait', durationMs: 100 });
+    app.changed(false);
+  });
+  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  expect(await page.evaluate(() => window.professionApp.patchComparison)).toBeNull();
+  expect(
+    await page.evaluate(() => {
+      const app = window.professionApp;
+      return app.adapter.baselineSimulationRequest(app).comparisonConfig;
+    })
+  ).toBeUndefined();
+  await page.locator('.simulator-view-tab[data-simulator-view="analysis"]').click();
+  await page.waitForFunction(
+    () => window.professionApp.patchComparison && window.professionApp.simulationStatus === 'idle'
+  );
 });

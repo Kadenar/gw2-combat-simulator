@@ -40,7 +40,7 @@ test('damage contribution percentages share a denominator and handle empty damag
     skillColumns: SKILL_COLS,
     conditions: []
   });
-  assert.match(container.innerHTML, /<span>0\.00%<\/span>/);
+  assert.match(container.innerHTML, /<span role="cell">0\.00%<\/span>/);
   assert.doesNotMatch(container.innerHTML, /NaN|Infinity/);
 });
 

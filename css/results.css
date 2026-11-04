@@ -688,6 +688,55 @@
   min-width: 0;
 }
 
+/* Give the skill grid its own labeled scroller so overflow remains discoverable without moving section headings. */
+.res-skill-scroll {
+  overflow-x: auto;
+  scrollbar-color: var(--accent) var(--bg-panel-alt);
+}
+
+.res-skill-scroll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.res-skill-scroll > [data-role='skill-breakdown'] {
+  min-width: 896px;
+}
+
+.res-scroll-hint {
+  display: none;
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 12px;
+}
+
+/* Keep visual and reading order identical, with a sticky skill identity on phones. */
+@container result-breakdown (max-width: 940px) {
+  .res-scroll-hint {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .res-skill-scroll :is(.res-hdr, .res-row, .res-skill-group-heading) {
+    grid-template-columns: 148px 72px 72px 80px 60px 64px 72px 72px 72px 48px 56px;
+  }
+
+  .res-skill-scroll [data-result-column='name'] {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--bg-panel);
+    box-shadow: 5px 0 5px var(--bg-panel);
+  }
+
+  .res-skill-scroll .res-skill {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
 .res-breakdown-part + .res-breakdown-part .res-section-title {
   margin-top: 10px;
 }
@@ -747,13 +796,33 @@
   text-align: right;
 }
 
-.res-hdr-sortable span {
+/* Sorting and inspection retain the existing compact text layout with native keyboard activation. */
+.res-hdr-sortable button,
+.res-skill-inspect {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: inherit;
   cursor: pointer;
+}
+
+.res-hdr-sortable button {
+  width: 100%;
   user-select: none;
 }
 
-.res-hdr-sortable span:hover {
+.res-hdr-sortable button:hover {
   color: var(--accent);
+}
+
+.res-hdr-sortable button:focus-visible,
+.res-skill-inspect:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .res-row {

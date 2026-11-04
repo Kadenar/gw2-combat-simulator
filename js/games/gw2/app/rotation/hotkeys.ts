@@ -110,6 +110,14 @@ function activateRotationHotkey(controller: RotationHotkeyController, event: Key
 
   if (shouldIgnoreHotkey(event)) return;
 
+  // Enter and Space belong to the focused native palette button, even when those keys have global bindings.
+  if (
+    (event.code === 'Enter' || event.code === 'NumpadEnter' || event.code === 'Space') &&
+    event.target instanceof Element &&
+    event.target.closest('button.pal-skill, button.pal-control')
+  )
+    return;
+
   const action = activeRotationHotkeyAction(controller.bindings, event, controller.active);
 
   if (!action) return;

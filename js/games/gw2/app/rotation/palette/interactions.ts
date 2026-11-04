@@ -18,8 +18,9 @@ import { summonQuicknessCastTimeMs } from '#gw2/platform/execution/cast-timing.j
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { openDurationEditor } from '#ui/rotation/editing/duration-editor.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
+import { suppressRepeatedButtonActivation } from '#ui/shared/dom.js';
 
-type PaletteMouseEvent = MouseEvent & {
+type PaletteActivationEvent = (MouseEvent | KeyboardEvent) & {
   readonly currentTarget: HTMLElement;
 };
 
@@ -28,7 +29,7 @@ type PaletteDragEvent = DragEvent & {
 };
 
 interface PaletteInteractionHandlers {
-  readonly onActivate?: (name: string, event: PaletteMouseEvent) => unknown;
+  readonly onActivate?: (name: string, event: PaletteActivationEvent) => unknown;
   readonly onControlActivate?: (id: string) => unknown;
   readonly onDragStart?: (name: string, event: PaletteDragEvent) => unknown;
   readonly onDragEnd?: () => unknown;
@@ -40,23 +41,34 @@ export function bindPaletteInteractions(
 ): void {
   if (!root) return;
 
-  // Restore optional palette panels after every rerender and persist the next native disclosure toggle.
+  // Keep optional inventories compact on narrow screens until users choose a disclosure state.
+  // Restore that choice on rerender without mistaking initialization for a user toggle.
   for (const disclosure of root.querySelectorAll<HTMLDetailsElement>('details[data-palette-storage-key]')) {
     const storageKey = disclosure.dataset.paletteStorageKey;
 
     if (!storageKey) continue;
 
+    const view = root.ownerDocument.defaultView;
+    const collapseQuery = disclosure.dataset.paletteCollapseQuery;
+
+    if (collapseQuery && view) disclosure.open = !view.matchMedia(collapseQuery).matches;
+
     try {
-      const stored = root.ownerDocument.defaultView?.localStorage.getItem(storageKey);
+      const stored = view?.localStorage.getItem(storageKey);
 
       if (stored === 'true' || stored === 'false') disclosure.open = stored === 'true';
     } catch {
       // Browser storage may be unavailable in private or embedded contexts.
     }
 
+    let previousOpen = disclosure.open;
     disclosure.ontoggle = () => {
+      if (disclosure.open === previousOpen) return;
+
+      previousOpen = disclosure.open;
+
       try {
-        root.ownerDocument.defaultView?.localStorage.setItem(storageKey, String(disclosure.open));
+        view?.localStorage.setItem(storageKey, String(disclosure.open));
       } catch {
         // Browser storage may be unavailable in private or embedded contexts.
       }
@@ -64,7 +76,14 @@ export function bindPaletteInteractions(
   }
 
   for (const control of root.querySelectorAll<HTMLElement>('.pal-control[data-palette-control-id]')) {
-    control.onclick = () => {
+    control.onkeydown = (event) => {
+      suppressRepeatedButtonActivation(event);
+    };
+
+    control.onclick = (event) => {
+      // Pointer selection must not capture subsequent custom Enter/Space hotkeys.
+      if (event.detail > 0) control.blur();
+
       handlers.onControlActivate?.(control.dataset.paletteControlId || '');
     };
   }
@@ -75,9 +94,29 @@ export function bindPaletteInteractions(
     const name = icon.dataset.skill || '';
     const draggable = icon.getAttribute('draggable') === 'true';
     icon.onclick = (event) => {
-      if (icon.classList.contains('pal-context-disabled')) return;
+      // Blur before queueing so a rerender cannot restore mouse-acquired focus.
+      if (event.detail > 0) icon.blur();
 
-      handlers.onActivate?.(name, event as unknown as PaletteMouseEvent);
+      // Context restrictions block activation; a cooldown merely delays the queued cast.
+      if (icon.getAttribute('aria-disabled') === 'true') return;
+
+      handlers.onActivate?.(name, event as unknown as PaletteActivationEvent);
+    };
+
+    // Browsers disagree on modified native activation, so route advanced edits consistently.
+    icon.onkeydown = (event) => {
+      // Plain Enter also produces native clicks on every repeat unless its default action is cancelled.
+      if (suppressRepeatedButtonActivation(event)) return;
+
+      if (!['Enter', ' '].includes(event.key) || (!event.shiftKey && !event.ctrlKey)) return;
+
+      if (event.altKey || event.metaKey) return;
+
+      event.preventDefault();
+
+      if (icon.getAttribute('aria-disabled') === 'true') return;
+
+      handlers.onActivate?.(name, event as PaletteActivationEvent);
     };
 
     icon.ondragstart = (event) => {
@@ -166,7 +205,7 @@ const PALETTE_ACTIVATION_EDITORS: PaletteActivationEditors = {
 export function dispatchPaletteActivation(
   app: ProfessionAppState,
   name: string,
-  event: Pick<PaletteMouseEvent, 'currentTarget' | 'shiftKey' | 'ctrlKey'>,
+  event: Pick<PaletteActivationEvent, 'currentTarget' | 'shiftKey' | 'ctrlKey'>,
   editors: PaletteActivationEditors = PALETTE_ACTIVATION_EDITORS
 ): void {
   // Retained palette tiles cannot author commands against a rotation whose new state has not rendered yet.
@@ -188,7 +227,9 @@ export function dispatchPaletteActivation(
     return;
   }
 
-  if (name === '__combat_start' && icon.classList.contains('pal-disabled')) return;
+  // The one-per-rotation restriction belongs to the command state, independently of tile styling.
+  if (name === '__combat_start' && app.build.rotation.some((entry) => rotationEntryName(entry) === '__combat_start'))
+    return;
 
   if (name === '__wait') {
     editors.openDuration({

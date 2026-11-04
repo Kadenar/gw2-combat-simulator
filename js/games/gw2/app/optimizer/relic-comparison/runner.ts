@@ -12,6 +12,11 @@ export class RelicComparisonRunner {
   error = '';
   private baseline: ProfessionAppResult | null = null;
   private revision = -1;
+  // Baseline identity is reused only after its build, patch, and simulation inputs have been validated.
+  private readonly completed = new WeakMap<
+    ProfessionAppResult,
+    { readonly comparison: RelicComparisonModel; readonly initialStacks: number }
+  >();
   readonly onUpdate: () => void;
 
   constructor(app: ProfessionAppState, onUpdate: () => void = () => {}) {
@@ -63,18 +68,35 @@ export class RelicComparisonRunner {
     this.revision = -1;
   }
 
-  /** Only the baseline and revision that produced the output may display it, including cached-tab restoration. */
+  /** Restore completed comparisons for a fresh baseline only while the selected relic assumptions still match. */
   schedule(): void {
     this.select(this.comparisonRelic, this.initialStacks);
 
+    // Keep an active failure visible until inputs change or the user retries.
     if (
-      !this.available ||
-      this.baseline !== this.app.results ||
-      this.revision !== this.app.buildRevision ||
-      this.app.resultRevision !== this.app.buildRevision ||
-      (this.comparison && this.comparison.equippedRelic !== this.app.build.relic)
+      this.available &&
+      this.baseline === this.app.results &&
+      this.revision === this.app.buildRevision &&
+      this.app.resultRevision === this.app.buildRevision &&
+      (!this.comparison || this.comparison.equippedRelic === this.app.build.relic)
     )
-      this.invalidate();
+      return;
+
+    const saved = this.app.results && this.completed.get(this.app.results);
+    this.invalidate();
+
+    if (
+      saved &&
+      this.available &&
+      this.app.resultRevision === this.app.buildRevision &&
+      saved.comparison.equippedRelic === this.app.build.relic &&
+      saved.comparison.targetRelic === this.comparisonRelic &&
+      saved.initialStacks === this.initialStacks
+    ) {
+      this.comparison = saved.comparison;
+      this.baseline = this.app.results;
+      this.revision = this.app.buildRevision;
+    }
   }
 
   /** Applies each relic's configured assumptions to its comparison simulation. */
@@ -90,6 +112,7 @@ export class RelicComparisonRunner {
       return;
     }
 
+    this.completed.delete(results);
     this.baseline = results;
     this.revision = app.buildRevision;
 
@@ -105,6 +128,9 @@ export class RelicComparisonRunner {
     } catch (error) {
       this.error = error instanceof Error ? error.message : String(error || 'Relic comparison failed.');
     }
+
+    if (this.comparison)
+      this.completed.set(results, { comparison: this.comparison, initialStacks: this.initialStacks });
 
     this.onUpdate();
   }

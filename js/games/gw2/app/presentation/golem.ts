@@ -8,7 +8,8 @@ import { targetHealthTimelineMarkers } from '#gw2/app/rotation/timeline/model.js
 export function createGolemPresentation(): WorkspacePresentation {
   return {
     analysisTitle: 'Golem analysis',
-    authoringLink: { href: '#workspace', label: 'the Workspace' },
+    // Match the visible navigation label so empty results lead back to a recognizable destination.
+    authoringLink: { href: '#workspace', label: 'Simulation' },
     timeline(app, build, result) {
       const thresholds =
         app.profession.ui.targetHealthThresholds?.({
