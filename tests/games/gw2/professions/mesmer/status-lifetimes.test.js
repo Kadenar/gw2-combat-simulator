@@ -243,7 +243,8 @@ test('Mimic does not restore ammunition or restart its count recharge', () => {
   context.cooldownController.spendAmmo(utility, 2, 100);
   context.cooldownController.setAmmoLockout(utility, 99, 2);
   complete(context, { skill: utility, start: 2, fullEnd: 3, command: {}, id: 'utility' });
-  const ammo = context.cooldownController.ensureAmmo(utility);
+  context.cooldownController.ensureAmmo(utility);
+  const ammo = context.cooldownController.readAmmo(utility.id);
   assert.equal(ammo.charges, 1);
   assert.equal(ammo.recharges.length, 1);
   assert.deepEqual(ammo.recharges, [{ workAnchorAt: 2, work: 100 }]);

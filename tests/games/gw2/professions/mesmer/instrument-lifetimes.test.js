@@ -65,7 +65,7 @@ function instrumentContext(traits = [TRAIT.FORTISSIMO]) {
     fullEnd: 0,
     effectiveEnd: 0,
     maximumAmmoFor: () => 0,
-    cooldownController: { ensureAmmo: () => null },
+    cooldownController: { ensureAmmo: () => false },
     eventsOfType: (type) => events.filter((event) => event.type === type)
   };
   Object.assign(context, state);

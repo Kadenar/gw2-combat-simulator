@@ -106,7 +106,8 @@ test('retiring a magazine also discards its cooldown deadline and use lockout', 
   assert.equal(controller.hasAmmo(magazine.id), false);
   assert.equal(controller.readyAt(magazine.id), undefined);
   assert.equal(controller.rechargeFor(magazine.id), undefined);
-  assert.equal(controller.ensureAmmo(magazine).charges, 3);
+  assert.equal(controller.ensureAmmo(magazine), true);
+  assert.equal(controller.readAmmo(magazine.id).charges, 3);
   assert.equal(controller.isOnCooldown(magazine.id), false);
 });
 
@@ -149,6 +150,51 @@ function rateFixture(skills) {
   });
   return { state, intervalReads, controller };
 }
+
+// Initialization preserves elapsed and future work without paying for a detached observation's projection.
+test('ammo initialization leaves recharge work untouched without reading recharge intervals', () => {
+  const { state, intervalReads, controller } = rateFixture([magazine, ordinary]);
+  assert.equal(controller.ensureAmmo(ordinary), false);
+  assert.equal(controller.hasAmmo(ordinary.id), false);
+  assert.equal(controller.ensureAmmo(magazine), true);
+  controller.spendAmmo(magazine, 0, 5);
+  controller.reserveAmmo(magazine, 1, { workAnchorAt: 20, work: 5 });
+  const before = controller.readAmmo(magazine.id);
+  state.time = 10;
+  intervalReads.length = 0;
+  assert.equal(controller.ensureAmmo(magazine), true);
+  assert.deepEqual(intervalReads, []);
+  assert.deepEqual(controller.readAmmo(magazine.id), before);
+});
+
+// Closing a prepared magazine's capacity gate rejects initialization without breaking its shared pool.
+test('ammo initialization checks current capacity even for existing linked pools', () => {
+  const face = { ...magazine, id: 9 };
+  let maximum = 0;
+  const controller = createCooldownController({
+    clock: { time: 0 },
+    skillFor: (id) => [magazine, face].find((skill) => skill.id === id),
+    rechargeDuration: (skill) => skill.cooldown,
+    maximumAmmo: () => maximum
+  });
+  assert.equal(controller.ensureAmmo(magazine), false);
+  assert.equal(controller.hasAmmo(magazine.id), false);
+  maximum = magazine.ammo;
+  assert.equal(controller.ensureAmmo(magazine), true);
+  controller.linkAmmo(magazine.id, face.id);
+  controller.spendAmmo(magazine, 0, 5);
+  const before = controller.readAmmo(magazine.id);
+  maximum = 0;
+  assert.equal(controller.ensureAmmo(magazine), false);
+  assert.equal(controller.hasAmmo(magazine.id), true);
+  assert.deepEqual(controller.readAmmo(magazine.id), before);
+  maximum = magazine.ammo;
+  assert.equal(controller.ensureAmmo(magazine), true);
+  assert.deepEqual(controller.readAmmo(magazine.id), before);
+  controller.spendAmmo(face, 0, 5);
+  assert.equal(controller.readAmmo(magazine.id).charges, 1);
+  assert.deepEqual(controller.readAmmo(face.id), controller.readAmmo(magazine.id));
+});
 
 // Clock advances and live queries reuse fixed projections, but completed work remains available to mechanics.
 test('constant-rate deadlines are cached and completed recharge progress is retained', () => {

@@ -243,7 +243,7 @@ export function createCastExecution<T extends object>(
     const rechargeWork = cancelled
       ? baseWork
       : (profession.reserveRecharge?.(runtime.mechanics, skill, baseWork) ?? baseWork);
-    const usesAmmo = cooldownController.ensureAmmo(skill) != null;
+    const usesAmmo = cooldownController.ensureAmmo(skill);
     // Reserve the selected skill's declarative recharge anchor once so completion uses the accepted value.
     const rechargeStart =
       start +

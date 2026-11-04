@@ -521,8 +521,8 @@ export function createCooldownController({
       for (const ammo of new Set(ammoPools.values())) settleAmmo(ammo, at);
     },
     ensureAmmo(skill: Skill) {
-      const ammo = ensurePool(skill);
-      return ammo ? observeAmmo(ammo) : null;
+      // Initialization checks capacity without copying observations or projecting recharge deadlines.
+      return ensurePool(skill) !== null;
     },
     refreshAmmo(skill: Skill, at: number) {
       const ammo = refreshPool(skill, at);

@@ -83,7 +83,8 @@ export interface CooldownController {
   rate(skill: Skill, at?: number, companionId?: string): number;
   project(skill: Skill, progress: RechargeProgress): number;
   remaining(skill: Skill, progress: RechargeProgress, at: number): number;
-  ensureAmmo(skill: Skill): AmmoObservation | null;
+  /** Initialize only when current capacity is positive; report pool availability without settling recharge work. */
+  ensureAmmo(skill: Skill): boolean;
   /** Advances base-recharge progress and returns the wall time recovered at the current rate. */
   reduceSkillRecharge(skill: Skill, reduction: number, at?: number): number;
   refreshAmmo(skill: Skill, at: number): AmmoObservation | null;
