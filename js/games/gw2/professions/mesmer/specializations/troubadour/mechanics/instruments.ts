@@ -129,8 +129,7 @@ export function afterimageInstrumentAttack(
         ...delivery,
         kind: 'packet',
         // Afterimage copies retain their summon actor and stay excluded from preview.
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     });
 
@@ -140,8 +139,7 @@ export function afterimageInstrumentAttack(
         context.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       }
     );
@@ -184,8 +182,7 @@ export function startTroubadourInstrument(
   context.effects.emit({
     ...delivery,
     kind: 'packet',
-    event: packet,
-    priority: Number(packet.priority ?? 0)
+    event: packet
   });
 }
 
@@ -225,8 +222,7 @@ function commitInstrument(
     context.effects.emit({
       ...delivery,
       kind: 'packet',
-      event: packet,
-      priority: Number(packet.priority ?? 0)
+      event: packet
     });
   }
 
@@ -271,8 +267,7 @@ export function resolveCrescendo(
       context.effects.emit({
         ...delivery,
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     });
 

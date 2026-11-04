@@ -19,8 +19,10 @@ export function harbingerBlightMaximum(context: unknown): number {
   return Math.max(0, Math.trunc(balanceNumberFromContext(context, TRAIT.DARK_DISCIPLE, 'maximumStacks')));
 }
 
-/** Starting progress cannot itself complete a cycle; a live Blight consumption must trigger the trait. */
-export const MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS = 19;
+/** Whole-stack progress stays below the selected cap so a real Blight consumption must trigger Meltdown. */
+export function cascadingCorruptionProgressMaximum(context: unknown): number {
+  return Math.max(0, Math.ceil(balanceNumberFromContext(context, TRAIT.CASCADING_CORRUPTION, 'maximumStacks')) - 1);
+}
 
 export interface HarbingerState {
   blightGeneration: number;
@@ -45,7 +47,7 @@ function createHarbingerState(
     config.initialCascadingCorruptionStacks || 0,
     0,
     0,
-    MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
+    cascadingCorruptionProgressMaximum(preparation.balanceContext)
   );
   return {
     blightGeneration: 0,

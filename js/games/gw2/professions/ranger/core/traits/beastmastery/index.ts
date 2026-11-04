@@ -10,7 +10,7 @@ import { professionCoreState, readProfessionSpecializationState } from '#gw2/pla
 import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import { compileProfessionRules, onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { onTriggerPoint, type TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   attributeBonusFromContext,
   balanceNumberFromContext,
@@ -273,43 +273,41 @@ export const loudWhistle = defineTrait({
   ]
 });
 
-/** Core trait executes at Soulbeast's established control-reaction boundary. */
-export const bestialRageControl = compileProfessionRules<RangerRuntimeState>({
-  traitTriggers: [
-    {
-      trait: TRAIT.BESTIAL_RAGE,
-      emit: TRAIT.BESTIAL_RAGE,
-      on: 'control.resolved',
-      cooldown: 'profile',
-      // Only the surviving boon effects can activate this trait's control proc.
-      when: (runtime) =>
-        [boonKey(BOON.MIGHT), boonKey(BOON.FURY)].some((effectName) =>
-          Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.BESTIAL_RAGE), 'boon', effectName))
-        ),
-      effects: (effect) =>
-        (effect.type === 'boon' || effect.type === 'buff') &&
-        (effect.name === boonKey(BOON.MIGHT) || effect.name === boonKey(BOON.FURY)),
-      attribution: (_runtime, event) => ({
-        skillId: TRAIT.BESTIAL_RAGE,
-        skillName: 'Bestial Rage',
-        name: 'Bestial Rage',
-        triggeredBy: event.skillName,
-        ...(event.metadata?.triggeredByAlly
-          ? {
-              audience: {
-                recipients: RECIPIENT.PARTY,
-                alliedPlayerIndex: event.metadata.triggeredByAlly,
-                affectsSelf: false,
-                maximumRecipients: 1,
-                eligibleCompanionIds: []
-              },
-              metadata: { triggeredByAlly: event.metadata.triggeredByAlly }
-            }
-          : {})
-      })
-    }
-  ]
-}).reactions!['control.resolved']!;
+/** Soulbeast registers this Core trait declaration so preview mode can omit its proc admission. */
+export const bestialRageControl = {
+  trait: TRAIT.BESTIAL_RAGE,
+  emit: TRAIT.BESTIAL_RAGE,
+  on: 'control.resolved',
+  // Preserve the former imperative position after Soulbeast's ordinary control triggers.
+  order: 1,
+  cooldown: 'profile',
+  // Only the surviving boon effects can activate this trait's control proc.
+  when: (runtime) =>
+    [boonKey(BOON.MIGHT), boonKey(BOON.FURY)].some((effectName) =>
+      Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.BESTIAL_RAGE), 'boon', effectName))
+    ),
+  effects: (effect) =>
+    (effect.type === 'boon' || effect.type === 'buff') &&
+    (effect.name === boonKey(BOON.MIGHT) || effect.name === boonKey(BOON.FURY)),
+  attribution: (_runtime, event) => ({
+    skillId: TRAIT.BESTIAL_RAGE,
+    skillName: 'Bestial Rage',
+    name: 'Bestial Rage',
+    triggeredBy: event.skillName,
+    ...(event.metadata?.triggeredByAlly
+      ? {
+          audience: {
+            recipients: RECIPIENT.PARTY,
+            alliedPlayerIndex: event.metadata.triggeredByAlly,
+            affectsSelf: false,
+            maximumRecipients: 1,
+            eligibleCompanionIds: []
+          },
+          metadata: { triggeredByAlly: event.metadata.triggeredByAlly }
+        }
+      : {})
+  })
+} satisfies TraitTrigger<RangerRuntimeState>;
 
 // Snapshot the Ranger's configured and still-active boons at command completion,
 // then mirror their current duration and stacks to the active companion only.

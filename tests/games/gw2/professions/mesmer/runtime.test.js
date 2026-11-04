@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
+import { destroyClone } from '#gw2/professions/mesmer/family-resources.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 test('retired clone packets cannot grant accepted critical conditions', () => {
@@ -59,7 +60,7 @@ for (const identityField of ['summonOwner', 'metadata']) {
         extend(native) {
           return {
             prepareEvent(runtime, event) {
-              if (event.sourceId?.startsWith('ownership:')) prepared.push([event.sourceId, runtime.time]);
+              if (String(event.sourceId).startsWith('ownership:')) prepared.push([event.sourceId, runtime.time]);
 
               return native.prepareEvent(runtime, event);
             }
@@ -102,11 +103,51 @@ for (const identityField of ['summonOwner', 'metadata']) {
       prepared.every(([, at]) => at === 1),
       'preparation waits until the owned effect is delivered'
     );
-    const delivered = result.events.filter((event) => event.sourceId?.startsWith('ownership:'));
+    const delivered = result.events.filter((event) => String(event.sourceId).startsWith('ownership:'));
     assert.deepEqual(delivered.map(({ sourceId }) => sourceId).sort(), expected);
     assert.ok(delivered.every((event) => event.actorType === 'summon' && event.source === 'Illusion sans nom'));
   });
 }
+
+test('accepted clone finishers retain delayed combo conditions after clone retirement', () => {
+  // A retired clone loses its pending attacks while a finisher already accepted by the combo system keeps its outcome.
+  const result = runMesmer(
+    [{ type: 'wait', durationMs: 1500 }],
+    { specialization: 'Core' },
+    {
+      initialize(runtime) {
+        const strike = {
+          type: 'damage',
+          source: 'Clone',
+          sourceId: 999,
+          actorType: 'summon',
+          summonKind: 'clone',
+          summonOwner: 'mesmer.clone:1',
+          metadata: { cloneId: 1 },
+          coefficient: 1,
+          weaponStrength: 1000
+        };
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            ...strike,
+            at: 0.1,
+            comboFields: [{ ownerId: 'mesmer', fieldType: 'Fire', duration: 3 }],
+            comboFinishers: [{ ownerId: 'mesmer', finisherType: 'Projectile', effectDelay: 1 }]
+          }
+        });
+        runtime.effects.emit({ kind: 'packet', event: { ...strike, at: 1 } });
+      },
+      timeline: [{ at: 0.5, run: (runtime) => destroyClone(runtime.mechanics, { id: 1 }) }]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 1);
+  const burning = result.resolvedEvents.find((event) => event.type === 'condition' && event.condition === 'Burning');
+  assert.ok(burning?.comboId, 'the delayed finisher still applies its condition');
+  assert.equal(burning.summonOwner, 'mesmer.clone:1');
+  assert.equal(burning.sourceId, 999);
+});
 
 test('explicit packet owners take precedence and display labels do not assign clone lifetimes', () => {
   // Separate lifetimes survive clone retirement, while retiring an explicit owner cancels even a live clone's packet.

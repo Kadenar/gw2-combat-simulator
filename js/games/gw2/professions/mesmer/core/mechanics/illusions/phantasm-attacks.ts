@@ -47,8 +47,7 @@ export function schedulePhantasmBonusStrike(
         traitId: bonus.traitId,
         // Each entity conversion is one proc, even when its strike expands into multiple damage packets.
         ...(index === 0 ? { metadata: { ...packet.metadata, procCount: 1 } } : {})
-      },
-      priority: Number(packet.priority ?? 0)
+      }
     });
   });
 }
@@ -396,7 +395,6 @@ function emitAttackPacket(state: MesmerRuntime, execution: MesmerPhantasmExecuti
   state.effects.emit({
     ...execution.delivery,
     kind: 'packet',
-    event: packet.type === 'damage' ? { ...packet, bountifulBladesDamageFactor: execution.damageMultiplier } : packet,
-    priority: Number(packet.priority ?? 0)
+    event: packet.type === 'damage' ? { ...packet, bountifulBladesDamageFactor: execution.damageMultiplier } : packet
   });
 }

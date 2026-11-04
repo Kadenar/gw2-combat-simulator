@@ -53,37 +53,35 @@ export function createRuntimeResources<T extends object>(
     return { policy, state };
   };
 
-  // Keep the owned depletion wake aligned with the current resource segment and lifetime policy.
-  const syncDepletion = (key: ResourceKey) => {
-    const { policy, state } = get(key);
-
+  // Reuse the caller's validated pool to align its depletion wake without selecting or validating state again.
+  const syncDepletion = (key: ResourceKey, { policy, state }: ReturnType<typeof get>) => {
     const depletion = policy.depletion;
 
-    if (depletion) {
-      const zeroAt = resourceDepletionAt(state);
-      const at =
-        state.maximum > 0
-          ? depletion.deadline
-            ? depletion.deadline(runtime.mechanics, zeroAt)
-            : gw2CooldownReadyAt(zeroAt)
-          : Infinity;
+    if (!depletion) return;
 
-      if (at !== Infinity && (!Number.isFinite(at) || at < runtime.time))
-        throw new RangeError(`Invalid depletion deadline for ${key}.`);
+    const zeroAt = resourceDepletionAt(state);
+    const at =
+      state.maximum > 0
+        ? depletion.deadline
+          ? depletion.deadline(runtime.mechanics, zeroAt)
+          : gw2CooldownReadyAt(zeroAt)
+        : Infinity;
 
-      const previous = depletionWakes.get(key);
+    if (at !== Infinity && (!Number.isFinite(at) || at < runtime.time))
+      throw new RangeError(`Invalid depletion deadline for ${key}.`);
 
-      // A new resource segment replaces its owned wake; disabled pools cancel without scheduling another exit.
-      if (!depletion.retainUnchangedDeadline || previous?.at !== at) {
-        const id = `resource-depletion:${key}`;
+    const previous = depletionWakes.get(key);
 
-        if (previous) runtime.cancelOwner({ id, generation: previous.generation });
+    // A new resource segment replaces its owned wake; disabled pools cancel without scheduling another exit.
+    if (!depletion.retainUnchangedDeadline || previous?.at !== at) {
+      const id = `resource-depletion:${key}`;
 
-        const generation = (previous?.generation ?? 0) + 1;
-        depletionWakes.set(key, { at, generation });
+      if (previous) runtime.cancelOwner({ id, generation: previous.generation });
 
-        if (Number.isFinite(at)) runtime.schedule(depletion.task, at, null, { id, generation }, depletion.priority);
-      }
+      const generation = (previous?.generation ?? 0) + 1;
+      depletionWakes.set(key, { at, generation });
+
+      if (Number.isFinite(at)) runtime.schedule(depletion.task, at, null, { id, generation }, depletion.priority);
     }
   };
 
@@ -129,7 +127,7 @@ export function createRuntimeResources<T extends object>(
 
     if (before.some((value, index) => value !== after[index])) anchorResourceClock(state);
 
-    syncDepletion(key);
+    syncDepletion(key, { policy, state });
   };
 
   const initialize = () => {
@@ -163,7 +161,7 @@ export function createRuntimeResources<T extends object>(
     /** Resets and conversions replace the settled balance without restarting recovery or emitting reward semantics. */
     replace(key: ResourceKey, value: number) {
       amount(value);
-      const { state } = get(key);
+      const { policy, state } = get(key);
       advanceResource(state, runtime.time);
       const next = Math.min(state.maximum, value);
 
@@ -180,11 +178,11 @@ export function createRuntimeResources<T extends object>(
 
       state.value = next;
       anchorResourceClock(state);
-      syncDepletion(key);
+      syncDepletion(key, { policy, state });
     },
     grant(key: ResourceKey, value: number) {
       amount(value);
-      const { state } = get(key);
+      const { policy, state } = get(key);
       advanceResource(state, runtime.time);
       const next = Math.min(state.maximum, state.value + value);
 
@@ -192,14 +190,14 @@ export function createRuntimeResources<T extends object>(
 
       state.value = next;
       anchorResourceClock(state);
-      syncDepletion(key);
+      syncDepletion(key, { policy, state });
     },
     spend(key: ResourceKey, value: number) {
       amount(value);
 
       if (value === 0) return;
 
-      const { state } = get(key);
+      const { policy, state } = get(key);
 
       if (!resourceAtLeast(resourceAt(state, runtime.time), value)) throw new RangeError(`Insufficient ${key}.`);
 
@@ -214,7 +212,7 @@ export function createRuntimeResources<T extends object>(
       }
 
       anchorResourceClock(state);
-      syncDepletion(key);
+      syncDepletion(key, { policy, state });
     },
     readyAt(key: ResourceKey, cost: number) {
       amount(cost);

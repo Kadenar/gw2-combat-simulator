@@ -520,64 +520,27 @@ test('Mesmer and Harbinger snapshots expose their short decision windows', () =>
   assert.equal(harbinger['harbinger-meltdown'], '3.0s');
 });
 
-test('Harbinger countdown ignores party projections and assumptions and expires at the planning boundary', () => {
-  // The editor reads accepted personal state even when chart time is clipped to an earlier boundary.
-  const personal = timedEffectState('meltdown', [{ stacks: 1, expiresAt: 9 }], 1);
-  const other = [
-    timedEffectState('meltdown', [{ stacks: 1, expiresAt: 30 }], 1, { recipient: 'party' }),
-    timedEffectState('meltdown', [{ stacks: 1, expiresAt: 30 }], 1, { origin: 'party-projection' }),
-    timedEffectState('meltdown', [{ stacks: 1, expiresAt: 30 }], 1, { origin: 'assumption' })
-  ];
-  for (const [effects, atSeconds, expected] of [
-    [[], 6, undefined],
-    [other, 6, undefined],
-    [[...other, personal], 6, '3.0s'],
-    [[personal], 9, undefined],
-    [[personal], 10, undefined]
-  ]) {
-    const items = necromancerProfession.ui.rotationStateSnapshot({
-      balanceContext: withPatchPreview(necromancerProfession).resolvePatch().balanceContext,
-      specialization: 'Harbinger',
-      atSeconds: 0,
-      planningState: { atSeconds, effects }
-    });
-    assert.equal(valuesById(items)['harbinger-meltdown'], expected);
-  }
+test('Harbinger countdown is absent without accepted planning state', () => {
+  const items = necromancerProfession.ui.rotationStateSnapshot({
+    balanceContext: withPatchPreview(necromancerProfession).resolvePatch().balanceContext,
+    specialization: 'Harbinger',
+    planningState: { atSeconds: 6, effects: [] }
+  });
+  assert.equal(valuesById(items)['harbinger-meltdown'], undefined);
 });
 
-test('Soulbeast countdown uses accepted personal windows at the planning boundary', () => {
-  // Party projections, assumptions, empty windows, and exclusive expiry cannot extend the personal stance.
-  const effect = (windows, options = {}) => timedEffectState('one-wolf-pack', windows, 1, options);
-  const personal = effect([{ stacks: 1, expiresAt: 9 }]);
-  const party = effect([{ stacks: 1, expiresAt: 30 }], { recipient: 'party' });
-  const projected = effect([{ stacks: 1, expiresAt: 30 }], { origin: 'party-projection' });
-  const assumed = effect([{ stacks: 1, expiresAt: 40 }], { origin: 'assumption' });
-  for (const [effects, atSeconds, expected] of [
-    [undefined, 4, undefined],
-    [[], 4, undefined],
-    [[party, projected, assumed], 4, undefined],
-    [[party, projected, assumed, personal], 4, '5.0s'],
-    [[party, personal], 9, undefined],
-    [[personal], 10, undefined],
-    [
-      [
-        effect([
-          { stacks: 1, expiresAt: 3 },
-          { stacks: 1, expiresAt: 7 },
-          { stacks: 1, expiresAt: 9.26 },
-          { stacks: 0, expiresAt: 50 }
-        ])
-      ],
-      4,
-      '5.3s'
-    ]
+test('Soulbeast countdown formats the accepted planning window and omits empty state', () => {
+  // The shared query owns filtering; this integration owns the label, rounding, and planning-time input.
+  const personal = timedEffectState('one-wolf-pack', [{ stacks: 1, expiresAt: 9.26 }], 1);
+  for (const [effects, expected] of [
+    [[], undefined],
+    [[personal], '5.3s']
   ]) {
     const items = rangerProfession.ui.rotationStateSnapshot({
       balanceContext: withPatchPreview(rangerProfession).resolvePatch().balanceContext,
       specialization: 'Soulbeast',
-      // The engine observation owns time even if a caller supplies a different report timestamp.
       atSeconds: 0,
-      planningState: effects === undefined ? undefined : { atSeconds, effects }
+      planningState: { atSeconds: 4, effects }
     });
     const stance = items.find((item) => item.id === 'soulbeast-one-wolf-pack');
     assert.equal(stance?.value, expected);

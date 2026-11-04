@@ -25,8 +25,8 @@ import {
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
-  harbingerBlightMaximum,
-  MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
+  cascadingCorruptionProgressMaximum,
+  harbingerBlightMaximum
 } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import type { NecromancerSkill, NecromancerUiContext, NecromancerUiSlice } from '#gw2/professions/necromancer/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
@@ -41,11 +41,13 @@ function harbingerStateSnapshot(
   const state = necromancerUiState(context);
   const maximum = harbingerBlightMaximum(context.balanceContext);
   const blight = boundedInteger(state[STATE.BLIGHT] || 0, 0, 0, maximum);
+  // Progress follows the selected proc threshold rather than the saved initial-state limit.
+  const threshold = balanceNumberFromContext(context.balanceContext, TRAIT.CASCADING_CORRUPTION, 'maximumStacks');
   const stacks = boundedInteger(
     state[STATE.CASCADING_CORRUPTION_STACKS] || 0,
     0,
     0,
-    MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS
+    cascadingCorruptionProgressMaximum(context.balanceContext)
   );
   const hasTrait = selectedTraits(context.balanceContext.catalog, context.build?.specializations || []).some(
     (trait) => trait.id === TRAIT.CASCADING_CORRUPTION
@@ -64,7 +66,7 @@ function harbingerStateSnapshot(
     items.push({
       id: 'cascading-corruption-stacks',
       label: 'Cascading Corruption',
-      value: `${stacks}/20`,
+      value: `${stacks}/${threshold}`,
       title: 'Cascading Corruption stacks toward the next Meltdown'
     });
   }
@@ -135,15 +137,16 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
           group: 'Mechanic',
           kind: 'special',
           scope: ['damage'],
-          max: Math.min(
-            MAXIMUM_INITIAL_CASCADING_CORRUPTION_STACKS,
-            Math.max(0, balanceNumberFromContext(context, TRAIT.CASCADING_CORRUPTION, 'minimumStacks') - 1)
-          ),
-          initial:
+          max: cascadingCorruptionProgressMaximum(context),
+          initial: boundedInteger(
             Number(
               (context.build as { readonly initialCascadingCorruptionStacks?: unknown })
                 .initialCascadingCorruptionStacks
-            ) || 0,
+            ),
+            0,
+            0,
+            cascadingCorruptionProgressMaximum(context)
+          ),
           description: 'Consumed Blight toward the next Meltdown before setup'
         });
       }
@@ -224,12 +227,17 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
         id: 'cascading-corruption',
         singular: 'Cascading Corruption stack',
         plural: 'Cascading Corruption stacks',
-        // Maximum is 19, not 20: entering a simulation with 20 stacks would immediately proc Meltdown before any action.
-        maximum: 19,
-        value: Number(
-          necromancerUiState(context)[STATE.CASCADING_CORRUPTION_STACKS] ??
-            context.initialCascadingCorruptionStacks ??
-            0
+        // Initial progress uses the same selected cap as state construction and the preview control.
+        maximum: cascadingCorruptionProgressMaximum(context),
+        value: boundedInteger(
+          Number(
+            necromancerUiState(context)[STATE.CASCADING_CORRUPTION_STACKS] ??
+              context.initialCascadingCorruptionStacks ??
+              0
+          ),
+          0,
+          0,
+          cascadingCorruptionProgressMaximum(context)
         ),
         canStart: true,
         buildKey: 'initialCascadingCorruptionStacks',

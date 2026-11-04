@@ -71,8 +71,7 @@ export function resolveCloneShatter(
         context.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
 
@@ -87,8 +86,7 @@ export function resolveCloneShatter(
         context.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
 
@@ -111,8 +109,7 @@ export function resolveCloneShatter(
         context.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
   } else if (shatter.kind === 'control') {

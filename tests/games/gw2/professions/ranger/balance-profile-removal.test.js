@@ -16,7 +16,11 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { wait } from '#tests/helpers/commands.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
-import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import {
+  createObservedProfessionSimulator,
+  observedRuntime,
+  observeGw2Runtime
+} from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
@@ -237,6 +241,42 @@ test('Bestial Rage keeps its sibling boon and cooldown, and releases the cooldow
     );
     assert.equal(observedRuntime(result).procs.deadline(TRAIT.BESTIAL_RAGE), both ? 0 : 1.25);
     assert.deepEqual(result.warnings, []);
+  }
+});
+
+test('Bestial Rage follows Soulbeast control traits and claims no proc when triggers are disabled', () => {
+  // The former imperative reaction follows Twice as Vicious; Preview Off must also omit proc admission.
+  const config = { specialization: 'Soulbeast', selectedTraitIds: [TRAIT.BESTIAL_RAGE, TRAIT.TWICE_AS_VICIOUS] };
+  for (const traitTriggers of [false, true]) {
+    const result = observeGw2Runtime({
+      profession: rangerProfession.runtimeFor(config, { traitTriggers }),
+      config,
+      rotation: [wait(1500)],
+      engineInitialize(runtime) {
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'control',
+            at: 1,
+            source: 'fixture',
+            sourceId: 'control',
+            actorType: 'player',
+            controlKind: 'daze',
+            duration: 1
+          }
+        });
+      }
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(observedRuntime(result).procs.deadline(TRAIT.BESTIAL_RAGE) > 0, traitTriggers);
+    assert.equal(
+      result.events.some((event) => event.sourceId === TRAIT.BESTIAL_RAGE),
+      traitTriggers
+    );
+    assert.deepEqual(
+      result.events.filter((event) => config.selectedTraitIds.includes(event.sourceId)).map((event) => event.kind),
+      traitTriggers ? ['twice-as-vicious', 'might', 'fury'] : []
+    );
   }
 });
 

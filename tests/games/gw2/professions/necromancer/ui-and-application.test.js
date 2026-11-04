@@ -37,6 +37,53 @@ const baseConfig = Object.freeze({
 
 const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
 
+test('Cascading Corruption initializes and presents one patched progress cap', () => {
+  // Saved progress is normalized in authoritative state before snapshots and previews expose it.
+  for (const [maximumStacks, savedProgress, progress, maximumProgress] of [
+    [5, 3, 3, 4],
+    [5, 15, 4, 4],
+    [40, 25, 25, 39],
+    [2.5, 15, 2, 2]
+  ]) {
+    const patchId = 'corruption-progress';
+    const family = withPatchPreview(necromancerProfession, {
+      id: patchId,
+      label: 'Corruption progress',
+      professions: {
+        necromancer: { balanceProfiles: { [TRAIT.CASCADING_CORRUPTION]: { fields: { maximumStacks } } } }
+      }
+    });
+    const config = { specialization: 'Harbinger', patchId, initialCascadingCorruptionStacks: savedProgress };
+    const planningState = planningFixture(family, config, (runtime) => {
+      assert.equal(runtime.profession.specialization.state.cascadingCorruptionStacks, progress);
+    });
+    assert.equal(planningState.profession[STATE.CASCADING_CORRUPTION_STACKS], progress);
+    const patch = family.resolvePatch({ id: patchId });
+    const context = {
+      catalog: patch.catalog,
+      balanceContext: patch.balanceContext,
+      specialization: 'Harbinger',
+      professionState: planningState.profession,
+      planningState
+    };
+    const items = family.ui.rotationStateSnapshot(context);
+    assert.equal(items.find((item) => item.id === 'cascading-corruption-stacks').value, `${progress}/${maximumStacks}`);
+    const resource = family.ui.resourceViews(context).find((view) => view.id === 'cascading-corruption');
+    assert.equal(resource.maximum, maximumProgress);
+    assert.equal(resource.value, progress);
+    const control = family.ui
+      .previewControls({
+        ...context,
+        build: { initialCascadingCorruptionStacks: savedProgress },
+        activeTraits: [{ id: TRAIT.CASCADING_CORRUPTION, name: 'Cascading Corruption' }],
+        weapons: []
+      })
+      .find((entry) => entry.key === 'cascadingCorruption');
+    assert.equal(control.max, maximumProgress);
+    assert.equal(control.initial, progress);
+  }
+});
+
 // Cursor and end-state counters share combat observations, including expiry, minion eligibility, and patched caps.
 test('Carapace state tracking follows the inspected observation across Necromancer specializations', () => {
   for (const maximumStacks of [30, 6]) {

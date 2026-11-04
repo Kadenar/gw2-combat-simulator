@@ -153,8 +153,7 @@ export function createPhantasmEffectController({
       state.effects.emit({
         ...execution.delivery,
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
 
@@ -172,8 +171,7 @@ export function createPhantasmEffectController({
       state.effects.emit({
         ...execution.delivery,
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
 
@@ -221,8 +219,7 @@ export function createPhantasmEffectController({
       state.effects.emit({
         ...execution.delivery,
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
 
@@ -239,8 +236,7 @@ export function createPhantasmEffectController({
       state.effects.emit({
         ...execution.delivery,
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
 

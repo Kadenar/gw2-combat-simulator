@@ -67,8 +67,7 @@ export function createProfessionActionController({
       });
       state.effects.emit({
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
 
@@ -192,8 +191,7 @@ export function createProfessionActionController({
       state.effects.emit({
         ...delivery,
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
 

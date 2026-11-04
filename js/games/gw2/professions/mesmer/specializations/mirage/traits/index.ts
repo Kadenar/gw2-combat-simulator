@@ -330,8 +330,7 @@ function riddleAmbush(
       state.effects.emit({
         ...delivery,
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     });
     state.effects.emit({

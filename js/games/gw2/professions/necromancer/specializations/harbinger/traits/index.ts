@@ -44,13 +44,13 @@ const darkDisciple = defineTrait({
   balance: { maximumStacks: 25, lifeForceDrain: 5, blightGain: 2, pulseInterval: 1, effects: [] }
 });
 
-/** Owns Cascading Corruption tuning and behavior at its existing execution boundaries. */
+/** Cascading Corruption builds to its stack cap, then triggers Meltdown and resets its progress. */
 const cascadingCorruption = defineTrait({
   id: TRAIT.CASCADING_CORRUPTION,
   balance: {
     damageIncrease: 0.1,
     conditionDamageIncrease: 0.1,
-    minimumStacks: 20,
+    maximumStacks: 20,
     effects: [
       {
         name: 'meltdown',
@@ -416,7 +416,7 @@ function applyCascadingCorruption(
     const torment = requireEffect(corruption, 'condition', CONDITION.TORMENT);
 
     if (meltdown || strike || torment) {
-      const threshold = balanceProfileNumber(corruption, 'minimumStacks');
+      const threshold = balanceProfileNumber(corruption, 'maximumStacks');
       // Reaching the stack cap grants one Meltdown and resets buildup before any reward reacts.
       const progress = advanceCounter(state.cascadingCorruptionStacks, consumed, threshold, 'reset');
       state.cascadingCorruptionStacks = progress.value;

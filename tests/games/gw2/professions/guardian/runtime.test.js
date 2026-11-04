@@ -610,16 +610,25 @@ test('Firebrand manual preparation registers the mantra for explicit recharge re
   // Start unprepared so the real preparation action must establish membership before the reset hook runs.
   const config = { ...firebrand, selectedSkillIds: [ID.MANTRA_OF_FLAME] };
   const native = guardianProfession.runtimeFor(config);
+  const maximum = observedRuntime(run([], config)).cooldownController.readAmmo(ID.FLAME_RUSH).maximum;
   const result = observeGw2Runtime({
     profession: { ...native, initialize() {} },
     config,
-    rotation: [ID.MANTRA_OF_FLAME, ID.FLAME_RUSH, ID.FLAME_RUSH, ID.FLAME_SURGE, { type: 'cooldown-reset' }]
+    rotation: [
+      ID.MANTRA_OF_FLAME,
+      ...Array(maximum - 1).fill(ID.FLAME_RUSH),
+      ID.FLAME_SURGE,
+      { type: 'cooldown-reset' }
+    ]
   });
   const runtime = observedRuntime(result);
   assert.deepEqual(result.warnings, []);
   assert.deepEqual(Object.keys(fb(result).mantraWakeGenerations), [String(ID.MANTRA_OF_FLAME)]);
-  assert.equal(runtime.cooldownController.readAmmo(ID.FLAME_RUSH).charges, 3);
-  assert.equal(runtime.cooldownController.readAmmo(ID.FLAME_SURGE).charges, 3);
+  for (const id of [ID.FLAME_RUSH, ID.FLAME_SURGE]) {
+    const ammo = runtime.cooldownController.readAmmo(id);
+    assert.equal(ammo.charges, ammo.maximum);
+  }
+
   assert.ok(runtime.flips[ID.FLAME_RUSH]);
   assert.equal(runtime.flips[ID.FLAME_SURGE], undefined);
   assert.equal(runtime.cooldownController.hasCooldown(ID.MANTRA_OF_FLAME), false);

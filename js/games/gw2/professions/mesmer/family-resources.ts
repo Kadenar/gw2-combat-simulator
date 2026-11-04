@@ -1,5 +1,6 @@
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { createCloneAttackScheduler } from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
+import { mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
 import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { createIllusionRewardController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/skills/weapons/clone-attacks.js';
@@ -13,7 +14,7 @@ export function mesmerActivePrimaryWeapon(context: MesmerRuntime): string {
 }
 
 export function destroyClone(context: MesmerRuntime, clone: MesmerClone): void {
-  context.cancelOwner({ id: clone.ownerId!, generation: 0 });
+  context.cancelOwner({ id: mesmerCloneOwnerId(clone.id), generation: 0 });
 }
 
 /** These short-lived operations retain no private run state; clone identity and progress belong to profession state. */
@@ -22,7 +23,7 @@ export function createMesmerCloneScheduler(context: MesmerRuntime) {
     state: context,
     cloneAttacks: MESMER_CORE_CLONE_ATTACKS,
     scheduleTask: (clone, at) =>
-      context.schedule('mesmer.clone-attack', at, clone.id, { id: clone.ownerId!, generation: 0 }, -50)
+      context.schedule('mesmer.clone-attack', at, clone.id, { id: mesmerCloneOwnerId(clone.id), generation: 0 }, -50)
   });
 }
 

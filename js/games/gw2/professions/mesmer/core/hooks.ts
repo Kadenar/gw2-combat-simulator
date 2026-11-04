@@ -19,6 +19,7 @@ import {
   extendMesmerParentRecharge,
   prepareMesmerMantra
 } from '#gw2/professions/mesmer/core/mechanics/flips.js';
+import { mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
 import { mesmerIllusionHooks } from '#gw2/professions/mesmer/core/mechanics/illusions/lifecycle.js';
 import { armMimic, completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
 import { mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
@@ -58,6 +59,9 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
     observeEffects: mesmerEffectStates,
     // Bind clone packets to their lifetime at admission so retirement cancels every pending effect kind.
     effectOwner(_context, event) {
+      // Accepted combos retain finisher attribution after retirement, without extending native clone work.
+      if (event.type === 'combo_field' || event.type === 'combo_finisher' || event.comboId != null) return undefined;
+
       return mesmerPacketOwner(event);
     },
     sideEffectHandlers: {
@@ -135,7 +139,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
     prepareEvent(runtime, event) {
       const prepared = prepareGw2BuffCompanionCandidates(
         event,
-        runtime.profession.core.clones.map((clone) => `mesmer.clone:${clone.id}`)
+        runtime.profession.core.clones.map((clone) => mesmerCloneOwnerId(clone.id))
       );
       const skill = runtime.helpers.skillsById.get(prepared.skillId ?? '');
       return prepared.type === 'damage' && skill?.blade

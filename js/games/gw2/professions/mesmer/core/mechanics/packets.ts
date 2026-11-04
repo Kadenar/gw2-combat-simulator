@@ -8,6 +8,7 @@ import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { MESMER_CORE_WEAPON_STRENGTH } from '#gw2/professions/mesmer/core/mechanics/definitions.js';
+import { isMesmerCloneOwnerId, mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
 import type { MesmerEventExtra, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
@@ -156,11 +157,10 @@ export function buildMesmerStrikes(
 
 /** Clone lifetime belongs to its owner independently of attribution and the triggering cast. */
 export function mesmerPacketOwner(event: SimulationEventBase): WorkOwner | undefined {
-  const id =
-    typeof event.summonOwner === 'string' && event.summonOwner.startsWith('mesmer.clone:')
-      ? event.summonOwner
-      : event.metadata?.cloneId != null
-        ? `mesmer.clone:${event.metadata.cloneId}`
-        : undefined;
+  const id = isMesmerCloneOwnerId(event.summonOwner)
+    ? event.summonOwner
+    : event.metadata?.cloneId != null
+      ? mesmerCloneOwnerId(event.metadata.cloneId)
+      : undefined;
   return id ? { id, generation: 0 } : undefined;
 }

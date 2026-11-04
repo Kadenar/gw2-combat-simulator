@@ -39,8 +39,7 @@ function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleI
     });
     context.effects.emit({
       kind: 'packet',
-      event: packet,
-      priority: Number(packet.priority ?? 0)
+      event: packet
     });
   }
 

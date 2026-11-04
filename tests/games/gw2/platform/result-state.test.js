@@ -1,9 +1,47 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
-import { criticalChanceEventAt } from '#gw2/platform/results/result-queries.js';
+import { criticalChanceEventAt, planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
+
+test('planning buff queries select accepted personal windows and respect exclusive expiry', () => {
+  // Profession countdowns share this filter; foreign recipients and assumed/projected grants cannot extend them.
+  const effect = (windows, options = {}) => timedEffectState('tracked', windows, 1, options);
+  const personal = effect([{ stacks: 1, expiresAt: 9 }]);
+  const others = [
+    effect([{ stacks: 1, expiresAt: 30 }], { recipient: 'party' }),
+    effect([{ stacks: 1, expiresAt: 30 }], { origin: 'party-projection' }),
+    effect([{ stacks: 1, expiresAt: 40 }], { origin: 'assumption' })
+  ];
+  assert.equal(planningBuffAt(undefined, 'tracked'), null);
+  for (const [effects, atSeconds, remaining] of [
+    [[], 4, undefined],
+    [others, 4, undefined],
+    [[...others, personal], 4, 5],
+    [[personal], 9, undefined],
+    [[personal], 10, undefined],
+    [[effect([])], 4, undefined],
+    [
+      [
+        effect([
+          { stacks: 1, expiresAt: 3 },
+          { stacks: 1, expiresAt: 7 },
+          { stacks: 1, expiresAt: 9.26 },
+          { stacks: 0, expiresAt: 50 }
+        ])
+      ],
+      4,
+      5.26
+    ]
+  ]) {
+    const value = planningBuffAt({ atSeconds, effects }, 'TRACKED');
+    assert.equal(value?.remaining, remaining);
+
+    if (remaining !== undefined) assert.equal(value.count, 1);
+  }
+});
 
 // Report queries share committed effect history and half-open lifetimes with combat queries.
 test('effect histories isolate self grants and retain older overlapping grants', () => {

@@ -47,8 +47,7 @@ export function resolveBladesong(
           context.effects.emit({
             ...delivery,
             kind: 'packet',
-            event: packet,
-            priority: Number(packet.priority ?? 0)
+            event: packet
           });
           return packet;
         })
@@ -72,8 +71,7 @@ export function resolveBladesong(
           context.effects.emit({
             ...delivery,
             kind: 'packet',
-            event: packet,
-            priority: Number(packet.priority ?? 0)
+            event: packet
           });
         }
       );
@@ -100,8 +98,7 @@ export function resolveBladesong(
         context.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
 

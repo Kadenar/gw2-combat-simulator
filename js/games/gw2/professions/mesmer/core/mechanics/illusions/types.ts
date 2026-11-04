@@ -8,7 +8,6 @@ export interface MesmerClone {
   id: number;
   createdAt: number;
   weapon: string;
-  ownerId?: string;
   attackSequenceIndex?: number;
 }
 

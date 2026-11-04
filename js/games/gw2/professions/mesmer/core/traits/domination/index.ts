@@ -248,8 +248,7 @@ function triggerRendingShatter(
       context.effects.emit({
         ...resolution.delivery,
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     });
   }

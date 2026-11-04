@@ -383,8 +383,7 @@ function applyMayhemInstrument(
         context.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
   }
@@ -513,8 +512,7 @@ function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): 
   ).forEach((packet) => {
     context.effects.emit({
       kind: 'packet',
-      event: packet,
-      priority: Number(packet.priority ?? 0)
+      event: packet
     });
   });
   context.effects.emit({
@@ -542,8 +540,7 @@ function triggerMethodOfMadnessSyncopate(context: MesmerRuntime): void {
   }).forEach((packet) => {
     context.effects.emit({
       kind: 'packet',
-      event: packet,
-      priority: Number(packet.priority ?? 0)
+      event: packet
     });
   });
   context.effects.emit({
@@ -604,8 +601,7 @@ function scheduleSyncopateDrumWave(
       context.effects.emit({
         ...delivery,
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     });
 
@@ -624,8 +620,7 @@ function scheduleSyncopateDrumWave(
     context.effects.emit({
       ...delivery,
       kind: 'packet',
-      event: packet,
-      priority: Number(packet.priority ?? 0)
+      event: packet
     });
   }
 
@@ -701,8 +696,7 @@ function resolveAlteredChord(
         ...delivery,
         kind: 'packet',
         cause: proc,
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
   } else if (lastInstrument === 'Flute') {
@@ -715,8 +709,7 @@ function resolveAlteredChord(
         context.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
 
@@ -742,8 +735,7 @@ function resolveAlteredChord(
       context.effects.emit({
         ...delivery,
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
 
@@ -809,8 +801,7 @@ function emitShredding(
       ...delivery,
       kind: 'packet',
       // The extra note is trait-owned so previews and breakdowns report it as Shredding.
-      event: { ...packet, name: 'Shredding', procType: 'trait', traitId: TRAIT.SHREDDING },
-      priority: Number(packet.priority ?? 0)
+      event: { ...packet, name: 'Shredding', procType: 'trait', traitId: TRAIT.SHREDDING }
     });
   });
 }

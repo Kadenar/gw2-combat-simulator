@@ -232,8 +232,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
         state.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
       buildMesmerConditions(
@@ -248,8 +247,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
         state.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
     }
@@ -284,8 +282,7 @@ export function completeAxesConfusion(state: MesmerRuntime, cast: RuntimeCast<Me
         state.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
     }

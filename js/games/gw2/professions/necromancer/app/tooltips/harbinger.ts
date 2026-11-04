@@ -141,7 +141,7 @@ export const harbingerTooltips = {
     [TRAIT.CASCADING_CORRUPTION]: traitTooltip(
       'Consuming enough blight triggers Meltdown, strike damage, and torment. Meltdown increases strike and condition damage.',
       [
-        ['minimumStacks', 'Blight consumed per trigger'],
+        ['maximumStacks', 'Maximum Cascading Corruption stacks'],
         fromProfile(TRAIT.CASCADING_CORRUPTION, 'damageIncrease', 'Strike damage during Meltdown', tooltipPercent),
         fromProfile(
           TRAIT.CASCADING_CORRUPTION,

@@ -59,8 +59,7 @@ export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast
       });
       context.effects.emit({
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
 }

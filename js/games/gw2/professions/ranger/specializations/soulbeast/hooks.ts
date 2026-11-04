@@ -15,6 +15,8 @@ export const soulbeastHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkil
   beastmodeLifecycle,
   {
     buffPolicies: soulbeastBuffPolicies,
+    // Core retains ownership; normal module compilation validates and gates this elite-only trigger.
+    traitTriggers: [bestialRageControl],
     sideEffectHandlers: {
       'ranger.vulture-stance'(runtime, context) {
         activateSoulbeastStance(runtime, context.skill, 'vulture-stance', runtime.time);
@@ -28,8 +30,6 @@ export const soulbeastHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkil
       }
     },
     reactions: {
-      // Core retains trait ownership; this elite registers its merged-pet control reaction.
-      'control.resolved': bestialRageControl,
       'damage.resolved'(runtime, event) {
         reactToSoulbeastDamage(runtime, event);
         reactToRangerWinterBite(runtime, event);

@@ -377,8 +377,7 @@ export function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: 
           ...packet,
           traitId: TRAIT.MAIM_THE_DISILLUSIONED,
           ...(resolution.persistsAfterInterrupt ? { persistsAfterInterrupt: true } : {})
-        },
-        priority: Number(packet.priority ?? 0)
+        }
       });
     });
   }

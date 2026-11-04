@@ -62,8 +62,7 @@ export function createContinuumController({
       });
       state.effects.emit({
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
 
@@ -112,8 +111,7 @@ export function createContinuumController({
       });
       state.effects.emit({
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
 

@@ -24,8 +24,13 @@ export const GW2_RESOLVER_STAGES: readonly Gw2ResolverStage[] = Object.freeze([
 
 const STAGES = new Set<string>(GW2_RESOLVER_STAGES);
 
+/** Share stage admission with declaration compilers so unknown keys cannot become silent no-ops. */
+export function isGw2ResolverStage(value: unknown): value is Gw2ResolverStage {
+  return typeof value === 'string' && STAGES.has(value);
+}
+
 function assertStage(value: string): asserts value is Gw2ResolverStage {
-  if (!STAGES.has(value)) {
+  if (!isGw2ResolverStage(value)) {
     throw new TypeError(`Unknown GW2 resolver stage: ${value}.`);
   }
 }

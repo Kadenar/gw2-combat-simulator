@@ -33,6 +33,23 @@ const burst = {
 };
 const struck = defineTriggerPoint('fixture.struck', [103, 101, 102]);
 
+test('direct compilation and family hooks reject invalid stages even with trait producers disabled', () => {
+  // Family hooks bypass module declaration validation; neither boundary may silently drop malformed listeners.
+  for (const on of ['damage.resolvedd', 'castStarted', 'toString', null, 42, {}]) {
+    const hooks = { traitTriggers: [{ trait: 101, on, run() {} }] };
+    const profession = defineNativeProfession({
+      id: 'fixture',
+      name: 'Fixture',
+      modules: [defineNativeModule({ id: 'Core', data: {}, state: { create: () => ({}) } })],
+      runtimeHooks: () => hooks
+    });
+    for (const traitTriggers of [true, false]) {
+      assert.throws(() => compileProfessionRules(hooks, { traitTriggers }), /unsupported stage/);
+      assert.throws(() => profession.runtimeFor({}, { traitTriggers }), /unsupported stage/);
+    }
+  }
+});
+
 test('stage listener lists preserve stable order, original inputs, and the trailing imperative result', () => {
   // Each stage dispatches its own listeners once before the imperative owner; only that owner supplies transforms.
   for (const stage of ['castStart', 'castCommit', ...GW2_RESOLVER_STAGES]) {

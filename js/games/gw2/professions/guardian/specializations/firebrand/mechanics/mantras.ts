@@ -33,6 +33,11 @@ function magazine(runtime: GuardianRuntime, definition: MantraDefinition): Prepa
   return { pool: runtime.helpers.skillsById.get(definition.normalId)!, ...faces(definition) };
 }
 
+/** Preparation seeds a lifetime generation even when the full magazine has no pending wake. */
+function mantraInitialized(runtime: GuardianRuntime, definition: MantraDefinition): boolean {
+  return Object.hasOwn(firebrandState.from(runtime.profession).mantraWakeGenerations, definition.rootId);
+}
+
 /** Preparation replaces the charge pool once; subsequent recovery uses the shared ammo controller. */
 function arm(runtime: GuardianRuntime, definition: MantraDefinition): void {
   openPreparedMagazine(
@@ -43,9 +48,12 @@ function arm(runtime: GuardianRuntime, definition: MantraDefinition): void {
     runtime.time
   );
   runtime.cooldownController.clear(definition.rootId);
+
+  if (!mantraInitialized(runtime, definition))
+    firebrandState.from(runtime.profession).mantraWakeGenerations[definition.rootId] = 0;
 }
 
-/** Exactly one pending wake owns each mantra's next charge or full rearm; rate changes replace that wake. */
+/** Callers select prepared mantras; one replaceable wake owns each next charge or full rearm. */
 function sync(runtime: GuardianRuntime, definition: MantraDefinition): void {
   const state = firebrandState.from(runtime.profession);
   const previous = state.mantraWakeGenerations[definition.rootId] ?? 0;
@@ -90,12 +98,10 @@ export function initializeFirebrandMantras(runtime: GuardianRuntime): void {
   }
 }
 
-/** Refresh only initialized mantras: preparation registers a wake generation even when no wake is pending. */
+/** Refresh only mantras registered by preparation, independently of their pending wakes. */
 function refreshFirebrandMantras(runtime: GuardianRuntime): void {
   runtime.cooldownController.refresh(runtime.time);
-  for (const definition of MANTRAS)
-    if (Object.hasOwn(firebrandState.from(runtime.profession).mantraWakeGenerations, definition.rootId))
-      sync(runtime, definition);
+  for (const definition of MANTRAS) if (mantraInitialized(runtime, definition)) sync(runtime, definition);
 }
 
 /** A charge deadline refreshes one mantra; an untargeted wake settles all prepared pools after a shared change. */

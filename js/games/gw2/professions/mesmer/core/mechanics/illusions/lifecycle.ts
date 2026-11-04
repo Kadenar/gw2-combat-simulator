@@ -5,6 +5,7 @@ import {
   scheduleMesmerPhantasmEffects,
   startMesmerCast
 } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import { mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
 import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -41,8 +42,7 @@ export const mesmerIllusionHooks = {
         });
         runtime.effects.emit({
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       }
 
@@ -81,7 +81,7 @@ export const mesmerIllusionHooks = {
       const next = createMesmerCloneScheduler(runtime).handleTask(id, runtime.time);
 
       if (next != null)
-        runtime.schedule('mesmer.clone-attack', next, id, { id: `mesmer.clone:${id}`, generation: 0 }, -50);
+        runtime.schedule('mesmer.clone-attack', next, id, { id: mesmerCloneOwnerId(id), generation: 0 }, -50);
     },
     'mesmer.resource-gain'(runtime, data) {
       const { count, weapon, reason, cause } = data as MesmerPendingResource;

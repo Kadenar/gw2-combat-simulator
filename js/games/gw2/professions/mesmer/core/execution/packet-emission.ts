@@ -71,8 +71,7 @@ export function createSkillDamageController({
         state.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       }
     };
@@ -109,8 +108,7 @@ export function createSkillDamageController({
           state.effects.emit({
             ...delivery,
             kind: 'packet',
-            event: packet,
-            priority: Number(packet.priority ?? 0)
+            event: packet
           });
         }
       );

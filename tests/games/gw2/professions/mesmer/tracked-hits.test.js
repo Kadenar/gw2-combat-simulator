@@ -81,7 +81,6 @@ test('Flying Cutter counts accepted hits across casts using the selected thresho
         assert.equal(event.skillName, 'Cutter Burst');
         assert.equal(event.parentSkillName, 'Flying Cutter');
         assert.equal(event.actorType, 'player');
-        assert.equal(event.persistsAfterInterrupt, true);
       }
     }
   }

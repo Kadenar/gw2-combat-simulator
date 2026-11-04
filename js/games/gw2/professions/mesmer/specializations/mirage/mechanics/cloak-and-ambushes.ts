@@ -110,8 +110,7 @@ export function createMirageActionController({
       state.effects.emit({
         ...delivery,
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
   };
@@ -137,8 +136,7 @@ export function createMirageActionController({
       state.effects.emit({
         ...delivery,
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     }
 
@@ -187,8 +185,7 @@ export function createMirageActionController({
       }).forEach((packet) => {
         state.effects.emit({
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
 
@@ -203,8 +200,7 @@ export function createMirageActionController({
       }).forEach((packet) => {
         state.effects.emit({
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
 
@@ -345,8 +341,7 @@ export function executeMirageCloneAmbushPackets(
         state.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       }
     }
@@ -383,8 +378,7 @@ export function executeMirageCloneAmbushPackets(
         state.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
 
@@ -398,8 +392,7 @@ export function executeMirageCloneAmbushPackets(
         state.effects.emit({
           ...delivery,
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
     }

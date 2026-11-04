@@ -1,5 +1,6 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import { mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
 import type {
   MesmerClone,
   MesmerCloneAttack,
@@ -34,7 +35,6 @@ export function createCloneAttackScheduler({
 
   const initializeClone = (clone: MesmerClone): MesmerClone => {
     const attack = attackFor(clone);
-    clone.ownerId ||= `mesmer.clone:${clone.id}`;
     clone.attackSequenceIndex = 0;
     const step = sequenceStep(clone, attack);
     // The scheduled task owns the next attack time; the clone retains only its sequence progress.
@@ -80,13 +80,12 @@ export function createCloneAttackScheduler({
         source: 'Clone',
         actorType: ACTOR.SUMMON,
         summonKind: 'clone',
-        summonOwner: clone.ownerId
+        summonOwner: mesmerCloneOwnerId(clone.id)
       }
     ).forEach((packet) => {
       state.effects.emit({
         kind: 'packet',
-        event: packet,
-        priority: Number(packet.priority ?? 0)
+        event: packet
       });
     });
     for (const condition of step.conditions || []) {
@@ -95,12 +94,11 @@ export function createCloneAttackScheduler({
         skillId: step.id,
         actorType: ACTOR.SUMMON,
         summonKind: 'clone',
-        summonOwner: clone.ownerId
+        summonOwner: mesmerCloneOwnerId(clone.id)
       }).forEach((packet) => {
         state.effects.emit({
           kind: 'packet',
-          event: packet,
-          priority: Number(packet.priority ?? 0)
+          event: packet
         });
       });
     }

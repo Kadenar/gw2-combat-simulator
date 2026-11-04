@@ -48,8 +48,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
     context.effects.emit({
       ...delivery,
       kind: 'packet',
-      event: packet,
-      priority: Number(packet.priority ?? 0)
+      event: packet
     });
   }
 
@@ -73,8 +72,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
     context.effects.emit({
       ...delivery,
       kind: 'packet',
-      event: packet,
-      priority: Number(packet.priority ?? 0)
+      event: packet
     });
   });
   context.effects.emit({

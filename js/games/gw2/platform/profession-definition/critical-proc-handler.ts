@@ -49,6 +49,12 @@ export function criticalProcHandler<
     throw new TypeError('Critical proc requires id and handler.');
   }
 
+  // Cooldown ownership is declared once; untyped callers must not share an accidental undefined registry key.
+  const cooldown = options.internalCooldown;
+
+  if (cooldown && (cooldown.key as unknown) == null)
+    throw new TypeError('Critical proc internal cooldown requires a key.');
+
   const actorTypes = new Set(options.actorTypes || [ACTOR.PLAYER]);
 
   return (context, event, details) => {
@@ -64,24 +70,22 @@ export function criticalProcHandler<
       typeof options.chanceOnCriticalHit === 'function'
         ? options.chanceOnCriticalHit(context)
         : (options.chanceOnCriticalHit ?? 1);
-    const internalCooldownDuration = options.internalCooldown
-      ? typeof options.internalCooldown.duration === 'function'
-        ? options.internalCooldown.duration(context)
-        : options.internalCooldown.duration
+    const internalCooldownDuration = cooldown
+      ? typeof cooldown.duration === 'function'
+        ? cooldown.duration(context)
+        : cooldown.duration
       : 0;
     const criticalChance = details.hitContext.critical.chance;
 
     // Each declaration selects its registry key; both modes consume the canonical seeded critical outcome.
-    const state = options.internalCooldown
-      ? { readyAt: context.procs.deadline(options.internalCooldown.key) }
-      : undefined;
+    const state = cooldown ? { readyAt: context.procs.deadline(cooldown.key) } : undefined;
     const application = advanceCriticalProc(
       criticalOpportunity(criticalChance, details.hitContext.critical.didCrit),
       {
         id: options.id,
         at: event.at,
         chanceOnCriticalHit,
-        ...(options.internalCooldown ? { internalCooldown: internalCooldownDuration } : {}),
+        ...(cooldown ? { internalCooldown: internalCooldownDuration } : {}),
         randomStream: options.randomStream,
         roll: (chance, stream) => context.random.roll(chance, stream)
       },
@@ -91,7 +95,7 @@ export function criticalProcHandler<
     if (!application) return;
 
     // Reserve successful claims before rewards can reenter; rejected attempts leave registry storage untouched.
-    if (state && options.internalCooldown) context.procs.setDeadline(options.internalCooldown.key, state.readyAt);
+    if (cooldown) context.procs.setDeadline(cooldown.key, state!.readyAt);
 
     // The shared layer decides only whether and how much the proc applied;
     // the declaration remains responsible for the actual trait effect.

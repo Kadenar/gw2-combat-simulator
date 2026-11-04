@@ -52,6 +52,15 @@ test('critical ICDs block through the canonical deadline without spending second
   assert.ok(advanceCriticalProc(criticalOpportunity(1, true), { ...request, at: 0 }, { readyAt: 0 }));
 });
 
+test('critical handlers reject nullish cooldown keys at declaration', () => {
+  // Invalid untyped declarations cannot accidentally share the registry's stringified undefined/null keys.
+  for (const internalCooldown of [{ duration: 1 }, { key: undefined, duration: 1 }, { key: null, duration: 1 }])
+    assert.throws(
+      () => criticalProcHandler({ id: 'fixture.invalid', internalCooldown, handler() {} }),
+      /internal cooldown requires a key/
+    );
+});
+
 // Registry binding preserves admission order and writes only successful claims before any reentrant reward.
 test('critical handlers gate registry reads and reserve successful claims before rewards', () => {
   const reads = [];

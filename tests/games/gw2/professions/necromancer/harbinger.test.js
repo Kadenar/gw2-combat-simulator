@@ -173,7 +173,7 @@ test('overlapping Meltdown procs retain one stack through the last accepted expi
     catalog: applyBalanceProfilePatch(native.catalog, {
       balanceProfiles: {
         [TRAIT.CASCADING_CORRUPTION]: {
-          fields: { minimumStacks: { from: 20, to: 5 } },
+          fields: { maximumStacks: { from: 20, to: 5 } },
           effects: [{ type: 'buff', name: 'meltdown', duration: 2 }]
         }
       }

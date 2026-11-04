@@ -21,7 +21,7 @@ test('Cascading Corruption resets at the cap in combat before emitting the consu
       helpers: applyBalanceProfilePatch(necromancerCatalog, {
         balanceProfiles: {
           [TRAIT.CASCADING_CORRUPTION]: {
-            fields: { minimumStacks: { from: 20, to: 2.5 } },
+            fields: { maximumStacks: { from: 20, to: 2.5 } },
             ...(removed
               ? {
                   removeEffects: [

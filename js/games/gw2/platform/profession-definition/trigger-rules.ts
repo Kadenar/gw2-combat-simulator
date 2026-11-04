@@ -15,7 +15,7 @@ import {
   type TraitAttribution
 } from '#gw2/platform/profession-definition/trait-emission.js';
 import { isTriggerPoint, type TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';
+import { GW2_RESOLVER_STAGES, isGw2ResolverStage } from '#gw2/platform/resolver/reaction-registry.js';
 import type { Gw2ResolverStage, Gw2ResolverStageDetails } from '#gw2/platform/resolver/types.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
@@ -154,8 +154,7 @@ type LooseTrigger = TraitTriggerBase & {
   readonly run?: (...args: never[]) => void;
 };
 
-const CAST_STAGES = new Set(['castStart', 'castCommit']);
-const RESOLVER_STAGES = new Set<string>(GW2_RESOLVER_STAGES);
+const CAST_HOOKS = { castStart: 'onCastStart', castCommit: 'onCastCommit' } as const;
 
 /** Reject authoring mistakes when a trait or module is declared, before a silent no-op can reach a simulation. */
 export function assertTraitTrigger(rule: object, owner: string): void {
@@ -183,7 +182,10 @@ export function assertTraitTrigger(rule: object, owner: string): void {
   if (point && !(rule as { readonly [pointListener]?: boolean })[pointListener])
     throw new TypeError(`${owner} point listeners must use onTriggerPoint.`);
 
-  if (!point && !(typeof trigger.on === 'string' && (CAST_STAGES.has(trigger.on) || RESOLVER_STAGES.has(trigger.on))))
+  if (
+    !point &&
+    !(typeof trigger.on === 'string' && (Object.hasOwn(CAST_HOOKS, trigger.on) || isGw2ResolverStage(trigger.on)))
+  )
     throw new TypeError(`${owner} trigger has an unsupported stage ${trigger.on}.`);
 
   const reactions = [trigger.emit != null, trigger.invoke != null, trigger.run != null].filter(Boolean).length;
@@ -298,8 +300,11 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
   // Omit activation producers at composition time while keeping recharge and authored payload hooks intact.
   // Point listeners compile separately, across modules, in their point's declared order.
   const byStage = new Map<string, LooseTrigger[]>();
-  for (const rule of traitTriggers ? ((hooks.traitTriggers ?? []) as readonly LooseTrigger[]) : []) {
-    if (typeof rule.on !== 'string') continue;
+  for (const rule of (hooks.traitTriggers ?? []) as readonly LooseTrigger[]) {
+    // Direct compilation and family hooks receive the same validation even when preview disables producers.
+    assertTraitTrigger(rule, `Trait ${rule.trait}`);
+
+    if (!traitTriggers || typeof rule.on !== 'string') continue;
 
     const listeners = byStage.get(rule.on) ?? [];
     listeners.push(rule);
@@ -309,12 +314,11 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
   // Stable sorting stays within this module; each contributed stage has one dispatcher before its imperative owner.
   for (const listeners of byStage.values()) listeners.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-  for (const stage of ['castStart', 'castCommit'] as const) {
+  for (const [stage, key] of Object.entries(CAST_HOOKS)) {
     const listeners = byStage.get(stage);
 
     if (!listeners?.length) continue;
 
-    const key = stage === 'castStart' ? 'onCastStart' : 'onCastCommit';
     const imperative = hooks[key];
     compiled[key] = (runtime, cast) => {
       // The runtime dispatches commit hooks only for successful casts, including shortened animations.

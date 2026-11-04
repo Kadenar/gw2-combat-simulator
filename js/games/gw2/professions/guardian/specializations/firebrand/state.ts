@@ -21,7 +21,7 @@ export interface GuardianFirebrandState {
   swiftScholarTome: string;
   swiftScholarCount: number;
 
-  /** Membership tracks initialized mantras; generations invalidate wakes while the cooldown controller owns deadlines. */
+  /** Preparation seeds membership; generations invalidate wakes while the cooldown controller owns deadlines. */
   mantraWakeGenerations: Record<string, number>;
 }
 
