@@ -868,7 +868,6 @@ export function handleRangerSharpeningStone(context: RangerResolverContext, even
 /** A positive player strike can consume one live stone and attribute its Bleeding to the utility rather than the weapon. */
 export function triggerSharpeningStone(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = professionCoreState(context.profession);
-  // Grant creation orders expiry; consumption skips expired batches without refreshing the pool on each hit.
 
   if (!isPlayerStrike(event) || !(Number(event.coefficient) > 0)) return;
 
@@ -877,6 +876,7 @@ export function triggerSharpeningStone(context: RangerResolverContext, event: Gw
     event,
     ID.SHARPENING_STONE,
     'sharpening-stone',
+    // Grants stay in expiry order, so this spends the earliest live batch and skips expired ones.
     () => consumeChargeBatch(state.sharpeningStoneGrants, event.at) !== undefined,
     {
       attribution: {

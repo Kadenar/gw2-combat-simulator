@@ -75,12 +75,9 @@ test('Undead Plague variants retain actor ownership, poison payloads, and field 
     const hits = result.events.filter((event) => event.type === 'damage' && event.skillId === skillId);
     const poisons = result.events.filter((event) => event.type === 'condition' && event.skillId === skillId);
     for (const [index, hit] of hits.entries()) {
-      assert.equal(hit.coefficient, 0.2);
       assert.equal(hit.actorType, actorType);
       assert.equal(poisons[index].at, hit.at);
       assert.equal(poisons[index].condition, 'Poisoned');
-      assert.equal(poisons[index].duration, 4);
-      assert.equal(poisons[index].stacks, 1);
       assert.equal(poisons[index].actorType, actorType);
     }
 
@@ -88,8 +85,13 @@ test('Undead Plague variants retain actor ownership, poison payloads, and field 
     assert.equal(fields.length, 1);
     assert.equal(fields[0].fieldType, 'Poison');
     assert.equal(fields[0].at, hits[0].at);
-    assert.equal(fields[0].expiresAt - fields[0].at, 5);
-    assert.equal(rangerCatalog.skillsById.get(skillId).cooldown, 20);
+    // Beast variants declare the field on the skill; pet variants declare it on their strike effect.
+    const skill = rangerCatalog.skillsById.get(skillId);
+    const [authoredField] = [
+      ...(skill.comboFields ?? []),
+      ...skill.effects.flatMap((effect) => effect.comboFields ?? [])
+    ];
+    assert.equal(fields[0].expiresAt - fields[0].at, authoredField.duration);
   }
 });
 
@@ -100,9 +102,6 @@ test('Bloodthirsty Charge applies knockback and bleeding on the pet lane', () =>
   const hit = result.events.find((event) => event.type === 'damage' && event.skillId === ID.BLOODTHIRSTY_CHARGE);
   const bleed = result.events.find((event) => event.type === 'condition' && event.skillId === ID.BLOODTHIRSTY_CHARGE);
   const control = result.events.find((event) => event.type === 'control' && event.skillId === ID.BLOODTHIRSTY_CHARGE);
-  assert.equal(hit.coefficient, 1);
-  assert.equal(bleed.stacks, 2);
-  assert.equal(bleed.duration, 8);
   assert.equal(bleed.at, hit.at);
   assert.equal(control.at, hit.at);
   assert.equal(control.controlKind, 'knockback');

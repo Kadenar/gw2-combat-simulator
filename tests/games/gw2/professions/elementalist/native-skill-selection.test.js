@@ -5,13 +5,8 @@ import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 
-function weaverApp(selectedSkillIds = {}, schemaVersion = elementalistProfession.createBuildDefaults().schemaVersion) {
-  const defaults = elementalistProfession.createBuildDefaults();
-  const build = elementalistAppAdapter.toApplicationBuild({
-    ...defaults,
-    schemaVersion,
-    selectedSkillIds: { ...defaults.selectedSkillIds, ...selectedSkillIds }
-  });
+function weaverApp() {
+  const build = elementalistAppAdapter.toApplicationBuild(elementalistProfession.createBuildDefaults());
 
   return {
     patch: elementalistAppAdapter.profession.resolvePatch(),

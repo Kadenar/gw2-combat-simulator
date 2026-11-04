@@ -81,11 +81,13 @@ test('Guardian virtue recharge excludes follow-up and proc identities sharing pr
 test('Guardian grouped impacts support payload patches without changing sibling effects', () => {
   const id = GUARDIAN_SKILL_IDS.JURISDICTION;
   const original = guardianCatalog.skillsById.get(id);
+  const coefficient = original.effects[0].coefficient;
+  const burningDuration = original.effects[1].duration;
   const preview = applySkillPatch(guardianCatalog, {
     skills: {
       [id]: {
-        coefficient: { from: 3, to: 4 },
-        conditions: { Burning: { duration: { from: 6, to: 7 } } }
+        coefficient: { from: coefficient, to: coefficient + 1 },
+        conditions: { Burning: { duration: { from: burningDuration, to: burningDuration + 1 } } }
       }
     }
   });
@@ -96,14 +98,14 @@ test('Guardian grouped impacts support payload patches without changing sibling 
     patched.effects,
     original.effects.map((effect) =>
       effect.type === 'strike'
-        ? { ...effect, coefficient: 4 }
+        ? { ...effect, coefficient: coefficient + 1 }
         : effect.condition === 'Burning'
-          ? { ...effect, duration: 7 }
+          ? { ...effect, duration: burningDuration + 1 }
           : effect
     )
   );
-  assert.equal(original.effects[0].coefficient, 3);
-  assert.equal(original.effects[1].duration, 6);
+  assert.equal(original.effects[0].coefficient, coefficient);
+  assert.equal(original.effects[1].duration, burningDuration);
 });
 
 // These fields span the symbol's pulses, including when the opening offset changes.
@@ -474,7 +476,11 @@ test('Inspired Virtue emits its base boon through the shared boon-duration polic
 
   assert.ok(protection);
   assert.equal(protection.kind, 'protection');
-  assert.equal(protection.duration, 7.5);
+  // Concentration 750 extends the authored base duration by 50%.
+  const base = guardianCatalog.balanceProfilesById
+    .get(GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)
+    .effects.find((effect) => effect.name === protection.kind);
+  assert.equal(protection.duration, base.duration * 1.5);
 });
 
 test('Spear Symbol of Luminance keeps all spear skills illuminated while active', () => {

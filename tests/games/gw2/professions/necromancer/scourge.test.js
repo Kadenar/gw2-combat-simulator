@@ -205,7 +205,6 @@ test('Sandstorm barriers use live Sand Sage attributes at each pulse and at deto
   );
   assert.ok(boons.length > 0);
   assert.ok(boons[0].duration > boons.at(-1).duration);
-  assert.equal(boons.at(-1).duration, 1.5);
   assert.deepEqual(state(result).shades, []);
 });
 

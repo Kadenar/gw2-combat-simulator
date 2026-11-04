@@ -199,9 +199,11 @@ test('Overheat authoring retains the live penalty and rejects obsolete saved con
     .find((module) => module.id === 'Holosmith')
     .balanceProfiles.find((entry) => entry.id === id);
   assert.deepEqual(Object.keys(profile.patchableFields).sort(), ['cooldown', 'energyRegenerationPerSecond']);
-  const live = { balanceProfiles: { [id]: { fields: { cooldown: { from: 15, to: 9 } } } } };
+  const liveCooldown = engineerCatalog.balanceProfilesById.get(id).cooldown;
+  const patchedCooldown = liveCooldown + 1;
+  const live = { balanceProfiles: { [id]: { fields: { cooldown: { from: liveCooldown, to: patchedCooldown } } } } };
   assert.equal(authoringEngineerProfession.validatePatch(live), true);
-  assert.equal(applyEngineerPatch(live).balanceProfilesById.get(id).cooldown, 9);
+  assert.equal(applyEngineerPatch(live).balanceProfilesById.get(id).cooldown, patchedCooldown);
   for (const field of ['minimumStacks', 'threshold', 'pulseInterval', 'duration']) {
     const saved = JSON.parse(JSON.stringify({ balanceProfiles: { [id]: { fields: { [field]: 1 } } } }));
     assert.throws(() => authoringEngineerProfession.validatePatch(saved), new RegExp(`does not expose ${field}`));
@@ -209,7 +211,7 @@ test('Overheat authoring retains the live penalty and rejects obsolete saved con
     assert.equal(Object.hasOwn(engineerCatalog.balanceProfilesById.get(id), field), false);
   }
 
-  assert.equal(engineerCatalog.balanceProfilesById.get(id).cooldown, 15);
+  assert.equal(engineerCatalog.balanceProfilesById.get(id).cooldown, liveCooldown);
 });
 
 test('Poison Dart Volley and Static Shot are not combo finishers', () => {

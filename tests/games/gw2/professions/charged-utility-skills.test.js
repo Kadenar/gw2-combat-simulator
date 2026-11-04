@@ -156,10 +156,21 @@ test("Viper's Nest triggers after placement and preserves the pending dagger cha
   }
 });
 
-test('Sharpening Stone applications expire independently at thirty seconds', () => {
+test('Sharpening Stone applications expire independently at their authored duration', () => {
+  const { charges, duration } = rangerProfession.catalog.skillsById.get(RANGER.SHARPENING_STONE);
+  const durationMs = duration * 1000;
+  // The second application overlaps the first, so only its charges outlive the first expiry.
+  const overlapMs = durationMs / 3;
   const result = ranger(
     'Druid',
-    ['Sharpening Stone', wait(10000), '__cooldown_reset', 'Sharpening Stone', wait(20000), 'Groundwork Gouge'],
+    [
+      'Sharpening Stone',
+      wait(overlapMs),
+      '__cooldown_reset',
+      'Sharpening Stone',
+      wait(durationMs - overlapMs),
+      'Groundwork Gouge'
+    ],
     { selectedSkillIds: [12537] }
   );
   assert.deepEqual(result.warnings, []);
@@ -170,10 +181,10 @@ test('Sharpening Stone applications expire independently at thirty seconds', () 
       (sum, grant) => sum + grant.charges,
       0
     ),
-    9
+    charges - 1
   );
   assert.equal(conditions(result, RANGER.SHARPENING_STONE).length, 1);
-  const expired = ranger('Druid', ['Sharpening Stone', wait(30000), 'Groundwork Gouge'], {
+  const expired = ranger('Druid', ['Sharpening Stone', wait(durationMs), 'Groundwork Gouge'], {
     selectedSkillIds: [12537]
   });
   assert.equal(conditions(expired, RANGER.SHARPENING_STONE).length, 0);

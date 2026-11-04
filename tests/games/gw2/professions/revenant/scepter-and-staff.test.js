@@ -21,6 +21,12 @@ const simulate = createObservedProfessionSimulator(revenantProfession, {
 const tail = { kind: 'tail', durationMs: 6000 };
 const auraDamage = (result) =>
   result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === ID.BLOSSOMING_AURA);
+// Reached tiers scale the final strike through a captured factor, never by rewriting its authored coefficient.
+const auraEffects = revenantCatalog.skillsById.get(ID.BLOSSOMING_AURA).effects;
+const pulseCoefficient = auraEffects.find((effect) => effect.name === 'Pulsing Damage').ticks[0].coefficient;
+const finalEffect = auraEffects.find((effect) => effect.name === 'Final Damage');
+const finalFactor = (tier) => 1 + tier * finalEffect.damageIncreasePerStack;
+const finalRatio = (tier) => (finalFactor(tier) * finalEffect.coefficient) / pulseCoefficient;
 
 test('Enemy Attraction requires a mature tether and releases it with vulnerability and control', () => {
   // Follow-ups own the active tether; the pull consumes it and starts the parent recharge.
@@ -68,9 +74,11 @@ test('Blossoming Aura keeps a fixed fuse after attachment regardless of cast spe
     const result = simulate('Core', ['Blossoming Aura'], { boons: { quickness } }, tail);
     const damage = auraDamage(result);
     assert.deepEqual(result.warnings, []);
-    assert.equal(damage.at(-1).coefficient, 1);
-    assert.equal(damage.at(-1).metadata.revenantBlossomingAuraDamageFactor, 2.5);
-    assertFlooredDamageMultiplier(damage.at(-1).damage, damage[0].damage, 2.5 / 0.3);
+    // Natural expiry detonates at the tier its last pulse reached.
+    const tier = damage.filter((event) => event.name === 'Pulsing Damage').length - 1;
+    assert.equal(damage.at(-1).coefficient, finalEffect.coefficient);
+    assert.equal(damage.at(-1).metadata.revenantBlossomingAuraDamageFactor, finalFactor(tier));
+    assertFlooredDamageMultiplier(damage.at(-1).damage, damage[0].damage, finalRatio(tier));
     assert.equal(result.planningState.cooldownsBySkillId[ID.BLOSSOMING_AURA].readyAtMs, 6400);
     assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DETONATE_BLOSSOMING_AURA], undefined);
   }
@@ -88,9 +96,9 @@ test('Manual Aura detonation uses the reached tier and cancels future pulses wit
     assert.deepEqual(result.warnings, []);
     assert.equal(damage.filter((event) => event.name === 'Pulsing Damage').length, tier + 1);
     const final = damage.find((event) => event.name === 'Final Damage');
-    assert.equal(final.coefficient, 1);
-    assert.equal(final.metadata.revenantBlossomingAuraDamageFactor, 1 + tier * 0.5);
-    assertFlooredDamageMultiplier(final.damage, damage[0].damage, (1 + tier * 0.5) / 0.3);
+    assert.equal(final.coefficient, finalEffect.coefficient);
+    assert.equal(final.metadata.revenantBlossomingAuraDamageFactor, finalFactor(tier));
+    assertFlooredDamageMultiplier(final.damage, damage[0].damage, finalRatio(tier));
     assert.equal(result.planningState.cooldownsBySkillId[ID.BLOSSOMING_AURA].readyAtMs, 6400);
     assert.equal(result.planningState.profession[STATE.AVAILABLE_FLIPS][ID.DETONATE_BLOSSOMING_AURA], undefined);
   }

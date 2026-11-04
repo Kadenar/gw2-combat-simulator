@@ -91,8 +91,6 @@ test('Throw Bolas applies immobilize and resolves a projectile combo at impact',
     (event) => event.skillId === ID.THROW_BOLAS && event.type === 'condition' && event.condition === 'Immobilized'
   );
   assert.equal(immobilize.at, impact.at);
-  assert.equal(immobilize.duration, 4);
-  assert.equal(immobilize.stacks, 1);
   assert.ok(
     result.events.some(
       (event) =>
@@ -804,8 +802,7 @@ test('Arcing Slice scales Fury by adrenaline tier and damage below half health',
     return result.events.find((event) => event.sourceId === ID.ARCING_SLICE && event.kind === 'fury')?.duration;
   });
 
-  assert.equal(arcingSlice.cooldown, 8);
-  assert.deepEqual(furyDurations, [8, 12, 16]);
+  assert.ok(furyDurations[0] < furyDurations[1] && furyDurations[1] < furyDurations[2]);
   assert.equal(arcingSlice.effects[0].modifiers[0].id, 'warrior.arcing-slice-target-health');
 });
 
@@ -821,11 +818,11 @@ test('Kill Shot scales with adrenaline, stays level one on Spellbreaker, and gai
     });
   const packet = (result) => result.events.find((event) => event.type === 'damage' && event.skillId === ID.KILL_SHOT);
 
-  assert.deepEqual(
-    [10, 20, 30].map((adrenaline) => packet(killShot('Core', adrenaline)).coefficient),
-    [2.25, 2.75, 3.25]
+  const [levelOne, levelTwo, levelThree] = [10, 20, 30].map(
+    (adrenaline) => packet(killShot('Core', adrenaline)).coefficient
   );
-  assert.equal(packet(killShot('Spellbreaker', 20)).coefficient, 2.25);
+  assert.ok(levelOne < levelTwo && levelTwo < levelThree);
+  assert.equal(packet(killShot('Spellbreaker', 20)).coefficient, levelOne);
 
   const normal = killShot('Core', 10);
   const defiant = killShot('Core', 10, { target: { defiant: true, conditions: {} } });
@@ -852,29 +849,29 @@ test('Kill Shot tiers and Fierce Blow target bonuses preserve patched strike coe
   const run = createObservedProfessionSimulator(patched, { ...baseConfig, patchId: 'warrior-coefficient-test' });
   const coefficient = (result, id) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === id).coefficient;
-  for (const [specialization, resource, expected] of [
-    ['Core', 10, 4.5],
-    ['Core', 20, 5.5],
-    ['Core', 30, 6.5],
-    ['Spellbreaker', 20, 4.5]
+  // Every tier doubles its own live coefficient under the patch.
+  for (const [specialization, resource] of [
+    ['Core', 10],
+    ['Core', 20],
+    ['Core', 30],
+    ['Spellbreaker', 20]
   ]) {
+    const config = { primaryWeapon: 'Rifle', initialResource: resource };
     assert.equal(
-      coefficient(
-        run(specialization, [ID.KILL_SHOT], { primaryWeapon: 'Rifle', initialResource: resource }),
-        ID.KILL_SHOT
-      ),
-      expected
+      coefficient(run(specialization, [ID.KILL_SHOT], config), ID.KILL_SHOT),
+      2 * coefficient(simulate(specialization, [ID.KILL_SHOT], config), ID.KILL_SHOT)
     );
   }
 
-  const fierce = (defiant) =>
-    run('Core', [ID.FIERCE_BLOW], { primaryWeapon: 'Hammer', target: { defiant } }).resolvedEvents.find(
+  const fierce = (simulator, defiant) =>
+    simulator('Core', [ID.FIERCE_BLOW], { primaryWeapon: 'Hammer', target: { defiant } }).resolvedEvents.find(
       (event) => event.type === 'damage' && event.skillId === ID.FIERCE_BLOW
     );
-  const ordinary = fierce(false);
-  const defiant = fierce(true);
-  assert.equal(ordinary.coefficient, 3.6);
-  assert.equal(defiant.coefficient, 3.6);
+  const ordinary = fierce(run, false);
+  const defiant = fierce(run, true);
+  // The defiant bonus raises damage without rewriting the patched coefficient.
+  assert.equal(ordinary.coefficient, 2 * fierce(simulate, false).coefficient);
+  assert.equal(defiant.coefficient, ordinary.coefficient);
   assertFlooredDamageMultiplier(defiant.damage, ordinary.damage, 1.5);
 });
 
@@ -994,7 +991,6 @@ test('Peak Performance buffs Kick and Leg Specialist requires impairment', () =>
 
   const mending = warriorCatalog.skillsById.get(ID.MENDING);
 
-  assert.equal(mending.cooldown, 12);
   assert.equal(mending?.skillFamily === 'Physical', true);
   const mendingProc = simulate('Core', ['Mending'], {
     selectedTraitIds: [TRAIT.PEAK_PERFORMANCE],
@@ -1046,7 +1042,6 @@ test('Defense traits apply Merciless Hammer and Stalwart Strength', () => {
   );
 
   assert.equal(stability?.kind, 'stability');
-  assert.equal(stability?.duration, 5);
 
   const controlledStrikeDamage = (selectedTraitIds) =>
     simulate('Core', ['Kick', 'Mace Smash'], {

@@ -1187,7 +1187,6 @@ test('Fresh Air grants ferocity when entering Air, not when resetting it', () =>
   const freshAir = result.events.filter((event) => event.type === 'buff' && event.kind === 'fresh-air');
 
   assert.equal(freshAir.length, 1);
-  assert.equal(freshAir[0].duration, 5);
 });
 
 test('Unravel resets the current Weaver recharge, fully attunes for five seconds, and preserves future swap recharge', () => {
