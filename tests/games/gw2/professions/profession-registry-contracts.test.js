@@ -315,7 +315,6 @@ test('ready native professions expose deliberate public end-state keys', async (
     mesmer: ['bloodsongProgress', 'pendingResources', 'traitReadyAt'],
     necromancer: [
       'nextBlightAt',
-      'minionGenerations',
       'minionAttackGenerations',
       'spiritGeneration',
       'spiritAutoAnchorAt',

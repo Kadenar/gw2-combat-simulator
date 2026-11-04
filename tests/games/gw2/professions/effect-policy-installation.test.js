@@ -50,7 +50,7 @@ const owners = [
     name: 'Necromancer',
     family: necromancerProfession,
     core: ['necromancer-soul-barbs', 'extirpation', 'taste-for-blood'],
-    observations: { Scourge: ['active-shade'], Harbinger: ['harbinger-blight', 'harbinger-shroud', 'meltdown'] },
+    observations: { Scourge: ['active-shade'], Harbinger: ['harbinger-blight', 'harbinger-shroud'] },
     elites: {
       Reaper: [],
       Scourge: ['active-shade'],

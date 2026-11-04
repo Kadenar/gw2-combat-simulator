@@ -40,7 +40,6 @@ const actionTime = (at: number) => quantizeGw2ActionDurationUp(at * 1000) / 1000
 interface MinionWork {
   skillId: SkillId;
   key: string;
-  generation: number;
   attackGeneration: number;
   index: number;
   activationId: string;
@@ -127,13 +126,11 @@ export function necromancerMinionAvailability(runtime: MechanicQueriesOf<Necroma
   return null;
 }
 
-/** A queued attack must still belong to a living creature and its current attack sequence, not just the same minion type. */
+/** Replacements and command pauses advance the same generation; queued work also requires its creature to remain alive. */
 function active(runtime: NecromancerRuntime, work: MinionWork): boolean {
   const state = runtime.profession.core;
   return (
-    state.activeMinions[work.key] > work.index &&
-    state.minionGenerations[work.key] === work.generation &&
-    state.minionAttackGenerations[work.key] === work.attackGeneration
+    state.activeMinions[work.key] > work.index && state.minionAttackGenerations[work.key] === work.attackGeneration
   );
 }
 
@@ -202,7 +199,7 @@ function emitAttack(
   if (controlKind) runtime.effects.emit({ kind: 'packet', event: { ...attribution, type: 'control', controlKind } });
 }
 
-/** Retire queued attacks without replacing the creatures; commands can pause and resume their existing attack cursors. */
+/** Monotonic ownership invalidates queued attacks and commands on replacement or pause while retaining live cursors. */
 function replaceAttacks(runtime: NecromancerRuntime, key: string): void {
   const state = runtime.profession.core;
   runtime.cancelOwner(owner(key, state.minionAttackGenerations[key] ?? 0));
@@ -329,7 +326,6 @@ export function summonNecromancerMinion(runtime: NecromancerRuntime, cast: Runti
   const key = definition.key;
   replaceAttacks(runtime, key);
   state.activeMinions[key] = definition.count;
-  state.minionGenerations[key] = (state.minionGenerations[key] ?? 0) + 1;
   // Traits observe the concrete completed summon once, including each member of a multi-creature grant.
   runtime.fireTrigger(creatureSummoned, {
     skill: skill,
@@ -386,7 +382,6 @@ export function commandNecromancerMinion(runtime: NecromancerRuntime, cast: Runt
     skillId: skill.id,
     key,
     index: Number(command.consumes) > 0 ? state.activeMinions[key] - 1 : 0,
-    generation: state.minionGenerations[key],
     attackGeneration: state.minionAttackGenerations[key],
     activationId: cast.id,
     offTarget: cast.command.offTarget,
@@ -441,7 +436,6 @@ function startNecromancerMinions(runtime: NecromancerRuntime, recoveringKey?: st
           skillId: cursor.skillId,
           key,
           index,
-          generation: state.minionGenerations[key],
           attackGeneration: state.minionAttackGenerations[key],
           activationId: cursor.activationId
         });

@@ -15,7 +15,6 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 import {
   balanceNumberFromContext,
   balanceProfileNumber,
-  effectNumber,
   requireBalanceProfileFromContext,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -38,7 +37,6 @@ import type {
   NecromancerRuntime,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Dark Disciple owns intrinsic Blight growth, capacity, and shroud life-force drain. */
 const darkDisciple = defineTrait({
@@ -424,9 +422,6 @@ function applyCascadingCorruption(
       state.cascadingCorruptionStacks = progress.value;
 
       if (progress.reached) {
-        if (meltdown)
-          state.meltdownUntil = canonicalTime(runtime.time + effectNumber(corruption, meltdown, 'duration'));
-
         const proc = runtime.effects.emit({
           receipt: true,
           kind: 'announcement',

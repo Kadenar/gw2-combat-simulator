@@ -603,7 +603,7 @@ test('canonical simulation resolves the selected live source once', () => {
 const inactiveStateKeys = Object.freeze({
   Reaper: [],
   Scourge: ['shades'],
-  Harbinger: ['blightExpiries', 'nextBlightAt', 'cascadingCorruptionStacks', 'meltdownUntil'],
+  Harbinger: ['blightExpiries', 'nextBlightAt', 'cascadingCorruptionStacks'],
   Ritualist: [
     'activeSpirits',
     'spiritGeneration',
@@ -718,15 +718,14 @@ test('Necromancer public projection omits inactive specialization resources', ()
     STATE.BLIGHT_EXPIRIES,
     STATE.SHADES,
     STATE.ACTIVE_SPIRITS,
-    STATE.SOUL_TWISTING_AVAILABLE,
-    STATE.MELTDOWN_UNTIL
+    STATE.SOUL_TWISTING_AVAILABLE
   ])
     assert.equal(Object.hasOwn(result.planningState.profession, key), false, key);
 });
 
 const guardianInactiveStateKeys = Object.freeze({
   Dragonhunter: ['tetherUntil'],
-  Firebrand: ['activeTome', 'tomePages', 'ashes', 'swiftScholarTome', 'swiftScholarCount', 'mantraRechargeReadyAt'],
+  Firebrand: ['activeTome', 'tomePages', 'ashes', 'swiftScholarTome', 'swiftScholarCount', 'mantraWakeGenerations'],
   Willbender: [
     'flameVirtue',
     'pendingWeaponCooldownReduction',

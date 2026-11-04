@@ -1,6 +1,8 @@
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { ProfessionDefinition } from '#gw2/platform/profession-definition/types.js';
 import type { createEffectDelivery } from '#gw2/platform/resolver/effect-delivery.js';
 import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-reactions.js';
@@ -12,6 +14,27 @@ import type {
   Gw2ResolverStage,
   Gw2ResolverStageDetails
 } from '#gw2/platform/resolver/types.js';
+
+/** Grouped trait dispatch keeps the resolver stage's required details and the imperative transform result. */
+export function checkCompiledReactions(
+  hooks: RuntimeHooks<object>,
+  runtime: MechanicContext,
+  event: Gw2ResolverEvent,
+  damage: NativeResolvedDamageDetails,
+  condition: Gw2ResolverStageDetails['condition.applied']
+) {
+  const compiled = compileProfessionRules(hooks);
+  compiled.reactions?.['damage.resolved']?.(runtime, event, damage) satisfies void;
+  compiled.reactions?.['condition.applied']?.(runtime, event, condition) satisfies void;
+  compiled.reactions?.['damage.resolving']?.(runtime, event, undefined) satisfies Record<string, unknown> | void;
+  // @ts-expect-error Compiling listeners must not erase required hit facts.
+  compiled.reactions?.['damage.resolved']?.(runtime, event, {});
+  // @ts-expect-error Grouping cannot substitute another stage's payload.
+  compiled.reactions?.['condition.applied']?.(runtime, event, damage);
+  // @ts-expect-error Notification callbacks do not return a transform patch.
+  const patch: Record<string, unknown> = compiled.reactions?.['damage.resolved']?.(runtime, event, damage);
+  return patch;
+}
 
 // Notification results cannot be consumed as patches; the pre-hit stage remains a transform.
 export function checkReactionResults(

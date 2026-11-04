@@ -39,7 +39,6 @@ export function createNecromancerCoreState(
     soulShardGrant: grantCharges(0, 0),
     carapaceExpiries: [],
     activeMinions: {},
-    minionGenerations: {},
     minionAttackGenerations: {},
     minionAttackCursors: {},
     swordChainGeneration: 0,

@@ -43,7 +43,6 @@ function arm(runtime: GuardianRuntime, definition: MantraDefinition): void {
     runtime.time
   );
   runtime.cooldownController.clear(definition.rootId);
-  firebrandState.from(runtime.profession).mantraRechargeReadyAt[definition.rootId] = runtime.time;
 }
 
 /** Exactly one pending wake owns each mantra's next charge or full rearm; rate changes replace that wake. */
@@ -56,18 +55,12 @@ function sync(runtime: GuardianRuntime, definition: MantraDefinition): void {
   const normal = runtime.helpers.skillsById.get(definition.normalId)!;
   let next = Infinity;
 
-  if (
-    runtime.cooldownController.hasCooldown(definition.rootId) ||
-    state.mantraRechargeReadyAt[definition.rootId] > runtime.time ||
-    !runtime.cooldownController.hasAmmo(normal.id)
-  ) {
+  // Timer presence includes completed recharge; only its controller deadline decides when to rearm.
+  if (runtime.cooldownController.hasCooldown(definition.rootId) || !runtime.cooldownController.hasAmmo(normal.id)) {
     const readyAt = gw2CooldownReadyAt(runtime.cooldownController.readyAt(definition.rootId) ?? 0);
 
     if (readyAt <= runtime.time) arm(runtime, definition);
-    else {
-      state.mantraRechargeReadyAt[definition.rootId] = readyAt;
-      next = readyAt;
-    }
+    else next = readyAt;
   }
 
   if (runtime.cooldownController.hasAmmo(normal.id)) {
@@ -97,11 +90,11 @@ export function initializeFirebrandMantras(runtime: GuardianRuntime): void {
   }
 }
 
-/** Alacrity and explicit resets settle the real recharge maps before reprojecting visible flips and wakes. */
+/** Refresh only initialized mantras: preparation registers a wake generation even when no wake is pending. */
 function refreshFirebrandMantras(runtime: GuardianRuntime): void {
   runtime.cooldownController.refresh(runtime.time);
   for (const definition of MANTRAS)
-    if (Object.hasOwn(firebrandState.from(runtime.profession).mantraRechargeReadyAt, definition.rootId))
+    if (Object.hasOwn(firebrandState.from(runtime.profession).mantraWakeGenerations, definition.rootId))
       sync(runtime, definition);
 }
 
@@ -168,8 +161,7 @@ const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState, GuardianSk
           runtime.fireTrigger(finalMantraChargeUsed, { context });
           closePreparedMagazine(runtime, runtime.cooldownController, magazine(runtime, definition));
           const root = runtime.helpers.skillsById.get(definition.rootId)!;
-          firebrandState.from(runtime.profession).mantraRechargeReadyAt[definition.rootId] =
-            runtime.cooldownController.startRecharge(root, runtime.time);
+          runtime.cooldownController.startRecharge(root, runtime.time);
           sync(runtime, definition);
         }
       ]

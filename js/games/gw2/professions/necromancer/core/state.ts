@@ -43,7 +43,7 @@ export interface NecromancerCoreState {
   soulShardGrant: ChargeGrant;
   carapaceExpiries: number[];
   activeMinions: Record<string, number>;
-  minionGenerations: Record<string, number>;
+  /** Shared work identity advances on summon replacement and command pauses, and survives the last creature's death. */
   minionAttackGenerations: Record<string, number>;
   /** Actual next attacks survive command pauses without reconstructing progress from elapsed time. */
   minionAttackCursors: Record<

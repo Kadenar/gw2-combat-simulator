@@ -8,7 +8,6 @@ export const NECROMANCER_STATE_IDS = Object.freeze({
   BLIGHT: 'gw2.harbinger.blight',
   BLIGHT_EXPIRIES: 'gw2.harbinger.blight-expiries',
   CASCADING_CORRUPTION_STACKS: 'gw2.harbinger.cascading-corruption-stacks',
-  MELTDOWN_UNTIL: 'gw2.harbinger.meltdown-until',
   ACTIVE_SPIRITS: 'gw2.ritualist.active-spirits',
   SOUL_TWISTING_AVAILABLE: 'gw2.ritualist.soul-twisting-available',
   SHADES: 'gw2.scourge.shades'

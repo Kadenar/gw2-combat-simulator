@@ -206,11 +206,19 @@ function mechanicBoundaries(context: WarriorRuntime) {
   context.facts.read()[0].at = 0;
   // @ts-expect-error Bound services do not expose the aggregate owner.
   context.combat.runtime;
+  // @ts-expect-error Timeline replay belongs to the engine query owner, not mechanic capabilities.
+  context.combat.timeline;
+  // @ts-expect-error Mechanics use named target-health predicates instead of the unused loss wrapper.
+  context.combat.targetHealthLoss();
 }
 
 function queryBoundaries(context: MechanicQueryContext<WarriorRuntimeState, WarriorSkill>) {
   const skill: WarriorSkill | undefined = context.helpers.skillsById.get(1);
   context.combat.targetHealthBelow(0.5);
+  // @ts-expect-error Read-only mechanic queries cannot acquire the engine timeline either.
+  context.combat.timeline;
+  // @ts-expect-error Read-only mechanics share the same named health queries.
+  context.combat.targetHealthLoss();
   // @ts-expect-error Query callbacks do not receive the unused proc capability.
   context.procs;
   // @ts-expect-error Query callbacks cannot schedule or emit effects.

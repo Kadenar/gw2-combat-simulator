@@ -109,12 +109,12 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
     180
   );
 
-  // The live cooldown clock drives passive suppression, recovery, and cooldown resets for raw and panel stats.
+  // Probes supply the captured engine query so live cooldowns drive passive suppression, recovery, and resets.
   const precision = (runtime, config, attributes) =>
     thiefProfession
       .resolveProfession({})
       .modifyAttributes(
-        { catalog: thiefCatalog, config, timeline: runtime.combat.timeline, time: runtime.time },
+        { catalog: thiefCatalog, config, timeline: runtime.query.timeline, time: runtime.time },
         attributes
       ).precision;
   for (const specialization of ['Core', 'Daredevil']) {

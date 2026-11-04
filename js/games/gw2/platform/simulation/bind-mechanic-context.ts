@@ -24,13 +24,9 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
       buffApplications: combat.buffApplications,
       activeBuffStacks: combat.activeBuffStacks,
       boonSnapshot: combat.boonSnapshot,
-      get timeline() {
-        return combat.timeline;
-      },
       targetHasCondition: combat.targetHasCondition,
       targetConditionStacks: combat.targetConditionStacks,
       targetConditionCount: combat.targetConditionCount,
-      targetHealthLoss: combat.targetHealthLoss,
       targetHealthBelow: combat.targetHealthBelow,
       targetHitboxSize: combat.targetHitboxSize,
       remainingTargetHealthFraction: combat.remainingTargetHealthFraction,

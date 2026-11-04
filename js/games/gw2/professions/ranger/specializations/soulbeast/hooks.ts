@@ -8,7 +8,6 @@ import {
   reactToSoulbeastDamage
 } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { activateSoulbeastStance } from '#gw2/professions/ranger/specializations/soulbeast/skills/stance-skills.js';
-import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Compose the Beastmode lifecycle with stance grants and ordered damage reactions. */
@@ -25,8 +24,7 @@ export const soulbeastHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkil
 
         // Earlier trap pulses cannot echo until the stance's activation packet actually resolves.
         const at = context.cast.start + Number(context.skill.interruptCommitMs) / 1000;
-        soulbeastState.from(runtime.profession).oneWolfPackUntil =
-          at + activateSoulbeastStance(runtime, context.skill, 'one-wolf-pack', at);
+        activateSoulbeastStance(runtime, context.skill, 'one-wolf-pack', at);
       }
     },
     reactions: {

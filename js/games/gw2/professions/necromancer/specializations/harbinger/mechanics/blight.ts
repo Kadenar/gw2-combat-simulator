@@ -36,12 +36,12 @@ function nextBlightAt(runtime: NecromancerRuntime): number {
   return canonicalTime(next * interval);
 }
 
-/** One replaceable wake owns the next actual accrual, expiry, or Meltdown deadline. */
+/** One replaceable wake owns only actual Blight accrual and stack expiry. */
 function refreshBlight(runtime: NecromancerRuntime): void {
   const state = harbingerState.from(runtime.profession);
   runtime.cancelOwner({ id: BLIGHT, generation: state.blightGeneration });
   state.blightGeneration++;
-  const at = Math.min(state.nextBlightAt ?? Infinity, ...state.blightExpiries, state.meltdownUntil || Infinity);
+  const at = Math.min(state.nextBlightAt ?? Infinity, ...state.blightExpiries);
 
   if (Number.isFinite(at)) runtime.schedule(BLIGHT, at, null, { id: BLIGHT, generation: state.blightGeneration }, -20);
 }
@@ -101,8 +101,6 @@ const harbingerBlightTasks = {
   [BLIGHT](runtime) {
     const state = harbingerState.from(runtime.profession);
     purgeHarbingerTimedState(state, runtime.time, harbingerBlightMaximum(runtime));
-
-    if (state.meltdownUntil && state.meltdownUntil <= runtime.time) state.meltdownUntil = 0;
 
     if (runtime.profession.core.activeShroud === 'harbinger' && Number(state.nextBlightAt) <= runtime.time) {
       addBlight(

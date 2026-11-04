@@ -41,7 +41,7 @@ test('Cascading Corruption resets at the cap in combat before emitting the consu
       effects: captureEffectEmissions({
         now: () => 1,
         announce(request) {
-          observations.push([state.cascadingCorruptionStacks, state.meltdownUntil, request.attribution.activationId]);
+          observations.push([state.cascadingCorruptionStacks, request.attribution.activationId]);
           return { type: 'proc', ...request.announcement };
         }
       }).effects
@@ -55,6 +55,6 @@ test('Cascading Corruption resets at the cap in combat before emitting the consu
     assert.equal(state.cascadingCorruptionStacks, 1);
     runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed: 5, at: runtime.time, activationId: cast.id });
     assert.equal(state.cascadingCorruptionStacks, removed ? 1 : 0);
-    assert.deepEqual(observations, removed ? [] : [[0, 11, 'consuming-cast']]);
+    assert.deepEqual(observations, removed ? [] : [[0, 'consuming-cast']]);
   }
 });

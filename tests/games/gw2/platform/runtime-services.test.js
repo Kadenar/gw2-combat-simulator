@@ -900,7 +900,7 @@ test('boon duration snapshots the weapon set at application, and history exclude
     },
     tasks: {
       inspect(runtime) {
-        observed.push(runtime.combat.timeline.buffStacksAt('might', runtime.time, 0, 25));
+        observed.push(runtime.combat.activeBoonStacks('might', runtime.time, 25));
       }
     }
   });
@@ -919,19 +919,29 @@ test('boon duration snapshots the weapon set at application, and history exclude
 });
 
 test('live cooldown queries observe completion and reset, and reject a future clock', () => {
+  // Inspect the engine's timeline adapter at the original hook boundaries, including future-clock rejection.
+  let owner;
   const seen = [];
   const profession = native({
     onCastCommit(runtime, activation) {
-      if (activation.skill.id === 991002) seen.push(runtime.combat.timeline.skillOnCooldownAt(991002, runtime.time));
+      if (activation.skill.id === 991002) seen.push(owner.query.timeline.skillOnCooldownAt(991002, runtime.time));
     },
     onCastStart(runtime, activation) {
       if (activation.skill.id === 991001) {
-        seen.push(runtime.combat.timeline.skillOnCooldownAt(991002, runtime.time));
-        assert.throws(() => runtime.combat.timeline.skillOnCooldownAt(991002, runtime.time + 1), /current clock/);
+        seen.push(owner.query.timeline.skillOnCooldownAt(991002, runtime.time));
+        assert.throws(() => owner.query.timeline.skillOnCooldownAt(991002, runtime.time + 1), /current clock/);
       }
     }
   });
-  run([cast(991002), { type: 'cooldown-reset' }, cast(991001)], {}, profession);
+  run(
+    [cast(991002), { type: 'cooldown-reset' }, cast(991001)],
+    {
+      engineInitialize(runtime) {
+        owner = runtime;
+      }
+    },
+    profession
+  );
   assert.deepEqual(seen, [true, false]);
 });
 
@@ -1131,6 +1141,11 @@ test('mechanic capabilities exclude cast-only recharge commands and unused query
           assert.equal(name in context.cooldownController, false);
         for (const name of ['combatStartTime', 'hasExplicitCombatStart', 'procs'])
           assert.equal(name in context.queries, false);
+        for (const combat of [context.combat, context.queries.combat]) {
+          for (const name of ['timeline', 'targetHealthLoss']) assert.equal(name in combat, false);
+          assert.equal(combat.targetHealthBelow(0.5), false);
+        }
+
         // Mechanic views share live engagement queries without acquiring transition authority.
         assert.equal(context.engagement, context.queries.engagement);
         assert.equal(Object.isFrozen(context.engagement), true);

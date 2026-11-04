@@ -12,7 +12,6 @@ export const RANGER_STATE_IDS = Object.freeze({
   WIND_FORCE: 'gw2.galeshot.wind-force',
   MISTRAL_UNTIL: 'gw2.galeshot.mistral-until',
   BEASTMODE_ACTIVE: 'gw2.soulbeast.beastmode-active',
-  ONE_WOLF_PACK_UNTIL: 'gw2.soulbeast.one-wolf-pack-until',
   RANGER_UNLEASHED: 'gw2.untamed.ranger-unleashed',
   AMBUSH_READY_UNTIL: 'gw2.untamed.ambush-ready-until',
   FEROCIOUS_SYMBIOSIS_PLAYER: 'gw2.untamed.ferocious-symbiosis-player'

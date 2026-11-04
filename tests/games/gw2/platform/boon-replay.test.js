@@ -114,6 +114,7 @@ test('runtime endurance recovery uses the executed Vigor extension order', () =>
 
 test('nested immediate grants are recorded before their descendants and visible to reaction queries', () => {
   // Synchronous reactions must observe the applied parent and record each grant once in application order.
+  // Read the captured engine timeline inside the reaction so replay cannot observe grants before they execute.
   for (const output of ['detailed', 'score']) {
     let runtime;
     const observations = [];
@@ -126,7 +127,7 @@ test('nested immediate grants are recorded before their descendants and visible 
       },
       professionReactions: {
         'buff.applied'(context, event) {
-          observations.push(context.combat.timeline.buffStacksAt('might', 0, 0, 25));
+          observations.push(runtime.query.timeline.buffStacksAt('might', 0, 0, 25));
 
           if (event.sourceId === 'grant') {
             context.effects.emit({
@@ -205,6 +206,7 @@ test('native No Quarter records its immediate extension once in gameplay history
 
 test('a nested extension is visible immediately and follows its grant without extending other recipients', () => {
   // The caller can query the extension before returning; history preserves the parent grant and self-only scope.
+  // Engine replay at a later timestamp must reflect each emission at this same causal boundary.
   for (const output of ['detailed', 'score']) {
     for (const kind of ['might', 'fury']) {
       let runtime;
@@ -231,7 +233,7 @@ test('a nested extension is visible immediately and follows its grant without ex
         professionReactions: {
           'buff.applied'(context, event) {
             parent = event;
-            assert.equal(context.combat.timeline.buffStacksAt(kind, 1.5, 0, 25), 0);
+            assert.equal(runtime.query.timeline.buffStacksAt(kind, 1.5, 0, 25), 0);
             receipt = context.effects.emit({
               kind: 'packet',
               settlement: 'reaction',
@@ -240,8 +242,8 @@ test('a nested extension is visible immediately and follows its grant without ex
               event: extension(kind)
             });
             assert.equal(buffApplicationStacks(context.combat.boonApplications(kind), kind, 1.5, 25), 1);
-            assert.equal(context.combat.timeline.buffStacksAt(kind, 1.5, 0, 25), 1);
-            assert.equal(context.combat.timeline.buffStacksAt(kind, 1.5, 0, 25, RECIPIENT.SUMMONS, 'pet'), 0);
+            assert.equal(runtime.query.timeline.buffStacksAt(kind, 1.5, 0, 25), 1);
+            assert.equal(runtime.query.timeline.buffStacksAt(kind, 1.5, 0, 25, RECIPIENT.SUMMONS, 'pet'), 0);
           }
         }
       });
@@ -279,7 +281,7 @@ test('an immediate extension records execution without resurrecting an expired b
           cause: event,
           event: { ...extension('fury'), at: event.at }
         });
-        assert.equal(context.combat.timeline.buffStacksAt('fury', event.at, 0, 1), 0);
+        assert.equal(runtime.query.timeline.buffStacksAt('fury', event.at, 0, 1), 0);
       }
     }
   });

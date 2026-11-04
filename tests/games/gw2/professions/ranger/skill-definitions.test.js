@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { BOON } from '#gw2/platform/constants.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -27,7 +28,6 @@ test('Ranger activation declarations are the sole owners of their grants and tra
     ['Core', ID.PET_SWAP, [], (r) => r.profession.core.activePetSlot, 1],
     ['Druid', ID.CELESTIAL_AVATAR, [], (r) => r.profession.specialization.state.celestialAvatarEndsAt, null],
     ['Soulbeast', ID.LEAVE_BEASTMODE, [], (r) => r.profession.specialization.state.beastmodeActive, true],
-    ['Soulbeast', ID.ONE_WOLF_PACK, [], (r) => r.profession.specialization.state.oneWolfPackUntil, 0],
     ['Untamed', ID.UNLEASH_RANGER, [], (r) => r.profession.specialization.state.rangerUnleashed, false],
     ['Galeshot', ID.SUMMON_CYCLONE_BOW, [], (r) => r.profession.specialization.state.cycloneBowActive, false],
     ['Galeshot', ID.MISTRAL, [], (r) => r.profession.specialization.state.mistralUntil, 0],
@@ -42,6 +42,25 @@ test('Ranger activation declarations are the sole owners of their grants and tra
     );
     assert.deepEqual(result.warnings, [], String(skillId));
     assert.equal(read(observedRuntime(result)), initial, String(skillId));
+  }
+});
+
+test('One Wolf Pack grants require its activation declaration', () => {
+  // The accepted personal effect is the stance authority, so removing its declaration leaves no active grant.
+  for (const removed of [false, true]) {
+    const result = runRanger(
+      [ID.ONE_WOLF_PACK],
+      { specialization: 'Soulbeast' },
+      {
+        extend: (native) => ({
+          catalog: removed
+            ? withSkill(native.catalog, ID.ONE_WOLF_PACK, { sideEffects: [], effects: [] })
+            : native.catalog
+        })
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(Boolean(planningBuffAt(result.planningState, 'one-wolf-pack')), !removed);
   }
 });
 

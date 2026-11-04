@@ -132,36 +132,37 @@ test('no-op replacement retains continuous readiness detection and recovery ceil
 
 // Changed balances replace the owned deadline; no-op replacements and disabled pools cannot leave false wakes.
 test('replacement refreshes depletion once per changed balance and leaves disabled pools inert', () => {
-  const calls = [];
   const context = fixture(
     'continuous',
     { initial: 8, rate: -1 },
     {
-      depletion: { task: 'depleted', priority: -300 },
-      changed: (runtime) => calls.push(runtime.profession.pool.value)
+      depletion: { task: 'depleted', priority: -300 }
     }
   );
-  calls.length = 0;
+  const pool = context.profession.pool;
+  const anchor = resourceAnchor(pool);
   const original = context.queue.peek();
   assert.equal(original.at, 8);
   context.time = 2;
   context.resourceController.replace('initiative', 6);
-  assert.deepEqual(calls, []);
+  assert.equal(pool.value, 6);
+  assert.deepEqual(resourceAnchor(pool), anchor);
+  assert.equal(context.queue.pending().length, 1);
   assert.equal(context.queue.peek(), original);
   context.resourceController.replace('initiative', 0);
-  assert.deepEqual(calls, [0]);
+  assert.equal(pool.value, 0);
   assert.equal(context.queue.pending().length, 1);
   assert.equal(context.queue.peek().at, 2);
-  assert.notEqual(context.queue.peek().owner.generation, original.owner.generation);
-  calls.length = 0;
+  assert.equal(context.queue.peek().owner.id, original.owner.id);
+  assert.equal(context.queue.peek().owner.generation, original.owner.generation + 1);
   context.config = { maximum: 0, rate: 0 };
   context.resourceController.refresh('initiative');
-  assert.deepEqual(calls, [0]);
+  assert.equal(pool.maximum, 0);
   assert.deepEqual(context.queue.pending(), []);
-  calls.length = 0;
   context.resourceController.replace('initiative', 100);
-  assert.deepEqual(calls, []);
-  assert.equal(context.profession.pool.value, 0);
+  context.resourceController.grant('initiative', 100);
+  assert.equal(pool.value, 0);
+  assert.deepEqual(context.queue.pending(), []);
 });
 
 test('continuous recovery, pure readiness, and split waits agree', () => {

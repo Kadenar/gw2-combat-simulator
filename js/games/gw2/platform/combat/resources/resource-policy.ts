@@ -44,7 +44,6 @@ export interface ResourcePolicy<TContext = MechanicContext<any>> {
   readonly kind: 'continuous' | 'discrete';
   readonly depletion?: ResourceDepletionPolicy<TContext>;
   readonly recoveryMaximum?: (context: TContext) => number;
-  readonly changed?: (context: TContext, at: number) => void;
   readonly nextChange?: (context: TContext, cost: number) => number;
   state(context: TContext): ResourceClock | DiscreteResourceClock;
   maximum(context: TContext): number;

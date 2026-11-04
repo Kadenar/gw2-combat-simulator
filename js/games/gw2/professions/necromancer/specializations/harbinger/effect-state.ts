@@ -32,7 +32,6 @@ export function harbingerEffectStates(runtime: MechanicQueriesOf<NecromancerRunt
       runtime.profession.core.activeShroud ? [{ stacks: 1, expiresAt: null }] : [],
       1,
       { name: 'Harbinger Shroud' }
-    ),
-    timedEffectState('meltdown', [{ stacks: 1, expiresAt: state.meltdownUntil }], 1)
+    )
   ];
 }

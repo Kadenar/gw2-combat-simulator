@@ -284,7 +284,7 @@ test('declarative boons can gate dynamic skill availability', () => {
     catalog,
     hooks: {
       availability: (runtime, skill) =>
-        skill.id !== 920002 || runtime.combat.timeline.buffStacksAt('aegis', runtime.time, 0, 1) > 0
+        skill.id !== 920002 || runtime.combat.activeBoonStacks('aegis', runtime.time, 1) > 0
           ? { ready: true }
           : {
               ready: false,
@@ -340,7 +340,7 @@ test('declarative generic buffs use shared timed state without boon-duration sca
       buffPolicies: () => [{ kind: 'trait-charge', maximumStacks: 25 }],
       onCastStart(runtime, cast) {
         if (cast.skill.id === 920012)
-          observedAsBuff = runtime.combat.timeline.buffStacksAt('trait-charge', runtime.time, 0, 25) > 0;
+          observedAsBuff = runtime.combat.activeBuffStacks('trait-charge', runtime.time, 25) > 0;
       }
     },
     catalog

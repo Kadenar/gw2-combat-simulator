@@ -23,7 +23,7 @@ import { ENGINEER_TRAIT_IDS as HT } from '#gw2/professions/engineer/data/ids.js'
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { solarFocusingLens } from '#gw2/professions/engineer/specializations/holosmith/traits/index.js';
 import { GUARDIAN_TRAIT_IDS as GT } from '#gw2/professions/guardian/data/ids.js';
-import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
+import { recordMesmerTrackedHit } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import { MESMER_SKILL_IDS as M, MESMER_TRAIT_IDS as MT } from '#gw2/professions/mesmer/data/ids.js';
 import { completeChronomancerTimeBomb } from '#gw2/professions/mesmer/specializations/chronomancer/traits/time-bomb.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
@@ -382,8 +382,10 @@ test('tracked Mesmer hits expire at their exact age limit', () => {
       name: 'Tracked fixture',
       trackedHitDamage: { duration: 0.3, hitsRequired: 2, coefficient: 1 }
     };
-    scheduleMesmerTrackedHits(context, skill, [0.001, at]);
+    recordMesmerTrackedHit(context, skill, 0.001);
+    recordMesmerTrackedHit(context, skill, at);
     assert.equal(capture.events.length, at < 0.301 ? 1 : 0);
+    assert.deepEqual(context.profession.core.trackedSkillHits[skill.id], at < 0.301 ? [] : [at]);
   }
 });
 

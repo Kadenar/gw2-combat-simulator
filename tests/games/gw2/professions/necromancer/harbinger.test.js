@@ -3,9 +3,12 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { effectStateAt } from '#gw2/platform/results/effect-report.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { cast, wait } from '#tests/helpers/commands.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
@@ -96,13 +99,143 @@ test('Cascading Corruption commits one delayed Meltdown and expires its live win
   assert.ok(
     complete.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.CASCADING_CORRUPTION)
   );
-  assert.equal(state(complete).meltdownUntil, 0);
+  assert.equal(planningBuffAt(complete.planningState, 'meltdown'), null);
   assert.equal(
     run([...rotation, wait(11000)], config, { combatStartTime: 0, output: 'score' }).totalDamage,
     complete.totalDamage
   );
   const setup = run([...rotation, { type: 'combat-start' }], config);
   assert.equal(state(setup).cascadingCorruptionStacks, 19);
+});
+
+// Patched grants must drive live combat, planning, and replay without a separate display-expiry task.
+test('Meltdown follows delayed acceptance and patched duration without adding a Blight wake', () => {
+  const config = {
+    ...base,
+    initialBlight: 5,
+    initialCascadingCorruptionStacks: 19,
+    selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
+  };
+  const native = necromancerProfession.runtimeFor(config);
+  const catalog = applyBalanceProfilePatch(native.catalog, {
+    balanceProfiles: {
+      [TRAIT.CASCADING_CORRUPTION]: {
+        effects: [{ type: 'buff', name: 'meltdown', duration: 2 }],
+        removeEffects: [
+          { type: 'strike', name: 'Strike' },
+          { type: 'condition', name: 'Torment' }
+        ]
+      }
+    }
+  });
+  const profession = {
+    ...native,
+    // Timing is authored through the canonical fixture; balance patches edit payload values only.
+    catalog: withProfile(catalog, TRAIT.CASCADING_CORRUPTION, {
+      effects: catalog.balanceProfilesById.get(TRAIT.CASCADING_CORRUPTION).effects.map((effect) => ({
+        ...effect,
+        atMs: 1000
+      }))
+    })
+  };
+  const simulate = (delay) => run([cast(ID.ELIXIR_OF_RISK), wait(delay)], config, { profession, combatStartTime: 0 });
+  const pending = simulate(500);
+  const active = simulate(1000);
+  const expired = simulate(3000);
+  for (const result of [pending, active, expired]) assert.deepEqual(result.warnings, []);
+  assert.equal(planningBuffAt(pending.planningState, 'meltdown'), null);
+  assert.equal(observedRuntime(pending).combat.activeBuffStacks('meltdown', pending.planningState.atSeconds, 1), 0);
+  const grant = active.events.find((event) => event.type === 'buff' && event.kind === 'meltdown');
+  const expiry = observedRuntime(active).buffs.get('meltdown')[0].expiresAt;
+  assert.equal(grant.duration, 2);
+  assert.equal(planningBuffAt(active.planningState, 'meltdown').remaining, expiry - active.planningState.atSeconds);
+  assert.equal(observedRuntime(active).combat.activeBuffStacks('meltdown', active.planningState.atSeconds, 1), 1);
+  // Crossing Meltdown's deadline cannot run and rearm Blight's owner before its actual stack expiry.
+  assert.ok(Math.min(...state(active).blightExpiries) > expired.planningState.atSeconds);
+  assert.equal(state(expired).blightGeneration, state(active).blightGeneration);
+  assert.deepEqual(state(expired).blightExpiries, state(active).blightExpiries);
+  assert.equal(planningBuffAt(expired.planningState, 'meltdown'), null);
+  assert.equal(
+    expired.events.some((event) => event.at === expiry),
+    false
+  );
+  const track = expired.effectReport.tracks.find((track) => track.kind === 'meltdown' && track.recipient === 'self');
+  assert.equal(effectStateAt(expired.effectReport, track, grant.at - 0.01)?.count ?? 0, 0);
+  assert.equal(effectStateAt(expired.effectReport, track, expiry - 0.01).count, 1);
+  assert.equal(effectStateAt(expired.effectReport, track, expiry).count, 0);
+});
+
+test('overlapping Meltdown procs retain one stack through the last accepted expiry', () => {
+  const config = { ...base, initialBlight: 20, selectedTraitIds: [TRAIT.CASCADING_CORRUPTION] };
+  const native = necromancerProfession.runtimeFor(config);
+  const profession = {
+    ...native,
+    catalog: applyBalanceProfilePatch(native.catalog, {
+      balanceProfiles: {
+        [TRAIT.CASCADING_CORRUPTION]: {
+          fields: { minimumStacks: { from: 20, to: 5 } },
+          effects: [{ type: 'buff', name: 'meltdown', duration: 2 }]
+        }
+      }
+    })
+  };
+  const rotation = [cast(ID.ELIXIR_OF_RISK), wait(500), { type: 'cooldown-reset' }, cast(ID.ELIXIR_OF_RISK)];
+  const active = run(rotation, config, { profession, combatStartTime: 0 });
+  const finished = run([...rotation, wait(3000)], config, { profession, combatStartTime: 0 });
+  assert.deepEqual(active.warnings, []);
+  assert.deepEqual(finished.warnings, []);
+  const grants = active.events.filter((event) => event.type === 'buff' && event.kind === 'meltdown');
+  assert.equal(grants.length, 2);
+  const [firstExpiry, lastExpiry] = grants.map((grant) => grant.at + grant.duration);
+  assert.ok(grants[1].at < firstExpiry);
+  assert.equal(planningBuffAt(active.planningState, 'meltdown').count, 1);
+  assert.equal(planningBuffAt(active.planningState, 'meltdown').remaining, lastExpiry - active.planningState.atSeconds);
+  const track = finished.effectReport.tracks.find((track) => track.kind === 'meltdown' && track.recipient === 'self');
+  assert.equal(effectStateAt(finished.effectReport, track, grants[1].at).count, 1);
+  assert.equal(effectStateAt(finished.effectReport, track, firstExpiry).count, 1);
+  assert.equal(effectStateAt(finished.effectReport, track, lastExpiry).count, 0);
+});
+
+test('removing the Meltdown buff preserves the proc and delayed explosion without a phantom window', () => {
+  const config = {
+    ...base,
+    initialBlight: 5,
+    initialCascadingCorruptionStacks: 19,
+    selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
+  };
+  const native = necromancerProfession.runtimeFor(config);
+  const profession = {
+    ...native,
+    catalog: applyBalanceProfilePatch(native.catalog, {
+      balanceProfiles: { [TRAIT.CASCADING_CORRUPTION]: { removeEffects: [{ type: 'buff', name: 'meltdown' }] } }
+    })
+  };
+  const result = run([cast(ID.ELIXIR_OF_RISK), wait(1000)], config, { profession, combatStartTime: 0 });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(state(result).cascadingCorruptionStacks, 0);
+  assert.ok(result.events.some((event) => event.type === 'proc' && event.sourceId === TRAIT.CASCADING_CORRUPTION));
+  assert.ok(
+    result.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.CASCADING_CORRUPTION)
+  );
+  assert.equal(planningBuffAt(result.planningState, 'meltdown'), null);
+  assert.equal(
+    result.effectReport.tracks.some((track) => track.kind === 'meltdown'),
+    false
+  );
+});
+
+test('initial accepted Meltdown buffs are visible to combat, planning, and reporting until exclusive expiry', () => {
+  // Generic observation now exposes the initial buff already used by the damage modifier.
+  const config = { ...base, initialBuffs: [{ kind: 'meltdown', stacks: 1, duration: 2 }] };
+  for (const at of [1, 2]) {
+    const result = run([wait(at * 1000)], config, { combatStartTime: 0 });
+    assert.deepEqual(result.warnings, []);
+    const expected = at < 2 ? 1 : 0;
+    assert.equal(planningBuffAt(result.planningState, 'meltdown')?.count ?? 0, expected);
+    assert.equal(observedRuntime(result).combat.activeBuffStacks('meltdown', at, 1), expected);
+    const track = result.effectReport.tracks.find((track) => track.kind === 'meltdown' && track.recipient === 'self');
+    assert.equal(effectStateAt(result.effectReport, track, at).count, expected);
+  }
 });
 
 test('Vital Draw grants only the siphons that have arrived', () => {

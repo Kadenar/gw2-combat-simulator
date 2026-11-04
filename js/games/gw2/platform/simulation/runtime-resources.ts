@@ -53,7 +53,8 @@ export function createRuntimeResources<T extends object>(
     return { policy, state };
   };
 
-  const changed = (key: ResourceKey) => {
+  // Keep the owned depletion wake aligned with the current resource segment and lifetime policy.
+  const syncDepletion = (key: ResourceKey) => {
     const { policy, state } = get(key);
 
     const depletion = policy.depletion;
@@ -84,8 +85,6 @@ export function createRuntimeResources<T extends object>(
         if (Number.isFinite(at)) runtime.schedule(depletion.task, at, null, { id, generation }, depletion.priority);
       }
     }
-
-    policy.changed?.(runtime.mechanics, runtime.time);
   };
 
   const refresh = (key: ResourceKey) => {
@@ -130,7 +129,7 @@ export function createRuntimeResources<T extends object>(
 
     if (before.some((value, index) => value !== after[index])) anchorResourceClock(state);
 
-    changed(key);
+    syncDepletion(key);
   };
 
   const initialize = () => {
@@ -181,7 +180,7 @@ export function createRuntimeResources<T extends object>(
 
       state.value = next;
       anchorResourceClock(state);
-      changed(key);
+      syncDepletion(key);
     },
     grant(key: ResourceKey, value: number) {
       amount(value);
@@ -193,7 +192,7 @@ export function createRuntimeResources<T extends object>(
 
       state.value = next;
       anchorResourceClock(state);
-      changed(key);
+      syncDepletion(key);
     },
     spend(key: ResourceKey, value: number) {
       amount(value);
@@ -215,7 +214,7 @@ export function createRuntimeResources<T extends object>(
       }
 
       anchorResourceClock(state);
-      changed(key);
+      syncDepletion(key);
     },
     readyAt(key: ResourceKey, cost: number) {
       amount(cost);

@@ -15,6 +15,7 @@ import {
   type TraitAttribution
 } from '#gw2/platform/profession-definition/trait-emission.js';
 import { isTriggerPoint, type TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';
 import type { Gw2ResolverStage, Gw2ResolverStageDetails } from '#gw2/platform/resolver/types.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
@@ -154,16 +155,7 @@ type LooseTrigger = TraitTriggerBase & {
 };
 
 const CAST_STAGES = new Set(['castStart', 'castCommit']);
-const RESOLVER_STAGES = new Set<string>([
-  'aura.applied',
-  'combo.resolved',
-  'buff.applied',
-  'damage.resolving',
-  'damage.resolved',
-  'condition.applied',
-  'condition-tick.resolved',
-  'control.resolved'
-] satisfies Gw2ResolverStage[]);
+const RESOLVER_STAGES = new Set<string>(GW2_RESOLVER_STAGES);
 
 /** Reject authoring mistakes when a trait or module is declared, before a silent no-op can reach a simulation. */
 export function assertTraitTrigger(rule: object, owner: string): void {
@@ -273,6 +265,21 @@ function castCause(runtime: MechanicContext, cast: RuntimeCast): Gw2ResolverEven
   };
 }
 
+/** Resolver stages and points share causal delivery; attribution still reads their original event or point input. */
+function deliverTriggeredReaction(
+  runtime: MechanicContext,
+  rule: LooseTrigger,
+  trigger: unknown,
+  cause: Gw2ResolverEvent
+): void {
+  if (rule.invoke != null) invokeTraitSkill(runtime, rule.trait, rule.invoke, cause, { announce: rule.announce });
+  else
+    emitTraitProfile(runtime, rule.trait, rule.emit!, cause, {
+      effects: rule.effects,
+      attribution: resolveAttribution(rule, runtime, trigger)
+    });
+}
+
 /** Compile only hook contributions at their module position; committed interruptions receive the same cast rewards. */
 export function compileProfessionRules<T extends object, TSkill extends Skill = Skill>(
   hooks: RuntimeHooks<T, TSkill>,
@@ -290,18 +297,29 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
 
   // Omit activation producers at composition time while keeping recharge and authored payload hooks intact.
   // Point listeners compile separately, across modules, in their point's declared order.
-  const stageTriggers = (traitTriggers ? ((hooks.traitTriggers ?? []) as readonly LooseTrigger[]) : []).filter(
-    (rule) => !isTriggerPoint(rule.on)
-  );
-  for (const rule of [...stageTriggers].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).reverse()) {
-    // Wrapping in reverse declaration order keeps reactions in declaration order before the imperative owner.
-    if (rule.on === 'castStart' || rule.on === 'castCommit') {
-      const key = rule.on === 'castStart' ? 'onCastStart' : 'onCastCommit';
-      const prior = compiled[key];
-      compiled[key] = (runtime, cast) => {
-        // The runtime dispatches commit hooks only for successful casts, including shortened animations.
-        const context = runtime as unknown as MechanicContext;
+  const byStage = new Map<string, LooseTrigger[]>();
+  for (const rule of traitTriggers ? ((hooks.traitTriggers ?? []) as readonly LooseTrigger[]) : []) {
+    if (typeof rule.on !== 'string') continue;
 
+    const listeners = byStage.get(rule.on) ?? [];
+    listeners.push(rule);
+    byStage.set(rule.on, listeners);
+  }
+
+  // Stable sorting stays within this module; each contributed stage has one dispatcher before its imperative owner.
+  for (const listeners of byStage.values()) listeners.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+  for (const stage of ['castStart', 'castCommit'] as const) {
+    const listeners = byStage.get(stage);
+
+    if (!listeners?.length) continue;
+
+    const key = stage === 'castStart' ? 'onCastStart' : 'onCastCommit';
+    const imperative = hooks[key];
+    compiled[key] = (runtime, cast) => {
+      // The runtime dispatches commit hooks only for successful casts, including shortened animations.
+      const context = runtime as unknown as MechanicContext;
+      for (const rule of listeners) {
         if (
           selected(runtime, rule) &&
           (rule.when?.(runtime.queries as never, cast as never) ?? true) &&
@@ -319,47 +337,46 @@ export function compileProfessionRules<T extends object, TSkill extends Skill = 
               attribution: resolveAttribution(rule, context, cast)
             });
         }
+      }
 
-        prior?.(runtime, cast);
-      };
-    } else {
-      // Capture the stage before wrapping its handler so the prior callback retains the same detail type.
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- The captured stage correlates the wrapped callback and prior handler.
-      const addReaction = <Stage extends Gw2ResolverStage>(stage: Stage) => {
-        const prior = compiled.reactions?.[stage];
-        compiled.reactions = {
-          ...compiled.reactions,
-          [stage]: (
-            runtime: MechanicContext<T, TSkill>,
-            event: Gw2ResolverEvent,
-            details: Gw2ResolverStageDetails[Stage]
-          ) => {
-            const context = runtime as unknown as MechanicContext;
-
-            // Hit predicates consume the resolved outcome, never a prediction from the packet.
-            if (
-              selected(runtime, rule) &&
-              (rule.when?.(runtime.queries as never, event as never, details as never) ?? true) &&
-              admitCooldown(context, rule)
-            ) {
-              if (rule.run) rule.run(runtime as never, event as never, details as never);
-              else if (rule.invoke != null)
-                invokeTraitSkill(runtime, rule.trait, rule.invoke, event, { announce: rule.announce });
-              else
-                emitTraitProfile(runtime, rule.trait, rule.emit!, event, {
-                  effects: rule.effects,
-                  attribution: resolveAttribution(rule, context, event)
-                });
-            }
-
-            return prior?.(runtime, event, details);
-          }
-        };
-      };
-
-      addReaction(rule.on as Gw2ResolverStage);
-    }
+      imperative?.(runtime, cast);
+    };
   }
+
+  // Capture each stage with its details and transform result; absent stages keep their original hook shape.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters -- The captured stage correlates the dispatcher and imperative handler.
+  const addReaction = <Stage extends Gw2ResolverStage>(stage: Stage) => {
+    const listeners = byStage.get(stage);
+
+    if (!listeners?.length) return;
+
+    const imperative = hooks.reactions?.[stage];
+    compiled.reactions = {
+      ...compiled.reactions,
+      [stage]: (
+        runtime: MechanicContext<T, TSkill>,
+        event: Gw2ResolverEvent,
+        details: Gw2ResolverStageDetails[Stage]
+      ) => {
+        const context = runtime as unknown as MechanicContext;
+        for (const rule of listeners) {
+          // Hit predicates consume the resolved outcome, never a prediction from the packet.
+          if (
+            selected(runtime, rule) &&
+            (rule.when?.(runtime.queries as never, event as never, details as never) ?? true) &&
+            admitCooldown(context, rule)
+          ) {
+            if (rule.run) rule.run(runtime as never, event as never, details as never);
+            else deliverTriggeredReaction(context, rule, event, event);
+          }
+        }
+
+        return imperative?.(runtime, event, details);
+      }
+    };
+  };
+
+  for (const stage of GW2_RESOLVER_STAGES) addReaction(stage);
 
   return compiled;
 }
@@ -404,13 +421,7 @@ export function compileTriggerPoints<T extends object, TSkill extends Skill = Sk
         }
 
         // Declarative payloads need the resolver event or accepted action that caused the boundary.
-        if (rule.invoke != null)
-          invokeTraitSkill(runtime, rule.trait, rule.invoke, cause!, { announce: rule.announce });
-        else
-          emitTraitProfile(runtime, rule.trait, rule.emit!, cause, {
-            effects: rule.effects,
-            attribution: resolveAttribution(rule, context, input)
-          });
+        deliverTriggeredReaction(context, rule, input, cause!);
       });
     table.set(id, Object.freeze(listeners));
   }

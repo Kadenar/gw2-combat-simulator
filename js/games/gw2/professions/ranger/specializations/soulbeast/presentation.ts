@@ -4,6 +4,7 @@ import type {
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { ProfessionPaletteGroup, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { activeRangerUiPet, rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -41,15 +42,15 @@ function paletteGroups(
   return groups;
 }
 
-/** Shows One Wolf Pack only while its extra-strike window remains active. */
+/** Accepted personal stance windows own the countdown at the planning boundary, including post-combat editing. */
 function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshotItem[] {
-  const remaining = (rangerUiState(context)[STATE.ONE_WOLF_PACK_UNTIL] || 0) - Math.max(0, context.atSeconds || 0);
-  return remaining > 0
+  const stance = planningBuffAt(context.planningState, 'one-wolf-pack');
+  return stance
     ? [
         {
           id: 'soulbeast-one-wolf-pack',
           label: 'One Wolf Pack',
-          value: `${remaining.toFixed(1)}s`,
+          value: `${stance.remaining.toFixed(1)}s`,
           title: 'Time remaining in One Wolf Pack'
         }
       ]

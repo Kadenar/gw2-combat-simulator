@@ -29,7 +29,7 @@ import {
   restartSignetIllusionsPassive,
   signetIllusionsPassive
 } from '#gw2/professions/mesmer/core/mechanics/signets.js';
-import { scheduleMesmerTrackedHits } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
+import { recordMesmerTrackedHit } from '#gw2/professions/mesmer/core/mechanics/tracked-hits.js';
 import {
   mesmerConditionApplied,
   mesmerControlAccepted,
@@ -114,7 +114,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
       'mesmer.tracked-hit'(runtime, context) {
         if (context.kind !== 'effect') return;
 
-        scheduleMesmerTrackedHits(runtime, context.skill, [context.trigger.event.at]);
+        recordMesmerTrackedHit(runtime, context.skill, context.trigger.event.at);
       }
     },
     initialize(runtime) {

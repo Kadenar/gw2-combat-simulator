@@ -80,7 +80,7 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
 };
 
 /** Activate the ordinary personal stance, then deliver the trait-owned sharing policy. */
-export function activateSoulbeastStance(runtime: RangerRuntime, skill: Skill, kind: string, at: number): number {
+export function activateSoulbeastStance(runtime: RangerRuntime, skill: Skill, kind: string, at: number): void {
   const { duration, sharedDuration } = leaderOfThePackStance(runtime, skillNumber(skill, 'duration'));
   const application = {
     at,
@@ -107,6 +107,4 @@ export function activateSoulbeastStance(runtime: RangerRuntime, skill: Skill, ki
         'buff'
       )
     });
-
-  return duration;
 }

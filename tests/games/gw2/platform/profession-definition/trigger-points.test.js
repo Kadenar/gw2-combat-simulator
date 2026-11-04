@@ -10,6 +10,7 @@ import {
   compileTriggerPoints,
   onTriggerPoint
 } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
@@ -31,6 +32,105 @@ const burst = {
   effects: [{ type: 'strike', coefficient: 1 }]
 };
 const struck = defineTriggerPoint('fixture.struck', [103, 101, 102]);
+
+test('stage listener lists preserve stable order, original inputs, and the trailing imperative result', () => {
+  // Each stage dispatches its own listeners once before the imperative owner; only that owner supplies transforms.
+  for (const stage of ['castStart', 'castCommit', ...GW2_RESOLVER_STAGES]) {
+    const calls = [];
+    const castStage = stage === 'castStart' || stage === 'castCommit';
+    const input = castStage ? { id: 'accepted:cast', skill: strike } : { type: 'damage', at: 0 };
+    const details = { stage };
+    const runtime = { config: { selectedTraitIds: [101] }, queries: {} };
+    const patch = { coefficient: 2 };
+    const hook = stage === 'castStart' ? 'onCastStart' : 'onCastCommit';
+    const checkInputs = (context, actual, facts) => {
+      assert.equal(context, runtime);
+      assert.equal(actual, input);
+
+      if (!castStage) assert.equal(facts, details);
+    };
+
+    const imperative = (...args) => {
+      checkInputs(...args);
+      calls.push('imperative');
+      return patch;
+    };
+
+    const hooks = compileProfessionRules({
+      ...(castStage ? { [hook]: imperative } : { reactions: { [stage]: imperative } }),
+      traitTriggers: [
+        ['late', 10],
+        ['first', 0],
+        ['second', 0]
+      ].map(([name, order]) => ({
+        trait: 101,
+        on: stage,
+        order,
+        when(context, actual, facts) {
+          assert.equal(context, runtime.queries);
+          assert.equal(actual, input);
+
+          if (!castStage) assert.equal(facts, details);
+
+          return true;
+        },
+        run(...args) {
+          checkInputs(...args);
+          calls.push(name);
+          return { coefficient: 99 };
+        }
+      }))
+    });
+    const result = castStage ? hooks[hook](runtime, input) : hooks.reactions[stage](runtime, input, details);
+    assert.deepEqual(calls, ['first', 'second', 'late', 'imperative'], stage);
+
+    if (stage === 'damage.resolving') assert.equal(result, patch);
+  }
+
+  assert.deepEqual(compileProfessionRules({}), {});
+  const pointOnly = compileProfessionRules({
+    traitTriggers: [{ ...onTriggerPoint(struck, { run() {} }), trait: 101 }]
+  });
+  assert.equal(pointOnly.onCastStart, undefined);
+  assert.equal(pointOnly.onCastCommit, undefined);
+  assert.equal(pointOnly.reactions, undefined);
+});
+
+test('cast-stage profile emissions retain explicit cast attribution without a synthetic cause', () => {
+  // Profile delivery keeps the granting activation, unlike skill invocations with an independent proc identity.
+  for (const stage of ['castStart', 'castCommit']) {
+    const requests = [];
+    const profile = { id: 101, name: 'Trait profile', effects: [{ type: 'boon', boon: 'Might', duration: 1 }] };
+    const cast = { id: 'accepted:cast', skill: strike, command: {} };
+    const runtime = {
+      config: { selectedTraitIds: [101] },
+      queries: {},
+      helpers: { balanceProfilesById: new Map([[101, profile]]) },
+      effects: { emit: (request) => requests.push(request) }
+    };
+    const hooks = compileProfessionRules({
+      traitTriggers: [
+        {
+          trait: 101,
+          on: stage,
+          emit: 101,
+          attribution(query, actual) {
+            assert.equal(query, runtime.queries);
+            assert.equal(actual, cast);
+            return { offTarget: true };
+          }
+        }
+      ]
+    });
+    hooks[stage === 'castStart' ? 'onCastStart' : 'onCastCommit'](runtime, cast);
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].cause, undefined);
+    assert.equal(requests[0].attribution.skillId, strike.id);
+    assert.equal(requests[0].attribution.skillName, strike.name);
+    assert.equal(requests[0].attribution.activationId, cast.id);
+    assert.equal(requests[0].attribution.offTarget, true);
+  }
+});
 
 test('cast-stage invocation carries the accepted cast identity as cause without adopting it as the proc identity', () => {
   // Delayed completion identifies the accepted action rather than synthesizing a new or anonymous parent.
@@ -203,13 +303,17 @@ for (const stage of ['point', 'castStart', 'castCommit', 'damage.resolved']) {
   test(`${stage} activation gates precede predicates and proc claims`, () => {
     const point = defineTriggerPoint('fixture.activation', [109]);
     for (const selected of [false, true]) {
-      for (const traitTriggers of [false, true]) {
+      for (const [traitTriggers, eligible] of [
+        [false, true],
+        [true, false],
+        [true, true]
+      ]) {
         const calls = [];
         const reaction = {
           cooldown: 'profile',
           when() {
             calls.push('eligible');
-            return true;
+            return eligible;
           },
           run() {
             calls.push('activated');
@@ -234,8 +338,8 @@ for (const stage of ['point', 'castStart', 'castCommit', 'damage.resolved']) {
         });
         const active = selected && traitTriggers;
         assert.deepEqual(result.warnings, []);
-        assert.deepEqual(calls, active ? ['eligible', 'activated'] : []);
-        assert.equal(observedRuntime(result).procs.deadline(109) > 0, active);
+        assert.deepEqual(calls, active ? (eligible ? ['eligible', 'activated'] : ['eligible']) : []);
+        assert.equal(observedRuntime(result).procs.deadline(109) > 0, active && eligible);
       }
     }
   });

@@ -1,16 +1,11 @@
 import type { Gw2ResolvedStats } from '#gw2/platform/attributes/stats.js';
-import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import type { EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.js';
 import { liveBoonSnapshot } from '#gw2/platform/combat/query/effect-stacks.js';
 import { activeBoonStacks, activeBuffStacks, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
-import {
-  remainingTargetHealthBelow,
-  remainingTargetHealthFraction,
-  targetHealthLoss
-} from '#gw2/platform/combat/state/target-health.js';
+import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { conditionApplicationExpiry } from '#gw2/platform/combat/state/targets.js';
 import type { ComboFieldEvent } from '#gw2/platform/combos/types.js';
 import { ACTOR } from '#gw2/platform/constants.js';
@@ -19,7 +14,7 @@ import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
-/** Mechanics query and revise shared combat state; resolved notifications belong to resolver handlers. */
+/** Mechanics use named combat queries and revisions; the engine retains ownership of timeline replay. */
 export interface MechanicCombatServices {
   companionRetiredAt(companionId: string): number | undefined;
   activeBoonStacks(kind: string, at: number, maximum?: number, recipient?: EffectRecipient): number;
@@ -27,7 +22,6 @@ export interface MechanicCombatServices {
   buffApplications(kind: string): readonly Readonly<Gw2TimedBuffApplication>[];
   targetHasCondition(condition: string, at: number): boolean;
   targetConditionStacks(condition: string, at: number): number;
-  targetHealthLoss(): number;
   targetHealthBelow(threshold: number): boolean;
   targetHitboxSize(): 'small' | 'large';
   /** Null when target health is unbounded. */
@@ -35,7 +29,6 @@ export interface MechanicCombatServices {
   targetConditionCount(at: number): number;
   statsAt(at: number, event: Gw2ResolverEvent): Gw2ResolvedStats;
   conditionDurationMultiplier(condition: string, at: number, stats: Gw2ResolvedStats, event: Gw2ResolverEvent): number;
-  readonly timeline: Readonly<Gw2TimelineIndex>;
   boonApplications(kind: string): readonly Readonly<Gw2TimedBuffApplication>[];
   /** A boon copy reads executed applications; a retired companion has no live boons to copy. */
   boonSnapshot(
@@ -71,7 +64,6 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
     targetHasCondition: (condition: string, at: number) => runtime.query.targetHasCondition(condition, at, runtime),
     targetConditionStacks: (condition: string, at: number) =>
       runtime.query.targetConditionStacks(condition, at, runtime),
-    targetHealthLoss: () => targetHealthLoss(runtime.config, runtime),
     targetHealthBelow: (threshold: number) => remainingTargetHealthBelow(runtime.config, runtime, threshold),
     remainingTargetHealthFraction: () => remainingTargetHealthFraction(runtime.config, runtime),
     // Full large-golem overlap requires at least its measured 700-unit diameter.
@@ -89,9 +81,6 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
     statsAt: (at: number, event: Gw2ResolverEvent) => runtime.query.statsAt(at, event, runtime),
     conditionDurationMultiplier: (condition: string, at: number, stats: Gw2ResolvedStats, event: Gw2ResolverEvent) =>
       runtime.query.conditionDurationMultiplier(condition, at, stats, event, runtime),
-    get timeline() {
-      return runtime.query.timeline;
-    },
     boonApplications: (kind: string): readonly Readonly<Gw2TimedBuffApplication>[] => runtime.boons.get(kind) ?? [],
     boonSnapshot: (kind: string, at: number, recipient: EffectRecipient) =>
       recipient.actor === 'companion' &&

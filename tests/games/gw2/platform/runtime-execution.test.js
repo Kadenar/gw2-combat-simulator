@@ -315,7 +315,7 @@ test('occurrence setup settles assumptions before starting exactly one cast and 
       onCastStart(runtime) {
         observed.push({
           prepared: runtime.profession.core.prepared,
-          might: runtime.combat.timeline.buffStacksAt('might', runtime.time, 0, 25)
+          might: runtime.combat.activeBoonStacks('might', runtime.time, 25)
         });
         runtime.profession.core.prepared = false;
       }

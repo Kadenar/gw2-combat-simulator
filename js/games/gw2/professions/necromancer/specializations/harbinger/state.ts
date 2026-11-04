@@ -27,10 +27,9 @@ export interface HarbingerState {
   nextBlightAt?: number;
   blightExpiries: number[];
   cascadingCorruptionStacks: number;
-  meltdownUntil: number;
 }
 
-/** Creates isolated Harbinger Blight, Cascading Corruption, and Meltdown state from build inputs. */
+/** Creates isolated Blight and Cascading Corruption progress; accepted buffs own Meltdown's lifetime. */
 function createHarbingerState(
   config: NecromancerConfig,
   preparation: { balanceContext: ProfessionBalanceContext }
@@ -54,8 +53,7 @@ function createHarbingerState(
     nextBlightAt: Number.POSITIVE_INFINITY,
     // Pre-existing Blight stacks are given an expiry of 25 s from t=0 so they last through a typical opener.
     blightExpiries: Array.from({ length: initialBlight }, () => BLIGHT_DURATION_SECONDS),
-    cascadingCorruptionStacks: initialCascadingCorruptionStacks,
-    meltdownUntil: 0
+    cascadingCorruptionStacks: initialCascadingCorruptionStacks
   };
 }
 
@@ -114,7 +112,6 @@ export function projectHarbingerPlanningState(input: Gw2PlanningStateInput<Speci
   return {
     [STATE.BLIGHT_EXPIRIES]: capped.blightExpiries,
     [STATE.CASCADING_CORRUPTION_STACKS]: state.cascadingCorruptionStacks,
-    [STATE.MELTDOWN_UNTIL]: state.meltdownUntil,
     [STATE.BLIGHT]: capped.blightExpiries.length
   };
 }

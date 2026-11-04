@@ -21,7 +21,7 @@ export interface GuardianFirebrandState {
   swiftScholarTome: string;
   swiftScholarCount: number;
 
-  mantraRechargeReadyAt: Record<string, number>;
+  /** Membership tracks initialized mantras; generations invalidate wakes while the cooldown controller owns deadlines. */
   mantraWakeGenerations: Record<string, number>;
 }
 
@@ -45,7 +45,6 @@ function createFirebrandState(profileContext: {
     swiftScholarTome: '',
     swiftScholarCount: 0,
 
-    mantraRechargeReadyAt: {},
     mantraWakeGenerations: {}
   };
 }

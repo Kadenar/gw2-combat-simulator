@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { bindHarbingerUi } from '#gw2/professions/necromancer/specializations/harbinger/presentation.js';
@@ -58,7 +59,11 @@ test('elixir state commits chronologically and cancelled throws leave it untouch
           ...native.tasks,
           'test.observe'(runtime) {
             const state = runtime.profession.specialization.state;
-            observations.push([state.blightExpiries.length, state.cascadingCorruptionStacks, state.meltdownUntil]);
+            observations.push([
+              state.blightExpiries.length,
+              state.cascadingCorruptionStacks,
+              runtime.combat.activeBuffStacks('meltdown', runtime.time, 1)
+            ]);
           }
         }
       }
@@ -67,7 +72,7 @@ test('elixir state commits chronologically and cancelled throws leave it untouch
     const state = observedRuntime(result).profession.specialization.state;
     assert.equal(state.blightExpiries.length, cancelled ? 20 : 25);
     assert.equal(state.cascadingCorruptionStacks, cancelled ? 15 : 0);
-    assert.equal(state.meltdownUntil > 0, !cancelled);
+    assert.equal(planningBuffAt(result.planningState, 'meltdown') !== null, !cancelled);
     assert.equal(result.totalDamage > 0, !cancelled);
     assert.deepEqual(result.warnings, []);
   }
@@ -91,7 +96,7 @@ test('Cascading Corruption delays its packets while Meltdown applies to the trig
     (event) => event.skillId === ID.CASCADING_CORRUPTION && ['damage', 'condition'].includes(event.type)
   );
   assert.equal(proc.at, trigger.at);
-  assert.ok(observedRuntime(result).profession.specialization.state.meltdownUntil > proc.at);
+  assert.equal(observedRuntime(result).combat.activeBuffStacks('meltdown', proc.at, 1), 1);
   assert.equal(packets.filter((event) => event.type === 'damage').length, 1);
   assert.equal(
     packets.filter((event) => event.type === 'condition').reduce((sum, event) => sum + event.stacks, 0),

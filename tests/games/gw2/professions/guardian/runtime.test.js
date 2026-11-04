@@ -8,12 +8,13 @@ import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
 import { runGuardian as run } from '#tests/helpers/guardian-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
 const core = (result) => observedRuntime(result).profession.core;
 // Select Justice applications independently of condition ticks and Willbender's shared passive source label.
@@ -578,6 +579,50 @@ test('Firebrand page exhaustion waits on the selected recovery policy and disabl
   assert.equal(result.warnings.length, 1);
   assert.match(result.warnings[0].message, /tomePages/);
   assert.equal(result.rotationEndTime, 0);
+});
+
+test('Firebrand mantra selection survives Alacrity refreshes and explicit resets', () => {
+  // Refreshes preserve initialized membership, including an empty loadout and the omitted-selection sandbox.
+  for (const selectedSkillIds of [undefined, [], [ID.MANTRA_OF_FLAME]]) {
+    for (const rotation of [[], [wait(1000), { type: 'cooldown-reset' }]]) {
+      const result = run(
+        rotation,
+        { ...firebrand, selectedSkillIds },
+        {
+          initialize: (runtime) => boon(runtime, 'alacrity', 0.5, 1)
+        }
+      );
+      const runtime = observedRuntime(result);
+      assert.deepEqual(result.warnings, []);
+      for (const { rootId, normalId, finalId } of MANTRAS) {
+        const initialized = selectedSkillIds === undefined || selectedSkillIds.includes(rootId);
+        assert.equal(Object.hasOwn(fb(result).mantraWakeGenerations, rootId), initialized);
+        assert.equal(runtime.cooldownController.hasAmmo(normalId), initialized);
+        assert.equal(runtime.cooldownController.hasAmmo(finalId), initialized);
+        assert.equal(Boolean(runtime.flips[normalId]), initialized);
+        assert.equal(runtime.flips[finalId], undefined);
+      }
+    }
+  }
+});
+
+test('Firebrand manual preparation registers the mantra for explicit recharge resets', () => {
+  // Start unprepared so the real preparation action must establish membership before the reset hook runs.
+  const config = { ...firebrand, selectedSkillIds: [ID.MANTRA_OF_FLAME] };
+  const native = guardianProfession.runtimeFor(config);
+  const result = observeGw2Runtime({
+    profession: { ...native, initialize() {} },
+    config,
+    rotation: [ID.MANTRA_OF_FLAME, ID.FLAME_RUSH, ID.FLAME_RUSH, ID.FLAME_SURGE, { type: 'cooldown-reset' }]
+  });
+  const runtime = observedRuntime(result);
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(Object.keys(fb(result).mantraWakeGenerations), [String(ID.MANTRA_OF_FLAME)]);
+  assert.equal(runtime.cooldownController.readAmmo(ID.FLAME_RUSH).charges, 3);
+  assert.equal(runtime.cooldownController.readAmmo(ID.FLAME_SURGE).charges, 3);
+  assert.ok(runtime.flips[ID.FLAME_RUSH]);
+  assert.equal(runtime.flips[ID.FLAME_SURGE], undefined);
+  assert.equal(runtime.cooldownController.hasCooldown(ID.MANTRA_OF_FLAME), false);
 });
 
 test('Firebrand normal and final mantra charges share lockout and automatically rearm after root recharge', () => {

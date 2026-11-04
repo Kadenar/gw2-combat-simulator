@@ -14,6 +14,7 @@ import type {
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import {
@@ -68,14 +69,14 @@ function harbingerStateSnapshot(
     });
   }
 
-  // Meltdown is a short post-proc damage window, so expose only its remaining active duration.
-  const meltdownRemaining = (state[STATE.MELTDOWN_UNTIL] || 0) - Math.max(0, context.atSeconds || 0);
+  // Accepted personal buffs own the countdown at the planning boundary, independent of chart clipping.
+  const meltdown = planningBuffAt(context.planningState, 'meltdown');
 
-  if (meltdownRemaining > 0) {
+  if (meltdown) {
     items.push({
       id: 'harbinger-meltdown',
       label: 'Meltdown',
-      value: `${meltdownRemaining.toFixed(1)}s`,
+      value: `${meltdown.remaining.toFixed(1)}s`,
       title: 'Time remaining in Meltdown'
     });
   }

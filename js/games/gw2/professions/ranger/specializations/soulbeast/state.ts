@@ -8,7 +8,6 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface SoulbeastState {
   beastmodeActive: boolean;
-  oneWolfPackUntil: number;
 
   soulbeastActivationClaims: ActivationClaims;
 }
@@ -17,7 +16,6 @@ export function createSoulbeastState(): SoulbeastState {
   return {
     // Soulbeast starts merged - the rotation begins in Beastmode by default.
     beastmodeActive: true,
-    oneWolfPackUntil: 0,
 
     // Tracks per-activation-id whether the beast-ability first-hit proc already fired, preventing multi-hit skills from triggering trait effects more than once per cast.
     soulbeastActivationClaims: {}
@@ -30,7 +28,6 @@ export const soulbeastState = defineProfessionSpecializationState('Soulbeast', c
 export function projectSoulbeastPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
   const state = soulbeastState.from(input.profession);
   return {
-    [STATE.BEASTMODE_ACTIVE]: state.beastmodeActive,
-    [STATE.ONE_WOLF_PACK_UNTIL]: state.oneWolfPackUntil
+    [STATE.BEASTMODE_ACTIVE]: state.beastmodeActive
   };
 }

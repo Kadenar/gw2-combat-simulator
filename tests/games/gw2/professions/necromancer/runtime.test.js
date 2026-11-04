@@ -967,7 +967,11 @@ test('consumption cancels only the removed creature and starts summon recharge a
 
 test('an active death-gated minion cannot be replaced by recasting after a cooldown reset', () => {
   const result = simulate([cast(ID.SUMMON_SHADOW_FIEND), { type: 'cooldown-reset' }, cast(ID.SUMMON_SHADOW_FIEND)]);
-  assert.equal(observedRuntime(result).profession.core.minionGenerations['shadow-fiend'], 1);
+  // The rejected recast leaves the original creature and its cursor in place.
+  const summoned = result.steps.find((step) => step.skillId === ID.SUMMON_SHADOW_FIEND && !step.invalid);
+  const state = observedRuntime(result).profession.core;
+  assert.equal(state.activeMinions['shadow-fiend'], 1);
+  assert.equal(state.minionAttackCursors['minion:shadow-fiend:0'].activationId, `${summoned.activationId}:0`);
   assert.ok(result.warnings.some(({ message: warning }) => warning.includes('still alive')));
 });
 
@@ -980,6 +984,43 @@ test('Haunt grants life force once at its accepted impact, with no off-target or
     const result = simulate([cast(ID.SUMMON_SHADOW_FIEND), command, wait(durationMs)]);
     assert.deepEqual(result.warnings, []);
     assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), expected);
+  }
+});
+
+test('minion commands advance work ownership while resuming the same attack cursor', () => {
+  // A pause invalidates old work without restarting a creature's executed chain or replacing its identity.
+  for (const [key, summonId, commandId] of [
+    ['shadow-fiend', ID.SUMMON_SHADOW_FIEND, ID.HAUNT],
+    ['bone-fiend', ID.SUMMON_BONE_FIEND, ID.RIGOR_MORTIS]
+  ]) {
+    const native = necromancerProfession.runtimeFor(base);
+    let paused;
+    let cycleBeforePause;
+    const profession = {
+      ...native,
+      sideEffectHandlers: {
+        ...native.sideEffectHandlers,
+        'necromancer.command-minion'(runtime, context) {
+          const state = runtime.profession.core;
+          paused = state.minionAttackCursors[`minion:${key}:0`];
+          cycleBeforePause = paused.cycleIndex;
+          const attackIndex = paused.attackIndex;
+          const generation = state.minionAttackGenerations[key];
+          native.sideEffectHandlers['necromancer.command-minion'](runtime, context);
+          assert.equal(state.minionAttackCursors[`minion:${key}:0`], paused);
+          assert.equal(paused.cycleIndex, cycleBeforePause);
+          assert.equal(paused.attackIndex, attackIndex);
+          assert.ok(state.minionAttackGenerations[key] > generation);
+          assert.ok(paused.busyUntil > runtime.time);
+        }
+      }
+    };
+    const result = simulate([cast(summonId), wait(4000), cast(commandId), wait(5000)], base, { profession });
+    assert.deepEqual(result.warnings, []);
+    assert.ok(cycleBeforePause > 1);
+    assert.equal(observedRuntime(result).profession.core.minionAttackCursors[`minion:${key}:0`], paused);
+    assert.ok(paused.cycleIndex > cycleBeforePause);
+    assert.equal(observedRuntime(result).profession.core.activeMinions[key], 1);
   }
 });
 
@@ -1011,7 +1052,10 @@ test('a replacement generation cancels the old autonomous clock and pending Haun
     }
   };
   const result = simulate([cast(ID.SUMMON_SHADOW_FIEND), cast(ID.HAUNT), wait(9000)], base, { profession });
-  assert.equal(observedRuntime(result).profession.core.minionGenerations['shadow-fiend'], 2);
+  assert.deepEqual(result.warnings, []);
+  const state = observedRuntime(result).profession.core;
+  assert.equal(state.activeMinions['shadow-fiend'], 1);
+  assert.equal(state.minionAttackCursors['minion:shadow-fiend:0'].activationId, 'replacement:0');
   assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 0);
   const strikes = result.resolvedEvents.filter((event) => event.type === 'damage');
   assert.ok(strikes.length > 0);

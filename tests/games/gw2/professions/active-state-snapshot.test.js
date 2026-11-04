@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -8,7 +9,9 @@ import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { RANGER_SKILL_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { activateSoulbeastStance } from '#gw2/professions/ranger/specializations/soulbeast/skills/stance-skills.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -16,6 +19,7 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import { projectObservedPlanningState, projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 test('planning projections omit private mechanic state while retaining visible observations', () => {
   // Availability is observed in the runtime; presentation does not need its internal counters, costs, or schedules.
@@ -505,15 +509,154 @@ test('Mesmer and Harbinger snapshots expose their short decision windows', () =>
   assert.equal(expiredDangerTime['chronomancer-danger-time'], undefined);
 
   const harbinger = valuesById(
-    snapshot(necromancerProfession, 'Harbinger', { [STATE.BLIGHT]: 12, [STATE.MELTDOWN_UNTIL]: 9 }, 6)
+    necromancerProfession.ui.rotationStateSnapshot({
+      balanceContext: withPatchPreview(necromancerProfession).resolvePatch().balanceContext,
+      specialization: 'Harbinger',
+      professionState: { [STATE.BLIGHT]: 12 },
+      atSeconds: 0,
+      planningState: { atSeconds: 6, effects: [timedEffectState('meltdown', [{ stacks: 1, expiresAt: 9 }], 1)] }
+    })
   );
   assert.equal(harbinger['harbinger-meltdown'], '3.0s');
 });
 
-test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbiosis', () => {
-  const soulbeast = valuesById(snapshot(rangerProfession, 'Soulbeast', { [STATE.ONE_WOLF_PACK_UNTIL]: 9 }, 4));
-  assert.equal(soulbeast['soulbeast-one-wolf-pack'], '5.0s');
+test('Harbinger countdown ignores party projections and assumptions and expires at the planning boundary', () => {
+  // The editor reads accepted personal state even when chart time is clipped to an earlier boundary.
+  const personal = timedEffectState('meltdown', [{ stacks: 1, expiresAt: 9 }], 1);
+  const other = [
+    timedEffectState('meltdown', [{ stacks: 1, expiresAt: 30 }], 1, { recipient: 'party' }),
+    timedEffectState('meltdown', [{ stacks: 1, expiresAt: 30 }], 1, { origin: 'party-projection' }),
+    timedEffectState('meltdown', [{ stacks: 1, expiresAt: 30 }], 1, { origin: 'assumption' })
+  ];
+  for (const [effects, atSeconds, expected] of [
+    [[], 6, undefined],
+    [other, 6, undefined],
+    [[...other, personal], 6, '3.0s'],
+    [[personal], 9, undefined],
+    [[personal], 10, undefined]
+  ]) {
+    const items = necromancerProfession.ui.rotationStateSnapshot({
+      balanceContext: withPatchPreview(necromancerProfession).resolvePatch().balanceContext,
+      specialization: 'Harbinger',
+      atSeconds: 0,
+      planningState: { atSeconds, effects }
+    });
+    assert.equal(valuesById(items)['harbinger-meltdown'], expected);
+  }
+});
 
+test('Soulbeast countdown uses accepted personal windows at the planning boundary', () => {
+  // Party projections, assumptions, empty windows, and exclusive expiry cannot extend the personal stance.
+  const effect = (windows, options = {}) => timedEffectState('one-wolf-pack', windows, 1, options);
+  const personal = effect([{ stacks: 1, expiresAt: 9 }]);
+  const party = effect([{ stacks: 1, expiresAt: 30 }], { recipient: 'party' });
+  const projected = effect([{ stacks: 1, expiresAt: 30 }], { origin: 'party-projection' });
+  const assumed = effect([{ stacks: 1, expiresAt: 40 }], { origin: 'assumption' });
+  for (const [effects, atSeconds, expected] of [
+    [undefined, 4, undefined],
+    [[], 4, undefined],
+    [[party, projected, assumed], 4, undefined],
+    [[party, projected, assumed, personal], 4, '5.0s'],
+    [[party, personal], 9, undefined],
+    [[personal], 10, undefined],
+    [
+      [
+        effect([
+          { stacks: 1, expiresAt: 3 },
+          { stacks: 1, expiresAt: 7 },
+          { stacks: 1, expiresAt: 9.26 },
+          { stacks: 0, expiresAt: 50 }
+        ])
+      ],
+      4,
+      '5.3s'
+    ]
+  ]) {
+    const items = rangerProfession.ui.rotationStateSnapshot({
+      balanceContext: withPatchPreview(rangerProfession).resolvePatch().balanceContext,
+      specialization: 'Soulbeast',
+      // The engine observation owns time even if a caller supplies a different report timestamp.
+      atSeconds: 0,
+      planningState: effects === undefined ? undefined : { atSeconds, effects }
+    });
+    const stance = items.find((item) => item.id === 'soulbeast-one-wolf-pack');
+    assert.equal(stance?.value, expected);
+
+    if (stance) {
+      assert.equal(stance.label, 'One Wolf Pack');
+      assert.equal(stance.title, 'Time remaining in One Wolf Pack');
+    }
+  }
+});
+
+test('Soulbeast countdown waits for stance acceptance and disappears at expiry', () => {
+  // Schedule a real stance grant beyond the first observation; queued work is not an accepted effect.
+  for (const [at, active] of [
+    [1, false],
+    [2, true],
+    [8, false]
+  ]) {
+    const result = runRanger(
+      [{ type: 'wait', durationMs: at * 1000 }],
+      { specialization: 'Soulbeast' },
+      {
+        initialize(runtime) {
+          activateSoulbeastStance(
+            runtime.mechanics,
+            runtime.helpers.skillsById.get(RANGER_SKILL_IDS.ONE_WOLF_PACK),
+            'one-wolf-pack',
+            2
+          );
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const items = rangerProfession.ui.rotationStateSnapshot({
+      balanceContext: withPatchPreview(rangerProfession).resolvePatch().balanceContext,
+      specialization: 'Soulbeast',
+      planningState: result.planningState
+    });
+    assert.equal(
+      items.some((item) => item.id === 'soulbeast-one-wolf-pack'),
+      active
+    );
+  }
+});
+
+test('Soulbeast countdown reaches the rotation workspace after target death', () => {
+  // Authoring can apply and expire a self stance after combat reporting has stopped.
+  for (const waitMs of [1000, 8000]) {
+    const rotation = [
+      RANGER_SKILL_IDS.LONG_RANGE_SHOT,
+      RANGER_SKILL_IDS.ONE_WOLF_PACK,
+      { type: 'wait', durationMs: waitMs }
+    ];
+    const result = runRanger(rotation, {
+      specialization: 'Soulbeast',
+      primaryWeapon: 'Longbow',
+      target: { health: 1, armor: 2597 }
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.ok(result.planningState.atSeconds > result.deathTime);
+    assert.equal(
+      result.resolvedEvents.some((event) => event.kind === 'one-wolf-pack'),
+      false
+    );
+    const { items } = rotationStateSnapshot({
+      patch: withPatchPreview(rangerProfession).resolvePatch(),
+      build: { rotation },
+      results: result,
+      profession: rangerProfession,
+      adapter: { eliteSpecialization: () => 'Soulbeast' }
+    });
+    assert.equal(
+      items.some((item) => item.id === 'soulbeast-one-wolf-pack'),
+      waitMs === 1000
+    );
+  }
+});
+
+test('Ranger snapshots expose elite windows and resolver-owned Ferocious Symbiosis', () => {
   const untamed = valuesById(
     snapshot(
       rangerProfession,
