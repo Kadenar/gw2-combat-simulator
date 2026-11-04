@@ -100,7 +100,7 @@ test('total idle time excludes explicit waits before combat start', () => {
   assert.deepEqual(metrics[1], {
     label: 'Total Idle Time',
     value: '300ms',
-    className: '',
+    className: 'idle-time',
     details: [{ label: 'Explicit waits', value: '300ms' }]
   });
 });
