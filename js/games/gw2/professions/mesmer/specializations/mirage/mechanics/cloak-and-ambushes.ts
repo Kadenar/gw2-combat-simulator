@@ -19,8 +19,7 @@ import type { MesmerClone, MesmerCloneAttack } from '#gw2/professions/mesmer/cor
 import {
   buildMesmerConditions,
   buildMesmerPacket,
-  buildMesmerStrikes,
-  mesmerPacketOwner
+  buildMesmerStrikes
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { NON_MIRAGE_AXE_SKILL_IDS } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -112,7 +111,6 @@ export function createMirageActionController({
         ...delivery,
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }
@@ -140,7 +138,6 @@ export function createMirageActionController({
         ...delivery,
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }
@@ -191,7 +188,6 @@ export function createMirageActionController({
         state.effects.emit({
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       });
@@ -208,7 +204,6 @@ export function createMirageActionController({
         state.effects.emit({
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       });
@@ -351,7 +346,6 @@ export function executeMirageCloneAmbushPackets(
           ...delivery,
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       }
@@ -390,7 +384,6 @@ export function executeMirageCloneAmbushPackets(
           ...delivery,
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       });
@@ -406,7 +399,6 @@ export function executeMirageCloneAmbushPackets(
           ...delivery,
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       });
@@ -417,8 +409,7 @@ export function executeMirageCloneAmbushPackets(
       state.effects.emit({
         ...delivery,
         kind: 'packet',
-        event: packet,
-        owner: mesmerPacketOwner(packet)
+        event: packet
       });
     }
   }

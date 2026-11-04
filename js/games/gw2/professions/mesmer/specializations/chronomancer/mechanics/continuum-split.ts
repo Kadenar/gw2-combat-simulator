@@ -5,7 +5,7 @@ import type { AvailabilityResult } from '#gw2/platform/execution/availability.js
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
@@ -63,7 +63,6 @@ export function createContinuumController({
       state.effects.emit({
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }
@@ -114,7 +113,6 @@ export function createContinuumController({
       state.effects.emit({
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }

@@ -7,9 +7,10 @@ import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export interface ResolvedCriticalHitOptions<
-  TContext extends Pick<MechanicCombatContext, 'random'>,
+  TContext extends Pick<MechanicCombatContext, 'random' | 'procs'>,
   TEvent extends Gw2ResolverEvent,
   TDetails extends NativeResolvedDamageDetails
 > {
@@ -18,9 +19,8 @@ export interface ResolvedCriticalHitOptions<
   readonly actorTypes?: readonly SimulationActorType[];
   readonly when?: (context: TContext, event: TEvent, details: TDetails) => boolean;
   readonly internalCooldown?: {
+    readonly key: SkillId;
     readonly duration: number | ((context: TContext) => number);
-    readonly readyAt: (context: TContext) => number;
-    readonly setReadyAt: (context: TContext, readyAt: number) => void;
   };
   readonly randomStream?: string;
   readonly handler: (
@@ -39,7 +39,7 @@ export interface ResolvedCriticalHitOptions<
  * Callers own execution order; handlers supply attribution on the effects they emit.
  */
 export function criticalProcHandler<
-  TContext extends Pick<MechanicCombatContext, 'random'>,
+  TContext extends Pick<MechanicCombatContext, 'random' | 'procs'>,
   TEvent extends Gw2ResolverEvent,
   TDetails extends NativeResolvedDamageDetails
 >(
@@ -71,8 +71,10 @@ export function criticalProcHandler<
       : 0;
     const criticalChance = details.hitContext.critical.chance;
 
-    // Professions own deadlines; both modes consume the canonical seeded critical outcome.
-    const state = options.internalCooldown ? { readyAt: options.internalCooldown.readyAt(context) } : undefined;
+    // Each declaration selects its registry key; both modes consume the canonical seeded critical outcome.
+    const state = options.internalCooldown
+      ? { readyAt: context.procs.deadline(options.internalCooldown.key) }
+      : undefined;
     const application = advanceCriticalProc(
       criticalOpportunity(criticalChance, details.hitContext.critical.didCrit),
       {
@@ -86,13 +88,13 @@ export function criticalProcHandler<
       state
     );
 
-    // Commit the claim before the trait emits effects that could cause another reaction.
-    if (state) {
-      options.internalCooldown?.setReadyAt(context, state.readyAt);
-    }
+    if (!application) return;
+
+    // Reserve successful claims before rewards can reenter; rejected attempts leave registry storage untouched.
+    if (state && options.internalCooldown) context.procs.setDeadline(options.internalCooldown.key, state.readyAt);
 
     // The shared layer decides only whether and how much the proc applied;
     // the declaration remains responsible for the actual trait effect.
-    if (application) options.handler(context, event, details, application);
+    options.handler(context, event, details, application);
   };
 }

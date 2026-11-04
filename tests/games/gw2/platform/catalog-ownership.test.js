@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import {
   assembleNativeApplicationCatalog,
   assembleNativeRuntimeCatalog,
@@ -278,8 +279,9 @@ test('module-first assembly rejects duplicate and incomplete contributions', () 
 test('resolved critical-hit helper shares sampled outcomes and strict ICDs across modes', () => {
   assert.throws(() => criticalProcHandler({ id: '', handler() {} }), /Critical proc requires id and handler/);
   assert.throws(() => criticalProcHandler({ id: 'invalid' }), /Critical proc requires id and handler/);
-  const state = { readyAt: 0, procs: 0, rolls: 0 };
+  const state = { procs: 0, rolls: 0 };
   const context = {
+    procs: createProcRegistry(() => context),
     random: {
       mode: 'deterministic',
       roll: (chance, stream) => {
@@ -297,14 +299,11 @@ test('resolved critical-hit helper shares sampled outcomes and strict ICDs acros
     when: (_context, event) => event.sourceId === 7,
     internalCooldown: {
       duration: 1,
-      readyAt: () => state.readyAt,
-      setReadyAt: (_context, value) => {
-        state.readyAt = value;
-      }
+      key: 'fixture.cooldown'
     },
     handler: (_context, event, _details, application) => {
       // Claim the cooldown before emitting effects that could reenter this handler.
-      assert.equal(state.readyAt, event.at + 1);
+      assert.equal(context.procs.deadline('fixture.cooldown'), event.at + 1);
       // Discrete consumers apply every proc quantity returned by the shared kernel.
       state.procs += application.quantity;
     }

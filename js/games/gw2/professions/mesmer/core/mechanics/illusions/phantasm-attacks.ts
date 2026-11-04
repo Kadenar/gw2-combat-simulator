@@ -5,8 +5,7 @@ import type { MesmerPhantasmExecution } from '#gw2/professions/mesmer/core/mecha
 import {
   buildMesmerConditions,
   buildMesmerPacket,
-  buildMesmerStrikes,
-  mesmerPacketOwner
+  buildMesmerStrikes
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerConditionEffect, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -49,7 +48,6 @@ export function schedulePhantasmBonusStrike(
         // Each entity conversion is one proc, even when its strike expands into multiple damage packets.
         ...(index === 0 ? { metadata: { ...packet.metadata, procCount: 1 } } : {})
       },
-      owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)
     });
   });
@@ -399,7 +397,6 @@ function emitAttackPacket(state: MesmerRuntime, execution: MesmerPhantasmExecuti
     ...execution.delivery,
     kind: 'packet',
     event: packet.type === 'damage' ? { ...packet, bountifulBladesDamageFactor: execution.damageMultiplier } : packet,
-    owner: mesmerPacketOwner(packet),
     priority: Number(packet.priority ?? 0)
   });
 }

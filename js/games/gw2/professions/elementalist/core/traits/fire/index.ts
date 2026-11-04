@@ -381,10 +381,7 @@ const burningPrecisionCritical = criticalProcHandler<
   when: (_context, event, details) => criticalTraitEligible(event, details),
   internalCooldown: {
     duration: (context) => balanceNumberFromContext(context, TRAIT.BURNING_PRECISION, 'internalCooldown'),
-    readyAt: (context) => context.procs.deadline('burningPrecision') || 0,
-    setReadyAt: (context, readyAt) => {
-      context.procs.setDeadline('burningPrecision', readyAt);
-    }
+    key: 'burningPrecision'
   },
   randomStream: 'elementalist.burning-precision',
   handler: applyBurningPrecision

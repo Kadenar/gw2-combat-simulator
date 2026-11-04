@@ -9,7 +9,6 @@ export const THIEF_STATE_IDS = Object.freeze({
   SPEAR_PREVIOUS_SKILL_ID: 'gw2.thief.spear-previous-skill-id',
   SPINNING_AXES: 'gw2.thief.spinning-axes',
   OUTBOUND_AXES: 'gw2.thief.outbound-axes',
-  VENOM_CHARGE_BATCHES: 'gw2.thief.venom-charge-batches',
   ACTIVE_THIEVES_GUILD: 'gw2.thief.active-thieves-guild',
   BONUS_STEALTH_ATTACK: 'gw2.thief.bonus-stealth-attack',
   ARTIFACT_SLOTS: 'gw2.antiquary.artifact-slots',

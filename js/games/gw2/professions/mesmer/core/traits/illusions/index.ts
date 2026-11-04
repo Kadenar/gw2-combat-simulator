@@ -22,7 +22,7 @@ import {
   skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
-import { buildMesmerConditions, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerConditions } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerShatterResolved } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import { mesmerIllusionsGained } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
@@ -378,7 +378,6 @@ export function triggerMaimTheDisillusioned(context: MesmerRuntime, resolution: 
           traitId: TRAIT.MAIM_THE_DISILLUSIONED,
           ...(resolution.persistsAfterInterrupt ? { persistsAfterInterrupt: true } : {})
         },
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     });

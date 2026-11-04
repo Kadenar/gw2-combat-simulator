@@ -1,7 +1,7 @@
 /** Resolves Inspiring Imagery's mutually exclusive boon expiry and offensive detonation. */
 import { ACTOR, COMBO_FINISHER } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -60,7 +60,6 @@ export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast
       context.effects.emit({
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }

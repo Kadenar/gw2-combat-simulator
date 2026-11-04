@@ -4,11 +4,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import {
-  buildMesmerConditions,
-  buildMesmerStrikes,
-  mesmerPacketOwner
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerConditions, buildMesmerStrikes } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { axeCloneAttack } from '#gw2/professions/mesmer/core/skills/weapons/axe-clone.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -237,7 +233,6 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
           ...delivery,
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       });
@@ -254,7 +249,6 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
           ...delivery,
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       });
@@ -291,7 +285,6 @@ export function completeAxesConfusion(state: MesmerRuntime, cast: RuntimeCast<Me
           ...delivery,
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       });

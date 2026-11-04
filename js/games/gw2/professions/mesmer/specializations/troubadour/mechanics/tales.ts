@@ -4,7 +4,7 @@ import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import { startTroubadourInstrument } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
@@ -40,7 +40,6 @@ function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleI
     context.effects.emit({
       kind: 'packet',
       event: packet,
-      owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)
     });
   }

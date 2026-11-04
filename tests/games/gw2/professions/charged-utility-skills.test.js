@@ -3,12 +3,17 @@ import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
+import { effectStateAt } from '#gw2/platform/results/effect-report.js';
+import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
 import { RANGER_SKILL_IDS as RANGER } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
+import { addVenomCharges, applyActiveVenoms } from '#gw2/professions/thief/core/mechanics/venoms.js';
 import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { wait } from '#tests/helpers/commands.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 
 // Short synthetic rotations isolate trap timing and finite on-hit charges from benchmark totals.
 const config = {
@@ -31,6 +36,107 @@ const liveVenomCharges = (result, id) => {
 
 const conditions = (result, skillId) =>
   result.resolvedEvents.filter((event) => event.type === 'condition' && event.skillId === skillId);
+
+// Consumption uses grant-established expiry order without refreshing unrelated pools or expired survivors.
+test('player venoms spend shorter grants first and regrants prune only their selected pool', () => {
+  const core = thiefProfession.runtimeFor({}).createState({}).core;
+  const context = {
+    profession: { core },
+    helpers: thiefProfession.catalog,
+    effects: captureEffectEmissions().effects
+  };
+  addVenomCharges(core, THIEF.SPIDER_VENOM, 0, 2, 10);
+  addVenomCharges(core, THIEF.SKALE_VENOM, 0, 2, 1);
+  const skale = core.venomChargeBatches[THIEF.SKALE_VENOM];
+  addVenomCharges(core, THIEF.SPIDER_VENOM, 1, 2, 2);
+  assert.equal(core.venomChargeBatches[THIEF.SKALE_VENOM], skale);
+  const spider = core.venomChargeBatches[THIEF.SPIDER_VENOM];
+  assert.deepEqual(
+    spider.map((grant) => grant.expiresAt),
+    [3, 10]
+  );
+  for (const event of [thiefHit(2, { actorType: 'summon' }), thiefHit(2, { coefficient: 0 })])
+    assert.equal(applyActiveVenoms(context, event), 0);
+  assert.deepEqual(
+    spider.map((grant) => grant.charges),
+    [2, 2]
+  );
+  assert.equal(applyActiveVenoms(context, thiefHit(2)), 1);
+  assert.deepEqual(
+    spider.map((grant) => grant.charges),
+    [1, 2]
+  );
+  assert.equal(applyActiveVenoms(context, thiefHit(3)), 1);
+  assert.deepEqual(
+    spider.map((grant) => grant.charges),
+    [1, 1]
+  );
+  assert.equal(core.venomChargeBatches[THIEF.SPIDER_VENOM], spider);
+  assert.equal(core.venomChargeBatches[THIEF.SKALE_VENOM], skale);
+  assert.equal(skale[0].charges, 2);
+  assert.equal(applyActiveVenoms(context, thiefHit(10)), 0);
+  addVenomCharges(core, THIEF.SPIDER_VENOM, 10, 5, 4, 2);
+  assert.deepEqual(
+    core.venomChargeBatches[THIEF.SPIDER_VENOM].map(({ charges, expiresAt }) => [charges, expiresAt]),
+    [[2, 14]]
+  );
+  assert.equal(core.venomChargeBatches[THIEF.SKALE_VENOM], skale);
+});
+
+test('trait venom caps and zero gains preserve live utility charges while excluding expired capacity', () => {
+  const core = thiefProfession.runtimeFor({}).createState({}).core;
+  addVenomCharges(core, THIEF.SPIDER_VENOM, 0, 6, 2);
+  for (const [charges, cap] of [
+    [2, 3],
+    [2, 0],
+    [0, 10]
+  ]) {
+    addVenomCharges(core, THIEF.SPIDER_VENOM, 1, charges, 10, cap);
+    assert.deepEqual(
+      core.venomChargeBatches[THIEF.SPIDER_VENOM].map(({ charges, expiresAt }) => [charges, expiresAt]),
+      [[6, 2]]
+    );
+  }
+
+  addVenomCharges(core, THIEF.SPIDER_VENOM, 2, 2, 5, 3);
+  assert.deepEqual(
+    core.venomChargeBatches[THIEF.SPIDER_VENOM].map(({ charges, expiresAt }) => [charges, expiresAt]),
+    [[2, 7]]
+  );
+});
+
+test('venom planning and reports exclude retained expired charges and observe a later regrant', () => {
+  // A real strike at expiry cannot spend the old grant; reporting derives liveness without pruning private storage.
+  for (const regrant of [false, true]) {
+    const result = runThief(
+      [wait(3000)],
+      {},
+      {
+        initialize(runtime) {
+          addVenomCharges(runtime.profession.core, THIEF.SPIDER_VENOM, 0, 2, 1);
+          runtime.effects.emit({ kind: 'packet', event: thiefHit(1) });
+        },
+        probes: regrant
+          ? [[2, (runtime) => addVenomCharges(runtime.profession.core, THIEF.SPIDER_VENOM, 2, 1, 4, 1)]]
+          : []
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(conditions(result, THIEF.SPIDER_VENOM).length, 0);
+    assert.equal(planningBuffStacks(result.planningState, 'spider-venom'), regrant ? 1 : 0);
+    const grants = observedRuntime(result).profession.core.venomChargeBatches[THIEF.SPIDER_VENOM];
+    assert.deepEqual(
+      grants.map(({ charges, expiresAt }) => [charges, expiresAt]),
+      regrant ? [[1, 6]] : [[2, 1]]
+    );
+    const track = result.effectReport.tracks.find(
+      (track) => track.kind === 'spider-venom' && track.recipient === 'self'
+    );
+    assert.equal(effectStateAt(result.effectReport, track, 0.5).count, 2);
+    assert.equal(effectStateAt(result.effectReport, track, 1).count, 0);
+    assert.equal(effectStateAt(result.effectReport, track, 3).count, regrant ? 1 : 0);
+  }
+});
 
 test("Viper's Nest triggers after placement and preserves the pending dagger chain", () => {
   for (const quickness of [false, true]) {

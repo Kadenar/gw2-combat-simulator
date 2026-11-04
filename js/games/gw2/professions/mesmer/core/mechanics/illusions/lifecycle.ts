@@ -5,7 +5,7 @@ import {
   scheduleMesmerPhantasmEffects,
   startMesmerCast
 } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
@@ -42,7 +42,6 @@ export const mesmerIllusionHooks = {
         runtime.effects.emit({
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       }

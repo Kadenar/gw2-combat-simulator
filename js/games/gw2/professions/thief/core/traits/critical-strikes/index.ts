@@ -339,10 +339,7 @@ const unrelentingStrikesCriticalReaction = Object.freeze({
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
       balanceNumberFromContext(context, TRAIT.UNRELENTING_STRIKES, 'internalCooldown'),
-    readyAt: (context: ThiefResolverContext) => context.procs.deadline(TRAIT.UNRELENTING_STRIKES) || 0,
-    setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
-      context.procs.setDeadline(TRAIT.UNRELENTING_STRIKES, readyAt);
-    }
+    key: TRAIT.UNRELENTING_STRIKES
   },
   handler: (context, event, _details, application) => {
     // One invocation shares authored effects; each queued boon still samples live duration scaling.
@@ -431,10 +428,7 @@ const noQuarterCriticalReaction = Object.freeze({
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
       balanceNumberFromContext(context, TRAIT.NO_QUARTER, 'internalCooldown'),
-    readyAt: (context: ThiefResolverContext) => context.procs.deadline(TRAIT.NO_QUARTER) || 0,
-    setReadyAt: (context: ThiefResolverContext, readyAt: number) => {
-      context.procs.setDeadline(TRAIT.NO_QUARTER, readyAt);
-    }
+    key: TRAIT.NO_QUARTER
   },
   handler: (context, event, _details, application) => {
     // Reuse authored duration within this batch while extending the live pool for each proc.

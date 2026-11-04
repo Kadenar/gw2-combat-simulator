@@ -8,11 +8,7 @@ import type {
   MesmerPhantasmEffectController,
   MesmerPhantasmExecution
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import {
-  buildMesmerConditions,
-  buildMesmerStrikes,
-  mesmerPacketOwner
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerConditions, buildMesmerStrikes } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -76,7 +72,6 @@ export function createSkillDamageController({
           ...delivery,
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       }
@@ -115,7 +110,6 @@ export function createSkillDamageController({
             ...delivery,
             kind: 'packet',
             event: packet,
-            owner: mesmerPacketOwner(packet),
             priority: Number(packet.priority ?? 0)
           });
         }

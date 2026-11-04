@@ -514,10 +514,7 @@ const arcanePrecisionCritical = criticalProcHandler<
   when: (_context, event, details) => criticalTraitEligible(event, details),
   internalCooldown: {
     duration: (context) => balanceNumberFromContext(context, TRAIT.ARCANE_PRECISION, 'internalCooldown'),
-    readyAt: (context) => context.procs.deadline('arcanePrecision') || 0,
-    setReadyAt: (context, readyAt) => {
-      context.procs.setDeadline('arcanePrecision', readyAt);
-    }
+    key: 'arcanePrecision'
   },
   randomStream: 'elementalist.arcane-precision',
   handler: applyArcanePrecision
@@ -533,10 +530,7 @@ const renewingStaminaCritical = criticalProcHandler<
   when: (_context, event, details) => criticalTraitEligible(event, details),
   internalCooldown: {
     duration: (context) => balanceNumberFromContext(context, TRAIT.RENEWING_STAMINA, 'internalCooldown'),
-    readyAt: (context) => context.procs.deadline('renewingStamina') || 0,
-    setReadyAt: (context, readyAt) => {
-      context.procs.setDeadline('renewingStamina', readyAt);
-    }
+    key: 'renewingStamina'
   },
   handler: applyRenewingStamina
 });

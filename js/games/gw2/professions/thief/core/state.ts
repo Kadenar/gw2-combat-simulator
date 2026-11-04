@@ -52,6 +52,7 @@ export interface ThiefCoreState extends StealthState {
   spinningAxes: { skillId: SkillId; expiresAt: number }[];
   /** Outgoing projectiles are recallable before landing, but do not occupy grounded slots yet. */
   outboundAxes: { id: string; skillId: SkillId }[];
+  /** Expiry-ordered player grants; active counts ignore expired entries until that pool's next grant prunes them. */
   venomChargeBatches: ChargePool['grants'];
   /** Each assumed ally's venom batches, keyed by `${allyIndex}:${skillId}`; the allied controller supplies strikes. */
   alliedVenomChargeBatches: Record<string, AlliedVenomBatch[]>;
@@ -132,7 +133,6 @@ export function projectThiefCorePlanningState(input: Gw2PlanningStateInput) {
     [STATE.SPEAR_PREVIOUS_SKILL_ID]: state.spearPreviousSkillId,
     [STATE.SPINNING_AXES]: state.spinningAxes,
     [STATE.OUTBOUND_AXES]: state.outboundAxes,
-    [STATE.VENOM_CHARGE_BATCHES]: state.venomChargeBatches,
     [STATE.ACTIVE_THIEVES_GUILD]: state.activeThievesGuild
   };
 }

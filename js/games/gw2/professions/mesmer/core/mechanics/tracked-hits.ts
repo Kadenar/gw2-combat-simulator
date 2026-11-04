@@ -1,6 +1,6 @@
 /** Owns hit history that survives one Mesmer cast and triggers threshold packets across activations. */
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { buildMesmerStrikes, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerStrikes } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -49,7 +49,6 @@ export function recordMesmerTrackedHit(state: MesmerRuntime, skill: MesmerSkill,
       state.effects.emit({
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     });

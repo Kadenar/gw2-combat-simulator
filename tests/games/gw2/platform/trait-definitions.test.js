@@ -18,6 +18,7 @@ import {
 } from '#gw2/platform/attributes/inputs.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
@@ -388,7 +389,7 @@ function moduleWith(traits, options = {}) {
   return defineNativeModule({
     id: 'Core',
     data: { skills: [skill], traits: traits.map(({ id, name }) => ({ id, name })) },
-    state: { create: () => ({ count: 0, readyAt: 0 }) },
+    state: { create: () => ({ count: 0 }) },
     ...options,
     traitDefinitions: traits
   });
@@ -944,10 +945,7 @@ test('compiled critical admission retains per-run state, actor gates, and the ex
     when: (runtime) => hasTrait(runtime, 101),
     internalCooldown: {
       duration: (runtime) => tuning(runtime, 'internalCooldown'),
-      readyAt: (runtime) => runtime.profession.core.readyAt,
-      setReadyAt: (runtime, value) => {
-        runtime.profession.core.readyAt = value;
-      }
+      key: 101
     },
     handler: (runtime) => {
       runtime.profession.core.count += 1;
@@ -964,6 +962,7 @@ test('compiled critical admission retains per-run state, actor gates, and the ex
   );
   const runtime = family.runtimeFor({});
   const context = {
+    procs: createProcRegistry(() => context),
     helpers: runtime.catalog,
     config: { selectedTraitIds: [101] },
     profession: runtime.createState({})
@@ -978,7 +977,7 @@ test('compiled critical admission retains per-run state, actor gates, and the ex
   ])
     runtime.reactions['damage.resolved'](context, { actorType, at }, details);
   assert.equal(context.profession.core.count, 2);
-  assert.equal(context.profession.core.readyAt, 5);
+  assert.equal(context.procs.deadline(101), 5);
   assert.equal(runtime.createState({}).core.count, 0);
   context.config.selectedTraitIds = [];
   runtime.reactions['damage.resolved'](context, { actorType: 'player', at: 6 }, details);

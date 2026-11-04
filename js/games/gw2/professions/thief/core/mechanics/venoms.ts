@@ -1,6 +1,5 @@
 import {
   activeChargeCount,
-  activeChargeGrants,
   appendChargeGrant,
   consumeChargeBatch,
   grantChargePool,
@@ -52,14 +51,7 @@ function conditionEffects(profile: Skill): readonly ConditionEffect[] {
   );
 }
 
-/** Keep each grant's expiry and spend older charges before newer applications. */
-function refreshVenomCharges(state: ThiefCoreState, at: number): void {
-  for (const [skillId, batches] of Object.entries(state.venomChargeBatches)) {
-    state.venomChargeBatches[skillId] = activeChargeGrants(batches, at);
-  }
-}
-
-/** Add a fresh grant; a trait cap can limit new charges without deleting stacked utility grants. */
+/** Prune and expiry-sort only the granted pool; trait caps limit new charges without deleting utility grants. */
 export function addVenomCharges(
   state: ThiefCoreState,
   skillId: SkillId,
@@ -72,12 +64,11 @@ export function addVenomCharges(
 
   if (!venom) return;
 
-  refreshVenomCharges(state, at);
   const pool = { grants: state.venomChargeBatches };
   grantChargePool(pool, String(skillId), at, charges, duration, cap);
 }
 
-/** One venom policy for every recipient: a strike spends the oldest live batch, whose expiry is exclusive. */
+/** Spend the earliest-expiring live batch in grant-established order, skipping exclusively expired entries. */
 function spendVenomCharge<T extends ChargeGrant>(batches: T[] | undefined, at: number): T | undefined {
   return batches && consumeChargeBatch(batches, at);
 }
@@ -87,7 +78,6 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
   if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return 0;
 
   const state = professionCoreState(context.profession);
-  refreshVenomCharges(state, event.at);
   let procCount = 0;
   for (const venom of VENOMS) {
     if (!spendVenomCharge(state.venomChargeBatches[String(venom.skillId)], event.at)) continue;
@@ -148,7 +138,7 @@ export function activateVenom(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   const duration = effectNumber(profile, grant, 'duration');
   addVenomCharges(core, cast.skill.id, at, maximumStacks, duration);
   // Each cast appends one native batch per ally that keeps its cast's identity and cause. One registration per ally and
-  // venom offers each strike once, so a strike spends at most that ally's oldest live batch.
+  // venom offers each strike once, so a strike spends at most that ally's earliest-expiring live batch.
   runtime.alliedStrikes.registerRecipients((allyIndex, cause) => {
     const key = `${allyIndex}:${venom.skillId}`;
     core.alliedVenomChargeBatches[key] = appendChargeGrant(

@@ -12,8 +12,7 @@ import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-
 import {
   buildMesmerConditions,
   buildMesmerPacket,
-  buildMesmerStrikes,
-  mesmerPacketOwner
+  buildMesmerStrikes
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerProfessionActionCommitted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import type { MesmerShatterTraitHit } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
@@ -131,7 +130,6 @@ export function afterimageInstrumentAttack(
         kind: 'packet',
         // Afterimage copies retain their summon actor and stay excluded from preview.
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     });
@@ -143,7 +141,6 @@ export function afterimageInstrumentAttack(
           ...delivery,
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       }
@@ -188,7 +185,6 @@ export function startTroubadourInstrument(
     ...delivery,
     kind: 'packet',
     event: packet,
-    owner: mesmerPacketOwner(packet),
     priority: Number(packet.priority ?? 0)
   });
 }
@@ -230,7 +226,6 @@ function commitInstrument(
       ...delivery,
       kind: 'packet',
       event: packet,
-      owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)
     });
   }
@@ -277,7 +272,6 @@ export function resolveCrescendo(
         ...delivery,
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     });

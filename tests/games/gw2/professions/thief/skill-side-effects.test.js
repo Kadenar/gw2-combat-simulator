@@ -4,6 +4,7 @@ import test from 'node:test';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { activeChargeCount } from '#gw2/platform/combat/resources/charges.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -186,7 +187,9 @@ test('Thief activation declarations are the sole owners of their state transitio
       id: ID.SPIDER_VENOM,
       config: { selectedSkillIds: [13037] },
       active: (runtime) =>
-        Object.values(runtime.profession.core.venomChargeBatches).some((batches) => batches.length > 0)
+        Object.values(runtime.profession.core.venomChargeBatches).some((batches) =>
+          batches.some((grant) => activeChargeCount(grant, runtime.time) > 0)
+        )
     },
     {
       id: ID.ASSASSINS_SIGNET,

@@ -92,10 +92,7 @@ const chillingNova = defineTrait({
         chanceOnCriticalHit: (context) => balanceNumberFromContext(context, TRAIT.CHILLING_NOVA, 'criticalChance'),
         internalCooldown: {
           duration: (context) => balanceNumberFromContext(context, TRAIT.CHILLING_NOVA, 'cooldown'),
-          readyAt: (context) => context.procs.deadline('necromancer.reaper.chillingNova') || 0,
-          setReadyAt: (context, readyAt) => {
-            context.procs.setDeadline('necromancer.reaper.chillingNova', readyAt);
-          }
+          key: 'necromancer.reaper.chillingNova'
         },
         handler: (context, event, _details, application) => {
           // Chilling Nova is a discrete strike-and-chill package for each materialized proc.

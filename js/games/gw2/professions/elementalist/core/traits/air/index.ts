@@ -516,10 +516,7 @@ const ragingStormCritical = criticalProcHandler<
   when: (_context, event, details) => criticalTraitEligible(event, details),
   internalCooldown: {
     duration: (context) => balanceNumberFromContext(context, TRAIT.RAGING_STORM, 'internalCooldown'),
-    readyAt: (context) => context.procs.deadline('ragingStorm') || 0,
-    setReadyAt: (context, readyAt) => {
-      context.procs.setDeadline('ragingStorm', readyAt);
-    }
+    key: 'ragingStorm'
   },
   handler: applyRagingStorm
 });

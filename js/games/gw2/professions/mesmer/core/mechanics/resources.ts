@@ -10,7 +10,7 @@ import type {
   MesmerIllusionRewards,
   MesmerResourceGain
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type {
   MesmerPendingResource,
   MesmerResourceCause,
@@ -103,7 +103,6 @@ export function createIllusionRewardController({
       state.effects.emit({
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }

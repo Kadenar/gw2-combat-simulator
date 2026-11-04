@@ -31,8 +31,7 @@ test('retired clone packets cannot grant accepted critical conditions', () => {
               metadata: { cloneId: id },
               coefficient: 1,
               weaponStrength: 1000
-            },
-            owner: { id: `mesmer.clone:${id}`, generation: 0 }
+            }
           });
         runtime.cancelOwner({ id: 'mesmer.clone:0', generation: 0 });
       }
@@ -41,4 +40,111 @@ test('retired clone packets cannot grant accepted critical conditions', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'damage').length, 1);
   assert.equal(result.events.filter((event) => event.type === 'condition' && event.condition === 'Bleeding').length, 1);
+});
+
+for (const identityField of ['summonOwner', 'metadata']) {
+  test(`clone ${identityField} owns all pending effect kinds before preparation`, () => {
+    // Cancellation must discard preparation as well as the effect, regardless of its translated display label.
+    const prepared = [];
+    const effects = [
+      { type: 'damage', coefficient: 1, weaponStrength: 1000 },
+      { type: 'condition', condition: 'Torment', duration: 4, stacks: 1 },
+      { type: 'control', controlKind: 'daze', duration: 1 },
+      { type: 'buff', kind: 'might', duration: 4, stacks: 1 }
+    ];
+    const result = runMesmer(
+      [{ type: 'wait', durationMs: 1200 }],
+      { specialization: 'Core', selectedTraitIds: [] },
+      {
+        extend(native) {
+          return {
+            prepareEvent(runtime, event) {
+              if (event.sourceId?.startsWith('ownership:')) prepared.push([event.sourceId, runtime.time]);
+
+              return native.prepareEvent(runtime, event);
+            }
+          };
+        },
+        initialize(runtime) {
+          for (const id of [0, 1])
+            for (const effect of effects)
+              runtime.effects.emit({
+                kind: 'packet',
+                event: {
+                  ...effect,
+                  at: 1,
+                  source: 'Illusion sans nom',
+                  sourceId: `ownership:${id}:${effect.type}`,
+                  actorType: 'summon',
+                  summonKind: 'clone',
+                  ...(identityField === 'summonOwner'
+                    ? { summonOwner: `mesmer.clone:${id}` }
+                    : { metadata: { cloneId: id } })
+                }
+              });
+          assert.deepEqual(prepared, []);
+        },
+        timeline: [
+          {
+            at: 0.5,
+            run(runtime) {
+              assert.deepEqual(prepared, []);
+              runtime.cancelOwner({ id: 'mesmer.clone:0', generation: 0 });
+            }
+          }
+        ]
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const expected = effects.map(({ type }) => `ownership:1:${type}`).sort();
+    assert.deepEqual(prepared.map(([id]) => id).sort(), expected);
+    assert.ok(
+      prepared.every(([, at]) => at === 1),
+      'preparation waits until the owned effect is delivered'
+    );
+    const delivered = result.events.filter((event) => event.sourceId?.startsWith('ownership:'));
+    assert.deepEqual(delivered.map(({ sourceId }) => sourceId).sort(), expected);
+    assert.ok(delivered.every((event) => event.actorType === 'summon' && event.source === 'Illusion sans nom'));
+  });
+}
+
+test('explicit packet owners take precedence and display labels do not assign clone lifetimes', () => {
+  // Separate lifetimes survive clone retirement, while retiring an explicit owner cancels even a live clone's packet.
+  const result = runMesmer(
+    [{ type: 'wait', durationMs: 1200 }],
+    { specialization: 'Core', selectedTraitIds: [] },
+    {
+      initialize(runtime) {
+        const packets = [
+          { sourceId: 'player', actorType: 'player' },
+          { sourceId: 'phantasm', actorType: 'summon', summonKind: 'phantasm', summonOwner: 'mesmer.phantasm:0' },
+          { sourceId: 'independent', actorType: 'summon', summonKind: 'clone', metadata: { cloneId: 0 } },
+          { sourceId: 'retired-owner', actorType: 'summon', summonKind: 'clone', metadata: { cloneId: 1 } }
+        ];
+        for (const packet of packets)
+          runtime.effects.emit({
+            kind: 'packet',
+            event: { ...packet, type: 'damage', at: 1, source: 'Clone', coefficient: 1, weaponStrength: 1000 },
+            ...(packet.metadata ? { owner: { id: `fixture:${packet.sourceId}`, generation: 0 } } : {})
+          });
+      },
+      timeline: [
+        {
+          at: 0.5,
+          run(runtime) {
+            runtime.cancelOwner({ id: 'mesmer.clone:0', generation: 0 });
+            runtime.cancelOwner({ id: 'fixture:retired-owner', generation: 0 });
+          }
+        }
+      ]
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter((event) => event.type === 'damage')
+      .map(({ sourceId }) => sourceId)
+      .sort(),
+    ['independent', 'phantasm', 'player']
+  );
 });

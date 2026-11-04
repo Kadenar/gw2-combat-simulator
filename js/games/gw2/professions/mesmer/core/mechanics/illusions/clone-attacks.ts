@@ -6,11 +6,7 @@ import type {
   MesmerCloneAttackScheduler,
   MesmerCloneAttackStep
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import {
-  buildMesmerConditions,
-  buildMesmerStrikes,
-  mesmerPacketOwner
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerConditions, buildMesmerStrikes } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
 interface CloneAttackSchedulerOptions {
@@ -90,7 +86,6 @@ export function createCloneAttackScheduler({
       state.effects.emit({
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     });
@@ -105,7 +100,6 @@ export function createCloneAttackScheduler({
         state.effects.emit({
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       });

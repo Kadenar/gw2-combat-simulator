@@ -103,10 +103,7 @@ export const noScope = defineTrait({
         when: (_context, event) => Number(event.coefficient) > 0,
         internalCooldown: {
           duration: (context) => balanceNumberFromContext(context, TRAIT.NO_SCOPE, 'internalCooldown'),
-          readyAt: (context) => context.procs.deadline('noScope') || 0,
-          setReadyAt: (context, readyAt) => {
-            context.procs.setDeadline('noScope', readyAt);
-          }
+          key: 'noScope'
         },
         handler: grantNoScope
       })
@@ -137,10 +134,7 @@ export const incendiaryPowder = defineTrait({
         when: (_context, event) => Number(event.coefficient) > 0,
         internalCooldown: {
           duration: (context) => balanceNumberFromContext(context, TRAIT.INCENDIARY_POWDER, 'internalCooldown'),
-          readyAt: (context) => context.procs.deadline('incendiaryPowder.player') || 0,
-          setReadyAt: (context, readyAt) => {
-            context.procs.setDeadline('incendiaryPowder.player', readyAt);
-          }
+          key: 'incendiaryPowder.player'
         },
         handler(context, event) {
           emitIncendiaryPowder(context, event, { actorType: ACTOR.EFFECT, ownerActorType: ACTOR.PLAYER });
@@ -527,10 +521,7 @@ const mechIncendiaryPowder = criticalProcHandler<
   actorTypes: [ACTOR.SUMMON],
   internalCooldown: {
     duration: (context) => balanceNumberFromContext(context, TRAIT.INCENDIARY_POWDER, 'internalCooldown'),
-    readyAt: (context) => context.procs.deadline('incendiaryPowder.mech') || 0,
-    setReadyAt: (context, readyAt) => {
-      context.procs.setDeadline('incendiaryPowder.mech', readyAt);
-    }
+    key: 'incendiaryPowder.mech'
   },
   handler(context, event) {
     emitIncendiaryPowder(context, event, { actorType: ACTOR.SUMMON, metadata: { engineerMech: true } });

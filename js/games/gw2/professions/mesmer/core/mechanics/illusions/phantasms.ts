@@ -13,7 +13,7 @@ import type {
   MesmerPhantasmPolicy,
   MesmerQueueResources
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerIllusionsGained } from '#gw2/professions/mesmer/core/mechanics/resources.js';
 import { phantasmalHasteSpeed } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -154,7 +154,6 @@ export function createPhantasmEffectController({
         ...execution.delivery,
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }
@@ -174,7 +173,6 @@ export function createPhantasmEffectController({
         ...execution.delivery,
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }
@@ -224,7 +222,6 @@ export function createPhantasmEffectController({
         ...execution.delivery,
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }
@@ -243,7 +240,6 @@ export function createPhantasmEffectController({
         ...execution.delivery,
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }

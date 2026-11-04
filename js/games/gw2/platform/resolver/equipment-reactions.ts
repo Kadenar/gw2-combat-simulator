@@ -82,10 +82,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
     internalCooldown: {
       duration: (ctx) => (criticalFoodProc(ctx)?.icdMs || 0) / 1000,
       // The critical-proc handler owns the sampled claim; equipment shares the registry's storage.
-      readyAt: (ctx) => ctx.procs.deadline('food.critical-strike'),
-      setReadyAt: (ctx, readyAt) => {
-        ctx.procs.setDeadline('food.critical-strike', readyAt);
-      }
+      key: 'food.critical-strike'
     },
     randomStream: 'food.critical-strike',
     handler: (ctx, event, _details, application) => {

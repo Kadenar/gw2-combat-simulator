@@ -26,8 +26,7 @@ import { illusionSource } from '#gw2/professions/mesmer/core/mechanics/modifier-
 import {
   buildMesmerConditions,
   buildMesmerPacket,
-  buildMesmerStrikes,
-  mesmerPacketOwner
+  buildMesmerStrikes
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -385,7 +384,6 @@ function applyMayhemInstrument(
           ...delivery,
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       });
@@ -516,7 +514,6 @@ function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): 
     context.effects.emit({
       kind: 'packet',
       event: packet,
-      owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)
     });
   });
@@ -546,7 +543,6 @@ function triggerMethodOfMadnessSyncopate(context: MesmerRuntime): void {
     context.effects.emit({
       kind: 'packet',
       event: packet,
-      owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)
     });
   });
@@ -609,7 +605,6 @@ function scheduleSyncopateDrumWave(
         ...delivery,
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     });
@@ -630,7 +625,6 @@ function scheduleSyncopateDrumWave(
       ...delivery,
       kind: 'packet',
       event: packet,
-      owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)
     });
   }
@@ -708,7 +702,6 @@ function resolveAlteredChord(
         kind: 'packet',
         cause: proc,
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }
@@ -723,7 +716,6 @@ function resolveAlteredChord(
           ...delivery,
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       });
@@ -751,7 +743,6 @@ function resolveAlteredChord(
         ...delivery,
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }
@@ -819,7 +810,6 @@ function emitShredding(
       kind: 'packet',
       // The extra note is trait-owned so previews and breakdowns report it as Shredding.
       event: { ...packet, name: 'Shredding', procType: 'trait', traitId: TRAIT.SHREDDING },
-      owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)
     });
   });

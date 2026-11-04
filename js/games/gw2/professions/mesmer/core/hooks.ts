@@ -21,6 +21,7 @@ import {
 } from '#gw2/professions/mesmer/core/mechanics/flips.js';
 import { mesmerIllusionHooks } from '#gw2/professions/mesmer/core/mechanics/illusions/lifecycle.js';
 import { armMimic, completeMimicCast } from '#gw2/professions/mesmer/core/mechanics/mimic.js';
+import { mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerMaximumAmmo, mesmerRechargeWork } from '#gw2/professions/mesmer/core/mechanics/recharge.js';
 import { detonateInspiringImagery, expireInspiringImagery } from '#gw2/professions/mesmer/core/mechanics/rifle.js';
 import { mesmerScepterChainLifecycle } from '#gw2/professions/mesmer/core/mechanics/scepter-chain.js';
@@ -55,6 +56,10 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
   {
     buffPolicies: mesmerBuffPolicies,
     observeEffects: mesmerEffectStates,
+    // Bind clone packets to their lifetime at admission so retirement cancels every pending effect kind.
+    effectOwner(_context, event) {
+      return mesmerPacketOwner(event);
+    },
     sideEffectHandlers: {
       // Only the accepted landed-hit reaction emits the clone-cap replacement condition.
       'mesmer.core.clone-limit'(runtime, context) {

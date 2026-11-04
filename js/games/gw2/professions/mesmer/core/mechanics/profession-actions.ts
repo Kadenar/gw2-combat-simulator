@@ -10,7 +10,7 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerDestroyClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import { buildMesmerPacket, mesmerPacketOwner } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type {
   MesmerResourceDefinition,
   MesmerResourceSpendDetails
@@ -68,7 +68,6 @@ export function createProfessionActionController({
       state.effects.emit({
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }
@@ -194,7 +193,6 @@ export function createProfessionActionController({
         ...delivery,
         kind: 'packet',
         event: packet,
-        owner: mesmerPacketOwner(packet),
         priority: Number(packet.priority ?? 0)
       });
     }

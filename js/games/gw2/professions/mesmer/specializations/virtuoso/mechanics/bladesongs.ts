@@ -2,11 +2,7 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import {
-  buildMesmerConditions,
-  buildMesmerStrikes,
-  mesmerPacketOwner
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerConditions, buildMesmerStrikes } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { mesmerShatterConfusion } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import type {
   MesmerShatterResolverRequest,
@@ -52,7 +48,6 @@ export function resolveBladesong(
             ...delivery,
             kind: 'packet',
             event: packet,
-            owner: mesmerPacketOwner(packet),
             priority: Number(packet.priority ?? 0)
           });
           return packet;
@@ -78,7 +73,6 @@ export function resolveBladesong(
             ...delivery,
             kind: 'packet',
             event: packet,
-            owner: mesmerPacketOwner(packet),
             priority: Number(packet.priority ?? 0)
           });
         }
@@ -107,7 +101,6 @@ export function resolveBladesong(
           ...delivery,
           kind: 'packet',
           event: packet,
-          owner: mesmerPacketOwner(packet),
           priority: Number(packet.priority ?? 0)
         });
       });

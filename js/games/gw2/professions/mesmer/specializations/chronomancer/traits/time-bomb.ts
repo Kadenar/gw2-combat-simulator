@@ -6,11 +6,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import {
-  buildMesmerPacket,
-  buildMesmerStrikes,
-  mesmerPacketOwner
-} from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { buildMesmerPacket, buildMesmerStrikes } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { chronomancerState } from '#gw2/professions/mesmer/specializations/chronomancer/state.js';
@@ -53,7 +49,6 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
       ...delivery,
       kind: 'packet',
       event: packet,
-      owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)
     });
   }
@@ -79,7 +74,6 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
       ...delivery,
       kind: 'packet',
       event: packet,
-      owner: mesmerPacketOwner(packet),
       priority: Number(packet.priority ?? 0)
     });
   });
