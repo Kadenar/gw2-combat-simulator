@@ -19,8 +19,8 @@ original attribution is preserved in that directory's README.
   as 1024 × 256 textures, then cropped to the 647 × 136 banner at `(0, 120)` without resizing. This removes the
   transparent or black padding and extra artwork that would otherwise shrink and displace portraits in the trait panel.
 
-Browser image references use local files. Wiki article links in tooltips and the optional data generators' Wiki metadata
-requests are separate from image loading. ArenaNet render-service images continue to use the existing CDN handling.
+Wiki-sourced browser artwork uses local files. Wiki article links in tooltips are separate from image loading. ArenaNet
+render-service images continue to use the existing CDN handling.
 
 The audit also corrected a stale source path: Phoenix Wing Buffet uses `Wing_Buffet.png`.
 
@@ -33,9 +33,9 @@ location:
 icon: new URL('@images/wiki/dodge.png', import.meta.url).href;
 ```
 
-Trait-line artwork is listed explicitly in `js/games/gw2/app/shared/specialization-backgrounds.ts`. The Ranger and
-Warrior generator inputs use `@images/wiki/...` specifiers, and their serializers emit the same static URL expressions;
-regenerating profession data therefore preserves these local images.
+Trait-line artwork is listed explicitly in `js/games/gw2/app/shared/specialization-backgrounds.ts`. Profession skill and
+trait declarations are maintained directly in their owning files. Update their image references with static
+`new URL('@images/wiki/...', import.meta.url).href` expressions; there is no profession-data generator or refresh step.
 
 When replacing a specialization background from the API, apply the same banner crop before saving it. Do not trim only
 transparent pixels: many source textures have opaque black margins or artwork outside the banner rectangle.

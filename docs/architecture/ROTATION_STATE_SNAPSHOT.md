@@ -101,12 +101,15 @@ observations use stable IDs from `PROFESSION_STATE_IDS`, conventionally imported
 owner publishes its mode deadline:
 
 ```ts
-/** Publish the visible mode window without exposing private activation bookkeeping. */
-export function projectBerserkerPlanningState(input: Gw2PlanningStateInput) {
-  const state = berserkerState.from(input);
-  return structuredClone({ [STATE.BERSERK_UNTIL]: state.berserkUntil });
+/** Select visible mode state; the shared planning observer detaches the public record. */
+export function projectBerserkerPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
+  const state = berserkerState.from(input.profession);
+  return { [STATE.BERSERK_UNTIL]: state.berserkUntil };
 }
 ```
+
+`Gw2PlanningStateInput` comes from `platform/results/types.ts`; `SpecializationRuntimeState` comes from
+`platform/profession-definition/state.ts`.
 
 Register the projector in `module.ts`, with all imports at the top:
 

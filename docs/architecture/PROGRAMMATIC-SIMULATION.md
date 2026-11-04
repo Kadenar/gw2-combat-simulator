@@ -12,10 +12,10 @@ changes. Package aliases such as `#gw2/` resolve to compiled `dist/js/` modules 
 Save this example as `run-engineer.mjs` in the repository root, then run `node run-engineer.mjs`:
 
 ```js
-import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 
 // Supply base attributes so profession and temporary bonuses are applied once by the runtime.
 const result = simulateGw2({
@@ -52,14 +52,15 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 const module = await loadBuildContext('engineer');
 const build = module.toApplicationBuild(savedBuild);
+// Resolve the patch once so attributes and simulation use the same balance declarations.
 const context = module.createBuildContext({
   build,
-  patchId: 'current',
+  patch: module.profession.resolvePatch({ id: 'current' }),
   transitionDelays: normalizeTransitionDelays(undefined)
 });
 const attributes = context.attributes(1);
 const result = simulateGw2({
-  profession: context.profession,
+  profession: module.profession,
   rotation: build.rotation,
   config: context.simulationConfig()
 });
@@ -99,15 +100,17 @@ Common configuration fields:
 | `selectedSkillIds`                                              | Flat array of equipped slot-skill catalog IDs                                           |
 | `primaryWeapon`, `secondaryWeapon`                              | First weapon set                                                                        |
 | `weaponSet2Primary`, `weaponSet2Secondary`, `startingWeaponSet` | Alternate weapons and initial set (`1` or `2`)                                          |
-| `initialResource`, `professionAssumptions`                      | Starting resources and profession-specific loadout/state                                |
+| `initialResource`                                               | Starting value of the profession's primary resource                                     |
+| `professionAssumptions`                                         | Profession-specific combat assumptions declared by the build adapter                    |
 | `boons`, `target`                                               | Permanent boon assumptions and target armor, health, movement, defiance, and conditions |
 | `sigilSets`, `relic`, `precastRelics`, `food`, `utility`        | Common equipment effects                                                                |
 | `randomness`, `criticalDamageMode`                              | Seed, simulation mode, and deterministic critical-damage policy                         |
 
-Profession build adapters in `professions/<name>/build/` map saved build fields into run configuration. For example,
-selected legends and morph skills belong in run `professionAssumptions`, not top-level config. Saved builds store
-`selectedSkillIds` by slot with `null` for empty slots; run configs use a flat array preserving numeric/string ID types.
-Omitting that run field permits sandbox casts; `[]` equips no slot skills.
+Profession build adapters in `professions/<name>/build/` map saved build fields into run configuration. Revenant's
+`selectedLegends` and `startingLegend`, and Engineer's `selectedMorphSkillIds`, are top-level run configuration fields.
+Use the owning profession's config type for its loadout and starting-state fields. Saved builds store `selectedSkillIds`
+by slot with `null` for empty slots; run configs use a flat array preserving numeric/string ID types. Omitting that run
+field permits sandbox casts; `[]` equips no slot skills.
 
 The shared build codec converts legacy `selectedSkills` names to catalog IDs during import, rejecting unknown or
 ambiguous names. Direct simulation configs require IDs; exports contain only the canonical field.
@@ -221,9 +224,10 @@ Only the selected Core and elite project their visible fields; inactive elites c
 namespaced strings and remain independent of labels and internal runtime properties. Nested observation values retain
 their documented shapes. These detached records cannot resume a simulation.
 
-Boundary times and `planningState.atSeconds` use absolute seconds. Step `start`/`end` and cooldown `readyAt`/`remaining`
-use milliseconds; ammo recharge timestamps use seconds. Planning can continue through the requested horizon after target
-death, while combat ends at `combatEndTime`. Planning projections are observations, not resumable checkpoints. See
+Boundary times and `planningState.atSeconds` use absolute seconds. Step `start`/`end` and the `readyAtMs`/`remainingMs`
+fields in `planningState.cooldownsBySkillId` use milliseconds; `planningState.ammoBySkillId` entries use seconds for
+`nextRechargeAt`. Planning can continue through the requested horizon after target death, while combat ends at
+`combatEndTime`. Planning projections are observations, not resumable checkpoints. See
 [rotation state](ROTATION_STATE_SNAPSHOT.md) for insertion/continuation queries.
 
 Use `skillBreakdownRows(result)` for per-skill display aggregation. Entries own their source, parent, actor, label, and

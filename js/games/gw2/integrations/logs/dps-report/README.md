@@ -13,23 +13,21 @@ retain JSON traversal order. EI groups rows by skill, so original cross-skill ti
 attacks, split animations and generated bar swaps. Trait/gear/unconditional procs and simulator-generated packets do not
 become independent inputs. Supplied Luminary Forge entries remain inputs; missing opening entries stay missing.
 
-Mesmer's supplied `Blink or Phase Retreat` rows resolve to Phase Retreat when Staff is evidenced by recorded weapon
-casts or the active build, and an explicitly supplied skill loadout excludes Blink. The importer preserves the original
-row and timestamp and reports the build-based resolution for review. With missing build selections, Blink equipped, or
-no Staff evidence, the marker remains unresolved; it is never blindly renamed to Phase Retreat.
+Mesmer's supplied `Blink or Phase Retreat` rows (`-27`) resolve to Phase Retreat for any Mesmer specialization when
+Staff is evidenced by recorded weapon casts or the active build, and an explicitly supplied skill loadout excludes
+Blink. The importer preserves the original row, timestamp, and accuracy flags and reports the build-based resolution for
+review. With missing build selections, Blink equipped, or no Staff evidence, the marker remains unresolved and receives
+the ordinary unsupported-action warning.
 
 Mirage Cloak gains coincident with recorded shatters or cloak-granting Deceptions replay through those skills without
 adding a dodge. Other cloak gains use the ordinary unsupported-action handling. Importing EVTC provides raw buff,
 teleport and mirror damage evidence to identify their source inputs.
 
-EI's `Blink or Phase Retreat` rows (`-27`) resolve to Phase Retreat for any Mesmer specialization when the imported
-build equips staff and does not select Blink. Their original timestamps and accuracy flags remain intact. Without that
-build evidence, the combined identity stays unresolved and receives the ordinary unsupported-action warning.
-
-Untamed uses supported commandable skills from the selected player's owned pet rotations, including F2. When pet
-animations exist for a skill, they replace its player-side markers, preserving pet timestamps on the independent pet
-lane. Otherwise the player rotation remains the source. Basic attacks remain automatic; pet records cannot distinguish
-manual commands from autocasts. Other specializations, including Soulbeast, retain the player rotation.
+Core Ranger, Druid, Untamed, and Galeshot use supported commandable skills from the selected player's owned pet
+rotations, including F2, subject to the specialization's command eligibility. When pet animations exist for a skill,
+they replace its player-side markers, preserving pet timestamps on the independent pet lane. Otherwise the player
+rotation remains the source. Basic attacks remain automatic; pet records cannot distinguish manual commands from
+autocasts. Soulbeast retains the player rotation, including merged Beast skills.
 
 No additional cast is inferred from initial buffs, minion presence, aggregate damage, later repetitions, resources or
 dependent skills. Users supply missing setup in the rotation editor.

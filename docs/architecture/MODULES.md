@@ -183,9 +183,10 @@ Paths are relative to `professions/<profession>/`, or its owning Core/elite dire
 loading. Modules contribute data upward and must not import the assembled catalog. Presentation may receive it through a
 binding factory. Projectors publish stable IDs without mutating their runtime slice; duplicate IDs fail composition.
 
-Code outside a profession imports only its `profession.js`, `app/app-definition.js`, `build/build.js`, `types.js`,
-`data/**`, `state-ids.js`, and fixed subsystem `profiles.js` tables. Tests are exempt. Log integrations use `data/`
-helpers rather than loading the profession graph. ESLint enforces these boundaries.
+Code outside a profession imports only its `profession.js`, `app/app-definition.js`, `build/` entry points (including
+`build/build.js` and `build/context.js`), `types.js`, `data/**`, `state-ids.js`, and fixed subsystem `profiles.js`
+tables. Tests are exempt. Log integrations use `data/` helpers rather than loading the profession graph. ESLint enforces
+these boundaries.
 
 Use named mechanics such as `life-force.ts` or `pets.ts`; avoid generic behavior containers and one-file-per-skill/trait
 layouts. Small specializations need only the files they use. Shared resource lifecycles belong in a named mechanic or
