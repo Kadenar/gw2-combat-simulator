@@ -523,6 +523,8 @@ test('Symbiotic Synergy boosts Thorns retaliation for every protocol slot', () =
     const selectedMorphSkillIds = [...baseConfig.selectedMorphSkillIds];
     selectedMorphSkillIds[slot] = skillId;
     const config = {
+      // Initial and delayed packets must share critical scaling when comparing their modifiers.
+      criticalDamageMode: 'averaged',
       selectedMorphSkillIds,
       professionAssumptions: { inDamagingField: true },
       target: { conditions: {} }

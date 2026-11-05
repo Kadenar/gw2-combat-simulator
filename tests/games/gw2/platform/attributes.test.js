@@ -658,6 +658,8 @@ test('modifier contributions compare the active build against each modifier remo
 
 test('Accuracy comparisons remove its attribute and one-strike critical chance bonuses', () => {
   const build = createDefaultBuild();
+  // A chance increase has positive expected damage even if one sampled hit keeps the same outcome.
+  build.assumptions.criticalDamageMode = 'averaged';
 
   build.rotation = [cast(ID.BLADECALL)];
   build.relic = '';

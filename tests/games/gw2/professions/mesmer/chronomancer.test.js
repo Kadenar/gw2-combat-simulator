@@ -13,6 +13,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Neither exit rewinds chain progress, restores a completed chain, or erases a chain started during Split.
@@ -318,6 +319,8 @@ test('mid-rotation concurrent Continuum Split does not restore expired cooldowns
 test('Split Second shatter traits affect only the first strike from each source', () => {
   const rotation = ['Split Second', { name: '__wait', waitMs: 2000 }];
   const config = defaultSimulationConfig({
+    // Isolate shatter eligibility from critical rolls and compare each floored strike separately.
+    criticalDamageMode: 'averaged',
     specialization: 'Chronomancer',
     initialResource: 3,
     relic: '',
@@ -337,19 +340,7 @@ test('Split Second shatter traits affect only the first strike from each source'
     selectedTraitIds: [TRAIT.MAIM_THE_DISILLUSIONED]
   });
   const packets = (result) =>
-    Object.values(
-      result.resolvedEvents
-        .filter((event) => event.type === 'damage' && event.skillName === 'Split Second')
-        .reduce((groups, event) => {
-          groups[event.at] ||= {
-            at: event.at,
-            damage: 0,
-            traitEligible: Boolean(event.metadata?.shatterTraitEligible)
-          };
-          groups[event.at].damage += event.damage;
-          return groups;
-        }, {})
-    ).sort((left, right) => left.at - right.at);
+    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Split Second');
   const baselinePackets = packets(baseline);
   const timeCatchesUpPackets = packets(timeCatchesUp);
   const mentalAnguishPackets = packets(mentalAnguish);
@@ -357,17 +348,25 @@ test('Split Second shatter traits affect only the first strike from each source'
     (event) => event.type === 'condition' && event.skillName === 'Split Second' && event.condition === 'Torment'
   );
 
-  assert.deepEqual(
-    baselinePackets.map((packet) => ({ at: packet.at, traitEligible: packet.traitEligible })),
-    [
-      { at: 0, traitEligible: true },
-      { at: 1, traitEligible: false }
-    ]
-  );
-  assert.ok(Math.abs(timeCatchesUpPackets[0].damage / baselinePackets[0].damage - 1.1) < 1e-12);
-  assert.equal(timeCatchesUpPackets[1].damage, baselinePackets[1].damage);
-  assert.ok(Math.abs(mentalAnguishPackets[0].damage / baselinePackets[0].damage - 1.25) < 1e-12);
-  assert.equal(mentalAnguishPackets[1].damage, baselinePackets[1].damage);
+  const eligible = baselinePackets.filter((packet) => packet.metadata?.shatterTraitEligible);
+  const ineligible = baselinePackets.filter((packet) => !packet.metadata?.shatterTraitEligible);
+  assert.ok(eligible.length > 0);
+  assert.ok(ineligible.length > 0);
+  assert.ok(Math.max(...eligible.map((packet) => packet.at)) < Math.min(...ineligible.map((packet) => packet.at)));
+  for (const [enhanced, multiplier] of [
+    [timeCatchesUpPackets, 1.1],
+    [mentalAnguishPackets, 1.25]
+  ]) {
+    assert.equal(enhanced.length, baselinePackets.length);
+    for (const [index, packet] of baselinePackets.entries()) {
+      assert.equal(enhanced[index].metadata?.shatterTraitEligible, packet.metadata?.shatterTraitEligible);
+
+      if (packet.metadata?.shatterTraitEligible)
+        assertFlooredDamageMultiplier(enhanced[index].damage, packet.damage, multiplier);
+      else assert.equal(enhanced[index].damage, packet.damage);
+    }
+  }
+
   assert.equal(
     torment.reduce((sum, event) => sum + event.stacks, 0),
     4

@@ -27,6 +27,14 @@ const config = {
   target: { armor: 2597 }
 };
 
+// Neutralize only stance damage bonuses through normal profession composition for controlled comparisons.
+const stanceControlProfession = patchTraitProfession(guardianProfession, {
+  modifierRules: {
+    'guardian.piercing-stance': { amount: 0 },
+    'guardian.daring-advance': { factor: 1 }
+  }
+});
+
 const PLAYER_AUDIENCE = Object.freeze({
   includesSelf: true,
   includesSummons: false,
@@ -969,23 +977,28 @@ test('Radiant Justice selects the first committed hammer impact after activation
 });
 
 test('Piercing Stance applies its bonus to its first strike without stacking damage on refresh', () => {
-  // Compare the skill's own formula with the bonus, both before and after an existing stance application.
-  const result = createObservedProfessionSimulator(guardianProfession, { ...config, specialization: 'Luminary' })(
-    undefined,
-    ['Piercing Stance', 'Piercing Stance']
-  );
-  const hits = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.PIERCING_STANCE
-  );
-  assert.equal(hits.length, 2);
-  for (const hit of hits) {
-    const unmodified =
-      ((hit.coefficient * config.attributeInputs.weaponSets[0].commonTotals.power * hit.resolvedWeaponStrength) /
-        config.target.armor) *
-      (1 + hit.criticalChance * (hit.criticalDamage - 1));
-    assertFlooredDamageMultiplier(hit.damage, unmodified, 1.1);
-  }
-
+  // Disable only the modifier in a control run so skill tuning cannot invalidate the refresh contract.
+  const run = (enabled) =>
+    runGuardian(
+      ['Piercing Stance', 'Piercing Stance'],
+      {
+        ...config,
+        specialization: 'Luminary',
+        criticalDamageMode: 'averaged',
+        patchId: enabled ? 'current' : 's4-preview'
+      },
+      { profession: enabled ? guardianProfession : stanceControlProfession }
+    );
+  const result = run(true);
+  const baseline = run(false);
+  const hits = (simulation) =>
+    simulation.resolvedEvents.filter(
+      (event) => event.type === 'damage' && event.skillId === GUARDIAN_SKILL_IDS.PIERCING_STANCE
+    );
+  assert.equal(hits(result).length, 2);
+  for (const [index, hit] of hits(result).entries())
+    assertFlooredDamageMultiplier(hit.damage, hits(baseline)[index].damage, 1.1);
+  assert.deepEqual(baseline.warnings, []);
   assert.deepEqual(result.warnings, []);
 });
 
@@ -1033,12 +1046,12 @@ test('Luminary stances apply modifiers, combos, delayed damage, and control', ()
   );
   const daringImpact = daring.resolvedEvents.find((event) => event.skillName === 'Daring Advance');
   const daringBuff = daring.events.find((event) => event.kind === 'guardian-daring-advance');
-  const unmodifiedDaringDamage =
-    ((daringImpact.coefficient *
-      config.attributeInputs.weaponSets[0].commonTotals.power *
-      daringImpact.resolvedWeaponStrength) /
-      config.target.armor) *
-    (1 + daringImpact.criticalChance * (daringImpact.criticalDamage - 1));
+  // A fresh stance must match the same activation with its outgoing modifier disabled.
+  const unmodifiedDaring = runGuardian(
+    ['Daring Advance', { type: 'wait', durationMs: 1000 }],
+    { ...config, specialization: 'Luminary', patchId: 's4-preview' },
+    { profession: stanceControlProfession }
+  );
 
   assert.equal(
     piercing.events.find((event) => event.type === 'control' && event.skillName === 'Piercing Stance').controlKind,
@@ -1058,7 +1071,11 @@ test('Luminary stances apply modifiers, combos, delayed damage, and control', ()
     daringImpact.damage
   );
   assert.equal(daringBuff.at, daringImpact.at);
-  assert.equal(daringImpact.damage, Math.floor(unmodifiedDaringDamage));
+  assert.deepEqual(unmodifiedDaring.warnings, []);
+  assert.equal(
+    daringImpact.damage,
+    unmodifiedDaring.resolvedEvents.find((event) => event.skillName === 'Daring Advance').damage
+  );
   assert.ok(piercing.procSteps.some((step) => step.skill === 'Relic of the Claw'));
   assert.equal(
     daring.events.some((event) => event.type === 'control' && event.skillName === 'Daring Advance'),
@@ -1285,24 +1302,41 @@ test('Sovereign of Light consumes combo and trait-granted light auras', () => {
 });
 
 test('Sovereign of Light receives fresh Piercing Stance but not fresh Daring Advance', () => {
-  const simulate = (rotation) =>
-    createObservedProfessionSimulator(guardianProfession, {
-      ...config,
-      specialization: 'Luminary',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
-    })(undefined, rotation);
+  // Compare each aura detonation with the same rotation minus stance damage modifiers.
+  const simulate = (rotation, enabled = true) =>
+    runGuardian(
+      rotation,
+      {
+        ...config,
+        criticalDamageMode: 'averaged',
+        specialization: 'Luminary',
+        patchId: enabled ? 'current' : 's4-preview',
+        selectedTraitIds: [GUARDIAN_TRAIT_IDS.SOVEREIGN_OF_LIGHT]
+      },
+      { profession: enabled ? guardianProfession : stanceControlProfession }
+    );
   const sovereignDamage = (result) => result.resolvedEvents.find((event) => event.name === 'Sovereign of Light').damage;
   const freshDaring = simulate(['Enter Radiant Forge', 'Exit Radiant Forge', 'Daring Advance']);
   const freshPiercing = simulate(['Enter Radiant Forge', 'Exit Radiant Forge', 'Piercing Stance']);
   const activePiercing = simulate(['Piercing Stance', 'Enter Radiant Forge', 'Exit Radiant Forge', 'Piercing Stance']);
-  const unmodifiedDamage =
-    ((1.5 * config.attributeInputs.weaponSets[0].commonTotals.power * 690.5) / config.target.armor) *
-    (1 + 0.05 * (1.5 - 1));
+  const baseline = (rotation) => {
+    const result = simulate(rotation, false);
+    assert.deepEqual(result.warnings, []);
+    return sovereignDamage(result);
+  };
 
-  assert.equal(sovereignDamage(freshDaring), Math.floor(unmodifiedDamage));
+  assert.equal(sovereignDamage(freshDaring), baseline(['Enter Radiant Forge', 'Exit Radiant Forge', 'Daring Advance']));
   // Piercing's buff precedes its aura detonation; refreshing the stance must not multiply its bonus again.
-  assertFlooredDamageMultiplier(sovereignDamage(freshPiercing), unmodifiedDamage, 1.1);
-  assertFlooredDamageMultiplier(sovereignDamage(activePiercing), unmodifiedDamage, 1.1);
+  assertFlooredDamageMultiplier(
+    sovereignDamage(freshPiercing),
+    baseline(['Enter Radiant Forge', 'Exit Radiant Forge', 'Piercing Stance']),
+    1.1
+  );
+  assertFlooredDamageMultiplier(
+    sovereignDamage(activePiercing),
+    baseline(['Piercing Stance', 'Enter Radiant Forge', 'Exit Radiant Forge', 'Piercing Stance']),
+    1.1
+  );
 });
 
 test('Sovereign of Light resolves overlapping aura grants and finishers chronologically', () => {

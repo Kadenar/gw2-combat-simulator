@@ -500,6 +500,8 @@ test('resolution traits affect strike damage, critical chance, and might', () =>
   const run = (selectedTraitIds) =>
     createObservedProfessionSimulator(guardianProfession, {
       ...config,
+      // Isolate Might's increasing Power from independent critical rolls on successive pulses.
+      criticalDamageMode: 'averaged',
       primaryWeapon: 'Greatsword',
       selectedTraitIds
     })(undefined, ['Symbol of Resolution', 'Strike', { type: 'wait', durationMs: 6000 }]);

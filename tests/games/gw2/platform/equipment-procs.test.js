@@ -412,6 +412,8 @@ test('critical weapon-swap sigil strikes can trigger critical-hit sigils', () =>
 test('Severance affects strikes after its control trigger', () => {
   const defaults = defaultSimulationConfig();
   const config = defaultSimulationConfig({
+    // Severance changes critical attributes, whose expected contribution is independent of a sampled crit.
+    criticalDamageMode: 'averaged',
     specialization: 'Core',
     primaryWeapon: 'Sword',
     secondaryWeapon: 'Pistol',
@@ -470,6 +472,8 @@ test('sigil and relic damage modifiers affect the queued rotation result', () =>
 
 test('weapon swaps activate only the equipped set damage sigils', () => {
   const config = defaultSimulationConfig({
+    // Keep critical scaling stable while isolating each weapon set's damage modifier.
+    criticalDamageMode: 'averaged',
     relic: '',
     primaryWeapon: 'Dagger',
     secondaryWeapon: 'Sword',
@@ -486,13 +490,22 @@ test('weapon swaps activate only the equipped set damage sigils', () => {
       { strike: 1, condition: 1 }
     ]
   });
-  const strike = (result, name) =>
-    result.breakdown
-      .filter((entry) => entry.sourceSkill === name)
-      .reduce((total, entry) => total + entry.strikeDamage, 0);
-
-  assertFlooredDamageMultiplier(strike(equipped, 'Bladecall'), strike(base, 'Bladecall'), 1.05);
-  assert.ok(Math.abs(strike(equipped, 'Psycut') / strike(base, 'Psycut') - 1) < 1e-12);
+  // Compare packets individually so changing a skill's hit count does not change the rounding tolerance.
+  const strikes = (result, name) =>
+    result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === name);
+  for (const [name, multiplier] of [
+    ['Bladecall', 1.05],
+    ['Psycut', 1]
+  ]) {
+    const baseline = strikes(base, name);
+    const enhanced = strikes(equipped, name);
+    assert.ok(baseline.length > 0);
+    assert.equal(enhanced.length, baseline.length);
+    for (const [index, hit] of enhanced.entries()) {
+      if (multiplier === 1) assert.equal(hit.damage, baseline[index].damage);
+      else assertFlooredDamageMultiplier(hit.damage, baseline[index].damage, multiplier);
+    }
+  }
 });
 
 test('weapon swaps activate only the equipped set duration sigils', () => {

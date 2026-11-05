@@ -251,6 +251,8 @@ test('Tempest party boons affect the summoned elemental', () => {
       selectedSkillIds: { Heal: 34743, Utility1: 30662, Utility2: 5542, Utility3: 5638, Elite: 25488 },
       assumptions: {
         ...elementalistProfession.createBuildDefaults().assumptions,
+        // Measure Fury's expected contribution rather than a particular pet critical roll.
+        criticalDamageMode: 'averaged',
         might: 0,
         fury: false,
         quickness: false,

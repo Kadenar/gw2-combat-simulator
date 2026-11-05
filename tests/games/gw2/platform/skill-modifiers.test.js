@@ -217,6 +217,8 @@ test('skill critical modifiers affect only the critical contribution during dama
         { type: 'cast', skillId: 2 }
       ],
       {
+        // This formula contract explicitly weights the critical contribution by its probability.
+        criticalDamageMode: 'averaged',
         attributeInputs: baseAttributeInputs({ power: 1000, precision, ferocity: 0 }),
         target: { armor: 1000, conditions: {} }
       }

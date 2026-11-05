@@ -710,17 +710,23 @@ test('an explicit empty target condition map does not restore default conditions
     simulateMesmer(
       [{ type: 'cast', skillId: 69311 }],
       defaultSimulationConfig({
+        // Compare the target modifier independently of critical outcomes.
+        criticalDamageMode: 'averaged',
         target: {
           ...defaults.target,
           conditions
         }
       })
-    ).strikeDamage;
+    ).resolvedEvents.filter((event) => event.type === 'damage');
 
   const unconditioned = run({});
   const vulnerable = run({ Vulnerability: 25 });
 
-  assertFlooredDamageMultiplier(vulnerable, unconditioned, 1.25);
+  // Each packet floors independently; checking individual hits avoids an aggregate rounding assumption.
+  assert.ok(unconditioned.length > 0);
+  assert.equal(vulnerable.length, unconditioned.length);
+  for (const [index, hit] of vulnerable.entries())
+    assertFlooredDamageMultiplier(hit.damage, unconditioned[index].damage, 1.25);
 });
 
 test('profession condition-duration hooks remain under the GW2 cap', () => {
