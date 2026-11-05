@@ -44,6 +44,8 @@ test('Storm Spirit uses spirit power and weapon strength with Ranger critical st
     [1000, 2050, 750, 0, true]
   ]) {
     const result = simulate('Untamed', [ID.STORM_SPIRIT, wait(6500)], {
+      // Compare the expected critical contribution independently of seeded hit outcomes.
+      criticalDamageMode: 'averaged',
       initialUntamedState: 'Ranger',
       selectedTraitIds: [TRAIT.NATURES_VENGEANCE, ...(vow ? [TRAIT.VOW_OF_THE_UNTAMED] : [])],
       attributeInputs: baseAttributeInputs({ power, precision, ferocity }),

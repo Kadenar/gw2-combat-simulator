@@ -14,6 +14,7 @@ import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const state = (result) => galeshotState.from(observedRuntime(result).profession);
 
@@ -27,7 +28,8 @@ test('Hawkeye release owns Gale Force independently of bow dismissal and cast re
         { type: 'cast', skillId: ID.DISMISS_CYCLONE_BOW, concurrentOffsetMs: 200 },
         wait(12000)
       ],
-      { specialization: 'Galeshot', selectedTraitIds },
+      // Isolate the release bonus from seeded critical outcomes in the compared runs.
+      { specialization: 'Galeshot', selectedTraitIds, criticalDamageMode: 'averaged' },
       {
         catalog: (catalog) =>
           withSkill(catalog, ID.HAWKEYE, {
@@ -54,7 +56,7 @@ test('Hawkeye release owns Gale Force independently of bow dismissal and cast re
   const cancelled = run([TRAIT.GALE_FORCE], 100);
   for (const result of [enhanced, baseline, cancelled]) assert.deepEqual(result.warnings, []);
   const damage = (result) => result.resolvedEvents.find((e) => e.type === 'damage' && e.skillId === ID.HAWKEYE).damage;
-  assert.ok(Math.abs(damage(enhanced) / damage(baseline) - 1.25) < 0.001);
+  assertFlooredDamageMultiplier(damage(enhanced), damage(baseline), 1.25);
   assert.equal(state(enhanced).galeForceUntil, 10.4);
   assert.equal(state(enhanced).cycloneBowActive, false);
   assert.equal(state(cancelled).galeForceUntil, 0);

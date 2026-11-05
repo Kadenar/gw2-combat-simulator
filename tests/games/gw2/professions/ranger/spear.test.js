@@ -73,13 +73,17 @@ test('spear slots 2–4 commit identical cooldowns for base and stealth skills',
 });
 
 test('Falcon bonus requires a defiant or immobilized target at impact', () => {
-  const run = (target) => strike(simulate('Soulbeast', [ID.FALCONS_STOOP], { target }), ID.FALCONS_STOOP).damage;
+  // Keep critical scaling consistent when preceding attacks change the sampled hit sequence.
+  const config = { criticalDamageMode: 'averaged' };
+  const run = (target) =>
+    strike(simulate('Soulbeast', [ID.FALCONS_STOOP], { ...config, target }), ID.FALCONS_STOOP).damage;
   const baseline = run({});
-  for (const target of [{ defiant: true }, { conditions: { Immobilized: true } }]) close(run(target) / baseline, 1.2);
-  close(run({ conditions: { Crippled: true } }) / baseline, 1);
+  for (const target of [{ defiant: true }, { conditions: { Immobilized: true } }])
+    assertFlooredDamageMultiplier(run(target), baseline, 1.2);
+  assert.equal(run({ conditions: { Crippled: true } }), baseline);
   // A real preceding immobilize also qualifies; the bonus must read live condition state.
-  const live = simulate('Soulbeast', [ID.PANTHERS_PROWL, ID.SPIDERS_WEB, ID.FALCONS_STOOP]);
-  close(strike(live, ID.FALCONS_STOOP).damage / baseline, 1.2);
+  const live = simulate('Soulbeast', [ID.PANTHERS_PROWL, ID.SPIDERS_WEB, ID.FALCONS_STOOP], config);
+  assertFlooredDamageMultiplier(strike(live, ID.FALCONS_STOOP).damage, baseline, 1.2);
 });
 
 test('spear leap damage increases only below half target health', () => {

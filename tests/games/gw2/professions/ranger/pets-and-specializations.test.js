@@ -1631,6 +1631,8 @@ test('Unleashed pet strikes retain their own weapon profile, attributes, and fam
     const strike = (config = {}) => {
       // Include the impact observation window so delayed pet strikes reach the formula resolver.
       const result = runRanger([skillId, { type: 'wait', durationMs: 1000 }], {
+        // Match the expected critical contribution without depending on the pet's seeded roll.
+        criticalDamageMode: 'averaged',
         specialization: 'Untamed',
         initialUntamedState: 'Pet',
         selectedPet: 'Tiger',
