@@ -12,6 +12,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { cast, wait } from '#tests/helpers/commands.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const base = {
   specialization: 'Ritualist',
@@ -516,9 +517,16 @@ test('creature traits observe actual Core minion and staggered horror creation w
   const later = run([cast(ID.LICH_FORM), cast(ID.SUMMON_MADNESS), wait(1000)], { config });
   assert.ok(lifeForcePercent(later.planningState.profession[STATE.LIFE_FORCE]) > 10);
   const rotation = [cast(ID.SUMMON_SHADOW_FIEND), wait(3000)];
-  const normal = run(rotation);
-  const stronger = run(rotation, { config: { ...base, selectedTraitIds: [TRAIT.SPIRITS_STRENGTH] } });
-  assert.equal(stronger.totalDamage, normal.totalDamage * 1.5);
+  // Compare an individual minion strike with stable critical scaling and allow final packet flooring.
+  const strikeConfig = { ...base, criticalDamageMode: 'averaged' };
+  const normal = run(rotation, { config: strikeConfig });
+  const stronger = run(rotation, { config: { ...strikeConfig, selectedTraitIds: [TRAIT.SPIRITS_STRENGTH] } });
+  const strike = (result) =>
+    result.resolvedEvents.find(
+      (event) =>
+        event.type === 'damage' && event.actorType === 'summon' && event.parentSkillName === 'Summon Shadow Fiend'
+    );
+  assertFlooredDamageMultiplier(strike(stronger).damage, strike(normal).damage, 1.5);
 });
 
 test('removed initial spirit attacks preserve the creature and independent effects without backdating live state', () => {

@@ -174,7 +174,6 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
   const lingering = wanderlust.filter((event) => event.actorType === 'player' && event.source === 'Spirit');
   const essence = damageEvents.find((event) => event.skillName === 'Essence Blast');
   const growth = damageEvents.filter((event) => event.skillName === 'Explosive Growth');
-  const growthRow = skillBreakdownRows(packets).find((row) => row.name === 'Explosive Growth');
   const bond = detachedBond.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillName === 'Painful Bond'
   );
@@ -220,7 +219,9 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
   assert.equal(essence.coefficient, 0.75);
   assert.equal(essence.metadata.activeSpirits, 3);
   assert.ok(growth.length > 0);
-  assert.equal(growthRow.parentSkill, 'Anguish');
+  // Each summon owns its proc even when critical rolls change the report's damage ordering.
+  for (const parent of ['Anguish', 'Wanderlust', 'Preservation'])
+    assert.ok(growth.some((event) => event.parentSkillName === parent && event.sourceId === TRAIT.EXPLOSIVE_GROWTH));
   assert.equal(detachedAutos.length, 0);
   assert.ok(bond.length >= 8);
 });
@@ -229,6 +230,8 @@ test('Ritualist spirit autos inherit owner Fury without inheriting owner Might',
   const rotation = ["Ritualist's Shroud", 'Anguish', { type: 'wait', durationMs: 9000 }];
   const run = (boons) =>
     simulate('Ritualist', rotation, {
+      // Fury increases expected damage even when a particular seeded hit does not crit.
+      criticalDamageMode: 'averaged',
       initialResource: 100,
       boons,
       sharePlayerBoonsWithSummons: false

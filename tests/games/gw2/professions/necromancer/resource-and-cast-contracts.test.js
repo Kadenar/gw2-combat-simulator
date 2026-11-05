@@ -81,6 +81,8 @@ test('elixir state commits chronologically and cancelled throws leave it untouch
 // Meltdown activates with consumption, but its explosion observes later resources and the observation horizon.
 test('Cascading Corruption delays its packets while Meltdown applies to the triggering strike', () => {
   const config = {
+    // Isolate the resource-dependent damage formula from individual critical rolls.
+    criticalDamageMode: 'averaged',
     initialResource: 100,
     initialBlight: 20,
     initialCascadingCorruptionStacks: 15,

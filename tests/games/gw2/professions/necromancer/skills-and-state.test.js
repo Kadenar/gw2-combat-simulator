@@ -150,6 +150,8 @@ test('Chill of Death and Chilling Nova preserve sibling strike ordering', () => 
 
 test('Wanderlust Vulnerability affects only its final two field hits', () => {
   const result = simulate('Ritualist', ["Ritualist's Shroud", 'Wanderlust', { type: 'wait', durationMs: 6000 }], {
+    // Damage changes across these hits must reflect Vulnerability rather than critical rolls.
+    criticalDamageMode: 'averaged',
     initialResource: 100,
     target: { armor: 2597, conditions: {} }
   });
@@ -161,13 +163,15 @@ test('Wanderlust Vulnerability affects only its final two field hits', () => {
   );
   assert.equal(vulnerability.at, fieldHits[1].at);
   assert.ok(fieldHits[1].eventOrder < vulnerability.eventOrder);
-  assert.ok(Math.abs(fieldHits[1].damage / fieldHits[0].damage - 1) < 1e-12);
+  assert.equal(fieldHits[1].damage, fieldHits[0].damage);
   assertFlooredDamageMultiplier(fieldHits[2].damage, fieldHits[0].damage, 1.04);
   assertFlooredDamageMultiplier(fieldHits[3].damage, fieldHits[0].damage, 1.04);
 });
 
 test('Relic of Fireworks refreshes from qualifying Reaper Shroud skills', () => {
   const result = simulate('Reaper', ["Reaper's Shroud", 'Soul Spiral'], {
+    // Isolate the relic's bonus when comparing successive strikes.
+    criticalDamageMode: 'averaged',
     initialResource: 100,
     relic: 'Fireworks'
   });
@@ -184,17 +188,22 @@ test('Relic of Fireworks refreshes from qualifying Reaper Shroud skills', () => 
 });
 
 test('Signet of Spite follows its live passive and active profile', () => {
+  // Casting the signet changes the hit sequence, so compare passive Power with averaged critical damage.
+  const config = { criticalDamageMode: 'averaged' };
   const withSignet = simulate('Core', ['Rending Claws', 'Death Shroud', 'Life Blast'], {
+    ...config,
     initialResource: 100,
     primaryWeapon: 'Axe',
     selectedSkillIds: [10622]
   });
   const withoutSignet = simulate('Core', ['Rending Claws', 'Death Shroud', 'Life Blast'], {
+    ...config,
     initialResource: 100,
     primaryWeapon: 'Axe',
     selectedSkillIds: [10544]
   });
   const active = simulate('Core', ['Signet of Spite', 'Rending Claws'], {
+    ...config,
     boons: { quickness: true },
     primaryWeapon: 'Axe',
     selectedSkillIds: [10622]
