@@ -17,7 +17,9 @@ import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 
-const ATTRIBUTE_ENTRIES = Object.entries(ATTRIBUTE_NAMES) as [keyof typeof ATTRIBUTE_NAMES, string][];
+const ATTRIBUTE_KEYS = new Map<string, keyof typeof ATTRIBUTE_NAMES>(
+  Object.entries(ATTRIBUTE_NAMES).map(([key, name]) => [name, key as keyof typeof ATTRIBUTE_NAMES])
+);
 
 /** Live boon reads share prototype accessors rather than allocating nine descriptors for every sample. */
 class AttributeAssumptions {
@@ -102,6 +104,16 @@ export function resolveAttributeContributions(
   };
 }
 
+/** Resolved amounts are sparse, so visit only affected attributes; each attribute accumulates independently of order. */
+function addAttributeAmounts(result: Gw2MutableStats, amounts: Readonly<Gw2NumericAttributes>): void {
+  for (const name in amounts) {
+    const key = ATTRIBUTE_KEYS.get(name);
+    const amount = amounts[name];
+
+    if (key !== undefined && amount) result[key] = (result[key] ?? 0) + amount;
+  }
+}
+
 /** Add ordinary declarations, then apply current-attribute conversions and actor projections without altering source pools. */
 export function applyAttributeContributions(
   seed: Gw2AttributeConversionInputs,
@@ -110,9 +122,10 @@ export function applyAttributeContributions(
 ): Gw2Stats {
   const result: Gw2MutableStats = { ...initial };
   const resolved = resolveAttributeContributions(seed, contributions);
-  for (const [key, name] of ATTRIBUTE_ENTRIES)
-    if (resolved.attributes[name] || resolved.utilityAttributes[name])
-      result[key] = (initial[key] ?? 0) + (resolved.attributes[name] ?? 0) + (resolved.utilityAttributes[name] ?? 0);
+  // Trait amounts precede utility amounts so float accumulation stays initial + trait + utility.
+  addAttributeAmounts(result, resolved.attributes);
+  addAttributeAmounts(result, resolved.utilityAttributes);
+
   // Copy each duration map only when first changed, keeping both the input and shared declarations immutable.
   let boonDurations: Record<string, number> | undefined;
   let conditionDurations: Record<string, number> | undefined;
@@ -151,9 +164,7 @@ export function applyAttributeContributions(
         if (transform.kind === 'convert-current')
           result[transform.to] = (result[transform.to] ?? 0) + (result[transform.from] ?? 0) * transform.multiplier;
   // Add the eligible-pool conversion without scaling final-only buffs or exposing it to later conversions.
-  for (const [key, name] of ATTRIBUTE_ENTRIES)
-    if (resolved.reinforcedArmorAttributes[name])
-      result[key] = (result[key] ?? 0) + resolved.reinforcedArmorAttributes[name];
+  addAttributeAmounts(result, resolved.reinforcedArmorAttributes);
   let projected: Gw2Stats = result;
   for (const entry of contributions)
     if (entry.transforms)

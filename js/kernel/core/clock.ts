@@ -30,9 +30,12 @@ export function canonicalInterval(seconds: number): number {
 
 /** Half-open status windows allow explicit unbounded endpoints without converting infinity to a clock key. */
 export function isTimeInWindow(at: number, startsAt: number, expiresAt: number): boolean {
-  const time = canonicalTime(at);
+  return isTimeKeyInWindow(timeKey(at), startsAt, expiresAt);
+}
+
+/** Scans that share one instant normalize it once while keeping the same half-open window rules. */
+export function isTimeKeyInWindow(atKey: number, startsAt: number, expiresAt: number): boolean {
   return (
-    (startsAt === -Infinity || canonicalTime(startsAt) <= time) &&
-    (expiresAt === Infinity || time < canonicalTime(expiresAt))
+    (startsAt === -Infinity || timeKey(startsAt) <= atKey) && (expiresAt === Infinity || atKey < timeKey(expiresAt))
   );
 }

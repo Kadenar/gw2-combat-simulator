@@ -10,7 +10,7 @@ import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js'
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
 import { closeFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
-import { mountRotationInsertionCursor } from '#ui/rotation/insertion-cursor.js';
+import { mountRotationInsertionCursor, updateRotationInsertionCursor } from '#ui/rotation/insertion-cursor.js';
 
 interface RetainedTimelineRow {
   readonly html: string;
@@ -127,6 +127,19 @@ export interface TimelineRenderOptions {
   readonly previewTimeMs?: number | null;
 }
 
+/** Cursor changes affect existing gap markers; command rows and their interaction bindings remain current. */
+export function updateTimelineInsertionCursor(app: ProfessionAppState): void {
+  closeFloatingEditor();
+  const root = document.getElementById('rotation-timeline');
+
+  if (root)
+    app.rotationInsertionIndex = updateRotationInsertionCursor(
+      root,
+      app.rotationInsertionIndex,
+      app.build.rotation.length
+    );
+}
+
 export function renderTimeline(app: ProfessionAppState, options: TimelineRenderOptions = {}): void {
   const readOnly = options.readOnly === true;
   const interactionOptions = timelineInteractionOptions(app);
@@ -206,8 +219,8 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
 
     app.rotationInsertionIndex = mountRotationInsertionCursor({
       root: element,
-      insertionIndex: app.rotationInsertionIndex,
-      rotationLength: rotation.length,
+      getInsertionIndex: () => app.rotationInsertionIndex,
+      getRotationLength: () => app.build.rotation.length,
       onSelect: selectInsertion,
       onClear: () => selectInsertion(null)
     });

@@ -43,6 +43,7 @@ import { escapeHtml } from '#ui/shared/html.js';
 
 // Keep search preferences in memory without adding them to builds, exports, or main simulation settings.
 const fractalSelections = new WeakMap<ProfessionAppState['build'], FractalBuffs>();
+const renderedControls = new WeakMap<HTMLElement, { build: ProfessionAppState['build']; key: string }>();
 
 const filterDismissalRoots = new WeakSet<Document>();
 
@@ -100,6 +101,19 @@ function updatePreviewSelection(panel: HTMLElement, candidates: OptimizerCandida
     if (selected) row.setAttribute('aria-current', 'true');
     else row.removeAttribute('aria-current');
   });
+}
+
+/** Identifies every input to the rendered equipment controls, so rotation-only edits can retain user search choices. */
+function optimizerControlsKey(app: ProfessionAppState): string {
+  const { build } = app;
+  return JSON.stringify([
+    optimizerEquipment(build),
+    build.weapons,
+    build.alternateWeapons,
+    optimizerSlots(build, app.adapter),
+    app.relicNames,
+    app.patch.id
+  ]);
 }
 
 /** Keep selectors outside the simulation result subtree so baseline rendering cannot discard an active search. */
@@ -295,10 +309,16 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     panel.querySelector<HTMLElement>('[data-role="optimizer-results"]')!.addEventListener('keydown', selectResult);
   }
 
-  if (panel.dataset.revision !== String(app.buildRevision)) {
-    panel.dataset.revision = String(app.buildRevision);
+  // Rotation edits invalidate searches, but equipment controls only depend on their choices and usable weapon slots.
+  // Those inputs change only with a new build or revision, so search-progress and filter renders reuse the prior key.
+  const build = app.build;
+  const revisionChanged = panel.dataset.revision !== String(app.buildRevision);
+  const previousControls = renderedControls.get(panel);
+  const controlsKey =
+    revisionChanged || previousControls?.build !== build ? optimizerControlsKey(app) : previousControls.key;
 
-    const build = app.build;
+  if (previousControls?.build !== build || previousControls.key !== controlsKey) {
+    renderedControls.set(panel, { build, key: controlsKey });
     const slots = optimizerSlots(build, app.adapter);
     // Seed actual choices so adding alternatives preserves the equipped options in the search.
     const prefixes = [...new Set(slots.map((slot) => slotPrefix(build, slot) || build.gear[`Weapon${slot.at(-1)}`]))];
@@ -364,6 +384,10 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
         <button type="button" data-clear-forced-slots>Clear forced slots</button>
       </details></div>`;
     panel.querySelectorAll<HTMLElement>('[data-picker]').forEach(updatePicker);
+  }
+
+  if (revisionChanged) {
+    panel.dataset.revision = String(app.buildRevision);
 
     // An invalid current build can disable optimization without interrupting the normal editor's change flow.
     try {

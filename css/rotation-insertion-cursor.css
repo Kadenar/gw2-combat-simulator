@@ -77,6 +77,18 @@
   outline-offset: 1px;
 }
 
+/* Keyboard movement owns the marker until the pointer moves again; retained hovered gaps are only previews.
+   Tab focus still previews its gap, and an active drag keeps its own arrow and drop-marker rules. */
+[data-insertion-navigation='keyboard']:not(.drag-active)
+  .rot-insertion-gap:not(.active, :focus-visible)
+  .rot-insertion-marker {
+  opacity: 0;
+}
+
+[data-insertion-navigation='keyboard']:not(.drag-active) .rot-insertion-gap:not(.active) .rot-insertion-arrow {
+  opacity: 1;
+}
+
 .rot-insertion-gap.active {
   flex-basis: 20px;
   min-width: 20px;

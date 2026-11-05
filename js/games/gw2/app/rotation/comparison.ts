@@ -375,7 +375,7 @@ function createComparisonView(
 }
 
 /** Mounts and refreshes the single stacked comparison view around the existing editable timeline. */
-export function renderRotationComparison(app: ProfessionAppState): void {
+export function renderRotationComparison(app: ProfessionAppState, cursorOnly = false): void {
   if (typeof document === 'undefined' || typeof document.querySelector !== 'function') return;
 
   comparisonHeadingButtons(app);
@@ -402,6 +402,7 @@ export function renderRotationComparison(app: ProfessionAppState): void {
   if (!summary || !referenceSection || !referenceTimeline) {
     removeComparisonView();
     ({ summary, referenceSection, referenceTimeline } = createComparisonView(app, currentTimeline));
+    cursorOnly = false;
     document.body?.setAttribute('data-rotation-comparison', '');
   }
 
@@ -447,14 +448,20 @@ export function renderRotationComparison(app: ProfessionAppState): void {
     currentResult && referenceResult
       ? rotationComparisonMetrics(referenceResult, currentResult, rotationComparisonTimeMs(app))
       : null;
-  renderTimeline(app, {
-    root: referenceTimeline,
-    procRoot: null,
-    build: { ...app.build, rotation: comparison.referenceRotation },
-    result: referenceResult as ProfessionAppResult | null,
-    readOnly: true,
-    previewTimeMs: metrics?.timeMs
-  });
+
+  // Moving the cursor changes comparison emphasis and numbers, not the reference's command rows.
+  if (cursorOnly)
+    applyTimelinePreviewHighlight(referenceTimeline, referenceResult as ProfessionAppResult | null, metrics?.timeMs);
+  else
+    renderTimeline(app, {
+      root: referenceTimeline,
+      procRoot: null,
+      build: { ...app.build, rotation: comparison.referenceRotation },
+      result: referenceResult as ProfessionAppResult | null,
+      readOnly: true,
+      previewTimeMs: metrics?.timeMs
+    });
+
   referenceSection.dataset.referenceStatus = comparison.referenceStatus;
   referenceSection.title = comparison.referenceError;
 

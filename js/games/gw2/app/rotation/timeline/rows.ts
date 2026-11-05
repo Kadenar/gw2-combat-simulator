@@ -612,9 +612,7 @@ export function timelineRowsView(
                     ${item.durationMs != null ? `<span class="rot-gapfill-badge rot-wait-badge" data-idx="${index}">⌛${item.durationMs}ms</span>` : ''}
                 </div>`;
       rowItems.push(
-        readOnly
-          ? `<div class="rot-entry">${entryHtml}</div>`
-          : rotationTimelineEntryHtml(index, app.rotationInsertionIndex ?? rotation.length, entryHtml)
+        readOnly ? `<div class="rot-entry">${entryHtml}</div>` : rotationTimelineEntryHtml(index, entryHtml)
       );
     });
 
@@ -630,7 +628,7 @@ export function timelineRowsView(
       }
 
       if (!readOnly) {
-        rowItems.push(rotationInsertionGapHtml(rotation.length, app.rotationInsertionIndex ?? rotation.length));
+        rowItems.push(rotationInsertionGapHtml(rotation.length));
       }
 
       for (const marker of healthMarkersByIndex.get(rotation.length) || []) {

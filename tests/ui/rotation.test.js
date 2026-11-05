@@ -8,7 +8,8 @@ import {
   mountRotationInsertionCursor,
   normalizeRotationInsertionIndex,
   rotationInsertionGapHtml,
-  rotationTimelineEntryHtml
+  rotationTimelineEntryHtml,
+  updateRotationInsertionCursor
 } from '#ui/rotation/insertion-cursor.js';
 import { mountRotationWarnings } from '#ui/rotation/warnings.js';
 
@@ -16,6 +17,7 @@ import { mountRotationWarnings } from '#ui/rotation/warnings.js';
 test('insertion Escape is consumed only when a cursor is active', () => {
   const listeners = new Set();
   const root = {
+    dataset: {},
     closest: () => null,
     querySelectorAll: () => [],
     ownerDocument: {
@@ -25,13 +27,209 @@ test('insertion Escape is consumed only when a cursor is active', () => {
   };
   let clears = 0;
   for (const insertionIndex of [0, null]) {
-    mountRotationInsertionCursor({ root, insertionIndex, rotationLength: 2, onSelect() {}, onClear: () => clears++ });
+    mountRotationInsertionCursor({
+      root,
+      getInsertionIndex: () => insertionIndex,
+      getRotationLength: () => 2,
+      onSelect() {},
+      onClear: () => clears++
+    });
     const event = new Event('keydown', { cancelable: true });
     Object.defineProperty(event, 'key', { value: 'Escape' });
     for (const handler of listeners) handler(event);
     assert.equal(event.defaultPrevented, insertionIndex !== null);
   }
 
+  assert.equal(clears, 1);
+});
+
+// Minimal timeline double whose gaps track active state, focus, and scrolling through what the handlers read.
+function insertionCursorFixture(t, gapCount = 3) {
+  const originalElement = Object.getOwnPropertyDescriptor(globalThis, 'Element');
+  Object.defineProperty(globalThis, 'Element', { configurable: true, value: class {} });
+  t.after(() => {
+    if (originalElement) Object.defineProperty(globalThis, 'Element', originalElement);
+    else delete globalThis.Element;
+  });
+  const listeners = new Set();
+  const gaps = Array.from({ length: gapCount }, (_, index) => {
+    let active = false;
+    return {
+      dataset: { insertionIndex: String(index) },
+      scrolls: 0,
+      matches: () => true,
+      focus() {
+        root.ownerDocument.activeElement = this;
+      },
+      scrollIntoView() {
+        this.scrolls += 1;
+      },
+      classList: {
+        contains: () => active,
+        toggle: (_name, value) => {
+          active = value;
+        }
+      },
+      setAttribute(name, value) {
+        this[name] = value;
+      }
+    };
+  });
+  const root = {
+    dataset: {},
+    closest: () => null,
+    querySelectorAll: () => gaps,
+    querySelector: () => gaps.find((gap) => gap.classList.contains('active')) ?? null,
+    contains: (element) => gaps.includes(element),
+    ownerDocument: {
+      addEventListener: (_name, handler) => listeners.add(handler),
+      removeEventListener: (_name, handler) => listeners.delete(handler)
+    }
+  };
+  const press = (key) => {
+    const event = new Event('keydown', { cancelable: true });
+    Object.defineProperty(event, 'key', { value: key });
+    for (const handler of listeners) handler(event);
+    return event;
+  };
+
+  return { gaps, root, listeners, press };
+}
+
+// Retained handlers must read each new cursor position rather than the value captured when rows were mounted.
+test('cursor movement updates markers and keyboard navigation without rebinding rows', (t) => {
+  const { gaps, root, listeners, press } = insertionCursorFixture(t);
+  let cursor = null;
+  const select = (index) => {
+    cursor = updateRotationInsertionCursor(root, index, 2);
+  };
+
+  mountRotationInsertionCursor({
+    root,
+    getInsertionIndex: () => cursor,
+    getRotationLength: () => 2,
+    onSelect: select,
+    onClear: () => select(null)
+  });
+  const handlers = gaps.map((gap) => gap.onclick);
+  root.ownerDocument.activeElement = gaps[2];
+
+  press('ArrowLeft');
+  assert.equal(cursor, 1);
+  assert.equal(root.ownerDocument.activeElement, gaps[1]);
+  assert.equal(root.dataset.insertionNavigation, 'keyboard');
+  press('ArrowLeft');
+  assert.equal(cursor, 0);
+  assert.equal(gaps[0]['aria-label'], 'Insertion point at position 1');
+  assert.equal(gaps[1]['aria-label'], 'Set insertion point at position 2');
+  press('ArrowRight');
+  assert.equal(cursor, 1);
+  press('Escape');
+  assert.equal(cursor, null);
+  assert.equal(gaps[2].classList.contains('active'), true);
+  assert.equal(root.ownerDocument.activeElement, gaps[2]);
+  gaps[0].onclick({ preventDefault() {}, stopPropagation() {} });
+  assert.equal(cursor, 0);
+  assert.equal(root.dataset.insertionNavigation, undefined);
+  assert.deepEqual(
+    gaps.map((gap) => gap.onclick),
+    handlers
+  );
+  assert.equal(listeners.size, 2);
+});
+
+// Worker publications remount the cursor; a keyboard user tabbing between gaps must keep their position.
+test('mounting marks the cursor without taking focus or scrolling', (t) => {
+  const { gaps, root } = insertionCursorFixture(t);
+  root.ownerDocument.activeElement = gaps[2];
+
+  mountRotationInsertionCursor({
+    root,
+    getInsertionIndex: () => 0,
+    getRotationLength: () => 2,
+    onSelect() {},
+    onClear() {}
+  });
+
+  assert.equal(gaps[0].classList.contains('active'), true);
+  assert.equal(root.ownerDocument.activeElement, gaps[2]);
+  assert.equal(gaps[0].scrolls, 0);
+});
+
+// The app rejects moves for a stale build revision, so nothing may behave as though the cursor moved.
+test('rejected keyboard moves leave focus, scrolling, and hover previews untouched', (t) => {
+  const { gaps, root, press } = insertionCursorFixture(t);
+  mountRotationInsertionCursor({
+    root,
+    getInsertionIndex: () => 1,
+    getRotationLength: () => 2,
+    onSelect() {},
+    onClear() {}
+  });
+  root.ownerDocument.activeElement = gaps[2];
+
+  assert.equal(press('ArrowLeft').defaultPrevented, true);
+  assert.equal(press('Escape').defaultPrevented, true);
+  assert.equal(root.dataset.insertionNavigation, undefined);
+  assert.equal(root.ownerDocument.activeElement, gaps[2]);
+  assert.deepEqual(
+    gaps.map((gap) => gap.scrolls),
+    [0, 0, 0]
+  );
+});
+
+// Arrows keep the moving cursor visible; clearing it from elsewhere must not jump the viewport to the trailing gap.
+test('keyboard moves reveal the cursor unless Escape clears it from outside the timeline', (t) => {
+  const { gaps, root, press } = insertionCursorFixture(t);
+  let cursor = 2;
+  const select = (index) => {
+    cursor = updateRotationInsertionCursor(root, index, 2);
+  };
+
+  mountRotationInsertionCursor({
+    root,
+    getInsertionIndex: () => cursor,
+    getRotationLength: () => 2,
+    onSelect: select,
+    onClear: () => select(null)
+  });
+
+  press('ArrowLeft');
+  assert.equal(cursor, 1);
+  assert.equal(gaps[1].scrolls, 1);
+  assert.equal(root.ownerDocument.activeElement, undefined);
+
+  const outside = { matches: () => false };
+  root.ownerDocument.activeElement = outside;
+  press('Escape');
+  assert.equal(cursor, null);
+  assert.equal(gaps[2].scrolls, 0);
+  assert.equal(root.ownerDocument.activeElement, outside);
+
+  root.ownerDocument.activeElement = gaps[1];
+  select(1);
+  press('Escape');
+  assert.equal(root.ownerDocument.activeElement, gaps[2]);
+  assert.equal(gaps[2].scrolls, 1);
+});
+
+// Inserting near the end moves the cursor past the mounted length before the deferred render rebinds these handlers.
+test('cursor handlers read the rotation length live during a deferred render', (t) => {
+  const { root, press } = insertionCursorFixture(t);
+  let cursor = 1;
+  let length = 2;
+  let clears = 0;
+  mountRotationInsertionCursor({
+    root,
+    getInsertionIndex: () => cursor,
+    getRotationLength: () => length,
+    onSelect() {},
+    onClear: () => clears++
+  });
+  cursor = 4;
+  length = 5;
+
+  assert.equal(press('Escape').defaultPrevented, true);
   assert.equal(clears, 1);
 });
 
@@ -114,11 +312,11 @@ test('rotation insertion cursors validate positions and expose accessible gaps',
   assert.equal(normalizeRotationInsertionIndex(null, 3), null);
   assert.equal(normalizeRotationInsertionIndex(undefined, 3), null);
 
-  assert.match(rotationInsertionGapHtml(2, 2), /class="rot-insertion-gap active"/);
-  assert.match(rotationInsertionGapHtml(2, null), /Insert at position 3/);
+  // Row HTML stays cursor-neutral so moving the cursor cannot invalidate retained rows.
+  assert.match(rotationInsertionGapHtml(2), /class="rot-insertion-gap"/);
+  assert.match(rotationInsertionGapHtml(2), /Insert at position 3/);
   const entryHtml = rotationTimelineEntryHtml(
     2,
-    null,
     '<div class="rot-dead-time">Dead</div><div class="rot-skill">Skill</div>'
   );
   assert.match(

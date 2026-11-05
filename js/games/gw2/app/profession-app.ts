@@ -30,7 +30,7 @@ import {
   readStoredRotationProcOverlayVisibility,
   readStoredTimelineOverlayVisibility
 } from '#gw2/app/rotation/timeline/preferences.js';
-import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
+import { updateTimelineInsertionCursor } from '#gw2/app/rotation/timeline/view.js';
 import { bindSessionControls } from '#gw2/app/session-controls.js';
 import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
@@ -511,10 +511,10 @@ export class ProfessionApp implements ProfessionAppState {
   /** Refreshes cursor-dependent views without changing the build or scheduling a simulation. */
   selectRotationInsertion(index: number | null): void {
     this.rotationInsertionIndex = index;
+    updateTimelineInsertionCursor(this);
     renderPalette(this);
-    renderTimeline(this);
     renderRotationStateSnapshot(this);
-    renderRotationComparison(this);
+    renderRotationComparison(this, true);
   }
 
   /** Coordinates focus and rendering after the comparison owner accepts a fresh Current. */

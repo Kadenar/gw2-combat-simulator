@@ -87,7 +87,7 @@ test('result summary totals the same charge-aware dead-time gaps shown on the ti
   assert.deepEqual(metrics[1], {
     label: 'Total Idle Time',
     value: '250ms',
-    className: '',
+    className: 'idle-time',
     details: [{ label: 'Idle time between skills', value: '250ms' }]
   });
 });
@@ -109,7 +109,7 @@ test('result summary includes explicit wait shapes in total idle time', () => {
   assert.deepEqual(metrics[1], {
     label: 'Total Idle Time',
     value: '400ms',
-    className: '',
+    className: 'idle-time',
     details: [{ label: 'Explicit waits', value: '400ms' }]
   });
 });
@@ -154,7 +154,7 @@ test('result summary details legitimate gaps and groups repeated missing-commit 
   assert.deepEqual(metrics[1], {
     label: 'Total Idle Time',
     value: '700ms',
-    className: '',
+    className: 'idle-time',
     details: [
       { label: 'Idle time between skills', value: '200ms' },
       { label: "Skill cancelled 'Interrupted Skill' (2 casts)", value: '500ms' }
