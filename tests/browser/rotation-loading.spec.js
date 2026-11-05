@@ -156,12 +156,12 @@ test('template skeleton preserves the populated builder dimensions', async ({ pa
     // Phones hide display preferences in Options; close it again before measuring the compact builder.
     const optionsToggle = page.locator('.rotation-options > summary');
     const optionsVisible = await optionsToggle.isVisible();
-    
+
     if (optionsVisible) await optionsToggle.click();
 
     // Persist size through the actual control so a later render cannot reset a DOM-only override.
     await page.getByRole('combobox', { name: 'Timeline size', exact: true }).selectOption(size);
-    
+
     if (optionsVisible) await optionsToggle.click();
 
     await page.evaluate(async (focus) => {
