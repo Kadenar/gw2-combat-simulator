@@ -152,7 +152,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     panel.id = 'gear-optimizer';
     panel.className = 'gear-optimizer';
     panel.innerHTML = `<form data-role="optimizer-form"><div data-role="optimizer-controls"></div>
-      <div class="optimizer-actions"><p data-role="optimizer-estimate"></p><div><label class="optimizer-worker-count">Workers<input name="workers" aria-label="Workers" type="number" min="1" max="${MAX_OPTIMIZER_WORKERS}" step="1" value="${runner.workerCount}"></label><button type="button" data-role="optimizer-cancel">Cancel</button><button type="submit">Run optimizer</button></div></div></form>
+      <div class="optimizer-actions"><p id="optimizer-estimate" data-role="optimizer-estimate"></p><div><label class="optimizer-search-mode">Search<select name="search" aria-describedby="optimizer-estimate"><option value="fast">Fast</option><option value="exact">Exhaustive</option></select></label><label class="optimizer-worker-count">Workers<input name="workers" aria-label="Workers" type="number" min="1" max="${MAX_OPTIMIZER_WORKERS}" step="1" value="${runner.workerCount}"></label><button type="button" data-role="optimizer-cancel">Cancel</button><button type="submit">Run optimizer</button></div></div></form>
       <div class="optimizer-feedback">
       <div class="optimizer-status-row"><div class="optimizer-status-text"><p data-role="optimizer-status" role="status" aria-live="polite"></p><p data-role="optimizer-counts"></p></div>
       <details class="optimizer-filter-settings"><summary aria-label="Filter results" title="Filter results">&#9881;</summary>
@@ -169,16 +169,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       <section data-role="optimizer-preview" class="optimizer-preview" aria-label="Result character" hidden></section>`;
     results.append(panel);
     const form = panel.querySelector('form')!;
-    const estimate = (): void => {
-      try {
-        captureGearOptimizerRequest(app, readSelections(form), 'fast');
-        panel!.querySelector('[data-role="optimizer-estimate"]')!.textContent = '';
-      } catch (error) {
-        panel!.querySelector('[data-role="optimizer-estimate"]')!.textContent = String(
-          error instanceof Error ? error.message : error
-        );
-      }
-    };
+    const estimate = (): void => updateSearchEstimate(app, form);
 
     bindCandidatePickers(form);
     // Clearing only slot overrides restores the shared prefix choices and invalidates an active search.
@@ -218,7 +209,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
         if (app.simulationStatus !== 'idle' || app.resultRevision !== app.buildRevision)
           throw new Error('Wait for the current build simulation to finish.');
 
-        const request = captureGearOptimizerRequest(app, readSelections(form), 'fast');
+        const request = captureGearOptimizerRequest(app, readSelections(form), readSearchMode(form));
         app.randomDistributionRunner.cancel?.();
         app.modifierContributionRunner.cancel?.();
         runner.run(request, Number(new FormData(form).get('workers')));
@@ -316,8 +307,9 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   const previousControls = renderedControls.get(panel);
   const controlsKey =
     revisionChanged || previousControls?.build !== build ? optimizerControlsKey(app) : previousControls.key;
+  const controlsChanged = previousControls?.build !== build || previousControls.key !== controlsKey;
 
-  if (previousControls?.build !== build || previousControls.key !== controlsKey) {
+  if (controlsChanged) {
     renderedControls.set(panel, { build, key: controlsKey });
     const slots = optimizerSlots(build, app.adapter);
     // Seed actual choices so adding alternatives preserves the equipped options in the search.
@@ -386,18 +378,10 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     panel.querySelectorAll<HTMLElement>('[data-picker]').forEach(updatePicker);
   }
 
-  if (revisionChanged) {
+  if (revisionChanged || controlsChanged) {
     panel.dataset.revision = String(app.buildRevision);
 
-    // An invalid current build can disable optimization without interrupting the normal editor's change flow.
-    try {
-      captureGearOptimizerRequest(app, readSelections(panel.querySelector('form')!), 'fast');
-      panel.querySelector('[data-role="optimizer-estimate"]')!.textContent = '';
-    } catch (error) {
-      panel.querySelector('[data-role="optimizer-estimate"]')!.textContent = String(
-        error instanceof Error ? error.message : error
-      );
-    }
+    updateSearchEstimate(app, panel.querySelector('form')!);
   }
 
   const state = runner.state;
@@ -445,7 +429,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   panel.querySelector('[data-role="optimizer-counts"]')!.textContent = state.count
     ? runner.request?.search === 'fast'
       ? `${state.completed.toLocaleString()} candidates checked.${state.completed !== state.simulations ? ` ${state.simulations.toLocaleString()} simulations; ${(state.completed - state.simulations).toLocaleString()} rejected by sigil rules or requirements.` : ''}`
-      : `${state.completed.toLocaleString()} / ${state.count.toLocaleString()} candidates checked; ${state.simulations.toLocaleString()} simulations.`
+      : `${state.completed.toLocaleString()} / ${state.count.toLocaleString()} candidates checked.${state.completed !== state.simulations ? ` ${(state.completed - state.simulations).toLocaleString()} rejected by sigil rules or requirements.` : ''}`
     : '';
 
   // Keep optimizer feedback focused on search status and rankings; simulation warnings stay in result data.
@@ -531,6 +515,30 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   (panel.querySelector('button[type="submit"]') as HTMLButtonElement).disabled =
     runner.isRunning || !app.build.rotation.length;
   panel.querySelector<HTMLInputElement>('input[name="workers"]')!.disabled = runner.isRunning;
+  panel.querySelector<HTMLSelectElement>('select[name="search"]')!.disabled = runner.isRunning;
+}
+
+/** Keep search strategy separate from equipment and capture the selected mode for the entire worker job. */
+function readSearchMode(form: HTMLFormElement): 'fast' | 'exact' {
+  const mode = form.querySelector<HTMLSelectElement>('select[name="search"]')!.value;
+
+  if (mode !== 'fast' && mode !== 'exact') throw new TypeError('Invalid optimizer search mode.');
+
+  return mode;
+}
+
+/** Describe coverage in terms of distinct candidates, matching the worker's progress instead of raw assignments. */
+function updateSearchEstimate(app: ProfessionAppState, form: HTMLFormElement): void {
+  const estimate = form.querySelector('[data-role="optimizer-estimate"]')!;
+  try {
+    const request = captureGearOptimizerRequest(app, readSelections(form), readSearchMode(form));
+    estimate.textContent =
+      request.search === 'exact'
+        ? 'Exhaustive evaluates every distinct combination of your selected gear.'
+        : 'Fast samples and refines candidates. It may miss the best combination.';
+  } catch (error) {
+    estimate.textContent = String(error instanceof Error ? error.message : error);
+  }
 }
 
 /** Removable chips submit explicit choices; empty groups retain the equipped item and None remains an actual choice. */

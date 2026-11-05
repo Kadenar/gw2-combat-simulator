@@ -174,7 +174,7 @@ async function addChoice(panel, label, choice) {
     .click();
 }
 
-// Real module workers exercise snapshot, cancellation and Apply through the normal persisted build editor.
+// Real module workers exercise the selected exhaustive search and Apply through the normal persisted build editor.
 test('optimizer runs on demand, verifies candidates, and applies equipment once', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
@@ -202,9 +202,10 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
     rotation: window.professionApp.build.rotation,
     weapons: window.professionApp.build.weapons
   }));
+  await panel.getByRole('combobox', { name: 'Search', exact: true }).selectOption('exact');
   await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
   await expect(panel.locator('[data-role="optimizer-status"]')).toContainText('Complete', { timeout: 20000 });
-  await expect(panel.locator('[data-role="optimizer-counts"]')).toContainText('1 candidates checked');
+  await expect(panel.locator('[data-role="optimizer-counts"]')).toContainText('1 / 1 candidates checked');
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.');
   await expect(panel.locator('tbody tr')).toHaveCount(1);
   const results = panel.getByRole('table', { name: 'Gear comparison' });
@@ -374,7 +375,7 @@ test('prepopulated choices enforce limits and stay usable on mobile', async ({ p
   const infusionCount = await panel.getByRole('spinbutton', { name: 'Total infusions', exact: true }).boundingBox();
   expect(Math.abs(infusionSelect.y - infusionCount.y)).toBeLessThan(1);
   expect(infusionSelect.height).toBe(infusionCount.height);
-  await expect(panel.locator('[data-role="optimizer-estimate"]')).toBeEmpty();
+  await expect(panel.locator('[data-role="optimizer-estimate"]')).toContainText('Fast samples and refines candidates');
   expect(await panel.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
 });
 

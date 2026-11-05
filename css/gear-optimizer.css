@@ -539,6 +539,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 }
 .optimizer-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
@@ -547,6 +548,8 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   border-block: 1px solid var(--border);
 }
 .optimizer-actions p {
+  flex: 1 1 240px;
+  min-width: 0;
   margin: 0;
   color: var(--text-dim);
   font-size: 11px;
@@ -557,7 +560,10 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   flex-wrap: wrap;
   gap: 8px;
   flex-shrink: 0;
+  max-width: 100%;
 }
+/* Search strategy shares the compact action controls and wraps with them on narrow screens. */
+.optimizer-search-mode,
 .optimizer-worker-count {
   display: flex;
   align-items: center;
@@ -567,6 +573,10 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 }
 .optimizer-worker-count input {
   width: 56px;
+  min-height: 32px;
+  padding: 6px;
+}
+.optimizer-search-mode select {
   min-height: 32px;
   padding: 6px;
 }
@@ -874,6 +884,9 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
     align-items: stretch;
     flex-direction: column;
     padding: 14px;
+  }
+  .optimizer-actions p {
+    flex: initial;
   }
   .optimizer-actions > div {
     justify-content: flex-end;
