@@ -7,25 +7,25 @@
         "build": "data/gw2/builds/necromancer/b-condi-scourge.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-scourge-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-scourge-scepter-torch-pistol",
-        "benchmarkDps": 39854,
+        "benchmarkDps": 39865,
         "upToDate": true,
         "benchmarkApm": 70.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38232, "phase": 38232 },
-          "80-60": { "cumulative": 39047, "phase": 39902 },
-          "60-40": { "cumulative": 38452, "phase": 37289 },
-          "40-20": { "cumulative": 40295, "phase": 46998 },
-          "20-0": { "cumulative": 39854, "phase": 39854 }
+          "100-80": { "cumulative": 38227, "phase": 38227 },
+          "80-60": { "cumulative": 39052, "phase": 39919 },
+          "60-40": { "cumulative": 38453, "phase": 37281 },
+          "40-20": { "cumulative": 40298, "phase": 47006 },
+          "20-0": { "cumulative": 39865, "phase": 39865 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 39839,
+          "benchmarkDps": 39856,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 38201, "phase": 38201 },
-            "80-60": { "cumulative": 39013, "phase": 39865 },
-            "60-40": { "cumulative": 38444, "phase": 37332 },
-            "40-20": { "cumulative": 40263, "phase": 46877 },
-            "20-0": { "cumulative": 39839, "phase": 39839 }
+            "100-80": { "cumulative": 38196, "phase": 38196 },
+            "80-60": { "cumulative": 39017, "phase": 39879 },
+            "60-40": { "cumulative": 38450, "phase": 37340 },
+            "40-20": { "cumulative": 40270, "phase": 46890 },
+            "20-0": { "cumulative": 39856, "phase": 39856 }
           }
         }
       },
@@ -33,26 +33,26 @@
         "label": "Condition Alacrity (Pistol / Torch + Scepter / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-alac-scourge.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-alac-scourge-bench.json",
-        "benchmarkDps": 30068,
+        "benchmarkDps": 30059,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-alacrity-scourge-scepter-torch-pistol",
         "benchmarkApm": 79.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 29713, "phase": 29713 },
-          "80-60": { "cumulative": 29366, "phase": 29019 },
-          "60-40": { "cumulative": 30299, "phase": 32314 },
-          "40-20": { "cumulative": 29641, "phase": 27786 },
-          "20-0": { "cumulative": 30068, "phase": 30068 }
+          "100-80": { "cumulative": 29665, "phase": 29665 },
+          "80-60": { "cumulative": 29297, "phase": 28930 },
+          "60-40": { "cumulative": 30276, "phase": 32401 },
+          "40-20": { "cumulative": 29631, "phase": 27812 },
+          "20-0": { "cumulative": 30059, "phase": 30059 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 30073,
+          "benchmarkDps": 30063,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 29796, "phase": 29796 },
-            "80-60": { "cumulative": 29475, "phase": 29155 },
-            "60-40": { "cumulative": 30249, "phase": 31919 },
-            "40-20": { "cumulative": 29655, "phase": 27981 },
-            "20-0": { "cumulative": 30073, "phase": 30073 }
+            "100-80": { "cumulative": 29741, "phase": 29741 },
+            "80-60": { "cumulative": 29437, "phase": 29133 },
+            "60-40": { "cumulative": 30223, "phase": 31919 },
+            "40-20": { "cumulative": 29644, "phase": 28010 },
+            "20-0": { "cumulative": 30063, "phase": 30063 }
           }
         }
       }
@@ -66,25 +66,25 @@
         "build": "data/gw2/builds/necromancer/b-power-reaper.json",
         "rotation": "data/gw2/rotations/necromancer/r-power-reaper-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-reaper-greatsword-spear",
-        "benchmarkDps": 42869,
+        "benchmarkDps": 42870,
         "upToDate": true,
         "benchmarkApm": 60.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40667, "phase": 40667 },
-          "80-60": { "cumulative": 38673, "phase": 36867 },
-          "60-40": { "cumulative": 39869, "phase": 42495 },
-          "40-20": { "cumulative": 41326, "phase": 46438 },
-          "20-0": { "cumulative": 42869, "phase": 49604 }
+          "100-80": { "cumulative": 40685, "phase": 40685 },
+          "80-60": { "cumulative": 38682, "phase": 36867 },
+          "60-40": { "cumulative": 39869, "phase": 42474 },
+          "40-20": { "cumulative": 41321, "phase": 46417 },
+          "20-0": { "cumulative": 42870, "phase": 49628 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42869,
+          "benchmarkDps": 42870,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 40667, "phase": 40667 },
-            "80-60": { "cumulative": 38673, "phase": 36867 },
-            "60-40": { "cumulative": 39869, "phase": 42495 },
-            "40-20": { "cumulative": 41326, "phase": 46438 },
-            "20-0": { "cumulative": 42869, "phase": 49604 }
+            "100-80": { "cumulative": 40685, "phase": 40685 },
+            "80-60": { "cumulative": 38682, "phase": 36867 },
+            "60-40": { "cumulative": 39869, "phase": 42474 },
+            "40-20": { "cumulative": 41321, "phase": 46417 },
+            "20-0": { "cumulative": 42870, "phase": 49628 }
           }
         }
       },
@@ -119,25 +119,25 @@
         "label": "Condition (Pistol / Torch + Greatsword) - Ice Fields",
         "build": "data/gw2/builds/necromancer/b-condi-fields-reaper.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-fields-reaper-bench.json",
-        "benchmarkDps": 51844,
+        "benchmarkDps": 51842,
         "upToDate": true,
         "benchmarkApm": 74.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 47999, "phase": 47999 },
-          "80-60": { "cumulative": 47279, "phase": 46567 },
-          "60-40": { "cumulative": 48498, "phase": 51006 },
-          "40-20": { "cumulative": 49899, "phase": 54961 },
-          "20-0": { "cumulative": 51844, "phase": 51844 }
+          "100-80": { "cumulative": 47993, "phase": 47993 },
+          "80-60": { "cumulative": 47277, "phase": 46569 },
+          "60-40": { "cumulative": 48497, "phase": 51007 },
+          "40-20": { "cumulative": 49898, "phase": 54957 },
+          "20-0": { "cumulative": 51842, "phase": 51842 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 51844,
+          "benchmarkDps": 51842,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 47999, "phase": 47999 },
-            "80-60": { "cumulative": 47279, "phase": 46567 },
-            "60-40": { "cumulative": 48498, "phase": 51006 },
-            "40-20": { "cumulative": 49899, "phase": 54961 },
-            "20-0": { "cumulative": 51844, "phase": 51844 }
+            "100-80": { "cumulative": 47993, "phase": 47993 },
+            "80-60": { "cumulative": 47277, "phase": 46569 },
+            "60-40": { "cumulative": 48497, "phase": 51007 },
+            "40-20": { "cumulative": 49898, "phase": 54957 },
+            "20-0": { "cumulative": 51842, "phase": 51842 }
           }
         }
       }
@@ -151,25 +151,25 @@
         "build": "data/gw2/builds/necromancer/b-power-ritualist.json",
         "rotation": "data/gw2/rotations/necromancer/r-power-ritualist-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-ritualist-greatsword-spear",
-        "benchmarkDps": 43305,
+        "benchmarkDps": 43265,
         "upToDate": true,
         "benchmarkApm": 87.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42959, "phase": 42959 },
-          "80-60": { "cumulative": 40611, "phase": 38425 },
-          "60-40": { "cumulative": 41651, "phase": 43887 },
-          "40-20": { "cumulative": 41707, "phase": 41878 },
-          "20-0": { "cumulative": 43305, "phase": 51174 }
+          "100-80": { "cumulative": 43125, "phase": 43125 },
+          "80-60": { "cumulative": 40671, "phase": 38386 },
+          "60-40": { "cumulative": 41641, "phase": 43726 },
+          "40-20": { "cumulative": 41685, "phase": 41821 },
+          "20-0": { "cumulative": 43265, "phase": 51042 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 41420,
+          "benchmarkDps": 41382,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 41385, "phase": 41385 },
-            "80-60": { "cumulative": 38427, "phase": 35860 },
-            "60-40": { "cumulative": 39582, "phase": 42119 },
-            "40-20": { "cumulative": 40258, "phase": 42438 },
-            "20-0": { "cumulative": 41420, "phase": 41420 }
+            "100-80": { "cumulative": 41530, "phase": 41530 },
+            "80-60": { "cumulative": 38472, "phase": 35817 },
+            "60-40": { "cumulative": 39575, "phase": 42000 },
+            "40-20": { "cumulative": 40303, "phase": 42643 },
+            "20-0": { "cumulative": 41382, "phase": 41382 }
           }
         }
       },
@@ -177,26 +177,26 @@
         "label": "Power Quickness (Spear / Greatsword)",
         "build": "data/gw2/builds/necromancer/b-power-quick-ritualist.json",
         "rotation": "data/gw2/rotations/necromancer/r-power-quick-ritualist-bench.json",
-        "benchmarkDps": 36241,
+        "benchmarkDps": 36250,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-quickness-ritualist-greatsword-spear",
         "benchmarkApm": 87.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 34859, "phase": 34859 },
-          "80-60": { "cumulative": 32642, "phase": 30682 },
-          "60-40": { "cumulative": 33875, "phase": 36646 },
-          "40-20": { "cumulative": 35446, "phase": 41134 },
-          "20-0": { "cumulative": 36241, "phase": 39827 }
+          "100-80": { "cumulative": 35073, "phase": 35073 },
+          "80-60": { "cumulative": 32647, "phase": 30531 },
+          "60-40": { "cumulative": 33890, "phase": 36681 },
+          "40-20": { "cumulative": 35465, "phase": 41167 },
+          "20-0": { "cumulative": 36250, "phase": 39791 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 36241,
+          "benchmarkDps": 36250,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 34859, "phase": 34859 },
-            "80-60": { "cumulative": 32642, "phase": 30682 },
-            "60-40": { "cumulative": 33875, "phase": 36646 },
-            "40-20": { "cumulative": 35446, "phase": 41134 },
-            "20-0": { "cumulative": 36241, "phase": 39827 }
+            "100-80": { "cumulative": 35073, "phase": 35073 },
+            "80-60": { "cumulative": 32647, "phase": 30531 },
+            "60-40": { "cumulative": 33890, "phase": 36681 },
+            "40-20": { "cumulative": 35465, "phase": 41167 },
+            "20-0": { "cumulative": 36250, "phase": 39791 }
           }
         }
       }
@@ -264,24 +264,24 @@
         "build": "data/gw2/builds/necromancer/b-condi-quick-harbinger.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-quick-harbinger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-quickness-harbinger-pistol-dagger-scepter-torch",
-        "benchmarkDps": 36260,
+        "benchmarkDps": 36256,
         "upToDate": true,
         "benchmarkApm": 69.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 36136, "phase": 36136 },
-          "80-60": { "cumulative": 36167, "phase": 36197 },
-          "60-40": { "cumulative": 36810, "phase": 38158 },
-          "40-20": { "cumulative": 36337, "phase": 34998 },
-          "20-0": { "cumulative": 36260, "phase": 36260 }
+          "100-80": { "cumulative": 36225, "phase": 36225 },
+          "80-60": { "cumulative": 36169, "phase": 36113 },
+          "60-40": { "cumulative": 36783, "phase": 38071 },
+          "40-20": { "cumulative": 36338, "phase": 35079 },
+          "20-0": { "cumulative": 36256, "phase": 36256 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
           "benchmarkDps": 36236,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 36118, "phase": 36118 },
-            "80-60": { "cumulative": 36150, "phase": 36181 },
-            "60-40": { "cumulative": 36793, "phase": 38141 },
-            "40-20": { "cumulative": 36319, "phase": 34981 },
+            "100-80": { "cumulative": 36225, "phase": 36225 },
+            "80-60": { "cumulative": 36169, "phase": 36113 },
+            "60-40": { "cumulative": 36783, "phase": 38071 },
+            "40-20": { "cumulative": 36327, "phase": 35038 },
             "20-0": { "cumulative": 36236, "phase": 36236 }
           }
         }
@@ -291,25 +291,25 @@
         "build": "data/gw2/builds/necromancer/b-condi-harbinger.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-harbinger-pistol-torch-scepter-dagger",
-        "benchmarkDps": 44860,
+        "benchmarkDps": 44938,
         "upToDate": true,
         "benchmarkApm": 69.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42086, "phase": 42086 },
-          "80-60": { "cumulative": 43992, "phase": 46004 },
-          "60-40": { "cumulative": 43398, "phase": 42177 },
-          "40-20": { "cumulative": 44226, "phase": 46906 },
-          "20-0": { "cumulative": 44860, "phase": 44860 }
+          "100-80": { "cumulative": 42004, "phase": 42004 },
+          "80-60": { "cumulative": 43979, "phase": 46065 },
+          "60-40": { "cumulative": 43432, "phase": 42308 },
+          "40-20": { "cumulative": 44288, "phase": 47054 },
+          "20-0": { "cumulative": 44938, "phase": 44938 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42572,
+          "benchmarkDps": 42647,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 40274, "phase": 40274 },
-            "80-60": { "cumulative": 41956, "phase": 43825 },
-            "60-40": { "cumulative": 41593, "phase": 40903 },
-            "40-20": { "cumulative": 42777, "phase": 46819 },
-            "20-0": { "cumulative": 42572, "phase": 42572 }
+            "100-80": { "cumulative": 40204, "phase": 40204 },
+            "80-60": { "cumulative": 41957, "phase": 43904 },
+            "60-40": { "cumulative": 41625, "phase": 40996 },
+            "40-20": { "cumulative": 42849, "phase": 47023 },
+            "20-0": { "cumulative": 42647, "phase": 42647 }
           }
         }
       },
@@ -317,25 +317,25 @@
         "label": "Condition (Dagger / Dagger + Pistol / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-harbinger-dagger-dagger-pistol-torch.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-dagger-dagger-pistol-torch-bench.json",
-        "benchmarkDps": 44587,
+        "benchmarkDps": 44603,
         "upToDate": true,
         "benchmarkApm": 69.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43002, "phase": 43002 },
-          "80-60": { "cumulative": 45231, "phase": 47722 },
-          "60-40": { "cumulative": 44282, "phase": 42383 },
-          "40-20": { "cumulative": 44464, "phase": 45011 },
-          "20-0": { "cumulative": 44587, "phase": 44587 }
+          "100-80": { "cumulative": 42923, "phase": 42923 },
+          "80-60": { "cumulative": 45135, "phase": 47608 },
+          "60-40": { "cumulative": 44246, "phase": 42467 },
+          "40-20": { "cumulative": 44449, "phase": 45060 },
+          "20-0": { "cumulative": 44603, "phase": 44603 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42378,
+          "benchmarkDps": 42408,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 41001, "phase": 41001 },
-            "80-60": { "cumulative": 43037, "phase": 45432 },
-            "60-40": { "cumulative": 42322, "phase": 40999 },
-            "40-20": { "cumulative": 42624, "phase": 43580 },
-            "20-0": { "cumulative": 42378, "phase": 42378 }
+            "100-80": { "cumulative": 40929, "phase": 40929 },
+            "80-60": { "cumulative": 42971, "phase": 45373 },
+            "60-40": { "cumulative": 42310, "phase": 41086 },
+            "40-20": { "cumulative": 42626, "phase": 43629 },
+            "20-0": { "cumulative": 42408, "phase": 42408 }
           }
         }
       }

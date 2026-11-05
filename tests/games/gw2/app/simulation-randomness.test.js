@@ -128,7 +128,7 @@ test('every native profession exposes persisted simulation randomness', () => {
   for (const build of builds) {
     assert.equal(build.assumptions.simulationMode, 'deterministic');
     assert.equal(build.assumptions.simulationSeed, 1);
-    assert.equal(build.assumptions.criticalDamageMode, 'averaged');
+    assert.equal(build.assumptions.criticalDamageMode, 'rolled');
   }
 
   const engineer = createEngineerBuildDefaults();
@@ -165,20 +165,20 @@ test('shared UI assumptions map to the resolver randomness config', () => {
     mode: 'stochastic',
     seed: 1
   });
-  assert.equal(config.criticalDamageMode, 'averaged');
+  assert.equal(config.criticalDamageMode, 'rolled');
 });
 
 // Save and validate the baseline policy separately from the mode that drives RNG trials.
 test('critical damage settings survive export and load and reach baseline and comparison configs', () => {
   const build = createEngineerBuildDefaults();
-  build.assumptions.criticalDamageMode = 'rolled';
+  build.assumptions.criticalDamageMode = 'averaged';
   build.assumptions.simulationMode = 'stochastic';
   const reloaded = migrateEngineerBuild(JSON.parse(JSON.stringify(getBuildExportPayload(build))));
   assert.equal(validateEngineerBuild(reloaded).valid, true);
-  assert.equal(reloaded.assumptions.criticalDamageMode, 'rolled');
+  assert.equal(reloaded.assumptions.criticalDamageMode, 'averaged');
   const config = simulationConfig(engineerProfession, reloaded, 'Holosmith');
-  assert.equal(config.criticalDamageMode, 'rolled');
-  assert.equal(deterministicSimulationConfig(config).criticalDamageMode, 'rolled');
+  assert.equal(config.criticalDamageMode, 'averaged');
+  assert.equal(deterministicSimulationConfig(config).criticalDamageMode, 'averaged');
   reloaded.assumptions.criticalDamageMode = 'invalid';
   assert.equal(validateEngineerBuild(reloaded).valid, false);
 });

@@ -33,10 +33,10 @@ actions, while intermissions also pause rotation commands. This models damage op
 incoming boss attacks, or the full party's rotations.
 
 Both modes use seeded rolls for critical-proc eligibility and other chance-based effects. Deterministic mode uses
-midpoint weapon strength and defaults to averaged critical damage; the **Critical damage** setting can use individual
-rolls instead. Stochastic mode samples weapon strength per activation and always uses rolled critical damage. A single
-seed represents one set of outcomes, not their expected average. Imported logs can also differ because of encounter
-conditions and unmodeled effects.
+midpoint weapon strength and defaults to rolled critical damage; the **Critical damage** setting can use expected
+critical damage instead. Stochastic mode samples weapon strength per activation and always uses rolled critical damage.
+A single seed represents one set of outcomes, not their expected average. Imported logs can also differ because of
+encounter conditions and unmodeled effects.
 
 ## Comparing results
 

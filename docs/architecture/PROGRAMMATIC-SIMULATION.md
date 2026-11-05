@@ -243,8 +243,8 @@ capture/export workflow is described in [Reading results](../../wiki/Reading-Res
 
 Both modes use seeded rolls for critical-proc eligibility, secondary procs, and combo attempts:
 
-- `randomness: { mode: 'deterministic', seed: 1 }` uses midpoint weapon strength. Critical damage defaults to averaged;
-  `criticalDamageMode: 'rolled'` makes damage follow the sampled critical outcomes.
+- `randomness: { mode: 'deterministic', seed: 1 }` uses midpoint weapon strength. Critical damage defaults to rolled,
+  following the sampled critical outcomes; `criticalDamageMode: 'averaged'` uses expected critical damage instead.
 - `randomness: { mode: 'stochastic', seed: 42 }` samples weapon strength per activation and always uses rolled critical
   damage, regardless of `criticalDamageMode`.
 

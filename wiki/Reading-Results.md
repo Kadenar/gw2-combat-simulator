@@ -39,7 +39,7 @@ The normal detailed result is deterministic and reproducible. **Calculate range*
 modeled random effects and reports the mean, median, likely range, and lucky or unlucky outcomes.
 
 Keep the build's **Simulation seed** fixed for reproducible A/B comparisons. The detailed result uses midpoint weapon
-strength and defaults to averaged critical damage; **Critical damage → Rolled** applies individual critical outcomes.
+strength and defaults to rolled critical damage; **Critical damage → Averaged** uses expected critical damage instead.
 Stochastic trials sample weapon strength and always use rolled critical damage. Use the range to judge whether random
 variation could hide a small difference.
 

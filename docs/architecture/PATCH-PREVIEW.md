@@ -174,7 +174,7 @@ build copy, so its selections match a real version switch without editing the di
 version collects chart histories.
 
 The comparison shows total and per-skill DPS differences for the same rotation. It uses deterministic mode and the same
-seed, midpoint weapon strength, and the selected critical-damage policy (averaged by default). Proc outcomes still use
+seed, midpoint weapon strength, and the selected critical-damage policy (rolled by default). Proc outcomes still use
 seeded draws. Changes to eligibility or event order can change which rolls are consumed, so a single-seed difference can
 include proc variation and, with rolled damage selected, critical-damage variation.
 

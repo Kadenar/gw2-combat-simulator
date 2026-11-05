@@ -34,25 +34,25 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-pistol-torch.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-pistol-torch-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-pistol-torch-pistol",
-        "benchmarkDps": 42024,
+        "benchmarkDps": 42083,
         "upToDate": true,
         "benchmarkApm": 78.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40338, "phase": 40338 },
-          "80-60": { "cumulative": 42369, "phase": 44559 },
-          "60-40": { "cumulative": 42195, "phase": 41846 },
-          "40-20": { "cumulative": 41743, "phase": 40456 },
-          "20-0": { "cumulative": 42024, "phase": 43228 }
+          "100-80": { "cumulative": 40363, "phase": 40363 },
+          "80-60": { "cumulative": 42453, "phase": 44708 },
+          "60-40": { "cumulative": 42294, "phase": 41975 },
+          "40-20": { "cumulative": 41458, "phase": 39047 },
+          "20-0": { "cumulative": 42083, "phase": 44715 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42165,
+          "benchmarkDps": 42223,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 41904, "phase": 41904 },
-            "80-60": { "cumulative": 42515, "phase": 43126 },
-            "60-40": { "cumulative": 42335, "phase": 41974 },
-            "40-20": { "cumulative": 41844, "phase": 40375 },
-            "20-0": { "cumulative": 42165, "phase": 43449 }
+            "100-80": { "cumulative": 41967, "phase": 41967 },
+            "80-60": { "cumulative": 42600, "phase": 43233 },
+            "60-40": { "cumulative": 42435, "phase": 42104 },
+            "40-20": { "cumulative": 41959, "phase": 40532 },
+            "20-0": { "cumulative": 42223, "phase": 43281 }
           }
         }
       },
@@ -61,25 +61,25 @@
         "build": "data/gw2/builds/guardian/b-condi-willbender-scepter-pistol.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-willbender-scepter-pistol-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-willbender-scepter-pistol-pistol-torch",
-        "benchmarkDps": 42318,
+        "benchmarkDps": 42242,
         "upToDate": true,
         "benchmarkApm": 84.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 41326, "phase": 41326 },
-          "80-60": { "cumulative": 42058, "phase": 42871 },
-          "60-40": { "cumulative": 42623, "phase": 43753 },
-          "40-20": { "cumulative": 42434, "phase": 41837 },
-          "20-0": { "cumulative": 42318, "phase": 41860 }
+          "100-80": { "cumulative": 41320, "phase": 41320 },
+          "80-60": { "cumulative": 41985, "phase": 42723 },
+          "60-40": { "cumulative": 42017, "phase": 42081 },
+          "40-20": { "cumulative": 42077, "phase": 42260 },
+          "20-0": { "cumulative": 42242, "phase": 42914 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42484,
+          "benchmarkDps": 42435,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 39868, "phase": 39868 },
-            "80-60": { "cumulative": 42224, "phase": 44831 },
-            "60-40": { "cumulative": 42649, "phase": 43547 },
-            "40-20": { "cumulative": 42602, "phase": 42461 },
-            "20-0": { "cumulative": 42484, "phase": 42019 }
+            "100-80": { "cumulative": 39858, "phase": 39858 },
+            "80-60": { "cumulative": 42148, "phase": 44682 },
+            "60-40": { "cumulative": 42677, "phase": 43794 },
+            "40-20": { "cumulative": 42548, "phase": 42169 },
+            "20-0": { "cumulative": 42435, "phase": 41988 }
           }
         }
       },
@@ -88,25 +88,25 @@
         "build": "data/gw2/builds/guardian/b-power-alac-willbender-greatsword-sword-sword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-sword",
-        "benchmarkDps": 33709,
+        "benchmarkDps": 33714,
         "upToDate": true,
         "benchmarkApm": 70,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 34205, "phase": 34205 },
-          "80-60": { "cumulative": 33706, "phase": 33227 },
-          "60-40": { "cumulative": 33146, "phase": 32070 },
-          "40-20": { "cumulative": 33250, "phase": 33570 },
-          "20-0": { "cumulative": 33709, "phase": 35675 }
+          "100-80": { "cumulative": 34209, "phase": 34209 },
+          "80-60": { "cumulative": 33710, "phase": 33232 },
+          "60-40": { "cumulative": 33150, "phase": 32074 },
+          "40-20": { "cumulative": 33255, "phase": 33576 },
+          "20-0": { "cumulative": 33714, "phase": 35679 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 34571,
+          "benchmarkDps": 34575,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 35216, "phase": 35216 },
-            "80-60": { "cumulative": 34921, "phase": 34621 },
-            "60-40": { "cumulative": 35299, "phase": 36081 },
-            "40-20": { "cumulative": 34668, "phase": 32896 },
-            "20-0": { "cumulative": 34571, "phase": 34188 }
+            "100-80": { "cumulative": 35220, "phase": 35220 },
+            "80-60": { "cumulative": 34926, "phase": 34626 },
+            "60-40": { "cumulative": 35304, "phase": 36084 },
+            "40-20": { "cumulative": 34673, "phase": 32900 },
+            "20-0": { "cumulative": 34575, "phase": 34193 }
           }
         }
       },
@@ -115,25 +115,25 @@
         "build": "data/gw2/builds/guardian/b-power-alac-willbender-greatsword-sword-focus.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-focus-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-focus",
-        "benchmarkDps": 33007,
+        "benchmarkDps": 32997,
         "upToDate": true,
         "benchmarkApm": 69.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35171, "phase": 35171 },
-          "80-60": { "cumulative": 33709, "phase": 32361 },
-          "60-40": { "cumulative": 33415, "phase": 32839 },
-          "40-20": { "cumulative": 33523, "phase": 33851 },
-          "20-0": { "cumulative": 33007, "phase": 31098 }
+          "100-80": { "cumulative": 35176, "phase": 35176 },
+          "80-60": { "cumulative": 33714, "phase": 32366 },
+          "60-40": { "cumulative": 33421, "phase": 32845 },
+          "40-20": { "cumulative": 33529, "phase": 33857 },
+          "20-0": { "cumulative": 32997, "phase": 31025 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 34704,
+          "benchmarkDps": 34709,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 35913, "phase": 35913 },
-            "80-60": { "cumulative": 34511, "phase": 33213 },
-            "60-40": { "cumulative": 34485, "phase": 34433 },
-            "40-20": { "cumulative": 35196, "phase": 37517 },
-            "20-0": { "cumulative": 34704, "phase": 32869 }
+            "100-80": { "cumulative": 35918, "phase": 35918 },
+            "80-60": { "cumulative": 34516, "phase": 33218 },
+            "60-40": { "cumulative": 34490, "phase": 34437 },
+            "40-20": { "cumulative": 35202, "phase": 37524 },
+            "20-0": { "cumulative": 34709, "phase": 32874 }
           }
         }
       },
@@ -173,25 +173,25 @@
         "build": "data/gw2/builds/guardian/b-condi-firebrand.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-firebrand-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 41434,
+        "benchmarkDps": 41500,
         "upToDate": true,
         "benchmarkApm": 114.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39730, "phase": 39730 },
-          "80-60": { "cumulative": 41586, "phase": 43540 },
-          "60-40": { "cumulative": 41297, "phase": 40702 },
-          "40-20": { "cumulative": 41156, "phase": 40731 },
-          "20-0": { "cumulative": 41434, "phase": 42575 }
+          "100-80": { "cumulative": 39825, "phase": 39825 },
+          "80-60": { "cumulative": 41613, "phase": 43496 },
+          "60-40": { "cumulative": 41331, "phase": 40752 },
+          "40-20": { "cumulative": 41312, "phase": 41254 },
+          "20-0": { "cumulative": 41500, "phase": 42260 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 41749,
+          "benchmarkDps": 41814,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 40368, "phase": 40368 },
-            "80-60": { "cumulative": 41834, "phase": 43463 },
-            "60-40": { "cumulative": 41269, "phase": 40195 },
-            "40-20": { "cumulative": 41704, "phase": 43033 },
-            "20-0": { "cumulative": 41749, "phase": 41928 }
+            "100-80": { "cumulative": 40463, "phase": 40463 },
+            "80-60": { "cumulative": 41861, "phase": 43415 },
+            "60-40": { "cumulative": 41303, "phase": 40243 },
+            "40-20": { "cumulative": 41765, "phase": 43175 },
+            "20-0": { "cumulative": 41814, "phase": 42013 }
           }
         }
       },
@@ -200,25 +200,25 @@
         "build": "data/gw2/builds/guardian/b-condi-qfb-ritualists.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-qfb-ritualists-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-quickness-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 35286,
+        "benchmarkDps": 35251,
         "upToDate": true,
         "benchmarkApm": 126,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 33876, "phase": 33876 },
-          "80-60": { "cumulative": 35181, "phase": 36605 },
-          "60-40": { "cumulative": 34918, "phase": 34392 },
-          "40-20": { "cumulative": 35435, "phase": 37132 },
-          "20-0": { "cumulative": 35286, "phase": 34703 }
+          "100-80": { "cumulative": 33772, "phase": 33772 },
+          "80-60": { "cumulative": 35100, "phase": 36550 },
+          "60-40": { "cumulative": 34841, "phase": 34321 },
+          "40-20": { "cumulative": 35399, "phase": 37231 },
+          "20-0": { "cumulative": 35251, "phase": 34675 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 37078,
+          "benchmarkDps": 37051,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 34704, "phase": 34704 },
-            "80-60": { "cumulative": 36333, "phase": 38117 },
-            "60-40": { "cumulative": 36724, "phase": 37543 },
-            "40-20": { "cumulative": 37076, "phase": 38168 },
-            "20-0": { "cumulative": 37078, "phase": 37084 }
+            "100-80": { "cumulative": 34578, "phase": 34578 },
+            "80-60": { "cumulative": 36241, "phase": 38063 },
+            "60-40": { "cumulative": 36645, "phase": 37490 },
+            "40-20": { "cumulative": 37036, "phase": 38248 },
+            "20-0": { "cumulative": 37051, "phase": 37108 }
           }
         }
       }

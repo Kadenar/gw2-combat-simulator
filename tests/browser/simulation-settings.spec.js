@@ -190,10 +190,10 @@ test('simulation seed and critical damage settings persist with the build', asyn
   await page.locator('#simulation-settings > summary').click();
   const seed = page.getByRole('spinbutton', { name: 'Simulation seed', exact: true });
   const criticalDamage = page.getByRole('combobox', { name: 'Critical damage', exact: true });
-  await expect(criticalDamage).toHaveValue('averaged');
+  await expect(criticalDamage).toHaveValue('rolled');
   // Show a short mode summary and make the full explanation available by hover, click, and keyboard.
   await expect(page.locator('#critical-damage-help')).toBeVisible();
-  await expect(criticalDamage).toHaveAccessibleDescription('Uses expected critical damage for consistent comparisons.');
+  await expect(criticalDamage).toHaveAccessibleDescription('Uses individual critical rolls for each hit.');
   const info = page.getByLabel('About critical damage', { exact: true });
   const explanation = page.locator('.critical-damage-description');
   await expect(explanation).toBeHidden();
@@ -211,9 +211,9 @@ test('simulation seed and critical damage settings persist with the build', asyn
   await criticalDamage.focus();
   await info.focus();
   await expect(explanation).toBeVisible();
-  await criticalDamage.selectOption('rolled');
-  await expect(criticalDamage).toHaveAccessibleDescription('Uses individual critical rolls for each hit.');
-  await page.waitForFunction(() => window.professionApp.build.assumptions.criticalDamageMode === 'rolled');
+  await criticalDamage.selectOption('averaged');
+  await expect(criticalDamage).toHaveAccessibleDescription('Uses expected critical damage for consistent comparisons.');
+  await page.waitForFunction(() => window.professionApp.build.assumptions.criticalDamageMode === 'averaged');
   expect(
     await page.evaluate(
       () =>
@@ -225,7 +225,7 @@ test('simulation seed and critical damage settings persist with the build', asyn
           })
           .simulationConfig().criticalDamageMode
     )
-  ).toBe('rolled');
+  ).toBe('averaged');
   await expect(seed).toHaveValue('1');
   await seed.fill('3576928633');
   await seed.press('Tab');
@@ -241,7 +241,7 @@ test('simulation seed and critical damage settings persist with the build', asyn
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.locator('#simulation-settings > summary').click();
   await expect(seed).toHaveValue('3576928633');
-  await expect(criticalDamage).toHaveValue('rolled');
+  await expect(criticalDamage).toHaveValue('averaged');
   await page.waitForFunction(() => window.professionApp.results?.randomness.seed === 3576928633);
   await seed.fill('0');
   await seed.press('Tab');

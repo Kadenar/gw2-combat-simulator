@@ -44,12 +44,12 @@ export const SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS: ReadonlyArray<Profession
       step: 1,
       section: 'simulation'
     },
-    // Baselines can average crit damage while RNG trials always resolve actual critical outcomes.
+    // New builds roll critical damage by default; averaging remains an explicit baseline option.
     {
       key: 'criticalDamageMode',
       label: 'Deterministic critical damage',
       type: 'select',
-      defaultValue: 'averaged',
+      defaultValue: 'rolled',
       section: 'simulation',
       options: [
         { value: 'averaged', label: 'Averaged' },

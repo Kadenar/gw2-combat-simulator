@@ -115,25 +115,25 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-shortbow-mace-axe",
-        "benchmarkDps": 41073,
+        "benchmarkDps": 41107,
         "upToDate": true,
         "benchmarkApm": 69.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39097, "phase": 39097 },
-          "80-60": { "cumulative": 40225, "phase": 41473 },
-          "60-40": { "cumulative": 40877, "phase": 42301 },
-          "40-20": { "cumulative": 41176, "phase": 42062 },
-          "20-0": { "cumulative": 41073, "phase": 41073 }
+          "100-80": { "cumulative": 39108, "phase": 39108 },
+          "80-60": { "cumulative": 40243, "phase": 41496 },
+          "60-40": { "cumulative": 41100, "phase": 43004 },
+          "40-20": { "cumulative": 41230, "phase": 41610 },
+          "20-0": { "cumulative": 41107, "phase": 41107 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 40758,
+          "benchmarkDps": 40791,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 38780, "phase": 38780 },
-            "80-60": { "cumulative": 39926, "phase": 41192 },
-            "60-40": { "cumulative": 40636, "phase": 42131 },
-            "40-20": { "cumulative": 40868, "phase": 41590 },
-            "20-0": { "cumulative": 40758, "phase": 40758 }
+            "100-80": { "cumulative": 38792, "phase": 38792 },
+            "80-60": { "cumulative": 39944, "phase": 41216 },
+            "60-40": { "cumulative": 40680, "phase": 42229 },
+            "40-20": { "cumulative": 40922, "phase": 41673 },
+            "20-0": { "cumulative": 40791, "phase": 40791 }
           }
         }
       },
@@ -142,25 +142,25 @@
         "build": "data/gw2/builds/revenant/b-condi-renegade-spear-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-renegade-spear-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-renegade-spear-mace-axe",
-        "benchmarkDps": 41467,
+        "benchmarkDps": 41460,
         "upToDate": true,
         "benchmarkApm": 68.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40289, "phase": 40289 },
-          "80-60": { "cumulative": 41593, "phase": 42965 },
-          "60-40": { "cumulative": 41451, "phase": 41159 },
-          "40-20": { "cumulative": 41550, "phase": 41851 },
-          "20-0": { "cumulative": 41467, "phase": 41134 }
+          "100-80": { "cumulative": 40357, "phase": 40357 },
+          "80-60": { "cumulative": 41633, "phase": 42976 },
+          "60-40": { "cumulative": 41494, "phase": 41209 },
+          "40-20": { "cumulative": 41602, "phase": 41932 },
+          "20-0": { "cumulative": 41460, "phase": 40884 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 41140,
+          "benchmarkDps": 41158,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 40010, "phase": 40010 },
-            "80-60": { "cumulative": 41297, "phase": 42652 },
-            "60-40": { "cumulative": 41152, "phase": 40853 },
-            "40-20": { "cumulative": 41353, "phase": 41936 },
-            "20-0": { "cumulative": 41140, "phase": 41140 }
+            "100-80": { "cumulative": 40076, "phase": 40076 },
+            "80-60": { "cumulative": 41336, "phase": 42663 },
+            "60-40": { "cumulative": 41193, "phase": 40901 },
+            "40-20": { "cumulative": 41024, "phase": 40524 },
+            "20-0": { "cumulative": 41158, "phase": 41158 }
           }
         }
       }
@@ -201,25 +201,25 @@
         "build": "data/gw2/builds/revenant/b-condi-quick-herald-shortbow-mace-axe.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-quick-herald-shortbow-mace-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-quickness-herald-shortbow-mace-axe",
-        "benchmarkDps": 31800,
+        "benchmarkDps": 31792,
         "upToDate": true,
         "benchmarkApm": 87.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 29305, "phase": 29305 },
-          "80-60": { "cumulative": 30967, "phase": 32768 },
-          "60-40": { "cumulative": 31288, "phase": 31985 },
-          "40-20": { "cumulative": 31588, "phase": 32499 },
-          "20-0": { "cumulative": 31800, "phase": 31800 }
+          "100-80": { "cumulative": 28785, "phase": 28785 },
+          "80-60": { "cumulative": 30913, "phase": 33306 },
+          "60-40": { "cumulative": 31202, "phase": 31823 },
+          "40-20": { "cumulative": 31549, "phase": 32614 },
+          "20-0": { "cumulative": 31792, "phase": 31792 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 31789,
+          "benchmarkDps": 31781,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 28825, "phase": 28825 },
-            "80-60": { "cumulative": 30953, "phase": 33346 },
-            "60-40": { "cumulative": 31275, "phase": 31970 },
-            "40-20": { "cumulative": 31577, "phase": 32499 },
-            "20-0": { "cumulative": 31789, "phase": 31789 }
+            "100-80": { "cumulative": 28617, "phase": 28617 },
+            "80-60": { "cumulative": 30900, "phase": 33498 },
+            "60-40": { "cumulative": 31069, "phase": 31427 },
+            "40-20": { "cumulative": 31538, "phase": 33007 },
+            "20-0": { "cumulative": 31781, "phase": 31781 }
           }
         }
       }
@@ -399,25 +399,25 @@
         "build": "data/gw2/builds/revenant/b-condi-conduit-mistfire.json",
         "rotation": "data/gw2/rotations/revenant/r-condi-conduit-mistfire-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-conduit-mistfire-spear-mace-axe",
-        "benchmarkDps": 39539,
+        "benchmarkDps": 39449,
         "upToDate": true,
         "benchmarkApm": 94,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38491, "phase": 38491 },
-          "80-60": { "cumulative": 39342, "phase": 40236 },
-          "60-40": { "cumulative": 39263, "phase": 39101 },
-          "40-20": { "cumulative": 39792, "phase": 41467 },
-          "20-0": { "cumulative": 39539, "phase": 39539 }
+          "100-80": { "cumulative": 38333, "phase": 38333 },
+          "80-60": { "cumulative": 39238, "phase": 40188 },
+          "60-40": { "cumulative": 39459, "phase": 39913 },
+          "40-20": { "cumulative": 39756, "phase": 40708 },
+          "20-0": { "cumulative": 39449, "phase": 39449 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 40912,
+          "benchmarkDps": 40825,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 39358, "phase": 39358 },
-            "80-60": { "cumulative": 40356, "phase": 41379 },
-            "60-40": { "cumulative": 40766, "phase": 41628 },
-            "40-20": { "cumulative": 40976, "phase": 41629 },
-            "20-0": { "cumulative": 40912, "phase": 40664 }
+            "100-80": { "cumulative": 39209, "phase": 39209 },
+            "80-60": { "cumulative": 40187, "phase": 41267 },
+            "60-40": { "cumulative": 40635, "phase": 41579 },
+            "40-20": { "cumulative": 40929, "phase": 41842 },
+            "20-0": { "cumulative": 40825, "phase": 40416 }
           }
         }
       }

@@ -451,13 +451,14 @@ test('both modes share seeded crit damage outcomes while deterministic strength 
 });
 
 // Choosing averaged baseline damage leaves RNG/proc outcomes alone, and cannot disable real crit damage in trials.
-test('averaged damage is the deterministic default while stochastic trials always use rolled critical damage', () => {
+test('rolled damage is the deterministic default while stochastic trials always use rolled critical damage', () => {
   const run = (mode, criticalDamageMode) => simulateFixture(mode, 42, 10, 1945, criticalDamageMode);
   const baseline = run('deterministic');
   const averaged = run('deterministic', 'averaged');
   const rolled = run('deterministic', 'rolled');
-  assert.equal(baseline.totalDamage, averaged.totalDamage);
+  assert.equal(baseline.totalDamage, rolled.totalDamage);
   const hits = (result) => result.resolvedEvents.filter((event) => event.type === 'damage');
+  assert.deepEqual(hits(baseline), hits(rolled));
   assert.deepEqual(
     hits(averaged).map((hit) => hit.didCrit),
     hits(rolled).map((hit) => hit.didCrit)
