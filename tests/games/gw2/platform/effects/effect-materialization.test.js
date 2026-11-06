@@ -4,6 +4,32 @@ import test from 'node:test';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 
+// Tick range checks rely on required numeric validation rejecting missing, textual, and non-finite values first.
+test('canonical tick fields require finite numbers', () => {
+  for (const [type, validTick, fields] of [
+    ['strike', { atMs: 0, coefficient: 1 }, ['atMs', 'coefficient']],
+    ['condition', { atMs: 0, condition: 'Burning', stacks: 1, duration: 2 }, ['atMs', 'stacks', 'duration']]
+  ]) {
+    for (const field of fields) {
+      for (const value of [undefined, null, '1', NaN, Infinity, -Infinity]) {
+        assert.throws(
+          () =>
+            createCanonicalCatalog({
+              skills: [
+                {
+                  id: 930052,
+                  name: 'Invalid numeric tick',
+                  effects: [{ type, ticks: [{ ...validTick, [field]: value }] }]
+                }
+              ]
+            }),
+          /finite number/
+        );
+      }
+    }
+  }
+});
+
 test('materialization retains base clone identity while effect and tick metadata override defaults', () => {
   // Clone-authored control packets and condition/strike ticks share the same nested annotation path.
   for (const type of ['strike', 'condition', 'control']) {

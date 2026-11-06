@@ -269,9 +269,10 @@ function composeStateFragments(
   preparation: Parameters<AnyNativeModule['state']['create']>[1]
 ): object {
   const fragments = modules.map((module) => {
-    const fragment = module.state.create(config, preparation) || {};
+    // Stateless modules return an empty object explicitly; invalid factories must not hide missing runtime state.
+    const fragment = module.state.create(config, preparation);
 
-    if (typeof fragment !== 'object' || Array.isArray(fragment)) {
+    if (fragment === null || typeof fragment !== 'object' || Array.isArray(fragment)) {
       throw new TypeError(`${module.id} state factory must return an object.`);
     }
 

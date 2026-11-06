@@ -68,6 +68,11 @@ export interface Gw2Config {
   readonly initialBuffs?: readonly Gw2InitialBuff[];
 }
 
+/** Runtime construction fills and detaches transition preferences once before any mechanic can read them. */
+export interface Gw2RuntimeConfig extends Gw2Config {
+  readonly transitionDelays: Readonly<TransitionDelays>;
+}
+
 /** One preview-held player buff; kind and stacks follow the buff's own runtime representation. */
 export interface Gw2InitialBuff {
   readonly kind: string;

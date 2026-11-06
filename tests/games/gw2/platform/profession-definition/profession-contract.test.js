@@ -88,7 +88,7 @@ test('planning observations require explicit projection and retain shared execut
     resources: { createState: () => ({ nested: { value: 3 }, privateValue: 1 }) }
   });
   const project = ({ profession }) => ({ observed: profession.nested });
-  for (const projectPlanningState of [family.projectPlanningState, undefined, () => undefined, () => ({}), project]) {
+  for (const projectPlanningState of [family.projectPlanningState, () => undefined, () => ({}), project]) {
     const runtime = { ...family.runtimeFor({}), projectPlanningState };
     const state = runtime.createState({});
     const result = planningState(

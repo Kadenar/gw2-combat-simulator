@@ -17,7 +17,7 @@ export function planningState<T extends object>(
     readonly autoattackController: Pick<AutoattackChainController, 'snapshot'>;
     readonly cooldownController: Pick<CooldownController, 'cooldownSkillIds' | 'readyAt' | 'ammoSkillIds' | 'readAmmo'>;
   },
-  project: ((input: Gw2PlanningStateInput<T>) => unknown) | undefined,
+  project: (input: Gw2PlanningStateInput<T>) => unknown,
   availability: (skill: Skill) => AvailabilityResult,
   effects: readonly EffectState[]
 ): Gw2SimulationPlanningState {
@@ -48,7 +48,7 @@ export function planningState<T extends object>(
     ] as const;
   });
   const ammoBySkillId = Object.fromEntries(ammoEntries);
-  const projected = project?.({
+  const projected = project({
     profession: input.profession,
     time: input.time,
     activeWeaponSet: input.activeWeaponSet,

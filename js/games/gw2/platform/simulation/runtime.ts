@@ -37,6 +37,7 @@ import {
   type SkillFlipWindows
 } from '#gw2/platform/execution/skill-flips.js';
 import type { FlipWindowOptions } from '#gw2/platform/execution/skill-flips.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { createMaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -60,6 +61,7 @@ import { projectRuntimeResult } from '#gw2/platform/results/project-runtime.js';
 import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { createMechanicContext, createMechanicQueryContext } from '#gw2/platform/simulation/bind-mechanic-context.js';
 import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
+import type { Gw2RuntimeConfig } from '#gw2/platform/simulation/config.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
 import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
 import type {
@@ -112,18 +114,22 @@ export function runRuntime<T extends object>(
   } = { observation: undefined, ...options };
   // Encounter health overrides the golem's finite-target assumptions for this run only.
   const initialTarget = inputConfig.encounter ? initialEncounterTarget(inputConfig.encounter) : null;
-  let config = initialTarget
-    ? {
-        ...inputConfig,
-        target: {
-          ...inputConfig.target,
-          health: initialTarget.maximumHealth,
-          armor: initialTarget.armor,
-          startingHealthFraction: 1,
-          fixedHealthFraction: undefined
+  // All entry points capture complete transition settings once, preserving partial inputs and zero defaults.
+  let config: Gw2RuntimeConfig = {
+    ...inputConfig,
+    transitionDelays: Object.freeze(normalizeTransitionDelays(inputConfig.transitionDelays)),
+    ...(initialTarget
+      ? {
+          target: {
+            ...inputConfig.target,
+            health: initialTarget.maximumHealth,
+            armor: initialTarget.armor,
+            startingHealthFraction: 1,
+            fixedHealthFraction: undefined
+          }
         }
-      }
-    : inputConfig;
+      : {})
+  };
   const ownsEffect = options.output === 'damage' ? options.ownsEffect : undefined;
   let effectsCapturePending = false;
   const started = onPhase ? performance.now() : 0;
@@ -145,10 +151,7 @@ export function runRuntime<T extends object>(
   if (config.selectedSkillIds !== undefined)
     config = {
       ...config,
-      selectedSkillIds: prepareSelectedSkillLoadout(
-        config.selectedSkillIds,
-        profession.skillSelectionCatalog ?? profession.catalog
-      )
+      selectedSkillIds: prepareSelectedSkillLoadout(config.selectedSkillIds, profession.skillSelectionCatalog)
     };
 
   const policy = normalizeObservationPolicy(observation);
@@ -274,6 +277,7 @@ export function runRuntime<T extends object>(
     skillFor: (id) => profession.catalog.skillsById.get(id)
   });
   runtime = Object.assign(base, {
+    config,
     alliedStrikeController: createAlliedStrikeController(() => runtime, {
       captureCause: coordinator.currentCause,
       withCause,
@@ -370,7 +374,7 @@ export function runRuntime<T extends object>(
     fireTrigger(point: TriggerPoint, input: object = {}) {
       // Payload-free boundaries still give listeners an object; typed callers must supply all other payloads.
       // Listeners settle before the firing mechanic continues; isolated payload runtimes compile none.
-      const listeners = profession.triggerListeners?.get(point.id);
+      const listeners = profession.triggerListeners.get(point.id);
 
       // An isolated execution can hold listeners while its setup and assumptions settle.
       if (listeners && execution.admitsTriggers?.() !== false)

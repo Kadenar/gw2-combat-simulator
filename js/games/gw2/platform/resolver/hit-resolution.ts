@@ -21,13 +21,13 @@ interface ResolvedStrikeParts {
 }
 
 /**
- * Creates timestamp-aware strike resolution shared by GW2 professions.
+ * Creates timestamp-aware strike resolution with the caller's equipment multiplier policy.
  */
 export function createGw2HitResolution({
-  strikeMultiplier: equipmentStrikeMultiplier = () => 1,
+  strikeMultiplier: equipmentStrikeMultiplier,
   activeBuffs
 }: {
-  readonly strikeMultiplier?: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => number;
+  readonly strikeMultiplier: (context: Gw2ResolverRuntime, event: Gw2ResolverEvent) => number;
   readonly activeBuffs: () => Gw2DamageCalculation['activeBuffs'];
 }): Readonly<Gw2HitResolution> {
   // Flat-strike thresholds use the same remaining-health query as ordinary modifier predicates.

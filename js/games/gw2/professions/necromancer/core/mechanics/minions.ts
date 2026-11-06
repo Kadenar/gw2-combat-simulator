@@ -223,12 +223,12 @@ function attack(runtime: NecromancerRuntime, data: unknown): void {
 
   const cursor = runtime.profession.core.minionAttackCursors[companion(work.key, work.index)];
   const attacks =
-    definition.alternateAttacks?.length &&
-    Number(definition.alternateEvery) > 0 &&
-    cursor.cycleIndex % Number(definition.alternateEvery) === 0
+    definition.alternateAttacks.length &&
+    definition.alternateEvery > 0 &&
+    cursor.cycleIndex % definition.alternateEvery === 0
       ? definition.alternateAttacks
       : definition.attacks;
-  const packet = attacks?.[cursor.attackIndex];
+  const packet = attacks[cursor.attackIndex];
 
   if (!packet) return;
 
@@ -292,7 +292,7 @@ function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
     summonKind: 'minion',
     summonOwner: companion(work.key, work.index)
   };
-  for (const condition of command.conditions ?? [])
+  for (const condition of command.conditions)
     runtime.effects.emit({
       kind: 'packet',
       event: buildResolverCondition({
@@ -381,24 +381,24 @@ export function commandNecromancerMinion(runtime: NecromancerRuntime, cast: Runt
   const work: MinionWork = {
     skillId: skill.id,
     key,
-    index: Number(command.consumes) > 0 ? state.activeMinions[key] - 1 : 0,
+    index: command.consumes > 0 ? state.activeMinions[key] - 1 : 0,
     attackGeneration: state.minionAttackGenerations[key],
     activationId: cast.id,
     offTarget: cast.command.offTarget,
-    consumed: Number(command.consumes) > 0
+    consumed: command.consumes > 0
   };
   const delay = Math.max(0, (cast.command.impactDelayMs ?? 0) / 1000);
   const queueCommand = (at: number, payload: MinionWork) =>
     runtime.schedule(COMMAND, at, payload, payload.consumed ? undefined : owner(key, payload.attackGeneration));
 
-  if (command.attacks?.length) {
+  if (command.attacks.length) {
     for (const packet of command.attacks)
       for (let index = 0; index < state.activeMinions[key]; index++)
         queueCommand(runtime.time + (packet.offset ?? 0) + delay, { ...work, index, attack: packet });
-  } else queueCommand(runtime.time + (command.impactDelay ?? 0) + delay, work);
+  } else queueCommand(runtime.time + command.impactDelay + delay, work);
 
-  if (Number(command.consumes) > 0) {
-    state.activeMinions[key] = Math.max(0, state.activeMinions[key] - Number(command.consumes));
+  if (command.consumes > 0) {
+    state.activeMinions[key] = Math.max(0, state.activeMinions[key] - command.consumes);
 
     if (!state.activeMinions[key]) {
       delete state.activeMinions[key];

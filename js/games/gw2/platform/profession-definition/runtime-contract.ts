@@ -55,14 +55,14 @@ export interface RuntimeProfession<T extends object, TSkill extends Skill = Skil
   ): readonly import('#gw2/platform/combat/effect-state.js').EffectState[];
   readonly catalog: CanonicalCatalog<TSkill>;
   /** Full profession identities remain valid selections when the active specialization narrows executable skills. */
-  readonly skillSelectionCatalog?: CanonicalCatalog<TSkill>;
+  readonly skillSelectionCatalog: CanonicalCatalog<TSkill>;
   readonly rechargeRules?: readonly RechargeRule<T, TSkill>[];
   readonly traitTriggers?: readonly TraitTrigger<T, TSkill>[];
   /** Selected trait listeners for each trigger point, in each point's declared order; empty for isolated payloads. */
-  readonly triggerListeners?: ReadonlyMap<string, readonly TriggerListener<T, TSkill>[]>;
+  readonly triggerListeners: ReadonlyMap<string, readonly TriggerListener<T, TSkill>[]>;
   createState(config: Gw2Config): T;
-  /** Pure selector: values may borrow live fields; the planning observer owns snapshot detachment. */
-  projectPlanningState?(input: Gw2PlanningStateInput<T>): unknown;
+  /** Compilation supplies a selector even for empty projections; the observer owns snapshot detachment. */
+  projectPlanningState(input: Gw2PlanningStateInput<T>): unknown;
   initialize?(runtime: MechanicContext<T, TSkill>): void;
   /** Select cancellation ownership without publishing or transforming the packet. */
   effectOwner?(context: EffectOwnershipContext<TSkill>, event: SimulationEventBase): WorkOwner | undefined;

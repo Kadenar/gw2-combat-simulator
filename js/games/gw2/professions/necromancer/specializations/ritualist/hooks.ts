@@ -82,7 +82,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
   buffPolicies: ritualistBuffPolicies,
   observeEffects(runtime) {
     return Object.entries(ritualistState.from(runtime.profession).weaponSpells).flatMap(([spell, state]) =>
-      Object.entries(state.recipients ?? {}).map(([recipient, grant]) =>
+      Object.entries(state.recipients).map(([recipient, grant]) =>
         timedEffectState(spell + '-weapon', [{ stacks: grant.charges, expiresAt: grant.expiresAt }], null, {
           recipient:
             recipient === ACTOR.PLAYER

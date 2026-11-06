@@ -172,11 +172,12 @@ function normalizeStrikeTicks(value: unknown): readonly StrikeTick[] {
       const atMs = requireBalanceNumber(tick?.atMs, `tick=${index} field=atMs`);
       const coefficient = requireBalanceNumber(tick?.coefficient, `tick=${index} field=coefficient`);
 
-      if (!(atMs >= 0) || !Number.isFinite(atMs)) {
+      // Required reads already guarantee finite numbers; these checks enforce the strike's value ranges.
+      if (atMs < 0) {
         throw new TypeError(`Strike tick ${index + 1} requires a valid atMs.`);
       }
 
-      if (!(coefficient >= 0) || !Number.isFinite(coefficient)) {
+      if (coefficient < 0) {
         throw new TypeError(`Strike tick ${index + 1} requires a non-negative coefficient.`);
       }
 
@@ -214,7 +215,8 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
       const stacks = requireBalanceNumber(tick?.stacks, `tick=${index} field=stacks`);
       const duration = requireBalanceNumber(tick?.duration, `tick=${index} field=duration`);
 
-      if (!(atMs >= 0) || !Number.isFinite(atMs)) {
+      // Required reads already guarantee finite numbers; condition applications also require positive payloads.
+      if (atMs < 0) {
         throw new TypeError(`Condition application ${index + 1} requires a valid atMs.`);
       }
 
@@ -226,13 +228,13 @@ function normalizeConditionTicks(value: unknown): readonly ConditionTick[] {
         throw new TypeError(`Condition application ${index + 1} requires a condition id.`);
       }
 
-      if (!(stacks > 0) || !Number.isFinite(stacks)) {
+      if (stacks <= 0) {
         throw new TypeError(`Condition application ${index + 1} requires positive stacks.`);
       }
 
       requireEffectExpansionCount(Math.ceil(stacks), `Condition application ${index + 1} stacks`);
 
-      if (!(duration > 0) || !Number.isFinite(duration)) {
+      if (duration <= 0) {
         throw new TypeError(`Condition application ${index + 1} requires a positive duration.`);
       }
 

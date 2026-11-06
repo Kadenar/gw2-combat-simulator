@@ -83,7 +83,8 @@ export interface ThiefSummonDefinition {
   readonly variant?: string;
   readonly weapon: string;
   readonly weaponStrengthProfileId: string;
-  readonly attacks?: readonly ThiefGuildAttackStream[];
+  /** Every actor declares its streams; an empty list explicitly disables its attacks. */
+  readonly attacks: readonly ThiefGuildAttackStream[];
 }
 
 interface ThiefSummonAttack {

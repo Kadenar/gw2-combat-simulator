@@ -1,6 +1,5 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -60,7 +59,7 @@ function emitTransitionLockout(
 /** Live bar transitions block the next authored input for their configured recovery and record that interval. */
 export function lockTransitionInput(
   runtime: {
-    readonly config?: Gw2Config;
+    readonly config: { readonly transitionDelays: Readonly<TransitionDelays> };
     readonly time: number;
     readonly castController: { lockInputUntil(at: number): void };
     readonly effects: EffectEmissionService;
@@ -68,8 +67,8 @@ export function lockTransitionInput(
   kind: TransitionDelayKind,
   skill?: { readonly id: SkillId; readonly name: string }
 ): void {
-  // Recovery and its observation share the same normalized duration.
-  const delay = normalizeTransitionDelays(runtime.config?.transitionDelays)[kind] / 1000;
+  // Runtime construction owns validation; recovery and its observation read the same captured preference.
+  const delay = runtime.config.transitionDelays[kind] / 1000;
   runtime.castController.lockInputUntil(canonicalTime(runtime.time + delay));
   emitTransitionLockout(runtime, kind, runtime.time, delay, skill);
 }

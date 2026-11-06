@@ -84,11 +84,15 @@ test('coordinator preserves explicit attribution and distinguishes continuations
 // Suppression consumes the reserved identity; submitting a copied receipt must not reuse its predecessor's identity.
 test('delivery reserves fresh identities before suppression and preserves authored causal attribution', () => {
   const references = [];
+  const catalog = createCanonicalCatalog({ skills: [] });
   const profession = {
     ...testProfessionModifiers,
     id: 'identity-admission-fixture',
     buffPolicies: () => [{ kind: 'ownership-fixture' }],
-    catalog: createCanonicalCatalog({ skills: [] }),
+    catalog,
+    skillSelectionCatalog: catalog,
+    triggerListeners: new Map(),
+    projectPlanningState: () => ({}),
     createState: () => ({}),
     initialize(runtime) {
       const emit = (event, delivery = {}) => {
@@ -125,11 +129,15 @@ test('delivery reserves fresh identities before suppression and preserves author
 test('owned effects prepare once at impact and retain their reserved identity', () => {
   const prepared = [];
   const references = [];
+  const catalog = createCanonicalCatalog({ skills: [] });
   const profession = {
     ...testProfessionModifiers,
     id: 'effect-ownership-fixture',
     buffPolicies: () => [{ kind: 'ownership-fixture' }],
-    catalog: createCanonicalCatalog({ skills: [] }),
+    catalog,
+    skillSelectionCatalog: catalog,
+    triggerListeners: new Map(),
+    projectPlanningState: () => ({}),
     createState: () => ({ value: 1 }),
     initialize(runtime) {
       references.push(runtime.effects.emit({ receipt: true, kind: 'packet', event: packet('cancelled', 1) }));

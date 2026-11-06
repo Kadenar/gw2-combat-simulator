@@ -7,6 +7,31 @@ import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profes
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
+// Missing state must fail at composition, while explicitly stateless Core and elite modules remain valid.
+test('native state factories require object fragments from every selected module', () => {
+  const createState = (owner, fragment) => {
+    const profession = defineNativeProfession({
+      id: 'state-fixture',
+      name: 'State fixture',
+      modules: ['Core', 'Elite'].map((id) =>
+        defineNativeModule({ id, data: {}, state: { create: () => (id === owner ? fragment : {}) } })
+      )
+    });
+    return profession.runtimeFor({ specialization: 'Elite' }).createState({});
+  };
+
+  for (const owner of ['Core', 'Elite']) {
+    for (const fragment of [undefined, null, false, 0, '', 1, 'invalid', []]) {
+      assert.throws(() => createState(owner, fragment), {
+        name: 'TypeError',
+        message: `${owner} state factory must return an object.`
+      });
+    }
+
+    assert.deepEqual(createState(owner, {}), { core: {}, specialization: { kind: 'Elite', state: {} } });
+  }
+});
+
 // Native admission checks cost before profession hooks, merging waitable denials without running past permanent ones.
 test('native availability combines cost and profession gates in order', () => {
   const calls = [];

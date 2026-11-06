@@ -4,6 +4,7 @@ import test from 'node:test';
 import { timelineDeadTimeMarkers, timelineTransitionDelayMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
+import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
@@ -35,6 +36,77 @@ function simulate(rotation, delay = 100, options = {}) {
     ...options
   });
 }
+
+// Every execution entry accepts the same partial preferences without modifying the caller's settings.
+test('public, direct, and isolated runs preserve transition defaults and invalid-value handling', () => {
+  const zeros = { weaponSwapMs: 0, forgeEntryMs: 0, forgeExitMs: 0, shroudEntryMs: 0, shroudExitMs: 0 };
+  for (const [delays, expected] of [
+    [undefined, zeros],
+    [null, zeros],
+    [{}, zeros],
+    [{ weaponSwapMs: 125 }, { ...zeros, weaponSwapMs: 125 }],
+    [
+      { weaponSwapMs: 125, forgeEntryMs: -10, forgeExitMs: Infinity, shroudEntryMs: NaN, shroudExitMs: '200' },
+      { ...zeros, weaponSwapMs: 125 }
+    ]
+  ]) {
+    const config = Object.freeze(delays === undefined ? {} : { transitionDelays: Object.freeze(delays) });
+    const before = structuredClone(config);
+    for (const entry of ['public', 'direct', 'isolated']) {
+      let captured;
+      const source = defineTestProfession({
+        id: 'transition-input-fixture',
+        name: 'Transition input fixture',
+        catalog,
+        hooks: {
+          initialize: (runtime) => {
+            captured = runtime.config.transitionDelays;
+          }
+        }
+      });
+      const result =
+        entry === 'public'
+          ? simulateGw2({ profession: source, config, rotation: ['Swap Weapons'] })
+          : entry === 'direct'
+            ? runGw2Runtime({ profession: source.runtimeFor(config), config, rotation: ['Swap Weapons'] })
+            : executeDamageOccurrence(source, config, {
+                id: '2',
+                effect: { kind: 'skill', id: 2 },
+                name: 'Swap Weapons',
+                source: 'Skill',
+                icon: '',
+                unit: 'activation'
+              });
+      assert.deepEqual(captured, expected, entry);
+      assert.deepEqual(config, before, entry);
+      const lockouts = result.events.filter((event) => event.type === 'gw2.transition-lockout');
+      assert.deepEqual(
+        lockouts.map((event) => event.duration),
+        expected.weaponSwapMs ? [0.125] : [],
+        entry
+      );
+    }
+  }
+});
+
+// A caller's later edit affects the next run, while accepted work keeps this run's captured recovery.
+test('transition preferences are detached before initialization and recaptured for the next run', () => {
+  const config = { transitionDelays: { weaponSwapMs: 125 } };
+  const source = defineTestProfession({
+    id: 'transition-snapshot-fixture',
+    name: 'Transition snapshot fixture',
+    catalog,
+    hooks: {
+      initialize() {
+        config.transitionDelays.weaponSwapMs = 300;
+      }
+    }
+  });
+  const first = simulateGw2({ profession: source, config, rotation: ['Swap Weapons'] });
+  const second = simulateGw2({ profession: source, config, rotation: ['Swap Weapons'] });
+  assert.equal(first.rotationEndTime, 0.125);
+  assert.equal(second.rotationEndTime, 0.3);
+});
 
 test('instant, concurrent, and independent inputs cannot bypass transition recovery', () => {
   for (const command of ['Instant', { type: 'cast', skillId: 3, concurrentOffsetMs: 20 }, 'Independent input']) {

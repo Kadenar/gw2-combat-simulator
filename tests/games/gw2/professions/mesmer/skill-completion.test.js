@@ -103,7 +103,7 @@ test('Axe variants retain acceptance snapshots versus live pre-cast clone select
     config: { primaryWeapon: 'Axe' },
     activeWeaponSet: 1,
     helpers: mesmerCatalog,
-    profession: { core: { clones: [{ id: 1, weapon: 'Axe', createdAt: 0 }] } }
+    profession: { core: { clones: [{ id: 1, weapon: 'Axe', createdAt: 0, attackSequenceIndex: 0 }] } }
   };
   runtime.effects = captureEffectEmissions({
     now: () => runtime.time,
@@ -121,7 +121,10 @@ test('Axe variants retain acceptance snapshots versus live pre-cast clone select
     command: {}
   };
   scheduleAxesClones(runtime, cast);
-  runtime.profession.core.clones.push({ id: 2, weapon: 'Axe', createdAt: 1 }, { id: 3, weapon: 'Axe', createdAt: 1.1 });
+  runtime.profession.core.clones.push(
+    { id: 2, weapon: 'Axe', createdAt: 1, attackSequenceIndex: 0 },
+    { id: 3, weapon: 'Axe', createdAt: 1.1, attackSequenceIndex: 0 }
+  );
   completeAxesConfusion(runtime, {
     ...cast,
     skill: mesmerCatalog.skillsById.get(ID.AXES_OF_SYMMETRY_NON_MIRAGE)

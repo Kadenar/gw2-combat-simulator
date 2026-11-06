@@ -57,9 +57,8 @@ function emitPrimordialStancePulse(
   const core = professionCoreState(context.profession);
   const state = weaverState.from(context.profession);
   const sourceId = captured.sourceId;
-  const attunements = state.secondaryAttunement
-    ? [core.primaryAttunement, state.secondaryAttunement]
-    : [core.primaryAttunement];
+  // Combat always has two attuned hands; matching elements still contribute once per hand.
+  const attunements = [core.primaryAttunement, state.secondaryAttunement];
   const { skill, action } = primordialStancePayload(context);
   const strike = requireEffect(skill, 'strike', 'Primordial Stance', action);
 

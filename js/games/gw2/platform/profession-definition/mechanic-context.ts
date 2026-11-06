@@ -12,7 +12,7 @@ import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/
 import type { TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-reactions.js';
 import type { MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import type { Gw2Config } from '#gw2/platform/simulation/config.js';
+import type { Gw2Config, Gw2RuntimeConfig } from '#gw2/platform/simulation/config.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
@@ -26,7 +26,7 @@ export interface MechanicQueryContext<T extends object = object, TSkill extends 
   readonly profession: ReadonlyMechanicState<T>;
   readonly flips: Readonly<SkillFlipWindows>;
   readonly autoattackController: Pick<AutoattackChainController, 'read'>;
-  readonly config: Gw2Config;
+  readonly config: Gw2RuntimeConfig;
   readonly helpers: CanonicalCatalog<TSkill>;
   readonly traits: ReadonlySet<SkillId>;
   readonly time: number;
@@ -80,6 +80,7 @@ export interface MechanicCombatContext<T extends object = object, TSkill extends
 /** Stateful lifecycle handlers can schedule named work and settle owned services, never traverse commands or edit engine stores. */
 export interface MechanicContext<T extends object = object, TSkill extends Skill = Skill>
   extends MechanicCombatContext<T, TSkill>, SkillFlipCommands {
+  readonly config: Gw2RuntimeConfig;
   readonly queries: MechanicQueryContext<T, TSkill>;
   readonly time: number;
   /** Cast acceptance and authored resets remain exclusive to the execution owner. */

@@ -29,13 +29,14 @@ export function createCloneAttackScheduler({
   const sequenceStep = (clone: MesmerClone, attack: MesmerCloneAttack): MesmerCloneAttackStep => {
     if (!attack.sequence) return attack;
 
-    const index = (clone.attackSequenceIndex || 0) % attack.sequence.length;
+    const index = clone.attackSequenceIndex % attack.sequence.length;
     return attack.sequence[index];
   };
 
-  const initializeClone = (clone: MesmerClone): MesmerClone => {
+  const initializeClone: MesmerCloneAttackScheduler['initializeClone'] = (input) => {
+    // Construct complete live state before scheduling its first attack or publishing the clone to consumers.
+    const clone: MesmerClone = { ...input, attackSequenceIndex: 0 };
     const attack = attackFor(clone);
-    clone.attackSequenceIndex = 0;
     const step = sequenceStep(clone, attack);
     // The scheduled task owns the next attack time; the clone retains only its sequence progress.
     const nextAttackAt = clone.createdAt + (attack.firstAttackDelay ?? step.interval);
@@ -103,8 +104,8 @@ export function createCloneAttackScheduler({
       });
     }
 
-    if (Array.isArray(attack.sequence) && attack.sequence.length > 0) {
-      clone.attackSequenceIndex = ((clone.attackSequenceIndex || 0) + 1) % attack.sequence.length;
+    if (attack.sequence) {
+      clone.attackSequenceIndex = (clone.attackSequenceIndex + 1) % attack.sequence.length;
     }
   };
 

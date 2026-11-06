@@ -43,6 +43,7 @@ function run(
   effects,
   { skill = {}, hooks = {}, rotation = [cast(), wait(1000)], config = {}, profiles = [], output } = {}
 ) {
+  const catalog = catalogFor(effects, skill, profiles);
   return observeGw2Runtime({
     output,
     config: {
@@ -55,7 +56,10 @@ function run(
       // Reuse the normalized contract so compiled damage evaluators are included.
       ...testProfessionModifiers,
       id: 'fixture',
-      catalog: catalogFor(effects, skill, profiles),
+      catalog,
+      skillSelectionCatalog: catalog,
+      triggerListeners: new Map(),
+      projectPlanningState: () => ({}),
       createState: () => ({ energy: { value: 0, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } }),
       resources: {
         energy: {

@@ -72,7 +72,7 @@ export function createThievesGuildHooks(
 
     active.started = true;
     for (const [summonIndex, summon] of thievesGuildSummons(runtime).entries())
-      for (const [attackIndex, attack] of (summon.attacks || []).entries()) {
+      for (const [attackIndex, attack] of summon.attacks.entries()) {
         const at = canonicalTime(runtime.time + (attack.initialDelay || 0));
 
         if (at < active.expiresAt)
@@ -101,7 +101,7 @@ export function createThievesGuildHooks(
     const skill: ThiefSkill | undefined = runtime.helpers.skillsById.get(ID.THIEVES_GUILD);
     const profile = skill?.summonAttack;
     const summon = thievesGuildSummons(runtime)[work.summonIndex];
-    const attack = summon?.attacks?.[work.attackIndex];
+    const attack = summon?.attacks[work.attackIndex];
 
     if (!profile || !summon || !attack) return;
 

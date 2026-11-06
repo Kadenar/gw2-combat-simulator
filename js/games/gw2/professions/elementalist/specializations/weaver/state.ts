@@ -13,7 +13,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
  * for Unravel, Weave Self / Perfect Weave, and Fervent Stance.
  */
 export interface WeaverState {
-  secondaryAttunement: ElementalistAttunement | null;
+  secondaryAttunement: ElementalistAttunement;
   unravelUntil: number;
   weaveSelfUntil: number;
   weaveSelfVisited: string[];

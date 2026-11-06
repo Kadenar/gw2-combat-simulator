@@ -7,12 +7,12 @@ import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
+/** Active grants always retain their originating skill and recipient pools until expiry or replacement. */
 interface NecromancerWeaponSpellState {
   readonly generation: number;
-  readonly skillId?: SkillId;
-  readonly skillName?: string;
-  readonly recipients?: Record<string, ChargeGrant>;
-  /** Weapon spells that reach allies at full strength rather than the reduced allied share. */
+  readonly skillId: SkillId;
+  readonly skillName: string;
+  readonly recipients: Record<string, ChargeGrant>;
 }
 
 export interface RitualistState {

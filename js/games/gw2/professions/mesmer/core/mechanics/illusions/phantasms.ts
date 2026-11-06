@@ -198,7 +198,7 @@ export function createPhantasmEffectController({
 
     if (!policy.repeat) return;
 
-    // The active specialization repeat policy re-summons the phantasm for a second attack cycle.
+    // Chronophantasma repeats the attack; Virtuoso's bonus blades cannot share this specialization.
     state.fireTrigger(mesmerIllusionsGained, {
       at: execution.spawnAt,
       count,
@@ -237,26 +237,6 @@ export function createPhantasmEffectController({
         ...execution.delivery,
         kind: 'packet',
         event: packet
-      });
-    }
-
-    if (policy.bonusStrike) {
-      for (const item of executions) {
-        schedulePhantasmBonusStrike(state, item, item.repeatDamageAt);
-      }
-
-      state.effects.emit({
-        ...execution.delivery,
-        kind: 'announcement',
-        log: true,
-        attribution: { source: 'Trait', sourceId: policy.bonusStrike.traitId, actorType: ACTOR.EFFECT },
-        announcement: {
-          type: 'trait',
-          name: policy.bonusStrike.traitName,
-          at: repeatDamageAt,
-          sourceSkill: `${skill.name} - ${policy.repeat.label}`,
-          detail: ''
-        }
       });
     }
 

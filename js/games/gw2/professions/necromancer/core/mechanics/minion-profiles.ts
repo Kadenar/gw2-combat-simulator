@@ -24,6 +24,7 @@ export interface MinionAttack {
   readonly controlKind?: string;
 }
 
+/** Compilation always supplies attack lists and cadence; empty lists represent removed attack payloads. */
 export interface MinionDefinition {
   readonly key: string;
   readonly count: number;
@@ -37,20 +38,21 @@ export interface MinionDefinition {
   readonly criticalChance?: number;
   readonly criticalDamage?: number;
   readonly commandRecoveryDelay?: number;
-  readonly attacks?: readonly MinionAttack[];
-  readonly alternateEvery?: number;
-  readonly alternateAttacks?: readonly MinionAttack[];
+  readonly attacks: readonly MinionAttack[];
+  readonly alternateEvery: number;
+  readonly alternateAttacks: readonly MinionAttack[];
 }
 
+/** Command compilation owns empty payload lists and zero defaults so runtime consumers can read them directly. */
 interface MinionCommandDefinition {
   readonly strike?: StrikeEffect;
   readonly coefficient?: number;
-  readonly conditions?: readonly (readonly (string | number)[])[];
+  readonly conditions: readonly (readonly (string | number)[])[];
   readonly control?: string;
 
-  readonly impactDelay?: number;
-  readonly consumes?: number;
-  readonly attacks?: readonly MinionAttack[];
+  readonly impactDelay: number;
+  readonly consumes: number;
+  readonly attacks: readonly MinionAttack[];
 }
 
 function minionAttackFromEffect(profile: Skill, effect: StrikeEffect): MinionAttack {

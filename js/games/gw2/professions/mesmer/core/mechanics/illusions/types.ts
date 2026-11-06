@@ -8,7 +8,8 @@ export interface MesmerClone {
   id: number;
   createdAt: number;
   weapon: string;
-  attackSequenceIndex?: number;
+  /** Initialized before the clone enters the live list, including clones with a single attack. */
+  attackSequenceIndex: number;
 }
 
 export interface MesmerPhantasmPolicy {
@@ -51,7 +52,7 @@ export interface MesmerResourceGain {
 
 export interface MesmerCloneAttackScheduler {
   handleTask(cloneId: number, at: number): number | null;
-  initializeClone(clone: MesmerClone): MesmerClone;
+  initializeClone(clone: Omit<MesmerClone, 'attackSequenceIndex'>): MesmerClone;
 }
 
 export interface MesmerIllusionRewards {

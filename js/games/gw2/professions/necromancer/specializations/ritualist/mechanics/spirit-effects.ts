@@ -208,7 +208,7 @@ export function triggerRitualistWeaponSpell(
 
   const internalCooldown = skillNumber(definition, 'internalCooldown');
   for (const key of keys) {
-    if (!consumeCharge(active.recipients?.[key], event.at, internalCooldown)) continue;
+    if (!consumeCharge(active.recipients[key], event.at, internalCooldown)) continue;
 
     if (spell === 'nightmare')
       queueNightmareWeapon(context, event, definition, key === ACTOR.PLAYER ? 'personal' : 'shared');

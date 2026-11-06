@@ -20,8 +20,8 @@ const reworkHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     if (hasTrait(runtime, REWORK.DEFT_INITIATION)) reworkCoreState(runtime).deftInitiationArmed = true;
   },
   onCastCommit(runtime, cast) {
-    // Ordinary flagged skills dispatch from Core; only contextual/unflagged elite mobility needs this task.
-    if (cast.cancelledBeforeCommit || cast.skill.movementSkill || cast.skill.shadowstepSkill) return;
+    // Execution admits only committed casts here; ordinary flagged mobility already dispatches from Core.
+    if (cast.skill.movementSkill || cast.skill.shadowstepSkill) return;
 
     // Every Daredevil dodge replacement (Bound, Impaling Lotus, Dash) is a movement skill; the plain Dodge is not.
     const specialization = runtime.profession.specialization;
@@ -40,7 +40,7 @@ const reworkHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     [MOBILITY_COMPLETE](runtime, data) {
       const { cast, initiativeCost } = data as { cast: RuntimeCast<ThiefSkill>; initiativeCost: number };
 
-      if (!cast.cancelledBeforeCommit) runtime.fireTrigger(thiefMobilityUsed, { cast, initiativeCost });
+      runtime.fireTrigger(thiefMobilityUsed, { cast, initiativeCost });
     }
   }
 };

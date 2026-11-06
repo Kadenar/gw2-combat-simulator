@@ -163,13 +163,13 @@ function grantAlliedWeaponSpell(
   runtime.alliedStrikes.registerRecipients(
     (allyIndex) => {
       // Create native charges only after the controller accepts a recipient with a live strike cadence.
-      active.recipients![`ally:${allyIndex}`] = grantCharges(charges, expiresAt);
+      active.recipients[`ally:${allyIndex}`] = grantCharges(charges, expiresAt);
       return {
         id: `ritualist.weapon-spell:${spell}:${allyIndex}`,
         // A replacement spell retires this registration; otherwise the ally's native grant answers liveness.
         isActive: (at) =>
           ritualistState.from(runtime.profession).weaponSpells[spell] === active &&
-          activeChargeCount(active.recipients![`ally:${allyIndex}`], at) > 0,
+          activeChargeCount(active.recipients[`ally:${allyIndex}`], at) > 0,
         trigger(opportunity) {
           triggerRitualistWeaponSpell(
             runtime,
@@ -177,7 +177,7 @@ function grantAlliedWeaponSpell(
               type: 'proc',
               at: opportunity.at,
               source: 'Weapon Spell',
-              sourceId: active.skillId!,
+              sourceId: active.skillId,
               actorType: ACTOR.EFFECT,
               skillId: active.skillId,
               skillName: active.skillName,

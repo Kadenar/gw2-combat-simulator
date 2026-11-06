@@ -400,7 +400,7 @@ test('Infinite Horizon clone gains include exact cloak expiry but reject later g
       gain: {
         at,
         cause: { traitId: TRAIT.DECEPTIVE_EVASION },
-        createdClones: [{ id: 1, weapon: 'Sword', createdAt: 0 }]
+        createdClones: [{ id: 1, weapon: 'Sword', createdAt: 0, attackSequenceIndex: 0 }]
       }
     });
   gain(0);

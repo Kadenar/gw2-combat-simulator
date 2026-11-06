@@ -125,6 +125,8 @@ function fixture(hooks = {}) {
     ...testProfessionModifiers,
     id: 'kernel-fixture',
     catalog,
+    skillSelectionCatalog: catalog,
+    triggerListeners: new Map(),
     createState: () => ({
       energy: { value: 0, maximum: 10, updatedAt: 0, unitsPerSecond: 0 },
       log: []

@@ -47,17 +47,12 @@ const WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS = 4;
 /** Shorter base attunement recharge while Weave Self is active; exported for its tooltip. */
 export const WEAVE_SELF_ATTUNEMENT_RECHARGE_SECONDS = 2;
 
-// Starting hands describe the equipped state; only an actual attunement transition grants Elements of Rage.
+// The state factory owns starting hands; initialization only connects their transition and event handlers.
 function initializeWeaverAttunements(context: ElementalistRuntime): void {
   registerElementalistEliteEvents(context, (runtime, event) => {
     onAcceptedEvent(runtime, event);
   });
   registerElementalistAttunementTransition(context, completeDualAttunement);
-  const core = professionCoreState(context.profession);
-  const state = weaverState.from(context.profession);
-  state.secondaryAttunement = isElementalistAttunement(context.config.secondaryAttunement)
-    ? context.config.secondaryAttunement
-    : core.primaryAttunement;
 }
 
 // Enforce Weaver's dual-hand attunement model, Unravel replacement state, and
@@ -84,7 +79,7 @@ function weaverAvailability(
   if (skill.type === 'Weapon' && skill.attunement && !carriedLink) {
     const state = weaverState.from(context.profession);
     const attunement = skill.attunement;
-    const secondary = state.secondaryAttunement || core.primaryAttunement;
+    const secondary = state.secondaryAttunement;
     const unravelActive = state.unravelUntil > context.time;
     const available = weaverWeaponAttunementAvailable(skill, core.primaryAttunement, secondary, unravelActive);
 

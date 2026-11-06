@@ -36,7 +36,7 @@ function fixture(flips = {}) {
           readAmmo: (id) => ammo.get(id)
         }
       },
-      undefined,
+      () => ({}),
       () => ({ ready: true }),
       []
     );

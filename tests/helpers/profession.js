@@ -14,6 +14,9 @@ export function defineTestProfession({ hooks, ...definition }) {
     runtimeFor() {
       const runtime = {
         ...profession,
+        // Fixtures expose the same required catalog and listener registry as native runtime compilation.
+        skillSelectionCatalog: profession.catalog,
+        triggerListeners: new Map(),
         ...hooks
       };
       validateResourcePolicies(runtime.resources, runtime.endurance);

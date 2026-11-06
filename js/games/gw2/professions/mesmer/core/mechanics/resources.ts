@@ -22,7 +22,8 @@ import type { MesmerActivePrimaryWeapon, MesmerRuntime } from '#gw2/professions/
 
 interface IllusionRewardOptions {
   readonly state: MesmerRuntime;
-  readonly onGain?: (gain: MesmerResourceGain) => void;
+  /** The family binding always owns delivery of committed gains to the selected specialization. */
+  readonly onGain: (gain: MesmerResourceGain) => void;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
   readonly cloneAttackScheduler: MesmerCloneAttackScheduler;
@@ -133,7 +134,7 @@ export function createIllusionRewardController({
     }
 
     // Reactions use the committed gain's time, cause, and created clones to apply specialization effects.
-    onGain?.({ at, cause, createdClones });
+    onGain({ at, cause, createdClones });
   };
 
   const queueResources = (

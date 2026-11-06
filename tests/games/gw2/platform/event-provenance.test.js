@@ -37,6 +37,9 @@ function run(rotation, hooks) {
     ...testProfessionModifiers,
     id: 'provenance-fixture',
     catalog,
+    skillSelectionCatalog: catalog,
+    triggerListeners: new Map(),
+    projectPlanningState: () => ({}),
     createState: () => ({}),
     ...hooks
   };

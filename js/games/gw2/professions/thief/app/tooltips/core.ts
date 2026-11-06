@@ -105,7 +105,7 @@ const thievesGuildTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
       { name: 'Companion critical chance', detail: tooltipPercent(profile.criticalChance) },
       { name: 'Companion critical damage', detail: `${tooltipDecimal(profile.criticalDamage * 100)}%` },
       ...profile.summons.flatMap((summon) =>
-        (summon.attacks || []).flatMap((attack) => {
+        summon.attacks.flatMap((attack) => {
           const skill = balanceContext.catalog.skillsById.get(attack.skillId)!;
           return simulationEffectFacts(skill.effects, `${summon.name} - ${skill.name}`).facts;
         })

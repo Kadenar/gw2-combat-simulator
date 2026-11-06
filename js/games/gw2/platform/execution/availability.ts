@@ -117,12 +117,9 @@ export function selectedSlotSkillAvailability(
 
   const selected = selectedSkillIdSet(loadout);
   let root = skill;
+  // Catalog construction guarantees that every flip parent exists and ancestry is acyclic.
   while (root.flipParentId != null) {
-    const parent = context.catalog.skillsById.get(root.flipParentId);
-
-    if (!parent) break;
-
-    root = parent;
+    root = context.catalog.skillsById.get(root.flipParentId)!;
   }
 
   const identity = policy.identity;

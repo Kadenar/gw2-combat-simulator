@@ -11,12 +11,14 @@ import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profes
 import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-reactions.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { SimulationStep } from '#gw2/platform/results/types.js';
+import type { Gw2RuntimeConfig } from '#gw2/platform/simulation/config.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 
 /** The single mutable context contains both command control and actual combat state. */
 export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Skill>
   extends Gw2ResolverRuntime, SkillFlipCommands {
+  readonly config: Gw2RuntimeConfig;
   /** Live skill lookups retain the profession type while unrelated resolver helpers stay shared. */
   readonly helpers: Omit<Gw2ResolverRuntime['helpers'], 'skills' | 'skillsById'> & CanonicalCatalog<TSkill>;
   profession: T;
