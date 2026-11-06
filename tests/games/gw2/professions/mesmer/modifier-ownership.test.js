@@ -41,9 +41,11 @@ test('Symphonic Resonance owns intrinsic Lute tuning, expiry, and personal addit
               damageInputs: { equipmentBonus: 0.05 }
             };
             const expected = 1.05 + (specialization === 'Troubadour' && !summonKind && time < 2 ? bonus : 0);
-            assert.ok(Math.abs(runtime.modifyStrikeDamage(context, 1) - expected) < 1e-12);
+            assert.ok(Math.abs(runtime.calculations.modifyStrikeDamage(context, 1) - expected) < 1e-12);
             assert.ok(
-              Math.abs(runtime.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 1) - expected) < 1e-12
+              Math.abs(
+                runtime.calculations.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 1) - expected
+              ) < 1e-12
             );
           }
         }
@@ -105,7 +107,7 @@ test('Mind Stab shares patched vulnerability tuning between its skill, combat ru
           query: { vulnerabilityStacksAt: () => stacks }
         };
         assert.equal(
-          runtime.modifyStrikeDamage(context, 100),
+          runtime.calculations.modifyStrikeDamage(context, 100),
           100 * (1 + (skillId === ID.MIND_STAB ? stacks * perStack : 0))
         );
       }

@@ -59,10 +59,13 @@ test('Radiance declarations extend only their selected Burning sources at the ba
                 (amplified && selectedTraitIds.includes(GUARDIAN.AMPLIFIED_WRATH) ? justice : 1)
               : 1;
           assert.equal(
-            profession.modifyConditionBaseDuration({ ...context, catalog: profession.catalog }, 2),
+            profession.calculations.modifyConditionBaseDuration({ ...context, catalog: profession.catalog }, 2),
             2 * factor
           );
-          assert.equal(profession.modifyConditionDuration({ ...context, catalog: profession.catalog }, 2), 2);
+          assert.equal(
+            profession.calculations.modifyConditionDuration({ ...context, catalog: profession.catalog }, 2),
+            2
+          );
         }
       }
     }
@@ -91,7 +94,7 @@ test('Brutal Momentum adds only its selected full-endurance increase above the a
         };
         const input = 0.05 + (selected ? baseline : 0);
         const expected = 0.05 + (selected ? (endurance === 100 ? full : baseline) : 0);
-        assert.ok(Math.abs(profession.modifyCriticalChance(context, input) - expected) < 1e-12);
+        assert.ok(Math.abs(profession.calculations.modifyCriticalChance(context, input) - expected) < 1e-12);
       }
     }
   }
@@ -132,10 +135,10 @@ test('shortbow intrinsic and selected trait extensions add seconds while traps r
           };
           const expected = (2 * (base + (defiant ? intrinsic + (selected ? extension : 0) : 0))) / base;
           assert.ok(
-            Math.abs(profession.modifyConditionBaseDuration(context, 2) - expected) < 1e-12,
+            Math.abs(profession.calculations.modifyConditionBaseDuration(context, 2) - expected) < 1e-12,
             `${patchId}, ${skillId}, ${condition}, selected=${selected}, defiant=${defiant}`
           );
-          assert.equal(profession.modifyConditionDuration(context, 2), 2);
+          assert.equal(profession.calculations.modifyConditionDuration(context, 2), 2);
         }
 
         for (const [skillId, factor] of [
@@ -150,7 +153,7 @@ test('shortbow intrinsic and selected trait extensions add seconds while traps r
             condition: 'Burning',
             config: { target: { defiant }, selectedTraitIds: selected ? [RANGER.TRAPPERS_EXPERTISE] : [] }
           };
-          assert.equal(profession.modifyConditionBaseDuration(context, 2), 2 * (selected ? factor : 1));
+          assert.equal(profession.calculations.modifyConditionBaseDuration(context, 2), 2 * (selected ? factor : 1));
         }
       }
     }
@@ -174,7 +177,7 @@ test('shortbow duration extensions cannot recreate a removed condition effect', 
     config: { target: { defiant: true }, selectedTraitIds: [RANGER.LIGHT_ON_YOUR_FEET] }
   };
   // Both owners leave an absent base alone instead of manufacturing a duration from their extensions.
-  assert.equal(profession.modifyConditionBaseDuration(context, 2), 2);
+  assert.equal(profession.calculations.modifyConditionBaseDuration(context, 2), 2);
 });
 
 test('Roiling Mists owns its selected Fury bonus and reads the active profile', () => {
@@ -187,7 +190,7 @@ test('Roiling Mists owns its selected Fury bonus and reads the active profile', 
     for (const selected of [false, true]) {
       for (const fury of [false, true]) {
         const criticalChanceContributors = [];
-        const result = profession.modifyCriticalChance(
+        const result = profession.calculations.modifyCriticalChance(
           {
             catalog: profession.catalog,
             time: 0,
@@ -227,9 +230,12 @@ test('Lingering Curse scales only eligible Scepter base duration with selected p
           condition: 'Bleeding',
           config: { selectedTraitIds: selected ? [NECRO.LINGERING_CURSE] : [] }
         };
-        assert.equal(profession.modifyConditionBaseDuration(context, 2), 2 * (selected && eligible ? factor : 1));
+        assert.equal(
+          profession.calculations.modifyConditionBaseDuration(context, 2),
+          2 * (selected && eligible ? factor : 1)
+        );
         // The trait changes the base stage, not the ordinary duration-bonus stage.
-        assert.equal(profession.modifyConditionDuration(context, 2), 2);
+        assert.equal(profession.calculations.modifyConditionDuration(context, 2), 2);
       }
     }
   }
@@ -268,7 +274,7 @@ test('merged Beastmastery rules preserve selection, ownership, specialization, a
           for (const time of [1, 2]) {
             for (const actorType of ['player', 'summon']) {
               const damageContributors = [];
-              profession.modifyStrikeDamage(
+              profession.calculations.modifyStrikeDamage(
                 {
                   catalog: profession.catalog,
                   time,

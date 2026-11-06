@@ -16,7 +16,6 @@ import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/
 import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
@@ -583,161 +582,159 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
 };
 
 /** Enhancement actions read the completion-time bullet; the declaration changes its stock last. */
-export const pistolSideEffectHandlers: RuntimeProfession<
-  ElementalistRuntimeState,
-  ElementalistSkill
->['sideEffectHandlers'] = {
-  ...pistolBulletSideEffectHandlers,
-  'elementalist.core.consume-elemental-explosion'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Elemental Explosion requires a cast trigger.');
+export const pistolSideEffectHandlers: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers'] =
+  {
+    ...pistolBulletSideEffectHandlers,
+    'elementalist.core.consume-elemental-explosion'(context, trigger) {
+      if (trigger.kind !== 'cast') throw new TypeError('Elemental Explosion requires a cast trigger.');
 
-    // Retain ordinary task priority: later deliveries and aura reactions must keep their existing ordering.
-    context.scheduleForCast('elementalist.core.consume-elemental-explosion', context.time, trigger.cast, {});
-  },
-  'elementalist.pistol.raging-ricochet'(context, trigger, action) {
-    if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+      // Retain ordinary task priority: later deliveries and aura reactions must keep their existing ordering.
+      context.scheduleForCast('elementalist.core.consume-elemental-explosion', context.time, trigger.cast, {});
+    },
+    'elementalist.pistol.raging-ricochet'(context, trigger, action) {
+      if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
 
-    const { cast, skill } = trigger;
-    const at = cast.effectiveEnd;
+      const { cast, skill } = trigger;
+      const at = cast.effectiveEnd;
 
-    context.effects.emit(
-      elementalistBuffEffectRequest(context, at, { skill, action }, 'Fire', skill.name, skill.id, {
-        activationId: cast.id,
-        skillId: cast.skill.id,
-        offTarget: cast.command.offTarget
-      })
-    );
-  },
-  'elementalist.pistol.searing-salvo'(context, trigger, action) {
-    if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+      context.effects.emit(
+        elementalistBuffEffectRequest(context, at, { skill, action }, 'Fire', skill.name, skill.id, {
+          activationId: cast.id,
+          skillId: cast.skill.id,
+          offTarget: cast.command.offTarget
+        })
+      );
+    },
+    'elementalist.pistol.searing-salvo'(context, trigger, action) {
+      if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
 
-    const { cast, skill } = trigger;
-    const at = cast.effectiveEnd;
-    const aura = requireEffect(skill, 'aura', 'Fire', action);
+      const { cast, skill } = trigger;
+      const at = cast.effectiveEnd;
+      const aura = requireEffect(skill, 'aura', 'Fire', action);
 
-    if (aura) {
-      applyElementalistAura(context, {
-        at,
-        aura: aura.aura,
-        duration: aura.duration,
-        skillName: skill.name,
-        sourceId: skill.id
-      });
-    }
-  },
-  'elementalist.pistol.frozen-fusillade'(context, trigger, action) {
-    if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+      if (aura) {
+        applyElementalistAura(context, {
+          at,
+          aura: aura.aura,
+          duration: aura.duration,
+          skillName: skill.name,
+          sourceId: skill.id
+        });
+      }
+    },
+    'elementalist.pistol.frozen-fusillade'(context, trigger, action) {
+      if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
 
-    const { cast, skill } = trigger;
-    // Anchor the selected detonation delay to release so aftercast length and
-    // cancellation cannot move the enhanced reward.
-    const delay = skillNumber(skill, 'detonationDelay');
-    const detonationAt =
-      cast.start +
-      projectCastRelativeEffectTimingMs(skill, (cast.fullEnd - cast.start) * 1000, Number(skill.interruptCommitMs)) /
-        1000 +
-      delay;
-    const frozenFusilladeWaterBulletStrike = requireEffect(skill, 'strike', 'Water Bullet', action);
+      const { cast, skill } = trigger;
+      // Anchor the selected detonation delay to release so aftercast length and
+      // cancellation cannot move the enhanced reward.
+      const delay = skillNumber(skill, 'detonationDelay');
+      const detonationAt =
+        cast.start +
+        projectCastRelativeEffectTimingMs(skill, (cast.fullEnd - cast.start) * 1000, Number(skill.interruptCommitMs)) /
+          1000 +
+        delay;
+      const frozenFusilladeWaterBulletStrike = requireEffect(skill, 'strike', 'Water Bullet', action);
 
-    if (frozenFusilladeWaterBulletStrike) {
+      if (frozenFusilladeWaterBulletStrike) {
+        context.effects.emit(
+          elementalistStrikeRequest(
+            context,
+            {
+              at: detonationAt,
+              source: skill.name,
+              sourceId: skill.id,
+              actorType: ACTOR.PLAYER,
+              skillName: skill.name,
+              skillId: skill.id,
+              coefficient: effectNumber(skill, frozenFusilladeWaterBulletStrike, 'coefficient'),
+              skillWeapon: WEAPON.PISTOL
+            },
+            { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+          )
+        );
+      }
+
+      context.effects.emit(
+        elementalistConditionEffectRequest(
+          context,
+          detonationAt,
+          { skill, action },
+          'Water Bullet',
+          skill.name,
+          skill.id,
+          {
+            activationId: cast.id,
+            skillId: cast.skill.id,
+            offTarget: cast.command.offTarget
+          }
+        )
+      );
+    },
+    'elementalist.pistol.dazing-discharge'(context, trigger) {
+      if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+
+      const { cast } = trigger;
+      const at = cast.effectiveEnd;
+
+      // Arms a window that shortens the next pistol skill's recharge; the
+      // reduction is consumed by this weapon's recharge reservation.
+      professionCoreState(context.profession).dazingDischargeUntil = at + skillNumber(cast.skill, 'duration');
+    },
+    'elementalist.pistol.shattering-stone'(context, trigger) {
+      if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+
+      const { cast, skill } = trigger;
+      const at = cast.effectiveEnd;
+      // Arm the buff on the event timeline so the resolver consumes its charges
+      // in impact order, including attacks scheduled before this cast.
+      context.effects.emit(
+        elementalistBuffRequest(
+          {
+            skill: skill,
+            at,
+            source: skill.name,
+            kind: 'shattering stone',
+            stacks: skillNumber(skill, 'maximumStacks'),
+            duration: skillNumber(skill, 'duration')
+          },
+          { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
+        )
+      );
+    },
+    'elementalist.pistol.boulder-blast'(context, trigger) {
+      if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
+
+      const { cast, skill } = trigger;
+      const at = cast.effectiveEnd;
+
+      // The projectile finisher is a separate non-weapon activation from the
+      // pistol strike, so downstream combo damage must not reuse its roll.
       context.effects.emit(
         elementalistStrikeRequest(
           context,
           {
-            at: detonationAt,
+            at,
             source: skill.name,
             sourceId: skill.id,
-            actorType: ACTOR.PLAYER,
+            actorType: ACTOR.EFFECT,
             skillName: skill.name,
             skillId: skill.id,
-            coefficient: effectNumber(skill, frozenFusilladeWaterBulletStrike, 'coefficient'),
-            skillWeapon: WEAPON.PISTOL
+            coefficient: 0,
+            canCrit: false,
+            activationId: `${cast.id}:boulder-finisher`,
+            comboFinishers: [
+              {
+                ownerId: 'elementalist',
+                finisherType: COMBO_FINISHER.PROJECTILE
+              }
+            ]
           },
           { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
         )
       );
     }
-
-    context.effects.emit(
-      elementalistConditionEffectRequest(
-        context,
-        detonationAt,
-        { skill, action },
-        'Water Bullet',
-        skill.name,
-        skill.id,
-        {
-          activationId: cast.id,
-          skillId: cast.skill.id,
-          offTarget: cast.command.offTarget
-        }
-      )
-    );
-  },
-  'elementalist.pistol.dazing-discharge'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
-
-    const { cast } = trigger;
-    const at = cast.effectiveEnd;
-
-    // Arms a window that shortens the next pistol skill's recharge; the
-    // reduction is consumed by this weapon's recharge reservation.
-    professionCoreState(context.profession).dazingDischargeUntil = at + skillNumber(cast.skill, 'duration');
-  },
-  'elementalist.pistol.shattering-stone'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
-
-    const { cast, skill } = trigger;
-    const at = cast.effectiveEnd;
-    // Arm the buff on the event timeline so the resolver consumes its charges
-    // in impact order, including attacks scheduled before this cast.
-    context.effects.emit(
-      elementalistBuffRequest(
-        {
-          skill: skill,
-          at,
-          source: skill.name,
-          kind: 'shattering stone',
-          stacks: skillNumber(skill, 'maximumStacks'),
-          duration: skillNumber(skill, 'duration')
-        },
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
-    );
-  },
-  'elementalist.pistol.boulder-blast'(context, trigger) {
-    if (trigger.kind !== 'cast') throw new TypeError('Pistol enhancements require a cast trigger.');
-
-    const { cast, skill } = trigger;
-    const at = cast.effectiveEnd;
-
-    // The projectile finisher is a separate non-weapon activation from the
-    // pistol strike, so downstream combo damage must not reuse its roll.
-    context.effects.emit(
-      elementalistStrikeRequest(
-        context,
-        {
-          at,
-          source: skill.name,
-          sourceId: skill.id,
-          actorType: ACTOR.EFFECT,
-          skillName: skill.name,
-          skillId: skill.id,
-          coefficient: 0,
-          canCrit: false,
-          activationId: `${cast.id}:boulder-finisher`,
-          comboFinishers: [
-            {
-              ownerId: 'elementalist',
-              finisherType: COMBO_FINISHER.PROJECTILE
-            }
-          ]
-        },
-        { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
-      )
-    );
-  }
-};
+  };
 
 /** Arms Shattering Stone only when its self buff reaches the resolver timeline. */
 export function applyShatteringStoneBuff(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {

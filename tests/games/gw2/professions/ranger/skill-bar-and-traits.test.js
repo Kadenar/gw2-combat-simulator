@@ -601,9 +601,9 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
   const untamedContext = { config: {}, traits: new Set([TRAIT.NATURAL_FORTITUDE]) };
   const untamedAttributes = rangerProfession
     .runtimeFor({ specialization: 'Untamed' })
-    .modifyAttributes({ catalog: rangerCatalog, ...untamedContext }, baseAttributes);
+    .calculations.modifyAttributes({ catalog: rangerCatalog, ...untamedContext }, baseAttributes);
   // Attribute checks consume the composed runtime hook, including ordered skill-owned attribute replacements.
-  const coreAttributes = rangerProfession.runtimeFor({ specialization: 'Core' }).modifyAttributes(
+  const coreAttributes = rangerProfession.runtimeFor({ specialization: 'Core' }).calculations.modifyAttributes(
     {
       catalog: rangerProfession.runtimeFor({ specialization: 'Core' }).catalog,
       ...untamedContext,
@@ -616,20 +616,22 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
   assert.equal(untamedAttributes.vitality, 1290);
   assert.equal(coreAttributes.vitality, 1050);
 
-  const soulbeastAttributes = rangerProfession.runtimeFor({ specialization: 'Soulbeast' }).modifyAttributes(
-    {
-      catalog: rangerCatalog,
-      config: { specialization: 'Soulbeast', selectedPet: 'Pig' },
-      traits: new Set([TRAIT.PACK_ALPHA, TRAIT.PETS_PROWESS]),
-      runtime: {
-        profession: {
-          core: { petNames: ['Pig', 'Lynx'], activePetSlot: 1 },
-          specialization: { kind: 'Soulbeast', state: { beastmodeActive: true } }
+  const soulbeastAttributes = rangerProfession
+    .runtimeFor({ specialization: 'Soulbeast' })
+    .calculations.modifyAttributes(
+      {
+        catalog: rangerCatalog,
+        config: { specialization: 'Soulbeast', selectedPet: 'Pig' },
+        traits: new Set([TRAIT.PACK_ALPHA, TRAIT.PETS_PROWESS]),
+        runtime: {
+          profession: {
+            core: { petNames: ['Pig', 'Lynx'], activePetSlot: 1 },
+            specialization: { kind: 'Soulbeast', state: { beastmodeActive: true } }
+          }
         }
-      }
-    },
-    baseAttributes
-  );
+      },
+      baseAttributes
+    );
 
   assert.equal(soulbeastAttributes.power, 300);
   assert.equal(soulbeastAttributes.ferocity, 400);
@@ -1095,7 +1097,7 @@ test('Ranger Wilderness Survival traits cover endurance, poison, and disables', 
     runtime: { activeWeaponSet: 1 },
     query: { mightStacksAt: () => 0 }
   };
-  const petAttributes = rangerProfession.runtimeFor({ specialization: 'Core' }).modifyAttributes(
+  const petAttributes = rangerProfession.runtimeFor({ specialization: 'Core' }).calculations.modifyAttributes(
     { catalog: rangerCatalog, ...petTraitContext },
     {
       power: 2000,

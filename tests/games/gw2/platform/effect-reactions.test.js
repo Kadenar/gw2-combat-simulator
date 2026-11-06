@@ -10,7 +10,7 @@ import { materializeSkillEffectApplications } from '#gw2/platform/effects/materi
 import { createEffectReactions } from '#gw2/platform/resolver/effect-reactions.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { testProfessionModifiers } from '#tests/fixtures/profession.js';
+import { testProfession } from '#tests/fixtures/profession.js';
 import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
@@ -54,7 +54,7 @@ function run(
     rotation,
     profession: {
       // Reuse the normalized contract so compiled damage evaluators are included.
-      ...testProfessionModifiers,
+      calculations: testProfession.calculations,
       id: 'fixture',
       catalog,
       skillSelectionCatalog: catalog,

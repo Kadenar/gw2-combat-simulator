@@ -30,7 +30,7 @@ test('mech consumers require explicit event or condition-application ownership',
       event,
       time: 0
     };
-    assert.ok(Math.abs(profession.modifyCriticalChance(context, 0.1) - (owned ? 0.3 : 0.1)) < 1e-12);
+    assert.ok(Math.abs(profession.calculations.modifyCriticalChance(context, 0.1) - (owned ? 0.3 : 0.1)) < 1e-12);
     const rewards = [];
     mechanistHooks.reactions['damage.resolved'](
       { fireTrigger: (...args) => rewards.push(args) },

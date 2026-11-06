@@ -1,19 +1,27 @@
 import type { CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
 import type { ExecutedFactsReader, ExecutedFactsWriter } from '#gw2/platform/combat/history/executed-facts.js';
 import type { ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
-import type { EnduranceController, ResourceController } from '#gw2/platform/combat/resources/resource-policy.js';
+import type {
+  EnduranceController,
+  EnduranceQueries,
+  ResourceController,
+  ResourceQueries
+} from '#gw2/platform/combat/resources/resource-policy.js';
 import type { AlliedStrikeGrants } from '#gw2/platform/combat/state/allied-strikes.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
-import type { AutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
-import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
+import type {
+  AutoattackChainQueries,
+  MechanicAutoattackController
+} from '#gw2/platform/execution/autoattack-chains.js';
+import type { CastControl, CastQueries } from '#gw2/platform/execution/cast-contracts.js';
+import type { CooldownQueries, MechanicCooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { SkillFlipCommands, SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { TriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-reactions.js';
-import type { MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import type { EffectReactionRegistration } from '#gw2/platform/resolver/effect-reactions.js';
+import type { MechanicCombatQueries, MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import type { Gw2Config, Gw2RuntimeConfig } from '#gw2/platform/simulation/config.js';
-import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
+import type { TaskScheduling } from '#gw2/platform/simulation/work-contract.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
 
@@ -25,40 +33,19 @@ export type MechanicQueriesOf<TContext extends { profession: object; helpers: Ca
 export interface MechanicQueryContext<T extends object = object, TSkill extends Skill = Skill> {
   readonly profession: ReadonlyMechanicState<T>;
   readonly flips: Readonly<SkillFlipWindows>;
-  readonly autoattackController: Pick<AutoattackChainController, 'read'>;
+  readonly autoattackController: AutoattackChainQueries;
   readonly config: Gw2RuntimeConfig;
   readonly helpers: CanonicalCatalog<TSkill>;
   readonly traits: ReadonlySet<SkillId>;
   readonly time: number;
   readonly activeWeaponSet: number;
   readonly engagement: CombatEngagementQueries;
-  readonly combat: Pick<
-    MechanicCombatServices,
-    | 'activeBoonStacks'
-    | 'boonApplications'
-    | 'buffApplications'
-    | 'activeBuffStacks'
-    | 'boonSnapshot'
-    | 'targetHasCondition'
-    | 'targetConditionStacks'
-    | 'targetConditionCount'
-    | 'targetHealthBelow'
-    | 'targetHitboxSize'
-    | 'remainingTargetHealthFraction'
-    | 'statsAt'
-    | 'conditionDurationMultiplier'
-  >;
-  readonly castController: Pick<
-    CastControl,
-    'hasInFlight' | 'inFlightSkillIds' | 'currentLaneEnd' | 'pendingChargeRelease'
-  >;
-  readonly resourceController: Pick<ResourceController, 'value' | 'readyAt'>;
-  readonly endurance: Pick<EnduranceController, 'readyAt'>;
+  readonly combat: MechanicCombatQueries;
+  readonly castController: CastQueries;
+  readonly resourceController: ResourceQueries;
+  readonly endurance: EnduranceQueries;
   readonly facts: ExecutedFactsReader;
-  readonly cooldownController: Pick<
-    CooldownController,
-    'readyAt' | 'hasCooldown' | 'hasAmmo' | 'readAmmo' | 'rechargeFor' | 'rate' | 'project' | 'remaining'
-  >;
+  readonly cooldownController: CooldownQueries;
 }
 
 /** Resolver mechanics own their profession slice and request shared changes through phase-preserving services. */
@@ -79,30 +66,20 @@ export interface MechanicCombatContext<T extends object = object, TSkill extends
 
 /** Stateful lifecycle handlers can schedule named work and settle owned services, never traverse commands or edit engine stores. */
 export interface MechanicContext<T extends object = object, TSkill extends Skill = Skill>
-  extends MechanicCombatContext<T, TSkill>, SkillFlipCommands {
+  extends MechanicCombatContext<T, TSkill>, SkillFlipCommands, TaskScheduling<TSkill> {
   readonly config: Gw2RuntimeConfig;
   readonly queries: MechanicQueryContext<T, TSkill>;
   readonly time: number;
   /** Cast acceptance and authored resets remain exclusive to the execution owner. */
-  readonly cooldownController: Omit<CooldownController, 'resetAll' | 'spendAmmo' | 'setAmmoLockout'>;
+  readonly cooldownController: MechanicCooldownController;
   readonly castController: CastControl;
   /** Mechanics inspect or reset progress; cast execution alone advances it. */
-  readonly autoattackController: Pick<AutoattackChainController, 'read' | 'reset'>;
+  readonly autoattackController: MechanicAutoattackController;
   readonly resourceController: ResourceController;
   readonly endurance: EnduranceController;
   readonly facts: ExecutedFactsReader;
   readonly observations: ExecutedFactsWriter;
-  readonly effectReactions: Pick<EffectReactionRegistry<T>, 'register'>;
-  schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number): void;
-  scheduleForCast(
-    name: string,
-    at: number,
-    cast: RuntimeCast<TSkill>,
-    data?: Record<string, unknown>,
-    owner?: WorkOwner,
-    priority?: number
-  ): void;
-  cancelOwner(owner: WorkOwner): void;
+  readonly effectReactions: EffectReactionRegistration;
   /** Run the selected traits listening to a mechanic-owned boundary, synchronously and in the point's order. */
   fireTrigger(point: TriggerPoint<Record<string, never>>): void;
   fireTrigger<TInput extends object>(point: TriggerPoint<TInput>, input: NoInfer<TInput>): void;

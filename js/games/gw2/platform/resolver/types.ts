@@ -1,3 +1,4 @@
+/** Resolver queue and reaction contracts; resolution consumes kernel randomness without execution dependencies. */
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ConditionResolution, Gw2ConditionWork } from '#gw2/platform/resolver/condition-resolution.js';
@@ -5,27 +6,8 @@ import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js
 import type { BalanceSource } from '#gw2/platform/skills/balance-profiles.js';
 import type { StableEventQueue } from '#kernel/events/queue.js';
 
-/** Resolver breakdown, queue, and reaction contracts; resolution consumes kernel randomness without execution dependencies. */
-
 /** A queued packet as the resolver sees it, including private condition scheduling references. */
 export type Gw2ConditionWorkEvent = Gw2ResolverEvent & Gw2ConditionWork;
-
-export interface Gw2ConditionBreakdownEntry {
-  name: string;
-  damage: number;
-  stackSeconds: number;
-}
-
-interface Gw2EnvironmentConditionTick {
-  readonly at: number;
-  readonly damage: number;
-}
-
-export interface Gw2EnvironmentConditionBreakdownEntry extends Gw2ConditionBreakdownEntry {
-  readonly stacks: number;
-  bufferedRate?: number;
-  damageTicks: Gw2EnvironmentConditionTick[];
-}
 
 /** Every resolver receives the selected skill and profile maps from simulation construction. */
 export interface Gw2ResolverHelpers extends BalanceSource {

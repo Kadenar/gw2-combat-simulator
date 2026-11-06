@@ -99,10 +99,7 @@ export function createGw2ConditionResolution({
 
       ctx.environmentConditions.set(condition, {
         name: condition,
-        stacks,
-        damage: 0,
-        stackSeconds: 0,
-        damageTicks: []
+        stacks
       });
     }
 
@@ -641,19 +638,25 @@ export function createGw2ConditionResolution({
       // Tick history belongs to returned applications; unowned measurement packets keep only their damage totals.
       if (ctx.retainsResolved(application)) application.damageTicks.push({ at: event.at, damage: share, fraction });
 
-      ctx.addBreakdown(application.name, share, 'conditionDamage', 0, application);
+      ctx.damageRecorder?.recordDamage({
+        name: application.name,
+        damage: share,
+        component: 'conditionDamage',
+        hits: 0,
+        source: application,
+        didCrit: null
+      });
     }
 
     if (contributions.length) {
       ctx.totals.condition += damage;
 
-      // Per-condition totals are a detailed-report projection; live damage and measurement packets remain independent.
-      if (ctx.output === 'detailed') {
-        const entry = ctx.conditions.get(group.condition) || { name: group.condition, damage: 0, stackSeconds: 0 };
-        entry.damage += damage;
-        entry.stackSeconds += contributions.reduce((total, contribution) => total + contribution.stackSeconds, 0);
-        ctx.conditions.set(group.condition, entry);
-      }
+      // Observe complete accepted groups, including zero damage with contributing stack time.
+      ctx.damageRecorder?.recordConditionSettlement({
+        name: group.condition,
+        damage,
+        stackSeconds: contributions.reduce((total, contribution) => total + contribution.stackSeconds, 0)
+      });
 
       if (damage > 0) ctx.markDamageTime(event.at);
     }
@@ -689,11 +692,8 @@ export function createGw2ConditionResolution({
     if (!(damage > 0)) return;
 
     ctx.environmentDamage += damage;
-    entry.damage += damage;
-    entry.stackSeconds += stacks;
-
-    // Environment tick rows are a detailed-report projection.
-    if (ctx.output === 'detailed') entry.damageTicks.push({ at: event.at, damage });
+    // Environment reporting never starts the player damage clock or owns scheduling state.
+    ctx.damageRecorder?.recordEnvironmentDamage({ name: condition, at: event.at, damage });
   }
 
   return Object.freeze({
@@ -785,4 +785,11 @@ export interface Gw2ConditionWork {
   readonly application?: Gw2ResolvedConditionApplication;
   readonly conditionGroup?: Gw2ResolverConditionGroup;
   readonly wakeToken?: number;
+}
+
+/** Permanent target conditions retain only the live data used for buffering and shared-clock scheduling. */
+export interface Gw2EnvironmentConditionState {
+  readonly name: string;
+  readonly stacks: number;
+  bufferedRate?: number;
 }

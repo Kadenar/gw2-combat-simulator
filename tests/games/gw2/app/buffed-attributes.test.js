@@ -133,12 +133,15 @@ test('preview applications retain the final grant metadata for profession querie
       const selected = profession.resolveProfession(config);
       return {
         ...selected,
-        modifyAttributes(context, attributes) {
-          observation = {
-            stacks: activeBuffStacks(context, kind),
-            weapon: latestRadiantArmaments(context)?.metadata?.radiantWeapon
-          };
-          return selected.modifyAttributes(context, attributes);
+        calculations: {
+          ...selected.calculations,
+          modifyAttributes(context, attributes) {
+            observation = {
+              stacks: activeBuffStacks(context, kind),
+              weapon: latestRadiantArmaments(context)?.metadata?.radiantWeapon
+            };
+            return selected.calculations.modifyAttributes(context, attributes);
+          }
         }
       };
     }

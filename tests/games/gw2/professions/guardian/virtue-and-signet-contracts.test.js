@@ -188,8 +188,8 @@ test('Guardian Virtues share patched conversion and recharge without reapplying 
     const justice = runtime.catalog.skillsById.get(GUARDIAN_SKILL_IDS.JUSTICE);
     const rechargeContext = { helpers: runtime.catalog, time: context.time, config: context.config };
     assert.equal(runtime.rechargeWork(rechargeContext, justice, 30), recharge);
-    assert.equal(runtime.modifyAttributes(context, { conditionDamage: 100 }).conditionDamage, 100 + bonus);
-    assert.equal(runtime.modifyAttributes(context, { conditionDamage: 100 }).conditionDamage, 100 + bonus);
+    assert.equal(runtime.calculations.modifyAttributes(context, { conditionDamage: 100 }).conditionDamage, 100 + bonus);
+    assert.equal(runtime.calculations.modifyAttributes(context, { conditionDamage: 100 }).conditionDamage, 100 + bonus);
     context.config.selectedTraitIds = [];
     assert.equal(runtime.rechargeWork(rechargeContext, justice, 30), 30);
   }

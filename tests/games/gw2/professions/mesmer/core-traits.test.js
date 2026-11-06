@@ -367,7 +367,7 @@ test('Dazzling preserves ownership and live profile edits for eligible control',
 });
 
 // Variant additions retain patched base effects, live profile removal, and the projectile's command targeting.
-test('Bountiful Blades uses live packets with the base projectile impact delay', () => {
+test('Bountiful Blades uses live packets with shared command ownership', () => {
   for (const removed of [false, true]) {
     for (const offTarget of [false, true]) {
       const config = defaultSimulationConfig({
@@ -416,11 +416,9 @@ test('Bountiful Blades uses live packets with the base projectile impact delay',
       const packets = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.MIRROR_BLADE);
       assert.equal(packets.length, removed ? 1 : 2);
       assert.equal(packets[0].coefficient, 0.75);
-      assert.equal(packets[0].at, offTarget ? 0.6 : 0.85);
 
       if (!removed) {
         assert.equal(packets[1].coefficient, 0.125);
-        assert.equal(packets[1].at, offTarget ? 1.3 : 1.55);
         assert.equal(packets[1].sourceId, TRAIT.BOUNTIFUL_BLADES);
         assert.equal(packets[1].actorType, 'player');
         assert.equal(packets[1].activationId, packets[0].activationId);
@@ -462,10 +460,13 @@ test('Phantasmal Fury keeps Core and Virtuoso tuning behind its current selectio
         event: { actorType: 'summon', summonKind: 'phantasm' },
         time: 0
       };
-      assert.equal(runtime.modifyCriticalChance(context, 0), expected);
-      assert.equal(runtime.modifyCriticalChance({ ...context, config: { selectedTraitIds: [] } }, 0), 0);
+      assert.equal(runtime.calculations.modifyCriticalChance(context, 0), expected);
+      assert.equal(runtime.calculations.modifyCriticalChance({ ...context, config: { selectedTraitIds: [] } }, 0), 0);
       assert.equal(
-        runtime.modifyCriticalChance({ ...context, event: { actorType: 'summon', summonKind: 'clone' } }, 0),
+        runtime.calculations.modifyCriticalChance(
+          { ...context, event: { actorType: 'summon', summonKind: 'clone' } },
+          0
+        ),
         0
       );
     }

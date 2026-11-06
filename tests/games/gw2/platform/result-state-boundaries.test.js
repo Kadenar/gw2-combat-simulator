@@ -1,7 +1,9 @@
+// Damage projections belong to their recorder while combat retains accepted totals and application histories.
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { buildCombatResult, buildSimulationScore } from '#gw2/platform/results/combat-result.js';
+import { createDamageReportRecorder } from '#gw2/platform/results/damage-report.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
@@ -119,8 +121,7 @@ test('result events, damage rows, and command steps are detached from live store
   const result = observeGw2Runtime({ profession: profession.runtimeFor({}), rotation: ['Opening'], config: {} });
   const runtime = observedRuntime(result);
   const liveStepEnd = runtime.steps[0].end;
-  const liveRow = [...runtime.breakdown.values()][0];
-  const liveDamage = liveRow.strikeDamage + liveRow.conditionDamage;
+  const liveDamage = runtime.totals.strike + runtime.totals.condition;
   const liveAction = runtime.facts.ofType('action')[0];
   const liveActionAt = liveAction.at;
   result.steps[0].end = -1;
@@ -129,32 +130,9 @@ test('result events, damage rows, and command steps are detached from live store
   result.breakdown[0].conditionDamage = -1;
   result.events.find((event) => event.type === 'action').at = -1;
   assert.equal(runtime.steps[0].end, liveStepEnd);
-  assert.equal(liveRow.strikeDamage + liveRow.conditionDamage, liveDamage);
+  assert.equal(runtime.totals.strike + runtime.totals.condition, liveDamage);
   assert.equal(liveAction.at, liveActionAt);
-  assert.equal(Object.hasOwn([...runtime.breakdown.values()][0], 'casts'), false);
-});
-
-// Mixed contributions share one attribution row; projection derives totals before sorting and detaches the components.
-test('damage breakdown totals combine strike and condition components before ranking', () => {
-  const observed = observeGw2Runtime({ profession: profession.runtimeFor({}), rotation: [], config: {} });
-  const runtime = observedRuntime(observed);
-  runtime.addBreakdown('Mixed', 20, 'strikeDamage');
-  runtime.addBreakdown('Strike only', 40, 'strikeDamage');
-  runtime.addBreakdown('Mixed', 15, 'conditionDamage');
-  runtime.addBreakdown('Mixed', 10, 'strikeDamage');
-  const result = buildCombatResult(runtime, buildSimulationScore(runtime, 0), []);
-  assert.deepEqual(
-    result.breakdown.map(({ name, damage, strikeDamage, conditionDamage }) => ({
-      name,
-      damage,
-      strikeDamage,
-      conditionDamage
-    })),
-    [
-      { name: 'Mixed', damage: 45, strikeDamage: 30, conditionDamage: 15 },
-      { name: 'Strike only', damage: 40, strikeDamage: 40, conditionDamage: 0 }
-    ]
-  );
+  assert.equal(Object.hasOwn(result.breakdown[0], 'casts'), false);
 });
 
 // Selective output copying must retain nested detachment and leave natural application lifetimes untouched.
@@ -163,16 +141,16 @@ test('combat reports detach nested settlements, environment ticks, proc state, a
   const runtime = observedRuntime(observed);
   const application = { type: 'condition', at: 0, naturalExpiresAt: 10, damageTicks: [{ at: 0.5, damage: 7 }] };
   const action = { type: 'action', at: 0, skillId: 990001, name: 'Opening', audience: { maximumRecipients: 5 } };
-  const environment = { name: 'Fixture', damage: 7, stackSeconds: 1, stacks: 1, damageTicks: [{ at: 0.5, damage: 7 }] };
+  const recorder = createDamageReportRecorder();
+  recorder.observer.recordEnvironmentDamage({ name: 'Fixture', at: 0.5, damage: 7 });
   const proc = { start: 0, effectState: { stacks: 2, maximumStacks: 5 } };
   runtime.resolved.push(application);
-  runtime.environmentConditions.set('Fixture', environment);
   runtime.procRecorder.steps.push(proc);
   const diagnostic = { message: 'live notice', at: 0.5 };
   runtime.warnings.push(diagnostic);
-  const score = buildSimulationScore(runtime, 1, false);
+  const score = buildSimulationScore(runtime, 1);
   score.warnings[0].message = 'score edit';
-  const result = buildCombatResult(runtime, score, [action]);
+  const result = buildCombatResult(runtime, score, [action], recorder.project(score.dpsWindow));
   result.events[0].audience.maximumRecipients = -1;
   result.resolvedEvents.find((event) => event.naturalExpiresAt === 10).damageTicks[0].damage = -1;
   result.environmentConditionBreakdown[0].damageTicks[0].damage = -1;
@@ -182,7 +160,7 @@ test('combat reports detach nested settlements, environment ticks, proc state, a
   assert.equal(action.audience.maximumRecipients, 5);
   assert.equal(application.damageTicks[0].damage, 7);
   assert.equal(application.naturalExpiresAt, 10);
-  assert.equal(environment.damageTicks[0].damage, 7);
+  assert.equal(recorder.project(score.dpsWindow).environmentConditionBreakdown[0].damageTicks[0].damage, 7);
   assert.equal(proc.effectState.stacks, 2);
   assert.deepEqual(diagnostic, { message: 'live notice', at: 0.5 });
   assert.deepEqual(score.warnings, [{ message: 'score edit', at: 0.5 }]);

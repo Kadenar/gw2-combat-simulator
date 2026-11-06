@@ -1,7 +1,9 @@
+/** Selects output projection after combat settles; detailed runs must provide their damage report owner. */
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import { buildCombatResult, buildSimulationScore } from '#gw2/platform/results/combat-result.js';
+import type { DamageReportProjection } from '#gw2/platform/results/damage-report.js';
 import { locateDiagnostics } from '#gw2/platform/results/diagnostics.js';
 import { projectInputTrace } from '#gw2/platform/results/input-trace.js';
 import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
@@ -21,11 +23,13 @@ export function projectRuntimeResult<T extends object>(
   {
     output,
     executed,
-    damageCompletionTime
+    damageCompletionTime,
+    projectDamageReport
   }: {
     output: 'detailed' | 'score' | 'damage';
     executed: Gw2ResolverEvent[];
     damageCompletionTime?: () => number;
+    projectDamageReport?: (dpsWindow: number) => DamageReportProjection;
   }
 ): DamageRuntimeResult | Gw2SimulationResult | Gw2SimulationScore {
   if (runtime.rotationEndTime == null) throw new Error('Results require settled command execution.');
@@ -45,6 +49,8 @@ export function projectRuntimeResult<T extends object>(
   if (output === 'score') {
     return score;
   }
+
+  if (!projectDamageReport) throw new Error('Detailed results require a damage report projector.');
 
   execution.report?.(runtime, score.combatEndTime);
   // Queued companion commands can start later with a different speed; report the executed animation, not its reservation.
@@ -95,7 +101,7 @@ export function projectRuntimeResult<T extends object>(
     runtime.engagement.startTime ?? 0,
     runtime.rotationEndTime
   );
-  const combat = buildCombatResult(runtime, score, executed);
+  const combat = buildCombatResult(runtime, score, executed, projectDamageReport(score.dpsWindow));
   const result = {
     ...combat,
     ...(runtime.encounter ? { encounter: runtime.encounter.result(score.combatEndTime) } : {}),

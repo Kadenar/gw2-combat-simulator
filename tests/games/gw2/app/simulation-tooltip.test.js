@@ -316,7 +316,7 @@ test('Radiant Power shares patched attribute and critical-chance values across c
   const without = calculate(build, [], 1, 'Radiant Power', null, preview).attributes;
   assert.equal(all.Ferocity.final - without.Ferocity.final, 237);
   const context = { catalog: preview.catalog, config: { selectedTraitIds: [traits.RADIANT_POWER] }, time: 0 };
-  assert.equal(guardianProfession.runtimeFor({}).modifyAttributes(context, { ferocity: 0 }).ferocity, 237);
+  assert.equal(guardianProfession.runtimeFor({}).calculations.modifyAttributes(context, { ferocity: 0 }).ferocity, 237);
   assert.equal(preview.modifierRulesById.get('guardian.radiant-power-critical-chance').amount(context), 0.17);
   const model = describeSimulationTrait(
     preview,
@@ -355,8 +355,8 @@ test('Carbolic Composition shares one patched duration bonus across consumers', 
     condition: 'Poisoned'
   };
   assert.equal(
-    engineerProfession.runtimeFor({ specialization: 'Amalgam' }).modifyAttributes(context, {}).conditionDurationBonuses
-      .Poisoned,
+    engineerProfession.runtimeFor({ specialization: 'Amalgam' }).calculations.modifyAttributes(context, {})
+      .conditionDurationBonuses.Poisoned,
     42
   );
   const model = describeSimulationTrait(preview, { id: traits.CARBOLIC_COMPOSITION }, engineerTooltips);

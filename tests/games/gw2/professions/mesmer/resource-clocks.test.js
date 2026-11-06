@@ -3,7 +3,8 @@ import test from 'node:test';
 
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
+import { createResourceController } from '#gw2/platform/combat/resources/resource-controller.js';
+import { createResourceDepletionWake } from '#gw2/platform/simulation/task-scheduler.js';
 import { completeMesmerCast, startMesmerCast } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerIllusionHooks } from '#gw2/professions/mesmer/core/mechanics/illusions/lifecycle.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -38,15 +39,12 @@ function fixture(specialization, initialResource) {
   bindTriggerPoints(context, mesmerProfession, config);
   const capture = captureEffectEmissions({ now: () => context.time });
   context.effects = capture.effects;
-  context.resourceController = createRuntimeResources(
-    {
-      get time() {
-        return context.time;
-      },
-      mechanics: context
-    },
-    profession
-  );
+  context.resourceController = createResourceController({
+    clock: context,
+    context: () => context,
+    policies: profession.resources,
+    depletion: createResourceDepletionWake(context)
+  });
   context.resourceController.initialize();
   return { context, profession, scheduled, cancelled, ...capture };
 }

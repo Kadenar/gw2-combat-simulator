@@ -316,7 +316,7 @@ test("Reaper's Onslaught passive ferocity survives trigger isolation and still r
         ferocity: 100,
         concentration: 0
       };
-      const attributes = native.modifyAttributes(
+      const attributes = native.calculations.modifyAttributes(
         {
           catalog: native.catalog,
           config,

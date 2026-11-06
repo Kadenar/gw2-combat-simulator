@@ -10,7 +10,6 @@
  */
 import { ACTOR, AURA, BOON, COMBO_FINISHER, CONDITION, CONTROL, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
@@ -297,7 +296,7 @@ export const WEAVER_PISTOL_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
 };
 
 /** Payload declarations run before this shared all-matching-bullets settlement. */
-const weaverPistolSideEffects: RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers'] = {
+const weaverPistolSideEffects: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['sideEffectHandlers'] = {
   'elementalist.weaver.pistol.settle'(context, trigger) {
     if (trigger.kind !== 'cast') throw new TypeError('Dual pistol settlement requires a cast trigger.');
 

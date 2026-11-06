@@ -65,19 +65,3 @@ export const testProfession = defineTestProfession({
     }
   }
 });
-
-// Minimal runtime fixtures share only modifier capabilities, without inheriting state or catalog behavior.
-export const testProfessionModifiers = Object.freeze(
-  Object.fromEntries(
-    [
-      'modifyAttributes',
-      'modifyConditionAttributes',
-      'modifyCriticalChance',
-      'modifyCriticalDamage',
-      'modifyConditionBaseDuration',
-      'modifyConditionDuration',
-      'modifyStrikeDamage',
-      'modifyConditionDamage'
-    ].map((name) => [name, testProfession[name]])
-  )
-);

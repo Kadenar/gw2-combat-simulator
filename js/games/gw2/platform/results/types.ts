@@ -4,8 +4,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
-import type { Gw2EnvironmentConditionBreakdownEntry } from '#gw2/platform/resolver/types.js';
+import type { DamageReportProjection } from '#gw2/platform/results/damage-report.js';
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { RotationApm } from '#gw2/platform/results/rotation-apm.js';
 import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
@@ -137,18 +136,9 @@ export interface Gw2ResolverResult {
   readonly conditionDamage: number;
   readonly environmentDamage: number;
   readonly environmentDps: number;
-  readonly breakdown: Gw2DamageBreakdownEntry[];
-  readonly conditionBreakdown: Array<{
-    name: string;
-    damage: number;
-    dps: number;
-    averageStacks: number;
-  }>;
-  readonly environmentConditionBreakdown: Array<{
-    name: string;
-    damage: number;
-    damageTicks: Gw2EnvironmentConditionBreakdownEntry['damageTicks'];
-  }>;
+  readonly breakdown: DamageReportProjection['breakdown'];
+  readonly conditionBreakdown: DamageReportProjection['conditionBreakdown'];
+  readonly environmentConditionBreakdown: DamageReportProjection['environmentConditionBreakdown'];
   readonly events: readonly SimulationEvent[];
   readonly resolvedEvents: Gw2ResolverEvent[];
   readonly procSteps: Gw2ProcStep[];

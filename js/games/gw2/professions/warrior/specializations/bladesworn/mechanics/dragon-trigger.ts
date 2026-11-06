@@ -5,7 +5,6 @@ import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
@@ -363,9 +362,11 @@ export const dragonTriggerHooks = {
 } satisfies RuntimeHooks<WarriorRuntimeState, WarriorSkill>;
 
 /** Entry and release readiness use observed charge thresholds and the current Flow pool. */
-export const dragonTriggerAvailability: NonNullable<
-  RuntimeProfession<WarriorRuntimeState, WarriorSkill>['availability']
-> = (runtime, skill, command) => {
+export const dragonTriggerAvailability: NonNullable<RuntimeHooks<WarriorRuntimeState, WarriorSkill>['availability']> = (
+  runtime,
+  skill,
+  command
+) => {
   const state = bladeswornState.from(runtime.profession);
 
   if ((skill.dragonSlash || skill.dragonTriggerSkill) && !state.dragonTriggerActive)

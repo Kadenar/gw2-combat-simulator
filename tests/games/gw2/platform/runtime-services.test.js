@@ -4,10 +4,17 @@ import test from 'node:test';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createDiscreteResourceClock, createResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import { createEnduranceController } from '#gw2/platform/combat/resources/endurance-controller.js';
+import { createResourceController } from '#gw2/platform/combat/resources/resource-controller.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
+import { createCastQueries } from '#gw2/platform/execution/cast-contracts.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
+import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
+import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
+import { createRuntimeTaskScheduler } from '#gw2/platform/simulation/task-scheduler.js';
 import { cast, wait } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
@@ -875,7 +882,8 @@ test('rejected and cancelled commands preserve recharge entitlements', () => {
 test('score mode retains execution facts for queries while omitting presentation collections', () => {
   const context = observedRuntime(run([cast(991003), cast(991001), wait(1000)], { output: 'score' }));
   assert.ok(context.history.some((event) => event.type === 'buff'));
-  assert.equal(context.breakdown.size, 0);
+  assert.equal(context.damageRecorder, null);
+  assert.equal('breakdown' in context, false);
   assert.equal(context.resolved.length, 0);
   assert.equal(context.steps.length, 0);
 });
@@ -1137,7 +1145,7 @@ test('mechanic capabilities exclude cast-only recharge commands and unused query
     native({
       initialize(context) {
         observed = true;
-        for (const name of ['resetAll', 'spendAmmo', 'setAmmoLockout'])
+        for (const name of ['resetAll', 'spendAmmo', 'setAmmoLockout', 'queries', 'mechanics'])
           assert.equal(name in context.cooldownController, false);
         for (const name of ['combatStartTime', 'hasExplicitCombatStart', 'procs'])
           assert.equal(name in context.queries, false);
@@ -1145,6 +1153,45 @@ test('mechanic capabilities exclude cast-only recharge commands and unused query
           for (const name of ['timeline', 'targetHealthLoss']) assert.equal(name in combat, false);
           assert.equal(combat.targetHealthBelow(0.5), false);
         }
+
+        for (const view of [
+          context.queries.combat,
+          context.queries.cooldownController,
+          context.queries.castController,
+          context.queries.resourceController,
+          context.queries.endurance,
+          context.queries.autoattackController,
+          context.autoattackController,
+          context.effectReactions
+        ]) {
+          assert.equal(Object.isFrozen(view), true);
+          for (const name of [
+            'runtime',
+            'queue',
+            'schedule',
+            'queries',
+            'mechanics',
+            'dispatch',
+            'advance',
+            'snapshot'
+          ])
+            assert.equal(name in view, false, name);
+        }
+
+        for (const name of [
+          'registerCompanion',
+          'retireCompanion',
+          'reviseBuffExpiry',
+          'warn',
+          'allocateEffectActivation'
+        ])
+          assert.equal(name in context.queries.combat, false);
+        for (const name of ['isOnCooldown', 'setReadyAt', 'ensureAmmo', 'resetAll'])
+          assert.equal(name in context.queries.cooldownController, false);
+        assert.equal('reset' in context.queries.autoattackController, false);
+        assert.equal('lockInputUntil' in context.queries.castController, false);
+        assert.equal('spend' in context.queries.resourceController, false);
+        assert.equal('grant' in context.queries.endurance, false);
 
         // Mechanic views share live engagement queries without acquiring transition authority.
         assert.equal(context.engagement, context.queries.engagement);
@@ -1157,4 +1204,227 @@ test('mechanic capabilities exclude cast-only recharge commands and unused query
     })
   );
   assert.equal(observed, true);
+});
+
+// Captured queries resolve current owners and policies, even after the engine or a mechanic replaces live state.
+test('retained resource and endurance capabilities follow controller and profession replacement', () => {
+  const runtime = observedRuntime(run([]));
+  const queries = runtime.mechanicQueries;
+  const resources = queries.resourceController;
+  const endurance = queries.endurance;
+  const makeResources = (initial) => {
+    const controller = createResourceController({
+      clock: runtime,
+      context: () => runtime.mechanics,
+      policies: {
+        energy: {
+          kind: 'continuous',
+          state: (context) => context.profession.core.energy,
+          maximum: () => 100,
+          initial: () => initial,
+          recovery: () => 0
+        }
+      },
+      depletion: {
+        synchronize() {
+          assert.fail('No depletion policy is declared.');
+        }
+      }
+    });
+    controller.initialize();
+    return controller;
+  };
+
+  runtime.resourceController = makeResources(3);
+  assert.equal(resources.value('energy'), 3);
+  runtime.resourceController = makeResources(7);
+  assert.equal(resources.value('energy'), 7);
+  const makeEndurance = (maximum) =>
+    createEnduranceController({
+      clock: runtime,
+      context: () => runtime.mechanics,
+      policy: {
+        state: (context) => context.profession.core.endurancePool,
+        maximum: () => maximum,
+        regenerationRate: () => 0
+      },
+      intervals: (start, end) => [{ start, end, rate: 0 }]
+    });
+  runtime.endurance = makeEndurance(50);
+  assert.equal(endurance.readyAt(75), null);
+  runtime.endurance = makeEndurance(100);
+  assert.equal(endurance.readyAt(75), 0);
+  const previous = runtime.profession;
+  runtime.mechanics.profession = {
+    ...previous,
+    core: {
+      ...previous.core,
+      energy: { ...previous.core.energy, value: 11 },
+      endurancePool: { ...previous.core.endurancePool, value: 20 }
+    }
+  };
+  assert.equal(queries.profession, runtime.profession);
+  assert.notEqual(queries.profession, previous);
+  assert.equal(resources.value('energy'), 11);
+  assert.equal(endurance.readyAt(75), null);
+  assert.equal(runtime.mechanics.queries, queries);
+});
+
+// Factory construction precedes cast binding; retained methods resolve the later service on each invocation.
+test('cast query construction is deferred and exposes no lockout authority', () => {
+  let control;
+  let reads = 0;
+  const queries = createCastQueries(() => {
+    reads++;
+    return control;
+  });
+  assert.equal(reads, 0);
+  const makeControl = (laneEnd) => ({
+    hasInFlight: (id) => id === laneEnd,
+    inFlightSkillIds: function* () {
+      yield laneEnd;
+    },
+    currentLaneEnd: () => laneEnd,
+    pendingChargeRelease: () => undefined,
+    lockInputUntil() {},
+    setLockout() {},
+    clearLockout() {}
+  });
+  control = makeControl(1);
+  assert.equal(queries.currentLaneEnd(), 1);
+  control = makeControl(2);
+  assert.equal(queries.hasInFlight(2), true);
+  assert.deepEqual([...queries.inFlightSkillIds()], [2]);
+  assert.equal(queries.pendingChargeRelease(), undefined);
+  assert.equal(Object.isFrozen(queries), true);
+  for (const key of ['lockInputUntil', 'setLockout', 'clearLockout', 'control']) assert.equal(key in queries, false);
+});
+
+// Owner observations are detached values; shared restricted views reflect real mutations without permitting store edits.
+test('cooldown capabilities share live state while ammunition observations cannot mutate owner storage', () => {
+  const skill = { id: 1, name: 'Magazine', ammo: 2 };
+  const controller = createCooldownController({
+    clock: { time: 0 },
+    rechargeDuration: () => 2,
+    skillFor: () => skill
+  });
+  controller.mechanics.ensureAmmo(skill);
+  controller.spendAmmo(skill, 0);
+  const observation = controller.queries.readAmmo(skill.id);
+  observation.charges = 99;
+  observation.recharges[0].work = 0;
+  assert.equal(controller.queries.readAmmo(skill.id).charges, 1);
+  assert.equal(controller.queries.readAmmo(skill.id).recharges[0].work, 2);
+  controller.mechanics.restoreAmmo(skill, 1, 0);
+  assert.equal(controller.queries.readAmmo(skill.id).charges, 2);
+});
+
+// Scheduled cast callbacks nest under their real cast, then restore both parent identity and scheduling mode on failure.
+test('task dispatch restores its outer causal scope when a cast handler throws', () => {
+  const runtime = { time: 0 };
+  const coordinator = createExecutionCoordinator(() => runtime);
+  const skill = { id: 1, name: 'Canonical', effects: [{ type: 'strike', when: () => true }] };
+  const cast = { id: 'cast', skill };
+  const action = { type: 'action', at: 0, actorType: 'player', sourceId: 1, eventOrder: 2, activationId: 'cast' };
+  const outer = { type: 'damage', at: 0, actorType: 'player', sourceId: 'outer', eventOrder: 1 };
+  coordinator.recordAction(cast.id, action);
+  const makeWork = createInternalWorkFactory({ has: (type) => ['runtime.task', 'runtime.cast-task'].includes(type) });
+  const context = {};
+  const scheduler = createRuntimeTaskScheduler({
+    skillsById: new Map([[1, skill]]),
+    context: () => context,
+    makeWork,
+    enqueueWork: coordinator.enqueueWork,
+    cancelOwned: (owner) => coordinator.cancelOwner(owner, () => undefined),
+    castAction: coordinator.castAction,
+    withCause: coordinator.withCause,
+    tasks: {
+      failing(actual, data) {
+        assert.equal(actual, context);
+        assert.equal(data.cast.skill, skill);
+        assert.equal(coordinator.currentCause(), action);
+        assert.equal(coordinator.reactionParent({ type: 'damage', actorType: 'summon', sourceId: 'pet' }), undefined);
+        throw new Error('task failure');
+      },
+      ordinary() {
+        assert.equal(coordinator.currentCause(), outer);
+      }
+    }
+  });
+  assert.equal('dispatch' in scheduler.commands, false);
+  assert.equal(Object.isFrozen(scheduler.commands), true);
+  scheduler.commands.scheduleForCast('failing', 0, cast, { cast: { id: 'imposter' } });
+  const work = coordinator.queue.dequeue();
+  coordinator.withCause(outer, () => {
+    assert.throws(() => scheduler.dispatch(work), /task failure/);
+    assert.equal(coordinator.currentCause(), outer);
+    assert.equal(coordinator.reactionParent({ type: 'damage', actorType: 'summon', sourceId: 'pet' }), 1);
+    scheduler.commands.schedule('ordinary', 0);
+    scheduler.dispatch(coordinator.queue.dequeue());
+  });
+  assert.equal(coordinator.currentCause(), null);
+});
+
+// Policy initialization may issue host requests only after task, cast, and delivery owners are bound.
+test('endurance and resource initialization observe bound capabilities in the established order', () => {
+  const phases = [];
+  let enduranceVisited = false;
+  const result = run(
+    [],
+    {},
+    native({
+      endurance: {
+        state(context) {
+          if (!enduranceVisited) {
+            enduranceVisited = true;
+            phases.push('endurance');
+            assert.equal(context.queries.castController.currentLaneEnd(), 0);
+            context.schedule('policy', 0, 'endurance-task');
+            context.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'buff',
+                at: 0,
+                kind: 'might',
+                stacks: 1,
+                duration: 1,
+                source: 'Policy',
+                sourceId: 'policy',
+                actorType: 'player'
+              }
+            });
+          }
+
+          return context.profession.core.endurancePool;
+        },
+        maximum: () => 100,
+        regenerationRate: () => 0
+      },
+      resources: {
+        energy: {
+          kind: 'continuous',
+          state: (context) => context.profession.core.energy,
+          maximum: () => 10,
+          initial(context) {
+            phases.push('resource');
+            assert.equal(context.queries.endurance.readyAt(100), 0);
+            context.schedule('policy', 0, 'resource-task');
+            return 3;
+          },
+          recovery: () => 0
+        }
+      },
+      initialize(context) {
+        phases.push('profession');
+        assert.equal(context.queries.resourceController.value('energy'), 3);
+      },
+      tasks: {
+        policy(_context, phase) {
+          phases.push(phase);
+        }
+      }
+    })
+  );
+  assert.deepEqual(phases, ['endurance', 'resource', 'profession', 'endurance-task', 'resource-task']);
+  assert.deepEqual(result.warnings, []);
 });

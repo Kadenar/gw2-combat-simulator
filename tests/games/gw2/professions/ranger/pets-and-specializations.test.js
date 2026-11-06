@@ -1727,7 +1727,7 @@ test('Soulbeast evaluates archetypes across merge state and pet changes', () => 
       precision: 1000,
       vitality: 1000
     };
-    const actual = rangerProfession.runtimeFor({ specialization: 'Soulbeast' }).modifyAttributes(
+    const actual = rangerProfession.runtimeFor({ specialization: 'Soulbeast' }).calculations.modifyAttributes(
       {
         config: { specialization: 'Soulbeast', selectedPet: 'Pig' },
         catalog: rangerCatalog,

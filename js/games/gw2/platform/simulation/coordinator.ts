@@ -10,7 +10,8 @@ import {
   FLIP_EXPIRY_PRIORITY,
   isRuntimeWork,
   type RuntimeQueueEntry,
-  type RuntimeWork
+  type RuntimeWork,
+  type WorkOwner
 } from '#gw2/platform/simulation/work-contract.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { canonicalEvent, StableEventQueue } from '#kernel/events/queue.js';
@@ -150,6 +151,14 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     }
   }
 
+  /** Exact lifetime generations cancel both internal work and delivery-owned packets on the single queue. */
+  function cancelOwner(owner: WorkOwner, packetOwner: (packet: Gw2ResolverEvent) => WorkOwner | undefined): void {
+    queue.cancelWhere((event) => {
+      const candidate = isRuntimeWork(event) ? event.owner : packetOwner(event);
+      return candidate?.id === owner.id && candidate.generation === owner.generation;
+    });
+  }
+
   /** Project pending deadlines with their actual cause, excluding already identified physical summon loops. */
   function pendingEffects(
     executed: readonly Gw2ResolverEvent[],
@@ -267,6 +276,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     withCause,
     currentCause: () => currentCause,
     enqueueWork,
+    cancelOwner,
     pendingEffects,
     run,
     eventOrder: () => eventOrder,

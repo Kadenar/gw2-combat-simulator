@@ -7,7 +7,7 @@
  */
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState, readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
@@ -40,7 +40,7 @@ export function spendAllPistolBullets(context: MechanicContext<ElementalistRunti
 }
 
 /** The final declared action updates bullet stock after any skill-specific enhancement reads it. */
-export const pistolBulletSideEffectHandlers: RuntimeProfession<
+export const pistolBulletSideEffectHandlers: RuntimeHooks<
   ElementalistRuntimeState,
   ElementalistSkill
 >['sideEffectHandlers'] = {

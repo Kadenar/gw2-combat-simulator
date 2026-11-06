@@ -6,6 +6,8 @@ import { RECIPIENT } from '#gw2/platform/constants.js';
 import type {
   AmmoObservation,
   CooldownController,
+  CooldownQueries,
+  MechanicCooldownController,
   RechargeCheckpoint,
   RechargeTimerSnapshot,
   RechargeWorkSnapshot
@@ -317,7 +319,25 @@ export function createCooldownController({
       ? fixedTimer(at + snapshot.remaining)
       : workTimer(requireSkill(skillId), restoreWork(snapshot.progress, at));
 
-  return Object.freeze({
+  // Narrow capabilities own their operations; wider views reuse them without exposing owner back-references.
+  const queries = Object.freeze({
+    readyAt,
+    hasCooldown: (id: SkillId) => readyAt(id) !== undefined,
+    hasAmmo: (id: SkillId) => ammoPools.has(id),
+    readAmmo(id: SkillId) {
+      const ammo = ammoPools.get(id);
+      return ammo ? observeAmmo(ammo) : undefined;
+    },
+    rechargeFor(id: SkillId) {
+      const timer = timers.get(id);
+      return timer?.kind === 'work' ? timer.progress : undefined;
+    },
+    rate,
+    project,
+    remaining
+  } satisfies CooldownQueries);
+  const mechanics = Object.freeze({
+    ...queries,
     // Live formula reads settle only the requested pool and retain unrounded deadline comparisons.
     isOnCooldown(id: SkillId, at = clock.time) {
       if (at !== clock.time) throw new RangeError('Live cooldown queries must use the current clock.');
@@ -332,17 +352,6 @@ export function createCooldownController({
       const timer = timers.get(id);
       const skill = skillFor(id);
       return timer ? (skill ? liveDeadline(skill, timer) : deadline(timer)) > at : false;
-    },
-    readyAt,
-    hasCooldown: (id: SkillId) => readyAt(id) !== undefined,
-    readAmmo(id: SkillId) {
-      const ammo = ammoPools.get(id);
-      return ammo ? observeAmmo(ammo) : undefined;
-    },
-    hasAmmo: (id: SkillId) => ammoPools.has(id),
-    rechargeFor(id: SkillId) {
-      const timer = timers.get(id);
-      return timer?.kind === 'work' ? timer.progress : undefined;
     },
     *cooldownSkillIds() {
       for (const id of timers.keys()) if (!ammoPools.has(id)) yield id;
@@ -498,17 +507,10 @@ export function createCooldownController({
         }
       }
     },
-    resetAll() {
-      timers.clear();
-      ammoPools.clear();
-    },
     startRecharge,
     setReadyAt,
     clear,
     copy,
-    rate,
-    project,
-    remaining,
     refresh(at: number) {
       // Keep completed ordinary work for mechanics, reuse constant-rate caches, and settle each shared pool once.
       for (const [id, timer] of timers) {
@@ -524,13 +526,22 @@ export function createCooldownController({
       // Initialization checks capacity without copying observations or projecting recharge deadlines.
       return ensurePool(skill) !== null;
     },
+    reduceSkillRecharge,
     refreshAmmo(skill: Skill, at: number) {
       const ammo = refreshPool(skill, at);
       return ammo ? observeAmmo(ammo) : null;
     },
-    reduceSkillRecharge,
-    restoreAmmo,
+    restoreAmmo
+  } satisfies MechanicCooldownController);
+  return Object.freeze({
+    ...mechanics,
+    resetAll() {
+      timers.clear();
+      ammoPools.clear();
+    },
+    spendAmmo,
     setAmmoLockout,
-    spendAmmo
-  });
+    queries,
+    mechanics
+  } satisfies CooldownController);
 }

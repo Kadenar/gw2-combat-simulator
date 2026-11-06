@@ -5,7 +5,6 @@ import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
@@ -107,7 +106,7 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
 };
 
 /** Torch activation owns its flip duration and lockout; later eligible skills clear the shared lockout. */
-const guardianTorchActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
+const guardianTorchActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.arm-zealots-fire'(runtime, context) {
     const duration = Number(context.skill.flipDuration) * radiantFireDurationMultiplier(runtime.helpers, runtime);
     runtime.armFlip(ID.ZEALOTS_FIRE, { expiresAt: canonicalTime(runtime.time + duration) });

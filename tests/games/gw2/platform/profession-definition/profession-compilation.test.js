@@ -178,3 +178,49 @@ test('native runtime compilation defers presentation until the application reque
   assert.equal(familyPresentations, 1);
   assert.equal(profession.resolveProfession({}), runtime);
 });
+
+// Selected plans remain immutable and shared across trigger modes while state and elite selections stay independent.
+test('selected calculations share identity across runtimes without sharing mutable state', () => {
+  const family = defineNativeProfession({
+    id: 'calculation-identity',
+    name: 'Calculation identity',
+    modules: ['Core', 'Elite'].map((id) =>
+      defineNativeModule({
+        id,
+        data: {},
+        state: { create: () => ({ [id]: { count: 0 } }) },
+        modifiers: {
+          modifierRules: [
+            { id: `${id}.power`, target: 'attributePower', operation: 'add', amount: id === 'Core' ? 10 : 20 }
+          ]
+        }
+      })
+    )
+  });
+  const core = family.resolveProfession({});
+  const elite = family.resolveProfession({ specialization: 'Elite' });
+  assert.notEqual(core.calculations, elite.calculations);
+  for (const [specialization, selected, expectedPower] of [
+    ['Core', core, 110],
+    ['Elite', elite, 130]
+  ]) {
+    assert.equal(Object.isFrozen(selected.calculations), true);
+    assert.equal(
+      selected.calculations.modifyAttributes({ catalog: selected.catalog }, { power: 100 }).power,
+      expectedPower
+    );
+    for (const traitTriggers of [true, false]) {
+      const runtime = family.runtimeFor({ specialization }, { traitTriggers });
+      assert.equal(runtime.calculations, selected.calculations);
+      const first = runtime.createState({ specialization });
+      const second = runtime.createState({ specialization });
+      first.core.Core.count = 9;
+      assert.equal(second.core.Core.count, 0);
+
+      if (specialization === 'Elite') {
+        first.specialization.state.Elite.count = 7;
+        assert.equal(second.specialization.state.Elite.count, 0);
+      }
+    }
+  }
+});

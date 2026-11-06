@@ -14,8 +14,12 @@ export interface EffectReactionActions<T extends object> {
   apply(runtime: MechanicContext<T>, context: ActionContext, action: SideEffectAction): void;
 }
 
+/** Producers register authored reactions without gaining authority to dispatch them. */
+export type EffectReactionRegistration = Pick<EffectReactionRegistry<object>, 'register'>;
+
 /** Interned reaction groups for authored effects; packets carry only their serializable group reference. */
 export interface EffectReactionRegistry<T extends object> {
+  readonly registration: EffectReactionRegistration;
   /** Validates and interns an effect's reactions, returning its group or undefined when it declares none. */
   register(skill: Skill, effect: SkillEffect): number | undefined;
   dispatch(
@@ -31,7 +35,7 @@ export function createEffectReactions<T extends object>(
 ): EffectReactionRegistry<T> {
   const groups: { skill: Skill; rules: readonly EffectReaction[]; literalType?: SkillEffect['type'] }[] = [];
   const identities = new WeakMap<Skill, WeakMap<readonly EffectReaction[], number>>();
-  return {
+  const operations = {
     register(skill: Skill, effect: SkillEffect): number | undefined {
       if (effect.reactions === undefined) return undefined;
 
@@ -105,6 +109,8 @@ export function createEffectReactions<T extends object>(
       }
     }
   };
+  // Mechanics can intern authored reactions without acquiring resolver dispatch.
+  return Object.freeze({ ...operations, registration: Object.freeze({ register: operations.register }) });
 }
 
 /** Match discriminants before invoking a stage-specific predicate, without manufacturing damage details. */

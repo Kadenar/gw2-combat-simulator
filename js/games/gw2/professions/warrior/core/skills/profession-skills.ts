@@ -3,7 +3,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { warriorBurstSpend, warriorBurstTier } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
@@ -535,9 +535,11 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
 };
 
 /** Fields select their tier before the shared burst reservation spends adrenaline. */
-export const combustiveShotFields: NonNullable<
-  RuntimeProfession<WarriorRuntimeState, WarriorSkill>['modifyComboFields']
-> = (runtime, cast, fields) => {
+export const combustiveShotFields: NonNullable<RuntimeHooks<WarriorRuntimeState, WarriorSkill>['modifyComboFields']> = (
+  runtime,
+  cast,
+  fields
+) => {
   if (cast.skill.id !== ID.COMBUSTIVE_SHOT) return fields;
 
   const tier = warriorBurstTier(warriorBurstRules(runtime).spend(runtime, cast.skill));

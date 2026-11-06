@@ -13,7 +13,6 @@ import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -429,7 +428,7 @@ export const GUARDIAN_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Ski
   }
 };
 
-const guardianSpearActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
+const guardianSpearActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.spear-illumination'(runtime, context) {
     if (context.kind === 'cast') completeSpearIllumination(runtime, context.cast, false);
   },

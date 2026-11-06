@@ -457,9 +457,9 @@ test('family attribute phases preserve rule order and reject duplicate rule iden
   const family = testFamily(core, elite);
   const config = { specialization: 'Elite' };
   const query = family.resolveProfession(config);
-  assert.equal(query.modifyAttributes({ catalog: query.catalog, config, time: 0 }, attributes).power, 690);
+  assert.equal(query.calculations.modifyAttributes({ catalog: query.catalog, config, time: 0 }, attributes).power, 690);
   assert.deepEqual(attributes, { power: 100 });
-  assert.equal(family.runtimeFor(config).modifyAttributes, query.modifyAttributes);
+  assert.equal(family.runtimeFor(config).calculations.modifyAttributes, query.calculations.modifyAttributes);
 
   const duplicate = {
     id: 'same.power',
@@ -491,14 +491,16 @@ test('family modifier rules share one GW2 damage bucket', () => {
   );
   const context = { damageInputs: { strikeSigilBonus: 0.5, equipmentBonus: 0.25 } };
   assert.equal(
-    family.resolveProfession({}).modifyStrikeDamage({ ...context, catalog: family.resolveProfession({}).catalog }, 1),
+    family
+      .resolveProfession({})
+      .calculations.modifyStrikeDamage({ ...context, catalog: family.resolveProfession({}).catalog }, 1),
     2
   );
   const config = { specialization: 'Elite' };
   const query = family.resolveProfession(config);
   const runtime = family.runtimeFor(config);
-  assert.equal(query.modifyStrikeDamage({ ...context, catalog: query.catalog }, 1), 2.5);
-  assert.equal(runtime.modifyStrikeDamage, query.modifyStrikeDamage);
+  assert.equal(query.calculations.modifyStrikeDamage({ ...context, catalog: query.catalog }, 1), 2.5);
+  assert.equal(runtime.calculations.modifyStrikeDamage, query.calculations.modifyStrikeDamage);
 });
 
 // Policy ownership is per target, and invalid declarations fail even when no damage rules exist.
@@ -524,11 +526,15 @@ test('family empty rules compile equipment with selected bucket policies', () =>
   const context = { damageInputs: { strikeSigilBonus: 0.5, conditionSigilBonus: 0.25, equipmentBonus: 0.25 } };
   const empty = testFamily(testModule('Core'));
   assert.equal(
-    empty.resolveProfession({}).modifyStrikeDamage({ ...context, catalog: empty.resolveProfession({}).catalog }, 1),
+    empty
+      .resolveProfession({})
+      .calculations.modifyStrikeDamage({ ...context, catalog: empty.resolveProfession({}).catalog }, 1),
     1.75
   );
   assert.equal(
-    empty.resolveProfession({}).modifyConditionDamage({ ...context, catalog: empty.resolveProfession({}).catalog }, 1),
+    empty
+      .resolveProfession({})
+      .calculations.modifyConditionDamage({ ...context, catalog: empty.resolveProfession({}).catalog }, 1),
     1.5
   );
   const family = testFamily(
@@ -536,15 +542,15 @@ test('family empty rules compile equipment with selected bucket policies', () =>
     testModule('Elite', { modifiers: { damageBuckets: { conditionDamage: { includeSigil: false } } } })
   );
   const core = family.resolveProfession({});
-  assert.equal(core.modifyStrikeDamage({ ...context, catalog: core.catalog }, 1), 1.25);
-  assert.equal(core.modifyConditionDamage({ ...context, catalog: core.catalog }, 1), 1.5);
+  assert.equal(core.calculations.modifyStrikeDamage({ ...context, catalog: core.catalog }, 1), 1.25);
+  assert.equal(core.calculations.modifyConditionDamage({ ...context, catalog: core.catalog }, 1), 1.5);
   const config = { specialization: 'Elite' };
   const query = family.resolveProfession(config);
   const runtime = family.runtimeFor(config);
-  assert.equal(query.modifyStrikeDamage({ ...context, catalog: query.catalog }, 1), 1.25);
-  assert.equal(query.modifyConditionDamage({ ...context, catalog: query.catalog }, 1), 1.25);
-  assert.equal(runtime.modifyStrikeDamage, query.modifyStrikeDamage);
-  assert.equal(runtime.modifyConditionDamage, query.modifyConditionDamage);
+  assert.equal(query.calculations.modifyStrikeDamage({ ...context, catalog: query.catalog }, 1), 1.25);
+  assert.equal(query.calculations.modifyConditionDamage({ ...context, catalog: query.catalog }, 1), 1.25);
+  assert.equal(runtime.calculations.modifyStrikeDamage, query.calculations.modifyStrikeDamage);
+  assert.equal(runtime.calculations.modifyConditionDamage, query.calculations.modifyConditionDamage);
   assert.equal(runtime.createState, query.createState);
   assert.equal(runtime.catalog, query.catalog);
   assert.equal(family.runtimeFor(config), runtime);

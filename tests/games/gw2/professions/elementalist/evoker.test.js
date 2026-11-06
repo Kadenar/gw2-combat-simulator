@@ -763,13 +763,13 @@ test('Familiar Prowess retains its applied window and patched Focus scaling afte
       ])
     }
   };
-  assert.equal(runtime.modifyStrikeDamage(context, 100), 120);
+  assert.equal(runtime.calculations.modifyStrikeDamage(context, 100), 120);
   assert.equal(
-    runtime.modifyStrikeDamage(
+    runtime.calculations.modifyStrikeDamage(
       { ...context, config: { ...context.config, selectedTraitIds: [TRAIT.FAMILIARS_FOCUS] } },
       100
     ),
     130
   );
-  assert.equal(runtime.modifyStrikeDamage({ ...context, time: 2 }, 100), 100);
+  assert.equal(runtime.calculations.modifyStrikeDamage({ ...context, time: 2 }, 100), 100);
 });

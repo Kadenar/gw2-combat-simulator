@@ -4,7 +4,7 @@ import test from 'node:test';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { testProfessionModifiers } from '#tests/fixtures/profession.js';
+import { testProfession } from '#tests/fixtures/profession.js';
 import { cast, wait } from '#tests/helpers/commands.js';
 
 // Every reported packet carries an identity, and reactions name the event whose handling created them.
@@ -34,7 +34,7 @@ const buff = (at, sourceId, extra = {}) => ({
 
 function run(rotation, hooks) {
   const profession = {
-    ...testProfessionModifiers,
+    calculations: testProfession.calculations,
     id: 'provenance-fixture',
     catalog,
     skillSelectionCatalog: catalog,

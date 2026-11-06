@@ -526,7 +526,7 @@ test('module registration normalizes modifier rule collections', () => {
   assert.equal(
     familyWith(core)
       .runtimeFor({})
-      .modifyStrikeDamage({ catalog: familyWith(core).runtimeFor({}).catalog }, 10),
+      .calculations.modifyStrikeDamage({ catalog: familyWith(core).runtimeFor({}).catalog }, 10),
     20
   );
 });
@@ -579,14 +579,14 @@ test('trait expansion preserves scalar rules, damage policies, and cached runtim
   assert.equal(selected, unselected);
   const damageInputs = { strikeSigilBonus: 0.5 };
   assert.equal(
-    selected.modifyStrikeDamage({ catalog: selected.catalog, selectedTraitIds: [101], damageInputs }, 10),
+    selected.calculations.modifyStrikeDamage({ catalog: selected.catalog, selectedTraitIds: [101], damageInputs }, 10),
     20
   );
   assert.equal(
-    unselected.modifyStrikeDamage({ catalog: unselected.catalog, selectedTraitIds: [], damageInputs }, 10),
+    unselected.calculations.modifyStrikeDamage({ catalog: unselected.catalog, selectedTraitIds: [], damageInputs }, 10),
     10
   );
-  assert.equal(selected.modifyCriticalChance({ catalog: selected.catalog }, 0), 0.1);
+  assert.equal(selected.calculations.modifyCriticalChance({ catalog: selected.catalog }, 0), 0.1);
   assert.equal(selected.rechargeWork({ config: { selectedTraitIds: [101] }, helpers: selected.catalog }, skill, 10), 5);
   assert.equal(unselected.rechargeWork({ config: { selectedTraitIds: [] }, helpers: selected.catalog }, skill, 10), 10);
   assert.throws(() => defineTrait({ ...metadata, profiles: [] }), /Unsupported trait definition field: profiles/);
@@ -604,8 +604,8 @@ test('preview rules, active profiles, removed effects, and tooltip values share 
   const live = family.runtimeFor({});
   const patched = family.runtimeFor({ patchId: 'preview' });
   const context = (runtime) => ({ helpers: runtime.catalog, config: { selectedTraitIds: [101] } });
-  assert.equal(live.modifyStrikeDamage({ ...context(live), catalog: live.catalog }, 10), 20);
-  assert.equal(patched.modifyStrikeDamage({ ...context(patched), catalog: patched.catalog }, 10), 30);
+  assert.equal(live.calculations.modifyStrikeDamage({ ...context(live), catalog: live.catalog }, 10), 20);
+  assert.equal(patched.calculations.modifyStrikeDamage({ ...context(patched), catalog: patched.catalog }, 10), 30);
   assert.equal(patched.rechargeWork(context(patched), skill, 10), 2.5);
   assert.equal(live.rechargeWork(context(live), skill, 10), 5);
   assert.equal(
@@ -688,8 +688,8 @@ test('definition attributes use resolved minors, eligible conversions and patch 
   );
   const runtime = family.runtimeFor({ patchId: 'preview' });
   const context = { catalog: runtime.catalog, config: { selectedTraitIds: [101] } };
-  const direct = runtime.modifyAttributes(context, { power: 1000 });
-  const repeated = runtime.modifyAttributes(context, { power: 1000 });
+  const direct = runtime.calculations.modifyAttributes(context, { power: 1000 });
+  const repeated = runtime.calculations.modifyAttributes(context, { power: 1000 });
   assert.equal(direct.power, repeated.power);
   assert.equal(direct.power, 1050);
 });

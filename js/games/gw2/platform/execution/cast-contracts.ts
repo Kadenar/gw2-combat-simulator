@@ -1,5 +1,6 @@
 import type { CastCommand, ChargeReleaseIntent } from '#gw2/platform/builds/rotation.js';
 import type { Skill, SkillId, SkillTask } from '#gw2/platform/skills/types.js';
+import { createDeferredQueries } from '#kernel/core/deferred-queries.js';
 
 /** A cast owns one reservation from acceptance through completion, including its selected recharge work. */
 export interface RuntimeCast<TSkill extends Skill = Skill> {
@@ -39,4 +40,20 @@ export interface CastControl {
   inFlightSkillIds(): IterableIterator<SkillId>;
   setLockout(group: string, at: number): void;
   clearLockout(group: string): void;
+}
+
+/** Readiness observes accepted casts without granting lockout mutation. */
+export type CastQueries = Pick<
+  CastControl,
+  'hasInFlight' | 'inFlightSkillIds' | 'currentLaneEnd' | 'pendingChargeRelease'
+>;
+
+/** Deferred access follows replacement and never reads an unbound cast owner during construction. */
+export function createCastQueries(readControl: () => CastControl): CastQueries {
+  return createDeferredQueries(readControl, [
+    'hasInFlight',
+    'inFlightSkillIds',
+    'currentLaneEnd',
+    'pendingChargeRelease'
+  ]);
 }

@@ -4,7 +4,6 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
@@ -254,7 +253,7 @@ export function guardianIgnitionFields(runtime: MechanicQueriesOf<GuardianRuntim
     : [];
 }
 
-const guardianIgnitionActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
+const guardianIgnitionActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.place-ignition'(runtime) {
     const skill = requireSkill(runtime.helpers, ID.SYMBOL_OF_IGNITION);
     const field = requireEffect(

@@ -1,6 +1,7 @@
 /** Compile declarative modifiers with explicit ordinary and final-condition attribute phases. */
 import { applyAttributeContributions, applyFinalConditionAttributes } from '#gw2/platform/attributes/evaluation.js';
 import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
+import type { Gw2ProfessionCalculations } from '#gw2/platform/combat-calculation/profession-contract.js';
 import { createModifierHooks, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { ProfessionFamilyContract } from '#gw2/platform/profession-definition/family-contract.js';
 import type {
@@ -33,13 +34,13 @@ export function assertDefinition(definition: { readonly id: string; readonly nam
   }
 }
 
-type AttributePhases = Pick<NormalizedProfessionContract, 'modifyAttributes' | 'modifyConditionAttributes'>;
+type AttributePhases = Pick<Gw2ProfessionCalculations, 'modifyAttributes' | 'modifyConditionAttributes'>;
 
 /**
  * Selects both attribute phases once. Without declarations, only compiled rules apply and final conditions are kept.
  * Combat queries supply one sample across phases; direct evaluator callers sample current facts themselves.
  */
-function attributePhases(
+function compileAttributePhases(
   calculate: ProfessionDefinition['attributeContributions'],
   applyRules: AttributePhases['modifyAttributes']
 ): AttributePhases {
@@ -78,9 +79,14 @@ export function defineProfession<TProfessionState extends object, TSkill extends
   // Compile even empty declarations so equipment always participates exactly once in the damage bucket.
   const compiled = createModifierHooks({ rules: modifiers.modifierRules, damageBuckets: modifiers.damageBuckets });
 
-  // Annotating the contract keeps the compiler checking every evaluator in this explicit list.
-  const profession: NormalizedProfessionContract<TProfessionState, TSkill> = {
+  // Preserve one immutable evaluator plan across selected contracts and runtime modes.
+  const calculations = Object.freeze({
+    ...compiled,
     attributeContributions: definition.attributeContributions,
+    ...compileAttributePhases(definition.attributeContributions, compiled.modifyAttributes)
+  } satisfies Gw2ProfessionCalculations);
+  const profession: NormalizedProfessionContract<TProfessionState, TSkill> = {
+    calculations,
     canSwapWeaponSetsInCombat: definition.canSwapWeaponSetsInCombat ?? true,
     id: definition.id,
     name: definition.name,
@@ -90,14 +96,7 @@ export function defineProfession<TProfessionState extends object, TSkill extends
     createState: (config, balanceContext) =>
       resources.createState?.(config, balanceContext) ?? ({} as TProfessionState),
     // Only declared observations are public; definitions without a projector contribute no fields.
-    projectPlanningState: resources.projectPlanningState ?? (() => ({})),
-    ...attributePhases(definition.attributeContributions, compiled.modifyAttributes),
-    modifyCriticalChance: compiled.modifyCriticalChance,
-    modifyCriticalDamage: compiled.modifyCriticalDamage,
-    modifyConditionBaseDuration: compiled.modifyConditionBaseDuration,
-    modifyConditionDuration: compiled.modifyConditionDuration,
-    modifyStrikeDamage: compiled.modifyStrikeDamage,
-    modifyConditionDamage: compiled.modifyConditionDamage
+    projectPlanningState: resources.projectPlanningState ?? (() => ({}))
   };
   return Object.freeze(profession);
 }

@@ -69,7 +69,7 @@ test('build attributes lose Empire Divided Power only in Preview', () => {
   ]) {
     const selected = { ...config, patchId: patch.id, selectedTraitIds: [REWORK.RISE_TO_THE_OCCASION] };
     assert.equal(
-      profession.resolveProfession(selected).modifyAttributes(
+      profession.resolveProfession(selected).calculations.modifyAttributes(
         {
           catalog: patch.catalog,
           config: selected,
@@ -145,8 +145,8 @@ test('Rise to the Occasion follows endurance, ownership and provisional tuning w
           profession: { core: { endurance: { value: endurance, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } } }
         }
       };
-      assert.equal(native.modifyStrikeDamage(context, 1), expected);
-      assert.equal(native.modifyConditionDamage({ ...context, condition: 'Burning' }, 1), 1);
+      assert.equal(native.calculations.modifyStrikeDamage(context, 1), expected);
+      assert.equal(native.calculations.modifyConditionDamage({ ...context, condition: 'Burning' }, 1), 1);
     }
   }
 });

@@ -1520,8 +1520,8 @@ test('Luminary definitions preserve eligible build grants and applied armament w
       time: 1,
       event: { actorType: 'player' }
     };
-    assert.ok(Math.abs(runtime.modifyStrikeDamage(context, 100) - expected) < 1e-10);
-    assert.equal(runtime.modifyStrikeDamage({ ...context, time: 2 }, 100), 100);
+    assert.ok(Math.abs(runtime.calculations.modifyStrikeDamage(context, 100) - expected) < 1e-10);
+    assert.equal(runtime.calculations.modifyStrikeDamage({ ...context, time: 2 }, 100), 100);
   }
 });
 

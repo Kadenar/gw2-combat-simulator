@@ -1,4 +1,5 @@
-import type { Gw2CombatQuery, Gw2CriticalResult } from '#gw2/platform/combat-calculation/combat-query.js';
+/** Maintains authoritative combat state and narrow optional reporting observers. */
+import type { Gw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { Gw2CriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import { normalizeCriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
@@ -7,22 +8,20 @@ import { createProcRegistry, type ProcRegistry } from '#gw2/platform/combat/proc
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { createGw2ComboRuntimeState } from '#gw2/platform/combos/resolution.js';
 import type { Gw2ComboRuntimeState } from '#gw2/platform/combos/types.js';
-import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
 import { createSigilRuntimeState } from '#gw2/platform/equipment/sigils/runtime.js';
 import type { Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type { Gw2ConditionResolution, Gw2ResolverConditionState } from '#gw2/platform/resolver/condition-resolution.js';
-import type { Gw2DamageBreakdownEntry } from '#gw2/platform/resolver/hit-resolution.js';
-import { createMechanicCombatServices, type MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import type {
-  Gw2ConditionBreakdownEntry,
-  Gw2EnvironmentConditionBreakdownEntry,
-  Gw2EventQueue,
-  Gw2ResolverHelpers
-} from '#gw2/platform/resolver/types.js';
+  Gw2ConditionResolution,
+  Gw2EnvironmentConditionState,
+  Gw2ResolverConditionState
+} from '#gw2/platform/resolver/condition-resolution.js';
+import { createMechanicCombatServices, type MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import type { Gw2EventQueue, Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
+import type { DamageReportObserver } from '#gw2/platform/results/damage-report.js';
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
 import type { ProcStepObserver } from '#gw2/platform/results/proc-steps.js';
@@ -41,6 +40,7 @@ export function createGw2ResolverRuntimeState({
   ownsEffect,
   effectRecorder = null,
   procRecorder = null,
+  damageRecorder = null,
   damageDiagnostics = false,
   config,
   traits = new Set(),
@@ -69,6 +69,7 @@ export function createGw2ResolverRuntimeState({
     effectRecorder,
     // Timeline proc rows are an optional observer; resolution only announces executed procs.
     procRecorder,
+    damageRecorder,
     damageDiagnostics: output !== 'score' && damageDiagnostics,
     config,
     traits,
@@ -79,8 +80,6 @@ export function createGw2ResolverRuntimeState({
     effects,
     // Each resolution pass collects its own warnings without sharing mutable state with another run.
     warnings: [],
-    breakdown: new Map(),
-    conditions: new Map(),
     environmentDamage: 0,
     environmentConditions: new Map(),
     conditionState: new Map(),
@@ -112,83 +111,6 @@ export function createGw2ResolverRuntimeState({
       return output === 'detailed' || (output === 'damage' && ownsEffect!(event));
     },
 
-    addBreakdown(
-      name: string,
-      damage: number,
-      type: 'strikeDamage' | 'conditionDamage',
-      hits = 0,
-      source: Gw2ResolverEvent | null = null,
-      critical: Gw2CriticalResult | null = null
-    ): void {
-      // Damage totals and reaction state are maintained separately from these display rows.
-      if (output !== 'detailed') return;
-
-      const sourceSkill = source?.skillName || source?.name || name;
-      const parentSkill = source?.parentSkillName || '';
-      const skillId = source?.skillId ?? null;
-      const sourceId = source?.sourceId ?? skillId ?? sourceSkill;
-      const identityId = skillId ?? sourceId;
-      // Summon subtype prevents clone and phantasm entries from sharing one identity bucket.
-      const actorIdentity = source?.summonKind
-        ? `${source.actorType}:${source.summonKind}`
-        : (source?.actorType ?? source?.source ?? '');
-      // Named summons keep separate contributions even when both pets use the same skill.
-      const entityName = source?.actorType === ACTOR.SUMMON ? source.entityName || '' : '';
-      const key = source ? `${String(identityId)}|${actorIdentity}|${parentSkill}|${name}|${entityName}` : name;
-      const current: Omit<Gw2DamageBreakdownEntry, 'damage'> = this.breakdown.get(key) || {
-        name,
-        sourceSkill,
-        parentSkill,
-        damageBreakdownName: source?.damageBreakdownName,
-        icon: source?.icon || '',
-        skillId,
-        sourceId,
-        actorType: source?.actorType,
-        summonKind: source?.summonKind,
-        entityName,
-        source: source?.source,
-        strikeDamage: 0,
-        conditionDamage: 0,
-        hits: 0,
-        critHits: 0,
-        critEligibleHits: 0
-      };
-
-      if (current.skillId == null && source?.skillId != null) {
-        current.skillId = source.skillId;
-      }
-
-      if (current.sourceId == null) {
-        current.sourceId = sourceId;
-      }
-
-      if (!current.actorType && source?.actorType) {
-        current.actorType = source.actorType;
-      }
-
-      if (!current.summonKind && source?.summonKind) {
-        current.summonKind = source.summonKind;
-      }
-
-      if (!current.source && source?.source) {
-        current.source = source.source;
-      }
-
-      // Retain only the independent damage components; result projection derives their combined total.
-      current[type] += damage;
-      current.hits += hits;
-
-      // Both modes report the seeded critical outcomes used by proc reactions.
-      if (type === 'strikeDamage' && critical) {
-        const eligible = hits || 0;
-        current.critEligibleHits = (current.critEligibleHits || 0) + eligible;
-        const critShare = critical.didCrit === true ? eligible : 0;
-        current.critHits = (current.critHits || 0) + critShare;
-      }
-
-      this.breakdown.set(key, current);
-    },
-
     markDamageTime(at: number): void {
       // First positive damage starts both DPS reporting and the shared condition clock.
       if (this.firstHitTime == null) {
@@ -209,6 +131,7 @@ export interface Gw2ResolverRuntime {
   readonly combat: MechanicCombatServices;
   readonly effectRecorder: EffectReportObserver | null;
   readonly procRecorder: ProcStepObserver | null;
+  readonly damageRecorder: DamageReportObserver | null;
   readonly criticalDamageMode: Gw2CriticalDamageMode;
   readonly procs: ProcRegistry;
   readonly output: 'detailed' | 'score' | 'damage';
@@ -222,10 +145,8 @@ export interface Gw2ResolverRuntime {
   queue: Gw2EventQueue;
   readonly effects: EffectEmissionService;
   warnings: Gw2SimulationDiagnostic[];
-  breakdown: Map<string, Omit<Gw2DamageBreakdownEntry, 'damage'>>;
-  conditions: Map<string, Gw2ConditionBreakdownEntry>;
   environmentDamage: number;
-  environmentConditions: Map<string, Gw2EnvironmentConditionBreakdownEntry>;
+  environmentConditions: Map<string, Gw2EnvironmentConditionState>;
   conditionState: Map<string, Gw2ResolverConditionState>;
   conditionBufferAt?: number;
   conditionBufferedAt?: number;
@@ -249,14 +170,6 @@ export interface Gw2ResolverRuntime {
   random: Readonly<SimulationRandom>;
   weaponStrengthRolls: Map<string, { profileId: string; value: number }>;
   weaponStrengthActivationOrder: number;
-  addBreakdown(
-    name: string,
-    damage: number,
-    type: 'strikeDamage' | 'conditionDamage',
-    hits?: number,
-    source?: Gw2ResolverEvent | null,
-    critical?: Gw2CriticalResult | null
-  ): void;
   retainsResolved(event: Gw2ResolverEvent): boolean;
   markDamageTime(at: number): void;
 }
@@ -265,6 +178,7 @@ interface CreateGw2ResolverRuntimeStateOptions {
   readonly engagement?: CombatEngagementQueries;
   readonly effectRecorder?: EffectReportObserver | null;
   readonly procRecorder?: ProcStepObserver | null;
+  readonly damageRecorder?: DamageReportObserver | null;
   readonly damageDiagnostics?: boolean;
   readonly output?: Gw2ResolverRuntime['output'];
   /** Damage measurements name the resolved packets they return; other outputs ignore ownership. */

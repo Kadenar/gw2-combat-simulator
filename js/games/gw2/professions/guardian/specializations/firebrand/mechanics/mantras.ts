@@ -12,7 +12,6 @@ import {
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { finalMantraChargeUsed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
@@ -150,7 +149,7 @@ export function firebrandMantraAvailability(runtime: MechanicQueriesOf<GuardianR
 }
 
 /** Declarations choose the phase; shared charge pools and generation wakes retain one controller. */
-const firebrandMantraActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
+const firebrandMantraActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
   Object.fromEntries(
     MANTRAS.flatMap((definition) => [
       [

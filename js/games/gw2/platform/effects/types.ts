@@ -1,6 +1,8 @@
+/** Authored effects combine strike inputs with timing, reactions, and per-application overrides. */
 import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import type { AuraName, SimulationActorType } from '#gw2/platform/constants.js';
 import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
+import type { StrikePayloadFields } from '#gw2/platform/effects/strike-payload.js';
 import type { EffectAudience, EffectMetadata } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -13,26 +15,13 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
  */
 
 /** Strike formula and ownership fields an effect declares once and an individual packet may override. */
-export interface StrikePacketFields {
+export interface StrikePacketFields extends StrikePayloadFields {
   /** A packet can override the enclosing effect's combo finisher metadata. */
   readonly comboFinishers?: readonly OwnedComboDescriptor[];
   readonly projectile?: boolean;
   readonly name?: string;
   /** Optional row label separates an effect's damage while preserving its source skill. */
   readonly damageBreakdownName?: string;
-  readonly weaponStrength?: number;
-  readonly independentSummonStrike?: boolean;
-  readonly summonUsesProfessionModifiers?: boolean;
-  readonly summonInheritsAttributes?: boolean;
-  readonly summonInheritsCriticalAttributes?: boolean;
-  readonly flatDamage?: number;
-  readonly flatStrikeBase?: number;
-  readonly flatStrikePowerCoeff?: number;
-  readonly flatStrikeMultiplier?: number;
-  readonly flatStrikeHealthThreshold?: number;
-  readonly flatStrikeThresholdMultiplier?: number;
-  readonly canCrit?: boolean;
-  readonly forceCrit?: boolean;
   readonly damageKind?: string;
   readonly metadata?: EffectMetadata;
 }

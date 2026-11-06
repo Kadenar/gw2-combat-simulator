@@ -3,9 +3,9 @@ import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import { createRuntimeEndurance } from '#gw2/platform/simulation/runtime-resources.js';
+import { createEnduranceController } from '#gw2/platform/combat/resources/endurance-controller.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { testProfessionModifiers } from '#tests/fixtures/profession.js';
+import { testProfession } from '#tests/fixtures/profession.js';
 import { cast, wait } from '#tests/helpers/commands.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
@@ -55,8 +55,11 @@ const catalog = createCanonicalCatalog({
 test('endurance spending agrees with readiness after fractional regeneration', () => {
   const pool = { value: 0, maximum: 100, updatedAt: 0, unitsPerSecond: 0 };
   const runtime = { time: 0, config: {}, history: [] };
-  const endurance = createRuntimeEndurance(runtime, {
-    endurance: { state: () => pool, maximum: () => 100, regenerationRate: () => 7.5 }
+  const endurance = createEnduranceController({
+    clock: runtime,
+    context: () => ({}),
+    policy: { state: () => pool, maximum: () => 100, regenerationRate: () => 7.5 },
+    intervals: (start, end) => [{ start, end, rate: 7.5 }]
   });
   endurance.spend(100);
   runtime.time = 6;
@@ -91,7 +94,7 @@ const config = {
 function fixture(hooks = {}) {
   return {
     // Reuse the normalized contract so compiled damage evaluators are included.
-    ...testProfessionModifiers,
+    calculations: testProfession.calculations,
     id: 'live-fixture',
     catalog,
     skillSelectionCatalog: catalog,
@@ -610,7 +613,7 @@ test('cast tasks detach snapshots, retain catalog callbacks, and preserve priori
       catalog: taskCatalog,
       onCastStart(runtime, activation) {
         accepted = activation;
-        const data = { label: 'early' };
+        const data = { label: 'early', cast: { id: 'authored-imposter' } };
         const owner = { id: 'cast-task', generation: 0 };
         runtime.scheduleForCast('inspect', 1.5, activation, data, owner, -10);
         runtime.scheduleForCast('inspect', 1.5, activation, { label: 'cancelled' }, { ...owner, generation: 1 });
@@ -731,4 +734,64 @@ test('detailed and score outputs share all numerical boundaries across the phase
     for (const key of Object.keys(score).filter((key) => key !== 'output'))
       assert.deepEqual(detailed[key], score[key], key);
   }
+});
+
+// Cancellation follows exact lifetime ownership, independently of a committed cast's attribution and descendants.
+test('one owner generation cancels its task and packet while committed descendants retain their own lifetimes', () => {
+  const seen = [];
+  const result = run([cast(990008), wait(1000)], {
+    profession: fixture({
+      onCastStart(context, activation) {
+        const old = { id: 'cast-life', generation: 0 };
+        const next = { id: 'cast-life', generation: 1 };
+        context.scheduleForCast('inspect', 0.5, activation, { label: 'cancelled-task' }, old);
+        context.scheduleForCast('inspect', 0.5, activation, { label: 'surviving-task' }, next);
+        for (const [sourceId, owner] of [
+          ['cancelled-packet', old],
+          ['next-packet', next],
+          ['committed-descendant', { id: 'projectile', generation: 0 }]
+        ])
+          context.effects.emit({
+            kind: 'packet',
+            event: packet(0.5, { sourceId }),
+            owner,
+            cast: { activationId: activation.id, skillId: activation.skill.id }
+          });
+        context.cancelOwner(old);
+      },
+      tasks: {
+        inspect(_context, data) {
+          seen.push(data.label);
+        }
+      }
+    })
+  });
+  assert.deepEqual(seen, ['surviving-task']);
+  const ids = result.events.map((event) => event.sourceId);
+  assert.equal(ids.includes('cancelled-packet'), false);
+  assert.equal(ids.includes('next-packet'), true);
+  assert.equal(ids.includes('committed-descendant'), true);
+});
+
+// Cleanup retires a grant after deadline gameplay; an older expiry cannot retire a rearmed identity.
+test('flip expiry preserves same-deadline replacements until gameplay has settled', () => {
+  const observed = [];
+  const result = run([wait(1000)], {
+    profession: fixture({
+      initialize(context) {
+        context.armFlip(990008, { expiresAt: 1 });
+        const replacement = context.armFlip(990008, { expiresAt: 1, uses: 2 });
+        context.consumeFlip(990008);
+        assert.equal(context.flips[990008].expiresAt, replacement.expiresAt);
+        context.schedule('observe', 1);
+      },
+      tasks: {
+        observe(context) {
+          observed.push(context.flips[990008]?.remainingUses);
+        }
+      }
+    })
+  });
+  assert.deepEqual(observed, [1]);
+  assert.deepEqual(result.warnings, []);
 });

@@ -744,7 +744,7 @@ export type Gw2ModifierHook = (context: Gw2ModifierContext, initialValue: number
 
 type Gw2AttributeModifierHook = (context: Gw2ModifierContext, initialValue: Gw2Stats) => Gw2Stats;
 
-interface Gw2ModifierHooks {
+export interface Gw2ModifierHooks {
   readonly modifyAttributes: Gw2AttributeModifierHook;
   readonly modifyCriticalChance: Gw2ModifierHook;
   readonly modifyCriticalDamage: Gw2ModifierHook;

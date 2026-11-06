@@ -189,12 +189,14 @@ test('score and damage measurements omit unused report collections while preserv
     assert.equal(criticals[0].furyActive, true);
 
     if (output === 'detailed') {
-      assert.ok(runtime.breakdown.size > 0);
-      assert.ok(runtime.conditions.size > 0);
+      assert.ok(runtime.damageRecorder);
+      assert.ok(result.breakdown.length > 0);
+      assert.ok(result.conditionBreakdown.length > 0);
       assert.ok(runtime.procRecorder.steps.length > 0);
     } else {
-      assert.equal(runtime.breakdown.size, 0);
-      assert.equal(runtime.conditions.size, 0);
+      assert.equal(runtime.damageRecorder, null);
+      assert.equal('breakdown' in runtime, false);
+      assert.equal('conditions' in runtime, false);
       assert.equal(runtime.procRecorder, null);
     }
 

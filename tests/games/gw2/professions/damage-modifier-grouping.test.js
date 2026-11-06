@@ -104,7 +104,10 @@ test('Bird of Prey multiplies the shared Gale Force, Wind Force, and sigil bonus
         }
       }
     });
-    assertClose(profession.modifyStrikeDamage(context, 1), (1 + 0.08 + 0.25 + 2 * 0.03) * (swiftness ? 1.05 : 1));
+    assertClose(
+      profession.calculations.modifyStrikeDamage(context, 1),
+      (1 + 0.08 + 0.25 + 2 * 0.03) * (swiftness ? 1.05 : 1)
+    );
   }
 });
 
@@ -142,7 +145,7 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
     }
   });
 
-  assert.ok(Math.abs(necromancerRules('Core').modifyStrikeDamage(core, 1) - 1.38 * 1.05 * 1.2) < 1e-12);
+  assert.ok(Math.abs(necromancerRules('Core').calculations.modifyStrikeDamage(core, 1) - 1.38 * 1.05 * 1.2) < 1e-12);
 
   const harbinger = modifierContext({
     ...shared,
@@ -153,8 +156,11 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
     runtime: runtime('Harbinger', {}, { blightExpiries: Array(10).fill(25) })
   });
 
-  assertClose(necromancerRules('Harbinger').modifyStrikeDamage(harbinger, 1), 1.28);
-  assertClose(necromancerRules('Harbinger').modifyConditionDamage({ ...harbinger, condition: 'Bleeding' }, 1), 1.175);
+  assertClose(necromancerRules('Harbinger').calculations.modifyStrikeDamage(harbinger, 1), 1.28);
+  assertClose(
+    necromancerRules('Harbinger').calculations.modifyConditionDamage({ ...harbinger, condition: 'Bleeding' }, 1),
+    1.175
+  );
 
   const reaper = modifierContext({
     ...shared,
@@ -163,7 +169,9 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
     runtime: runtime('Reaper', {}, {})
   });
 
-  assert.ok(Math.abs(necromancerRules('Reaper').modifyStrikeDamage(reaper, 1) - 1.08 * 1.15 * 1.15) < 1e-12);
+  assert.ok(
+    Math.abs(necromancerRules('Reaper').calculations.modifyStrikeDamage(reaper, 1) - 1.08 * 1.15 * 1.15) < 1e-12
+  );
 
   const ritualist = modifierContext({
     ...shared,
@@ -187,7 +195,7 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
     )
   });
 
-  assertClose(necromancerRules('Ritualist').modifyStrikeDamage(ritualist, 1), 1.13);
+  assertClose(necromancerRules('Ritualist').calculations.modifyStrikeDamage(ritualist, 1), 1.13);
 });
 
 test('Mesmer active runtimes isolate their additive damage buckets', () => {
@@ -213,8 +221,8 @@ test('Mesmer active runtimes isolate their additive damage buckets', () => {
 
   const core = modifierContext(shared);
 
-  assertClose(mesmerRules('Core').modifyStrikeDamage(core, 1), 1.13);
-  assertClose(mesmerRules('Core').modifyConditionDamage({ ...core, condition: 'Torment' }, 1), 1.17);
+  assertClose(mesmerRules('Core').calculations.modifyStrikeDamage(core, 1), 1.13);
+  assertClose(mesmerRules('Core').calculations.modifyConditionDamage({ ...core, condition: 'Torment' }, 1), 1.17);
 
   const mirage = modifierContext({
     ...shared,
@@ -222,8 +230,8 @@ test('Mesmer active runtimes isolate their additive damage buckets', () => {
     config: { ...shared.config, specialization: 'Mirage' }
   });
 
-  assertClose(mesmerRules('Mirage').modifyStrikeDamage(mirage, 1), 1.355);
-  assertClose(mesmerRules('Mirage').modifyConditionDamage({ ...mirage, condition: 'Torment' }, 1), 1.32);
+  assertClose(mesmerRules('Mirage').calculations.modifyStrikeDamage(mirage, 1), 1.355);
+  assertClose(mesmerRules('Mirage').calculations.modifyConditionDamage({ ...mirage, condition: 'Torment' }, 1), 1.32);
 
   const troubadour = modifierContext({
     ...shared,
@@ -232,8 +240,11 @@ test('Mesmer active runtimes isolate their additive damage buckets', () => {
     active: [...shared.active, 'altered-chord']
   });
 
-  assertClose(mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1), 1.63);
-  assertClose(mesmerRules('Troubadour').modifyConditionDamage({ ...troubadour, condition: 'Torment' }, 1), 1.42);
+  assertClose(mesmerRules('Troubadour').calculations.modifyStrikeDamage(troubadour, 1), 1.63);
+  assertClose(
+    mesmerRules('Troubadour').calculations.modifyConditionDamage({ ...troubadour, condition: 'Torment' }, 1),
+    1.42
+  );
 });
 
 test('Superiority Complex accepts Fear, Taunt, or low target health without a generic disabled state', () => {
@@ -256,11 +267,17 @@ test('Superiority Complex accepts Fear, Taunt, or low target health without a ge
     }
   });
 
-  assertClose(mesmerRules('Core').modifyCriticalDamage({ catalog: mesmerCatalog, ...defiant }, 2), 2 * 1.15);
-  assertClose(mesmerRules('Core').modifyCriticalDamage({ catalog: mesmerCatalog, ...nonDefiant }, 2), 2 * 1.15);
+  assertClose(
+    mesmerRules('Core').calculations.modifyCriticalDamage({ catalog: mesmerCatalog, ...defiant }, 2),
+    2 * 1.15
+  );
+  assertClose(
+    mesmerRules('Core').calculations.modifyCriticalDamage({ catalog: mesmerCatalog, ...nonDefiant }, 2),
+    2 * 1.15
+  );
   for (const condition of ['Fear', 'Taunt']) {
     assertClose(
-      mesmerRules('Core').modifyCriticalDamage(
+      mesmerRules('Core').calculations.modifyCriticalDamage(
         {
           catalog: mesmerCatalog,
           ...defiant,
@@ -279,7 +296,7 @@ test('Superiority Complex accepts Fear, Taunt, or low target health without a ge
   }
 
   assertClose(
-    mesmerRules('Core').modifyCriticalDamage(
+    mesmerRules('Core').calculations.modifyCriticalDamage(
       {
         catalog: mesmerCatalog,
         ...defiant,
@@ -307,9 +324,9 @@ test('Mesmer Lute Playing damage excludes illusion attacks', () => {
   });
   const clone = modifierContext({ ...shared, event: { source: 'Clone', actorType: 'summon', summonKind: 'clone' } });
 
-  assertClose(mesmerRules('Troubadour').modifyStrikeDamage(player, 1), 1.1);
-  assert.equal(mesmerRules('Troubadour').modifyStrikeDamage(phantasm, 1), 1);
-  assert.equal(mesmerRules('Troubadour').modifyConditionDamage({ ...clone, condition: 'Bleeding' }, 1), 1);
+  assertClose(mesmerRules('Troubadour').calculations.modifyStrikeDamage(player, 1), 1.1);
+  assert.equal(mesmerRules('Troubadour').calculations.modifyStrikeDamage(phantasm, 1), 1);
+  assert.equal(mesmerRules('Troubadour').calculations.modifyConditionDamage({ ...clone, condition: 'Bleeding' }, 1), 1);
 });
 
 test('Mesmer Deadly Blades does not increase phantasm damage', () => {
@@ -318,8 +335,11 @@ test('Mesmer Deadly Blades does not increase phantasm damage', () => {
     active: ['deadly-blades']
   });
 
-  assert.equal(mesmerRules('Virtuoso').modifyStrikeDamage(context, 1), 1);
-  assert.equal(mesmerRules('Virtuoso').modifyConditionDamage({ ...context, condition: 'Bleeding' }, 1), 1.05);
+  assert.equal(mesmerRules('Virtuoso').calculations.modifyStrikeDamage(context, 1), 1);
+  assert.equal(
+    mesmerRules('Virtuoso').calculations.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 1),
+    1.05
+  );
 });
 
 test('Mesmer instrument checks skip other specializations and observe new history', () => {
@@ -377,8 +397,8 @@ test('Mesmer instrument checks skip other specializations and observe new histor
   });
 
   irrelevant.resetReads();
-  mesmerRules('Virtuoso').modifyAttributes({ catalog: mesmerCatalog, ...virtuoso }, { power: 100 });
-  mesmerRules('Virtuoso').modifyStrikeDamage(virtuoso, 1);
+  mesmerRules('Virtuoso').calculations.modifyAttributes({ catalog: mesmerCatalog, ...virtuoso }, { power: 100 });
+  mesmerRules('Virtuoso').calculations.modifyStrikeDamage(virtuoso, 1);
   assert.equal(irrelevant.reads(), 0);
 
   const relevant = countedEvents();
@@ -400,12 +420,12 @@ test('Mesmer instrument checks skip other specializations and observe new histor
     events: relevant.events
   });
   relevant.resetReads();
-  const attributes = mesmerRules('Troubadour').modifyAttributes(
+  const attributes = mesmerRules('Troubadour').calculations.modifyAttributes(
     { catalog: mesmerCatalog, ...troubadour },
     baseAttributes
   );
-  const first = mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1);
-  const second = mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1);
+  const first = mesmerRules('Troubadour').calculations.modifyStrikeDamage(troubadour, 1);
+  const second = mesmerRules('Troubadour').calculations.modifyStrikeDamage(troubadour, 1);
 
   for (const attribute of [
     'power',
@@ -425,8 +445,8 @@ test('Mesmer instrument checks skip other specializations and observe new histor
   assert.equal(first, second);
   // A later instrument event must be visible even when this history was queried earlier.
   relevant.events.push({ type: 'mesmer.instrument', instrument: 'Lute', at: 1, expiresAt: 1 });
-  assert.ok(mesmerRules('Troubadour').modifyStrikeDamage(troubadour, 1) < first);
-  const updatedAttributes = mesmerRules('Troubadour').modifyAttributes(
+  assert.ok(mesmerRules('Troubadour').calculations.modifyStrikeDamage(troubadour, 1) < first);
+  const updatedAttributes = mesmerRules('Troubadour').calculations.modifyAttributes(
     { catalog: mesmerCatalog, ...troubadour },
     baseAttributes
   );
@@ -438,7 +458,7 @@ test('Vicious Expression always applies its boonless-target modifier', () => {
   // Retained target-boon configuration cannot disable the fixed boonless-target bonus.
   for (const target of [undefined, { boonless: false }, { boons: ['might'], boonCount: 3 }]) {
     const context = modifierContext({ traits: [MESMER.VICIOUS_EXPRESSION], config: { target } });
-    assert.ok(Math.abs(mesmerRules('Core').modifyStrikeDamage(context, 1) - 1.242) < 1e-12);
+    assert.ok(Math.abs(mesmerRules('Core').calculations.modifyStrikeDamage(context, 1) - 1.242) < 1e-12);
   }
 });
 
@@ -449,9 +469,9 @@ test('Mesmer strike sigils apply to the player but not illusion sources', () => 
     event: { source: 'Phantasm', actorType: 'summon', summonKind: 'phantasm' }
   });
 
-  assert.equal(mesmerRules('Core').modifyStrikeDamage(player, 1), 1.08);
-  assert.equal(mesmerRules('Core').modifyStrikeDamage(clone, 1), 1);
-  assert.equal(mesmerRules('Core').modifyStrikeDamage(phantasm, 1), 1);
+  assert.equal(mesmerRules('Core').calculations.modifyStrikeDamage(player, 1), 1.08);
+  assert.equal(mesmerRules('Core').calculations.modifyStrikeDamage(clone, 1), 1);
+  assert.equal(mesmerRules('Core').calculations.modifyStrikeDamage(phantasm, 1), 1);
 });
 
 // Range is fixed nearby; these modifiers require no optional target flags.
@@ -461,11 +481,11 @@ test('Mental Focus, Soul Eater, and Reaper shouts always receive nearby bonuses'
     sigils: { strike: 1, strikeAdd: 0, condition: 1, conditionAdd: 0 }
   });
   assertClose(
-    mesmerRules('Virtuoso').modifyStrikeDamage({ ...context, traits: new Set([MESMER.MENTAL_FOCUS]) }, 1),
+    mesmerRules('Virtuoso').calculations.modifyStrikeDamage({ ...context, traits: new Set([MESMER.MENTAL_FOCUS]) }, 1),
     1.05
   );
   assertClose(
-    necromancerRules('Reaper').modifyStrikeDamage(
+    necromancerRules('Reaper').calculations.modifyStrikeDamage(
       { ...context, catalog: necromancerProfession.catalog, traits: new Set([NECROMANCER.SOUL_EATER]) },
       1
     ),
@@ -475,7 +495,7 @@ test('Mental Focus, Soul Eater, and Reaper shouts always receive nearby bonuses'
   const shout = reaper.catalog.skillsById.get(NECROMANCER_SKILLS.YOU_ARE_ALL_WEAKLINGS);
   assert.ok(shout);
   assertClose(
-    reaper.modifyStrikeDamage(
+    reaper.calculations.modifyStrikeDamage(
       { ...context, catalog: reaper.catalog, profession: reaper, event: { actorType: 'player', skillId: shout.id } },
       1
     ),

@@ -1,6 +1,8 @@
+/** Sample timestamp-aware calculation phases while keeping reusable arithmetic with its domain owners. */
 import { applyMightAttributes } from '#gw2/platform/attributes/evaluation.js';
 import { gw2StaticAttributes, type Gw2ResolvedStats } from '#gw2/platform/attributes/stats.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
+import type { Gw2QueryProfession } from '#gw2/platform/combat-calculation/profession-contract.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { boonKey, MIGHT_ATTRIBUTE_BONUS_PER_STACK, type Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
@@ -41,28 +43,8 @@ import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import { severanceCriticalContribution } from '#gw2/platform/equipment/sigils/severance.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2CriticalChanceContributor } from '#gw2/platform/events/resolver-event.js';
-import type { NormalizedProfessionContract } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { boundedNumber, clamp } from '#kernel/core/numeric.js';
-
-/** Queries need immutable catalog and formula hooks, not either execution engine's state factories. */
-export type Gw2QueryProfession = Pick<
-  NormalizedProfessionContract,
-  | 'id'
-  | 'catalog'
-  | 'attributeContributions'
-  | 'modifyAttributes'
-  | 'modifyConditionAttributes'
-  | 'modifyCriticalChance'
-  | 'modifyCriticalDamage'
-  | 'modifyStrikeDamage'
-  | 'modifyConditionDamage'
-  | 'modifyConditionDuration'
-  | 'modifyConditionBaseDuration'
-> & {
-  /** Selected modules own player Alacrity strength; all cooldown queries use this same rate. */
-  readonly playerAlacrityRechargeRate?: number;
-};
 
 interface CreateGw2CombatQueryOptions {
   readonly profession?: Gw2QueryProfession;
@@ -75,7 +57,7 @@ interface CreateGw2CombatQueryOptions {
   readonly attributePreviewPlayerHealthFraction?: number;
 }
 
-interface HookContextOptions {
+interface ModifierContextOptions {
   readonly event?: SimulationEvent | null;
   readonly condition?: string | null;
   readonly runtime?: Gw2QueryRuntime | null;
@@ -130,6 +112,38 @@ function conditionOwnerEvent(event: SimulationEvent | null): SimulationEvent | n
     summonIgnoresBoons: false,
     summonUsesEquipmentModifiers: true,
     summonUsesProfessionModifiers: true
+  };
+}
+
+/** Independent profiles replace owner attributes only when the packet supplies finite actor Power. */
+function hasIndependentSummonProfile(event: SimulationEvent | null): boolean {
+  return (
+    event?.independentSummonStrike === true &&
+    event.summonInheritsAttributes !== true &&
+    Number.isFinite(Number(event.summonBasePower))
+  );
+}
+
+/** Apply an independent actor profile after owner bonuses, before final condition replacements. */
+function projectIndependentSummonAttributes(
+  event: SimulationEvent | null,
+  stats: Gw2ResolvedStats,
+  mightStacks: number,
+  independentProfile: boolean
+): Gw2ResolvedStats {
+  if (!event || !independentProfile) return stats;
+
+  const inheritCriticalAttributes = event.summonInheritsCriticalAttributes === true;
+  return {
+    ...stats,
+    power: Number(event.summonBasePower) + mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
+    precision: inheritCriticalAttributes ? stats.precision : Number(event.summonBasePrecision ?? 1000),
+    ferocity: inheritCriticalAttributes ? stats.ferocity : Number(event.summonBaseFerocity ?? 0),
+    conditionDamage:
+      Number(event.summonBaseConditionDamage ?? stats.conditionDamage) + mightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
+    expertise: Number(event.summonBaseExpertise ?? stats.expertise),
+    conditionDurationBonus: 0,
+    conditionDurationBonuses: {}
   };
 }
 
@@ -317,7 +331,7 @@ export function createGw2CombatQuery({
   const attributeWeaponSetAt = (time: number, event: SimulationEvent | null, runtime: Gw2QueryRuntime | null): number =>
     event?.weaponSwapFromSet ?? activeWeaponSetAt(time, runtime);
 
-  const hookContext = (
+  const modifierContext = (
     time: number,
     {
       event = null,
@@ -329,7 +343,7 @@ export function createGw2CombatQuery({
       damageContributors,
       durationContributors,
       criticalDamageContributors
-    }: HookContextOptions = {}
+    }: ModifierContextOptions = {}
   ): Gw2ModifierContext => {
     const weaponSet = attributeWeaponSetAt(time, event, runtime);
     // Project only the profession query view; equipment queries and the live runtime retain the destination set.
@@ -366,17 +380,19 @@ export function createGw2CombatQuery({
     if (event?.type === 'condition') event = conditionOwnerEvent(event);
 
     const activeWeaponSet = attributeWeaponSetAt(time, event, runtime);
-    const input = hookContext(time, { event, runtime });
+    const input = modifierContext(time, { event, runtime });
     // The profession owns attribute-fact construction; professions without declarations incur no attribute-context work.
-    const contributions = activeProfession.attributeContributions?.(input) ?? [];
+    const contributions = activeProfession.calculations.attributeContributions?.(input) ?? [];
     const context = {
       ...input,
-      attributeContributions: activeProfession.attributeContributions ? contributions : undefined
+      attributeContributions: activeProfession.calculations.attributeContributions ? contributions : undefined
     };
-    const modifiedStats = activeProfession.modifyAttributes(
-      context,
-      applyMightAttributes(staticAttributesAt(activeWeaponSet), mightStacksAt(time, runtime, event), contributions)
-    ) as unknown as Gw2ResolvedStats;
+    const mightStats = applyMightAttributes(
+      staticAttributesAt(activeWeaponSet),
+      mightStacksAt(time, runtime, event),
+      contributions
+    );
+    const professionStats = activeProfession.calculations.modifyAttributes(context, mightStats) as Gw2ResolvedStats;
     // Time-varying relic Condition Damage (e.g. Relic of Thorns +30/stack) folds
     // into the sampled attribute so every downstream condition tick scales with it.
     // Query runtimes supply live relic state; the combat query owns the configuration that attribute rules require.
@@ -384,41 +400,21 @@ export function createGw2CombatQuery({
       runtime?.relic ? { config, relic: runtime.relic } : historicalRelicContext,
       time
     );
-    let stats =
+    const equipmentStats =
       relicConditionDamage > 0
-        ? { ...modifiedStats, conditionDamage: modifiedStats.conditionDamage + relicConditionDamage }
-        : modifiedStats;
+        ? { ...professionStats, conditionDamage: professionStats.conditionDamage + relicConditionDamage }
+        : professionStats;
 
-    // Independent summons use their own base stats instead of the player's,
-    // including condition duration so food and other owner bonuses cannot leak in.
-    // summonInheritsCriticalAttributes=true lets them share precision/ferocity
-    // (e.g., for illusions that scale with the player's crit chance).
-    if (
-      event?.independentSummonStrike === true &&
-      event.summonInheritsAttributes !== true &&
-      Number.isFinite(Number(event.summonBasePower))
-    ) {
-      const inheritCriticalAttributes = event.summonInheritsCriticalAttributes === true;
-      // Fixed-damage summon skills can still receive Fury while opting out of Might's attribute scaling.
-      const summonMightStacks = event.summonUsesMight === false ? 0 : summonMightStacksAt(time, runtime, event);
-      stats = {
-        ...stats,
-        power: Number(event.summonBasePower) + summonMightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
-        precision: inheritCriticalAttributes ? stats.precision : Number(event.summonBasePrecision ?? 1000),
-        ferocity: inheritCriticalAttributes ? stats.ferocity : Number(event.summonBaseFerocity ?? 0),
-        conditionDamage:
-          Number(event.summonBaseConditionDamage ?? stats.conditionDamage) +
-          summonMightStacks * MIGHT_ATTRIBUTE_BONUS_PER_STACK,
-        expertise: Number(event.summonBaseExpertise ?? stats.expertise),
-        conditionDurationBonus: 0,
-        conditionDurationBonuses: {}
-      };
-    }
+    // Classify once per query; only independent profiles using Might sample their companion's live boon state.
+    const independentProfile = hasIndependentSummonProfile(event);
+    const summonMightStacks =
+      independentProfile && event?.summonUsesMight !== false ? summonMightStacksAt(time, runtime, event) : 0;
+    const actorStats = projectIndependentSummonAttributes(event, equipmentStats, summonMightStacks, independentProfile);
 
     // Apply replacements once, after specialization bonuses, relics, and owner-specific stat profiles.
     return event?.type === 'condition'
-      ? (activeProfession.modifyConditionAttributes(context, stats) as Gw2ResolvedStats)
-      : stats;
+      ? (activeProfession.calculations.modifyConditionAttributes(context, actorStats) as Gw2ResolvedStats)
+      : actorStats;
   };
 
   const completedQuery: Readonly<Gw2CombatQuery> = Object.freeze({
@@ -450,7 +446,7 @@ export function createGw2CombatQuery({
         const baseChance = Number(event.summonCriticalChance ?? 0.05) + summonFuryBonus + professionBonus;
         const chance =
           event.summonUsesProfessionModifiers === true
-            ? activeProfession.modifyCriticalChance(hookContext(time, { event, runtime }), baseChance)
+            ? activeProfession.calculations.modifyCriticalChance(modifierContext(time, { event, runtime }), baseChance)
             : baseChance;
         return {
           furyActive,
@@ -495,8 +491,8 @@ export function createGw2CombatQuery({
 
       const professionContributors: Gw2CriticalChanceContributor[] | undefined = contributors ? [] : undefined;
       const beforeProfession = chance;
-      chance = activeProfession.modifyCriticalChance(
-        hookContext(time, {
+      chance = activeProfession.calculations.modifyCriticalChance(
+        modifierContext(time, {
           event,
           runtime,
           criticalChanceContributors: professionContributors
@@ -528,8 +524,8 @@ export function createGw2CombatQuery({
         bucket: 'additive',
         value: damage - BASE_CRITICAL_DAMAGE_MULTIPLIER
       });
-      damage = activeProfession.modifyCriticalDamage(
-        hookContext(time, { event, runtime, criticalDamageContributors: damageContributors }),
+      damage = activeProfession.calculations.modifyCriticalDamage(
+        modifierContext(time, { event, runtime, criticalDamageContributors: damageContributors }),
         damage
       );
       const severanceCritical = severanceCriticalContribution(runtime, time);
@@ -584,7 +580,7 @@ export function createGw2CombatQuery({
         event.summonUsesEquipmentModifiers === false
           ? 0
           : relicOutgoingDamageBonus(relicContext, 'strike', time, event);
-      const modifier = activeProfession.modifyStrikeDamage;
+      const modifier = activeProfession.calculations.modifyStrikeDamage;
       const vulnerability = 1 + vulnerabilityStacksAt(time, runtime) / 100;
 
       if (event.independentSummonStrike === true) {
@@ -592,7 +588,7 @@ export function createGw2CombatQuery({
         const base = vulnerability * Number(event.summonStrikeMultiplier ?? 1) * (1 + relicBonus);
         const total =
           event.summonUsesProfessionModifiers === true
-            ? modifier(hookContext(time, { event, runtime, damageContributors: contributors }), base)
+            ? modifier(modifierContext(time, { event, runtime, damageContributors: contributors }), base)
             : base;
 
         if (contributors) {
@@ -626,7 +622,7 @@ export function createGw2CombatQuery({
         playerMultiplier *
         (config.modifiers?.strike || 1);
       const total = modifier(
-        hookContext(time, {
+        modifierContext(time, {
           event,
           runtime,
           damageInputs: { strikeSigilBonus: sigilBonus, equipmentBonus: relicBonus },
@@ -675,12 +671,12 @@ export function createGw2CombatQuery({
           ? Number(sigils.conditionAdd)
           : sigilFactor - 1
         : 0;
-      const modifier = activeProfession.modifyConditionDamage;
+      const modifier = activeProfession.calculations.modifyConditionDamage;
       const vulnerability = 1 + (sample?.vulnerabilityStacks ?? vulnerabilityStacksAt(time, runtime)) / 100;
       // Equipment enters the canonical evaluator's additive bucket, separate from target and configured factors.
       const base = vulnerability * playerMultiplier * (config.modifiers?.condition || 1);
       const total = modifier(
-        hookContext(time, {
+        modifierContext(time, {
           event,
           condition: name,
           runtime,
@@ -727,8 +723,8 @@ export function createGw2CombatQuery({
         traceBonus(contributors, 'equipment.relic', 'Relic', relicBonus);
       }
 
-      const modified = activeProfession.modifyConditionDuration(
-        hookContext(time, {
+      const modified = activeProfession.calculations.modifyConditionDuration(
+        modifierContext(time, {
           event,
           condition: name,
           runtime,
@@ -756,8 +752,8 @@ export function createGw2CombatQuery({
       event = conditionOwnerEvent(event);
       return Math.max(
         0,
-        activeProfession.modifyConditionBaseDuration(
-          hookContext(time, {
+        activeProfession.calculations.modifyConditionBaseDuration(
+          modifierContext(time, {
             event,
             condition: name,
             runtime

@@ -126,3 +126,8 @@ export function validateResourcePolicies(resources: ResourcePolicies = {}, endur
   )
     throw new TypeError('Endurance requires state, maximum, and regenerationRate callbacks.');
 }
+
+/** Restricted observations retain domain signatures without granting balance mutation. */
+export type ResourceQueries = Pick<ResourceController, 'value' | 'readyAt'>;
+
+export type EnduranceQueries = Pick<EnduranceController, 'readyAt'>;

@@ -1,5 +1,5 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -86,7 +86,7 @@ export function elementalistOnCastCommit(
 }
 
 /** Skill declarations own these commit triggers; handlers retain aura and companion lifetime bookkeeping. */
-export const elementalistCoreSideEffectHandlers: RuntimeProfession<
+export const elementalistCoreSideEffectHandlers: RuntimeHooks<
   ElementalistRuntimeState,
   ElementalistSkill
 >['sideEffectHandlers'] = {

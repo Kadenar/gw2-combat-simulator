@@ -74,7 +74,7 @@ const PLAYER_MODIFIER_PREDICATES = Object.freeze([
   [
     'Engineer Sharpshooter',
     (event) => {
-      const attributes = engineerProfession.runtimeFor({}).modifyConditionAttributes(
+      const attributes = engineerProfession.runtimeFor({}).calculations.modifyConditionAttributes(
         {
           catalog: engineerCatalog,
           time: 1,
@@ -103,7 +103,7 @@ const PLAYER_MODIFIER_PREDICATES = Object.freeze([
   [
     'Necromancer core',
     (event) =>
-      necromancerProfession.runtimeFor({}).modifyAttributes(
+      necromancerProfession.runtimeFor({}).calculations.modifyAttributes(
         {
           catalog: necromancerCatalog,
           time: 1,
@@ -196,8 +196,10 @@ test('actual-player skill modifiers do not follow modifier ownership', () => {
   assert.equal(
     necromancerProfession
       .runtimeFor({})
-      .modifyAttributes({ catalog: necromancerCatalog, time: 1, config: { selectedSkillIds: [10622] } }, { power: 0 })
-      .power,
+      .calculations.modifyAttributes(
+        { catalog: necromancerCatalog, time: 1, config: { selectedSkillIds: [10622] } },
+        { power: 0 }
+      ).power,
     180,
     'eventless player attribute query'
   );

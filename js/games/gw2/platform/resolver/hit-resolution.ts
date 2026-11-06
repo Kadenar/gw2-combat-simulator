@@ -3,7 +3,6 @@ import type { Gw2CriticalResult } from '#gw2/platform/combat-calculation/combat-
 import { expectedCritMultiplier, STANDARD_TARGET_ARMOR, strikeDamage } from '#gw2/platform/combat/formulas.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import { remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
-import type { SimulationActorType } from '#gw2/platform/constants.js';
 import type { Gw2ResolvedWeaponStrength } from '#gw2/platform/equipment/weapons/types.js';
 import type { Gw2DamageCalculation } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -247,14 +246,15 @@ export function createGw2HitResolution({
     if (damageType === 'conditionDamage') ctx.totals.condition += damage;
     else ctx.totals.strike += damage;
 
-    ctx.addBreakdown(
-      event.name || event.skillName || String(event.sourceId),
+    // Report only the encounter-accepted amount and the already resolved critical verdict.
+    ctx.damageRecorder?.recordDamage({
+      name: event.name || event.skillName || String(event.sourceId),
       damage,
-      damageType,
-      damageType === 'strikeDamage' ? event.hits || 1 : 0,
-      event,
-      damageType === 'strikeDamage' && hitContext.critEligible ? hitContext.critical : null
-    );
+      component: damageType,
+      hits: damageType === 'strikeDamage' ? event.hits || 1 : 0,
+      source: event,
+      didCrit: damageType === 'strikeDamage' && hitContext.critEligible ? hitContext.critical.didCrit === true : null
+    });
 
     if (damage > 0) ctx.markDamageTime(event.at);
 
@@ -292,30 +292,6 @@ export function createGw2HitResolution({
     buildHitResolutionContext,
     applyResolvedHit
   });
-}
-
-/** Owns resolved damage attribution and critical-hit accounting; presentation must not infer metadata from other events. */
-export interface Gw2DamageBreakdownEntry {
-  name: string;
-  sourceSkill: string;
-  parentSkill: string;
-  damageBreakdownName?: string;
-  icon: string;
-  /** Null is valid for effects without a catalog skill ID; their source identity remains separate. */
-  skillId?: import('#gw2/platform/skills/types.js').SkillId | null;
-  sourceId?: import('#gw2/platform/skills/types.js').SkillId;
-  actorType?: SimulationActorType;
-  summonKind?: string;
-  entityName?: string;
-  source?: string;
-  damage: number;
-  strikeDamage: number;
-  conditionDamage: number;
-  hits: number;
-  // Crit accounting counts seeded critical outcomes in both modes;
-  // critEligibleHits is the number of strike hits those crits are drawn from.
-  critHits?: number;
-  critEligibleHits?: number;
 }
 
 export interface Gw2HitResolutionContext {

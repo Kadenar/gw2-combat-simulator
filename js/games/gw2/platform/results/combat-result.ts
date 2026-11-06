@@ -1,7 +1,9 @@
+/** Combines finalized combat facts with independently projected damage observations. */
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import { buildBoonGeneration, projectedPartyEffects } from '#gw2/platform/results/boon-generation.js';
+import type { DamageReportProjection } from '#gw2/platform/results/damage-report.js';
 import { uniqueDiagnostics } from '#gw2/platform/results/diagnostics.js';
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import type { Gw2ResolverResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
@@ -57,10 +59,10 @@ export function buildSimulationScore(ctx: Gw2ResolverRuntime, rotationEndTime: n
 export function buildCombatResult(
   ctx: Gw2ResolverRuntime,
   score: Gw2SimulationScore,
-  events: readonly Gw2ResolverEvent[]
+  events: readonly Gw2ResolverEvent[],
+  damageReport: DamageReportProjection
 ): Gw2ResolverResult {
   const effectiveEnd = score.combatEndTime;
-  const damagePerSecond = (damage: number): number => (score.dpsWindow > 0 ? damage / score.dpsWindow : 0);
   const { output, ...numeric } = score;
   const effectiveEvents = events.filter((event) => event.at <= effectiveEnd);
   // Editor-only runs retain combat facts but skip both live histories and expensive hypothetical party projection.
@@ -78,27 +80,7 @@ export function buildCombatResult(
     boonGeneration: generation
       ? { alliedPlayerCount: generation.alliedPlayerCount, boons: Object.fromEntries(generation.boons) }
       : null,
-    // Derive display totals once, while detaching rows from the live component accumulators.
-    breakdown: [...ctx.breakdown.values()]
-      .map((entry) => ({ ...entry, damage: entry.strikeDamage + entry.conditionDamage }))
-      .sort((left, right) => right.damage - left.damage),
-    conditionBreakdown: [...ctx.conditions.values()]
-      .map((entry) => ({
-        name: entry.name,
-        damage: entry.damage,
-        dps: damagePerSecond(entry.damage),
-        averageStacks: damagePerSecond(entry.stackSeconds)
-      }))
-      .sort((left, right) => right.damage - left.damage),
-    // External breakdowns retain damage attribution and ticks for target-health milestones.
-    environmentConditionBreakdown: [...ctx.environmentConditions.values()]
-      .filter((entry) => entry.damage > 0)
-      .map((entry) => ({
-        name: entry.name,
-        damage: entry.damage,
-        damageTicks: entry.damageTicks.map((tick) => ({ ...tick }))
-      }))
-      .sort((left, right) => right.damage - left.damage),
+    ...damageReport,
     events: cloneData(effectiveEvents),
     resolvedEvents: projectResolvedEvents(
       ctx.resolved.filter((event) => event.at <= effectiveEnd),

@@ -62,7 +62,7 @@ test('Firebrand Imbued Haste follows the live duration pool and its expiry', () 
     runtime: { boons: new Map(), buffs: new Map() }
   };
   const attributes = (time) =>
-    guardianProfession.runtimeFor({ specialization: 'Firebrand' }).modifyAttributes(
+    guardianProfession.runtimeFor({ specialization: 'Firebrand' }).calculations.modifyAttributes(
       {
         catalog: guardianCatalog,
         ...context,

@@ -350,8 +350,8 @@ test('Ferocious Aggression uses its patched value for life steal and ordinary da
     ),
     0.3
   );
-  assert.equal(revenantProfession.resolveProfession(config).modifyStrikeDamage(context, 100), 130);
-  assert.equal(revenantProfession.resolveProfession(config).modifyConditionDamage(context, 100), 130);
+  assert.equal(revenantProfession.resolveProfession(config).calculations.modifyStrikeDamage(context, 100), 130);
+  assert.equal(revenantProfession.resolveProfession(config).calculations.modifyConditionDamage(context, 100), 130);
 });
 
 test('Kinetic Insight patches virtual affinity without changing stored affinity', () => {

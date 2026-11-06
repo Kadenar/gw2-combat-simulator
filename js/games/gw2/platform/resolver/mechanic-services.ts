@@ -14,9 +14,8 @@ import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
-/** Mechanics use named combat queries and revisions; the engine retains ownership of timeline replay. */
-export interface MechanicCombatServices {
-  companionRetiredAt(companionId: string): number | undefined;
+/** Query views observe accepted combat facts without granting mutation. */
+export interface MechanicCombatQueries {
   activeBoonStacks(kind: string, at: number, maximum?: number, recipient?: EffectRecipient): number;
   activeBuffStacks(kind: string, at: number, maximum?: number, recipient?: EffectRecipient): number;
   buffApplications(kind: string): readonly Readonly<Gw2TimedBuffApplication>[];
@@ -36,6 +35,12 @@ export interface MechanicCombatServices {
     at: number,
     recipient: EffectRecipient
   ): { readonly stacks: number; readonly duration: number };
+}
+
+/** Mechanics use named combat queries and revisions; the engine retains ownership of timeline replay. */
+export interface MechanicCombatServices extends MechanicCombatQueries {
+  readonly queries: MechanicCombatQueries;
+  companionRetiredAt(companionId: string): number | undefined;
   reviseBuffExpiry(
     kind: string,
     select: (application: Readonly<Gw2TimedBuffApplication>) => boolean,
@@ -51,7 +56,7 @@ export interface MechanicCombatServices {
 
 /** Mechanics request shared-state changes at their existing phase; resolver stores never leave their owner. */
 export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): MechanicCombatServices {
-  return Object.freeze({
+  const operations = {
     registerCompanion(companionId: string, effects: CompanionEffects): void {
       runtime.companions.set(companionId, effects);
     },
@@ -155,5 +160,22 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
     warn(diagnostic: Gw2SimulationDiagnostic): void {
       runtime.warnings.push(diagnostic);
     }
-  });
+  };
+  // Owner-selected observations expose no resolver mutation or aggregate service reference.
+  const queries = Object.freeze({
+    activeBoonStacks: operations.activeBoonStacks,
+    boonApplications: operations.boonApplications,
+    buffApplications: operations.buffApplications,
+    activeBuffStacks: operations.activeBuffStacks,
+    boonSnapshot: operations.boonSnapshot,
+    targetHasCondition: operations.targetHasCondition,
+    targetConditionStacks: operations.targetConditionStacks,
+    targetConditionCount: operations.targetConditionCount,
+    targetHealthBelow: operations.targetHealthBelow,
+    targetHitboxSize: operations.targetHitboxSize,
+    remainingTargetHealthFraction: operations.remainingTargetHealthFraction,
+    statsAt: operations.statsAt,
+    conditionDurationMultiplier: operations.conditionDurationMultiplier
+  } satisfies MechanicCombatQueries);
+  return Object.freeze({ ...operations, queries });
 }

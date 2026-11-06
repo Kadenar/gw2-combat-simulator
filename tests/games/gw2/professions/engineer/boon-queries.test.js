@@ -15,14 +15,15 @@ test('Engineer No Scope survives overlapping Fury packet expiries', () => {
   const context = { config: {}, traits: new Set([TRAIT.NO_SCOPE]), runtime: { boons }, time: 7 };
   assert.equal(activeBoonStacks({ combat: createMechanicCombatServices({ config: {}, boons }) }, 'Fury', 1, 7), 1);
   assert.equal(
-    engineerProfession.resolveProfession({}).modifyAttributes({ catalog: engineerCatalog, ...context }, { ferocity: 0 })
-      .ferocity,
+    engineerProfession
+      .resolveProfession({})
+      .calculations.modifyAttributes({ catalog: engineerCatalog, ...context }, { ferocity: 0 }).ferocity,
     150
   );
   assert.equal(
     engineerProfession
       .resolveProfession({})
-      .modifyAttributes(
+      .calculations.modifyAttributes(
         { catalog: engineerProfession.resolveProfession({}).catalog, ...context, time: 10 },
         { ferocity: 0 }
       ).ferocity,

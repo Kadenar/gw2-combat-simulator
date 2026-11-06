@@ -6,8 +6,9 @@ import {
   createResourceClock,
   resourceAnchor
 } from '#gw2/platform/combat/resources/clock.js';
+import { createResourceController } from '#gw2/platform/combat/resources/resource-controller.js';
 import { validateResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
-import { createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
+import { createResourceDepletionWake } from '#gw2/platform/simulation/task-scheduler.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 
@@ -63,7 +64,12 @@ function fixture(kind, config = {}, policy = {}) {
     }
   };
   validateResourcePolicies(profession.resources);
-  context.resourceController = createRuntimeResources(context, profession);
+  context.resourceController = createResourceController({
+    clock: context,
+    context: () => context.mechanics,
+    policies: profession.resources,
+    depletion: createResourceDepletionWake(context)
+  });
   context.resourceController.initialize();
   return context;
 }
@@ -363,9 +369,15 @@ test('exact lifetime limits retain unchanged deadlines and yield to earlier depl
   );
   const original = context.queue.peek();
   assert.equal(original.at, 3.015);
+  context.schedule('sibling', original.at, null, undefined, original.priority);
   advance(context, 1);
   context.resourceController.grant('initiative', 2);
   assert.equal(context.queue.peek(), original);
+  assert.deepEqual(
+    context.queue.pending().map((event) => event.name),
+    ['depleted', 'sibling']
+  );
+  context.queue.cancelWhere((event) => event.name === 'sibling');
   context.resourceController.spend('initiative', 8.5);
   assert.equal(context.queue.peek().at, 1.5);
   context.config.active = false;

@@ -102,13 +102,13 @@ test('native composition shares intrinsic rules with queries and reads impact-ti
   const runtime = family.runtimeFor({});
   assert.equal(family.runtimeFor({}), runtime);
   const hooks = family.resolveProfession({});
-  assert.equal(hooks.modifyStrikeDamage, runtime.modifyStrikeDamage);
+  assert.equal(hooks.calculations.modifyStrikeDamage, runtime.calculations.modifyStrikeDamage);
   const context = { event: { skillId: 1 }, runtime: { stacks: 2, enabled: true } };
-  assert.equal(hooks.modifyStrikeDamage({ ...context, catalog: hooks.catalog }, 100), 120);
+  assert.equal(hooks.calculations.modifyStrikeDamage({ ...context, catalog: hooks.catalog }, 100), 120);
   context.runtime.stacks = 5;
-  assert.equal(hooks.modifyStrikeDamage({ ...context, catalog: hooks.catalog }, 100), 150);
+  assert.equal(hooks.calculations.modifyStrikeDamage({ ...context, catalog: hooks.catalog }, 100), 150);
   context.runtime.enabled = false;
-  assert.equal(hooks.modifyStrikeDamage({ ...context, catalog: hooks.catalog }, 100), 100);
+  assert.equal(hooks.calculations.modifyStrikeDamage({ ...context, catalog: hooks.catalog }, 100), 100);
 });
 
 test('catalog validation rejects malformed intrinsic modifiers and registration rejects duplicate identities', () => {
@@ -161,18 +161,18 @@ test('skill modifier validation preserves snapshots and rejects invalid rebuilt 
   const family = defineNativeProfession({ id: 'rebuild', name: 'Rebuild', modules: [core] });
   const compiled = family.runtimeFor({});
   const context = { event: { skillId: 1 } };
-  assert.equal(compiled.modifyStrikeDamage({ ...context, catalog: compiled.catalog }, 10), 16);
+  assert.equal(compiled.calculations.modifyStrikeDamage({ ...context, catalog: compiled.catalog }, 10), 16);
 
   declaration.parameters.bonus = NaN;
   assert.throws(() => createCanonicalCatalog({ skills: [owner] }), /parameter bonus must be a finite number/);
   assert.throws(() => moduleFor([owner]), /parameter bonus must be a finite number/);
   assert.equal(catalog.skills[0].modifiers[0].parameters.bonus, 0.1);
-  assert.equal(compiled.modifyStrikeDamage({ ...context, catalog: compiled.catalog }, 10), 16);
+  assert.equal(compiled.calculations.modifyStrikeDamage({ ...context, catalog: compiled.catalog }, 10), 16);
 
   // Static validation retains executable numeric callbacks, whose results are checked during combat evaluation.
   factor = NaN;
   assert.throws(
-    () => compiled.modifyStrikeDamage({ ...context, catalog: compiled.catalog }, 10),
+    () => compiled.calculations.modifyStrikeDamage({ ...context, catalog: compiled.catalog }, 10),
     /factor must resolve to a non-negative finite number/
   );
 });
@@ -314,26 +314,29 @@ test('base-duration modifiers preserve live predicates, scalar order, and packet
   const profession = defineNativeProfession({ id: 'duration-hooks', name: 'Duration hooks', modules: [core] });
   const hooks = profession.runtimeFor({});
   const context = { condition: 'Bleeding', runtime: { stacks: 2 }, event: packet(owner, owner.effects[1]) };
-  assert.equal(hooks.modifyConditionBaseDuration({ ...context, catalog: hooks.catalog }, 1), 3.25);
+  assert.equal(hooks.calculations.modifyConditionBaseDuration({ ...context, catalog: hooks.catalog }, 1), 3.25);
   context.runtime.stacks = 0;
-  assert.equal(hooks.modifyConditionBaseDuration({ ...context, catalog: hooks.catalog }, 1), 1.75);
+  assert.equal(hooks.calculations.modifyConditionBaseDuration({ ...context, catalog: hooks.catalog }, 1), 1.75);
   context.runtime.stacks = 2;
   assert.equal(
-    hooks.modifyConditionBaseDuration({ catalog: hooks.catalog, ...context, condition: 'Poisoned' }, 1),
+    hooks.calculations.modifyConditionBaseDuration({ catalog: hooks.catalog, ...context, condition: 'Poisoned' }, 1),
     1.75
   );
   const sibling = packet(owner, owner.effects[0], context.event);
   assert.equal(sibling.effectModifierIds, undefined);
-  assert.equal(hooks.modifyConditionBaseDuration({ catalog: hooks.catalog, ...context, event: sibling }, 1), 3);
   assert.equal(
-    hooks.modifyConditionBaseDuration(
+    hooks.calculations.modifyConditionBaseDuration({ catalog: hooks.catalog, ...context, event: sibling }, 1),
+    3
+  );
+  assert.equal(
+    hooks.calculations.modifyConditionBaseDuration(
       { catalog: hooks.catalog, ...context, event: { ...context.event, skillId: 2 } },
       1
     ),
     1.5
   );
-  assert.equal(hooks.modifyConditionDuration?.({ ...context, catalog: hooks.catalog }, 1) ?? 1, 1);
-  assert.equal(hooks.modifyStrikeDamage?.({ ...context, catalog: hooks.catalog }, 100) ?? 100, 100);
+  assert.equal(hooks.calculations.modifyConditionDuration?.({ ...context, catalog: hooks.catalog }, 1) ?? 1, 1);
+  assert.equal(hooks.calculations.modifyStrikeDamage?.({ ...context, catalog: hooks.catalog }, 100) ?? 100, 100);
 });
 
 test('base-duration declarations reject invalid operations, factors, and effect targets', () => {
@@ -437,21 +440,27 @@ test('profession-scoped skill rules affect other skills only while their predica
   const profession = defineNativeProfession({ id: 'scope-fixture', name: 'Scope fixture', modules: [core] });
   const hooks = profession.runtimeFor({});
   const context = { event: { skillId: 2, actorType: 'player' }, runtime: { active: false }, condition: 'Bleeding' };
-  assert.equal(hooks.modifyStrikeDamage({ ...context, catalog: hooks.catalog }, 100), 100);
+  assert.equal(hooks.calculations.modifyStrikeDamage({ ...context, catalog: hooks.catalog }, 100), 100);
   context.runtime.active = true;
-  assert.equal(hooks.modifyStrikeDamage({ ...context, catalog: hooks.catalog }, 100), 150);
-  assert.equal(hooks.modifyStrikeDamage({ catalog: hooks.catalog, ...context, event: { skillId: 1 } }, 100), 600);
-  assert.equal(hooks.modifyCriticalDamage({ ...context, catalog: hooks.catalog }, 1.5), 3);
-  assert.equal(hooks.modifyConditionBaseDuration({ ...context, catalog: hooks.catalog }, 1), 2);
-  assert.equal(hooks.modifyConditionBaseDuration({ catalog: hooks.catalog, ...context, condition: 'Burning' }, 1), 1);
+  assert.equal(hooks.calculations.modifyStrikeDamage({ ...context, catalog: hooks.catalog }, 100), 150);
+  assert.equal(
+    hooks.calculations.modifyStrikeDamage({ catalog: hooks.catalog, ...context, event: { skillId: 1 } }, 100),
+    600
+  );
+  assert.equal(hooks.calculations.modifyCriticalDamage({ ...context, catalog: hooks.catalog }, 1.5), 3);
+  assert.equal(hooks.calculations.modifyConditionBaseDuration({ ...context, catalog: hooks.catalog }, 1), 2);
+  assert.equal(
+    hooks.calculations.modifyConditionBaseDuration({ catalog: hooks.catalog, ...context, condition: 'Burning' }, 1),
+    1
+  );
   // Profession scope adds no implicit player filter; only the critical rule declares one here.
   const summon = { ...context, event: { skillId: 2, actorType: 'summon' } };
-  assert.equal(hooks.modifyStrikeDamage({ ...summon, catalog: hooks.catalog }, 100), 150);
-  assert.equal(hooks.modifyCriticalDamage({ ...summon, catalog: hooks.catalog }, 1.5), 1.5);
+  assert.equal(hooks.calculations.modifyStrikeDamage({ ...summon, catalog: hooks.catalog }, 100), 150);
+  assert.equal(hooks.calculations.modifyCriticalDamage({ ...summon, catalog: hooks.catalog }, 1.5), 1.5);
   context.runtime.active = false;
-  assert.equal(hooks.modifyStrikeDamage({ ...context, catalog: hooks.catalog }, 100), 100);
-  assert.equal(hooks.modifyCriticalDamage({ ...context, catalog: hooks.catalog }, 1.5), 1.5);
-  assert.equal(hooks.modifyConditionBaseDuration({ ...context, catalog: hooks.catalog }, 1), 1);
+  assert.equal(hooks.calculations.modifyStrikeDamage({ ...context, catalog: hooks.catalog }, 100), 100);
+  assert.equal(hooks.calculations.modifyCriticalDamage({ ...context, catalog: hooks.catalog }, 1.5), 1.5);
+  assert.equal(hooks.calculations.modifyConditionBaseDuration({ ...context, catalog: hooks.catalog }, 1), 1);
   for (const rule of core.modifiers.modifierRules) {
     assert.equal(rule.sourceSkillId, 1);
     assert.equal(Object.hasOwn(rule, 'scope'), false);

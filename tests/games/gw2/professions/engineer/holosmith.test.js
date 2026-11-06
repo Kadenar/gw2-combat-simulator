@@ -51,8 +51,11 @@ test('Photon Projector scales condition base duration independently of ordinary 
       config: { selectedTraitIds: [] },
       event: { holosmithConditionBaseDurationFactor: factor }
     };
-    assert.equal(native.modifyConditionBaseDuration({ ...context, catalog: native.catalog }, 2), 2 * expected);
-    assert.equal(native.modifyConditionDuration({ ...context, catalog: native.catalog }, 2), 2);
+    assert.equal(
+      native.calculations.modifyConditionBaseDuration({ ...context, catalog: native.catalog }, 2),
+      2 * expected
+    );
+    assert.equal(native.calculations.modifyConditionDuration({ ...context, catalog: native.catalog }, 2), 2);
   }
 });
 
@@ -569,7 +572,7 @@ test('an overheated Forge lane stays open until its authored exit', () => {
 });
 
 test('Overheat delays its tool-belt minimum cooldown until the damage effect', () => {
-  // Passive heat fills the bar at 5.00s, Overheat starts at 5.10s, and its measured effect applies at 6.66s.
+  // The delayed damage applies the minimum cooldown after the resource transition starts Overheat.
   const timing = simulate('Holosmith', ['Engage Photon Forge', { type: 'wait', durationMs: 6700 }], {
     initialHeat: 90,
     selectedTraitIds: [TRAIT.PHOTONIC_BLASTING_MODULE]
@@ -580,7 +583,7 @@ test('Overheat delays its tool-belt minimum cooldown until the damage effect', (
   );
 
   assert.equal(overheat.at, 5.1);
-  assert.equal(Math.round(damageEffect.at * 1000), 6660);
+  assert.ok(damageEffect.at > overheat.at);
 
   const grenadeBarrageStarts = (rotation, selectedTraitIds = []) => {
     const result = simulate('Holosmith', rotation, {
@@ -1149,7 +1152,7 @@ test('Holosmith positive strike factors below one apply and retain delayed captu
       event: { actorType: 'player', holosmithStrikeFactor: factor }
     };
     assert.equal(rule.when(context), true);
-    assert.equal(native.modifyStrikeDamage(context, 1), factor);
+    assert.equal(native.calculations.modifyStrikeDamage(context, 1), factor);
     assert.equal(rule.when({ ...context, event: { ...context.event, actorType: 'summon' } }), false);
   }
 

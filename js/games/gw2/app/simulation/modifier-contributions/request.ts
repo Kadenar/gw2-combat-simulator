@@ -1,3 +1,4 @@
+/** Build modifier-preview requests from selected runtime calculations and scenario assumptions. */
 import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import type { ModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/types.js';
 import type { ProfessionAppState, ProfessionRuntimeOptions } from '#gw2/app/types.js';
@@ -132,7 +133,7 @@ export function createModifierContributionRequest(
   const selected = selectedSkillIdSet(baseConfig.selectedSkillIds);
   // Discover passive owners from native attribute declarations, including currently suppressed or zero-valued grants.
   const passiveIds = new Set(
-    (runtime.attributeContributions?.({ config: baseConfig, time: 0, catalog: runtime.catalog }) ?? [])
+    (runtime.calculations.attributeContributions?.({ config: baseConfig, time: 0, catalog: runtime.catalog }) ?? [])
       .flatMap((contribution) => contribution.attributeEffects ?? [])
       .flatMap((effect) => (effect.kind === 'flat' && effect.passiveSkillId != null ? [effect.passiveSkillId] : []))
   );

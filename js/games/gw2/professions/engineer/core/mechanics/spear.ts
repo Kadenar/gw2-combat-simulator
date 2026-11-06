@@ -7,7 +7,6 @@ import { denySkillCast as denyEngineerCast } from '#gw2/platform/execution/avail
 import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
@@ -26,7 +25,7 @@ import type {
 import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Skill declarations select each spear mutation; handlers retain lifetime ownership and release-time snapshots. */
-const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['sideEffectHandlers'] = {
+const engineerSpearSideEffectHandlers: RuntimeHooks<EngineerRuntimeState, EngineerSkill>['sideEffectHandlers'] = {
   'engineer.lightning-rod'(runtime, context) {
     if (context.kind !== 'cast') throw new TypeError('Lightning Rod requires a cast trigger.');
 
@@ -94,7 +93,7 @@ const engineerSpearSideEffectHandlers: RuntimeProfession<EngineerRuntimeState, E
 };
 
 /** Spear tasks retain their cast and generation owners through release and impact. */
-const engineerSpearTasks: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['tasks'] = {
+const engineerSpearTasks: RuntimeHooks<EngineerRuntimeState, EngineerSkill>['tasks'] = {
   'engineer.rod-pulse'(runtime, data) {
     const { cast, index } = data as { cast: RuntimeCast<EngineerSkill>; index: number };
     buildEngineerPackets(
@@ -394,7 +393,7 @@ export function engineerSpearAvailability(
 }
 
 /** Core hooks register this feature without owning its impact policy. */
-const engineerSpearEventHandlers: RuntimeProfession<EngineerRuntimeState, EngineerSkill>['eventHandlers'] = {
+const engineerSpearEventHandlers: RuntimeHooks<EngineerRuntimeState, EngineerSkill>['eventHandlers'] = {
   'engineer.lightning-rod-pulse': handleLightningRodPulse,
   'engineer.conduit-surge': handleConduitSurge,
   'engineer.electric-artillery': handleElectricArtillery

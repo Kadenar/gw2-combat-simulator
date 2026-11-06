@@ -1,3 +1,4 @@
+/** Validates authored numeric inputs across every effect variant using the canonical strike field policy. */
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
 import { ACTOR, AURA } from '#gw2/platform/constants.js';
@@ -8,6 +9,7 @@ import {
   MAX_EFFECT_EXPANSION,
   requireEffectExpansionCount
 } from '#gw2/platform/effects/expansion-budget.js';
+import { strikePayloadNumericKeys } from '#gw2/platform/effects/strike-payload.js';
 import type {
   AuraEffect,
   ConditionEffect,
@@ -88,13 +90,7 @@ function validateEffectNumbers(candidate: UnvalidatedFields, label: string): voi
     'intervalMs',
     'castTimeMs',
     'phantasmEntityIndex',
-    'weaponStrength',
-    'flatDamage',
-    'flatStrikeBase',
-    'flatStrikePowerCoeff',
-    'flatStrikeMultiplier',
-    'flatStrikeHealthThreshold',
-    'flatStrikeThresholdMultiplier',
+    ...strikePayloadNumericKeys,
     'interruptCommitMs'
   ]) {
     if (candidate[field] !== undefined) requireBalanceNumber(candidate[field], `${label} field=${field}`);

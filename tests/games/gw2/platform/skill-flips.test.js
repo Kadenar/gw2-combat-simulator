@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createSkillFlipController } from '#gw2/platform/execution/skill-flip-controller.js';
 import {
   armSkillFlip,
   consumeSkillFlip,
@@ -87,4 +88,26 @@ test('persistent flips survive expiry checks and repeated simulations are determ
   assert.throws(() => armSkillFlip(flips, 1, NaN), RangeError);
   assert.throws(() => armSkillFlip(flips, 1, 2, 1), RangeError);
   assert.throws(() => armSkillFlip(flips, 1, 1, 2, 1.5), RangeError);
+});
+
+// Live lifecycle operations read one injected clock and schedule only finite expiry claims.
+test('flip controller preserves replacement identity and consumption deadlines', () => {
+  const clock = { time: 2 };
+  const scheduled = [];
+  const controller = createSkillFlipController({ clock, scheduleExpiry: (...args) => scheduled.push(args) });
+  assert.deepEqual(scheduled, []);
+  const old = controller.armFlip(1, { expiresAt: 5 });
+  const replacement = controller.armFlip(1, { expiresAt: 5, uses: 2 });
+  controller.consumeFlip(1);
+  assert.equal(controller.flips[1].availableAt, 2);
+  assert.equal(controller.flips[1].expiresAt, 5);
+  assert.equal(controller.flips[1].remainingUses, 1);
+  clock.time = 5;
+  assert.equal(controller.expireFlip(1, old.identity), undefined);
+  assert.equal(controller.flips[1].identity, replacement.identity);
+  assert.equal(controller.expireFlip(1, replacement.identity).identity, replacement.identity);
+  controller.armFlip(2);
+  assert.equal(scheduled.length, 2);
+  controller.clearFlip(2);
+  assert.equal(controller.flips[2], undefined);
 });

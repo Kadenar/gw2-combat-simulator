@@ -1,6 +1,14 @@
+/** Expands authored effects while preserving scalar overrides and emission-boundary ownership. */
 import type { SimulationActorType } from '#gw2/platform/constants.js';
 import { effectApplicationCount, validateConditionExpansion } from '#gw2/platform/effects/expansion-budget.js';
-import { effectTicks, type SkillEffect, type StrikeEffect, type StrikeTick } from '#gw2/platform/effects/types.js';
+import { copyStrikePayload } from '#gw2/platform/effects/strike-payload.js';
+import {
+  effectTicks,
+  type SkillEffect,
+  type StrikeEffect,
+  type StrikePacketFields,
+  type StrikeTick
+} from '#gw2/platform/effects/types.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { EffectMetadata, SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -52,36 +60,21 @@ function nestedEffectMetadata(
   return { metadata: { ...baseMetadata, ...effectMetadata, ...tickMetadata } };
 }
 
-/** Copies the strike formula fields that the numeric resolver consumes from each packet. */
-function strikeEventFields(source: StrikeEffect | StrikeTick) {
-  return {
-    ...(source.name != null ? { name: source.name } : {}),
-    // Explicit packet labels let the breakdown separate effects while retaining their casting skill.
-    ...(source.damageBreakdownName != null ? { damageBreakdownName: source.damageBreakdownName } : {}),
-    ...(source.weaponStrength != null ? { weaponStrength: source.weaponStrength } : {}),
-    ...(source.independentSummonStrike != null ? { independentSummonStrike: source.independentSummonStrike } : {}),
-    ...(source.summonUsesProfessionModifiers != null
-      ? { summonUsesProfessionModifiers: source.summonUsesProfessionModifiers }
-      : {}),
-    ...(source.summonInheritsAttributes != null ? { summonInheritsAttributes: source.summonInheritsAttributes } : {}),
-    ...(source.summonInheritsCriticalAttributes != null
-      ? { summonInheritsCriticalAttributes: source.summonInheritsCriticalAttributes }
-      : {}),
-    ...(source.flatDamage != null ? { flatDamage: source.flatDamage } : {}),
-    ...(source.flatStrikeBase != null ? { flatStrikeBase: source.flatStrikeBase } : {}),
-    ...(source.flatStrikePowerCoeff != null ? { flatStrikePowerCoeff: source.flatStrikePowerCoeff } : {}),
-    ...(source.flatStrikeMultiplier != null ? { flatStrikeMultiplier: source.flatStrikeMultiplier } : {}),
-    ...(source.flatStrikeHealthThreshold != null
-      ? { flatStrikeHealthThreshold: source.flatStrikeHealthThreshold }
-      : {}),
-    ...(source.flatStrikeThresholdMultiplier != null
-      ? { flatStrikeThresholdMultiplier: source.flatStrikeThresholdMultiplier }
-      : {}),
-    ...(source.damageKind != null ? { damageKind: source.damageKind } : {}),
-    ...(source.canCrit != null ? { canCrit: source.canCrit } : {}),
-    ...(source.forceCrit != null ? { forceCrit: source.forceCrit } : {}),
-    ...(source.projectile != null ? { projectile: source.projectile } : {})
-  };
+/** Writes formula and presentation overrides into the final packet without intermediate field objects. */
+function applyStrikeEventFields(
+  source: StrikeEffect | StrikeTick,
+  target: { -readonly [K in keyof StrikePacketFields]: StrikePacketFields[K] }
+): void {
+  copyStrikePayload(source, target);
+
+  if (source.name != null) target.name = source.name;
+
+  // Explicit packet labels separate effects while retaining their casting skill.
+  if (source.damageBreakdownName != null) target.damageBreakdownName = source.damageBreakdownName;
+
+  if (source.damageKind != null) target.damageKind = source.damageKind;
+
+  if (source.projectile != null) target.projectile = source.projectile;
 }
 
 /** Resolves the first timestamp at which an effect should fire. */
@@ -156,32 +149,32 @@ export function materializeSkillEffectApplications({
     for (let hitIndex = 1; hitIndex <= hits; hitIndex += 1) {
       const tick = ticks?.[hitIndex - 1];
       const at = tick ? origin + Number(tick.atMs) / 1000 : firstAt + (hitIndex - 1) * interval;
-      applications.push({
+      const event = {
+        ...effectBaseEvent,
+        type: 'damage',
         at,
-        event: {
-          ...effectBaseEvent,
-          type: 'damage',
-          at,
-          name: effect.name || skill.name,
-          coefficient: tick ? Number(tick.coefficient) : equalCoefficient,
-          hits: 1,
-          hitIndex,
-          totalHits: hits,
-          skillWeapon: effect.weapon || skill.weapon || skill.skillWeapon || skillWeaponFallback,
-          weaponStrength: effect.weaponStrength,
-          weaponStrengthProfileId: effect.weaponStrengthProfileId,
-          weaponStrengthSource: effect.weaponStrengthSource,
-          canCrit: effect.canCrit !== false,
-          // Preserve effect ownership across ticks without granting these bonuses to sibling packets.
-          effectModifierIds: effect.modifiers?.length ? effect.modifiers.map((rule) => rule.id) : undefined,
-          ...strikeEventFields(effect),
-          ...(tick ? strikeEventFields(tick) : {}),
-          ...nestedEffectMetadata(baseEvent.metadata, effect.metadata, tick?.metadata),
-          ...comboMetadata,
-          ...comboFieldMetadata,
-          ...(tick?.comboFinishers ? { comboFinishers: tick.comboFinishers } : {})
-        }
-      });
+        name: effect.name || skill.name,
+        coefficient: tick ? Number(tick.coefficient) : equalCoefficient,
+        hits: 1,
+        hitIndex,
+        totalHits: hits,
+        skillWeapon: effect.weapon || skill.weapon || skill.skillWeapon || skillWeaponFallback,
+        weaponStrength: effect.weaponStrength,
+        weaponStrengthProfileId: effect.weaponStrengthProfileId,
+        weaponStrengthSource: effect.weaponStrengthSource,
+        canCrit: effect.canCrit !== false,
+        // Preserve effect ownership across ticks without granting these bonuses to sibling packets.
+        effectModifierIds: effect.modifiers?.length ? effect.modifiers.map((rule) => rule.id) : undefined,
+        ...nestedEffectMetadata(baseEvent.metadata, effect.metadata, tick?.metadata),
+        ...comboMetadata,
+        ...comboFieldMetadata,
+        ...(tick?.comboFinishers ? { comboFinishers: tick.comboFinishers } : {})
+      };
+      applyStrikeEventFields(effect, event);
+
+      if (tick) applyStrikeEventFields(tick, event);
+
+      applications.push({ at, event });
     }
   } else if (effect.type === 'condition') {
     // Both authoring forms share packet construction; untimed repetitions still begin at cast completion.

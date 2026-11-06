@@ -83,7 +83,7 @@ for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
       if (time > 0) controller.setReadyAt(skillId, 25);
 
       assert.equal(
-        runtime[modifier](
+        runtime.calculations[modifier](
           {
             catalog: engineerCatalog,
             config: {
@@ -330,7 +330,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
     .resolveProfession({
       specialization: 'Mechanist'
     })
-    .modifyAttributes(
+    .calculations.modifyAttributes(
       {
         catalog: engineerCatalog,
         config: {
@@ -797,7 +797,7 @@ describe('Mechanist grandmaster active effects', () => {
         .resolveProfession({
           specialization: 'Mechanist'
         })
-        .modifyConditionDamage(
+        .calculations.modifyConditionDamage(
           {
             config: jDriveConfig,
             catalog: engineerCatalog,

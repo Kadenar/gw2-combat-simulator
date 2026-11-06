@@ -39,16 +39,18 @@ test('Mesmer reuses fixed query inputs while cooldowns and timed attribute stack
     }
   };
   const base = { conditionDamage: 0, expertise: 0, ferocity: 0, concentration: 0 };
-  const ready = mesmerProfession.resolveProfession({}).modifyAttributes(context, base);
+  const ready = mesmerProfession.resolveProfession({}).calculations.modifyAttributes(context, base);
   assert.equal(ready.conditionDamage, 220);
   assert.equal(ready.expertise, 330);
   assert.equal(ready.concentration, 270);
-  const recharging = mesmerProfession.resolveProfession({}).modifyAttributes({ ...context, time: 1 }, base);
+  const recharging = mesmerProfession
+    .resolveProfession({})
+    .calculations.modifyAttributes({ ...context, time: 1 }, base);
   assert.equal(recharging.conditionDamage, 0);
   assert.equal(recharging.expertise, 130);
   assert.equal(recharging.ferocity, 12);
   assert.equal(
-    mesmerProfession.resolveProfession({}).modifyAttributes({ ...context, time: 2 }, base).conditionDamage,
+    mesmerProfession.resolveProfession({}).calculations.modifyAttributes({ ...context, time: 2 }, base).conditionDamage,
     220
   );
   assert.ok(loadoutReads > 0);
@@ -58,8 +60,14 @@ test('Mesmer reuses fixed query inputs while cooldowns and timed attribute stack
     catalog: { ...context.catalog, skillsById: new Map(context.catalog.skillsById) }
   };
   patched.catalog.skillsById.set(ID.SIGNET_OF_DOMINATION, { attributeBonuses: { conditionDamage: 250 } });
-  assert.equal(mesmerProfession.resolveProfession({}).modifyAttributes(patched, base).conditionDamage, 250);
-  assert.equal(mesmerProfession.resolveProfession({}).modifyAttributes(context, base).conditionDamage, 220);
+  assert.equal(
+    mesmerProfession.resolveProfession({}).calculations.modifyAttributes(patched, base).conditionDamage,
+    250
+  );
+  assert.equal(
+    mesmerProfession.resolveProfession({}).calculations.modifyAttributes(context, base).conditionDamage,
+    220
+  );
   assert.ok(loadoutReads > 0);
 });
 
@@ -73,12 +81,13 @@ test('detached Mesmer attribute queries observe edited loadouts', () => {
   assert.equal(
     mesmerProfession
       .resolveProfession({})
-      .modifyAttributes({ catalog: mesmerCatalog, ...context }, { conditionDamage: 1000 }).conditionDamage,
+      .calculations.modifyAttributes({ catalog: mesmerCatalog, ...context }, { conditionDamage: 1000 }).conditionDamage,
     1180
   );
   context.config.selectedSkillIds = [];
   assert.equal(
-    mesmerProfession.resolveProfession({}).modifyAttributes(context, { conditionDamage: 1000 }).conditionDamage,
+    mesmerProfession.resolveProfession({}).calculations.modifyAttributes(context, { conditionDamage: 1000 })
+      .conditionDamage,
     1000
   );
 });

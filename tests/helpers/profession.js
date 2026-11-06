@@ -6,7 +6,8 @@ export function defineTestProfession({ hooks, ...definition }) {
   const profession = defineProfession(definition);
   // Evaluators come only from compiled declarations; runtime hooks such as modifyEffects are not on the contract.
   for (const key of Object.keys(hooks ?? {})) {
-    if (key.startsWith('modify') && key in profession) throw new TypeError(`Unsupported hooks field: ${key}.`);
+    if (key === 'calculations' || key in profession.calculations)
+      throw new TypeError(`Unsupported hooks field: ${key}.`);
   }
 
   return {

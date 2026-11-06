@@ -40,6 +40,11 @@ test('profession normalization rejects unsupported modifier declarations', () =>
     name: 'TypeError',
     message: 'Unsupported hooks field: modifyCriticalChance.'
   });
+  for (const key of ['calculations', 'attributeContributions', 'modifyConditionAttributes'])
+    assert.throws(() => defineTestProfession({ ...definition, hooks: { [key]: {} } }), {
+      name: 'TypeError',
+      message: `Unsupported hooks field: ${key}.`
+    });
   const modifyEffects = () => [];
   assert.equal(
     defineTestProfession({ ...definition, hooks: { modifyEffects } }).runtimeFor().modifyEffects,
@@ -54,18 +59,24 @@ test('profession contract supplies neutral calculation defaults', () => {
     name: 'Ordered'
   });
 
+  assert.equal(Object.isFrozen(profession.calculations), true);
+  // Evaluators have exactly one public owner; callers cannot find an obsolete flat alias.
+  for (const key of Object.keys(profession.calculations)) assert.equal(Object.hasOwn(profession, key), false);
   const attributes = { power: 123 };
-  assert.equal(profession.modifyAttributes({ catalog: profession.catalog }, attributes), attributes);
-  assert.equal(profession.modifyConditionAttributes({ catalog: profession.catalog }, attributes), attributes);
+  assert.equal(profession.calculations.modifyAttributes({ catalog: profession.catalog }, attributes), attributes);
+  assert.equal(
+    profession.calculations.modifyConditionAttributes({ catalog: profession.catalog }, attributes),
+    attributes
+  );
   for (const name of [
     'modifyCriticalChance',
     'modifyCriticalDamage',
     'modifyConditionBaseDuration',
     'modifyConditionDuration'
   ])
-    assert.equal(profession[name]({}, 1.5), 1.5);
+    assert.equal(profession.calculations[name]({}, 1.5), 1.5);
   assert.deepEqual(profession.createState({}), {});
-  assert.equal(profession.modifyStrikeDamage({ catalog: profession.catalog }, 12), 12);
+  assert.equal(profession.calculations.modifyStrikeDamage({ catalog: profession.catalog }, 12), 12);
   assert.equal(Object.hasOwn(profession, 'ui'), false);
   assert.equal(Object.hasOwn(profession, 'createBuildDefaults'), false);
 });

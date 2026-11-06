@@ -1,3 +1,4 @@
+// Families select compiled runtimes; executable calculation capabilities belong only to those selections.
 import assert from 'node:assert/strict';
 
 import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
@@ -5,14 +6,13 @@ import { GW2_RESOLVER_STAGES } from '#gw2/platform/resolver/reaction-registry.js
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 
 const EXECUTABLE_FAMILY_KEYS = Object.freeze([
+  'calculations',
   'createState',
   'taskHandlers',
   'eventHandlers',
   'eventReactions',
   'initialize',
-  'availability',
-  'modifyAttributes',
-  'modifyStrikeDamage'
+  'availability'
 ]);
 
 const UI_LIST_CALLBACKS = Object.freeze(['paletteGroups', 'resourceViews', 'skillBarGroups', 'targetHealthThresholds']);

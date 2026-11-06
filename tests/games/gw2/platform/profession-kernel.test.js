@@ -9,7 +9,7 @@ import { skillFlipReady, weaponFlipBlock, weaponFollowUpOpen } from '#gw2/platfo
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { testProfessionModifiers } from '#tests/fixtures/profession.js';
+import { testProfession } from '#tests/fixtures/profession.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { cast, wait } from '#tests/helpers/commands.js';
 
@@ -122,7 +122,7 @@ const config = {
 function fixture(hooks = {}) {
   return {
     // Reuse the normalized contract so compiled damage evaluators are included.
-    ...testProfessionModifiers,
+    calculations: testProfession.calculations,
     id: 'kernel-fixture',
     catalog,
     skillSelectionCatalog: catalog,

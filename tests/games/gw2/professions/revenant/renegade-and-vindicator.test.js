@@ -37,7 +37,7 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 
 const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyAttributes(
+    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyAttributes(
       {
         ...context,
         catalog: revenantProfession.resolveProfession(context?.config || {}).catalog
@@ -46,7 +46,7 @@ const revenantModifiers = Object.freeze({
     );
   },
   modifyCriticalChance(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyCriticalChance(
+    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyCriticalChance(
       {
         catalog: revenantCatalog,
         ...context
@@ -55,7 +55,7 @@ const revenantModifiers = Object.freeze({
     );
   },
   modifyStrikeDamage(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyStrikeDamage(
+    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyStrikeDamage(
       {
         catalog: revenantCatalog,
         ...context
@@ -64,7 +64,7 @@ const revenantModifiers = Object.freeze({
     );
   },
   modifyConditionDamage(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDamage(
+    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyConditionDamage(
       {
         catalog: revenantCatalog,
         ...context
@@ -73,7 +73,7 @@ const revenantModifiers = Object.freeze({
     );
   },
   modifyConditionDuration(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDuration(
+    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyConditionDuration(
       {
         catalog: revenantCatalog,
         ...context

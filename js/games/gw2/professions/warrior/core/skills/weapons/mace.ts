@@ -1,7 +1,6 @@
 /** Mace casts and impacts use observed timings rounded to the nearest 40 ms action tick. */
 import { BOON, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
@@ -212,7 +211,7 @@ export const WARRIOR_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skill
   }
 };
 
-const counterblowActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
+const counterblowActions: RuntimeHooks<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
   'warrior.counterblow-arm'(runtime, context) {
     if (context.kind === 'cast') runtime.armFlip(ID.TACTICAL_BLOW, { expiresAt: context.cast.fullEnd });
   }

@@ -53,7 +53,7 @@ for (const [name, catalog, modifiers, trait, condition, other, damage, coefficie
           }
 
           return [
-            ...modifiers.attributeContributions(context),
+            ...modifiers.calculations.attributeContributions(context),
             {
               transforms: [
                 {

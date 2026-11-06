@@ -1,8 +1,12 @@
+/** Composition binds domain owners in dependency order before any policy can request runtime work. */
 import { prepareSelectedSkillLoadout } from '#gw2/platform/builds/selected-skills.js';
 import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createCombatEngagement } from '#gw2/platform/combat/engagement.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
+import { createEnduranceController } from '#gw2/platform/combat/resources/endurance-controller.js';
+import { createVigorWindowReader, vigorEnduranceIntervals } from '#gw2/platform/combat/resources/endurance.js';
+import { createResourceController } from '#gw2/platform/combat/resources/resource-controller.js';
 import {
   RESOURCE_KEYS,
   validateResourcePolicies,
@@ -26,17 +30,10 @@ import { sigilBuffPolicies } from '#gw2/platform/equipment/sigils/runtime.js';
 import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { createAutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { createCastExecution } from '#gw2/platform/execution/cast-execution.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import type { RuntimeDriverContext } from '#gw2/platform/execution/driver-contract.js';
-import {
-  armSkillFlip,
-  consumeSkillFlip,
-  expireSkillFlip,
-  type SkillFlipWindows
-} from '#gw2/platform/execution/skill-flips.js';
-import type { FlipWindowOptions } from '#gw2/platform/execution/skill-flips.js';
+import { createSkillFlipController } from '#gw2/platform/execution/skill-flip-controller.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { createMaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
@@ -54,6 +51,7 @@ import type {
   Gw2ResolverReactionRegistry,
   Gw2ResolverStageDetails
 } from '#gw2/platform/resolver/types.js';
+import { createDamageReportRecorder } from '#gw2/platform/results/damage-report.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { captureRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
@@ -64,21 +62,21 @@ import { createCombatExecution } from '#gw2/platform/simulation/combat-execution
 import type { Gw2RuntimeConfig } from '#gw2/platform/simulation/config.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
 import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
+import { createOccurrenceCompletion } from '#gw2/platform/simulation/occurrence-completion.js';
 import type {
   DamageRuntimeOptions,
   DamageRuntimeResult,
   RuntimeExecution,
   RuntimeOptions
 } from '#gw2/platform/simulation/run-contract.js';
-import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
+import { createResourceDepletionWake, createRuntimeTaskScheduler } from '#gw2/platform/simulation/task-scheduler.js';
 import {
   FLIP_EXPIRY_PRIORITY,
   isRuntimeWork,
   type RuntimeQueueEntry,
   type RuntimeWork
 } from '#gw2/platform/simulation/work-contract.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { normalizeObservationPolicy } from '#kernel/execution/observation.js';
 
@@ -101,6 +99,7 @@ export function runRuntime<T extends object>(
 export function runRuntime<T extends object>(
   options: (RuntimeOptions<T> | DamageRuntimeOptions<T>) & { readonly execution: RuntimeExecution<T> }
 ): DamageRuntimeResult | Gw2SimulationResult | Gw2SimulationScore {
+  // Phase 1: normalize and validate the invocation before constructing live owners.
   const {
     profession,
     config: inputConfig = {},
@@ -158,6 +157,7 @@ export function runRuntime<T extends object>(
   const cursor = execution.driver.cursor;
   const markers = cursor.commands.filter((command) => command.type === 'combat-start');
 
+  // Phase 2: construct deferred producers, queue authority, facts, and output observers.
   let runtime: Gw2Runtime<T>;
   const engagementController = createCombatEngagement(
     { authoredMarkers: markers.length, inheritedStartTime: combatStartTime },
@@ -235,6 +235,8 @@ export function runRuntime<T extends object>(
 
   // Reporting observers are composed here; resolution never constructs result services.
   const effectRecorder = output === 'detailed' && collectChartData ? new EffectRecorder() : null;
+  const damageReport = output === 'detailed' ? createDamageReportRecorder() : null;
+  // Phase 3: resolver state and execution owners share one live clock.
   const base = createGw2ResolverRuntimeState({
     engagement: engagementController.query,
     config,
@@ -242,6 +244,7 @@ export function runRuntime<T extends object>(
     output,
     ownsEffect,
     effectRecorder,
+    damageRecorder: damageReport?.observer ?? null,
     // Damage measurements retain packets, but only detailed reports consume proc rows and aggregate breakdowns.
     procRecorder: output === 'detailed' ? new ProcStepRecorder(effectRecorder) : null,
     damageDiagnostics: output === 'damage' || damageDiagnostics,
@@ -257,17 +260,28 @@ export function runRuntime<T extends object>(
   const precastRelics = normalizePrecastRelics(config.precastRelics)
     .map(createRelicRuntime)
     .filter((relic) => relic.id !== base.relic.id);
-  // Capacity queries share one selected-content capability and follow the live profession state across replacements.
-  // Execution owns every follow-up; profession state replacement cannot discard windows or their identity sequence.
-  const flips: SkillFlipWindows = {};
-  const maximumAmmoContext = createMaximumAmmoContext(() => runtime.profession, base.traits, profession.catalog, flips);
+  const clock = {
+    get time() {
+      return runtime.time;
+    }
+  };
+  const flipController = createSkillFlipController({
+    clock,
+    scheduleExpiry(skillId, identity, at) {
+      enqueueWork(
+        makeWork({ type: 'runtime.flip-expiry', at, priority: FLIP_EXPIRY_PRIORITY, payload: { skillId, identity } })
+      );
+    }
+  });
+  const maximumAmmoContext = createMaximumAmmoContext(
+    () => runtime.profession,
+    base.traits,
+    profession.catalog,
+    flipController.flips
+  );
   // The recharge owner keeps its stores private and reads the single live runtime clock.
   const cooldownController = createCooldownController({
-    clock: {
-      get time() {
-        return runtime.time;
-      }
-    },
+    clock,
     // Default work calculation must use the same captured summon owner as projection and reduction.
     rechargeDuration: (skill, at, companionId) =>
       casts.rechargeWorkFor(skill) / cooldownController.rate(skill, at, companionId),
@@ -276,6 +290,17 @@ export function runRuntime<T extends object>(
       query.timeline.rechargeIntervals(skill, start, end, companionId),
     skillFor: (id) => profession.catalog.skillsById.get(id)
   });
+  const tasks = createRuntimeTaskScheduler({
+    tasks: profession.tasks,
+    skillsById: profession.catalog.skillsById,
+    context: () => runtime.mechanics,
+    makeWork,
+    enqueueWork,
+    cancelOwned: (owner) => coordinator.cancelOwner(owner, (packet) => deliveryOwner.owner(packet)),
+    castAction: coordinator.castAction,
+    withCause
+  });
+  // Phase 4: publish one runtime identity and bind capabilities without invoking authored callbacks.
   runtime = Object.assign(base, {
     config,
     alliedStrikeController: createAlliedStrikeController(() => runtime, {
@@ -306,71 +331,8 @@ export function runRuntime<T extends object>(
     observations: facts.writer,
     steps: [],
     inputActions: [],
-    flips,
-    armFlip(
-      skillId: SkillId,
-      { availableAt = runtime.time, expiresAt = Infinity, visibleAt, identity, uses }: FlipWindowOptions = {}
-    ) {
-      const window = armSkillFlip(flips, skillId, availableAt, expiresAt, visibleAt ?? availableAt, identity, uses);
-
-      // Retire after queued gameplay and before deadline commands; readiness already closes at the deadline.
-      if (window.expiresAt != null)
-        enqueueWork(
-          makeWork({
-            type: 'runtime.flip-expiry',
-            at: window.expiresAt,
-            priority: FLIP_EXPIRY_PRIORITY,
-            payload: { skillId, identity: window.identity }
-          })
-        );
-
-      return window;
-    },
-    consumeFlip(skillId: SkillId) {
-      return consumeSkillFlip(flips, skillId);
-    },
-    clearFlip(skillId: SkillId) {
-      delete flips[skillId];
-    },
-    expireFlip(skillId: SkillId, identity: number | string) {
-      return expireSkillFlip(flips, skillId, runtime.time, identity);
-    },
-    schedule(name: string, at: number, data: unknown = null, owner?: { id: string; generation: number }, priority = 0) {
-      if (!profession.tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
-
-      enqueueWork(makeWork({ type: 'runtime.task', at, priority, payload: { name, data }, owner }));
-    },
-    scheduleForCast(
-      name: string,
-      at: number,
-      cast: RuntimeCast,
-      data: Record<string, unknown> = {},
-      owner?: { id: string; generation: number },
-      priority = 0
-    ) {
-      if (!profession.tasks?.[name]) throw new TypeError(`No task handler registered for ${name}.`);
-
-      // Only reservation data crosses the clone boundary; callbacks stay on the catalog skill.
-      const { skill, ...reservation } = cast;
-
-      if (!profession.catalog.skillsById.has(skill.id)) throw new TypeError(`Unknown cast task skill ${skill.id}.`);
-
-      enqueueWork(
-        makeWork({
-          type: 'runtime.cast-task',
-          at,
-          priority,
-          payload: { name, cast: reservation, skillId: skill.id, data },
-          owner
-        })
-      );
-    },
-    cancelOwner(owner: { id: string; generation: number }) {
-      queue.cancelWhere((event) => {
-        const candidate = isRuntimeWork(event) ? event.owner : deliveryOwner.owner(event);
-        return candidate?.id === owner.id && candidate.generation === owner.generation;
-      });
-    },
+    ...flipController,
+    ...tasks.commands,
     fireTrigger(point: TriggerPoint, input: object = {}) {
       // Payload-free boundaries still give listeners an object; typed callers must supply all other payloads.
       // Listeners settle before the firing mechanic continues; isolated payload runtimes compile none.
@@ -384,6 +346,7 @@ export function runRuntime<T extends object>(
   }) as unknown as Gw2Runtime<T>;
   Object.defineProperty(runtime, 'mechanics', { value: createMechanicContext(runtime), enumerable: true });
   Object.defineProperty(runtime, 'mechanicQueries', { value: createMechanicQueryContext(runtime), enumerable: true });
+  // Phase 5: all work handlers and cast/delivery owners bind before resource policies can issue host requests.
   internal.register('runtime.allied-strike', (_context, work) => {
     if (work.type === 'runtime.allied-strike') runtime.alliedStrikeController.strike(work.payload.sequence);
   });
@@ -393,25 +356,13 @@ export function runRuntime<T extends object>(
   });
 
   internal.register('runtime.cast-task', (_context, work) => {
-    if (work.type !== 'runtime.cast-task') return;
-
-    const { name, cast, skillId, data } = work.payload;
-    // A cast's delayed work acts for that cast, so its unattributed effects are the cast's reactions.
-    withCause(
-      coordinator.castAction(cast.id) ?? null,
-      () =>
-        profession.tasks![name](runtime.mechanics, {
-          ...data,
-          cast: { ...cast, skill: profession.catalog.skillsById.get(skillId)! }
-        }),
-      true
-    );
+    if (work.type === 'runtime.cast-task') tasks.dispatch(work);
   });
   internal.register('runtime.flip-expiry', (_context, work) => {
     if (work.type === 'runtime.flip-expiry') runtime.expireFlip(work.payload.skillId, work.payload.identity);
   });
   internal.register('runtime.task', (_context, work) => {
-    if (work.type === 'runtime.task') profession.tasks![work.payload.name](runtime.mechanics, work.payload.data);
+    if (work.type === 'runtime.task') tasks.dispatch(work);
   });
   const casts = createCastExecution(runtime, profession, execution, {
     makeWork,
@@ -450,10 +401,31 @@ export function runRuntime<T extends object>(
   });
   const { executed } = deliveryOwner;
 
-  runtime.resourceController = createRuntimeResources(runtime, profession);
-  runtime.endurance = createRuntimeEndurance(runtime, profession);
+  // Phase 6: install resources, initialize endurance, then initialize ordinary pools in the established order.
+  runtime.resourceController = createResourceController({
+    clock,
+    context: () => runtime.mechanics,
+    policies: profession.resources ?? {},
+    depletion: createResourceDepletionWake(tasks.commands)
+  });
+  const vigor = { config, vigorWindows: createVigorWindowReader(history) };
+  const endurancePolicy = profession.endurance;
+  runtime.endurance = createEnduranceController({
+    clock,
+    context: () => runtime.mechanics,
+    policy: endurancePolicy,
+    intervals: (start, end) =>
+      vigorEnduranceIntervals(
+        vigor,
+        start,
+        end,
+        (hasVigor, at) => endurancePolicy!.regenerationRate(runtime.mechanics, hasVigor, at),
+        endurancePolicy?.regenerationBoundaries?.(runtime.mechanics)
+      )
+  });
   runtime.resourceController.initialize();
 
+  // Phase 7: initial combat boundaries and facts precede profession and execution initialization.
   const targetHealth = Number(config.target?.health) > 0 ? Number(config.target?.health) : Infinity;
 
   if (!runtime.encounter && targetHealthLoss(config, runtime) >= targetHealth) runtime.deathTime = 0;
@@ -552,16 +524,19 @@ export function runRuntime<T extends object>(
     acceptCast: casts.acceptCast,
     reject: casts.reject
   };
-  const sustainedPreviewDeadlines = new WeakMap<object, number>();
-  coordinator.run(
-    runtime,
-    execution,
-    policy,
-    driverContext,
-    dispatch,
-    flushEffects,
-    ownsEffect ? damageCompletionTime : undefined
-  );
+  // Phase 8: one occurrence policy governs both execution termination and result observation.
+  const damageCompletionTime = ownsEffect
+    ? createOccurrenceCompletion({
+        clock,
+        rotationEndTime: () => runtime.rotationEndTime,
+        horizon: () => runtime.horizon,
+        ownsEffect,
+        pendingEffects: () => coordinator.pendingEffects(executed, profession.backgroundTasks),
+        pendingAlliedEffects: () => runtime.alliedStrikeController.pendingEffects(),
+        resolved: () => runtime.resolved
+      })
+    : undefined;
+  coordinator.run(runtime, execution, policy, driverContext, dispatch, flushEffects, damageCompletionTime);
 
   if (runtime.rotationEndTime == null) throw new Error('Execution completed without a rotation boundary.');
 
@@ -570,35 +545,9 @@ export function runRuntime<T extends object>(
   const result = projectRuntimeResult(runtime, profession, execution, {
     output,
     executed,
+    projectDamageReport: damageReport?.project,
     damageCompletionTime
   });
   onPhase?.('reporting', performance.now() - reportingStarted);
   return result;
-
-  /** Follow owned work and condition settlement in this run; unrelated background tasks cannot prolong it. */
-  function damageCompletionTime(): number {
-    let deadline = runtime.rotationEndTime ?? runtime.time;
-    for (const pending of coordinator.pendingEffects(executed, profession.backgroundTasks))
-      if (ownsEffect!(pending.cause)) deadline = Math.max(deadline, pending.at);
-    for (const pending of runtime.alliedStrikeController.pendingEffects()) {
-      if (!ownsEffect!(pending.cause)) continue;
-
-      const { grant } = pending;
-
-      // A grant still live at the safety horizon, such as one sustained by an upkeep, has no finite payout to finish:
-      // sample its first opportunity instead of following it past the calculation window.
-      // Assumes finite allied grants expire well before the 120 s horizon (the longest, venoms, last 24 s).
-      if (runtime.horizon != null && (grant.isActive?.(runtime.horizon) ?? true)) {
-        if (!sustainedPreviewDeadlines.has(grant)) sustainedPreviewDeadlines.set(grant, pending.at);
-
-        deadline = Math.max(deadline, sustainedPreviewDeadlines.get(grant)!);
-      } else deadline = Math.max(deadline, pending.at);
-    }
-
-    for (const event of runtime.resolved)
-      if (ownsEffect!(event) && event.naturalExpiresAt != null)
-        // Owner condition clocks may pay their final buffered remainder after natural expiry.
-        deadline = Math.max(deadline, Number(event.naturalExpiresAt) + 1.5);
-    return canonicalTime(deadline);
-  }
 }

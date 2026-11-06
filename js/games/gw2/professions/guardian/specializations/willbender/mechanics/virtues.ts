@@ -9,7 +9,6 @@ import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber, effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -208,7 +207,7 @@ const ACTIVATE = 'guardian.willbender.activate';
 const FLAMES = 'guardian.willbender.flames';
 
 /** Activation recipes preserve the window/flame boundaries and priority ahead of shared lifetime work. */
-const willbenderVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
+const willbenderVirtueActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] =
   Object.fromEntries(
     (
       [

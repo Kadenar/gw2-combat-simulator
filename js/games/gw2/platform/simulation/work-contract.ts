@@ -1,7 +1,7 @@
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { QueuedEvent } from '#kernel/events/queue.js';
 
 /** Reserved for flip retirement after all queued gameplay at a deadline, before the next rotation command. */
@@ -53,3 +53,17 @@ export interface InternalWork<TType extends string = string, TPayload = unknown>
 export type WorkInput<TWork extends InternalWork> = TWork extends InternalWork
   ? Pick<TWork, 'type' | 'at' | 'priority' | 'payload' | 'activationId' | 'owner' | 'causalOrder'>
   : never;
+
+/** Mechanics schedule owned work without obtaining the queue or advancing its clock. */
+export interface TaskScheduling<TSkill extends Skill = Skill> {
+  schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number): void;
+  scheduleForCast(
+    name: string,
+    at: number,
+    cast: RuntimeCast<TSkill>,
+    data?: Record<string, unknown>,
+    owner?: WorkOwner,
+    priority?: number
+  ): void;
+  cancelOwner(owner: WorkOwner): void;
+}

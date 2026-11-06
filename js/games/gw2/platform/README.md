@@ -45,6 +45,10 @@ transitions. Mechanics can read or reset that progress; only execution advances 
 replace chain progress. Planning publishes detached expected steps under `STATE.AUTOATTACK_CHAINS`, including root
 defaults for every declared chain.
 
+Service owners construct frozen query and mechanic views. Their interfaces declare progressively wider operations;
+returned objects expose only the permitted methods. Deferred queries follow owner replacement without reading an unbound
+owner during construction.
+
 `skills/input-controls.ts` owns logical control identities, selected skill bars, and replacement ancestry lookup.
 `skills/autoattack-chain-index.ts` classifies automatic versus manual activations. `execution/input-controls.ts`
 resolves the control at cast acceptance and declares accepted input facts; `results/input-trace.ts` only projects those
@@ -56,9 +60,12 @@ receipts. `effects/actions.ts` declares actions; `effects/action-dispatch.ts` ap
 recharge, flip, and emission services. `resolver/effect-reactions.ts` receives its action dispatcher from simulation. It
 selects eligible reactions without importing simulation construction or acquiring resource stores.
 
-`simulation/work-contract.ts` declares internal task data and lifetime generations. `simulation/internal-work.ts`
-constructs validated detached work. Execution/delivery receive that factory through their host contracts. Generation
-cancellation must not erase committed projectiles. `execution/cast-timing.ts` owns cast-relative task deadlines.
+Simulation owns task admission, detached work, causal scope, and queue cancellation. Execution supplies cast facts;
+delivery supplies packet lifetime ownership. Generation cancellation must not erase separately owned committed
+projectiles.
+
+Resource modules own balance settlement, policy application, and depletion deadlines. Simulation owns wake generations
+and cancellation. Resource arithmetic receives clock and policy inputs without the aggregate runtime.
 
 `combat/history/executed-facts.ts` is the gameplay history in every output mode. Its factory returns separate readers
 and writers. Mechanic queries receive only `facts`; registered mechanic handlers receive the explicit `observations`
@@ -73,6 +80,11 @@ those queries. `combat/query/runtime-query.ts` and `combat/query/effect-stacks.t
 stack lookup without importing equipment implementations. `skill-damage/` runs and measures isolated skill occurrences
 using the shared combat calculations.
 
+Selected profession compilation creates one immutable calculations value shared by normalized selection and runtime
+modes. Attribute queries apply actor ownership, weapon-set context, one contribution sample, Might, profession and
+equipment attributes, independent summon projection, then final condition replacements. Repeated reads at the same
+timestamp resample live facts.
+
 Combat primitives declare narrow capabilities instead of importing aggregate simulation or resolver runtimes.
 `combat/procs/registry.ts` reads the live clock, selected balance profiles, and recharge intervals through
 `ProcRegistryContext`. `combat/modifiers.ts` uses `Gw2ModifierState` for profession and boon observations without
@@ -86,10 +98,11 @@ normalization belongs to `skills/external-skill-ids.ts`; these mappings are doma
 compilation. `runtime-contract.ts` declares the compiled runtime and `family-contract.ts` joins runtime, build, and lazy
 UI surfaces. Headless compilation/simulation never initializes presentation factories.
 
-`profession-definition/runtime-hooks.ts` defines module hook contributions. Composition rejects unsupported fields and
-duplicate named handlers while preserving notification order, transforms, retry precedence, and policy selection.
-Catalogs, state factories, weapon eligibility, attack chains, and planning projections belong to `RuntimeProfession`.
-The shared `weaponSkillMatchesSet` policy serves simulation and application adapters.
+`profession-definition/runtime-hooks.ts` defines the author contribution interface directly; the compiled runtime
+extends it instead of defining the author surface. Composition rejects unsupported fields and duplicate named handlers
+while preserving notification order, transforms, retry precedence, and policy selection. Catalogs, state factories,
+weapon eligibility, attack chains, and planning projections belong to `RuntimeProfession`. The shared
+`weaponSkillMatchesSet` policy serves simulation and application adapters.
 
 Authoring APIs never import the aggregate `Gw2Runtime`. Dedicated selection, content, recharge, capacity, cast-detail,
 and effect-ownership contexts live in `profession-definition/runtime-context.ts`. Shared capabilities live in
@@ -100,12 +113,21 @@ and effect-ownership contexts live in `profession-definition/runtime-context.ts`
 - `MechanicContext`: combat capabilities plus lifecycle, cast/resource/recharge operations, scheduling, and observation
   writes.
 
-`simulation/bind-mechanic-context.ts` binds query/lifecycle views; `resolver/mechanic-services.ts` binds combat
-operations. These capabilities expose neither the command cursor, shared heap, cast maps, nor report collections.
+`simulation/bind-mechanic-context.ts` assembles owner-provided capabilities and live state getters; it does not maintain
+service method allowlists. `resolver/mechanic-services.ts` owns combat operations and its restricted query view. These
+mechanic capabilities expose neither the command cursor, shared heap, cast maps, nor report collections. The existing
+effect-delivery integration still receives the aggregate runtime; it is distinct from profession-facing capabilities.
 
 `skill-damage/types.ts` owns measurement contracts; presentation adds labels/groups. `occurrence-driver.ts` selects
 isolated work, `run-occurrence.ts` runs it through the shared runtime, and `measure-occurrences.ts` owns measurement,
 variants, statuses, and caching. Isolated execution does not register unrelated combat producers or costs.
+
+Finite occurrence observation follows owned pending effects, allied grants, and accepted condition facts. Execution and
+result projection share that policy; only the coordinator inspects the queue and advances the clock.
+
+Authored effects and runtime packets share scalar strike inputs while retaining distinct timing, ownership, metadata,
+and resolved facts. Materialization applies defined tick overrides directly to the packet; emission detaches nested
+payloads.
 
 Saved randomness controls and conversion live in `builds/randomness-assumptions.ts`; critical damage policy
 normalization belongs to `combat/critical-damage-mode.ts`. Generic random generation remains in the kernel.
@@ -113,10 +135,16 @@ normalization belongs to `combat/critical-damage-mode.ts`. Generic random genera
 ## Observation, units, and simulation scope
 
 `results/types.ts` declares public results/planning projections; `simulation/options.ts` declares run requests.
-`results/project-runtime.ts` selects damage, score, or detailed output after execution settles.
-`results/combat-result.ts` builds detached rows/events; `results/resolved-events.ts` clips detached condition
-observations without changing live application lifetimes or settlement records. Optional effect observers maintain
-reporting history, but reporting cannot advance gameplay or supply required gameplay facts.
+`results/project-runtime.ts` selects damage, score, or detailed output after execution settles. Results own display
+aggregation and breakdown row contracts. Simulation supplies an optional damage observer to resolution only for detailed
+output, including charts-off runs; its detached projector stays in composition. Score and owned-damage modes do not
+construct it. Accepted totals, first/last damage time, target death, live condition state, and gameplay history remain
+independent of reporting. Environment condition payouts retain their shared first-player-hit phase even though
+environment DPS has a separate window.
+
+`results/combat-result.ts` combines detached damage projections and events; `results/resolved-events.ts` clips detached
+condition observations without changing live application lifetimes or settlement records. Optional effect observers
+maintain reporting history, but reporting cannot advance gameplay or supply required gameplay facts.
 
 `results/planning-state.ts` observes planning at the requested boundary, including command continuation after target
 death. Combat results use the earlier combat boundary. These observations are not resumable checkpoints.

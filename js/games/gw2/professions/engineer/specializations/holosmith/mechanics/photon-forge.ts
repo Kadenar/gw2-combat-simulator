@@ -3,7 +3,6 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
@@ -401,7 +400,7 @@ function handleHolosmithKitEquip(context: EngineerRuntime<HolosmithSkill>, skill
 }
 
 /** Only a current cadence tick can mutate heat or continue its lifetime. */
-const photonForgeTasks: RuntimeProfession<EngineerRuntimeState, HolosmithSkill>['tasks'] = {
+const photonForgeTasks: RuntimeHooks<EngineerRuntimeState, HolosmithSkill>['tasks'] = {
   [PHOTON_FORGE_PASSIVE_HEAT_TASK](context, data) {
     const state = holosmithState.from(context.profession);
 

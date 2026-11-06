@@ -67,11 +67,11 @@ test('Necromancer trait build contributions preserve patched conversion inputs a
     },
     time: 0
   };
-  const direct = runtime.modifyAttributes(context, seed);
+  const direct = runtime.calculations.modifyAttributes(context, seed);
   assert.equal(direct.precision, 1250);
   assert.equal(direct.conditionDamage, 162);
   assert.equal(
-    runtime.modifyAttributes(
+    runtime.calculations.modifyAttributes(
       { ...context, config: { attributeInputs: baseAttributeInputs(seed), selectedTraitIds: [] } },
       seed
     ).precision,
@@ -119,9 +119,9 @@ test('Carapace grants and Deadly Strength use the same patched capacity and expi
       assert.equal(runtime.profession.core.carapaceExpiries.length, expected);
       assert.deepEqual(result.warnings, []);
       const context = { catalog: profession.catalog, config, runtime, time: runtime.time };
-      assert.equal(profession.modifyAttributes(context, { power: 1000 }).power, 1000 + expected * 10);
+      assert.equal(profession.calculations.modifyAttributes(context, { power: 1000 }).power, 1000 + expected * 10);
       const expiry = Math.max(runtime.time, ...runtime.profession.core.carapaceExpiries);
-      assert.equal(profession.modifyAttributes({ ...context, time: expiry }, { power: 1000 }).power, 1000);
+      assert.equal(profession.calculations.modifyAttributes({ ...context, time: expiry }, { power: 1000 }).power, 1000);
     }
   }
 
@@ -144,7 +144,10 @@ test('Carapace rejects capped grants and admits only slots freed by expiry', () 
   assert.deepEqual(state.carapaceExpiries, capped);
   assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 10), 2);
   assert.equal(
-    profession.modifyAttributes({ catalog: profession.catalog, config, runtime, time: 10 }, { power: 1000 }).power,
+    profession.calculations.modifyAttributes(
+      { catalog: profession.catalog, config, runtime, time: 10 },
+      { power: 1000 }
+    ).power,
     1020
   );
 

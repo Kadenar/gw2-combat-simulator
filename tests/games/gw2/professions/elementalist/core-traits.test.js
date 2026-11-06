@@ -402,9 +402,9 @@ test('Electric Discharge keeps its packet-owned critical modifier after selectio
       event: { actorType: 'effect', skillName: 'Electric Discharge' },
       config: { selectedTraitIds: [] }
     };
-    assert.equal(runtime.modifyCriticalDamage(context, 1), factor);
-    assert.equal(runtime.modifyCriticalDamage({ ...context, event: { skillName: 'Other' } }, 1), 1);
-    assert.equal(runtime.modifyCriticalChance({ ...context, event: { actorType: 'player' } }, 0), 0);
+    assert.equal(runtime.calculations.modifyCriticalDamage(context, 1), factor);
+    assert.equal(runtime.calculations.modifyCriticalDamage({ ...context, event: { skillName: 'Other' } }, 1), 1);
+    assert.equal(runtime.calculations.modifyCriticalChance({ ...context, event: { actorType: 'player' } }, 0), 0);
   }
 });
 
@@ -443,7 +443,7 @@ test('Persisting Flames patches transform packets before emission and display th
     // Value transforms receive the fixture's query view, as they do through native mechanic composition.
     const transformed = runtime.modifyEffects({ ...context, queries: context }, { skill }, effects);
     assert.equal(transformed.at(-1).applications, 2 + extension);
-    assert.ok(Math.abs(runtime.modifyStrikeDamage(context, 100) - damage) < 1e-10);
+    assert.ok(Math.abs(runtime.calculations.modifyStrikeDamage(context, 100) - damage) < 1e-10);
     const unselected = { ...context, config: { selectedTraitIds: [] } };
     assert.equal(runtime.modifyEffects({ ...unselected, queries: unselected }, { skill }, effects), effects);
   }

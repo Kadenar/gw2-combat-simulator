@@ -410,20 +410,23 @@ test('Virtuoso definitions share patched build conversion and live modifiers wit
     query: { furyActiveAt: () => true }
   };
   assert.equal(
-    runtime.modifyAttributes({ ...context, config: { ...context.config, boons: { fury: true } } }, {})
+    runtime.calculations.modifyAttributes({ ...context, config: { ...context.config, boons: { fury: true } } }, {})
       .professionCriticalChanceBonus,
     25
   );
-  assert.equal(runtime.modifyAttributes(context, { ferocity: 0 }).ferocity, 200);
-  assert.equal(runtime.modifyStrikeDamage(context, 100), 120);
+  assert.equal(runtime.calculations.modifyAttributes(context, { ferocity: 0 }).ferocity, 200);
+  assert.equal(runtime.calculations.modifyStrikeDamage(context, 100), 120);
   assert.equal(
-    runtime.modifyStrikeDamage({ ...context, event: { actorType: 'summon', summonKind: 'phantasm' } }, 100),
+    runtime.calculations.modifyStrikeDamage(
+      { ...context, event: { actorType: 'summon', summonKind: 'phantasm' } },
+      100
+    ),
     100
   );
-  assert.equal(runtime.modifyCriticalChance({ ...context, config: { selectedTraitIds: [] } }, 0), 0);
+  assert.equal(runtime.calculations.modifyCriticalChance({ ...context, config: { selectedTraitIds: [] } }, 0), 0);
   // Phantasmal Fury is still its own selection gate while reading the shared Virtuoso tuning profile.
   assert.equal(
-    runtime.modifyCriticalChance(
+    runtime.calculations.modifyCriticalChance(
       {
         ...context,
         event: { actorType: 'summon', summonKind: 'phantasm' },
@@ -450,7 +453,7 @@ test('Virtuoso definitions share patched build conversion and live modifiers wit
     0
   );
   assert.equal(
-    runtime.modifyAttributes(
+    runtime.calculations.modifyAttributes(
       {
         ...context,
         config: {

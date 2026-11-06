@@ -416,7 +416,7 @@ test('isolated registration preserves selected value policies and admitted lifet
     const isolated = source.runtimeFor(config, { traitTriggers: false });
     const query = { config, helpers: isolated.catalog };
     assert.equal(
-      isolated.modifyStrikeDamage({ ...query, catalog: isolated.catalog }, 10),
+      isolated.calculations.modifyStrikeDamage({ ...query, catalog: isolated.catalog }, 10),
       selectedTraitIds.length ? 20 : 10
     );
     assert.equal(isolated.rechargeWork(query, burst, 10), selectedTraitIds.length ? 5 : 10);

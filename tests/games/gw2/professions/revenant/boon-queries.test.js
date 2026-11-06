@@ -43,7 +43,7 @@ test('Revenant and Renegade use live self boons, duration stacking, and timeline
   const reprisal = revenantCoreModifierRules.find(({ id }) => id === 'revenant.vicious-reprisal');
   const bloodFury = renegadeModifierRules.find(({ id }) => id === 'revenant.blood-fury-bleeding-duration');
   const criticalBonus = (value) =>
-    revenantProfession.runtimeFor({ specialization: 'Core' }).modifyCriticalChance(
+    revenantProfession.runtimeFor({ specialization: 'Core' }).calculations.modifyCriticalChance(
       {
         catalog: revenantCatalog,
         ...value

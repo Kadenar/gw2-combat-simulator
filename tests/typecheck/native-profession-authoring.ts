@@ -7,6 +7,7 @@ import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/fa
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { NativeProfessionRuntimeState } from '#gw2/platform/profession-definition/module-types.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -347,3 +348,15 @@ if (false) {
     reactions: []
   });
 }
+
+// Author contributions cannot acquire compiler-owned content or calculation capabilities.
+function authorHooks(hooks: RuntimeHooks<object>): RuntimeHooks<object> {
+  return hooks;
+}
+
+// @ts-expect-error The compiler supplies selected catalogs.
+authorHooks({ catalog: {} });
+// @ts-expect-error The compiler supplies the immutable calculation plan.
+authorHooks({ calculations: {} });
+// @ts-expect-error Modifier callbacks belong to compiled declarative calculations.
+authorHooks({ modifyAttributes: () => ({ power: 1 }) });

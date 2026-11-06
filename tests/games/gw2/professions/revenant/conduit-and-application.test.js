@@ -21,7 +21,7 @@ import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyAttributes(
+    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyAttributes(
       {
         catalog: revenantCatalog,
         ...context
@@ -30,7 +30,7 @@ const revenantModifiers = Object.freeze({
     );
   },
   modifyCriticalChance(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyCriticalChance(
+    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyCriticalChance(
       {
         ...context,
         catalog: revenantProfession.resolveProfession(context?.config || {}).catalog
@@ -39,7 +39,7 @@ const revenantModifiers = Object.freeze({
     );
   },
   modifyStrikeDamage(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyStrikeDamage(
+    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyStrikeDamage(
       {
         catalog: revenantCatalog,
         ...context
@@ -48,7 +48,7 @@ const revenantModifiers = Object.freeze({
     );
   },
   modifyConditionDamage(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDamage(
+    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyConditionDamage(
       {
         catalog: revenantCatalog,
         ...context
@@ -57,7 +57,7 @@ const revenantModifiers = Object.freeze({
     );
   },
   modifyConditionDuration(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDuration(
+    return revenantProfession.resolveProfession(context?.config || {}).calculations.modifyConditionDuration(
       {
         ...context,
         catalog: revenantProfession.resolveProfession(context?.config || {}).catalog

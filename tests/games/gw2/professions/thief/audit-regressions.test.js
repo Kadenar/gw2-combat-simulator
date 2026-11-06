@@ -113,7 +113,7 @@ test('Signet of Agility grants precision while ready and restores 100 endurance 
   const precision = (runtime, config, attributes) =>
     thiefProfession
       .resolveProfession({})
-      .modifyAttributes(
+      .calculations.modifyAttributes(
         { catalog: thiefCatalog, config, timeline: runtime.query.timeline, time: runtime.time },
         attributes
       ).precision;

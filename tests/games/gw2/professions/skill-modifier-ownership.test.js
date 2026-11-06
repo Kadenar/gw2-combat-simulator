@@ -88,10 +88,10 @@ test('Ranger intrinsic rules retain target predicates, condition formulas, and s
               query: { targetHasCondition: (condition) => activeConditions.has(condition) }
             };
             assert.ok(
-              Math.abs(runtime.modifyStrikeDamage(context, 100) - 100 * factor) < 1e-10,
+              Math.abs(runtime.calculations.modifyStrikeDamage(context, 100) - 100 * factor) < 1e-10,
               `${patchId}: ${skillId}`
             );
-            assert.equal(runtime.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 100), 100);
+            assert.equal(runtime.calculations.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 100), 100);
           }
         }
       }
@@ -109,7 +109,7 @@ test('Slicing Maelstrom owns its boonless-target factor for combat and detached 
       for (const source of [{ event: { skillId } }, { skillId }]) {
         const context = { catalog: runtime.catalog, config: { selectedTraitIds: [] }, time: 0, ...source };
         assert.equal(
-          runtime.modifyStrikeDamage(context, 100),
+          runtime.calculations.modifyStrikeDamage(context, 100),
           100 * (skillId === WARRIOR.SLICING_MAELSTROM ? factor : 1)
         );
       }
@@ -207,8 +207,8 @@ test('Warrior skill bonuses preserve the strict target-health boundary and remai
                   }
                 : { skillId })
             };
-            assert.equal(runtime.modifyStrikeDamage(context, 100), 100 * factor);
-            assert.equal(runtime.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 100), 100);
+            assert.equal(runtime.calculations.modifyStrikeDamage(context, 100), 100 * factor);
+            assert.equal(runtime.calculations.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 100), 100);
           }
         }
       }
@@ -228,8 +228,8 @@ test('dagger chain attacks own independent critical-only factors and selected to
       [WARRIOR.KICK, 1, undefined]
     ]) {
       const context = { catalog: runtime.catalog, config: { selectedTraitIds: [] }, time: 0, event: { skillId } };
-      assert.equal(runtime.modifyCriticalDamage(context, 2), 2 * factor);
-      assert.equal(runtime.modifyStrikeDamage(context, 100), 100);
+      assert.equal(runtime.calculations.modifyCriticalDamage(context, 2), 2 * factor);
+      assert.equal(runtime.calculations.modifyStrikeDamage(context, 100), 100);
       const skill = patch.balanceContext.catalog.skillsById.get(skillId);
       const tooltip = warriorAppAdapter.skillTooltip(skill, patch);
       assert.equal(tooltip.facts.find((entry) => entry.name === 'Critical damage')?.detail, fact);
@@ -253,8 +253,8 @@ test('Piercing Gales samples live vulnerability only for its own damage after Ga
           query: { vulnerabilityStacksAt: (at) => at * 10 }
         };
         const factor = skillId === RANGER.PIERCING_GALES ? 1 + stacks * (patchId === preview.id ? 0.03 : 0.02) : 1;
-        assert.equal(runtime.modifyStrikeDamage(context, 100), 100 * factor);
-        assert.equal(runtime.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 100), 100);
+        assert.equal(runtime.calculations.modifyStrikeDamage(context, 100), 100 * factor);
+        assert.equal(runtime.calculations.modifyConditionDamage({ ...context, condition: 'Bleeding' }, 100), 100);
       }
     }
   }
@@ -295,10 +295,13 @@ test('Deadeye skill-owned modifiers retain independent patch tuning and captured
       runtime: { profession: { core: {}, specialization: { kind: 'Deadeye', state } } },
       event: { skillId, actorType: 'player', deadeyeMaliceSnapshot: 3 }
     };
-    assert.equal(runtime.modifyStrikeDamage(context, 100), factor * 100);
-    assert.equal(runtime.modifyStrikeDamage({ ...context, time: 10 }, 100), 100);
+    assert.equal(runtime.calculations.modifyStrikeDamage(context, 100), factor * 100);
+    assert.equal(runtime.calculations.modifyStrikeDamage({ ...context, time: 10 }, 100), 100);
     assert.equal(
-      runtime.modifyStrikeDamage({ ...context, event: { ...context.event, actorType: 'environment' } }, 100),
+      runtime.calculations.modifyStrikeDamage(
+        { ...context, event: { ...context.event, actorType: 'environment' } },
+        100
+      ),
       100
     );
   }
@@ -328,9 +331,12 @@ test('Reaper shouts retain independent patch tuning and exclude unrelated packet
     NECROMANCER.RISE
   ]) {
     const context = { catalog: runtime.catalog, config, time: 1, event: { skillId, actorType: 'player' } };
-    assert.equal(runtime.modifyStrikeDamage(context, 100), skillId === NECROMANCER.YOU_ARE_ALL_WEAKLINGS ? 300 : 200);
     assert.equal(
-      runtime.modifyStrikeDamage(
+      runtime.calculations.modifyStrikeDamage(context, 100),
+      skillId === NECROMANCER.YOU_ARE_ALL_WEAKLINGS ? 300 : 200
+    );
+    assert.equal(
+      runtime.calculations.modifyStrikeDamage(
         { ...context, event: { skillId, actorType: 'effect', ownerActorType: 'player' } },
         100
       ),
@@ -339,7 +345,7 @@ test('Reaper shouts retain independent patch tuning and exclude unrelated packet
   }
 
   assert.equal(
-    runtime.modifyStrikeDamage(
+    runtime.calculations.modifyStrikeDamage(
       {
         catalog: runtime.catalog,
         config,

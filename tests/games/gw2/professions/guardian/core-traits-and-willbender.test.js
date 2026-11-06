@@ -1011,9 +1011,9 @@ test('Guardian weapon definitions preserve patched build bonuses and live weapon
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.ZEALOUS_BLADE, GUARDIAN_TRAIT_IDS.RIGHT_HAND_STRENGTH]
     }
   };
-  assert.equal(runtime.modifyAttributes(context, { power: 1000 }).power, 1140);
+  assert.equal(runtime.calculations.modifyAttributes(context, { power: 1000 }).power, 1140);
   assert.equal(
-    runtime.modifyAttributes(
+    runtime.calculations.modifyAttributes(
       { ...context, config: { ...context.config, primaryWeapon: 'Greatsword' } },
       { power: 1000 }
     ).power,

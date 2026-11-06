@@ -26,3 +26,10 @@ export const RESOURCE_TOLERANCE = 1e-9;
 export function resourceAtLeast(value: number, threshold: number): boolean {
   return value + RESOURCE_TOLERANCE >= threshold;
 }
+
+/** Resource mutations and readiness reject invalid amounts before inspecting or changing a pool. */
+export function resourceAmount(value: number): number {
+  if (!Number.isFinite(value) || value < 0) throw new RangeError('Resource amounts must be finite and non-negative.');
+
+  return value;
+}

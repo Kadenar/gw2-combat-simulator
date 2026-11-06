@@ -5,7 +5,7 @@ import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { testProfessionModifiers } from '#tests/fixtures/profession.js';
+import { testProfession } from '#tests/fixtures/profession.js';
 
 const packet = (sourceId, at) => ({
   type: 'buff',
@@ -86,7 +86,7 @@ test('delivery reserves fresh identities before suppression and preserves author
   const references = [];
   const catalog = createCanonicalCatalog({ skills: [] });
   const profession = {
-    ...testProfessionModifiers,
+    calculations: testProfession.calculations,
     id: 'identity-admission-fixture',
     buffPolicies: () => [{ kind: 'ownership-fixture' }],
     catalog,
@@ -131,7 +131,7 @@ test('owned effects prepare once at impact and retain their reserved identity', 
   const references = [];
   const catalog = createCanonicalCatalog({ skills: [] });
   const profession = {
-    ...testProfessionModifiers,
+    calculations: testProfession.calculations,
     id: 'effect-ownership-fixture',
     buffPolicies: () => [{ kind: 'ownership-fixture' }],
     catalog,

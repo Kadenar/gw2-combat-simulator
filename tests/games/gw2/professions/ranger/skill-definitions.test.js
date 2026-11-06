@@ -274,7 +274,7 @@ test('Signet of the Wild evaluates readiness and preserves pet launch snapshots'
         time: 0,
         timeline: { skillOnCooldownAt: () => !ready }
       };
-      const result = ranger.modifyAttributes(context, { ferocity: 0 });
+      const result = ranger.calculations.modifyAttributes(context, { ferocity: 0 });
       assert.equal(result.ferocity, selected && ready ? bonus : 0);
     }
   }

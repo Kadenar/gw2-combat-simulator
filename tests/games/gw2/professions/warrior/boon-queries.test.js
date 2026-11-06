@@ -41,7 +41,7 @@ test('Warrior Fury modifiers and boon counts survive individual packet expiry', 
   const attributes = { conditionDamage: 0, ferocity: 0 };
   const resolved = warriorProfession
     .resolveProfession({})
-    .modifyAttributes({ catalog: warriorCatalog, ...context }, attributes);
+    .calculations.modifyAttributes({ catalog: warriorCatalog, ...context }, attributes);
   assert.equal(resolved.conditionDamage, 180);
   assert.equal(warriorActiveBoonCount({ ...context, time: 10 }), 0);
   assert.equal(warriorBoonActive({ ...context, runtime: undefined }, 'fury'), false);

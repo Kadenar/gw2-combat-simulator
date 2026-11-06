@@ -56,9 +56,10 @@ cooldowns, and live mechanic state impose separate checks.
 ### Rules and hooks
 
 Modifiers are authored as declarative `modifierRules`, with optional damage-bucket policies. Catalog admission validates
-and detaches declarations; selected runtime composition compiles evaluators once. Compiled `modify*` methods are query
-operations, not authoring hooks. Equipment and profession additions share one damage calculation, and each damage-bucket
-policy has at most one owner across selected modules.
+and detaches declarations; selected runtime composition compiles one immutable `calculations` object shared by the
+normalized selection and runtime trigger modes. Its `modify*` methods are query operations, not authoring hooks.
+`RuntimeHooks` defines the author contribution surface independently of compiled output. Equipment and profession
+additions share one damage calculation, and each damage-bucket policy has at most one owner across selected modules.
 
 `defineTrait()` expands definitions once during module construction. Selection gates apply to ordinary rules and
 triggers; already-created effects may retain explicit lifetime ownership. Module and trait hooks use the same ordered
@@ -75,8 +76,12 @@ capability boundaries.
 
 - `simulation/runtime.ts`: per-run service assembly.
 - `simulation/coordinator.ts`: the single heap, clock, causal scope, and advancement loop.
+- `simulation/task-scheduler.ts`: named task admission, detached cast work, and resource-depletion wake generations.
 - `execution/cast-execution.ts`: readiness, reservations, acceptance, commitment, and completion.
+- `execution/skill-flip-controller.ts`: live flip windows and expiry requests.
+- `combat/resources/`: resource/endurance policy application and settlement through injected clock/context capabilities.
 - `resolver/effect-delivery.ts`: packet admission, preparation, target gates, and reaction settlement.
+- `results/damage-report.ts`: optional damage aggregation with separate writing and detached projection capabilities.
 - `results/project-runtime.ts`: projection of the settled run without advancing it.
 
 Commands, internal tasks, and combat packets share one clock and queue. Internal work carries detached payloads and
@@ -93,6 +98,11 @@ Score and detailed output modes execute the same mechanics and use the same game
 Detailed mode additionally retains reports and diagnostics. Rotation, tail, and absolute observation policies bound
 delayed work without extending rotation duration recursively. Combat reports stop at `combatEndTime`; after target
 death, commands may continue while hostile effects and hit-dependent grants are suppressed.
+
+Service owners construct restricted objects, and binding reuses those views while following live state and replaceable
+services. Cooldown and combat interfaces use inheritance instead of repeating method-name allowlists in types. Runtime
+objects still select exposed methods explicitly. Isolated occurrence completion is a simulation-owned observation
+policy; it does not advance the clock or rely on report aggregates.
 
 `planningState` is a detached observation, not a checkpoint. It includes execution state and composed profession facts
 under stable state IDs. Projectors are pure, duplicate IDs are rejected, and the observer deep-clones the public record.

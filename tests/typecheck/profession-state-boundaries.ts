@@ -1,6 +1,10 @@
+/** State and service capability contracts keep profession authors inside their owned mutation boundaries. */
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineProfessionSpecializationState, professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { CatalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
@@ -179,3 +183,37 @@ deadeyePreview.markExpiresAt?.toFixed();
 deadeyePreview.antiquaryDamageUntil;
 // @ts-expect-error Unknown specialization names cannot request an arbitrary state shape.
 thiefRuntimeSpecializationState(undefined, 'Holosmith');
+
+// Owner-provided views reject forbidden authority without dropping concrete skill identity from delayed work.
+interface ConcreteTaskSkill extends Skill {
+  readonly taskMarker: 'concrete';
+}
+declare const mechanics: MechanicContext<object, ConcreteTaskSkill>;
+declare const concreteCast: RuntimeCast<ConcreteTaskSkill>;
+declare const genericCast: RuntimeCast;
+mechanics.scheduleForCast('owned', 1, concreteCast);
+mechanics.cooldownController.setReadyAt(1, 2);
+mechanics.autoattackController.reset();
+mechanics.queries.cooldownController.readyAt(1);
+// @ts-expect-error Delayed work preserves the selected catalog's concrete skill.
+mechanics.scheduleForCast('owned', 1, genericCast);
+// @ts-expect-error Resetting every recharge store belongs to execution.
+mechanics.cooldownController.resetAll();
+// @ts-expect-error Query methods cannot settle ammunition.
+mechanics.queries.cooldownController.isOnCooldown(1);
+// @ts-expect-error Query methods cannot pay a resource.
+mechanics.queries.resourceController.spend('energy', 1);
+// @ts-expect-error Query methods cannot grant endurance.
+mechanics.queries.endurance.grant(1);
+// @ts-expect-error Cast queries cannot change lockouts.
+mechanics.queries.castController.lockInputUntil(2);
+// @ts-expect-error Mechanics cannot advance autoattack progress.
+mechanics.autoattackController.advance(concreteCast.skill, true, true);
+// @ts-expect-error Autoattack queries cannot reset progress.
+mechanics.queries.autoattackController.reset();
+// @ts-expect-error Registration cannot dispatch resolver reactions.
+mechanics.effectReactions.dispatch;
+// @ts-expect-error Combat queries cannot retire companions.
+mechanics.queries.combat.retireCompanion('pet', 1);
+// @ts-expect-error Restricted views never expose their full owner or sibling views.
+mechanics.cooldownController.queries;

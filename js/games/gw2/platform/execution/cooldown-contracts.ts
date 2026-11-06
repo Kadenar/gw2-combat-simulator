@@ -34,9 +34,8 @@ export interface RechargeCheckpoint {
   readonly ammoBindings: ReadonlyMap<SkillId, number>;
 }
 
-export interface CooldownController {
-  /** Observe one skill at the live clock without refreshing unrelated recharge pools. */
-  isOnCooldown(skillId: SkillId, at?: number): boolean;
+/** Observations expose detached recharge facts without execution or mechanic commands. */
+export interface CooldownQueries {
   /** Ordinary timers publish their cache; magazines derive availability from their shared resource state. */
   readyAt(skillId: SkillId): number | undefined;
   /** Ordinary entries remain present after completion; use isOnCooldown for live readiness. */
@@ -44,6 +43,16 @@ export interface CooldownController {
   readAmmo(skillId: SkillId): AmmoObservation | undefined;
   hasAmmo(skillId: SkillId): boolean;
   rechargeFor(skillId: SkillId): Readonly<RechargeProgress> | undefined;
+  /** Summon work queries the captured companion; fixed summon deadlines use normal-rate reduction instead. */
+  rate(skill: Skill, at?: number, companionId?: string): number;
+  project(skill: Skill, progress: RechargeProgress): number;
+  remaining(skill: Skill, progress: RechargeProgress, at: number): number;
+}
+
+/** Mechanics add selected recharge mutations while execution retains cast admission and global reset. */
+export interface MechanicCooldownController extends CooldownQueries {
+  /** Observe one skill at the live clock without refreshing unrelated recharge pools. */
+  isOnCooldown(skillId: SkillId, at?: number): boolean;
   cooldownSkillIds(): IterableIterator<SkillId>;
   ammoSkillIds(): IterableIterator<SkillId>;
   /** Remove one magazine binding and its ordinary timer; other faces retain their shared pool. */
@@ -67,8 +76,6 @@ export interface CooldownController {
     preservedCooldownIds: ReadonlySet<SkillId>,
     deadlines: readonly { readonly skillId: SkillId; readonly readyAt: number }[]
   ): void;
-  /** Reset all recharge and ammunition pools at an authored reset boundary. */
-  resetAll(): void;
   /** Keep earned work while removing the departing companion and its Alacrity from running cooldowns. */
   retireCompanion(companionId: string, at: number): void;
   /** Starts a cooldown with base-recharge work; fixed deadlines use setReadyAt instead. */
@@ -79,16 +86,20 @@ export interface CooldownController {
   /** Copy an ordinary timer and its cached deadline; shared magazines use linkAmmo. */
   copy(sourceId: SkillId, targetId: SkillId): void;
   refresh(at: number): void;
-  /** Summon work queries the captured companion; fixed summon deadlines use normal-rate reduction instead. */
-  rate(skill: Skill, at?: number, companionId?: string): number;
-  project(skill: Skill, progress: RechargeProgress): number;
-  remaining(skill: Skill, progress: RechargeProgress, at: number): number;
   /** Initialize only when current capacity is positive; report pool availability without settling recharge work. */
   ensureAmmo(skill: Skill): boolean;
   /** Advances base-recharge progress and returns the wall time recovered at the current rate. */
   reduceSkillRecharge(skill: Skill, reduction: number, at?: number): number;
   refreshAmmo(skill: Skill, at: number): AmmoObservation | null;
   restoreAmmo(skill: Skill, count: number, at: number): number;
+}
+
+/** Execution owns the complete controller and publishes restricted views explicitly. */
+export interface CooldownController extends MechanicCooldownController {
+  /** Reset all recharge and ammunition pools at an authored reset boundary. */
+  resetAll(): void;
   setAmmoLockout(skill: Skill, work: number, at?: number): void;
   spendAmmo(skill: Skill, at: number, committedRechargeWork?: number): void;
+  readonly queries: CooldownQueries;
+  readonly mechanics: MechanicCooldownController;
 }

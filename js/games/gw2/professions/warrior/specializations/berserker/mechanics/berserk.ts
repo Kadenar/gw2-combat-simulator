@@ -2,7 +2,6 @@ import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { balanceNumber, effectNumber, requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
@@ -89,7 +88,7 @@ function completeBerserk(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill
 }
 
 /** Entry and base extension capture share the mode owner with completion and expiry. */
-const berserkActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
+const berserkActions: RuntimeHooks<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
   'warrior.berserk-spend'(runtime, context) {
     runtime.resourceController.spend('adrenaline', context.skill.adrenalineCost ?? 0);
   },

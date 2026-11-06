@@ -1,5 +1,4 @@
 import { AURA, BOON, RECIPIENT } from '#gw2/platform/constants.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -62,7 +61,7 @@ export const LUMINARY_VIRTUE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
   }
 };
 
-const luminaryVirtueActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
+const luminaryVirtueActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   // Resolve's intrinsic aura replaces an old aura after any Sovereign detonation at the same boundary.
   'guardian.resolve-aura'(runtime, context) {
     if (context.kind !== 'cast') return;

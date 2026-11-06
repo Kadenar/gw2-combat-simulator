@@ -1,6 +1,5 @@
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -43,7 +42,7 @@ function flowTick(runtime: WarriorRuntime): void {
   scheduleFlowTick(runtime);
 }
 
-const flowTasks: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['tasks'] = { [FLOW_TICK]: flowTick };
+const flowTasks: RuntimeHooks<WarriorRuntimeState, WarriorSkill>['tasks'] = { [FLOW_TICK]: flowTick };
 
 /** The shared pool owns Flow arithmetic; only the absolute-grid task supplies regeneration. */
 const bladeswornFlowPolicy: ResourcePolicy<WarriorRuntime> = {

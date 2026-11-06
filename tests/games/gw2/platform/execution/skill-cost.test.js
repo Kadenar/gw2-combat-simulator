@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createEnduranceController } from '#gw2/platform/combat/resources/endurance-controller.js';
+import { createResourceController } from '#gw2/platform/combat/resources/resource-controller.js';
 import { skillCostAvailability, spendSkillCost } from '#gw2/platform/execution/skill-cost.js';
-import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 
@@ -68,8 +69,11 @@ test('endurance admission and payment wait for the full dodge cost', () => {
   for (const time of [9.9998, 9.9999, 9.99995, 9.999999, 10]) {
     const pool = { value: 0, maximum: 100, updatedAt: 0, unitsPerSecond: 0 };
     const runtime = { time: 0, config: {}, history: [] };
-    runtime.endurance = createRuntimeEndurance(runtime, {
-      endurance: { state: () => pool, maximum: () => 100, regenerationRate: () => 5 }
+    runtime.endurance = createEnduranceController({
+      clock: runtime,
+      context: () => ({}),
+      policy: { state: () => pool, maximum: () => 100, regenerationRate: () => 5 },
+      intervals: (start, end) => [{ start, end, rate: 5 }]
     });
     runtime.endurance.spend(100);
     runtime.time = time;
@@ -93,8 +97,15 @@ test('continuous resource admission and payment agree just before recovery readi
   for (const time of [0.9998, 0.9999, 0.99995, 0.999999, 1]) {
     const pool = { value: 0, maximum: 10, updatedAt: 0, unitsPerSecond: 0 };
     const runtime = { time: 0, mechanics: {} };
-    runtime.resourceController = createRuntimeResources(runtime, {
-      resources: {
+    runtime.resourceController = createResourceController({
+      clock: runtime,
+      context: () => runtime.mechanics,
+      depletion: {
+        synchronize() {
+          assert.fail('No depletion policy is declared.');
+        }
+      },
+      policies: {
         energy: {
           kind: 'continuous',
           state: () => pool,
@@ -125,8 +136,11 @@ test('resource forecasts cannot round a real sub-microsecond shortage into prese
   // The amount deficit exceeds resource rounding tolerance even though its recovery time is below clock precision.
   const pool = { value: 0, maximum: 100, updatedAt: 0, unitsPerSecond: 0 };
   const runtime = { time: 0, config: {}, history: [], mechanics: {} };
-  const endurance = createRuntimeEndurance(runtime, {
-    endurance: { state: () => pool, maximum: () => 100, regenerationRate: () => 5 }
+  const endurance = createEnduranceController({
+    clock: runtime,
+    context: () => ({}),
+    policy: { state: () => pool, maximum: () => 100, regenerationRate: () => 5 },
+    intervals: (start, end) => [{ start, end, rate: 5 }]
   });
   endurance.spend(50.0000001);
   assert.equal(endurance.readyAt(50), 0.04);
@@ -137,8 +151,15 @@ test('resource forecasts cannot round a real sub-microsecond shortage into prese
 
   runtime.time = 0;
   const energyPool = { value: 0, maximum: 10, updatedAt: 0, unitsPerSecond: 0 };
-  const energy = createRuntimeResources(runtime, {
-    resources: {
+  const energy = createResourceController({
+    clock: runtime,
+    context: () => runtime.mechanics,
+    depletion: {
+      synchronize() {
+        assert.fail('No depletion policy is declared.');
+      }
+    },
+    policies: {
       energy: {
         kind: 'continuous',
         state: () => energyPool,

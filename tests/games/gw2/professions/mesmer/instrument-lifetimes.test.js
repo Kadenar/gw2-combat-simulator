@@ -5,9 +5,11 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { createExecutedFacts } from '#gw2/platform/combat/history/executed-facts.js';
 import { createModifierHooks } from '#gw2/platform/combat/modifiers.js';
+import { createEnduranceController } from '#gw2/platform/combat/resources/endurance-controller.js';
+import { createVigorWindowReader, vigorEnduranceIntervals } from '#gw2/platform/combat/resources/endurance.js';
+import { createResourceController } from '#gw2/platform/combat/resources/resource-controller.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
-import { createRuntimeEndurance, createRuntimeResources } from '#gw2/platform/simulation/runtime-resources.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
@@ -80,28 +82,32 @@ function instrumentContext(traits = [TRAIT.FORTISSIMO]) {
       createMesmerIllusionRewards(context).gainResources(at, data.count, data.weapon, data.reason, data.cause);
   };
 
-  // Endurance receives its engine clock and the explicit policy capability.
-  context.endurance = createRuntimeEndurance(
-    {
-      get time() {
-        return context.time;
-      },
-      config,
-      history: events,
-      mechanics: context
-    },
-    { endurance: troubadourEndurance }
-  );
+  // Endurance projection and settlement share the same executed Vigor reader and live instrument policy.
+  const vigor = { config, vigorWindows: createVigorWindowReader(events) };
+  context.endurance = createEnduranceController({
+    clock: context,
+    context: () => context,
+    policy: troubadourEndurance,
+    intervals: (start, end) =>
+      vigorEnduranceIntervals(
+        vigor,
+        start,
+        end,
+        (hasVigor, at) => troubadourEndurance.regenerationRate(context, hasVigor, at),
+        troubadourEndurance.regenerationBoundaries?.(context)
+      )
+  });
   // Numeric transactions use the same initialized clock policy as the engine.
-  context.resourceController = createRuntimeResources(
-    {
-      get time() {
-        return context.time;
-      },
-      mechanics: context
-    },
-    { resources: troubadourHooks.resources }
-  );
+  context.resourceController = createResourceController({
+    clock: context,
+    context: () => context,
+    policies: troubadourHooks.resources,
+    depletion: {
+      synchronize() {
+        assert.fail('Notes do not declare depletion.');
+      }
+    }
+  });
   context.resourceController.initialize();
   // Direct mechanic fixtures use the profession's compiled, ordered listeners.
   bindTriggerPoints(context, mesmerProfession, config);

@@ -13,7 +13,6 @@ import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction, type ActionContext, type SideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast, SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
 import { castRelativeEffectTimingScale, GW2_QUICKNESS_ACTION_RATE } from '#gw2/platform/execution/cast-timing.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -103,7 +102,7 @@ function scheduleEvokerSkillCommit(
   context.scheduleForCast(action.type, context.time, trigger.cast, {}, undefined, -101);
 }
 
-const evokerSkillCommitTasks: NonNullable<RuntimeProfession<ElementalistRuntimeState, ElementalistSkill>['tasks']> = {
+const evokerSkillCommitTasks: NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']> = {
   'elementalist.evoker.lightning-blitz'(context, data) {
     const { cast } = data as SkillTaskData<ElementalistSkill>;
     const skill = cast.skill;

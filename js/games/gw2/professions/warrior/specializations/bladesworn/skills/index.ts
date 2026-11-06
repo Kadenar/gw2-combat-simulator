@@ -10,7 +10,6 @@ import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
@@ -924,7 +923,7 @@ function tacticalReload(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>
 }
 
 /** Intrinsic recipes execute at their declared phase; shared Flow and Trigger lifetimes remain separate. */
-const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
+const bladeswornSkillActions: RuntimeHooks<WarriorRuntimeState, WarriorSkill>['sideEffectHandlers'] = {
   'warrior.tactical-reload'(runtime, context) {
     if (context.kind === 'cast') tacticalReload(runtime, context.cast);
   },
@@ -969,7 +968,7 @@ const bladeswornSkillActions: RuntimeProfession<WarriorRuntimeState, WarriorSkil
   }
 };
 
-const bladeswornSkillTasks: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['tasks'] = {
+const bladeswornSkillTasks: RuntimeHooks<WarriorRuntimeState, WarriorSkill>['tasks'] = {
   [CARTRIDGE_ACTIVATE](runtime, data) {
     activateCartridges(runtime, (data as { cast: RuntimeCast<WarriorSkill> }).cast);
   }

@@ -1,7 +1,9 @@
+/** Keeps event admission validation distinct from authored effect validation while sharing scalar formula types. */
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
 import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
 import { RECIPIENT, type EffectRecipientScope, type SimulationActorType } from '#gw2/platform/constants.js';
 import type { EffectReactionRef } from '#gw2/platform/effects/reactions.js';
+import type { StrikePayloadFields } from '#gw2/platform/effects/strike-payload.js';
 import { weaponStrengthProfile } from '#gw2/platform/equipment/weapons/strength.js';
 import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -293,7 +295,7 @@ export interface SimulationEventBase<TType extends string = string> {
   /** Same-timestamp position of an event derived from another scheduled event. */
   readonly causalOrder?: number;
   readonly weaponStrengthProfileId?: string;
-  readonly weaponStrength?: number;
+  readonly weaponStrength?: StrikePayloadFields['weaponStrength'];
   readonly cooldownReduction?: number;
   readonly audience?: EffectAudience;
   readonly resolvedAudience?: ResolvedEffectAudience;
@@ -307,6 +309,7 @@ export interface SimulationEventBase<TType extends string = string> {
 }
 
 export type DamageEvent = SimulationEventBase<'damage'> &
+  StrikePayloadFields &
   (
     | {
         readonly coefficient: number;
@@ -325,8 +328,6 @@ export type DamageEvent = SimulationEventBase<'damage'> &
       }
   ) & {
     readonly hits?: number;
-    readonly canCrit?: boolean;
-    readonly forceCrit?: boolean;
     readonly canTriggerCriticalSigils?: boolean;
     readonly canTriggerCriticalTraits?: boolean;
     readonly didCrit?: boolean;
@@ -348,7 +349,7 @@ export interface ConditionEventFields {
   readonly damageBreakdownName?: string;
   readonly sourceSkill?: string;
   readonly skillWeapon?: string;
-  readonly weaponStrength?: number;
+  readonly weaponStrength?: StrikePayloadFields['weaponStrength'];
   readonly summonOwner?: string;
   readonly summonInheritsAttributes?: boolean;
   readonly summonIgnoresBoons?: boolean;

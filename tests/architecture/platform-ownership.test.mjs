@@ -3,7 +3,10 @@ import { readdir, readFile } from 'node:fs/promises';
 import test from 'node:test';
 import ts from 'typescript';
 
+import { simulationImplementationPattern } from '../../scripts/lib/architecture-boundaries.mjs';
+
 const root = new URL('../../js/games/gw2/platform/', import.meta.url);
+const simulationImplementation = new RegExp(simulationImplementationPattern);
 
 // Inspect type imports and dynamic imports as well as ordinary imports, so boundary checks cannot be bypassed by syntax.
 async function platformGraph() {
@@ -54,11 +57,7 @@ test('platform imports preserve declaration, composition, history, and presentat
     assert.doesNotMatch(specifier, /^#gw2\/(professions|app|integrations|input)\//, label);
 
     if (!/^(simulation|skill-damage)\//.test(file)) {
-      assert.doesNotMatch(
-        specifier,
-        /^#gw2\/platform\/simulation\/(runtime|coordinator|internal-work|combat-execution|simulate|bind-mechanic-context|runtime-resources)\.js$/,
-        label
-      );
+      assert.doesNotMatch(specifier, simulationImplementation, label);
     }
 
     if (/^(skills|effects|events|profession-definition)\//.test(file)) {
@@ -83,6 +82,14 @@ test('platform imports preserve declaration, composition, history, and presentat
       assert.doesNotMatch(specifier, /^#gw2\/platform\/profession-presentation\//, label);
 
     if (file.startsWith('combat/history/')) assert.doesNotMatch(specifier, /^#gw2\/platform\/results\//, label);
+
+    // Damage aggregation consumes accepted scalar facts; it never acquires the live combat or execution owner.
+    if (file === 'results/damage-report.ts')
+      assert.doesNotMatch(specifier, /^#gw2\/platform\/(simulation|resolver)\/runtime-state\.js$/, label);
+
+    // Author contributions define the compiled runtime surface, rather than depending on that output contract.
+    if (file === 'profession-definition/runtime-hooks.ts')
+      assert.notEqual(specifier, '#gw2/platform/profession-definition/runtime-contract.js', label);
   }
 });
 

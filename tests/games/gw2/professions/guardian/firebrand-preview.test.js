@@ -215,7 +215,7 @@ test('provisional damage modifiers respect conditions, Ashes ownership, selectio
   const multiplier = (id) => 1 + catalog.balanceProfilesById.get(id).conditionDamageIncrease;
   const bleeding = 100 * multiplier(TRAIT.UNRELENTING_CRITICISM);
   const damage = (condition, sourceId = 'ordinary') =>
-    native.modifyConditionDamage({ ...context, condition, sourceId }, 100);
+    native.calculations.modifyConditionDamage({ ...context, condition, sourceId }, 100);
   assert.ok(Math.abs(damage('Bleeding') - bleeding) < 1e-9);
   assert.equal(damage('Burning'), 100);
   assert.equal(damage('Burning', 'guardian.ashes-of-the-just'), 100);
@@ -767,12 +767,16 @@ test('Imbued Haste shares patched attributes between build preview and current r
       assert.equal(withoutQuickness.attributes[label].traits, 0);
       // Final Vitality includes armor reinforcement without changing the trait's declared grant.
       const final = 100 + bonus + (key === 'vitality' ? Math.round((100 + bonus) * 0.05) : 0);
-      assert.equal(runtime.modifyAttributes(context, { [key]: 100 })[key], final);
-      assert.equal(runtime.modifyAttributes({ ...context, config: { ...context.config } }, { [key]: 100 })[key], final);
+      assert.equal(runtime.calculations.modifyAttributes(context, { [key]: 100 })[key], final);
       assert.equal(
-        runtime.modifyAttributes({ ...context, config: { ...context.config, selectedTraitIds: [] } }, { [key]: 100 })[
-          key
-        ],
+        runtime.calculations.modifyAttributes({ ...context, config: { ...context.config } }, { [key]: 100 })[key],
+        final
+      );
+      assert.equal(
+        runtime.calculations.modifyAttributes(
+          { ...context, config: { ...context.config, selectedTraitIds: [] } },
+          { [key]: 100 }
+        )[key],
         key === 'vitality' ? 105 : 100
       );
     }

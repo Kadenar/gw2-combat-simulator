@@ -8,7 +8,13 @@ import type { AvailabilityResult } from '#gw2/platform/execution/availability.js
 import { resolveAutoattackChainStep } from '#gw2/platform/skills/autoattack-chain-index.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
+export type AutoattackChainQueries = Pick<AutoattackChainController, 'read'>;
+
+export type MechanicAutoattackController = Pick<AutoattackChainController, 'read' | 'reset'>;
+
 export interface AutoattackChainController {
+  readonly queries: AutoattackChainQueries;
+  readonly mechanics: MechanicAutoattackController;
   read(root: SkillId): SkillId;
   snapshot(): Record<string, SkillId>;
   reset(chainRootIds?: readonly SkillId[]): void;
@@ -32,10 +38,17 @@ export function createAutoattackChainController(catalog: CanonicalCatalog): Auto
     return chains[root] ?? root;
   };
 
+  // Restricted owner views never carry execution advancement or snapshot authority.
+  const queries = Object.freeze({ read });
+  const mechanics = Object.freeze({
+    ...queries,
+    reset: (roots?: readonly SkillId[]) => resetAutoattackChains(chains, roots)
+  });
   return Object.freeze({
-    read,
+    ...mechanics,
+    queries,
+    mechanics,
     snapshot: () => Object.fromEntries(catalog.autoattackChains.map(([root]) => [root, read(root)])),
-    reset: (roots?: readonly SkillId[]) => resetAutoattackChains(chains, roots),
     availability: (skill: Skill) => autoattackChainAvailability(chains, catalog, skill),
     advance: (skill: Skill, committed: boolean, interrupts: boolean, overrides?: readonly AutoattackChainOverride[]) =>
       advanceAutoattackChains(chains, catalog, skill, committed, interrupts, overrides)

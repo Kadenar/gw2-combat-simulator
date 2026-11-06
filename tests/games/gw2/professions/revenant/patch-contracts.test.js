@@ -283,7 +283,7 @@ test('Empire Divided shared declaration reads its attribute profile', () => {
     };
     const stats = revenantProfession
       .resolveProfession(config)
-      .modifyAttributes({ catalog, config, time: 0 }, { power: 1000 });
+      .calculations.modifyAttributes({ catalog, config, time: 0 }, { power: 1000 });
     assert.equal(stats.power, 1321);
   }
 });

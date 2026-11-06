@@ -8,7 +8,6 @@ import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { AURA, BOON, COMBO_FIELD, COMBO_FINISHER, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
-import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -183,7 +182,7 @@ export const LUMINARY_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
 };
 
 /** Priority preserves fresh Piercing before its hit and fresh Daring after Sovereign's detonation. */
-const luminaryStanceActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
+const luminaryStanceActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.start-piercing'(runtime, context) {
     if (context.kind === 'cast')
       runtime.scheduleForCast(STANCE, luminaryImpactAt(context.cast), context.cast, { piercing: true }, undefined, -30);

@@ -1,8 +1,11 @@
-import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
+/** Contexts compose owner-provided capabilities while private live accessors preserve state replacement. */
+import { createEnduranceQueries } from '#gw2/platform/combat/resources/endurance-controller.js';
+import { createResourceQueries } from '#gw2/platform/combat/resources/resource-controller.js';
+import { createCastQueries } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueryContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** Shared accessors keep per-run capability shapes stable while following live owner state. */
 class MechanicQueries<T extends object, TSkill extends Skill> implements MechanicQueryContext<T, TSkill> {
@@ -16,50 +19,13 @@ class MechanicQueries<T extends object, TSkill extends Skill> implements Mechani
   readonly autoattackController: MechanicQueryContext<T, TSkill>['autoattackController'];
   constructor(runtime: Gw2Runtime<T, TSkill>) {
     this.#runtime = runtime;
-    const combat = runtime.combat;
-    const recharge = runtime.cooldownController;
-    this.combat = Object.freeze({
-      activeBoonStacks: combat.activeBoonStacks,
-      boonApplications: combat.boonApplications,
-      buffApplications: combat.buffApplications,
-      activeBuffStacks: combat.activeBuffStacks,
-      boonSnapshot: combat.boonSnapshot,
-      targetHasCondition: combat.targetHasCondition,
-      targetConditionStacks: combat.targetConditionStacks,
-      targetConditionCount: combat.targetConditionCount,
-      targetHealthBelow: combat.targetHealthBelow,
-      targetHitboxSize: combat.targetHitboxSize,
-      remainingTargetHealthFraction: combat.remainingTargetHealthFraction,
-      statsAt: combat.statsAt,
-      conditionDurationMultiplier: combat.conditionDurationMultiplier
-    });
-    this.castController = Object.freeze({
-      hasInFlight: (id: SkillId) => runtime.castController.hasInFlight(id),
-      inFlightSkillIds: () => runtime.castController.inFlightSkillIds(),
-      currentLaneEnd: () => runtime.castController.currentLaneEnd(),
-      pendingChargeRelease: () => runtime.castController.pendingChargeRelease()
-    });
-    this.resourceController = Object.freeze({
-      value: (key: ResourceKey) => runtime.resourceController.value(key),
-      readyAt: (key: ResourceKey, cost: number) => runtime.resourceController.readyAt(key, cost)
-    });
-    this.endurance = Object.freeze({ readyAt: (cost: number) => runtime.endurance.readyAt(cost) });
-    this.facts = Object.freeze({
-      read: runtime.facts.read,
-      ofType: runtime.facts.ofType,
-      actionFor: runtime.facts.actionFor
-    });
-    this.cooldownController = Object.freeze({
-      readyAt: recharge.readyAt,
-      hasCooldown: recharge.hasCooldown,
-      hasAmmo: recharge.hasAmmo,
-      readAmmo: recharge.readAmmo,
-      rechargeFor: recharge.rechargeFor,
-      rate: recharge.rate,
-      project: recharge.project,
-      remaining: recharge.remaining
-    });
-    this.autoattackController = Object.freeze({ read: runtime.autoattackController.read });
+    this.combat = runtime.combat.queries;
+    this.castController = createCastQueries(() => runtime.castController);
+    this.resourceController = createResourceQueries(() => runtime.resourceController);
+    this.endurance = createEnduranceQueries(() => runtime.endurance);
+    this.facts = runtime.facts;
+    this.cooldownController = runtime.cooldownController.queries;
+    this.autoattackController = runtime.autoattackController.queries;
   }
 
   get profession() {
@@ -124,22 +90,11 @@ class MechanicCommands<T extends object, TSkill extends Skill> implements Mechan
     this.#runtime = runtime;
     this.combat = runtime.combat;
     this.procs = runtime.procs;
-    // Keep cast-driven advancement inaccessible to author callbacks, including JavaScript callers.
-    this.autoattackController = Object.freeze({
-      read: runtime.autoattackController.read,
-      reset: runtime.autoattackController.reset
-    });
-    // Bind only mechanic operations so cast-only commands are absent even for JavaScript callers.
-    const {
-      resetAll: _resetAll,
-      spendAmmo: _spendAmmo,
-      setAmmoLockout: _setAmmoLockout,
-      ...recharge
-    } = runtime.cooldownController;
-    this.cooldownController = Object.freeze(recharge);
+    this.autoattackController = runtime.autoattackController.mechanics;
+    this.cooldownController = runtime.cooldownController.mechanics;
     this.facts = runtime.facts;
     this.observations = runtime.observations;
-    this.effectReactions = Object.freeze({ register: runtime.effectReactions.register });
+    this.effectReactions = runtime.effectReactions.registration;
     this.armFlip = runtime.armFlip;
     this.consumeFlip = runtime.consumeFlip;
     this.clearFlip = runtime.clearFlip;

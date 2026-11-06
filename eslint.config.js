@@ -3,6 +3,8 @@ import stylistic from '@stylistic/eslint-plugin';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+import { simulationImplementationPattern as simulationImplementationRegex } from './scripts/lib/architecture-boundaries.mjs';
+
 const packageAliasPattern = {
   regex: '^\\.',
   message: 'Use the package alias so TypeScript, Vite, and Node resolve the same module.'
@@ -12,8 +14,7 @@ const sharedPlatformBoundaryPattern = {
   message: 'Shared platform modules must receive profession contributions rather than import concrete implementations.'
 };
 const simulationImplementationPattern = {
-  regex:
-    '^#gw2/platform/simulation/(?:runtime|coordinator|internal-work|combat-execution|simulate|bind-mechanic-context|runtime-resources)\\.js$',
+  regex: simulationImplementationRegex,
   message:
     'Domain owners receive runtime services through contracts; only composition may import simulation implementations.'
 };
@@ -38,8 +39,9 @@ const sharedShellPattern = {
   message: 'The shared application shell must not depend on GW2 modules.'
 };
 const professionBoundaryPattern = {
-  regex: '(^|/)(app|integrations)(/|$)',
-  message: 'Headless profession content must not depend on application or integration code.'
+  // Profession owners receive scheduling capabilities; only run composition may construct their implementation.
+  regex: `(^|/)(app|integrations)(/|$)|${simulationImplementationPattern.regex}`,
+  message: 'Headless profession content must not depend on application, integration, or run construction code.'
 };
 
 // Code outside a profession folder may import only its public entry points (docs/architecture/MODULES.md). The
@@ -365,6 +367,7 @@ export default [
     files: ['js/games/gw2/professions/**/data/**/*.ts'],
     rules: {
       'no-restricted-imports': restrictedImports(
+        simulationImplementationPattern,
         {
           regex:
             '^(?!#gw2/professions/[^/]+/(?:core|specializations/[^/]+)/catalog-fields\\.js$).*(?:(?:^|/)(app|core|integrations|specializations)(?:/|$)|/presentation\\.js$)',
@@ -384,7 +387,7 @@ export default [
   {
     files: ['js/games/gw2/professions/*/build/context.ts'],
     rules: {
-      'no-restricted-imports': restrictedImports({
+      'no-restricted-imports': restrictedImports(simulationImplementationPattern, {
         regex: '(^|/)app(/|$)|^#gw2/integrations/(?!patches/active-profession\\.js$)',
         message: 'Build-context bindings may compose the active preview, but must not load application code.'
       })

@@ -3,7 +3,7 @@ import type { EnduranceController, ResourceController } from '#gw2/platform/comb
 import type { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { AutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
-import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { CastControl } from '#gw2/platform/execution/cast-contracts.js';
 import type { CooldownController } from '#gw2/platform/execution/cooldown-contracts.js';
 import type { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import type { SkillFlipCommands } from '#gw2/platform/execution/skill-flips.js';
@@ -12,12 +12,12 @@ import type { EffectReactionRegistry } from '#gw2/platform/resolver/effect-react
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { SimulationStep } from '#gw2/platform/results/types.js';
 import type { Gw2RuntimeConfig } from '#gw2/platform/simulation/config.js';
-import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
+import type { TaskScheduling } from '#gw2/platform/simulation/work-contract.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 
 /** The single mutable context contains both command control and actual combat state. */
 export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Skill>
-  extends Gw2ResolverRuntime, SkillFlipCommands {
+  extends Gw2ResolverRuntime, SkillFlipCommands, TaskScheduling<TSkill> {
   readonly config: Gw2RuntimeConfig;
   /** Live skill lookups retain the profession type while unrelated resolver helpers stay shared. */
   readonly helpers: Omit<Gw2ResolverRuntime['helpers'], 'skills' | 'skillsById'> & CanonicalCatalog<TSkill>;
@@ -42,17 +42,5 @@ export interface Gw2Runtime<T extends object = object, TSkill extends Skill = Sk
   readonly inputActions: import('#gw2/platform/execution/input-controls.js').InputAction[];
   resourceController: ResourceController;
   endurance: EnduranceController;
-  /** Queues private work; cancellation uses its owner and generation rather than a packet identity. */
-  schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number): void;
-  /** Snapshots cast data without cloning executable skill declarations; handlers receive `{ ...data, cast }`. */
-  scheduleForCast(
-    name: string,
-    at: number,
-    cast: RuntimeCast<TSkill>,
-    data?: Record<string, unknown>,
-    owner?: WorkOwner,
-    priority?: number
-  ): void;
-  cancelOwner(owner: WorkOwner): void;
   fireTrigger: MechanicContext<T, TSkill>['fireTrigger'];
 }

@@ -308,7 +308,10 @@ test('Bolstered Bonds evaluates the live Cosmic Wisdom multiplier', () => {
   };
 
   assert.deepEqual(
-    revenantConduitRules.modifyAttributes({ ...context, catalog: revenantConduitRules.catalog }, attributes),
+    revenantConduitRules.calculations.modifyAttributes(
+      { ...context, catalog: revenantConduitRules.catalog },
+      attributes
+    ),
     {
       ...attributes,
       power: 1150,
@@ -324,7 +327,10 @@ test('Bolstered Bonds evaluates the live Cosmic Wisdom multiplier', () => {
   );
 
   context.runtime.profession.specialization.state.cosmicWisdomUntil = 5;
-  const cosmic = revenantConduitRules.modifyAttributes({ catalog: revenantCatalog, ...context }, attributes);
+  const cosmic = revenantConduitRules.calculations.modifyAttributes(
+    { catalog: revenantCatalog, ...context },
+    attributes
+  );
 
   assert.equal(cosmic.power, 1300);
   assert.equal(cosmic.precision, 1150);

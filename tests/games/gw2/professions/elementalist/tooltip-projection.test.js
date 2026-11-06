@@ -551,7 +551,7 @@ test('Inferno tooltip derives its Power rate from the canonical Burning formula'
       'Core'
     );
     assert.equal(model.facts.find(({ name }) => name === 'Burning damage per second per power').detail, String(rate));
-    const attributes = elementalistProfession.runtimeFor({}).modifyConditionAttributes(
+    const attributes = elementalistProfession.runtimeFor({}).calculations.modifyConditionAttributes(
       {
         catalog: context.catalog,
         config: { selectedTraitIds: [TRAIT.INFERNO] },

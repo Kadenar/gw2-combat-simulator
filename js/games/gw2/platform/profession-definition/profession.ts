@@ -1,3 +1,4 @@
+/** Compile selected native modules once and share their calculation plans across runtime modes. */
 import { applyAttributeContributions, attributeContext } from '#gw2/platform/attributes/evaluation.js';
 import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
 import type {
@@ -466,7 +467,9 @@ export function defineNativeProfession<
     const attributeBalanceContexts = new WeakMap<Readonly<CanonicalCatalog>, Gw2AttributeContext['balanceContext']>([
       [catalog, balanceContext]
     ]);
-    const selectedContributions: NonNullable<NormalizedProfessionContract['attributeContributions']> = (input) => {
+    const selectedContributions: NonNullable<NormalizedProfessionContract['calculations']['attributeContributions']> = (
+      input
+    ) => {
       let selectedBalance = attributeBalanceContexts.get(input.catalog);
 
       if (!selectedBalance) {
@@ -545,15 +548,7 @@ export function defineNativeProfession<
       catalog: source.catalog,
       skillSelectionCatalog: assembly.catalog,
       projectPlanningState: source.projectPlanningState,
-      modifyAttributes: source.modifyAttributes,
-      modifyConditionAttributes: source.modifyConditionAttributes,
-      modifyCriticalChance: source.modifyCriticalChance,
-      modifyCriticalDamage: source.modifyCriticalDamage,
-      modifyStrikeDamage: source.modifyStrikeDamage,
-      modifyConditionDamage: source.modifyConditionDamage,
-      modifyConditionDuration: source.modifyConditionDuration,
-      attributeContributions: source.attributeContributions,
-      modifyConditionBaseDuration: source.modifyConditionBaseDuration,
+      calculations: source.calculations,
       // Preview and simulation share the same validated Core/elite state composition.
       createState: source.createState,
       autoattackChainOverrides: definition.autoattackChains?.overrides,

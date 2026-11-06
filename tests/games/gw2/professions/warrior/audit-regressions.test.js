@@ -261,12 +261,16 @@ test('Vigorous Shouts converts Power to Healing Power once in builds and raw run
     config: { attributeInputs: baseAttributeInputs(seed), selectedTraitIds: [TRAIT.VIGOROUS_SHOUTS] },
     time: 0
   };
-  assert.equal(runtime.modifyAttributes(context, seed).healingPower, 310);
+  assert.equal(runtime.calculations.modifyAttributes(context, seed).healingPower, 310);
   assert.equal(
-    runtime.modifyAttributes({ ...context, config: { attributeInputs: baseAttributeInputs(seed) } }, seed).healingPower,
+    runtime.calculations.modifyAttributes({ ...context, config: { attributeInputs: baseAttributeInputs(seed) } }, seed)
+      .healingPower,
     50
   );
-  assert.equal(runtime.modifyAttributes({ ...context, config: { ...context.config } }, seed).healingPower, 310);
+  assert.equal(
+    runtime.calculations.modifyAttributes({ ...context, config: { ...context.config } }, seed).healingPower,
+    310
+  );
   const tooltip = warriorTooltips.traits[TRAIT.VIGOROUS_SHOUTS](
     { catalog: warriorCatalog },
     { id: TRAIT.VIGOROUS_SHOUTS, name: 'Vigorous Shouts' }

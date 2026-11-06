@@ -162,7 +162,7 @@ test("Assassin's Presence pulses during idle combat and attacks cannot move the 
   assert.ok(pulses(idle).every((event) => event.duration === 3 && event.resolvedAudience.includesSelf));
   assert.ok(idle.events.some((event) => event.sourceId === TRAIT.INCENSED_RESPONSE));
   assert.equal(
-    revenantProfession.runtimeFor({ specialization: 'Core' }).modifyCriticalChance(
+    revenantProfession.runtimeFor({ specialization: 'Core' }).calculations.modifyCriticalChance(
       {
         catalog: revenantProfession.runtimeFor({ specialization: 'Core' }).catalog,
         config: { ...config, selectedTraitIds: [...config.selectedTraitIds, TRAIT.ROILING_MISTS] },
