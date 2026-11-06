@@ -552,5 +552,6 @@ test('the app importer previews fetched dps.report data before applying it', asy
 
   assert.deepEqual(app.build.rotation, imported.rotation);
   assert.notStrictEqual(app.build.rotation, preview.rotation);
-  assert.deepEqual(changedCalls, [[false]]);
+  // Applying a rotation publishes once without rebuilding static or gear views or supplying change options.
+  assert.deepEqual(changedCalls, [[false, false, undefined]]);
 });

@@ -275,7 +275,8 @@ test('the browser rotation importer previews compressed .zevtc files before appl
 
   assert.deepEqual(app.build.rotation, imported.rotation);
   assert.notStrictEqual(app.build.rotation, imported.rotation);
-  assert.deepEqual(changedCalls, [[false]]);
+  // Applying a rotation publishes once without rebuilding static or gear views or supplying change options.
+  assert.deepEqual(changedCalls, [[false, false, undefined]]);
 
   const idleGapBytes = zipEvtc(expandedEvtcFixture({ secondActivation: true }));
   const idleGapImport = await readEvtcRotationFile(
