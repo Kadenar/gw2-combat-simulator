@@ -1,3 +1,4 @@
+/** Keeps template workflows intact while committing replacements through rotation history. */
 import { loadPresetBundle } from '#gw2/app/build/library/assets.js';
 import { buildSignature } from '#gw2/app/build/library/model.js';
 import type { MyBuild } from '#gw2/app/build/library/storage.js';
@@ -6,6 +7,7 @@ import { renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { replaceBuild, replaceBuildConfiguration, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 import { addBuildTab, captureBuildDestination, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
+import { commitBuildReplacement } from '#gw2/app/rotation/editing/commit.js';
 import { renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
@@ -33,9 +35,11 @@ export function loadMyBuildEntry(app: ProfessionAppState, entry: MyBuild): void 
   if (tab) tab.templateUndoResetBuild = tab.templateBuild;
 
   // Library entries were converted when loaded or saved; copy so edits cannot change the snapshot.
-  app.build = structuredClone(entry.build);
   app.currentTemplate = null;
-  app.changed(true, true, { deferRotationRender: true });
+  commitBuildReplacement(app, structuredClone(entry.build), {
+    rebuildStatic: true,
+    options: { deferRotationRender: true }
+  });
 
   if (tab) {
     tab.templateBuild = structuredClone(app.build);
@@ -128,20 +132,21 @@ export async function loadTemplateAction(
       }
 
       validateDestination();
-      app.build = replaceBuildRotation(rotationItems, app.build, app.adapter);
       app.currentTemplate = null;
-      app.changed(false, false, { deferRotationRender: true });
+      commitBuildReplacement(app, replaceBuildRotation(rotationItems, app.build, app.adapter), {
+        rebuildStatic: false
+      });
     } else if (action === 'build') {
       const buildData = await fetchJsonAsset(preset.build);
       validateDestination();
       // The codec rejects a build saved for another profession.
-      app.build = replaceBuildConfiguration(buildData, app.build, app.adapter);
+      const replacement = replaceBuildConfiguration(buildData, app.build, app.adapter);
 
       // A new boss build starts with an empty rotation; Undo still retains the previous encounter work.
-      if (app.workspace?.scenario) app.build.rotation = [];
+      if (app.workspace?.scenario) replacement.rotation = [];
 
       app.currentTemplate = null;
-      app.changed(true, true, { deferRotationRender: true });
+      commitBuildReplacement(app, replacement, { rebuildStatic: true, options: { deferRotationRender: true } });
     } else {
       const { buildData, rotationItems } = await loadPresetBundle(preset);
 
@@ -158,8 +163,7 @@ export async function loadTemplateAction(
         addBuildTab(app, replacement, name, patchId);
       } else {
         validateDestination();
-        app.build = replacement;
-        app.changed(true, true, { deferRotationRender: true });
+        commitBuildReplacement(app, replacement, { rebuildStatic: true, options: { deferRotationRender: true } });
       }
 
       app.currentTemplate = {
@@ -218,10 +222,10 @@ export function undoTemplateLoad(app: ProfessionAppState): void {
     delete tab.templateUndoResetBuild;
   }
 
-  app.build = app.templateUndoBuild;
+  const replacement = app.templateUndoBuild;
   app.templateUndoBuild = null;
   app.currentTemplate = null;
-  app.changed(true, true, { deferRotationRender: true });
+  commitBuildReplacement(app, replacement, { rebuildStatic: true, options: { deferRotationRender: true } });
   const toast = app.templateContainer?.querySelector<HTMLElement>('.template-toast');
 
   if (toast) toast.hidden = true;

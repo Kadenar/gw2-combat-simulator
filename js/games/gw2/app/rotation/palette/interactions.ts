@@ -1,6 +1,8 @@
-import { createRotationItem, insertRotationItems, resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
+/** Routes palette gestures to editors and complete rotation edits. */
+import { createRotationItem, resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { activationDamageCommitMs, openActivationEditor } from '#gw2/app/rotation/editing/activation-editor.js';
 import { castEditorForSkill, openProfessionCastEditor } from '#gw2/app/rotation/editing/cast-editor.js';
+import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import {
   hasConfigurableDoubleEdgeOutcome,
   openDoubleEdgeEditor
@@ -221,7 +223,10 @@ export function dispatchPaletteActivation(
   // `undefined` means the profession does not own the action. `null` means it handled the activation without insertion.
   if (professionAction !== undefined) {
     if (professionAction !== null) {
-      insertRotationItems(app, Array.isArray(professionAction) ? professionAction : [professionAction]);
+      commitRotationEdit(app, {
+        type: 'insert',
+        entries: Array.isArray(professionAction) ? professionAction : [professionAction]
+      });
     }
 
     return;
@@ -391,9 +396,7 @@ export function resolvePaletteDrop(
       ...(Number.isFinite(parsedSkillId) ? { skillId: parsedSkillId } : {}),
       ...options
     });
-    app.build.rotation.splice(insertAt, 0, item);
-    app.rotationInsertionIndex = null;
-    app.changed(false);
+    commitRotationEdit(app, { type: 'drop', index: insertAt, entries: [item] });
   };
 
   if (name === '__wait') {

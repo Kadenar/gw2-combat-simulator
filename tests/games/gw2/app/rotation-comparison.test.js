@@ -242,7 +242,7 @@ test('standalone insights retain reference and window selection when entering co
 
 test('loading and clearing Reference preserve Current and its history', () => {
   const app = comparisonApp();
-  app._rotationHistory = { undo: [[{ type: 'wait', durationMs: 1 }]], redo: [], current: app.build.rotation };
+  app._rotationHistory = { undo: [[{ type: 'wait', durationMs: 1 }]], redo: [] };
   app.startRotationComparison();
   const history = app._rotationHistory;
   const current = app.build.rotation;
@@ -386,7 +386,7 @@ test('swap exchanges independent rotations and results and resets Current histor
     referenceStatus: 'fresh',
     referenceError: ''
   };
-  app._rotationHistory = { undo: [[{ type: 'cast', skillId: 3 }]], redo: [], current: currentRotation };
+  app._rotationHistory = { undo: [[{ type: 'cast', skillId: 3 }]], redo: [] };
 
   app.swapRotationComparison();
 

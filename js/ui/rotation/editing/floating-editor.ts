@@ -73,5 +73,7 @@ export function mountFloatingEditor(editor: HTMLElement, anchor: HTMLElement): F
 
 /** Closes the one floating editor allowed by the native auto-popover stack. */
 export function closeFloatingEditor(): void {
-  document.querySelector<HTMLElement>('[data-floating-editor]:popover-open')?.hidePopover();
+  if (typeof document !== 'undefined') {
+    document.querySelector<HTMLElement>('[data-floating-editor]:popover-open')?.hidePopover();
+  }
 }

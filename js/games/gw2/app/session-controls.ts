@@ -7,7 +7,7 @@ import {
   getRotationExportPayload
 } from '#gw2/app/import-export/files.js';
 import { bindRotationImportDialog } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { redoRotation, undoRotation } from '#gw2/app/rotation/editing/history.js';
+import { commitBuildReplacement, commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { requiredElement, requiredInput, requiredSelect } from '#ui/shared/dom.js';
@@ -37,11 +37,10 @@ export function bindSessionControls(app: ProfessionAppState): void {
     }
   });
   requiredElement('btn-sim-clear').addEventListener('click', () => {
-    app.build.rotation = [];
-    app.changed(false);
+    commitRotationEdit(app, { type: 'clear' });
   });
-  document.getElementById('btn-sim-undo')?.addEventListener('click', () => undoRotation(app));
-  document.getElementById('btn-sim-redo')?.addEventListener('click', () => redoRotation(app));
+  document.getElementById('btn-sim-undo')?.addEventListener('click', () => commitRotationEdit(app, { type: 'undo' }));
+  document.getElementById('btn-sim-redo')?.addEventListener('click', () => commitRotationEdit(app, { type: 'redo' }));
   document.addEventListener('keydown', (event) => {
     // Creating an encounter has no active rotation; leave the parked golem history untouched.
     if (document.body.dataset.simulatorView === 'bosses' && document.body.dataset.bossEditorReady === 'false') return;
@@ -63,10 +62,10 @@ export function bindSessionControls(app: ProfessionAppState): void {
 
     if (key === 'z' && !event.shiftKey) {
       event.preventDefault();
-      undoRotation(app);
+      commitRotationEdit(app, { type: 'undo' });
     } else if (key === 'y' || (key === 'z' && event.shiftKey)) {
       event.preventDefault();
-      redoRotation(app);
+      commitRotationEdit(app, { type: 'redo' });
     }
   });
   // One header pair transfers the active document, including encounter inputs in Bosses.
@@ -114,7 +113,6 @@ export function bindSessionControls(app: ProfessionAppState): void {
     if (!confirm(prompt)) return;
 
     // Clone the tab's loaded template so later edits cannot change its reset target.
-    app.build = templateBuild ? structuredClone(templateBuild) : createDefaultBuild(app.adapter);
-    app.changed();
+    commitBuildReplacement(app, templateBuild ? structuredClone(templateBuild) : createDefaultBuild(app.adapter));
   });
 }

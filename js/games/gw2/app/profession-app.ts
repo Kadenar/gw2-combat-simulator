@@ -22,7 +22,7 @@ import { renderRotationEditor, renderSimulationOutput } from '#gw2/app/rotation/
 import * as comparisonState from '#gw2/app/rotation/comparison-state.js';
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
 import { addRotation } from '#gw2/app/rotation/editing/actions.js';
-import { recordRotationHistory } from '#gw2/app/rotation/editing/history.js';
+import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import type { ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import { updatePaletteFreshness } from '#gw2/app/rotation/palette/freshness.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
@@ -48,6 +48,7 @@ import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { closeFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
 
 export class ProfessionApp implements ProfessionAppState {
   readonly analysis: AnalysisResultLifecycle;
@@ -73,6 +74,7 @@ export class ProfessionApp implements ProfessionAppState {
   templateRotationLoading?: ProfessionAppState['templateRotationLoading'];
   dragState: ProfessionRotationDragState | null;
   rotationInsertionIndex: number | null;
+  _rotationHistory: ProfessionAppState['_rotationHistory'];
   overlaySigilProcs: boolean;
   overlayRelicProcs: boolean;
   timelineOverlayVisibility: Record<string, boolean>;
@@ -114,6 +116,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.rotationComparison = null;
     this.dragState = null;
     this.rotationInsertionIndex = null;
+    this._rotationHistory = { undo: [], redo: [] };
     // Restore timeline display preferences independently from the saved build and simulation configuration.
     this.overlaySigilProcs = readStoredRotationProcOverlayVisibility(document, 'sigil');
     this.overlayRelicProcs = readStoredRotationProcOverlayVisibility(document, 'relic');
@@ -191,6 +194,8 @@ export class ProfessionApp implements ProfessionAppState {
   }
 
   changed(rebuildStatic = true, rebuildGear = rebuildStatic, options: ProfessionChangeOptions = {}): void {
+    // Dismiss editors before deferred publication can leave their old choices visible.
+    closeFloatingEditor();
     this.initialRenderGeneration += 1;
 
     // A drag started on the prior timeline must not carry its source index into a later render.
@@ -226,8 +231,6 @@ export class ProfessionApp implements ProfessionAppState {
   /** Commits cheap build derivations now and assigns the immutable revision used by worker results. */
   private prepareSimulationState(options: ProfessionChangeOptions = {}): number {
     // Session experiments share one selected catalog across controls, previews and worker requests.
-    recordRotationHistory(this);
-
     // Optimizer results can contain zero or one allocation; keep both editor rows before recalculating.
     if (this.build.infusions.length !== 2) this.build.infusions = normalizeInfusions(this.build.infusions, []);
 
@@ -356,6 +359,7 @@ export class ProfessionApp implements ProfessionAppState {
 
     if (!tab) return;
 
+    closeFloatingEditor();
     // Capture and persist the outgoing document before the same editors receive another workspace.
     saveBuildWorkspace(this);
     this.analysis.suspend();
@@ -371,7 +375,7 @@ export class ProfessionApp implements ProfessionAppState {
     const { patchPreviewValues: _patchPreviewValues, ...session } = tab.session;
     Object.assign(this, session);
 
-    recordRotationHistory(this);
+    commitRotationEdit(this, { type: 'select', index: this.rotationInsertionIndex });
     this.dragState = null;
     this.analysis.restore(tab.analysis);
 
@@ -420,7 +424,7 @@ export class ProfessionApp implements ProfessionAppState {
 
   /** Refreshes cursor-dependent views without changing the build or scheduling a simulation. */
   selectRotationInsertion(index: number | null): void {
-    this.rotationInsertionIndex = index;
+    commitRotationEdit(this, { type: 'select', index });
     updateTimelineInsertionCursor(this);
     renderPalette(this);
     renderRotationStateSnapshot(this);
@@ -458,8 +462,6 @@ export class ProfessionApp implements ProfessionAppState {
     const adoptedResult = comparisonState.swapRotationComparison(this);
 
     if (!adoptedResult) return;
-
-    this.changed(false, false, { adoptedResult });
 
     if (typeof document !== 'undefined') this.adapter.renderRotationBuilder(this);
   }

@@ -25,7 +25,6 @@ export interface ProfessionRotationDragState {
 export interface RotationHistory {
   undo: RotationCommand[][];
   redo: RotationCommand[][];
-  current: RotationCommand[];
 }
 
 export interface RotationEditingSession {
@@ -37,7 +36,7 @@ export interface RotationEditingState extends RotationEditingSession {
   dragState: ProfessionRotationDragState | null;
 }
 
-/** New tabs start at the rotation tail with history created from their first recorded edit. */
+/** New tabs start at the rotation tail with an empty undo history. */
 export function emptyRotationEditingSession(): RotationEditingSession {
-  return { rotationInsertionIndex: null, _rotationHistory: undefined };
+  return { rotationInsertionIndex: null, _rotationHistory: { undo: [], redo: [] } };
 }

@@ -1,8 +1,8 @@
-// Detects which parts a saved build file carries and applies only the parts the user chooses.
-
+/** Detects a saved file's contents and commits the selected build, rotation, and shared input changes together. */
 import { replaceBuild, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
 import { manifestRotationMatchesBuild } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { readRotationTransitionDelays } from '#gw2/app/import-export/rotation-transition-delays.js';
+import { commitBuildReplacement, commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import { applyTransitionDelays } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { getRotationItems } from '#gw2/integrations/assets.js';
@@ -114,19 +114,17 @@ export function applyBuildFileImport(
 
     if (!applyRotation) build.rotation = app.build.rotation;
 
-    app.build = build;
-
     // Timing metadata belongs to the selected rotation; importing only build configuration keeps workspace settings.
     if (applyRotation) applyTransitionDelays(app, preview.transitionDelays);
 
     // The imported build is no longer the highlighted template; Reset still returns to the tab's loaded baseline.
     app.currentTemplate = null;
-    app.changed();
+    commitBuildReplacement(app, build);
   } else if (applyRotation) {
     // Normalizing through the current build resolves specialization-specific skill names before the first simulation.
-    app.build.rotation = replaceBuildRotation(preview.rotation!, app.build, app.adapter).rotation;
+    const rotation = replaceBuildRotation(preview.rotation!, app.build, app.adapter).rotation;
     const settingsChanged = applyTransitionDelays(app, preview.transitionDelays);
-    app.changed(settingsChanged);
+    commitRotationEdit(app, { type: 'replace', rotation }, { rebuildStatic: settingsChanged });
   } else {
     throw new Error('Choose the build, the rotation, or both to apply.');
   }

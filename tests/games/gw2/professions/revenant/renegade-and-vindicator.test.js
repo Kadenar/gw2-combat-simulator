@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { insertRotationItems } from '#gw2/app/rotation/editing/actions.js';
+import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import { resolvePaletteDropItem } from '#gw2/app/rotation/palette/interactions.js';
 import {
   createPaletteContext,
@@ -1465,7 +1465,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
       concurrentOffsetMs: 0
     }
   ]);
-  insertRotationItems(app, firstInsertion);
+  commitRotationEdit(app, { type: 'insert', entries: firstInsertion });
   assert.deepEqual(app.build.rotation, [
     {
       type: 'cast',
@@ -1483,7 +1483,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   app.rotationInsertionIndex = 0;
   const secondInsertion = resolvePaletteDropItem(app, VINDICATOR_DODGE_AUTO_ACTION);
 
-  insertRotationItems(app, secondInsertion);
+  commitRotationEdit(app, { type: 'insert', entries: secondInsertion });
   assert.deepEqual(app.build.rotation, [
     {
       type: 'cast',

@@ -10,15 +10,14 @@ export interface TimelineInteractionOptions {
   readonly getDragState: () => ProfessionRotationDragState | null | undefined;
   readonly setDragState: (value: ProfessionRotationDragState | null) => void;
   /** Applies a timeline drag through the application-owned rotation editing layer. */
-  readonly moveEntry: (fromIndex: number, toIndex: number) => boolean;
+  readonly moveEntry: (fromIndex: number, toIndex: number) => unknown;
   /** Applies one resolved palette item or macro through the application-owned editing layer. */
-  readonly insertEntries: (entries: readonly RotationCommand[], insertAt: number) => boolean;
+  readonly insertEntries: (entries: readonly RotationCommand[], insertAt: number) => unknown;
   readonly resolvePaletteEntry?: (
     name: string,
     drag: ProfessionRotationDragState | null | undefined,
     insertAt: number
   ) => RotationCommand | RotationCommand[] | null | undefined;
-  readonly onChanged?: () => void;
   readonly onRemove?: (index: number) => unknown;
   readonly onTruncate?: (index: number) => unknown;
   readonly onEditActivation?: (index: number, event?: Event) => void;
@@ -56,15 +55,11 @@ export function bindTimelineInteractions(
 ): void {
   if (!root) return;
 
-  // Interaction helpers mutate the caller-owned rotation in place, then use
-  // onChanged as the single rerender/persistence notification.
+  // Each edit callback owns its mutation and notification; gestures only manage native interaction state.
   const rotation = options.rotation || [];
   const getDragState = options.getDragState || (() => null);
   const setDragState = options.setDragState || (() => {});
   const canInteract = options.canInteract || (() => true);
-  const changed = (): void => {
-    options.onChanged?.();
-  };
 
   const applyDrop = (insertAt: number): void => {
     const drag = getDragState();
@@ -78,9 +73,8 @@ export function bindTimelineInteractions(
     if (drag.source === 'timeline') {
       const fromIndex = Number(drag.index);
 
-      if (!options.moveEntry(fromIndex, insertAt)) return;
+      options.moveEntry(fromIndex, insertAt);
 
-      changed();
       return;
     }
 
@@ -90,9 +84,7 @@ export function bindTimelineInteractions(
       // Palette macros may resolve to multiple adjacent entries.
       const entries = Array.isArray(resolved) ? resolved : resolved ? [resolved] : [];
 
-      if (!options.insertEntries(entries, insertAt)) return;
-
-      changed();
+      options.insertEntries(entries, insertAt);
     }
   };
 
@@ -143,23 +135,17 @@ export function bindTimelineInteractions(
 
         if (!canInteract() || !Number.isInteger(index)) return;
 
+        // Shift-remove truncates; unavailable actions must not move focus.
+        const removeEntry = event.shiftKey ? options.onTruncate : options.onRemove;
+
+        if (!removeEntry) return;
+
         const restoreKeyboardFocus = event.detail === 0 && item.contains(root.ownerDocument.activeElement);
-
-        if (event.shiftKey) {
-          // Shift-remove is the fast "truncate rotation here" gesture.
-          if (!options.onTruncate) return;
-
-          options.onTruncate(index);
-        } else {
-          if (!options.onRemove) return;
-
-          options.onRemove(index);
-        }
 
         // The renderer carries this removal position across synchronous or deferred row replacement.
         if (restoreKeyboardFocus) restoreFocusWithoutTooltip(remove);
 
-        changed();
+        removeEntry(index);
       };
     }
 

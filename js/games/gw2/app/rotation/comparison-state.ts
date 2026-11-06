@@ -1,4 +1,6 @@
-import { cloneRotation, resetRotationHistory } from '#gw2/app/rotation/editing/history.js';
+/** Owns pinned-reference selection; Current replacements commit through rotation editing. */
+import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
+import { cloneRotation } from '#gw2/app/rotation/editing/session.js';
 import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
@@ -112,14 +114,14 @@ export function swapRotationComparison(app: ProfessionAppState): AnalysisResult 
 
   const currentRotation = cloneRotation(app.build.rotation);
   const currentResult = app.analysis.state.results;
-  app.build.rotation = cloneRotation(comparison.referenceRotation);
+  const replacement = comparison.referenceRotation;
   const adoptedResult = comparison.referenceResult;
   comparison.reference = { label: 'Previous current rotation', warnings: [] };
   comparison.referenceRotation = currentRotation;
   comparison.referenceResult = currentResult;
   comparison.referenceStatus = 'fresh';
   comparison.referenceError = '';
-  resetRotationHistory(app);
+  commitRotationEdit(app, { type: 'reset', rotation: replacement }, { options: { adoptedResult } });
   return adoptedResult;
 }
 

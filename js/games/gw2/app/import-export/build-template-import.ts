@@ -1,4 +1,6 @@
+/** Applies reviewed build templates through the shared replacement commit. */
 import { replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
+import { commitBuildReplacement } from '#gw2/app/rotation/editing/commit.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { decodeGw2BuildTemplate, resolveGw2BuildTemplate } from '#gw2/integrations/chat-code/codec.js';
 import type { Gw2BuildTemplateWeaponSet, ResolvedGw2BuildTemplate } from '#gw2/integrations/chat-code/codec.js';
@@ -66,7 +68,7 @@ export function applyBuildTemplatePreview(
   weapons: Gw2BuildTemplateWeaponSet | null = preview.weapons
 ): void {
   const current = app.build;
-  app.build = replaceBuildConfiguration(
+  const build = replaceBuildConfiguration(
     {
       ...current,
       ...(weapons ? { weapons: [...weapons] } : {}),
@@ -79,5 +81,5 @@ export function applyBuildTemplatePreview(
     current,
     app.adapter
   );
-  app.changed();
+  commitBuildReplacement(app, build);
 }

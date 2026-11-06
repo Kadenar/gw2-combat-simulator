@@ -1,4 +1,6 @@
+/** Resolves authored skill identities and submits palette commands to the editing owner. */
 import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
+import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import type { RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
@@ -6,7 +8,6 @@ import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.
 import { createSkillSelectionContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import { displayedSkill } from '#gw2/platform/skills/selectors.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
-import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
 type SkillIdSelector = (skillId: SkillId) => SkillId;
 
@@ -112,31 +113,7 @@ export function createRotationItem(
   };
 }
 
-/**
- * Inserts authored commands at the armed insertion cursor (or appends when no
- * cursor is set), advances the cursor past them, and triggers a re-sim via
- * `changed`. Empty batches leave the rotation untouched.
- */
-export function insertRotationItems(app: ProfessionAppState, items: readonly RotationCommand[]): void {
-  if (!items.length) return;
-
-  const insertionIndex = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
-
-  if (insertionIndex === null) {
-    app.rotationInsertionIndex = null;
-    app.build.rotation.push(...items);
-  } else {
-    app.build.rotation.splice(insertionIndex, 0, ...items);
-    app.rotationInsertionIndex = insertionIndex + items.length;
-  }
-
-  // Inserting into a long timeline would otherwise paint a command-only pending state and then
-  // repaint resolved markers, making both the document and timeline jump between geometries.
-  if (insertionIndex === null) app.changed(false);
-  else app.changed(false, false, { deferRotationRender: true });
-}
-
 /** Builds a single command from a palette identity and inserts it. */
 export function addRotation(app: ProfessionAppState, name: string, options: RotationActionOptions = {}): void {
-  insertRotationItems(app, [createRotationItem(app, name, options)]);
+  commitRotationEdit(app, { type: 'insert', entries: [createRotationItem(app, name, options)] });
 }

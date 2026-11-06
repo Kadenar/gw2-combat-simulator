@@ -9,7 +9,7 @@ import {
   previewRotationFile
 } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { setRotationReference } from '#gw2/app/rotation/comparison-state.js';
-import { recordRotationHistory, redoRotation, undoRotation } from '#gw2/app/rotation/editing/history.js';
+import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { mesmerAppAdapter as adapter } from '#gw2/professions/mesmer/app/app-definition.js';
@@ -58,8 +58,6 @@ test('rotation and combined exports import identical delays through either dialo
       const app = appFor();
       app.build.rotation = [{ type: 'wait', durationMs: 200 }];
       app.simulationSettings = { transitionDelays: normalizeTransitionDelays({ weaponSwapMs: 100 }) };
-      app.changed = () => recordRotationHistory(app);
-      recordRotationHistory(app);
       const rotation = [{ type: 'cast', skillId: 62617 }];
       const delays = normalizeTransitionDelays({ weaponSwapMs: delay });
       const payload = includeBuild
@@ -79,10 +77,10 @@ test('rotation and combined exports import identical delays through either dialo
 
       assert.deepEqual(app.build.rotation, rotation);
       assert.deepEqual(app.simulationSettings.transitionDelays, delays);
-      undoRotation(app);
+      commitRotationEdit(app, { type: 'undo' });
       assert.deepEqual(app.build.rotation, [{ type: 'wait', durationMs: 200 }]);
       assert.deepEqual(app.simulationSettings.transitionDelays, delays);
-      redoRotation(app);
+      commitRotationEdit(app, { type: 'redo' });
       assert.deepEqual(app.build.rotation, rotation);
       assert.deepEqual(app.simulationSettings.transitionDelays, delays);
       assert.deepEqual((await previewRotationFile(file, app)).warnings, []);

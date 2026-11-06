@@ -187,7 +187,10 @@ test('template actions load paired or partial state and support undo', async (t)
   await loadTemplateAction(rotationOnlyApp, preset, 'rotation', createButton());
   assert.equal(rotationOnlyApp.build.marker, 'current');
   assert.deepEqual(rotationOnlyApp.build.rotation, [{ type: 'cast', skillId: 'Template rotation' }]);
-  assert.deepEqual(rotationOnlyApp.changedCalls, [[false, false, { deferRotationRender: true }]]);
+  assert.deepEqual(
+    rotationOnlyApp.changedCalls.map(([rebuildStatic, rebuildGear]) => [rebuildStatic, rebuildGear]),
+    [[false, false]]
+  );
 });
 
 test('template loading preserves explicit Mesmer variant IDs before the first simulation', async (t) => {

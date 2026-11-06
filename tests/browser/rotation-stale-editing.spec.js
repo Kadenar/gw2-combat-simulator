@@ -98,8 +98,8 @@ test('retained timeline controls reject stale indexes and resume after publicati
     const dragCleared = app.dragState === null;
     cards[1].querySelector('.rot-x').click();
     cards[1].querySelector('.rot-x').dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: true }));
-    editor.querySelector('input').value = '9000';
-    editor.querySelector('.activation-editor-apply').click();
+    // Input changes dismiss editors immediately, even while these command rows remain painted.
+    const editorClosed = !editor.matches(':popover-open');
     cards[1].querySelector('.rot-edit-wait').click();
     const editorReopened = !!document.querySelector('.rotation-duration-editor:popover-open');
     const staleDragAccepted = cards[1].dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true }));
@@ -114,6 +114,7 @@ test('retained timeline controls reject stale indexes and resume after publicati
       cursor: app.rotationInsertionIndex,
       dragStarted,
       dragCleared,
+      editorClosed,
       editorReopened,
       staleDragAccepted
     };
@@ -125,6 +126,7 @@ test('retained timeline controls reject stale indexes and resume after publicati
     cursor: null,
     dragStarted: true,
     dragCleared: true,
+    editorClosed: true,
     editorReopened: false,
     staleDragAccepted: false
   });

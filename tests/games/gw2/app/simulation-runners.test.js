@@ -530,7 +530,7 @@ test('rotation-only changes paint the builder once with their matching result', 
   });
   Object.defineProperty(globalThis, 'document', {
     configurable: true,
-    value: { body: { dataset: {} } }
+    value: { body: { dataset: {}, removeAttribute() {} }, getElementById: () => null, querySelector: () => null }
   });
 
   const f = analysisFixture({ changed: (change) => app.onAnalysisChange(change) });
@@ -580,7 +580,7 @@ test('build edits cancel prior analysis even when browser storage rejects writes
   });
   Object.defineProperty(globalThis, 'document', {
     configurable: true,
-    value: { body: { dataset: {} }, getElementById: () => null }
+    value: { body: { dataset: {}, removeAttribute() {} }, getElementById: () => null, querySelector: () => null }
   });
   Object.defineProperty(globalThis, 'localStorage', {
     configurable: true,

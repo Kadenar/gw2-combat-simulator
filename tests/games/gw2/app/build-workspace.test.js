@@ -22,7 +22,7 @@ import { previewRotationFile } from '#gw2/app/import-export/rotation-import-dial
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
-import { recordRotationHistory, undoRotation } from '#gw2/app/rotation/editing/history.js';
+import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import { captureAnalysisRequestSnapshot } from '#gw2/app/simulation/analysis-request-snapshot.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
@@ -183,7 +183,6 @@ function appFixture() {
     modifierContributionRunner: { cancel: () => cancelled.push('modifiers'), run() {} },
     relicComparisonRunner: { schedule() {} },
     changed() {
-      recordRotationHistory(this);
       this.analysis.changeInputs();
       saveBuildWorkspace(this);
     }
@@ -195,7 +194,6 @@ function appFixture() {
   app.analysis = createAnalysisResultLifecycle(app, () => {});
   app.analysis.restore({ results: null, patchComparison: null, fresh: false, inputs: null });
   cancelled.length = 0;
-  recordRotationHistory(app);
   return { app, tab, scheduled, cancelled };
 }
 
@@ -203,8 +201,7 @@ function appFixture() {
 test('encounter editor keeps one rotation and history across boss and difficulty changes', (t) => {
   const values = storage(t);
   const { app } = appFixture();
-  app.build.rotation.push({ type: 'wait', durationMs: 1000 });
-  app.changed();
+  commitRotationEdit(app, { type: 'insert', entries: [{ type: 'wait', durationMs: 1000 }] });
   const golem = app.workspace;
   const golemHistory = app._rotationHistory;
   const savedGolem = values.get(workspaceStorageKey(adapter));
@@ -224,17 +221,17 @@ test('encounter editor keeps one rotation and history across boss and difficulty
   assert.equal(app.workspace.fileActions, fileActions);
   assert.throws(validateGolemImport, /build changed/);
   app.build.gear.Helm = 'encounter gear';
-  app.build.rotation.push({ type: 'wait', durationMs: 2000 });
-  app.changed();
-  const bossHistory = app._rotationHistory;
+  commitRotationEdit(app, { type: 'insert', entries: [{ type: 'wait', durationMs: 2000 }] }, { rebuildStatic: true });
+  let bossHistory = app._rotationHistory;
   selectScenarioEncounter(draft, '020403', 'challenge');
   editor.open(draft);
   assert.equal(app._rotationHistory, bossHistory);
   assert.equal(app.build.rotation.length, 2);
   assert.equal(app.workspace.tabs.length, 1);
-  undoRotation(app);
+  commitRotationEdit(app, { type: 'undo' });
   assert.deepEqual(savedDraft.build.rotation, [{ type: 'wait', durationMs: 1000 }]);
   assert.equal(app.build.gear.Helm, 'encounter gear');
+  bossHistory = app._rotationHistory;
   assert.equal(values.get(workspaceStorageKey(adapter)), savedGolem);
   editor.close();
   assert.equal(app.workspace, golem);
@@ -256,8 +253,7 @@ test('discarding an encounter releases its editor session and restores Golem', (
   const editor = createScenarioEditor(app, () => {}, { import() {}, export() {} });
   editor.open(draft);
   const discarded = app.workspace;
-  app.build.rotation.push({ type: 'wait', durationMs: 1000 });
-  app.changed();
+  commitRotationEdit(app, { type: 'insert', entries: [{ type: 'wait', durationMs: 1000 }] });
   editor.discard(draft.id);
   assert.equal(app.workspace, golem);
   assert.deepEqual(app.build.rotation, []);
@@ -529,8 +525,7 @@ test('switching tabs uses each patch catalog for skill lists and lookups', (t) =
 test('switching preserves independent rotations, history, templates, comparisons, and cached results', (t) => {
   storage(t);
   const { app, tab, scheduled, cancelled } = appFixture();
-  app.build.rotation.push({ type: 'wait', durationMs: 10 });
-  app.changed();
+  commitRotationEdit(app, { type: 'insert', entries: [{ type: 'wait', durationMs: 10 }] });
   publishResult(app, { dps: 10 });
   app.currentTemplate = { build: 'template.json', signature: 'original' };
   app.templateUndoBuild = build('before-template');
@@ -557,8 +552,7 @@ test('switching preserves independent rotations, history, templates, comparisons
   assert.equal(app.timelineOverlayVisibility, sharedOverlays);
   app.procVisibility = new Set(['other-proc']);
   app._skillSortCol = 'dps';
-  app.build.rotation.push({ type: 'wait', durationMs: 30 });
-  app.changed();
+  commitRotationEdit(app, { type: 'insert', entries: [{ type: 'wait', durationMs: 30 }] });
   const before = scheduled.length;
   app.activateBuildTab(tab.id);
   assert.equal(app.analysis.state.results, originalResult);
@@ -573,7 +567,7 @@ test('switching preserves independent rotations, history, templates, comparisons
   assert.equal(app._skillSortCol, 'name');
   assert.equal(app._skillSortDir, 'asc');
   assert.equal(app.timelineOverlayVisibility, sharedOverlays);
-  undoRotation(app);
+  commitRotationEdit(app, { type: 'undo' });
   assert.deepEqual(app.build.rotation, []);
   app.activateBuildTab(other.id);
   assert.equal(app.build.rotation[0].durationMs, 30);
@@ -632,20 +626,18 @@ test('switching tabs recaptures cached baselines when the session debug mode cha
 test('duplicated builds share no nested input objects or undo history', (t) => {
   storage(t);
   const { app, tab } = appFixture();
-  app.build.rotation.push({ type: 'wait', durationMs: 10 });
-  app.changed();
+  commitRotationEdit(app, { type: 'insert', entries: [{ type: 'wait', durationMs: 10 }] });
   tab.templateBuild = build('template');
   addBuildTab(app, app.build, 'Copy', app.patch.id, tab.templateBuild);
   const copy = app.workspace.tabs.at(-1);
   assert.deepEqual(copy.templateBuild, tab.templateBuild);
   copy.templateBuild.gear.Helm = 'copy-template';
   assert.equal(tab.templateBuild.gear.Helm, 'template');
-  app.build.rotation[0].durationMs = 50;
   app.build.gear.Helm = 'copy';
-  app.changed();
+  commitRotationEdit(app, { type: 'update', index: 0, changes: { durationMs: 50 } }, { rebuildStatic: true });
   assert.equal(tab.build.rotation[0].durationMs, 10);
   assert.equal(tab.build.gear.Helm, 'original');
-  undoRotation(app);
+  commitRotationEdit(app, { type: 'undo' });
   assert.equal(app.build.rotation[0].durationMs, 10);
 });
 

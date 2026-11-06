@@ -133,12 +133,7 @@ export function updateTimelineInsertionCursor(app: ProfessionAppState): void {
   closeFloatingEditor();
   const root = document.getElementById('rotation-timeline');
 
-  if (root)
-    app.rotationInsertionIndex = updateRotationInsertionCursor(
-      root,
-      app.rotationInsertionIndex,
-      app.build.rotation.length
-    );
+  if (root) updateRotationInsertionCursor(root, app.rotationInsertionIndex, app.build.rotation.length);
 }
 
 export function renderTimeline(app: ProfessionAppState, options: TimelineRenderOptions = {}): void {
@@ -223,7 +218,7 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
       app.selectRotationInsertion(index);
     };
 
-    app.rotationInsertionIndex = mountRotationInsertionCursor({
+    mountRotationInsertionCursor({
       root: element,
       getInsertionIndex: () => app.rotationInsertionIndex,
       getRotationLength: () => app.build.rotation.length,

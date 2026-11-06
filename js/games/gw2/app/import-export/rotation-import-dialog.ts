@@ -1,3 +1,4 @@
+/** Coordinates reviewed rotation imports and commits accepted commands through editing history. */
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import type { BuildTemplatePreset } from '#gw2/app/build/types.js';
 import { readJsonFile } from '#gw2/app/import-export/files.js';
@@ -21,6 +22,7 @@ import {
 } from '#gw2/app/import-export/rotation-transition-delays.js';
 import type { RotationImportObservation } from '#gw2/app/import-export/types.js';
 import type { RotationReferenceDescriptor } from '#gw2/app/rotation/comparison-state.js';
+import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import { applyTransitionDelays } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { fetchJsonAsset, getRotationItems } from '#gw2/integrations/assets.js';
@@ -296,9 +298,8 @@ export function manifestRotationMatchesBuild(
 
 /** Replaces the active rotation only after the user accepts a successfully reconstructed preview. */
 export function applyRotationImportPreview(app: ProfessionAppState, preview: RotationImportPreview): void {
-  app.build.rotation = structuredClone([...preview.rotation]);
   const settingsChanged = applyTransitionDelays(app, preview.transitionDelays ?? null);
-  app.changed(settingsChanged);
+  commitRotationEdit(app, { type: 'replace', rotation: preview.rotation }, { rebuildStatic: settingsChanged });
 }
 
 const ROTATION_IMPORT_STYLES = `

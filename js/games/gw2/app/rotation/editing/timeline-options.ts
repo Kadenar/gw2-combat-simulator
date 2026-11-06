@@ -1,3 +1,4 @@
+/** Connects timeline gestures to complete edits while preserving captured-command guards. */
 import { resolveEntryDisplaySkill, resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import {
   activationDamageCommitMs,
@@ -5,11 +6,12 @@ import {
   suggestedActivationInterruptMs
 } from '#gw2/app/rotation/editing/activation-editor.js';
 import { castEditorForSkill, openProfessionCastEditor } from '#gw2/app/rotation/editing/cast-editor.js';
+import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import {
   hasConfigurableDoubleEdgeOutcome,
   openDoubleEdgeEditor
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
-import { insertRotationEntries, moveRotationEntry, updateRotationEntry } from '#gw2/app/rotation/editing/operations.js';
+import { updateRotationEntry } from '#gw2/app/rotation/editing/operations.js';
 import { resolvePaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
 import type { RotationSkill } from '#gw2/app/rotation/skill-views.js';
 import type { TimelineInteractionOptions } from '#gw2/app/rotation/timeline/interactions.js';
@@ -69,10 +71,7 @@ function editRotationDuration(app: ProfessionAppState, index: number, event?: Ev
 
       if (currentEntry !== entry) return;
 
-      app.build.rotation[index] = updateRotationEntry(currentEntry, {
-        durationMs
-      });
-      app.changed(false);
+      commitRotationEdit(app, { type: 'update', index, changes: { durationMs } });
     }
   });
 }
@@ -117,8 +116,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
       onApply(patch) {
         if (app.build.rotation[index] !== entry) return;
 
-        app.build.rotation[index] = updateRotationEntry(entry, patch);
-        app.changed(false);
+        commitRotationEdit(app, { type: 'update', index, changes: patch });
       }
     });
     return;
@@ -218,18 +216,21 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
       if (currentEntry !== entry) return;
 
       // Timing and targeting belong to the same cast command, so the pencil editor updates both together.
-      app.build.rotation[index] = updateRotationEntry(currentEntry, {
-        ...(behavior === 'concurrent'
-          ? { concurrentOffsetMs: timingMs ?? undefined }
-          : { interruptAfterMs: timingMs ?? undefined }),
-        ...(allowTargeting
-          ? {
-              offTarget: targeting.offTarget ? true : undefined,
-              impactDelayMs: targeting.impactDelayMs ?? undefined
-            }
-          : {})
+      commitRotationEdit(app, {
+        type: 'update',
+        index,
+        changes: {
+          ...(behavior === 'concurrent'
+            ? { concurrentOffsetMs: timingMs ?? undefined }
+            : { interruptAfterMs: timingMs ?? undefined }),
+          ...(allowTargeting
+            ? {
+                offTarget: targeting.offTarget ? true : undefined,
+                impactDelayMs: targeting.impactDelayMs ?? undefined
+              }
+            : {})
+        }
       });
-      app.changed(false);
     }
   });
 }
@@ -264,10 +265,13 @@ function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: E
 
       if (currentEntry !== entry) return;
 
-      app.build.rotation[index] = updateRotationEntry(currentEntry, {
-        doubleEdgeOutcome: outcome
+      commitRotationEdit(app, {
+        type: 'update',
+        index,
+        changes: {
+          doubleEdgeOutcome: outcome
+        }
       });
-      app.changed(false);
     }
   });
 }
@@ -282,15 +286,11 @@ export function timelineInteractionOptions(app: ProfessionAppState): TimelineInt
     setDragState: (value) => {
       app.dragState = value;
     },
-    moveEntry: (fromIndex, toIndex) => moveRotationEntry(app.build.rotation, fromIndex, toIndex),
-    insertEntries: (entries, insertAt) => insertRotationEntries(app.build.rotation, entries, insertAt),
+    moveEntry: (fromIndex, toIndex) => commitRotationEdit(app, { type: 'move', from: fromIndex, to: toIndex }),
+    insertEntries: (entries, insertAt) => commitRotationEdit(app, { type: 'drop', index: insertAt, entries }),
     resolvePaletteEntry: (name, drag, insertAt) => resolvePaletteDrop(app, name, drag, insertAt),
-    onChanged: () => {
-      app.rotationInsertionIndex = null;
-      app.changed(false);
-    },
-    onRemove: (index) => app.build.rotation.splice(index, 1),
-    onTruncate: (index) => app.build.rotation.splice(index),
+    onRemove: (index) => commitRotationEdit(app, { type: 'remove', index }),
+    onTruncate: (index) => commitRotationEdit(app, { type: 'truncate', index }),
     onEditActivation: (index, event) => editRotationActivation(app, index, event),
     onEditDoubleEdgeOutcome: (index, event) => editDoubleEdgeOutcome(app, index, event),
     onEditWait: (index, event) => editRotationDuration(app, index, event)
