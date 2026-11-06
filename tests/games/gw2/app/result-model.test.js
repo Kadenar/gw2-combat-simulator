@@ -8,6 +8,7 @@ import { formatResultTimelineTime, formatTimelineTime, resultCombatReferenceMs }
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
+import { emptyTimelineSource } from '#tests/helpers/timeline-presentation.js';
 
 const PLAYER_AUDIENCE = Object.freeze({
   includesSelf: true,
@@ -82,20 +83,23 @@ test('timeline times can reuse a precomputed combat reference', () => {
 });
 
 test('total idle time excludes explicit waits before combat start', () => {
-  const metrics = resultSummaryMetrics({
-    rotationEndTime: 1,
-    observationEndTime: 1,
-    combatEndTime: 1,
-    deathTime: null,
-    ...effectFields([{ type: 'combat_start', at: 0.5 }], 1),
-    steps: [
-      { rotationCommandIndex: 0, skillName: 'Wait', start: 0, end: 500, type: 'wait' },
-      { rotationCommandIndex: 1, skillName: 'Combat Start', start: 500, end: 500, type: 'combat_start' },
-      { rotationCommandIndex: 2, skillName: 'First Cast', start: 500, end: 600 },
-      { rotationCommandIndex: 3, skillName: 'Wait', start: 600, end: 900, type: 'wait' },
-      { rotationCommandIndex: 4, skillName: 'Second Cast', start: 900, end: 1000 }
-    ]
-  });
+  const metrics = resultSummaryMetrics(
+    {
+      rotationEndTime: 1,
+      observationEndTime: 1,
+      combatEndTime: 1,
+      deathTime: null,
+      ...effectFields([{ type: 'combat_start', at: 0.5 }], 1),
+      steps: [
+        { rotationCommandIndex: 0, skillName: 'Wait', start: 0, end: 500, type: 'wait' },
+        { rotationCommandIndex: 1, skillName: 'Combat Start', start: 500, end: 500, type: 'combat_start' },
+        { rotationCommandIndex: 2, skillName: 'First Cast', start: 500, end: 600 },
+        { rotationCommandIndex: 3, skillName: 'Wait', start: 600, end: 900, type: 'wait' },
+        { rotationCommandIndex: 4, skillName: 'Second Cast', start: 900, end: 1000 }
+      ]
+    },
+    emptyTimelineSource
+  );
 
   assert.deepEqual(metrics[1], {
     label: 'Total Idle Time',

@@ -30,6 +30,7 @@ function activationApp(skills) {
     profession: {
       catalog,
       ui: {
+        castEditor: () => null,
         isPaletteSkillInstant: () => false,
         resolvePaletteAction: () => professionAction
       }
@@ -98,12 +99,18 @@ test('palette activation dispatches ordinary and exceptional actions', () => {
     sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' } }]
   };
   const { app, added, setProfessionAction } = activationApp([ordinary, instant, dragonSlash, doubleEdge]);
+  const descriptor = {
+    prepare: () => {
+      throw new Error('routing must not prepare choices');
+    }
+  };
+  app.profession.ui.castEditor = (_context, skill) => (skill.id === dragonSlash.id ? descriptor : null);
   const opened = {};
   const editors = {
     openDuration(options) {
       opened.duration = options;
     },
-    openDragonSlash(options) {
+    openCast(options) {
       opened.dragonSlash = options;
     },
     openDoubleEdge(options) {
@@ -129,7 +136,7 @@ test('palette activation dispatches ordinary and exceptional actions', () => {
   app.build.rotation = [];
   dispatchPaletteActivation(app, dragonSlash.name, activationEvent(dragonSlash.id), editors);
   assert.equal(opened.dragonSlash.insertionIndex, 0);
-  opened.dragonSlash.onApply(3);
+  opened.dragonSlash.onApply({ releaseAtCharges: 3 });
   assert.deepEqual(added.pop(), {
     name: dragonSlash.name,
     options: { skillId: dragonSlash.id, releaseAtCharges: 3 }

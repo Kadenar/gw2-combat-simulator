@@ -1400,6 +1400,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
           planningState: {
             activeWeaponSet: 1,
             ammoBySkillId: {},
+            availability: {},
             profession: { [STATE.AUTOATTACK_CHAINS]: {} }
           }
         }

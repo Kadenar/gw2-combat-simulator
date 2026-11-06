@@ -32,13 +32,13 @@ import {
   timelineDeadTimeMarkers,
   timelineItem,
   timelineSkillCastOrdinals,
-  timelineStepsWithChargeFills,
   timelineTargetImpactDetails,
   timelineTransitionDelayMarkers,
   timelineWeaponRowGroups,
   timelineWeaponRows,
   traitProcTimelineMarkers
 } from '#gw2/app/rotation/timeline/model.js';
+import { presentedTimelineSteps } from '#gw2/app/rotation/timeline/occupancy.js';
 import { weaponSetActiveSegments, weaponSetDurationTotals } from '#gw2/app/rotation/timeline/weapon-set-duration.js';
 import {
   ACTION_ICONS,
@@ -183,9 +183,10 @@ export function timelineRowsView(
   const combatReferenceMs = resultCombatReferenceMs(results);
   // Timeline timestamps keep millisecond precision so authored waits display their exact boundaries.
   const formatTime = (timeMs: number): string => formatTimelineTime(timeMs, combatReferenceMs, 3);
+  const occupancySource = { ui: app.profession.ui, context: { build, catalog: app.activeCatalog, specialization } };
   const targetImpacts = timelineTargetImpactDetails(resultSteps, results?.events || [], formatTime);
   const deadTimes = timelineDeadTimeMarkers(
-    timelineStepsWithChargeFills(resultSteps, resourceSpends),
+    results ? presentedTimelineSteps(results, occupancySource) : resultSteps,
     results?.resolvedEvents || [],
     // The authored Wait tile already represents its own duration. Overlay only
     // idle time beyond that shape so the timeline does not render it twice.
@@ -475,14 +476,14 @@ export function timelineRowsView(
           skill
         }) || defaultIcon;
       const time = step && !invalid ? formatTime(step.start) : '';
-      const resourceSpend = resourceSpends.get(index);
+      // Labels use exactly the displayed row skill, including selectors and invalid trait-selected commands.
       const annotation = app.profession.ui.timelineAnnotation({
         build,
         specialization,
         catalog: app.activeCatalog,
         skill,
         entry: item.command,
-        spend: resourceSpend,
+        spend: resourceSpends.get(index),
         formattedTime: time
       });
       // A recorded support outcome is useful even without damage; only empty interrupted casts get failure styling.

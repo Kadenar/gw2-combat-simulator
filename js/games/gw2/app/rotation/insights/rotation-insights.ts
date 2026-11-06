@@ -5,6 +5,7 @@ import type {
   RotationInsights
 } from '#gw2/app/rotation/insights/rotation-insights-types.js';
 import { rotationObservations } from '#gw2/app/rotation/insights/rotation-observations.js';
+import type { TimelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
 /** Materiality belongs to analysis, never combat configuration. Require absolute AND relative significance. */
@@ -28,6 +29,7 @@ const keys = <T, U>(a: ReadonlyMap<string, T>, b: ReadonlyMap<string, U>) => new
 export function analyzeRotationInsights(
   current: Gw2SimulationResult,
   reference: Gw2SimulationResult,
+  source: TimelineOccupancySource,
   mode: ComparisonWindowMode = 'shared'
 ): RotationInsights {
   // Full runs retain each side's actual horizon; the shorter run is never extended with invented idle time or buffs.
@@ -36,8 +38,8 @@ export function analyzeRotationInsights(
   const sharedDuration = Math.min(currentFullDuration, referenceFullDuration);
   const currentDuration = mode === 'full' ? currentFullDuration : sharedDuration;
   const referenceDuration = mode === 'full' ? referenceFullDuration : sharedDuration;
-  const currentObservations = rotationObservations(current, currentDuration),
-    referenceObservations = rotationObservations(reference, referenceDuration);
+  const currentObservations = rotationObservations(current, currentDuration, source),
+    referenceObservations = rotationObservations(reference, referenceDuration, source);
   const findings: RotationFinding[] = [];
   const add = (finding: Omit<RotationFinding, 'material'>) => {
     if (!finding.metrics.some((value) => Math.abs(value.delta) > 1e-9)) return;

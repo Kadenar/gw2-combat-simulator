@@ -1,6 +1,6 @@
 import { createRotationItem, insertRotationItems, resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { activationDamageCommitMs, openActivationEditor } from '#gw2/app/rotation/editing/activation-editor.js';
-import { openDragonSlashReleaseEditor } from '#gw2/app/rotation/editing/charge-release-editor.js';
+import { castEditorForSkill, openProfessionCastEditor } from '#gw2/app/rotation/editing/cast-editor.js';
 import {
   hasConfigurableDoubleEdgeOutcome,
   openDoubleEdgeEditor
@@ -189,14 +189,14 @@ export function resolvePaletteDropItem(
 
 type PaletteActivationEditors = {
   readonly openDuration: typeof openDurationEditor;
-  readonly openDragonSlash: typeof openDragonSlashReleaseEditor;
+  readonly openCast: typeof openProfessionCastEditor;
   readonly openDoubleEdge: typeof openDoubleEdgeEditor;
   readonly openActivation: typeof openActivationEditor;
 };
 
 const PALETTE_ACTIVATION_EDITORS: PaletteActivationEditors = {
   openDuration: openDurationEditor,
-  openDragonSlash: openDragonSlashReleaseEditor,
+  openCast: openProfessionCastEditor,
   openDoubleEdge: openDoubleEdgeEditor,
   openActivation: openActivationEditor
 };
@@ -253,21 +253,20 @@ export function dispatchPaletteActivation(
   const skill: RotationSkill | undefined =
     displaySkillId == null ? undefined : app.activeCatalog.skillsById.get(displaySkillId);
 
-  if (skill?.dragonSlash) {
+  const castEditor = castEditorForSkill(app, skill);
+
+  if (skill && castEditor) {
     const insertionIndex =
       normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length) ??
       app.build.rotation.length;
-    editors.openDragonSlash({
+    editors.openCast({
       app,
       anchor: icon,
       skill,
+      descriptor: castEditor,
       insertionIndex,
-      onApply(releaseAtCharges, releaseDelayMs) {
-        app.addRotation(name, {
-          ...identity,
-          ...(releaseAtCharges == null ? {} : { releaseAtCharges }),
-          ...(releaseDelayMs == null ? {} : { releaseDelayMs })
-        });
+      onApply(patch) {
+        app.addRotation(name, { ...identity, ...patch });
       }
     });
     return;
@@ -416,22 +415,20 @@ export function resolvePaletteDrop(
     return null;
   }
 
-  if (skill?.dragonSlash) {
+  const castEditor = castEditorForSkill(app, skill);
+
+  if (skill && castEditor) {
     const anchor = paletteDragAnchor(name);
 
     if (!anchor) return null;
 
-    openDragonSlashReleaseEditor({
+    openProfessionCastEditor({
       app,
       anchor,
       skill,
+      descriptor: castEditor,
       insertionIndex: insertAt,
-      onApply(releaseAtCharges, releaseDelayMs) {
-        insert({
-          ...(releaseAtCharges == null ? {} : { releaseAtCharges }),
-          ...(releaseDelayMs == null ? {} : { releaseDelayMs })
-        });
-      }
+      onApply: insert
     });
     return null;
   }

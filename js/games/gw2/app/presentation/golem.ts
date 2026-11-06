@@ -38,7 +38,7 @@ export function createGolemPresentation(): WorkspacePresentation {
         app.build.targetStartingHealthPercent
       );
       return {
-        summary: { metrics: presentationMetrics(result), breakpoints },
+        summary: { metrics: presentationMetrics(app, result), breakpoints },
         chartOptions: {
           healthBreakpoints: breakpoints,
           encounterPhases: null,

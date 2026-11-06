@@ -8,6 +8,7 @@ import type {
   RotationInsights
 } from '#gw2/app/rotation/insights/rotation-insights-types.js';
 import { analyzeRotationInsights } from '#gw2/app/rotation/insights/rotation-insights.js';
+import { timelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
@@ -268,7 +269,7 @@ export function renderRotationInsights(app: ProfessionAppState, fresh: boolean):
     return;
 
   try {
-    const report = analyzeRotationInsights(current, reference, comparison.windowMode);
+    const report = analyzeRotationInsights(current, reference, timelineOccupancySource(app), comparison.windowMode);
     const difference = report.runs.current.windowDamage - report.runs.reference.windowDamage;
     const overview = document.createElement('div');
     overview.className = 'rotation-insights-overview';

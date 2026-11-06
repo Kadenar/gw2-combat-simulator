@@ -22,9 +22,13 @@ import {
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
+import {
+  dragonSlashEditor,
+  dragonSlashOccupiedInterval,
+  dragonSlashTimelineAnnotation
+} from '#gw2/professions/warrior/specializations/bladesworn/presentation/dragon-slash.js';
 import { maximumDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
-import type { WarriorSkill, WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
+import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
 const DRAGON_SLASH_SKILLS = Object.freeze([ID.DRAGON_SLASH_FORCE, ID.DRAGON_SLASH_BOOST, ID.DRAGON_SLASH_REACH]);
@@ -184,39 +188,9 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     // The release editor validates configured charges through its existing prefix previews.
     if (skill.dragonSlash) return { editorAccess: Boolean(state[STATE.DRAGON_TRIGGER_ACTIVE]) };
   },
-  chargeReleaseProjection: dragonChargeReleaseProjection,
-  // Describe recorded charge outcomes without recalculating Flow gain or the charging cadence.
-  timelineAnnotation: ({ skill, entry, spend, formattedTime }) => {
-    const warriorSkill: WarriorSkill | undefined = skill;
-
-    if (!warriorSkill?.dragonSlash || entry?.type !== 'cast') return null;
-
-    const outcome = spend?.resource === 'dragon charges' ? spend : undefined;
-    const requested = entry.releaseAtCharges ?? outcome?.maximumCharges;
-    const actual = outcome?.chargesReached ?? outcome?.count;
-    return {
-      editLabel: 'charge release',
-      releaseBadge: {
-        label: `⚡${entry.releaseAtCharges ?? 'Max'}${formattedTime ? `\n${formattedTime}` : ''}`,
-        title: `Release at ${entry.releaseAtCharges == null ? 'maximum' : entry.releaseAtCharges} charges; cast at ${formattedTime}`
-      },
-      outcomeMismatch:
-        Boolean(outcome) && Number.isFinite(requested) && Number.isFinite(actual) && requested !== actual,
-      resourceLabel: outcome
-        ? `${outcome.count} ${outcome.count === 1 ? 'dragon charge' : 'dragon charges'} consumed at cast start`
-        : '',
-      details: outcome
-        ? [
-            `Charges reached: ${actual}`,
-            `${(entry.releaseDelayMs ?? 0) > 0 ? 'Time in Dragon Trigger' : 'Time spent charging'}: ${(outcome.chargingSeconds || 0).toFixed(3)}s`,
-            ...((entry.releaseDelayMs ?? 0) > 0
-              ? [`Additional release delay: ${entry.releaseDelayMs} ms (no charging Flow)`]
-              : []),
-            `Flow spent: ${(outcome.flowSpent || 0).toFixed(2)}`
-          ]
-        : []
-    };
-  },
+  castEditor: (_context, skill) => dragonSlashEditor(skill),
+  timelineAnnotation: dragonSlashTimelineAnnotation,
+  timelineOccupiedInterval: dragonSlashOccupiedInterval,
   paletteGroups: (context: WarriorUiContext) => [
     ...warriorPaletteGroups(context, PROFESSION_SKILLS, NO_WEAPON_BURSTS).map((group) =>
       group.id === 'profession'

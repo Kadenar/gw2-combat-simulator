@@ -4,7 +4,7 @@ import {
   openActivationEditor,
   suggestedActivationInterruptMs
 } from '#gw2/app/rotation/editing/activation-editor.js';
-import { openDragonSlashReleaseEditor } from '#gw2/app/rotation/editing/charge-release-editor.js';
+import { castEditorForSkill, openProfessionCastEditor } from '#gw2/app/rotation/editing/cast-editor.js';
 import {
   hasConfigurableDoubleEdgeOutcome,
   openDoubleEdgeEditor
@@ -77,48 +77,6 @@ function editRotationDuration(app: ProfessionAppState, index: number, event?: Ev
   });
 }
 
-// Dragon Slash variants accumulate charges before releasing; this editor sets the
-// charge threshold at which the skill fires. releaseAtCharges == null means "wait
-// for maximum charges" (the default). insertionIndex lets the editor know where in
-// the rotation this cast falls so it can show available charge counts in context.
-function editReleaseAtCharges(app: ProfessionAppState, index: number, event?: Event): void {
-  const entry = app.build.rotation[index];
-
-  if (entry === undefined) return;
-
-  const item = timelineItem(entry);
-  const skill: RotationSkill | undefined = resolveEntrySkill(app, item.command);
-
-  if (!skill?.dragonSlash) return;
-
-  const eventTarget = event?.currentTarget;
-  const anchor =
-    (eventTarget instanceof HTMLElement ? eventTarget : null) ||
-    document.querySelector<HTMLElement>(`#rotation-timeline .rot-edit-activation[data-idx="${index}"]`);
-
-  if (!anchor) return;
-
-  openDragonSlashReleaseEditor({
-    app,
-    anchor,
-    skill,
-    insertionIndex: index,
-    currentReleaseAtCharges: item.releaseAtCharges == null ? null : Number(item.releaseAtCharges),
-    command: item.command.type === 'cast' ? item.command : undefined,
-    onApply(releaseAtCharges, releaseDelayMs) {
-      const currentEntry = app.build.rotation[index];
-
-      if (currentEntry !== entry) return;
-
-      app.build.rotation[index] = updateRotationEntry(currentEntry, {
-        releaseAtCharges,
-        releaseDelayMs
-      });
-      app.changed(false);
-    }
-  });
-}
-
 // "Activation" here means either interrupting a cast-bar skill or placing an
 // instant skill during the previous cast. The simulated duration selects the
 // appropriate editor, including runtime instant-cast conversions. The anchor is
@@ -138,8 +96,33 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     step?.invalid ? undefined : step?.skillId
   );
 
-  // Dragon Slash uses charge release as its cast configuration, so the pencil opens that editor directly.
-  if (skill?.dragonSlash) return editReleaseAtCharges(app, index, event);
+  // The displayed skill selects its profession editor; edits retain the authored command's identity.
+  const descriptor = castEditorForSkill(app, skill);
+
+  if (skill && descriptor && item.command.type === 'cast') {
+    const target = event?.currentTarget;
+    const anchor =
+      (target instanceof HTMLElement ? target : null) ||
+      document.querySelector<HTMLElement>(`#rotation-timeline .rot-edit-activation[data-idx="${index}"]`);
+
+    if (!anchor) return;
+
+    openProfessionCastEditor({
+      app,
+      anchor,
+      skill,
+      descriptor,
+      insertionIndex: index,
+      command: item.command,
+      onApply(patch) {
+        if (app.build.rotation[index] !== entry) return;
+
+        app.build.rotation[index] = updateRotationEntry(entry, patch);
+        app.changed(false);
+      }
+    });
+    return;
+  }
 
   const isCombatStart = item.type === 'combat-start';
   // Away-from-target and delayed-impact casts model precasts, so they apply only before the authored combat marker.

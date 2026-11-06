@@ -6,7 +6,6 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
-import { dragonChargeReleaseProjection } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/charge-release.js';
 import { wait } from '#tests/helpers/commands.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
@@ -793,34 +792,31 @@ test('cartridge component removal separates its bonus and Burning and a removed 
   );
 });
 
+// Release choices are observed via the same lazy presentation interface used by the editor.
 test('release choices use native charge outcomes and disable unreachable levels without future Flow assumptions', () => {
   const config = { initialResource: 25, selectedTraitIds: [TRAIT.DARING_DRAGON] };
-  const preview = (command) => run(['Dragon Trigger', ...(command ? [command] : [])], config);
-  const skill = warriorProfession
-    .runtimeFor({ specialization: 'Bladesworn' })
-    .catalog.skillsById.get(ID.DRAGON_SLASH_FORCE);
-  const projection = dragonChargeReleaseProjection({ skill, preview });
+  const skill = warriorProfession.catalog.skillsById.get(ID.DRAGON_SLASH_FORCE);
+  const model = warriorProfession.ui.castEditor({ specialization: 'Bladesworn' }, skill).prepare({
+    preview: (command) => run(['Dragon Trigger', ...(command ? [command] : [])], config),
+    formatTime: (ms) => `${(ms / 1000).toFixed(3)}s`
+  });
   assert.deepEqual(
-    projection.rows.map((row) => row.charges),
-    [1, 2, 3, 4, 5]
+    model.choices.map((choice) => choice.id),
+    ['maximum', '1', '2', '3', '4', '5']
   );
-  assert.equal(projection.rows[0].flowAfter, 10);
-  assert.equal(projection.rows[1].flowAfter, 0);
-  assert.equal(projection.rows[2].disabled, true);
-  assert.ok(projection.rows[2].reason.includes('reached 2'));
-  assert.ok(
-    projection.rows
-      .filter((row) => !row.disabled)
-      .every((row) => Number.isFinite(row.at) && Number.isFinite(row.coefficient))
-  );
+  assert.match(model.choices[1].label, /10.00 Flow/);
+  assert.match(model.choices[2].label, /0.00 Flow/);
+  assert.equal(model.choices[3].disabled, true);
+  assert.ok(model.choices[3].reason.includes('reached 2'));
+  assert.equal(model.apply('3', 0), null);
 });
 
-test('release choices honor insertion-time charges, actual regeneration, and the trait-selected skill coefficient', () => {
-  const skill = warriorProfession
-    .runtimeFor({ specialization: 'Bladesworn' })
-    .catalog.skillsById.get(ID.DRAGON_SLASH_FORCE);
-  const projection = dragonChargeReleaseProjection({
-    skill,
+test('release choices honor observed regeneration, trait variants, and already reached charge levels', () => {
+  const skill = warriorProfession.catalog.skillsById.get(ID.DRAGON_SLASH_FORCE);
+  const editor = warriorProfession.ui.castEditor({ specialization: 'Bladesworn' }, skill);
+  const formatTime = (ms) => `${(ms / 1000).toFixed(3)}s`;
+  const model = editor.prepare({
+    formatTime,
     preview: (command) =>
       run(['Dragon Trigger', wait(480), 'Flow Stabilizer', ...(command ? [command] : [])], {
         initialResource: 15,
@@ -828,24 +824,25 @@ test('release choices honor insertion-time charges, actual regeneration, and the
         selectedTraitIds: [TRAIT.SHARP_AS_THE_WIND]
       })
   });
-  close(projection.rows[0].at, 0.48);
-  // Sharp's entry supplies its own Positive Flow alongside Flow Stabilizer.
-  close(projection.rows[1].at, 0.96);
-  assert.equal(projection.rows[1].coefficient, 3);
-  const held = dragonChargeReleaseProjection({
-    skill,
+  assert.equal(model.choices[2].disabled, false);
+  assert.match(model.choices[2].label, /3.00 coefficient/);
+  const held = editor.prepare({
+    formatTime,
     preview: (command) => run(['Dragon Trigger', wait(2400), ...(command ? [command] : [])], { initialResource: 100 })
   });
   assert.deepEqual(
-    held.rows.map((row) => row.charges),
-    [10]
+    held.choices.map((choice) => choice.id),
+    ['maximum', '10']
   );
-  close(held.rows[0].at, 2.4);
-  const closed = dragonChargeReleaseProjection({
-    skill,
+  const closed = editor.prepare({
+    formatTime,
     preview: () => run(['Dragon Trigger', 'Combat Stimulant'], { initialResource: 100, selectedSkillIds: [62978] })
   });
-  assert.deepEqual(closed.rows, []);
+  assert.deepEqual(
+    closed.choices.map((choice) => choice.id),
+    ['maximum']
+  );
+  assert.match(closed.unavailableMessage, /Enter Dragon Trigger/);
 });
 
 // Selected Positive Flow counts survive independently until each window expires, in resources and observations.

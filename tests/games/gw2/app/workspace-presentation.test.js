@@ -133,6 +133,8 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
   globalThis.document = mockDocument;
   try {
     const app = {
+      profession: { ui: { timelineOccupiedInterval: () => null } },
+      adapter: { eliteSpecialization: () => 'Core' },
       patch: patchSelectionFixture(undefined),
       build: { rotation: [{ type: 'cast', skillId: 'Strike' }], targetHealth: 0 },
       analysis: {

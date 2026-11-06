@@ -1,8 +1,5 @@
-import {
-  mechanicResourceSpends,
-  timelineDeadTimeMarkers,
-  timelineStepsWithChargeFills
-} from '#gw2/app/rotation/timeline/model.js';
+import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
+import { presentedTimelineSteps, type TimelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
 import { eventDamagePackets } from '#gw2/platform/results/damage-packets.js';
 import { effectSummary } from '#gw2/platform/results/effect-report.js';
 import type { Gw2SimulationResult, SimulationStep } from '#gw2/platform/results/types.js';
@@ -44,7 +41,7 @@ function intervalSeconds(intervals: readonly ObservationInterval[]): number {
  * intervals use clipped duration, so shared endpoints have zero area. Condition ticks already contain
  * each application's exact fractional/rounded payout and replace its aggregate damage entirely.
  */
-export function rotationObservations(result: Gw2SimulationResult, duration: number) {
+export function rotationObservations(result: Gw2SimulationResult, duration: number, source: TimelineOccupancySource) {
   const start = result.dpsStartTime;
   const end = start + duration;
   const inside = (at: number) => duration > 0 && at >= start && at <= end;
@@ -147,10 +144,7 @@ export function rotationObservations(result: Gw2SimulationResult, duration: numb
 
   const idleIntervals = new Map<string, ObservationInterval[]>();
   const stepsByIndex = new Map(result.steps.map((step) => [step.rotationCommandIndex, step]));
-  for (const marker of timelineDeadTimeMarkers(
-    timelineStepsWithChargeFills(result.steps, mechanicResourceSpends(result)),
-    result.resolvedEvents
-  )) {
+  for (const marker of timelineDeadTimeMarkers(presentedTimelineSteps(result, source), result.resolvedEvents)) {
     const kind = marker.reason == null ? 'gap' : marker.reason === 'explicit-wait' ? 'wait' : 'failed-cast';
     const step = stepsByIndex.get(marker.insertionIndex);
 

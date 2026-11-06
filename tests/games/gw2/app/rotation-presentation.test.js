@@ -8,30 +8,32 @@ import {
   validateActivationConcurrentOffsetMs,
   validateActivationInterruptMs
 } from '#gw2/app/rotation/editing/activation-editor.js';
+import { rotationObservations } from '#gw2/app/rotation/insights/rotation-observations.js';
 import { bindPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
 import { paletteGroupHtml, paletteSkillHtml, virtualPaletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
 import { bindTimelineInteractions, getSkillDropInsertionIndex } from '#gw2/app/rotation/timeline/interactions.js';
 import {
   formatTimelineDuration,
   formatTimelineSkillTooltip,
-  mechanicResourceSpends,
   rotationEntryName,
   rotationSkillHighlightKey,
   targetHealthTimelineMarkers,
   timelineDeadTimeMarkers,
   timelineImpactOffsets,
   timelineSkillCastOrdinals,
-  timelineStepsWithChargeFills,
   timelineTargetImpactDetails,
   timelineWeaponRowGroups,
   timelineWeaponRows
 } from '#gw2/app/rotation/timeline/model.js';
+import { presentedTimelineSteps } from '#gw2/app/rotation/timeline/occupancy.js';
 import { createEngineerBuildDefaults } from '#gw2/professions/engineer/build/build.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
+import { professionTimelineSource } from '#tests/helpers/timeline-presentation.js';
 
 // GW2 rotation views preserve editing, palette interactions, and timeline presentation.
 test('activation editor suggests and validates manual interruption times', () => {
@@ -172,6 +174,13 @@ test('timeline dead time includes explicit waits and excludes concurrent casts a
 });
 
 test('Dragon Trigger excludes only its charge window from timeline gaps and total idle time', () => {
+  const source = professionTimelineSource(warriorProfession, 'Bladesworn');
+  source.ui = {
+    ...source.ui,
+    timelineAnnotation: () => {
+      throw new Error('Occupancy consumers must not prepare row labels without an authored entry.');
+    }
+  };
   // Exercise early release, exact full charge, and overholding from a nonzero entry timestamp.
   for (const maximumChargingSeconds of [1.2, 2.48]) {
     for (const chargingSeconds of [0.5, maximumChargingSeconds, maximumChargingSeconds + 0.8]) {
@@ -179,30 +188,40 @@ test('Dragon Trigger excludes only its charge window from timeline gaps and tota
       const result = {
         steps: [
           { rotationCommandIndex: 0, skillName: 'Dragon Trigger', start: 1000, end: 1000 },
-          { rotationCommandIndex: 1, skillName: 'Dragon Slash', activationId: 'slash', start, end: start + 500 }
+          {
+            rotationCommandIndex: 1,
+            skillName: 'Dragon Slash',
+            skillId: 62797,
+            activationId: 'slash',
+            start,
+            end: start + 500
+          }
         ],
         events: [
           {
             type: 'resource',
             reason: 'profession mechanic',
             activationId: 'slash',
+            resource: 'dragon charges',
             chargingSeconds,
             maximumChargingSeconds
           }
         ],
+        dpsStartTime: 0,
+        effectReport: null,
         resolvedEvents: []
       };
-      const markers = timelineDeadTimeMarkers(
-        timelineStepsWithChargeFills(result.steps, mechanicResourceSpends(result))
-      );
+      const markers = timelineDeadTimeMarkers(presentedTimelineSteps(result, source));
       const overheld = chargingSeconds > maximumChargingSeconds;
+      const observations = rotationObservations(result, (start + 500) / 1000, source);
+      assert.ok(Math.abs((observations.idle.get('gap') ?? 0) - (overheld ? 0.8 : 0)) < 1e-9);
       assert.deepEqual(
         markers,
         overheld
           ? [{ insertionIndex: 1, start: 1000 + maximumChargingSeconds * 1000, end: start, durationMs: 800 }]
           : []
       );
-      assert.equal(timelineIdleTimeMetric(result).value, overheld ? '800ms' : '0ms');
+      assert.equal(timelineIdleTimeMetric(result, source).value, overheld ? '800ms' : '0ms');
     }
   }
 });

@@ -15,6 +15,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { emptyTimelineSource } from '#tests/helpers/timeline-presentation.js';
 import { eventLogCsv } from '#ui/results/event-log.js';
 
 const PLAYER_RESOLVED_AUDIENCE = Object.freeze({
@@ -52,37 +53,32 @@ test('result summary uses the expected metric order', () => {
   );
 
   assert.deepEqual(
-    resultSummaryMetrics(result).map((metric) => metric.label),
+    resultSummaryMetrics(result, emptyTimelineSource).map((metric) => metric.label),
     ['Duration', 'Actions / min', 'Total Idle Time', 'Player Damage', 'Player DPS', 'Strike', 'Condition']
   );
 });
 
-test('result summary totals the same charge-aware dead-time gaps shown on the timeline', () => {
-  const metrics = resultSummaryMetrics({
-    rotationEndTime: 2,
-    observationEndTime: 2,
-    combatEndTime: 2,
-    deathTime: null,
-    ...effectFields(
-      [
-        {
-          type: 'resource',
-          reason: 'profession mechanic',
-          activationId: 'second',
-          amount: -4,
-          resource: 'dragon charges',
-          sourceSkill: 'Second Cast',
-          chargingSeconds: 0.5
-        }
-      ],
-      2,
-      { policies: mesmerBuffPolicies(mesmerProfession.catalog) }
-    ),
-    steps: [
-      { rotationCommandIndex: 0, skillName: 'First Cast', start: 0, end: 500 },
-      { rotationCommandIndex: 1, activationId: 'second', skillName: 'Second Cast', start: 1250, end: 1750 }
-    ]
-  });
+test('result summary totals gaps after profession-supplied occupied intervals', () => {
+  const metrics = resultSummaryMetrics(
+    {
+      rotationEndTime: 2,
+      observationEndTime: 2,
+      combatEndTime: 2,
+      deathTime: null,
+      ...effectFields([], 2, { policies: mesmerBuffPolicies(mesmerProfession.catalog) }),
+      steps: [
+        { rotationCommandIndex: 0, skillName: 'First Cast', start: 0, end: 500 },
+        { rotationCommandIndex: 1, activationId: 'second', skillName: 'Second Cast', start: 1250, end: 1750 }
+      ]
+    },
+    {
+      context: {},
+      ui: {
+        timelineOccupiedInterval: ({ step }) =>
+          step.rotationCommandIndex === 1 ? { startMs: 500, durationMs: 500 } : null
+      }
+    }
+  );
 
   assert.deepEqual(metrics[1], {
     label: 'Total Idle Time',
@@ -93,18 +89,21 @@ test('result summary totals the same charge-aware dead-time gaps shown on the ti
 });
 
 test('result summary includes explicit wait shapes in total idle time', () => {
-  const metrics = resultSummaryMetrics({
-    rotationEndTime: 1,
-    observationEndTime: 1,
-    combatEndTime: 1,
-    deathTime: null,
-    ...effectFields([], 1, { policies: mesmerBuffPolicies(mesmerProfession.catalog) }),
-    steps: [
-      { rotationCommandIndex: 0, skillName: 'First Cast', start: 0, end: 500 },
-      { rotationCommandIndex: 1, skillName: 'Wait', start: 500, end: 900, type: 'wait' },
-      { rotationCommandIndex: 2, skillName: 'Second Cast', start: 900, end: 1000 }
-    ]
-  });
+  const metrics = resultSummaryMetrics(
+    {
+      rotationEndTime: 1,
+      observationEndTime: 1,
+      combatEndTime: 1,
+      deathTime: null,
+      ...effectFields([], 1, { policies: mesmerBuffPolicies(mesmerProfession.catalog) }),
+      steps: [
+        { rotationCommandIndex: 0, skillName: 'First Cast', start: 0, end: 500 },
+        { rotationCommandIndex: 1, skillName: 'Wait', start: 500, end: 900, type: 'wait' },
+        { rotationCommandIndex: 2, skillName: 'Second Cast', start: 900, end: 1000 }
+      ]
+    },
+    emptyTimelineSource
+  );
 
   assert.deepEqual(metrics[1], {
     label: 'Total Idle Time',
@@ -115,41 +114,44 @@ test('result summary includes explicit wait shapes in total idle time', () => {
 });
 
 test('result summary details legitimate gaps and groups repeated missing-commit cancellations', () => {
-  const metrics = resultSummaryMetrics({
-    rotationEndTime: 1,
-    observationEndTime: 1,
-    combatEndTime: 1,
-    deathTime: null,
-    ...effectFields([], 1, { policies: mesmerBuffPolicies(mesmerProfession.catalog) }),
+  const metrics = resultSummaryMetrics(
+    {
+      rotationEndTime: 1,
+      observationEndTime: 1,
+      combatEndTime: 1,
+      deathTime: null,
+      ...effectFields([], 1, { policies: mesmerBuffPolicies(mesmerProfession.catalog) }),
 
-    steps: [
-      {
-        rotationCommandIndex: 0,
-        skillName: 'Opening Skill',
-        start: 0,
-        end: 100,
-        activationId: 'cast:1'
-      },
-      {
-        rotationCommandIndex: 1,
-        skillName: 'Interrupted Skill',
-        start: 300,
-        end: 700,
-        activationId: 'cast:2',
-        interrupted: true,
-        missingInterruptCommit: true
-      },
-      {
-        rotationCommandIndex: 2,
-        skillName: 'Interrupted Skill',
-        start: 700,
-        end: 800,
-        activationId: 'cast:3',
-        interrupted: true,
-        missingInterruptCommit: true
-      }
-    ]
-  });
+      steps: [
+        {
+          rotationCommandIndex: 0,
+          skillName: 'Opening Skill',
+          start: 0,
+          end: 100,
+          activationId: 'cast:1'
+        },
+        {
+          rotationCommandIndex: 1,
+          skillName: 'Interrupted Skill',
+          start: 300,
+          end: 700,
+          activationId: 'cast:2',
+          interrupted: true,
+          missingInterruptCommit: true
+        },
+        {
+          rotationCommandIndex: 2,
+          skillName: 'Interrupted Skill',
+          start: 700,
+          end: 800,
+          activationId: 'cast:3',
+          interrupted: true,
+          missingInterruptCommit: true
+        }
+      ]
+    },
+    emptyTimelineSource
+  );
 
   assert.deepEqual(metrics[1], {
     label: 'Total Idle Time',
@@ -163,28 +165,34 @@ test('result summary details legitimate gaps and groups repeated missing-commit 
 });
 
 test('Kill Time accounts for an explicit Combat Start reference', () => {
-  const metrics = resultSummaryMetrics({
-    rotationEndTime: 93.89,
-    observationEndTime: 93.89,
-    combatEndTime: 93.89,
-    deathTime: 93.89,
-    firstHitTime: 2.06,
-    ...effectFields([{ type: 'combat_start', at: 2.06 }], 93.89, {
-      policies: mesmerBuffPolicies(mesmerProfession.catalog)
-    })
-  });
+  const metrics = resultSummaryMetrics(
+    {
+      rotationEndTime: 93.89,
+      observationEndTime: 93.89,
+      combatEndTime: 93.89,
+      deathTime: 93.89,
+      firstHitTime: 2.06,
+      ...effectFields([{ type: 'combat_start', at: 2.06 }], 93.89, {
+        policies: mesmerBuffPolicies(mesmerProfession.catalog)
+      })
+    },
+    emptyTimelineSource
+  );
 
   assert.equal(metrics[0].label, 'Kill Time');
   assert.equal(metrics[0].value, '91.830s');
 });
 
 test('result summary hides the internal effect horizon after the target dies', () => {
-  const metrics = resultSummaryMetrics({
-    rotationEndTime: 97.1,
-    observationEndTime: 97.1,
-    combatEndTime: 93.1,
-    deathTime: 93.1
-  });
+  const metrics = resultSummaryMetrics(
+    {
+      rotationEndTime: 97.1,
+      observationEndTime: 97.1,
+      combatEndTime: 93.1,
+      deathTime: 93.1
+    },
+    emptyTimelineSource
+  );
 
   assert.equal(metrics[0].label, 'Kill Time');
   assert.equal(metrics[0].value, '93.100s');
@@ -308,7 +316,7 @@ test('result summary includes kill time when target health is exhausted', () => 
   );
 
   assert.deepEqual(
-    resultSummaryMetrics(result).map((metric) => metric.label),
+    resultSummaryMetrics(result, emptyTimelineSource).map((metric) => metric.label),
     ['Kill Time', 'Actions / min', 'Total Idle Time', 'Player Damage', 'Player DPS', 'Strike', 'Condition']
   );
   assert.equal(buildChartSeries(result).durationMs, Math.max(1, result.dpsWindow * 1000));

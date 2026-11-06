@@ -177,7 +177,13 @@ test('Rewinder cooldown applies shatter CDR, source refunds, then Alacrity', () 
 
   assert.deepEqual(mechanicResourceSpends(fullShatter).get(0), {
     count: 3,
-    resource: 'clones'
+    resource: 'clones',
+    event: fullShatter.events.find(
+      (event) =>
+        event.type === 'resource' &&
+        event.reason === 'profession mechanic' &&
+        event.activationId === fullShatter.steps[0].activationId
+    )
   });
 });
 

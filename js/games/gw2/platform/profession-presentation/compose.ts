@@ -12,7 +12,6 @@ import type {
   SkillDamagePreviewPreparation
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
-  ProfessionChargeReleaseContext,
   ProfessionPaletteActionIdentity,
   ProfessionPaletteContext,
   ProfessionPaletteGroup,
@@ -311,17 +310,6 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     );
   };
 
-  ui.chargeReleaseProjection = (context: ProfessionChargeReleaseContext) => {
-    const selected = scalarSlices(context, context.skill);
-    return firstUiMatch(
-      selected.slices,
-      'chargeReleaseProjection',
-      [selected.context],
-      (result) => result !== undefined && result !== null,
-      null
-    );
-  };
-
   ui.isPaletteSkillInstant = (context: ProfessionPaletteContext, skill: Skill) => {
     const selected = scalarSlices(context, skill);
     return someUiSlice(
@@ -369,7 +357,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
   };
 
   // Elite projections override Core for one tile or row; null grouping deliberately retains an unlabelled bar.
-  for (const name of ['timelineAnnotation', 'paletteWeaponGroups'] as const) {
+  for (const name of ['timelineAnnotation', 'timelineOccupiedInterval', 'paletteWeaponGroups', 'castEditor'] as const) {
     ui[name] = (context: unknown, ...args: unknown[]) => {
       const selected = active(context);
       return firstUiMatch(

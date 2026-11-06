@@ -344,6 +344,15 @@ test('Dragon Slash editor access is separate from its default verdict and requir
   );
   assert.equal(availability.available, false);
   assert.equal(paletteSkillView(app, skill, false, availability.message).contextDisabled, false);
+  // Editor access cannot bypass a denied command unless a descriptor actually exists; lookup stays lazy.
+  app.profession = { ...profession, ui: { ...profession.ui, castEditor: () => null } };
+  assert.equal(paletteSkillView(app, skill, false).contextDisabled, true);
+  app.profession.ui.castEditor = () => ({
+    prepare() {
+      throw new Error('Eligibility must not prepare choices');
+    }
+  });
+  assert.equal(paletteSkillView(app, skill, false).contextDisabled, false);
   delete app.analysis.state.results.planningState.availability[skill.id];
   assert.equal(paletteSkillView(app, skill, false).contextDisabled, true);
 });

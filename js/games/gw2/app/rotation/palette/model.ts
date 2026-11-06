@@ -2,6 +2,7 @@
 import type { ProfessionIsSkillAvailable } from '#gw2/app/build/types.js';
 import { activeSpecialization, palettePlanningState, paletteProfessionState } from '#gw2/app/rotation/context.js';
 import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
+import { castEditorForSkill } from '#gw2/app/rotation/editing/cast-editor.js';
 import {
   rotationHotkeyActionForSkillName,
   rotationLoadoutHotkeyActions,
@@ -826,10 +827,10 @@ export function paletteSkillView(
 ): PaletteSkillView {
   const cd = currentCooldown(app, skill);
   const editorAccess =
-    skill.dragonSlash &&
     palettePlanningState(app)?.availability[skill.id] != null &&
     isBuildSkillAvailable(skill, { specialization: activeSpecialization(app) }) &&
-    app.profession.ui?.paletteOverride?.(paletteProjectionContext(app), skill)?.editorAccess === true;
+    app.profession.ui?.paletteOverride?.(paletteProjectionContext(app), skill)?.editorAccess === true &&
+    castEditorForSkill(app, skill) != null;
   const endTime = Number(palettePlanningState(app)?.atSeconds || 0) * 1000;
   const contextReadyAt = Number(contextRetryAt) * 1000;
   const contextRemaining = Number.isFinite(contextReadyAt) ? Math.max(0, Math.round(contextReadyAt - endTime)) : 0;

@@ -1,5 +1,5 @@
 /** Defines application presentation callbacks independently of the executable profession runtime. */
-import type { CastCommand, RotationCommand } from '#gw2/platform/builds/rotation.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { FixedSlotLoadout } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2BuildResources, Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { ResourceKey } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -11,6 +11,7 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type { ProfessionCastEditor } from '#gw2/platform/profession-presentation/cast-editor.js';
 import type {
   SkillDamageConfigPatch,
   SkillDamageGroup,
@@ -19,7 +20,12 @@ import type {
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type { EffectSource } from '#gw2/platform/results/effect-report.js';
-import type { Gw2ProcStep, Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/results/types.js';
+import type {
+  Gw2ProcStep,
+  Gw2SimulationPlanningState,
+  Gw2SimulationResult,
+  SimulationStep
+} from '#gw2/platform/results/types.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Profession-owned application identity; shared charts align and clip its simulation timestamp. */
@@ -51,11 +57,7 @@ export interface ProfessionTimelineOverlay {
 export interface MechanicResourceSpend {
   readonly count: number;
   readonly resource: string;
-  readonly maximumCharges?: number;
-  readonly chargesReached?: number;
-  readonly chargingSeconds?: number;
-  readonly maximumChargingSeconds?: number;
-  readonly flowSpent?: number;
+  readonly event: SimulationEvent;
 }
 
 /** Supplies mechanic wording and badges while leaving HTML and editing interactions to the timeline. */
@@ -348,13 +350,6 @@ export interface ProfessionStateSnapshotContext<TProfessionState = unknown> exte
   readonly balanceContext: ProfessionBalanceContext;
 }
 
-/** Charge-release choices for one skill inserted at a rotation index. */
-export interface ProfessionChargeReleaseContext {
-  readonly skill?: Skill;
-  /** Each request executes a fresh prefix, optionally followed by one candidate release. */
-  readonly preview?: (command?: CastCommand) => Pick<Gw2SimulationResult, 'events' | 'steps' | 'planningState'>;
-}
-
 /** Timeline weapon-line tracking: the initial line, or the transition caused by one rotation entry. */
 interface ProfessionWeaponLineContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
   readonly initial?: boolean;
@@ -379,6 +374,20 @@ export interface ProfessionTimelineAnnotationContext<
   readonly formattedTime: string;
 }
 
+/** Executed occupancy has no authored-command or formatted-label requirements. */
+export interface ProfessionTimelineOccupancyContext<
+  TProfessionState = unknown
+> extends ProfessionUiContext<TProfessionState> {
+  readonly skill?: Skill;
+  readonly step: SimulationStep;
+  readonly spend?: MechanicResourceSpend;
+}
+
+export interface TimelineOccupiedInterval {
+  readonly startMs: number;
+  readonly durationMs: number;
+}
+
 /** One build-selection edit emitted by a skill-bar selector. */
 export interface ProfessionSkillBarSelectionChange {
   readonly key: string;
@@ -395,7 +404,6 @@ export type ProfessionUiCallbackContext<TProfessionState = unknown> = Profession
   ProfessionResourceViewContext<TProfessionState> &
   ProfessionResultUiContext<TProfessionState> &
   Partial<ProfessionStateSnapshotContext<TProfessionState>> &
-  ProfessionChargeReleaseContext &
   ProfessionWeaponLineContext<TProfessionState> &
   ProfessionTimelineIconContext<TProfessionState> &
   Partial<ProfessionTimelineAnnotationContext<TProfessionState>>;
@@ -417,6 +425,10 @@ export interface ProfessionUiContract<TProfessionState = unknown, TSkill extends
   readonly chartApplications: (context: ProfessionResultUiContext<TProfessionState>) => ProfessionChartApplication[];
   readonly timelineMarkers: (context: ProfessionResultUiContext<TProfessionState>) => ProfessionTimelineMarker[];
   readonly timelineOverlays: (context: ProfessionUiContext<TProfessionState>) => ProfessionTimelineOverlay[];
+  /** Describes occupied time only; summary paths never prepare row annotations. */
+  readonly timelineOccupiedInterval: (
+    context: ProfessionTimelineOccupancyContext<TProfessionState>
+  ) => TimelineOccupiedInterval | null;
   readonly timelineAnnotation: (
     context: ProfessionTimelineAnnotationContext<TProfessionState>
   ) => ProfessionTimelineAnnotation | null;
@@ -429,8 +441,8 @@ export interface ProfessionUiContract<TProfessionState = unknown, TSkill extends
     skills: readonly TSkill[]
   ) => ProfessionPaletteSkill<TSkill>[];
   readonly assumptionControls: readonly ProfessionAssumptionControl[];
-  /** Returns charge-release rows for the application editor to validate, or null when the skill has none. */
-  readonly chargeReleaseProjection: (context: ProfessionChargeReleaseContext) => object | null;
+  /** Describes a supported cast editor without preparing its choices or running previews. */
+  readonly castEditor: (context: ProfessionUiContext<TProfessionState>, skill: TSkill) => ProfessionCastEditor | null;
   readonly effectPresentations: (
     context: ProfessionResultUiContext<TProfessionState>
   ) => ProfessionEffectPresentation[];

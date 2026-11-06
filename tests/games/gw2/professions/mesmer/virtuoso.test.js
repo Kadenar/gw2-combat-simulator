@@ -177,7 +177,13 @@ test('Virtuoso cast-end blade spends retain their owning activation for the time
   assert.ok(Math.abs(spend.at - action.fullEndsAt) < 0.00001);
   assert.deepEqual(mechanicResourceSpends(result).get(0), {
     count: 5,
-    resource: 'blades'
+    resource: 'blades',
+    event: result.events.find(
+      (event) =>
+        event.type === 'resource' &&
+        event.reason === 'profession mechanic' &&
+        event.activationId === result.steps[0].activationId
+    )
   });
 });
 

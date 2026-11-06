@@ -4,6 +4,7 @@ import type { ResultSummaryMetric } from '#gw2/app/results/summary-metrics.js';
 import type { ResultSummaryModel } from '#gw2/app/results/summary-view.js';
 import type { EncounterTimelineMarker } from '#gw2/app/rotation/timeline/encounter.js';
 import type { targetHealthTimelineMarkers, TimelineDeadTimeOptions } from '#gw2/app/rotation/timeline/model.js';
+import { timelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
 import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
@@ -34,8 +35,8 @@ export interface WorkspacePresentation {
 }
 
 /** Both workspaces label a deterministic baseline consistently when an RNG comparison has been requested. */
-export function presentationMetrics(result: AnalysisResult) {
-  return resultSummaryMetrics(result).map((metric) =>
+export function presentationMetrics(app: ProfessionAppState, result: AnalysisResult) {
+  return resultSummaryMetrics(result, timelineOccupancySource(app)).map((metric) =>
     result.randomDistributionRequested && metric.label === 'Player DPS'
       ? { ...metric, label: 'Baseline Player DPS' }
       : metric

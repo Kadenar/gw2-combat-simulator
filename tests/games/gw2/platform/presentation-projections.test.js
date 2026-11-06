@@ -148,7 +148,7 @@ test('Mesmer spend phases and Bladesworn outcomes come from the active presentat
     skill: { dragonSlash: true },
     entry: { type: 'cast', skillId: 1, releaseAtCharges: 5, releaseDelayMs: 100 },
     formattedTime: '1.000s',
-    spend: { resource: 'dragon charges', count: 3, maximumCharges: 10, chargingSeconds: 0.75, flowSpent: 12 }
+    spend: { resource: 'dragon charges', count: 3, event: { maximumCharges: 10, chargingSeconds: 0.75, flowSpent: 12 } }
   };
   const annotation = warriorProfession.ui.timelineAnnotation(context);
   assert.equal(annotation.outcomeMismatch, true);

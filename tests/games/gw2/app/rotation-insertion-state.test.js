@@ -17,6 +17,7 @@ function planningState(overrides = {}) {
     atSeconds: 0,
     cooldownsBySkillId: {},
     ammoBySkillId: {},
+    availability: {},
     activeWeaponSet: 1,
     profession: {},
     ...overrides

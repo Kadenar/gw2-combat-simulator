@@ -203,7 +203,9 @@ test('Firebrand final mantra face shows the shared charges and next charge timer
         analysis: { needsPatchComparison: () => false, state: { results: results } },
         patch: guardianAppAdapter.profession.resolvePatch(),
         adapter: guardianAppAdapter,
-        build: { rotation: [] }
+        profession: guardianProfession,
+        activeCatalog: guardianCatalog,
+        build: { rotation: [], specializations: [{ name: 'Firebrand' }] }
       },
       surge
     );

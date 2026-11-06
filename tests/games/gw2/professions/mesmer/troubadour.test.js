@@ -312,7 +312,9 @@ test('Shatter Storm gives Lively Lute a second charge without a full cooldown', 
     patch: mesmerAppAdapter.profession.resolvePatch(),
     // Palette models now resolve tooltip presentation through the profession adapter.
     adapter: mesmerAppAdapter,
-    build: { rotation: [] }
+    profession: mesmerProfession,
+    activeCatalog: mesmerCatalog,
+    build: { rotation: [], specializations: [{ name: 'Troubadour' }] }
   });
 
   assert.equal(ordinary.steps[1].start, 10160);
@@ -690,11 +692,23 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
 
   assert.deepEqual(spends.get(0), {
     count: 3,
-    resource: 'notes'
+    resource: 'notes',
+    event: result.events.find(
+      (event) =>
+        event.type === 'resource' &&
+        event.reason === 'profession mechanic' &&
+        event.activationId === result.steps[0].activationId
+    )
   });
   assert.deepEqual(spends.get(2), {
     count: 2,
-    resource: 'notes'
+    resource: 'notes',
+    event: result.events.find(
+      (event) =>
+        event.type === 'resource' &&
+        event.reason === 'profession mechanic' &&
+        event.activationId === result.steps[2].activationId
+    )
   });
   assert.deepEqual(
     result.planningState.profession[STATE.ACTIVE_INSTRUMENTS].map((instrument) => instrument.name),
@@ -764,7 +778,13 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
 
   assert.deepEqual(mechanicResourceSpends(empty).get(0), {
     count: 0,
-    resource: 'notes'
+    resource: 'notes',
+    event: empty.events.find(
+      (event) =>
+        event.type === 'resource' &&
+        event.reason === 'profession mechanic' &&
+        event.activationId === empty.steps[0].activationId
+    )
   });
 });
 

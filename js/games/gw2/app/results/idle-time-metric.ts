@@ -1,10 +1,6 @@
 import type { ResultSummaryMetric, ResultSummaryMetricDetail } from '#gw2/app/results/summary-metrics.js';
-import {
-  formatTimelineDuration,
-  mechanicResourceSpends,
-  timelineDeadTimeMarkers,
-  timelineStepsWithChargeFills
-} from '#gw2/app/rotation/timeline/model.js';
+import { formatTimelineDuration, timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
+import { presentedTimelineSteps, type TimelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
@@ -48,16 +44,17 @@ function deadTimeBreakdownDetails(markers: ReturnType<typeof timelineDeadTimeMar
 }
 
 /** Uses charge-aware timeline gaps and cancellations for the combat idle-time summary. */
-export function timelineIdleTimeMetric(result: Gw2SimulationResult): ResultSummaryMetric {
+export function timelineIdleTimeMetric(
+  result: Gw2SimulationResult,
+  source: TimelineOccupancySource
+): ResultSummaryMetric {
   // Match the timeline's charge-aware markers so the strip includes idle gaps
   // and the complete attempted duration of interrupted casts that never committed.
   const combatStartMs = resultCombatReferenceMs(result);
   // Pre-combat waits are setup time, so keep them on the timeline without charging them to the combat idle metric.
-  const deadTimeMarkers = timelineDeadTimeMarkers(
-    timelineStepsWithChargeFills(result.steps || [], mechanicResourceSpends(result)),
-    result.resolvedEvents || [],
-    { encounterPhases: result.encounter?.phases }
-  ).filter((marker) => marker.reason !== 'explicit-wait' || marker.start >= combatStartMs);
+  const deadTimeMarkers = timelineDeadTimeMarkers(presentedTimelineSteps(result, source), result.resolvedEvents || [], {
+    encounterPhases: result.encounter?.phases
+  }).filter((marker) => marker.reason !== 'explicit-wait' || marker.start >= combatStartMs);
   const deadTimeMs = deadTimeMarkers.reduce((total, marker) => total + marker.durationMs, 0);
   return {
     label: 'Total Idle Time',

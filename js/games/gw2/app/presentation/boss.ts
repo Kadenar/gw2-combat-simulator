@@ -28,7 +28,7 @@ export function createBossPresentation(scenario: BossScenarioDraft): WorkspacePr
 
       const encounter = result.encounter;
       const phases = encounterAnalysisPhases(result, definitions());
-      const metrics = presentationMetrics(result).map((metric) =>
+      const metrics = presentationMetrics(app, result).map((metric) =>
         metric.label === 'Environment Damage'
           ? {
               ...metric,

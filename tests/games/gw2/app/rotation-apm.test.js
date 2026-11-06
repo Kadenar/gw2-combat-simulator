@@ -7,6 +7,7 @@ import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { testProfession } from '#tests/fixtures/profession.js';
 import { inertContainer } from '#tests/helpers/dom.js';
+import { emptyTimelineSource } from '#tests/helpers/timeline-presentation.js';
 import { mountSimulationSection } from '#ui/results/simulation-view.js';
 
 // Presentation rounds only the displayed rate and exposes the same accounting on hover and keyboard disclosure.
@@ -15,7 +16,7 @@ test('APM renders next to duration with a tooltip and sustained peak details', (
     profession: testProfession,
     rotation: ['Fixture Charge', { type: 'wait', durationMs: 10100 }]
   });
-  const metrics = resultSummaryMetrics(result);
+  const metrics = resultSummaryMetrics(result, emptyTimelineSource);
   assert.equal(metrics[1].value, '6 APM');
   assert.match(metrics[1].title, /^1 non-autoattack actions over 10.1 seconds\./);
   assert.ok(result.rotationApm.apm > 5.9 && result.rotationApm.apm < 6);
@@ -41,7 +42,7 @@ test('zero-duration and empty views show an em dash while positive-duration zero
     [[{ type: 'wait', durationMs: 1000 }], '0 APM']
   ]) {
     const result = simulateGw2({ profession: testProfession, rotation });
-    assert.equal(resultSummaryMetrics(result)[1].value, expected);
+    assert.equal(resultSummaryMetrics(result, emptyTimelineSource)[1].value, expected);
   }
 
   const container = inertContainer();

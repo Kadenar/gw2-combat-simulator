@@ -201,6 +201,67 @@ test('timeline labels the executed skill variant while preserving the saved comm
   }
 });
 
+// Invalid and pending rows must annotate the same trait-selected selector face that the user sees.
+test('row annotations share display resolution for executed, invalid, and pending commands', () => {
+  const base = { id: 1, name: 'Base' };
+  const selector = { id: 2, name: 'Trait Selector', selector: { first: 3, selected: 4 } };
+  const first = { id: 3, name: 'First Face' };
+  const selected = { id: 4, name: 'Selected Face' };
+  const skills = [base, selector, first, selected];
+  const build = {
+    rotation: [{ type: 'cast', skillId: base.id }],
+    startingWeaponSet: 1,
+    weapons: [],
+    alternateWeapons: []
+  };
+  const seen = [];
+  const app = withoutTraitSkillVariants({
+    build,
+    activeCatalog: { skills, skillsById: new Map(skills.map((skill) => [skill.id, skill])) },
+    adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => 'Core' },
+    profession: {
+      ui: normalizeProfessionUi('fixture', {
+        paletteSelectedSlotSkills: () => [selected],
+        timelineAnnotation: (context) => {
+          seen.push(context);
+          return { editLabel: 'selected face behavior' };
+        }
+      })
+    }
+  });
+  app.profession.runtimeFor = () => ({ modifySkillId: () => selector.id });
+  for (const invalid of [false, true, null]) {
+    seen.length = 0;
+    const result =
+      invalid == null
+        ? null
+        : {
+            steps: [
+              { rotationCommandIndex: 0, skillId: invalid ? base.id : selected.id, start: 0, end: 1000, invalid }
+            ],
+            events: [],
+            resolvedEvents: []
+          };
+    const html = timelineRowsView(
+      app,
+      build,
+      result,
+      false,
+      new Set(),
+      false,
+      createWorkspacePresentation(app).timeline(app, build, result)
+    )
+      .rows.map((row) => row.html)
+      .join('');
+    assert.equal(seen.length, 1);
+    assert.equal(seen[0].skill, selected);
+    assert.equal(seen[0].entry, build.rotation[0]);
+    assert.ok(html.includes(selected.name));
+    assert.ok(html.includes('selected face behavior'));
+    assert.equal(build.rotation[0].skillId, base.id);
+  }
+});
+
 function storageRoot(initialValues = {}) {
   const values = new Map(Object.entries(initialValues));
   return {

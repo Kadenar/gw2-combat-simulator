@@ -2,6 +2,7 @@ import { buildTimeSeries, type ChartSeries } from '#gw2/app/results/charts/time-
 import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
 import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/skill-breakdown.js';
 import { baseResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
+import type { TimelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
 import { standardBoonPresentation } from '#gw2/platform/combat/boons.js';
 import type {
   ProfessionChartApplication,
@@ -10,7 +11,7 @@ import type {
 import type { EffectSource } from '#gw2/platform/results/effect-report.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
-export function resultSummaryMetrics(result: Gw2SimulationResult) {
+export function resultSummaryMetrics(result: Gw2SimulationResult, source: TimelineOccupancySource) {
   // Metric duration follows the resolver's DPS clock. This is intentionally
   // independent from the explicit marker used as timeline display zero.
   const referenceSeconds = Math.max(0, Number(result.dpsStartTime ?? result.firstHitTime ?? 0));
@@ -24,7 +25,7 @@ export function resultSummaryMetrics(result: Gw2SimulationResult) {
         };
   const metrics = baseResultSummaryMetrics(normalizedResult);
 
-  metrics.splice(1, 0, timelineIdleTimeMetric(result));
+  metrics.splice(1, 0, timelineIdleTimeMetric(result, source));
   // Keep input activity next to duration, using execution time rather than the resolver's DPS clock.
   const apm = result.rotationApm;
 

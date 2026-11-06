@@ -44,7 +44,8 @@ test('workspace presentation separates health milestones, squad labels, and patc
   }));
   const app = {
     build: { targetHealth: 1000, targetStartingHealthPercent: 90 },
-    profession: { preview: {} },
+    profession: { preview: {}, ui: { timelineOccupiedInterval: () => null } },
+    adapter: { eliteSpecialization: () => 'Core' },
     analysis: {
       needsPatchComparison: () => false,
       state: {

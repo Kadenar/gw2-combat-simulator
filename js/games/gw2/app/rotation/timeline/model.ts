@@ -918,48 +918,11 @@ export function mechanicResourceSpends(
     spends.set(activation.rotationCommandIndex, {
       count: Math.abs(Number(event.amount || 0)),
       resource: String(event.resource || 'resources'),
-      ...(event.maximumCharges == null ? {} : { maximumCharges: Number(event.maximumCharges) }),
-      ...(event.chargesReached == null ? {} : { chargesReached: Number(event.chargesReached) }),
-      ...(event.chargingSeconds == null ? {} : { chargingSeconds: Number(event.chargingSeconds) }),
-      ...(event.maximumChargingSeconds == null ? {} : { maximumChargingSeconds: Number(event.maximumChargingSeconds) }),
-      ...(event.flowSpent == null ? {} : { flowSpent: Number(event.flowSpent) })
+      event
     });
   }
 
   return spends;
-}
-
-export interface TimelineChargeFillStep extends SimulationStep {
-  readonly partialFill?: {
-    readonly startMs: number;
-    readonly durationMs: number;
-  };
-}
-
-/**
- * Charging casts such as Dragon Slash occupy the character from the moment
- * their charge window opens, well before the cast bar begins. Surfacing that
- * window as a partial fill excludes charging from dead time, but holding past
- * full charge remains idle. Keep the fill anchored to entry, not release.
- */
-export function timelineStepsWithChargeFills(
-  steps: readonly SimulationStep[],
-  resourceSpends: ReadonlyMap<number, MechanicResourceSpend>
-): TimelineChargeFillStep[] {
-  return steps.map((step) => {
-    const spend = resourceSpends.get(step.rotationCommandIndex);
-    const chargingMs = Math.round(Number(spend?.chargingSeconds || 0) * 1000);
-
-    if (chargingMs <= 0) return step;
-
-    return {
-      ...step,
-      partialFill: {
-        startMs: step.start - chargingMs,
-        durationMs: Math.min(chargingMs, Math.round(Number(spend?.maximumChargingSeconds ?? Infinity) * 1000))
-      }
-    };
-  });
 }
 
 export type TimelineItem = {

@@ -2,11 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
-import {
-  mechanicResourceSpends,
-  timelineDeadTimeMarkers,
-  timelineStepsWithChargeFills
-} from '#gw2/app/rotation/timeline/model.js';
+import { mechanicResourceSpends, timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
+import { presentedTimelineSteps } from '#gw2/app/rotation/timeline/occupancy.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
@@ -33,6 +30,7 @@ import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarat
 import { createObservedProfessionSimulator, planningFixture } from '#tests/helpers/observed-runtime.js';
 import { assertProfessionFamilyConformance } from '#tests/helpers/profession-family-conformance.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
+import { professionTimelineSource } from '#tests/helpers/timeline-presentation.js';
 
 const baseConfig = Object.freeze({
   attributeInputs: baseAttributeInputs({
@@ -307,7 +305,7 @@ test('Dragon Trigger charge time is excluded from timeline dead time', () => {
   assert.ok(dragonSlashStep, 'expected a Dragon Slash cast');
 
   const spends = mechanicResourceSpends(result);
-  const chargingSeconds = spends.get(dragonSlashStep.rotationCommandIndex)?.chargingSeconds || 0;
+  const chargingSeconds = spends.get(dragonSlashStep.rotationCommandIndex)?.event.chargingSeconds || 0;
   const chargingMs = Math.round(chargingSeconds * 1000);
 
   assert.ok(chargingMs > 0, 'expected Dragon Slash to spend time charging');
@@ -321,7 +319,9 @@ test('Dragon Trigger charge time is excluded from timeline dead time', () => {
   assert.ok(rawDeadTime >= chargingMs, 'charge window should read as dead time before the fix');
 
   // Marking the charge window as a partial fill removes exactly that span.
-  const chargeAwareDeadTime = deadTime(timelineStepsWithChargeFills(result.steps, spends));
+  const chargeAwareDeadTime = deadTime(
+    presentedTimelineSteps(result, professionTimelineSource(warriorProfession, 'Bladesworn'))
+  );
 
   assert.equal(rawDeadTime - chargeAwareDeadTime, chargingMs);
 });
@@ -338,7 +338,7 @@ test('Dragon Trigger charge fills stop at full charge when the slash is delayed'
     );
     assert.deepEqual(result.warnings, []);
     const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
-    const slash = timelineStepsWithChargeFills(result.steps, mechanicResourceSpends(result)).find(
+    const slash = presentedTimelineSteps(result, professionTimelineSource(warriorProfession, 'Bladesworn')).find(
       (step) => step.skillId === ID.DRAGON_SLASH_FORCE
     );
     // The charge fill starts at entry and leaves the held remainder outside its occupied interval.
