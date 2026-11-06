@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { insertSorted, toEntries } from '#kernel/core/collections.js';
+import { insertSorted } from '#kernel/core/collections.js';
 
 test('insertSorted preserves order and inserts after equal values', () => {
   const values = [
@@ -18,9 +18,4 @@ test('insertSorted preserves order and inserts after equal values', () => {
     values.map((value) => value.label),
     ['first', 'second', 'third', 'inserted', 'between', 'last']
   );
-});
-
-test('toEntries normalizes maps and records to string-keyed tuples', () => {
-  assert.deepEqual(toEntries(new Map([[1, 'one']])), [['1', 'one']]);
-  assert.deepEqual(toEntries({ two: 2 }), [['two', 2]]);
 });

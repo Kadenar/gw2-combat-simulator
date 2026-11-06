@@ -51,7 +51,7 @@ test('maximum ammunition composes ordered transforms including a disabled pool',
   const hooks = composeRuntimeHooks([
     contribution((maximum) => maximum + 1),
     contribution(() => 0),
-    contribution(() => undefined),
+    contribution((maximum) => maximum),
     contribution((maximum) => maximum + 2)
   ]);
   assert.equal(hooks.maximumAmmo(context, skill, 3), 2);
@@ -147,12 +147,12 @@ test('availability composition preserves the latest deadline, last denial, and c
   const early = retryCast(3, 'early', 'Early gate');
   const late = retryCast(7, 'late', 'Late gate');
   for (const [time, results, expected] of [
-    [2, [late, CAST_READY, early, undefined], { ...early, retryAt: 7 }],
+    [2, [late, CAST_READY, early, CAST_READY], { ...early, retryAt: 7 }],
     [2, [early, late], late],
     [10, [late, early], { ...early, retryAt: 10 }],
     [10, [early, CAST_READY], { ...early, retryAt: 10 }],
     [2, [late, retryCast(7, 'tie', 'Tied gate')], retryCast(7, 'tie', 'Tied gate')],
-    [2, [undefined, CAST_READY], CAST_READY]
+    [2, [CAST_READY, CAST_READY], CAST_READY]
   ]) {
     const hooks = composeRuntimeHooks(results.map((result) => ({ availability: () => result })));
     assert.deepEqual(hooks.availability({ time }, {}, {}), expected);
@@ -203,10 +203,15 @@ test('named owners and unsupported fields fail instead of silently replacing or 
 // Contributor count and nesting are layout choices; a callback's result must not depend on either.
 test('callbacks combine identically for one, many, and nested contributions and are omitted when absent', () => {
   const noChange = {
-    maximumAmmo: () => undefined,
+    maximumAmmo: (_context, _skill, maximum) => maximum,
+    modifySkillId: (_context, skillId) => skillId,
+    modifyComboFields: (_context, _cast, fields) => fields,
+    boonDuration: (_context, _event, _baseDuration, duration) => duration,
+    buffPolicies: () => [],
+    observeEffects: () => [],
     castDetail: () => null,
     effectOwner: () => null,
-    availability: () => undefined,
+    availability: () => CAST_READY,
     onCastStart: () => 'ignored'
   };
   const layouts = [
@@ -218,6 +223,13 @@ test('callbacks combine identically for one, many, and nested contributions and 
   ];
   for (const hooks of layouts) {
     assert.equal(hooks.maximumAmmo({}, {}, 3), 3);
+    assert.equal(hooks.modifySkillId({}, 0), 0);
+    assert.equal(hooks.modifyComboFields({}, {}, undefined), undefined);
+    const fields = [{ fieldType: 'Fire', duration: 1 }];
+    assert.equal(hooks.modifyComboFields({}, {}, fields), fields);
+    assert.equal(hooks.boonDuration({}, {}, 5, 0), 0);
+    assert.deepEqual(hooks.buffPolicies({}), []);
+    assert.deepEqual(hooks.observeEffects({}), []);
     assert.equal(hooks.castDetail({}, {}), undefined);
     assert.equal(hooks.effectOwner({}, {}), undefined);
     assert.deepEqual(hooks.availability({ time: 0 }, {}, {}), { ready: true });

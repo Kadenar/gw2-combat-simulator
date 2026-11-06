@@ -71,13 +71,13 @@ const notify: CombineRule = (fns) => {
       };
 };
 
-/** Value transforms feed each result to the next contributor; a nullish result keeps the incoming value. */
+/** Value transforms feed each result to the next contributor; unchanged contributions return their input. */
 const transformSecond: CombineRule = (fns) => {
   const [only] = fns;
   return fns.length === 1
-    ? (a, value) => only(a, value) ?? value
+    ? (a, value) => only(a, value)
     : (a, value) => {
-        for (const fn of fns) value = fn(a, value) ?? value;
+        for (const fn of fns) value = fn(a, value);
         return value;
       };
 };
@@ -86,9 +86,9 @@ const transformSecond: CombineRule = (fns) => {
 const transformThird: CombineRule = (fns) => {
   const [only] = fns;
   return fns.length === 1
-    ? (a, b, value) => only(a, b, value) ?? value
+    ? (a, b, value) => only(a, b, value)
     : (a, b, value) => {
-        for (const fn of fns) value = fn(a, b, value) ?? value;
+        for (const fn of fns) value = fn(a, b, value);
         return value;
       };
 };
@@ -97,15 +97,15 @@ const transformThird: CombineRule = (fns) => {
 const transformFourth: CombineRule = (fns) => {
   const [only] = fns;
   return fns.length === 1
-    ? (a, b, c, value) => only(a, b, c, value) ?? value
+    ? (a, b, c, value) => only(a, b, c, value)
     : (a, b, c, value) => {
-        for (const fn of fns) value = fn(a, b, c, value) ?? value;
+        for (const fn of fns) value = fn(a, b, c, value);
         return value;
       };
 };
 
-/** Policy lists concatenate in declaration order into a fresh array. */
-const collect: CombineRule = (fns) => (a) => fns.flatMap((fn) => (fn(a) as readonly unknown[] | undefined) ?? []);
+/** Policy lists concatenate in declaration order; contributors with no entries return an empty array. */
+const collect: CombineRule = (fns) => (a) => fns.flatMap((fn) => fn(a) as readonly unknown[]);
 
 /** Later defined labels override earlier ones; a nullish label keeps the prior one. */
 const lastDefined: CombineRule = (fns) => {
@@ -188,8 +188,8 @@ const availability: CombineRule = (fns) => (context, skill, command) => {
   let blocked: AvailabilityResult = CAST_READY;
 
   for (const fn of fns) {
-    const result = fn(context, skill, command) as AvailabilityResult | undefined;
-    blocked = combineAvailability(blocked, result ?? CAST_READY, time);
+    const result = fn(context, skill, command) as AvailabilityResult;
+    blocked = combineAvailability(blocked, result, time);
 
     if (!blocked.ready && blocked.retryAt === null) return blocked;
   }

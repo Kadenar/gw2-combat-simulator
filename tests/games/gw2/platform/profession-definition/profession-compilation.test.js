@@ -35,7 +35,7 @@ test('native state factories require object fragments from every selected module
 // Native admission checks cost before profession hooks, merging waitable denials without running past permanent ones.
 test('native availability combines cost and profession gates in order', () => {
   const calls = [];
-  let professionResult;
+  let professionResult = CAST_READY;
   const profession = defineNativeProfession({
     id: 'availability-fixture',
     name: 'Availability fixture',
@@ -73,7 +73,6 @@ test('native availability combines cost and profession gates in order', () => {
     [7, CAST_READY, costDenial(7)],
     [2, retryCast(1, 'past', 'Past boundary'), retryCast(2, 'past', 'Past boundary')],
     [2, CAST_READY, CAST_READY],
-    [2, undefined, CAST_READY],
     [null, wait, costDenial(null)],
     [null, permanent, costDenial(null)],
     [7, permanent, permanent]

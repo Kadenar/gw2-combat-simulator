@@ -35,7 +35,8 @@ export interface NativeModuleCatalogData<TSkill extends Skill = Skill> {
   /** Core and elite trait lines own the selectable layout and nested trait presentation. */
   readonly traitLines?: readonly Gw2SpecializationData[];
   readonly weapons?: readonly string[];
-  readonly weaponHands?: ReadonlyMap<string, string> | Readonly<Record<string, string>>;
+  /** Modules author hand assignments as records; catalog assembly owns the compiled Map. */
+  readonly weaponHands?: Readonly<Record<string, string>>;
   readonly autoattackChains?: AutoattackChains;
   readonly skillFlips?: SkillFlips;
 }

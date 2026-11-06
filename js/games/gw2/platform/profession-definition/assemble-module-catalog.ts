@@ -8,7 +8,6 @@ import { combineFields, type FieldSpecs } from '#gw2/platform/skills/field-specs
 import type { SkillFlipDefinition, SkillFlips } from '#gw2/platform/skills/skill-flip-definitions.js';
 import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { validateCanonicalCatalog } from '#gw2/platform/skills/validation.js';
-import { toEntries } from '#kernel/core/collections.js';
 
 /** Selects a module from shared input using the same catalog fields as its output. */
 export interface NativeModuleDataSelection<TSkill extends Skill = Skill> extends Omit<
@@ -68,7 +67,7 @@ export function createNativeModuleData<TSkill extends Skill = Skill>(
     traits: Object.freeze(ownedTraitLines.flatMap((line) => [...line.minorTraits, ...line.majorTraits.flat()])),
     traitLines: Object.freeze(ownedTraitLines),
     ...(weapons.length ? { weapons: Object.freeze([...weapons]) } : {}),
-    ...(weaponHands instanceof Map || Object.keys(weaponHands).length ? { weaponHands } : {}),
+    ...(Object.keys(weaponHands).length ? { weaponHands } : {}),
     ...(autoattackChains == null ? {} : { autoattackChains }),
     ...(skillFlips == null ? {} : { skillFlips })
   });
@@ -146,7 +145,7 @@ function composeNativeCatalog<TSkill extends Skill>(
 
   for (const module of modules) {
     for (const weapon of module.data.weapons || []) weapons.add(weapon);
-    for (const [weapon, hand] of toEntries(module.data.weaponHands)) {
+    for (const [weapon, hand] of Object.entries(module.data.weaponHands ?? {})) {
       const prior = weaponHandOwners.get(weapon);
 
       if (prior) {
