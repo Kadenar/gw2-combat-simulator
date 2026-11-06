@@ -127,10 +127,10 @@ test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () =>
     (skill) => skill.type === 'Weapon' && skill.weapon === 'Axe' && skill.slot === 'Weapon_1'
   );
   const paletteApp = {
+    analysis: { needsPatchComparison: () => false, state: { results: cloakOnly } },
     build: { rotation: [], weapons: ['Axe', 'Pistol'], alternateWeapons: ['', ''], startingWeaponSet: 1 },
     activeCatalog: mesmerCatalog,
-    profession: mesmerProfession,
-    results: cloakOnly
+    profession: mesmerProfession
   };
 
   assert.deepEqual(
@@ -150,7 +150,7 @@ test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () =>
     )
   );
   assert.equal(used.planningState.profession[STATE.AVAILABLE_AMBUSH], null);
-  paletteApp.results = used;
+  paletteApp.analysis.state.results = used;
   assert.deepEqual(
     displayedWeaponSkills(paletteApp, axeSkillOne).map((skill) => skill.name),
     ['Lacerating Chop']

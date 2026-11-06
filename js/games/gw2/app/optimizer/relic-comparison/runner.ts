@@ -1,7 +1,8 @@
 import { calculateRelicComparison } from '#gw2/app/optimizer/relic-comparison/calculate.js';
 import { relicComparisonAvailable } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { RelicComparisonModel } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
-import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Runs one user-selected relic simulation against the equipped relic already on screen. */
 export class RelicComparisonRunner {
@@ -10,11 +11,11 @@ export class RelicComparisonRunner {
   initialStacks: number;
   comparison: RelicComparisonModel | null = null;
   error = '';
-  private baseline: ProfessionAppResult | null = null;
+  private baseline: AnalysisResult | null = null;
   private revision = -1;
   // Baseline identity is reused only after its build, patch, and simulation inputs have been validated.
   private readonly completed = new WeakMap<
-    ProfessionAppResult,
+    AnalysisResult,
     { readonly comparison: RelicComparisonModel; readonly initialStacks: number }
   >();
   readonly onUpdate: () => void;
@@ -41,7 +42,7 @@ export class RelicComparisonRunner {
   get available(): boolean {
     const app = this.app;
     return Boolean(
-      app.results &&
+      app.analysis.state.results &&
       app.build.rotation.length &&
       relicComparisonAvailable(app.build.relic, this.comparisonRelic, app.relicNames)
     );
@@ -75,27 +76,27 @@ export class RelicComparisonRunner {
     // Keep an active failure visible until inputs change or the user retries.
     if (
       this.available &&
-      this.baseline === this.app.results &&
-      this.revision === this.app.buildRevision &&
-      this.app.resultRevision === this.app.buildRevision &&
+      this.baseline === this.app.analysis.state.results &&
+      this.revision === this.app.analysis.state.buildRevision &&
+      this.app.analysis.state.resultRevision === this.app.analysis.state.buildRevision &&
       (!this.comparison || this.comparison.equippedRelic === this.app.build.relic)
     )
       return;
 
-    const saved = this.app.results && this.completed.get(this.app.results);
+    const saved = this.app.analysis.state.results && this.completed.get(this.app.analysis.state.results);
     this.invalidate();
 
     if (
       saved &&
       this.available &&
-      this.app.resultRevision === this.app.buildRevision &&
+      this.app.analysis.state.resultRevision === this.app.analysis.state.buildRevision &&
       saved.comparison.equippedRelic === this.app.build.relic &&
       saved.comparison.targetRelic === this.comparisonRelic &&
       saved.initialStacks === this.initialStacks
     ) {
       this.comparison = saved.comparison;
-      this.baseline = this.app.results;
-      this.revision = this.app.buildRevision;
+      this.baseline = this.app.analysis.state.results;
+      this.revision = this.app.analysis.state.buildRevision;
     }
   }
 
@@ -105,16 +106,21 @@ export class RelicComparisonRunner {
 
     this.select(comparisonRelic, initialStacks);
     this.invalidate();
-    const results = app.results;
+    const results = app.analysis.state.results;
 
-    if (!results || !this.available || app.resultRevision !== app.buildRevision || app.simulationStatus !== 'idle') {
+    if (
+      !results ||
+      !this.available ||
+      app.analysis.state.resultRevision !== app.analysis.state.buildRevision ||
+      app.analysis.state.simulationStatus !== 'idle'
+    ) {
       this.onUpdate();
       return;
     }
 
     this.completed.delete(results);
     this.baseline = results;
-    this.revision = app.buildRevision;
+    this.revision = app.analysis.state.buildRevision;
 
     // Finish this lightweight comparison on the calling thread, with no pending job or cloned baseline.
     try {

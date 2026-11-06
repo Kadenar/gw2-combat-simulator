@@ -17,6 +17,7 @@ import {
   saveBuildWorkspace,
   workspaceStorageKey
 } from '#gw2/app/build/state/workspace.js';
+import { createAnalysisResultLifecycle } from '#gw2/app/create-analysis-lifecycle.js';
 import { previewRotationFile } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
@@ -26,6 +27,7 @@ import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
 import { defaultSimulationSettings } from '#gw2/app/simulation/settings.js';
+import { analysisFixture } from '#tests/helpers/analysis-lifecycle.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
@@ -108,6 +110,7 @@ test('saved legacy rotations load canonically from every persistence boundary', 
     });
     assert.deepEqual(preview.rotation, expected, profession);
     saveBuildWorkspace({
+      analysis: analysisFixture().lifecycle,
       adapter,
       profession: adapter.profession,
       workspace,
@@ -166,25 +169,31 @@ function appFixture() {
     simulationSettings,
     build: tab.build,
     patch: adapter.profession.resolvePatch({ id: 'current' }),
-    buildRevision: 1,
-    resultRevision: 1,
-    simulationStatus: 'idle',
+    damageDiagnostics: false,
     initialRenderGeneration: 0,
     baselineSimulationRunner: {
-      ensureCharts() {},
       cancel: () => cancelled.push('baseline'),
-      schedule: (revision) => scheduled.push(revision)
+      run: (operation) => {
+        app.pendingBaseline = operation;
+        scheduled.push(app.analysis.state.buildRevision);
+      }
     },
-    randomDistributionRunner: { cancel: () => cancelled.push('rng'), schedule() {} },
-    modifierContributionRunner: { cancel: () => cancelled.push('modifiers'), schedule() {} },
+    randomDistributionRunner: { cancel: () => cancelled.push('rng'), run() {} },
+    modifierContributionRunner: { cancel: () => cancelled.push('modifiers'), run() {} },
     relicComparisonRunner: { schedule() {} },
     changed() {
       recordRotationHistory(this);
-      this.buildRevision += 1;
-      this.simulationStatus = 'queued';
+      this.analysis.changeInputs();
       saveBuildWorkspace(this);
     }
   });
+  app.adapter = {
+    ...adapter,
+    baselineSimulationRequest: () => ({ rotation: app.build.rotation, baseConfig: {}, selectedPatchId: app.patch.id })
+  };
+  app.analysis = createAnalysisResultLifecycle(app, () => {});
+  app.analysis.restore({ results: null, patchComparison: null, fresh: false });
+  cancelled.length = 0;
   recordRotationHistory(app);
   return { app, tab, scheduled, cancelled };
 }
@@ -265,7 +274,7 @@ test('legacy build migrates once and workspace round trips only durable inputs a
   assert.equal(app.build.gear.Helm, 'legacy');
   addBuildTab(app, build('second'), 'Second', 'preview');
   const other = app.workspace.tabs.at(-1);
-  app.results = { dps: 17 };
+  publishResult(app, { dps: 17 });
   // Experiments travel with in-memory tab sessions but never enter durable builds or workspace JSON.
   app.patch = app.profession.resolvePatch({ id: 'preview', values: { ashesStacks: 2 } });
   saveBuildWorkspace(app);
@@ -285,7 +294,7 @@ test('legacy build migrates once and workspace round trips only durable inputs a
   );
   assert.equal(restored.activeTabId, other.id);
   assert.equal(restored.tabs[1].patchId, 'preview');
-  assert.equal(restored.tabs[1].session.results, null);
+  assert.equal(restored.tabs[1].analysis.results, null);
   assert.equal(restored.tabs[1].session.patchPreviewValues, undefined);
 });
 
@@ -298,6 +307,7 @@ test('workspace save and load give empty infusion selections two unequipped rows
   const tab = createBuildTab(build);
   // Exercise the real codec on both sides of persistence so saving cannot restore unwanted stats.
   const app = {
+    analysis: analysisFixture().lifecycle,
     adapter: warrior,
     profession: warrior.profession,
     build,
@@ -520,9 +530,7 @@ test('switching preserves independent rotations, history, templates, comparisons
   const { app, tab, scheduled, cancelled } = appFixture();
   app.build.rotation.push({ type: 'wait', durationMs: 10 });
   app.changed();
-  app.results = { dps: 10 };
-  app.resultRevision = app.buildRevision;
-  app.simulationStatus = 'idle';
+  publishResult(app, { dps: 10 });
   app.currentTemplate = { build: 'template.json', signature: 'original' };
   app.templateUndoBuild = build('before-template');
   app.rotationComparison = { referenceRotation: [{ type: 'wait', durationMs: 20 }], referenceStatus: 'fresh' };
@@ -534,10 +542,10 @@ test('switching preserves independent rotations, history, templates, comparisons
   app.timelineOverlayVisibility = { trait: false };
   const originalFilters = app.procVisibility;
   const sharedOverlays = app.timelineOverlayVisibility;
-  const originalResult = app.results;
+  const originalResult = app.analysis.state.results;
   addBuildTab(app, build('other'), 'Other');
   const other = app.workspace.tabs.at(-1);
-  assert.equal(app.results, null);
+  assert.equal(app.analysis.state.results, null);
   assert.equal(app.currentTemplate, null);
   assert.equal(app.rotationComparison, null);
   assert.equal(app._rotationHistory.undo.length, 0);
@@ -552,8 +560,8 @@ test('switching preserves independent rotations, history, templates, comparisons
   app.changed();
   const before = scheduled.length;
   app.activateBuildTab(tab.id);
-  assert.equal(app.results, originalResult);
-  assert.equal(app.resultRevision, app.buildRevision);
+  assert.equal(app.analysis.state.results, originalResult);
+  assert.equal(app.analysis.state.resultRevision, app.analysis.state.buildRevision);
   assert.equal(scheduled.length, before, 'fresh cached output needs no baseline job');
   assert.equal(app.currentTemplate.build, 'template.json');
   assert.equal(app.templateUndoBuild.gear.Helm, 'before-template');
@@ -568,7 +576,7 @@ test('switching preserves independent rotations, history, templates, comparisons
   assert.deepEqual(app.build.rotation, []);
   app.activateBuildTab(other.id);
   assert.equal(app.build.rotation[0].durationMs, 30);
-  assert.deepEqual(cancelled.slice(0, 3), ['baseline', 'rng', 'modifiers']);
+  assert.ok(['baseline', 'rng', 'modifiers'].every((kind) => cancelled.includes(kind)));
 });
 
 // Shared comparison controls follow the tool across fresh and stale tabs instead of restoring from tab results.
@@ -578,22 +586,22 @@ test('relic comparison selections follow the active tool across build tabs', (t)
   app.relicNames = ['Akeem', 'Fractal', 'Thorns'];
   app.build.relic = 'Fractal';
   app.build.rotation = [{ type: 'wait', durationMs: 1000 }];
-  app.results = { dps: 10 };
+  publishResult(app, { dps: 10 });
   app.relicComparisonRunner = new RelicComparisonRunner(app);
   const runner = app.relicComparisonRunner;
   runner.select('Thorns', 7);
   addBuildTab(app, { ...build('other'), relic: 'Fractal' }, 'Other');
   const other = app.workspace.tabs.at(-1);
-  assert.equal(app.results, null);
+  assert.equal(app.analysis.state.results, null);
   assert.equal(runner.comparisonRelic, 'Thorns');
   assert.equal(runner.initialStacks, 7);
   runner.select('Akeem', 3);
   app.activateBuildTab(tab.id);
-  assert.equal(app.results.dps, 10, 'the first tab restores its cached baseline');
+  assert.equal(app.analysis.state.results.dps, 10, 'the first tab restores its cached baseline');
   assert.equal(runner.comparisonRelic, 'Akeem', 'cached tabs use the current shared choice');
   assert.equal(runner.initialStacks, 3);
   app.activateBuildTab(other.id);
-  assert.equal(app.results, null, 'the second tab still needs a baseline');
+  assert.equal(app.analysis.state.results, null, 'the second tab still needs a baseline');
   assert.equal(runner.comparisonRelic, 'Akeem');
   assert.equal(runner.initialStacks, 3);
 });
@@ -603,22 +611,20 @@ test('switching tabs recaptures cached baselines when the session debug mode cha
   storage(t);
   const { app, tab, scheduled } = appFixture();
   app.damageDiagnostics = false;
-  app.results = { dps: 10 };
+  publishResult(app, { dps: 10 });
   addBuildTab(app, build('other'), 'Other');
   const other = app.workspace.tabs.at(-1);
   app.damageDiagnostics = true;
   const before = scheduled.length;
   app.activateBuildTab(tab.id);
   assert.equal(app.damageDiagnostics, true);
-  assert.equal(app.results, null);
+  assert.equal(app.analysis.state.results, null);
   assert.equal(scheduled.length, before + 1);
-  app.results = { dps: 10, debugInputs: {} };
-  app.resultRevision = app.buildRevision;
-  app.simulationStatus = 'idle';
+  publishResult(app, { dps: 10, debugInputs: {} });
   app.activateBuildTab(other.id);
   const captured = scheduled.length;
   app.activateBuildTab(tab.id);
-  assert.ok(app.results.debugInputs);
+  assert.ok(app.analysis.state.results.debugInputs);
   assert.equal(scheduled.length, captured, 'matching captured output can be reused');
 });
 
@@ -786,20 +792,20 @@ test('invalid saved template targets preserve the tab and fall back to defaults'
   }
 });
 
-test('cancelled simulation workers cannot publish late output or failures into another tab', (t) => {
+test('cancelled execution adapters cannot publish late output or errors', (t) => {
   const callbacks = [];
-  const workers = [];
   t.mock.method(globalThis, 'setTimeout', (callback) => {
     callbacks.push(callback);
     return callbacks.length;
   });
   t.mock.method(globalThis, 'clearTimeout', () => {});
+  const workers = [];
   stubGlobal(
     t,
     'Worker',
     class {
+      listeners = new Map();
       constructor() {
-        this.listeners = new Map();
         workers.push(this);
       }
       addEventListener(type, listener) {
@@ -812,40 +818,37 @@ test('cancelled simulation workers cannot publish late output or failures into a
         this.terminated = true;
       }
       respond(data) {
-        this.listeners.get('message')({ data });
+        this.listeners.get('message')({ data: { requestId: this.message.requestId, ...data } });
       }
     }
   );
   for (const Runner of [BaselineSimulationRunner, ModifierContributionRunner, RandomDistributionRunner]) {
-    const app = {
-      buildRevision: 1,
-      resultRevision: 1,
-      build: { rotation: [{ type: 'wait', durationMs: 1 }] },
-      results: {},
-      randomDistributionRunner: { isRunning: false },
-      adapter: {
-        baselineSimulationRequest: () => ({}),
-        modifierContributionRequest: () => ({ comparisons: [{}] }),
-        randomDistributionRequest: () => ({ trials: 1 }),
-        presentation: { createViewModel: () => ({}), render: () => assert.fail('Stale render') }
+    const runner = new Runner(() => assert.fail('Worker expected'));
+    runner.run({
+      request: {
+        rotation: [],
+        trials: 1,
+        baselineDps: 10,
+        comparisons: [{ modifier: { id: 'a', name: 'A' }, config: {} }]
       },
-      publishBaselineSimulation: () => assert.fail('Stale baseline'),
-      failBaselineSimulation: () => assert.fail('Stale error')
-    };
-    const runner = new Runner(app);
-    runner.schedule(1);
+      baseline: { events: [], resolvedEvents: [] },
+      started() {},
+      ready: () => true,
+      complete: () => assert.fail('Stale completion'),
+      progress: () => assert.fail('Stale progress'),
+      fail: () => assert.fail('Stale failure')
+    });
     callbacks.shift()();
     const worker = workers.at(-1);
     runner.cancel();
     assert.equal(worker.terminated, true);
-    app.results = { marker: 'destination' };
-    worker.respond({
-      requestId: worker.message.requestId,
-      output: {},
-      contributions: [],
-      outcomes: [{ dps: 10, metrics: [] }]
-    });
-    worker.respond({ requestId: worker.message.requestId, error: 'Late failure' });
-    assert.deepEqual(app.results, { marker: 'destination' });
+    worker.respond({ output: { result: {} }, scores: [], outcomes: [{ dps: 10, metrics: [] }] });
+    worker.respond({ error: 'late' });
   }
 });
+
+/** Feed an accepted result through the same callback that completes browser work. */
+function publishResult(app, result) {
+  app.analysis.refreshBaseline();
+  app.pendingBaseline.complete({ result });
+}

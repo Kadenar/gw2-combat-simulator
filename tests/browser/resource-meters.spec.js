@@ -4,7 +4,9 @@ import { expect, test } from '@playwright/test';
 test('profession resources render through the shared meter UI', async ({ page }) => {
   await page.goto('/revenant.html#workspace', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   const meter = page.locator('.active-resource[data-resource-id="energy"]');
   await expect(meter).toBeVisible();
   expect(Number.isFinite(Number(await meter.getAttribute('data-resource-count')))).toBe(true);

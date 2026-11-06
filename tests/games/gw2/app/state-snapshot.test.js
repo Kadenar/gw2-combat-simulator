@@ -29,10 +29,19 @@ test('Catalyst snapshots use the active balance catalog before and after simulat
     patch: patched.resolvePatch({ id: 'snapshot-test' }),
     activeCatalog: patched.resolveProfession({ specialization: 'Catalyst', patchId: 'snapshot-test' }).catalog,
     adapter: { eliteSpecialization: () => 'Catalyst' },
-    results: null
+    analysis: {
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: null
+      }
+    }
   };
   assert.ok(!rotationStateSnapshot(app).items.some((item) => item.id === 'catalyst-empowering-auras'));
-  app.results = {
+  app.analysis.state.results = {
     planningState: { atSeconds: 1 },
     ...effectFields(
       [
@@ -55,7 +64,7 @@ test('Catalyst snapshots use the active balance catalog before and after simulat
       { policies: [{ kind: 'empowering auras', maximumStacks: 2 }] }
     )
   };
-  app.results.planningState = effectPlanningState(app.results, 1);
+  app.analysis.state.results.planningState = effectPlanningState(app.analysis.state.results, 1);
   const aura = rotationStateSnapshot(app).items.find((item) => item.id === 'catalyst-empowering-auras');
   assert.equal(aura.value, '2/2 · 4.0s');
 });
@@ -103,23 +112,32 @@ test('active state shows one countdown per active relic and ignores future, expi
   const app = {
     patch: withPatchPreview(mesmerProfession, null).resolvePatch(),
     build: { relic: 'Claw', rotation: ['a', 'b'] },
-    results: {
-      rotationEndTime: 15,
-      observationEndTime: 15,
-      combatEndTime: 15,
-      planningState: { atSeconds: 15 },
-      procSteps: [
-        proc('Relic of the Claw', 8000, 16000),
-        proc('Relic of the Claw', 0, 8000),
-        proc('Relic of the Claw', 2000, 10000),
-        proc('Relic of the Director', -2000, 4000),
-        proc('Relic of Akeem', 1000),
-        proc('Sigil of Test', 0, 10000, 'sigil_proc')
-      ]
+    analysis: {
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: {
+          rotationEndTime: 15,
+          observationEndTime: 15,
+          combatEndTime: 15,
+          planningState: { atSeconds: 15 },
+          procSteps: [
+            proc('Relic of the Claw', 8000, 16000),
+            proc('Relic of the Claw', 0, 8000),
+            proc('Relic of the Claw', 2000, 10000),
+            proc('Relic of the Director', -2000, 4000),
+            proc('Relic of Akeem', 1000),
+            proc('Sigil of Test', 0, 10000, 'sigil_proc')
+          ]
+        }
+      }
     },
     adapter: {
       eliteSpecialization: () => 'Core',
-      rotationPreviewAt: (app) => ({ ...app.results, planningState: { atSeconds: 3 } })
+      rotationPreviewAt: (app) => ({ ...app.analysis.state.results, planningState: { atSeconds: 3 } })
     },
     profession: {
       ui: { rotationStateSnapshot: () => [] }
@@ -137,10 +155,10 @@ test('active state shows one countdown per active relic and ignores future, expi
   );
   app.rotationInsertionIndex = null;
   assert.equal(rotationStateSnapshot(app).items[0].value, '1.0s');
-  app.results.planningState.atSeconds = 16;
-  app.results.rotationEndTime = 16;
+  app.analysis.state.results.planningState.atSeconds = 16;
+  app.analysis.state.results.rotationEndTime = 16;
   assert.deepEqual(rotationStateSnapshot(app).items, []);
-  app.results = null;
+  app.analysis.state.results = null;
   assert.deepEqual(rotationStateSnapshot(app).items, []);
 });
 
@@ -157,36 +175,45 @@ test('Bloodstone active state clears consumed Volatility during Fervor and start
     const app = {
       patch: withPatchPreview(mesmerProfession, null).resolvePatch(),
       build: { rotation: ['a', 'b'] },
-      results: {
-        planningState: { atSeconds: 3 },
-        procSteps: [
-          volatility(11000, 1, 21000),
-          volatility(3000, 3, 13000),
-          volatility(3000, 0, expiresAt),
-          volatility(1000, 2, 11000),
-          { type: 'relic_proc', skill: 'Relic of Bloodstone', start: 3000, expiresAt: 11000 }
-        ]
+      analysis: {
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          results: {
+            planningState: { atSeconds: 3 },
+            procSteps: [
+              volatility(11000, 1, 21000),
+              volatility(3000, 3, 13000),
+              volatility(3000, 0, expiresAt),
+              volatility(1000, 2, 11000),
+              { type: 'relic_proc', skill: 'Relic of Bloodstone', start: 3000, expiresAt: 11000 }
+            ]
+          }
+        }
       },
       profession: { ui: { rotationStateSnapshot: () => [] } },
       adapter: {
         eliteSpecialization: () => 'Core',
-        rotationPreviewAt: (app) => ({ ...app.results, planningState: { atSeconds: 2 } })
+        rotationPreviewAt: (app) => ({ ...app.analysis.state.results, planningState: { atSeconds: 2 } })
       },
       rotationInsertionIndex: 1
     };
     assert.equal(rotationStateSnapshot(app).items[0].value, '2/4 stacks');
     app.rotationInsertionIndex = null;
     for (const atSeconds of [3, 5, 10.999]) {
-      app.results.planningState.atSeconds = atSeconds;
+      app.analysis.state.results.planningState.atSeconds = atSeconds;
       assert.deepEqual(
         rotationStateSnapshot(app).items.map(({ label }) => label),
         ['Relic of Bloodstone']
       );
     }
 
-    app.results.planningState.atSeconds = 11;
+    app.analysis.state.results.planningState.atSeconds = 11;
     assert.equal(rotationStateSnapshot(app).items[0].value, '1/4 stacks');
-    app.results.planningState.atSeconds = 21;
+    app.analysis.state.results.planningState.atSeconds = 21;
     assert.deepEqual(rotationStateSnapshot(app).items, []);
   }
 });
@@ -204,7 +231,16 @@ test('Deadeye cantrip relic windows reach the shared active-state display and ex
     const { items } = rotationStateSnapshot({
       patch: withPatchPreview(thiefProfession, null).resolvePatch(),
       build: { relic: 'Deadeye', rotation: ['Shadow Gust', '__wait'] },
-      results: result,
+      analysis: {
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          results: result
+        }
+      },
       profession: withPatchPreview(thiefProfession, null),
       adapter: { eliteSpecialization: () => 'Deadeye' }
     });
@@ -225,16 +261,25 @@ test('Aristocracy shows current stacks with the remaining duration in its toolti
   const app = {
     patch: withPatchPreview(mesmerProfession, null).resolvePatch(),
     build: { rotation: ['a', 'b'] },
-    results: {
-      planningState: { atSeconds: 11 },
-      procSteps: [proc(2000, 3), proc(11000, 1), proc(0, 1), proc(1000, 2)]
+    analysis: {
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: {
+          planningState: { atSeconds: 11 },
+          procSteps: [proc(2000, 3), proc(11000, 1), proc(0, 1), proc(1000, 2)]
+        }
+      }
     },
     profession: {
       ui: { rotationStateSnapshot: () => [] }
     },
     adapter: {
       eliteSpecialization: () => 'Core',
-      rotationPreviewAt: (app) => ({ ...app.results, planningState: { atSeconds: 1.5 } })
+      rotationPreviewAt: (app) => ({ ...app.analysis.state.results, planningState: { atSeconds: 1.5 } })
     },
     rotationInsertionIndex: 1
   };
@@ -242,11 +287,11 @@ test('Aristocracy shows current stacks with the remaining duration in its toolti
   assert.equal(item.value, '2/5 stacks');
   assert.equal(item.title, 'Relic of Aristocracy: 2/5 stacks, 7.5s remaining');
   app.rotationInsertionIndex = null;
-  app.results.planningState.atSeconds = 2.5;
+  app.analysis.state.results.planningState.atSeconds = 2.5;
   assert.equal(rotationStateSnapshot(app).items[0].value, '3/5 stacks');
-  app.results.planningState.atSeconds = 10;
+  app.analysis.state.results.planningState.atSeconds = 10;
   assert.deepEqual(rotationStateSnapshot(app).items, []);
-  app.results.planningState.atSeconds = 11;
+  app.analysis.state.results.planningState.atSeconds = 11;
   assert.equal(rotationStateSnapshot(app).items[0].value, '1/5 stacks');
 });
 
@@ -274,7 +319,16 @@ test('Chronomancer active state shows only pending conversions from phantasms al
     rotationStateSnapshot({
       patch: withPatchPreview(mesmerProfession, null).resolvePatch(),
       build: { rotation: ['Phantasmal Warlock', '__wait'] },
-      results: result,
+      analysis: {
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          results: result
+        }
+      },
       profession: withPatchPreview(mesmerProfession, null),
       rotationInsertionIndex: 1,
       adapter: {

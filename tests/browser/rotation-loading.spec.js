@@ -6,7 +6,9 @@ import { openSimulator, openTemplates } from '#tests/helpers/browser-workspace.j
 test('clearing a freshly loaded rotation paints immediately and preserves undo', async ({ page }) => {
   await openSimulator(page);
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await expect(page.locator('#rotation-timeline .rot-skill[data-idx]')).toHaveCount(1);
@@ -17,12 +19,14 @@ test('clearing a freshly loaded rotation paints immediately and preserves undo',
     return {
       empty: document.getElementById('rotation-timeline').classList.contains('is-empty'),
       commands: app.build.rotation.length,
-      pending: app.buildRevision !== app.resultRevision,
+      pending: app.analysis.state.buildRevision !== app.analysis.state.resultRevision,
       undoEnabled: !document.getElementById('btn-sim-undo').disabled
     };
   });
   expect(cleared).toEqual({ empty: true, commands: 0, pending: true, undoEnabled: true });
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   await expect(page.locator('#rotation-timeline')).toHaveClass(/is-empty/);
   await page.locator('#btn-sim-undo').click();
   await expect(page.locator('#rotation-timeline .rot-skill[data-idx]')).toHaveCount(1);
@@ -73,7 +77,11 @@ test('clearing a loading template lets new skills simulate without its old worke
   await expect(page.locator('#rotation-palette')).toHaveAttribute('data-palette-pending', 'false');
   await page.locator('.pal-skill[data-skill-id]:not(.pal-context-disabled):not(.pal-disabled)').first().click();
   await expect
-    .poll(() => page.evaluate(() => window.professionApp.buildRevision === window.professionApp.resultRevision))
+    .poll(() =>
+      page.evaluate(
+        () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+      )
+    )
     .toBe(true);
   await expect(page.locator('#rotation-timeline .rot-skill[data-idx]')).toHaveCount(1);
   expect(await page.evaluate(() => window.heldBaselineTerminated)).toBe(true);
@@ -101,7 +109,9 @@ test('adding skills never shows the template skeleton', async ({ page }) => {
   });
   await openSimulator(page);
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   await page.evaluate(() => {
     window.holdBaselineMessages = true;
   });
@@ -120,7 +130,7 @@ test('template baselines reuse the preloaded worker without importing editor vie
   await page.locator('.template-load-btn').first().click();
   await page.waitForFunction(() => {
     const app = window.professionApp;
-    return app.build.rotation.length > 0 && app.buildRevision === app.resultRevision;
+    return app.build.rotation.length > 0 && app.analysis.state.buildRevision === app.analysis.state.resultRevision;
   });
   expect(page.workers().find((entry) => entry.url().includes('/simulation/baseline/worker.'))).toBe(worker);
   const editorImports = await worker.evaluate(() =>
@@ -139,7 +149,7 @@ test('template skeleton preserves the populated builder dimensions', async ({ pa
   await page.locator('.template-load-btn').first().click();
   await page.waitForFunction(() => {
     const app = window.professionApp;
-    return app.build.rotation.length > 0 && app.buildRevision === app.resultRevision;
+    return app.build.rotation.length > 0 && app.analysis.state.buildRevision === app.analysis.state.resultRevision;
   });
   let releaseBuild;
   let buildReady;
@@ -208,6 +218,8 @@ test('template skeleton preserves the populated builder dimensions', async ({ pa
     await expect(timeline.locator('.rot-skill:visible')).toHaveCount(0);
     releaseBuild();
     await expect(skeleton).toHaveCount(0);
-    await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+    await page.waitForFunction(
+      () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+    );
   }
 });

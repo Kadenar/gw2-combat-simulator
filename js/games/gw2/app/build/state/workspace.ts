@@ -4,6 +4,7 @@ import { emptyResultViewState } from '#gw2/app/results/state.js';
 import { emptyRotationComparisonSession, queueRotationReference } from '#gw2/app/rotation/comparison-state.js';
 import { emptyRotationEditingSession } from '#gw2/app/rotation/editing/state.js';
 import { emptyRotationTimelineSession } from '#gw2/app/rotation/timeline/state.js';
+import type { AnalysisSnapshot } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
 import { SelectedSkillMigrationError } from '#gw2/platform/builds/codec.js';
@@ -12,9 +13,6 @@ import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 /** Only build-specific editing state travels with a tab; display preferences remain shared. */
 export function emptyBuildTabSession() {
   return {
-    results: null,
-    patchComparison: null,
-
     attributeData: null,
     attributeWeaponSet: 1,
     ...emptyBuildLibrarySession(),
@@ -38,7 +36,7 @@ export interface BuildTab {
   templateUndoResetBuild?: Gw2CanonicalBuild;
   patchId: string;
   session: BuildTabSession;
-  resultsFresh: boolean;
+  analysis: AnalysisSnapshot;
 }
 
 export interface BuildWorkspace {
@@ -63,7 +61,7 @@ export function createBuildTab(build: Gw2CanonicalBuild, name = 'New build', pat
     build,
     patchId,
     session: emptyBuildTabSession(),
-    resultsFresh: false
+    analysis: { results: null, patchComparison: null, fresh: false }
   };
 }
 
@@ -174,8 +172,7 @@ function captureActiveBuildTab(app: ProfessionAppState): void {
     Object.keys(emptyBuildTabSession()).map((key) => [key, app[key as keyof ReturnType<typeof emptyBuildTabSession>]])
   ) as unknown as BuildTabSession;
   tab.session.patchPreviewValues = app.patch.values;
-  tab.resultsFresh =
-    app.results !== null && app.resultRevision === app.buildRevision && app.simulationStatus === 'idle';
+  tab.analysis = app.analysis.capture();
 }
 
 /** Shared simulation inputs invalidate inactive caches so activation refreshes Current and Reference together. */
@@ -183,7 +180,7 @@ export function invalidateInactiveBuildTabs(app: ProfessionAppState): void {
   for (const tab of app.workspace?.tabs ?? []) {
     if (tab.id === app.workspace?.activeTabId) continue;
 
-    tab.resultsFresh = false;
+    tab.analysis = { ...tab.analysis, fresh: false };
     queueRotationReference(tab.session);
   }
 }
@@ -266,9 +263,9 @@ export function closeBuildTab(app: ProfessionAppState, id: string): void {
 /** Async replacements must still target the same unchanged tab when their input finishes loading. */
 export function captureBuildDestination(app: ProfessionAppState): () => void {
   const tabId = app.workspace?.activeTabId;
-  const revision = app.buildRevision;
+  const revision = app.analysis.state.buildRevision;
   return () => {
-    if (app.workspace?.activeTabId !== tabId || app.buildRevision !== revision) {
+    if (app.workspace?.activeTabId !== tabId || app.analysis.state.buildRevision !== revision) {
       throw new Error('The build changed while loading. Load it again in the intended tab.');
     }
   };

@@ -209,7 +209,7 @@ export function dispatchPaletteActivation(
   editors: PaletteActivationEditors = PALETTE_ACTIVATION_EDITORS
 ): void {
   // Retained palette tiles cannot author commands against a rotation whose new state has not rendered yet.
-  if (app.resultRevision !== app.buildRevision) return;
+  if (app.analysis.state.resultRevision !== app.analysis.state.buildRevision) return;
 
   const icon = event.currentTarget;
   const parsedSkillId = Number(icon.dataset.skillId);
@@ -337,7 +337,7 @@ export function bindAppPaletteInteractions(
 ): void {
   bindPaletteInteractions(element, {
     onControlActivate(controlId) {
-      if (app.resultRevision !== app.buildRevision) return;
+      if (app.analysis.state.resultRevision !== app.analysis.state.buildRevision) return;
 
       if (app.profession.ui.updatePaletteControl(paletteContext, controlId)) {
         app.changed();
@@ -347,7 +347,7 @@ export function bindAppPaletteInteractions(
       dispatchPaletteActivation(app, name, event);
     },
     onDragStart(name, event) {
-      if (app.resultRevision !== app.buildRevision) return false;
+      if (app.analysis.state.resultRevision !== app.analysis.state.buildRevision) return false;
 
       const parsedSkillId = Number(event.currentTarget.dataset.skillId);
       app.dragState = {

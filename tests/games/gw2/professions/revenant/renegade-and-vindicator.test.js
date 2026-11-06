@@ -1393,17 +1393,23 @@ test('Selfish Spirit uses its cooldown rather than ammo charges', () => {
 test('Vindicator Dodge + Auto palette action uses the current chain step', () => {
   let changeCount = 0;
   const app = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: {
+          planningState: {
+            activeWeaponSet: 1,
+            ammoBySkillId: {},
+            profession: { [STATE.AUTOATTACK_CHAINS]: {} }
+          }
+        }
+      }
+    },
     profession: revenantProfession,
     activeCatalog: revenantCatalog,
     // Palette-only actions still resolve their tooltip through the application's selected balance patch.
     patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
-    results: {
-      planningState: {
-        activeWeaponSet: 1,
-        ammoBySkillId: {},
-        profession: { [STATE.AUTOATTACK_CHAINS]: {} }
-      }
-    },
+
     build: {
       weapons: ['Sword', 'Sword'],
       alternateWeapons: ['Greatsword', ''],
@@ -1414,7 +1420,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
       skillTooltip: revenantAppAdapter.skillTooltip,
       eliteSpecialization: () => 'Vindicator',
       // Cursor previews use the manually controlled chain state for this palette-action fixture.
-      rotationPreviewAt: (app) => app.results,
+      rotationPreviewAt: (app) => app.analysis.state.results,
       isSkillAvailable: () => true
     },
     changed: () => {
@@ -1492,7 +1498,8 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   assert.equal(app.rotationInsertionIndex, 2);
   assert.equal(changeCount, 2);
 
-  app.results.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST] = SKILL.BRUTAL_BLADE;
+  app.analysis.state.results.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST] =
+    SKILL.BRUTAL_BLADE;
   assert.equal(createPaletteContext(app).activeAutoattack.name, 'Brutal Blade');
 
   const combined = simulate(
@@ -1532,6 +1539,7 @@ test('Vindicator legend skills preserve the Greatsword autoattack chain', () => 
 
 test('Imperial Guard exposes True Strike after cancellation or completion', () => {
   const paletteApp = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     profession: revenantProfession,
     activeCatalog: revenantCatalog,
     build: {
@@ -1587,17 +1595,23 @@ test('Imperial Guard exposes True Strike after cancellation or completion', () =
 
 test('Deathstrike weapon palette keeps the primary skill identity on cooldown', () => {
   const app = {
-    profession: revenantProfession,
-    activeCatalog: revenantCatalog,
-    results: {
-      planningState: {
-        atSeconds: 0.72,
-        ammoBySkillId: {},
-        cooldownsBySkillId: {
-          [SKILL.DEATHSTRIKE]: { readyAtMs: 12420, remainingMs: 11700 }
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: {
+          planningState: {
+            atSeconds: 0.72,
+            ammoBySkillId: {},
+            cooldownsBySkillId: {
+              [SKILL.DEATHSTRIKE]: { readyAtMs: 12420, remainingMs: 11700 }
+            }
+          }
         }
       }
     },
+    profession: revenantProfession,
+    activeCatalog: revenantCatalog,
+
     build: {
       weapons: ['Sword', 'Sword'],
       alternateWeapons: ['', '']

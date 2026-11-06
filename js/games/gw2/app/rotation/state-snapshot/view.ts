@@ -14,7 +14,7 @@ export function renderRotationStateSnapshot(app: ProfessionAppState): void {
 
   if (!element) return;
 
-  if (!app.results || !app.build.rotation.length) {
+  if (!app.analysis.state.results || !app.build.rotation.length) {
     element.innerHTML = '';
     element.hidden = true;
     return;
@@ -32,7 +32,7 @@ export function renderRotationStateSnapshot(app: ProfessionAppState): void {
   element.hidden = false;
   // Label the insertion cursor or rotation end by time so the state matches the
   // moment the user is inspecting on the timeline.
-  const time = formatResultTimelineTime(timeMs, app.results);
+  const time = formatResultTimelineTime(timeMs, app.analysis.state.results);
   const label = atInsertion ? `Active state @ ${time} (insertion point)` : `Active state @ ${time}`;
   element.innerHTML =
     `<span class="rot-state-label">${esc(label)}:</span>` +

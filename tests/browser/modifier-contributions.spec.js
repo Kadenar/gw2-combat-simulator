@@ -78,26 +78,30 @@ test('modifiers run on demand in Analysis and update only their own section', as
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   // Explicit skill identity keeps worker requests valid even when multiple variants share a display name.
   await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   // Observe beyond the existing debounce to catch any hidden Workspace scheduling.
   await page.waitForTimeout(850);
   expect(modifierWorkers).toHaveLength(0);
-  expect(await page.evaluate(() => window.professionApp.results.modifierContributionsStale)).toBe(true);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.modifierContributionsStale)).toBe(true);
   // Editor baselines retain APM and live planning state without collecting chart histories.
   const editor = await page.evaluate(() => {
-    const result = window.professionApp.results;
+    const result = window.professionApp.analysis.state.results;
     return { dps: result.dps, apm: result.rotationApm, effects: result.effectReport, boons: result.boonGeneration };
   });
   expect(editor.effects).toBeNull();
   expect(editor.boons).toBeNull();
   expect(editor.apm).toBeDefined();
 
-  // Hold the existing RNG priority gate so pending-state interaction is deterministic.
+  // Hold execution admission while checking the native pending-state interactions.
   await page.evaluate(() => {
-    Object.defineProperty(window.professionApp.randomDistributionRunner, 'isRunning', {
-      configurable: true,
-      value: true
-    });
+    const runner = window.professionApp.modifierContributionRunner;
+    const run = runner.run;
+    window.releaseModifiers = false;
+    runner.run = function (operation) {
+      return run.call(this, { ...operation, ready: () => window.releaseModifiers && operation.ready() });
+    };
   });
   await page.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
   const pending = page.locator('[data-role="modifier-contributions"] [role="status"]');
@@ -118,21 +122,24 @@ test('modifiers run on demand in Analysis and update only their own section', as
   await expect(pending).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(page.locator('[data-role="result-charts"]')).toBeVisible();
-  expect(await page.evaluate(() => window.professionApp.results.dps)).toBe(editor.dps);
-  expect(await page.evaluate(() => window.professionApp.results.rotationApm)).toEqual(editor.apm);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.dps)).toBe(editor.dps);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.rotationApm)).toEqual(editor.apm);
   expect(
     await page.evaluate(() =>
-      Boolean(window.professionApp.results.effectReport && window.professionApp.results.boonGeneration)
+      Boolean(
+        window.professionApp.analysis.state.results.effectReport &&
+        window.professionApp.analysis.state.results.boonGeneration
+      )
     )
   ).toBe(true);
   // Observe the runner's public scheduling boundary to verify cached charts need no additional work.
   await page.evaluate(() => {
     const runner = window.professionApp.baselineSimulationRunner;
-    const schedule = runner.schedule;
+    const run = runner.run;
     window.baselineSchedulesAfterCharts = 0;
-    runner.schedule = function (...args) {
+    runner.run = function (...args) {
       window.baselineSchedulesAfterCharts++;
-      return schedule.apply(this, args);
+      return run.apply(this, args);
     };
   });
   await page.locator('[data-role="skill-header"] [data-sort-col="total"]').click();
@@ -140,7 +147,7 @@ test('modifiers run on demand in Analysis and update only their own section', as
   const chart = await page.locator('[data-role="result-charts"]').elementHandle();
   const rows = await page.locator('[data-role="skill-rows"]').elementHandle();
   await page.evaluate(() => {
-    delete window.professionApp.randomDistributionRunner.isRunning;
+    window.releaseModifiers = true;
   });
   await expect(page.locator('.contrib-row').first()).toBeVisible();
   await expect(pending).toHaveCount(0);
@@ -151,18 +158,22 @@ test('modifiers run on demand in Analysis and update only their own section', as
   const completedWorkerCount = modifierWorkers.length;
   await page.getByRole('link', { name: 'Golem', exact: true }).click();
   await page.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
-  expect(await page.evaluate(() => window.professionApp.modifierContributionRunner.isRunning)).toBe(false);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.modifierContributionsStale)).toBe(false);
   expect(modifierWorkers).toHaveLength(completedWorkerCount);
   expect(await page.evaluate(() => window.baselineSchedulesAfterCharts)).toBe(0);
 
   await page.getByRole('link', { name: 'Golem', exact: true }).click();
   await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  expect(await page.evaluate(() => window.professionApp.results.modifierContributionsStale)).toBe(true);
-  expect(await page.evaluate(() => window.professionApp.results.effectReport)).toBeNull();
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.modifierContributionsStale)).toBe(true);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.effectReport)).toBeNull();
   await page.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
   await expect(pending).toBeVisible();
   await page.getByRole('link', { name: 'Golem', exact: true }).click();
-  expect(await page.evaluate(() => window.professionApp.modifierContributionRunner.isRunning)).toBe(false);
-  expect(await page.evaluate(() => window.professionApp.results.modifierContributionsStale)).toBe(true);
+  const workersAtExit = modifierWorkers.length;
+  await page.waitForTimeout(850);
+  expect(modifierWorkers).toHaveLength(workersAtExit);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.modifierContributionsStale)).toBe(true);
 });

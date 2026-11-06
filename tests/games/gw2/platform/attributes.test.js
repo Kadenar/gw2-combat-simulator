@@ -84,6 +84,7 @@ test('build contexts calculate each requested weapon set once and detach configu
     { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
   );
   const input = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     build: createDefaultBuild(),
     patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
     transitionDelays: normalizeTransitionDelays()
@@ -128,6 +129,7 @@ test('modifier requests preserve workspace target settings for baseline and remo
   // Every relic must retain finite health and starting health, including when the relic itself is removed.
   for (const relic of ['', 'Thief', 'Fractal', 'Eagle']) {
     const app = {
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
       build: { rotation: [], relic, assumptions: { might: 1 }, weaponSigils: [], food: '' },
       attributeData: { activeTraits: [] }
@@ -455,6 +457,7 @@ test('simulation config aggregates each weapon set sigils independently', () => 
   ];
   const config = mesmerAppAdapter
     .createBuildContext({
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       build,
       transitionDelays: normalizeTransitionDelays(),
       patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
@@ -536,6 +539,7 @@ test('Mesmer browser simulations allow weapons from other specializations', () =
     ID.AXES_OF_SYMMETRY
   ].map(cast);
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     attributeData: calcAttributes(build, [])
@@ -560,6 +564,7 @@ test('simulation config preserves non-sigil condition duration bonuses', () => {
   ];
   const config = mesmerAppAdapter
     .createBuildContext({
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       build,
       transitionDelays: normalizeTransitionDelays(),
       patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
@@ -582,6 +587,7 @@ test('Mesmer runtime includes Malicious Sorcery once through panel-derived stats
   const attributeData = calcAttributes(build, []);
   const config = mesmerAppAdapter
     .createBuildContext({
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       build,
       transitionDelays: normalizeTransitionDelays(),
       patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
@@ -605,6 +611,7 @@ test('simulation config exposes the selected target skill activation rate', () =
   build.assumptions.targetSkillActivationsPerSecond = 1.25;
   const config = mesmerAppAdapter
     .createBuildContext({
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       build,
       transitionDelays: normalizeTransitionDelays(),
       patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
@@ -621,6 +628,7 @@ test('simulation config does not multiply duplicate sigil effects', () => {
   build.weaponSigils[0] = ['Force', 'Force'];
   const config = mesmerAppAdapter
     .createBuildContext({
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       build,
       transitionDelays: normalizeTransitionDelays(),
       patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
@@ -637,6 +645,7 @@ test('modifier contributions compare the active build against each modifier remo
   build.relic = '';
   build.selectedSkillIds = {};
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     attributeData: calcAttributes(build, []),
@@ -672,6 +681,7 @@ test('Accuracy comparisons remove its attribute and one-strike critical chance b
   const attributeData = calcAttributes(build, []);
   const withoutAccuracy = calcAttributes(build, [], 1, null, 'Accuracy');
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     attributeData,
@@ -702,6 +712,7 @@ test('food comparisons remove both nourishment procs and attribute bonuses', () 
   build.food = 'Plate of Coq Au Vin with Salsa';
   build.selectedSkillIds = {};
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     attributeData: calcAttributes(build, []),
@@ -732,6 +743,7 @@ test('interactive simulation leaves contribution passes to the background worker
   build.relic = '';
   build.selectedSkillIds = {};
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     attributeData: calcAttributes(build, []),

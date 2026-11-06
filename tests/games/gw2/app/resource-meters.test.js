@@ -103,7 +103,16 @@ test('15-pip initiative uses specialization-neutral rows', () => {
         ]
       }
     },
-    results: { planningState: { availability: {}, atSeconds: 0, profession: {} } }
+    analysis: {
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: { planningState: { availability: {}, atSeconds: 0, profession: {} } }
+      }
+    }
   });
 
   const rowPipCounts = [

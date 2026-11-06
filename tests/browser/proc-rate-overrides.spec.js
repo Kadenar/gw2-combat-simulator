@@ -18,7 +18,9 @@ test('proc controls rerun the build, survive reload, clear to defaults, and foll
     app.changed();
   });
   const settled = () =>
-    page.waitForFunction(() => window.professionApp.resultRevision === window.professionApp.buildRevision);
+    page.waitForFunction(
+      () => window.professionApp.analysis.state.resultRevision === window.professionApp.analysis.state.buildRevision
+    );
   await settled();
   // Trait overrides are edited in the workspace beside Traits, without opening simulation settings.
   await page.locator('#trait-proc-rates > summary').click();
@@ -30,7 +32,7 @@ test('proc controls rerun the build, survive reload, clear to defaults, and foll
   await input.fill('100');
   await input.press('Tab');
   await settled();
-  const high = await page.evaluate(() => window.professionApp.results.totalDamage);
+  const high = await page.evaluate(() => window.professionApp.analysis.state.results.totalDamage);
   await page.getByRole('link', { name: 'Golem Analysis', exact: true }).click();
   const procHits = page.locator(
     '[data-skill-key="Player|Barbed Precision"] [title="Proc activations, excluding condition ticks and stack counts."]'
@@ -41,7 +43,7 @@ test('proc controls rerun the build, survive reload, clear to defaults, and foll
   await input.fill('0');
   await input.press('Tab');
   await settled();
-  expect(await page.evaluate(() => window.professionApp.results.totalDamage)).toBeLessThan(high);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.totalDamage)).toBeLessThan(high);
   await page.reload();
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.locator('#trait-proc-rates > summary').click();

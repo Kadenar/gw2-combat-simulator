@@ -646,6 +646,7 @@ test('baseline, RNG, and modifier requests share the encounter configuration', (
   draft.phases[0].groupDps = 200000;
   draft.phases[1].durationSeconds = 12;
   const app = {
+    analysis: { needsPatchComparison: () => false },
     build: draft.build,
     workspace: { scenario: draft },
     patch: adapter.profession.resolvePatch({ id: 'current' }),

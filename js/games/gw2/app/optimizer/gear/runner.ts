@@ -45,7 +45,7 @@ export class GearOptimizerRunner {
   state: OptimizerProgress = this.emptyState();
 
   constructor(
-    readonly app: Pick<ProfessionAppState, 'buildRevision'>,
+    readonly app: Pick<ProfessionAppState, 'analysis'>,
     readonly onUpdate: () => void = () => {},
     private readonly createWorker = () => new Worker(new URL('./worker.js', import.meta.url), { type: 'module' }),
     // Each worker owns simulation state; keep concurrency conservative to avoid multiplying peak memory.
@@ -209,7 +209,7 @@ export class GearOptimizerRunner {
     };
 
     const receive = (message: GearOptimizerWorkerResponse, worker: Worker): void => {
-      if (this.app.buildRevision !== request.revision) {
+      if (this.app.analysis.state.buildRevision !== request.revision) {
         this.cancel();
         return;
       }
@@ -328,7 +328,7 @@ export class GearOptimizerRunner {
       );
     };
 
-    if (this.app.buildRevision !== request.revision) {
+    if (this.app.analysis.state.buildRevision !== request.revision) {
       fail('Optimizer request is stale.');
       return;
     }

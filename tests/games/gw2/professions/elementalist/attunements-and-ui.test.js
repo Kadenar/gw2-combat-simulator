@@ -171,7 +171,11 @@ test('precombat Updraft carries Fireworks into combat without resolving damage',
           rotation: [{ type: 'cast', skillId: 5687, offTarget }, waitMs, { type: 'combat-start' }, 'Charged Strike']
         });
         const config = elementalistAppAdapter
-          .createBuildContext({ build: app.build, patch: app.patch })
+          .createBuildContext({
+            analysis: { needsPatchComparison: () => false, state: { results: null } },
+            build: app.build,
+            patch: app.patch
+          })
           .simulationConfig();
         return runElementalist(commands, config, { output });
       };
@@ -596,6 +600,7 @@ test('weapon palette rows group Elementalist skills by attunement and slot', () 
     ]
   });
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
@@ -659,29 +664,34 @@ test('Weaver palette composes the active bar and preserves every slot-three cool
     ]
   });
   const app = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: {
+          planningState: {
+            availability: {},
+            activeWeaponSet: 1,
+            atSeconds: 0,
+            cooldownsBySkillId: {
+              [elementalistCatalog.skillsById.get(43074).id]: { remainingMs: 3400, readyAtMs: 3400 }
+            },
+            // Cooldown-only fixtures still provide the canonical empty ammo projection.
+            ammoBySkillId: {},
+            profession: {
+              [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
+              [STATE.SECONDARY_ATTUNEMENT]: 'Water',
+              [STATE.AUTOATTACK_CHAINS]: {}
+            }
+          }
+        }
+      }
+    },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
-    weaponData: elementalistAppAdapter.weaponData,
-    results: {
-      planningState: {
-        availability: {},
-        activeWeaponSet: 1,
-        atSeconds: 0,
-        cooldownsBySkillId: {
-          [elementalistCatalog.skillsById.get(43074).id]: { remainingMs: 3400, readyAtMs: 3400 }
-        },
-        // Cooldown-only fixtures still provide the canonical empty ammo projection.
-        ammoBySkillId: {},
-        profession: {
-          [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
-          [STATE.SECONDARY_ATTUNEMENT]: 'Water',
-          [STATE.AUTOATTACK_CHAINS]: {}
-        }
-      }
-    }
+    weaponData: elementalistAppAdapter.weaponData
   };
   const palette = inertContainer();
   const previousDocument = globalThis.document;
@@ -777,12 +787,13 @@ test('starting attunement controls render primary and secondary selectors', () =
     ]
   });
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
-    results: null,
+
     changed() {}
   };
   const selector = { innerHTML: '', querySelectorAll: () => [] };
@@ -812,13 +823,13 @@ test('rotation palette exposes each attunement as an action', () => {
     ]
   });
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
-    weaponData: elementalistAppAdapter.weaponData,
-    results: null
+    weaponData: elementalistAppAdapter.weaponData
   };
   const palette = inertContainer();
   const previousDocument = globalThis.document;
@@ -991,12 +1002,15 @@ test('Evoker layers familiar charges beside F5', () => {
   assert.equal(charges.showValue, false);
 
   const resourceHtml = activeResourceGroup({
+    analysis: {
+      needsPatchComparison: () => false,
+      state: { results: { planningState: { availability: {}, profession: professionState } } }
+    },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
-    activeCatalog: elementalistProfession.catalog,
-    results: { planningState: { availability: {}, profession: professionState } }
+    activeCatalog: elementalistProfession.catalog
   });
 
   assert.match(resourceHtml, /data-resource-id="evoker-charges"/);
@@ -1005,38 +1019,48 @@ test('Evoker layers familiar charges beside F5', () => {
   assert.doesNotMatch(resourceHtml, /<strong>4\/6<\/strong>/);
 
   const basicReadyHtml = activeResourceGroup({
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: {
+          planningState: {
+            availability: {},
+            profession: {
+              ...professionState,
+              [STATE.FAMILIAR_CHARGES]: { value: 6, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
+              [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
+            }
+          }
+        }
+      }
+    },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
-    activeCatalog: elementalistProfession.catalog,
-    results: {
-      planningState: {
-        availability: {},
-        profession: {
-          ...professionState,
-          [STATE.FAMILIAR_CHARGES]: { value: 6, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
-          [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
-        }
-      }
-    }
+    activeCatalog: elementalistProfession.catalog
   });
   const empoweredReadyHtml = activeResourceGroup({
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: {
+          planningState: {
+            availability: {},
+            profession: {
+              ...professionState,
+              [STATE.FAMILIAR_CHARGES]: { value: 4, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
+              [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
+            }
+          }
+        }
+      }
+    },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
-    activeCatalog: elementalistProfession.catalog,
-    results: {
-      planningState: {
-        availability: {},
-        profession: {
-          ...professionState,
-          [STATE.FAMILIAR_CHARGES]: { value: 4, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
-          [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
-        }
-      }
-    }
+    activeCatalog: elementalistProfession.catalog
   });
 
   assert.match(basicReadyHtml, /data-resource-count="6"/);
@@ -1055,12 +1079,13 @@ test('Evoker renders stacked starting controls for basic and empowered charges',
     ]
   });
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
-    results: null,
+
     changed() {}
   };
   const selector = { innerHTML: '', querySelectorAll: () => [] };
@@ -1149,12 +1174,12 @@ test('core attunements enforce and report their individual recharge', () => {
   assert.ok(waterAvailability.retryAt > result.planningState.atSeconds);
   const waterView = paletteSkillView(
     {
+      analysis: { needsPatchComparison: () => false, state: { results: result } },
       patch: elementalistAppAdapter.profession.resolvePatch(),
       build: elementalistProfession.createBuildDefaults(),
       adapter: elementalistAppAdapter,
       profession: elementalistProfession,
-      activeCatalog: elementalistProfession.catalog,
-      results: result
+      activeCatalog: elementalistProfession.catalog
     },
     elementalistCatalog.skillsById.get(5493)
   );

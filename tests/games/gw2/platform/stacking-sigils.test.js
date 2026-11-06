@@ -42,6 +42,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
       }
 
       const app = {
+        analysis: { needsPatchComparison: () => false, state: { results: null } },
         patch: adapter.profession.resolvePatch(),
         build,
         adapter,
@@ -51,6 +52,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
       };
       app.attributeData = adapter
         .createBuildContext({
+          analysis: { needsPatchComparison: () => false, state: { results: null } },
           build: app.build,
           transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
           patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
@@ -58,6 +60,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
         .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
       const without = adapter
         .createBuildContext({
+          analysis: { needsPatchComparison: () => false, state: { results: null } },
           build: app.build,
           transitionDelays: normalizeTransitionDelays(),
           disabledModifier: { type: 'Sigil', name: sigil },
@@ -66,6 +69,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
         .simulationConfig();
       const baseline = adapter
         .createBuildContext({
+          analysis: { needsPatchComparison: () => false, state: { results: null } },
           build: app.build,
           transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
           patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
@@ -99,6 +103,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
       alternateWeapons: adapter.id === 'elementalist' ? ['Staff', ''] : ['Pistol', 'Shield']
     });
     const app = {
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       patch: adapter.profession.resolvePatch(),
       adapter,
       build,
@@ -115,6 +120,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
 
     app.attributeData = adapter
       .createBuildContext({
+        analysis: { needsPatchComparison: () => false, state: { results: null } },
         build: app.build,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
         patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
@@ -128,6 +134,7 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
           : ['__combat_start', 'Fire Attunement'],
       config: adapter
         .createBuildContext({
+          analysis: { needsPatchComparison: () => false, state: { results: null } },
           build: app.build,
           transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
           patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })

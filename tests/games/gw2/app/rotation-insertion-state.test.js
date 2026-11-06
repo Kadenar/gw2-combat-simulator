@@ -45,7 +45,17 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
       ]
     },
     rotationInsertionIndex: 1,
-    results: { planningState: finalState },
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: { planningState: finalState }
+      }
+    },
     adapter: {
       skillTooltip: () => ({ description: '', facts: [] }),
       rotationPreviewAt(_app, index) {
@@ -109,6 +119,17 @@ test('Bloodstone appears only after the insertion prefix includes Detonate', asy
       { type: 'wait', durationMs: 1000 }
     ];
     const app = {
+      analysis: {
+        needsPatchComparison: () => false,
+        state: {
+          results: null,
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null
+        }
+      },
       adapter,
       profession: adapter.profession,
       build,
@@ -117,9 +138,9 @@ test('Bloodstone appears only after the insertion prefix includes Detonate', asy
         return this.patch.catalog;
       }
     };
-    app.results = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app)).result;
-    assert.deepEqual(app.results.warnings, []);
-    const detonation = app.results.steps.find((step) => step.skillName === 'Detonate');
+    app.analysis.state.results = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app)).result;
+    assert.deepEqual(app.analysis.state.results.warnings, []);
+    const detonation = app.analysis.state.results.steps.find((step) => step.skillName === 'Detonate');
     app.rotationInsertionIndex = detonation.rotationCommandIndex;
     const before = rotationStateSnapshot(app);
     assert.ok(detonation.start <= before.timeMs, 'wall-clock filtering alone would admit this later input');
@@ -161,7 +182,17 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
       build,
       activeCatalog: adapter.profession.catalog,
       attributeWeaponSet: 1,
-      results: null
+      analysis: {
+        needsPatchComparison: () => false,
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          results: null
+        }
+      }
     };
     app.attributeData = adapter
       .createBuildContext({
@@ -172,7 +203,7 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     // Publish the baseline explicitly so insertion previews can reuse its planning state.
     const { result } = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
-    app.results = result;
+    app.analysis.state.results = result;
     assert.deepEqual(result.warnings, []);
     const beforeHit = adapter.rotationPreviewAt(app, 2).planningState;
     assert.equal(beforeHit.atSeconds, 1);
@@ -202,7 +233,17 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
     build,
     activeCatalog: adapter.profession.catalog,
     attributeWeaponSet: 1,
-    results: null
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: null
+      }
+    }
   };
   app.attributeData = adapter
     .createBuildContext({
@@ -213,7 +254,7 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   // Publish the baseline explicitly so insertion previews can reuse its planning state.
   const { result } = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
-  app.results = result;
+  app.analysis.state.results = result;
   assert.deepEqual(result.warnings, []);
   // A future boundary must remain pending: publishing its timestamp early would trigger the trap immediately.
   const prefix = (length) =>
@@ -256,7 +297,17 @@ test('native insertion previews project weapon set and cooldown state', async ()
     build,
     activeCatalog: adapter.profession.catalog,
     attributeWeaponSet: 1,
-    results: null
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: null
+      }
+    }
   };
 
   app.attributeData = adapter
@@ -268,7 +319,7 @@ test('native insertion previews project weapon set and cooldown state', async ()
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   // Publish the baseline explicitly so insertion previews can reuse its planning state.
   const { result } = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
-  app.results = result;
+  app.analysis.state.results = result;
   const initial = adapter.rotationPreviewAt(app, 0).planningState;
   const afterFirstSkill = adapter.rotationPreviewAt(app, 1).planningState;
   const afterFirstSwap = adapter.rotationPreviewAt(app, 2).planningState;
@@ -280,7 +331,7 @@ test('native insertion previews project weapon set and cooldown state', async ()
   assert.deepEqual(adapter.rotationPreviewAt(app, 3).planningState, result.planningState);
 
   // Reusing a tailed result would make recovered cooldownsBySkillId available too early when appending.
-  app.results = simulateGw2({
+  app.analysis.state.results = simulateGw2({
     profession: adapter.profession,
     rotation: build.rotation,
     config: adapter
@@ -292,7 +343,7 @@ test('native insertion previews project weapon set and cooldown state', async ()
       .simulationConfig(),
     observationPolicy: { kind: 'tail', durationMs: 20000 }
   });
-  assert.ok(app.results.planningState.atSeconds * 1000 > result.planningState.atSeconds * 1000);
+  assert.ok(app.analysis.state.results.planningState.atSeconds * 1000 > result.planningState.atSeconds * 1000);
   assert.deepEqual(adapter.rotationPreviewAt(app, 3).planningState, result.planningState);
   for (const insertionIndex of [null, build.rotation.length]) {
     app.rotationInsertionIndex = insertionIndex;
@@ -307,7 +358,7 @@ test('native insertion previews project weapon set and cooldown state', async ()
       patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .simulationConfig();
-  app.results = simulateGw2({
+  app.analysis.state.results = simulateGw2({
     profession: adapter.profession,
     rotation: build.rotation,
     config: {
@@ -315,8 +366,8 @@ test('native insertion previews project weapon set and cooldown state', async ()
       target: { ...config.target, health: 1 }
     }
   });
-  assert.ok(app.results.combatEndTime < app.results.rotationEndTime);
-  assert.equal(app.results.planningState.atSeconds, app.results.rotationEndTime);
-  assert.equal(palettePlanningState(app), app.results.planningState);
+  assert.ok(app.analysis.state.results.combatEndTime < app.analysis.state.results.rotationEndTime);
+  assert.equal(app.analysis.state.results.planningState.atSeconds, app.analysis.state.results.rotationEndTime);
+  assert.equal(palettePlanningState(app), app.analysis.state.results.planningState);
   assert.equal(palettePlanningState(app).activeWeaponSet, 2);
 });

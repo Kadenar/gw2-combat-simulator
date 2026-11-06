@@ -123,13 +123,13 @@ test('Elementalist utilities render beside profession controls before weapons', 
     ]
   });
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
-    weaponData: elementalistAppAdapter.weaponData,
-    results: null
+    weaponData: elementalistAppAdapter.weaponData
   };
   const palette = inertContainer();
   const previousDocument = globalThis.document;

@@ -606,9 +606,10 @@ test('Soulbeast countdown reaches the rotation workspace after target death', ()
       false
     );
     const { items } = rotationStateSnapshot({
+      analysis: { needsPatchComparison: () => false, state: { results: result } },
       patch: withPatchPreview(rangerProfession).resolvePatch(),
       build: { rotation },
-      results: result,
+
       profession: rangerProfession,
       adapter: { eliteSpecialization: () => 'Soulbeast' }
     });

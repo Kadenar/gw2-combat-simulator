@@ -1,555 +1,28 @@
+/** Execution adapters and request preparation retain their own contracts; lifecycle policy is tested headlessly. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createBossScenario } from '#gw2/app/boss-scenarios/model.js';
 import { createBuildTab } from '#gw2/app/build/state/workspace.js';
+import { createAnalysisResultLifecycle } from '#gw2/app/create-analysis-lifecycle.js';
 import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { calculateRelicComparison } from '#gw2/app/optimizer/relic-comparison/calculate.js';
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
-import { invalidatePatchResults } from '#gw2/app/patch-preview/results.js';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
-import { calculateContributionBatch } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
-import { DEFAULT_RANDOM_DISTRIBUTION_TRIALS } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
+import { analysisFixture } from '#tests/helpers/analysis-lifecycle.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 const STRIKE_ROTATION = [{ type: 'cast', skillId: 'Strike' }];
 
-// Chart enrichment shares the baseline worker, but must not replace editor facts or completed analysis.
-test('chart collection waits for the current baseline, caches completion, and rejects abandoned jobs', (t) => {
-  runTimersImmediately(t);
-  const originals = ['document', 'Worker'].map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
-  t.after(() => {
-    for (const [key, descriptor] of originals) {
-      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
-      else delete globalThis[key];
-    }
-  });
-  const body = { dataset: { simulatorView: 'workspace' } };
-  Object.defineProperty(globalThis, 'document', { configurable: true, value: { body } });
-  const workers = [];
-  class ControlledWorker {
-    listeners = new Map();
-    messages = [];
-    constructor() {
-      workers.push(this);
-    }
-    addEventListener(type, listener) {
-      this.listeners.set(type, listener);
-    }
-    postMessage(message) {
-      this.messages.push(message);
-    }
-    terminate() {
-      this.terminated = true;
-    }
-    respond(job, output) {
-      this.listeners.get('message')({ data: { requestId: job.requestId, output } });
-    }
-  }
-  Object.defineProperty(globalThis, 'Worker', { configurable: true, value: ControlledWorker });
-  const app = Object.assign(Object.create(ProfessionApp.prototype), {
-    build: { rotation: STRIKE_ROTATION },
-    buildRevision: 1,
-    resultRevision: 0,
-    simulationStatus: 'idle',
-    simulationError: '',
-    results: null,
-    adapter: {
-      baselineSimulationRequest: () => ({ rotation: STRIKE_ROTATION, collectChartData: false }),
-      presentation: testPresentation()
-    },
-    modifierContributionRunner: { schedule() {} },
-    commitBaselineSimulation(output, revision) {
-      this.results = output.result;
-      this.resultRevision = revision;
-      this.simulationStatus = 'idle';
-    }
-  });
-  const runner = new BaselineSimulationRunner(app);
-  runner.schedule(1);
-  runner.ensureCharts();
-  assert.equal(workers[0].messages.length, 1);
-  body.dataset.simulatorView = 'analysis';
-  runner.ensureCharts();
-  assert.equal(workers[0].messages.length, 1, 'Analysis waits for an in-flight editor baseline');
-  const result = { dps: 100, effectReport: null, boonGeneration: null, contributions: [{ id: 'kept' }] };
-  workers[0].respond(workers[0].messages[0], { result });
-  const chartJob = workers[0].messages[1];
-  assert.equal(chartJob.request.collectChartData, true);
-  assert.equal(runner.queue.inFlight.chartsOnly, true);
-  workers[0].respond(chartJob, { result: { dps: 999, effectReport: {}, boonGeneration: {} } });
-  assert.equal(app.results, result, 'enrichment retains the editor result identity');
-  assert.equal(result.dps, 100);
-  assert.deepEqual(result.contributions, [{ id: 'kept' }]);
-  runner.ensureCharts();
-  assert.equal(workers[0].messages.length, 2, 'completed chart data is reused');
-
-  result.effectReport = null;
-  runner.ensureCharts();
-  const abandoned = workers[0].messages[2];
-  runner.cancelCharts();
-  assert.equal(workers[0].terminated, true);
-  assert.equal(app.simulationStatus, 'idle');
-  workers[0].respond(abandoned, { result: { effectReport: { stale: true } } });
-  assert.equal(result.effectReport, null);
-  runner.ensureCharts();
-  const replaced = workers[1].messages[0];
-  app.buildRevision = 2;
-  runner.schedule(2);
-  assert.equal(workers[1].terminated, true, 'an edit cancels chart work immediately');
-  workers[1].respond(replaced, { result: { effectReport: { stale: true } } });
-  assert.equal(result.effectReport, null);
-  assert.equal(runner.queue.inFlight.chartsOnly, false);
-  runner.cancelCharts();
-  assert.equal(workers[2].terminated, undefined, 'leaving Analysis preserves editor work');
-  runner.cancel();
-});
-
 // Supplies the complete presentation contract so runner tests can observe refreshes without mounting the DOM.
 function testPresentation(render = () => {}) {
   return { createViewModel: () => ({}), render };
 }
-
-// Analysis entry refreshes the missing patch even with cached charts; Workspace must abandon that extra work.
-test('Analysis refreshes both patch results and leaving Analysis resumes only the selected edit', (t) => {
-  runTimersImmediately(t);
-  const originals = ['document', 'Worker'].map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
-  t.after(() => {
-    for (const [key, descriptor] of originals) {
-      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
-      else delete globalThis[key];
-    }
-  });
-  const body = { dataset: { simulatorView: 'analysis' } };
-  Object.defineProperty(globalThis, 'document', { configurable: true, value: { body } });
-  const workers = [];
-  class ControlledWorker {
-    listeners = new Map();
-    messages = [];
-    constructor() {
-      workers.push(this);
-    }
-    addEventListener(type, listener) {
-      this.listeners.set(type, listener);
-    }
-    postMessage(message) {
-      this.messages.push(message);
-    }
-    terminate() {
-      this.terminated = true;
-    }
-    respond(output) {
-      this.listeners.get('message')({ data: { requestId: this.messages.at(-1).requestId, output } });
-    }
-  }
-  Object.defineProperty(globalThis, 'Worker', { configurable: true, value: ControlledWorker });
-  const current = { dps: 10, effectReport: {} };
-  const catalog = { skills: [], skillsById: new Map() };
-  const app = Object.assign(Object.create(ProfessionApp.prototype), {
-    build: { rotation: STRIKE_ROTATION, selectedSkillIds: {} },
-    profession: { preview: { id: 'preview' }, resolvePatch: ({ id }) => ({ id, catalog }) },
-    patch: { id: 'current', catalog },
-    buildRevision: 1,
-    resultRevision: 1,
-    results: current,
-    patchComparison: null,
-    adapter: {
-      baselineSimulationRequest: () => ({
-        rotation: STRIKE_ROTATION,
-        baseConfig: { patchId: 'current' },
-        ...(body.dataset.simulatorView === 'analysis' ? { comparisonConfig: { patchId: 'preview' } } : {})
-      }),
-      presentation: testPresentation()
-    },
-    modifierContributionRunner: { schedule() {} }
-  });
-  const runner = new BaselineSimulationRunner(app);
-  runner.ensureCharts();
-  assert.equal(workers[0].messages.length, 1, 'missing comparison refreshes even when chart histories exist');
-  const preview = { dps: 20 };
-  workers[0].respond({
-    result: { effectReport: {}, boonGeneration: {} },
-    comparisonResult: { patchId: 'preview', result: preview }
-  });
-  assert.equal(app.results, current, 'Analysis enrichment preserves the active editor result');
-  assert.deepEqual(app.patchComparison, { current, preview });
-  runner.ensureCharts();
-  assert.equal(workers[0].messages.length, 1, 'fresh Analysis is reused');
-
-  app.buildRevision = 2;
-  invalidatePatchResults(app);
-  runner.schedule(2);
-  assert.equal(workers[0].messages.at(-1).request.comparisonConfig.patchId, 'preview');
-  body.dataset.simulatorView = 'workspace';
-  runner.cancelCharts();
-  assert.equal(workers[0].terminated, true);
-  assert.equal(workers[1].messages[0].request.comparisonConfig, undefined);
-  assert.equal(workers[1].messages[0].request.baseConfig.patchId, 'current');
-  assert.equal(runner.queue.inFlight.revision, 2);
-  workers[0].respond({ result: { dps: 999 }, comparisonResult: { patchId: 'preview', result: preview } });
-  assert.equal(app.patchComparison, null, 'abandoned comparison cannot publish after returning to Workspace');
-  runner.cancel();
-});
-
-function runTimersImmediately(t) {
-  t.mock.method(globalThis, 'setTimeout', (callback) => {
-    callback();
-
-    // An already-fired timer has no pending debounce, matching the queue's timer callback.
-    return null;
-  });
-}
-
-test('rotation-only changes paint the builder once with their matching result', (t) => {
-  const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
-  t.after(() => {
-    if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
-    else delete globalThis.document;
-  });
-  Object.defineProperty(globalThis, 'document', {
-    configurable: true,
-    value: { body: { dataset: {} } }
-  });
-
-  let scheduledRevision = null;
-  let renderedResults = [];
-  const app = Object.assign(Object.create(ProfessionApp.prototype), {
-    initialRenderGeneration: 0,
-    deferredRotationRenderRevision: null,
-    build: { rotation: [{ type: 'wait', durationMs: 1000 }] },
-    buildRevision: 2,
-    resultRevision: 1,
-    simulationStatus: 'idle',
-    simulationError: '',
-    results: { id: 'old', contributions: [] },
-    patchComparison: null,
-    templateContainer: null,
-    prepareSimulationState: () => 2,
-    baselineSimulationRunner: {
-      schedule(revision) {
-        scheduledRevision = revision;
-      }
-    },
-    randomDistributionRunner: { schedule() {} },
-    modifierContributionRunner: { schedule() {} },
-    relicComparisonRunner: { schedule() {} },
-    adapter: {
-      renderRotationBuilder(renderedApp) {
-        renderedResults.push(renderedApp.results.id);
-      }
-    }
-  });
-
-  app.changed(false);
-  assert.equal(scheduledRevision, 2);
-  assert.deepEqual(renderedResults, [], 'the prior builder remains until the worker result is ready');
-
-  app.publishBaselineSimulation({ result: { id: 'new' } }, 2);
-  assert.deepEqual(renderedResults, ['new']);
-  assert.equal(app.resultRevision, 2);
-  assert.equal(app.deferredRotationRenderRevision, null);
-});
-
-test('build edits cancel prior analysis even when browser storage rejects writes', (t) => {
-  let storageWrites = 0;
-  const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
-  const storageDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
-  t.after(() => {
-    if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
-    else delete globalThis.document;
-
-    if (storageDescriptor) Object.defineProperty(globalThis, 'localStorage', storageDescriptor);
-    else delete globalThis.localStorage;
-  });
-  Object.defineProperty(globalThis, 'document', {
-    configurable: true,
-    value: { body: { dataset: {} }, getElementById: () => null }
-  });
-  Object.defineProperty(globalThis, 'localStorage', {
-    configurable: true,
-    value: {
-      setItem() {
-        storageWrites += 1;
-        throw new DOMException('Storage is full.', 'QuotaExceededError');
-      }
-    }
-  });
-
-  let scheduledRevision = null;
-  const cancelled = [];
-  const profession = {
-    ui: {},
-    migrateBuild: (build) => build
-  };
-  const adapter = {
-    profession,
-    storageKey: 'fixture-build',
-    toApplicationBuild: (build) => build,
-    eliteSpecialization: () => 'Core',
-    slotLoadout: { normalizeBuild: () => ({}) },
-    createBuildContext: () => ({ attributes: () => null }),
-    buildEditor: {}
-  };
-  // Supply normalized build inputs and a real tab so the edit reaches the failing storage write.
-  const tab = createBuildTab({
-    rotation: [{ type: 'wait', durationMs: 1000 }],
-    selectedSkillIds: {},
-    infusions: []
-  });
-  const app = Object.assign(Object.create(ProfessionApp.prototype), {
-    patch: { id: 'current', catalog: { skills: [], skillsById: new Map() } },
-    initialRenderGeneration: 0,
-    deferredRotationRenderRevision: null,
-    build: tab.build,
-    workspace: { tabs: [tab], activeTabId: tab.id },
-    buildRevision: 0,
-    simulationStatus: 'idle',
-    simulationError: '',
-    results: { contributions: [], modifierContributionsStale: false },
-    profession,
-    adapter,
-    randomDistributionRunner: { cancel: () => cancelled.push('random') },
-    modifierContributionRunner: { cancel: () => cancelled.push('modifiers') },
-    relicComparisonRunner: { schedule() {} },
-    baselineSimulationRunner: {
-      schedule(revision) {
-        scheduledRevision = revision;
-      }
-    }
-  });
-
-  const outgoing = app.results;
-  assert.doesNotThrow(() => app.changed(false));
-  assert.equal(outgoing.modifierContributionsStale, false, 'pending edits must not mutate cached analysis metadata');
-  assert.equal(storageWrites, 1);
-  assert.ok(app.workspace.storageError);
-  assert.equal(app.buildRevision, 1);
-  assert.equal(scheduledRevision, 1);
-  assert.equal(app.simulationStatus, 'queued');
-  assert.equal(
-    app.results.modifierContributionsStale,
-    true,
-    'an edit invalidates modifiers before baseline completion'
-  );
-  assert.deepEqual(cancelled, ['random', 'modifiers']);
-});
-
-// Capture is a new request for the current revision, not a build edit or persisted preference.
-test('damage capture queues baseline and reference work without changing the build revision', (t) => {
-  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
-  Object.defineProperty(globalThis, 'document', {
-    configurable: true,
-    value: { body: { dataset: {} }, getElementById: () => null }
-  });
-  t.after(() => {
-    if (previous) Object.defineProperty(globalThis, 'document', previous);
-    else delete globalThis.document;
-  });
-  const scheduled = [];
-  const app = Object.assign(Object.create(ProfessionApp.prototype), {
-    damageDiagnostics: false,
-    buildRevision: 3,
-    // Reference work is queued only when comparison holds a nonempty pinned rotation.
-    rotationComparison: {
-      referenceRotation: [{ type: 'wait', durationMs: 1000 }],
-      referenceResult: null,
-      referenceStatus: 'fresh',
-      referenceError: ''
-    },
-    baselineSimulationRunner: { schedule: (revision) => scheduled.push(revision) }
-  });
-  app.setDamageDiagnostics(true);
-  app.setDamageDiagnostics(true);
-  assert.equal(app.buildRevision, 3);
-  assert.equal(app.rotationComparison.referenceStatus, 'queued');
-  assert.deepEqual(scheduled, [3]);
-});
-
-test('baseline runner coalesces edits, cancels cleared work, and reuses idle workers', (t) => {
-  runTimersImmediately(t);
-  const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
-  t.after(() => {
-    if (workerDescriptor) Object.defineProperty(globalThis, 'Worker', workerDescriptor);
-    else delete globalThis.Worker;
-  });
-
-  const workers = [];
-  class ControlledWorker {
-    constructor() {
-      this.listeners = new Map();
-      this.messages = [];
-      workers.push(this);
-    }
-
-    addEventListener(type, listener) {
-      this.listeners.set(type, listener);
-    }
-
-    postMessage(message) {
-      this.messages.push(message);
-    }
-
-    terminate() {
-      this.terminated = true;
-    }
-
-    respond(message) {
-      this.listeners.get('message')?.({ data: message });
-    }
-  }
-  Object.defineProperty(globalThis, 'Worker', {
-    configurable: true,
-    writable: true,
-    value: ControlledWorker
-  });
-
-  const published = [];
-  let rotation = [{ type: 'wait', durationMs: 1 }];
-  const app = {
-    gameId: 'gw2',
-    contentId: 'necromancer',
-    buildRevision: 1,
-    simulationStatus: 'idle',
-    simulationError: '',
-    adapter: {
-      baselineSimulationRequest() {
-        return {
-          gameId: 'gw2',
-          contentId: 'necromancer',
-          rotation,
-          baseConfig: {},
-          selectedPatchId: 'current'
-        };
-      }
-    },
-    publishBaselineSimulation(output, revision) {
-      published.push([output.result.id, output.referenceResult?.id, revision]);
-    },
-    failBaselineSimulation(error) {
-      assert.fail(error);
-    }
-  };
-  const runner = new BaselineSimulationRunner(app);
-
-  runner.warmup();
-  runner.warmup();
-  assert.equal(workers.length, 1, 'warmup creates only one worker');
-  const warmup = workers[0].messages.pop();
-  assert.equal(warmup.warmup, true);
-  assert.deepEqual(warmup.request, { gameId: 'gw2', contentId: 'necromancer' });
-  workers[0].respond({ requestId: warmup.requestId });
-  assert.equal(runner.queue.inFlight, null);
-  assert.equal(app.simulationStatus, 'idle');
-  assert.deepEqual(published, [], 'warmup does not publish a simulation result');
-
-  runner.schedule(1);
-  app.buildRevision = 2;
-  runner.schedule(2);
-  assert.equal(workers.length, 1);
-  assert.equal(workers[0].messages.length, 1, 'newer work waits instead of running concurrently');
-
-  workers[0].respond({
-    requestId: 1,
-    output: { result: { id: 'old' }, referenceResult: { id: 'old-reference' } }
-  });
-  assert.deepEqual(published, [], 'the superseded result is not published');
-  assert.equal(workers[0].messages.length, 2);
-
-  workers[0].respond({
-    requestId: 2,
-    output: { result: { id: 'new' }, referenceResult: { id: 'new-reference' } }
-  });
-  assert.deepEqual(published, [['new', 'new-reference', 2]]);
-  assert.equal(workers.length, 1, 'the persistent worker handles both jobs');
-
-  // Clear releases the occupied slot without a response; late events cannot affect its replacement.
-  app.buildRevision = 3;
-  runner.schedule(3);
-  rotation = [];
-  app.buildRevision = 4;
-  runner.schedule(4);
-  assert.equal(workers[0].terminated, true);
-  assert.equal(workers.length, 2);
-  const clearJob = workers[1].messages[0];
-  workers[0].listeners.get('error')({ message: 'abandoned worker error' });
-  workers[0].respond({ ...workers[0].messages[2], output: { result: { id: 'abandoned' } } });
-  assert.equal(runner.queue.inFlight.requestId, clearJob.requestId);
-
-  rotation = [{ type: 'wait', durationMs: 2 }];
-  app.buildRevision = 5;
-  runner.schedule(5);
-  workers[1].respond({ ...clearJob, output: { result: { id: 'empty' } } });
-  const editedJob = workers[1].messages[1];
-  workers[1].respond({ ...editedJob, output: { result: { id: 'edited' } } });
-  assert.deepEqual(published, [
-    ['new', 'new-reference', 2],
-    ['edited', undefined, 5]
-  ]);
-  assert.equal(workers.length, 2, 'skills added after Clear reuse the replacement worker');
-  // A build change invalidates a result even when no replacement request has been scheduled yet.
-  app.buildRevision = 6;
-  runner.schedule(6);
-  const staleJob = workers[1].messages.at(-1);
-  app.buildRevision = 7;
-  workers[1].respond({ requestId: staleJob.requestId, output: { result: { id: 'stale-revision' } } });
-  assert.equal(published.length, 2, 'the runner retains the revision guard without a worker echo');
-  runner.cancel();
-  assert.equal(workers[1].terminated, undefined, 'switching an idle tab retains the loaded engine');
-  runner.schedule(7);
-  assert.equal(workers.length, 2, 'returning to an idle runner does not create another worker');
-  const reusedJob = workers[1].messages.at(-1);
-  assert.notEqual(reusedJob.requestId, staleJob.requestId);
-  workers[1].respond({ requestId: reusedJob.requestId, output: { result: { id: 'reused' } } });
-  assert.deepEqual(published.at(-1), ['reused', undefined, 7]);
-});
-
-test('superseded baseline fallbacks release the slot and publish only the newest edit', (t) => {
-  const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
-  Object.defineProperty(globalThis, 'Worker', { configurable: true, value: undefined });
-  t.after(() => {
-    if (workerDescriptor) Object.defineProperty(globalThis, 'Worker', workerDescriptor);
-    else delete globalThis.Worker;
-  });
-  // Hold the fallback callback until a newer edit has replaced its request.
-  const callbacks = [];
-  t.mock.method(globalThis, 'setTimeout', (callback) => {
-    callbacks.push(callback);
-    return callbacks.length;
-  });
-  t.mock.method(globalThis, 'clearTimeout', () => {});
-  const calculated = [];
-  const published = [];
-  const app = {
-    buildRevision: 1,
-    adapter: {
-      baselineSimulationRequest: () => ({ revision: app.buildRevision, rotation: [{ type: 'wait', durationMs: 1 }] }),
-      calculateBaselineSimulation(request) {
-        calculated.push(request.revision);
-        return { result: { revision: request.revision } };
-      }
-    },
-    publishBaselineSimulation(output, revision) {
-      published.push([output.result.revision, revision]);
-    },
-    failBaselineSimulation: (error) => assert.fail(error)
-  };
-  const runner = new BaselineSimulationRunner(app);
-  runner.schedule(1);
-  callbacks.shift()();
-  app.buildRevision = 2;
-  runner.schedule(2);
-  while (callbacks.length) callbacks.shift()();
-
-  assert.deepEqual(calculated, [2]);
-  assert.deepEqual(published, [[2, 2]]);
-  assert.equal(runner.queue.inFlight, null);
-  assert.equal(runner.queue.pending, null);
-});
 
 // Workspace prepares one patch; Analysis requests a missing opposite patch only for Golem.
 test('baseline requests scope patch comparison to visible Analysis and reuse fresh comparisons', (t) => {
@@ -583,6 +56,7 @@ test('baseline requests scope patch comparison to visible Analysis and reuse fre
           profession,
           build,
           patch: { id, values: {} },
+          analysis: { needsPatchComparison: () => Boolean(preview && !bosses) },
           workspace: bosses ? { scenario: createBossScenario('020102', build, 'Fixture', id) } : undefined
         };
         body.dataset.simulatorView = 'workspace';
@@ -599,7 +73,7 @@ test('baseline requests scope patch comparison to visible Analysis and reuse fre
         assert.equal(analysis.comparisonConfig?.patchId, preview && !bosses ? opposite : undefined);
 
         prepared.length = 0;
-        app.patchComparison = { current: {}, preview: {} };
+        app.analysis.needsPatchComparison = () => false;
         assert.equal(runtime.baselineSimulationRequest(app).comparisonConfig, undefined);
         assert.deepEqual(prepared, [id]);
       }
@@ -616,6 +90,7 @@ test('baseline requests refresh a queued reference once, using independent comma
     adapter,
     profession: adapter.profession,
     activeCatalog: adapter.profession.catalog,
+    analysis: { needsPatchComparison: () => false },
     attributeWeaponSet: 1,
     patch: adapter.profession.resolvePatch({ id: 'current' }),
     build,
@@ -647,574 +122,6 @@ test('baseline requests refresh a queued reference once, using independent comma
   assert.equal(adapter.baselineSimulationRequest(app).referenceRotation, undefined);
 });
 
-test('comparison reference commits only while comparison is still active', (t) => {
-  const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
-  t.after(() => {
-    if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
-    else delete globalThis.document;
-  });
-  Object.defineProperty(globalThis, 'document', {
-    configurable: true,
-    value: { body: { dataset: {} } }
-  });
-
-  const app = Object.assign(Object.create(ProfessionApp.prototype), {
-    buildRevision: 3,
-    resultRevision: 2,
-    results: { id: 'old-current' },
-    build: { rotation: STRIKE_ROTATION },
-    patchComparison: null,
-    rotationComparison: {
-      referenceRotation: [{ type: 'wait', durationMs: 1 }],
-      referenceResult: { id: 'old-reference' },
-      referenceStatus: 'queued',
-      referenceError: ''
-    },
-    deferredRotationRenderRevision: 3,
-    simulationStatus: 'running',
-    simulationError: '',
-    randomDistributionRunner: { schedule() {} },
-    modifierContributionRunner: { schedule() {} },
-    relicComparisonRunner: { schedule() {} },
-    adapter: { renderRotationBuilder() {} }
-  });
-
-  app.publishBaselineSimulation({ result: { id: 'new-current' }, referenceResult: { id: 'new-reference' } }, 3);
-  assert.equal(app.results.id, 'new-current');
-  assert.equal(app.rotationComparison.referenceResult.id, 'new-reference');
-  assert.equal(app.rotationComparison.referenceStatus, 'fresh');
-
-  app.rotationComparison = null;
-  app.buildRevision = 4;
-  app.deferredRotationRenderRevision = 4;
-  app.publishBaselineSimulation({ result: { id: 'after-exit' }, referenceResult: { id: 'ignored-reference' } }, 4);
-  assert.equal(app.results.id, 'after-exit');
-  assert.equal(app.rotationComparison, null);
-});
-
-test('baseline runner recovers after Worker construction fails', (t) => {
-  runTimersImmediately(t);
-  const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
-  t.after(() => {
-    if (workerDescriptor) Object.defineProperty(globalThis, 'Worker', workerDescriptor);
-    else delete globalThis.Worker;
-  });
-
-  let attempts = 0;
-  const workers = [];
-  class RecoveringWorker {
-    constructor() {
-      attempts += 1;
-
-      if (attempts === 1) throw new DOMException('Worker blocked.', 'SecurityError');
-
-      this.listeners = new Map();
-      this.messages = [];
-      workers.push(this);
-    }
-
-    addEventListener(type, listener) {
-      this.listeners.set(type, listener);
-    }
-
-    postMessage(message) {
-      this.messages.push(message);
-    }
-
-    terminate() {}
-
-    respond(message) {
-      this.listeners.get('message')?.({ data: message });
-    }
-  }
-  Object.defineProperty(globalThis, 'Worker', {
-    configurable: true,
-    writable: true,
-    value: RecoveringWorker
-  });
-
-  const failures = [];
-  const published = [];
-  const app = {
-    buildRevision: 1,
-    simulationStatus: 'idle',
-    simulationError: '',
-    adapter: {
-      baselineSimulationRequest() {
-        return {
-          gameId: 'gw2',
-          contentId: 'engineer',
-          rotation: [],
-          baseConfig: {},
-          selectedPatchId: 'current'
-        };
-      }
-    },
-    publishBaselineSimulation(output, revision) {
-      published.push([output.result.id, revision]);
-    },
-    failBaselineSimulation(error, revision) {
-      failures.push([error.name, revision]);
-    }
-  };
-  const runner = new BaselineSimulationRunner(app);
-
-  runner.schedule(1);
-  app.buildRevision = 2;
-  runner.schedule(2);
-
-  assert.deepEqual(failures, [['SecurityError', 1]]);
-  assert.equal(attempts, 2);
-  assert.equal(workers[0].messages.length, 1);
-  workers[0].respond({ requestId: 2, output: { result: { id: 'new' } } });
-  assert.deepEqual(published, [['new', 2]]);
-});
-
-// Workspace never prepares comparisons; Analysis waits for the current baseline and reuses completed empty results.
-test('modifier scheduling is deferred until Analysis and skips fresh or already running work', (t) => {
-  const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
-  t.after(() => {
-    if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
-    else delete globalThis.document;
-  });
-  const document = { body: { dataset: { simulatorView: 'workspace' } }, querySelector: () => null };
-  Object.defineProperty(globalThis, 'document', { configurable: true, value: document });
-  t.mock.timers.enable({ apis: ['setTimeout'] });
-  let prepared = 0;
-  let calculated = 0;
-  const app = {
-    build: { rotation: STRIKE_ROTATION },
-    buildRevision: 2,
-    resultRevision: 1,
-    results: { dps: 100, modifierContributionsStale: true },
-    randomDistributionRunner: { isRunning: false },
-    adapter: {
-      modifierContributionRequest(_app, baselineDps) {
-        assert.equal(baselineDps, 100);
-        prepared++;
-        return { comparisons: [] };
-      },
-      calculateModifierContributions() {
-        calculated++;
-        return [];
-      },
-      presentation: testPresentation(() => assert.fail('Modifiers must not remount Analysis'))
-    }
-  };
-  const runner = new ModifierContributionRunner(app);
-  runner.schedule();
-  document.body.dataset.simulatorView = 'analysis';
-  runner.schedule();
-  assert.equal(prepared, 0);
-  app.resultRevision = 2;
-  runner.schedule();
-  runner.schedule();
-  assert.equal(prepared, 1);
-  assert.equal(runner.isRunning, true);
-  t.mock.timers.runAll();
-  assert.equal(calculated, 1);
-  assert.equal(runner.isRunning, false);
-  assert.equal(app.results.modifierContributionsStale, false);
-  runner.schedule();
-  assert.equal(prepared, 1, 'an empty completed result is still fresh');
-  app.results.modifierContributionsStale = true;
-  runner.schedule();
-  runner.cancel();
-  t.mock.timers.runAll();
-  assert.equal(calculated, 1, 'leaving before the debounce finishes cancels calculation');
-  assert.equal(app.results.modifierContributionsStale, true);
-});
-
-test('modifier fallback clears stale state when calculation fails', (t) => {
-  runTimersImmediately(t);
-  let renderCount = 0;
-  const results = {
-    contributions: [{ id: 'old', name: 'Old', dpsIncrease: 1, pctIncrease: 1 }],
-    modifierContributionsStale: true
-  };
-  const app = {
-    build: { rotation: STRIKE_ROTATION },
-    results,
-    adapter: {
-      modifierContributionRequest() {
-        return { comparisons: [{}] };
-      },
-      calculateModifierContributions() {
-        throw new Error('Contribution calculation failed.');
-      },
-      presentation: testPresentation(() => {
-        renderCount += 1;
-      })
-    },
-    randomDistributionRunner: { isRunning: false }
-  };
-  const runner = new ModifierContributionRunner(app);
-
-  assert.doesNotThrow(() => runner.schedule());
-  assert.equal(results.modifierContributionsStale, false);
-  assert.equal(results.contributions, undefined);
-  assert.equal(results.modifierContributionsError, 'Contribution calculation failed.');
-  assert.equal(renderCount, 0, 'modifier errors do not rebuild the full view');
-});
-
-test('modifier worker batches ignore superseded responses and terminate on completion', (t) => {
-  runTimersImmediately(t);
-  const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
-  const navigatorDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
-  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { hardwareConcurrency: 8 } });
-  t.after(() => {
-    if (workerDescriptor) Object.defineProperty(globalThis, 'Worker', workerDescriptor);
-    else delete globalThis.Worker;
-
-    if (navigatorDescriptor) Object.defineProperty(globalThis, 'navigator', navigatorDescriptor);
-    else delete globalThis.navigator;
-  });
-
-  const workers = [];
-  class ControlledWorker {
-    constructor() {
-      this.listeners = new Map();
-      this.terminated = false;
-      workers.push(this);
-    }
-
-    addEventListener(type, listener) {
-      this.listeners.set(type, listener);
-    }
-
-    postMessage(message) {
-      this.message = message;
-    }
-
-    terminate() {
-      this.terminated = true;
-    }
-
-    respond(message) {
-      this.listeners.get('message')?.({ data: message });
-    }
-  }
-  Object.defineProperty(globalThis, 'Worker', {
-    configurable: true,
-    writable: true,
-    value: ControlledWorker
-  });
-
-  const results = { dps: 100, contributions: [], modifierContributionsStale: true };
-  let renderCount = 0;
-  const app = {
-    build: { rotation: STRIKE_ROTATION },
-    results,
-    adapter: {
-      modifierContributionRequest(_app, baselineDps) {
-        assert.equal(baselineDps, results.dps);
-        return {
-          rotation: STRIKE_ROTATION,
-          baselineDps,
-          comparisons: [80, 90, 100].map((dps) => ({
-            modifier: { id: String(dps), label: `Without ${dps}` },
-            config: { dps }
-          }))
-        };
-      },
-      presentation: testPresentation(() => {
-        renderCount += 1;
-      })
-    },
-    randomDistributionRunner: { isRunning: false }
-  };
-  const runner = new ModifierContributionRunner(app);
-
-  runner.schedule();
-  runner.cancel();
-  runner.schedule();
-  assert.equal(workers.length, 6);
-  assert.ok(workers.slice(0, 3).every((worker) => worker.terminated));
-  workers[0].respond({ requestId: 1, scores: [{ id: 'old', name: 'Old', dpsWithoutModifier: 1 }] });
-  assert.deepEqual(results.contributions, []);
-
-  const current = workers.slice(3);
-  assert.ok(current.every((worker) => !Object.hasOwn(worker.message.request, 'baseConfig')));
-  let comparisonRuns = 0;
-  const finish = (worker) =>
-    worker.respond({
-      requestId: worker.message.requestId,
-      ...calculateContributionBatch(worker.message.request, (_rotation, config) => {
-        comparisonRuns++;
-
-        return config;
-      })
-    });
-  // Partial batches must not publish stale or incomplete values.
-  finish(current[2]);
-  finish(current[1]);
-  assert.deepEqual(results.contributions, []);
-  assert.equal(runner.isRunning, true);
-  finish(current[0]);
-  assert.equal(comparisonRuns, 3);
-  assert.deepEqual(results.contributions, [
-    { id: '80', name: 'Without 80', dpsIncrease: 20, pctIncrease: 25 },
-    { id: '90', name: 'Without 90', dpsIncrease: 10, pctIncrease: (10 / 90) * 100 }
-  ]);
-  assert.ok(current.every((worker) => worker.terminated));
-  assert.equal(runner.isRunning, false);
-  assert.equal(renderCount, 0, 'modifier completion does not rebuild the full view');
-
-  // A failed omission invalidates every score from that request, including responses already in flight.
-  results.modifierContributionsStale = true;
-  runner.schedule();
-  const failed = workers.slice(6);
-  failed[0].respond({ requestId: failed[0].message.requestId, error: 'Baseline failed.' });
-  finish(failed[1]);
-  assert.ok(failed.every((worker) => worker.terminated));
-  assert.equal(results.contributions, undefined);
-  assert.equal(results.modifierContributionsError, 'Baseline failed.');
-  assert.equal(runner.isRunning, false);
-});
-
-// Idle refreshes invalidate old work without preparing inputs; requested runs capture inputs before their timer.
-test('RNG availability skips preparation and cancels old jobs while runs capture the current rotation', (t) => {
-  const originals = ['Worker', 'navigator'].map((key) => [key, Object.getOwnPropertyDescriptor(globalThis, key)]);
-  t.after(() => {
-    for (const [key, descriptor] of originals) {
-      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
-      else delete globalThis[key];
-    }
-  });
-  const timers = [];
-  t.mock.method(globalThis, 'setTimeout', (callback) => {
-    timers.push(callback);
-    return timers.length;
-  });
-  t.mock.method(globalThis, 'clearTimeout', () => {});
-  const workers = [];
-  class PendingWorker {
-    listeners = new Map();
-    constructor() {
-      workers.push(this);
-    }
-    addEventListener(type, listener) {
-      this.listeners.set(type, listener);
-    }
-    postMessage(message) {
-      this.message = message;
-    }
-    terminate() {
-      this.terminated = true;
-    }
-  }
-  Object.defineProperty(globalThis, 'Worker', { configurable: true, value: PendingWorker });
-  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { hardwareConcurrency: 2 } });
-  const prepared = [];
-  const runtime = createProfessionRuntime({
-    profession: { id: 'test', catalog: { specializations: [] } },
-    createBuildContext(input) {
-      prepared.push(input);
-      return { simulationConfig: () => ({ randomness: { mode: 'deterministic' } }) };
-    }
-  });
-  const results = {};
-  const app = {
-    build: { rotation: [{ type: 'wait', durationMs: 10 }] },
-    patch: { id: 'preview', values: { test: 2 } },
-    results,
-    adapter: { ...runtime, presentation: testPresentation(() => assert.fail('Canceled job rendered')) }
-  };
-  const runner = new RandomDistributionRunner(app);
-  runner.schedule();
-  assert.equal(prepared.length, 0);
-  assert.equal(timers.length, 0);
-  assert.equal(results.randomDistributionRequested, true);
-  assert.equal(results.randomDistributionStale, false);
-  assert.equal(results.randomDistributionTrials, DEFAULT_RANDOM_DISTRIBUTION_TRIALS);
-  assert.deepEqual(results.randomDistributionProgress, {
-    completed: 0,
-    total: DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
-    percent: 0
-  });
-
-  app.build.rotation = [];
-  runner.schedule(true);
-  assert.equal(results.randomDistributionRequested, false);
-  app.results = null;
-  runner.schedule(true);
-  assert.equal(prepared.length, 0);
-
-  app.results = results;
-  app.build.rotation = [{ type: 'wait', durationMs: 10 }];
-  runner.schedule(true);
-  assert.equal(prepared.length, 1, 'request preparation happens before deferred execution');
-  assert.equal(prepared[0].patch, app.patch);
-  app.build.rotation[0].durationMs = 20;
-  timers.shift()();
-  assert.equal(workers.length, 1);
-  const worker = workers[0];
-  assert.deepEqual(worker.message.request.rotation, [{ type: 'wait', durationMs: 10 }]);
-  assert.equal(worker.message.request.baseConfig.randomness.mode, 'stochastic');
-
-  runner.schedule();
-  assert.equal(prepared.length, 1, 'idle replacement must not prepare another configuration');
-  assert.equal(worker.terminated, true);
-  assert.equal(runner.isRunning, false);
-  worker.listeners.get('message')({
-    data: { requestId: worker.message.requestId, outcomes: [{ dps: 100, metrics: [] }] }
-  });
-  worker.listeners.get('message')({ data: { requestId: worker.message.requestId, error: 'Late error' } });
-  assert.equal(results.randomDistribution, undefined);
-  assert.equal(results.randomDistributionError, '');
-  assert.equal(results.randomDistributionStale, false);
-
-  runner.schedule(true);
-  runner.schedule();
-  timers.shift()();
-  assert.equal(workers.length, 1, 'idle refresh also cancels a run whose timer has not fired');
-  assert.equal(prepared.length, 2);
-});
-
-test('RNG worker errors preserve the ErrorEvent cause', (t) => {
-  runTimersImmediately(t);
-  const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
-
-  t.after(() => {
-    if (workerDescriptor) {
-      Object.defineProperty(globalThis, 'Worker', workerDescriptor);
-    } else {
-      delete globalThis.Worker;
-    }
-  });
-
-  class FailingWorker {
-    constructor() {
-      this.listeners = new Map();
-    }
-
-    addEventListener(type, listener) {
-      this.listeners.set(type, listener);
-    }
-
-    terminate() {}
-
-    postMessage() {
-      this.listeners.get('error')?.({
-        error: new Error('Worker module failed.'),
-        message: ''
-      });
-    }
-  }
-
-  Object.defineProperty(globalThis, 'Worker', {
-    configurable: true,
-    writable: true,
-    value: FailingWorker
-  });
-
-  let renderCount = 0;
-  const results = {};
-  const app = {
-    build: { rotation: STRIKE_ROTATION },
-    results,
-    adapter: {
-      randomDistributionRequest() {
-        return { trials: 1 };
-      },
-      presentation: testPresentation(() => {
-        renderCount += 1;
-      })
-    }
-  };
-  const runner = new RandomDistributionRunner(app);
-
-  runner.schedule(true);
-
-  assert.equal(results.randomDistributionStale, false);
-  assert.equal(results.randomDistributionError, 'Worker module failed.');
-  assert.equal(renderCount, 1);
-});
-
-test('RNG runner limits heavy batches and merges outcomes after every worker completes', (t) => {
-  runTimersImmediately(t);
-  const workerDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
-  const navigatorDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
-
-  t.after(() => {
-    if (workerDescriptor) {
-      Object.defineProperty(globalThis, 'Worker', workerDescriptor);
-    } else {
-      delete globalThis.Worker;
-    }
-
-    if (navigatorDescriptor) {
-      Object.defineProperty(globalThis, 'navigator', navigatorDescriptor);
-    } else {
-      delete globalThis.navigator;
-    }
-  });
-
-  const workers = [];
-  class PendingWorker {
-    constructor() {
-      this.listeners = new Map();
-      workers.push(this);
-    }
-
-    addEventListener(type, listener) {
-      this.listeners.set(type, listener);
-    }
-
-    terminate() {
-      this.terminated = true;
-    }
-
-    postMessage(message) {
-      this.message = message;
-    }
-
-    respond(outcomes) {
-      this.listeners.get('message')({ data: { requestId: this.message.requestId, outcomes } });
-    }
-  }
-
-  Object.defineProperty(globalThis, 'Worker', {
-    configurable: true,
-    writable: true,
-    value: PendingWorker
-  });
-  Object.defineProperty(globalThis, 'navigator', {
-    configurable: true,
-    writable: true,
-    value: { hardwareConcurrency: 16 }
-  });
-
-  const app = {
-    build: { rotation: STRIKE_ROTATION },
-    results: {
-      events: Array.from({ length: 4000 }, () => ({})),
-      resolvedEvents: Array.from({ length: 4000 }, () => ({ damageTicks: [{}] }))
-    },
-    adapter: {
-      randomDistributionRequest() {
-        return { trials: 500 };
-      },
-      presentation: testPresentation()
-    }
-  };
-
-  new RandomDistributionRunner(app).schedule(true);
-
-  assert.equal(workers.length, 2);
-  // Completion order must not lose batches or publish a partial distribution.
-  workers[1].respond(Array.from({ length: 250 }, () => ({ dps: 300, metrics: [] })));
-  assert.equal(app.results.randomDistribution, undefined);
-  assert.equal(app.results.randomDistributionStale, true);
-  workers[0].respond(Array.from({ length: 250 }, () => ({ dps: 100, metrics: [] })));
-  assert.equal(app.results.randomDistribution.trials, 500);
-  assert.equal(app.results.randomDistribution.mean, 200);
-  assert.equal(app.results.randomDistribution.p50, 200);
-  assert.equal(app.results.randomDistributionStale, false);
-  assert.deepEqual(app.results.randomDistributionProgress, { completed: 500, total: 500, percent: 100 });
-  assert.ok(workers.every((worker) => worker.terminated));
-});
-
 function minimalResult(damageAt1s) {
   // buildChartSeries only needs the DPS window, resolved damage events, and
   // (optionally) breakdown/events - keep it minimal but non-empty.
@@ -1237,7 +144,16 @@ test('relic comparison derives availability without preparing requests or simula
   const app = {
     build: { rotation: STRIKE_ROTATION, relic: 'Fractal' },
     relicNames: ['Akeem', 'Fractal', 'Thorns'],
-    results,
+    analysis: {
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results
+      }
+    },
     profession: {
       runtimeFor() {
         simulated++;
@@ -1276,7 +192,7 @@ test('relic comparison derives availability without preparing requests or simula
   runner.schedule();
   assert.equal(runner.available, false);
   assert.equal(runner.comparisonRelic, 'Akeem', 'empty rotations retain the shared selection');
-  app.results = null;
+  app.analysis.state.results = null;
   runner.schedule();
 });
 
@@ -1345,10 +261,17 @@ async function relicFixture() {
     build,
     patch: adapter.profession.resolvePatch({ id: 'current' }),
     relicNames: ['Akeem', 'Fractal', 'Thorns'],
-    buildRevision: 1,
-    resultRevision: 1,
-    simulationStatus: 'idle',
-    results: minimalResult(4000),
+    analysis: {
+      state: {
+        simulationError: '',
+        patchComparison: null,
+        buildRevision: 1,
+        resultRevision: 1,
+        simulationStatus: 'idle',
+        results: minimalResult(4000)
+      }
+    },
+
     adapter: createProfessionRuntime({
       profession: adapter.profession,
       createBuildContext(input) {
@@ -1385,15 +308,15 @@ test('relic comparison publishes synchronously without workers and preserves its
     else delete globalThis.Worker;
   });
   const { app, runner, prepared, updates } = await relicFixture();
-  const baseline = app.results;
+  const baseline = app.analysis.state.results;
   runner.schedule();
   assert.equal(prepared.length, 0);
   app.build.targetArmor = 3000;
   runner.run('Thorns', 4);
   assert.equal(prepared.length, 1);
   assert.equal(prepared[0].target.armor, 3000, 'execution prepares the current build rather than the idle refresh');
-  assert.equal(app.results, baseline);
-  assert.equal(app.results.dps, 1000);
+  assert.equal(app.analysis.state.results, baseline);
+  assert.equal(app.analysis.state.results.dps, 1000);
   assert.equal(runner.comparison.targetRelic, 'Thorns');
   assert.equal(runner.initialStacks, 4);
   assert.equal(runner.error, '');
@@ -1402,28 +325,6 @@ test('relic comparison publishes synchronously without workers and preserves its
   assert.equal(prepared.length, 2);
   assert.equal(runner.comparison.targetRelic, 'Akeem');
   assert.equal(updates(), 2);
-});
-
-test('local relic comparison reports calculation failures and recovers on retry', async () => {
-  const { app, runner, updates } = await relicFixture();
-  runner.run();
-  assert.ok(runner.comparison);
-  const profession = app.profession;
-  app.profession = {
-    ...profession,
-    runtimeFor() {
-      throw new Error('Comparison simulation failed.');
-    }
-  };
-  assert.doesNotThrow(() => runner.run());
-  assert.equal(runner.error, 'Comparison simulation failed.');
-  assert.equal(runner.comparison, null);
-  assert.equal(updates(), 2);
-  app.profession = profession;
-  runner.run();
-  assert.equal(runner.error, '');
-  assert.equal(runner.comparison.targetRelic, 'Thorns');
-  assert.equal(updates(), 3);
 });
 
 // The controls belong to the tool; output belongs to the exact baseline and build revision used by the calculation.
@@ -1438,8 +339,8 @@ test('relic controls survive baseline changes while stale output is discarded be
   assert.equal(runner.comparison, null, 'changing assumptions invalidates the curve immediately');
   runner.run();
   assert.ok(runner.comparison);
-  app.buildRevision++;
-  app.simulationStatus = 'queued';
+  app.analysis.state.buildRevision++;
+  app.analysis.state.simulationStatus = 'queued';
   runner.schedule();
   assert.equal(runner.comparison, null);
   const before = prepared.length;
@@ -1448,17 +349,17 @@ test('relic controls survive baseline changes while stale output is discarded be
   assert.equal(runner.comparisonRelic, 'Thorns');
   assert.equal(runner.initialStacks, 8);
 
-  app.resultRevision = app.buildRevision;
-  app.simulationStatus = 'idle';
+  app.analysis.state.resultRevision = app.analysis.state.buildRevision;
+  app.analysis.state.simulationStatus = 'idle';
   runner.run();
   assert.ok(runner.comparison);
-  app.results = minimalResult(5000);
+  app.analysis.state.results = minimalResult(5000);
   runner.schedule();
   assert.equal(runner.comparison, null, 'replacement baselines invalidate output even at the same revision');
   runner.run();
   assert.equal(runner.comparison.opponentFinalDps, 1250);
 
-  app.results = null;
+  app.analysis.state.results = null;
   runner.schedule();
   assert.equal(runner.available, false);
   assert.equal(runner.comparison, null);
@@ -1491,12 +392,12 @@ test('relic preparation failures invalidate prior output and remain visible unti
 // Restored patch baselines reuse their own relic result, but changed controls or a new baseline cannot reuse it.
 test('relic comparisons survive validated baseline restoration without another simulation', async () => {
   const { app, runner, prepared } = await relicFixture();
-  const live = app.results;
+  const live = app.analysis.state.results;
   runner.run('Thorns', 4);
   const liveComparison = runner.comparison;
   const preview = minimalResult(5000);
-  app.results = preview;
-  app.resultRevision = ++app.buildRevision;
+  app.analysis.state.results = preview;
+  app.analysis.state.resultRevision = ++app.analysis.state.buildRevision;
   runner.schedule();
   assert.equal(runner.comparison, null);
   runner.run();
@@ -1506,11 +407,11 @@ test('relic comparisons survive validated baseline restoration without another s
     [live, liveComparison],
     [preview, previewComparison]
   ]) {
-    app.buildRevision++;
+    app.analysis.state.buildRevision++;
     runner.schedule();
     assert.equal(runner.comparison, null, 'pending baselines cannot display completed comparisons');
-    app.results = result;
-    app.resultRevision = app.buildRevision;
+    app.analysis.state.results = result;
+    app.analysis.state.resultRevision = app.analysis.state.buildRevision;
     runner.schedule();
     assert.equal(runner.comparison, comparison);
   }
@@ -1523,8 +424,330 @@ test('relic comparisons survive validated baseline restoration without another s
   runner.schedule();
   assert.equal(runner.comparison, null, 'different relics invalidate the saved comparison');
   runner.select('Thorns', 4);
-  app.results = minimalResult(6000);
+  app.analysis.state.results = minimalResult(6000);
   runner.schedule();
   assert.equal(runner.comparison, null, 'newly simulated inputs need a new comparison');
   assert.equal(prepared.length, requests);
+});
+
+/** Controlled workers expose transport completion without giving tests application-state mutation privileges. */
+function controlledWorkers(t) {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const workers = [];
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'Worker');
+  class ControlledWorker {
+    messages = [];
+    listeners = new Map();
+    terminated = false;
+    constructor() {
+      workers.push(this);
+    }
+    addEventListener(name, listener) {
+      this.listeners.set(name, listener);
+    }
+    postMessage(message) {
+      this.messages.push(message);
+    }
+    terminate() {
+      this.terminated = true;
+    }
+    respond(message, payload) {
+      this.listeners.get('message')({ data: { requestId: message.requestId, ...payload } });
+    }
+  }
+  Object.defineProperty(globalThis, 'Worker', { configurable: true, writable: true, value: ControlledWorker });
+  t.after(() => (previous ? Object.defineProperty(globalThis, 'Worker', previous) : delete globalThis.Worker));
+  return workers;
+}
+
+test('baseline execution coalesces pending requests and only publishes the newest operation', (t) => {
+  const workers = controlledWorkers(t);
+  const runner = new BaselineSimulationRunner(() => assert.fail('Worker path expected'));
+  t.after(() => runner.cancel());
+  const completed = [];
+  const operation = (id) => ({
+    request: { id },
+    started() {},
+    complete: (output) => completed.push(output.result.id),
+    fail: assert.fail
+  });
+  runner.run(operation(1));
+  t.mock.timers.tick(40);
+  const worker = workers[0];
+  const first = worker.messages[0];
+  runner.run(operation(2));
+  runner.run(operation(3));
+  t.mock.timers.tick(40);
+  worker.respond(first, { output: { result: { id: 1 } } });
+  assert.deepEqual(completed, []);
+  assert.equal(worker.messages.at(-1).request.id, 3);
+  worker.respond(worker.messages.at(-1), { output: { result: { id: 3 } } });
+  assert.deepEqual(completed, [3]);
+  runner.run(operation(4));
+  t.mock.timers.tick(40);
+  assert.equal(workers.length, 1, 'idle worker stays warm');
+  runner.cancel();
+  assert.equal(worker.terminated, true);
+  worker.respond(worker.messages.at(-1), { output: { result: { id: 4 } } });
+  assert.deepEqual(completed, [3]);
+});
+
+test('modifier execution waits for lifecycle eligibility and merges worker partitions', (t) => {
+  const workers = controlledWorkers(t);
+  const runner = new ModifierContributionRunner(() => assert.fail('Worker path expected'));
+  t.after(() => runner.cancel());
+  let ready = false;
+  let completed;
+  runner.run({
+    request: {
+      gameId: 'gw2',
+      contentId: 'fixture',
+      baselineDps: 100,
+      rotation: [],
+      comparisons: [
+        { modifier: { id: 'a', name: 'A' }, config: {} },
+        { modifier: { id: 'b', name: 'B' }, config: {} }
+      ]
+    },
+    ready: () => ready,
+    complete: (value) => {
+      completed = value;
+    },
+    fail: assert.fail
+  });
+  t.mock.timers.tick(750);
+  assert.equal(workers.length, 0);
+  ready = true;
+  t.mock.timers.tick(250);
+  for (const worker of [...workers].reverse()) {
+    const job = worker.messages[0];
+    worker.respond(job, {
+      scores: job.request.comparisons.map(({ modifier }) => ({
+        id: modifier.id,
+        name: modifier.name,
+        dpsWithoutModifier: 90
+      }))
+    });
+  }
+
+  assert.deepEqual(completed.map(({ id }) => id).sort(), ['a', 'b']);
+  assert.ok(workers.every((worker) => worker.terminated));
+});
+
+test('RNG execution aggregates progress and rejects messages after cancellation', (t) => {
+  const workers = controlledWorkers(t);
+  const runner = new RandomDistributionRunner(() => assert.fail('Worker path expected'));
+  t.after(() => runner.cancel());
+  const progress = [];
+  let completed;
+  const operation = {
+    request: { rotation: [], baseConfig: {}, trials: 2 },
+    baseline: { events: [], resolvedEvents: [] },
+    progress: (value) => progress.push(value),
+    complete: (value) => {
+      completed = value;
+    },
+    fail: assert.fail
+  };
+  runner.run(operation);
+  t.mock.timers.tick(0);
+  for (const worker of [...workers].reverse()) {
+    const job = worker.messages[0];
+    worker.respond(job, { progress: { completed: job.request.trials, total: job.request.trials, percent: 100 } });
+    worker.respond(job, { outcomes: Array.from({ length: job.request.trials }, () => ({ dps: 10, metrics: [] })) });
+  }
+
+  assert.equal(progress.at(-1).completed, 2);
+  assert.equal(completed.trials, 2);
+  runner.run({ ...operation, complete: () => assert.fail('Canceled output') });
+  t.mock.timers.tick(0);
+  const last = workers.at(-1);
+  runner.cancel();
+  last.respond(last.messages[0], { outcomes: [{ dps: 999, metrics: [] }] });
+  assert.equal(last.terminated, true);
+});
+
+test('worker construction failures report the cause and a later baseline can retry', (t) => {
+  controlledWorkers(t);
+  const WorkingWorker = globalThis.Worker;
+  const cause = new Error('construction failed');
+  globalThis.Worker = class {
+    constructor() {
+      throw cause;
+    }
+  };
+  let failed;
+  const runner = new BaselineSimulationRunner(() => ({}));
+  t.after(() => runner.cancel());
+  const operation = {
+    request: {},
+    started() {},
+    complete() {},
+    fail: (error) => {
+      failed = error;
+    }
+  };
+  runner.run(operation);
+  t.mock.timers.tick(40);
+  assert.equal(failed, cause);
+  assert.equal(runner.queue.isRunning, false);
+  globalThis.Worker = WorkingWorker;
+  runner.run(operation);
+  t.mock.timers.tick(40);
+  assert.equal(runner.queue.isRunning, true);
+});
+
+// Local calculation failures remain retryable independently of the active analysis lifecycle.
+test('local relic comparison reports calculation failures and recovers on retry', async () => {
+  const { app, runner, updates } = await relicFixture();
+  runner.run();
+  assert.ok(runner.comparison);
+  const profession = app.profession;
+  app.profession = {
+    ...profession,
+    runtimeFor() {
+      throw new Error('Comparison simulation failed.');
+    }
+  };
+  assert.doesNotThrow(() => runner.run());
+  assert.equal(runner.error, 'Comparison simulation failed.');
+  assert.equal(runner.comparison, null);
+  assert.equal(updates(), 2);
+  app.profession = profession;
+  runner.run();
+  assert.equal(runner.error, '');
+  assert.equal(runner.comparison.targetRelic, 'Thorns');
+  assert.equal(updates(), 3);
+});
+
+// Preserve application rendering and persistence contracts around lifecycle transitions.
+test('rotation-only changes paint the builder once with their matching result', (t) => {
+  const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  t.after(() => {
+    if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
+    else delete globalThis.document;
+  });
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: { body: { dataset: {} } }
+  });
+
+  const f = analysisFixture({ changed: (change) => app.onAnalysisChange(change) });
+  let renderedResults = [];
+  const app = Object.assign(Object.create(ProfessionApp.prototype), {
+    initialRenderGeneration: 0,
+    deferredRotationRenderRevision: null,
+    build: { rotation: [{ type: 'wait', durationMs: 1000 }] },
+    analysis: f.lifecycle,
+    templateContainer: null,
+    prepareSimulationState: () => app.analysis.changeInputs(),
+    relicComparisonRunner: { schedule() {} },
+    adapter: {
+      renderRotationBuilder(renderedApp) {
+        renderedResults.push(renderedApp.analysis.state.results.id);
+      }
+    }
+  });
+
+  app.analysis.restore({ results: { id: 'old', contributions: [] }, patchComparison: null, fresh: true });
+  app.changed(false);
+  assert.equal(f.work.baseline.length, 1);
+  assert.deepEqual(renderedResults, [], 'the prior builder remains until the worker result is ready');
+
+  f.work.baseline[0].complete({ result: { id: 'new' } });
+  assert.deepEqual(renderedResults, ['new']);
+  assert.equal(app.analysis.state.resultRevision, 2);
+  assert.equal(app.deferredRotationRenderRevision, null);
+});
+
+// Preserve application rendering and persistence contracts around lifecycle transitions.
+test('build edits cancel prior analysis even when browser storage rejects writes', (t) => {
+  let storageWrites = 0;
+  const documentDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  const storageDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  t.after(() => {
+    if (documentDescriptor) Object.defineProperty(globalThis, 'document', documentDescriptor);
+    else delete globalThis.document;
+
+    if (storageDescriptor) Object.defineProperty(globalThis, 'localStorage', storageDescriptor);
+    else delete globalThis.localStorage;
+  });
+  Object.defineProperty(globalThis, 'document', {
+    configurable: true,
+    value: { body: { dataset: {} }, getElementById: () => null }
+  });
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      setItem() {
+        storageWrites += 1;
+        throw new DOMException('Storage is full.', 'QuotaExceededError');
+      }
+    }
+  });
+
+  let scheduled = null;
+  const cancelled = [];
+  const profession = {
+    ui: {},
+    migrateBuild: (build) => build
+  };
+  const adapter = {
+    profession,
+    storageKey: 'fixture-build',
+    toApplicationBuild: (build) => build,
+    eliteSpecialization: () => 'Core',
+    slotLoadout: { normalizeBuild: () => ({}) },
+    createBuildContext: () => ({ attributes: () => null }),
+    baselineSimulationRequest: () => ({ rotation: tab.build.rotation, baseConfig: {} }),
+    buildEditor: {}
+  };
+  // Supply normalized build inputs and a real tab so the edit reaches the failing storage write.
+  const tab = createBuildTab({
+    rotation: [{ type: 'wait', durationMs: 1000 }],
+    selectedSkillIds: {},
+    infusions: []
+  });
+  const app = Object.assign(Object.create(ProfessionApp.prototype), {
+    patch: { id: 'current', catalog: { skills: [], skillsById: new Map() } },
+    initialRenderGeneration: 0,
+    deferredRotationRenderRevision: null,
+    build: tab.build,
+    workspace: { tabs: [tab], activeTabId: tab.id },
+    damageDiagnostics: false,
+    profession,
+    adapter,
+    gearOptimizerRunner: { cancel() {} },
+    randomDistributionRunner: { cancel: () => cancelled.push('random') },
+    modifierContributionRunner: { cancel: () => cancelled.push('modifiers') },
+    relicComparisonRunner: { schedule() {} },
+    baselineSimulationRunner: {
+      cancel() {},
+      run(operation) {
+        scheduled = operation;
+      }
+    }
+  });
+
+  app.analysis = createAnalysisResultLifecycle(app, () => {});
+  app.analysis.restore({
+    results: { contributions: [], modifierContributionsStale: false },
+    fresh: true,
+    patchComparison: null
+  });
+  cancelled.length = 0;
+  const outgoing = app.analysis.state.results;
+  assert.doesNotThrow(() => app.changed(false));
+  assert.equal(outgoing.modifierContributionsStale, false, 'pending edits must not mutate cached analysis metadata');
+  assert.equal(storageWrites, 1);
+  assert.ok(app.workspace.storageError);
+  assert.equal(app.analysis.state.buildRevision, 2);
+  assert.ok(scheduled);
+  assert.equal(app.analysis.state.simulationStatus, 'queued');
+  assert.equal(
+    app.analysis.state.results.modifierContributionsStale,
+    true,
+    'an edit invalidates modifiers before baseline completion'
+  );
+  assert.deepEqual(new Set(cancelled), new Set(['random', 'modifiers']));
 });

@@ -231,7 +231,7 @@ export function renderRotationInsights(app: ProfessionAppState, fresh: boolean):
   if (!root.open) return;
 
   windowSelect.value = comparison.windowMode;
-  const current = app.results,
+  const current = app.analysis.state.results,
     reference = comparison.referenceResult,
     descriptor = comparison.reference;
   const hasReference = comparison.referenceRotation.length > 0;
@@ -245,8 +245,8 @@ export function renderRotationInsights(app: ProfessionAppState, fresh: boolean):
     const message =
       comparison?.referenceStatus === 'error'
         ? `Reference error: ${comparison.referenceError}`
-        : app.simulationStatus === 'error'
-          ? `Current error: ${app.simulationError}`
+        : app.analysis.state.simulationStatus === 'error'
+          ? `Current error: ${app.analysis.state.simulationError}`
           : !hasReference
             ? 'Load a reference rotation to compare damage.'
             : 'Updating comparison...';

@@ -9,15 +9,17 @@ test('damage capture reruns the baseline and exports its calculations without pe
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
   await page.waitForFunction(
-    () => window.professionApp.simulationStatus === 'idle' && window.professionApp.results?.totalDamage > 0
+    () =>
+      window.professionApp.analysis.state.simulationStatus === 'idle' &&
+      window.professionApp.analysis.state.results?.totalDamage > 0
   );
   const original = await page.evaluate(() => {
     const app = window.professionApp;
     return {
-      damage: app.results.totalDamage,
-      seed: app.results.randomness.seed,
+      damage: app.analysis.state.results.totalDamage,
+      seed: app.analysis.state.results.randomness.seed,
       rotation: app.build.rotation,
-      revision: app.buildRevision
+      revision: app.analysis.state.buildRevision
     };
   });
   await page.locator('#rotation-event-log > details > summary').click();
@@ -35,8 +37,8 @@ test('damage capture reruns the baseline and exports its calculations without pe
   await expect(download).toHaveText('Download debug JSON');
   await expect(download).toBeEnabled();
   await expect(page.locator('#rotation-event-log .btn-csv-export')).toHaveCount(1);
-  expect(await page.evaluate(() => window.professionApp.results.totalDamage)).toBe(original.damage);
-  expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(original.revision);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.totalDamage)).toBe(original.damage);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.buildRevision)).toBe(original.revision);
   // Hits sit inside their collapsed casts.
   await page.getByRole('button', { name: 'Expand all', exact: true }).click();
   const hit = page
@@ -59,7 +61,9 @@ test('damage capture reruns the baseline and exports its calculations without pe
 
   await capture.uncheck();
   await page.waitForFunction(
-    () => window.professionApp.simulationStatus === 'idle' && !window.professionApp.results.debugInputs
+    () =>
+      window.professionApp.analysis.state.simulationStatus === 'idle' &&
+      !window.professionApp.analysis.state.results.debugInputs
   );
   await expect(download).toHaveText('Download CSV Log');
   await expect(download).toBeEnabled();
@@ -77,7 +81,7 @@ test('damage capture reruns the baseline and exports its calculations without pe
   await page.reload();
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   expect(await page.evaluate(() => window.professionApp.damageDiagnostics)).toBe(false);
-  expect(await page.evaluate(() => window.professionApp.results.debugInputs)).toBeUndefined();
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.debugInputs)).toBeUndefined();
 });
 
 // Native disclosure must open from the keyboard and render diagnostic text safely.

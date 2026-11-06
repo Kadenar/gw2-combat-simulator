@@ -22,7 +22,9 @@ test('rotation warnings show each rejected input on the combat-relative timeline
     });
     app.changed();
   });
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   const panel = page.locator('#rotation-warnings');
   await panel.locator('summary').click();
   await expect(panel.locator('.rotation-warning-time')).toHaveText(['-1.000s', '2.000s']);

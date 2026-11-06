@@ -1,5 +1,6 @@
+/** Debounces and partitions modifier execution without owning application result state. */
 import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/game/worker-harness.js';
-import { analysisViewIsActive } from '#browser/shell/result-view.js';
+import type { ModifierOperation } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import {
   mergeModifierContributions,
   modifierContributionWorkerCount,
@@ -11,110 +12,41 @@ import type {
   ModifierContributionBatchResult,
   ModifierContributionRequest
 } from '#gw2/app/simulation/modifier-contributions/types.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
-
-const MODIFIER_CONTRIBUTION_DEBOUNCE_MS = 750;
 
 type ModifierContributionWorkerMessage = GameWorkerResponseEnvelope & ModifierContributionBatchResult;
 
 export class ModifierContributionRunner {
-  readonly app: ProfessionAppState;
-  timer: ReturnType<typeof setTimeout> | null;
-  requestId: number;
-  isRunning = false;
-  private readonly batch: ManagedWorkerBatch<ModifierContributionWorkerMessage>;
-  readonly onUpdate: () => void;
-
-  constructor(app: ProfessionAppState, onUpdate: () => void = () => {}) {
-    this.app = app;
-    this.timer = null;
-    this.batch = new ManagedWorkerBatch();
-    this.requestId = 0;
-    this.onUpdate = onUpdate;
-  }
-
-  /** Stops work owned by the outgoing tab before another result becomes active. */
+  private timer: ReturnType<typeof setTimeout> | null = null;
+  private requestId = 0;
+  private readonly batch = new ManagedWorkerBatch<ModifierContributionWorkerMessage>();
+  constructor(private readonly calculate: (request: ModifierContributionRequest) => ModifierContribution[]) {}
   cancel(): void {
-    this.requestId += 1;
+    ++this.requestId;
 
     if (this.timer !== null) clearTimeout(this.timer);
 
     this.timer = null;
     this.batch.terminateAll();
-    this.isRunning = false;
   }
-
-  schedule(): void {
-    const app = this.app;
-
-    // Only missing or stale comparisons for the current baseline consume workers while Analysis is visible.
-    if (
-      this.isRunning ||
-      app.simulationStatus === 'queued' ||
-      app.simulationStatus === 'running' ||
-      !analysisViewIsActive() ||
-      !app.build.rotation.length ||
-      !app.results ||
-      app.resultRevision !== app.buildRevision ||
-      (Array.isArray(app.results.contributions) && !app.results.modifierContributionsStale)
-    )
-      return;
-
-    this.isRunning = true;
+  run(operation: ModifierOperation): void {
+    this.cancel();
     const requestId = ++this.requestId;
-
-    if (this.timer !== null) clearTimeout(this.timer);
-
-    this.timer = null;
-    const failContributions = (error: unknown): void => {
-      if (requestId !== this.requestId || !app.results) return;
-
-      this.isRunning = false;
-      // Failed comparisons must not make carried values from the prior build look current.
-      app.results.contributions = undefined;
-      app.results.modifierContributionsStale = false;
-      app.results.modifierContributionsError =
-        error instanceof Error ? error.message : String(error || 'Modifier contribution calculation failed.');
-      this.onUpdate();
+    const { request } = operation;
+    const failContributions = (error: unknown) => {
+      if (requestId === this.requestId) operation.fail(error);
     };
 
-    // A new schedule owns a fresh batch, terminating and invalidating any prior pool.
+    const applyContributions = (contributions: ModifierContribution[]) => {
+      if (requestId === this.requestId) operation.complete(contributions);
+    };
+
     this.batch.begin(requestId, failContributions);
-
-    app.results.modifierContributionsStale = true;
-    app.results.modifierContributionsError = '';
-    this.onUpdate();
-    let request: ModifierContributionRequest;
-    try {
-      // Revision gating above guarantees that this score belongs to the current build and selected patch.
-      request = app.adapter.modifierContributionRequest(app, app.results.dps);
-    } catch (error) {
-      failContributions(error);
-
-      return;
-    }
-
-    const applyContributions = (contributions: ModifierContribution[]): void => {
-      if (requestId !== this.requestId || !app.results) return;
-
-      this.isRunning = false;
-      app.results.contributions = contributions;
-      app.results.modifierContributionsStale = false;
-      app.results.modifierContributionsError = '';
-      this.onUpdate();
-    };
-
     const calculateContributions = (): void => {
       this.timer = null;
 
       if (requestId !== this.requestId) return;
 
-      // Let chart enrichment and RNG sampling finish before starting contribution comparisons.
-      if (
-        app.simulationStatus === 'queued' ||
-        app.simulationStatus === 'running' ||
-        app.randomDistributionRunner.isRunning
-      ) {
+      if (!operation.ready()) {
         this.timer = setTimeout(calculateContributions, 250);
         return;
       }
@@ -167,12 +99,12 @@ export class ModifierContributionRunner {
       }
 
       try {
-        applyContributions(app.adapter.calculateModifierContributions(request));
+        applyContributions(this.calculate(request));
       } catch (error) {
         failContributions(error);
       }
     };
 
-    this.timer = setTimeout(calculateContributions, MODIFIER_CONTRIBUTION_DEBOUNCE_MS);
+    this.timer = setTimeout(calculateContributions, 750);
   }
 }

@@ -263,22 +263,27 @@ test('Guardian snapshots display selected caps and modifier bonuses', () => {
   }));
   // Both caps and bonuses must come from the selected balance context without a separate app catalog.
   const app = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: {
+          events,
+          ...effectFields(events, 120),
+          planningState: {
+            ...effectPlanningState(effectFields(events, 120), 1),
+            profession: {
+              [STATE.SYMBOLIC_AVENGER_EXPIRATIONS]: [5, 6],
+              [STATE.EFFULGENT_STACKS]: 12,
+              [STATE.EFFULGENT_ACTIVE_UNTIL]: 4
+            }
+          }
+        }
+      }
+    },
     build: { rotation: [] },
     profession,
     patch: profession.resolvePatch({ id: 'guardian-snapshot' }),
-    adapter: { eliteSpecialization: () => 'Luminary' },
-    results: {
-      events,
-      ...effectFields(events, 120),
-      planningState: {
-        ...effectPlanningState(effectFields(events, 120), 1),
-        profession: {
-          [STATE.SYMBOLIC_AVENGER_EXPIRATIONS]: [5, 6],
-          [STATE.EFFULGENT_STACKS]: 12,
-          [STATE.EFFULGENT_ACTIVE_UNTIL]: 4
-        }
-      }
-    }
+    adapter: { eliteSpecialization: () => 'Luminary' }
   };
   const items = new Map(rotationStateSnapshot(app).items.map((item) => [item.id, item]));
   assert.equal(items.get('guardian-symbolic-avenger').value, '2/7 · 5.0s');

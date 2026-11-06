@@ -27,7 +27,9 @@ test('weapon-swap line breaks survive settings that end combat before the remain
     app.changed();
   });
   const assertRows = async () => {
-    await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+    await page.waitForFunction(
+      () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+    );
     await expect(page.locator('#rotation-timeline > .rot-row')).toHaveCount(3);
     const positions = await page.locator('#rotation-timeline > .rot-row').evaluateAll((rows) =>
       rows.map((row) => ({
@@ -46,7 +48,7 @@ test('weapon-swap line breaks survive settings that end combat before the remain
   await health.fill('1');
   await health.press('Tab');
   await assertRows();
-  expect(await page.evaluate(() => window.professionApp.results.deathTime)).not.toBeNull();
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.deathTime)).not.toBeNull();
   const delay = page.locator('#simulation-weaponSwapMs');
   await delay.fill('100');
   await delay.press('Tab');
@@ -65,7 +67,7 @@ test('returning to a cached tab refreshes Current and Reference after a shared d
     app.build.rotation = [{ type: 'combat-start' }, { type: 'cast', skillId: -3 }, { type: 'cast', skillId: 73154 }];
     app.changed(false);
   });
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   await page.evaluate(() => {
     const app = window.professionApp;
     app.startRotationComparison();
@@ -76,7 +78,7 @@ test('returning to a cached tab refreshes Current and Reference after a shared d
     const app = window.professionApp;
     return {
       tabId: app.workspace.activeTabId,
-      current: app.results,
+      current: app.analysis.state.results,
       reference: app.rotationComparison.referenceResult
     };
   });
@@ -85,7 +87,7 @@ test('returning to a cached tab refreshes Current and Reference after a shared d
     const app = window.professionApp;
     addBuildTab(app, app.build, 'Other build');
   });
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   await page.locator('#simulation-settings > summary').click();
   const delay = page.locator('#simulation-weaponSwapMs');
   await delay.fill('1000');
@@ -93,15 +95,15 @@ test('returning to a cached tab refreshes Current and Reference after a shared d
   await page.evaluate(({ tabId }) => window.professionApp.activateBuildTab(tabId), cached);
   await page.waitForFunction(() => {
     const app = window.professionApp;
-    return app.simulationStatus === 'idle' && app.rotationComparison?.referenceStatus === 'fresh';
+    return app.analysis.state.simulationStatus === 'idle' && app.rotationComparison?.referenceStatus === 'fresh';
   });
   expect(
     await page.evaluate(({ current, reference }) => {
       const app = window.professionApp;
       return {
-        currentReplaced: app.results !== current,
+        currentReplaced: app.analysis.state.results !== current,
         referenceReplaced: app.rotationComparison.referenceResult !== reference,
-        revisionMatches: app.resultRevision === app.buildRevision
+        revisionMatches: app.analysis.state.resultRevision === app.analysis.state.buildRevision
       };
     }, cached)
   ).toEqual({ currentReplaced: true, referenceReplaced: true, revisionMatches: true });
@@ -130,11 +132,13 @@ test('transition delay preferences persist globally and control imported rotatio
     const file = new File([JSON.stringify(rotation)], 'rotation.json', { type: 'application/json' });
     applyRotationImportPreview(app, await previewRotationFile(file, app));
   });
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   const importedState = await page.evaluate(() => {
     const app = window.professionApp;
     return {
-      warnings: app.results.warnings,
+      warnings: app.analysis.state.results.warnings,
       buildHasSettings: JSON.stringify(app.build).includes('transitionDelays'),
       settings: app.simulationSettings.transitionDelays
     };
@@ -147,10 +151,10 @@ test('transition delay preferences persist globally and control imported rotatio
   await expect(forced.first()).toHaveAttribute('title', /Forced transition delay: 20 ms/);
   await expect(forced.first()).toBeVisible();
   expect(await forced.first().evaluate((element) => getComputedStyle(element).borderTopStyle)).toBe('solid');
-  const revision = await page.evaluate(() => window.professionApp.buildRevision);
+  const revision = await page.evaluate(() => window.professionApp.analysis.state.buildRevision);
   await page.getByRole('checkbox', { name: 'Display transition delays', exact: true }).uncheck();
   await expect(forced.first()).toBeHidden();
-  expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(revision);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.buildRevision)).toBe(revision);
   // Switch through the real workspace path while preserving the inline settings.
   await page.evaluate(async () => {
     const { addBuildTab } = await import('/js/games/gw2/app/build/state/workspace.ts');
@@ -167,7 +171,9 @@ test('transition delay preferences persist globally and control imported rotatio
   expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.forgeEntryMs)).toBe(100);
   await page.locator('#simulation-settings > summary').click();
   await settings.getByRole('button', { name: 'Clear all', exact: true }).click();
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   expect(await settings.getByRole('spinbutton').evaluateAll((inputs) => inputs.map((input) => input.value))).toEqual([
     '0',
     '0',
@@ -231,8 +237,8 @@ test('simulation seed and critical damage settings persist with the build', asyn
   await seed.press('Tab');
   await page.waitForFunction(
     () =>
-      window.professionApp.resultRevision === window.professionApp.buildRevision &&
-      window.professionApp.results?.randomness.seed === 3576928633
+      window.professionApp.analysis.state.resultRevision === window.professionApp.analysis.state.buildRevision &&
+      window.professionApp.analysis.state.results?.randomness.seed === 3576928633
   );
   expect(
     await page.evaluate(() => JSON.parse(JSON.stringify(window.professionApp.build)).assumptions.simulationSeed)
@@ -242,13 +248,13 @@ test('simulation seed and critical damage settings persist with the build', asyn
   await page.locator('#simulation-settings > summary').click();
   await expect(seed).toHaveValue('3576928633');
   await expect(criticalDamage).toHaveValue('averaged');
-  await page.waitForFunction(() => window.professionApp.results?.randomness.seed === 3576928633);
+  await page.waitForFunction(() => window.professionApp.analysis.state.results?.randomness.seed === 3576928633);
   await seed.fill('0');
   await seed.press('Tab');
   await page.waitForFunction(
     () =>
-      window.professionApp.resultRevision === window.professionApp.buildRevision &&
-      window.professionApp.results?.randomness.seed === 0
+      window.professionApp.analysis.state.resultRevision === window.professionApp.analysis.state.buildRevision &&
+      window.professionApp.analysis.state.results?.randomness.seed === 0
   );
 });
 

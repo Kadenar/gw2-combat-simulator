@@ -52,7 +52,16 @@ function previewApp(name, traitNames = [], specialization = null) {
     gameId: 'gw2',
     contentId: name,
     weaponData: adapter.weaponData,
-    results: null,
+    analysis: {
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: null
+      }
+    },
     profession: adapter.profession,
     activeCatalog: adapter.profession.catalog,
     patch: adapter.profession.resolvePatch({ id: 'current' }),

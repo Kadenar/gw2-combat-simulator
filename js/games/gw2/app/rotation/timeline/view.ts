@@ -6,7 +6,8 @@ import { bindTimelineInteractions } from '#gw2/app/rotation/timeline/interaction
 import { currentTimelineResults, procFilterKey } from '#gw2/app/rotation/timeline/model.js';
 import { timelineRowsView, type TimelineRowRender } from '#gw2/app/rotation/timeline/rows.js';
 import { restoreFocusWithoutTooltip } from '#gw2/app/shared/tooltip-overlay.js';
-import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ProcStep } from '#gw2/platform/results/types.js';
 import { closeFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
@@ -57,13 +58,13 @@ export function reconcileTimelineRows(
 }
 
 /** Converts a DPS-window preview time back to scheduler time for authored-step highlighting. */
-export function rotationPreviewSchedulerTimeMs(result: ProfessionAppResult, previewTimeMs: number): number {
+export function rotationPreviewSchedulerTimeMs(result: AnalysisResult, previewTimeMs: number): number {
   return Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000 + Math.max(0, Number(previewTimeMs) || 0);
 }
 
 /** Finds every authored action active at a preview point, falling back to the latest action already started. */
 export function authoredStepIndexesAtPreviewTime(
-  result: ProfessionAppResult | null | undefined,
+  result: AnalysisResult | null | undefined,
   previewTimeMs: number | null | undefined
 ): number[] {
   if (!result || previewTimeMs == null) return [];
@@ -96,7 +97,7 @@ export function authoredStepIndexesAtPreviewTime(
 /** Applies point-in-time emphasis without rebuilding either timeline or scheduling simulation work. */
 export function applyTimelinePreviewHighlight(
   root: HTMLElement | null | undefined,
-  result: ProfessionAppResult | null | undefined,
+  result: AnalysisResult | null | undefined,
   previewTimeMs: number | null | undefined
 ): void {
   if (!root) return;
@@ -122,7 +123,7 @@ export interface TimelineRenderOptions {
   readonly root?: HTMLElement | null;
   readonly procRoot?: HTMLElement | null;
   readonly build?: Gw2CanonicalBuild;
-  readonly result?: ProfessionAppResult | null;
+  readonly result?: AnalysisResult | null;
   readonly readOnly?: boolean;
   readonly previewTimeMs?: number | null;
 }
@@ -161,10 +162,13 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
   const focusedRemoval = focused?.matches('.rot-x') && element.contains(focused) ? focused : null;
   const removalIndex = Number(focusedRemoval?.closest<HTMLElement>('.rot-skill')?.dataset.idx);
 
-  element.dataset.buildRevision = String(app.buildRevision);
-  element.dataset.resultRevision = String(app.resultRevision);
+  element.dataset.buildRevision = String(app.analysis.state.buildRevision);
+  element.dataset.resultRevision = String(app.analysis.state.resultRevision);
   // Explicit reference results are ready; live timelines stay busy until their revisions match.
-  element.setAttribute('aria-busy', String(!resultIsExplicit && app.resultRevision !== app.buildRevision));
+  element.setAttribute(
+    'aria-busy',
+    String(!resultIsExplicit && app.analysis.state.resultRevision !== app.analysis.state.buildRevision)
+  );
   element.toggleAttribute('aria-readonly', readOnly);
   const procPanel = procElement?.querySelector<HTMLDetailsElement>('.rotation-procs-wrap') || null;
   // Capture open state before rebuilding the proc panel so it stays open after rendering.
@@ -178,8 +182,10 @@ export function renderTimeline(app: ProfessionAppState, options: TimelineRenderO
 
     // Only template requests replace the timeline with a skeleton; edits invalidate their revision.
     if (
-      loading?.revision === app.buildRevision &&
-      (loading.fetching || app.simulationStatus === 'queued' || app.simulationStatus === 'running')
+      loading?.revision === app.analysis.state.buildRevision &&
+      (loading.fetching ||
+        app.analysis.state.simulationStatus === 'queued' ||
+        app.analysis.state.simulationStatus === 'running')
     ) {
       element.setAttribute('aria-busy', 'true');
       // An overlay hides existing rows without changing content-sized timeline geometry.

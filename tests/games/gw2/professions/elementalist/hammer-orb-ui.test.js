@@ -20,27 +20,32 @@ function createHammerApp(hammerOrbs) {
   });
 
   return {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: {
+          planningState: {
+            availability: {},
+            activeWeaponSet: 1,
+            atSeconds: 0,
+            cooldownsBySkillId: {},
+            // Orb state changes independently of the canonical ammo projection.
+            ammoBySkillId: {},
+            profession: {
+              [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
+              [STATE.AUTOATTACK_CHAINS]: {},
+              [STATE.HAMMER_ORBS]: hammerOrbs
+            }
+          }
+        }
+      }
+    },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistProfession.catalog,
-    weaponData: elementalistAppAdapter.weaponData,
-    results: {
-      planningState: {
-        availability: {},
-        activeWeaponSet: 1,
-        atSeconds: 0,
-        cooldownsBySkillId: {},
-        // Orb state changes independently of the canonical ammo projection.
-        ammoBySkillId: {},
-        profession: {
-          [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
-          [STATE.AUTOATTACK_CHAINS]: {},
-          [STATE.HAMMER_ORBS]: hammerOrbs
-        }
-      }
-    }
+    weaponData: elementalistAppAdapter.weaponData
   };
 }
 

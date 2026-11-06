@@ -1,3 +1,4 @@
+/** Composes browser rendering and persistence around the headless analysis lifecycle. */
 import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#browser/shell/rotation-workspace.js';
 import { ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
@@ -7,13 +8,13 @@ import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace
 import { normalizeSelectedSkills, swapSelectedSkillsForPatch } from '#gw2/app/build/state/skill-selection.js';
 import { loadBuildWorkspace, saveBuildWorkspace, type BuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import type { BuildTemplatePreset, BuildTemplateSelection } from '#gw2/app/build/types.js';
+import { createAnalysisResultLifecycle } from '#gw2/app/create-analysis-lifecycle.js';
 import { renderGearOptimizer } from '#gw2/app/optimizer/gear/panel.js';
 import { GearOptimizerRunner } from '#gw2/app/optimizer/gear/runner.js';
 import { renderRelicComparison } from '#gw2/app/optimizer/relic-comparison/panel.js';
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
 import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
 import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
-import { invalidatePatchResults, recordPatchResult, reusablePatchResult } from '#gw2/app/patch-preview/results.js';
 import { mountPatchPreviewControls } from '#gw2/app/patch-preview/view.js';
 import { renderEventLog } from '#gw2/app/results/event-log.js';
 import { renderModifierContributions } from '#gw2/app/results/view.js';
@@ -33,18 +34,13 @@ import {
 import { updateTimelineInsertionCursor } from '#gw2/app/rotation/timeline/view.js';
 import { bindSessionControls } from '#gw2/app/session-controls.js';
 import { bindWikiTooltips } from '#gw2/app/shared/tooltip-overlay.js';
+import type { AnalysisChange, AnalysisResultLifecycle } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
-import type { BaselineSimulationOutput } from '#gw2/app/simulation/baseline/types.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
 import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
 import { SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.js';
-import type {
-  Gw2AppAdapter,
-  ProfessionAppResult,
-  ProfessionAppState,
-  ProfessionChangeOptions
-} from '#gw2/app/types.js';
+import type { Gw2AppAdapter, ProfessionAppState, ProfessionChangeOptions } from '#gw2/app/types.js';
 import type { BuildAttributes } from '#gw2/build-context/types.js';
 import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';
 import { normalizeInfusions } from '#gw2/platform/builds/codec.js';
@@ -54,6 +50,7 @@ import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relic
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 
 export class ProfessionApp implements ProfessionAppState {
+  readonly analysis: AnalysisResultLifecycle;
   workspace: BuildWorkspace;
   readonly gameId: string;
   readonly contentId: string;
@@ -64,7 +61,6 @@ export class ProfessionApp implements ProfessionAppState {
     return this.patch.catalog;
   }
   patch: ResolvedPatch;
-  patchComparison: ProfessionAppState['patchComparison'];
   build: Gw2CanonicalBuild;
   simulationSettings: SimulationSettings;
   readonly weaponData: ProfessionAppState['weaponData'];
@@ -72,13 +68,8 @@ export class ProfessionApp implements ProfessionAppState {
   readonly resourceDefinitions: ProfessionAppState['resourceDefinitions'];
   attributeWeaponSet: number;
   attributeData: BuildAttributes | null;
-  results: ProfessionAppResult | null;
   damageDiagnostics: boolean;
-  buildRevision: number;
-  resultRevision: number;
   rotationComparison: ProfessionAppState['rotationComparison'];
-  simulationStatus: ProfessionAppState['simulationStatus'];
-  simulationError: string;
   templateRotationLoading?: ProfessionAppState['templateRotationLoading'];
   dragState: ProfessionRotationDragState | null;
   rotationInsertionIndex: number | null;
@@ -110,7 +101,6 @@ export class ProfessionApp implements ProfessionAppState {
     this.workspace = loadBuildWorkspace(adapter);
     const activeTab = this.workspace.tabs.find((tab) => tab.id === this.workspace.activeTabId)!;
     this.patch = this.profession.resolvePatch({ id: activeTab.patchId, values: activeTab.session.patchPreviewValues });
-    this.patchComparison = null;
     this.build = activeTab.build;
     this.simulationSettings = this.workspace.simulationSettings;
     this.weaponData = adapter.weaponData;
@@ -120,13 +110,8 @@ export class ProfessionApp implements ProfessionAppState {
       this.profession.ui.resourceViews({ specialization, catalog: this.activeCatalog, build: this.build });
     this.attributeWeaponSet = 1;
     this.attributeData = null;
-    this.results = null;
     this.damageDiagnostics = false;
-    this.buildRevision = 0;
-    this.resultRevision = 0;
     this.rotationComparison = null;
-    this.simulationStatus = 'idle';
-    this.simulationError = '';
     this.dragState = null;
     this.rotationInsertionIndex = null;
     // Restore timeline display preferences independently from the saved build and simulation configuration.
@@ -144,15 +129,22 @@ export class ProfessionApp implements ProfessionAppState {
     this.templateContainer = null;
     this.currentTemplate = null;
     this.templateUndoBuild = null;
-    this.modifierContributionRunner = new ModifierContributionRunner(this, () => renderModifierContributions(this));
-    this.randomDistributionRunner = new RandomDistributionRunner(this);
+    this.modifierContributionRunner = new ModifierContributionRunner((request) =>
+      this.adapter.calculateModifierContributions(request)
+    );
+    this.randomDistributionRunner = new RandomDistributionRunner((request, options) =>
+      this.adapter.calculateRandomDistribution(request, options)
+    );
     this.relicComparisonRunner = new RelicComparisonRunner(this, () => renderRelicComparison(this));
-    this.baselineSimulationRunner = new BaselineSimulationRunner(this);
+    this.baselineSimulationRunner = new BaselineSimulationRunner((request) =>
+      this.adapter.calculateBaselineSimulation(request)
+    );
     this.gearOptimizerRunner = new GearOptimizerRunner(this, () => renderGearOptimizer(this));
     // Browser-owned workers follow the existing runner lifecycle and stay out of headless adapter imports.
     this.skillDamageRunner = new SkillDamageRunner((signature, result, error) =>
       receiveSkillDamage(this, signature, result, error)
     );
+    this.analysis = createAnalysisResultLifecycle(this, (change) => this.onAnalysisChange(change));
     this.initialRenderGeneration = 0;
     this.deferredRotationRenderRevision = null;
   }
@@ -161,19 +153,12 @@ export class ProfessionApp implements ProfessionAppState {
     // Offer version selection only when the profession has an authored balance preview.
     if (this.profession.preview) mountPatchPreviewControls(this);
 
-    this.baselineSimulationRunner.warmup();
+    this.baselineSimulationRunner.warmup({ gameId: this.gameId, contentId: this.contentId });
     bindSessionControls(this);
     // Delegated tooltip listeners and the mutation observer cover every subsequent panel render.
     bindWikiTooltips();
     document.addEventListener(SIMULATOR_VIEW_CHANGE_EVENT, () => {
-      // Analysis collects chart histories and modifiers on demand, retaining completed data across navigation.
-      if (analysisViewIsActive()) {
-        this.baselineSimulationRunner.ensureCharts();
-        this.modifierContributionRunner.schedule();
-      } else {
-        this.baselineSimulationRunner.cancelCharts();
-        this.modifierContributionRunner.cancel?.();
-      }
+      this.analysis.setAnalysisVisible(analysisViewIsActive());
 
       // Leaving the optimizer gives the next view priority; entering it preserves an active search.
       if (document.body?.dataset.simulatorView !== 'gear-optimizer') this.gearOptimizerRunner?.cancel();
@@ -208,18 +193,14 @@ export class ProfessionApp implements ProfessionAppState {
   changed(rebuildStatic = true, rebuildGear = rebuildStatic, options: ProfessionChangeOptions = {}): void {
     this.initialRenderGeneration += 1;
 
-    // Edits invalidate both comparison sides; switching versions keeps only results already calculated by a visit.
-    if (!options.patchSwitch) invalidatePatchResults(this);
-    else this.patchComparison = null;
-
     // A drag started on the prior timeline must not carry its source index into a later render.
     this.dragState = null;
-    const revision = this.prepareSimulationState();
+    const revision = this.prepareSimulationState(options);
 
     // Shared build/config changes invalidate the pinned result; rotation-only edits keep it reusable.
     if (rebuildStatic) comparisonState.queueRotationReference(this);
 
-    this.baselineSimulationRunner.schedule(revision);
+    this.analysis.refreshBaseline();
 
     if (rebuildStatic) this.renderBuildSections(rebuildGear);
 
@@ -243,7 +224,7 @@ export class ProfessionApp implements ProfessionAppState {
   }
 
   /** Commits cheap build derivations now and assigns the immutable revision used by worker results. */
-  private prepareSimulationState(): number {
+  private prepareSimulationState(options: ProfessionChangeOptions = {}): number {
     // Session experiments share one selected catalog across controls, previews and worker requests.
     recordRotationHistory(this);
 
@@ -258,60 +239,23 @@ export class ProfessionApp implements ProfessionAppState {
         transitionDelays: normalizeTransitionDelays(this.simulationSettings?.transitionDelays)
       })
       .attributes(this.attributeWeaponSet === 2 ? 2 : 1);
-    this.buildRevision += 1;
-    this.gearOptimizerRunner?.cancel();
-    // Prior-result analysis must release CPU and discard callbacks as soon as the build changes.
-    this.randomDistributionRunner?.cancel?.();
-    this.modifierContributionRunner?.cancel?.();
-
-    // Carried comparisons become stale immediately, including while the replacement baseline is pending.
-    // Mark only the pending display stale; cached versions retain their completed analysis state.
-    if (this.results?.contributions) this.results = { ...this.results, modifierContributionsStale: true };
-
-    this.simulationStatus = 'queued';
-    this.simulationError = '';
+    this.analysis.changeInputs(options.patchSwitch, options.adoptedResult);
+    this.gearOptimizerRunner.cancel();
     this.relicComparisonRunner.schedule();
     saveBuildWorkspace(this);
     renderBuildTabs(this);
 
-    if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
+    if (document.body) document.body.dataset.simulationStatus = this.analysis.state.simulationStatus;
 
     updatePaletteFreshness(this);
-    return this.buildRevision;
+    return this.analysis.state.buildRevision;
   }
 
-  /** Preserves synchronous first paint while all edit-triggered baselines use the worker. */
+  /** Initial publication stays synchronous; later requests use the existing worker queue. */
   private updateSimulationStateSynchronously(): void {
-    const revision = this.prepareSimulationState();
-    const output = this.adapter.calculateBaselineSimulation(this.adapter.baselineSimulationRequest(this));
-    this.commitBaselineSimulation(output, revision, false);
-  }
-
-  publishBaselineSimulation(output: BaselineSimulationOutput, revision: number, chartsOnly = false): void {
-    // Chart enrichment never invalidates completed comparisons or replaces editor facts for the same revision.
-    if (chartsOnly) {
-      if (revision !== this.buildRevision || revision !== this.resultRevision || !this.results) return;
-
-      Object.assign(this.results, {
-        effectReport: output.result.effectReport,
-        boonGeneration: output.result.boonGeneration
-      });
-      this.patchComparison = recordPatchResult(this, this.results);
-
-      if (output.comparisonResult)
-        this.patchComparison = recordPatchResult(this, output.comparisonResult.result, output.comparisonResult.patchId);
-
-      this.simulationStatus = 'idle';
-      this.simulationError = '';
-
-      if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
-
-      this.adapter.presentation.render(this, this.adapter.presentation.createViewModel(this));
-      this.modifierContributionRunner.schedule();
-      return;
-    }
-
-    this.commitBaselineSimulation(output, revision, true);
+    this.prepareSimulationState();
+    this.analysis.initialize();
+    this.analysis.setAnalysisVisible(analysisViewIsActive());
   }
 
   /** Recapture the same seeded baseline without changing the build, history, or saved preferences. */
@@ -322,94 +266,75 @@ export class ProfessionApp implements ProfessionAppState {
 
     if (this.rotationComparison?.referenceStatus === 'fresh') comparisonState.queueRotationReference(this);
 
-    this.baselineSimulationRunner.schedule(this.buildRevision);
+    this.analysis.refreshBaseline();
 
-    if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
+    if (document.body) document.body.dataset.simulationStatus = this.analysis.state.simulationStatus;
 
     renderEventLog(this);
   }
 
-  /** Rejects stale completions before publishing any result-dependent UI or follow-up work. */
-  private commitBaselineSimulation(output: BaselineSimulationOutput, revision: number, render: boolean): void {
-    if (revision !== this.buildRevision) return;
+  /** Accepted lifecycle changes retain targeted renders and editor ordering without reproducing freshness policy. */
+  private onAnalysisChange(change: AnalysisChange): void {
+    const { kind, revision, render, referenceResult } = change;
 
-    const renderDeferredRotation = this.deferredRotationRenderRevision === revision;
+    if (document.body) document.body.dataset.simulationStatus = this.analysis.state.simulationStatus;
 
-    if (renderDeferredRotation) this.deferredRotationRenderRevision = null;
+    if (kind === 'status') return;
 
-    // A validated cached result already owns the analyses for these exact inputs.
-    const restored = output.result === reusablePatchResult(this);
-    const previousContributions = this.results?.contributions;
-    this.results = output.result as ProfessionAppResult;
-    this.patchComparison = recordPatchResult(this, output.result);
-
-    if (output.comparisonResult)
-      this.patchComparison = recordPatchResult(this, output.comparisonResult.result, output.comparisonResult.patchId);
-
-    // Optional reference output only exists for shared-context refreshes; ordinary rotation edits preserve it.
-    comparisonState.publishRotationReference(this, output.referenceResult);
-
-    if (!restored) {
-      if (Array.isArray(previousContributions)) this.results.contributions = previousContributions;
-
-      // New simulations invalidate comparisons, even when Workspace defers their calculation.
-      this.results.modifierContributionsStale = this.build.rotation.length > 0;
-      this.results.modifierContributionsError = '';
-    }
-
-    this.resultRevision = revision;
-    this.simulationStatus = 'idle';
-    this.simulationError = '';
-
-    if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
-
-    // Preserve completed sampling; cancelled sampling returns to its explicit Calculate action.
-    if (!restored || !this.results.randomDistributionRequested || this.results.randomDistributionStale)
-      this.randomDistributionRunner.schedule();
-
-    this.modifierContributionRunner.schedule();
-    this.relicComparisonRunner.schedule();
-
-    if (this.results.encounter) document.dispatchEvent(new Event(ENCOUNTER_RESULT_EVENT));
-
-    if (render) {
-      if (renderDeferredRotation) this.adapter.renderRotationBuilder(this);
-      else renderSimulationOutput(this);
-    }
-  }
-
-  failBaselineSimulation(error: unknown, revision: number, chartsOnly = false): void {
-    if (revision !== this.buildRevision) return;
-
-    if (chartsOnly) {
-      this.simulationStatus = 'error';
-      this.simulationError = error instanceof Error ? error.message : String(error || 'Chart calculation failed.');
-
-      if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
-
-      this.adapter.presentation.render(this, this.adapter.presentation.createViewModel(this));
-      // Modifier scores remain available even when chart collection fails.
-      this.modifierContributionRunner.schedule();
+    if (kind === 'modifiers') {
+      renderModifierContributions(this);
       return;
     }
 
-    // Failed template simulations must also replace their loading placeholder with the authored rotation.
-    const renderDeferredRotation =
-      this.deferredRotationRenderRevision === revision || this.templateRotationLoading?.revision === revision;
+    if (kind === 'distribution-progress') {
+      const progress = this.analysis.state.results?.randomDistributionProgress;
+      const indicator = document.querySelector('#rotation-results [data-role="rng-progress"]');
 
-    if (renderDeferredRotation) this.deferredRotationRenderRevision = null;
+      if (!indicator || !progress) return;
 
-    this.simulationStatus = 'error';
-    this.simulationError = error instanceof Error ? error.message : String(error || 'Simulation failed.');
-    // A failed shared job leaves the prior pinned result visible but prevents a misleading delta.
-    comparisonState.failRotationReference(this, this.simulationError);
+      indicator.setAttribute('aria-valuenow', String(Math.round(progress.percent)));
+      const bar = indicator.querySelector<HTMLElement>('[data-role="rng-progress-bar"]');
 
-    if (document.body) document.body.dataset.simulationStatus = this.simulationStatus;
+      if (bar) bar.style.width = `${progress.percent}%`;
 
-    updatePaletteFreshness(this);
+      const label = indicator.querySelector('[data-role="rng-progress-label"]');
 
-    if (renderDeferredRotation) this.adapter.renderRotationBuilder(this);
-    else renderRotationComparison(this);
+      if (label)
+        label.textContent = `${Math.round(progress.completed).toLocaleString()} / ${Math.round(progress.total).toLocaleString()} simulations (${Math.round(progress.percent)}%)`;
+
+      return;
+    }
+
+    if (kind === 'distribution' || kind === 'charts' || kind === 'charts-error') {
+      this.adapter.presentation.render(this, this.adapter.presentation.createViewModel(this));
+      return;
+    }
+
+    const deferred =
+      this.deferredRotationRenderRevision === revision ||
+      (kind === 'baseline-error' && this.templateRotationLoading?.revision === revision);
+
+    if (deferred) this.deferredRotationRenderRevision = null;
+
+    if (kind === 'baseline-error') {
+      comparisonState.failRotationReference(this, this.analysis.state.simulationError);
+      updatePaletteFreshness(this);
+
+      if (deferred) this.adapter.renderRotationBuilder(this);
+      else renderRotationComparison(this);
+
+      return;
+    }
+
+    comparisonState.publishRotationReference(this, referenceResult);
+    this.relicComparisonRunner.schedule();
+
+    if (this.analysis.state.results?.encounter) document.dispatchEvent(new Event(ENCOUNTER_RESULT_EVENT));
+
+    if (render) {
+      if (deferred) this.adapter.renderRotationBuilder(this);
+      else renderSimulationOutput(this);
+    }
   }
 
   private scheduleInitialDeferredRender(): void {
@@ -433,13 +358,10 @@ export class ProfessionApp implements ProfessionAppState {
 
     // Capture and persist the outgoing document before the same editors receive another workspace.
     saveBuildWorkspace(this);
-    this.baselineSimulationRunner.cancel();
+    this.analysis.suspend();
     this.gearOptimizerRunner?.reset();
-    this.randomDistributionRunner.cancel?.();
-    this.modifierContributionRunner.cancel?.();
     this.initialRenderGeneration += 1;
     this.deferredRotationRenderRevision = null;
-    this.buildRevision += 1;
     this.workspace = workspace;
     // Restore the destination's simulation inputs before reusing caches or scheduling any new work.
     this.simulationSettings = workspace.simulationSettings;
@@ -449,16 +371,9 @@ export class ProfessionApp implements ProfessionAppState {
     const { patchPreviewValues: _patchPreviewValues, ...session } = tab.session;
     Object.assign(this, session);
 
-    // A cached tab must match the session's capture setting before its result can be reused.
-    if (Boolean(this.results?.debugInputs) !== Boolean(this.damageDiagnostics)) tab.resultsFresh = false;
-
     recordRotationHistory(this);
     this.dragState = null;
-    this.simulationError = '';
-    this.resultRevision = tab.resultsFresh ? this.buildRevision : -1;
-    this.simulationStatus = tab.resultsFresh ? 'idle' : 'queued';
-
-    if (!tab.resultsFresh) this.results = null;
+    this.analysis.restore(tab.analysis);
 
     normalizeSelectedSkills(this);
     this.attributeData = this.adapter
@@ -471,19 +386,12 @@ export class ProfessionApp implements ProfessionAppState {
 
     this.relicComparisonRunner.schedule();
 
-    if (!tab.resultsFresh || this.rotationComparison?.referenceStatus === 'queued') {
-      this.baselineSimulationRunner.schedule(this.buildRevision);
-    } else {
-      if (this.results?.randomDistributionStale) this.randomDistributionRunner.schedule(true);
-
-      this.baselineSimulationRunner.ensureCharts();
-      this.modifierContributionRunner.schedule();
-    }
+    this.analysis.resume();
 
     saveBuildWorkspace(this);
 
     if (typeof document !== 'undefined') {
-      document.body.dataset.simulationStatus = this.simulationStatus;
+      document.body.dataset.simulationStatus = this.analysis.state.simulationStatus;
       // Discard transient dialogs and previews tied to the outgoing editor, including unfinished imports.
       document.querySelectorAll<HTMLDialogElement>('dialog[open]').forEach((dialog) => dialog.close());
       for (const option of document.querySelectorAll<HTMLButtonElement>('.patch-preview-option')) {
@@ -533,7 +441,7 @@ export class ProfessionApp implements ProfessionAppState {
   loadRotationReference(rotation: readonly RotationCommand[]): void {
     if (!comparisonState.setRotationReference(this, rotation)) return;
 
-    this.baselineSimulationRunner.schedule(this.buildRevision);
+    this.analysis.refreshBaseline();
 
     if (typeof document !== 'undefined') renderRotationComparison(this);
   }
@@ -547,10 +455,11 @@ export class ProfessionApp implements ProfessionAppState {
 
   /** Refreshes Current-only output after an atomic swap, retaining its matching cached timeline while queued. */
   swapRotationComparison(): void {
-    if (!comparisonState.swapRotationComparison(this)) return;
+    const adoptedResult = comparisonState.swapRotationComparison(this);
 
-    this.changed(false);
-    this.resultRevision = this.buildRevision;
+    if (!adoptedResult) return;
+
+    this.changed(false, false, { adoptedResult });
 
     if (typeof document !== 'undefined') this.adapter.renderRotationBuilder(this);
   }
@@ -569,7 +478,7 @@ export class ProfessionApp implements ProfessionAppState {
 
   runRandomDistribution(): void {
     this.gearOptimizerRunner?.cancel();
-    this.randomDistributionRunner.run?.();
+    this.analysis.runDistribution();
   }
 
   runRelicComparison(comparisonRelic?: string, initialStacks?: number): void {
@@ -584,7 +493,7 @@ export class ProfessionApp implements ProfessionAppState {
     if (patchId === this.patch.id) return;
 
     // Abandon the outgoing version immediately instead of waiting behind an invisible simulation.
-    this.baselineSimulationRunner.cancel();
+    this.analysis.suspend();
     swapSelectedSkillsForPatch(this, patch.catalog);
     this.patch = patch;
     this.changed(true, true, { patchSwitch: true });

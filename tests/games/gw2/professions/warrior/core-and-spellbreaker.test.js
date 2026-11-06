@@ -454,10 +454,10 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
   );
 
   const resourceHtml = activeResourceGroup({
+    analysis: { needsPatchComparison: () => false, state: { results: result } },
     profession: warriorProfession,
     adapter: { eliteSpecialization: () => 'Core' },
-    build: { initialResource: 25 },
-    results: result
+    build: { initialResource: 25 }
   });
 
   assert.equal(
@@ -484,11 +484,11 @@ test('Paragon motivation renders as a compact emblem counter', () => {
   assert.equal(motivation.pipStyle, 'warrior-motivation');
 
   const resourceHtml = activeResourceGroup({
+    analysis: { needsPatchComparison: () => false, state: { results: result } },
     profession: warriorProfession,
     activeCatalog: warriorCatalog,
     adapter: { eliteSpecialization: () => 'Paragon' },
-    build: { initialResource: 10 },
-    results: result
+    build: { initialResource: 10 }
   });
 
   assert.match(resourceHtml, /class="active-resource-counter warrior-motivation"[^>]*>[\s\S]*?<span>4<\/span>/);

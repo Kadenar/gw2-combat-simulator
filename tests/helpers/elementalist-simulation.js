@@ -32,6 +32,7 @@ export function createNativeApp({ lines, rotation = [], ...extras }) {
     ...extras
   });
   const app = {
+    analysis: { state: { results: null } },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,

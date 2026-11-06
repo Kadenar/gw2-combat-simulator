@@ -9,7 +9,9 @@ test('whitespace on a wrapped line drops beside the nearest card', async ({ page
     app.build.rotation = Array.from({ length: 24 }, (_, index) => ({ type: 'wait', durationMs: 100 + index }));
     app.changed(false);
   });
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
 
   const result = await page.evaluate(() => {
     const root = document.getElementById('rotation-timeline');

@@ -38,7 +38,11 @@ test('Binding Blade flips back when its ten-second tether expires', () => {
     const result = createObservedProfessionSimulator(guardianProfession, settings)(undefined, rotation);
     assert.deepEqual(result.warnings, []);
     const tiles = displayedSkillTiles(
-      { activeCatalog: guardianCatalog, profession: guardianProfession, results: result },
+      {
+        analysis: { needsPatchComparison: () => false, state: { results: result } },
+        activeCatalog: guardianCatalog,
+        profession: guardianProfession
+      },
       [parent]
     );
     assert.deepEqual(
@@ -196,10 +200,10 @@ test('Firebrand final mantra face shows the shared charges and next charge timer
   const view = (results) =>
     paletteSkillView(
       {
+        analysis: { needsPatchComparison: () => false, state: { results: results } },
         patch: guardianAppAdapter.profession.resolvePatch(),
         adapter: guardianAppAdapter,
-        build: { rotation: [] },
-        results
+        build: { rotation: [] }
       },
       surge
     );

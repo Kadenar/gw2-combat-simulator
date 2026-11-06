@@ -39,7 +39,7 @@ test('preview responds to panel width without cropping the artwork', async ({ pa
 test('build switches discard optimizer results and active searches', async ({ page }) => {
   await page.goto('/mesmer.html#gear-optimizer', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   const panel = page.locator('#gear-optimizer');
   const preview = panel.locator('[data-role="optimizer-preview"]');
   const currentFood = await page.evaluate(() => window.professionApp.build.food);
@@ -50,7 +50,7 @@ test('build switches discard optimizer results and active searches', async ({ pa
   // Use the canonical skill ID to enable optimization with a valid rotation; a blank build disables it again.
   await expect(panel.getByRole('button', { name: 'Run optimizer', exact: true })).toBeDisabled();
   await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   await expect(panel.getByRole('button', { name: 'Run optimizer', exact: true })).toBeEnabled();
   await addChoice(panel, 'food', '');
   await panel.getByRole('button', { name: 'Run optimizer', exact: true }).click();
@@ -64,7 +64,7 @@ test('build switches discard optimizer results and active searches', async ({ pa
     window.professionApp.build.food = '';
     window.professionApp.changed();
   });
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   await expect(panel.locator('[data-role="optimizer-results"]')).toBeEmpty();
   await expect(preview.getByRole('heading', { name: 'Current gear', exact: true })).toBeVisible();
   await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText('None');
@@ -73,7 +73,7 @@ test('build switches discard optimizer results and active searches', async ({ pa
 
   await expect(panel.getByRole('button', { name: 'Run optimizer', exact: true })).toBeDisabled();
   await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
 
   // Start and switch in one task so cancellation does not depend on worker speed.
   expect(
@@ -106,7 +106,7 @@ test('optimizer works without the Analysis results container', async ({ page }) 
   await expect(page.locator('#app > #gear-optimizer-view')).toHaveCount(1);
   for (let index = 0; index < 3; index++) {
     await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-    await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+    await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   }
 
   await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
@@ -139,10 +139,10 @@ test('gear optimizer tab owns relic comparison and restores through browser hist
     .click();
   for (let index = 0; index < 3; index++) {
     await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-    await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+    await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   }
 
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   await tab.click();
   const comparison = page.locator('#optimizer-relic-comparison');
   await expect(comparison.getByRole('button', { name: 'Comparison relic', exact: true })).toBeVisible();
@@ -180,7 +180,7 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   await page.getByRole('link', { name: 'Gear Optimizer', exact: true }).click();
   const panel = page.locator('#gear-optimizer');
   await expect(panel).toBeVisible();
@@ -198,7 +198,7 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await expect(panel.locator('select[multiple]')).toHaveCount(0);
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Ready to run.');
   const before = await page.evaluate(() => ({
-    revision: window.professionApp.buildRevision,
+    revision: window.professionApp.analysis.state.buildRevision,
     rotation: window.professionApp.build.rotation,
     weapons: window.professionApp.build.weapons
   }));
@@ -343,9 +343,9 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await page.keyboard.press('Space');
   await expect(preview.getByRole('group', { name: /^Food:/ })).toContainText('None');
   await preview.getByRole('button', { name: 'Apply gear', exact: true }).click();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   const after = await page.evaluate(() => ({
-    revision: window.professionApp.buildRevision,
+    revision: window.professionApp.analysis.state.buildRevision,
     rotation: window.professionApp.build.rotation,
     weapons: window.professionApp.build.weapons,
     food: window.professionApp.build.food
@@ -432,7 +432,7 @@ test('results expose every equipment choice without expanding rows', async ({ pa
     window.professionApp.build.infusions = [{ stat: 'Condition Damage', count: 18 }];
   });
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   const equipped = await page.evaluate(() => ({
     food: window.professionApp.build.food,
     utility: window.professionApp.build.utility,
@@ -512,7 +512,7 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   const equipped = await page.evaluate(() => ({
     food: window.professionApp.build.food,
     rune: window.professionApp.build.rune,
@@ -523,7 +523,7 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
   await showOptimizerResults(page);
   const before = await page.evaluate(() => ({
     simulations: String(window.professionApp.gearOptimizerRunner.state.simulations),
-    revision: window.professionApp.buildRevision
+    revision: window.professionApp.analysis.state.buildRevision
   }));
   const pinned = panel.getByRole('row', { name: 'Equipped setup', exact: true });
   await expect(panel.locator('tbody .optimizer-best').getByText('Best', { exact: true })).toBeVisible();
@@ -570,7 +570,7 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
   expect(
     await page.evaluate(() => ({
       simulations: String(window.professionApp.gearOptimizerRunner.state.simulations),
-      revision: window.professionApp.buildRevision
+      revision: window.professionApp.analysis.state.buildRevision
     }))
   ).toEqual(before);
   await panel.getByRole('radio', { name: 'No filtering', exact: true }).press('Escape');
@@ -605,9 +605,9 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
     .filter({ has: page.getByRole('cell', { name: 'Food: None', exact: true }) });
   await withoutFood.locator('.optimizer-damage').click();
   await panel.getByRole('button', { name: 'Apply gear', exact: true }).click();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   expect(await page.evaluate(() => window.professionApp.build.food)).toBe('');
-  expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(before.revision + 1);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.buildRevision)).toBe(before.revision + 1);
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.');
   await expect(pinned.getByRole('cell', { name: 'Food: None', exact: true })).toBeVisible();
   const nextResult = panel
@@ -615,9 +615,9 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
     .filter({ has: page.getByRole('cell', { name: `Food: ${equipped.food}`, exact: true }) });
   await nextResult.locator('.optimizer-damage').click();
   await panel.getByRole('button', { name: 'Apply gear', exact: true }).click();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   expect(await page.evaluate(() => window.professionApp.build.food)).toBe(equipped.food);
-  expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(before.revision + 2);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.buildRevision)).toBe(before.revision + 2);
   await expect(panel.locator('[data-role="optimizer-status"]')).toHaveText('Complete.');
   await expect(pinned.getByRole('cell', { name: `Food: ${equipped.food}`, exact: true })).toBeVisible();
   expect(await page.evaluate(() => String(window.professionApp.gearOptimizerRunner.state.simulations))).toBe(
@@ -630,7 +630,7 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
     app.changed();
   });
   await expect(panel.locator('[data-role="optimizer-status"]')).toContainText('Results are stale');
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   await withoutFood.locator('.optimizer-damage').click();
   await expect(panel.getByRole('button', { name: 'Apply gear', exact: true })).toBeDisabled();
 });

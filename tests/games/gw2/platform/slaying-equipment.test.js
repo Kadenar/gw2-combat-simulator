@@ -70,6 +70,7 @@ test('slaying selections survive build loading and potion removal comparisons re
   assert.equal(loaded.utility, 'Potion of Slaying');
   assert.deepEqual(loaded.weaponSigils, build.weaponSigils);
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
     build: loaded,
     adapter: mesmerAppAdapter,
@@ -79,6 +80,7 @@ test('slaying selections survive build loading and potion removal comparisons re
   };
   app.attributeData = mesmerAppAdapter
     .createBuildContext({
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       build: app.build,
       transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
       patch: mesmerAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })

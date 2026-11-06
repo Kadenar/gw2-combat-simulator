@@ -3,7 +3,6 @@ import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import { buildWithPatchSkillSelections } from '#gw2/app/build/state/skill-selection.js';
 import { relicComparisonAvailable } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { RelicComparisonRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
-import { needsPatchComparison } from '#gw2/app/patch-preview/results.js';
 import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
 import { calculateBaselineSimulation as calculateBaseline } from '#gw2/app/simulation/baseline/baseline-simulation.js';
 import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
@@ -129,8 +128,10 @@ export function createProfessionRuntime({
     // A prefix before the marker still uses the full rotation's boundary, including casts that finish across it.
     const combatStartTime =
       index <= rotation.findIndex((command) => command.type === 'combat-start')
-        ? (app.results ?? simulateGw2({ profession, rotation, config, observationPolicy: { kind: 'rotation' } }))
-            .combatStartTime
+        ? (
+            app.analysis.state.results ??
+            simulateGw2({ profession, rotation, config, observationPolicy: { kind: 'rotation' } })
+          ).combatStartTime
         : undefined;
     return simulateGw2({
       profession,
@@ -147,7 +148,7 @@ export function createProfessionRuntime({
     // Workspace runs only the displayed version. Analysis refreshes an absent comparison on demand.
     const baseConfig = baselineSimulationConfig(app);
     const comparisonPatchId =
-      analysisViewIsActive() && profession.preview && needsPatchComparison(app)
+      analysisViewIsActive() && profession.preview && app.analysis.needsPatchComparison()
         ? app.patch.id === 'current'
           ? profession.preview.id
           : 'current'

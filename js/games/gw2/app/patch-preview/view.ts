@@ -125,21 +125,22 @@ export function mountPatchPreviewControls(app: ProfessionAppState): void {
 
 export function renderPatchComparison(container: HTMLElement, app: ProfessionAppState): void {
   const preview = app.profession.preview;
-  const comparison = app.patchComparison;
+  const comparison = app.analysis.state.patchComparison;
 
   if (!preview) return;
 
   // The Analysis runner refreshes missing versions; presentation never schedules a second Workspace baseline.
   if (!comparison) {
-    const failed = app.simulationStatus === 'error';
-    const pending = app.simulationStatus === 'queued' || app.simulationStatus === 'running';
+    const failed = app.analysis.state.simulationStatus === 'error';
+    const pending =
+      app.analysis.state.simulationStatus === 'queued' || app.analysis.state.simulationStatus === 'running';
     const prompt = document.createElement('div');
     prompt.className = 'patch-comparison';
     prompt.setAttribute('aria-label', 'Patch preview comparison');
     // Publish failures as alerts rather than leaving an idle panel labelled as ongoing work.
     prompt.innerHTML = `<p class="patch-preview-empty" role="${failed ? 'alert' : 'status'}" aria-atomic="true">${
       failed
-        ? `Unable to update Live and ${escapeHtml(preview.label)} comparison. ${escapeHtml(app.simulationError)}`
+        ? `Unable to update Live and ${escapeHtml(preview.label)} comparison. ${escapeHtml(app.analysis.state.simulationError)}`
         : pending
           ? `Updating Live and ${escapeHtml(preview.label)} comparison…`
           : `Live and ${escapeHtml(preview.label)} comparison is not available yet.`
@@ -148,9 +149,9 @@ export function renderPatchComparison(container: HTMLElement, app: ProfessionApp
 
     if (retry)
       retry.onclick = () => {
-        if (app.resultRevision !== app.buildRevision || !app.build.rotation.length)
-          app.baselineSimulationRunner.schedule(app.buildRevision);
-        else app.baselineSimulationRunner.ensureCharts();
+        if (app.analysis.state.resultRevision !== app.analysis.state.buildRevision || !app.build.rotation.length)
+          app.analysis.refreshBaseline();
+        else app.analysis.ensureCharts();
 
         app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
       };

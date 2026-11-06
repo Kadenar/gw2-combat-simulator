@@ -72,11 +72,20 @@ test('collapsed event logs prepare nothing until opened, then use the latest res
     build: { rotation: [{ type: 'wait', durationMs: 1000 }] },
     profession: { ui: {} },
     activeCatalog: createCanonicalCatalog(),
-    results: superseded
+    analysis: {
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: superseded
+      }
+    }
   };
   renderEventLog(app);
   const shell = details;
-  app.results = { events: [{ type: 'marker', at: 0, name: 'Latest result' }], resolvedEvents: [] };
+  app.analysis.state.results = { events: [{ type: 'marker', at: 0, name: 'Latest result' }], resolvedEvents: [] };
   renderEventLog(app);
   assert.equal(details, shell);
   assert.doesNotMatch(html, /Latest result/);
@@ -88,7 +97,7 @@ test('collapsed event logs prepare nothing until opened, then use the latest res
   // A result published after mounting waits for the next opening and retires the prepared count.
   details.open = false;
   summary.textContent = 'Event Log (1 events)';
-  app.results = { events: [{ type: 'marker', at: 0, name: 'New result' }], resolvedEvents: [] };
+  app.analysis.state.results = { events: [{ type: 'marker', at: 0, name: 'New result' }], resolvedEvents: [] };
   renderEventLog(app);
   assert.doesNotMatch(html, /New result/);
   assert.equal(summary.textContent, 'Event Log');

@@ -109,7 +109,7 @@ export async function loadTemplateAction(
 
   container?.querySelector<HTMLDialogElement>('.build-templates-dialog')?.close();
   // Keep the old rotation out of view through both asset loading and the template's first simulation.
-  const rotationLoading = { revision: app.buildRevision, fetching: true };
+  const rotationLoading = { revision: app.analysis.state.buildRevision, fetching: true };
   app.templateRotationLoading = rotationLoading;
 
   if (container) renderTimeline(app);
@@ -169,7 +169,7 @@ export async function loadTemplateAction(
       updateTemplateSelection(app);
     }
 
-    rotationLoading.revision = app.buildRevision;
+    rotationLoading.revision = app.analysis.state.buildRevision;
     rotationLoading.fetching = false;
     app.templateRotationLoading = rotationLoading;
 

@@ -395,7 +395,7 @@ const EVENT_LOG_DETAILS = '[data-role="event-log-details"]';
 /** Collapsed logs stay idle: only opening one prepares rows, always from the latest result. */
 export function renderEventLog(app: ProfessionAppState): void {
   const element = document.getElementById('rotation-event-log');
-  const result = app.results;
+  const result = app.analysis.state.results;
 
   if (!element || !app.build.rotation.length || !result) {
     if (element) element.innerHTML = '';
@@ -462,9 +462,9 @@ export function renderEventLog(app: ProfessionAppState): void {
   download.textContent = 'Download debug JSON';
   const canDownload = () =>
     app.damageDiagnostics &&
-    app.simulationStatus === 'idle' &&
-    app.resultRevision === app.buildRevision &&
-    app.results === result &&
+    app.analysis.state.simulationStatus === 'idle' &&
+    app.analysis.state.resultRevision === app.analysis.state.buildRevision &&
+    app.analysis.state.results === result &&
     Boolean(result.debugInputs);
   download.disabled = !canDownload();
   download.onclick = () => {

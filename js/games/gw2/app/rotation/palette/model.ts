@@ -869,7 +869,7 @@ export function paletteSkillView(
             displayedRemaining ? `\n${remaining ? 'Ready in' : 'Next charge in'}: ${cooldownLabel}` : ''
           }`
         : remaining
-          ? `Ready in: ${cooldownLabel}\nAvailable at: ${((readyAt - resultCombatReferenceMs(app.results)) / 1000).toFixed(3)}s`
+          ? `Ready in: ${cooldownLabel}\nAvailable at: ${((readyAt - resultCombatReferenceMs(app.analysis.state.results)) / 1000).toFixed(3)}s`
           : 'Status: Available now',
     contextRemaining ? `Availability rechecked in: ${(contextRemaining / 1000).toFixed(3)}s` : ''
   ]

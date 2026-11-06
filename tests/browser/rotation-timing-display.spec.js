@@ -23,7 +23,9 @@ test('concurrent precast landing updates while editing timing', async ({ page })
     app.changed();
   });
   const ready = () =>
-    page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+    page.waitForFunction(
+      () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+    );
   await ready();
   const openEditor = async () => {
     const pencil = page.locator('#rotation-timeline .rot-skill[data-idx="1"] .rot-edit-activation');
@@ -130,9 +132,11 @@ test('skill and Combat Start editors expose the scheduled target impact', async 
     app.build = app.adapter.toApplicationBuild({ ...saved, rotation: ['Blood Is Power', '__combat_start'] });
     app.changed();
   });
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   const impactLabel = await page.evaluate(() => {
-    const result = window.professionApp.results;
+    const result = window.professionApp.analysis.state.results;
     const step = result.steps.find((candidate) => candidate.skillName === 'Blood Is Power');
     const impact = result.events.find(
       (event) => event.activationId === step.activationId && event.type === 'condition'
@@ -197,10 +201,12 @@ test('timing display switches between classic and larger labels and survives rel
   const size = page.getByRole('combobox', { name: 'Timeline size', exact: true });
   await expect(display).toHaveValue('classic');
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   const time = page.locator('#rotation-timeline .rot-time').first();
   const classicFontSize = await time.evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
-  const revision = await page.evaluate(() => window.professionApp.buildRevision);
+  const revision = await page.evaluate(() => window.professionApp.analysis.state.buildRevision);
   await display.selectOption('timings');
   expect(await time.evaluate((element) => parseFloat(getComputedStyle(element).fontSize))).toBeGreaterThan(
     classicFontSize
@@ -209,7 +215,7 @@ test('timing display switches between classic and larger labels and survives rel
   const bounds = await icon.boundingBox();
   expect(bounds.width).toBe(bounds.height);
   await size.selectOption('large');
-  expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(revision);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.buildRevision)).toBe(revision);
   await page.reload();
   await expect(display).toHaveValue('timings');
   await expect(size).toHaveValue('large');

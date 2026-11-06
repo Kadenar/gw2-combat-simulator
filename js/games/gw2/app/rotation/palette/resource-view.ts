@@ -344,7 +344,7 @@ export function renderStartResource(app: ProfessionAppState): void {
 
   if (!element) return;
 
-  const professionState = professionPlanningState(app.results);
+  const professionState = professionPlanningState(app.analysis.state.results);
   const definitions = resourceDisplayViews(app.profession, {
     catalog: app.activeCatalog,
     specialization: activeSpecialization(app),

@@ -45,7 +45,7 @@ test('zero-duration and empty views show an em dash while positive-duration zero
   }
 
   const container = inertContainer();
-  const view = createGw2SimulationViewModel({ build: { rotation: [] } });
+  const view = createGw2SimulationViewModel({ build: { rotation: [] }, analysis: { state: { results: null } } });
   mountSimulationSection(container, view.summary);
   assert.match(container.innerHTML, /Actions \/ min/);
   assert.doesNotMatch(container.innerHTML, /NaN|Infinity/);

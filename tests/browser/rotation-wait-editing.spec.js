@@ -10,7 +10,9 @@ test('adding, dropping, and editing wait shapes enforces 40 ms increments', asyn
       app.build.rotation = [{ type: 'wait', durationMs: 101 }];
       app.changed(false);
     });
-    await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+    await page.waitForFunction(
+      () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+    );
 
     if (mode === 'add') {
       await page.locator('#rotation-palette .pal-skill[data-skill="__wait"]').click();

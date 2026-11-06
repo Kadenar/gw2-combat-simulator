@@ -28,9 +28,9 @@ test('insertion selection and clearing refresh comparison after timeline rerende
       return {
         rotation: app.build.rotation,
         reference: app.rotationComparison.referenceRotation,
-        buildRevision: app.buildRevision,
-        resultRevision: app.resultRevision,
-        simulationStatus: app.simulationStatus
+        buildRevision: app.analysis.state.buildRevision,
+        resultRevision: app.analysis.state.resultRevision,
+        simulationStatus: app.analysis.state.simulationStatus
       };
     });
   const before = await simulationState();
@@ -83,8 +83,8 @@ test('reference skills toggle matching highlights independently of the current r
       return {
         current: app.build.rotation,
         reference: app.rotationComparison.referenceRotation,
-        buildRevision: app.buildRevision,
-        resultRevision: app.resultRevision,
+        buildRevision: app.analysis.state.buildRevision,
+        resultRevision: app.analysis.state.resultRevision,
         insertionIndex: app.rotationInsertionIndex,
         highlight: app.rotationSkillHighlightKey
       };
@@ -123,7 +123,9 @@ test('rotation comparison keeps editable and read-only timelines stacked without
   await expect
     .poll(() =>
       page.evaluate(
-        () => window.professionApp.currentTemplate !== null && window.professionApp.simulationStatus === 'idle'
+        () =>
+          window.professionApp.currentTemplate !== null &&
+          window.professionApp.analysis.state.simulationStatus === 'idle'
       )
     )
     .toBe(true);
@@ -140,7 +142,10 @@ test('rotation comparison keeps editable and read-only timelines stacked without
     .poll(() =>
       page.evaluate(() => {
         const app = window.professionApp;
-        return app.simulationStatus === 'idle' && app.resultRevision === app.buildRevision;
+        return (
+          app.analysis.state.simulationStatus === 'idle' &&
+          app.analysis.state.resultRevision === app.analysis.state.buildRevision
+        );
       })
     )
     .toBe(true);
@@ -209,7 +214,7 @@ test('rotation comparison keeps editable and read-only timelines stacked without
   // Mouse and keyboard cursor changes update both comparisons without editing or resimulating the rotation.
   await expect(page.locator('.rotation-comparison-time, [data-comparison-metric-label]')).toHaveCount(0);
   const currentTimeline = page.locator('#rotation-timeline');
-  const buildRevision = await page.evaluate(() => window.professionApp.buildRevision);
+  const buildRevision = await page.evaluate(() => window.professionApp.analysis.state.buildRevision);
   await expect(page.locator('#rotation-comparison-summary input[type="range"]')).toHaveCount(0);
   await currentTimeline.locator('[data-insertion-index="0"]').click();
   await expect(page.locator('[data-comparison-reference-dps]')).toHaveText('0');
@@ -228,14 +233,14 @@ test('rotation comparison keeps editable and read-only timelines stacked without
   await currentTimeline.locator('.rot-insertion-gap').last().click();
   await expect(page.locator('[data-comparison-reference-dps]')).toHaveText(finalValues[0]);
   await expect(page.locator('[data-comparison-current-dps]')).toHaveText(finalValues[1]);
-  expect(await page.evaluate(() => window.professionApp.buildRevision)).toBe(buildRevision);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.buildRevision)).toBe(buildRevision);
 
   const beforeSwap = await page.evaluate(() => ({
     current: structuredClone(window.professionApp.build.rotation),
     reference: structuredClone(window.professionApp.rotationComparison.referenceRotation)
   }));
   await page.getByRole('button', { name: 'Swap', exact: true }).click();
-  await expect.poll(() => page.evaluate(() => window.professionApp.simulationStatus)).toBe('idle');
+  await expect.poll(() => page.evaluate(() => window.professionApp.analysis.state.simulationStatus)).toBe('idle');
   const afterSwap = await page.evaluate(() => ({
     current: window.professionApp.build.rotation,
     reference: window.professionApp.rotationComparison.referenceRotation

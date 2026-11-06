@@ -778,16 +778,16 @@ test('stealth replaces weapon skill 1 without a separate palette group', () => {
     specializations: []
   };
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: thiefAppAdapter.profession.resolvePatch(),
     build,
     adapter: thiefAppAdapter,
     profession: thiefProfession,
     activeCatalog: thiefCatalog,
-    weaponData: thiefAppAdapter.weaponData,
-    results: null
+    weaponData: thiefAppAdapter.weaponData
   };
   const paletteNamesAfter = (rotation) => {
-    app.results = simulate('Core', rotation, {
+    app.analysis.state.results = simulate('Core', rotation, {
       primaryWeapon: 'Dagger',
       secondaryWeapon: 'Dagger',
       weaponSet2Primary: '',
@@ -923,6 +923,17 @@ test('Thief weapon chains and follow-ups occupy one live palette tile', () => {
       { name: specialization === 'Core' ? 'Shadow Arts' : specialization, traits: '1-1-1' }
     ];
     const app = {
+      analysis: {
+        needsPatchComparison: () => false,
+        state: {
+          results: simulate(specialization, rotation, {
+            primaryWeapon: weapons[0],
+            secondaryWeapon: weapons[1],
+            weaponSet2Primary: '',
+            weaponSet2Secondary: ''
+          })
+        }
+      },
       patch: thiefAppAdapter.profession.resolvePatch(),
       build: {
         ...defaults,
@@ -933,13 +944,7 @@ test('Thief weapon chains and follow-ups occupy one live palette tile', () => {
       adapter: thiefAppAdapter,
       profession: thiefProfession,
       activeCatalog: thiefCatalog,
-      weaponData: thiefAppAdapter.weaponData,
-      results: simulate(specialization, rotation, {
-        primaryWeapon: weapons[0],
-        secondaryWeapon: weapons[1],
-        weaponSet2Primary: '',
-        weaponSet2Secondary: ''
-      })
+      weaponData: thiefAppAdapter.weaponData
     };
 
     return weaponPaletteRows(app, 1)[0].skills;

@@ -84,12 +84,12 @@ test('workspace and optimizer preview individual conditions, deltas and weapon c
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   // Supply the canonical skill ID so optimization can validate the rotation before previewing attributes.
   await page.evaluate(() => window.professionApp.addRotation('Bladecall', { skillId: 69311 }));
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   const state = () =>
     page.evaluate(() =>
       JSON.stringify({
         build: window.professionApp.build,
-        revision: window.professionApp.buildRevision,
+        revision: window.professionApp.analysis.state.buildRevision,
         attributes: window.professionApp.attributeData
       })
     );

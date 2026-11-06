@@ -10,15 +10,17 @@ test('palette waits for fresh state before accepting hotkeys, clicks, or drags',
     app.build = app.adapter.toApplicationBuild({ ...build, rotation: [] });
     app.changed();
   });
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   await page.evaluate(() => {
     const app = window.professionApp;
     const runner = app.baselineSimulationRunner;
-    runner.schedule = () => {};
+    runner.run = (operation) => {
+      window.heldBaseline = operation;
+    };
 
     window.resumeBaseline = () => {
-      delete runner.schedule;
-      runner.schedule(app.buildRevision);
+      delete runner.run;
+      app.analysis.refreshBaseline();
     };
 
     document.addEventListener('keydown', (event) => {
@@ -43,21 +45,20 @@ test('palette waits for fresh state before accepting hotkeys, clicks, or drags',
   ).toBe(false);
   expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual([{ type: 'cast', skillId: -3 }]);
   await page.evaluate(() => {
-    const app = window.professionApp;
-    app.failBaselineSimulation(new Error('Fixture failure'), app.buildRevision);
+    window.heldBaseline.fail(new Error('Fixture failure'));
   });
   await expect(status).toHaveText('Simulation failed');
   await expect(palette).toHaveAttribute('aria-busy', 'false');
   await page.keyboard.press('Digit1');
   expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual([{ type: 'cast', skillId: -3 }]);
   await page.evaluate(() => window.resumeBaseline());
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   await expect(status).toBeHidden();
   await palette.dispatchEvent('pointerdown', { button: 0 });
   await page.keyboard.press('Digit1');
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   expect(await page.evaluate(() => window.professionApp.build.rotation.at(-1).skillId)).toBe(29057);
-  expect(await page.evaluate(() => window.professionApp.results.warnings)).toEqual([]);
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.warnings)).toEqual([]);
 });
 
 // Hold edit-triggered simulation publication so stale controls are exercised deterministically.
@@ -69,17 +70,21 @@ test('retained timeline controls reject stale indexes and resume after publicati
     app.build.rotation = [1000, 2000, 3000].map((durationMs) => ({ type: 'wait', durationMs }));
     app.changed(false);
   });
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
 
   const held = await page.evaluate(() => {
     const app = window.professionApp;
     const runner = app.baselineSimulationRunner;
     window.resumeBaseline = () => {
-      delete runner.schedule;
-      runner.schedule(app.buildRevision);
+      delete runner.run;
+      app.analysis.refreshBaseline();
     };
 
-    runner.schedule = () => {};
+    runner.run = (operation) => {
+      window.heldBaseline = operation;
+    };
 
     const root = document.getElementById('rotation-timeline');
     const cards = root.querySelectorAll('.rot-skill[data-idx]:not(.rot-injected)');
@@ -89,7 +94,7 @@ test('retained timeline controls reject stale indexes and resume after publicati
     cards[1].dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true }));
     const dragStarted = app.dragState?.index === 1;
     cards[0].querySelector('.rot-x').click();
-    const revision = app.buildRevision;
+    const revision = app.analysis.state.buildRevision;
     const dragCleared = app.dragState === null;
     cards[1].querySelector('.rot-x').click();
     cards[1].querySelector('.rot-x').dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey: true }));
@@ -104,7 +109,7 @@ test('retained timeline controls reject stale indexes and resume after publicati
     root.querySelector('.rot-insertion-gap[data-insertion-index="1"]').click();
     return {
       durations: app.build.rotation.map((entry) => entry.durationMs),
-      revisionUnchanged: app.buildRevision === revision,
+      revisionUnchanged: app.analysis.state.buildRevision === revision,
       retainedCards: [...cards].every((card) => card.isConnected),
       cursor: app.rotationInsertionIndex,
       dragStarted,
@@ -125,8 +130,12 @@ test('retained timeline controls reject stale indexes and resume after publicati
   });
 
   await page.evaluate(() => window.resumeBaseline());
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   await page.locator('#rotation-timeline .rot-skill[data-idx="0"] .rot-x').click();
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual([{ type: 'wait', durationMs: 3000 }]);
 });

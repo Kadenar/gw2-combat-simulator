@@ -21,7 +21,7 @@ export function skillBarDisplaySkill(
 ): Skill | null | undefined {
   if (!selected) return selected;
 
-  const availableFlips = professionPlanningState(app.results)[STATE.AVAILABLE_FLIPS];
+  const availableFlips = professionPlanningState(app.analysis.state.results)[STATE.AVAILABLE_FLIPS];
 
   if (!availableFlips || typeof availableFlips !== 'object') return selected;
 
@@ -38,7 +38,7 @@ export function skillBarDisplaySkill(
     if (
       skillFlipVisible(
         flips[flip.id],
-        Number(app.results?.planningState?.atSeconds ?? app.results?.rotationEndTime ?? 0)
+        Number(app.analysis.state.results?.planningState?.atSeconds ?? app.analysis.state.results?.rotationEndTime ?? 0)
       )
     )
       display = flip;
@@ -145,7 +145,7 @@ export function renderSkills(app: ProfessionAppState): void {
     build: app.build,
     specialization: spec,
     catalog: app.activeCatalog,
-    professionState: app.results?.planningState?.profession,
+    professionState: app.analysis.state.results?.planningState?.profession,
     // Build selectors share the simulation's ID-only trait membership.
     traits: new Set((app.attributeData?.activeTraits || []).map((trait) => trait.id))
   };
@@ -269,7 +269,7 @@ export function renderSkills(app: ProfessionAppState): void {
             {
               build: app.build,
               specialization: spec,
-              professionState: app.results?.planningState?.profession,
+              professionState: app.analysis.state.results?.planningState?.profession,
               catalog: app.activeCatalog
             },
             {
@@ -306,7 +306,7 @@ function renderFixedSlotLoadout(app: ProfessionAppState, spec: string): void {
   const context = {
     build: app.build,
     specialization: spec,
-    professionState: app.results?.planningState?.profession,
+    professionState: app.analysis.state.results?.planningState?.profession,
     catalog: app.activeCatalog
   };
   const view = loadout.view(context);

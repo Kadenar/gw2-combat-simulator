@@ -424,12 +424,12 @@ describe('Galeshot Cyclone Bow', () => {
       traits: '3-3-2'
     };
     const galeshotApp = {
+      analysis: { needsPatchComparison: () => false, state: { results: charged } },
       patch: rangerAppAdapter.profession.resolvePatch(),
       build: galeshotBuild,
       adapter: rangerAppAdapter,
       profession: rangerProfession,
-      activeCatalog: rangerCatalog,
-      results: charged
+      activeCatalog: rangerCatalog
     };
     const paletteElement = inertContainer();
     const previousDocument = globalThis.document;

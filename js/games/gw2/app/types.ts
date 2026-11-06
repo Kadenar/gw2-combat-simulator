@@ -9,22 +9,16 @@ import type { RotationComparisonSession } from '#gw2/app/rotation/comparison-sta
 import type { RotationActionOptions, RotationEditingState } from '#gw2/app/rotation/editing/state.js';
 import type { RotationTimelineState } from '#gw2/app/rotation/timeline/state.js';
 import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
-import type {
-  BaselineSimulationOutput,
-  BaselineSimulationRequest,
-  BaselineSimulationResult,
-  PatchComparison
-} from '#gw2/app/simulation/baseline/types.js';
+import type { AnalysisResult, AnalysisResultLifecycle } from '#gw2/app/simulation/analysis-result-lifecycle.js';
+import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
 import type {
   ModifierContribution,
-  ModifierContributionRequest,
-  ModifierContributionResultState
+  ModifierContributionRequest
 } from '#gw2/app/simulation/modifier-contributions/types.js';
 import type {
   RandomDistributionJobRequest,
   RandomDistributionOptions,
   RandomDistributionRequest,
-  RandomDistributionResultState,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
 import type { BuildAttributes, BuildContextFactory, BuildContextProfession } from '#gw2/build-context/types.js';
@@ -65,7 +59,6 @@ export interface ProfessionAppState
   /** All skill lists and lookups follow this catalog when the active patch or workspace tab changes. */
   readonly activeCatalog: Readonly<CanonicalCatalog>;
   patch: ResolvedPatch;
-  patchComparison: PatchComparison | null;
   build: Gw2CanonicalBuild;
   simulationSettings?: import('#gw2/app/simulation/settings.js').SimulationSettings;
   weaponData: Readonly<Record<string, Gw2WeaponDataEntry>>;
@@ -73,23 +66,14 @@ export interface ProfessionAppState
   resourceDefinitions(specialization: string): ProfessionResourceView[];
   attributeWeaponSet: number;
   attributeData: BuildAttributes | null;
-  results: ProfessionAppResult | null;
   /** Debug capture belongs to this app session and is excluded from persisted build state. */
   damageDiagnostics: boolean;
   setDamageDiagnostics(enabled: boolean): void;
-  buildRevision: number;
-  resultRevision: number;
-  simulationStatus: 'idle' | 'queued' | 'running' | 'error';
-  simulationError: string;
-  modifierContributionRunner: ProfessionFeatureRunner;
-  randomDistributionRunner: ProfessionFeatureRunner;
+  readonly analysis: AnalysisResultLifecycle;
+  modifierContributionRunner: import('#gw2/app/simulation/modifier-contributions/runner.js').ModifierContributionRunner;
+  randomDistributionRunner: import('#gw2/app/simulation/random-distribution/runner.js').RandomDistributionRunner;
   relicComparisonRunner: import('#gw2/app/optimizer/relic-comparison/runner.js').RelicComparisonRunner;
-  baselineSimulationRunner: {
-    schedule(revision: number): void;
-    ensureCharts(): void;
-  };
-  publishBaselineSimulation(output: BaselineSimulationOutput, revision: number, chartsOnly?: boolean): void;
-  failBaselineSimulation(error: unknown, revision: number, chartsOnly?: boolean): void;
+  baselineSimulationRunner: import('#gw2/app/simulation/baseline/runner.js').BaselineSimulationRunner;
   changed(rebuildStatic?: boolean, rebuildGear?: boolean, options?: ProfessionChangeOptions): void;
   startRotationComparison(): void;
   loadRotationReference(rotation: readonly RotationCommand[]): void;
@@ -105,15 +89,13 @@ export interface ProfessionAppState
 }
 
 export interface ProfessionChangeOptions {
+  /** A reference swap adopts its matching result while refreshing Current-only output. */
+  readonly adoptedResult?: AnalysisResult;
   /** Holds replacement-heavy rotation UI until its matching simulation result is ready. */
   readonly deferRotationRender?: boolean;
   /** Only switching game-data versions can retain the unchanged build's previously visited patch results. */
   readonly patchSwitch?: boolean;
 }
-
-/** Combines baseline output with session state owned by each optional analysis feature. */
-export interface ProfessionAppResult
-  extends BaselineSimulationResult, ModifierContributionResultState, RandomDistributionResultState {}
 
 export interface ProfessionAppFilenames {
   readonly build: string;
@@ -145,12 +127,6 @@ export interface ProfessionRuntimeApi {
   ): Gw2SimulationResult;
   baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest;
   calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput;
-}
-
-export interface ProfessionFeatureRunner {
-  readonly isRunning?: boolean;
-  cancel?(): void;
-  schedule(run?: boolean): void;
 }
 
 export interface Gw2AppAdapter extends ProfessionRuntimeApi {

@@ -1,5 +1,6 @@
+import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 /** Resolves timeline controls from accepted inputs, or selected skill bars while edits await simulation. */
-import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { CastCommand } from '#gw2/platform/builds/rotation.js';
 import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
@@ -10,7 +11,7 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 export function timelineHotkeyActions(
   app: ProfessionAppState,
   build: Gw2CanonicalBuild,
-  results: ProfessionAppResult | null
+  results: AnalysisResult | null
 ): (index: number, command: CastCommand, skill: Skill) => InputControlId | null {
   const recorded = new Map(
     (results?.inputTrace?.actions || []).map((action) => [action.rotationIndex, action.control])

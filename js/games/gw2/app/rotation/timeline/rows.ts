@@ -50,7 +50,8 @@ import {
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
-import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { Gw2ProcStep, SimulationStep } from '#gw2/platform/results/types.js';
@@ -91,7 +92,7 @@ function timelineCommandKey(command: RotationCommand): number {
 export function timelineRowsView(
   app: ProfessionAppState,
   build: Gw2CanonicalBuild,
-  results: ProfessionAppResult | null,
+  results: AnalysisResult | null,
   readOnly: boolean,
   procVisibility: ReadonlySet<string>,
   procPanelWasOpen: boolean,

@@ -45,7 +45,24 @@ test('Mesmer comparison projects Warden and Disenchanter selections without muta
     { type: 'cast', skillId: MESMER_SKILL_IDS.PHANTASMAL_WARDEN },
     { type: 'wait', durationMs: 10000 }
   ];
-  const app = { adapter, profession, build, patch: profession.resolvePatch({ id: 'current' }), simulationSettings: {} };
+  const app = {
+    analysis: {
+      needsPatchComparison: () => true,
+      state: {
+        results: null,
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null
+      }
+    },
+    adapter,
+    profession,
+    build,
+    patch: profession.resolvePatch({ id: 'current' }),
+    simulationSettings: {}
+  };
   Object.defineProperty(app, 'activeCatalog', { get: () => app.patch.catalog });
   const original = structuredClone(build);
   const direct = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
@@ -69,7 +86,21 @@ test('patch role swaps preserve the selected utility slot in both directions', (
     const selected = { Heal: null, Utility1: null, Utility2: null, Utility3: null, Elite: null, [slot]: 1 };
     const other = slot === 'Utility1' ? 'Utility2' : 'Utility1';
     selected[other] = 3;
-    const app = { activeCatalog: live, build: { selectedSkillIds: { ...selected } } };
+    const app = {
+      analysis: {
+        needsPatchComparison: () => false,
+        state: {
+          results: null,
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null
+        }
+      },
+      activeCatalog: live,
+      build: { selectedSkillIds: { ...selected } }
+    };
     swapSelectedSkillsForPatch(app, preview);
     assert.deepEqual(app.build.selectedSkillIds, { ...selected, [slot]: 2 });
     app.activeCatalog = preview;
@@ -98,7 +129,21 @@ test('patch switching only remaps a unique reciprocal placement swap', () => {
     ],
     [catalog([...live.skills, { id: 4, ...focus }]), catalog([...preview.skills, { id: 4, ...utility }])]
   ]) {
-    const app = { activeCatalog: previous, build: { selectedSkillIds: { Utility2: 1 } } };
+    const app = {
+      analysis: {
+        needsPatchComparison: () => false,
+        state: {
+          results: null,
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null
+        }
+      },
+      activeCatalog: previous,
+      build: { selectedSkillIds: { Utility2: 1 } }
+    };
     swapSelectedSkillsForPatch(app, next);
     assert.equal(app.build.selectedSkillIds.Utility2, 1);
   }
@@ -124,6 +169,20 @@ test('patch selection refreshes skill lists and ID lookups from the new catalog'
   const refreshed = [];
   let cancelled = 0;
   const app = Object.assign(Object.create(ProfessionApp.prototype), {
+    analysis: {
+      suspend() {
+        cancelled++;
+      },
+      needsPatchComparison: () => false,
+      state: {
+        results: null,
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null
+      }
+    },
     patch: patchSelectionFixture(catalogs.current),
 
     profession: {

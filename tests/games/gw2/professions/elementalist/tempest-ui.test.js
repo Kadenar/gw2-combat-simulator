@@ -84,27 +84,29 @@ function createTempestApp(rotation = [], { tempestTraits = '1-1-2', alacrity = t
     startAttunement: 'Air'
   });
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: catalog,
     weaponData: elementalistAppAdapter.weaponData,
-    attributeWeaponSet: 1,
-    results: null
+    attributeWeaponSet: 1
   };
 
   app.attributeData = elementalistAppAdapter
     .createBuildContext({
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       build: app.build,
       transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
       patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-  app.results = runElementalist(
+  app.analysis.state.results = runElementalist(
     commands,
     elementalistAppAdapter
       .createBuildContext({
+        analysis: { needsPatchComparison: () => false, state: { results: null } },
         build: app.build,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
         patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
@@ -122,9 +124,9 @@ function paletteContext(app) {
   return {
     specialization: 'Tempest',
     catalog,
-    professionState: app.results.planningState.profession,
-    cooldowns: app.results.planningState.cooldownsBySkillId,
-    time: app.results.planningState.atSeconds,
+    professionState: app.analysis.state.results.planningState.profession,
+    cooldowns: app.analysis.state.results.planningState.cooldownsBySkillId,
+    time: app.analysis.state.results.planningState.atSeconds,
     build: app.build,
     traits: new Set(app.attributeData.activeTraits.map((trait) => trait.id))
   };
@@ -142,7 +144,7 @@ test('Tempest overload palette availability follows the active attunement', () =
   });
   assert.deepEqual(paletteAvailability(app, context, fire), {
     available: false,
-    message: app.results.planningState.availability[fire.id].reason,
+    message: app.analysis.state.results.planningState.availability[fire.id].reason,
     retryAt: null
   });
 });
@@ -169,7 +171,7 @@ test('Tempest overload singularity delays a newly entered attunement but not the
 
   assert.deepEqual(enteredAvailability, {
     available: false,
-    message: enteredApp.results.planningState.availability[fire.id].reason,
+    message: enteredApp.analysis.state.results.planningState.availability[fire.id].reason,
     retryAt: 4.8
   });
   assert.equal(enteredView.disabled, true);
@@ -213,7 +215,7 @@ test('an overload with 0.1 seconds remaining stays click-queueable and casts whe
   assert.doesNotMatch(renderPaletteMarkup(nearlyReadyApp), /pal-context-disabled[^>]*data-skill="Overload Fire"/);
 
   const queuedApp = createTempestApp(['Fire Attunement', 4700, 'Overload Fire']);
-  const overload = queuedApp.results.events.find(
+  const overload = queuedApp.analysis.state.results.events.find(
     (event) => event.type === 'action' && event.skillName === 'Overload Fire'
   );
 
@@ -222,9 +224,11 @@ test('an overload with 0.1 seconds remaining stays click-queueable and casts whe
 
 test('a time-zero attunement swap still enforces overload singularity', () => {
   const app = createTempestApp(['Fire Attunement', 'Overload Fire']);
-  const overload = app.results.events.find((event) => event.type === 'action' && event.skillName === 'Overload Fire');
+  const overload = app.analysis.state.results.events.find(
+    (event) => event.type === 'action' && event.skillName === 'Overload Fire'
+  );
 
-  assert.equal(app.results.planningState.profession[STATE.ATTUNEMENT_ENTERED_AT], 0);
+  assert.equal(app.analysis.state.results.planningState.profession[STATE.ATTUNEMENT_ENTERED_AT], 0);
   assert.equal(overload.at, 4.8);
 });
 

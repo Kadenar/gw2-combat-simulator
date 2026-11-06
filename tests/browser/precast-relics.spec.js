@@ -28,7 +28,9 @@ test('gear panel adds, removes and restores precast relics', async ({ page }) =>
     app.changed();
   });
   const ready = () =>
-    page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+    page.waitForFunction(
+      () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+    );
   await ready();
   const picker = page.locator('.gear-panel #precast-relics');
   await expect(picker).toBeVisible();
@@ -61,7 +63,9 @@ test('gear panel adds, removes and restores precast relics', async ({ page }) =>
   await page.keyboard.press('Escape');
   expect(await page.evaluate(() => window.professionApp.build.relic)).toBe('');
   const procs = await page.evaluate(() =>
-    window.professionApp.results.procSteps.filter((step) => step.type === 'relic_proc').map((step) => step.skill)
+    window.professionApp.analysis.state.results.procSteps
+      .filter((step) => step.type === 'relic_proc')
+      .map((step) => step.skill)
   );
   expect(procs).toContain('Relic of the Director');
   expect(procs).toContain('Relic of Mount Balrior');
@@ -83,7 +87,7 @@ test('gear panel adds, removes and restores precast relics', async ({ page }) =>
   expect(await page.evaluate(() => window.professionApp.build.precastRelics)).toEqual(['Brawler', 'Mount Balrior']);
   expect(
     await page.evaluate(() =>
-      window.professionApp.results.procSteps.some((step) => step.skill === 'Relic of the Director')
+      window.professionApp.analysis.state.results.procSteps.some((step) => step.skill === 'Relic of the Director')
     )
   ).toBe(false);
 });

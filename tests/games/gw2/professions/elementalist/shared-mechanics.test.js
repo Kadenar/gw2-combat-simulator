@@ -324,14 +324,19 @@ test('rotation palette resolves equipped glyphs to the active attunement', () =>
     }
   });
   const app = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: {
+          planningState: { availability: {}, profession: { [STATE.PRIMARY_ATTUNEMENT]: 'Air' } }
+        }
+      }
+    },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
-    activeCatalog: elementalistCatalog,
-    results: {
-      planningState: { availability: {}, profession: { [STATE.PRIMARY_ATTUNEMENT]: 'Air' } }
-    }
+    activeCatalog: elementalistCatalog
   };
 
   assert.equal(

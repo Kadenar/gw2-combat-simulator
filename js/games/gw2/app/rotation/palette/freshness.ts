@@ -8,13 +8,17 @@ export function updatePaletteFreshness(app: ProfessionAppState): void {
 
   if (!root) return;
 
-  const pending = app.resultRevision !== app.buildRevision;
+  const pending = app.analysis.state.resultRevision !== app.analysis.state.buildRevision;
   root.dataset.palettePending = String(pending);
-  root.setAttribute('aria-busy', String(pending && app.simulationStatus !== 'error'));
+  root.setAttribute('aria-busy', String(pending && app.analysis.state.simulationStatus !== 'error'));
   const status = document.querySelector<HTMLElement>('.rotation-builder-heading [data-palette-update-status]');
 
   if (status) {
     status.hidden = !pending;
-    status.textContent = pending ? (app.simulationStatus === 'error' ? 'Simulation failed' : 'Updating skills…') : '';
+    status.textContent = pending
+      ? app.analysis.state.simulationStatus === 'error'
+        ? 'Simulation failed'
+        : 'Updating skills…'
+      : '';
   }
 }

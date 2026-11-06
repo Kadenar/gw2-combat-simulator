@@ -1,5 +1,6 @@
 import { cloneRotation, resetRotationHistory } from '#gw2/app/rotation/editing/history.js';
-import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 
@@ -41,9 +42,9 @@ export function beginRotationComparison(
     app.workspace?.scenario ||
     app.rotationComparison?.view === view ||
     !app.build.rotation.length ||
-    !app.results ||
-    app.resultRevision !== app.buildRevision ||
-    app.simulationStatus !== 'idle'
+    !app.analysis.state.results ||
+    app.analysis.state.resultRevision !== app.analysis.state.buildRevision ||
+    app.analysis.state.simulationStatus !== 'idle'
   )
     return false;
 
@@ -94,7 +95,7 @@ export function clearRotationReference(app: ProfessionAppState): boolean {
 }
 
 /** Exchanges independent rotations and their cached results before the app refreshes Current-only output. */
-export function swapRotationComparison(app: ProfessionAppState): boolean {
+export function swapRotationComparison(app: ProfessionAppState): AnalysisResult | null {
   const comparison = app.rotationComparison;
 
   if (
@@ -103,23 +104,23 @@ export function swapRotationComparison(app: ProfessionAppState): boolean {
     comparison.referenceStatus !== 'fresh' ||
     !comparison.referenceResult ||
     !app.build.rotation.length ||
-    !app.results ||
-    app.resultRevision !== app.buildRevision ||
-    app.simulationStatus !== 'idle'
+    !app.analysis.state.results ||
+    app.analysis.state.resultRevision !== app.analysis.state.buildRevision ||
+    app.analysis.state.simulationStatus !== 'idle'
   )
-    return false;
+    return null;
 
   const currentRotation = cloneRotation(app.build.rotation);
-  const currentResult = app.results;
+  const currentResult = app.analysis.state.results;
   app.build.rotation = cloneRotation(comparison.referenceRotation);
-  app.results = comparison.referenceResult as ProfessionAppResult;
+  const adoptedResult = comparison.referenceResult;
   comparison.reference = { label: 'Previous current rotation', warnings: [] };
   comparison.referenceRotation = currentRotation;
   comparison.referenceResult = currentResult;
   comparison.referenceStatus = 'fresh';
   comparison.referenceError = '';
   resetRotationHistory(app);
-  return true;
+  return adoptedResult;
 }
 
 /** Leaving comparison discards only the reference; Current's undo history remains usable. */

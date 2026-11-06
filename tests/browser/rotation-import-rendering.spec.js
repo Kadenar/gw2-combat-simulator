@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 test('named rotations import through the Current file dialog and Reference manifest dialog', async ({ page }) => {
   await page.goto('/mesmer.html');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.waitForFunction(() => window.professionApp?.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp?.analysis.state.simulationStatus === 'idle');
   const build = await page.evaluate(() => {
     const app = window.professionApp;
     app.templatePresets = [
@@ -40,7 +40,7 @@ test('named rotations import through the Current file dialog and Reference manif
   expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(0);
   await current.getByRole('button', { name: 'Apply rotation', exact: true }).click();
   await expect(current).toBeHidden();
-  await page.waitForFunction(() => window.professionApp.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   expect(await page.evaluate(() => window.professionApp.simulationSettings.transitionDelays.weaponSwapMs)).toBe(150);
   expect(await page.evaluate(() => window.professionApp.build.rotation)).toEqual([{ type: 'cast', skillId: 62617 }]);
   await page.getByRole('button', { name: 'Compare', exact: true }).click();
@@ -67,7 +67,7 @@ test('unknown imported skill diagnostics cannot create timeline attributes or el
   const reason = 'Unknown skill.';
   await page.goto('/mesmer.html');
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
-  await page.waitForFunction(() => window.professionApp?.simulationStatus === 'idle');
+  await page.waitForFunction(() => window.professionApp?.analysis.state.simulationStatus === 'idle');
   await page.evaluate(async (skillId) => {
     const { previewRotationFile, applyRotationImportPreview } =
       await import('/js/games/gw2/app/import-export/rotation-import-dialog.ts');
@@ -77,8 +77,10 @@ test('unknown imported skill diagnostics cannot create timeline attributes or el
     const app = window.professionApp;
     applyRotationImportPreview(app, await previewRotationFile(file, app));
   }, skillId);
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  expect(await page.evaluate(() => window.professionApp.results.warnings)).toContainEqual({
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
+  expect(await page.evaluate(() => window.professionApp.analysis.state.results.warnings)).toContainEqual({
     message: `${skillId}: ${reason}`,
     at: 0,
     rotationIndex: 0
@@ -90,7 +92,7 @@ test('unknown imported skill diagnostics cannot create timeline attributes or el
     root.id = 'audit-reference-timeline';
     document.body.append(root);
     const app = window.professionApp;
-    renderTimeline(app, { root, procRoot: null, build: app.build, result: app.results, readOnly: true });
+    renderTimeline(app, { root, procRoot: null, build: app.build, result: app.analysis.state.results, readOnly: true });
   });
   for (const selector of ['#rotation-timeline', '#audit-reference-timeline']) {
     const timeline = page.locator(selector);

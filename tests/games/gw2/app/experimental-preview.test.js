@@ -66,6 +66,17 @@ function appFor(patchId = 'current') {
   const build = adapter.toApplicationBuild(profession.createBuildDefaults());
   build.specializations = [{ name: 'Firebrand', traits: '2-1-1', patchTraits: { [preview.id]: '2-1-1' } }];
   return {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: null,
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null
+      }
+    },
     adapter,
     profession,
     contentId: 'guardian',
@@ -81,7 +92,7 @@ function appFor(patchId = 'current') {
 
 test('Preview comparison presentation leaves refresh scheduling to the Analysis runner', () => {
   const app = appFor();
-  app.simulationStatus = 'queued';
+  app.analysis.state.simulationStatus = 'queued';
   app.changed = () => assert.fail('Comparison presentation must not request a simulation');
   const container = element('div');
   const previous = globalThis.document;
@@ -103,8 +114,8 @@ test('Preview comparison reports failed and idle requests accurately', () => {
   globalThis.document = { createElement: element };
   try {
     for (const status of ['error', 'idle']) {
-      app.simulationStatus = status;
-      app.simulationError = 'Worker <failed>';
+      app.analysis.state.simulationStatus = status;
+      app.analysis.state.simulationError = 'Worker <failed>';
       const container = element('div');
       renderPatchComparison(container, app);
       const html = container.children[0].innerHTML;
@@ -123,7 +134,7 @@ test('Preview comparison reports failed and idle requests accurately', () => {
 
 test('Preview comparison notes use preview trait positions and experimental tuning', () => {
   const app = appFor(preview.id);
-  app.patchComparison = { current: { dps: 0, events: [] }, preview: { dps: 0, events: [] } };
+  app.analysis.state.patchComparison = { current: { dps: 0, events: [] }, preview: { dps: 0, events: [] } };
   const container = element('div');
   const previous = globalThis.document;
   globalThis.document = { createElement: element };
@@ -145,7 +156,7 @@ test('Preview comparison notes use preview trait positions and experimental tuni
 test('Preview comparison asks for relaid trait choices before reporting DPS', () => {
   const app = appFor(preview.id);
   delete app.build.specializations[0].patchTraits;
-  app.patchComparison = { current: { dps: 1000, events: [] }, preview: { dps: 500, events: [] } };
+  app.analysis.state.patchComparison = { current: { dps: 1000, events: [] }, preview: { dps: 500, events: [] } };
   const container = element('div');
   const previous = globalThis.document;
   globalThis.document = { createElement: element };
@@ -209,6 +220,17 @@ for (const [testAdapter, contentId, equipped, unrelated] of [
   test(`${contentId} preview assumptions follow equipped trait lines`, () => {
     const profession = testAdapter.profession;
     const app = {
+      analysis: {
+        needsPatchComparison: () => false,
+        state: {
+          results: null,
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null
+        }
+      },
       profession,
       contentId,
       patch: profession.resolvePatch({ id: profession.preview.id }),
@@ -242,6 +264,17 @@ test('Live clears overrides and does not show an assumptions result notice', () 
 test('Grenadier edits percentage bonuses using the same fractional units as Firebrand', () => {
   const profession = engineerAppAdapter.profession;
   const app = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: null,
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null
+      }
+    },
     profession,
     contentId: 'engineer',
     patch: profession.resolvePatch({ id: profession.preview.id }),

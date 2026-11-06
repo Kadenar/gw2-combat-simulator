@@ -252,7 +252,12 @@ test('Manifest Sand Shade aliases load the one canonical Scourge behavior', () =
 test('core heals remain selectable and castable without requiring damage effects', async () => {
   const adapter = await loadProfessionAppAdapter('necromancer');
   const build = { specialization: 'Core' };
-  const app = { profession: necromancerProfession, build, activeCatalog: necromancerCatalog };
+  const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
+    profession: necromancerProfession,
+    build,
+    activeCatalog: necromancerCatalog
+  };
 
   // Heal slots remain usable even when their healing is outside the damage model.
   for (const name of ['Well of Blood', 'Consume Conditions']) {
@@ -391,6 +396,7 @@ test('Scourge point capacity and fixed costs use the selected balance profiles',
 test('Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigger', async () => {
   const adapter = await loadProfessionAppAdapter('necromancer');
   const skills = weaponSkills({
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: adapter.profession.resolvePatch(),
     adapter,
     activeCatalog: necromancerCatalog,

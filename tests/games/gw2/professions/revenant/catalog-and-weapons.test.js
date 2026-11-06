@@ -67,6 +67,7 @@ const authoringRevenantProfession = withActivePatchPreview(revenantProfession);
 test('modifier contribution candidates include every active Revenant trait', () => {
   const build = createRevenantBuildDefaults();
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     attributeData: calculateRevenantAttributes(build, []),
@@ -502,18 +503,22 @@ test('legend palette shows only the destination legend with the shared swap cool
   assert.equal(
     paletteSkillView(
       {
+        analysis: {
+          state: {
+            results: {
+              planningState: {
+                availability: {},
+                atSeconds: 1,
+                ammoBySkillId: {},
+                cooldownsBySkillId: cooldownContext.cooldownsBySkillId,
+                profession: cooldownContext.professionState
+              }
+            }
+          }
+        },
         adapter: revenantAppAdapter,
         // Palette rendering describes the skill using the application's selected balance patch.
-        patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
-        results: {
-          planningState: {
-            availability: {},
-            atSeconds: 1,
-            ammoBySkillId: {},
-            cooldownsBySkillId: cooldownContext.cooldownsBySkillId,
-            profession: cooldownContext.professionState
-          }
-        }
+        patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' })
       },
       revenantCatalog.skillsById.get(SKILL.SWAP_LEGENDS),
       true
@@ -562,6 +567,7 @@ test('legend palette shows only the destination legend with the shared swap cool
   );
   assert.equal(revenantLegendLoadout.palettePlacement, 'after-actions');
   const rotationApp = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     profession: revenantProfession,
     adapter: { slotLoadout: revenantLegendLoadout },
     build: context.build,
@@ -579,13 +585,13 @@ test('legend palette shows only the destination legend with the shared swap cool
 
   build.rotation = ['__combat_start', 'Swap Legends'];
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: simulate('Core', build.rotation) } },
     patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     adapter,
     profession: revenantProfession,
     activeCatalog: revenantCatalog,
-    weaponData: adapter.weaponData,
-    results: simulate('Core', build.rotation)
+    weaponData: adapter.weaponData
   };
   const palette = inertContainer();
   const skillBar = { innerHTML: '', classList: { remove() {} }, querySelectorAll: () => [] };
@@ -623,13 +629,13 @@ test('Revenant utilities and Conduit resources render by their related skills', 
   canonicalBuild.startingLegend = LEGEND.ENTITY;
   const build = adapter.toApplicationBuild(canonicalBuild);
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
     build,
     adapter,
     profession: revenantProfession,
     activeCatalog: revenantCatalog,
-    weaponData: adapter.weaponData,
-    results: null
+    weaponData: adapter.weaponData
   };
   const palette = inertContainer();
   const previousDocument = globalThis.document;
@@ -717,13 +723,13 @@ test('weapon swap changes the active Revenant weapon set', () => {
 
 test('Revenant scepter follow-ups replace and restore weapon slots 2 and 3', () => {
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
     activeCatalog: revenantCatalog,
-    profession: revenantProfession,
-    results: null
+    profession: revenantProfession
   };
   const paletteAfter = (rotation, names) => {
-    app.results = simulate('Core', rotation, {
+    app.analysis.state.results = simulate('Core', rotation, {
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Sword'
     });
@@ -867,6 +873,7 @@ test('Abyssal Strike repeats without exposing a separate second-swing palette ti
   );
 
   const paletteApp = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     profession: revenantProfession,
     activeCatalog: revenantCatalog,
     build: {
@@ -891,6 +898,7 @@ test('Abyssal Strike repeats without exposing a separate second-swing palette ti
 test('Phantom’s Onslaught remains the shared Greatsword input for every Revenant specialization', () => {
   for (const specializationName of ['Core', 'Herald', 'Renegade', 'Vindicator', 'Conduit']) {
     const app = {
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       profession: revenantProfession,
       activeCatalog: revenantCatalog,
       build: { weapons: ['Greatsword', ''], alternateWeapons: ['', ''] },

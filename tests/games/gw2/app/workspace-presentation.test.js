@@ -33,7 +33,20 @@ test('empty rotations keep placeholder DPS metrics grouped with the builder', ()
   results.ownerDocument = mockDocument;
   globalThis.document = mockDocument;
   try {
-    const app = { patch: patchSelectionFixture(undefined), build: { rotation: [] }, results: null };
+    const app = {
+      patch: patchSelectionFixture(undefined),
+      build: { rotation: [] },
+      analysis: {
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          results: null
+        }
+      }
+    };
     gw2SimulationPresentation.render(app, gw2SimulationPresentation.createViewModel(app));
   } finally {
     globalThis.document = previousDocument;
@@ -55,8 +68,16 @@ test('rotations waiting for results show an accessible analysis skeleton', () =>
     const app = {
       patch: patchSelectionFixture(undefined),
       build: { rotation: [{ type: 'cast', skillId: 'Strike' }] },
-      results: null,
-      simulationStatus
+      analysis: {
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationError: '',
+          patchComparison: null,
+          results: null,
+          simulationStatus
+        }
+      }
     };
     const model = gw2SimulationPresentation.createViewModel(app);
     assert.equal(model.analysis, null);
@@ -114,20 +135,28 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
     const app = {
       patch: patchSelectionFixture(undefined),
       build: { rotation: [{ type: 'cast', skillId: 'Strike' }], targetHealth: 0 },
-      buildRevision: 2,
-      resultRevision: 1,
-      results: {
-        rotationEndTime: 1,
-        observationEndTime: 1,
-        combatEndTime: 1,
-        totalDamage: 100,
-        dps: 100,
-        strikeDamage: 100,
-        conditionDamage: 0,
-        randomDistributionRequested: true,
-        randomDistributionTrials: 500,
-        inputTrace: { start: 0, end: 1, actions: [] }
+      analysis: {
+        state: {
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          buildRevision: 2,
+          resultRevision: 1,
+          results: {
+            rotationEndTime: 1,
+            observationEndTime: 1,
+            combatEndTime: 1,
+            totalDamage: 100,
+            dps: 100,
+            strikeDamage: 100,
+            conditionDamage: 0,
+            randomDistributionRequested: true,
+            randomDistributionTrials: 500,
+            inputTrace: { start: 0, end: 1, actions: [] }
+          }
+        }
       },
+
       runRandomDistribution() {
         runCount += 1;
       }
@@ -135,7 +164,7 @@ test('workspace renders RNG controls while detailed analysis stays lazy', () => 
     gw2SimulationPresentation.render(app, gw2SimulationPresentation.createViewModel(app));
     // The summary must expose both stale and refreshed results with valid ARIA tokens.
     assert.equal(summaryAttributes.get('aria-busy'), 'true');
-    app.resultRevision = app.buildRevision;
+    app.analysis.state.resultRevision = app.analysis.state.buildRevision;
     gw2SimulationPresentation.render(app, gw2SimulationPresentation.createViewModel(app));
     assert.equal(summaryAttributes.get('aria-busy'), 'false');
   } finally {

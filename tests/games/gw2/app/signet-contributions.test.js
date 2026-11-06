@@ -42,6 +42,17 @@ async function signetApp(name) {
   ]);
   const catalog = adapter.profession.catalog;
   const app = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: null,
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null
+      }
+    },
     adapter,
     patch: adapter.profession.resolvePatch({ id: 'current' }),
     attributeWeaponSet: 1,

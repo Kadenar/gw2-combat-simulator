@@ -100,11 +100,12 @@ test('loading repairs conflicts while strict build validation rejects them', () 
 test('optimizer rejects incompatible pairs and cross-set candidates before preparing combat', () => {
   const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null, buildRevision: 0 } },
     build,
     adapter,
     profession: adapter.profession,
     contentId: adapter.id,
-    buildRevision: 0,
+
     patch: adapter.profession.resolvePatch({ id: 'current' })
   };
   assert.throws(() => captureGearOptimizerRequest(app, { sigils: [[['Bloodlust'], ['Corruption']]] }), /legal pair/);

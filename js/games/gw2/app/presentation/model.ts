@@ -4,7 +4,8 @@ import type { ResultSummaryMetric } from '#gw2/app/results/summary-metrics.js';
 import type { ResultSummaryModel } from '#gw2/app/results/summary-view.js';
 import type { EncounterTimelineMarker } from '#gw2/app/rotation/timeline/encounter.js';
 import type { targetHealthTimelineMarkers, TimelineDeadTimeOptions } from '#gw2/app/rotation/timeline/model.js';
-import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import type { SimulationExtensionViewModel, SimulationViewModel } from '#ui/results/simulation-view.js';
 
@@ -28,12 +29,12 @@ export interface WorkspaceResultPresentation {
 export interface WorkspacePresentation {
   readonly analysisTitle: string;
   readonly authoringLink: { readonly href: string; readonly label: string };
-  timeline(app: ProfessionAppState, build: Gw2CanonicalBuild, result: ProfessionAppResult | null): TimelinePresentation;
-  results(app: ProfessionAppState, result: ProfessionAppResult): WorkspaceResultPresentation | null;
+  timeline(app: ProfessionAppState, build: Gw2CanonicalBuild, result: AnalysisResult | null): TimelinePresentation;
+  results(app: ProfessionAppState, result: AnalysisResult): WorkspaceResultPresentation | null;
 }
 
 /** Both workspaces label a deterministic baseline consistently when an RNG comparison has been requested. */
-export function presentationMetrics(result: ProfessionAppResult) {
+export function presentationMetrics(result: AnalysisResult) {
   return resultSummaryMetrics(result).map((metric) =>
     result.randomDistributionRequested && metric.label === 'Player DPS'
       ? { ...metric, label: 'Baseline Player DPS' }

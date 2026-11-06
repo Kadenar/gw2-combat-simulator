@@ -199,8 +199,8 @@ export function mountBossScenarios(app: ProfessionAppState): void {
     const targetDefinitions = encounterHealth(draft.encounterId, draft.difficulty)!.targets;
     const execution = scenarioSimulation(draft);
     const freshResult =
-      app.workspace?.scenario === draft && app.resultRevision === app.buildRevision
-        ? app.results?.encounter
+      app.workspace?.scenario === draft && app.analysis.state.resultRevision === app.analysis.state.buildRevision
+        ? app.analysis.state.results?.encounter
         : undefined;
     const summaryKey = JSON.stringify([draft.id, draft.encounterId, draft.difficulty, draft.targetIndex]);
 
@@ -212,7 +212,7 @@ export function mountBossScenarios(app: ProfessionAppState): void {
         key: summaryKey,
         encounter: freshResult,
         phaseSnapshots: encounterDpsSnapshots(
-          encounterAnalysisPhases(app.results!, encounterExecutionPhases(plan.phases))
+          encounterAnalysisPhases(app.analysis.state.results!, encounterExecutionPhases(plan.phases))
         )
       };
 

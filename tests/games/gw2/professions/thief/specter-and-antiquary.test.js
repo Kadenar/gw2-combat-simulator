@@ -850,6 +850,14 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
   const paletteAtStage = (stage) =>
     weaponPaletteRows(
       {
+        analysis: {
+          needsPatchComparison: () => false,
+          state: {
+            results: {
+              planningState: { availability: {}, activeWeaponSet: 1, profession: { [STATE.SPEAR_CHAIN_STAGE]: stage } }
+            }
+          }
+        },
         patch: thiefAppAdapter.profession.resolvePatch(),
         build: {
           ...createThiefBuildDefaults(),
@@ -859,10 +867,7 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
         adapter: thiefAppAdapter,
         profession: thiefProfession,
         activeCatalog: thiefCatalog,
-        weaponData: thiefAppAdapter.weaponData,
-        results: {
-          planningState: { availability: {}, activeWeaponSet: 1, profession: { [STATE.SPEAR_CHAIN_STAGE]: stage } }
-        }
+        weaponData: thiefAppAdapter.weaponData
       },
       1
     )[0]

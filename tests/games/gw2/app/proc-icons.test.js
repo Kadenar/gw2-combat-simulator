@@ -54,6 +54,48 @@ test('damage result rows reuse the icons shown for generated procs', () => {
   const meltdownIcon = 'meltdown.png';
   const explicitIcon = 'soul-shards.png';
   const app = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: {
+          procSteps: [
+            {
+              type: 'sigil_proc',
+              skill: 'Sigil of Earth',
+              sourceSkill: 'Bladecall',
+              icon: earthIcon
+            },
+            {
+              type: 'food_proc',
+              skill: 'Nourishment',
+              sourceSkill: 'Bladecall',
+              icon: nourishmentIcon
+            },
+            {
+              type: 'trait_proc',
+              skill: 'Phantasmal Blades',
+              sourceSkill: 'Phantasmal Lancer'
+            },
+            {
+              type: 'trait_proc',
+              skill: 'Meltdown',
+              sourceSkill: 'Devouring Cut',
+              icon: meltdownIcon
+            },
+            {
+              type: 'trait_proc',
+              skill: 'Lightning Rod',
+              sourceSkill: 'Gust'
+            }
+          ]
+        }
+      }
+    },
     patch: patchSelectionFixture({
       skillsById: new Map([[123, { icon: 'gust.png' }]]),
       skills: []
@@ -70,38 +112,7 @@ test('damage result rows reuse the icons shown for generated procs', () => {
         }
       ]
     },
-    results: {
-      procSteps: [
-        {
-          type: 'sigil_proc',
-          skill: 'Sigil of Earth',
-          sourceSkill: 'Bladecall',
-          icon: earthIcon
-        },
-        {
-          type: 'food_proc',
-          skill: 'Nourishment',
-          sourceSkill: 'Bladecall',
-          icon: nourishmentIcon
-        },
-        {
-          type: 'trait_proc',
-          skill: 'Phantasmal Blades',
-          sourceSkill: 'Phantasmal Lancer'
-        },
-        {
-          type: 'trait_proc',
-          skill: 'Meltdown',
-          sourceSkill: 'Devouring Cut',
-          icon: meltdownIcon
-        },
-        {
-          type: 'trait_proc',
-          skill: 'Lightning Rod',
-          sourceSkill: 'Gust'
-        }
-      ]
-    },
+
     activeCatalog: { skillsById: new Map([[123, { icon: 'gust.png' }]]), skills: [] }
   };
 
@@ -117,6 +128,17 @@ test('clone attack damage rows use their weapon skill icons', () => {
   const windsIcon = 'winds-of-chaos.png';
   const etherBoltIcon = 'ether-bolt.png';
   const app = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: { procSteps: [] }
+      }
+    },
     patch: patchSelectionFixture({
       skills: [
         { name: 'Winds of Chaos', ...{ icon: windsIcon } },
@@ -124,7 +146,7 @@ test('clone attack damage rows use their weapon skill icons', () => {
       ]
     }),
     attributeData: { activeTraits: [] },
-    results: { procSteps: [] },
+
     activeCatalog: {
       skills: [
         { name: 'Winds of Chaos', ...{ icon: windsIcon } },

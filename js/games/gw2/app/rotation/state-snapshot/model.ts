@@ -38,7 +38,7 @@ export function rotationStateSnapshot(app: ProfessionAppState): {
   readonly atInsertion: boolean;
   readonly timeMs: number;
 } {
-  const result = app.results;
+  const result = app.analysis.state.results;
   const preview = palettePlanningResult(app);
   const state = preview?.planningState;
   const timeMs = Number(state?.atSeconds || 0) * 1000;

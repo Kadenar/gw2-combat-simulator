@@ -18,7 +18,8 @@ import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import type { ResultIconRow } from '#gw2/app/results/skill-icons.js';
 import { mountResultSummary } from '#gw2/app/results/summary-view.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
-import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationViewModel, SimulationViewSection } from '#ui/results/simulation-view.js';
 
@@ -68,7 +69,7 @@ function resultSection(...mounts: Array<(container: HTMLElement) => void>): Simu
 }
 
 /** Projects RNG state independently so the workspace can render it without analysis tables. */
-function randomDistributionModel(result: ProfessionAppResult) {
+function randomDistributionModel(result: AnalysisResult) {
   return {
     randomDistribution: result.randomDistribution || null,
     randomDistributionRequested: result.randomDistributionRequested === true,
@@ -82,12 +83,12 @@ function randomDistributionModel(result: ProfessionAppResult) {
 /** Shares modifier labels and status between initial Analysis rendering and its isolated completion update. */
 function modifierContributionModel(app: ProfessionAppState) {
   return {
-    contributions: (app.results?.contributions || []).map((contribution) => ({
+    contributions: (app.analysis.state.results?.contributions || []).map((contribution) => ({
       ...contribution,
       icon: resultSkillIcon(app, contribution)
     })),
-    contributionsStale: app.results?.modifierContributionsStale === true,
-    contributionsError: app.results?.modifierContributionsError || ''
+    contributionsStale: app.analysis.state.results?.modifierContributionsStale === true,
+    contributionsError: app.analysis.state.results?.modifierContributionsError || ''
   };
 }
 
@@ -102,7 +103,7 @@ export function renderModifierContributions(app: ProfessionAppState): void {
 
 /** Converts a GW2 resolver result into the neutral result-view contract. */
 export function createGw2SimulationViewModel(app: ProfessionAppState): SimulationViewModel {
-  const result = app.results;
+  const result = app.analysis.state.results;
   const workspace = createWorkspacePresentation(app);
   // The selected workspace owns result eligibility and its mode-specific projections.
   const presentation = app.build.rotation.length && result ? workspace.results(app, result) : null;
@@ -169,10 +170,10 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
   const conditions = result.conditionBreakdown || [];
   const modifiers = modifierContributionModel(app);
   const charts: ResultChartsModel = {
-    chartsPending: !result.effectReport || app.resultRevision !== app.buildRevision,
-    chartsError: !result.effectReport ? app.simulationError : undefined,
+    chartsPending: !result.effectReport || app.analysis.state.resultRevision !== app.analysis.state.buildRevision,
+    chartsError: !result.effectReport ? app.analysis.state.simulationError : undefined,
     chartSeries:
-      result.effectReport && app.resultRevision === app.buildRevision
+      result.effectReport && app.analysis.state.resultRevision === app.analysis.state.buildRevision
         ? buildChartSeries(result, 250, effectPresentations, chartApplications, skillKeys)
         : null
   };
@@ -241,8 +242,8 @@ export const gw2SimulationPresentation = Object.freeze({
     if (title) title.textContent = createWorkspacePresentation(app).analysisTitle;
 
     renderSimulationViewModel(viewModel, {
-      inputRevision: app.buildRevision,
-      outputRevision: app.resultRevision
+      inputRevision: app.analysis.state.buildRevision,
+      outputRevision: app.analysis.state.resultRevision
     });
   }
 });

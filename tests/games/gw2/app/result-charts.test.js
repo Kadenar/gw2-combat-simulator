@@ -46,18 +46,27 @@ test('Analysis projections are prepared only when the Analysis view is active', 
     },
     adapter: { eliteSpecialization: () => 'Core' },
     build: { rotation: [{ type: 'wait', durationMs: 1000 }] },
-    results: {
-      rotationEndTime: 1,
-      observationEndTime: 1,
-      combatEndTime: 1,
-      totalDamage: 100,
-      dps: 100,
-      randomDistributionRequested: true,
-      inputTrace: { start: 0, end: 1, actions: [] }
+    analysis: {
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: {
+          rotationEndTime: 1,
+          observationEndTime: 1,
+          combatEndTime: 1,
+          totalDamage: 100,
+          dps: 100,
+          randomDistributionRequested: true,
+          inputTrace: { start: 0, end: 1, actions: [] }
+        }
+      }
     }
   };
   for (const [name, value] of Object.entries(analysisFields)) {
-    Object.defineProperty(app.results, name, { get: () => recordAnalysisRead(name, value) });
+    Object.defineProperty(app.analysis.state.results, name, { get: () => recordAnalysisRead(name, value) });
   }
 
   // Profession projection hooks prove Analysis was prepared without pinning which result fields it reads.
@@ -185,21 +194,30 @@ for (const [startingHealthPercent, targetDied] of [
         targetHealth: 100,
         targetStartingHealthPercent: startingHealthPercent
       },
-      results: {
-        rotationEndTime: 10,
-        observationEndTime: 10,
-        combatEndTime: 10,
-        dpsStartTime: 0,
-        deathTime: targetDied ? 10 : null,
-        totalDamage: startingHealthPercent - (targetDied ? 0 : 10),
-        conditionDamage: 0,
-        ...effectFields(
-          [
-            { type: 'damage', at: 8, damage: startingHealthPercent - 20 },
-            { type: 'damage', at: 10, damage: targetDied ? 20 : 10 }
-          ],
-          10
-        )
+      analysis: {
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          results: {
+            rotationEndTime: 10,
+            observationEndTime: 10,
+            combatEndTime: 10,
+            dpsStartTime: 0,
+            deathTime: targetDied ? 10 : null,
+            totalDamage: startingHealthPercent - (targetDied ? 0 : 10),
+            conditionDamage: 0,
+            ...effectFields(
+              [
+                { type: 'damage', at: 8, damage: startingHealthPercent - 20 },
+                { type: 'damage', at: 10, damage: targetDied ? 20 : 10 }
+              ],
+              10
+            )
+          }
+        }
       }
     });
     mountSimulationSection(container, view.analysis);

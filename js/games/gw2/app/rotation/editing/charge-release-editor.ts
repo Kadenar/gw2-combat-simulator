@@ -222,7 +222,7 @@ export function openDragonSlashReleaseEditor(options: {
     currentReleaseAtCharges: options.currentReleaseAtCharges,
     currentReleaseDelayMs: options.command?.releaseDelayMs,
     rows: editorRows(projection.rows),
-    combatReferenceMs: resultCombatReferenceMs(options.app.results),
+    combatReferenceMs: resultCombatReferenceMs(options.app.analysis.state.results),
     unavailableMessage: String(projection.unavailableMessage || ''),
     onApply: options.onApply
   });

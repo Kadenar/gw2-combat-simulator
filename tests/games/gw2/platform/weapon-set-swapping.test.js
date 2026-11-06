@@ -162,22 +162,27 @@ test('restricted palettes expose both sets precombat and only the active set in 
   build.weapons = ['Rifle', ''];
   build.alternateWeapons = ['Pistol', 'Shield'];
   const app = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: {
+          rotationEndTime: 0,
+          planningState: { atSeconds: 0, combatActive: false, activeWeaponSet: 2, profession: {}, availability: {} }
+        }
+      }
+    },
     patch: adapter.profession.resolvePatch(),
     adapter,
     profession: adapter.profession,
     build,
     activeCatalog: adapter.profession.catalog,
-    weaponData: adapter.weaponData,
-    results: {
-      rotationEndTime: 0,
-      planningState: { atSeconds: 0, combatActive: false, activeWeaponSet: 2, profession: {}, availability: {} }
-    }
+    weaponData: adapter.weaponData
   };
   assert.deepEqual(
     weaponPaletteRows(app, 2).map((row) => row.weaponSet),
     [1, 2]
   );
-  app.results.planningState.combatActive = true;
+  app.analysis.state.results.planningState.combatActive = true;
   assert.deepEqual(
     weaponPaletteRows(app, 2).map((row) => row.weaponSet),
     [2]

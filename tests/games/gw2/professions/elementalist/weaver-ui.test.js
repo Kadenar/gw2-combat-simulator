@@ -106,28 +106,33 @@ test('Weaver current bar exposes a carried autoattack from the previous primary 
   const airRoot = elementalistCatalog.skillsById.get(44681).id;
   const airFollowup = elementalistCatalog.skillsById.get(45259);
   const app = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: {
+          planningState: {
+            availability: Object.fromEntries(elementalistCatalog.skills.map((skill) => [skill.id, { ready: true }])),
+            activeWeaponSet: 1,
+            atSeconds: 1,
+            cooldownsBySkillId: {},
+            // Carryover changes the active chain without changing the ammo projection.
+            ammoBySkillId: {},
+            profession: {
+              [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
+              [STATE.SECONDARY_ATTUNEMENT]: 'Air',
+              [STATE.AUTOATTACK_CHAINS]: { [airRoot]: airFollowup.id },
+              [STATE.AUTOATTACK_CARRYOVER]: { root: airRoot, attunement: 'Air' }
+            }
+          }
+        }
+      }
+    },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistCatalog,
-    weaponData: elementalistAppAdapter.weaponData,
-    results: {
-      planningState: {
-        availability: Object.fromEntries(elementalistCatalog.skills.map((skill) => [skill.id, { ready: true }])),
-        activeWeaponSet: 1,
-        atSeconds: 1,
-        cooldownsBySkillId: {},
-        // Carryover changes the active chain without changing the ammo projection.
-        ammoBySkillId: {},
-        profession: {
-          [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
-          [STATE.SECONDARY_ATTUNEMENT]: 'Air',
-          [STATE.AUTOATTACK_CHAINS]: { [airRoot]: airFollowup.id },
-          [STATE.AUTOATTACK_CARRYOVER]: { root: airRoot, attunement: 'Air' }
-        }
-      }
-    }
+    weaponData: elementalistAppAdapter.weaponData
   };
   const palette = inertContainer();
   const previousDocument = globalThis.document;

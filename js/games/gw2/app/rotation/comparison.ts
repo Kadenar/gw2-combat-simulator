@@ -6,7 +6,8 @@ import { beginRotationComparison } from '#gw2/app/rotation/comparison-state.js';
 import { palettePlanningState } from '#gw2/app/rotation/context.js';
 import { openRotationInsights, renderRotationInsights } from '#gw2/app/rotation/insights/rotation-insights-view.js';
 import { applyTimelinePreviewHighlight, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
-import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
@@ -45,13 +46,14 @@ function percentDifference(current: number, reference: number): number | null {
 export function rotationComparisonTimeMs(app: ProfessionAppState): number | null {
   const index = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
 
-  if (index == null || index === app.build.rotation.length || !app.results) return null;
+  if (index == null || index === app.build.rotation.length || !app.analysis.state.results) return null;
 
   const state = palettePlanningState(app);
 
   if (!state) return null;
 
-  const startMs = Number(app.results.dpsStartTime ?? app.results.firstHitTime ?? 0) * 1000;
+  const startMs =
+    Number(app.analysis.state.results.dpsStartTime ?? app.analysis.state.results.firstHitTime ?? 0) * 1000;
   return Math.max(0, Number(state.atSeconds || 0) * 1000 - startMs);
 }
 
@@ -103,11 +105,11 @@ export function rotationComparisonMetrics(
 
 function currentIsFresh(app: ProfessionAppState): boolean {
   return (
-    Boolean(app.results) &&
+    Boolean(app.analysis.state.results) &&
     app.build.rotation.length > 0 &&
-    app.resultRevision === app.buildRevision &&
-    app.simulationStatus === 'idle' &&
-    !app.simulationError
+    app.analysis.state.resultRevision === app.analysis.state.buildRevision &&
+    app.analysis.state.simulationStatus === 'idle' &&
+    !app.analysis.state.simulationError
   );
 }
 
@@ -406,7 +408,7 @@ export function renderRotationComparison(app: ProfessionAppState, cursorOnly = f
     document.body?.setAttribute('data-rotation-comparison', '');
   }
 
-  const currentResult = app.results;
+  const currentResult = app.analysis.state.results;
   const referenceResult = comparison.referenceResult;
   const hasReference = comparison.referenceRotation.length > 0;
   const referenceActions = referenceSection.querySelector<HTMLElement>('[data-comparison-reference-actions]');
@@ -429,7 +431,7 @@ export function renderRotationComparison(app: ProfessionAppState, cursorOnly = f
     status.textContent =
       comparison.referenceStatus === 'error'
         ? 'Reference error'
-        : app.simulationStatus === 'error'
+        : app.analysis.state.simulationStatus === 'error'
           ? 'Current error'
           : fresh
             ? ''
@@ -451,13 +453,13 @@ export function renderRotationComparison(app: ProfessionAppState, cursorOnly = f
 
   // Moving the cursor changes comparison emphasis and numbers, not the reference's command rows.
   if (cursorOnly)
-    applyTimelinePreviewHighlight(referenceTimeline, referenceResult as ProfessionAppResult | null, metrics?.timeMs);
+    applyTimelinePreviewHighlight(referenceTimeline, referenceResult as AnalysisResult | null, metrics?.timeMs);
   else
     renderTimeline(app, {
       root: referenceTimeline,
       procRoot: null,
       build: { ...app.build, rotation: comparison.referenceRotation },
-      result: referenceResult as ProfessionAppResult | null,
+      result: referenceResult as AnalysisResult | null,
       readOnly: true,
       previewTimeMs: metrics?.timeMs
     });

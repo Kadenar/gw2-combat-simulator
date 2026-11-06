@@ -14,7 +14,9 @@ test('all major and minor traits toggle off and back on', async ({ page }) => {
 
   await expect(active).toHaveCount(0);
   expect(await page.evaluate(() => window.professionApp.attributeData.activeTraits)).toEqual([]);
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   await page.reload();
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await expect(active).toHaveCount(0);

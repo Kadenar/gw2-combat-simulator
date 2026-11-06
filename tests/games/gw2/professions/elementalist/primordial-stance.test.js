@@ -105,7 +105,7 @@ test('stance palette and highlight identities remain the same in every live attu
   });
   const keys = new Set();
   for (const element of ['Fire', 'Water', 'Air', 'Earth']) {
-    app.results = {
+    app.analysis.state.results = {
       planningState: {
         availability: {},
         cooldownsBySkillId: {},

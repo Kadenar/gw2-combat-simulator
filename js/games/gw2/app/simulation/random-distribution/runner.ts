@@ -1,140 +1,58 @@
+/** Partitions RNG execution and aggregates worker progress; the lifecycle decides which outcomes remain current. */
 import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/game/worker-harness.js';
+import type { DistributionOperation } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import {
-  DEFAULT_RANDOM_DISTRIBUTION_TRIALS,
   partitionRandomDistributionTrials,
   randomDistributionWorkerCount,
   summarizeRandomDistributionOutcomes
 } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import type {
+  RandomDistributionJobRequest,
+  RandomDistributionOptions,
   RandomDistributionOutcome,
   RandomDistributionProgress,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 type RandomDistributionWorkerMessage = GameWorkerResponseEnvelope &
   ({ readonly progress: RandomDistributionProgress } | { readonly outcomes: readonly RandomDistributionOutcome[] });
 
 export class RandomDistributionRunner {
-  readonly app: ProfessionAppState;
-  timer: ReturnType<typeof setTimeout> | null;
-  requestId: number;
-  private readonly batch: ManagedWorkerBatch<RandomDistributionWorkerMessage>;
-
-  constructor(app: ProfessionAppState) {
-    this.app = app;
-    this.timer = null;
-    this.batch = new ManagedWorkerBatch();
-    this.requestId = 0;
-  }
-
-  get isRunning(): boolean {
-    return this.batch.isRunning;
-  }
-
-  /** Stops work owned by the outgoing tab before another result becomes active. */
+  private timer: ReturnType<typeof setTimeout> | null = null;
+  private requestId = 0;
+  private readonly batch = new ManagedWorkerBatch<RandomDistributionWorkerMessage>();
+  constructor(
+    private readonly calculate: (
+      request: RandomDistributionJobRequest,
+      options: RandomDistributionOptions
+    ) => RandomDistributionSummary
+  ) {}
   cancel(): void {
-    this.requestId += 1;
+    ++this.requestId;
 
     if (this.timer !== null) clearTimeout(this.timer);
 
     this.timer = null;
     this.batch.terminateAll();
   }
-
-  schedule(run = false): void {
-    const app = this.app;
+  run(operation: DistributionOperation): void {
+    this.cancel();
     const requestId = ++this.requestId;
-
-    if (this.timer !== null) clearTimeout(this.timer);
-
-    this.timer = null;
-    const failDistribution = (error: unknown): void => {
-      if (requestId !== this.requestId || !app.results) return;
-
-      app.results.randomDistributionStale = false;
-      app.results.randomDistributionError =
-        error instanceof Error ? error.message : String(error || 'Randomized DPS calculation failed.');
-      app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
+    const { request, baseline: results } = operation;
+    const applyProgress = (progress: RandomDistributionProgress) => {
+      if (requestId === this.requestId) operation.progress(progress);
     };
 
-    // Each requested distribution replaces the prior pool and invalidates its pending responses.
+    const applyDistribution = (summary: RandomDistributionSummary) => {
+      if (requestId === this.requestId) operation.complete(summary);
+    };
+
+    const failDistribution = (error: unknown) => {
+      if (requestId === this.requestId) operation.fail(error);
+    };
+
     this.batch.begin(requestId, failDistribution);
-
-    const results = app.results;
-
-    if (!results || !app.build.rotation.length) {
-      if (results) {
-        results.randomDistributionRequested = false;
-        results.randomDistributionStale = false;
-      }
-
-      return;
-    }
-
-    // Availability needs only the trial default; capture simulation inputs only for a requested run, before its timer.
-    const request = run ? app.adapter.randomDistributionRequest(app) : null;
-    const trials = request?.trials ?? DEFAULT_RANDOM_DISTRIBUTION_TRIALS;
-
-    results.randomDistributionRequested = true;
-    results.randomDistributionStale = run;
-    results.randomDistributionTrials = trials;
-    results.randomDistributionError = '';
-    results.randomDistributionProgress = {
-      completed: 0,
-      total: trials,
-      percent: 0
-    };
-
-    if (!request) return;
-
-    const applyProgress = (progress: RandomDistributionProgress): void => {
-      if (requestId !== this.requestId || !app.results) return;
-
-      const total = Math.max(1, Number(progress?.total || request.trials));
-      const completed = boundedNumber(progress?.completed || 0, 0, 0, total);
-      const percent = boundedNumber(progress?.percent ?? (completed / total) * 100, (completed / total) * 100, 0, 100);
-      app.results.randomDistributionProgress = {
-        completed,
-        total,
-        percent
-      };
-
-      // Progress updates only touch the indicator. Remounting the full
-      // result view would repeatedly rebuild tables and charts.
-      const indicator = document.querySelector('#rotation-results [data-role="rng-progress"]');
-
-      if (!indicator) return;
-
-      indicator.setAttribute('aria-valuenow', String(Math.round(percent)));
-      const bar = indicator.querySelector<HTMLElement>('[data-role="rng-progress-bar"]');
-
-      if (bar) bar.style.width = `${percent}%`;
-
-      const label = indicator.querySelector('[data-role="rng-progress-label"]');
-
-      if (label) {
-        label.textContent = `${Math.round(
-          completed
-        ).toLocaleString()} / ${Math.round(total).toLocaleString()} simulations (${Math.round(percent)}%)`;
-      }
-    };
-
-    const applyDistribution = (distribution: RandomDistributionSummary): void => {
-      if (requestId !== this.requestId || !app.results) return;
-
-      app.results.randomDistribution = distribution;
-      app.results.randomDistributionStale = false;
-      app.results.randomDistributionProgress = {
-        completed: distribution.trials,
-        total: distribution.trials,
-        percent: 100
-      };
-      app.results.randomDistributionError = '';
-      app.adapter.presentation.render(app, app.adapter.presentation.createViewModel(app));
-    };
-
     this.timer = setTimeout(() => {
       this.timer = null;
 
@@ -201,7 +119,7 @@ export class RandomDistributionRunner {
 
       try {
         applyDistribution(
-          app.adapter.calculateRandomDistribution(request, {
+          this.calculate(request, {
             onProgress: applyProgress
           })
         );
@@ -209,11 +127,5 @@ export class RandomDistributionRunner {
         failDistribution(error);
       }
     }, 0);
-  }
-
-  run(): void {
-    this.schedule(true);
-    this.app.modifierContributionRunner.schedule();
-    this.app.adapter.presentation.render(this.app, this.app.adapter.presentation.createViewModel(this.app));
   }
 }

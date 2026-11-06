@@ -110,13 +110,17 @@ test('Carapace state tracking follows the inspected observation across Necromanc
           }
         );
         const app = {
+          analysis: {
+            needsPatchComparison: () => false,
+            state: { results: { planningState: { ...planningState, atSeconds: 10 }, rotationEndTime: 10 } }
+          },
           profession: family,
           patch,
           build: {
             specializations: [{ name: 'Death Magic', traits: minionTraitSelected ? '1-1-1' : '2-1-1' }],
             rotation: [{ type: 'wait', durationMs: 10000 }]
           },
-          results: { planningState: { ...planningState, atSeconds: 10 }, rotationEndTime: 10 },
+
           adapter: {
             eliteSpecialization: () => specialization,
             rotationPreviewAt: () => ({ planningState })
@@ -358,6 +362,7 @@ test('Necromancer renders life force above its F-skills', async () => {
   const adapter = await loadProfessionAppAdapter('necromancer');
   const build = adapter.toApplicationBuild(createNecromancerBuildDefaults());
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: adapter.profession.resolvePatch(),
     build,
     adapter,
@@ -365,8 +370,7 @@ test('Necromancer renders life force above its F-skills', async () => {
 
     // Match application initialization so resource-only planning still has a catalog for palette availability.
     activeCatalog: necromancerCatalog,
-    weaponData: adapter.weaponData,
-    results: null
+    weaponData: adapter.weaponData
   };
   const palette = inertContainer();
   const previousDocument = globalThis.document;
@@ -398,7 +402,7 @@ test('Necromancer renders life force above its F-skills', async () => {
     name: 'Scourge',
     traits: '1-1-2'
   };
-  app.results = {
+  app.analysis.state.results = {
     planningState: {
       availability: {},
       // Resource-only fixtures retain the shared planning fields consumed by the palette.
@@ -432,7 +436,7 @@ test('Necromancer renders life force above its F-skills', async () => {
     palette.innerHTML,
     /profession-palette-resource-group resource-beside[\s\S]*necromancer-f-skills[\s\S]*data-resource-id="soul-shards"/
   );
-  app.results.planningState.profession[STATE.SOUL_SHARD_GRANT].charges = 4;
+  app.analysis.state.results.planningState.profession[STATE.SOUL_SHARD_GRANT].charges = 4;
   globalThis.document = {
     querySelector: () => null,
     getElementById: (id) => (id === 'rotation-palette' ? palette : null)
@@ -549,6 +553,7 @@ test('slot skills are inaccessible in transformed shrouds', () => {
 test('Harbinger can equip torch skills through Weaponmaster Training', async () => {
   const adapter = await loadProfessionAppAdapter('necromancer');
   const skills = weaponSkills({
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: adapter.profession.resolvePatch(),
     adapter,
     activeCatalog: necromancerCatalog,
@@ -578,6 +583,7 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
   );
   const scepterSkills = weaponSkills(
     {
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       patch: adapter.profession.resolvePatch(),
       adapter,
       activeCatalog: necromancerCatalog,

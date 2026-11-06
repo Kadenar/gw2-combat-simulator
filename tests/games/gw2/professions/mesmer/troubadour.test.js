@@ -308,11 +308,11 @@ test('Shatter Storm gives Lively Lute a second charge without a full cooldown', 
   const shatterStormBeforeUse = simulateMesmer([], config([TRAIT.SHATTER_STORM]));
   const livelyLute = mesmerCatalog.skillsById.get(ID.LIVELY_LUTE);
   const paletteApp = (results) => ({
+    analysis: { needsPatchComparison: () => false, state: { results: results } },
     patch: mesmerAppAdapter.profession.resolvePatch(),
     // Palette models now resolve tooltip presentation through the profession adapter.
     adapter: mesmerAppAdapter,
-    build: { rotation: [] },
-    results
+    build: { rotation: [] }
   });
 
   assert.equal(ordinary.steps[1].start, 10160);
@@ -718,11 +718,11 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
   );
   assert.ok(playingView.statusItems.every((item) => /^\d+\.\d+s$/.test(item.valueLabel)));
   const resourceHtml = activeResourceGroup({
+    analysis: { needsPatchComparison: () => false, state: { results: result } },
     activeCatalog: mesmerCatalog,
     profession: mesmerProfession,
     adapter: { eliteSpecialization: () => 'Troubadour' },
-    build: { initialResource: 0 },
-    results: result
+    build: { initialResource: 0 }
   });
 
   assert.match(resourceHtml, /active-resource-pips mesmer-notes/);

@@ -206,12 +206,15 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     form.addEventListener('submit', (event) => {
       event.preventDefault();
       try {
-        if (app.simulationStatus !== 'idle' || app.resultRevision !== app.buildRevision)
+        if (
+          app.analysis.state.simulationStatus !== 'idle' ||
+          app.analysis.state.resultRevision !== app.analysis.state.buildRevision
+        )
           throw new Error('Wait for the current build simulation to finish.');
 
         const request = captureGearOptimizerRequest(app, readSelections(form), readSearchMode(form));
-        app.randomDistributionRunner.cancel?.();
-        app.modifierContributionRunner.cancel?.();
+        app.analysis.cancelDistribution();
+        app.analysis.cancelModifiers();
         runner.run(request, Number(new FormData(form).get('workers')));
       } catch (error) {
         panel!.querySelector<HTMLElement>('.optimizer-feedback')!.hidden = false;
@@ -303,7 +306,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   // Rotation edits invalidate searches, but equipment controls only depend on their choices and usable weapon slots.
   // Those inputs change only with a new build or revision, so search-progress and filter renders reuse the prior key.
   const build = app.build;
-  const revisionChanged = panel.dataset.revision !== String(app.buildRevision);
+  const revisionChanged = panel.dataset.revision !== String(app.analysis.state.buildRevision);
   const previousControls = renderedControls.get(panel);
   const controlsKey =
     revisionChanged || previousControls?.build !== build ? optimizerControlsKey(app) : previousControls.key;
@@ -379,7 +382,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   }
 
   if (revisionChanged || controlsChanged) {
-    panel.dataset.revision = String(app.buildRevision);
+    panel.dataset.revision = String(app.analysis.state.buildRevision);
 
     updateSearchEstimate(app, panel.querySelector('form')!);
   }
@@ -393,9 +396,12 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   const preview = panel.querySelector<HTMLElement>('[data-role="optimizer-preview"]')!;
   const previewRequest = `${runner.request?.revision}:${state.started}:${JSON.stringify(fractalSelections.get(app.build))}`;
 
-  if (preview.dataset.request !== previewRequest || preview.dataset.revision !== String(app.buildRevision)) {
+  if (
+    preview.dataset.request !== previewRequest ||
+    preview.dataset.revision !== String(app.analysis.state.buildRevision)
+  ) {
     preview.dataset.request = previewRequest;
-    preview.dataset.revision = String(app.buildRevision);
+    preview.dataset.revision = String(app.analysis.state.buildRevision);
     panel.dataset.selectedKey = 'equipped';
     renderOptimizerPreview(preview, app, {
       build: app.build,

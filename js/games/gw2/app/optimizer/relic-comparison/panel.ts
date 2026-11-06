@@ -170,5 +170,10 @@ export function renderRelicComparison(app: ProfessionAppState): void {
   // A queued baseline must finish before its output can be used as the comparison opponent.
   const button = container.querySelector<HTMLButtonElement>('[data-role="relic-comparison-run"]');
 
-  if (button && (app.simulationStatus !== 'idle' || app.resultRevision !== app.buildRevision)) button.disabled = true;
+  if (
+    button &&
+    (app.analysis.state.simulationStatus !== 'idle' ||
+      app.analysis.state.resultRevision !== app.analysis.state.buildRevision)
+  )
+    button.disabled = true;
 }

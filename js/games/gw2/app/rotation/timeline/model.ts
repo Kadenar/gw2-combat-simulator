@@ -996,7 +996,7 @@ export function timelineItem(command: RotationCommand): TimelineItem {
 
 /** Prevents a newly changed rotation from displaying timings produced for the previous build revision. */
 export function currentTimelineResults(
-  app: Pick<ProfessionAppState, 'buildRevision' | 'resultRevision' | 'results'>
-): ProfessionAppState['results'] {
-  return app.resultRevision === app.buildRevision ? app.results : null;
+  app: Pick<ProfessionAppState, 'analysis'>
+): ProfessionAppState['analysis']['state']['results'] {
+  return app.analysis.state.resultRevision === app.analysis.state.buildRevision ? app.analysis.state.results : null;
 }

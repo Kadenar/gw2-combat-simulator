@@ -421,12 +421,12 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
 
 test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () => {
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     activeCatalog: guardianCatalog,
-    profession: guardianProfession,
-    results: null
+    profession: guardianProfession
   };
   const displayedIdsAfter = (rotation, skillIds, extraConfig = {}) => {
-    app.results = createObservedProfessionSimulator(guardianProfession, { ...config, ...extraConfig })(
+    app.analysis.state.results = createObservedProfessionSimulator(guardianProfession, { ...config, ...extraConfig })(
       undefined,
       rotation
     );

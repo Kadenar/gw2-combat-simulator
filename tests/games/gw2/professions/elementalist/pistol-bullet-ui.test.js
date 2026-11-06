@@ -26,6 +26,31 @@ function createPistolApp() {
   });
   let changeCount = 0;
   const app = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: {
+          planningState: {
+            availability: {},
+            activeWeaponSet: 1,
+            atSeconds: 0,
+            cooldownsBySkillId: {},
+            // Palette fixtures use the same ID-keyed ammo projection as simulation results.
+            ammoBySkillId: {},
+            profession: {
+              [STATE.PRIMARY_ATTUNEMENT]: 'Air',
+              [STATE.AUTOATTACK_CHAINS]: {},
+              [STATE.PISTOL_BULLETS]: {
+                Fire: false,
+                Water: true,
+                Air: true,
+                Earth: false
+              }
+            }
+          }
+        }
+      }
+    },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
@@ -33,26 +58,7 @@ function createPistolApp() {
     // Match application initialization so palette availability can resolve catalog-owned skills.
     activeCatalog: elementalistCatalog,
     weaponData: elementalistAppAdapter.weaponData,
-    results: {
-      planningState: {
-        availability: {},
-        activeWeaponSet: 1,
-        atSeconds: 0,
-        cooldownsBySkillId: {},
-        // Palette fixtures use the same ID-keyed ammo projection as simulation results.
-        ammoBySkillId: {},
-        profession: {
-          [STATE.PRIMARY_ATTUNEMENT]: 'Air',
-          [STATE.AUTOATTACK_CHAINS]: {},
-          [STATE.PISTOL_BULLETS]: {
-            Fire: false,
-            Water: true,
-            Air: true,
-            Earth: false
-          }
-        }
-      }
-    },
+
     changed() {
       changeCount += 1;
     }
@@ -146,7 +152,7 @@ test('Elemental Explosion replaces the active pistol autoattack at full stock', 
   assert.match(partialStock, /data-skill="Electric Exposure"/);
   assert.doesNotMatch(partialStock, />Special<\/div>/);
 
-  app.results.planningState.profession[STATE.PISTOL_BULLETS] = {
+  app.analysis.state.results.planningState.profession[STATE.PISTOL_BULLETS] = {
     Fire: true,
     Water: true,
     Air: true,
@@ -176,11 +182,11 @@ test('pistol controls and Elemental Explosion follow the active equipment set', 
   app.build.weapons = ['Staff', ''];
   app.build.startingWeaponSet = 2;
   app.build.pistolBullets = { Fire: true, Water: true, Air: true, Earth: true };
-  const live = app.results;
+  const live = app.analysis.state.results;
   live.planningState.activeWeaponSet = 2;
   live.planningState.profession[STATE.PISTOL_BULLETS] = { ...app.build.pistolBullets };
   for (const results of [null, live]) {
-    app.results = results;
+    app.analysis.state.results = results;
     const html = renderPaletteMarkup(app);
     assert.match(html, /data-palette-group="elementalist-pistol-bullets"/);
     assert.match(html, /data-skill="Elemental Explosion"/);

@@ -178,7 +178,7 @@ test('old saves migrate equipped glyphs, preserve explicit rotations, and round 
 
 test('palette display, click, drag and modified activation retain generic input identity', () => {
   const { app } = createNativeApp({ lines, selectedSkillIds, startAttunement: 'Air' });
-  app.results = {
+  app.analysis.state.results = {
     planningState: {
       availability: {},
       cooldownsBySkillId: {},

@@ -351,15 +351,20 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
   assert.equal(endurance.value, 35);
   assert.equal(endurance.paletteSkillId, SHARED_SKILL_IDS.DODGE);
   const resourceApp = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: {
+          planningState: {
+            availability: {},
+            profession: { [STATE.ENDURANCE]: { value: 35, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } }
+          }
+        }
+      }
+    },
     profession: rangerProfession,
     adapter: { eliteSpecialization: () => 'Core' },
-    build: { initialResource: 0 },
-    results: {
-      planningState: {
-        availability: {},
-        profession: { [STATE.ENDURANCE]: { value: 35, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } }
-      }
-    }
+    build: { initialResource: 0 }
   };
 
   assert.deepEqual(paletteSkillResourceView(resourceApp, SHARED_SKILL_IDS.DODGE), {
@@ -766,18 +771,23 @@ test('Ranger palette groups the active pet, command, swap, and Dodge endurance',
   build.weapons = ['Longbow', ''];
   build.alternateWeapons = ['Axe', 'Axe'];
   const app = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: simulate('Core', [], {
+          selectedPet: 'Carrion Devourer',
+          selectedPet2: 'Fanged Iboga',
+          primaryWeapon: 'Longbow',
+          weaponSet2Primary: 'Axe',
+          weaponSet2Secondary: 'Axe'
+        })
+      }
+    },
     patch: rangerAppAdapter.profession.resolvePatch(),
     build,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
-    activeCatalog: rangerCatalog,
-    results: simulate('Core', [], {
-      selectedPet: 'Carrion Devourer',
-      selectedPet2: 'Fanged Iboga',
-      primaryWeapon: 'Longbow',
-      weaponSet2Primary: 'Axe',
-      weaponSet2Secondary: 'Axe'
-    })
+    activeCatalog: rangerCatalog
   };
   const paletteElement = inertContainer();
   const previousDocument = globalThis.document;
@@ -1038,19 +1048,22 @@ test('Soulbeast palette swaps between merged skills and the active pet', () => {
   assert.equal(availability(unmerged.planningState, ID.LEAVE_BEASTMODE), false);
 
   const actionApp = {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: { results: { planningState: { availability: {}, profession: merged.planningState.profession } } }
+    },
     patch: rangerAppAdapter.profession.resolvePatch(),
     activeCatalog: rangerCatalog,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
-    build: { ...createRangerBuildDefaults(), rotation: [] },
-    results: { planningState: { availability: {}, profession: merged.planningState.profession } }
+    build: { ...createRangerBuildDefaults(), rotation: [] }
   };
 
   assert.equal(
     paletteActionSkills(actionApp, 'Soulbeast').some((skill) => skill.id === ID.PET_SWAP),
     false
   );
-  actionApp.results.planningState.profession = unmerged.planningState.profession;
+  actionApp.analysis.state.results.planningState.profession = unmerged.planningState.profession;
   assert.equal(
     paletteActionSkills(actionApp, 'Soulbeast').some((skill) => skill.id === ID.PET_SWAP),
     true
@@ -1251,18 +1264,18 @@ test('Ranger Hammer autoattacks advance their palette chain', () => {
     selectedHammerSkillIds: config.selectedHammerSkillIds
   };
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: afterStrike } },
     patch: rangerAppAdapter.profession.resolvePatch(),
     build,
     activeCatalog: rangerCatalog,
     adapter: rangerAppAdapter,
-    profession: rangerProfession,
-    results: afterStrike
+    profession: rangerProfession
   };
 
   assert.equal(createPaletteContext(app).activeAutoattack.id, ID.HAMMER_SLAM);
-  app.results = afterSlam;
+  app.analysis.state.results = afterSlam;
   assert.equal(createPaletteContext(app).activeAutoattack.id, ID.HEAVY_SMASH);
-  app.results = afterSmash;
+  app.analysis.state.results = afterSmash;
   assert.equal(createPaletteContext(app).activeAutoattack.id, ID.HAMMER_STRIKE);
 });
 
@@ -1302,12 +1315,12 @@ test('Selected unleashed Hammer skills remain castable after Overbearing Smash',
     selectedHammerSkillIds
   };
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: result } },
     patch: rangerAppAdapter.profession.resolvePatch(),
     build,
     activeCatalog: rangerCatalog,
     adapter: rangerAppAdapter,
-    profession: rangerProfession,
-    results: result
+    profession: rangerProfession
   };
   const availableIds = new Set(weaponSkills(app, 1).map((skill) => skill.id));
 
@@ -1494,16 +1507,16 @@ test('Untamed ambush skills require the specialization and an active unleash pro
     initialUntamedState: 'Pet'
   };
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: rangerAppAdapter.profession.resolvePatch(),
     build,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
     activeCatalog: rangerCatalog,
-    weaponData: rangerAppAdapter.weaponData,
-    results: null
+    weaponData: rangerAppAdapter.weaponData
   };
   const paletteNamesAfter = (rotation) => {
-    app.results = simulate('Untamed', rotation, {
+    app.analysis.state.results = simulate('Untamed', rotation, {
       initialUntamedState: 'Pet',
       primaryWeapon: 'Hammer',
       weaponSet2Primary: '',
@@ -1536,16 +1549,16 @@ test('Greatsword Counterattack flips to Counterattack Kick and restores its tile
     ]
   };
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: rangerAppAdapter.profession.resolvePatch(),
     build,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
     activeCatalog: rangerCatalog,
-    weaponData: rangerAppAdapter.weaponData,
-    results: null
+    weaponData: rangerAppAdapter.weaponData
   };
   const paletteAfter = (rotation) => {
-    app.results = simulate('Core', rotation, {
+    app.analysis.state.results = simulate('Core', rotation, {
       primaryWeapon: 'Greatsword',
       secondaryWeapon: '',
       weaponSet2Primary: '',
@@ -1581,16 +1594,16 @@ test("Panther's Prowl replaces all four Ranger spear stealth-attack slots", () =
     ]
   };
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: rangerAppAdapter.profession.resolvePatch(),
     build,
     adapter: rangerAppAdapter,
     profession: rangerProfession,
     activeCatalog: rangerCatalog,
-    weaponData: rangerAppAdapter.weaponData,
-    results: null
+    weaponData: rangerAppAdapter.weaponData
   };
   const paletteAfter = (rotation) => {
-    app.results = simulate('Core', rotation, {
+    app.analysis.state.results = simulate('Core', rotation, {
       primaryWeapon: 'Spear',
       secondaryWeapon: '',
       weaponSet2Primary: '',

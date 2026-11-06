@@ -117,7 +117,10 @@ async function tabAction(page, name) {
 async function settled(page) {
   await page.waitForFunction(() => {
     const app = window.professionApp;
-    return app.simulationStatus === 'idle' && app.buildRevision === app.resultRevision;
+    return (
+      app.analysis.state.simulationStatus === 'idle' &&
+      app.analysis.state.buildRevision === app.analysis.state.resultRevision
+    );
   });
 }
 

@@ -1,4 +1,5 @@
-import type { ProfessionAppResult, ProfessionAppState } from '#gw2/app/types.js';
+import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
+import type { ProfessionAppState } from '#gw2/app/types.js';
 import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -16,20 +17,20 @@ export interface RotationProfessionState extends Partial<Gw2SharedProfessionPlan
 const palettePreviewCache = new WeakMap<
   ProfessionAppState,
   {
-    readonly result: ProfessionAppResult;
+    readonly result: AnalysisResult;
     readonly insertionIndex: number;
-    readonly preview: ProfessionAppResult;
+    readonly preview: AnalysisResult;
   }
 >();
 
-export const professionPlanningState = (result: ProfessionAppResult | null | undefined): RotationProfessionState =>
+export const professionPlanningState = (result: AnalysisResult | null | undefined): RotationProfessionState =>
   result?.planningState?.profession && typeof result.planningState.profession === 'object'
     ? (result.planningState.profession as RotationProfessionState)
     : {};
 
 /** Share one prefix simulation so cursor state and proc history cannot include actions after the cursor. */
-export function palettePlanningResult(app: ProfessionAppState): ProfessionAppResult | null {
-  const result = app.results;
+export function palettePlanningResult(app: ProfessionAppState): AnalysisResult | null {
+  const result = app.analysis.state.results;
 
   if (!result) return null;
 
@@ -54,7 +55,7 @@ export function palettePlanningResult(app: ProfessionAppState): ProfessionAppRes
   return preview;
 }
 
-export const palettePlanningState = (app: ProfessionAppState): ProfessionAppResult['planningState'] | null =>
+export const palettePlanningState = (app: ProfessionAppState): AnalysisResult['planningState'] | null =>
   palettePlanningResult(app)?.planningState ?? null;
 
 export const paletteProfessionState = (app: ProfessionAppState): RotationProfessionState => {

@@ -16,7 +16,9 @@ test('simulation workers load current and preview patches without UI dependencie
     // Worker requests carry the canonical skill ID independently of the palette label.
     window.professionApp.addRotation('Bladecall', { skillId: 69311 });
   }, patchId);
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
 
   const uiImports = (worker) =>
     worker.evaluate(() =>
@@ -119,15 +121,20 @@ test('simulation workers load current and preview patches without UI dependencie
   expect(await uiImports(await randomWorkerReady)).toEqual([]);
 
   // Native navigation asks the baseline worker for a missing comparison, then Workspace edits drop it again.
-  expect(await page.evaluate(() => window.professionApp.patchComparison)).toBeNull();
+  expect(await page.evaluate(() => window.professionApp.analysis.state.patchComparison)).toBeNull();
   await page.locator('.simulator-view-tab[data-simulator-view="analysis"]').click();
   await page.waitForFunction(
-    () => window.professionApp.patchComparison && window.professionApp.simulationStatus === 'idle'
+    () =>
+      window.professionApp.analysis.state.patchComparison &&
+      window.professionApp.analysis.state.simulationStatus === 'idle'
   );
   expect(
     await page.evaluate(() => {
       const app = window.professionApp;
-      return app.patchComparison.preview === app.results && Boolean(app.patchComparison.current);
+      return (
+        app.analysis.state.patchComparison.preview === app.analysis.state.results &&
+        Boolean(app.analysis.state.patchComparison.current)
+      );
     })
   ).toBe(true);
   await page.locator('.simulator-view-tab[data-simulator-view="workspace"]').click();
@@ -136,8 +143,10 @@ test('simulation workers load current and preview patches without UI dependencie
     app.build.rotation.push({ type: 'wait', durationMs: 100 });
     app.changed(false);
   });
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
-  expect(await page.evaluate(() => window.professionApp.patchComparison)).toBeNull();
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
+  expect(await page.evaluate(() => window.professionApp.analysis.state.patchComparison)).toBeNull();
   expect(
     await page.evaluate(() => {
       const app = window.professionApp;
@@ -146,6 +155,8 @@ test('simulation workers load current and preview patches without UI dependencie
   ).toBeUndefined();
   await page.locator('.simulator-view-tab[data-simulator-view="analysis"]').click();
   await page.waitForFunction(
-    () => window.professionApp.patchComparison && window.professionApp.simulationStatus === 'idle'
+    () =>
+      window.professionApp.analysis.state.patchComparison &&
+      window.professionApp.analysis.state.simulationStatus === 'idle'
   );
 });

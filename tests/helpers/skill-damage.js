@@ -20,7 +20,16 @@ export async function headlessApp(professionId, buildPath) {
     activeCatalog: catalog,
     weaponData: adapter.weaponData,
     attributeWeaponSet: 1,
-    results: null,
+    analysis: {
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: null
+      }
+    },
     build: adapter.toApplicationBuild({ ...saved, rotation: [] })
   };
   app.attributeData = adapter

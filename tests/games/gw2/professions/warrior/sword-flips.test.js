@@ -18,10 +18,10 @@ const simulate = createObservedProfessionSimulator(warriorProfession, {
 function assertDisplayed(result, parentId, childId, expectedId) {
   const catalog = warriorProfession.catalog;
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: result } },
     build: { rotation: [] },
     profession: warriorProfession,
-    activeCatalog: catalog,
-    results: result
+    activeCatalog: catalog
   };
   const parent = catalog.skillsById.get(parentId);
   const child = catalog.skillsById.get(childId);

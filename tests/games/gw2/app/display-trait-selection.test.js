@@ -35,7 +35,16 @@ test('trait-dependent state rows use the snapshot balance catalog', () => {
       activeCatalog: patch.catalog,
       adapter: { eliteSpecialization: () => specialization },
       build: { rotation: [], specializations: [selection] },
-      results: null
+      analysis: {
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          results: null
+        }
+      }
     };
     assert.ok(
       rotationStateSnapshot(app).items.some((row) => row.id === rowId),

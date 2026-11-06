@@ -13,6 +13,17 @@ import { MESMER_SKILL_IDS as MESMER_ID } from '#gw2/professions/mesmer/data/ids.
 
 function createApp() {
   return {
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: null,
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null
+      }
+    },
     patch: mesmerAppAdapter.profession.resolvePatch(),
     adapter: {
       id: 'mesmer',
@@ -211,7 +222,17 @@ test('template loading preserves explicit Mesmer variant IDs before the first si
     activeCatalog: mesmerAppAdapter.profession.catalog,
     build: mesmerAppAdapter.toApplicationBuild(buildData),
     attributeWeaponSet: 1,
-    results: null,
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: null
+      }
+    },
     patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' })
   };
 
@@ -279,7 +300,17 @@ test('Engineer rotation-only template loading resolves morph slots before simula
     activeCatalog: adapter.profession.catalog,
     build,
     attributeWeaponSet: 1,
-    results: null,
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: null
+      }
+    },
     patch: adapter.profession.resolvePatch({ id: 'current' })
   };
   await loadTemplateAction(app, { label: 'Morph rotation', rotation: 'rotation.json' }, 'rotation', createButton());

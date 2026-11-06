@@ -78,6 +78,7 @@ test('Persisting Flames grants stacks from Fire Sphere without extending profess
         {
           ...elementalistAppAdapter
             .createBuildContext({
+              analysis: { needsPatchComparison: () => false, state: { results: null } },
               build: app.build,
               transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
               patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
@@ -685,13 +686,13 @@ test('Flame Barrage replaces the active Glyph and obeys rotation timing', () => 
     ]
   });
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: armedResult } },
     patch: elementalistAppAdapter.profession.resolvePatch(),
     build,
     adapter: elementalistAppAdapter,
     profession: elementalistProfession,
     activeCatalog: elementalistCatalog,
-    weaponData: elementalistAppAdapter.weaponData,
-    results: armedResult
+    weaponData: elementalistAppAdapter.weaponData
   };
   const palette = inertContainer();
   const previousDocument = globalThis.document;
@@ -723,6 +724,7 @@ test('Flame Barrage cannot apply future projectile burns outside the observation
     commands,
     elementalistAppAdapter
       .createBuildContext({
+        analysis: { needsPatchComparison: () => false, state: { results: null } },
         build: app.build,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
         patch: elementalistAppAdapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
@@ -976,7 +978,7 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
   );
 
   const renderResult = (result) => {
-    app.results = result;
+    app.analysis.state.results = result;
     // Contextual controls filter the shared candidates without adding duplicate action tiles.
     const actionIds = paletteActionSkills(app).map((skill) => skill.id);
     assert.equal(new Set(actionIds).size, actionIds.length);

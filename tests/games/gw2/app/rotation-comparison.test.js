@@ -17,6 +17,7 @@ import {
 import { authoredStepIndexesAtPreviewTime, rotationPreviewSchedulerTimeMs } from '#gw2/app/rotation/timeline/view.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
+import { analysisFixture } from '#tests/helpers/analysis-lifecycle.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 
 function result(id, dps = 100, totalDamage = 400, duration = 4, resolvedEvents = []) {
@@ -37,29 +38,46 @@ function result(id, dps = 100, totalDamage = 400, duration = 4, resolvedEvents =
 }
 
 function comparisonApp(rotation = [{ type: 'cast', skillId: 1 }], currentResult = result('current')) {
-  const scheduledRevisions = [];
-
-  return Object.assign(Object.create(ProfessionApp.prototype), {
+  const app = Object.assign(Object.create(ProfessionApp.prototype), {
     build: { rotation },
-    buildRevision: 1,
-    resultRevision: 1,
-    results: currentResult,
     rotationComparison: null,
-    simulationStatus: 'idle',
-    simulationError: '',
-    scheduledRevisions,
-    baselineSimulationRunner: {
-      schedule(revision) {
-        scheduledRevisions.push(revision);
-      }
-    },
+    scheduledRevisions: [],
     changedCalls: [],
+    adapter: {
+      baselineSimulationRequest: () => ({
+        rotation: app.build.rotation,
+        referenceRotation: app.rotationComparison?.referenceRotation
+      })
+    },
+    baselineSimulationRunner: {
+      run: (operation) => {
+        app.pendingBaseline = operation;
+      },
+      cancel() {}
+    },
     changed(...args) {
       this.changedCalls.push(args);
-      this.buildRevision += 1;
-      this.simulationStatus = 'queued';
+      this.analysis.changeInputs(false, args[2]?.adoptedResult);
     }
   });
+  const f = analysisFixture({
+    baselineRequest: () => app.adapter.baselineSimulationRequest(app),
+    baseline: {
+      run: (operation) => {
+        app.scheduledRevisions.push(app.analysis.state.buildRevision);
+        app.baselineSimulationRunner.run(operation);
+      },
+      cancel: () => app.baselineSimulationRunner.cancel()
+    },
+    changed: (change) => {
+      if (change.kind === 'baseline') publishRotationReference(app, change.referenceResult);
+
+      if (change.kind === 'baseline-error') failRotationReference(app, app.analysis.state.simulationError);
+    }
+  });
+  app.analysis = f.lifecycle;
+  app.analysis.restore({ results: currentResult, patchComparison: null, fresh: true });
+  return app;
 }
 
 test('manifest references require the same profession and selected skill set', () => {
@@ -158,7 +176,7 @@ test('comparison rejects empty or stale Current and opens with an empty referenc
   assert.equal(empty.rotationComparison, null);
 
   const stale = comparisonApp();
-  stale.resultRevision = 0;
+  stale.analysis.changeInputs();
   stale.startRotationComparison();
   assert.equal(stale.rotationComparison, null);
 
@@ -180,14 +198,14 @@ test('boss scenarios reject comparison and insights without queuing a reference'
   for (const view of ['timelines', 'insights']) {
     const app = comparisonApp();
     app.workspace = { scenario: { encounterId: '020102', difficulty: 'normal' } };
-    const current = app.results;
+    const current = app.analysis.state.results;
     const rotation = app.build.rotation;
     assert.equal(beginRotationComparison(app, view), false);
     app.startRotationComparison();
     app.loadRotationReference([{ type: 'cast', skillId: 2 }]);
     assert.equal(app.rotationComparison, null);
     assert.deepEqual(app.scheduledRevisions, []);
-    assert.equal(app.results, current);
+    assert.equal(app.analysis.state.results, current);
     assert.equal(app.build.rotation, rotation);
 
     app.workspace = {};
@@ -207,7 +225,7 @@ test('standalone insights retain reference and window selection when entering co
   const session = app.rotationComparison;
   session.windowMode = 'full';
   publishRotationReference(app, result('reference'));
-  app.simulationStatus = 'idle';
+  app.pendingBaseline.complete({ result: app.analysis.state.results });
   app.startRotationComparison();
   assert.equal(app.rotationComparison, session);
   assert.equal(session.view, 'timelines');
@@ -251,7 +269,7 @@ test('loading and clearing Reference preserve Current and its history', () => {
 // Reference state admits only queued completions, so late callbacks cannot resurrect a cleared reference.
 test('reference completion and failure respect the comparison lifecycle', () => {
   const app = comparisonApp();
-  const current = app.results;
+  const current = app.analysis.state.results;
   const reference = result('reference');
   app.startRotationComparison();
   app.loadRotationReference([{ type: 'cast', skillId: 2 }]);
@@ -276,7 +294,7 @@ test('reference completion and failure respect the comparison lifecycle', () => 
   queueRotationReference(app);
   assert.equal(app.rotationComparison.referenceStatus, 'queued');
   assert.equal(app.rotationComparison.referenceError, '');
-  assert.equal(app.results, current);
+  assert.equal(app.analysis.state.results, current);
 });
 
 // Exercise the real queue: replacing a reference does not require a second ID in the simulation payload.
@@ -316,14 +334,7 @@ test('the baseline queue rejects replaced references at the same build revision'
       referenceRotation: app.rotationComparison?.referenceRotation
     })
   };
-  app.publishBaselineSimulation = (output) => {
-    app.results = output.result;
-    app.simulationStatus = 'idle';
-    publishRotationReference(app, output.referenceResult);
-  };
-
-  app.failBaselineSimulation = (error) => failRotationReference(app, error);
-  app.baselineSimulationRunner = new BaselineSimulationRunner(app);
+  app.baselineSimulationRunner = new BaselineSimulationRunner(() => assert.fail('Worker expected'));
   t.after(() => app.baselineSimulationRunner.cancel());
   app.startRotationComparison();
   app.loadRotationReference([{ type: 'cast', skillId: 1 }]);
@@ -333,7 +344,7 @@ test('the baseline queue rejects replaced references at the same build revision'
   app.loadRotationReference([{ type: 'cast', skillId: 2 }]);
   assert.equal(app.rotationComparison.reference, null, 'replacement drops old import context');
   worker.respond(oldJob, { output: { result: result('old-current'), referenceResult: result('old-reference') } });
-  assert.equal(app.results.id, 'current');
+  assert.equal(app.analysis.state.results.id, 'current');
   assert.equal(app.rotationComparison.referenceResult, null);
   const replacement = worker.messages[1];
   worker.respond(replacement, { output: { result: result('current'), referenceResult: result('fresh') } });
@@ -386,12 +397,17 @@ test('swap exchanges independent rotations and results and resets Current histor
   assert.deepEqual(app.rotationComparison.referenceRotation, currentRotation);
   assert.notEqual(app.rotationComparison.referenceRotation, currentRotation);
   assert.notEqual(app.rotationComparison.referenceRotation[0], currentRotation[0]);
-  assert.equal(app.results, referenceResult);
+  assert.equal(app.analysis.state.results, referenceResult);
   assert.equal(app.rotationComparison.referenceResult, currentResult);
   assert.deepEqual(app._rotationHistory.undo, []);
   assert.deepEqual(app._rotationHistory.redo, []);
-  assert.deepEqual(app.changedCalls, [[false]]);
-  assert.equal(app.resultRevision, app.buildRevision, 'the cached reference result stays paintable while queued');
+  assert.equal(app.changedCalls[0][0], false);
+  assert.equal(app.changedCalls[0][2].adoptedResult, referenceResult);
+  assert.equal(
+    app.analysis.state.resultRevision,
+    app.analysis.state.buildRevision,
+    'the cached reference result stays paintable while queued'
+  );
 });
 
 // Cursor checkpoints use scheduler milliseconds, while comparison metrics use elapsed combat time.
@@ -403,7 +419,16 @@ test('comparison follows the insertion checkpoint and restores final metrics at 
         { type: 'wait', durationMs: 1000 }
       ]
     },
-    results: { dpsStartTime: 2 },
+    analysis: {
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: { dpsStartTime: 2 }
+      }
+    },
     rotationInsertionIndex: 1,
     adapter: {
       rotationPreviewAt(_app, index) {
@@ -421,9 +446,9 @@ test('comparison follows the insertion checkpoint and restores final metrics at 
   }
 
   app.rotationInsertionIndex = 1;
-  app.results = { firstHitTime: 1 };
+  app.analysis.state.results = { firstHitTime: 1 };
   assert.equal(rotationComparisonTimeMs(app), 1750);
-  app.results = null;
+  app.analysis.state.results = null;
   assert.equal(rotationComparisonTimeMs(app), null);
 });
 

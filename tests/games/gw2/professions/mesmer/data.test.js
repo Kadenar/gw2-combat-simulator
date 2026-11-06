@@ -359,6 +359,7 @@ test('Mesmer explicit variant identities agree across loading, editing, and simu
     });
     assert.equal(loaded.rotation[0].skillId, expectedId, `${specialization} loaded ${name}`);
     const app = {
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       patch: mesmerAppAdapter.profession.resolvePatch(),
       adapter: mesmerAppAdapter,
       profession: mesmerProfession,
@@ -388,6 +389,7 @@ test('Mesmer explicit variant identities agree across loading, editing, and simu
   for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
     // Sword replacements share a tile even though the specialization gives the skill a different name.
     const app = {
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       patch: mesmerAppAdapter.profession.resolvePatch(),
       adapter: mesmerAppAdapter,
       profession: mesmerProfession,

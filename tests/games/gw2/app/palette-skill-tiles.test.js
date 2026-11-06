@@ -37,15 +37,24 @@ function projectionApp(
     adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => specialization },
     profession: useProfessionUi ? profession : { catalog: profession.catalog, ui: {} },
     activeCatalog: profession.catalog,
-    results: {
-      planningState: {
-        availability: {},
-        atSeconds: time,
-        activeWeaponSet: 1,
-        cooldownsBySkillId,
-        ammoBySkillId,
+    analysis: {
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: {
+          planningState: {
+            availability: {},
+            atSeconds: time,
+            activeWeaponSet: 1,
+            cooldownsBySkillId,
+            ammoBySkillId,
 
-        profession: { ...professionState, [STATE.AVAILABLE_FLIPS]: flips }
+            profession: { ...professionState, [STATE.AVAILABLE_FLIPS]: flips }
+          }
+        }
       }
     }
   };
@@ -106,8 +115,8 @@ test('same-name palette skills use their own cooldown and ammo identities', () =
   const skills = [990101, 990102].map((id) => ({ id, name: 'Shared Name', type: 'Utility', effects: [] }));
   const app = catalogApp(skills);
   app.profession.ui.resourceViews = () => [];
-  app.results.planningState.cooldownsBySkillId = { 990101: { remainingMs: 4000, readyAtMs: 4000 } };
-  app.results.planningState.ammoBySkillId = {
+  app.analysis.state.results.planningState.cooldownsBySkillId = { 990101: { remainingMs: 4000, readyAtMs: 4000 } };
+  app.analysis.state.results.planningState.ammoBySkillId = {
     990101: { charges: 0, maximum: 2, nextRechargeAt: null },
     990102: { charges: 2, maximum: 2, nextRechargeAt: null }
   };
@@ -126,15 +135,15 @@ test('palette distinguishes startup, missing verdicts, and runtime retry boundar
   const app = catalogApp([skill]);
   app.profession.ui.resourceViews = () => [];
   const context = { specialization: 'Core' };
-  const observation = app.results;
-  app.results = null;
+  const observation = app.analysis.state.results;
+  app.analysis.state.results = null;
   assert.deepEqual(paletteAvailability(app, context, skill), {
     available: true,
     message: 'Runtime availability has not been evaluated yet.'
   });
-  app.results = observation;
+  app.analysis.state.results = observation;
   assert.equal(paletteAvailability(app, context, skill).available, false);
-  app.results.planningState.availability[skill.id] = {
+  app.analysis.state.results.planningState.availability[skill.id] = {
     ready: false,
     code: 'fixture.wait',
     reason: 'Await a tick.',
@@ -186,12 +195,21 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
         alternateWeapons: ['Dagger', 'Dagger'],
         rotation: []
       },
-      results: simulateGw2({ profession, config: { specialization, ...config }, rotation })
+      analysis: {
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          results: simulateGw2({ profession, config: { specialization, ...config }, rotation })
+        }
+      }
     };
     const skill = app.activeCatalog.skills.find((candidate) => candidate.name === name);
-    const verdict = app.results.planningState.availability[skill.id];
+    const verdict = app.analysis.state.results.planningState.availability[skill.id];
     assert.equal(verdict.ready, false, name);
-    assert.ok(verdict.retryAt > app.results.planningState.atSeconds, name);
+    assert.ok(verdict.retryAt > app.analysis.state.results.planningState.atSeconds, name);
     const tiles = () => [
       ...renderPaletteMarkup(app).matchAll(new RegExp(`<button[^>]*data-skill-id="${skill.id}"[^>]*>`, 'g'))
     ];
@@ -221,7 +239,7 @@ test('a denied follow-up stays in the shared palette slot', () => {
   const root = { id: 990010, name: 'Root', type: 'Weapon', flipSkillId: 990011 };
   const followup = { id: 990011, name: 'Follow-up', type: 'Weapon', flipParentId: 990010 };
   const app = catalogApp([root, followup], { flips: { [followup.id]: armSkillFlip({}, 0, 0, 10) } });
-  app.results.planningState.availability[followup.id] = {
+  app.analysis.state.results.planningState.availability[followup.id] = {
     ready: false,
     code: 'fixture.cost',
     reason: 'Resource depleted.',
@@ -241,7 +259,7 @@ test('Dodge + Auto derives availability from its unchanged command expansion', a
   const followup = profession.catalog.skillsById.get(29256);
   const context = { specialization: 'Vindicator', activeAutoattack: followup };
   const skill = profession.ui.paletteActionSkills(context, []).find((entry) => entry.id === '__vindicator_dodge_auto');
-  const availability = app.results.planningState.availability;
+  const availability = app.analysis.state.results.planningState.availability;
   availability[SHARED_SKILL_IDS.DODGE] = { ready: true };
   availability[opener.id] = { ready: true };
   availability[followup.id] = { ready: true };
@@ -284,7 +302,7 @@ test('composite palette availability only admits owned cast actions with observe
   const ordinary = { id: 990002, name: 'Ordinary', type: 'Weapon' };
   const action = { id: '__fixture', name: '__fixture', type: 'Action' };
   const app = catalogApp([component, ordinary]);
-  app.results.planningState.availability[component.id] = { ready: true };
+  app.analysis.state.results.planningState.availability[component.id] = { ready: true };
   const context = { specialization: 'Core' };
   for (const expansion of [
     undefined,
@@ -306,23 +324,27 @@ test('composite palette availability only admits owned cast actions with observe
 test('Dragon Slash editor access is separate from its default verdict and requires an observed candidate', async () => {
   const profession = await loadProfession('warrior');
   const app = projectionApp(profession, { specialization: 'Bladesworn' });
-  app.results.planningState = planningFixture(profession, { specialization: 'Bladesworn' }, (runtime) => {
-    Object.assign(runtime.profession.specialization.state, {
-      gunsaberActive: true,
-      dragonTriggerActive: true,
-      dragonCharges: { value: 1, maximum: 10, unitsPerSecond: 0, updatedAt: 0 },
-      nextDragonChargeAt: 0
-    });
-  });
+  app.analysis.state.results.planningState = planningFixture(
+    profession,
+    { specialization: 'Bladesworn' },
+    (runtime) => {
+      Object.assign(runtime.profession.specialization.state, {
+        gunsaberActive: true,
+        dragonTriggerActive: true,
+        dragonCharges: { value: 1, maximum: 10, unitsPerSecond: 0, updatedAt: 0 },
+        nextDragonChargeAt: 0
+      });
+    }
+  );
   const skill = profession.catalog.skills.find((skill) => skill.dragonSlash);
   const availability = paletteAvailability(
     app,
-    { specialization: 'Bladesworn', professionState: app.results.planningState.profession },
+    { specialization: 'Bladesworn', professionState: app.analysis.state.results.planningState.profession },
     skill
   );
   assert.equal(availability.available, false);
   assert.equal(paletteSkillView(app, skill, false, availability.message).contextDisabled, false);
-  delete app.results.planningState.availability[skill.id];
+  delete app.analysis.state.results.planningState.availability[skill.id];
   assert.equal(paletteSkillView(app, skill, false).contextDisabled, true);
 });
 
@@ -645,7 +667,7 @@ test('Gunsaber tile shows the shared cooldown after direct or Dragon Trigger ent
       config: { specialization: 'Bladesworn', initialResource: 100, primaryWeapon: 'Sword' }
     });
     const app = projectionApp(profession, { specialization: 'Bladesworn' });
-    app.results = result;
+    app.analysis.state.results = result;
     const [skill] = displayedSkillTiles(app, [profession.catalog.skillsById.get(62745)]);
     const view = paletteSkillView(app, skill);
 
@@ -685,7 +707,7 @@ test('cooldown tooltip reports availability relative to combat start', async () 
       [skill.id]: { remainingMs: 8160, readyAtMs: 23000 }
     }
   });
-  app.results.events = [{ type: 'combat_start', at: 10 }];
+  app.analysis.state.results.events = [{ type: 'combat_start', at: 10 }];
 
   assert.match(paletteSkillView(app, skill).castDetails, /Ready in: 8\.160s\nAvailable at: 13\.000s/);
 });

@@ -49,7 +49,16 @@ test('fractal optimizer input rejects malformed fields', () => {
     contentId: 'warrior',
     adapter: warrior,
     build,
-    buildRevision: 1,
+    analysis: {
+      state: {
+        results: null,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        buildRevision: 1
+      }
+    },
     patch: warrior.profession.resolvePatch({ id: 'current' })
   };
   for (const invalid of [
@@ -214,10 +223,19 @@ test('optimizer checks potion attributes and verifies scores under the captured 
     adapter: warrior,
     profession: warrior.profession,
     build,
-    buildRevision: 1,
+    analysis: {
+      state: {
+        results: null,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        buildRevision: 1
+      }
+    },
     patch: warrior.profession.resolvePatch({ id: 'current' }),
     changed() {
-      this.buildRevision++;
+      this.analysis.state.buildRevision++;
     }
   };
   const before = buildContext(warrior, build).attributes(1).attributes;

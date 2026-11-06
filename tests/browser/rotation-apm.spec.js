@@ -13,13 +13,17 @@ test('APM updates with rotation edits and fits the 1130px workspace', async ({ p
   // Clear paints immediately, but palette input waits for the empty rotation's worker result.
   await expect(page.locator('#rotation-palette')).toHaveAttribute('data-palette-pending', 'false');
   await page.locator('.pal-skill[data-skill="Bladecall"]').click();
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   await expect(metric.locator('.res-val')).toHaveAttribute('title', /^1 non-autoattack actions/);
   await page.locator('.pal-skill[data-skill="Flying Cutter"]').click();
-  await page.waitForFunction(() => window.professionApp.buildRevision === window.professionApp.resultRevision);
+  await page.waitForFunction(
+    () => window.professionApp.analysis.state.buildRevision === window.professionApp.analysis.state.resultRevision
+  );
   await expect(metric.locator('.res-val')).toHaveAttribute('title', /^1 non-autoattack actions/);
   const expected = await page.evaluate(
-    () => `${Math.round(window.professionApp.results.rotationApm.apm).toLocaleString()} APM`
+    () => `${Math.round(window.professionApp.analysis.state.results.rotationApm.apm).toLocaleString()} APM`
   );
   await expect(metric.locator('.res-val')).toHaveText(expected);
   await metric.locator('summary').focus();

@@ -32,10 +32,10 @@ test('preparations flip while arming, use Alacrity, and restore placement after 
       const tile = (result) =>
         displayedSkillTiles(
           {
+            analysis: { needsPatchComparison: () => false, state: { results: result } },
             profession: thiefProfession,
             activeCatalog: thiefCatalog,
-            build: { rotation: [] },
-            results: result
+            build: { rotation: [] }
           },
           [prepare],
           context(result)

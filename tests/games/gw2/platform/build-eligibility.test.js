@@ -61,12 +61,18 @@ test('shared eligibility precedes profession filters and cast state changes', ()
   const context = { specialization: 'Core' };
   for (const skill of [excluded, profession.catalog.skillsById.get(wrongSpecialization.id)]) {
     assert.equal(adapter.isSkillAvailable(skill, context), false);
-    assert.equal(paletteAvailability({ profession, results: null }, context, skill).available, false);
+    assert.equal(
+      paletteAvailability({ profession, analysis: { state: { results: null } } }, context, skill).available,
+      false
+    );
   }
 
   assert.equal(filterChecks, 0, 'Rejected builds must not reach the profession browser filter');
   assert.equal(adapter.isSkillAvailable(weapon, context), true);
-  assert.equal(paletteAvailability({ profession, results: null }, context, weapon).available, true);
+  assert.equal(
+    paletteAvailability({ profession, analysis: { state: { results: null } } }, context, weapon).available,
+    true
+  );
 
   // A rejected command cannot run state checks, spend a resource, or begin its recharge.
   const rejected = simulateGw2({

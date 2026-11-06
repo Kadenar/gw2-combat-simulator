@@ -50,11 +50,20 @@ test('audited weapon flip families project one live palette identity', () => {
     const app = {
       activeCatalog: catalog,
       profession: {},
-      results: {
-        planningState: {
-          atSeconds: 0,
+      analysis: {
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          results: {
+            planningState: {
+              atSeconds: 0,
 
-          profession: { ...{}, [STATE.AVAILABLE_FLIPS]: {} }
+              profession: { ...{}, [STATE.AVAILABLE_FLIPS]: {} }
+            }
+          }
         }
       }
     };
@@ -67,7 +76,12 @@ test('audited weapon flip families project one live palette identity', () => {
       `${parent.name} should display before its follow-up is armed`
     );
 
-    app.results.planningState.profession[STATE.AVAILABLE_FLIPS][child.id] = armSkillFlip({}, 0, 0, Infinity);
+    app.analysis.state.results.planningState.profession[STATE.AVAILABLE_FLIPS][child.id] = armSkillFlip(
+      {},
+      0,
+      0,
+      Infinity
+    );
     assert.deepEqual(
       displayedSkillTiles(app, [parent]).map((skill) => skill.id),
       [child.id],

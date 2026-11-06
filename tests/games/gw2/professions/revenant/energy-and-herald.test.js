@@ -227,7 +227,7 @@ test('profession palette deduplicates actions and shows only active Conduit rele
   assert.equal(vindicatorIds.filter((id) => revenantCatalog.skillsById.get(id)?.name === 'Energy Meld').length, 1);
   // Verify the rendered tile, since catalog flip-family expansion can replace an explicitly listed skill.
   const vindicatorTiles = displayedSkillTiles(
-    { profession: revenantProfession, activeCatalog: revenantCatalog },
+    { analysis: { state: { results: null } }, profession: revenantProfession, activeCatalog: revenantCatalog },
     vindicatorIds.map((id) => revenantCatalog.skillsById.get(id)),
     { specialization: 'Vindicator', build: { ...baseConfig, startingLegend: LEGEND.ALLIANCE } }
   );
@@ -278,15 +278,20 @@ test('Soulcleave stays on its parent tile at zero Energy until its release is ar
       };
       const flips = {};
       const app = {
-        profession: revenantProfession,
-        activeCatalog: revenantCatalog,
-        results: {
-          planningState: {
-            availability: {},
-            profession: { ...professionState, [STATE.AVAILABLE_FLIPS]: flips },
-            atSeconds: 0
+        analysis: {
+          needsPatchComparison: () => false,
+          state: {
+            results: {
+              planningState: {
+                availability: {},
+                profession: { ...professionState, [STATE.AVAILABLE_FLIPS]: flips },
+                atSeconds: 0
+              }
+            }
           }
-        }
+        },
+        profession: revenantProfession,
+        activeCatalog: revenantCatalog
       };
       const context = {
         specialization: 'Renegade',
@@ -1192,7 +1197,11 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
     [relinquish, '0']
   ]) {
     const view = paletteSkillView(
-      { adapter: revenantAppAdapter, patch: revenantAppAdapter.profession.resolvePatch(), results: null },
+      {
+        analysis: { state: { results: null } },
+        adapter: revenantAppAdapter,
+        patch: revenantAppAdapter.profession.resolvePatch()
+      },
       skill
     );
     assert.equal(view.tooltip.facts.find((fact) => fact.name === 'Base energy cost').detail, cost);

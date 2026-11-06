@@ -291,10 +291,10 @@ function editDoubleEdgeOutcome(app: ProfessionAppState, index: number, event?: E
 
 /** Binds edits to the rendered build revision so retained cards cannot mutate shifted command indexes. */
 export function timelineInteractionOptions(app: ProfessionAppState): TimelineInteractionOptions {
-  const revision = app.buildRevision;
+  const revision = app.analysis.state.buildRevision;
   return {
     rotation: app.build.rotation,
-    canInteract: () => app.buildRevision === revision,
+    canInteract: () => app.analysis.state.buildRevision === revision,
     getDragState: () => app.dragState,
     setDragState: (value) => {
       app.dragState = value;

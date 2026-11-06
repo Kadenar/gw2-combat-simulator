@@ -45,8 +45,17 @@ test('workspace presentation separates health milestones, squad labels, and patc
   const app = {
     build: { targetHealth: 1000, targetStartingHealthPercent: 90 },
     profession: { preview: {} },
-    buildRevision: 2,
-    resultRevision: 2
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        results: null,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        buildRevision: 2,
+        resultRevision: 2
+      }
+    }
   };
   const golem = createWorkspacePresentation(app);
   const golemResult = golem.results(app, { ...result, encounter: undefined });
@@ -78,7 +87,26 @@ test('workspace presentation separates health milestones, squad labels, and patc
     ...app,
     workspace: { scenario: { encounterId: 'unresolved', difficulty: 'normal' } }
   });
-  assert.equal(changedBoss.results({ ...app, resultRevision: 1 }, result), null);
+  assert.equal(
+    changedBoss.results(
+      {
+        ...app,
+        analysis: {
+          needsPatchComparison: () => false,
+          state: {
+            results: null,
+            buildRevision: 0,
+            simulationStatus: 'idle',
+            simulationError: '',
+            patchComparison: null,
+            resultRevision: 1
+          }
+        }
+      },
+      result
+    ),
+    null
+  );
   assert.equal(boss.results(app, { ...result, encounter: undefined }), null);
 });
 
@@ -180,10 +208,10 @@ test('boss analysis preserves separate target bars and links an empty scenario b
   assert.match(container.innerHTML, /in progress/);
   assert.doesNotMatch(container.innerHTML, /Charged Souls|data-encounter-phase="encounter-1"/);
   assert.match(container.innerHTML, /data-encounter-phase="encounter-2"/);
-  const app = { build: { rotation: [] }, workspace: { scenario: {} } };
+  const app = { analysis: { state: { results: null } }, build: { rotation: [] }, workspace: { scenario: {} } };
   assert.match(createGw2SimulationViewModel(app).analysisEmptyHtml, /href="#bosses"/);
   app.build.rotation = [{ type: 'wait', durationMs: 1000 }];
-  app.results = { totalDamage: 99999 };
+  app.analysis.state.results = { totalDamage: 99999 };
   assert.equal(createGw2SimulationViewModel(app).analysis, null);
   assert.match(createGw2SimulationViewModel(app).analysisEmptyHtml, /Loading combat analysis/);
 });

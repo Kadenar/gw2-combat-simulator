@@ -438,7 +438,17 @@ test('RNG analysis is available while detailed Engineer results stay determinist
     adapter: engineerAppAdapter,
     profession: engineerProfession,
     build,
-    results: null,
+    analysis: {
+      needsPatchComparison: () => false,
+      state: {
+        buildRevision: 0,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        results: null
+      }
+    },
     attributeWeaponSet: 1,
     activeCatalog: engineerProfession.catalog
   };
@@ -451,10 +461,10 @@ test('RNG analysis is available while detailed Engineer results stay determinist
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   // Keep test setup on the same baseline request/calculation path as the application.
-  app.results = engineerAppAdapter.calculateBaselineSimulation(
+  app.analysis.state.results = engineerAppAdapter.calculateBaselineSimulation(
     engineerAppAdapter.baselineSimulationRequest(app)
   ).result;
-  assert.equal(app.results.randomness.mode, 'deterministic');
+  assert.equal(app.analysis.state.results.randomness.mode, 'deterministic');
 
   const request = engineerAppAdapter.randomDistributionRequest(app);
 

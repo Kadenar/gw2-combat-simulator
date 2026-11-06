@@ -338,13 +338,13 @@ test('Engineer Tools endurance renders beneath Dodge instead of as a standalone 
   ];
   const build = adapter.toApplicationBuild(canonicalBuild);
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: adapter.profession.resolvePatch(),
     build,
     adapter,
     profession: engineerProfession,
     activeCatalog: engineerCatalog,
-    weaponData: adapter.weaponData,
-    results: null
+    weaponData: adapter.weaponData
   };
   const palette = inertContainer();
   const previousDocument = globalThis.document;
@@ -373,13 +373,13 @@ test('Engineer kits render beneath weapons while Holosmith mechanics stay groupe
   canonicalBuild.selectedSkillIds.Utility3 = 5812;
   const build = adapter.toApplicationBuild(canonicalBuild);
   const app = {
+    analysis: { needsPatchComparison: () => false, state: { results: null } },
     patch: adapter.profession.resolvePatch(),
     build,
     adapter,
     profession: engineerProfession,
     activeCatalog: engineerCatalog,
-    weaponData: adapter.weaponData,
-    results: null
+    weaponData: adapter.weaponData
   };
   const palette = inertContainer();
   const previousDocument = globalThis.document;
@@ -475,6 +475,7 @@ test('Amalgam selects and labels Evolve from the current build traits in the pal
     assert.ok(migrated.rotation.every((command) => command.skillId === ID.EVOLVE_BASE));
     assert.deepEqual(validateEngineerBuild(migrated), { valid: true, errors: [] });
     const app = {
+      analysis: { needsPatchComparison: () => false, state: { results: null } },
       adapter,
       profession: adapter.profession,
       build: toApplicationBuild(migrated),

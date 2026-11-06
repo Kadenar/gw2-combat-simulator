@@ -9,8 +9,19 @@ import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 
 const app = {
+  analysis: {
+    needsPatchComparison: () => false,
+    state: {
+      buildRevision: 0,
+      resultRevision: 0,
+      simulationStatus: 'idle',
+      simulationError: '',
+      patchComparison: null,
+      results: { procSteps: [] }
+    }
+  },
   attributeData: { activeTraits: [] },
-  results: { procSteps: [] },
+
   activeCatalog: { skills: [] }
 };
 

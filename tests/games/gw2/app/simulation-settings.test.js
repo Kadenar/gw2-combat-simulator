@@ -13,6 +13,7 @@ import {
 import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
 import { createBuildTab, emptyBuildTabSession } from '#gw2/app/build/state/workspace.js';
+import { createAnalysisResultLifecycle } from '#gw2/app/create-analysis-lifecycle.js';
 import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
 import { getBuildWithRotationExportPayload } from '#gw2/app/import-export/files.js';
 import {
@@ -100,7 +101,16 @@ test('optimizer workers retain a snapshot of simulation preferences outside the 
     build,
     contentId: 'mesmer',
     patch: mesmerAppAdapter.profession.resolvePatch({ id: 'current' }),
-    buildRevision: 1,
+    analysis: {
+      state: {
+        results: null,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        buildRevision: 1
+      }
+    },
     simulationSettings: { transitionDelays: normalizeTransitionDelays({ weaponSwapMs: 100 }) }
   };
   const request = captureGearOptimizerRequest(app, {});
@@ -154,25 +164,23 @@ function settingsWorkspace(t, initialDelay = 0) {
     workspace: { tabs: [tab], activeTabId: tab.id, simulationSettings },
     build,
     patch: adapter.profession.resolvePatch({ id: 'current' }),
-    buildRevision: 1,
-    resultRevision: -1,
-    simulationStatus: 'queued',
+    damageDiagnostics: false,
     initialRenderGeneration: 0,
     simulationSettings,
-    randomDistributionRunner: { cancel() {}, schedule() {} },
-    modifierContributionRunner: { cancel() {}, schedule() {} },
+    randomDistributionRunner: { cancel() {}, run() {} },
+    modifierContributionRunner: { cancel() {}, run() {} },
+    gearOptimizerRunner: { cancel() {}, reset() {} },
     relicComparisonRunner: { schedule() {} },
     renderBuildSections() {}
   });
-  app.baselineSimulationRunner = new BaselineSimulationRunner(app);
-  t.after(() => app.baselineSimulationRunner.cancel());
+  app.baselineSimulationRunner = new BaselineSimulationRunner((request) =>
+    adapter.calculateBaselineSimulation(request)
+  );
+  app.analysis = createAnalysisResultLifecycle(app, (change) => app.onAnalysisChange(change));
+  t.after(() => app.analysis.suspend());
   const settle = () => {
-    app.baselineSimulationRunner.cancel();
-    app.commitBaselineSimulation(
-      adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app)),
-      app.buildRevision,
-      false
-    );
+    app.analysis.suspend();
+    app.analysis.initialize();
   };
 
   const pin = () => {
@@ -190,7 +198,7 @@ function settingsWorkspace(t, initialDelay = 0) {
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   settle();
   pin();
-  const cached = app.results;
+  const cached = app.analysis.state.results;
   const reference = app.rotationComparison.referenceResult;
   const other = createBuildTab(structuredClone(build), 'B');
   app.workspace.tabs.push(other);
@@ -247,25 +255,25 @@ for (const action of [...TRANSITION_DELAY_KEYS, 'Apply 100 ms to all', 'Clear al
 
     const delays = app.simulationSettings.transitionDelays;
     assert.deepEqual(loadSimulationSettings().transitionDelays, delays);
-    assert.equal(tab.resultsFresh, false);
+    assert.equal(tab.analysis.fresh, false);
     assert.equal(tab.session.rotationComparison.referenceStatus, 'queued');
     assert.equal(app.rotationComparison.referenceStatus, 'queued');
-    assert.equal(app.baselineSimulationRunner.queue.pending.revision, app.buildRevision);
-    assert.equal(tab.session.results, cached);
+    assert.ok(app.baselineSimulationRunner.queue.pending);
+    assert.equal(tab.analysis.results, cached);
     assert.equal(tab.session.rotationComparison.referenceResult, null);
 
     app.activateBuildTab(tab.id);
-    assert.equal(app.results, null);
-    assert.equal(app.simulationStatus, 'queued');
+    assert.equal(app.analysis.state.results, null);
+    assert.equal(app.analysis.state.simulationStatus, 'queued');
     const request = app.baselineSimulationRunner.queue.pending.request;
     assert.deepEqual(request.baseConfig.transitionDelays, delays);
     assert.deepEqual(request.referenceRotation, app.rotationComparison.referenceRotation);
     settle();
-    assert.notEqual(app.results, cached);
+    assert.notEqual(app.analysis.state.results, cached);
     assert.notEqual(app.rotationComparison.referenceResult, reference);
     assert.equal(app.rotationComparison.referenceStatus, 'fresh');
-    assert.equal(app.resultRevision, app.buildRevision);
-    assert.equal(app.simulationStatus, 'idle');
+    assert.equal(app.analysis.state.resultRevision, app.analysis.state.buildRevision);
+    assert.equal(app.analysis.state.simulationStatus, 'idle');
   });
 }
 
@@ -274,11 +282,11 @@ test('accepted rotation delay metadata persists workspace settings and invalidat
   const { app, tab, settle } = settingsWorkspace(t);
   const delays = normalizeTransitionDelays({ weaponSwapMs: 150 });
   const preview = previewBuildFileImport(getBuildWithRotationExportPayload(app.build, delays), 'build.json', app);
-  assert.equal(tab.resultsFresh, true);
+  assert.equal(tab.analysis.fresh, true);
   assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 0);
   applyBuildFileImport(app, preview, { build: true, rotation: true });
   assert.deepEqual(loadSimulationSettings().transitionDelays, delays);
-  assert.equal(tab.resultsFresh, false);
+  assert.equal(tab.analysis.fresh, false);
   assert.equal(tab.session.rotationComparison.referenceStatus, 'queued');
   app.activateBuildTab(tab.id);
   assert.deepEqual(app.simulationSettings.transitionDelays, delays);
@@ -289,19 +297,19 @@ test('accepted rotation delay metadata persists workspace settings and invalidat
 
 test('unchanged normalized delays and rotation-only edits preserve inactive caches', (t) => {
   const { app, tab, cached, reference, input, click } = settingsWorkspace(t);
-  const revision = app.buildRevision;
+  const revision = app.analysis.state.buildRevision;
   input('weaponSwapMs', 0);
   input('weaponSwapMs', -100);
   input('weaponSwapMs', 'invalid');
   click('Clear all');
-  assert.equal(app.buildRevision, revision);
+  assert.equal(app.analysis.state.buildRevision, revision);
   assert.equal(app.baselineSimulationRunner.queue.pending, null);
   app.build.rotation.push({ type: 'wait', durationMs: 100 });
   app.changed(false);
-  assert.equal(tab.resultsFresh, true);
+  assert.equal(tab.analysis.fresh, true);
   assert.equal(app.rotationComparison.referenceStatus, 'fresh');
   app.activateBuildTab(tab.id);
-  assert.equal(app.results, cached);
+  assert.equal(app.analysis.state.results, cached);
   assert.equal(app.rotationComparison.referenceResult, reference);
   assert.equal(app.rotationComparison.referenceStatus, 'fresh');
   assert.equal(app.baselineSimulationRunner.queue.pending, null);
@@ -319,7 +327,7 @@ test('reverting shared delays still refreshes invalidated tabs and leaves empty 
   app.workspace.tabs.push(empty);
   input('weaponSwapMs', 1000);
   input('weaponSwapMs', 0);
-  assert.equal(tab.resultsFresh, false);
+  assert.equal(tab.analysis.fresh, false);
   assert.equal(empty.session.rotationComparison.referenceStatus, 'empty');
   app.activateBuildTab(tab.id);
   assert.equal(app.baselineSimulationRunner.queue.pending.request.baseConfig.transitionDelays.weaponSwapMs, 0);
@@ -332,7 +340,7 @@ test('reverting shared delays still refreshes invalidated tabs and leaves empty 
 test('Golem and separate boss scenarios retain independent delays, caches, and saved settings', (t) => {
   const { app, tab, input, settle, remount } = settingsWorkspace(t, 100);
   const golem = app.workspace;
-  const golemResult = app.results;
+  const golemResult = app.analysis.state.results;
   const first = createBossScenario('020102', app.build, 'First boss', 'current');
   const second = createBossScenario('020506', app.build, 'Second boss', 'current');
   const editor = createScenarioEditor(app, () => {}, { import() {}, export() {} });
@@ -343,10 +351,10 @@ test('Golem and separate boss scenarios retain independent delays, caches, and s
   assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 0);
   input('weaponSwapMs', 250);
   settle();
-  const firstResult = app.results;
+  const firstResult = app.analysis.state.results;
   assert.equal(first.simulationSettings.transitionDelays.weaponSwapMs, 250);
   assert.equal(loadSimulationSettings().transitionDelays.weaponSwapMs, 0);
-  assert.equal(tab.resultsFresh, true);
+  assert.equal(tab.analysis.fresh, true);
 
   editor.open(second);
   settle();
@@ -357,14 +365,14 @@ test('Golem and separate boss scenarios retain independent delays, caches, and s
   editor.close();
   remount();
   assert.equal(app.workspace, golem);
-  assert.equal(app.results, golemResult);
+  assert.equal(app.analysis.state.results, golemResult);
   assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 100);
   input('weaponSwapMs', 150);
   settle();
   assert.equal(loadSimulationSettings().transitionDelays.weaponSwapMs, 150);
 
   editor.open(first);
-  assert.equal(app.results, firstResult);
+  assert.equal(app.analysis.state.results, firstResult);
   assert.equal(app.baselineSimulationRunner.queue.pending, null);
   assert.equal(app.simulationSettings.transitionDelays.weaponSwapMs, 250);
   assert.equal(second.simulationSettings.transitionDelays.weaponSwapMs, 500);

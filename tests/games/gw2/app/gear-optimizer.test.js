@@ -206,7 +206,18 @@ test('a worker crash and stale messages cannot publish a complete exhaustive res
   const captured = request();
   const worker = new OptimizerTestWorker();
   const runner = new GearOptimizerRunner(
-    { buildRevision: captured.revision },
+    {
+      analysis: {
+        state: {
+          results: null,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          buildRevision: captured.revision
+        }
+      }
+    },
     () => {},
     () => worker
   );
@@ -226,7 +237,18 @@ test('baseline validation gates worker pool expansion', () => {
     const messages = [];
     const workers = [];
     const runner = new GearOptimizerRunner(
-      { buildRevision: captured.revision },
+      {
+        analysis: {
+          state: {
+            results: null,
+            resultRevision: 0,
+            simulationStatus: 'idle',
+            simulationError: '',
+            patchComparison: null,
+            buildRevision: captured.revision
+          }
+        }
+      },
       () => {},
       () => {
         const worker = new OptimizerTestWorker();
@@ -259,7 +281,18 @@ test('invalid chunk results and progress fail the job and reject late verificati
     const worker = new OptimizerTestWorker();
     worker.postMessage = (message) => messages.push(message);
     const runner = new GearOptimizerRunner(
-      { buildRevision: captured.revision },
+      {
+        analysis: {
+          state: {
+            results: null,
+            resultRevision: 0,
+            simulationStatus: 'idle',
+            simulationError: '',
+            patchComparison: null,
+            buildRevision: captured.revision
+          }
+        }
+      },
       () => {},
       () => worker,
       1
@@ -390,7 +423,18 @@ test('completion verifies group winners beyond the overall top twenty using boun
   const searched = new Set();
   const state = await new Promise((resolve, reject) => {
     const runner = new GearOptimizerRunner(
-      { buildRevision: captured.revision },
+      {
+        analysis: {
+          state: {
+            results: null,
+            resultRevision: 0,
+            simulationStatus: 'idle',
+            simulationError: '',
+            patchComparison: null,
+            buildRevision: captured.revision
+          }
+        }
+      },
       () => {
         if (runner.state.status === 'failed') reject(new Error(runner.state.error));
 
@@ -427,7 +471,18 @@ test('selectable worker pools evaluate each unique candidate once and retain ide
       const searchedKeys = new Set();
       const workers = [];
       const runner = new GearOptimizerRunner(
-        { buildRevision: captured.revision },
+        {
+          analysis: {
+            state: {
+              results: null,
+              resultRevision: 0,
+              simulationStatus: 'idle',
+              simulationError: '',
+              patchComparison: null,
+              buildRevision: captured.revision
+            }
+          }
+        },
         () => {
           if (runner.state.status === 'complete') {
             assert.equal(BigInt(searchedKeys.size), runner.state.count);
@@ -477,7 +532,18 @@ test('bounded refinement stays deterministic across worker counts without rescor
     new Promise((resolve, reject) => {
       const searchedKeys = new Set();
       const runner = new GearOptimizerRunner(
-        { buildRevision: captured.revision },
+        {
+          analysis: {
+            state: {
+              results: null,
+              resultRevision: 0,
+              simulationStatus: 'idle',
+              simulationError: '',
+              patchComparison: null,
+              buildRevision: captured.revision
+            }
+          }
+        },
         () => {
           if (runner.state.status === 'failed') reject(new Error(runner.state.error));
 
@@ -541,7 +607,18 @@ test('invalid worker counts cannot replace an active optimizer job', () => {
   const captured = request();
   const worker = new OptimizerTestWorker();
   const runner = new GearOptimizerRunner(
-    { buildRevision: captured.revision },
+    {
+      analysis: {
+        state: {
+          results: null,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          buildRevision: captured.revision
+        }
+      }
+    },
     () => {},
     () => worker
   );
@@ -554,7 +631,18 @@ test('invalid worker counts cannot replace an active optimizer job', () => {
 
 test('cancel, stale revisions, constructor and postMessage failures never report complete', async () => {
   const captured = request();
-  const app = { buildRevision: captured.revision };
+  const app = {
+    analysis: {
+      state: {
+        results: null,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        buildRevision: captured.revision
+      }
+    }
+  };
   const worker = new OptimizerTestWorker();
   const runner = new GearOptimizerRunner(
     app,
@@ -583,7 +671,7 @@ test('cancel, stale revisions, constructor and postMessage failures never report
     assert.equal(failed.state.status, 'failed');
   }
 
-  app.buildRevision++;
+  app.analysis.state.buildRevision++;
   runner.run(captured);
   assert.equal(runner.state.status, 'failed');
   assert.match(runner.state.error, /stale/);
@@ -601,10 +689,19 @@ test('successive result applies remain valid while unrelated edits still fail th
     build: structuredClone(captured.build),
     contentId: captured.contentId,
     patch: adapter.profession.resolvePatch(captured.patch),
-    buildRevision: captured.revision,
+    analysis: {
+      state: {
+        results: null,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        buildRevision: captured.revision
+      }
+    },
     changed() {
       changes++;
-      this.buildRevision++;
+      this.analysis.state.buildRevision++;
     }
   };
   const rotation = app.build.rotation;
@@ -615,7 +712,7 @@ test('successive result applies remain valid while unrelated edits still fail th
   assert.equal(app.build.food, another.equipment.food);
   assert.equal(app.build.rotation, rotation);
   assert.equal(changes, 2);
-  assert.equal(captured.revision, app.buildRevision - 2);
+  assert.equal(captured.revision, app.analysis.state.buildRevision - 2);
   app.changed();
   assert.throws(() => applyOptimizerCandidate(app, captured, winner), /stale/);
 });
@@ -685,7 +782,16 @@ function request(selections = {}, overrides = {}) {
     adapter,
     profession: adapter.profession,
     build,
-    buildRevision: 7,
+    analysis: {
+      state: {
+        results: null,
+        resultRevision: 0,
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        buildRevision: 7
+      }
+    },
     patch: adapter.profession.resolvePatch({ id: 'current' })
   };
   return captureGearOptimizerRequest(app, selections);
@@ -758,7 +864,16 @@ for (const createJob of [createGroupedOptimizer, createFastOptimizer]) {
       adapter,
       profession: adapter.profession,
       build: structuredClone(initial.build),
-      buildRevision: 1,
+      analysis: {
+        state: {
+          results: null,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          buildRevision: 1
+        }
+      },
       patch: adapter.profession.resolvePatch({ id: 'current' }),
       simulationSettings: { transitionDelays: { weaponSwapMs: 100 } }
     };
@@ -1060,7 +1175,18 @@ test('workers finish exact and fast searches when every candidate fails requirem
     const captured = { ...request({ maxToughness: 0 }), search };
     const state = await new Promise((resolve, reject) => {
       const runner = new GearOptimizerRunner(
-        { buildRevision: captured.revision },
+        {
+          analysis: {
+            state: {
+              results: null,
+              resultRevision: 0,
+              simulationStatus: 'idle',
+              simulationError: '',
+              patchComparison: null,
+              buildRevision: captured.revision
+            }
+          }
+        },
         () => {
           if (runner.state.status === 'failed') reject(new Error(runner.state.error));
 
@@ -1108,7 +1234,18 @@ test(
         };
         const state = await new Promise((resolve, reject) => {
           const runner = new GearOptimizerRunner(
-            { buildRevision: captured.revision },
+            {
+              analysis: {
+                state: {
+                  results: null,
+                  resultRevision: 0,
+                  simulationStatus: 'idle',
+                  simulationError: '',
+                  patchComparison: null,
+                  buildRevision: captured.revision
+                }
+              }
+            },
             () => {
               if (runner.state.status === 'failed') reject(new Error(runner.state.error));
 
@@ -1401,7 +1538,16 @@ test('life-force warnings survive optimizer baseline, search, and detailed verif
         contentId: necromancer.id,
         adapter: necromancer,
         build,
-        buildRevision: 0,
+        analysis: {
+          state: {
+            results: null,
+            resultRevision: 0,
+            simulationStatus: 'idle',
+            simulationError: '',
+            patchComparison: null,
+            buildRevision: 0
+          }
+        },
         patch: necromancer.profession.resolvePatch({ id: 'current' })
       },
       { food: ['', build.food] }

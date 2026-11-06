@@ -24,7 +24,7 @@ export function createBossPresentation(scenario: BossScenarioDraft): WorkspacePr
     },
     results(app, result) {
       // A pending scenario must not borrow another encounter's results or Golem health snapshots.
-      if (!result.encounter || app.resultRevision !== app.buildRevision) return null;
+      if (!result.encounter || app.analysis.state.resultRevision !== app.analysis.state.buildRevision) return null;
 
       const encounter = result.encounter;
       const phases = encounterAnalysisPhases(result, definitions());

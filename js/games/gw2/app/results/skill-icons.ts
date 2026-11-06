@@ -77,7 +77,7 @@ export function resultSkillIcon(app: ProfessionAppState, row: ResultIconRow): st
       RESULT_PROC_NAMES[breakdownName]
     ].flatMap((name) => (name ? [String(name)] : []))
   );
-  const matchingProc = (app.results?.procSteps || []).find((proc) => procNames.has(proc.skill));
+  const matchingProc = (app.analysis.state.results?.procSteps || []).find((proc) => procNames.has(proc.skill));
   const procIcon = matchingProc && resolveProcIcon(app, matchingProc);
 
   // Trait damage inherits its triggering skill ID, so use the matching proc's

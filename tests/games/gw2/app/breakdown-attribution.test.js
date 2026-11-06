@@ -129,7 +129,18 @@ test('same-named trait applications do not lend a skill ID or icon to another tr
     assert.equal(rawBlast.skillId, null);
 
     const icons = {
-      results: result,
+      analysis: {
+        needsPatchComparison: () => false,
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          results: result
+        }
+      },
+
       activeCatalog: {
         skills: [],
         skillsById: new Map([[SKILL.FIRE_BOMB, { icon: 'fire-bomb.png' }]])

@@ -315,12 +315,34 @@ test('timeline timings use only results produced for the current build revision'
   };
 
   assert.equal(
-    currentTimelineResults({ buildRevision: 2, resultRevision: 1, results: staleResults }),
+    currentTimelineResults({
+      analysis: {
+        state: {
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          buildRevision: 2,
+          resultRevision: 1,
+          results: staleResults
+        }
+      }
+    }),
     null,
     'a first-load build change must not reuse the previous simulation timing'
   );
   assert.equal(
-    currentTimelineResults({ buildRevision: 2, resultRevision: 2, results: currentResults }),
+    currentTimelineResults({
+      analysis: {
+        state: {
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          buildRevision: 2,
+          resultRevision: 2,
+          results: currentResults
+        }
+      }
+    }),
     currentResults
   );
 });
@@ -361,9 +383,17 @@ test('default empty timelines stay interactive while read-only timelines omit au
   Object.defineProperty(globalThis, 'document', { configurable: true, value: fakeDocument });
   const app = {
     build: { rotation: [] },
-    buildRevision: 1,
-    resultRevision: 1,
-    results: null,
+    analysis: {
+      state: {
+        simulationStatus: 'idle',
+        simulationError: '',
+        patchComparison: null,
+        buildRevision: 1,
+        resultRevision: 1,
+        results: null
+      }
+    },
+
     rotationInsertionIndex: null
   };
 
@@ -373,13 +403,13 @@ test('default empty timelines stay interactive while read-only timelines omit au
   assert.equal(attributes.has('aria-readonly'), false);
 
   // Live results become busy on edits and clear when the matching simulation arrives.
-  app.buildRevision = 2;
+  app.analysis.state.buildRevision = 2;
   renderTimeline(app);
   assert.equal(attributes.get('aria-busy'), 'true');
-  app.resultRevision = 2;
+  app.analysis.state.resultRevision = 2;
   renderTimeline(app);
   assert.equal(attributes.get('aria-busy'), 'false');
-  app.buildRevision = 3;
+  app.analysis.state.buildRevision = 3;
   root.ondrop = null;
   renderTimeline(app, { root, procRoot: null, build: { rotation: [] }, result: null, readOnly: true });
   assert.equal(attributes.get('aria-busy'), 'false');

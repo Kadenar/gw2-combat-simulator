@@ -125,7 +125,7 @@ export function captureGearOptimizerRequest(
   const request: GearOptimizerRequest = structuredClone({
     gameId: 'gw2',
     contentId: app.contentId,
-    revision: app.buildRevision,
+    revision: app.analysis.state.buildRevision,
     build: app.build,
     // Candidate workers reconstruct application input, so carry browser settings outside the build snapshot.
     simulationSettings: { transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays) },
@@ -627,7 +627,11 @@ export function isOptimizerRequestCurrent(app: ProfessionAppState, request: Gear
 
   const applied = optimizerApplications.get(app);
   const revision = applied?.request === request ? applied.revision : request.revision;
-  return app.buildRevision === revision && app.contentId === request.contentId && app.patch.id === request.patch.id;
+  return (
+    app.analysis.state.buildRevision === revision &&
+    app.contentId === request.contentId &&
+    app.patch.id === request.patch.id
+  );
 }
 
 /** The pinned comparison follows the last applied result without modifying the immutable search snapshot. */
@@ -649,5 +653,5 @@ export function applyOptimizerCandidate(
 
   Object.assign(app.build, structuredClone(candidate.equipment));
   app.changed();
-  optimizerApplications.set(app, { request, revision: app.buildRevision, candidate });
+  optimizerApplications.set(app, { request, revision: app.analysis.state.buildRevision, candidate });
 }
