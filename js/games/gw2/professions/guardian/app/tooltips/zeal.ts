@@ -13,7 +13,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 /** Describe zeal tooltips from the selected balance data. */
@@ -74,7 +74,7 @@ export const guardianZealTooltips = {
       {
         name: 'Symbol field duration',
         detail: tooltipSeconds(
-          tooltipNumber(requireSkillFromContext(context, ID.LESSER_SYMBOL_OF_BLADES).comboFields?.[0], 'duration')
+          tooltipNumber(requireSkill(context.catalog, ID.LESSER_SYMBOL_OF_BLADES).comboFields?.[0], 'duration')
         )
       }
     ]

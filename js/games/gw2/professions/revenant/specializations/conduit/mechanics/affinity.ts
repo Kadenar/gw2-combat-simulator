@@ -1,6 +1,6 @@
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
@@ -9,7 +9,7 @@ import { conduitState } from '#gw2/professions/revenant/specializations/conduit/
 export const conduitAffinityPolicy: ResourcePolicy<RevenantRuntime> = {
   kind: 'continuous',
   state: (runtime) => conduitState.from(runtime.profession).affinity,
-  maximum: (runtime) => Math.max(1, balanceNumberFromContext(runtime, TRAIT.ENIGMATIC_CONNECTION, 'maximumStacks')),
+  maximum: (runtime) => Math.max(1, balanceNumber(runtime.helpers, TRAIT.ENIGMATIC_CONNECTION, 'maximumStacks')),
   initial: () => 0,
   recovery: () => 0
 };

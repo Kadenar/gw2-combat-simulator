@@ -9,7 +9,7 @@ import {
 import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
-import { attributeBonusNumber, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfileNumber, ownerAttributeBonusNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineFields, numberField, patchableNumericFields } from '#gw2/platform/skills/field-specs.js';
 import { professionProfileFields, SHARED_PROFILE_FIELDS } from '#gw2/platform/skills/profile-fields.js';
@@ -130,11 +130,11 @@ test('named profile grants validate and patch independently across grant groups'
     }
   });
   const owner = patched.balanceProfilesById.get(1);
-  assert.equal(attributeBonusNumber(owner, 'power'), 0);
-  assert.equal(attributeBonusNumber(owner, 'precision'), 20);
-  assert.equal(attributeBonusNumber(owner, 'power', 'conditionalAttributeBonuses'), 40);
-  assert.equal(attributeBonusNumber(base.balanceProfilesById.get(1), 'power'), 10);
-  assert.throws(() => attributeBonusNumber(owner, 'expertise'), /field=attributeBonuses.expertise/);
+  assert.equal(ownerAttributeBonusNumber(owner, 'power'), 0);
+  assert.equal(ownerAttributeBonusNumber(owner, 'precision'), 20);
+  assert.equal(ownerAttributeBonusNumber(owner, 'power', 'conditionalAttributeBonuses'), 40);
+  assert.equal(ownerAttributeBonusNumber(base.balanceProfilesById.get(1), 'power'), 10);
+  assert.throws(() => ownerAttributeBonusNumber(owner, 'expertise'), /field=attributeBonuses.expertise/);
   for (const field of ['attributeBonus', 'weaponAttributeBonus'])
     assert.throws(
       () => applyBalanceProfilePatch(base, { balanceProfiles: { 1: { fields: { [field]: 10 } } } }),

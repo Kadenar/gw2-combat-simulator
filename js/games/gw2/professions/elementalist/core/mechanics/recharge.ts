@@ -1,7 +1,7 @@
 import { WEAPON } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { skillNumber, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
@@ -46,7 +46,7 @@ export function reserveElementalistRecharge(context: ElementalistRuntime, skill:
 
   if (state.spearNextRechargeReduction && skillWeapon(skill) === WEAPON.SPEAR) {
     state.spearNextRechargeReduction = false;
-    return duration * skillNumberFromContext(context, ID.RIPPLE, 'nextSkillRechargeMultiplier');
+    return duration * skillNumber(requireSkill(context.helpers, ID.RIPPLE), 'nextSkillRechargeMultiplier');
   }
 
   return reservePistolRecharge(context, skill, duration);

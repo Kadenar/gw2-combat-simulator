@@ -4,7 +4,8 @@ import { ACTOR, type AuraName } from '#gw2/platform/constants.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
@@ -52,12 +53,15 @@ export function acceptElementalistAuraReaction(context: ElementalistRuntime, eve
 }
 
 /** Event preparation runs once per grant, so all aura sources share the trait's duration adjustment. */
-export function prepareElementalistAura(context: unknown, event: SimulationEventBase): SimulationEventBase {
+export function prepareElementalistAura(
+  source: BalanceProfileSource,
+  context: unknown,
+  event: SimulationEventBase
+): SimulationEventBase {
   return event.type === 'aura' && hasTrait(context, TRAIT.SMOTHERING_AURAS)
     ? {
         ...event,
-        duration:
-          Number(event.duration) * balanceNumberFromContext(context, TRAIT.SMOTHERING_AURAS, 'durationMultiplier')
+        duration: Number(event.duration) * balanceNumber(source, TRAIT.SMOTHERING_AURAS, 'durationMultiplier')
       }
     : event;
 }

@@ -1,7 +1,7 @@
 import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
 import type { Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
@@ -19,7 +19,7 @@ export function skirmishingPetAttributes(
 
     if (id === TRAIT.FANG_AND_CLAW && !['feline', 'avian', 'drake'].includes(family)) return [];
 
-    const profile = requireBalanceProfileFromContext(context, id);
+    const profile = requireBalanceProfile(context.helpers, id);
     return ownerAttributeEffects({ attributeBonuses: profile[field] });
   });
 }

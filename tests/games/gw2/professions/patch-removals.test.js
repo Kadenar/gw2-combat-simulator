@@ -4,7 +4,7 @@ import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
-import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { procChance } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as ELE } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ENGINEER_TRAIT_IDS as ENG, ENGINEER_SKILL_IDS as ENG_SKILL } from '#gw2/professions/engineer/data/ids.js';
@@ -147,11 +147,14 @@ test('removing Bountiful Power window preserves its independent Quickness', () =
 
 test('proc overrides require a valid finite baseline and retain explicit zero', () => {
   const profile = { id: 1, procRate: { id: 'test.proc', field: 'procChance' }, procChance: 0.33 };
-  const context = { balanceProfile: () => profile, config: { procRateOverrides: { 'test.proc': 0 } } };
-  assert.equal(procChanceFromContext(context, 1), 0);
+  const context = {
+    catalog: { balanceProfilesById: new Map([[1, profile]]) },
+    config: { procRateOverrides: { 'test.proc': 0 } }
+  };
+  assert.equal(procChance(context.catalog, 1, context.config?.procRateOverrides), 0);
   for (const value of [undefined, null, '0.33', NaN, Infinity, -0.1, 1.1]) {
     profile.procChance = value;
-    assert.throws(() => procChanceFromContext(context, 1), /Invalid balance data/);
+    assert.throws(() => procChance(context.catalog, 1, context.config?.procRateOverrides), /Invalid balance data/);
   }
 });
 

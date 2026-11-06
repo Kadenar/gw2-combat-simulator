@@ -44,7 +44,7 @@ test('malice initializes once with selected capacity and projects a detached clo
   for (const malice of [-1, 1.5, 10])
     assert.throws(() => deadeyeHooks.prepareDamageState(runtime.mechanics, skill, { malice }), RangeError);
   const view = thiefProfession.ui
-    .resourceViews({ specialization: 'Deadeye', professionState: projected })
+    .resourceViews({ catalog: thiefProfession.catalog, specialization: 'Deadeye', professionState: projected })
     .find((entry) => entry.id === 'malice');
   assert.equal(view.maximum, 9);
   assert.equal(view.value, 0);

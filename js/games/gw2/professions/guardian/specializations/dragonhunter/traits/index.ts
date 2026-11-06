@@ -6,11 +6,7 @@ import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
@@ -60,7 +56,7 @@ const bigGameHunter = defineTrait({
       id: 'guardian.dragonhunter.big-game-hunter',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.BIG_GAME_HUNTER, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.BIG_GAME_HUNTER, 'damageMultiplier'),
       order: 100,
       // Uses context.time (resolver clock), not event.at, because modifier rules
       // are evaluated at the moment damage resolves, not when it was scheduled.
@@ -164,7 +160,7 @@ const heavyLight = defineTrait({
       id: 'guardian.dragonhunter.heavy-light',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.HEAVY_LIGHT, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.HEAVY_LIGHT, 'damageMultiplier'),
       order: 100,
       when: (context) => Boolean(context.config?.target?.defiant)
     }
@@ -182,7 +178,7 @@ const pureOfSight = defineTrait({
       id: 'guardian.dragonhunter.pure-of-sight',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.PURE_OF_SIGHT, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.PURE_OF_SIGHT, 'damageMultiplier'),
       order: 100
     }
   ]
@@ -198,7 +194,7 @@ const zealotsAggression = defineTrait({
       id: 'guardian.dragonhunter.zealots-aggression',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.ZEALOTS_AGGRESSION, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.ZEALOTS_AGGRESSION, 'damageMultiplier'),
       order: 100,
       when: (context) => targetConditionActive(context, CONDITION.CRIPPLED)
     }
@@ -219,7 +215,7 @@ export const dragonhunterTraits = [
 
 /** The elite cast grants endurance after its accepted virtue activation rewards. */
 function grantHuntersDetermination(runtime: GuardianRuntime, { cast }: DragonhunterCastCompletion): void {
-  const amount = balanceNumberFromContext(runtime, TRAIT.HUNTERS_DETERMINATION, 'resourceGain');
+  const amount = balanceNumber(runtime.helpers, TRAIT.HUNTERS_DETERMINATION, 'resourceGain');
   runtime.endurance.grant(amount);
   runtime.effects.emit({
     kind: 'announcement',
@@ -236,7 +232,7 @@ function grantHuntersDetermination(runtime: GuardianRuntime, { cast }: Dragonhun
 
 /** Control-triggered Crippled resolves immediately so its reactions share the originating control timestamp. */
 function applyDulledSenses(runtime: GuardianRuntime, { cause: event }: DragonhunterControl): void {
-  const dulledSensesProfile = requireBalanceProfileFromContext(runtime, TRAIT.DULLED_SENSES);
+  const dulledSensesProfile = requireBalanceProfile(runtime.helpers, TRAIT.DULLED_SENSES);
   const crippled = requireEffect(dulledSensesProfile, 'condition', CONDITION.CRIPPLED);
 
   if (!crippled) return;
@@ -261,7 +257,7 @@ function applyDulledSenses(runtime: GuardianRuntime, { cause: event }: Dragonhun
 
 /** Heavy Light's Stability keeps a 1-second internal cooldown that the game tooltip does not expose. */
 function grantHeavyLight(runtime: GuardianRuntime, { cause: event }: DragonhunterControl): void {
-  const heavyLightProfile = requireBalanceProfileFromContext(runtime, TRAIT.HEAVY_LIGHT);
+  const heavyLightProfile = requireBalanceProfile(runtime.helpers, TRAIT.HEAVY_LIGHT);
   const stability = requireEffect(heavyLightProfile, 'boon', boonKey(BOON.STABILITY));
 
   // Removing Stability leaves Heavy Light's interval unclaimed.

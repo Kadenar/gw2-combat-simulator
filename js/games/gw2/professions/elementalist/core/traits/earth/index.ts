@@ -13,9 +13,9 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -61,7 +61,7 @@ export const serratedStones = defineTrait({
   },
   attributes: ({ balanceContext }) => ({
     traitDurations: {
-      'Bleeding Duration': balanceNumberFromContext(balanceContext, TRAIT.SERRATED_STONES, 'durationMultiplier')
+      'Bleeding Duration': balanceNumber(balanceContext.catalog, TRAIT.SERRATED_STONES, 'durationMultiplier')
     }
   }),
   modifierRules: [
@@ -70,7 +70,7 @@ export const serratedStones = defineTrait({
       id: 'elementalist.serrated-stones',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.SERRATED_STONES, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.SERRATED_STONES, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.BLEEDING)
     }
@@ -203,7 +203,7 @@ function applyEarthsEmbrace(context: ElementalistRuntime, { cast }: Elementalist
     !context.procs.claimCooldown(
       'earthsEmbrace',
       at,
-      balanceNumberFromContext(context, TRAIT.EARTHS_EMBRACE, 'internalCooldown')
+      balanceNumber(context.helpers, TRAIT.EARTHS_EMBRACE, 'internalCooldown')
     )
   )
     return;
@@ -232,7 +232,7 @@ function applyWrittenInStone(context: ElementalistRuntime, { cast }: Elementalis
 
   if (skill.skillFamily !== 'Signet') return;
 
-  const writtenInStoneProfile = requireBalanceProfileFromContext(context, TRAIT.WRITTEN_IN_STONE);
+  const writtenInStoneProfile = requireBalanceProfile(context.helpers, TRAIT.WRITTEN_IN_STONE);
   const effect = requireCanonicalSkillEffects(writtenInStoneProfile).find(
     (effect): effect is AuraEffect => effect.type === 'aura' && effect.sourceId === skill.id
   );
@@ -250,7 +250,7 @@ function applyWrittenInStone(context: ElementalistRuntime, { cast }: Elementalis
 
 /** Applies Strength of Stone after an already-classified immobilize event. */
 function applyStrengthOfStone(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
-  const strengthOfStoneProfile = requireBalanceProfileFromContext(context, TRAIT.STRENGTH_OF_STONE);
+  const strengthOfStoneProfile = requireBalanceProfile(context.helpers, TRAIT.STRENGTH_OF_STONE);
 
   // Claim the existing owner-local timer before any derived effect.
   if (
@@ -296,13 +296,13 @@ function applyResolverElementalShielding(context: MechanicCombatContext, event: 
     effect: { type: 'boon', name: BOON.PROTECTION },
     attribution: {
       actorType: ACTOR.PLAYER,
-      skillName: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SHIELDING).name,
+      skillName: requireBalanceProfile(context.helpers, TRAIT.ELEMENTAL_SHIELDING).name,
       triggeredBy: resolverSourceSkill(event),
       priority: Number(event.priority || 0)
     },
     transform: (packet) => ({
       ...packet,
-      name: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SHIELDING).name
+      name: requireBalanceProfile(context.helpers, TRAIT.ELEMENTAL_SHIELDING).name
     })
   });
 }

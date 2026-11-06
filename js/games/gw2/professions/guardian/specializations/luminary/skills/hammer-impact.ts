@@ -2,7 +2,7 @@ import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { luminaryImpactAt } from '#gw2/professions/guardian/specializations/luminary/skills/radiant-forge-skills.js';
 import { luminaryState } from '#gw2/professions/guardian/specializations/luminary/state.js';
@@ -22,7 +22,7 @@ function hammerImpact(runtime: GuardianRuntime, data: unknown): void {
   const { cast } = data as { cast: RuntimeCast<GuardianSkill> };
   const cause = guardianCastCause(runtime, cast);
   // Read the selected hammer's full payload; cast selection excludes these delayed effects until Justice is consumed.
-  const skill = requireSkillFromContext(runtime, cast.skill.id);
+  const skill = requireSkill(runtime.helpers, cast.skill.id);
   const strike = requireEffect(skill, 'strike', 'Radiant Justice Strike');
   const condition = requireEffect(skill, 'condition', CONDITION.VULNERABILITY);
 

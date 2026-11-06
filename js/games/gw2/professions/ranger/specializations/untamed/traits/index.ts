@@ -21,9 +21,9 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { WorkOwner } from '#gw2/platform/simulation/work-contract.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -148,7 +148,7 @@ const blindingOutburst = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // This skill-specific bonus multiplies the outgoing pool containing Symbiosis, Vow, and sigils.
       operation: 'multiply',
-      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.BLINDING_OUTBURST, 'damageIncrease'),
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.BLINDING_OUTBURST, 'damageIncrease'),
       // Secondary spores retain their parent cast for attribution, but are not ambush strikes.
       when: (context) =>
         BLINDING_OUTBURST_SKILL_IDS.has(Number(context.event?.sourceId ?? context.event?.skillId ?? context.skillId))
@@ -202,8 +202,8 @@ const ferociousSymbiosis = defineTrait({
           'exclusive'
         );
         return (
-          Math.min(balanceNumberFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS, 'maximumStacks'), stacks) *
-          balanceNumberFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS, 'damageIncreasePerStack')
+          Math.min(balanceNumber(context.catalog, TRAIT.FEROCIOUS_SYMBIOSIS, 'maximumStacks'), stacks) *
+          balanceNumber(context.catalog, TRAIT.FEROCIOUS_SYMBIOSIS, 'damageIncreasePerStack')
         );
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) || isPetStrike(context.event)
@@ -236,7 +236,7 @@ const debilitatingBlows = defineTrait({
         untamedState.from(runtime.profession).rangerUnleashed &&
         Boolean(
           requireEffect(
-            requireBalanceProfileFromContext(runtime, TRAIT.DEBILITATING_BLOWS),
+            requireBalanceProfile(runtime.helpers, TRAIT.DEBILITATING_BLOWS),
             'condition',
             CONDITION.POISONED
           )
@@ -258,11 +258,7 @@ const debilitatingBlows = defineTrait({
         (isPlayerStrike(event) || isPetStrike(event)) &&
         !untamedState.from(runtime.profession).rangerUnleashed &&
         Boolean(
-          requireEffect(
-            requireBalanceProfileFromContext(runtime, TRAIT.DEBILITATING_BLOWS),
-            'condition',
-            CONDITION.SLOW
-          )
+          requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.DEBILITATING_BLOWS), 'condition', CONDITION.SLOW)
         ),
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.SLOW,
       attribution: (_runtime, event) => ({
@@ -295,11 +291,7 @@ const enhancingImpact = defineTrait({
         (isPlayerStrike(event) || isPetStrike(event)) &&
         untamedState.from(runtime.profession).rangerUnleashed &&
         Boolean(
-          requireEffect(
-            requireBalanceProfileFromContext(runtime, TRAIT.ENHANCING_IMPACT),
-            'boon',
-            boonKey(BOON.QUICKNESS)
-          )
+          requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.ENHANCING_IMPACT), 'boon', boonKey(BOON.QUICKNESS))
         ),
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.QUICKNESS),
       attribution: (_runtime, event) => ({
@@ -318,11 +310,7 @@ const enhancingImpact = defineTrait({
         (isPlayerStrike(event) || isPetStrike(event)) &&
         !untamedState.from(runtime.profession).rangerUnleashed &&
         Boolean(
-          requireEffect(
-            requireBalanceProfileFromContext(runtime, TRAIT.ENHANCING_IMPACT),
-            'boon',
-            boonKey(BOON.STABILITY)
-          )
+          requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.ENHANCING_IMPACT), 'boon', boonKey(BOON.STABILITY))
         ),
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.STABILITY),
       attribution: (_runtime, event) => ({
@@ -375,7 +363,7 @@ const biorhythm = defineTrait({
       run(runtime: RangerRuntime) {
         if (
           runtime.combat.activeBuffStacks(BIORHYTHM, runtime.time) >=
-          balanceNumberFromContext(runtime, TRAIT.BIORHYTHM, 'stackThreshold')
+          balanceNumber(runtime.helpers, TRAIT.BIORHYTHM, 'stackThreshold')
         )
           untamedState.from(runtime.profession).biorhythmArmed = true;
       }
@@ -418,7 +406,7 @@ const vowOfTheUntamed = defineTrait({
       id: 'ranger.vow-of-the-untamed',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.VOW_OF_THE_UNTAMED, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.VOW_OF_THE_UNTAMED, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Pet strikes don't benefit from Vow even when Ranger is unleashed.
@@ -458,7 +446,7 @@ export const untamedTraits = [
 
 function triggerFerociousSymbiosis(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const state = untamedState.from(context.profession);
-  const profile = requireBalanceProfileFromContext(context, TRAIT.FEROCIOUS_SYMBIOSIS);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.FEROCIOUS_SYMBIOSIS);
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
   const duration = balanceProfileNumber(profile, 'duration');
   const pet = context.profession.core.pet;

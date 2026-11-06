@@ -17,10 +17,10 @@ import {
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  procChanceFromContext,
-  requireBalanceProfileFromContext,
+  procChance,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { transfer } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
@@ -65,7 +65,7 @@ export const barbedPrecision = defineTrait({
   attributes: ({ balanceContext: profileContext }) => ({
     traitDurations: {
       'Bleeding Duration':
-        balanceNumberFromContext(profileContext, TRAIT.BARBED_PRECISION, 'conditionDurationMultiplier') * 100 - 100
+        balanceNumber(profileContext.catalog, TRAIT.BARBED_PRECISION, 'conditionDurationMultiplier') * 100 - 100
     }
   }),
   triggers: [
@@ -188,7 +188,7 @@ export const targetTheWeak = defineTrait({
       operation: 'add',
       amount: (context) => {
         // Critical chance counts distinct conditions only up to the selected trait profile's cap.
-        const profile = requireBalanceProfileFromContext(context, TRAIT.TARGET_THE_WEAK);
+        const profile = requireBalanceProfile(context.catalog, TRAIT.TARGET_THE_WEAK);
         return (
           Math.min(targetConditionCount(context), balanceProfileNumber(profile, 'maximumConditions')) *
           balanceProfileNumber(profile, 'criticalChancePerCondition')
@@ -214,9 +214,9 @@ export const lingeringCurse = defineTrait({
       id: 'necromancer.lingering-curse-duration',
       target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.LINGERING_CURSE, 'durationMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.LINGERING_CURSE, 'durationMultiplier'),
       when: (context) =>
-        skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === WEAPON.SCEPTER &&
+        skillForEvent(context.catalog, context.event, context.skillId)?.weapon === WEAPON.SCEPTER &&
         context.event?.skillId !== ID.DEVOURING_DARKNESS
     }
   ],
@@ -329,8 +329,8 @@ export const terror = defineTrait({
         ? {
             ...event,
             conditionDamageFormula: {
-              base: balanceNumberFromContext(runtime, TRAIT.TERROR, 'conditionBaseDamage'),
-              scaling: balanceNumberFromContext(runtime, TRAIT.TERROR, 'conditionDamageScaling')
+              base: balanceNumber(runtime.helpers, TRAIT.TERROR, 'conditionBaseDamage'),
+              scaling: balanceNumber(runtime.helpers, TRAIT.TERROR, 'conditionDamageScaling')
             }
           }
         : event
@@ -345,14 +345,15 @@ const necromancerBarbedPrecisionReaction = criticalProcHandler<
 >({
   id: 'necromancer.barbed-precision',
   actorTypes: [ACTOR.PLAYER, ACTOR.SUMMON, ACTOR.UNKNOWN],
-  chanceOnCriticalHit: (context) => procChanceFromContext(context, TRAIT.BARBED_PRECISION),
+  chanceOnCriticalHit: (context) =>
+    procChance(context.helpers, TRAIT.BARBED_PRECISION, context.config.procRateOverrides),
   randomStream: 'necromancer.barbed-precision',
   when: (_context, event) =>
     Number(event.coefficient) > 0 && (event.actorType !== ACTOR.SUMMON || event.summonKind === 'spirit'),
   handler: (context, event, _details, application) => {
     // Barbed Precision emits one condition application per threshold proc.
     for (let proc = 0; proc < application.quantity; proc += 1) {
-      const profile = requireBalanceProfileFromContext(context, TRAIT.BARBED_PRECISION);
+      const profile = requireBalanceProfile(context.helpers, TRAIT.BARBED_PRECISION);
       const effect = requireEffect(profile, 'condition', CONDITION.BLEEDING);
 
       if (!effect) return;
@@ -388,7 +389,7 @@ const necromancerBarbedPrecisionReaction = criticalProcHandler<
 });
 
 function applyChillingDarkness(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.CHILLING_DARKNESS);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.CHILLING_DARKNESS);
   const effect = requireEffect(profile, 'condition', CONDITION.CHILLED);
 
   // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
@@ -424,7 +425,7 @@ function applyChillingDarkness(context: NecromancerResolverContext, event: Necro
 }
 
 function applyInsidiousDisruption(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.INSIDIOUS_DISRUPTION);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.INSIDIOUS_DISRUPTION);
   const effect = requireEffect(profile, 'condition', CONDITION.TORMENT);
 
   if (!effect) return;
@@ -473,7 +474,7 @@ function reactToNecromancerConditions(runtime: NecromancerRuntime, event: Gw2Res
 
   if (
     state.plagueSendingArmed &&
-    transfer(runtime, skill, balanceNumberFromContext(runtime, TRAIT.PLAGUE_SENDING, 'maximumConditions'), work, true)
+    transfer(runtime, skill, balanceNumber(runtime.helpers, TRAIT.PLAGUE_SENDING, 'maximumConditions'), work, true)
   ) {
     state.plagueSendingArmed = false;
   }

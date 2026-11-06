@@ -103,6 +103,7 @@ export function mountRotationDisplayControls(app: ProfessionAppState): void {
   // Professions declare available overlays; the shell owns controls and browser persistence.
   const visibility = (app.timelineOverlayVisibility ||= {});
   for (const overlay of app.profession.ui.timelineOverlays({
+    catalog: app.activeCatalog,
     build: app.build,
     specialization: activeSpecialization(app)
   })) {

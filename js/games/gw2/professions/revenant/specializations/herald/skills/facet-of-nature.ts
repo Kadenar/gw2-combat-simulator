@@ -4,12 +4,7 @@ import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectAudience } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -270,7 +265,7 @@ export function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent):
 
   if (legend !== LEGEND.ASSASSIN || !heraldFacetPassiveActive(core, state, ID.FACET_OF_NATURE, runtime.time)) return;
 
-  const profile = requireSkillFromContext(runtime, ID.FACET_OF_NATURE);
+  const profile = requireSkill(runtime.helpers, ID.FACET_OF_NATURE);
   const action = requireSkillAction(profile, 'assassin-siphon');
   const strike = requireEffect(profile, 'strike', 'Life Siphon', action);
 

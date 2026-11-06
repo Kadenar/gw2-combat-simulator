@@ -10,6 +10,7 @@ import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -32,13 +33,15 @@ interface MesmerUiResourceDefinition {
   readonly pipStyle?: string;
 }
 
-export function mesmerUiState(context: MesmerUiContext = {}): MesmerUiState {
+export function mesmerUiState(context: Pick<MesmerUiContext, 'professionState'>): MesmerUiState {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
 
 /** Display Clarity from the planning timer or the inspected grant without changing its availability. */
-function mesmerCoreStateSnapshot(context: MesmerUiContext): RotationStateSnapshotItem[] {
+function mesmerCoreStateSnapshot(
+  context: ProfessionStateSnapshotContext<MesmerUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const state = mesmerUiState(context);
   const remaining = (state[STATE.CLARITY_REMAINING] ?? 0) / 1000;
   return remaining > 0
@@ -62,7 +65,7 @@ export function mesmerMechanicPaletteGroups(
     {
       id: 'profession',
       label: 'Profession',
-      skillIds: skillIds.filter((id) => context.catalog?.skillsById.has(id)),
+      skillIds: skillIds.filter((id) => context.catalog.skillsById.has(id)),
       resourceAnchor: true,
       // Keep the blades/clones/notes pips directly above the shatter/instrument
       // skills rather than tucked underneath them.
@@ -81,7 +84,7 @@ export function mesmerResourceViews(
   // Clones are live entities; only blades and notes use a resource pool.
   const eliteResource =
     definition.id === 'clones' ? undefined : state[definition.id === 'blades' ? STATE.BLADES : STATE.NOTES];
-  const maximum = eliteResource?.maximum ?? mesmerResourceDefinition(specialization, context).maximum;
+  const maximum = eliteResource?.maximum ?? mesmerResourceDefinition(specialization, context.catalog).maximum;
   const value =
     definition.id === 'clones'
       ? Number(state[STATE.RESOURCE] ?? context.value ?? 0)
@@ -160,7 +163,7 @@ export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
     preview.damageBuff('Illusionary Membrane', 'illusionaryMembrane', 'illusionary-membrane');
 
     // Every specialization seeds its existing resource owner; shatters and instruments spend it normally.
-    const resource = mesmerResourceDefinition(context.specialization, context);
+    const resource = mesmerResourceDefinition(context.specialization, context.catalog);
     preview.add({
       key: 'initialResource',
       label: `Starting ${resource.plural}`,

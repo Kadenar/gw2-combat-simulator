@@ -4,12 +4,7 @@ import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import {
   admitVirtueActivation,
@@ -43,7 +38,7 @@ function reactToDragonhunterJusticeHit(context: GuardianResolverContext, event: 
 
   // Only this hit's emitted passive Burning grants Crippled, after Burning's immediate reactions have settled.
   if (outcome === 'passive') {
-    const skill = requireSkillFromContext(context, ID.SPEAR_OF_JUSTICE);
+    const skill = requireSkill(context.helpers, ID.SPEAR_OF_JUSTICE);
     const crippled = requireEffect(skill, 'condition', 'Crippled (passive)');
 
     if (crippled) {
@@ -119,7 +114,7 @@ function attachTether(runtime: GuardianRuntime, data: unknown): void {
 
   const duration = bigGameHunterTetherDuration(
     runtime,
-    skillNumber(requireSkillFromContext(runtime, ID.SPEAR_OF_JUSTICE), 'duration')
+    skillNumber(requireSkill(runtime.helpers, ID.SPEAR_OF_JUSTICE), 'duration')
   );
 
   if (!(duration > 0)) return;
@@ -143,7 +138,7 @@ function tetherBurn(runtime: GuardianRuntime, data: unknown): void {
   )
     return;
 
-  const owner = requireSkillFromContext(runtime, ID.SPEAR_OF_JUSTICE);
+  const owner = requireSkill(runtime.helpers, ID.SPEAR_OF_JUSTICE);
   const effect = requireEffect(owner, 'condition', CONDITION.BURNING);
 
   if (!effect) return;

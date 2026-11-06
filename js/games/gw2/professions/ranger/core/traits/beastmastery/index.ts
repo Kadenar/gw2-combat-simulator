@@ -12,12 +12,12 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint, type TraitTrigger } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
+  attributeBonusNumber,
+  balanceNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect,
-  requireSkillFromContext
+  requireSkill
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
@@ -75,7 +75,7 @@ export const goForTheThroat = defineTrait({
       factor: (context) =>
         1 +
         Number(
-          requireEffect(requireSkillFromContext(context, ID.LESSER_SIC_EM), 'buff', 'lesser-sic-em-pet')!
+          requireEffect(requireSkill(context.catalog, ID.LESSER_SIC_EM), 'buff', 'lesser-sic-em-pet')!
             .damageIncreasePerStack
         ),
       when: (context) => rangerPetEvent(context) && activeBuff(context, 'lesser-sic-em-pet')
@@ -90,7 +90,7 @@ export const goForTheThroat = defineTrait({
       factor: (context) =>
         1 +
         Number(
-          requireEffect(requireSkillFromContext(context, ID.LESSER_SIC_EM), 'buff', 'lesser-sic-em')!
+          requireEffect(requireSkill(context.catalog, ID.LESSER_SIC_EM), 'buff', 'lesser-sic-em')!
             .damageIncreasePerStack
         ),
       when: (context) =>
@@ -125,8 +125,8 @@ export const honedAxes = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: attributeBonusFromContext(
-            profileContext,
+          amount: attributeBonusNumber(
+            profileContext.catalog,
             TRAIT.HONED_AXES,
             'ferocity',
             weapons.includes(WEAPON.AXE) ? 'conditionalAttributeBonuses' : 'attributeBonuses'
@@ -154,11 +154,11 @@ export const packAlpha = defineTrait<RangerSkill>({
     rechargeMultiplier: 0.8
   },
   attributes: ({ balanceContext, loadout, runtime }) => ({
-    attributeEffects: ownerAttributeEffects(requireBalanceProfileFromContext(balanceContext, TRAIT.PACK_ALPHA)).map(
+    attributeEffects: ownerAttributeEffects(requireBalanceProfile(balanceContext.catalog, TRAIT.PACK_ALPHA)).map(
       (effect) => ({
         ...effect,
         feedsConversions: 'none',
-        enabled: runtime ? beastmodeActive({ runtime, time: 0 }) : loadout.merged
+        enabled: runtime ? beastmodeActive({ runtime }) : loadout.merged
       })
     )
   }),
@@ -183,9 +183,9 @@ export const petsProwess = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: attributeBonusFromContext(profileContext, TRAIT.PETS_PROWESS, 'ferocity'),
+          amount: attributeBonusNumber(profileContext.catalog, TRAIT.PETS_PROWESS, 'ferocity'),
           feedsConversions: 'none',
-          enabled: runtime ? beastmodeActive({ runtime, time: 0 }) : loadout.merged
+          enabled: runtime ? beastmodeActive({ runtime }) : loadout.merged
         }
       ]
     };
@@ -258,7 +258,7 @@ export const loudWhistle = defineTrait({
       id: 'ranger.loud-whistle-pet',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.LOUD_WHISTLE, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.LOUD_WHISTLE, 'damageMultiplier'),
       when: (context) => rangerPetEvent(context)
     },
     {
@@ -267,7 +267,7 @@ export const loudWhistle = defineTrait({
       id: 'ranger.loud-whistle-player',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.LOUD_WHISTLE, 'playerDamageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.LOUD_WHISTLE, 'playerDamageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && beastmodeActive(context)
     }
   ]
@@ -284,7 +284,7 @@ export const bestialRageControl = {
   // Only the surviving boon effects can activate this trait's control proc.
   when: (runtime) =>
     [boonKey(BOON.MIGHT), boonKey(BOON.FURY)].some((effectName) =>
-      Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.BESTIAL_RAGE), 'boon', effectName))
+      Boolean(requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.BESTIAL_RAGE), 'boon', effectName))
     ),
   effects: (effect) =>
     (effect.type === 'boon' || effect.type === 'buff') &&
@@ -433,7 +433,7 @@ function triggerMergedGoForTheThroat(context: RangerRuntime, event: Gw2ResolverE
 
 /** Runs once on the accepted first hit of the merged Beast ability. */
 function triggerMergedGoForTheEyes(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.GO_FOR_THE_EYES);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.GO_FOR_THE_EYES);
   const blind = requireEffect(profile, 'condition', 'Blind');
 
   // The cooldown gates only the blind, so a removed blind leaves it ready.
@@ -458,7 +458,7 @@ function triggerMergedGoForTheEyes(context: RangerResolverContext, event: Gw2Res
 
 /** Runs once on the accepted first hit of the merged Beast ability. */
 function triggerMergedWiltingStrike(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.WILTING_STRIKE);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.WILTING_STRIKE);
   const weakness = requireEffect(profile, 'condition', CONDITION.WEAKNESS);
 
   if (weakness)
@@ -480,7 +480,7 @@ function applyMergedResoundingTimbre(
           sourceId: TRAIT.RESOUNDING_TIMBRE,
           skillId: skill.id,
           skillName: 'Resounding Timbre',
-          duration: balanceNumberFromContext(runtime, TRAIT.RESOUNDING_TIMBRE, 'duration')
+          duration: balanceNumber(runtime.helpers, TRAIT.RESOUNDING_TIMBRE, 'duration')
         },
         'boon_extension'
       )

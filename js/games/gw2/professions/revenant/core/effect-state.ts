@@ -1,6 +1,6 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { battleScarsSkill } from '#gw2/professions/revenant/core/skills/battle-scars.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -27,7 +27,7 @@ export function revenantEffectStates(
     timedEffectState(
       'battle-scars',
       core.battleScars.map((expiresAt) => ({ expiresAt, stacks: 1 })),
-      skillNumberFromContext(runtime, battleScarsSkill.id, 'maximumStacks')
+      skillNumber(requireSkill(runtime.helpers, battleScarsSkill.id), 'maximumStacks')
     )
   ];
   effects.push(

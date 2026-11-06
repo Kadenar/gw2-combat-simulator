@@ -457,7 +457,7 @@ test('family attribute phases preserve rule order and reject duplicate rule iden
   const family = testFamily(core, elite);
   const config = { specialization: 'Elite' };
   const query = family.resolveProfession(config);
-  assert.equal(query.modifyAttributes({ config, time: 0 }, attributes).power, 690);
+  assert.equal(query.modifyAttributes({ catalog: query.catalog, config, time: 0 }, attributes).power, 690);
   assert.deepEqual(attributes, { power: 100 });
   assert.equal(family.runtimeFor(config).modifyAttributes, query.modifyAttributes);
 
@@ -490,11 +490,14 @@ test('family modifier rules share one GW2 damage bucket', () => {
     testModule('Elite', { modifiers: [rule('elite.rule', 0.5)] })
   );
   const context = { damageInputs: { strikeSigilBonus: 0.5, equipmentBonus: 0.25 } };
-  assert.equal(family.resolveProfession({}).modifyStrikeDamage(context, 1), 2);
+  assert.equal(
+    family.resolveProfession({}).modifyStrikeDamage({ ...context, catalog: family.resolveProfession({}).catalog }, 1),
+    2
+  );
   const config = { specialization: 'Elite' };
   const query = family.resolveProfession(config);
   const runtime = family.runtimeFor(config);
-  assert.equal(query.modifyStrikeDamage(context, 1), 2.5);
+  assert.equal(query.modifyStrikeDamage({ ...context, catalog: query.catalog }, 1), 2.5);
   assert.equal(runtime.modifyStrikeDamage, query.modifyStrikeDamage);
 });
 
@@ -520,20 +523,26 @@ test('family damage bucket policies validate eligibility and reject conflicting 
 test('family empty rules compile equipment with selected bucket policies', () => {
   const context = { damageInputs: { strikeSigilBonus: 0.5, conditionSigilBonus: 0.25, equipmentBonus: 0.25 } };
   const empty = testFamily(testModule('Core'));
-  assert.equal(empty.resolveProfession({}).modifyStrikeDamage(context, 1), 1.75);
-  assert.equal(empty.resolveProfession({}).modifyConditionDamage(context, 1), 1.5);
+  assert.equal(
+    empty.resolveProfession({}).modifyStrikeDamage({ ...context, catalog: empty.resolveProfession({}).catalog }, 1),
+    1.75
+  );
+  assert.equal(
+    empty.resolveProfession({}).modifyConditionDamage({ ...context, catalog: empty.resolveProfession({}).catalog }, 1),
+    1.5
+  );
   const family = testFamily(
     testModule('Core', { modifiers: { damageBuckets: { strikeDamage: { includeSigil: false } } } }),
     testModule('Elite', { modifiers: { damageBuckets: { conditionDamage: { includeSigil: false } } } })
   );
   const core = family.resolveProfession({});
-  assert.equal(core.modifyStrikeDamage(context, 1), 1.25);
-  assert.equal(core.modifyConditionDamage(context, 1), 1.5);
+  assert.equal(core.modifyStrikeDamage({ ...context, catalog: core.catalog }, 1), 1.25);
+  assert.equal(core.modifyConditionDamage({ ...context, catalog: core.catalog }, 1), 1.5);
   const config = { specialization: 'Elite' };
   const query = family.resolveProfession(config);
   const runtime = family.runtimeFor(config);
-  assert.equal(query.modifyStrikeDamage(context, 1), 1.25);
-  assert.equal(query.modifyConditionDamage(context, 1), 1.25);
+  assert.equal(query.modifyStrikeDamage({ ...context, catalog: query.catalog }, 1), 1.25);
+  assert.equal(query.modifyConditionDamage({ ...context, catalog: query.catalog }, 1), 1.25);
   assert.equal(runtime.modifyStrikeDamage, query.modifyStrikeDamage);
   assert.equal(runtime.modifyConditionDamage, query.modifyConditionDamage);
   assert.equal(runtime.createState, query.createState);
@@ -1069,6 +1078,7 @@ test('Revenant presentation and public projection preserve their contracts', () 
     const state = runtime.createState(config);
     const resourceIds = revenantProfession.ui
       .resourceViews({
+        catalog: revenantProfession.catalog,
         config,
         professionState: projectObservedState(revenantProfession, { profession: state, config })
       })
@@ -1218,6 +1228,7 @@ test('Engineer presentation and public projection preserve their contracts', () 
     const state = runtime.createState(config);
     const resourceIds = engineerProfession.ui
       .resourceViews({
+        catalog: engineerProfession.catalog,
         config,
         professionState: projectObservedState(engineerProfession, { profession: state, config })
       })

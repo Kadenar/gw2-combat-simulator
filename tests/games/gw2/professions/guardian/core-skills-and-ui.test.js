@@ -538,7 +538,7 @@ test('Guardian swaps weapons and exposes profession palette groups', () => {
   })(undefined, ['Swap Weapons']);
 
   assert.equal(result.planningState.activeWeaponSet, 2);
-  assert.deepEqual(guardianProfession.ui.resourceViews({}), []);
+  assert.deepEqual(guardianProfession.ui.resourceViews({ catalog: guardianProfession.catalog }), []);
   assert.deepEqual(guardianProfession.ui.paletteGroups({})[0].skillIds, [
     GUARDIAN_SKILL_IDS.JUSTICE,
     GUARDIAN_SKILL_IDS.RESOLVE,

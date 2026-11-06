@@ -17,7 +17,7 @@ import {
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { resourceTooltip } from '#gw2/professions/warrior/app/tooltips/shared.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -74,7 +74,7 @@ export const berserkerTooltips = {
       'Enter Berserk, reduce your adrenaline capacity, and unlock primal bursts. Rage skills and eligible traits can extend the active duration.',
       (balanceContext) => [
         ...simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.BERSERK), 'berserk').effects,
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.BERSERK), 'berserk').effects,
           'base duration before trait extensions'
         ).facts,
         profileFact(balanceContext, TRAIT.PRIMAL_RAGE, 'maximumStacks', 'Adrenaline capacity while Berserk')

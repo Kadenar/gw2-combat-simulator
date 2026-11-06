@@ -8,9 +8,9 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { shroudEntered } from '#gw2/professions/necromancer/core/mechanics/forms.js';
@@ -124,7 +124,7 @@ export const awakenThePain = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: might * balanceNumberFromContext(context.balanceContext, TRAIT.AWAKEN_THE_PAIN, 'attributePerStack'),
+          amount: might * balanceNumber(context.balanceContext.catalog, TRAIT.AWAKEN_THE_PAIN, 'attributePerStack'),
           feedsConversions: 'none',
           enabled: true
         }
@@ -157,10 +157,10 @@ export const spitefulFortitude = defineTrait({
   triggers: [
     onTriggerPoint(necromancerStrikeLifeForce, {
       run(runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrikeLifeForce>) {
-        if (!runtime.combat.targetHealthBelow(balanceNumberFromContext(runtime, TRAIT.SPITEFUL_FORTITUDE, 'threshold')))
+        if (!runtime.combat.targetHealthBelow(balanceNumber(runtime.helpers, TRAIT.SPITEFUL_FORTITUDE, 'threshold')))
           return;
 
-        input.percent += balanceNumberFromContext(runtime, TRAIT.SPITEFUL_FORTITUDE, 'lifeForceGain');
+        input.percent += balanceNumber(runtime.helpers, TRAIT.SPITEFUL_FORTITUDE, 'lifeForceGain');
       }
     })
   ]
@@ -268,7 +268,7 @@ export const dread = defineTrait({
       id: 'necromancer.dread',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.DREAD, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.DREAD, 'damageIncrease'),
       when: (context) => buffActive(context, 'necromancer-dread')
     }
   ],
@@ -293,7 +293,7 @@ export const spitefulTalisman = defineTrait({
       id: 'necromancer.spiteful-talisman',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.SPITEFUL_TALISMAN, 'damageMultiplier')
+      factor: (context) => balanceNumber(context.catalog, TRAIT.SPITEFUL_TALISMAN, 'damageMultiplier')
     }
   ]
 });
@@ -309,9 +309,8 @@ export const closeToDeath = defineTrait({
       id: 'necromancer.close-to-death',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.CLOSE_TO_DEATH, 'damageMultiplier'),
-      when: (context) =>
-        targetHealthBelow(context, balanceNumberFromContext(context, TRAIT.CLOSE_TO_DEATH, 'threshold'))
+      factor: (context) => balanceNumber(context.catalog, TRAIT.CLOSE_TO_DEATH, 'damageMultiplier'),
+      when: (context) => targetHealthBelow(context, balanceNumber(context.catalog, TRAIT.CLOSE_TO_DEATH, 'threshold'))
     }
   ]
 });
@@ -324,7 +323,7 @@ function applyReapersMight(
 ): void {
   if (!firstHit || !shroudSkillOne) return;
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.REAPERS_MIGHT);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.REAPERS_MIGHT);
   const effect = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   // The proc record reports only a delivered boon.
@@ -351,7 +350,7 @@ function applyReapersMight(
 }
 
 function applySiphonedPower(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.SIPHONED_POWER);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.SIPHONED_POWER);
 
   if (!context.combat.targetHealthBelow(balanceProfileNumber(profile, 'threshold'))) return;
 
@@ -384,7 +383,7 @@ function applySiphonedPower(context: NecromancerResolverContext, event: Necroman
 
 function applyChillOfDeath(context: NecromancerRuntime, event: NecromancerResolverEvent): void {
   // Eligibility belongs to the trait; the selected skill owns recharge and independently removable components.
-  if (!context.combat.targetHealthBelow(balanceNumberFromContext(context, TRAIT.CHILL_OF_DEATH, 'threshold'))) return;
+  if (!context.combat.targetHealthBelow(balanceNumber(context.helpers, TRAIT.CHILL_OF_DEATH, 'threshold'))) return;
 
   const skill = context.helpers.skillsById.get(ID.LESSER_SPINAL_SHIVERS)!;
   const strike = requireEffect(skill, 'strike', 'Lesser Spinal Shivers - No Boons');
@@ -420,7 +419,7 @@ function applyChillOfDeathCondition(context: NecromancerResolverContext, event: 
 function applyBitterChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   if (event.condition !== CONDITION.CHILLED) return;
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.BITTER_CHILL);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.BITTER_CHILL);
   const vulnerability = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
   if (!vulnerability) return;
@@ -455,7 +454,7 @@ function applyDreadWindow(context: NecromancerResolverContext, event: Necromance
         type: 'buff',
         kind: 'necromancer-dread',
         at: event.at,
-        duration: balanceNumberFromContext(context, TRAIT.DREAD, 'duration'),
+        duration: balanceNumber(context.helpers, TRAIT.DREAD, 'duration'),
         stacks: 1,
         source: 'Trait',
         sourceId: TRAIT.DREAD,

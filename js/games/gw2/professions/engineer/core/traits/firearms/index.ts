@@ -11,11 +11,11 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
+  attributeBonusNumber,
+  balanceNumber,
   balanceProfileNumber,
-  procChanceFromContext,
-  requireBalanceProfileFromContext,
+  procChance,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { mechStruck, type MechStrike } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
@@ -44,7 +44,7 @@ export const serratedSteel = defineTrait({
   },
   attributes: ({ balanceContext }) => ({
     traitDurations: {
-      'Bleeding Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.SERRATED_STEEL, 'durationMultiplier')
+      'Bleeding Duration': 100 * balanceNumber(balanceContext.catalog, TRAIT.SERRATED_STEEL, 'durationMultiplier')
     }
   }),
   // Core critical procs open the strike package, ahead of the explosion rewards.
@@ -55,7 +55,8 @@ export const serratedSteel = defineTrait({
         id: 'engineer.core.serrated-steel',
         actorTypes: [ACTOR.PLAYER, ACTOR.EFFECT, ACTOR.UNKNOWN],
         when: (_context, event) => Number(event.coefficient) > 0,
-        chanceOnCriticalHit: (context) => procChanceFromContext(context, TRAIT.SERRATED_STEEL),
+        chanceOnCriticalHit: (context) =>
+          procChance(context.helpers, TRAIT.SERRATED_STEEL, context.config.procRateOverrides),
         randomStream: 'engineer.serrated-steel',
         handler(context, event, _details, application) {
           emitSerratedSteel(context, event, application.quantity, {
@@ -86,7 +87,7 @@ export const noScope = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: attributeBonusFromContext(profileContext, TRAIT.NO_SCOPE, 'ferocity'),
+          amount: attributeBonusNumber(profileContext.catalog, TRAIT.NO_SCOPE, 'ferocity'),
           feedsConversions: 'none',
           enabled: engineerBuild.assumptions.fury !== false
         }
@@ -102,7 +103,7 @@ export const noScope = defineTrait({
         actorTypes: [ACTOR.PLAYER],
         when: (_context, event) => Number(event.coefficient) > 0,
         internalCooldown: {
-          duration: (context) => balanceNumberFromContext(context, TRAIT.NO_SCOPE, 'internalCooldown'),
+          duration: (context) => balanceNumber(context.helpers, TRAIT.NO_SCOPE, 'internalCooldown'),
           key: 'noScope'
         },
         handler: grantNoScope
@@ -121,7 +122,7 @@ export const incendiaryPowder = defineTrait({
   },
   attributes: ({ balanceContext }) => ({
     traitDurations: {
-      'Burning Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.INCENDIARY_POWDER, 'durationMultiplier')
+      'Burning Duration': 100 * balanceNumber(balanceContext.catalog, TRAIT.INCENDIARY_POWDER, 'durationMultiplier')
     }
   }),
   // Core critical procs open the strike package, ahead of the explosion rewards.
@@ -133,7 +134,7 @@ export const incendiaryPowder = defineTrait({
         actorTypes: [ACTOR.PLAYER],
         when: (_context, event) => Number(event.coefficient) > 0,
         internalCooldown: {
-          duration: (context) => balanceNumberFromContext(context, TRAIT.INCENDIARY_POWDER, 'internalCooldown'),
+          duration: (context) => balanceNumber(context.helpers, TRAIT.INCENDIARY_POWDER, 'internalCooldown'),
           key: 'incendiaryPowder.player'
         },
         handler(context, event) {
@@ -164,7 +165,7 @@ export const thermalVision = defineTrait({
       conditionSampleInvariant: true,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.THERMAL_VISION, 'conditionDamageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.THERMAL_VISION, 'conditionDamageIncrease'),
       when: (context) => buffActive(context, 'thermal-vision')
     }
   ],
@@ -196,7 +197,7 @@ export const hematicFocus = defineTrait({
       id: 'engineer.hematic-focus',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.HEMATIC_FOCUS, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.HEMATIC_FOCUS, 'criticalChance'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, boonKey(BOON.FURY), 1) > 0
     }
@@ -221,7 +222,7 @@ export const chemicalRounds = defineTrait({
       id: 'engineer.chemical-rounds-base-duration',
       target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.CHEMICAL_ROUNDS, 'conditionDurationMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.CHEMICAL_ROUNDS, 'conditionDurationMultiplier'),
       when: chemicalRoundsEligible
     }
   ]
@@ -239,7 +240,7 @@ export const highCaliber = defineTrait({
       id: 'engineer.high-caliber',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.HIGH_CALIBER, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.HIGH_CALIBER, 'criticalChance'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -288,7 +289,7 @@ export const sharpshooter = defineTrait({
   attributes: (context) => ({
     finalCondition: {
       condition: CONDITION.BLEEDING,
-      powerMultiplier: balanceNumberFromContext(context, TRAIT.SHARPSHOOTER, 'coefficientMultiplier')
+      powerMultiplier: balanceNumber(context.balanceContext.catalog, TRAIT.SHARPSHOOTER, 'coefficientMultiplier')
     }
   })
 });
@@ -309,10 +310,10 @@ export const modifiedAmmunition = defineTrait({
       factor: (context) =>
         1 +
         Math.min(
-          balanceNumberFromContext(context, TRAIT.MODIFIED_AMMUNITION, 'maximumConditions'),
+          balanceNumber(context.catalog, TRAIT.MODIFIED_AMMUNITION, 'maximumConditions'),
           targetConditionCount(context)
         ) *
-          balanceNumberFromContext(context, TRAIT.MODIFIED_AMMUNITION, 'damagePerCondition'),
+          balanceNumber(context.catalog, TRAIT.MODIFIED_AMMUNITION, 'damagePerCondition'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -326,7 +327,7 @@ export function selectedFirearmsDurationBonuses(context: Gw2ModifierContext): Re
     [CONDITION.BURNING, TRAIT.INCENDIARY_POWDER]
   ] as const) {
     if (hasTrait(context, trait))
-      bonuses[condition] = 100 * balanceNumberFromContext(context, trait, 'durationMultiplier');
+      bonuses[condition] = 100 * balanceNumber(context.catalog, trait, 'durationMultiplier');
   }
 
   return bonuses;
@@ -340,7 +341,7 @@ function applyThermalVision(context: EngineerResolverContext, event: EngineerRes
     return;
   }
 
-  const thermalVisionProfile = requireBalanceProfileFromContext(context, TRAIT.THERMAL_VISION);
+  const thermalVisionProfile = requireBalanceProfile(context.helpers, TRAIT.THERMAL_VISION);
   // Independent accepted grants retain the longest window when Burning applications overlap.
   const thermalVisionBuff = requireEffect(thermalVisionProfile, 'buff', 'thermal-vision');
 
@@ -376,7 +377,7 @@ function applySanguineArray(context: EngineerResolverContext, event: EngineerRes
     return;
   }
 
-  const sanguineArrayProfile = requireBalanceProfileFromContext(context, TRAIT.SANGUINE_ARRAY);
+  const sanguineArrayProfile = requireBalanceProfile(context.helpers, TRAIT.SANGUINE_ARRAY);
   const sanguineArrayMight = requireEffect(sanguineArrayProfile, 'boon', boonKey(BOON.MIGHT));
 
   if (sanguineArrayMight) {
@@ -418,7 +419,7 @@ function applyHematicFocus(context: EngineerResolverContext, event: EngineerReso
     return;
   }
 
-  const hematicFocusProfile = requireBalanceProfileFromContext(context, TRAIT.HEMATIC_FOCUS);
+  const hematicFocusProfile = requireBalanceProfile(context.helpers, TRAIT.HEMATIC_FOCUS);
   const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', boonKey(BOON.FURY));
 
   // Removed Fury cannot consume recharge; reserve it before delivering a surviving packet.
@@ -457,7 +458,7 @@ function applyHematicFocus(context: EngineerResolverContext, event: EngineerReso
 
 /** Grant and report No Scope Fury only after the shared critical handler accepts the proc. */
 function grantNoScope(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  const noScopeProfile = requireBalanceProfileFromContext(context, TRAIT.NO_SCOPE);
+  const noScopeProfile = requireBalanceProfile(context.helpers, TRAIT.NO_SCOPE);
   const noScopeFury = requireEffect(noScopeProfile, 'boon', boonKey(BOON.FURY));
 
   if (noScopeFury) {
@@ -502,7 +503,7 @@ const mechSerratedSteel = criticalProcHandler<
 >({
   id: 'engineer.mechanist.serrated-steel-mech',
   actorTypes: [ACTOR.SUMMON],
-  chanceOnCriticalHit: (context) => procChanceFromContext(context, TRAIT.SERRATED_STEEL),
+  chanceOnCriticalHit: (context) => procChance(context.helpers, TRAIT.SERRATED_STEEL, context.config.procRateOverrides),
   randomStream: 'engineer.serrated-steel.mech',
   handler(context, event, _details, application) {
     emitSerratedSteel(context, event, application.quantity, {
@@ -520,7 +521,7 @@ const mechIncendiaryPowder = criticalProcHandler<
   id: 'engineer.mechanist.incendiary-powder-mech',
   actorTypes: [ACTOR.SUMMON],
   internalCooldown: {
-    duration: (context) => balanceNumberFromContext(context, TRAIT.INCENDIARY_POWDER, 'internalCooldown'),
+    duration: (context) => balanceNumber(context.helpers, TRAIT.INCENDIARY_POWDER, 'internalCooldown'),
     key: 'incendiaryPowder.mech'
   },
   handler(context, event) {
@@ -543,7 +544,7 @@ function emitFirearmsCondition(
   quantity = 1,
   procCount?: number
 ): void {
-  const profile = requireBalanceProfileFromContext(context, sourceId);
+  const profile = requireBalanceProfile(context.helpers, sourceId);
   const effect = requireEffect(profile, 'condition', condition);
 
   if (!effect) return;
@@ -622,7 +623,7 @@ function chemicalRoundsEligible(context: Gw2ModifierContext): boolean {
 
   if (application?.source === 'Trait') return false;
 
-  const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
+  const skill = skillForEvent(context.catalog, context.event, context.skillId);
   return (
     event?.skillWeapon === WEAPON.PISTOL ||
     event?.application?.skillWeapon === WEAPON.PISTOL ||
@@ -633,7 +634,7 @@ function chemicalRoundsEligible(context: Gw2ModifierContext): boolean {
 /** Selects Heavy Metal's critical bonus from the target's current health tier. */
 function heavyMetalBonus(context: Gw2ModifierContext): number {
   const fraction = targetHealthFraction(context);
-  const heavyMetalProfile = requireBalanceProfileFromContext(context, TRAIT.HEAVY_METAL);
+  const heavyMetalProfile = requireBalanceProfile(context.catalog, TRAIT.HEAVY_METAL);
 
   if (fraction < balanceProfileNumber(heavyMetalProfile, 'lowerThreshold'))
     return balanceProfileNumber(heavyMetalProfile, 'lowerBonus');

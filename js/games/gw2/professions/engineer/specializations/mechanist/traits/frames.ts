@@ -1,10 +1,7 @@
 import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -44,7 +41,7 @@ function playerAttribute(stats: Partial<Gw2Stats>, key: keyof EngineerMechAttrib
 export function engineerMechAttributes(
   config: EngineerConfig,
   playerStats: Partial<Gw2Stats>,
-  balanceContext: unknown
+  source: BalanceProfileSource
 ): EngineerMechAttributes {
   const traits = selectedEngineerTraits(config);
   const conductive = hasTrait(traits, TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS)
@@ -56,13 +53,13 @@ export function engineerMechAttributes(
   const variable = hasTrait(traits, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR);
 
   const baseAttribute = MECH_BASE_ATTRIBUTES.attribute;
-  const inheritanceRatio = balanceNumberFromContext(balanceContext, TRAIT.MECHANICAL_GENIUS, 'inheritanceRatio');
-  const secondaryCap = balanceNumberFromContext(balanceContext, TRAIT.MECHANICAL_GENIUS, 'secondaryAttributeCap');
+  const inheritanceRatio = balanceNumber(source, TRAIT.MECHANICAL_GENIUS, 'inheritanceRatio');
+  const secondaryCap = balanceNumber(source, TRAIT.MECHANICAL_GENIUS, 'secondaryAttributeCap');
   // Secondary stats inherit 50 % of the player's value up to 750.
   // Conductive Alloys and Channeling Conduits each double the cap to 1500 and
   // raise the inheritance ratio to 100 % for their respective stat groups.
   const secondary = (key: keyof EngineerMechAttributes, trait?: SkillId): number => {
-    const improved = trait == null ? undefined : requireBalanceProfileFromContext(balanceContext, trait);
+    const improved = trait == null ? undefined : requireBalanceProfile(source, trait);
     return Math.min(
       improved ? balanceProfileNumber(improved, 'secondaryAttributeCap') : secondaryCap,
       playerAttribute(playerStats, key) *
@@ -72,12 +69,12 @@ export function engineerMechAttributes(
 
   return {
     power: Math.min(
-      balanceNumberFromContext(balanceContext, TRAIT.MECHANICAL_GENIUS, 'powerCap'),
+      balanceNumber(source, TRAIT.MECHANICAL_GENIUS, 'powerCap'),
       baseAttribute + playerAttribute(playerStats, 'power', 1000) * inheritanceRatio
     ),
     precision: variable
       ? Math.min(
-          balanceNumberFromContext(balanceContext, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR, 'precisionCap'),
+          balanceNumber(source, TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR, 'precisionCap'),
           MECH_BASE_ATTRIBUTES.precision + playerAttribute(playerStats, 'precision', 1000)
         )
       : MECH_BASE_ATTRIBUTES.precision,

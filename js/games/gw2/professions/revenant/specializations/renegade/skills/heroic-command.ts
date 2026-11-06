@@ -13,7 +13,7 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 /** Heroic Command refreshes every started Fervor stack and grants Might scaled by the active count. */
 export function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const state = renegadeState.from(runtime.profession);
-  const profile = fervorProfile(runtime);
+  const profile = fervorProfile(runtime.helpers, runtime);
   const fervor = requireEffect(profile, 'buff', 'kallas-fervor');
 
   if (!fervor) return;

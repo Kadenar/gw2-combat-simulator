@@ -59,8 +59,8 @@ export function resolveBladesong(
   }
 
   if (shatter.kind === 'blade-confusion') {
-    const baseConfusion = mesmerShatterConfusion(context, skill.id);
-    const confusion = bladesongConfusion(shatter, spent, cryOfPainConfusion(context, baseConfusion));
+    const baseConfusion = mesmerShatterConfusion(context.helpers, skill.id);
+    const confusion = bladesongConfusion(shatter, spent, cryOfPainConfusion(context.helpers, context, baseConfusion));
     const ticks = packetTicks();
 
     const hits = addBladeDamage(ticks);

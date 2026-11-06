@@ -1,6 +1,6 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import { geomancersTrainingRechargeRule } from '#gw2/professions/elementalist/core/traits/earth/index.js';
 import {
@@ -38,7 +38,7 @@ function releaseRockBarrier(runtime: ElementalistRuntime): void {
 /** The flip and its expiry share a deadline; replacing a barrier retires its previous timer. */
 const elementalistRockBarrierTasks = {
   'elementalist.core.open-rock-barrier'(runtime: ElementalistRuntime): void {
-    const expiresAt = runtime.time + skillNumberFromContext(runtime, ID.ROCK_BARRIER, 'flipDuration');
+    const expiresAt = runtime.time + skillNumber(requireSkill(runtime.helpers, ID.ROCK_BARRIER), 'flipDuration');
     // Held recharge starts from the release task before shared retirement removes the grant.
     runtime.armFlip(ID.HURL, { expiresAt });
     runtime.cancelOwner({ id: 'elementalist.rock-barrier', generation: 0 });

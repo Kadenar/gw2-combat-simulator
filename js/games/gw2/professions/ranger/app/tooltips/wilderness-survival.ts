@@ -9,7 +9,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 /** Describes WildernessSurvival from its active balance profiles without owning simulation behavior. */
@@ -24,7 +24,7 @@ export const rangerWildernessSurvivalTooltips = {
     'Completing a healing skill invokes Lesser Muddy Terrain, immobilizing once and repeatedly crippling and slowing the target.',
     (context) => {
       // Read cadence from the surviving repeating condition rather than duplicating skill tuning.
-      const effect = requireSkillFromContext(context, ID.LESSER_MUDDY_TERRAIN).effects?.find(
+      const effect = requireSkill(context.catalog, ID.LESSER_MUDDY_TERRAIN).effects?.find(
         (effect) => effect.type === 'condition' && Number(effect.applications) > 1
       );
       return effect

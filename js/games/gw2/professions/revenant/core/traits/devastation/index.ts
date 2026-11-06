@@ -17,12 +17,13 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect,
-  skillNumberFromContext
+  requireSkill,
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -50,7 +51,7 @@ const assassinsPresencePassive = definePeriodicTask<RevenantRuntime>({
   rearmBeforeRun: true,
   nextAt: (runtime) =>
     canonicalTime(
-      runtime.time + canonicalInterval(balanceNumberFromContext(runtime, TRAIT.ASSASSINS_PRESENCE, 'cooldown'))
+      runtime.time + canonicalInterval(balanceNumber(runtime.helpers, TRAIT.ASSASSINS_PRESENCE, 'cooldown'))
     ),
   run: revenantAssassinsPresencePulse
 });
@@ -141,8 +142,8 @@ export const destructiveImpulses = defineTrait({
       operation: 'damage-additive',
       amount: (context, target) => {
         const condition = target === MODIFIER_TARGET.CONDITION_DAMAGE;
-        return balanceNumberFromContext(
-          context,
+        return balanceNumber(
+          context.catalog,
           TRAIT.DESTRUCTIVE_IMPULSES,
           activeOffhand(context)
             ? condition
@@ -194,7 +195,7 @@ export const notoriety = defineTrait({
   },
   // Adjust baseline Might atomically so an unbuffed build never receives a negative standalone grant.
   attributes(context) {
-    const bonus = balanceNumberFromContext(context, TRAIT.NOTORIETY, 'attributePerStack');
+    const bonus = balanceNumber(context.balanceContext.catalog, TRAIT.NOTORIETY, 'attributePerStack');
     return { mightPerStack: { power: bonus, conditionDamage: -bonus } };
   },
   triggers: [onTriggerPoint(revenantCastCompleted, { run: completeNotoriety })]
@@ -211,10 +212,10 @@ export const swiftTermination = defineTrait({
       order: 8,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.SWIFT_TERMINATION, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.SWIFT_TERMINATION, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        targetHealthBelow(context, balanceNumberFromContext(context, TRAIT.SWIFT_TERMINATION, 'threshold'))
+        targetHealthBelow(context, balanceNumber(context.catalog, TRAIT.SWIFT_TERMINATION, 'threshold'))
     }
   ]
 });
@@ -232,7 +233,7 @@ export const targetedDestruction = defineTrait({
       factor: (context) =>
         1 +
         vulnerabilityStacks(context) *
-          balanceNumberFromContext(context, TRAIT.TARGETED_DESTRUCTION, 'damageIncreasePerStack'),
+          balanceNumber(context.catalog, TRAIT.TARGETED_DESTRUCTION, 'damageIncreasePerStack'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -268,16 +269,16 @@ export const unsuspectingStrikes = defineTrait({
       order: 6,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.UNSUSPECTING_STRIKES, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.UNSUSPECTING_STRIKES, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        targetHealthFraction(context) > balanceNumberFromContext(context, TRAIT.UNSUSPECTING_STRIKES, 'threshold')
+        targetHealthFraction(context) > balanceNumber(context.catalog, TRAIT.UNSUSPECTING_STRIKES, 'threshold')
     }
   ]
 });
 
 function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ASSASSINS_PRESENCE);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.ASSASSINS_PRESENCE);
 
   if (!runtime.engagement.combatMechanicsAllowed()) return;
 
@@ -322,7 +323,7 @@ function exposeDefenses(runtime: RevenantRuntime, { cause: event }: RevenantStri
 
   if (core.exposeDefensesUsed || !runtime.engagement.combatMechanicsAllowed()) return;
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.EXPOSE_DEFENSES);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.EXPOSE_DEFENSES);
   const condition = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
   // The one-use opener belongs to its packet, so a removed packet leaves it unspent.
@@ -348,7 +349,7 @@ function exposeDefenses(runtime: RevenantRuntime, { cause: event }: RevenantStri
 /** React at the ordered strike boundary without changing the shared scar transaction. */
 function thrillOfCombat(runtime: RevenantRuntime, { cause: event }: RevenantStrike): void {
   const core = runtime.profession.core;
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.THRILL_OF_COMBAT);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.THRILL_OF_COMBAT);
   const buff = requireEffect(profile, 'buff', 'battle-scars');
 
   // The cadence exists only to grant this buff, so a removed buff neither grants nor advances it.
@@ -356,7 +357,7 @@ function thrillOfCombat(runtime: RevenantRuntime, { cause: event }: RevenantStri
 
   const interval = canonicalInterval(balanceProfileNumber(profile, 'cooldown'));
   const duration = Math.max(0, effectNumber(profile, buff, 'duration'));
-  const maximum = skillNumberFromContext(runtime, battleScarsSkill.id, 'maximumStacks');
+  const maximum = skillNumber(requireSkill(runtime.helpers, battleScarsSkill.id), 'maximumStacks');
 
   if (core.nextThrillOfCombatAt == null)
     core.nextThrillOfCombatAt = canonicalTime((core.combatBeganAt ?? runtime.time) + interval);
@@ -409,7 +410,7 @@ function completeBattleScarred(runtime: RevenantRuntime, { cast }: RevenantCastC
   const skill = cast.skill;
 
   if (skill.slot === 'Heal') {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.BATTLE_SCARRED);
+    const profile = requireBalanceProfile(runtime.helpers, TRAIT.BATTLE_SCARRED);
     const buff = requireEffect(profile, 'buff', 'battle-scars');
 
     if (buff)
@@ -427,7 +428,7 @@ function reactDanceOfDeath(runtime: RevenantRuntime, { cause: event }: RevenantS
   // Other conditions cannot grant Battle Scars and need no balance lookup.
   if (event.condition !== CONDITION.VULNERABILITY) return;
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.DANCE_OF_DEATH);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.DANCE_OF_DEATH);
   const buff = requireEffect(profile, 'buff', 'battle-scars');
 
   if (!buff) return;
@@ -465,7 +466,7 @@ function grantBattleScars(
     stacks,
     runtime.time,
     duration,
-    skillNumberFromContext(runtime, battleScarsSkill.id, 'maximumStacks')
+    skillNumber(requireSkill(runtime.helpers, battleScarsSkill.id), 'maximumStacks')
   );
   core.battleScars = expiries;
 
@@ -492,7 +493,7 @@ function grantBattleScars(
 
 /** A committed weapon swap grants Brutality's Quickness once per its internal cooldown. */
 function completeRevenantBrutality(runtime: RevenantRuntime, { cast }: RevenantCastCompletion): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.BRUTALITY);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.BRUTALITY);
   const boon = requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS));
 
   // The cooldown gates only quickness, so a removed boon leaves it ready.
@@ -527,7 +528,7 @@ function completeNotoriety(runtime: RevenantRuntime, { cast }: RevenantCastCompl
   const skill = cast.skill;
 
   if (runtime.engagement.combatMechanicsAllowed() && isLegendaryStanceSkill(skill)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.NOTORIETY);
+    const profile = requireBalanceProfile(runtime.helpers, TRAIT.NOTORIETY);
     const boon = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
     if (boon)

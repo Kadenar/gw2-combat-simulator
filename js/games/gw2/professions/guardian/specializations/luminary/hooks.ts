@@ -1,6 +1,6 @@
 import { ACTOR, AURA } from '#gw2/platform/constants.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import {
   admitVirtueActivation,
   completeVirtueActivation,
@@ -74,7 +74,7 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
     sideEffectHandlers: {
       'guardian.hammer-aura'(runtime, context) {
         if (context.kind === 'effect')
-          grantLuminaryAura(runtime, context.trigger.event, requireSkillFromContext(runtime, ID.DAZZLING_HAMMER));
+          grantLuminaryAura(runtime, context.trigger.event, requireSkill(runtime.helpers, ID.DAZZLING_HAMMER));
       }
     },
     castDurationMs(runtime, skill, duration) {

@@ -15,10 +15,10 @@ import {
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusNumber,
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  ownerAttributeBonusNumber,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
@@ -60,7 +60,7 @@ const demonicLore = defineTrait({
       id: 'necromancer.demonic-lore',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.DEMONIC_LORE, 'conditionDamageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.DEMONIC_LORE, 'conditionDamageMultiplier'),
       when: (context) => context.condition === CONDITION.TORMENT
     }
   ],
@@ -228,7 +228,7 @@ const fellBeacon = defineTrait({
       id: 'necromancer.fell-beacon',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.FELL_BEACON, 'conditionDamageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.FELL_BEACON, 'conditionDamageMultiplier'),
       when: (context) => context.condition === CONDITION.BURNING
     }
   ]
@@ -242,7 +242,7 @@ const sandSage = defineTrait({
   },
   // A living shade grants conversion-eligible duration attributes; expiry also removes their utility contribution.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.SAND_SAGE);
+    const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.SAND_SAGE);
     const shadeActive = (necromancerRuntimeSpecializationState(context, 'Scourge')?.shades || []).some(
       (expiresAt: number) => expiresAt > context.time
     );
@@ -251,14 +251,14 @@ const sandSage = defineTrait({
         {
           kind: 'flat',
           to: 'Concentration',
-          amount: attributeBonusNumber(profile, 'concentration'),
+          amount: ownerAttributeBonusNumber(profile, 'concentration'),
           feedsConversions: 'all',
           enabled: shadeActive
         },
         {
           kind: 'flat',
           to: 'Expertise',
-          amount: attributeBonusNumber(profile, 'expertise'),
+          amount: ownerAttributeBonusNumber(profile, 'expertise'),
           feedsConversions: 'all',
           enabled: shadeActive
         }
@@ -309,7 +309,7 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
     return;
   }
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.DEMONIC_LORE);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.DEMONIC_LORE);
   const effect = requireEffect(profile, 'condition', CONDITION.BURNING);
 
   // The cooldown gates only Burning, so a removed packet leaves it ready.
@@ -353,7 +353,7 @@ function reactToCondition(context: NecromancerResolverContext, event: Necromance
 function applyNourishingAshes(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
   if (event.condition !== CONDITION.BURNING) return;
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.NOURISHING_ASHES);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.NOURISHING_ASHES);
 
   // A qualifying Burning application claims before its life-force reward.
   if (

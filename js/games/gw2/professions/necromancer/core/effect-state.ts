@@ -32,7 +32,7 @@ export function necromancerEffectStates(
   if (!effects.some((effect) => effect.recipient === RECIPIENT.SELF))
     effects.push(timedEffectState('taste-for-blood', []));
 
-  effects.push(deathCarapaceEffectState(runtime, core));
+  effects.push(deathCarapaceEffectState(runtime.helpers, runtime, core));
 
   return effects;
 }

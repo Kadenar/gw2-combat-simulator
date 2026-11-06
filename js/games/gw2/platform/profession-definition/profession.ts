@@ -408,8 +408,7 @@ export function defineNativeProfession<
   }
 
   // Every owner contributes once to both the panel and runtime; selection and patch resolution are shared.
-  const calculateContributions: Gw2AttributeContributionCalculator = (input) => {
-    const context = input.profession ? input : { ...input, profession: { catalog: input.balanceContext.catalog } };
+  const calculateContributions: Gw2AttributeContributionCalculator = (context) => {
     let selected = context.query && selectedByQuery.get(context.query);
 
     if (!selected) {
@@ -468,12 +467,11 @@ export function defineNativeProfession<
       [catalog, balanceContext]
     ]);
     const selectedContributions: NonNullable<NormalizedProfessionContract['attributeContributions']> = (input) => {
-      const selectedCatalog = input.catalog ?? input.profession?.catalog ?? catalog;
-      let selectedBalance = attributeBalanceContexts.get(selectedCatalog);
+      let selectedBalance = attributeBalanceContexts.get(input.catalog);
 
       if (!selectedBalance) {
-        selectedBalance = { ...balanceContext, catalog: selectedCatalog };
-        attributeBalanceContexts.set(selectedCatalog, selectedBalance);
+        selectedBalance = { ...balanceContext, catalog: input.catalog };
+        attributeBalanceContexts.set(input.catalog, selectedBalance);
       }
 
       return calculateContributions(attributeContext(input, selectedBalance));

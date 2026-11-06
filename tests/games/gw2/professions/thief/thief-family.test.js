@@ -121,6 +121,7 @@ test('Thief runtimes exclude inactive elite state, catalogs, and registries', ()
 
     const resources = thiefProfession.ui
       .resourceViews({
+        catalog: thiefProfession.catalog,
         config,
         professionState: projectObservedState(thiefProfession, { profession: state, config })
       })

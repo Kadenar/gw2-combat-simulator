@@ -1,6 +1,6 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -16,7 +16,7 @@ const DODGE_PROFILES: Readonly<Partial<Record<ThiefDodge, SkillId>>> = Object.fr
 
 export function selectedDodgeProfile(runtime: ThiefRuntime): BalanceProfile | undefined {
   const profileId = DODGE_PROFILES[daredevilState.from(runtime.profession).selectedDodge];
-  return profileId == null ? undefined : requireBalanceProfileFromContext(runtime, profileId);
+  return profileId == null ? undefined : requireBalanceProfile(runtime.helpers, profileId);
 }
 
 /** Dodge packets use the in-game skill name of the selected dodge. */

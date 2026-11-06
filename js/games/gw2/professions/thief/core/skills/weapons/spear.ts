@@ -5,7 +5,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { ACTOR, CONDITION, CONTROL, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
@@ -249,7 +249,7 @@ export const THIEF_WEAPONS_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillD
           (runtime.profession.core.spearChainStage || 0) === 2 &&
           runtime.profession.core.spearPreviousSkillId === ID.ENTANGLING_ASP,
         transform: (runtime, cast) => {
-          const profile = requireSkillFromContext(runtime, ID.FALLING_SPIDER);
+          const profile = requireSkill(runtime.helpers, ID.FALLING_SPIDER);
           const factor = skillNumber(profile, 'empoweredDamageMultiplier');
           const extraStacks = skillNumber(profile, 'empoweredConditionStacks');
           const boosted = (condition: unknown) =>

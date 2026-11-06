@@ -1,14 +1,17 @@
 import { isCombatEntryEvent } from '#gw2/platform/combat/state/targets.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   SkillDamagePreviewContext,
   SkillDamagePreviewPreparation,
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
+import type {
+  ProfessionResourceView,
+  ProfessionStateSnapshotContext,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -42,7 +45,7 @@ const NO_WEAPON_BURSTS: Readonly<Record<string, number>> = Object.freeze({});
 function resources(context: WarriorUiContext): ProfessionResourceView[] {
   const state = warriorUiState(context);
   // The live pool wins; authoring before simulation uses the intrinsic Gun X Sword capacity.
-  const maximum = state[STATE.FLOW]?.maximum ?? balanceNumberFromContext(context, TRAIT.GUN_X_SWORD, 'maximumStacks');
+  const maximum = state[STATE.FLOW]?.maximum ?? balanceNumber(context.catalog, TRAIT.GUN_X_SWORD, 'maximumStacks');
   return [
     {
       id: 'flow',
@@ -84,16 +87,15 @@ function bladeswornSkillDamageOccurrence(context: SkillDamagePreviewContext, ski
   if (!isDragonSlash && !includes(DRAGON_TRIGGER_SKILLS) && id !== ID.DRAGON_TRIGGER) return null;
 
   // Entering the stance spends Flow, so every Dragon Trigger probe starts from the selected Flow maximum.
-  const flow = balanceNumberFromContext(context, TRAIT.GUN_X_SWORD, 'maximumStacks');
+  const flow = balanceNumber(context.catalog, TRAIT.GUN_X_SWORD, 'maximumStacks');
 
   if (id === ID.DRAGON_TRIGGER) return { initialResource: flow };
 
   if (!isDragonSlash) return { initialResource: flow };
 
-  const charges = maximumDragonCharges({
-    catalog: context.catalog,
+  const charges = maximumDragonCharges(context.catalog, {
     traits: new Set(context.activeTraits.map((trait) => trait.id))
-  } as Parameters<typeof maximumDragonCharges>[0]);
+  });
   return {
     initialResource: flow,
     variants: Array.from({ length: charges }, (_, index) => ({
@@ -264,14 +266,14 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
     return undefined;
   },
   resourceViews: resources,
-  rotationStateSnapshot: (context: WarriorUiContext & { readonly balanceContext: ProfessionBalanceContext }) => {
+  rotationStateSnapshot: (context: ProfessionStateSnapshotContext<WarriorUiContext['professionState']>) => {
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);
     const items: RotationStateSnapshotItem[] = [];
     const result = context.result;
     // Bladesworn's trait buffs live on the resolved buff timeline, which keeps
     // this snapshot aligned with the damage and ferocity modifier gates.
-    const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.FIERCE_AS_FIRE, 'maximumStacks');
+    const maximum = balanceNumber(context.balanceContext.catalog, TRAIT.FIERCE_AS_FIRE, 'maximumStacks');
     const fierceAsFire = planningBuffStacks(context.planningState, 'fierce-as-fire');
 
     if (fierceAsFire > 0) {
@@ -348,4 +350,4 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
 
     return items;
   }
-});
+} satisfies WarriorUiSlice);

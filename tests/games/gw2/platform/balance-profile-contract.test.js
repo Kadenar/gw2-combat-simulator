@@ -7,13 +7,13 @@ import { materializeSkillEffectApplications } from '#gw2/platform/effects/materi
 import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
 import {
-  balanceNumberFromContext,
-  balanceProfileFromContext,
+  balanceNumber,
+  balanceProfile,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect,
-  requireSkillFromContext
+  requireSkill
 } from '#gw2/platform/skills/balance-profiles.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
@@ -30,36 +30,23 @@ const profile = {
 const skill = { id: 1, name: 'Skill', effects: [first, second] };
 const fixture = () => createCanonicalCatalog({ skills: [skill], balanceProfiles: [profile] });
 
-// Skill modifiers use the authoritative selected catalog, even when another context layer has the same ID.
+// Skill modifiers read only the explicitly selected catalog.
 test('required skill lookup preserves selected patch ownership', () => {
   const base = fixture();
   const selected = withSkill(base, skill.id, { name: 'Selected skill' });
-  for (const context of [
-    { catalog: selected },
-    { helpers: selected },
-    { profession: { catalog: selected } },
-    { runtime: { profession: { catalog: selected } } }
-  ])
-    assert.equal(requireSkillFromContext(context, skill.id).name, 'Selected skill');
-  assert.throws(
-    () => requireSkillFromContext({ catalog: { skillsById: new Map() }, profession: { catalog: base } }, skill.id),
-    /missing required skill/
-  );
+  assert.equal(requireSkill(selected, skill.id).name, 'Selected skill');
+  assert.equal(requireSkill(base, skill.id).name, 'Skill');
+  assert.throws(() => requireSkill({ skillsById: new Map() }, skill.id), /missing required skill/);
 });
-// Callers select an owner once; skills come from the catalog, profiles from the context-based resolver.
-const ownerOf = (catalog, kind) =>
-  kind === 'skill' ? catalog.skillsById.get(1) : requireBalanceProfileFromContext({ catalog }, 1);
+// Callers resolve either owner kind once from the selected catalog.
+const ownerOf = (catalog, kind) => (kind === 'skill' ? catalog.skillsById.get(1) : requireBalanceProfile(catalog, 1));
 
 test('resolved owners preserve strict effect reads without another catalog lookup', () => {
   const catalog = applyBalanceProfilePatch(
     { ...fixture(), balanceDataContext: { professionId: 'fixture', patchId: 'preview' } },
     { balanceProfiles: { 1: { removeEffects: [{ name: 'First' }] } } }
   );
-  let lookups = 0;
-  const selected = requireBalanceProfileFromContext(() => {
-    assert.equal(++lookups, 1);
-    return catalog.balanceProfilesById.get(1);
-  }, 1);
+  const selected = requireBalanceProfile(catalog, 1);
   assert.equal(requireEffect(selected, 'condition', 'First'), undefined);
   const effect = requireEffect(selected, 'condition', 'Second');
   assert.deepEqual(effect, second);
@@ -80,8 +67,6 @@ test('resolved owners preserve strict effect reads without another catalog looku
       /profession=fixture patch=preview owner=1 effect=condition\/Second field=duration expected=finite number/
     );
   }
-
-  assert.equal(lookups, 1);
 
   // Skill records use the same checks and label diagnostics from their own source metadata.
   for (const owner of [selected, { ...catalog.skillsById.get(1), balanceDataContext: selected.balanceDataContext }]) {
@@ -278,51 +263,32 @@ test('required reads select one source and retain strict numeric and diagnostic 
     balanceProfilesById: new Map(),
     balanceDataContext: { professionId: 'fixture', patchId: 'preview' }
   };
-  const context = { catalog: selected, helpers: catalog, profession: { catalog }, balanceProfile: () => profile };
-  assert.equal(balanceProfileFromContext(context, 1), undefined);
-  assert.throws(() => requireBalanceProfileFromContext(context, 1), /profession=fixture patch=preview profile=1/);
-  assert.throws(() => requireBalanceProfileFromContext(null, 1), /missing required profile\/catalog/);
-  for (const source of [
-    { catalog },
-    { helpers: catalog },
-    { profession: { catalog } },
-    { runtime: { profession: { catalog } } },
-    { balanceProfile: () => catalog.balanceProfilesById.get(1) },
-    () => catalog.balanceProfilesById.get(1)
-  ]) {
-    const selectedProfile = requireBalanceProfileFromContext(source, 1);
-    assert.equal(selectedProfile.id, 1);
-    assert.equal(balanceProfileNumber(selectedProfile, 'procChance'), 0);
-    assert.equal(balanceProfileNumber(selectedProfile, 'pulseInterval'), 0);
-  }
+  assert.equal(balanceProfile(selected, 1), undefined);
+  assert.throws(() => requireBalanceProfile(selected, 1), /profession=fixture patch=preview profile=1/);
+  const selectedProfile = requireBalanceProfile(catalog, 1);
+  assert.equal(balanceProfileNumber(selectedProfile, 'procChance'), 0);
+  assert.equal(balanceProfileNumber(selectedProfile, 'pulseInterval'), 0);
 
   for (const value of [undefined, null, false, '', '3', NaN, Infinity]) {
     const invalid = { ...profile, procChance: value, balanceDataContext: selected.balanceDataContext };
-    const source = { catalog: { ...selected, balanceProfilesById: new Map([[1, invalid]]) } };
+    const source = { ...selected, balanceProfilesById: new Map([[1, invalid]]) };
     assert.throws(
-      () => balanceNumberFromContext(source, 1, 'procChance'),
+      () => balanceNumber(source, 1, 'procChance'),
       /profession=fixture patch=preview profile=1 field=procChance expected=finite number received=/
     );
     assert.throws(
-      () => effectNumber(requireBalanceProfileFromContext(source, 1), { ...first, duration: value }, 'duration'),
+      () => effectNumber(requireBalanceProfile(source, 1), { ...first, duration: value }, 'duration'),
       /effect=condition\/First field=duration/
     );
   }
 
   assert.equal(effectNumber(catalog.skillsById.get(1), { type: 'strike', coefficient: 0 }, 'coefficient'), 0);
   const removed = applyBalanceProfilePatch(catalog, { balanceProfiles: { 1: { removeEffects: [{ name: 'First' }] } } });
-  assert.equal(
-    requireEffect(
-      requireBalanceProfileFromContext((id) => removed.balanceProfilesById.get(id), 1),
-      'condition',
-      'First'
-    ),
-    undefined
-  );
+  assert.equal(requireEffect(requireBalanceProfile(removed, 1), 'condition', 'First'), undefined);
   assert.throws(
     () =>
       requireEffect(
-        requireBalanceProfileFromContext(() => ({ ...profile, effects: [first, first] }), 1),
+        requireBalanceProfile({ balanceProfilesById: new Map([[1, { ...profile, effects: [first, first] }]]) }, 1),
         'condition',
         'First'
       ),
@@ -331,7 +297,10 @@ test('required reads select one source and retain strict numeric and diagnostic 
   assert.throws(
     () =>
       requireEffect(
-        requireBalanceProfileFromContext(() => ({ ...profile, effects: [{ ...first, duration: null }] }), 1),
+        requireBalanceProfile(
+          { balanceProfilesById: new Map([[1, { ...profile, effects: [{ ...first, duration: null }] }]]) },
+          1
+        ),
         'condition',
         'First'
       ),
@@ -389,16 +358,13 @@ test('full previews and selected runtimes preserve removals without leaking acro
       );
     }
 
-    // Both callback forms retain provenance for edited and unedited profiles in the selected catalog.
-    const lookup = (id) => catalog.balanceProfilesById.get(id);
-    for (const context of [lookup, { balanceProfile: lookup }]) {
-      for (const id of [1, 2]) {
-        const selectedProfile = requireBalanceProfileFromContext(context, id);
-        assert.throws(() => balanceProfileNumber(selectedProfile, 'missing'), /profession=fixture patch=preview/);
-        assert.throws(() => requireEffect(selectedProfile, 'condition', 'Typo'), /profession=fixture patch=preview/);
-        const effect = requireEffect(selectedProfile, 'condition', 'Second');
-        assert.throws(() => effectNumber(selectedProfile, effect, 'missing'), /profession=fixture patch=preview/);
-      }
+    // Resolved profiles retain provenance for both edited and unedited owners.
+    for (const id of [1, 2]) {
+      const selectedProfile = requireBalanceProfile(catalog, id);
+      assert.throws(() => balanceProfileNumber(selectedProfile, 'missing'), /profession=fixture patch=preview/);
+      assert.throws(() => requireEffect(selectedProfile, 'condition', 'Typo'), /profession=fixture patch=preview/);
+      const effect = requireEffect(selectedProfile, 'condition', 'Second');
+      assert.throws(() => effectNumber(selectedProfile, effect, 'missing'), /profession=fixture patch=preview/);
     }
   }
 
@@ -430,7 +396,7 @@ test('full previews and selected runtimes preserve removals without leaking acro
   );
 });
 
-test('profile callbacks follow the latest overlay and never label an opaque source as current', () => {
+test('resolved profiles retain the latest overlay provenance', () => {
   const live = fixture();
   const withSource = (catalog, patchId) => ({ ...catalog, balanceDataContext: { professionId: 'fixture', patchId } });
   const firstPatch = applyBalanceProfilePatch(withSource(live, 'first'), {
@@ -445,8 +411,7 @@ test('profile callbacks follow the latest overlay and never label an opaque sour
     [secondPatch, 'second'],
     [uneditedPatch, 'unedited']
   ]) {
-    const lookup = (id) => catalog.balanceProfilesById.get(id);
-    const selectedProfile = requireBalanceProfileFromContext(lookup, 1);
+    const selectedProfile = requireBalanceProfile(catalog, 1);
     assert.throws(
       () => balanceProfileNumber(selectedProfile, 'missing'),
       new RegExp(`profession=fixture patch=${patchId}`)
@@ -455,5 +420,4 @@ test('profile callbacks follow the latest overlay and never label an opaque sour
   }
 
   assert.equal(live.balanceProfilesById.get(1).balanceDataContext, undefined);
-  assert.throws(() => requireBalanceProfileFromContext(() => undefined, 1), /patch=<unknown>/);
 });

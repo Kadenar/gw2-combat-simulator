@@ -20,7 +20,12 @@ test('Engineer No Scope survives overlapping Fury packet expiries', () => {
     150
   );
   assert.equal(
-    engineerProfession.resolveProfession({}).modifyAttributes({ ...context, time: 10 }, { ferocity: 0 }).ferocity,
+    engineerProfession
+      .resolveProfession({})
+      .modifyAttributes(
+        { catalog: engineerProfession.resolveProfession({}).catalog, ...context, time: 10 },
+        { ferocity: 0 }
+      ).ferocity,
     0
   );
 });

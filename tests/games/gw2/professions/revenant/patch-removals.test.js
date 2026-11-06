@@ -343,7 +343,13 @@ test('Ferocious Aggression uses its patched value for life steal and ordinary da
     time: 0,
     event: { at: 0, actorType: 'player' }
   };
-  assert.equal(revenantLifeSiphonBonus(context, { at: 0, flatStrikeBase: 100, damageKind: 'life-steal' }), 0.3);
+  assert.equal(
+    revenantLifeSiphonBonus(
+      { ...context, helpers: context.catalog },
+      { at: 0, flatStrikeBase: 100, damageKind: 'life-steal' }
+    ),
+    0.3
+  );
   assert.equal(revenantProfession.resolveProfession(config).modifyStrikeDamage(context, 100), 130);
   assert.equal(revenantProfession.resolveProfession(config).modifyConditionDamage(context, 100), 130);
 });

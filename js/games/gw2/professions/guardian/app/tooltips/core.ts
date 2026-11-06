@@ -10,7 +10,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { guardianHonorTooltips } from '#gw2/professions/guardian/app/tooltips/honor.js';
 import { guardianRadianceTooltips } from '#gw2/professions/guardian/app/tooltips/radiance.js';
@@ -53,7 +53,7 @@ export const guardianCoreTooltips = {
       'Strike with a volley of projectiles. Illumination adds the extra projectiles listed separately. The attack then arms a new Illuminated charge for another eligible spear attack.',
       (balanceContext) =>
         simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.SOLAR_STORM), 'illumination').effects,
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.SOLAR_STORM), 'illumination').effects,
           'additional while Illuminated'
         ).facts
     ),
@@ -61,19 +61,21 @@ export const guardianCoreTooltips = {
       'Create a damaging symbol. During its luminance window, eligible spear attacks receive their Illuminated effects without spending an armed charge.',
       (balanceContext) =>
         simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.SYMBOL_OF_LUMINANCE), 'illumination').effects
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.SYMBOL_OF_LUMINANCE), 'illumination').effects
         ).facts
     ),
     [ID.SYMBOL_OF_IGNITION]: skillTooltip(
       'Create a damaging symbol and an ignition field. Other qualifying player strikes, torch pulses, and fire-whirl bolts trigger additional Burning while the field is active. Projectile and nonprojectile triggers have independent cooldowns.',
       (balanceContext) => [
         ...simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.SYMBOL_OF_IGNITION), 'ignition').effects,
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.SYMBOL_OF_IGNITION), 'ignition').effects,
           'ignition field; Burning is per trigger'
         ).facts,
         {
           name: 'Ignition interval per trigger group',
-          detail: tooltipSeconds(skillNumberFromContext(balanceContext, ID.SYMBOL_OF_IGNITION, 'internalCooldown'))
+          detail: tooltipSeconds(
+            skillNumber(requireSkill(balanceContext.catalog, ID.SYMBOL_OF_IGNITION), 'internalCooldown')
+          )
         }
       ]
     ),
@@ -82,7 +84,7 @@ export const guardianCoreTooltips = {
       (context) => [
         {
           name: 'Base passive power',
-          detail: tooltipDecimal(skillNumberFromContext(context, ID.BANE_SIGNET, 'attributeBonuses.power'))
+          detail: tooltipDecimal(skillNumber(requireSkill(context.catalog, ID.BANE_SIGNET), 'attributeBonuses.power'))
         }
       ]
     ),
@@ -92,7 +94,7 @@ export const guardianCoreTooltips = {
         {
           name: 'Base passive condition damage',
           detail: tooltipDecimal(
-            skillNumberFromContext(context, ID.SIGNET_OF_WRATH, 'attributeBonuses.conditionDamage')
+            skillNumber(requireSkill(context.catalog, ID.SIGNET_OF_WRATH), 'attributeBonuses.conditionDamage')
           )
         }
       ]
@@ -115,7 +117,7 @@ export const guardianCoreTooltips = {
       (balanceContext) => [
         skillFact(balanceContext, ID.JUSTICE, 'threshold', 'Base qualifying hits per passive trigger'),
         ...simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.JUSTICE), 'justice').effects
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.JUSTICE), 'justice').effects
         ).facts
       ]
     ),

@@ -14,9 +14,9 @@ import type {
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
-  ProfessionCatalogContext,
   ProfessionEventLogDescriptor,
   ProfessionPaletteSkillRenderer,
+  ProfessionStateSnapshotContext,
   ProfessionWeaponPaletteRenderContext,
   ProfessionWeaponPaletteView,
   RotationStateSnapshotItem
@@ -48,7 +48,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 
 // Unravel and its F5 palette group only exist when the trait is selected.
-function hasElementsOfRage(context: ElementalistUiContext & ProfessionCatalogContext): boolean {
+function hasElementsOfRage(context: ElementalistUiContext): boolean {
   const build = context.build as { specializations?: readonly ElementalistBuildSpecialization[] } | undefined;
   return selectedTraits(context.catalog, build?.specializations || []).some(
     (trait) => trait.id === TRAIT.ELEMENTS_OF_RAGE
@@ -115,7 +115,9 @@ function eventLogRow(
 }
 
 // Describe Weaver's active windows; its attunement pair is already shown in the palette.
-function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
+function rotationStateSnapshot(
+  context: ProfessionStateSnapshotContext<ElementalistUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const state = elementalistUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
@@ -463,7 +465,7 @@ export const weaverUi: ElementalistUiSlice = Object.freeze({
           (elementalistUiState(context)[STATE.PERFECT_WEAVE_UNTIL] || 0) > (context.time || 0)
       };
   },
-  paletteGroups: (context: ElementalistUiContext & ProfessionCatalogContext) =>
+  paletteGroups: (context: ElementalistUiContext) =>
     hasElementsOfRage(context)
       ? [
           {

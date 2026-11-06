@@ -82,7 +82,7 @@ test('Sharpening Stone ignores excluded hits and spends the earliest live expiry
   const core = { sharpeningStoneGrants: [...prior] };
   const queued = [];
   const context = {
-    catalog: rangerCatalog,
+    helpers: rangerCatalog,
     profession: { core },
     effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
   };

@@ -36,7 +36,7 @@ test('Firebrand public projections preserve configured pages and detach the cano
   // Public consumers read the canonical grant without sharing mutable runtime state.
   const state = firebrandState.create({
     config: { initialTomePages: 2 },
-    balanceProfile: (id) => guardianCatalog.balanceProfilesById.get(id)
+    catalog: guardianCatalog
   });
   const projected = projectObservedState(guardianProfession, {
     profession: { core: createGuardianCoreState(), specialization: { kind: 'Firebrand', state } }
@@ -53,14 +53,14 @@ test('Archivist increases page capacity without replacing explicit starting page
   assert.equal(
     firebrandState.create({
       config: { selectedTraitIds },
-      balanceProfile: (id) => guardianCatalog.balanceProfilesById.get(id)
+      catalog: guardianCatalog
     }).tomePages.value,
     8
   );
   for (const initialTomePages of [0, 4, 5, 6, 7, 8]) {
     const state = firebrandState.create({
       config: { selectedTraitIds, initialTomePages },
-      balanceProfile: (id) => guardianCatalog.balanceProfilesById.get(id)
+      catalog: guardianCatalog
     });
     assert.equal(state.tomePages.maximum, 8);
     assert.equal(state.tomePages.value, initialTomePages);
@@ -519,7 +519,7 @@ test('symbol and projectile ignition independently block through 240 ms without 
   const queued = [];
   const context = {
     procs: createProcRegistry(() => context),
-    catalog: guardianCatalog,
+    helpers: guardianCatalog,
     profession: { core },
     effects: { emit: ({ event }) => queued.push(event) }
   };
@@ -1052,7 +1052,7 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
     };
     const first = firebrandState.create({
       config,
-      balanceProfile: (id) => guardianCatalog.balanceProfilesById.get(id)
+      catalog: guardianCatalog
     });
     const second = observedRuntime(runGuardian([], config)).profession.specialization.state;
     assert.equal(second.tomePages.value, expected);

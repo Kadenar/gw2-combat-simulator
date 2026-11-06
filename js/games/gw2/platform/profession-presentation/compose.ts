@@ -12,12 +12,12 @@ import type {
   SkillDamagePreviewPreparation
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
-  ProfessionCatalogContext,
   ProfessionChargeReleaseContext,
-  ProfessionEventLogContext,
   ProfessionPaletteActionIdentity,
   ProfessionPaletteContext,
   ProfessionPaletteGroup,
+  ProfessionResourceViewContext,
+  ProfessionResultUiContext,
   ProfessionSkillBarSelectionChange,
   ProfessionUiContract
 } from '#gw2/platform/profession-presentation/types.js';
@@ -234,6 +234,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
       // Preview capacity uses selected policies and the active catalog without starting gameplay tasks.
       const policies =
         name === 'resourceViews' ? definition.resourcesFor?.(uiSpecialization(selected.context)) : undefined;
+      const resourceContext = selected.context as ProfessionResourceViewContext;
       const callbackContext = policies
         ? {
             ...(selected.context as object),
@@ -248,7 +249,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
                       ...(selected.context as object),
                       config: ((selected.context as UiSelectionCandidate).config ??
                         selected.context) as ProfessionConfig,
-                      catalog: (selected.context as UiSelectionCandidate).catalog ?? definition.catalog
+                      helpers: resourceContext.catalog
                     } as never)
                   }
                 ])
@@ -295,13 +296,11 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     // Core and elite exceptions own independent fields; later slices refine tile identity or editor access.
     return Object.assign(
       {},
-      ...selected.slices.map((slice) =>
-        slice.paletteOverride?.(selected.context as ProfessionPaletteContext & ProfessionCatalogContext, skill)
-      )
+      ...selected.slices.map((slice) => slice.paletteOverride?.(selected.context as ProfessionPaletteContext, skill))
     );
   };
 
-  ui.eventLogRow = (context: ProfessionEventLogContext, event: SimulationEvent) => {
+  ui.eventLogRow = (context: ProfessionResultUiContext, event: SimulationEvent) => {
     const selected = active(context);
     return firstUiMatch(
       [...selected.slices, family],

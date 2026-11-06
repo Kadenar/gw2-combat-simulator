@@ -2,7 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { extendPeriodicEffects } from '#gw2/platform/effects/periodic.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
@@ -10,7 +10,7 @@ import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 /** Writ adds one shared lifetime to skills authored as symbols; display text never grants it. */
 function symbolExtension(runtime: MechanicQueriesOf<GuardianRuntime>, skill: Skill): number {
   return skill.tags?.includes('symbol') && hasTrait(runtime, TRAIT.WRIT_OF_PERSISTENCE)
-    ? balanceNumberFromContext(runtime, TRAIT.WRIT_OF_PERSISTENCE, 'durationExtension')
+    ? balanceNumber(runtime.helpers, TRAIT.WRIT_OF_PERSISTENCE, 'durationExtension')
     : 0;
 }
 

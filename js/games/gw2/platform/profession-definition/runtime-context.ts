@@ -1,6 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { SkillFlipWindows } from '#gw2/platform/execution/skill-flips.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /** Skill identity selection depends only on selected traits, before any cast or recharge state is consulted. */
@@ -27,10 +27,9 @@ export function createSelectedContentContext(
   traits: ReadonlySet<SkillId>,
   catalog: CanonicalCatalog
 ): SelectedContentContext {
-  const selectedContent = { catalog };
   return Object.freeze({
     ...createTraitSelectionContext(traits),
-    requireBalanceProfile: (id: SkillId) => requireBalanceProfileFromContext(selectedContent, id)
+    requireBalanceProfile: (id: SkillId) => requireBalanceProfile(catalog, id)
   });
 }
 

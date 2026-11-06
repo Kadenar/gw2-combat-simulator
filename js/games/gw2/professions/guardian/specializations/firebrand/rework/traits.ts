@@ -6,11 +6,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  balanceNumberFromContext,
-  effectNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, effectNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -36,7 +32,7 @@ const unrelentingCriticism = defineTrait({
   attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Bleeding Duration':
-        100 * balanceNumberFromContext(balanceContext, TRAIT.UNRELENTING_CRITICISM, 'conditionDurationBonus')
+        100 * balanceNumber(balanceContext.catalog, TRAIT.UNRELENTING_CRITICISM, 'conditionDurationBonus')
     }
   }),
   modifierRules: [
@@ -44,8 +40,7 @@ const unrelentingCriticism = defineTrait({
       id: 'guardian.unrelenting-criticism',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) =>
-        1 + balanceNumberFromContext(context, TRAIT.UNRELENTING_CRITICISM, 'conditionDamageIncrease'),
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.UNRELENTING_CRITICISM, 'conditionDamageIncrease'),
       when: (context) => context.condition === CONDITION.BLEEDING
     }
   ]
@@ -60,7 +55,7 @@ const imbuedHaste = defineTrait({
       id: 'guardian.imbued-haste',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.IMBUED_HASTE, 'conditionDamageIncrease'),
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.IMBUED_HASTE, 'conditionDamageIncrease'),
       when: (context) => guardianBoonActive(context, boonKey(BOON.QUICKNESS))
     }
   ]
@@ -84,7 +79,7 @@ const revelation = defineTrait({
             type: 'trait',
             name: 'Revelation',
             at: runtime.time,
-            detail: `+${balanceNumberFromContext(runtime, REWORK.REVELATION, 'resourceGain')} tome pages`
+            detail: `+${balanceNumber(runtime.helpers, REWORK.REVELATION, 'resourceGain')} tome pages`
           }
         });
       }
@@ -94,8 +89,8 @@ const revelation = defineTrait({
 
 /** One admitted Swift Scholar refund grants expiring Ashes to the player and eligible nearby allies. */
 function grantFervidAshes(runtime: GuardianRuntime, { cast }: { readonly cast: RuntimeCast<GuardianSkill> }): void {
-  const profile = requireBalanceProfileFromContext(runtime, REWORK.FERVID_CONVICTION);
-  const admission = resolveAshesGrantData(runtime, profile);
+  const profile = requireBalanceProfile(runtime.helpers, REWORK.FERVID_CONVICTION);
+  const admission = resolveAshesGrantData({ catalog: runtime.helpers, traits: runtime.traits }, profile);
 
   if (
     !admission ||
@@ -107,7 +102,7 @@ function grantFervidAshes(runtime: GuardianRuntime, { cast }: { readonly cast: R
 
   const stacks = effectNumber(profile, buff, 'stacks');
   const duration = effectNumber(profile, buff, 'duration');
-  const maximumTargets = balanceNumberFromContext(runtime, REWORK.FERVID_CONVICTION, 'maximumTargets');
+  const maximumTargets = balanceNumber(runtime.helpers, REWORK.FERVID_CONVICTION, 'maximumTargets');
 
   if (stacks <= 0 || duration <= 0 || maximumTargets <= 0) return;
 
@@ -179,7 +174,7 @@ const stoicDemeanor = defineTrait({
       when: (_runtime, { cause }: FirebrandControl) =>
         cause.actorType === ACTOR.PLAYER && cause.condition !== CONDITION.SLOW,
       run(runtime: GuardianRuntime) {
-        const reduction = balanceNumberFromContext(runtime, TRAIT.STOIC_DEMEANOR, 'rechargeReduction');
+        const reduction = balanceNumber(runtime.helpers, TRAIT.STOIC_DEMEANOR, 'rechargeReduction');
 
         if (
           reduction <= 0 ||

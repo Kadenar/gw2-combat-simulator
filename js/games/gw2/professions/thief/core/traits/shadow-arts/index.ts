@@ -3,9 +3,9 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -138,7 +138,7 @@ export const shadowSiphoning = defineTrait<ThiefSkill>({
         Number(event.coefficient) > 0 &&
         Boolean(runtime.helpers.skillsById.get(event.skillId!)?.stealthAttack) &&
         Boolean(
-          requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.SHADOW_SIPHONING), 'strike', 'Shadow Siphoning')
+          requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.SHADOW_SIPHONING), 'strike', 'Shadow Siphoning')
         ),
       effects: (effect) => effect.type === 'strike' && effect.name === 'Shadow Siphoning',
       attribution: (_runtime, event) => ({
@@ -180,13 +180,13 @@ function enterShadowsRejuvenation(runtime: ThiefRuntime): void {
   // Entry and exit have independently authored initiative rewards.
   runtime.resourceController.grant(
     'initiative',
-    balanceNumberFromContext(runtime, TRAIT.SHADOWS_REJUVENATION, 'entryResourceGain')
+    balanceNumber(runtime.helpers, TRAIT.SHADOWS_REJUVENATION, 'entryResourceGain')
   );
 }
 
 /** Applies Shadow's Rejuvenation at its established mechanical boundary. */
 function exitShadowsRejuvenation(runtime: ThiefRuntime): void {
-  const initiativeGain = balanceNumberFromContext(runtime, TRAIT.SHADOWS_REJUVENATION, 'resourceGain');
+  const initiativeGain = balanceNumber(runtime.helpers, TRAIT.SHADOWS_REJUVENATION, 'resourceGain');
 
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
@@ -198,7 +198,7 @@ function applyHiddenThief(runtime: ThiefRuntime, { cast }: StealAcceptance): voi
     !runtime.procs.claimCooldown(
       TRAIT.HIDDEN_THIEF,
       runtime.time,
-      balanceNumberFromContext(runtime, TRAIT.HIDDEN_THIEF, 'internalCooldown')
+      balanceNumber(runtime.helpers, TRAIT.HIDDEN_THIEF, 'internalCooldown')
     )
   )
     return;
@@ -238,7 +238,7 @@ function alliedVenomProc(application: ThiefResolverEvent): boolean {
 
 /** Applies Leeching Venoms at its established mechanical boundary. */
 function grantLeechingVenomCharges(runtime: ThiefRuntime, { at }: StealthTransition): void {
-  const leeching = requireBalanceProfileFromContext(runtime, TRAIT.LEECHING_VENOMS);
+  const leeching = requireBalanceProfile(runtime.helpers, TRAIT.LEECHING_VENOMS);
   addVenomCharges(
     runtime.profession.core,
     ID.SPIDER_VENOM,

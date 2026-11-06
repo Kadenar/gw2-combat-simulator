@@ -17,7 +17,7 @@ export function renegadeEffectStates(runtime: MechanicQueriesOf<RevenantRuntime>
     timedEffectState(
       'kallas-fervor',
       state.kallasFervor.map((application) => ({ expiresAt: application.expiresAt, stacks: 1 })),
-      fervorMaximumStacks(runtime)
+      fervorMaximumStacks(runtime.helpers, runtime)
     ),
     timedEffectState('razorclaws-rage', [
       { stacks: state.razorclawsRage.charges, expiresAt: state.razorclawsRage.expiresAt }

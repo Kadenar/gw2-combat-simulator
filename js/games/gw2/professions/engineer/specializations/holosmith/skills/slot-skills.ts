@@ -8,7 +8,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/cast-effects.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -308,7 +308,7 @@ function emitHeatApplications(
   // A removed or zero-count component must not become the materializer's default single application.
   if (applications === 0) return;
 
-  const strikeFactor = holosmithSkillStrikeFactor(context, skill.id, holosmithHeatSnapshotFromEvent(event));
+  const strikeFactor = holosmithSkillStrikeFactor(context.helpers, skill.id, holosmithHeatSnapshotFromEvent(event));
   context.effects.emit({
     kind: 'profile',
     profile: skill,
@@ -342,11 +342,11 @@ function emitHeatApplications(
 
 /** The field uses the activation's heat tier even when heat changes before later pulses land. */
 function handlePrimeLightBeamField(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
-  const tier = holosmithHeatTier(holosmithHeatSnapshotFromEvent(event), context);
+  const tier = holosmithHeatTier(holosmithHeatSnapshotFromEvent(event), context.helpers);
 
   if (tier === 'base') return;
 
-  const skill = requireSkillFromContext(context, ID.PRIME_LIGHT_BEAM);
+  const skill = requireSkill(context.helpers, ID.PRIME_LIGHT_BEAM);
   const strike = requireEffect(skill, 'strike', 'Prime Light Beam Heat Tier');
   const condition = requireEffect(skill, 'condition', CONDITION.BURNING);
   emitHeatApplications(
@@ -366,8 +366,8 @@ function handlePrimeLightBeamField(context: EngineerResolverContext, event: Holo
 
 /** The disk selects its lifetime once, then emits each strike before its sibling Bleeding application. */
 function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
-  const tier = holosmithHeatTier(holosmithHeatSnapshotFromEvent(event), context);
-  const skill = requireSkillFromContext(context, ID.LASER_DISK);
+  const tier = holosmithHeatTier(holosmithHeatSnapshotFromEvent(event), context.helpers);
+  const skill = requireSkill(context.helpers, ID.LASER_DISK);
   const payload = requireSkillAction(skill, 'heat-payload');
   const strike = requireEffect(skill, 'strike', 'Laser Disk Heat Tier', payload);
   const condition = requireEffect(skill, 'condition', CONDITION.BLEEDING, payload);
@@ -388,8 +388,8 @@ function handleLaserDisk(context: EngineerResolverContext, event: HolosmithResol
 
 /** Simultaneous walls retain full damage per application and interleave Vulnerability between strikes. */
 function handleLaunchWall(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
-  const tier = holosmithHeatTier(holosmithHeatSnapshotFromEvent(event), context);
-  const skill = requireSkillFromContext(context, ID.LAUNCH_WALL);
+  const tier = holosmithHeatTier(holosmithHeatSnapshotFromEvent(event), context.helpers);
+  const skill = requireSkill(context.helpers, ID.LAUNCH_WALL);
   const payload = requireSkillAction(skill, 'heat-payload');
   const strike = requireEffect(skill, 'strike', 'Launch Wall Heat Tier', payload);
   const condition = requireEffect(skill, 'condition', CONDITION.VULNERABILITY, payload);

@@ -229,7 +229,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
     const fraction = pool.value / pool.maximum;
     pool.maximum = necromancerLifeForceCapacity(
       runtime.config,
-      runtime,
+      runtime.helpers,
       runtime.combat.statsAt(runtime.time, {
         type: 'action',
         at: runtime.time,

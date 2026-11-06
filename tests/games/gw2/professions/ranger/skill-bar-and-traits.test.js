@@ -405,7 +405,10 @@ describe('Galeshot Cyclone Bow', () => {
     assert.equal(cycloneBowGroup.className, 'ranger-cyclone-bow-skills');
     assert.deepEqual(cycloneBowGroup.resourceIds, ['wind-force']);
     assert.equal(cycloneBowGroup.resourcePlacement, 'above');
-    const galeshotResources = rangerProfession.ui.resourceViews(inactiveContext);
+    const galeshotResources = rangerProfession.ui.resourceViews({
+      ...inactiveContext,
+      catalog: rangerProfession.catalog
+    });
 
     assert.equal(galeshotResources.find((view) => view.id === 'wind-force').pipStyle, 'ranger-wind-force');
     assert.equal(
@@ -600,9 +603,14 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     .runtimeFor({ specialization: 'Untamed' })
     .modifyAttributes({ catalog: rangerCatalog, ...untamedContext }, baseAttributes);
   // Attribute checks consume the composed runtime hook, including ordered skill-owned attribute replacements.
-  const coreAttributes = rangerProfession
-    .runtimeFor({ specialization: 'Core' })
-    .modifyAttributes({ ...untamedContext, traits: new Set() }, baseAttributes);
+  const coreAttributes = rangerProfession.runtimeFor({ specialization: 'Core' }).modifyAttributes(
+    {
+      catalog: rangerProfession.runtimeFor({ specialization: 'Core' }).catalog,
+      ...untamedContext,
+      traits: new Set()
+    },
+    baseAttributes
+  );
 
   // Natural Fortitude is final-only: reinforcement converts base Vitality, excluding the trait grant.
   assert.equal(untamedAttributes.vitality, 1290);

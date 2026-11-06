@@ -7,7 +7,6 @@ import type {
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
-  ProfessionCatalogContext,
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
@@ -25,12 +24,12 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
-export function revenantUiState(context: RevenantUiContext = {}): Partial<RevenantPlanningState> {
+export function revenantUiState(context: Pick<RevenantUiContext, 'professionState'>): Partial<RevenantPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
 
-export function activeRevenantLegend(context: RevenantUiContext = {}): string {
+export function activeRevenantLegend(context: RevenantUiContext): string {
   return revenantUiState(context)[STATE.ACTIVE_LEGEND_ID] || context.build?.startingLegend || '';
 }
 
@@ -48,13 +47,13 @@ function rotationEntryName(entry: unknown, context: RevenantUiContext): string {
 
   const skillId = entry.skillId;
   const catalog = context.catalog;
-  const skillsById = catalog?.skillsById;
+  const skillsById = catalog.skillsById;
   return skillsById instanceof Map ? String(skillsById.get(skillId)?.name || skillId) : String(skillId);
 }
 
 // Select the timeline icon from the currently active legend, falling back safely
 // when projected runtime state is incomplete.
-function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
+function revenantTimelineSkillIcon(context: RevenantUiContext): string {
   const skill = context.skill;
 
   if (skill?.id !== SKILL.SWAP_LEGENDS) return '';
@@ -73,7 +72,7 @@ function revenantTimelineSkillIcon(context: RevenantUiContext = {}): string {
 
 /** Reports shared Revenant drains and spear charges that directly constrain the next action. */
 function revenantCoreStateSnapshot(
-  context: RevenantUiContext & Pick<ProfessionStateSnapshotContext, 'balanceContext'>
+  context: ProfessionStateSnapshotContext<RevenantUiContext['professionState']>
 ): RotationStateSnapshotItem[] {
   const state = revenantUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
@@ -190,7 +189,7 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
     ...SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS,
     ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
   ]),
-  targetHealthThresholds: (context: RevenantUiContext & ProfessionCatalogContext) => {
+  targetHealthThresholds: (context: RevenantUiContext) => {
     const traits = selectedTraits(context.catalog, context.build?.specializations || []);
     return traits.some((trait) => trait.name === 'Swift Termination') ? [0.5] : [];
   },
@@ -245,4 +244,4 @@ export const revenantCoreUi: RevenantUiSlice = Object.freeze({
       }
     ];
   }
-});
+} satisfies RevenantUiSlice);

@@ -336,7 +336,7 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
     ? `<div class="profession-palette-stack utility-palette-group" data-role="utility-palette-stack">${utilitySkillsHtml}${utilityProfessionGroups.map(renderProfessionGroup).join('')}</div>`
     : utilitySkillsHtml;
 
-  const paletteWeaponSkills = (skills: readonly Skill[], context: ProfessionPaletteContext = {}): Skill[] =>
+  const paletteWeaponSkills = (skills: readonly Skill[], context: Partial<ProfessionPaletteContext> = {}): Skill[] =>
     app.profession.ui.paletteWeaponSkills({ ...paletteContext, ...context }, skills);
   // Custom weapon layouts still receive generic availability, tooltip, and
   // interaction markup instead of rebuilding those policies themselves.

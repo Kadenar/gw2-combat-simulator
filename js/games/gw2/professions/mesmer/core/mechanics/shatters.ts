@@ -75,8 +75,8 @@ export function resolveCloneShatter(
         });
       });
 
-    const baseConfusion = mesmerShatterConfusion(context, skill.id);
-    const confusion = cloneShatterConfusion(cryOfPainConfusion(context, baseConfusion), sources);
+    const baseConfusion = mesmerShatterConfusion(context.helpers, skill.id);
+    const confusion = cloneShatterConfusion(cryOfPainConfusion(context.helpers, context, baseConfusion), sources);
 
     if (confusion)
       buildMesmerConditions(context, skill.name, at, confusion, 'Player', '', {

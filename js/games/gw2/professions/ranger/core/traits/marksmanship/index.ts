@@ -15,9 +15,9 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
@@ -76,7 +76,7 @@ export const wolfsong = defineTrait({
       id: 'ranger.wolfsong',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.WOLFSONG, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.WOLFSONG, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && targetVulnerable(context)
     }
   ],
@@ -211,7 +211,7 @@ export const preciseStrike = defineTrait({
       id: 'ranger.precise-strike',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.PRECISE_STRIKE, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.PRECISE_STRIKE, 'criticalChance'),
       when: (context) => openingStrikeReady(context)
     }
   ]
@@ -228,10 +228,10 @@ export const farsighted = defineTrait({
       id: 'ranger.farsighted',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.FARSIGHTED, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.FARSIGHTED, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        skillForEvent(context.profession?.catalog, context.event, context.skillId)?.type === 'Weapon'
+        skillForEvent(context.catalog, context.event, context.skillId)?.type === 'Weapon'
     }
   ]
 });
@@ -247,7 +247,7 @@ export const remorseless = defineTrait({
       id: 'ranger.remorseless',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.REMORSELESS, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.REMORSELESS, 'damageMultiplier'),
       when: (context) => openingStrikeReady(context)
     }
   ],
@@ -269,7 +269,7 @@ export const predatorsOnslaught = defineTrait({
       id: 'ranger.predators-onslaught-player',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.PREDATORS_ONSLAUGHT, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.PREDATORS_ONSLAUGHT, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && rangerTargetImpaired(context)
     },
     {
@@ -277,7 +277,7 @@ export const predatorsOnslaught = defineTrait({
       id: 'ranger.predators-onslaught-pet',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.PREDATORS_ONSLAUGHT, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.PREDATORS_ONSLAUGHT, 'damageMultiplier'),
       when: (context) => rangerPetEvent(context) && rangerTargetImpaired(context)
     }
   ]
@@ -286,7 +286,7 @@ export const predatorsOnslaught = defineTrait({
 /** Applies the trait at the accepted Beast-skill boundary. */
 function applyWolfsong(context: RangerRuntime, skill: RangerSkill): void {
   if (rangerPetForState(professionCoreState(context.profession)).family === 'canine') {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.WOLFSONG);
+    const profile = requireBalanceProfile(context.helpers, TRAIT.WOLFSONG);
     const effect = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
     if (effect)
@@ -320,10 +320,10 @@ function consumeOpeningStrike(context: RangerResolverContext, event: Gw2Resolver
 
   if (!actor?.openingStrikeReady) return;
 
-  const openingStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.OPENING_STRIKE);
+  const openingStrikeProfile = requireBalanceProfile(context.helpers, TRAIT.OPENING_STRIKE);
   const openingStrike = requireEffect(openingStrikeProfile, 'condition', CONDITION.VULNERABILITY);
   const alphaFocusProfile = hasTrait(context, TRAIT.ALPHA_FOCUS)
-    ? requireBalanceProfileFromContext(context, TRAIT.ALPHA_FOCUS)
+    ? requireBalanceProfile(context.helpers, TRAIT.ALPHA_FOCUS)
     : undefined;
   const alphaFocus = alphaFocusProfile && requireEffect(alphaFocusProfile, 'condition', CONDITION.CRIPPLED);
 
@@ -357,7 +357,7 @@ function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEv
   if (!isPlayerStrike(event)) return;
 
   const health = targetHealthFraction(context);
-  const profile = requireBalanceProfileFromContext(context, TRAIT.HUNTERS_GAZE);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.HUNTERS_GAZE);
   const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   // The cooldown and proc record exist only for the might packet.

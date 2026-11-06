@@ -5,7 +5,7 @@ import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import type { DamageEffectDefinition } from '#gw2/platform/skill-damage/types.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -83,7 +83,7 @@ export function grantElectricEnchantments(
  */
 function emitElectricEnchantment(context: ElementalistRuntime, event: SimulationEvent, traitId?: SkillId): void {
   // Charge admission is stateful; the profile owns both payloads and their authored strike rules.
-  const profile = requireBalanceProfileFromContext(context, TRAIT.GALVANIC_ENCHANTMENT);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.GALVANIC_ENCHANTMENT);
   const strike = requireEffect(profile, 'strike', 'Galvanic Enchantment');
   const burning = requireEffect(profile, 'condition', CONDITION.BURNING);
   const attribution = {

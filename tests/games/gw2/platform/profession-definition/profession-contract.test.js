@@ -55,8 +55,8 @@ test('profession contract supplies neutral calculation defaults', () => {
   });
 
   const attributes = { power: 123 };
-  assert.equal(profession.modifyAttributes({}, attributes), attributes);
-  assert.equal(profession.modifyConditionAttributes({}, attributes), attributes);
+  assert.equal(profession.modifyAttributes({ catalog: profession.catalog }, attributes), attributes);
+  assert.equal(profession.modifyConditionAttributes({ catalog: profession.catalog }, attributes), attributes);
   for (const name of [
     'modifyCriticalChance',
     'modifyCriticalDamage',
@@ -65,7 +65,7 @@ test('profession contract supplies neutral calculation defaults', () => {
   ])
     assert.equal(profession[name]({}, 1.5), 1.5);
   assert.deepEqual(profession.createState({}), {});
-  assert.equal(profession.modifyStrikeDamage({}, 12), 12);
+  assert.equal(profession.modifyStrikeDamage({ catalog: profession.catalog }, 12), 12);
   assert.equal(Object.hasOwn(profession, 'ui'), false);
   assert.equal(Object.hasOwn(profession, 'createBuildDefaults'), false);
 });

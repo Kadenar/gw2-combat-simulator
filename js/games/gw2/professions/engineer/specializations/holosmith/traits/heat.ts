@@ -1,9 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { selectedEngineerTraits } from '#gw2/professions/engineer/core/state.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
@@ -12,9 +9,9 @@ import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/h
 import type { EngineerConfig, EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
 /** The selected trait owns capacity before initial heat is clamped. */
-export function enhancedCapacityMaximumHeat(config: EngineerConfig, balanceContext: unknown): number {
+export function enhancedCapacityMaximumHeat(config: EngineerConfig, source: BalanceProfileSource): number {
   return hasTrait(selectedEngineerTraits(config), TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
-    ? balanceNumberFromContext(balanceContext, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'maximumStacks')
+    ? balanceNumber(source, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'maximumStacks')
     : HOLOSMITH_HEAT.baseMaximum;
 }
 
@@ -24,14 +21,14 @@ export function enhancedCapacitySelected(config: EngineerConfig): boolean {
 }
 
 /** Delayed packets use captured selection and heat when deciding whether ECSU upgrades their skill tier. */
-export function enhancedCapacityHeatTier(heat: number, selected: boolean, balanceContext: unknown): boolean {
-  return selected && heat > balanceNumberFromContext(balanceContext, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'threshold');
+export function enhancedCapacityHeatTier(heat: number, selected: boolean, source: BalanceProfileSource): boolean {
+  return selected && heat > balanceNumber(source, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, 'threshold');
 }
 
 /** Light Density Amplifier owns its passive heat increase in its trait balance. */
 export function lightDensityHeatPerSecond(context: EngineerRuntime<HolosmithSkill>): number {
   return hasTrait(context.traits, TRAIT.LIGHT_DENSITY_AMPLIFIER)
-    ? balanceNumberFromContext(context, TRAIT.LIGHT_DENSITY_AMPLIFIER, 'resourceGain')
+    ? balanceNumber(context.helpers, TRAIT.LIGHT_DENSITY_AMPLIFIER, 'resourceGain')
     : 0;
 }
 
@@ -52,7 +49,7 @@ export function photonicOverheatTiming(
 ): { at: number; cooldown: number } | undefined {
   if (!hasTrait(context.traits, TRAIT.PHOTONIC_BLASTING_MODULE)) return;
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.PHOTONIC_BLASTING_MODULE);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.PHOTONIC_BLASTING_MODULE);
   return {
     at: at + PHOTONIC_BLAST_DELAY_SECONDS,
     cooldown: balanceProfileNumber(profile, 'cooldown')

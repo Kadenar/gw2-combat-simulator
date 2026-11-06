@@ -11,7 +11,7 @@ import {
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { engineerAlchemyTooltips } from '#gw2/professions/engineer/app/tooltips/alchemy.js';
 import { engineerExplosivesTooltips } from '#gw2/professions/engineer/app/tooltips/explosives.js';
@@ -53,7 +53,7 @@ const conduitSurgeTooltip: DescribeSimulationTooltip = (context) => ({
   description:
     'Strike and burn the target, establishing Focused for subsequent spear attacks. Refreshing Focused preserves a longer existing window.',
   facts: [
-    ...simulationEffectFacts(requireSkillAction(requireSkillFromContext(context, ID.CONDUIT_SURGE), 'payload').effects)
+    ...simulationEffectFacts(requireSkillAction(requireSkill(context.catalog, ID.CONDUIT_SURGE), 'payload').effects)
       .facts,
     skillFact(context, ID.CONDUIT_SURGE, 'duration', 'Focused duration', tooltipSeconds)
   ]
@@ -64,7 +64,7 @@ const lightningRodTooltip: DescribeSimulationTooltip = (context) => ({
   facts: [false, true].flatMap(
     (focused) =>
       simulationEffectFacts(
-        requireSkillAction(requireSkillFromContext(context, ID.LIGHTNING_ROD), 'payload').effects.filter(
+        requireSkillAction(requireSkill(context.catalog, ID.LIGHTNING_ROD), 'payload').effects.filter(
           (effect) => effect.name?.startsWith('Focused ') === focused
         ),
         focused ? 'per pulse while Focused' : 'per pulse without Focused'
@@ -77,7 +77,7 @@ const electricArtilleryTooltip: DescribeSimulationTooltip = (context) => ({
   facts: [false, true].flatMap((focused) => {
     const qualifier = focused ? 'while Focused' : 'without Focused';
     return [
-      ...requireSkillAction(requireSkillFromContext(context, ID.ELECTRIC_ARTILLERY), 'payload')
+      ...requireSkillAction(requireSkill(context.catalog, ID.ELECTRIC_ARTILLERY), 'payload')
         .effects.filter((effect) => effect.name?.startsWith('Focused ') === focused)
         .flatMap(
           (effect) =>

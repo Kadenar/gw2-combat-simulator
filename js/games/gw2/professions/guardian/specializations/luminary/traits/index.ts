@@ -10,9 +10,9 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -132,7 +132,7 @@ const radiantArmaments = defineTrait({
       id: 'guardian.radiant-armaments',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.RADIANT_ARMAMENTS, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.RADIANT_ARMAMENTS, 'damageIncrease'),
       when: (context) => {
         const armament = latestRadiantArmaments(context);
         // The buff is emitted for every radiant weapon, but the +7% bonus is
@@ -164,7 +164,7 @@ const empoweredArmaments = defineTrait({
       id: 'guardian.empowered-armaments',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.EMPOWERED_ARMAMENTS, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.EMPOWERED_ARMAMENTS, 'damageIncrease'),
       when: (context) => buffActive(context, 'guardian-empowered-armaments')
     }
   ],
@@ -237,7 +237,7 @@ function scheduleDetonation(runtime: GuardianRuntime, { cast }: LuminaryCast): v
 /** The accepted equip animation grants its armament window after earlier cast-start effects. */
 function startRadiantArmaments(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
   // Armament damage starts with the accepted equip animation, independently of its completion rewards.
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.RADIANT_ARMAMENTS);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.RADIANT_ARMAMENTS);
   const effect = requireEffect(profile, 'buff', 'radiant-armaments');
 
   if (!effect) return;
@@ -318,7 +318,7 @@ function grantResplendentWeaponry(runtime: GuardianRuntime, { cast }: LuminaryCa
 function extendEmpoweredArmaments(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
   const cause = guardianCastCause(runtime, cast);
   const state = luminaryState.from(runtime.profession);
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWERED_ARMAMENTS);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.EMPOWERED_ARMAMENTS);
   const duration = Math.min(
     balanceProfileNumber(profile, 'maximumStacks'),
     Math.max(0, state.empoweredArmamentsUntil - runtime.time) + balanceProfileNumber(profile, 'resourceGain')
@@ -343,7 +343,7 @@ function extendEmpoweredArmaments(runtime: GuardianRuntime, { cast }: LuminaryCa
 
 /** Completed equips reduce real virtue recharge and refresh the shared readiness projection. */
 function reduceVirtueRecharge(runtime: GuardianRuntime, { cast }: LuminaryCast): void {
-  const reduction = balanceNumberFromContext(runtime, TRAIT.ILLUMINATING_INSPIRATION, 'rechargeReduction');
+  const reduction = balanceNumber(runtime.helpers, TRAIT.ILLUMINATING_INSPIRATION, 'rechargeReduction');
   for (const id of VIRTUES)
     runtime.cooldownController.reduceSkillRecharge(runtime.helpers.skillsById.get(id)!, reduction, runtime.time);
   refreshGuardianVirtues(runtime);
@@ -366,7 +366,7 @@ function detonate(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
 
   if (state.lightAuraUntil <= runtime.time) return;
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.SOVEREIGN_OF_LIGHT);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.SOVEREIGN_OF_LIGHT);
   const strike = requireEffect(profile, 'strike', 'Strike');
 
   if (!strike) return;

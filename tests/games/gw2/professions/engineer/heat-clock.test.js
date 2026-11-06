@@ -45,7 +45,7 @@ test('Holosmith initializes one capped heat clock before preheated cooling', () 
     runtime.resourceController.replace('heat', 0);
     assert.equal(projected[STATE.HEAT].value, maximum);
     const view = engineerProfession.ui
-      .resourceViews({ specialization: 'Holosmith', professionState: projected })
+      .resourceViews({ catalog: engineerProfession.catalog, specialization: 'Holosmith', professionState: projected })
       .find((entry) => entry.id === 'heat');
     assert.equal(view.value, maximum);
     assert.equal(view.maximum, maximum);

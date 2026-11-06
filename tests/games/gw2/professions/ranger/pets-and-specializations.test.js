@@ -343,6 +343,7 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
   assert.equal(carrionPalette.statusIcon.icon, RANGER_PETS.find((pet) => pet.name === 'Carrion Devourer').icon);
 
   const endurance = rangerProfession.ui.resourceViews({
+    catalog: rangerProfession.catalog,
     specialization: 'Galeshot',
     professionState: { [STATE.ENDURANCE]: { value: 35, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } }
   })[0];

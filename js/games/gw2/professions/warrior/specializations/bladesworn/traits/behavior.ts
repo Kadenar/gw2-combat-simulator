@@ -1,20 +1,26 @@
 import type { Gw2TraitLookupContext } from '#gw2/platform/builds/selected-traits.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
-export function maximumDragonCharges(context: Gw2TraitLookupContext): number {
+export function maximumDragonCharges(
+  source: import('#gw2/platform/skills/balance-profiles.js').BalanceSource,
+  context: Gw2TraitLookupContext
+): number {
   // Baseline capacity belongs to Dragon Trigger; Daring Dragon owns only its replacement cap.
   return hasTrait(context, TRAIT.DARING_DRAGON)
-    ? balanceNumberFromContext(context, TRAIT.DARING_DRAGON, 'maximumStacks')
-    : skillNumberFromContext(context, ID.DRAGON_TRIGGER, 'maximumCharges');
+    ? balanceNumber(source, TRAIT.DARING_DRAGON, 'maximumStacks')
+    : skillNumber(requireSkill(source, ID.DRAGON_TRIGGER), 'maximumCharges');
 }
 
-export function dragonFlowPerInterval(context: Gw2TraitLookupContext): number {
-  const cost = skillNumberFromContext(context, ID.DRAGON_TRIGGER, 'resourceCost');
+export function dragonFlowPerInterval(
+  source: import('#gw2/platform/skills/balance-profiles.js').BalanceSource,
+  context: Gw2TraitLookupContext
+): number {
+  const cost = skillNumber(requireSkill(source, ID.DRAGON_TRIGGER), 'resourceCost');
   return hasTrait(context, TRAIT.DARING_DRAGON)
-    ? cost * balanceNumberFromContext(context, TRAIT.DARING_DRAGON, 'resourceCostMultiplier')
+    ? cost * balanceNumber(source, TRAIT.DARING_DRAGON, 'resourceCostMultiplier')
     : cost;
 }
 

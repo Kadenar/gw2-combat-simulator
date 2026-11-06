@@ -7,10 +7,10 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -76,7 +76,7 @@ const felineGrace = defineTrait({
     onTriggerPoint(thiefMobilityUsed, {
       when: mobilityEligible,
       run(runtime: ThiefRuntime, { cast }: ThiefCastCompletion) {
-        const profile = requireBalanceProfileFromContext(runtime, TRAIT.FELINE_GRACE);
+        const profile = requireBalanceProfile(runtime.helpers, TRAIT.FELINE_GRACE);
         const effect = requireEffect(profile, 'boon', BOON.SWIFTNESS);
 
         if (!effect || effectNumber(profile, effect, 'stacks') <= 0 || effectNumber(profile, effect, 'duration') <= 0)
@@ -111,7 +111,7 @@ const opportuneOpening = defineTrait({
       order: 8,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => 1 + balanceNumberFromContext(context, REWORK.OPPORTUNE_OPENING, 'damageIncrease'),
+      factor: (context) => 1 + balanceNumber(context.catalog, REWORK.OPPORTUNE_OPENING, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         [CONDITION.CRIPPLED, CONDITION.CHILLED, CONDITION.IMMOBILIZED].some((condition) =>
@@ -161,13 +161,13 @@ const dontStop = defineTrait({
       when: (runtime, event) =>
         (event.kind || '').toLowerCase() === boonKey(BOON.SWIFTNESS) &&
         Boolean(event.resolvedAudience?.includesSelf) &&
-        balanceNumberFromContext(runtime, TRAIT.DONT_STOP, 'resourceGain') > 0,
+        balanceNumber(runtime.helpers, TRAIT.DONT_STOP, 'resourceGain') > 0,
       run(runtime: ThiefRuntime) {
-        const cooldown = balanceNumberFromContext(runtime, TRAIT.DONT_STOP, 'internalCooldown');
+        const cooldown = balanceNumber(runtime.helpers, TRAIT.DONT_STOP, 'internalCooldown');
 
         if (cooldown > 0 && !runtime.procs.claimCooldown(TRAIT.DONT_STOP, runtime.time, cooldown)) return;
 
-        runtime.endurance.grant(balanceNumberFromContext(runtime, TRAIT.DONT_STOP, 'resourceGain'));
+        runtime.endurance.grant(balanceNumber(runtime.helpers, TRAIT.DONT_STOP, 'resourceGain'));
       }
     }
   ]

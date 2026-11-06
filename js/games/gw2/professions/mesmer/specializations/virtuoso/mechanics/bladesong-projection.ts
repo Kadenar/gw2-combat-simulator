@@ -1,5 +1,6 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { ConditionEffect, SkillEffect } from '#gw2/platform/effects/types.js';
+import type { BalanceSource } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerShatterConfusion } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -49,7 +50,7 @@ export function bladesongConfusion(
 
 /** Describe the untraited bladesong from the same selected strike and condition projections used in combat. */
 export function bladesongEffects(
-  context: unknown,
+  source: BalanceSource,
   shatter: MesmerShatter,
   skill: MesmerSkill,
   spent: number
@@ -57,7 +58,7 @@ export function bladesongEffects(
   const tier = bladesongTier(shatter, skill, spent);
   const confusion =
     shatter.kind === 'blade-confusion'
-      ? bladesongConfusion(shatter, spent, mesmerShatterConfusion(context, skill.id))
+      ? bladesongConfusion(shatter, spent, mesmerShatterConfusion(source, skill.id))
       : undefined;
   return [...(tier.strike ? [tier.strike] : []), ...(confusion ? [confusion] : []), ...tier.effects];
 }

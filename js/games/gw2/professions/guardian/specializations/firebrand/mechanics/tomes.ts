@@ -7,7 +7,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { skillNumber, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { createPassiveCourageTask } from '#gw2/professions/guardian/core/mechanics/passive-courage.js';
 import {
@@ -63,7 +63,7 @@ function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, vi
   if (ready) {
     const multiplier = powerOfTheVirtuousRechargeMultiplier(runtime);
     readyAt[virtue] = canonicalTime(
-      runtime.time + skillNumberFromContext(runtime, TOMES[virtue], 'dormantCooldown') * multiplier
+      runtime.time + skillNumber(requireSkill(runtime.helpers, TOMES[virtue]), 'dormantCooldown') * multiplier
     );
     // Ready tomes receive the same unconditional Resolve regeneration as the other virtue owners.
     grantVirtueActivationRewards(runtime, cast, virtue);
@@ -166,13 +166,22 @@ export function firebrandTomeAvailability(
   return null;
 }
 
+/** Share the selected source and trait inputs across the page resource policies. */
+function pageTuning(runtime: Pick<GuardianRuntime, 'config' | 'traits' | 'helpers'>) {
+  return firebrandPageTuning({ config: runtime.config, traits: runtime.traits, catalog: runtime.helpers });
+}
+
 /** Pages recover from their first spend; opening or stowing a tome does not restart their clock. */
 const firebrandTomePages: ResourcePolicy<GuardianRuntime> = {
   kind: 'discrete',
   state: (runtime) => firebrandState.from(runtime.profession).tomePages,
-  maximum: (runtime) => firebrandPageTuning(runtime).maximum,
-  initial: (runtime) => firebrandPageTuning(runtime).initial,
-  recovery: (runtime) => ({ interval: firebrandPageTuning(runtime).interval, amount: 1, start: 'first-spend' })
+  maximum: (runtime) => pageTuning(runtime).maximum,
+  initial: (runtime) => pageTuning(runtime).initial,
+  recovery: (runtime) => ({
+    interval: pageTuning(runtime).interval,
+    amount: 1,
+    start: 'first-spend'
+  })
 };
 
 /** Completed Renewed Focus restores pages without moving their recovery phase. */

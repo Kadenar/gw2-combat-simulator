@@ -8,7 +8,7 @@ import type {
 } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { fieldValue } from '#gw2/platform/skills/field-specs.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -37,7 +37,7 @@ export function sideEffectAmount(
       ? amount
       : 'skillField' in amount
         ? skill && fieldValue(skill, amount.skillField)
-        : balanceNumberFromContext(runtime, amount.profile, amount.field);
+        : balanceNumber(runtime.helpers, amount.profile, amount.field);
 
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
     // Name the selected owner and reference so a bad patch can be located without tracing its caller.
@@ -112,7 +112,7 @@ export function applySideEffect<TContext extends SideEffectServices>(
       return;
     case 'emitProfile': {
       // Profile actions emit the complete selected profile with the triggering skill's attribution.
-      const profile = requireBalanceProfileFromContext(runtime, action.profileId);
+      const profile = requireBalanceProfile(runtime.helpers, action.profileId);
       runtime.effects.emit({
         kind: 'profile',
         profile: profile,

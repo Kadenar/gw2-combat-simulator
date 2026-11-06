@@ -174,7 +174,10 @@ test('event log hides Ranger boon copies and retains ordinary skill buffs', () =
     events.push({ type: 'buff', at: 1, sourceId, kind: 'might', stacks: 25, duration: 10 });
   }
 
-  const rows = simulationEventLogRows({ events, resolvedEvents: [] }, null, withPatchPreview(rangerProfession));
+  const rows = simulationEventLogRows({ events, resolvedEvents: [] }, null, {
+    profession: withPatchPreview(rangerProfession),
+    catalog: rangerProfession.catalog
+  });
   assert.deepEqual(
     rows.map((row) => row.description),
     ['BUFF Stability x10 (6s)']

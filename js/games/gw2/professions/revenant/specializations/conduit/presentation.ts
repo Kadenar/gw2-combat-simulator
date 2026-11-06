@@ -3,8 +3,11 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type {
+  ProfessionStateSnapshotContext,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
@@ -14,7 +17,9 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Reports both the legend-derived Cosmic Wisdom form and its remaining duration. */
-function conduitStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
+function conduitStateSnapshot(
+  context: ProfessionStateSnapshotContext<RevenantUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const state = revenantUiState(context);
   const remaining = (state[STATE.COSMIC_WISDOM_UNTIL] || 0) - Math.max(0, context.atSeconds || 0);
   return remaining > 0 && state[STATE.CONDUIT_FORM]
@@ -81,7 +86,7 @@ export const conduitUi: RevenantUiSlice = Object.freeze({
       // Runtime meters use the canonical cap; build-only controls read the same selected profile.
       maximum:
         revenantUiState(context)[STATE.AFFINITY]?.maximum ??
-        Math.max(1, balanceNumberFromContext(context, TRAIT.ENIGMATIC_CONNECTION, 'maximumStacks')),
+        Math.max(1, balanceNumber(context.catalog, TRAIT.ENIGMATIC_CONNECTION, 'maximumStacks')),
       value: revenantUiState(context)[STATE.AFFINITY]?.value ?? 0,
       // Affinity cannot be manually set by the user; it is always gained through gameplay actions.
       canStart: false,

@@ -12,7 +12,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { lifeForce } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
@@ -49,7 +49,7 @@ const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
     } as Record<number, string>
   )[id];
   const shared = simulationEffectFacts(
-    requireSkillAction(requireSkillFromContext(balanceContext, ID.MANIFEST_SAND_SHADE), 'shade').effects.filter(
+    requireSkillAction(requireSkill(balanceContext.catalog, ID.MANIFEST_SAND_SHADE), 'shade').effects.filter(
       (effect) => effect.type !== 'buff'
     ),
     id === ID.MANIFEST_SAND_SHADE ? '' : 'shared shade attack'
@@ -59,7 +59,7 @@ const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
     facts: [
       ...shared.facts,
       ...(actionId
-        ? simulationEffectFacts(requireSkillAction(requireSkillFromContext(balanceContext, id), actionId).effects).facts
+        ? simulationEffectFacts(requireSkillAction(requireSkill(balanceContext.catalog, id), actionId).effects).facts
         : []),
       ...(id === ID.MANIFEST_SAND_SHADE
         ? (
@@ -71,7 +71,7 @@ const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
             // Pair each shade limit with its own lifetime so alternative values stay compact and distinct.
             const ordinary = profile === ID.MANIFEST_SAND_SHADE;
             const owner = ordinary
-              ? requireSkillFromContext(balanceContext, profile)
+              ? requireSkill(balanceContext.catalog, profile)
               : tooltipProfile(balanceContext, profile);
             const capacity = { name, detail: String(skillNumber(owner, 'maximumStacks')) };
             const lifetime = simulationEffectFacts(

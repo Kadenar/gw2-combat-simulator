@@ -8,9 +8,10 @@ import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type {
   ProfessionEffectPresentation,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { activeSymbolicAvengerExpirations } from '#gw2/professions/guardian/core/state.js';
 import {
@@ -28,7 +29,7 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Simulation time (seconds) of the rotation point being inspected. */
-export function guardianSnapshotAt(context: GuardianUiContext = {}): number {
+export function guardianSnapshotAt(context: Pick<GuardianUiContext, 'atSeconds'>): number {
   return Math.max(0, context.atSeconds || 0);
 }
 
@@ -37,13 +38,15 @@ export function formatSecondsRemaining(seconds: number): string {
   return `${Math.max(0, seconds).toFixed(1)}s`;
 }
 
-export function guardianUiState(context: GuardianUiContext = {}): Partial<GuardianPlanningState> {
+export function guardianUiState(context: Pick<GuardianUiContext, 'professionState'>): Partial<GuardianPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
 
 /** Keeps Symbolic Avenger visible for every Guardian specialization while its damage bonus is active. */
-function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
+function guardianCoreStateSnapshot(
+  context: ProfessionStateSnapshotContext<GuardianUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const state = guardianUiState(context);
   const at = guardianSnapshotAt(context);
   const expirations = activeSymbolicAvengerExpirations(
@@ -58,7 +61,7 @@ function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSna
           id: 'guardian-symbolic-avenger',
           label: 'Symbolic Avenger',
           // The selected profile owns the cap in both combat and the snapshot.
-          value: `${stacks}/${balanceNumberFromContext(context.balanceContext, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER, 'maximumStacks')} · ${formatSecondsRemaining(remaining)}`,
+          value: `${stacks}/${balanceNumber(context.balanceContext.catalog, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER, 'maximumStacks')} · ${formatSecondsRemaining(remaining)}`,
           title: 'Active Symbolic Avenger stacks and time remaining'
         }
       ]
@@ -70,7 +73,7 @@ function guardianCoreStateSnapshot(context: GuardianUiContext): RotationStateSna
 export function guardianUiSkillIds(
   catalog: Readonly<CanonicalCatalog<GuardianSkill>>,
   ids: readonly SkillId[],
-  context: GuardianUiContext = {}
+  context: GuardianUiContext
 ): SkillId[] {
   const activeFlips = context.professionState?.[STATE.AVAILABLE_FLIPS] ?? {};
   return ids.flatMap((id) => {

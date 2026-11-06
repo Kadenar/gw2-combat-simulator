@@ -51,8 +51,8 @@ test('Photon Projector scales condition base duration independently of ordinary 
       config: { selectedTraitIds: [] },
       event: { holosmithConditionBaseDurationFactor: factor }
     };
-    assert.equal(native.modifyConditionBaseDuration(context, 2), 2 * expected);
-    assert.equal(native.modifyConditionDuration(context, 2), 2);
+    assert.equal(native.modifyConditionBaseDuration({ ...context, catalog: native.catalog }, 2), 2 * expected);
+    assert.equal(native.modifyConditionDuration({ ...context, catalog: native.catalog }, 2), 2);
   }
 });
 
@@ -750,14 +750,10 @@ test('Thermal Release Valve, ECSU, and PBM materialize their heat effects', () =
     .find((trait) => trait.id === TRAIT.PHOTON_PROJECTOR)
     .modifierRules.find((rule) => rule.id === 'engineer.enhanced-capacity-damage-tier');
   const swordTierFactor = (heat, selectedTraitIds = []) =>
-    holosmithSkillStrikeFactor(
-      {
-        config: { selectedTraitIds },
-        catalog: engineerCatalog
-      },
-      ID.SUN_EDGE,
-      { heat, enhancedCapacitySelected: selectedTraitIds.includes(TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT) }
-    );
+    holosmithSkillStrikeFactor(engineerCatalog, ID.SUN_EDGE, {
+      heat,
+      enhancedCapacitySelected: selectedTraitIds.includes(TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT)
+    });
 
   assert.deepEqual(
     [

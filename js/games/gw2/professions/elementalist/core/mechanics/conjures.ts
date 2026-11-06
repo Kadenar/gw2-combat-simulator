@@ -1,7 +1,7 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { CONJURE_PICKUP_WEAPONS, CONJURE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { conjureEquipped } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
@@ -11,7 +11,7 @@ import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/el
 const conjureSkillIds = new Map(Object.entries(CONJURE_SKILLS).map(([id, weapon]) => [weapon, Number(id)]));
 
 function conjureDuration(context: ElementalistRuntime, weapon: string): number {
-  return skillNumberFromContext(context, conjureSkillIds.get(weapon)!, 'duration');
+  return skillNumber(requireSkill(context.helpers, conjureSkillIds.get(weapon)!), 'duration');
 }
 
 /** A conjure creates independent equipped and one-use ground copies before its trait and swap events. */

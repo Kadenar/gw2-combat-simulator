@@ -1,5 +1,5 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { specterBuffPolicies } from '#gw2/professions/thief/specializations/specter/effect-state.js';
@@ -52,7 +52,7 @@ export const specterHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     if (cost > 0)
       runtime.resourceController.grant(
         'shadowForce',
-        cost * balanceNumberFromContext(runtime, TRAIT.SPECTER, 'resourceGain')
+        cost * balanceNumber(runtime.helpers, TRAIT.SPECTER, 'resourceGain')
       );
   },
   onCooldownReset(runtime) {

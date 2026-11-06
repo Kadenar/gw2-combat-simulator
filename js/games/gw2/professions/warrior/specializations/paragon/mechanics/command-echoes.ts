@@ -4,7 +4,7 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { balanceNumberFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { paragonState } from '#gw2/professions/warrior/specializations/paragon/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -21,7 +21,7 @@ export const paragonCastCompleted = defineTriggerPoint<{ readonly cast: RuntimeC
 /** Echo counts are fixed at command admission and survive later trait changes. */
 function reverberationEchoCount(runtime: WarriorRuntime): number {
   return hasTrait(runtime, TRAIT.REVERBERATION)
-    ? balanceNumberFromContext(runtime, TRAIT.REVERBERATION, 'maximumStacks')
+    ? balanceNumber(runtime.helpers, TRAIT.REVERBERATION, 'maximumStacks')
     : 1;
 }
 

@@ -3,7 +3,6 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
@@ -15,14 +14,11 @@ import type {
   ProfessionEffectPresentation,
   ProfessionPaletteGroup,
   ProfessionResourceView,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
@@ -49,13 +45,13 @@ const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Objec
   [WEAPON.SWORD]: ID.BLOODTHIRSTER
 });
 
-export function warriorUiState(context: WarriorUiContext = {}): Partial<WarriorPlanningState> {
+export function warriorUiState(context: Pick<WarriorUiContext, 'professionState'>): Partial<WarriorPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
 
 /** Simulation time (seconds) of the rotation point being inspected. */
-export function warriorSnapshotAt(context: WarriorUiContext = {}): number {
+export function warriorSnapshotAt(context: Pick<WarriorUiContext, 'atSeconds'>): number {
   return Math.max(0, context.atSeconds || 0);
 }
 
@@ -146,9 +142,7 @@ export function warriorAdrenalineResourceViews(
 }
 
 /** True when the build has the Arms trait Signet Mastery selected. */
-function hasSignetMasteryTrait(
-  context: WarriorUiContext & { readonly balanceContext: ProfessionBalanceContext }
-): boolean {
+function hasSignetMasteryTrait(context: ProfessionStateSnapshotContext): boolean {
   return selectedTraits(context.balanceContext.catalog, context.build?.specializations || []).some(
     (trait) => Number(trait.id) === TRAIT.SIGNET_MASTERY
   );
@@ -159,7 +153,7 @@ function hasSignetMasteryTrait(
  * timeline as their modifiers so the bar never drifts from the simulation.
  */
 function warriorCoreStateSnapshot(
-  context: WarriorUiContext & { readonly balanceContext: ProfessionBalanceContext }
+  context: ProfessionStateSnapshotContext<WarriorUiContext['professionState']>
 ): RotationStateSnapshotItem[] {
   const items: RotationStateSnapshotItem[] = [];
   const balance = context.balanceContext;
@@ -176,7 +170,7 @@ function warriorCoreStateSnapshot(
   }
 
   if (hasSignetMasteryTrait(context)) {
-    const profile = requireBalanceProfileFromContext(balance, TRAIT.SIGNET_MASTERY);
+    const profile = requireBalanceProfile(balance.catalog, TRAIT.SIGNET_MASTERY);
     const maximum = balanceProfileNumber(profile, 'maximumStacks');
     const bonus = balanceProfileNumber(profile, 'attributePerStack');
     const stacks = planningBuffStacks(context.planningState, 'signet-mastery');
@@ -194,17 +188,12 @@ function warriorCoreStateSnapshot(
   // These independent stacking trait buffs are useful across every Warrior
   // specialization, regardless of whether Signet Mastery is selected.
   for (const [id, label, kind, maximum] of [
-    [
-      'furious-surge',
-      'Furious Surge',
-      'furious-surge',
-      balanceNumberFromContext(balance, TRAIT.FURIOUS, 'maximumStacks')
-    ],
+    ['furious-surge', 'Furious Surge', 'furious-surge', balanceNumber(balance.catalog, TRAIT.FURIOUS, 'maximumStacks')],
     [
       'berserkers-power',
       "Berserker's Power",
       'berserkers-power',
-      balanceNumberFromContext(balance, TRAIT.BERSERKERS_POWER, 'maximumStacks')
+      balanceNumber(balance.catalog, TRAIT.BERSERKERS_POWER, 'maximumStacks')
     ]
   ] as const) {
     const stacks = planningBuffStacks(context.planningState, kind);

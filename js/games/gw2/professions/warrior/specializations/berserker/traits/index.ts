@@ -8,11 +8,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import {
   berserkEntered,
@@ -58,7 +54,7 @@ const bloodyRoar = defineTrait({
       id: 'warrior.bloody-roar',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.BLOODY_ROAR, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.BLOODY_ROAR, 'damageMultiplier'),
       order: 100,
       when: (context) => active(context)
     }
@@ -111,7 +107,7 @@ const smashBrawler = defineTrait({
       id: 'warrior.smash-brawler-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.SMASH_BRAWLER, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.SMASH_BRAWLER, 'criticalChance'),
       when: (context) => active(context)
     }
   ]
@@ -152,7 +148,7 @@ const kingOfFires = defineTrait({
     return {
       traitDurations: {
         'Burning Duration':
-          balanceNumberFromContext(context.balanceContext, TRAIT.KING_OF_FIRES, 'durationMultiplier') * 100
+          balanceNumber(context.balanceContext.catalog, TRAIT.KING_OF_FIRES, 'durationMultiplier') * 100
       }
     };
   },
@@ -172,7 +168,7 @@ const kingOfFires = defineTrait({
         )
           return;
 
-        const profile = requireBalanceProfileFromContext(runtime, TRAIT.KING_OF_FIRES);
+        const profile = requireBalanceProfile(runtime.helpers, TRAIT.KING_OF_FIRES);
         // The qualifying critical hit owns the interval even when its optional aura packet is removed.
         const aura = requireEffect(profile, 'aura', AURA.FIRE);
 
@@ -242,8 +238,8 @@ export const bloodReaction = defineTrait({
   },
   // Ordinary eligible conversions exclude signets, utility conversions, Might, and Berserk's flat grants.
   attributes(context) {
-    const factor = balanceNumberFromContext(
-      context,
+    const factor = balanceNumber(
+      context.balanceContext.catalog,
       TRAIT.BLOOD_REACTION,
       active(context) ? 'coefficientMultiplier' : 'attributeConversion'
     );
@@ -294,7 +290,7 @@ export const warriorBerserkerTraits = [
 
 /** Entry traits share self-boon delivery while preserving their own selection rules, tuning, and cast attribution. */
 function emitBerserkEntryBoons(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, traitId: number): void {
-  const profile = requireBalanceProfileFromContext(runtime, traitId);
+  const profile = requireBalanceProfile(runtime.helpers, traitId);
   emitTraitProfile(runtime, traitId, traitId, undefined, {
     attribution: {
       source: 'Trait',
@@ -317,7 +313,7 @@ function emitBerserkEntryBoons(runtime: WarriorRuntime, cast: RuntimeCast<Warrio
 /** Own this trait's reward at the accepted mechanic boundary. */
 function heatTheSoulCompletion(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   if (cast.skill.primalBurst) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.HEAT_THE_SOUL);
+    const profile = requireBalanceProfile(runtime.helpers, TRAIT.HEAT_THE_SOUL);
     emitTraitProfile(runtime, TRAIT.HEAT_THE_SOUL, TRAIT.HEAT_THE_SOUL, undefined, {
       attribution: {
         source: 'Trait',

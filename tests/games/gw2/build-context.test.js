@@ -105,7 +105,7 @@ test('a selected preview supplies both the attribute catalog and balance context
   assert.equal(seen, undefined);
   context.attributes(1);
   assert.equal(seen.balanceContext, profession.resolvePatch({ id: 'context-preview' }).balanceContext);
-  assert.equal(seen.profession.catalog, profession.resolvePatch({ id: 'context-preview' }).catalog);
+  assert.equal(seen.catalog, profession.resolvePatch({ id: 'context-preview' }).catalog);
   assert.deepEqual(seen.config.selectedSkillIds, context.selectedSkillIds);
   assert.equal(context.simulationConfig().patchId, 'context-preview');
 });

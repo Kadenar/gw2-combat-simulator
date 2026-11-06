@@ -3,10 +3,10 @@ import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireSkillFromContext,
+  requireBalanceProfile,
+  requireSkill,
   skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
@@ -30,7 +30,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
 
   if ((state.celestialAvatarEndsAt !== null) === active) return;
 
-  const duration = skillNumber(requireSkillFromContext(runtime, ID.CELESTIAL_AVATAR), 'duration');
+  const duration = skillNumber(requireSkill(runtime.helpers, ID.CELESTIAL_AVATAR), 'duration');
   // Presence owns the form lifetime; comparing the deadline to time would skip cleanup at exact expiry.
   state.celestialAvatarEndsAt = active ? canonicalTime(runtime.time + duration) : null;
   runtime.resourceController.refresh('astralForce');
@@ -41,7 +41,7 @@ function avatar(runtime: RangerRuntime, active: boolean, exhausted = false): voi
     runtime.consumeFlip(ID.RELEASE_CELESTIAL_AVATAR);
     const retained = exhausted
       ? 0
-      : balanceNumberFromContext(runtime, TRAIT.CELESTIAL_BEING, 'astralForceRetentionMultiplier');
+      : balanceNumber(runtime.helpers, TRAIT.CELESTIAL_BEING, 'astralForceRetentionMultiplier');
     runtime.resourceController.spend('astralForce', state.astralClock.value * (1 - retained));
   }
 
@@ -65,11 +65,11 @@ export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSk
     astralForce: {
       kind: 'continuous',
       state: (runtime) => druidState.from(runtime.profession).astralClock,
-      maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.CELESTIAL_BEING, 'maximumStacks'),
+      maximum: (runtime) => balanceNumber(runtime.helpers, TRAIT.CELESTIAL_BEING, 'maximumStacks'),
       initial: (runtime, maximum) => (runtime as RangerRuntime).config.initialAstralForce ?? maximum,
       recovery(runtime) {
-        const profile = requireBalanceProfileFromContext(runtime, TRAIT.CELESTIAL_BEING);
-        const duration = skillNumber(requireSkillFromContext(runtime, ID.CELESTIAL_AVATAR), 'duration');
+        const profile = requireBalanceProfile(runtime.helpers, TRAIT.CELESTIAL_BEING);
+        const duration = skillNumber(requireSkill(runtime.helpers, ID.CELESTIAL_AVATAR), 'duration');
         return druidState.from(runtime.profession).celestialAvatarEndsAt !== null && duration > 0
           ? -balanceProfileNumber(profile, 'maximumStacks') / duration
           : 0;
@@ -163,7 +163,7 @@ export const celestialAvatarLifecycle: RuntimeHooks<RangerRuntimeState, RangerSk
 
       runtime.resourceController.grant(
         'astralForce',
-        balanceNumberFromContext(runtime, TRAIT.CELESTIAL_BEING, 'resourceGain') * eclipseAstralForceMultiplier(runtime)
+        balanceNumber(runtime.helpers, TRAIT.CELESTIAL_BEING, 'resourceGain') * eclipseAstralForceMultiplier(runtime)
       );
     }
   }

@@ -4,7 +4,7 @@ import { ACTOR, BOON, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import {
   guardianCastCompleted,
@@ -112,7 +112,7 @@ export const invigoratedBulwark = defineTrait({
       )
         return event;
 
-      const multiplier = balanceNumberFromContext(runtime, TRAIT.INVIGORATED_BULWARK, 'durationMultiplier');
+      const multiplier = balanceNumber(runtime.helpers, TRAIT.INVIGORATED_BULWARK, 'durationMultiplier');
       // Scaling the skill-owned packet also covers Writ's added pulses without consuming capped bonus duration.
       return { ...event, duration: Number(event.duration) * multiplier };
     }

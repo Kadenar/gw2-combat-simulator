@@ -14,9 +14,9 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusNumber,
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
+  balanceNumber,
+  ownerAttributeBonusNumber,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
@@ -114,7 +114,7 @@ export const fortifyingBond = defineTrait({
         // Emit only the trait's pet grant: the configured player boon already exists in the permanent-boon layer.
         for (const [kind, value] of Object.entries(runtime.config.boons ?? {}))
           if (isStandardBoon(kind) && Number(value) > 0) shareFortifyingBond(runtime, kind, Number(value));
-        const interval = balanceNumberFromContext(runtime, TRAIT.FORTIFYING_BOND, 'pulseInterval');
+        const interval = balanceNumber(runtime.helpers, TRAIT.FORTIFYING_BOND, 'pulseInterval');
 
         if (interval > 0) runtime.schedule('ranger.fortifying-bond-console', runtime.time + interval, null);
       }
@@ -125,7 +125,7 @@ export const fortifyingBond = defineTrait({
 /** Every spirit repeats its slam one second after the final authored shake, including patched pulse timings. */
 function spiritRepeatSlamAt(runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>): number {
   return (
-    balanceNumberFromContext(runtime, TRAIT.NATURES_VENGEANCE, 'baseDuration') +
+    balanceNumber(runtime.helpers, TRAIT.NATURES_VENGEANCE, 'baseDuration') +
     Math.max(
       cast.fullEnd,
       ...(cast.skill.effects ?? [])
@@ -214,7 +214,7 @@ export const naturesVengeance = defineTrait({
 
 /** Wellspring uses a pet's captured Power plus its own Might; unsnapshotted queries read accumulated Power. */
 function wellspringPetAttributes(context: Gw2AttributeContext): Gw2AttributeContributions {
-  const multiplier = balanceNumberFromContext(context, TRAIT.WELLSPRING, 'attributeConversion');
+  const multiplier = balanceNumber(context.balanceContext.catalog, TRAIT.WELLSPRING, 'attributeConversion');
   const base = Number(context.event?.summonBasePower);
 
   if (!Number.isFinite(base) || base <= 0)
@@ -361,12 +361,12 @@ export const bountifulHunter = defineTrait({
       // Count unique boons only up to the selected balance cap.
 
       factor: (context) =>
-        balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'damageMultiplier') +
+        balanceNumber(context.catalog, TRAIT.BOUNTIFUL_HUNTER, 'damageMultiplier') +
         Math.min(
-          balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'maximumBoons'),
+          balanceNumber(context.catalog, TRAIT.BOUNTIFUL_HUNTER, 'maximumBoons'),
           rangerActiveBoonCount(context, ACTOR.PLAYER)
         ) *
-          balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'damagePerBoon'),
+          balanceNumber(context.catalog, TRAIT.BOUNTIFUL_HUNTER, 'damagePerBoon'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     },
     {
@@ -377,12 +377,12 @@ export const bountifulHunter = defineTrait({
       // Count unique boons only up to the selected balance cap.
 
       factor: (context) =>
-        balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'damageMultiplier') +
+        balanceNumber(context.catalog, TRAIT.BOUNTIFUL_HUNTER, 'damageMultiplier') +
         Math.min(
-          balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'maximumBoons'),
+          balanceNumber(context.catalog, TRAIT.BOUNTIFUL_HUNTER, 'maximumBoons'),
           rangerActiveBoonCount(context, 'pet')
         ) *
-          balanceNumberFromContext(context, TRAIT.BOUNTIFUL_HUNTER, 'damagePerBoon'),
+          balanceNumber(context.catalog, TRAIT.BOUNTIFUL_HUNTER, 'damagePerBoon'),
       when: (context) => rangerPetEvent(context)
     }
   ]
@@ -391,7 +391,7 @@ export const bountifulHunter = defineTrait({
 /** Lingering Magic supplies companion Concentration while the pet mechanic owns boon attribution. */
 export function lingeringMagicConcentration(context: SelectedContentContext): number {
   return context.hasTrait(TRAIT.LINGERING_MAGIC)
-    ? attributeBonusNumber(context.requireBalanceProfile(TRAIT.LINGERING_MAGIC), 'concentration')
+    ? ownerAttributeBonusNumber(context.requireBalanceProfile(TRAIT.LINGERING_MAGIC), 'concentration')
     : 0;
 }
 
@@ -425,7 +425,7 @@ function applySpiritedArrival(context: RangerRuntime, skill: RangerSkill): void 
 
 /** Applies the trait at the accepted Beast-skill boundary. */
 function applyRejuvenation(context: RangerRuntime, skill: RangerSkill): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.REJUVENATION);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.REJUVENATION);
   const effect = requireEffect(profile, 'boon', boonKey(BOON.REGENERATION));
 
   // The cooldown gates only regeneration, so a removed boon leaves the trait ready.

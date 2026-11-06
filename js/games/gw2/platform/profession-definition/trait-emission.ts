@@ -5,7 +5,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Both explicitly trait-sourced packets and skill-attributed trait emissions retain their damage ownership. */
@@ -80,7 +80,7 @@ export function emitTraitProfile(
   options: TraitProfileOptions = {}
 ): readonly SimulationEvent[] | void {
   const { attribution } = options;
-  const profile = requireBalanceProfileFromContext(runtime, profileId);
+  const profile = requireBalanceProfile(runtime.helpers, profileId);
   const namedEffect = options.effect ? requireEffect(profile, options.effect.type, options.effect.name) : undefined;
   const effects = options.effect ? (namedEffect ? [namedEffect] : []) : profile.effects;
   // Effect-specific identity preserves authored actor ownership across mixed profiles.

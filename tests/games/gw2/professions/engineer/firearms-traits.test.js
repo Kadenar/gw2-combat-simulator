@@ -36,6 +36,7 @@ function fixture(traits, catalog = engineerCatalog, mode = 'stochastic') {
     }
   });
   const context = {
+    config: {},
     helpers: catalog,
     traits: new Set(traits),
     random: createSimulationRandom({ mode, seed: 37 }),

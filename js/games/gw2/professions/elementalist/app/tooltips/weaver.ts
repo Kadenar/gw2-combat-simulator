@@ -51,7 +51,7 @@ export const weaverTooltips = {
       description:
         'Each pulse deals strike damage and applies a condition from each of your current primary and secondary attunements. Matching attunements apply that condition twice.',
       // Label each alternative by attunement while preserving the selected payload's condition icon and stack count.
-      facts: primordialStancePayload(balanceContext).action.effects.flatMap((effect) =>
+      facts: primordialStancePayload(balanceContext.catalog).action.effects.flatMap((effect) =>
         simulationEffectFacts(
           [{ ...effect, name: undefined }],
           effect.type === 'strike' ? 'once per pulse' : ''

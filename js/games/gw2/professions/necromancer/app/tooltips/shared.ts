@@ -44,7 +44,10 @@ export const shroudTooltip: DescribeSimulationTooltip = (balanceContext, entity)
         name: 'Minimum life force to enter',
         detail: lifeForce(tooltipNumber(selected, 'minimumShroudLifeForcePercent'))
       },
-      { name: 'Life force drained per second', detail: lifeForce(necromancerShroudDrain(balanceContext, selected)) },
+      {
+        name: 'Life force drained per second',
+        detail: lifeForce(necromancerShroudDrain(balanceContext.catalog, selected))
+      },
       ...(selected.shroudEntry === 'harbinger'
         ? [
             profileFact(balanceContext, owner.id, 'blightGain', 'Blight per pulse'),

@@ -8,10 +8,10 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
+  attributeBonusNumber,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext
+  requireBalanceProfile
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { paragonCastCompleted } from '#gw2/professions/warrior/specializations/paragon/mechanics/command-echoes.js';
@@ -39,7 +39,7 @@ const inspiringImplements = defineTrait({
         {
           kind: 'flat',
           to: 'Concentration',
-          amount: attributeBonusFromContext(context.balanceContext, TRAIT.INSPIRING_IMPLEMENTS, 'concentration'),
+          amount: attributeBonusNumber(context.balanceContext.catalog, TRAIT.INSPIRING_IMPLEMENTS, 'concentration'),
           feedsConversions: 'none',
           enabled: true
         }
@@ -121,7 +121,7 @@ const callToAction = defineTrait({
         state.callToActionActivated = true;
         runtime.resourceController.grant(
           'motivation',
-          balanceNumberFromContext(runtime, TRAIT.CALL_TO_ACTION, 'resourceGain')
+          balanceNumber(runtime.helpers, TRAIT.CALL_TO_ACTION, 'resourceGain')
         );
 
         if (state.activeRefrainId == null) {
@@ -152,7 +152,7 @@ const rallyTheValiant = defineTrait<WarriorSkill>({
         )
           runtime.resourceController.grant(
             'motivation',
-            balanceNumberFromContext(runtime, TRAIT.RALLY_THE_VALIANT, 'resourceGain')
+            balanceNumber(runtime.helpers, TRAIT.RALLY_THE_VALIANT, 'resourceGain')
           );
       }
     }
@@ -181,8 +181,8 @@ const strengtheningStanzas = defineTrait({
 
       amount: (context, target) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE
-          ? balanceNumberFromContext(context, TRAIT.STRENGTHENING_STANZAS, 'conditionBonus')
-          : balanceNumberFromContext(context, TRAIT.STRENGTHENING_STANZAS, 'strikeBonus'),
+          ? balanceNumber(context.catalog, TRAIT.STRENGTHENING_STANZAS, 'conditionBonus')
+          : balanceNumber(context.catalog, TRAIT.STRENGTHENING_STANZAS, 'strikeBonus'),
       when: (context) => paragonRuntimeState(context).activeRefrainId === ID.CHANT_OF_ACTION
     }
   ]
@@ -227,7 +227,7 @@ function motivation(context: Gw2ModifierContext): number {
 // Resolve Brisk Pacing's modifier amount from live Motivation and refrain state
 // at the queried event timestamp.
 function briskPacingAmount(context: Gw2ModifierContext, target: string): number {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.BRISK_PACING);
+  const profile = requireBalanceProfile(context.catalog, TRAIT.BRISK_PACING);
   const current = motivation(context);
 
   if (current <= 0) return 0;
@@ -264,14 +264,14 @@ export const warriorParagonTraits = [
 function applyInvigoratingTempo(runtime: WarriorRuntime, spent: number): void {
   runtime.resourceController.grant(
     'adrenaline',
-    spent * balanceNumberFromContext(runtime, TRAIT.INVIGORATING_TEMPO, 'resourceGain')
+    spent * balanceNumber(runtime.helpers, TRAIT.INVIGORATING_TEMPO, 'resourceGain')
   );
 }
 
 /** Chant entry reduces the other chants only after opening packets and refrain scheduling. */
 function applyFeverishPulse(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): void {
   // Share the selected profile across every chant's recharge reduction.
-  const feverish = requireBalanceProfileFromContext(runtime, TRAIT.FEVERISH_PULSE);
+  const feverish = requireBalanceProfile(runtime.helpers, TRAIT.FEVERISH_PULSE);
   for (const id of CHANTS) {
     const skill = runtime.helpers.skillsById.get(id);
 
@@ -290,7 +290,7 @@ function applyInspiringImplements(runtime: WarriorRuntime, cast: RuntimeCast<War
     cast.skill.inputCategory === 'weapon-swap' &&
     runtime.procs.claim(TRAIT.INSPIRING_IMPLEMENTS, 'warrior.paragon.inspiringImplements', runtime.time)
   ) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.INSPIRING_IMPLEMENTS);
+    const profile = requireBalanceProfile(runtime.helpers, TRAIT.INSPIRING_IMPLEMENTS);
     runtime.resourceController.grant('adrenaline', balanceProfileNumber(profile, 'resourceGain'));
     runtime.resourceController.grant('motivation', balanceProfileNumber(profile, 'minimumStacks'));
   }

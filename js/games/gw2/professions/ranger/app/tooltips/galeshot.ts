@@ -17,7 +17,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { fieldValue } from '#gw2/platform/skills/field-specs.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
@@ -68,7 +68,7 @@ export const galeshotTooltips = {
       (balanceContext) => [
         skillFact(balanceContext, ID.MISTRAL, 'duration', 'Mistral window', tooltipSeconds),
         ...simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.MISTRAL), 'missile-trigger').effects,
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.MISTRAL), 'missile-trigger').effects,
           'per eligible missile hit'
         ).facts
       ]

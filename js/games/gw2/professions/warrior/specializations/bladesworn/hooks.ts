@@ -67,7 +67,7 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
   {
     // Bladesworn disables adrenaline at initialization; authored rewards select the Flow pool its lifecycle registers.
     resources: { adrenaline: { ...coreAdrenalinePolicy, maximum: () => 0 } },
-    buffPolicies: bladeswornBuffPolicies,
+    buffPolicies: (runtime) => bladeswornBuffPolicies(runtime.helpers),
     observeEffects: bladeswornEffectStates,
     prepareDamageState(runtime, skill) {
       bladeswornState.from(runtime.profession).gunsaberActive = Boolean(skill?.gunsaberSkill);

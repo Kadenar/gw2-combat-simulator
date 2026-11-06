@@ -1,5 +1,5 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import {
@@ -16,7 +16,7 @@ import type { WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior
 /** Spellbreaker supplies its selected cap before the shared controller seeds initial adrenaline. */
 const spellbreakerAdrenalinePolicy: typeof coreAdrenalinePolicy = {
   ...coreAdrenalinePolicy,
-  maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.SPELLBREAKERS_CONVICTION, 'maximumStacks')
+  maximum: (runtime) => balanceNumber(runtime.helpers, TRAIT.SPELLBREAKERS_CONVICTION, 'maximumStacks')
 };
 
 /** Core owns packet execution and one-bar spending; this slice owns accepted control and burst reactions. */
@@ -30,7 +30,7 @@ export const spellbreakerHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> 
       () => Infinity
     );
   },
-  buffPolicies: spellbreakerBuffPolicies,
+  buffPolicies: (runtime) => spellbreakerBuffPolicies(runtime.helpers),
   observeEffects: spellbreakerEffectStates,
   resources: { adrenaline: spellbreakerAdrenalinePolicy },
   // Accepted control and strikes reach their trait boundaries before selected trait reactions.

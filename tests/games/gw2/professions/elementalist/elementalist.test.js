@@ -52,15 +52,30 @@ test('attunement recharge applies trait reductions in order and stays free befor
     cooldownController: { rate: () => 1.25 }
   };
   const skill = elementalistCatalog.skillsById.get(ID.FIRE_ATTUNEMENT);
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, flowStateAttunementReduction(context)), 1.92);
+  assert.equal(
+    elementalistAttunementRechargeDuration(context, skill, 4, flowStateAttunementReduction(context.helpers, context)),
+    1.92
+  );
   // Weave Self's two-second base still receives both selected traits: (2 * 0.85 - 1) / 1.25.
   assert.ok(
-    Math.abs(elementalistAttunementRechargeDuration(context, skill, 2, flowStateAttunementReduction(context)) - 0.56) <
-      1e-12
+    Math.abs(
+      elementalistAttunementRechargeDuration(
+        context,
+        skill,
+        2,
+        flowStateAttunementReduction(context.helpers, context)
+      ) - 0.56
+    ) < 1e-12
   );
   context.engagement = createCombatEngagement().query;
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 4, flowStateAttunementReduction(context)), 0);
-  assert.equal(elementalistAttunementRechargeDuration(context, skill, 2, flowStateAttunementReduction(context)), 0);
+  assert.equal(
+    elementalistAttunementRechargeDuration(context, skill, 4, flowStateAttunementReduction(context.helpers, context)),
+    0
+  );
+  assert.equal(
+    elementalistAttunementRechargeDuration(context, skill, 2, flowStateAttunementReduction(context.helpers, context)),
+    0
+  );
 });
 
 test('Elementalist build defaults and canonical builds normalize explicitly', () => {

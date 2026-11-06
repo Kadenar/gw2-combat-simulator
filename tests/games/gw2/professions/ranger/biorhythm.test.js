@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { BIORHYTHM, VOW_OF_THE_UNTAMED } from '#gw2/professions/ranger/specializations/untamed/effect-state.js';
 import { untamedState } from '#gw2/professions/ranger/specializations/untamed/state.js';
@@ -35,7 +35,7 @@ function simulate(rotation, overrides = {}) {
 // Cycle timing is read from the active profile, so these contracts survive balance changes.
 const tuning = (() => {
   const { runtime } = simulate([]);
-  const biorhythm = requireBalanceProfileFromContext(runtime, TRAIT.BIORHYTHM);
+  const biorhythm = requireBalanceProfile(runtime.helpers, TRAIT.BIORHYTHM);
   const effect = (kind) => biorhythm.effects.find((candidate) => candidate.kind === kind);
   const stack = effect(BIORHYTHM);
   const intervalMs = stack.intervalMs;
@@ -48,7 +48,7 @@ const tuning = (() => {
     // Every stack from one cycle has expired once the last application's full duration elapses.
     decayMs: intervalMs * (stack.applications - 1) + stack.duration * 1000,
     vowDuration: effect(VOW_OF_THE_UNTAMED).duration,
-    vowBonus: requireBalanceProfileFromContext(runtime, TRAIT.VOW_OF_THE_UNTAMED).damageIncrease
+    vowBonus: requireBalanceProfile(runtime.helpers, TRAIT.VOW_OF_THE_UNTAMED).damageIncrease
   };
 })();
 

@@ -71,7 +71,7 @@ export interface ResourceController {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- The shared registry erases profession state; each owner declares its concrete TContext.
 export interface EndurancePolicy<TContext = MechanicContext<any>> {
   state(context: TContext): ResourceClock;
-  maximum(context: unknown): number;
+  maximum(context: TContext): number;
   regenerationRate(context: TContext, vigor: boolean, at: number): number;
   regenerationBoundaries?(context: TContext): readonly number[];
 }

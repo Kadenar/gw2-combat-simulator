@@ -1,5 +1,4 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { ProfessionCatalogContext } from '#gw2/platform/profession-presentation/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { engineerUiState } from '#gw2/professions/engineer/core/presentation.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -11,7 +10,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 // Prefer the editable build's traits, but fall back to simulation state when a
 // historical result is inspected without a complete build projection.
-function mechanistCommandSkills(context: EngineerUiContext & ProfessionCatalogContext): SkillId[] {
+function mechanistCommandSkills(context: EngineerUiContext): SkillId[] {
   const activeTraits = selectedTraits(context.catalog, context.build?.specializations || []);
   return activeTraits.length
     ? selectedMechCommands(new Set(activeTraits.map((trait) => trait.id)))
@@ -38,7 +37,7 @@ export const mechanistUi: EngineerUiSlice = Object.freeze({
 
     return preview.controls;
   },
-  paletteGroups: (context: EngineerUiContext & ProfessionCatalogContext) => [
+  paletteGroups: (context: EngineerUiContext) => [
     {
       id: 'engineer-profession',
       label: 'F',

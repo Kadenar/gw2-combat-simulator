@@ -708,6 +708,7 @@ test('profession event-log hooks present, hide, and diagnose custom events', () 
     planningState: { profession: {} }
   };
   const profession = {
+    catalog: engineerProfession.catalog,
     ui: {
       eventLogRow(_context, event) {
         if (event.type === 'engineer.state') return null;
@@ -727,7 +728,7 @@ test('profession event-log hooks present, hide, and diagnose custom events', () 
   };
 
   assert.deepEqual(
-    simulationEventLogRows(result, null, profession).map((row) => row.description),
+    simulationEventLogRows(result, null, { profession, catalog: profession.catalog }).map((row) => row.description),
     ['KIT EQUIPPED Grenade Kit']
   );
 
@@ -768,7 +769,7 @@ test('Engineer contracts present state and suppress known packet events', () => 
       planningState: { profession: {} }
     },
     { specializations: [{ name: 'Holosmith', traits: '' }] },
-    withPatchPreview(engineerProfession)
+    { profession: withPatchPreview(engineerProfession), catalog: engineerProfession.catalog }
   );
 
   assert.equal(engineerRows.length, 1);
@@ -788,7 +789,7 @@ test('Engineer contracts present state and suppress known packet events', () => 
         planningState: { profession: {} }
       },
       null,
-      withPatchPreview(engineerProfession)
+      { profession: withPatchPreview(engineerProfession), catalog: engineerProfession.catalog }
     );
 
     assert.equal(unknown.description, 'UNPRESENTED CUSTOM EVENT engineer.unhandled');
@@ -810,12 +811,12 @@ test('Guardian weapon-bar transitions and canonical Necromancer conditions have 
     const firebrandRows = simulationEventLogRows(
       firebrand,
       { specializations: [{ name: 'Firebrand', traits: '' }] },
-      withPatchPreview(guardianProfession)
+      { profession: withPatchPreview(guardianProfession), catalog: guardianProfession.catalog }
     );
     const luminaryRows = simulationEventLogRows(
       luminary,
       { specializations: [{ name: 'Luminary', traits: '' }] },
-      withPatchPreview(guardianProfession)
+      { profession: withPatchPreview(guardianProfession), catalog: guardianProfession.catalog }
     );
     assert.ok(firebrandRows.some((row) => row.description === 'TOME STOWED'));
     assert.ok(firebrandRows.some((row) => row.description.includes('TOME EQUIPPED')));
@@ -840,7 +841,7 @@ test('Guardian weapon-bar transitions and canonical Necromancer conditions have 
         planningState: { profession: {} }
       },
       { specializations: [] },
-      withPatchPreview(necromancerProfession)
+      { profession: withPatchPreview(necromancerProfession), catalog: necromancerProfession.catalog }
     );
     const ritualistRows = simulationEventLogRows(
       {
@@ -849,7 +850,7 @@ test('Guardian weapon-bar transitions and canonical Necromancer conditions have 
         planningState: { profession: {} }
       },
       { specializations: [{ name: 'Ritualist', traits: '' }] },
-      withPatchPreview(necromancerProfession)
+      { profession: withPatchPreview(necromancerProfession), catalog: necromancerProfession.catalog }
     );
     const necromancerRows = [...necromancerCoreRows, ...ritualistRows];
 

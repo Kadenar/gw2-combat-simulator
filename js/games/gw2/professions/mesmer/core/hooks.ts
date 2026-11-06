@@ -55,7 +55,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
   mesmerIllusionHooks,
   mesmerScepterChainLifecycle,
   {
-    buffPolicies: mesmerBuffPolicies,
+    buffPolicies: (runtime) => mesmerBuffPolicies(runtime.helpers),
     observeEffects: mesmerEffectStates,
     // Bind clone packets to their lifetime at admission so retirement cancels every pending effect kind.
     effectOwner(_context, event) {

@@ -1,18 +1,19 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfile, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Only the selected elite supplies its effect policies, using the same caps as its mechanics. */
-export function willbenderBuffPolicies(context: unknown): BuffStatePolicy[] {
+export function willbenderBuffPolicies(source: BalanceProfileSource): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
     { kind: 'willbender-justice', maximumStacks: 1 },
     { kind: 'willbender-resolve', maximumStacks: 1 },
     { kind: 'willbender-courage', maximumStacks: 1 }
   ];
-  const profile = balanceProfileFromContext(context, TRAIT.LETHAL_TEMPO);
+  const profile = balanceProfile(source, TRAIT.LETHAL_TEMPO);
 
   if (profile) policies.push({ kind: 'lethal-tempo', maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
 
@@ -27,7 +28,7 @@ export function willbenderEffectStates(runtime: MechanicQueriesOf<GuardianRuntim
     timedEffectState(
       'lethal-tempo',
       [{ stacks: state.lethalTempo.stacks, expiresAt: state.lethalTempo.expiresAt }],
-      balanceProfileNumber(balanceProfileFromContext(runtime, TRAIT.LETHAL_TEMPO)!, 'maximumStacks')
+      balanceProfileNumber(balanceProfile(runtime.helpers, TRAIT.LETHAL_TEMPO)!, 'maximumStacks')
     )
   );
   for (const virtue of ['justice', 'resolve', 'courage'] as const)

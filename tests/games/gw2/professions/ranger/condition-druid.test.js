@@ -389,7 +389,7 @@ test('Sharpened Edges observes patched critical chance and packets through its s
     chances = [];
   const context = {
     config: { selectedTraitIds },
-    catalog: rangerCatalog,
+    helpers: rangerCatalog,
     random: {
       roll(chance) {
         chances.push(chance);
@@ -409,7 +409,7 @@ test('Sharpened Edges observes patched critical chance and packets through its s
   ]) {
     // Clearing the saved override restores the active patch's default; it never changes critical eligibility.
     context.config.procRateOverrides = override === undefined ? {} : { 'ranger.sharpened-edges': override };
-    context.catalog = withProfile(rangerCatalog, TRAIT.SHARPENED_EDGES, {
+    context.helpers = withProfile(rangerCatalog, TRAIT.SHARPENED_EDGES, {
       criticalChance: chance,
       effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration, stacks: 2 }]
     });

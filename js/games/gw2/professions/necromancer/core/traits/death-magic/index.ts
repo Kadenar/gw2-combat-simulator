@@ -6,11 +6,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { shroudEntering, shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerRuntimeCoreState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
@@ -34,7 +30,7 @@ export const necromanticCorruption = defineTrait({
       id: 'necromancer.necromantic-corruption',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.NECROMANTIC_CORRUPTION, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.NECROMANTIC_CORRUPTION, 'damageMultiplier'),
       when: (context) => context.event?.summonKind === 'minion'
     }
   ]
@@ -56,8 +52,8 @@ export const deadlyStrength = defineTrait({
   // Carapace contributes temporary flat attributes while ordinary conversion pools remain unchanged.
   attributes(context) {
     const bonus =
-      deathCarapaceStacks(context, necromancerRuntimeCoreState(context), context.time) *
-      balanceNumberFromContext(context.balanceContext, TRAIT.DEADLY_STRENGTH, 'attributePerStack');
+      deathCarapaceStacks(context.catalog, context, necromancerRuntimeCoreState(context), context.time) *
+      balanceNumber(context.balanceContext.catalog, TRAIT.DEADLY_STRENGTH, 'attributePerStack');
     return {
       attributeEffects: [
         { kind: 'flat', to: 'Power', amount: bonus, feedsConversions: 'none', enabled: true },
@@ -129,7 +125,7 @@ export const putridDefense = defineTrait({
       id: 'necromancer.putrid-defense',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.PUTRID_DEFENSE, 'conditionDamageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.PUTRID_DEFENSE, 'conditionDamageMultiplier'),
       when: (context) => context.condition === CONDITION.POISONED
     }
   ],
@@ -140,9 +136,9 @@ export const putridDefense = defineTrait({
       run: (runtime: NecromancerRuntime, { event }: TriggerPointInput<typeof necromancerConditionApplied>) =>
         addCarapace(
           runtime,
-          balanceNumberFromContext(runtime, TRAIT.PUTRID_DEFENSE, 'resourceGain'),
+          balanceNumber(runtime.helpers, TRAIT.PUTRID_DEFENSE, 'resourceGain'),
           event.at,
-          balanceNumberFromContext(runtime, TRAIT.PUTRID_DEFENSE, 'duration')
+          balanceNumber(runtime.helpers, TRAIT.PUTRID_DEFENSE, 'duration')
         )
     })
   ]
@@ -152,7 +148,7 @@ export const putridDefense = defineTrait({
 function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   if (cast.skill.type !== 'Heal') return;
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_DEFENSE);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.DARK_DEFENSE);
 
   if (!runtime.procs.claimCooldown('darkDefense', runtime.time, balanceProfileNumber(profile, 'internalCooldown')))
     return;
@@ -176,28 +172,28 @@ function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast<Necroma
 function applyCorruptorsFervor(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   addCarapace(
     context,
-    balanceNumberFromContext(context, TRAIT.CORRUPTERS_FERVOR, 'resourceGain'),
+    balanceNumber(context.helpers, TRAIT.CORRUPTERS_FERVOR, 'resourceGain'),
     event.at,
-    balanceNumberFromContext(context, TRAIT.CORRUPTERS_FERVOR, 'duration')
+    balanceNumber(context.helpers, TRAIT.CORRUPTERS_FERVOR, 'duration')
   );
 }
 
 /** Samples live Carapace at the shroud boundary so both forms and shade shrouds share the same reward. */
 function applySoulComprehension(runtime: NecromancerRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.SOUL_COMPREHENSION);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.SOUL_COMPREHENSION);
   // This reward may count fewer stacks than capacity, but cannot count Carapace beyond the shared cap.
   grantNecromancerLifeForce(
     runtime,
     Math.min(
       balanceProfileNumber(profile, 'maximumStacks'),
-      deathCarapaceStacks(runtime, runtime.profession.core, runtime.time)
+      deathCarapaceStacks(runtime.helpers, runtime, runtime.profession.core, runtime.time)
     ) * balanceProfileNumber(profile, 'lifeForcePerStack')
   );
 }
 
 /** Grants the entry stacks at either shroud boundary without requiring a draining shroud form. */
 function applyArmoredShroud(runtime: NecromancerRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ARMORED_SHROUD);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.ARMORED_SHROUD);
   addCarapace(
     runtime,
     balanceProfileNumber(profile, 'resourceGain'),
@@ -209,7 +205,7 @@ function applyArmoredShroud(runtime: NecromancerRuntime): void {
 /** Applies shrouded removal before shroud entry mutates the form. */
 function prepareShroudedRemoval(runtime: NecromancerRuntime): void {
   const state = runtime.profession.core;
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.SHROUDED_REMOVAL);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.SHROUDED_REMOVAL);
   const removed = state.selfConditions.splice(0, balanceProfileNumber(profile, 'maximumConditions'));
 
   if (removed.length)

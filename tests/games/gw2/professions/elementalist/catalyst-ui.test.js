@@ -59,7 +59,7 @@ test('Catalyst chart uses the Elemental Empowerment stack cap', () => {
           }
         ],
         2,
-        { policies: catalystBuffPolicies({ catalog: elementalistProfession.catalog }) }
+        { policies: catalystBuffPolicies(elementalistProfession.catalog) }
       )
     },
     1000,

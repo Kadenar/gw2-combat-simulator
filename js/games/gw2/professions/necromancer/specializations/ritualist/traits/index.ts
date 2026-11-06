@@ -7,11 +7,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerRuntimeSpecializationState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
 import { creatureSummoned } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
@@ -41,7 +37,7 @@ const spiritsStrength = defineTrait({
       id: 'necromancer.spirits-strength',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.SPIRITS_STRENGTH, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.SPIRITS_STRENGTH, 'damageMultiplier'),
       when: (context) =>
         (context.event?.actorType === ACTOR.SUMMON || context.event?.summonKind === 'spirit') &&
         // Innervate attacks are player-buffed abilities, not spirit autonomous attacks; the trait does not apply to them
@@ -136,7 +132,7 @@ const lingeringSpirits = defineTrait({
       id: 'necromancer.lingering-spirits',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.LINGERING_SPIRITS, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.LINGERING_SPIRITS, 'damageIncrease'),
       when: (context) => Boolean(necromancerRuntimeSpecializationState(context, 'Ritualist')?.activeSpirits?.anguish)
     }
   ]
@@ -171,10 +167,7 @@ export const necromancerRitualistTraits = [
 
 /** Accepted creatures grant life force before their independent explosion. */
 function summonBoonOfCreation(runtime: NecromancerRuntime, count: number): void {
-  grantNecromancerLifeForce(
-    runtime,
-    balanceNumberFromContext(runtime, TRAIT.BOON_OF_CREATION, 'lifeForceGain') * count
-  );
+  grantNecromancerLifeForce(runtime, balanceNumber(runtime.helpers, TRAIT.BOON_OF_CREATION, 'lifeForceGain') * count);
 }
 
 function summonExplosiveGrowth(
@@ -186,7 +179,7 @@ function summonExplosiveGrowth(
     activationId
   }: { skill: NecromancerSkill; at: number; count: number; activationId: string | undefined }
 ): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.EXPLOSIVE_GROWTH);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.EXPLOSIVE_GROWTH);
   const strike = requireEffect(profile, 'strike', 'Strike');
 
   if (strike)
@@ -214,7 +207,7 @@ function summonExplosiveGrowth(
 
 /** Summon boons follow the shared creature reactions and precede autonomous scheduling. */
 function applyEmpoweringSpirits(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>, key: string): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWERING_SPIRITS);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.EMPOWERING_SPIRITS);
   for (const kind of [
     boonKey(BOON.QUICKNESS),
     key === 'anguish' ? boonKey(BOON.MIGHT) : key === 'wanderlust' ? boonKey(BOON.FURY) : boonKey(BOON.RESOLUTION)

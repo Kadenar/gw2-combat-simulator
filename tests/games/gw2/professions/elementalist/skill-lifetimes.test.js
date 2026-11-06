@@ -79,7 +79,7 @@ function fixture(id, edit, specialization, state) {
   const capture = captureEffectEmissions();
   const context = {
     helpers: catalog,
-    catalog,
+
     profession: { specialization: { kind: specialization, state } },
     effects: capture.effects,
     config: {}

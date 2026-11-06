@@ -16,9 +16,9 @@ import {
   type TraitTrigger
 } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext
+  ownerAttributeBonusNumber,
+  requireBalanceProfile
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
@@ -204,7 +204,7 @@ export function traitAttributeEffects(
           (key) => ATTRIBUTE_NAMES[key] === declaration.to
         )!;
         const { group, ...effect } = declaration;
-        return { ...effect, amount: attributeBonusNumber(profile, attribute, group) };
+        return { ...effect, amount: ownerAttributeBonusNumber(profile, attribute, group) };
       }
 
       const { field, ...effect } = declaration;
@@ -224,7 +224,7 @@ export function traitAttributeBonuses(
 ): NonNullable<TraitDefinition['attributes']> {
   const resolved = new WeakMap<BalanceProfile, Gw2AttributeContributions>();
   const contribute: NonNullable<TraitDefinition['attributes']> = ({ balanceContext }) => {
-    const profile = requireBalanceProfileFromContext(balanceContext, profileId);
+    const profile = requireBalanceProfile(balanceContext.catalog, profileId);
     const cached = resolved.get(profile);
 
     if (cached) return cached;

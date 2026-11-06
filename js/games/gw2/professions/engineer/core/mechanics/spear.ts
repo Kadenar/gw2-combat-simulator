@@ -9,7 +9,7 @@ import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import {
   buildEngineerCondition,
@@ -156,12 +156,12 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
       1,
       event.at,
       12,
-      skillNumber(requireSkillFromContext(context, ID.ELECTRIC_ARTILLERY), 'maximumStacks')
+      skillNumber(requireSkill(context.helpers, ID.ELECTRIC_ARTILLERY), 'maximumStacks')
     ).expiries;
   }
 
   const isFocused = focused(context, event.at);
-  const skill = requireSkillFromContext(context, ID.LIGHTNING_ROD);
+  const skill = requireSkill(context.helpers, ID.LIGHTNING_ROD);
   const action = requireSkillAction(skill, 'payload');
   const condition = requireEffect(
     skill,
@@ -201,7 +201,7 @@ export function handleLightningRodPulse(context: EngineerResolverContext, event:
 
 /** Opens the Focused target window and resolves Conduit Surge's strike and burning packets. */
 function handleConduitSurge(context: EngineerResolverContext, event: EngineerResolverEvent): void {
-  const skill = requireSkillFromContext(context, ID.CONDUIT_SURGE);
+  const skill = requireSkill(context.helpers, ID.CONDUIT_SURGE);
   const action = requireSkillAction(skill, 'payload');
   const burning = requireEffect(skill, 'condition', CONDITION.BURNING, action);
 
@@ -265,7 +265,7 @@ function handleConduitSurge(context: EngineerResolverContext, event: EngineerRes
 /** Resolves Electric Artillery using its stored charges and current Focused state. */
 export function handleElectricArtillery(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const isFocused = focused(context, event.at);
-  const skill = requireSkillFromContext(context, ID.ELECTRIC_ARTILLERY);
+  const skill = requireSkill(context.helpers, ID.ELECTRIC_ARTILLERY);
   const action = requireSkillAction(skill, 'payload');
   const immobilize = requireEffect(
     skill,

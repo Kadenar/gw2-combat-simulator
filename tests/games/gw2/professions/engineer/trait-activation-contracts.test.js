@@ -15,6 +15,7 @@ import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 function fixture(selected, capture = captureEffectEmissions()) {
   const runtime = {
     time: 1,
+    config: {},
     helpers: engineerCatalog,
     traits: new Set(selected),
     profession: { core: createEngineerCoreState() },

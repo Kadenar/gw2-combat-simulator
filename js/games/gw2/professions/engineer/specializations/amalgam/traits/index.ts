@@ -11,11 +11,11 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect,
-  requireSkillFromContext
+  requireSkill
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -45,15 +45,15 @@ import type {
 /** Double Helix chooses the Evolved bonus without changing the shared pre-profession conversion pool. */
 export function evolveAttributeFactor(context: EngineerModifierContext): number {
   if (hasTrait(context, TRAIT.DOUBLE_HELIX))
-    return balanceNumberFromContext(context, TRAIT.DOUBLE_HELIX, 'coefficientMultiplier');
+    return balanceNumber(context.catalog, TRAIT.DOUBLE_HELIX, 'coefficientMultiplier');
 
-  const skill: AmalgamSkill = requireSkillFromContext(context, ID.EVOLVE_BASE);
+  const skill: AmalgamSkill = requireSkill(context.catalog, ID.EVOLVE_BASE);
   return requireBalanceNumber(skill.attributeMultiplier, `${skill.name} attributeMultiplier`);
 }
 
 /** Restrict Symbiotic Synergy to player-owned strikes from the registered protocol identities. */
 function morphStrike(context: EngineerModifierContext): boolean {
-  const skill = skillForEvent(context.profession?.catalog, context.event, context.skillId);
+  const skill = skillForEvent(context.catalog, context.event, context.skillId);
   return Boolean(isGw2PlayerModifierOwnedEvent(context.event) && skill && AMALGAM_MORPH_KIND_BY_SKILL_ID.has(skill.id));
 }
 
@@ -67,7 +67,7 @@ const carbolicComposition = defineTrait({
   attributes: ({ balanceContext }) => ({
     traitDurations: {
       'Poison Duration':
-        100 * balanceNumberFromContext(balanceContext, TRAIT.CARBOLIC_COMPOSITION, 'conditionDurationBonus')
+        100 * balanceNumber(balanceContext.catalog, TRAIT.CARBOLIC_COMPOSITION, 'conditionDurationBonus')
     }
   }),
   triggers: [
@@ -121,8 +121,8 @@ const willingHost = defineTrait({
       operation: 'damage-additive',
       // Strike and condition balance remain independently editable.
       amount: (context, target) =>
-        balanceNumberFromContext(
-          context,
+        balanceNumber(
+          context.catalog,
           TRAIT.WILLING_HOST,
           target === MODIFIER_TARGET.CONDITION_DAMAGE ? 'conditionDamageIncrease' : 'damageIncrease'
         ),
@@ -142,7 +142,7 @@ const symbioticSynergy = defineTrait({
       id: 'engineer.symbiotic-synergy',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.SYMBIOTIC_SYNERGY, 'damageIncrease'),
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.SYMBIOTIC_SYNERGY, 'damageIncrease'),
       when: (context) => morphStrike(context)
     }
   ],
@@ -235,7 +235,7 @@ function extendWillingHost(context: EngineerRuntime, { at }: AmalgamMorph): void
   const state = amalgamState.from(context.profession);
   state.willingHostUntil = Math.max(
     state.willingHostUntil,
-    at + balanceNumberFromContext(context, TRAIT.WILLING_HOST, 'duration')
+    at + balanceNumber(context.helpers, TRAIT.WILLING_HOST, 'duration')
   );
 }
 
@@ -255,7 +255,7 @@ function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumSt
       skillName: 'Hardened Chrome',
       name: 'Hardened Chrome',
       kind: boonKey(BOON.PROTECTION),
-      duration: balanceNumberFromContext(context, TRAIT.HARDENED_CHROME, durationField),
+      duration: balanceNumber(context.helpers, TRAIT.HARDENED_CHROME, durationField),
       stacks: 1
     },
     sourceSkill
@@ -270,7 +270,7 @@ function grantMorphStrain(context: EngineerRuntime, { skill, at }: AmalgamMorph)
 /** New Genes combines universal boons with one protocol-specific boon; each survives patches independently. */
 function grantNewGenes(context: EngineerRuntime, { morphKind, at }: AmalgamMorph): void {
   for (const name of [boonKey(BOON.ALACRITY), boonKey(BOON.MIGHT), ...(morphKind ? [morphKind] : [])]) {
-    const newGenesProfile = requireBalanceProfileFromContext(context, TRAIT.NEW_GENES);
+    const newGenesProfile = requireBalanceProfile(context.helpers, TRAIT.NEW_GENES);
     const boon = requireEffect(newGenesProfile, 'boon', name);
 
     if (!boon) continue;
@@ -320,7 +320,7 @@ function isAmalgamSkillHit(context: Pick<MechanicQueryContext, 'helpers'>, event
 
 /** Eligible Amalgam and Rapacious hits apply trait-owned Poison before Rapacious checks its own proc. */
 function applyCarbolicPoison(context: EngineerRuntime, { cause: event }: AmalgamStrike): void {
-  const carbolicCompositionProfile = requireBalanceProfileFromContext(context, TRAIT.CARBOLIC_COMPOSITION);
+  const carbolicCompositionProfile = requireBalanceProfile(context.helpers, TRAIT.CARBOLIC_COMPOSITION);
   const poison = requireEffect(carbolicCompositionProfile, 'condition', CONDITION.POISONED);
 
   if (poison) {
@@ -360,7 +360,7 @@ function reactToMercurialTendencies(context: EngineerRuntime, event: EngineerRes
 
   if (!isInternalCooldownReady(at, context.procs.deadline('mercurialTendencies') || 0)) return;
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.MERCURIAL_TENDENCIES);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.MERCURIAL_TENDENCIES);
   let reducedBy = 0;
   for (const id of [ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX]) {
     const skill = context.helpers.skillsById.get(id);

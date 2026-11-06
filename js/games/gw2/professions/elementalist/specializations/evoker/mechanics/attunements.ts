@@ -10,7 +10,7 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import {
@@ -93,7 +93,7 @@ export function applyEvokerAttunementRechargePolicy(
           elementalistAttunementRechargeDuration(
             context,
             skill,
-            balanceNumberFromContext(context, EVOKER_TRAIT.EVOCATION, 'recharge')
+            balanceNumber(context.helpers, EVOKER_TRAIT.EVOCATION, 'recharge')
           )
       )
     );
@@ -107,7 +107,7 @@ export function applyEvokerAttunementRechargePolicy(
       elementalistAttunementRechargeDuration(
         context,
         skill,
-        balanceNumberFromContext(context, EVOKER_TRAIT.EVOCATION, 'recharge')
+        balanceNumber(context.helpers, EVOKER_TRAIT.EVOCATION, 'recharge')
       );
     const existingReadyAt = readyAtBefore[attunement] || 0;
     const preservedRemaining = Math.max(0, existingReadyAt - event.at);

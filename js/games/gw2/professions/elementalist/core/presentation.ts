@@ -24,6 +24,7 @@ import type {
 import type {
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
@@ -90,7 +91,9 @@ const PISTOL_BULLETS = Object.freeze([
 ] as const);
 
 // Palettes read the flat projection for either the insertion point or the completed run.
-export function elementalistUiState(context: ElementalistUiContext): Partial<ElementalistPlanningState> {
+export function elementalistUiState(
+  context: Pick<ElementalistUiContext, 'professionState'>
+): Partial<ElementalistPlanningState> {
   return context.professionState ?? {};
 }
 
@@ -380,7 +383,9 @@ function timelineWeaponLineTransition(context: ElementalistUiContext): string | 
 }
 
 // Show Fresh Air's ferocity window across specializations alongside hammer orb state.
-function rotationStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
+function rotationStateSnapshot(
+  context: ProfessionStateSnapshotContext<ElementalistUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const state = elementalistUiState(context);
   const freshAir = planningBuffAt(context.planningState, 'fresh-air');
   const orbs = Object.entries(state[STATE.HAMMER_ORBS] || {})
@@ -562,9 +567,8 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       const live = elementalistUiState(context)[STATE.PRIMARY_ATTUNEMENT];
       const initial = context.build?.startAttunement;
       const primary = isElementalistAttunement(live) ? live : isElementalistAttunement(initial) ? initial : 'Fire';
-      const activeCatalog = context.catalog || catalog;
       return skills.map((skill) =>
-        skill.selector ? { ...displayedSkill(activeCatalog, skill, primary), inputSkillId: skill.id } : skill
+        skill.selector ? { ...displayedSkill(context.catalog, skill, primary), inputSkillId: skill.id } : skill
       );
     },
 

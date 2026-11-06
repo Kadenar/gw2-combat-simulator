@@ -204,7 +204,7 @@ test('Swift Scholar resets the page cycle on acceptance and retains the earned c
   const helpers = applyBalanceProfilePatch(guardianCatalog, {
     balanceProfiles: { [TRAIT.SWIFT_SCHOLAR]: { fields: { minimumStacks: { from: 3, to: 2.5 } } } }
   });
-  const state = firebrandState.create({ config: {}, balanceProfile: (id) => helpers.balanceProfilesById.get(id) });
+  const state = firebrandState.create({ config: {}, catalog: helpers });
   state.swiftScholarTome = 'justice';
   state.swiftScholarCount = 2;
   const grants = [];

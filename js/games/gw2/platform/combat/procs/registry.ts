@@ -1,15 +1,18 @@
 import { projectRecharge, type RechargeProgress } from '#gw2/platform/combat/recharge.js';
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
-import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import {
+  balanceProfileNumber,
+  requireBalanceProfile,
+  type BalanceProfileSource
+} from '#gw2/platform/skills/balance-profiles.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 
 /** Proc deadlines read only the live clock, selected balance data, and received recharge rates. */
 export interface ProcRegistryContext {
   readonly time?: number;
-  readonly config?: { readonly profession?: string; readonly patchId?: string };
-  readonly helpers: Partial<Pick<CanonicalCatalog, 'balanceProfilesById' | 'balanceDataContext'>>;
+  readonly helpers: BalanceProfileSource;
   readonly query: {
     readonly timeline: {
       rechargeIntervals(skill: Skill, start: number, end: number, companionId?: string): Iterable<RateInterval>;
@@ -77,7 +80,7 @@ export function createProcRegistry(context: () => ProcRegistryContext): ProcRegi
 
       if (at === undefined) throw new TypeError('Resolver proc claims require an event time.');
 
-      const profile = requireBalanceProfileFromContext(runtime, profileId);
+      const profile = requireBalanceProfile(runtime.helpers, profileId);
       const policy = profile.cooldownPolicy ?? 'internal';
 
       if (!['internal', 'summonRecharge'].includes(policy))

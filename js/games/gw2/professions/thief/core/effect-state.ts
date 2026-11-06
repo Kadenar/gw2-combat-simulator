@@ -1,11 +1,12 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfile, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Core owns shared venom and trait effects; selected elites register their own policies. */
-export function thiefBuffPolicies(context: unknown): BuffStatePolicy[] {
+export function thiefBuffPolicies(source: BalanceProfileSource): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
     ...['fluid-strikes', 'distracting-throw', 'assassins-signet'].map((kind) => ({ kind, maximumStacks: 1 })),
     { kind: 'spider-venom' },
@@ -13,7 +14,7 @@ export function thiefBuffPolicies(context: unknown): BuffStatePolicy[] {
     { kind: 'devourer-venom' }
   ];
   for (const [kind, id] of [['lead-attacks', TRAIT.LEAD_ATTACKS]] as const) {
-    const profile = balanceProfileFromContext(context, id);
+    const profile = balanceProfile(source, id);
 
     if (profile) policies.push({ kind, maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
   }
@@ -44,7 +45,7 @@ export function thiefEffectStates(
     timedEffectState(
       'lead-attacks',
       runtime.profession.core.leadAttackExpirations.map((expiresAt) => ({ expiresAt, stacks: 1 })),
-      balanceProfileNumber(balanceProfileFromContext(runtime, TRAIT.LEAD_ATTACKS)!, 'maximumStacks')
+      balanceProfileNumber(balanceProfile(runtime.helpers, TRAIT.LEAD_ATTACKS)!, 'maximumStacks')
     )
   ];
 }

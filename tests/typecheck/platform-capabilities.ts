@@ -1,5 +1,6 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { createProcRegistry, type ProcRegistryContext } from '#gw2/platform/combat/procs/registry.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 
 // A proc owner needs no resolver stores, event queues, or reporting services to claim a deadline.
 const procContext: ProcRegistryContext = {
@@ -20,6 +21,7 @@ procContext.query.statsAt(1);
 
 // Modifier observations support detached profession state without constructing a simulation runtime.
 const modifierContext: Gw2ModifierContext = {
+  catalog: createCanonicalCatalog(),
   time: 1,
   state: { profession: { core: {} }, boons: new Map() }
 };

@@ -1,11 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumberFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition, buildThiefStrikes } from '#gw2/professions/thief/core/events.js';
@@ -25,7 +20,7 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
 
   if (occurrence > 0 && runtime.time > antiquaryState.from(runtime.profession).forgedSurferBombDropUntil) return;
 
-  const profile = requireSkillFromContext(runtime, ID.FORGED_SURFER_DASH);
+  const profile = requireSkill(runtime.helpers, ID.FORGED_SURFER_DASH);
   // Dash and bomb identities survive deletion of either strike or condition.
   const packet =
     (hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN) ? 'Meticulous ' : '') + (occurrence === 0 ? 'Dash' : 'Bomb');
@@ -58,7 +53,7 @@ export function forgedSurfer(runtime: ThiefRuntime, data: unknown): void {
       })
     });
 
-  const interval = skillNumberFromContext(runtime, ID.FORGED_SURFER_DASH, 'pulseInterval');
+  const interval = skillNumber(requireSkill(runtime.helpers, ID.FORGED_SURFER_DASH), 'pulseInterval');
   const nextAt = canonicalTime(runtime.time + interval);
 
   // A duration-driven sequence must advance its clock even when authoring a patched skill.
@@ -73,7 +68,7 @@ export function startForgedSurfer(runtime: ThiefRuntime, skill: ThiefSkill): voi
   runtime.cancelOwner(FORGED_SURFER_OWNER);
   runtime.schedule(
     FORGED_SURFER,
-    runtime.time + skillNumberFromContext(runtime, ID.FORGED_SURFER_DASH, 'initialDelay'),
+    runtime.time + skillNumber(requireSkill(runtime.helpers, ID.FORGED_SURFER_DASH), 'initialDelay'),
     {
       skillId: skill.id,
       occurrence: 0

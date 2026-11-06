@@ -6,7 +6,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { balanceNumberFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { emitRangerAction } from '#gw2/professions/ranger/core/events.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -56,7 +56,7 @@ export function untamedCastAvailability(
 export function grantAmbush(runtime: RangerRuntime): void {
   const state = untamedState.from(runtime.profession);
   state.ambushReadyUntil = canonicalTime(
-    runtime.time + balanceNumberFromContext(runtime, TRAIT.UNLEASHED_POWER, 'duration')
+    runtime.time + balanceNumber(runtime.helpers, TRAIT.UNLEASHED_POWER, 'duration')
   );
 }
 

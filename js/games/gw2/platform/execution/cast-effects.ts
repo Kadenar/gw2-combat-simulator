@@ -2,7 +2,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castReachedFullDuration } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -16,8 +16,7 @@ export function selectSkillEffects(runtime: MechanicContext, cast: RuntimeCast):
 
   // An intrinsic acceptance transform uses the selected skill payload without copying it into a second profile.
   const effects =
-    (variant.profileId == null ? cast.skill : requireBalanceProfileFromContext(runtime, variant.profileId)).effects ??
-    [];
+    (variant.profileId == null ? cast.skill : requireBalanceProfile(runtime.helpers, variant.profileId)).effects ?? [];
   return variant.transform?.(runtime, cast, effects) ?? effects;
 }
 

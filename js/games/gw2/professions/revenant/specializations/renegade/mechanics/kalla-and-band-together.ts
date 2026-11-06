@@ -40,7 +40,7 @@ export function grantKallasFervor(
   { sourceId, sourceName, cause = null }: { sourceId: SkillId; sourceName: string; cause?: Gw2ResolverEvent | null }
 ): void {
   const state = renegadeState.from(runtime.profession);
-  const profile = fervorProfile(runtime);
+  const profile = fervorProfile(runtime.helpers, runtime);
   const effect = requireEffect(profile, 'buff', 'kallas-fervor');
 
   // Fervor stacks are the buff, so a removed buff grants nothing.

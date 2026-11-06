@@ -10,11 +10,11 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect,
-  requireSkillFromContext
+  requireSkill
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
@@ -73,7 +73,7 @@ const combatHigh = defineTrait({
         activeStackCount(
           thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').combatHighExpirations || [],
           context.time
-        ) * balanceNumberFromContext(context, TRAIT.COMBAT_HIGH, 'damageIncreasePerStack'),
+        ) * balanceNumber(context.catalog, TRAIT.COMBAT_HIGH, 'damageIncreasePerStack'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     },
     {
@@ -86,7 +86,7 @@ const combatHigh = defineTrait({
         activeStackCount(
           thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').combatHighExpirations || [],
           context.time
-        ) * balanceNumberFromContext(context, TRAIT.COMBAT_HIGH, 'conditionDamageIncreasePerStack'),
+        ) * balanceNumber(context.catalog, TRAIT.COMBAT_HIGH, 'conditionDamageIncreasePerStack'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ],
@@ -120,7 +120,7 @@ const exhilaratingEphemera = defineTrait({
       requiresSelection: false,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.EXHILARATING_EPHEMERA, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.EXHILARATING_EPHEMERA, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         (thiefRuntimeSpecializationState(context.runtime?.profession, 'Antiquary').antiquaryDamageUntil || 0) >
@@ -166,7 +166,7 @@ const meticulousCustodian = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: 'multiply',
       factor: (context) =>
-        balanceNumberFromContext(context, TRAIT.METICULOUS_CUSTODIAN, 'mortarBurningDurationMultiplier'),
+        balanceNumber(context.catalog, TRAIT.METICULOUS_CUSTODIAN, 'mortarBurningDurationMultiplier'),
       when: (context) =>
         context.event?.skillId === ID.MISTBURN_MORTAR &&
         context.event.condition === CONDITION.BURNING &&
@@ -178,7 +178,7 @@ const meticulousCustodian = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: 'multiply',
       factor: (context) =>
-        balanceNumberFromContext(context, TRAIT.METICULOUS_CUSTODIAN, 'sunCrystalBurningDurationMultiplier'),
+        balanceNumber(context.catalog, TRAIT.METICULOUS_CUSTODIAN, 'sunCrystalBurningDurationMultiplier'),
       when: (context) =>
         context.event?.skillId === ID.ZEPHYRITE_SUN_CRYSTAL &&
         context.event.condition === CONDITION.BURNING &&
@@ -191,7 +191,7 @@ const meticulousCustodian = defineTrait({
       operation: 'multiply',
       // This strengthens the authored duration before expertise and the ordinary duration cap.
       factor: (context) =>
-        balanceNumberFromContext(context, TRAIT.METICULOUS_CUSTODIAN, 'kryptisTormentDurationMultiplier'),
+        balanceNumber(context.catalog, TRAIT.METICULOUS_CUSTODIAN, 'kryptisTormentDurationMultiplier'),
       when: (context) =>
         context.event?.skillId === ID.SUMMON_KRYPTIS_TURRET && context.event.condition === CONDITION.TORMENT
     }
@@ -276,7 +276,7 @@ export const antiquaryTraits = Object.freeze([
 
 /** Combat High replaces its stacks with canonical staggered expiries, losing one stack per interval. */
 function grantCombatHigh(runtime: ThiefRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.COMBAT_HIGH);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.COMBAT_HIGH);
   const maximum = Math.max(0, Math.trunc(balanceProfileNumber(profile, 'maximumStacks')));
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   const expiresAt = runtime.time + balanceProfileNumber(profile, 'duration');
@@ -291,7 +291,7 @@ function grantCombatHigh(runtime: ThiefRuntime): void {
 
 /** Applies enterprising aristocrat at the original artifact boundary. */
 function applyEnterprisingAristocrat(runtime: ThiefRuntime): void {
-  const initiativeGain = balanceNumberFromContext(runtime, TRAIT.ENTERPRISING_ARISTOCRAT, 'resourceGain');
+  const initiativeGain = balanceNumber(runtime.helpers, TRAIT.ENTERPRISING_ARISTOCRAT, 'resourceGain');
 
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
@@ -299,7 +299,7 @@ function applyEnterprisingAristocrat(runtime: ThiefRuntime): void {
 /** Applies exhilarating ephemera at the original artifact boundary. */
 function applyExhilaratingEphemera(runtime: ThiefRuntime): void {
   const state = antiquaryState.from(runtime.profession);
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.EXHILARATING_EPHEMERA);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.EXHILARATING_EPHEMERA);
   const remaining = Math.max(0, (state.antiquaryDamageUntil || 0) - runtime.time);
   state.antiquaryDamageUntil =
     runtime.time +
@@ -342,7 +342,7 @@ function applyRepeatRansacker(runtime: ThiefRuntime): void {
   if (swipe)
     runtime.cooldownController.reduceSkillRecharge(
       swipe,
-      balanceNumberFromContext(runtime, TRAIT.REPEAT_RANSACKER, 'rechargeReduction'),
+      balanceNumber(runtime.helpers, TRAIT.REPEAT_RANSACKER, 'rechargeReduction'),
       runtime.time
     );
 }
@@ -353,7 +353,7 @@ function grantScoundrelsLuck(runtime: ThiefRuntime): void {
 
   if (!runtime.procs.claim(TRAIT.SCOUNDRELS_LUCK, 'thief.antiquary.scoundrelsLuck', runtime.time)) return;
 
-  state.scoundrelsLuck = balanceNumberFromContext(runtime, TRAIT.SCOUNDRELS_LUCK, 'maximumStacks');
+  state.scoundrelsLuck = balanceNumber(runtime.helpers, TRAIT.SCOUNDRELS_LUCK, 'maximumStacks');
 }
 
 /** Applies meticulous custodian at the original artifact boundary. */
@@ -386,7 +386,7 @@ function applyMeticulousSunCrystal(context: ThiefResolverContext, { cause: event
   )
     return;
 
-  const sunCrystalMeticulousProfile = requireSkillFromContext(context, ID.ZEPHYRITE_SUN_CRYSTAL);
+  const sunCrystalMeticulousProfile = requireSkill(context.helpers, ID.ZEPHYRITE_SUN_CRYSTAL);
   const burning = requireEffect(sunCrystalMeticulousProfile, 'condition', 'Meticulous Burning');
 
   // Explicit removal suppresses this packet without restoring baseline tuning.

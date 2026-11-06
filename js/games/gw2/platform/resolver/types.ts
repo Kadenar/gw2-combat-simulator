@@ -2,7 +2,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { Gw2ConditionResolution, Gw2ConditionWork } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { BalanceSource } from '#gw2/platform/skills/balance-profiles.js';
 import type { StableEventQueue } from '#kernel/events/queue.js';
 
 /** Resolver breakdown, queue, and reaction contracts; resolution consumes kernel randomness without execution dependencies. */
@@ -27,14 +27,9 @@ export interface Gw2EnvironmentConditionBreakdownEntry extends Gw2ConditionBreak
   damageTicks: Gw2EnvironmentConditionTick[];
 }
 
-export interface Gw2ResolverHelpers {
-  readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
+/** Every resolver receives the selected skill and profile maps from simulation construction. */
+export interface Gw2ResolverHelpers extends BalanceSource {
   conditionName(value: unknown): string;
-  readonly skillsById?: ReadonlyMap<import('#gw2/platform/skills/types.js').SkillId, Skill>;
-  readonly balanceProfilesById?: ReadonlyMap<
-    import('#gw2/platform/skills/types.js').SkillId,
-    import('#gw2/platform/skills/types.js').BalanceProfile
-  >;
 }
 
 /** Resolution schedules packets but cannot inspect or dispatch the coordinator's mixed work heap. */

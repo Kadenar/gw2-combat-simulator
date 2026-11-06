@@ -128,7 +128,7 @@ test('Virtuoso executes a patched shatter tick beside an empty zero-blade tier',
     }
   };
   const catalog = applySkillPatch(mesmerCatalog, patch);
-  const shatter = mesmerSelectedShatter({ catalog }, skillId);
+  const shatter = mesmerSelectedShatter(catalog, skillId);
   const profession = {
     runtimeFor(config) {
       const runtime = mesmerProfession.runtimeFor(config);

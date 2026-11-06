@@ -14,9 +14,9 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { shroudEntered, shroudExited, shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
@@ -127,7 +127,7 @@ export const deathPerception = defineTrait({
     criticalChance: 0.15
   },
   attributes: ({ balanceContext: profileContext }) => ({
-    traitCriticalChance: balanceNumberFromContext(profileContext, TRAIT.DEATH_PERCEPTION, 'criticalChance') * 100
+    traitCriticalChance: balanceNumber(profileContext.catalog, TRAIT.DEATH_PERCEPTION, 'criticalChance') * 100
   }),
   modifierRules: [
     {
@@ -135,7 +135,7 @@ export const deathPerception = defineTrait({
       id: 'necromancer.death-perception-critical-hit-damage',
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.DEATH_PERCEPTION, 'criticalDamage'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.DEATH_PERCEPTION, 'criticalDamage'),
       when: (context) => Boolean(necromancerActiveShroud(context))
     }
   ]
@@ -163,8 +163,7 @@ export const soulBarbs = defineTrait({
 
         return {
           flatStrikeMultiplier:
-            (event.flatStrikeMultiplier ?? 1) *
-            (1 + balanceNumberFromContext(runtime, TRAIT.SOUL_BARBS, 'damageIncrease'))
+            (event.flatStrikeMultiplier ?? 1) * (1 + balanceNumber(runtime.helpers, TRAIT.SOUL_BARBS, 'damageIncrease'))
         };
       }
     }
@@ -177,8 +176,8 @@ export const soulBarbs = defineTrait({
       operation: 'damage-additive',
       amount: (context, target) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE
-          ? balanceNumberFromContext(context, TRAIT.SOUL_BARBS, 'conditionDamageIncrease')
-          : balanceNumberFromContext(context, TRAIT.SOUL_BARBS, 'damageIncrease'),
+          ? balanceNumber(context.catalog, TRAIT.SOUL_BARBS, 'conditionDamageIncrease')
+          : balanceNumber(context.catalog, TRAIT.SOUL_BARBS, 'damageIncrease'),
       when: (context) => buffActive(context, 'necromancer-soul-barbs')
     }
   ],
@@ -288,7 +287,7 @@ export const soulMarks = defineTrait({
       when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrikeLifeForce>) =>
         Number(input.event.hitIndex ?? 1) === 1 && input.skill.skillFamily === 'Mark',
       run(runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrikeLifeForce>) {
-        input.percent += balanceNumberFromContext(runtime, TRAIT.SOUL_MARKS, 'lifeForceGain');
+        input.percent += balanceNumber(runtime.helpers, TRAIT.SOUL_MARKS, 'lifeForceGain');
       }
     })
   ]
@@ -332,7 +331,7 @@ function applySoulBarbs(
       actorType: ACTOR.PLAYER,
       kind: 'necromancer-soul-barbs',
       stacks: 1,
-      duration: balanceNumberFromContext(runtime, TRAIT.SOUL_BARBS, 'duration')
+      duration: balanceNumber(runtime.helpers, TRAIT.SOUL_BARBS, 'duration')
     }
   });
 }
@@ -345,7 +344,7 @@ function applyDhuumfire(
 ): void {
   if (!shroudSkillOne) return;
 
-  const { effect, interval } = dhuumfireProjection(context, event.metadata, skillDuration);
+  const { effect, interval } = dhuumfireProjection(context.helpers, event.metadata, skillDuration);
 
   // Zero or absent intervals bypass the claim so same-time applications remain unrestricted; the claim gates only
   // Burning, so a removed packet leaves it ready.
@@ -383,7 +382,7 @@ function applyUnyieldingBlast(
 ): void {
   if (!firstHit || !shroudSkillOne) return;
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.UNYIELDING_BLAST);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.UNYIELDING_BLAST);
   const effect = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
   if (!effect) return;
@@ -422,7 +421,7 @@ function applyFearOfDeath(runtime: NecromancerRuntime, event: NecromancerResolve
   )
     return;
 
-  grantNecromancerLifeForce(runtime, balanceNumberFromContext(runtime, TRAIT.FEAR_OF_DEATH, 'lifeForceGain'));
+  grantNecromancerLifeForce(runtime, balanceNumber(runtime.helpers, TRAIT.FEAR_OF_DEATH, 'lifeForceGain'));
 }
 
 /** A granted Eternal Life pulse samples the live shroud and caps its gain at the trait threshold. */
@@ -431,7 +430,7 @@ function applyEternalLifePulse(runtime: NecromancerRuntime): void {
 
   if (state.activeShroud) return;
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ETERNAL_LIFE);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.ETERNAL_LIFE);
   const missing = Math.max(
     0,
     state.lifeForce.maximum * balanceProfileNumber(profile, 'threshold') - state.lifeForce.value
@@ -444,7 +443,7 @@ function applyEternalLifePulse(runtime: NecromancerRuntime): void {
 
 /** Admission starts one authored cadence; removed resource gain cannot advertise endless readiness. */
 function startEternalLife(runtime: NecromancerRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ETERNAL_LIFE);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.ETERNAL_LIFE);
   const interval = balanceProfileNumber(profile, 'pulseInterval');
 
   if (interval > 0 && balanceProfileNumber(profile, 'lifeForceGain') !== 0) {

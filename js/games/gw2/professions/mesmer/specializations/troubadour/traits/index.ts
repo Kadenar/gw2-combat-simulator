@@ -14,10 +14,10 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { isCommittedInterruptedPhantasm } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
@@ -85,7 +85,7 @@ const mayhem = defineTrait<MesmerSkill>({
 
         runtime.cooldownController.reduceSkillRecharge(
           flute,
-          balanceNumberFromContext(runtime, TRAIT.MAYHEM, 'rechargeReduction'),
+          balanceNumber(runtime.helpers, TRAIT.MAYHEM, 'rechargeReduction'),
           runtime.time
         );
         runtime.effects.emit({
@@ -132,8 +132,8 @@ const shredding = defineTrait<MesmerSkill>({
       operation: 'damage-additive',
       amount: (context, target) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE
-          ? balanceNumberFromContext(context, TRAIT.SHREDDING, 'conditionDamageIncrease')
-          : balanceNumberFromContext(context, TRAIT.SHREDDING, 'damageIncrease'),
+          ? balanceNumber(context.catalog, TRAIT.SHREDDING, 'conditionDamageIncrease')
+          : balanceNumber(context.catalog, TRAIT.SHREDDING, 'damageIncrease'),
       when: (context) => hasLute(context) && !illusionSource(context)
     }
   ],
@@ -210,7 +210,8 @@ export const fortissimo = defineTrait<MesmerSkill>({
   // Convert eligible attributes once, excluding Might, signet passives, and other conversion results.
   attributes: (context) => {
     const multiplier =
-      activeInstrumentCount(context) * balanceNumberFromContext(context, TRAIT.FORTISSIMO, 'attributeConversion');
+      activeInstrumentCount(context) *
+      balanceNumber(context.balanceContext.catalog, TRAIT.FORTISSIMO, 'attributeConversion');
     return {
       attributeEffects: PRIMARY_ATTRIBUTES.map((attribute) => ({
         kind: 'conversion' as const,
@@ -255,7 +256,7 @@ const symphonicResonance = defineTrait<MesmerSkill>({
       requiresSelection: false,
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.SYMPHONIC_RESONANCE, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.SYMPHONIC_RESONANCE, 'damageIncrease'),
       when: (context) => hasLute(context) && !illusionSource(context)
     }
   ]
@@ -276,7 +277,7 @@ const alteredChord = defineTrait<MesmerSkill>({
       requiresSelection: false,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.ALTERED_CHORD, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.ALTERED_CHORD, 'damageIncrease'),
       when: (context) => buffActive(context, 'altered-chord') && !illusionSource(context)
     }
   ],
@@ -342,7 +343,7 @@ function completeTroubadourPhantasm(context: MesmerRuntime, cast: RuntimeCast<Me
 
   createMesmerIllusionRewards(context).queueResources(
     context.time,
-    balanceNumberFromContext(context, TRAIT.HARMONIZE, 'resourceGain'),
+    balanceNumber(context.helpers, TRAIT.HARMONIZE, 'resourceGain'),
     mesmerActivePrimaryWeapon(context),
     'Harmonize',
     { traitId: TRAIT.HARMONIZE, traitName: 'Harmonize' }
@@ -353,11 +354,11 @@ function completeTroubadourPhantasm(context: MesmerRuntime, cast: RuntimeCast<Me
 function shreddingStrike(context: MesmerRuntime, data: MesmerInstrument): StrikeEffect | undefined {
   const shredding =
     data.instrument === 'Lute'
-      ? requireEffect(requireBalanceProfileFromContext(context, TRAIT.SHREDDING), 'strike', 'Strike')
+      ? requireEffect(requireBalanceProfile(context.helpers, TRAIT.SHREDDING), 'strike', 'Strike')
       : undefined;
 
   if (shredding && !shredding.ticks)
-    effectNumber(requireBalanceProfileFromContext(context, TRAIT.SHREDDING), shredding, 'atMs');
+    effectNumber(requireBalanceProfile(context.helpers, TRAIT.SHREDDING), shredding, 'atMs');
 
   return shredding;
 }
@@ -371,7 +372,7 @@ function applyMayhemInstrument(
   delivery: EffectDelivery = {}
 ): void {
   if (data.instrument === 'Flute') {
-    const condition = mesmerConditionFromProfile(context, TRAIT.MAYHEM, CONDITION.TORMENT);
+    const condition = mesmerConditionFromProfile(context.helpers, TRAIT.MAYHEM, CONDITION.TORMENT);
 
     if (condition)
       buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Mayhem - Torment', {
@@ -399,7 +400,7 @@ function applyLuteLifeOfTheParty(
 ): void {
   if (data.instrument !== 'Lute') return;
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.LIFE_OF_THE_PARTY);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.LIFE_OF_THE_PARTY);
   // Named grants retain independent removal and their original party attribution.
   for (const name of ['Lute Quickness', 'Lute Might'])
     emitTraitProfile(context, TRAIT.LIFE_OF_THE_PARTY, TRAIT.LIFE_OF_THE_PARTY, delivery.cause, {
@@ -425,7 +426,7 @@ function applyCallAndResponse(
   spent: number,
   delivery: EffectDelivery = {}
 ): void {
-  if (spent === balanceNumberFromContext(context, TRAIT.CALL_AND_RESPONSE, 'threshold')) {
+  if (spent === balanceNumber(context.helpers, TRAIT.CALL_AND_RESPONSE, 'threshold')) {
     const afterimageAt = at + CALL_AND_RESPONSE_DELAY_SECONDS;
     afterimageInstrumentAttack(context, skill, data, afterimageAt, delivery);
     context.effects.emit({
@@ -447,7 +448,7 @@ function reduceAlteredChordRecharge(context: MesmerRuntime, spent: number, at: n
     if (crescendo && ready) {
       context.cooldownController.reduceSkillRecharge(
         crescendo,
-        balanceNumberFromContext(context, TRAIT.ALTERED_CHORD, 'rechargeReduction'),
+        balanceNumber(context.helpers, TRAIT.ALTERED_CHORD, 'rechargeReduction'),
         at
       );
     }
@@ -456,7 +457,7 @@ function reduceAlteredChordRecharge(context: MesmerRuntime, spent: number, at: n
 
 /** Raconteur follows the Tale's own boons and eligible note grant. */
 function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at: number): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.RACONTEUR);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.RACONTEUR);
 
   if (!requireEffect(profile, 'boon', boonKey(BOON.PROTECTION))) return;
 
@@ -487,7 +488,7 @@ function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at: number
 function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): void {
   if (event.type !== 'control') return;
 
-  const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
+  const syncopateProfile = requireBalanceProfile(context.helpers, TRAIT.SYNCOPATE);
   const damage = requireEffect(syncopateProfile, 'strike', 'Immediate wave');
 
   if (!damage) return;
@@ -527,7 +528,7 @@ function observeSyncopateEvent(context: MesmerRuntime, event: SimulationEvent): 
 function triggerMethodOfMadnessSyncopate(context: MesmerRuntime): void {
   if (!hasTrait(context, TRAIT.SYNCOPATE)) return;
 
-  const damage = requireEffect(requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE), 'strike', 'Immediate wave');
+  const damage = requireEffect(requireBalanceProfile(context.helpers, TRAIT.SYNCOPATE), 'strike', 'Immediate wave');
 
   if (!damage) return;
 
@@ -561,7 +562,7 @@ function scheduleSyncopateDrumWave(
 ): void {
   if (instrument.instrument !== 'Drum') return;
 
-  const syncopateProfile = requireBalanceProfileFromContext(context, TRAIT.SYNCOPATE);
+  const syncopateProfile = requireBalanceProfile(context.helpers, TRAIT.SYNCOPATE);
   const delayedAt = damageAt + SYNCOPATE_DELAY_SECONDS;
   const delayedWave = requireEffect(syncopateProfile, 'strike', 'Delayed wave');
   const daze = requireEffect(syncopateProfile, 'control', 'Delayed daze');
@@ -644,7 +645,7 @@ function grantCrescendoPartyBoons(
   context: MesmerRuntime,
   { skill, damageAt, delivery }: TriggerPointInput<typeof troubadourCrescendoResolved>
 ): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.LIFE_OF_THE_PARTY);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.LIFE_OF_THE_PARTY);
   // Named grants retain independent removal and their original party attribution.
   for (const name of ['Crescendo Quickness', 'Crescendo Might', 'Crescendo Fury'])
     emitTraitProfile(context, TRAIT.LIFE_OF_THE_PARTY, TRAIT.LIFE_OF_THE_PARTY, delivery.cause, {
@@ -667,7 +668,7 @@ function resolveAlteredChord(
   { skill, damageAt, delivery, lastInstrument }: TriggerPointInput<typeof troubadourCrescendoResolved>
 ): void {
   if (lastInstrument === 'Lute') {
-    const alteredChordProfile = requireBalanceProfileFromContext(context, TRAIT.ALTERED_CHORD);
+    const alteredChordProfile = requireBalanceProfile(context.helpers, TRAIT.ALTERED_CHORD);
     // The activation owns its status row without changing the status's post-strike priority.
     const proc = context.effects.emit({
       receipt: true,
@@ -700,7 +701,7 @@ function resolveAlteredChord(
       });
     }
   } else if (lastInstrument === 'Flute') {
-    const condition = mesmerConditionFromProfile(context, TRAIT.ALTERED_CHORD, CONDITION.CONFUSION);
+    const condition = mesmerConditionFromProfile(context.helpers, TRAIT.ALTERED_CHORD, CONDITION.CONFUSION);
 
     if (condition)
       buildMesmerConditions(context, skill.name, damageAt, condition, 'Player', 'Altered Chord - Confusion', {
@@ -754,7 +755,7 @@ function queueFortissimoNotes(
   context: MesmerRuntime,
   { at }: TriggerPointInput<typeof troubadourCrescendoResolved>
 ): void {
-  const fortissimoProfile = requireBalanceProfileFromContext(context, TRAIT.FORTISSIMO);
+  const fortissimoProfile = requireBalanceProfile(context.helpers, TRAIT.FORTISSIMO);
   const applications = balanceProfileNumber(fortissimoProfile, 'maximumStacks');
   const interval = balanceProfileNumber(fortissimoProfile, 'pulseInterval');
   const resourceGain = balanceProfileNumber(fortissimoProfile, 'resourceGain');

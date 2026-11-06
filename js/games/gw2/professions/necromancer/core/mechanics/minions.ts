@@ -114,7 +114,7 @@ function emitHorrorEffects(runtime: NecromancerRuntime, key: string, terminal: b
 
 /** Active creatures own their commands and prevent death-gated summons from bypassing recharge. */
 export function necromancerMinionAvailability(runtime: MechanicQueriesOf<NecromancerRuntime>, skill: NecromancerSkill) {
-  const definition = Boolean(skill.summonAttackId) ? minionDefinitionForSkill(runtime, skill.id) : undefined;
+  const definition = Boolean(skill.summonAttackId) ? minionDefinitionForSkill(runtime.helpers, skill.id) : undefined;
   const active = runtime.profession.core.activeMinions;
 
   if (definition && skill.rechargeOnMinionDeath && active[definition.key] > 0)
@@ -217,7 +217,7 @@ function attack(runtime: NecromancerRuntime, data: unknown): void {
   if (!autonomousActionsAllowed(runtime) || !active(runtime, work)) return;
 
   const skill = runtime.helpers.skillsById.get(work.skillId);
-  const definition = skill && minionDefinitionForSkill(runtime, skill.id);
+  const definition = skill && minionDefinitionForSkill(runtime.helpers, skill.id);
 
   if (!skill || !definition) return;
 
@@ -267,7 +267,7 @@ function commandImpact(runtime: NecromancerRuntime, data: unknown): void {
   if (!work.consumed && !active(runtime, work)) return;
 
   const skill = runtime.helpers.skillsById.get(work.skillId);
-  const minion = skill && minionDefinitionFor(runtime, work.key);
+  const minion = skill && minionDefinitionFor(runtime.helpers, work.key);
 
   if (!skill || !minion) return;
 
@@ -319,7 +319,7 @@ export function summonNecromancerHorrors(runtime: NecromancerRuntime, cast: Runt
 export function summonNecromancerMinion(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const skill = cast.skill;
   const state = runtime.profession.core;
-  const definition = minionDefinitionForSkill(runtime, skill.id);
+  const definition = minionDefinitionForSkill(runtime.helpers, skill.id);
 
   if (!definition) return;
 
@@ -356,7 +356,7 @@ export function summonNecromancerMinion(runtime: NecromancerRuntime, cast: Runti
 export function commandNecromancerMinion(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   const skill = cast.skill;
   const state = runtime.profession.core;
-  const definition = minionDefinitionFor(runtime, String(skill.minionKey));
+  const definition = minionDefinitionFor(runtime.helpers, String(skill.minionKey));
 
   if (!definition) return;
 
@@ -417,7 +417,7 @@ function startNecromancerMinions(runtime: NecromancerRuntime, recoveringKey?: st
 
   const state = runtime.profession.core;
   for (const [key, count] of Object.entries(state.activeMinions)) {
-    const definition = minionDefinitionFor(runtime, key);
+    const definition = minionDefinitionFor(runtime.helpers, key);
     for (let index = 0; index < count; index++) {
       const cursor = state.minionAttackCursors[companion(key, index)];
 

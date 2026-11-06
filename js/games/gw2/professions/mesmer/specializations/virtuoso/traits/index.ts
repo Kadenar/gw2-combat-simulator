@@ -15,9 +15,9 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
@@ -63,8 +63,8 @@ const deadlyBlades = defineTrait<MesmerSkill>({
 
       amount: (context, target) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE
-          ? balanceNumberFromContext(context, TRAIT.DEADLY_BLADES, 'conditionDamageIncrease')
-          : balanceNumberFromContext(context, TRAIT.DEADLY_BLADES, 'damageIncrease'),
+          ? balanceNumber(context.catalog, TRAIT.DEADLY_BLADES, 'conditionDamageIncrease')
+          : balanceNumber(context.catalog, TRAIT.DEADLY_BLADES, 'damageIncrease'),
       when: (context) => !illusionSource(context) && buffActive(context, 'deadly-blades')
     }
   ],
@@ -123,7 +123,7 @@ export const bloodsong = defineTrait<MesmerSkill>({
       id: 'mesmer.bloodsong',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.BLOODSONG, 'conditionDamageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.BLOODSONG, 'conditionDamageMultiplier'),
       order: 100,
       when: (context) => context.condition === CONDITION.BLEEDING
     }
@@ -135,7 +135,7 @@ export const bloodsong = defineTrait<MesmerSkill>({
         if (event.condition !== CONDITION.BLEEDING) return;
 
         const state = virtuosoState.from(runtime.profession);
-        const profile = requireBalanceProfileFromContext(runtime, TRAIT.BLOODSONG);
+        const profile = requireBalanceProfile(runtime.helpers, TRAIT.BLOODSONG);
         const threshold = balanceProfileNumber(profile, 'threshold');
         // The resolver dispatches each stack individually; reset before rewarding so the next application starts a new cycle.
         const progress = advanceCounter(state.bloodsongProgress, 1, threshold, threshold > 0 ? 'reset' : 'retain');
@@ -163,7 +163,7 @@ const phantasmalBlades = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerPhantasmPreparing, {
       run(runtime, traitEffects: MesmerPhantasmTraitEffects) {
-        const profile = requireBalanceProfileFromContext(runtime, TRAIT.PHANTASMAL_BLADES);
+        const profile = requireBalanceProfile(runtime.helpers, TRAIT.PHANTASMAL_BLADES);
         const strike = requireEffect(profile, 'strike', 'Strike');
 
         if (strike)
@@ -189,13 +189,13 @@ const quietIntensity = defineTrait<MesmerSkill>({
       requiresSelection: false,
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.QUIET_INTENSITY, 'phantasmCriticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.QUIET_INTENSITY, 'phantasmCriticalChance'),
       when: (context) => context.event?.summonKind === 'phantasm' && hasTrait(context, TRAIT.PHANTASMAL_FURY)
     }
   ],
   attributes: (context) => {
     const { balanceContext, loadout } = context;
-    const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.QUIET_INTENSITY);
+    const profile = requireBalanceProfile(balanceContext.catalog, TRAIT.QUIET_INTENSITY);
     return {
       attributeEffects: [
         {
@@ -225,7 +225,7 @@ const mentalFocus = defineTrait<MesmerSkill>({
       id: 'mesmer.mental-focus',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.MENTAL_FOCUS, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.MENTAL_FOCUS, 'damageMultiplier'),
       // Apply after the blade-specific multiplier, as in the original collector.
       order: 101,
       when: (context) => isGw2PlayerActorEvent(context.event)
@@ -241,12 +241,12 @@ const sharpeningSorrow = defineTrait<MesmerSkill>({
   },
   attributes: ({ balanceContext, loadout }) => ({
     // Fury gates the same named grant used by preview and tooltip consumers.
-    attributeEffects: ownerAttributeEffects(
-      requireBalanceProfileFromContext(balanceContext, TRAIT.SHARPENING_SORROW)
-    ).map((effect) => ({
-      ...effect,
-      enabled: loadout.assumptions.fury !== false
-    }))
+    attributeEffects: ownerAttributeEffects(requireBalanceProfile(balanceContext.catalog, TRAIT.SHARPENING_SORROW)).map(
+      (effect) => ({
+        ...effect,
+        enabled: loadout.assumptions.fury !== false
+      })
+    )
   })
 });
 
@@ -257,13 +257,13 @@ export const infiniteForgePassive = definePeriodicTask<MesmerRuntime>({
   priority: -20,
   state: (runtime) => virtuosoState.from(runtime.profession).infiniteForge,
   nextAt(runtime) {
-    const interval = balanceNumberFromContext(runtime, TRAIT.INFINITE_FORGE, 'pulseInterval');
+    const interval = balanceNumber(runtime.helpers, TRAIT.INFINITE_FORGE, 'pulseInterval');
     return interval > 0 ? runtime.time + interval : Infinity;
   },
   run(runtime) {
     createMesmerIllusionRewards(runtime).gainResources(
       runtime.time,
-      balanceNumberFromContext(runtime, TRAIT.INFINITE_FORGE, 'playerStacks'),
+      balanceNumber(runtime.helpers, TRAIT.INFINITE_FORGE, 'playerStacks'),
       mesmerActivePrimaryWeapon(runtime),
       'Infinite Forge',
       { traitId: TRAIT.INFINITE_FORGE, traitName: 'Infinite Forge' }
@@ -286,7 +286,7 @@ const infiniteForge = defineTrait<MesmerSkill>({
       id: 'mesmer.infinite-forge',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.INFINITE_FORGE, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.INFINITE_FORGE, 'damageMultiplier'),
       order: 100,
       when: (context) => Boolean(context.event?.metadata?.blade)
     }
@@ -325,10 +325,10 @@ function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerShatterRe
         priority: 5,
         kind: 'deadly-blades',
         stacks: 1,
-        duration: balanceNumberFromContext(context, TRAIT.DEADLY_BLADES, 'duration')
+        duration: balanceNumber(context.helpers, TRAIT.DEADLY_BLADES, 'duration')
       }
     ];
-    const traitProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_BLADES);
+    const traitProfile = requireBalanceProfile(context.helpers, TRAIT.DEADLY_BLADES);
     const traitSource = {
       source: 'Trait',
       sourceId: TRAIT.DEADLY_BLADES,
@@ -365,13 +365,13 @@ function resolveDeadlyBlades(context: MesmerRuntime, resolution: MesmerShatterRe
 
 /** Refunds blades only after a completed Bladesong commits the configured maximum-spend threshold. */
 function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  if (resolution.spent < balanceNumberFromContext(context, TRAIT.INFINITE_FORGE, 'threshold')) {
+  if (resolution.spent < balanceNumber(context.helpers, TRAIT.INFINITE_FORGE, 'threshold')) {
     return;
   }
 
   createMesmerIllusionRewards(context).queueResources(
     resolution.at,
-    balanceNumberFromContext(context, TRAIT.INFINITE_FORGE, 'resourceGain'),
+    balanceNumber(context.helpers, TRAIT.INFINITE_FORGE, 'resourceGain'),
     mesmerActivePrimaryWeapon(context),
     'Infinite Forge refund',
     {
@@ -383,7 +383,7 @@ function resolveInfiniteForgeRefund(context: MesmerRuntime, resolution: MesmerSh
 
 /** Start the passive only after Virtuoso has installed its blade lifecycle; pulses schedule their own successor. */
 function startInfiniteForge(context: MesmerRuntime): void {
-  const interval = balanceNumberFromContext(context, TRAIT.INFINITE_FORGE, 'pulseInterval');
+  const interval = balanceNumber(context.helpers, TRAIT.INFINITE_FORGE, 'pulseInterval');
 
   if (interval > 0) infiniteForgePassive.restart(context, interval);
 }
@@ -404,7 +404,7 @@ function applyBladeCritical(
 
   if (id === TRAIT.DEADLY_BLADES && event.actorType !== ACTOR.PLAYER) return;
 
-  const effect = requireEffect(requireBalanceProfileFromContext(runtime, id), 'condition', condition);
+  const effect = requireEffect(requireBalanceProfile(runtime.helpers, id), 'condition', condition);
 
   if (!effect) return;
 

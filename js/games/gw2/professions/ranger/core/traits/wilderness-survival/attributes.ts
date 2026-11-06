@@ -1,14 +1,14 @@
 import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
 import type { Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
 /** Adds Natural Vigor to both baseline and Vigor-enhanced endurance recovery. */
 export function naturalVigorBonus(context: RangerRuntime): number {
   return hasTrait(context.traits, TRAIT.NATURAL_VIGOR)
-    ? balanceNumberFromContext(context, TRAIT.NATURAL_VIGOR, 'vigorRegenerationMultiplier')
+    ? balanceNumber(context.helpers, TRAIT.NATURAL_VIGOR, 'vigorRegenerationMultiplier')
     : 0;
 }
 
@@ -26,7 +26,7 @@ export function wildernessPetAttributes(
 
     if (field === 'conditionalAttributeBonuses' && !['spider', 'devourer'].includes(family)) return [];
 
-    const profile = requireBalanceProfileFromContext(context, id);
+    const profile = requireBalanceProfile(context.helpers, id);
     return ownerAttributeEffects({ attributeBonuses: profile[field] });
   });
 }

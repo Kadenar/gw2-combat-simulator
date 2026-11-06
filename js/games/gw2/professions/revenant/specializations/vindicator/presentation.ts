@@ -3,6 +3,7 @@ import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   ProfessionPaletteActionIdentity,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -100,7 +101,9 @@ function resolveVindicatorPaletteAction(
 }
 
 /** Shows the armed Reaver's Curse window until the next dodge consumes it. */
-function vindicatorStateSnapshot(context: RevenantUiContext): RotationStateSnapshotItem[] {
+function vindicatorStateSnapshot(
+  context: ProfessionStateSnapshotContext<RevenantUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const expiresAt = revenantUiState(context)[STATE.REAVERS_CURSE_UNTIL] || 0;
   const remaining = expiresAt - Math.max(0, context.atSeconds || 0);
   // A landing exactly at expiry can still consume the armed charge.

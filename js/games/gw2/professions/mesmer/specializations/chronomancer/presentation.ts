@@ -3,6 +3,7 @@ import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   ProfessionEventLogDescriptor,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
@@ -40,7 +41,9 @@ function chronomancerEventLogRow(
 }
 
 /** Shows active buff windows and each summoned phantasm's pending clone conversions at the inspected point. */
-function chronomancerStateSnapshot(context: MesmerUiContext): RotationStateSnapshotItem[] {
+function chronomancerStateSnapshot(
+  context: ProfessionStateSnapshotContext<MesmerUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const state = mesmerUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const result = context.result;

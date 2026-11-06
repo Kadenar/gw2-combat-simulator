@@ -9,10 +9,10 @@ import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-defin
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
+  attributeBonusNumber,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
@@ -89,14 +89,14 @@ const chillingNova = defineTrait({
       // Preserve canonical critical sampling and cooldown claims within the selected producer.
       run: criticalProcHandler<NecromancerResolverContext, NecromancerResolverEvent, NativeResolvedDamageDetails>({
         id: 'necromancer.chilling-nova',
-        chanceOnCriticalHit: (context) => balanceNumberFromContext(context, TRAIT.CHILLING_NOVA, 'criticalChance'),
+        chanceOnCriticalHit: (context) => balanceNumber(context.helpers, TRAIT.CHILLING_NOVA, 'criticalChance'),
         internalCooldown: {
-          duration: (context) => balanceNumberFromContext(context, TRAIT.CHILLING_NOVA, 'cooldown'),
+          duration: (context) => balanceNumber(context.helpers, TRAIT.CHILLING_NOVA, 'cooldown'),
           key: 'necromancer.reaper.chillingNova'
         },
         handler: (context, event, _details, application) => {
           // Chilling Nova is a discrete strike-and-chill package for each materialized proc.
-          const profile = requireBalanceProfileFromContext(context, TRAIT.CHILLING_NOVA);
+          const profile = requireBalanceProfile(context.helpers, TRAIT.CHILLING_NOVA);
           const strike = requireEffect(profile, 'strike', 'Strike');
           const chill = requireEffect(profile, 'condition', CONDITION.CHILLED);
           for (let proc = 0; proc < application.quantity; proc += 1) {
@@ -198,7 +198,7 @@ const chillingVictory = defineTrait({
         Number(event.coefficient) > 0 &&
         runtime.combat.targetHasCondition(CONDITION.CHILLED, runtime.time),
       run(runtime) {
-        const profile = requireBalanceProfileFromContext(runtime, TRAIT.CHILLING_VICTORY);
+        const profile = requireBalanceProfile(runtime.helpers, TRAIT.CHILLING_VICTORY);
 
         if (
           runtime.procs.claimCooldown(
@@ -224,7 +224,7 @@ const blightersBoon = defineTrait({
       on: 'buff.applied',
       when: (_runtime, event) => isStandardBoon(event.kind) && Boolean(event.resolvedAudience?.includesSelf),
       run(runtime) {
-        grantNecromancerLifeForce(runtime, balanceNumberFromContext(runtime, TRAIT.BLIGHTERS_BOON, 'lifeForceGain'));
+        grantNecromancerLifeForce(runtime, balanceNumber(runtime.helpers, TRAIT.BLIGHTERS_BOON, 'lifeForceGain'));
       }
     }
   ]
@@ -244,7 +244,7 @@ const decimateDefenses = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => {
-        const decimateDefensesProfile = requireBalanceProfileFromContext(context, TRAIT.DECIMATE_DEFENSES);
+        const decimateDefensesProfile = requireBalanceProfile(context.catalog, TRAIT.DECIMATE_DEFENSES);
         return (
           Math.min(
             balanceProfileNumber(decimateDefensesProfile, 'maximumStacks'),
@@ -277,7 +277,7 @@ const reapersOnslaught = defineTrait<NecromancerSkill>({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: attributeBonusFromContext(context.balanceContext, TRAIT.REAPERS_ONSLAUGHT, 'ferocity'),
+          amount: attributeBonusNumber(context.balanceContext.catalog, TRAIT.REAPERS_ONSLAUGHT, 'ferocity'),
           feedsConversions: 'none',
           enabled: necromancerActiveShroud(context) === 'reaper'
         }
@@ -290,7 +290,7 @@ const reapersOnslaught = defineTrait<NecromancerSkill>({
       when: (_runtime, event) =>
         event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0 && event.skillId === ID.LIFE_REAP,
       run(runtime) {
-        const reduction = balanceNumberFromContext(runtime, TRAIT.REAPERS_ONSLAUGHT, 'rechargeReduction');
+        const reduction = balanceNumber(runtime.helpers, TRAIT.REAPERS_ONSLAUGHT, 'rechargeReduction');
         for (const skill of runtime.helpers.skillsById.values()) {
           if (skill.shroud === 'reaper') runtime.cooldownController.reduceSkillRecharge(skill, reduction, runtime.time);
         }
@@ -310,7 +310,7 @@ export const coldShoulder = defineTrait({
       id: 'necromancer.cold-shoulder',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.COLD_SHOULDER, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.COLD_SHOULDER, 'damageMultiplier'),
       // Share the target's canonical Chilled lifetime with Chilling Nova eligibility.
       when: (context) => targetConditionActive(context, CONDITION.CHILLED)
     }
@@ -328,7 +328,7 @@ const soulEater = defineTrait({
       id: 'necromancer.soul-eater',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.SOUL_EATER, 'damageMultiplier')
+      factor: (context) => balanceNumber(context.catalog, TRAIT.SOUL_EATER, 'damageMultiplier')
     }
   ]
 });
@@ -361,7 +361,7 @@ function queueChillingNovaChill(context: NecromancerResolverContext, event: Necr
 function completeChillingNova(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
   // The resolved Nova strike queues its condition after sibling strikes, preserving their pre-Chill state.
   if (event.actorType === ACTOR.EFFECT && event.sourceId === TRAIT.CHILLING_NOVA) {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.CHILLING_NOVA);
+    const profile = requireBalanceProfile(context.helpers, TRAIT.CHILLING_NOVA);
     const chill = requireEffect(profile, 'condition', CONDITION.CHILLED);
 
     if (chill) queueChillingNovaChill(context, event);
@@ -370,7 +370,7 @@ function completeChillingNova(context: NecromancerResolverContext, event: Necrom
 
 /** Converts Chilled applications into Deathly Chill's configured condition packet. */
 function applyDeathlyChill(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.DEATHLY_CHILL);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.DEATHLY_CHILL);
   const effect = requireEffect(profile, 'condition', CONDITION.BLEEDING);
 
   if (effect) {
@@ -399,7 +399,7 @@ function applyDeathlyChill(context: NecromancerResolverContext, event: Necromanc
 
 /** Emits the Chill reward admitted by the compiled Fear trigger. */
 function applyShiversOfDread(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.SHIVERS_OF_DREAD);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.SHIVERS_OF_DREAD);
   const chill = requireEffect(profile, 'condition', CONDITION.CHILLED);
 
   if (!chill) return;

@@ -1,6 +1,9 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
+import type {
+  ProfessionStateSnapshotContext,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import {
   formatSecondsRemaining,
@@ -20,7 +23,9 @@ const VIRTUE_IDS = Object.freeze([
 ]);
 
 /** Shows the target tether only while Big Game Hunter can still benefit from it. */
-function dragonhunterStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
+function dragonhunterStateSnapshot(
+  context: ProfessionStateSnapshotContext<GuardianUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const remaining = (guardianUiState(context)[STATE.TETHER_UNTIL] || 0) - guardianSnapshotAt(context);
   return remaining > 0
     ? [

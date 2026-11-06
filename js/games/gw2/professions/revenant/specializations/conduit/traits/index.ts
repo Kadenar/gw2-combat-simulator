@@ -10,10 +10,10 @@ import { defineTrait, traitAttributeBonuses } from '#gw2/platform/profession-def
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -67,10 +67,10 @@ const bolsteredBonds = defineTrait({
   attributes: (context) => ({
     attributeEffects: Object.entries(
       bolsteredBondsBonuses(
-        context.balanceContext,
+        context.balanceContext.catalog,
         context.runtime ? revenantRuntimeCoreState(context).selectedLegendIds : context.loadout.selectedLegends,
         (revenantRuntimeSpecializationState(context, 'Conduit').cosmicWisdomUntil ?? 0) > context.time
-          ? balanceNumberFromContext(context.balanceContext, TRAIT.BOLSTERED_BONDS, 'attributeMultiplier')
+          ? balanceNumber(context.balanceContext.catalog, TRAIT.BOLSTERED_BONDS, 'attributeMultiplier')
           : 1
       )
     ).map(([attribute, amount]) => ({
@@ -202,9 +202,7 @@ const mistfire = defineTrait({
       cooldown: 'profile',
       when: (runtime, event) =>
         event.skillId !== ID.TWIN_MOON_SWEEP &&
-        Boolean(
-          requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.MISTFIRE), 'condition', CONDITION.BURNING)
-        ),
+        Boolean(requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.MISTFIRE), 'condition', CONDITION.BURNING)),
       effects: (effect) => effect.type === 'condition' && effect.name === CONDITION.BURNING,
       attribution: {
         source: 'revenant',
@@ -286,8 +284,8 @@ const numinousGiftTrait = defineTrait({
         const base =
           1 +
           vulnerabilityStacks(context) *
-            balanceNumberFromContext(context, TRAIT.TARGETED_DESTRUCTION, 'damageIncreasePerStack');
-        return (base + balanceNumberFromContext(context, TRAIT.NUMINOUS_GIFT, 'damageIncrease')) / base;
+            balanceNumber(context.catalog, TRAIT.TARGETED_DESTRUCTION, 'damageIncreasePerStack');
+        return (base + balanceNumber(context.catalog, TRAIT.NUMINOUS_GIFT, 'damageIncrease')) / base;
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && hasTrait(context, TRAIT.TARGETED_DESTRUCTION)
     }
@@ -409,7 +407,7 @@ function extendEnhancedEmbodiment(runtime: RevenantRuntime, formActive: boolean)
   const state = conduitState.from(runtime.profession);
 
   if (formActive) {
-    const enhanced = requireBalanceProfileFromContext(runtime, TRAIT.ENHANCED_EMBODIMENT);
+    const enhanced = requireBalanceProfile(runtime.helpers, TRAIT.ENHANCED_EMBODIMENT);
     const extension = requireEffect(enhanced, 'buff', 'cosmic-wisdom-extension');
 
     if (extension) {
@@ -427,10 +425,7 @@ function grantFoundPurpose(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
 /** Applies the trait at the mechanic's existing execution boundary. */
 function grantLingeringDetermination(runtime: RevenantRuntime, combat: boolean): void {
   if (combat)
-    gainAffinity(
-      runtime,
-      Math.max(0, balanceNumberFromContext(runtime, TRAIT.LINGERING_DETERMINATION, 'resourceGain'))
-    );
+    gainAffinity(runtime, Math.max(0, balanceNumber(runtime.helpers, TRAIT.LINGERING_DETERMINATION, 'resourceGain')));
 }
 
 /** Applies the trait at the mechanic's existing execution boundary. */
@@ -459,7 +454,7 @@ function grantExpandedConsciousness(runtime: RevenantRuntime, previous: number, 
   if (previous < maximum && runtime.resourceController.value('affinity') === maximum)
     runtime.resourceController.grant(
       'energy',
-      balanceNumberFromContext(runtime, TRAIT.EXPANDED_CONSCIOUSNESS, 'resourceGain')
+      balanceNumber(runtime.helpers, TRAIT.EXPANDED_CONSCIOUSNESS, 'resourceGain')
     );
 }
 
@@ -490,7 +485,7 @@ function hasLegend(runtime: RevenantRuntime, legendId: string): boolean {
 
 /** One entity-specific Shared Wisdom boon accompanies the cast's completion. */
 function completionSharedWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.SHARED_WISDOM);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.SHARED_WISDOM);
   const shared = requireEffect(profile, 'boon', 'entity-skill');
 
   if (!shared) return;

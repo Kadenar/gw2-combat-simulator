@@ -7,7 +7,8 @@ import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { weaponFollowUpOpen } from '#gw2/platform/execution/skill-flips.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
@@ -108,7 +109,7 @@ export const GUARDIAN_WEAPONS_TORCH_SKILL_MECHANICS: Readonly<Record<number, Ski
 /** Torch activation owns its flip duration and lockout; later eligible skills clear the shared lockout. */
 const guardianTorchActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.arm-zealots-fire'(runtime, context) {
-    const duration = Number(context.skill.flipDuration) * radiantFireDurationMultiplier(runtime);
+    const duration = Number(context.skill.flipDuration) * radiantFireDurationMultiplier(runtime.helpers, runtime);
     runtime.armFlip(ID.ZEALOTS_FIRE, { expiresAt: canonicalTime(runtime.time + duration) });
   },
   'guardian.zealots-fire-lockout'(runtime) {
@@ -153,8 +154,6 @@ export const guardianTorchLifecycle = {
 } satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;
 
 /** Select the same duration multiplier for the torch flip window and its Burning packets. */
-function radiantFireDurationMultiplier(context: unknown): number {
-  return hasTrait(context, TRAIT.RADIANT_FIRE)
-    ? balanceNumberFromContext(context, TRAIT.RADIANT_FIRE, 'durationMultiplier')
-    : 1;
+function radiantFireDurationMultiplier(source: BalanceProfileSource, context: unknown): number {
+  return hasTrait(context, TRAIT.RADIANT_FIRE) ? balanceNumber(source, TRAIT.RADIANT_FIRE, 'durationMultiplier') : 1;
 }

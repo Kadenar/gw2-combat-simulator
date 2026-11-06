@@ -67,7 +67,7 @@ const harbingerElixirTasks = {
       harbingerState.from(runtime.profession),
       skillNumber(cast.skill, 'blightGain'),
       runtime.time,
-      harbingerBlightMaximum(runtime)
+      harbingerBlightMaximum(runtime.helpers)
     );
     // Publish the new live stacks before emission while the packet policy below still carries the launch-time Blight.
     publishBlight(runtime);

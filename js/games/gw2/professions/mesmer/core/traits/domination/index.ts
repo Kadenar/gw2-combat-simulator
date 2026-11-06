@@ -8,9 +8,9 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -54,9 +54,9 @@ export const fragility = defineTrait<MesmerSkill>({
       operation: 'multiply',
 
       factor: (context) =>
-        balanceNumberFromContext(context, TRAIT.FRAGILITY, 'damageMultiplier') +
+        balanceNumber(context.catalog, TRAIT.FRAGILITY, 'damageMultiplier') +
         (context.query?.vulnerabilityStacksAt(context.time, context.runtime) || 0) *
-          balanceNumberFromContext(context, TRAIT.FRAGILITY, 'damageIncreasePerStack'),
+          balanceNumber(context.catalog, TRAIT.FRAGILITY, 'damageIncreasePerStack'),
       order: 95,
       when: (context) => !illusionSource(context)
     }
@@ -74,7 +74,7 @@ export const viciousExpression = defineTrait<MesmerSkill>({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       // The target never has boons, so the full bonus always applies.
-      factor: (context) => balanceNumberFromContext(context, TRAIT.VICIOUS_EXPRESSION, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.VICIOUS_EXPRESSION, 'damageMultiplier'),
       order: 96
     }
   ]
@@ -90,7 +90,7 @@ export const empoweredIllusions = defineTrait<MesmerSkill>({
       id: 'mesmer.empowered-illusions',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.EMPOWERED_ILLUSIONS, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.EMPOWERED_ILLUSIONS, 'damageMultiplier'),
       order: 97,
       when: (context) => illusionSource(context)
     }
@@ -110,8 +110,8 @@ export const mentalAnguish = defineTrait<MesmerSkill>({
 
       factor: (context) =>
         context.config?.target?.activatingSkills
-          ? balanceNumberFromContext(context, TRAIT.MENTAL_ANGUISH, 'activatingFactor')
-          : balanceNumberFromContext(context, TRAIT.MENTAL_ANGUISH, 'idleFactor'),
+          ? balanceNumber(context.catalog, TRAIT.MENTAL_ANGUISH, 'activatingFactor')
+          : balanceNumber(context.catalog, TRAIT.MENTAL_ANGUISH, 'idleFactor'),
       order: 99,
       // Repeat packets are still shatter damage, but the skill contract limits shatter traits to the first strike.
       when: (context) => Boolean(context.event?.metadata?.shatterTraitEligible)
@@ -129,7 +129,7 @@ export const egotism = defineTrait<MesmerSkill>({
       id: 'mesmer.egotism',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.EGOTISM, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.EGOTISM, 'damageMultiplier'),
       order: 100,
       when: (context) => !illusionSource(context) && remainingTargetHealthBelow(context.config, context.runtime, 1)
     }
@@ -208,7 +208,7 @@ function triggerRendingShatter(
   if (!resolution.traitHits.length) return;
 
   const effect = requireEffect(
-    requireBalanceProfileFromContext(context, TRAIT.RENDING_SHATTER),
+    requireBalanceProfile(context.helpers, TRAIT.RENDING_SHATTER),
     'condition',
     CONDITION.VULNERABILITY
   );
@@ -260,7 +260,7 @@ export function bountifulBladesSpawnModifiers(
 ): Record<number, { countMultiplier: number; damageMultiplier: number }> {
   if (!hasTrait(context, TRAIT.BOUNTIFUL_BLADES)) return {};
 
-  const bountifulBladesProfile = requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_BLADES);
+  const bountifulBladesProfile = requireBalanceProfile(context.helpers, TRAIT.BOUNTIFUL_BLADES);
   return {
     [ID.PHANTASMAL_BERSERKER]: {
       countMultiplier: balanceProfileNumber(bountifulBladesProfile, RECIPIENT.SUMMONS),

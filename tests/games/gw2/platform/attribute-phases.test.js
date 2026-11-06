@@ -615,7 +615,7 @@ test('Chemical Rounds declares base-duration eligibility and respects patch tuni
   const probe = scenario('engineer', 'Core', ['Chemical Rounds']);
   const id = probe.config.selectedTraitIds[0];
   const multiplier = (event, profession = probe.profession, config = probe.config) =>
-    profession.modifyConditionBaseDuration({ profession, config, time: 0, event }, 1);
+    profession.modifyConditionBaseDuration({ catalog: profession.catalog, profession, config, time: 0, event }, 1);
   for (const event of [{ skillWeapon: 'Pistol' }, { application: { skillWeapon: 'Pistol' } }])
     assert.equal(multiplier(event), 4 / 3);
   assert.equal(multiplier({ skillWeapon: 'Rifle' }), 1);

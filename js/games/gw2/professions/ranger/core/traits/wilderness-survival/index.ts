@@ -11,10 +11,10 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
   attributeBonusNumber,
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
+  balanceNumber,
+  ownerAttributeBonusNumber,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
@@ -60,7 +60,7 @@ export const poisonMaster = defineTrait<RangerSkill>({
       id: 'ranger.poison-master',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.POISON_MASTER, 'conditionDamageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.POISON_MASTER, 'conditionDamageMultiplier'),
       // The damage bonus is Ranger-owned; the separately triggered pet attack also resolves from Ranger stats.
       when: (context) => context.condition === CONDITION.POISONED && isGw2PlayerModifierOwnedEvent(context.event)
     }
@@ -100,17 +100,17 @@ export const arachnophobia = defineTrait({
   },
   // Live pet queries may lack a snapshot; captured packet Expertise replaces this later.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.ARACHNOPHOBIA);
+    const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.ARACHNOPHOBIA);
     const familyBonus =
       rangerPetEvent(context) && ['spider', 'devourer'].includes(activePetFamily(context))
-        ? attributeBonusNumber(profile, 'expertise', 'conditionalAttributeBonuses')
+        ? ownerAttributeBonusNumber(profile, 'expertise', 'conditionalAttributeBonuses')
         : 0;
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Expertise',
-          amount: attributeBonusNumber(profile, 'expertise') + familyBonus,
+          amount: ownerAttributeBonusNumber(profile, 'expertise') + familyBonus,
           feedsConversions: 'none'
         }
       ]
@@ -152,7 +152,7 @@ export const carnivore = defineTrait({
       cooldown: 'profile',
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.CARNIVORE), 'strike', 'Strike')),
+        Boolean(requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.CARNIVORE), 'strike', 'Strike')),
       effects: (effect) => effect.type === 'strike' && effect.name === 'Strike',
       attribution: (_runtime, event) => ({
         skillId: TRAIT.CARNIVORE,
@@ -188,8 +188,8 @@ export const ambidexterity = defineTrait({
         {
           kind: 'flat',
           to: 'Condition Damage',
-          amount: attributeBonusFromContext(
-            profileContext,
+          amount: attributeBonusNumber(
+            profileContext.catalog,
             TRAIT.AMBIDEXTERITY,
             'conditionDamage',
             weapons.some((weapon) => [WEAPON.DAGGER, WEAPON.MACE, WEAPON.TORCH].some((member) => member === weapon))
@@ -221,7 +221,7 @@ export const survivalInstincts = defineTrait({
       id: 'ranger.survival-instincts',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.SURVIVAL_INSTINCTS, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.SURVIVAL_INSTINCTS, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -266,7 +266,7 @@ function triggerPoisonMaster(context: RangerResolverContext, event: Gw2ResolverE
 
   if (!actor?.poisonMasterReady) return;
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.POISON_MASTER);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.POISON_MASTER);
   const poison = requireEffect(profile, 'condition', CONDITION.POISONED);
 
   // The armed pet attack exists only to deliver poison, so a removed packet leaves it armed.

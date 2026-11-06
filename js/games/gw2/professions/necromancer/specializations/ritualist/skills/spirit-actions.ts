@@ -6,12 +6,7 @@ import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/st
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import {
@@ -90,7 +85,7 @@ export const ritualistSpiritActionTasks: NonNullable<RuntimeHooks<NecromancerRun
     [FIELD](runtime, data) {
       const field = data as SpiritField;
       for (const event of field.events) runtime.effects.emit({ kind: 'packet', event });
-      const opening = requireSkillFromContext(runtime, field.skillId);
+      const opening = requireSkill(runtime.helpers, field.skillId);
       runtime.effects.emit({
         kind: 'profile',
         profile: opening,
@@ -158,7 +153,7 @@ export const ritualistSpiritActions: NonNullable<
       })
     });
     strikes(runtime, cast, spirit, spirit.summonTicks, 'initial');
-    const profile = requireSkillFromContext(runtime, painfulBondSkill.id);
+    const profile = requireSkill(runtime.helpers, painfulBondSkill.id);
     const effect = requireEffect(profile, 'buff', 'necromancer-painful-bond');
 
     if (effect && spirit.summonTicks.length) {

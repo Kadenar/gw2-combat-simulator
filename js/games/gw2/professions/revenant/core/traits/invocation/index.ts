@@ -8,7 +8,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
   eliteLegendInvoked,
@@ -43,7 +43,7 @@ export const ferociousAggression = defineTrait({
       order: 0,
       target: [MODIFIER_TARGET.STRIKE_DAMAGE, MODIFIER_TARGET.CONDITION_DAMAGE],
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.FEROCIOUS_AGGRESSION, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.FEROCIOUS_AGGRESSION, 'damageIncrease'),
       // Grant the bonus only while permanent or simulated Fury affects the player.
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, boonKey(BOON.FURY))
     }
@@ -98,10 +98,10 @@ export const risingTide = defineTrait({
       order: 1,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.RISING_TIDE, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.RISING_TIDE, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        playerHealthFraction(context) > balanceNumberFromContext(context, TRAIT.RISING_TIDE, 'threshold')
+        playerHealthFraction(context) > balanceNumber(context.catalog, TRAIT.RISING_TIDE, 'threshold')
     }
   ]
 });
@@ -116,7 +116,7 @@ export const roilingMists = defineTrait({
       id: 'revenant.roiling-mists',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.ROILING_MISTS, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.ROILING_MISTS, 'criticalChance'),
       when: (context) => boonActive(context, boonKey(BOON.FURY))
     }
   ]
@@ -212,7 +212,7 @@ export const spiritBoon = defineTrait({
 
 /** Runs the trait at its original ordered mechanic boundary. */
 function invokeInvokersRage(runtime: RevenantRuntime): void {
-  const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.INVOKERS_RAGE);
+  const invocationProfile = requireBalanceProfile(runtime.helpers, TRAIT.INVOKERS_RAGE);
   emitTraitProfile(runtime, TRAIT.INVOKERS_RAGE, invocationProfile.id, undefined, {
     preserveName: true,
     effects: (effect) => (invocationProfile.effects ?? []).includes(effect),
@@ -238,7 +238,7 @@ function invokeSpiritBoon(runtime: RevenantRuntime): void {
   const matchesLegend = (effect: SkillEffect) => effect.metadata?.legendId === legendId;
 
   if (legendId) {
-    const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.SPIRIT_BOON);
+    const invocationProfile = requireBalanceProfile(runtime.helpers, TRAIT.SPIRIT_BOON);
     emitTraitProfile(runtime, TRAIT.SPIRIT_BOON, invocationProfile.id, undefined, {
       preserveName: true,
       effects: (effect) => (invocationProfile.effects?.filter(matchesLegend) ?? []).includes(effect),
@@ -296,7 +296,7 @@ function grantRenegadeInvocationFervor(runtime: RevenantRuntime): void {
 
   if (!song) return;
 
-  for (let index = 0; index < balanceNumberFromContext(runtime, TRAIT.SONG_OF_THE_MISTS, 'resourceGain'); index += 1)
+  for (let index = 0; index < balanceNumber(runtime.helpers, TRAIT.SONG_OF_THE_MISTS, 'resourceGain'); index += 1)
     runtime.fireTrigger(invocationFervorGranted, { sourceId: TRAIT.SONG_OF_THE_MISTS, sourceName: song.name });
 }
 

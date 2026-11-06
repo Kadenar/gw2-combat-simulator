@@ -13,7 +13,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { warriorArmsTooltips } from '#gw2/professions/warrior/app/tooltips/arms.js';
 import { warriorDefenseTooltips } from '#gw2/professions/warrior/app/tooltips/defense.js';
@@ -152,7 +152,7 @@ export const warriorCoreTooltips = {
       };
     },
     [ID.COMBUSTIVE_SHOT]: (balanceContext, entity) => {
-      const selected = requireSkillFromContext(balanceContext, entity.id);
+      const selected = requireSkill(balanceContext.catalog, entity.id);
       // Burst tiers are alternatives; keep each field duration with its own damage and burning payload.
       return {
         description:
@@ -172,7 +172,7 @@ export const warriorCoreTooltips = {
     },
     [ID.DRAGONS_ROAR]: (balanceContext, entity) => ({
       description: 'Consume all available ammunition and fire one explosive strike for each round spent.',
-      facts: simulationEffectFacts(requireSkillFromContext(balanceContext, entity.id).effects, 'per round spent').facts
+      facts: simulationEffectFacts(requireSkill(balanceContext.catalog, entity.id).effects, 'per round spent').facts
     }),
     [SHARED_SKILL_IDS.DODGE]: skillTooltip(
       'Spend endurance to dodge and trigger applicable dodge traits. Incoming attacks are outside simulation scope.',
@@ -220,7 +220,7 @@ export const warriorCoreTooltips = {
     ),
     // Named tier packets keep their identity when patches remove another tier's payload.
     [ID.EVISCERATE]: (balanceContext, entity) => {
-      const selected = requireSkillFromContext(balanceContext, entity.id);
+      const selected = requireSkill(balanceContext.catalog, entity.id);
       return {
         description: 'Spend available adrenaline on a burst and gain might. Its strike uses the adrenaline tier spent.',
         facts: [
@@ -233,7 +233,7 @@ export const warriorCoreTooltips = {
       };
     },
     [ID.BLOODTHIRSTER]: (balanceContext, entity) => {
-      const selected = requireSkillFromContext(balanceContext, entity.id);
+      const selected = requireSkill(balanceContext.catalog, entity.id);
       return {
         description: 'Spend adrenaline to strike your target. Bleeding scales with the adrenaline tier spent.',
         facts: [

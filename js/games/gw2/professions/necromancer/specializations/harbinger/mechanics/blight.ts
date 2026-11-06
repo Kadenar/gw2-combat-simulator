@@ -1,7 +1,7 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceNumberFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { registerNecromancerShroudLifecycle } from '#gw2/professions/necromancer/core/mechanics/shroud-lifecycle.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
@@ -27,7 +27,7 @@ const BLIGHT = 'harbinger.blight-clock';
 
 /** Align accrual to a strictly later clock boundary; disabling accrual must leave stack expiry active. */
 function nextBlightAt(runtime: NecromancerRuntime): number {
-  const cadence = balanceNumberFromContext(runtime, TRAIT.DARK_DISCIPLE, 'pulseInterval');
+  const cadence = balanceNumber(runtime.helpers, TRAIT.DARK_DISCIPLE, 'pulseInterval');
 
   if (cadence <= 0) return Infinity;
 
@@ -71,7 +71,7 @@ export function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast<Necro
   const state = harbingerState.from(runtime.profession);
   const cost = skillNumber(cast.skill, 'blightCost');
   const empowered = state.blightExpiries.length >= cost;
-  const consumed = empowered ? consumeBlight(state, cost, runtime.time, harbingerBlightMaximum(runtime)) : 0;
+  const consumed = empowered ? consumeBlight(state, cost, runtime.time, harbingerBlightMaximum(runtime.helpers)) : 0;
   runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed });
 
   publishBlight(runtime);
@@ -100,14 +100,14 @@ function initializeHarbingerBlight(runtime: NecromancerRuntime): void {
 const harbingerBlightTasks = {
   [BLIGHT](runtime) {
     const state = harbingerState.from(runtime.profession);
-    purgeHarbingerTimedState(state, runtime.time, harbingerBlightMaximum(runtime));
+    purgeHarbingerTimedState(state, runtime.time, harbingerBlightMaximum(runtime.helpers));
 
     if (runtime.profession.core.activeShroud === 'harbinger' && Number(state.nextBlightAt) <= runtime.time) {
       addBlight(
         state,
-        balanceNumberFromContext(runtime, doomApproachesBlightProfile(runtime), 'blightGain'),
+        balanceNumber(runtime.helpers, doomApproachesBlightProfile(runtime), 'blightGain'),
         runtime.time,
-        harbingerBlightMaximum(runtime)
+        harbingerBlightMaximum(runtime.helpers)
       );
       state.nextBlightAt = nextBlightAt(runtime);
     }

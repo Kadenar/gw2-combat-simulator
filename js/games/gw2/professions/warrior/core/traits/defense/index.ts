@@ -7,7 +7,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { burstFirstHit, controlAccepted } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
 import { warriorBoonActive } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -26,7 +26,7 @@ export const mercilessHammer = defineTrait({
       id: 'warrior.merciless-hammer',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.MERCILESS_HAMMER, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.MERCILESS_HAMMER, 'damageMultiplier'),
       order: 94,
       when: (context) =>
         [WEAPON.HAMMER, WEAPON.MACE].some(
@@ -34,8 +34,8 @@ export const mercilessHammer = defineTrait({
             member ===
             String(
               context.event?.skillWeapon ||
-                skillForEvent(context.profession?.catalog, context.event, context.skillId)?.skillWeapon ||
-                skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon ||
+                skillForEvent(context.catalog, context.event, context.skillId)?.skillWeapon ||
+                skillForEvent(context.catalog, context.event, context.skillId)?.weapon ||
                 ''
             )
         ) && Boolean(context.config?.target?.defiant)
@@ -57,7 +57,7 @@ export const stalwartStrength = defineTrait({
       id: 'warrior.stalwart-strength',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.STALWART_STRENGTH, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.STALWART_STRENGTH, 'damageMultiplier'),
       order: 95,
       when: (context) => warriorBoonActive(context, boonKey(BOON.STABILITY))
     }
@@ -88,7 +88,7 @@ export const cullTheWeak = defineTrait({
       id: 'warrior.cull-the-weak',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.CULL_THE_WEAK, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.CULL_THE_WEAK, 'damageMultiplier'),
       order: 93,
       when: (context) => targetConditionActive(context, CONDITION.WEAKNESS)
     }
@@ -120,13 +120,13 @@ export const thickSkin = defineTrait({
 
 /** Apply line-owned rewards at the shared reaction boundary. */
 function mercilessHammerControl(runtime: WarriorRuntime): void {
-  grantWarriorResource(runtime, balanceNumberFromContext(runtime, TRAIT.MERCILESS_HAMMER, 'resourceGain'));
+  grantWarriorResource(runtime, balanceNumber(runtime.helpers, TRAIT.MERCILESS_HAMMER, 'resourceGain'));
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
 function cullTheWeakBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   if (runtime.procs.claim(TRAIT.CULL_THE_WEAK)) {
-    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.CULL_THE_WEAK);
+    const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.CULL_THE_WEAK);
     emitTraitProfile(runtime, TRAIT.CULL_THE_WEAK, TRAIT.CULL_THE_WEAK, event, {
       attribution: {
         source: 'Trait',

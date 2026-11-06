@@ -2,7 +2,7 @@ import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
 import type { Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
@@ -13,14 +13,14 @@ import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/rang
 export function beastlyWardenPetDamageMultiplier(context: RangerRuntime | RangerResolverContext): number {
   const family = rangerPetForState(professionCoreState(context.profession)).family;
   return hasTrait(context, TRAIT.BEASTLY_WARDEN) && (family === 'ursine' || family === 'porcine')
-    ? balanceNumberFromContext(context, TRAIT.BEASTLY_WARDEN, 'damageMultiplier')
+    ? balanceNumber(context.helpers, TRAIT.BEASTLY_WARDEN, 'damageMultiplier')
     : 1;
 }
 
 /** Pet autonomous recharge uses Pack Alpha at scheduling, before action-rate scaling. */
 export function packAlphaPetRecharge(context: RangerRuntime): number {
   return hasTrait(context, TRAIT.PACK_ALPHA)
-    ? balanceNumberFromContext(context, TRAIT.PACK_ALPHA, 'rechargeMultiplier')
+    ? balanceNumber(context.helpers, TRAIT.PACK_ALPHA, 'rechargeMultiplier')
     : 1;
 }
 
@@ -36,7 +36,7 @@ export function beastmasteryPetAttributes(
   return declarations.flatMap(([id, field]) => {
     if (!hasTrait(context, id)) return [];
 
-    const profile = requireBalanceProfileFromContext(context, id);
+    const profile = requireBalanceProfile(context.helpers, id);
     return ownerAttributeEffects({ attributeBonuses: profile[field] });
   });
 }

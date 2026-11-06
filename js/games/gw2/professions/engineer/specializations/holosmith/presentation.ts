@@ -4,11 +4,10 @@ import type {
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
-  ProfessionCatalogContext,
   ProfessionEventLogDescriptor,
   ProfessionResourceView
 } from '#gw2/platform/profession-presentation/types.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import {
   engineerToolbeltSkillIds,
@@ -75,7 +74,7 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
         group: 'Mechanic',
         kind: 'special',
         scope: ['damage'],
-        max: balanceNumberFromContext(context, TRAIT.SOLAR_FOCUSING_LENS, 'maximumStacks'),
+        max: balanceNumber(context.catalog, TRAIT.SOLAR_FOCUSING_LENS, 'maximumStacks'),
         description: 'Starting charges; consumed by strikes in impact order'
       });
       preview.add({
@@ -84,7 +83,10 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
         group: 'Mechanic',
         kind: 'special',
         scope: ['damage'],
-        max: enhancedCapacityMaximumHeat({ selectedTraitIds: context.activeTraits.map((trait) => trait.id) }, context),
+        max: enhancedCapacityMaximumHeat(
+          { selectedTraitIds: context.activeTraits.map((trait) => trait.id) },
+          context.catalog
+        ),
         initial: Number((context.build as { readonly initialHeat?: unknown }).initialHeat) || 0,
         description: 'Heat before the occurrence; skill tiers, cooling and overheat follow the runtime'
       });
@@ -117,7 +119,7 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
 
       return undefined;
     },
-    paletteGroups: (context: EngineerUiContext & ProfessionCatalogContext) => {
+    paletteGroups: (context: EngineerUiContext) => {
       const storm = hasActiveTrait(context.catalog, context, 'Crystal Configuration: Storm');
       // Keep profession toggles and Forge weapon skills in separate stacked palette groups.
       return [
@@ -162,8 +164,7 @@ export function bindHolosmithUi(catalog: Readonly<CanonicalCatalog<HolosmithSkil
     resourceViews: (context: EngineerUiContext): ProfessionResourceView[] => {
       const state = engineerUiState(context);
       // Use the observed clock capacity, or selected traits before an initial result exists.
-      const maximum =
-        state[STATE.HEAT]?.maximum ?? enhancedCapacityMaximumHeat(context.config ?? {}, context.balanceContext);
+      const maximum = state[STATE.HEAT]?.maximum ?? enhancedCapacityMaximumHeat(context.config ?? {}, context.catalog);
       return [
         {
           id: 'heat',

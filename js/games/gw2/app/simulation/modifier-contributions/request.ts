@@ -132,7 +132,7 @@ export function createModifierContributionRequest(
   const selected = selectedSkillIdSet(baseConfig.selectedSkillIds);
   // Discover passive owners from native attribute declarations, including currently suppressed or zero-valued grants.
   const passiveIds = new Set(
-    (runtime.attributeContributions?.({ config: baseConfig, time: 0 }) ?? [])
+    (runtime.attributeContributions?.({ config: baseConfig, time: 0, catalog: runtime.catalog }) ?? [])
       .flatMap((contribution) => contribution.attributeEffects ?? [])
       .flatMap((effect) => (effect.kind === 'flat' && effect.passiveSkillId != null ? [effect.passiveSkillId] : []))
   );

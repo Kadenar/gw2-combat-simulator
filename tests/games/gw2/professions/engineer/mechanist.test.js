@@ -107,7 +107,7 @@ for (const [signet, skillId, modifier, baseBonus, jDriveBonus] of [
 test('Overclock reduces other signet recharges only while its passive is available', () => {
   // Its own cooldown stays at 90 seconds; J-Drive retains the stronger passive during recharge.
   const context = {
-    catalog: engineerCatalog,
+    helpers: engineerCatalog,
     config: { selectedSkillIds: [63095] },
     skill: mechanic('Superconducting Signet'),
     cooldowns: new Map(),
@@ -131,7 +131,7 @@ test('mech Quickness uses its own boon audience and retains copied applications'
   // The player's permanent boon alone is insufficient; copied timed boons retain their own expiry.
   const context = {
     companions: new Map([['engineer.mech', createCompanionEffects()]]),
-    catalog: engineerCatalog,
+    helpers: engineerCatalog,
     boons: new Map(),
     buffs: new Map(),
     config: { boons: { quickness: true }, selectedSkillIds: [63253] },
@@ -199,7 +199,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
     concentration: 400,
     healingPower: 500
   };
-  const base = engineerMechAttributes({ specialization: 'Mechanist' }, player, { catalog: engineerCatalog });
+  const base = engineerMechAttributes({ specialization: 'Mechanist' }, player, engineerCatalog);
 
   assert.deepEqual(base, {
     power: 2000,
@@ -219,7 +219,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         selectedTraitIds: [TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS]
       },
       player,
-      { catalog: engineerCatalog }
+      engineerCatalog
     ).conditionDamage,
     1000
   );
@@ -230,7 +230,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         selectedTraitIds: [TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS]
       },
       player,
-      { catalog: engineerCatalog }
+      engineerCatalog
     ).expertise,
     300
   );
@@ -241,7 +241,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         selectedTraitIds: [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]
       },
       player,
-      { catalog: engineerCatalog }
+      engineerCatalog
     ).concentration,
     400
   );
@@ -252,7 +252,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         selectedTraitIds: [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]
       },
       player,
-      { catalog: engineerCatalog }
+      engineerCatalog
     ).healingPower,
     500
   );
@@ -263,7 +263,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         selectedTraitIds: [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR]
       },
       player,
-      { catalog: engineerCatalog }
+      engineerCatalog
     ).precision,
     1501
   );
@@ -284,7 +284,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
       specialization: 'Mechanist'
     },
     uncapped,
-    { catalog: engineerCatalog }
+    engineerCatalog
   );
 
   assert.equal(cappedBase.power, 2250);
@@ -300,7 +300,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
         selectedTraitIds: [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR]
       },
       uncapped,
-      { catalog: engineerCatalog }
+      engineerCatalog
     ).precision,
     2500
   );
@@ -310,7 +310,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
       selectedTraitIds: [TRAIT.MECH_FRAME_CONDUCTIVE_ALLOYS]
     },
     uncapped,
-    { catalog: engineerCatalog }
+    engineerCatalog
   );
 
   assert.equal(cappedConductive.conditionDamage, 1500);
@@ -321,7 +321,7 @@ test('Mechanical Genius gives the jade mech independent inherited attributes', (
       selectedTraitIds: [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]
     },
     uncapped,
-    { catalog: engineerCatalog }
+    engineerCatalog
   );
 
   assert.equal(cappedChanneling.concentration, 1500);
@@ -823,7 +823,7 @@ test('Mechanist registered recharge owners read preview values and preserve Over
   });
   const runtime = family.runtimeFor({ specialization: 'Mechanist', patchId: 's4-preview' });
   const context = {
-    catalog: runtime.catalog,
+    helpers: runtime.catalog,
     config: {
       selectedSkillIds: [63095],
       selectedTraitIds: [TRAIT.MECH_CORE_JADE_DYNAMO, TRAIT.MECH_CORE_J_DRIVE]

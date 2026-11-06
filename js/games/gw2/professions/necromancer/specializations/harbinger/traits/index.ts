@@ -13,9 +13,9 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -88,8 +88,8 @@ const cascadingCorruption = defineTrait({
       operation: 'damage-additive',
       amount: (context, target) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE
-          ? balanceNumberFromContext(context, TRAIT.CASCADING_CORRUPTION, 'conditionDamageIncrease')
-          : balanceNumberFromContext(context, TRAIT.CASCADING_CORRUPTION, 'damageIncrease'),
+          ? balanceNumber(context.catalog, TRAIT.CASCADING_CORRUPTION, 'conditionDamageIncrease')
+          : balanceNumber(context.catalog, TRAIT.CASCADING_CORRUPTION, 'damageIncrease'),
       // Read the emitted buff through the shared timeline, including explicitly supplied initial buffs.
       when: (context) => buffActive(context, 'meltdown')
     }
@@ -127,7 +127,7 @@ const septicCorruption = defineTrait({
 
       amount: (context) =>
         activeBlight(context) *
-        balanceNumberFromContext(context, TRAIT.SEPTIC_CORRUPTION, 'conditionDamageIncreasePerStack')
+        balanceNumber(context.catalog, TRAIT.SEPTIC_CORRUPTION, 'conditionDamageIncreasePerStack')
     }
   ],
   triggers: [
@@ -318,14 +318,14 @@ const wickedCorruption = defineTrait({
       operation: 'damage-additive',
 
       amount: (context) =>
-        activeBlight(context) * balanceNumberFromContext(context, TRAIT.WICKED_CORRUPTION, 'damageIncreasePerStack')
+        activeBlight(context) * balanceNumber(context.catalog, TRAIT.WICKED_CORRUPTION, 'damageIncreasePerStack')
     },
     {
       order: 121,
       id: 'necromancer.wicked-corruption-critical-hit-damage',
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.WICKED_CORRUPTION, 'criticalDamage'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.WICKED_CORRUPTION, 'criticalDamage'),
       when: (context) => targetConditionActive(context, CONDITION.TORMENT)
     }
   ]
@@ -410,7 +410,7 @@ function applyCascadingCorruption(
   const state = harbingerState.from(runtime.profession);
 
   if (consumed && runtime.engagement.hostileEffectsAllowed(runtime.time)) {
-    const corruption = requireBalanceProfileFromContext(runtime, TRAIT.CASCADING_CORRUPTION);
+    const corruption = requireBalanceProfile(runtime.helpers, TRAIT.CASCADING_CORRUPTION);
     const meltdown = requireEffect(corruption, 'buff', 'meltdown');
     const strike = requireEffect(corruption, 'strike', 'Strike');
     const torment = requireEffect(corruption, 'condition', CONDITION.TORMENT);
@@ -461,7 +461,7 @@ function applyCascadingCorruption(
 
 /** Elixir boons are chosen at launch, after the shared Blight transaction. */
 function applyBolsteringBrew(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.BOLSTERING_BREW);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.BOLSTERING_BREW);
   runtime.effects.emit({
     kind: 'profile',
     profile: cast.skill,
@@ -499,7 +499,7 @@ function applyDoomApproachesStrike(context: NecromancerResolverContext, event: N
   const firstHit = Number(event.hitIndex || 1) === 1;
 
   if (firstHit && skill?.id === ID.TAINTED_BOLTS) {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.DOOM_APPROACHES);
+    const profile = requireBalanceProfile(context.helpers, TRAIT.DOOM_APPROACHES);
     const vulnerability = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
     if (vulnerability) {
@@ -539,7 +539,7 @@ function applySepticCorruptionStrike(context: NecromancerResolverContext, event:
 
   // Septic Corruption procs on shroud slot 2 specifically (the pistol #2 skill), not all pistol hits.
   if (skill?.shroudSlot === 2) {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.SEPTIC_CORRUPTION);
+    const profile = requireBalanceProfile(context.helpers, TRAIT.SEPTIC_CORRUPTION);
     const condition = requireEffect(profile, 'condition', CONDITION.POISONED);
 
     if (condition) {
@@ -574,5 +574,5 @@ function applySepticCorruptionStrike(context: NecromancerResolverContext, event:
 
 /** The accepted shroud entry grants its life force before the entry boons. */
 function grantCorruptedTalent(runtime: NecromancerRuntime): void {
-  grantNecromancerLifeForce(runtime, balanceNumberFromContext(runtime, TRAIT.CORRUPTED_TALENT, 'lifeForceGain'));
+  grantNecromancerLifeForce(runtime, balanceNumber(runtime.helpers, TRAIT.CORRUPTED_TALENT, 'lifeForceGain'));
 }

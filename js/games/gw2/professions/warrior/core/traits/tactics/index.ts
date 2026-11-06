@@ -10,10 +10,10 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
+  attributeBonusNumber,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
@@ -57,7 +57,7 @@ export const legSpecialist = defineTrait({
       id: 'warrior.leg-specialist',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.LEG_SPECIALIST, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.LEG_SPECIALIST, 'damageMultiplier'),
       order: 91,
       when: (context) =>
         [CONDITION.CRIPPLED, CONDITION.CHILLED, CONDITION.IMMOBILIZED].some((condition) =>
@@ -127,7 +127,7 @@ const empowerAlliesPassive = definePeriodicTask<WarriorRuntime>({
   background: true,
   priority: -210,
   state: (runtime) => runtime.profession.core.empowerAllies,
-  nextAt: (runtime) => runtime.time + balanceNumberFromContext(runtime, TRAIT.EMPOWER_ALLIES, 'pulseInterval'),
+  nextAt: (runtime) => runtime.time + balanceNumber(runtime.helpers, TRAIT.EMPOWER_ALLIES, 'pulseInterval'),
   run: empowerPulse
 });
 
@@ -154,7 +154,7 @@ export const roaringReveille = defineTrait({
         {
           kind: 'flat',
           to: 'Concentration',
-          amount: attributeBonusFromContext(context.balanceContext, TRAIT.ROARING_REVEILLE, 'concentration'),
+          amount: attributeBonusNumber(context.balanceContext.catalog, TRAIT.ROARING_REVEILLE, 'concentration'),
           feedsConversions: 'none',
           enabled: true
         }
@@ -177,8 +177,8 @@ export const empowered = defineTrait({
 
       factor: (context) =>
         1 +
-        Math.min(balanceNumberFromContext(context, TRAIT.EMPOWERED, 'maximumBoons'), warriorActiveBoonCount(context)) *
-          balanceNumberFromContext(context, TRAIT.EMPOWERED, 'damagePerBoon'),
+        Math.min(balanceNumber(context.catalog, TRAIT.EMPOWERED, 'maximumBoons'), warriorActiveBoonCount(context)) *
+          balanceNumber(context.catalog, TRAIT.EMPOWERED, 'damagePerBoon'),
       order: 90
     }
   ]
@@ -194,16 +194,16 @@ export const warriorsCunning = defineTrait({
       id: 'warrior.warriors-cunning',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.WARRIORS_CUNNING, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.WARRIORS_CUNNING, 'damageMultiplier'),
       order: 92,
       when: (context) =>
-        targetHealthFraction(context) > balanceNumberFromContext(context, TRAIT.WARRIORS_CUNNING, 'threshold')
+        targetHealthFraction(context) > balanceNumber(context.catalog, TRAIT.WARRIORS_CUNNING, 'threshold')
     }
   ]
 });
 
 function empowerPulse(runtime: WarriorRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWER_ALLIES);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.EMPOWER_ALLIES);
   const interval = balanceProfileNumber(profile, 'pulseInterval');
   const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
@@ -213,7 +213,7 @@ function empowerPulse(runtime: WarriorRuntime): void {
   }
 
   {
-    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.EMPOWER_ALLIES);
+    const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.EMPOWER_ALLIES);
     emitTraitProfile(
       runtime,
       TRAIT.EMPOWER_ALLIES,
@@ -256,7 +256,7 @@ function initializeEmpowerAllies(runtime: WarriorRuntime): void {
 
 /** Focus rewards share party delivery after the proc claim while each trait retains its own tuning and identity. */
 function emitSoldierFocusReward(runtime: WarriorRuntime, event: Gw2ResolverEvent, traitId: number): void {
-  const traitProfile = requireBalanceProfileFromContext(runtime, traitId);
+  const traitProfile = requireBalanceProfile(runtime.helpers, traitId);
   emitTraitProfile(runtime, traitId, traitId, event, {
     attribution: {
       source: 'Trait',

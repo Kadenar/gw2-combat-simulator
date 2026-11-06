@@ -8,10 +8,10 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
+  attributeBonusNumber,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -59,7 +59,7 @@ const boundingDodger = defineTrait({
       id: 'thief.bounding-dodger',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.BOUNDING_DODGER, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.BOUNDING_DODGER, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'bounding-dodger')
     }
   ],
@@ -101,7 +101,7 @@ const lotusTraining = defineTrait({
       id: 'thief.lotus-training',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.LOTUS_TRAINING, 'conditionDamageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.LOTUS_TRAINING, 'conditionDamageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'lotus-training')
     }
   ],
@@ -148,12 +148,12 @@ const havocSpecialist = defineTrait({
       id: 'thief.havoc-specialist',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.HAVOC_SPECIALIST, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.HAVOC_SPECIALIST, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Trait activates whenever endurance is not at maximum - any spent dodge qualifies
         (thiefRuntimeState(context.runtime?.profession).endurance?.value ?? 0) <
-          balanceNumberFromContext(context, TRAIT.PHYSICAL_SUPREMACY, 'maximumStacks')
+          balanceNumber(context.catalog, TRAIT.PHYSICAL_SUPREMACY, 'maximumStacks')
     }
   ]
 });
@@ -169,7 +169,7 @@ const maraudersResilience = defineTrait({
           kind: 'conversion',
           from: 'Power',
           to: 'Vitality',
-          multiplier: balanceNumberFromContext(balanceContext, TRAIT.MARAUDERS_RESILIENCE, 'attributeConversion'),
+          multiplier: balanceNumber(balanceContext.catalog, TRAIT.MARAUDERS_RESILIENCE, 'attributeConversion'),
           rounding: 'round',
           input: 'eligible'
         }
@@ -193,8 +193,8 @@ const staffMaster = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusFromContext(
-            balanceContext,
+          amount: attributeBonusNumber(
+            balanceContext.catalog,
             TRAIT.STAFF_MASTER,
             'power',
             weapons.includes(WEAPON.STAFF) ? 'conditionalAttributeBonuses' : 'attributeBonuses'
@@ -224,7 +224,7 @@ const weakeningStrikes = defineTrait({
       id: 'thief.weakening-strikes',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.WEAKENING_STRIKES, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.WEAKENING_STRIKES, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.WEAKNESS)
     }
@@ -266,7 +266,7 @@ function grantBrawlersTenacity(runtime: ThiefRuntime, { context }: PhysicalSkill
 
 /** Applies Endurance Thief at its established mechanical boundary. */
 function grantEnduranceThief(runtime: ThiefRuntime): void {
-  const enduranceGain = balanceNumberFromContext(runtime, TRAIT.ENDURANCE_THIEF, 'resourceGain');
+  const enduranceGain = balanceNumber(runtime.helpers, TRAIT.ENDURANCE_THIEF, 'resourceGain');
 
   if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
 }
@@ -277,7 +277,7 @@ function refundStaffMaster(runtime: ThiefRuntime, { cast }: DaredevilCast): void
   const cost = thiefInitiativeCost(skill);
 
   if (cost > 0 && skill.weapon === WEAPON.STAFF) {
-    const enduranceGain = cost * balanceNumberFromContext(runtime, TRAIT.STAFF_MASTER, 'resourceGain');
+    const enduranceGain = cost * balanceNumber(runtime.helpers, TRAIT.STAFF_MASTER, 'resourceGain');
 
     if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
   }
@@ -288,7 +288,7 @@ function armWeakeningStrikes(runtime: ThiefRuntime, { cast }: DaredevilCast): vo
   const state = daredevilState.from(runtime.profession);
   const skill = cast.skill;
 
-  const weakening = requireBalanceProfileFromContext(runtime, TRAIT.WEAKENING_STRIKES);
+  const weakening = requireBalanceProfile(runtime.helpers, TRAIT.WEAKENING_STRIKES);
 
   // A removed Weakness cannot arm a pending grant.
   if (!requireEffect(weakening, 'condition', CONDITION.WEAKNESS)) return;
@@ -323,7 +323,7 @@ function weakeningStrike(runtime: ThiefRuntime, { cause: event }: DaredevilStrik
     return;
 
   state.weakeningStrikeReady = false;
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.WEAKENING_STRIKES);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.WEAKENING_STRIKES);
   const weakness = requireEffect(profile, 'condition', CONDITION.WEAKNESS);
 
   // Explicit removal suppresses this packet without restoring baseline tuning.

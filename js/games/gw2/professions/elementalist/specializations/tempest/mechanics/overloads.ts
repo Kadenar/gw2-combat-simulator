@@ -38,7 +38,7 @@ function tempestOverloadAvailability(
   }
 
   // Transcendent Tempest shortens the dwell, and alacrity speeds the singularity's formation.
-  const dwell = tempestOverloadDwell(context);
+  const dwell = tempestOverloadDwell(context.helpers, context);
   // The configured starting attunement carries a negative entry stamp and needs no dwell.
   const startingAttunementReady = state.attunementEnteredAt < 0;
   // Dwell readiness shares the queued canonical instant without allowing an early overload.

@@ -59,7 +59,7 @@ test('removed minion Vampiric siphon keeps the player siphon bound to its own va
   const queued = [];
   const context = {
     config: { selectedTraitIds: [TRAIT.VAMPIRIC] },
-    catalog: patched({ [TRAIT.VAMPIRIC]: remove('strike', 'minion') }),
+    helpers: patched({ [TRAIT.VAMPIRIC]: remove('strike', 'minion') }),
     effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
   };
   vampiricOpportunity(context, { type: 'damage', at: 1, actorType: 'summon', summonKind: 'minion', skillName: 'Bite' });
@@ -86,7 +86,7 @@ test('removing every alternate minion packet compiles no alternate cadence', () 
       }
     })
   };
-  const summon = minionDefinitionForSkill(context, ID.SUMMON_BONE_FIEND);
+  const summon = minionDefinitionForSkill(context.catalog, ID.SUMMON_BONE_FIEND);
   assert.deepEqual(summon.alternateAttacks, []);
   assert.equal(summon.alternateEvery, 0);
   assert.equal(summon.attacks.length, 2);

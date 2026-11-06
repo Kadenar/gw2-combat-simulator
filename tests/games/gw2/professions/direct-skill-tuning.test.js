@@ -146,12 +146,12 @@ for (const [specialization, id, trait] of [
     });
     const selected = context(family);
     const entry = selected.catalog.skillsById.get(id);
-    assert.equal(necromancerShroudDrain(selected, entry), 20);
+    assert.equal(necromancerShroudDrain(selected.catalog, entry), 20);
     assert.equal(
       facts(necromancerTooltips, selected, id).find((fact) => fact.name === 'Life force drained per second').detail,
       '20% life force'
     );
-    assert.notEqual(necromancerShroudDrain(context(family, 'current'), entry), 20);
+    assert.notEqual(necromancerShroudDrain(context(family, 'current').catalog, entry), 20);
     const result = createProfessionSimulator(family)([id, wait(7000)], {
       patchId: 'direct-ownership',
       specialization,
@@ -280,13 +280,10 @@ test('each minion owns selected weapon strength independently', () => {
     const attackId = catalog.skillsById.get(summonId).summonAttackId;
     const patched = applySkillPatch(catalog, { skills: { [attackId]: { fields: { weaponStrength: 1700 } } } });
     for (const otherId of NECROMANCER_MINION_SUMMON_IDS) {
-      assert.equal(
-        minionDefinitionForSkill({ catalog: patched }, otherId).weaponStrength,
-        otherId === summonId ? 1700 : 1048
-      );
+      assert.equal(minionDefinitionForSkill(patched, otherId).weaponStrength, otherId === summonId ? 1700 : 1048);
     }
 
-    assert.equal(minionDefinitionForSkill({ catalog }, summonId).weaponStrength, 1048);
+    assert.equal(minionDefinitionForSkill(catalog, summonId).weaponStrength, 1048);
   }
 
   const summonId = NECRO.SUMMON_FLESH_GOLEM;

@@ -1,10 +1,12 @@
 import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import {
-  balanceProfileFromContext,
+  balanceProfile,
   balanceProfileNumber,
-  skillNumberFromContext
+  requireSkill,
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
@@ -13,7 +15,7 @@ import {
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Core owns shared weapon and trait effects; selected elites register their own policies. */
-export function elementalistBuffPolicies(context: unknown): BuffStatePolicy[] {
+export function elementalistBuffPolicies(source: BalanceProfileSource): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
     { kind: 'arcane-lightning', maximumStacks: 1 },
     { kind: 'bountiful-power-active', maximumStacks: 1 },
@@ -31,7 +33,7 @@ export function elementalistBuffPolicies(context: unknown): BuffStatePolicy[] {
     { kind: 'shattering stone', owner: 'profession' }
   ];
   for (const [kind, id] of [['persisting flames', TRAIT.PERSISTING_FLAMES]] as const) {
-    const profile = balanceProfileFromContext(context, id);
+    const profile = balanceProfile(source, id);
 
     if (profile) policies.push({ kind, maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
   }
@@ -46,7 +48,7 @@ export function elementalistEffectStates(runtime: MechanicQueriesOf<Elementalist
     timedEffectState(
       'shattering stone',
       [{ stacks: stone.charges, expiresAt: stone.expiresAt }],
-      skillNumberFromContext(runtime, ID.SHATTERING_STONE, 'maximumStacks')
+      skillNumber(requireSkill(runtime.helpers, ID.SHATTERING_STONE), 'maximumStacks')
     )
   ];
   return effects;

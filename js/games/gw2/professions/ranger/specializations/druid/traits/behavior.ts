@@ -3,11 +3,7 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import {
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import {
   LUNAR_IMPACT_HIT_MS,
@@ -27,7 +23,7 @@ export function avatarEffects(
   const result = [...effects];
 
   if (hasTrait(runtime, TRAIT.GRACE_OF_THE_LAND)) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.GRACE_OF_THE_LAND);
+    const profile = requireBalanceProfile(runtime.helpers, TRAIT.GRACE_OF_THE_LAND);
     const effect = requireEffect(profile, 'boon', boonKey(BOON.ALACRITY));
 
     if (effect)
@@ -54,7 +50,7 @@ export function avatarEffects(
     [ID.LUNAR_IMPACT, 'Lunar Impact'],
     [ID.REJUVENATING_TIDES, 'Rejuvenating Tides']
   ]);
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ECLIPSE);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.ECLIPSE);
   for (const [i, atMs] of pulses.entries()) {
     const name =
       cast.skill.id === ID.NATURAL_CONVERGENCE
@@ -93,7 +89,5 @@ export function avatarEffects(
 
 /** Eclipse scales only native Astral Force gain from accepted player impacts. */
 export function eclipseAstralForceMultiplier(runtime: RangerRuntime): number {
-  return hasTrait(runtime, TRAIT.ECLIPSE)
-    ? balanceNumberFromContext(runtime, TRAIT.ECLIPSE, 'coefficientMultiplier')
-    : 1;
+  return hasTrait(runtime, TRAIT.ECLIPSE) ? balanceNumber(runtime.helpers, TRAIT.ECLIPSE, 'coefficientMultiplier') : 1;
 }

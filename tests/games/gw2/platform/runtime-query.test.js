@@ -418,8 +418,6 @@ test('skill lookup shares event, application, and explicit context identity prec
   assert.equal(skillForEvent(catalog, { application: { skillId: 99 } }, 3), undefined);
   assert.equal(skillForEvent(catalog, { sourceId: 1, skillName: 'Duplicate' }), undefined);
   assert.equal(skillForEvent(catalog, undefined), undefined);
-  assert.equal(skillForEvent(undefined, { skillId: 1 }), undefined);
-  assert.equal(skillForEvent({}, { skillId: 1 }), undefined);
 });
 
 test('selected skill queries normalize name arrays and slot records', () => {

@@ -10,13 +10,12 @@ import type {
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type {
-  ProfessionCatalogContext,
   ProfessionEffectPresentation,
   ProfessionPaletteGroup,
   ProfessionResourceView
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffStacks } from '#gw2/platform/results/result-queries.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
@@ -52,7 +51,7 @@ const NECROMANCER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] 
   }
 ]);
 
-export function necromancerUiState(context: NecromancerUiContext = {}): NecromancerUiState {
+export function necromancerUiState(context: Pick<NecromancerUiContext, 'professionState'>): NecromancerUiState {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
@@ -141,9 +140,7 @@ export function necromancerTransformPaletteGroups(
 }
 
 /** Returns target-health boundaries required by selected traits and threshold-dependent weapons. */
-export function necromancerCoreTargetHealthThresholds(
-  context: NecromancerUiContext & ProfessionCatalogContext
-): number[] {
+export function necromancerCoreTargetHealthThresholds(context: NecromancerUiContext): number[] {
   const build = context.build || {};
   const traits = selectedTraits(context.catalog, build.specializations || []);
   const hasHalfHealthTrait = traits.some((trait) => HALF_HEALTH_TRAITS.has(trait.name));
@@ -168,7 +165,7 @@ export function necromancerSoulShardResourceViews(context: NecromancerUiContext)
           id: 'soul-shards',
           singular: 'soul shard',
           plural: 'soul shards',
-          maximum: necromancerSoulShardMaximum(context),
+          maximum: necromancerSoulShardMaximum(context.catalog),
           value: state[STATE.SOUL_SHARD_GRANT]?.charges || 0,
           canStart: false,
           step: 1,
@@ -292,7 +289,7 @@ export function bindNecromancerCoreUi(catalog: Readonly<CanonicalCatalog<Necroma
 
       if (!deathMagic && stacks === 0) return [];
 
-      const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.FLESH_OF_THE_MASTER, 'maximumStacks');
+      const maximum = balanceNumber(context.balanceContext.catalog, TRAIT.FLESH_OF_THE_MASTER, 'maximumStacks');
       return [
         {
           id: 'necromancer-deaths-carapace',

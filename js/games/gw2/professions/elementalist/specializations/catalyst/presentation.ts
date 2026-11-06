@@ -6,10 +6,11 @@ import type {
 import type {
   ProfessionEffectPresentation,
   ProfessionResourceView,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt, planningBuffStacks } from '#gw2/platform/results/result-queries.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import {
   ELEMENTALIST_JADE_SPHERE_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS,
@@ -23,7 +24,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 const CATALYST_SPHERE_SKILL_IDS = Object.freeze(Object.values(ELEMENTALIST_JADE_SPHERE_SKILL_IDS));
 
 function uiState(
-  context: ElementalistUiContext
+  context: Pick<ElementalistUiContext, 'professionState'>
 ): Partial<
   ReturnType<
     typeof import('#gw2/professions/elementalist/specializations/catalyst/state.js').projectCatalystPlanningState
@@ -33,14 +34,16 @@ function uiState(
 }
 
 /** Shows timed Catalyst combat state that changes decisions at the inspected rotation point. */
-function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
+function catalystStateSnapshot(
+  context: ProfessionStateSnapshotContext<ElementalistUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const state = uiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
   const empowerment = planningBuffStacks(context.planningState, 'elemental empowerment');
 
   if (empowerment > 0) {
-    const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.ELEMENTAL_EMPOWERMENT, 'maximumStacks');
+    const maximum = balanceNumber(context.balanceContext.catalog, TRAIT.ELEMENTAL_EMPOWERMENT, 'maximumStacks');
     items.push({
       id: 'catalyst-elemental-empowerment',
       label: 'Elemental Empowerment',
@@ -55,7 +58,7 @@ function catalystStateSnapshot(context: ElementalistUiContext): RotationStateSna
     items.push({
       id: 'catalyst-empowering-auras',
       label: 'Empowering Auras',
-      value: `${planningBuffStacks(context.planningState, 'empowering auras')}/${balanceNumberFromContext(context.balanceContext, TRAIT.EMPOWERING_AURAS, 'maximumStacks')} · ${empoweringAuras.remaining.toFixed(1)}s`,
+      value: `${planningBuffStacks(context.planningState, 'empowering auras')}/${balanceNumber(context.balanceContext.catalog, TRAIT.EMPOWERING_AURAS, 'maximumStacks')} · ${empoweringAuras.remaining.toFixed(1)}s`,
       title: 'Active Empowering Auras stacks and refreshed duration remaining'
     });
   }
@@ -165,8 +168,7 @@ export const catalystUi: ElementalistUiSlice = Object.freeze({
     const build = context.build;
     // Observed clocks carry their selected cap; the build-only view uses the active profile before simulation.
     const maximum =
-      state[STATE.CATALYST_ENERGY]?.maximum ??
-      balanceNumberFromContext(context, TRAIT.DEPTH_OF_ELEMENTS, 'maximumStacks');
+      state[STATE.CATALYST_ENERGY]?.maximum ?? balanceNumber(context.catalog, TRAIT.DEPTH_OF_ELEMENTS, 'maximumStacks');
     return [
       {
         id: 'catalyst-energy',

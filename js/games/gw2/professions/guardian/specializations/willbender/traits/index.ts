@@ -10,11 +10,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { battlePresenceSharesBoons } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
@@ -54,8 +50,8 @@ export const lethalTempo = defineTrait({
       amount: (context) =>
         lethalTempoStacks(context) *
         (hasTrait(context, TRAIT.TYRANTS_MOMENTUM)
-          ? balanceNumberFromContext(context, TRAIT.TYRANTS_MOMENTUM, 'damageIncreasePerStack')
-          : balanceNumberFromContext(context, TRAIT.LETHAL_TEMPO, 'damageIncreasePerStack')),
+          ? balanceNumber(context.catalog, TRAIT.TYRANTS_MOMENTUM, 'damageIncreasePerStack')
+          : balanceNumber(context.catalog, TRAIT.LETHAL_TEMPO, 'damageIncreasePerStack')),
       order: 100
     },
     {
@@ -69,8 +65,8 @@ export const lethalTempo = defineTrait({
       amount: (context) =>
         lethalTempoStacks(context) *
         (hasTrait(context, TRAIT.TYRANTS_MOMENTUM)
-          ? balanceNumberFromContext(context, TRAIT.TYRANTS_MOMENTUM, 'conditionDamageIncreasePerStack')
-          : balanceNumberFromContext(context, TRAIT.LETHAL_TEMPO, 'conditionDamageIncreasePerStack')),
+          ? balanceNumber(context.catalog, TRAIT.TYRANTS_MOMENTUM, 'conditionDamageIncreasePerStack')
+          : balanceNumber(context.catalog, TRAIT.LETHAL_TEMPO, 'conditionDamageIncreasePerStack')),
       order: 100
     }
   ],
@@ -88,7 +84,7 @@ export const lethalTempo = defineTrait({
   hooks: {
     /** Imported stacks are absolute counts, while retaining the selected cap and refresh behavior. */
     initialize(runtime) {
-      const parameters = lethalTempoParameters(runtime);
+      const parameters = lethalTempoParameters(runtime.helpers, runtime);
 
       if (!parameters) return;
 
@@ -252,7 +248,7 @@ const powerForPower = defineTrait({
       id: 'guardian.willbender.power-for-power',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.POWER_FOR_POWER, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.POWER_FOR_POWER, 'damageMultiplier'),
       order: 100,
       // willbenderFlames flag is set only on Willbender Flames pulse strikes emitted by hooks.ts,
       // so this 3× multiplier never applies to normal weapon hits.
@@ -328,7 +324,7 @@ function grantVirtueBoon(
   cause: Gw2ResolverEvent,
   audience: (authored: BoonAudience) => BoonAudience
 ): void {
-  const profile = requireBalanceProfileFromContext(runtime, trait);
+  const profile = requireBalanceProfile(runtime.helpers, trait);
   const effect = requireEffect(profile, 'boon', name);
 
   if (!effect) return;
@@ -380,7 +376,7 @@ function gainLethalTempo(
 
 /** Both virtue boundaries grant and report the same inclusive stack window. */
 function tempo(runtime: GuardianRuntime, event: Gw2ResolverEvent): void {
-  const parameters = lethalTempoParameters(runtime);
+  const parameters = lethalTempoParameters(runtime.helpers, runtime);
 
   if (!parameters) return;
 
@@ -423,7 +419,7 @@ function reduceWeapons(runtime: GuardianRuntime, cause: Gw2ResolverEvent): void 
   const state = willbenderState.from(runtime.profession);
   const names = new Set(gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet === 2 ? 2 : 1).filter(Boolean));
   const matches = (skill: Skill) => skill.type === 'Weapon' && (!names.size || names.has(String(skill.weapon)));
-  const amount = balanceNumberFromContext(runtime, TRAIT.RESTORATIVE_VIRTUES, 'rechargeReduction');
+  const amount = balanceNumber(runtime.helpers, TRAIT.RESTORATIVE_VIRTUES, 'rechargeReduction');
   let reduction = 0;
   for (const id of new Set([
     ...runtime.cooldownController.cooldownSkillIds(),

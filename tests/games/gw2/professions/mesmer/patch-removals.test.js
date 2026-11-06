@@ -93,7 +93,7 @@ test('shatter removal keeps surviving tier edits and the current catalog isolate
       }
     }
   });
-  const compiled = mesmerSelectedShatter({ catalog }, ID.MIND_WRACK);
+  const compiled = mesmerSelectedShatter(catalog, ID.MIND_WRACK);
   assert.equal(compiled.strikes[1], undefined);
   assert.equal(compiled.strikes[2].coefficient, 7);
   assert.equal(requireSkillAction(mesmerCatalog.skillsById.get(id), 'shatter').effects[2].coefficient, 2.42);

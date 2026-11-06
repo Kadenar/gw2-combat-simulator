@@ -19,7 +19,7 @@ export function attributePreviewContext(
     specialization: app.adapter.eliteSpecialization(app.build),
     activeTraits: app.attributeData!.activeTraits,
     weapons: weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons,
-    catalog: app.activeCatalog || app.profession.catalog
+    catalog: app.activeCatalog
   };
 }
 

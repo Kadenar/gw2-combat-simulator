@@ -3,12 +3,7 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import {
   addSoulShards,
   consumeSoulShards,
@@ -25,7 +20,7 @@ const SHARD_EXPIRY = 'necromancer.soul-shards-expire';
 
 /** A refresh extends the actual grant; an older expiry cannot erase shards gained later. */
 export function grantNecromancerSoulShards(runtime: NecromancerRuntime, amount: number): void {
-  addSoulShards(runtime.profession.core, amount, runtime.time, necromancerSoulShardMaximum(runtime));
+  addSoulShards(runtime.profession.core, amount, runtime.time, necromancerSoulShardMaximum(runtime.helpers));
   runtime.schedule(SHARD_EXPIRY, runtime.profession.core.soulShardGrant.expiresAt, null, undefined, -20);
 }
 
@@ -38,7 +33,7 @@ export function perforate(runtime: NecromancerRuntime, event: Gw2ResolverEvent):
 
 /** One shard's payload is shared with the conditional calculator. */
 export function emitSoulShard(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
-  const skill = requireSkillFromContext(runtime, ID.SOUL_SHARDS);
+  const skill = requireSkill(runtime.helpers, ID.SOUL_SHARDS);
   const strike = requireEffect(skill, 'strike', 'Soul Shards');
 
   if (!strike) return;

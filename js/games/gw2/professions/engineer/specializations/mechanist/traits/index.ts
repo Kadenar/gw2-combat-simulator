@@ -8,9 +8,9 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { mechStruck, type MechStrike } from '#gw2/professions/engineer/core/mechanics/mech-strikes.js';
@@ -47,7 +47,7 @@ const jadeCannons = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
 
-      amount: (context) => balanceNumberFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.MECH_ARMS_JADE_CANNONS, 'criticalChance'),
       when: (context) => isEngineerMechEvent(context.event)
     }
   ],
@@ -154,7 +154,7 @@ export const barrierEnginePassive = definePeriodicTask<EngineerRuntime>({
   background: true,
   priority: 0,
   state: (runtime) => mechanistState.from(runtime.profession).barrierEngine,
-  nextAt: (runtime) => runtime.time + balanceNumberFromContext(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE, 'interval'),
+  nextAt: (runtime) => runtime.time + balanceNumber(runtime.helpers, TRAIT.MECH_CORE_BARRIER_ENGINE, 'interval'),
   run: pulseBarrierEngine
 });
 
@@ -237,7 +237,7 @@ export const mechanistTraits = [
 
 /** Each surviving arm reward reserves its independent interval before delivery; a removed effect claims nothing. */
 function applySingleEdgeCutters(context: EngineerRuntime, { cause: event }: MechStrike): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS);
   const packet = requireEffect(profile, 'condition', CONDITION.BLEEDING);
 
   if (!packet || !context.procs.claim(TRAIT.MECH_ARMS_SINGLE_EDGE_CUTTERS, 'singleEdgeCutters', event.at)) return;
@@ -286,7 +286,7 @@ function applySingleEdgeCutters(context: EngineerRuntime, { cause: event }: Mech
 
 /** High-Impact Drivers grants Might on its own independent interval. */
 function applyHighImpactDrivers(context: EngineerRuntime, { cause: event }: MechStrike): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS);
   const packet = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   if (!packet || !context.procs.claim(TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'highImpactDrivers', event.at)) return;
@@ -331,7 +331,7 @@ function applyHighImpactDrivers(context: EngineerRuntime, { cause: event }: Mech
 
 /** Jade Cannons basic attacks apply Vulnerability without an interval. */
 function applyJadeCannonsVulnerability(context: EngineerRuntime, { cause: event }: MechStrike): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.MECH_ARMS_JADE_CANNONS);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.MECH_ARMS_JADE_CANNONS);
   const vulnerability = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
 
   if (vulnerability)
@@ -409,7 +409,7 @@ function startBarrierEngine(runtime: EngineerRuntime): void {
 
   barrierEnginePassive.restart(
     runtime,
-    runtime.time + balanceNumberFromContext(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE, 'interval')
+    runtime.time + balanceNumber(runtime.helpers, TRAIT.MECH_CORE_BARRIER_ENGINE, 'interval')
   );
 }
 
@@ -420,7 +420,7 @@ function pulseBarrierEngine(runtime: EngineerRuntime): void {
     return;
   }
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.MECH_CORE_BARRIER_ENGINE);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.MECH_CORE_BARRIER_ENGINE);
   emitTraitProfile(runtime, profile.id, profile.id, undefined, {
     attribution: {
       source: 'Trait',
@@ -446,7 +446,7 @@ function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolve
 
   if (!recipients.length) return;
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
 
   if (!profile.effects?.some((effect) => effect.type === 'boon' && effect.boon === BOON.ALACRITY)) return;
 

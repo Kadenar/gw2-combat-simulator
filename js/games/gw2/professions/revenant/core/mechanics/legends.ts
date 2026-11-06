@@ -4,7 +4,7 @@ import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { legendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { clearRevenantLegendFlips, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -75,7 +75,7 @@ export function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
 /** Samples pre-swap Energy before the legend reset is applied. */
 function chargedMistsEnergy(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>, previous: number): number {
   const chargedMists = hasTrait(runtime, TRAIT.CHARGED_MISTS)
-    ? requireBalanceProfileFromContext(runtime, TRAIT.CHARGED_MISTS)
+    ? requireBalanceProfile(runtime.helpers, TRAIT.CHARGED_MISTS)
     : undefined;
   const energy = Math.min(
     100,

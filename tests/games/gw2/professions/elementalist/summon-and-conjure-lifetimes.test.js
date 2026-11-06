@@ -174,7 +174,10 @@ test('Singularity owns baseline dwell and Transcendent Tempest independently ove
       const shortened = selectedTraitIds.includes(TRAIT.TRANSCENDENT_TEMPEST);
       const duration = patchId === 'current' ? (shortened ? 4 : 6) : shortened ? 5 : 9;
       assert.equal(
-        tempestOverloadDwell({ ...balance, config: { specialization: 'Tempest', selectedTraitIds } }),
+        tempestOverloadDwell({ ...balance, config: { specialization: 'Tempest', selectedTraitIds } }.catalog, {
+          ...balance,
+          config: { specialization: 'Tempest', selectedTraitIds }
+        }),
         duration / 1.25
       );
       const result = runElementalist(

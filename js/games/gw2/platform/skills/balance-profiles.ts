@@ -14,7 +14,13 @@ import {
   skillEffectKey
 } from '#gw2/platform/effects/validation.js';
 import { fieldValue } from '#gw2/platform/skills/field-specs.js';
-import type { BalanceProfile, Skill, SkillAttributeKey, SkillId } from '#gw2/platform/skills/types.js';
+import type {
+  BalanceProfile,
+  CanonicalCatalog,
+  Skill,
+  SkillAttributeKey,
+  SkillId
+} from '#gw2/platform/skills/types.js';
 
 type SkillEffectByType<TType extends SkillEffect['type']> = TType extends StrikeEffect['type']
   ? StrikeEffect
@@ -30,44 +36,23 @@ type SkillEffectByType<TType extends SkillEffect['type']> = TType extends Strike
             ? CustomEffect
             : never;
 
-interface BalanceProfileCatalogLike {
-  readonly skillsById?: ReadonlyMap<SkillId, Skill>;
-  readonly balanceProfilesById?: ReadonlyMap<SkillId, BalanceProfile>;
-  readonly balanceDataContext?: { readonly professionId: string; readonly patchId: string };
-}
+/** Readers accept only the selected catalog capabilities, preserving its maps and owner types. */
+export type BalanceSource<TSkill extends Skill = Skill> = Pick<
+  CanonicalCatalog<TSkill>,
+  'skillsById' | 'balanceProfilesById' | 'balanceDataContext'
+>;
 
-// Lookup callbacks return catalog owners; authored effects must be normalized before exposing them here.
-type BalanceProfileLookup = (id: SkillId) => BalanceProfile | undefined;
+export type BalanceProfileSource = Pick<BalanceSource, 'balanceProfilesById' | 'balanceDataContext'>;
 
-interface BalanceProfileLookupContext {
-  readonly config?: { readonly patchId?: string; readonly profession?: string };
-  readonly balanceProfile?: BalanceProfileLookup;
-  readonly catalog?: BalanceProfileCatalogLike;
-  readonly helpers?: BalanceProfileCatalogLike;
-  readonly profession?: {
-    readonly id?: string;
-    readonly catalog?: BalanceProfileCatalogLike;
-  };
-  readonly runtime?: {
-    readonly profession?: {
-      readonly catalog?: BalanceProfileCatalogLike;
-    };
-  };
-}
+export type SkillSource<TSkill extends Skill = Skill> = Pick<
+  BalanceSource<TSkill>,
+  'skillsById' | 'balanceDataContext'
+>;
 
-/** Select the authoritative source before looking up IDs; a miss must never search another patch. */
-function catalogFromContext(context: unknown): BalanceProfileCatalogLike | undefined {
-  if (!context || typeof context !== 'object') return undefined;
-
-  const source = context as BalanceProfileLookupContext;
-  return source.catalog ?? source.helpers ?? source.profession?.catalog ?? source.runtime?.profession?.catalog;
-}
-
-function balanceDataLabel(context: unknown, owner: string, profile?: BalanceProfile): string {
-  const source = context as BalanceProfileLookupContext | null | undefined;
-  // Callbacks retain source metadata on their profile; an opaque source must never be called the current patch.
-  const metadata = catalogFromContext(context)?.balanceDataContext ?? profile?.balanceDataContext;
-  return `profession=${metadata?.professionId ?? source?.profession?.id ?? source?.config?.profession ?? '<unknown>'} patch=${metadata?.patchId ?? source?.config?.patchId ?? '<unknown>'} ${owner}`;
+/** Diagnostics describe the supplied source without borrowing identity from enclosing runtime state. */
+function balanceDataLabel(source: Pick<BalanceSource, 'balanceDataContext'>, owner: string): string {
+  const metadata = source.balanceDataContext;
+  return `profession=${metadata?.professionId ?? '<unknown>'} patch=${metadata?.patchId ?? '<unknown>'} ${owner}`;
 }
 
 /**
@@ -84,25 +69,17 @@ function effectOwnerLabel(owner: Skill | BalanceProfile): string {
   return ownerDataLabel(owner, `owner=${owner.id}`);
 }
 
-/** Resolves patched balance data across scheduler, resolver, profession, and application context shapes. */
-export function balanceProfileFromContext(context: unknown, id: SkillId): BalanceProfile | undefined {
-  if (typeof context === 'function') return (context as BalanceProfileLookup)(id);
-
-  if (!context || typeof context !== 'object') return undefined;
-
-  const source = context as BalanceProfileLookupContext;
-  const catalog = catalogFromContext(context);
-  return catalog ? catalog.balanceProfilesById?.get(id) : source.balanceProfile?.(id);
+/** Optional reads stay in the selected source, including when an ID is absent. */
+export function balanceProfile(source: BalanceProfileSource, id: SkillId): BalanceProfile | undefined {
+  return source.balanceProfilesById.get(id);
 }
 
-/** Required profiles fail in the selected source; optional discovery continues to use balanceProfileFromContext. */
-export function requireBalanceProfileFromContext(context: unknown, id: SkillId): BalanceProfile {
-  const profile = balanceProfileFromContext(context, id);
+/** Required reads fail in the selected source instead of falling through to another patch. */
+export function requireBalanceProfile(source: BalanceProfileSource, id: SkillId): BalanceProfile {
+  const profile = balanceProfile(source, id);
 
   if (!profile)
-    throw new Error(
-      `Invalid balance data: ${balanceDataLabel(context, `profile=${id}`)} missing required profile/catalog`
-    );
+    throw new Error(`Invalid balance data: ${balanceDataLabel(source, `profile=${id}`)} missing required profile`);
 
   return profile;
 }
@@ -118,7 +95,7 @@ export function balanceProfileNumber(profile: BalanceProfile, field: string): nu
 }
 
 /** Read a named fixed grant without parsing authoring paths during combat. */
-export function attributeBonusNumber(
+export function ownerAttributeBonusNumber(
   owner: Skill | BalanceProfile,
   attribute: SkillAttributeKey,
   group = 'attributeBonuses'
@@ -131,35 +108,36 @@ export function attributeBonusNumber(
   return requireBalanceNumber(value, ownerDataLabel(owner, `owner=${owner.id} field=${group}.${attribute}`));
 }
 
-/** Resolve the selected profile before reading its named fixed grant. */
-export function attributeBonusFromContext(
-  context: unknown,
-  id: SkillId,
+/** Read a required attribute grant from the caller's selected profile catalog. */
+export function attributeBonusNumber(
+  source: BalanceProfileSource,
+  profileId: SkillId,
   attribute: SkillAttributeKey,
   group = 'attributeBonuses'
 ): number {
-  return attributeBonusNumber(requireBalanceProfileFromContext(context, id), attribute, group);
+  return ownerAttributeBonusNumber(requireBalanceProfile(source, profileId), attribute, group);
 }
 
-/** Read one required numeric field from a required profile in the context's selected balance source. */
-export function balanceNumberFromContext(context: unknown, id: SkillId, field: string): number {
-  return balanceProfileNumber(requireBalanceProfileFromContext(context, id), field);
+/** Read one required numeric field from a profile in the caller's selected catalog. */
+export function balanceNumber(source: BalanceProfileSource, id: SkillId, field: string): number {
+  return balanceProfileNumber(requireBalanceProfile(source, id), field);
 }
 
 /** Read one opt-in proc chance for scheduler and resolver paths while retaining profession-owned eligibility and ICDs. */
-export function procChanceFromContext(
-  context: { readonly config?: { readonly procRateOverrides?: Readonly<Record<string, number>> } },
-  id: SkillId
+export function procChance(
+  source: BalanceProfileSource,
+  id: SkillId,
+  overrides?: Readonly<Record<string, number>>
 ): number {
-  const profile = requireBalanceProfileFromContext(context, id);
+  const profile = requireBalanceProfile(source, id);
   const declaration = profile.procRate;
-  const label = balanceDataLabel(context, `profile=${id} field=procRate`, profile);
+  const label = balanceDataLabel(source, `profile=${id} field=procRate`);
 
   if (!declaration?.id || !declaration.field) throw new Error(`Invalid balance data: ${label} missing declaration`);
 
   // Overrides tune a valid declaration; they must not conceal missing or invalid baseline data.
   const baseline = balanceProfileNumber(profile, declaration.field);
-  const override = context.config?.procRateOverrides?.[declaration.id];
+  const override = overrides?.[declaration.id];
   const chance = override === undefined ? baseline : requireBalanceNumber(override, label);
 
   if (baseline < 0 || baseline > 1 || chance < 0 || chance > 1)
@@ -168,24 +146,12 @@ export function procChanceFromContext(
   return chance;
 }
 
-/** A context whose selected catalog is typed by its owning profession, either directly or through runtime helpers. */
-export type SkillCatalogSource<TSkill extends Skill> =
-  | { readonly catalog: { readonly skillsById: ReadonlyMap<SkillId, TSkill> } }
-  | { readonly helpers: { readonly skillsById: ReadonlyMap<SkillId, TSkill> } };
-
-/**
- * Resolve a required skill from the selected catalog without falling through to another patch on a miss. A typed
- * context returns its profession's skill type; an opaque context returns the base type.
- */
-export function requireSkillFromContext<TSkill extends Skill>(context: SkillCatalogSource<TSkill>, id: SkillId): TSkill;
-
-export function requireSkillFromContext(context: unknown, id: SkillId): Skill;
-
-export function requireSkillFromContext(context: unknown, id: SkillId): Skill {
-  const skill = catalogFromContext(context)?.skillsById?.get(id);
+/** The selected skill map retains the owning profession's skill subtype. */
+export function requireSkill<TSkill extends Skill>(source: SkillSource<TSkill>, id: SkillId): TSkill {
+  const skill = source.skillsById.get(id);
 
   if (!skill)
-    throw new Error(`Invalid balance data: ${balanceDataLabel(context, `skill=${id}`)} missing required skill/catalog`);
+    throw new Error(`Invalid balance data: ${balanceDataLabel(source, `skill=${id}`)} missing required skill`);
 
   return skill;
 }
@@ -203,11 +169,6 @@ export function skillNumber(skill: Skill, field: string): number {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
 
   return requireBalanceNumber(value, ownerDataLabel(skill, `skill=${skill.id} field=${field}`));
-}
-
-/** Resolve intrinsic skill tuning only from the context's authoritative catalog. */
-export function skillNumberFromContext(context: unknown, id: SkillId, field: string): number {
-  return skillNumber(requireSkillFromContext(context, id), field);
 }
 
 /** Share an owner's canonical effect; construction rejects duplicates and only recorded removals may omit a key. */

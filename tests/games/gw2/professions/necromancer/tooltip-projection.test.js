@@ -257,7 +257,7 @@ test('Dhuumfire removal leaves the cooldown unclaimed and unrelated conditions o
   const emitted = captureEffectEmissions();
   let claims = 0;
   const runtime = {
-    catalog: context.catalog,
+    helpers: context.catalog,
     config: { selectedTraitIds: [TRAIT.DHUUMFIRE] },
     effects: emitted.effects,
     procs: {
@@ -296,7 +296,7 @@ test('Dhuumfire metadata precedence and zero-cooldown behavior survive projectio
   }).resolvePatch({ id: 'tooltip-projection' }).balanceContext;
   const emitted = captureEffectEmissions();
   const runtime = {
-    catalog: context.catalog,
+    helpers: context.catalog,
     config: { selectedTraitIds: [TRAIT.DHUUMFIRE] },
     effects: emitted.effects,
     procs: {
@@ -367,7 +367,7 @@ test('Ritualist attack projections reject cross-spirit packets and preserve sele
       detail.includes('Summon Spirits - Wanderlust')
     );
     assert.ok(command.detail.startsWith(`${patched ? 6 : 3.7} coefficient`));
-    const definition = spiritDefinition(context, ID.WANDERLUST);
+    const definition = spiritDefinition({ helpers: context.catalog }, ID.WANDERLUST);
     assert.equal(definition.summonTicks.length, patched ? 0 : 1);
     assert.equal(definition.activeTicks[0].coefficient, patched ? 6 : 3.7);
     const result = simulate(profession, patchId, 'Ritualist', [

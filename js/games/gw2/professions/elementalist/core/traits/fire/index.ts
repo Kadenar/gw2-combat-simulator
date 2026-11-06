@@ -15,12 +15,12 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
   attributeBonusNumber,
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  procChanceFromContext,
-  requireBalanceProfileFromContext,
+  ownerAttributeBonusNumber,
+  procChance,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -74,7 +74,7 @@ export const empoweringFlame = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusFromContext(context.balanceContext, TRAIT.EMPOWERING_FLAME, 'power'),
+          amount: attributeBonusNumber(context.balanceContext.catalog, TRAIT.EMPOWERING_FLAME, 'power'),
           feedsConversions: 'none',
           enabled: primaryAttunement(context) === 'Fire'
         }
@@ -91,7 +91,7 @@ export const inferno = defineTrait({
   attributes: (context) => ({
     finalCondition: {
       condition: CONDITION.BURNING,
-      powerMultiplier: balanceNumberFromContext(context, TRAIT.INFERNO, 'coefficientMultiplier')
+      powerMultiplier: balanceNumber(context.balanceContext.catalog, TRAIT.INFERNO, 'coefficientMultiplier')
     }
   })
 });
@@ -112,7 +112,7 @@ export const burningPrecision = defineTrait({
   },
   attributes: ({ balanceContext }) => ({
     traitDurations: {
-      'Burning Duration': balanceNumberFromContext(balanceContext, TRAIT.BURNING_PRECISION, 'durationMultiplier')
+      'Burning Duration': balanceNumber(balanceContext.catalog, TRAIT.BURNING_PRECISION, 'durationMultiplier')
     }
   }),
   triggers: [
@@ -178,14 +178,14 @@ export const powerOverwhelming = defineTrait({
   },
   // Might and the active attunement select one live Power bonus.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.POWER_OVERWHELMING);
+    const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.POWER_OVERWHELMING);
 
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusNumber(
+          amount: ownerAttributeBonusNumber(
             profile,
             'power',
             primaryAttunement(context) === 'Fire' ? 'conditionalAttributeBonuses' : 'attributeBonuses'
@@ -210,7 +210,7 @@ export const pyromancersTraining = defineTrait<ElementalistSkill>({
       id: 'elementalist.pyromancers-training',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.PYROMANCERS_TRAINING, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.PYROMANCERS_TRAINING, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.BURNING)
     }
@@ -275,8 +275,8 @@ export const persistingFlames = defineTrait({
         activeBuffStacks(
           context,
           'persisting flames',
-          balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'maximumStacks')
-        ) * balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'damageIncreasePerStack')
+          balanceNumber(context.catalog, TRAIT.PERSISTING_FLAMES, 'maximumStacks')
+        ) * balanceNumber(context.catalog, TRAIT.PERSISTING_FLAMES, 'damageIncreasePerStack')
     }
   ],
   triggers: [
@@ -326,7 +326,7 @@ function applyConjurerAura(context: ElementalistRuntime, { cast }: ElementalistC
   const skill = cast.skill;
   const at = cast.effectiveEnd;
   {
-    const conjurerProfile = requireBalanceProfileFromContext(context, TRAIT.CONJURER);
+    const conjurerProfile = requireBalanceProfile(context.helpers, TRAIT.CONJURER);
     const conjurerBuff = requireEffect(conjurerProfile, 'aura', 'Conjurer');
 
     if (conjurerBuff) {
@@ -343,7 +343,7 @@ function applyConjurerAura(context: ElementalistRuntime, { cast }: ElementalistC
 
 /** Materializes Burning Precision after its registered critical-hit reaction succeeds. */
 function applyBurningPrecision(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
-  const burningPrecisionProfile = requireBalanceProfileFromContext(context, TRAIT.BURNING_PRECISION);
+  const burningPrecisionProfile = requireBalanceProfile(context.helpers, TRAIT.BURNING_PRECISION);
   const burning = requireEffect(burningPrecisionProfile, 'condition', 'Burning Precision');
 
   if (burning) {
@@ -377,10 +377,11 @@ const burningPrecisionCritical = criticalProcHandler<
   NativeResolvedDamageDetails
 >({
   id: 'elementalist.burning-precision',
-  chanceOnCriticalHit: (context) => procChanceFromContext(context, TRAIT.BURNING_PRECISION),
+  chanceOnCriticalHit: (context) =>
+    procChance(context.helpers, TRAIT.BURNING_PRECISION, context.config.procRateOverrides),
   when: (_context, event, details) => criticalTraitEligible(event, details),
   internalCooldown: {
-    duration: (context) => balanceNumberFromContext(context, TRAIT.BURNING_PRECISION, 'internalCooldown'),
+    duration: (context) => balanceNumber(context.helpers, TRAIT.BURNING_PRECISION, 'internalCooldown'),
     key: 'burningPrecision'
   },
   randomStream: 'elementalist.burning-precision',
@@ -423,10 +424,10 @@ function grantPersistingFlames(context: MechanicCombatContext, event: Gw2Resolve
       source: 'Trait',
       sourceId: TRAIT.PERSISTING_FLAMES,
       actorType: ACTOR.PLAYER,
-      skillName: requireBalanceProfileFromContext(context, TRAIT.PERSISTING_FLAMES).name,
+      skillName: requireBalanceProfile(context.helpers, TRAIT.PERSISTING_FLAMES).name,
       kind: 'Persisting Flames'.toLowerCase(),
       stacks: 1,
-      duration: balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'duration'),
+      duration: balanceNumber(context.helpers, TRAIT.PERSISTING_FLAMES, 'duration'),
       triggeredBy: resolverSourceSkill(event),
       priority: Number(event.priority || 0)
     }

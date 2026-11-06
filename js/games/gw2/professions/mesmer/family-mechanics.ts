@@ -41,12 +41,12 @@ export function mesmerShatterDefinition(context: MesmerRuntime, id: SkillId): Me
 export function createMesmerActions(context: MesmerRuntime) {
   return createProfessionActionController({
     state: context,
-    resourceDefinition: mesmerResourceDefinition(context.profession.specialization.kind, context),
+    resourceDefinition: mesmerResourceDefinition(context.profession.specialization.kind, context.helpers),
     destroyClone: (clone) => destroyClone(context, clone),
     // Resolve only the requested shatter against the current catalog; no cross-run cache can retain another patch.
     shatterFor: (id) => {
       const definition = mesmerShatterDefinition(context, id);
-      return definition ? mesmerSelectedShatter(context, id) : undefined;
+      return definition ? mesmerSelectedShatter(context.helpers, id) : undefined;
     },
     shatterResolvers: {
       'mesmer.core.clone-shatter': resolveCloneShatter,

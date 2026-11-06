@@ -7,7 +7,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { effectNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { NecromancerCoreState, NecromancerSelfCondition } from '#gw2/professions/necromancer/core/state.js';
@@ -142,7 +142,7 @@ function corruption(runtime: NecromancerRuntime, data: unknown): void {
 
   if (hasTrait(runtime, TRAIT.MASTER_OF_CORRUPTION)) {
     const extras =
-      requireBalanceProfileFromContext(runtime, TRAIT.MASTER_OF_CORRUPTION).effects?.filter(
+      requireBalanceProfile(runtime.helpers, TRAIT.MASTER_OF_CORRUPTION).effects?.filter(
         (effect) => effect.metadata?.trigger === String(skill.id)
       ) ?? [];
     const boonIndex = effects.findIndex((effect) => effect.type === 'boon');

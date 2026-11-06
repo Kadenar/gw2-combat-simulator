@@ -1,7 +1,7 @@
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { DamageCalculationError } from '#gw2/platform/skill-damage/errors.js';
-import { balanceProfileNumber, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { photonForgeHooks } from '#gw2/professions/engineer/specializations/holosmith/mechanics/photon-forge.js';
 import {
@@ -27,7 +27,7 @@ export const holosmithHooks: RuntimeHooks<EngineerRuntimeState, HolosmithSkill> 
       const state = holosmithState.from(runtime.profession);
       state.photonForgeActive = Boolean(skill?.forgeSkill);
       const charges = Number(inputs.lensCharges ?? 0);
-      const profile = requireBalanceProfileFromContext(runtime, TRAIT.SOLAR_FOCUSING_LENS);
+      const profile = requireBalanceProfile(runtime.helpers, TRAIT.SOLAR_FOCUSING_LENS);
 
       if (!Number.isInteger(charges) || charges > balanceProfileNumber(profile, 'maximumStacks'))
         throw new DamageCalculationError('missing-input', 'Choose a valid Solar Focusing Lens charge count.');

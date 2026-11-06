@@ -44,7 +44,7 @@ export const troubadourHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSki
       notes: {
         kind: 'continuous',
         state: (context) => troubadourState.from(context.profession).notes,
-        maximum: (context) => mesmerResourceDefinition('Troubadour', context).maximum,
+        maximum: (context) => mesmerResourceDefinition('Troubadour', context.helpers).maximum,
         initial: (context, maximum) => boundedNumber(context.config.initialResource ?? 0, 0, 0, maximum),
         recovery: () => 0
       }

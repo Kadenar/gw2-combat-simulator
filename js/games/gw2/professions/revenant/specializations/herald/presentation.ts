@@ -13,8 +13,6 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Resolve every Nature projection from this selection, so changing catalogs cannot retain stale relationships. */
 function natureConsumes(context: Pick<RevenantUiContext, 'catalog'>): Readonly<Record<string, SkillId>> {
-  if (!context.catalog) throw new Error('Herald facet presentation requires the selected catalog.');
-
   const nature: RevenantSkill | undefined = context.catalog.skillsById.get(SKILL.FACET_OF_NATURE);
   return nature?.upkeepConsumeByLegendId ?? {};
 }

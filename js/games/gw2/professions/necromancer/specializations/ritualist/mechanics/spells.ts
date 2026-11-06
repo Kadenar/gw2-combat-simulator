@@ -7,12 +7,7 @@ import { type StatusEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { necromancerActiveMinionCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
   ritualistResolverEventReactions,
@@ -55,7 +50,7 @@ function applyBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
     return;
 
   const state = ritualistState.from(runtime.profession);
-  const profile = requireSkillFromContext(runtime, painfulBondSkill.id);
+  const profile = requireSkill(runtime.helpers, painfulBondSkill.id);
   const buff = requireEffect(profile, 'buff', 'necromancer-painful-bond');
 
   if (!buff) return;
@@ -221,7 +216,7 @@ export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, Necroman
 
       if (runtime.time >= bondExpiresAt(runtime) || runtime.deathTime != null) return;
 
-      const profile = requireSkillFromContext(runtime, painfulBondSkill.id);
+      const profile = requireSkill(runtime.helpers, painfulBondSkill.id);
       const strike = requireEffect(profile, 'strike', 'Strike');
       emitPainfulBond(runtime, data as Gw2ResolverEvent);
       // Only scheduled pulses define the cadence; trait-triggered Bond damage does not.
@@ -236,7 +231,7 @@ export const ritualistSpellHooks: RuntimeHooks<NecromancerRuntimeState, Necroman
 
 /** One shared Painful Bond pulse, independent of spirit activation or pulse scheduling. */
 export function emitPainfulBond(runtime: NecromancerRuntime, event: Gw2ResolverEvent): void {
-  const profile = requireSkillFromContext(runtime, painfulBondSkill.id);
+  const profile = requireSkill(runtime.helpers, painfulBondSkill.id);
   const strike = requireEffect(profile, 'strike', 'Strike');
 
   if (strike)

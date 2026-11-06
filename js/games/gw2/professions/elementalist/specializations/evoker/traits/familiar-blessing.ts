@@ -1,5 +1,6 @@
 import { BOON } from '#gw2/platform/constants.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -15,8 +16,8 @@ export function familiarBlessingName(element: ElementalistAttunement): string {
 }
 
 /** Expose only surviving named boons with the same element groups used by familiar completion. */
-export function familiarBlessingEffects(context: unknown) {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.FAMILIARS_BLESSING);
+export function familiarBlessingEffects(source: BalanceProfileSource) {
+  const profile = requireBalanceProfile(source, TRAIT.FAMILIARS_BLESSING);
   return BLESSINGS.flatMap(({ elements, name }) => {
     const effect = requireEffect(profile, 'boon', name);
     return effect ? [{ elements, effect }] : [];

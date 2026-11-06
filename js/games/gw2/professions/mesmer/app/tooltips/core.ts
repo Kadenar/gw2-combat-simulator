@@ -13,7 +13,7 @@ import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-toolt
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { mesmerChaosTooltips } from '#gw2/professions/mesmer/app/tooltips/chaos.js';
 import { mesmerDominationTooltips } from '#gw2/professions/mesmer/app/tooltips/domination.js';
@@ -132,8 +132,7 @@ export const mesmerCoreTooltips = {
     [ID.CHAOS_STORM]: skillTooltip(
       'Create a storm that strikes repeatedly, dazes on its opening pulse, and poisons the target on the subsequent condition pulses.',
       (context) =>
-        simulationEffectFacts(requireSkillAction(requireSkillFromContext(context, ID.CHAOS_STORM), 'poison').effects)
-          .facts
+        simulationEffectFacts(requireSkillAction(requireSkill(context.catalog, ID.CHAOS_STORM), 'poison').effects).facts
     ),
     [ID.SIGNET_OF_ILLUSIONS]: (context, entity, _specialization, build) => {
       const resource = tooltipResource(build);
@@ -158,7 +157,7 @@ export const mesmerCoreTooltips = {
         {
           name: 'Passive condition damage',
           detail: tooltipDecimal(
-            skillNumberFromContext(context, ID.SIGNET_OF_DOMINATION, 'attributeBonuses.conditionDamage')
+            skillNumber(requireSkill(context.catalog, ID.SIGNET_OF_DOMINATION), 'attributeBonuses.conditionDamage')
           )
         }
       ]
@@ -168,7 +167,9 @@ export const mesmerCoreTooltips = {
       (context) => [
         {
           name: 'Passive expertise',
-          detail: tooltipDecimal(skillNumberFromContext(context, ID.SIGNET_OF_MIDNIGHT, 'attributeBonuses.expertise'))
+          detail: tooltipDecimal(
+            skillNumber(requireSkill(context.catalog, ID.SIGNET_OF_MIDNIGHT), 'attributeBonuses.expertise')
+          )
         }
       ]
     ),
@@ -184,7 +185,7 @@ export const mesmerCoreTooltips = {
       'Strike and generate a clone. If already at the clone limit when the strike lands, inflict the additional condition instead. Other specializations generate their own resource.',
       (context) =>
         simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(context, ID.ETHER_CLONE), 'clone-limit').effects,
+          requireSkillAction(requireSkill(context.catalog, ID.ETHER_CLONE), 'clone-limit').effects,
           'instead of creating a clone at the clone limit'
         ).facts
     ),

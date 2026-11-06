@@ -305,7 +305,9 @@ for (const [specialization, key, id, maximum] of [
       .find((entry) => entry.id === key);
     assert.equal(view.maximum, 2);
     assert.equal(view.value, 2);
-    const row = simulationEventLogRows(result, null, profession).find((entry) => entry.type === 'resource');
+    const row = simulationEventLogRows(result, null, { profession, catalog: profession.catalog }).find(
+      (entry) => entry.type === 'resource'
+    );
     assert.match(row.description, /2\/2/);
   });
 }

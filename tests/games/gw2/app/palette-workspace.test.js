@@ -117,7 +117,7 @@ test('weapon palette families display one live autoattack or flip skill', () => 
     patch: patchSelectionFixture({ skills, skillsById: skillById }),
     build: { rotation: [] },
     activeCatalog: { skills, skillsById: skillById },
-    profession: { catalog: { skillsById: skillById } },
+    profession: {},
     results: {
       planningState: {
         availability: {},
@@ -153,7 +153,7 @@ test('palette flip projection follows canonical children and honors timed expiry
   const app = {
     patch: patchSelectionFixture({ skills, skillsById }),
     activeCatalog: { skills, skillsById },
-    profession: { catalog: { skills, skillsById } },
+    profession: {},
     results: {
       planningState: {
         availability: {},
@@ -461,15 +461,11 @@ test('shared palettes reject supplemental effects from weapon and action rows', 
         }
       ]
     }),
-    profession: {
-      catalog: {
-        weaponHands: new Map([['Rifle', '2h']])
-      }
-    },
     build: {
       weapons: ['Rifle', ''],
       alternateWeapons: ['', '']
     },
+    profession: {},
     activeCatalog: {
       weaponHands: new Map([['Rifle', '2h']]),
       skills: [
@@ -543,7 +539,6 @@ test("weaponmaster palettes keep the active spec's weapon-skill variant", () => 
     }
   ];
   const makeApp = (specialization) => ({
-    profession: { catalog: { weaponHands: new Map([['Dagger', 'mh']]) } },
     build: { weapons: ['Dagger', ''], alternateWeapons: ['', ''] },
     activeCatalog: { skills, weaponHands: new Map([['Dagger', 'mh']]) },
     adapter: {

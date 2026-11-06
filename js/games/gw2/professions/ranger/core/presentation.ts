@@ -62,7 +62,7 @@ const RANGER_HIDDEN_EVENT_TYPES = new Set([
 // Boon-copy mechanics retain their simulation events without duplicating whole boon lists in the readable log.
 const RANGER_HIDDEN_BOON_SOURCES = new Set<number>([TRAIT.FORTIFYING_BOND, TRAIT.RESOUNDING_TIMBRE, ID.WE_HEAL_AS_ONE]);
 
-export function rangerUiState(context: RangerUiContext): Partial<RangerPlanningState> {
+export function rangerUiState(context: Pick<RangerUiContext, 'professionState'>): Partial<RangerPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }

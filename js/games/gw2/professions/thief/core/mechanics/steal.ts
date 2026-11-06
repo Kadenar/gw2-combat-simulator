@@ -20,7 +20,7 @@ export function storeThiefStolenSkillChoices(runtime: ThiefRuntime, skillIds: re
   const core = runtime.profession.core;
   const choices = [...new Set(skillIds.map(Number).filter(Number.isFinite))];
   core.storedStolenSkillIds = choices;
-  core.storedStolenSkillCount = choices.length === 0 ? 0 : improvisationStolenUses(runtime);
+  core.storedStolenSkillCount = choices.length === 0 ? 0 : improvisationStolenUses(runtime.helpers, runtime);
 }
 
 /** Stores the steal's choices and grants Core's on-steal initiative; specializations add theirs afterwards. */

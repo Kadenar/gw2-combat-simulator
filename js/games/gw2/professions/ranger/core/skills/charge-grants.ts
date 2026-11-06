@@ -1,7 +1,7 @@
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
   buildRangerPacket,
@@ -50,7 +50,7 @@ export function deliverChargedHit(
   spend: () => boolean,
   delivery: RangerProfileDelivery
 ): void {
-  const skill = requireSkillFromContext(context, skillId);
+  const skill = requireSkill(context.helpers, skillId);
   const action = requireSkillAction(skill, actionId);
 
   if (!action.effects.length || !spend()) return;

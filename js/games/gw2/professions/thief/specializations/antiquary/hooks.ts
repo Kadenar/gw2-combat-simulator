@@ -1,7 +1,7 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { consumeOldestStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import {
@@ -30,7 +30,7 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     if (!hasTrait(runtime, TRAIT.COMBAT_HIGH)) return;
 
     const stacks = Number(inputs.combatHigh ?? 0);
-    const maximum = balanceNumberFromContext(runtime, TRAIT.COMBAT_HIGH, 'maximumStacks');
+    const maximum = balanceNumber(runtime.helpers, TRAIT.COMBAT_HIGH, 'maximumStacks');
 
     if (!Number.isInteger(stacks) || stacks < 0 || stacks > maximum)
       throw new RangeError('Combat High exceeds the selected build maximum.');
@@ -51,7 +51,9 @@ export const antiquaryHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     const state = antiquaryState.from(runtime.profession);
     const { expiries, consumed } = consumeOldestStacks(state.holoUtilityCooldownReductionExpirations, 1, runtime.time);
     state.holoUtilityCooldownReductionExpirations = expiries;
-    return consumed > 0 ? work * skillNumberFromContext(runtime, ID.HOLO_DANCER_DECOY, 'rechargeMultiplier') : work;
+    return consumed > 0
+      ? work * skillNumber(requireSkill(runtime.helpers, ID.HOLO_DANCER_DECOY), 'rechargeMultiplier')
+      : work;
   },
   onCastStart(runtime, cast) {
     spendAntiquaryInitiative(runtime, cast);

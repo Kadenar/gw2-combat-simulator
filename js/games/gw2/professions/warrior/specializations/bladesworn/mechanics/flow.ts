@@ -2,11 +2,7 @@ import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -24,7 +20,7 @@ function scheduleFlowTick(runtime: WarriorRuntime): void {
 /** Credit the interval ending now before closing its windows; no future rate or event-history projection is needed. */
 function flowTick(runtime: WarriorRuntime): void {
   const state = bladeswornState.from(runtime.profession);
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.GUN_X_SWORD);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.GUN_X_SWORD);
   const active = (start: number, end: number) => start < runtime.time && runtime.time <= end;
   const stabilizers = state.flowStabilizerWindows.filter((window) => active(window.startedAt, window.expiresAt));
   const rate =
@@ -53,7 +49,7 @@ const flowTasks: RuntimeProfession<WarriorRuntimeState, WarriorSkill>['tasks'] =
 const bladeswornFlowPolicy: ResourcePolicy<WarriorRuntime> = {
   kind: 'continuous',
   state: (runtime) => bladeswornState.from(runtime.profession).flow,
-  maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.GUN_X_SWORD, 'maximumStacks'),
+  maximum: (runtime) => balanceNumber(runtime.helpers, TRAIT.GUN_X_SWORD, 'maximumStacks'),
   initial: (runtime, maximum) => boundedNumber(runtime.config.initialResource ?? 0, 0, 0, maximum),
   recovery: () => 0
 };

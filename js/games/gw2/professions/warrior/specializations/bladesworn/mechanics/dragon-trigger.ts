@@ -7,11 +7,7 @@ import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availab
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  balanceNumberFromContext,
-  skillNumber,
-  skillNumberFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { swapGunsaber } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
@@ -100,7 +96,7 @@ function scheduleCharge(runtime: WarriorRuntime): void {
 
   if (
     state.nextDragonChargeAt <= state.dragonTriggerChargeDeadline &&
-    state.dragonCharges.value < maximumDragonCharges(runtime)
+    state.dragonCharges.value < maximumDragonCharges(runtime.helpers, runtime)
   )
     runtime.schedule(CHARGE_TICK, state.nextDragonChargeAt, state.dragonTriggerEventActivationId, undefined, -200);
 }
@@ -152,7 +148,7 @@ function enterDragonTrigger(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
       reason: DRAGON_TRIGGER_ENTRY_RESOURCE_REASON,
       amount: -cost,
       value: state.flow.value,
-      maximumCharges: maximumDragonCharges(runtime),
+      maximumCharges: maximumDragonCharges(runtime.helpers, runtime),
       chargesPerInterval: state.dragonChargesPerInterval,
       deadline: state.dragonTriggerChargeDeadline
     }
@@ -172,14 +168,14 @@ function chargeTick(runtime: WarriorRuntime, identity: unknown): void {
   if (
     pending &&
     runtime.helpers.skillsById.get(pending.skillId)?.dragonSlash &&
-    state.dragonCharges.value >= requestedDragonCharges(pending.charges, maximumDragonCharges(runtime))
+    state.dragonCharges.value >= requestedDragonCharges(pending.charges, maximumDragonCharges(runtime.helpers, runtime))
   ) {
     state.dragonChargeTickCount++;
     scheduleCharge(runtime);
     return;
   }
 
-  const cost = state.dragonChargeTickCount === 0 ? 0 : dragonFlowPerInterval(runtime);
+  const cost = state.dragonChargeTickCount === 0 ? 0 : dragonFlowPerInterval(runtime.helpers, runtime);
   // Use pool affordability so accepted charges cannot fail strict spending on a near-threshold fraction.
   const granted = resourceAtLeast(runtime.resourceController.value('flow'), cost);
   const before = state.dragonCharges.value;
@@ -267,7 +263,7 @@ function captureSlash(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>):
   const maximumCoefficient =
     (cast.skill.dragonSlashMaximumCoefficient ?? 0) *
     (cast.skill.id === ID.DRAGON_SLASH_FORCE && hasTrait(runtime, TRAIT.DARING_DRAGON)
-      ? balanceNumberFromContext(runtime, TRAIT.DARING_DRAGON, 'coefficientMultiplier')
+      ? balanceNumber(runtime.helpers, TRAIT.DARING_DRAGON, 'coefficientMultiplier')
       : 1);
   const release = {
     charges: state.dragonCharges.value,
@@ -321,7 +317,7 @@ export function dragonSlashRelease(cast: RuntimeCast<WarriorSkill>) {
 const dragonChargePolicy: ResourcePolicy<WarriorRuntime> = {
   kind: 'continuous',
   state: (runtime) => bladeswornState.from(runtime.profession).dragonCharges,
-  maximum: maximumDragonCharges,
+  maximum: (runtime) => maximumDragonCharges(runtime.helpers, runtime),
   initial: () => 0,
   recovery: () => 0
 };
@@ -334,9 +330,9 @@ export const dragonTriggerHooks = {
     const state = bladeswornState.from(runtime.profession);
 
     if (skill?.dragonSlash) {
-      const charges = Number(inputs.charges ?? maximumDragonCharges(runtime));
+      const charges = Number(inputs.charges ?? maximumDragonCharges(runtime.helpers, runtime));
 
-      if (!Number.isInteger(charges) || charges < 1 || charges > maximumDragonCharges(runtime))
+      if (!Number.isInteger(charges) || charges < 1 || charges > maximumDragonCharges(runtime.helpers, runtime))
         throw new RangeError('Dragon charges exceed the selected build maximum.');
 
       state.dragonTriggerActive = true;
@@ -378,14 +374,14 @@ export const dragonTriggerAvailability: NonNullable<
   if (skill.id === ID.DRAGON_TRIGGER) {
     if (state.dragonTriggerActive) return denyCast('warrior.dragon-trigger', 'Dragon Trigger is already active.');
 
-    const cost = skillNumberFromContext(runtime, ID.DRAGON_TRIGGER, 'entryResourceCost');
+    const cost = skillNumber(requireSkill(runtime.helpers, ID.DRAGON_TRIGGER), 'entryResourceCost');
 
     if (!resourceAtLeast(runtime.resourceController.value('flow'), cost))
       return denyCast('warrior.flow', `Dragon Trigger requires at least ${cost} flow.`);
   }
 
   if (skill.dragonSlash) {
-    const requested = requestedDragonCharges(command.releaseAtCharges, maximumDragonCharges(runtime));
+    const requested = requestedDragonCharges(command.releaseAtCharges, maximumDragonCharges(runtime.helpers, runtime));
 
     if (state.dragonCharges.value < requested) {
       if (state.nextDragonChargeAt > state.dragonTriggerChargeDeadline)

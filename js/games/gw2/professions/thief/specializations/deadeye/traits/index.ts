@@ -10,11 +10,11 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
   attributeBonusNumber,
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext
+  ownerAttributeBonusNumber,
+  requireBalanceProfile
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -44,21 +44,21 @@ const beQuickOrBeKilled = defineTrait({
   },
   // Quickness controls both flat attributes in build and live evaluation.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.BE_QUICK_OR_BE_KILLED);
+    const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.BE_QUICK_OR_BE_KILLED);
 
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusNumber(profile, 'power'),
+          amount: ownerAttributeBonusNumber(profile, 'power'),
           feedsConversions: 'none',
           enabled: boonActive(context, boonKey(BOON.QUICKNESS))
         },
         {
           kind: 'flat',
           to: 'Precision',
-          amount: attributeBonusNumber(profile, 'precision'),
+          amount: ownerAttributeBonusNumber(profile, 'precision'),
           feedsConversions: 'none',
           enabled: boonActive(context, boonKey(BOON.QUICKNESS))
         }
@@ -91,7 +91,7 @@ const ironSight = defineTrait({
       id: 'thief.iron-sight',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.IRON_SIGHT, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.IRON_SIGHT, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && markedTarget(context)
     }
   ]
@@ -135,10 +135,10 @@ const oneInTheChamber = defineTrait({
       id: 'thief.one-in-the-chamber',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.ONE_IN_THE_CHAMBER, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.ONE_IN_THE_CHAMBER, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        isThiefStolenSkill(skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id)
+        isThiefStolenSkill(skillForEvent(context.catalog, context.event, context.skillId)?.id)
     }
   ],
   triggers: [
@@ -163,7 +163,7 @@ const premeditation = defineTrait({
         {
           kind: 'flat',
           to: 'Concentration',
-          amount: attributeBonusFromContext(balanceContext, TRAIT.PREMEDITATION, 'concentration'),
+          amount: attributeBonusNumber(balanceContext.catalog, TRAIT.PREMEDITATION, 'concentration'),
           feedsConversions: 'none'
         }
       ]
@@ -179,8 +179,8 @@ const premeditation = defineTrait({
 
       factor: (context) =>
         1 +
-        Math.min(balanceNumberFromContext(context, TRAIT.PREMEDITATION, 'maximumBoons'), countActiveBoons(context)) *
-          balanceNumberFromContext(context, TRAIT.PREMEDITATION, 'damagePerBoon'),
+        Math.min(balanceNumber(context.catalog, TRAIT.PREMEDITATION, 'maximumBoons'), countActiveBoons(context)) *
+          balanceNumber(context.catalog, TRAIT.PREMEDITATION, 'damagePerBoon'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -200,7 +200,7 @@ const silentScope = defineTrait({
         {
           kind: 'flat',
           to: 'Precision',
-          amount: attributeBonusFromContext(balanceContext, TRAIT.SILENT_SCOPE, 'precision'),
+          amount: attributeBonusNumber(balanceContext.catalog, TRAIT.SILENT_SCOPE, 'precision'),
           feedsConversions: 'all'
         }
       ]
@@ -270,7 +270,7 @@ function applyMaleficentSeven(runtime: ThiefRuntime, { cast }: DeadeyeMalice): v
   if (state.malice.value !== state.malice.maximum || state.maleficentSevenTriggered) return;
 
   state.maleficentSevenTriggered = true;
-  const initiativeGain = balanceNumberFromContext(runtime, TRAIT.MALEFICENT_SEVEN, 'resourceGain');
+  const initiativeGain = balanceNumber(runtime.helpers, TRAIT.MALEFICENT_SEVEN, 'resourceGain');
 
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 
@@ -278,7 +278,7 @@ function applyMaleficentSeven(runtime: ThiefRuntime, { cast }: DeadeyeMalice): v
 }
 
 function restoreMaliciousIntent(runtime: ThiefRuntime): void {
-  runtime.resourceController.grant('malice', balanceNumberFromContext(runtime, TRAIT.MALICIOUS_INTENT, 'resourceGain'));
+  runtime.resourceController.grant('malice', balanceNumber(runtime.helpers, TRAIT.MALICIOUS_INTENT, 'resourceGain'));
   runtime.fireTrigger(maliceGained, { cast: null });
 }
 
@@ -291,7 +291,7 @@ function grantSilentScope(runtime: ThiefRuntime, { cast }: DeadeyeCast): void {
   const state = deadeyeState.from(runtime.profession);
 
   if (skill.id === SHARED_SKILL_IDS.DODGE) {
-    const silentScope = requireBalanceProfileFromContext(runtime, TRAIT.SILENT_SCOPE);
+    const silentScope = requireBalanceProfile(runtime.helpers, TRAIT.SILENT_SCOPE);
 
     if (state.malice.value > balanceProfileNumber(silentScope, 'threshold')) {
       // Reapplying Silent Scope replaces the prior bonus rather than stacking attacks.

@@ -130,6 +130,7 @@ export function timelineRowsView(
   const specialization = app.adapter.eliteSpecialization(build);
   const startingWeaponLine =
     app.profession.ui.timelineWeaponLineTransition({
+      catalog: app.activeCatalog,
       initial: true,
       build,
       specialization,
@@ -155,6 +156,7 @@ export function timelineRowsView(
         (step?.skillId == null ? undefined : app.activeCatalog.skillsById.get(step.skillId)) ??
         resolveEntrySkill(app, item.command);
       return app.profession.ui.timelineWeaponLineTransition({
+        catalog: app.activeCatalog,
         entry: item.command,
         skill,
         build,
@@ -209,7 +211,7 @@ export function timelineRowsView(
   const procSteps = [...(results?.procSteps || [])].sort((a, b) => a.start - b.start);
   // Resolve enabled declarations once; every proc uses the same active-specialization selection.
   const professionOverlays = app.profession.ui
-    .timelineOverlays({ build, specialization })
+    .timelineOverlays({ catalog: app.activeCatalog, build, specialization })
     .filter((overlay) => app.timelineOverlayVisibility?.[overlay.id]);
   const overlayProcMarkers = [
     ...(app.overlaySigilProcs ? sigilProcTimelineMarkers(results, rotation.length) : []),

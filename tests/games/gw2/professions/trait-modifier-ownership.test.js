@@ -58,8 +58,11 @@ test('Radiance declarations extend only their selected Burning sources at the ba
               ? (radiant && selectedTraitIds.includes(GUARDIAN.RADIANT_FIRE) ? flame : 1) *
                 (amplified && selectedTraitIds.includes(GUARDIAN.AMPLIFIED_WRATH) ? justice : 1)
               : 1;
-          assert.equal(profession.modifyConditionBaseDuration(context, 2), 2 * factor);
-          assert.equal(profession.modifyConditionDuration(context, 2), 2);
+          assert.equal(
+            profession.modifyConditionBaseDuration({ ...context, catalog: profession.catalog }, 2),
+            2 * factor
+          );
+          assert.equal(profession.modifyConditionDuration({ ...context, catalog: profession.catalog }, 2), 2);
         }
       }
     }
@@ -122,7 +125,6 @@ test('shortbow intrinsic and selected trait extensions add seconds while traps r
         ]) {
           const context = {
             catalog: profession.catalog,
-            profession: { catalog: profession.catalog },
             time: 0,
             event: { actorType: 'player', skillId },
             condition,
@@ -143,7 +145,6 @@ test('shortbow intrinsic and selected trait extensions add seconds while traps r
         ]) {
           const context = {
             catalog: profession.catalog,
-            profession: { catalog: profession.catalog },
             time: 0,
             event: { actorType: 'player', skillId },
             condition: 'Burning',
@@ -167,7 +168,6 @@ test('shortbow duration extensions cannot recreate a removed condition effect', 
   const profession = family.runtimeFor({ specialization: 'Core', patchId: 'modifier-owners' });
   const context = {
     catalog: profession.catalog,
-    profession: { catalog: profession.catalog },
     time: 0,
     event: { actorType: 'player', skillId: RANGER_SKILL.CROSSFIRE },
     condition: 'Bleeding',
@@ -222,7 +222,6 @@ test('Lingering Curse scales only eligible Scepter base duration with selected p
       ]) {
         const context = {
           catalog: profession.catalog,
-          profession: { catalog: profession.catalog },
           time: 0,
           event: { actorType: 'player', skillId },
           condition: 'Bleeding',

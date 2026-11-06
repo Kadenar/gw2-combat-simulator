@@ -3,7 +3,7 @@ import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/char
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -51,7 +51,7 @@ export function completeMimicCast(context: MesmerRuntime, cast: RuntimeCast<Mesm
 
 /** Mimic owns arming; the shared observer only consumes later eligible utilities. */
 export function armMimic(context: MesmerRuntime): void {
-  const expiresAt = canonicalTime(context.time + skillNumberFromContext(context, ID.MIMIC, 'duration'));
+  const expiresAt = canonicalTime(context.time + skillNumber(requireSkill(context.helpers, ID.MIMIC), 'duration'));
   // Keep the grant after expiry: an in-flight utility can still claim it using its earlier start.
   professionCoreState(context.profession).mimic = grantCharges(expiresAt > 0 ? 1 : 0, expiresAt);
 }

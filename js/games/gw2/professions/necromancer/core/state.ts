@@ -4,6 +4,7 @@ import { cappedResource } from '#gw2/platform/combat/resources/pool.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import type { PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { necromancerSoulShardMaximum } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { soulBatteryCapacity } from '#gw2/professions/necromancer/core/traits/soul-reaping/resource-queries.js';
@@ -76,10 +77,10 @@ const NECROMANCER_BASE_HEALTH = 9212;
 /** Maximum life-force points use build vitality and Soul Battery, independently of current player health. */
 export function necromancerLifeForceCapacity(
   config: NecromancerConfig,
-  balanceContext: unknown,
+  source: BalanceProfileSource,
   vitality: number
 ): number {
-  const capacityMultiplier = soulBatteryCapacity(config, balanceContext);
+  const capacityMultiplier = soulBatteryCapacity(config, source);
 
   // A live resource pool must have positive capacity.
   if (capacityMultiplier <= 0) throw new RangeError('Life-force capacity multiplier must be positive.');
@@ -97,7 +98,7 @@ export function projectNecromancerPlanningState(input: Gw2PlanningStateInput) {
     [STATE.ACTIVE_SHROUD]: state.activeShroud,
     [STATE.SOUL_SHARD_GRANT]: {
       ...state.soulShardGrant,
-      charges: cappedResource(state.soulShardGrant.charges, necromancerSoulShardMaximum(input))
+      charges: cappedResource(state.soulShardGrant.charges, necromancerSoulShardMaximum(input.catalog))
     },
     [STATE.CARAPACE_EXPIRIES]: state.carapaceExpiries,
     [STATE.ACTIVE_MINIONS]: state.activeMinions,

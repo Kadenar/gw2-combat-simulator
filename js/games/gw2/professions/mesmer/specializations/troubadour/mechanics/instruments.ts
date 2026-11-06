@@ -3,11 +3,7 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import {
   buildMesmerConditions,
@@ -46,7 +42,7 @@ function mesmerInstruments(context: MesmerRuntime) {
   return Object.fromEntries(
     Object.entries(MESMER_TROUBADOUR_INSTRUMENTS).map(([skillId]) => [
       Number(skillId),
-      mesmerSelectedInstrument(context, Number(skillId))
+      mesmerSelectedInstrument(context.helpers, Number(skillId))
     ])
   );
 }
@@ -199,7 +195,7 @@ function commitInstrument(
   const spent = createMesmerActions(context).consumeResources(at, {
     activationId: cast.id
   });
-  const instrumentsProfile = requireBalanceProfileFromContext(context, TRAIT.WANDERING_MINSTREL);
+  const instrumentsProfile = requireBalanceProfile(context.helpers, TRAIT.WANDERING_MINSTREL);
   const baseDuration = balanceProfileNumber(instrumentsProfile, 'baseDuration');
   const durationPerNote = balanceProfileNumber(instrumentsProfile, 'durationPerTier');
   // Playing windows are exact and replace only the matching instrument, without action-tick rounding.

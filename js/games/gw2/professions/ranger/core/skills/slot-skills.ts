@@ -10,7 +10,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { buildRangerPacket, emitRangerAction, emitRangerProfile } from '#gw2/professions/ranger/core/events.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
@@ -916,7 +916,7 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
   // Only the Ranger's own live Strength of the Pack window arms the proc.
   if (context.combat.activeBuffStacks('strength-of-the-pack', event.at, 1) === 0) return;
 
-  emitRangerAction(context, event.at, requireSkillFromContext(context, ID.STRENGTH_OF_THE_PACK), 'triggered-might', {
+  emitRangerAction(context, event.at, requireSkill(context.helpers, ID.STRENGTH_OF_THE_PACK), 'triggered-might', {
     attribution: {
       source: 'ranger',
       sourceId: ID.STRENGTH_OF_THE_PACK,

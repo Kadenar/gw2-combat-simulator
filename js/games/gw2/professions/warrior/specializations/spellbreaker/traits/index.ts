@@ -10,12 +10,12 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect,
-  requireSkillFromContext
+  requireSkill
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import {
@@ -38,7 +38,8 @@ export const attackersInsight = defineTrait({
   // Accepted Insight belongs to the effect lifetime rather than the current selection.
   grantedAttributes(context) {
     const amount =
-      insightStacks(context) * balanceNumberFromContext(context, TRAIT.ATTACKERS_INSIGHT, 'attributePerStack');
+      insightStacks(context) *
+      balanceNumber(context.balanceContext.catalog, TRAIT.ATTACKERS_INSIGHT, 'attributePerStack');
     return {
       attributeEffects: ['Power', 'Precision', 'Ferocity'].map((to) => ({
         kind: 'flat',
@@ -67,7 +68,7 @@ const magebaneTether = defineTrait({
       factor: (context) =>
         1 +
         Number(
-          requireEffect(requireSkillFromContext(context, ID.MAGEBANE_TETHER), 'buff', 'magebane-tether')!
+          requireEffect(requireSkill(context.catalog, ID.MAGEBANE_TETHER), 'buff', 'magebane-tether')!
             .damageIncreasePerStack
         ),
       order: 110,
@@ -124,7 +125,7 @@ const pureStrike = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: 'multiply',
       // The target never has boons, so the full bonus always applies.
-      factor: (context) => balanceNumberFromContext(context, TRAIT.PURE_STRIKE, 'criticalDamage')
+      factor: (context) => balanceNumber(context.catalog, TRAIT.PURE_STRIKE, 'criticalDamage')
     }
   ]
 });
@@ -139,7 +140,7 @@ const sunAndMoonStyle = defineTrait({
       id: 'warrior.sun-and-moon-style',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.SUN_AND_MOON_STYLE, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.SUN_AND_MOON_STYLE, 'damageMultiplier'),
       order: 100,
       when: (context) =>
         gw2PrimaryWeapon(context.config, Number(context.runtime?.activeWeaponSet) === 2 ? 2 : 1) === WEAPON.DAGGER
@@ -203,7 +204,7 @@ function gainAttackersInsight(
   at: number,
   applications = 1
 ): void {
-  const attackersInsightProfile = requireBalanceProfileFromContext(context, TRAIT.ATTACKERS_INSIGHT);
+  const attackersInsightProfile = requireBalanceProfile(context.helpers, TRAIT.ATTACKERS_INSIGHT);
   const effect = requireEffect(attackersInsightProfile, 'buff', 'attackers-insight');
 
   // Removed packets do not open their associated state or schedule follow-ups.

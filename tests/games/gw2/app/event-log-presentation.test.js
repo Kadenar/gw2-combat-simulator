@@ -2,12 +2,41 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { renderEventLog, simulationEventLogRows } from '#gw2/app/results/event-log.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
+import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { eventLogCsv, mountEventLog } from '#ui/results/event-log.js';
+
+// Both row tuning and effect labels must receive the selected catalog even when the family remains on Live.
+test('event-log presenters use the selected preview catalog', () => {
+  const catalog = applyBalanceProfilePatch(engineerProfession.catalog, {
+    balanceProfiles: { [ENGINEER_TRAIT_IDS.KINETIC_BATTERY]: { fields: { maximumStacks: 9 } } }
+  });
+  let labelsCatalog;
+  const profession = {
+    ...engineerProfession,
+    ui: {
+      ...engineerProfession.ui,
+      effectPresentations(context) {
+        labelsCatalog = context.catalog;
+        return engineerProfession.ui.effectPresentations(context);
+      }
+    }
+  };
+  const rows = simulationEventLogRows(
+    { events: [{ type: 'engineer.kinetic-battery', at: 0, kineticCharges: 2 }], resolvedEvents: [] },
+    null,
+    { profession, catalog }
+  );
+  assert.equal(labelsCatalog, catalog);
+  assert.ok(rows.some((row) => row.description === 'Kinetic Charge - 2/9'));
+});
 
 // Deferred logs must not read simulation events until opened, and opening must use only the latest result.
 test('collapsed event logs prepare nothing until opened, then use the latest result', (t) => {
@@ -39,7 +68,12 @@ test('collapsed event logs prepare nothing until opened, then use the latest res
       return assert.fail('Superseded results must never be prepared');
     }
   };
-  const app = { build: { rotation: [{ type: 'wait', durationMs: 1000 }] }, profession: {}, results: superseded };
+  const app = {
+    build: { rotation: [{ type: 'wait', durationMs: 1000 }] },
+    profession: { ui: {} },
+    activeCatalog: createCanonicalCatalog(),
+    results: superseded
+  };
   renderEventLog(app);
   const shell = details;
   app.results = { events: [{ type: 'marker', at: 0, name: 'Latest result' }], resolvedEvents: [] };
@@ -230,12 +264,14 @@ test('event log exposes optional damage calculations at full simulation precisio
     unroundedDamage: 10,
     rounding: 'floor'
   };
-  const profession = { ui: { effectPresentations: () => [{ kind: 'test-charge', name: 'Test Charge' }] } };
-  const row = simulationEventLogRows(
-    { ...result, ...effectFields([{ ...event, damageCalculation }], 120) },
-    null,
-    profession
-  )[0];
+  const profession = {
+    catalog: createCanonicalCatalog(),
+    ui: { effectPresentations: () => [{ kind: 'test-charge', name: 'Test Charge' }] }
+  };
+  const row = simulationEventLogRows({ ...result, ...effectFields([{ ...event, damageCalculation }], 120) }, null, {
+    profession,
+    catalog: profession.catalog
+  })[0];
   const { raw } = row.calculation;
   assert.ok(raw.includes('Simulation time: 0.600001s; phase: Ordinary'));
   assert.ok(raw.includes('Target health before: unbounded; fraction: unbounded'));
@@ -419,7 +455,10 @@ test('event log distinguishes phantasm summon, attack, and clone conversion', ()
       initialResource: 0
     })
   );
-  const log = simulationEventLogRows(result, null, withPatchPreview(mesmerProfession));
+  const log = simulationEventLogRows(result, null, {
+    profession: withPatchPreview(mesmerProfession),
+    catalog: mesmerProfession.catalog
+  });
 
   assert.ok(
     log.some(

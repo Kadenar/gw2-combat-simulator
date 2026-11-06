@@ -191,7 +191,7 @@ for (const [key, trait, invoke, literalDuration] of [
           traits
         });
         context.helpers = { skillsById: necromancerCatalog.skillsById };
-        context.catalog = { ...necromancerCatalog, balanceProfilesById: profiles };
+        context.helpers = { ...necromancerCatalog, balanceProfilesById: profiles };
         const observed = { effects: 0 };
         context.effects = captureEffectEmissions({
           submit(event) {
@@ -240,9 +240,9 @@ function professionContext({ id, catalog, core, specialization = {}, kind = 'Cor
     engagement: createCombatEngagement().query,
     procs: createProcRegistry(() => context),
     profession: { core, specialization: { kind, state: specialization } },
-    catalog,
+
     // Resolver emitters use the canonical helper catalog for packet artwork as well as combat metadata.
-    helpers: { skillsById: catalog.skillsById },
+    helpers: catalog,
     config: { profession: id, ...config },
     traits: new Set(traits.length ? traits : config.selectedTraitIds || []),
     activeWeaponSet: 1,
@@ -501,7 +501,7 @@ test('Magebane Tether admits a burst at its native recharge boundary', () => {
 test('Guardian charge procs stay blocked at the exact ICD boundary', () => {
   const state = firebrandState.create({
     config: {},
-    balanceProfile: (id) => guardianCatalog.balanceProfilesById.get(id)
+    catalog: guardianCatalog
   });
   state.ashes.charges = 2;
   state.ashes.expiresAt = 10;
@@ -581,14 +581,14 @@ test('Ineptitude claims only surviving effects on defiant targets at the event t
       });
       context.time = 99;
       const event = { type: 'control', actorType: 'player', at: 1, skillName: 'Interrupt' };
-      context.catalog = withProfile(catalog, trait, {
+      context.helpers = withProfile(catalog, trait, {
         effects: [],
         removedEffectKeys: [JSON.stringify(['condition', 'Confusion'])]
       });
       mesmerControlOpportunity(context, event);
       assert.equal(context.procs.deadline(key), 0);
       assert.equal(conditions.length, 0);
-      context.catalog = catalog;
+      context.helpers = catalog;
       context.effects = captureEffectEmissions({
         submit(condition) {
           conditions.push(condition);
@@ -622,13 +622,13 @@ test('Demonic Lore claims its cooldown field only for a surviving Burning packet
   });
   const key = 'necromancer.scourge.demonicLore';
   const event = { type: 'condition', condition: 'Torment', at: 1, actorType: 'player' };
-  context.catalog = withProfile(catalog, id, {
+  context.helpers = withProfile(catalog, id, {
     effects: [],
     removedEffectKeys: [JSON.stringify(['condition', 'Burning'])]
   });
   scourgeConditionOpportunity(context, event);
   assert.equal(context.procs.deadline(key), 0);
-  context.catalog = catalog;
+  context.helpers = catalog;
   context.effects = captureEffectEmissions({
     submit(condition) {
       assert.equal(context.procs.deadline(key), condition.at + 2);

@@ -12,7 +12,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
@@ -808,7 +808,7 @@ function activateCartridges(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
   if (active?.supercharged) return;
 
   const supercharged = Boolean(active);
-  const profile = requireSkillFromContext(runtime, ID.OVERCHARGED_CARTRIDGES);
+  const profile = requireSkill(runtime.helpers, ID.OVERCHARGED_CARTRIDGES);
   const action = requireSkillAction(profile, 'cartridges');
   const kind = supercharged ? 'supercharged-cartridges' : 'overcharged-cartridges';
   const buff = requireEffect(profile, 'buff', kind, action);
@@ -863,7 +863,7 @@ export function cartridgeExplosion(runtime: WarriorRuntime, event: Gw2ResolverEv
 
   if (!window || window.burningDuration <= 0) return;
 
-  const profile = requireSkillFromContext(runtime, ID.OVERCHARGED_CARTRIDGES);
+  const profile = requireSkill(runtime.helpers, ID.OVERCHARGED_CARTRIDGES);
   const action = requireSkillAction(profile, 'cartridges');
   const burning = requireEffect(
     profile,
@@ -993,7 +993,7 @@ function cartridgeDamageBonus(context: Gw2ModifierContext): number {
 
   if (latest.expiresAt <= context.time) return 0;
 
-  const profile = requireSkillFromContext(context, ID.OVERCHARGED_CARTRIDGES);
+  const profile = requireSkill(context.catalog, ID.OVERCHARGED_CARTRIDGES);
   const action = requireSkillAction(profile, 'cartridges');
   const effect = requireEffect(profile, 'buff', latest.kind, action);
   return effect ? effectNumber(profile, effect, 'damageIncreasePerStack') : 0;

@@ -1,6 +1,6 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { ProfessionResourceView } from '#gw2/platform/profession-presentation/types.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -16,11 +16,11 @@ const AVATAR_SKILLS = Object.freeze([
   ID.NATURAL_CONVERGENCE
 ]);
 
-/** Share the live clock limit, or the bound catalog's limit for a detached preview. */
-function astralForceMaximum(catalog: Readonly<CanonicalCatalog<RangerSkill>>, context: RangerUiContext): number {
+/** Share the live clock limit, or the explicitly selected catalog's limit for a detached preview. */
+function astralForceMaximum(context: RangerUiContext): number {
   return (
     rangerUiState(context)[STATE.ASTRAL_CLOCK]?.maximum ??
-    balanceNumberFromContext({ catalog: context.catalog ?? catalog }, TRAIT.CELESTIAL_BEING, 'maximumStacks')
+    balanceNumber(context.catalog, TRAIT.CELESTIAL_BEING, 'maximumStacks')
   );
 }
 
@@ -74,7 +74,7 @@ export function bindDruidUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>): R
     },
     resourceViews: (context: RangerUiContext): ProfessionResourceView[] => {
       const state = rangerUiState(context);
-      const maximum = astralForceMaximum(catalog, context);
+      const maximum = astralForceMaximum(context);
       return [
         {
           id: 'astral-force',

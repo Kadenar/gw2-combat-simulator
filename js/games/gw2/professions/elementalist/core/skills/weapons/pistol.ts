@@ -19,13 +19,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber,
-  skillNumberFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
@@ -763,7 +757,7 @@ export function triggerShatteringStone(context: ElementalistResolverContext, eve
     consumeCharge(core.shatteringStone, event.at)
   ) {
     // Follow-up hits read the same patched action that armed the charges, without emitting its payload on cast.
-    const skill = requireSkillFromContext(context, ID.SHATTERING_STONE);
+    const skill = requireSkill(context.helpers, ID.SHATTERING_STONE);
     const bleeding = requireEffect(skill, 'condition', 'Triggered Bleeding', requireSkillAction(skill, 'earth-bullet'));
 
     if (bleeding) {
@@ -864,7 +858,7 @@ export function reservePistolRecharge(context: ElementalistRuntime, skill: Skill
   if (state.dazingDischargeUntil > context.time && skillWeapon(skill) === WEAPON.PISTOL) {
     // Spend when reserving recharge so a later expiry or another cast cannot change this cast's accepted reduction.
     state.dazingDischargeUntil = 0;
-    return duration * skillNumberFromContext(context, ID.DAZING_DISCHARGE, 'nextSkillRechargeMultiplier');
+    return duration * skillNumber(requireSkill(context.helpers, ID.DAZING_DISCHARGE), 'nextSkillRechargeMultiplier');
   }
 
   return duration;

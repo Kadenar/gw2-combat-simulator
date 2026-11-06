@@ -415,7 +415,10 @@ test('isolated registration preserves selected value policies and admitted lifet
     const config = { selectedTraitIds };
     const isolated = source.runtimeFor(config, { traitTriggers: false });
     const query = { config, helpers: isolated.catalog };
-    assert.equal(isolated.modifyStrikeDamage(query, 10), selectedTraitIds.length ? 20 : 10);
+    assert.equal(
+      isolated.modifyStrikeDamage({ ...query, catalog: isolated.catalog }, 10),
+      selectedTraitIds.length ? 20 : 10
+    );
     assert.equal(isolated.rechargeWork(query, burst, 10), selectedTraitIds.length ? 5 : 10);
     assert.equal(isolated.boonDuration(query, { type: 'buff', kind: 'fury' }, 1, 4), 6);
     const result = observeGw2Runtime({

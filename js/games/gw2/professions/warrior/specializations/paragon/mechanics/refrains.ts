@@ -7,9 +7,9 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
@@ -25,7 +25,7 @@ export function startRefrain(runtime: WarriorRuntime): void {
   const state = paragonState.from(runtime.profession);
   runtime.cancelOwner({ id: REFRAIN, generation: state.refrainGeneration });
   state.refrainGeneration++;
-  const interval = balanceNumberFromContext(runtime, TRAIT.RALLY_THE_VALIANT, 'pulseInterval');
+  const interval = balanceNumber(runtime.helpers, TRAIT.RALLY_THE_VALIANT, 'pulseInterval');
 
   if (interval > 0)
     runtime.schedule(
@@ -41,7 +41,7 @@ export function startRefrain(runtime: WarriorRuntime): void {
 const paragonMotivationPolicy: ResourcePolicy<WarriorRuntime> = {
   kind: 'continuous',
   state: (runtime) => paragonState.from(runtime.profession).motivation,
-  maximum: (runtime) => balanceNumberFromContext(runtime, TRAIT.RALLY_THE_VALIANT, 'maximumStacks'),
+  maximum: (runtime) => balanceNumber(runtime.helpers, TRAIT.RALLY_THE_VALIANT, 'maximumStacks'),
   initial: () => 0,
   recovery: () => 0
 };
@@ -65,14 +65,14 @@ export const paragonCombatStarted = defineTriggerPoint<Record<string, never>>('w
 /** Enduring Refrain scales Might only; other packets retain their original stacks. */
 function enduringRefrainMultiplier(runtime: WarriorRuntime): number {
   return hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
-    ? balanceNumberFromContext(runtime, TRAIT.ENDURING_REFRAIN, 'stackMultiplier')
+    ? balanceNumber(runtime.helpers, TRAIT.ENDURING_REFRAIN, 'stackMultiplier')
     : 1;
 }
 
 /** Chant entry adds the selected trait's Motivation before opening boons. */
 function enduringRefrainMotivation(runtime: WarriorRuntime): number {
   return hasTrait(runtime, TRAIT.ENDURING_REFRAIN)
-    ? balanceNumberFromContext(runtime, TRAIT.ENDURING_REFRAIN, 'resourceGain')
+    ? balanceNumber(runtime.helpers, TRAIT.ENDURING_REFRAIN, 'resourceGain')
     : 0;
 }
 
@@ -87,7 +87,7 @@ function pulseRefrain(runtime: WarriorRuntime): void {
     return;
   }
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.RALLY_THE_VALIANT);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.RALLY_THE_VALIANT);
   const level =
     motivation >= balanceProfileNumber(profile, 'threshold')
       ? 3

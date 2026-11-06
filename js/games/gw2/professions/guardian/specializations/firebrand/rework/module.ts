@@ -67,8 +67,7 @@ export const firebrandReworkModule = defineNativeModule({
     skillFields: FIREBRAND_SKILL_FIELDS
   }),
   state: {
-    create: (config, { balanceContext }) =>
-      firebrandState.create({ config, balanceProfile: (id) => balanceContext.catalog.balanceProfilesById.get(id) }),
+    create: (config, { balanceContext }) => firebrandState.create({ config, catalog: balanceContext.catalog }),
     project: projectFirebrandPlanningState
   },
   traitDefinitions: firebrandReworkTraits,

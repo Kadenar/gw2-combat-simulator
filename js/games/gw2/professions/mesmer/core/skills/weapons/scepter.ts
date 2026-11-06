@@ -10,7 +10,7 @@ import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** At impact, full clones or notes replace the resource reward with torment; blades keep their own reward. */
 function atEtherCloneLimit(runtime: MechanicQueryContext<MesmerRuntimeState>): boolean {
-  const definition = mesmerResourceDefinition(runtime.profession.specialization.kind, runtime);
+  const definition = mesmerResourceDefinition(runtime.profession.specialization.kind, runtime.helpers);
 
   if (definition.singular === 'note') return runtime.resourceController.value('notes') >= definition.maximum;
 

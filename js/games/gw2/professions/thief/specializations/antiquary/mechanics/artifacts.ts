@@ -5,7 +5,7 @@ import type { AvailabilityResult } from '#gw2/platform/execution/availability.js
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { stealAccepted, stealCompleted } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
@@ -42,7 +42,7 @@ export function storeAntiquaryArtifacts(runtime: ThiefRuntime, source: 'swipe' |
     );
 
   state.artifactUsesRemaining =
-    balanceNumberFromContext(runtime, TRAIT.TRINKET_COLLECTOR, 'maximumStacks') +
+    balanceNumber(runtime.helpers, TRAIT.TRINKET_COLLECTOR, 'maximumStacks') +
     prolificPlundererUses(runtime, source) +
     improvisationArtifactUses(runtime, source);
 }
@@ -131,7 +131,7 @@ export function prodigiousPincherReady(runtime: ThiefRuntime): boolean {
     advanceCounter(
       antiquaryState.from(runtime.profession).initiativeSpentSincePilfer,
       0,
-      balanceNumberFromContext(runtime, TRAIT.PRODIGIOUS_PINCHER, 'threshold'),
+      balanceNumber(runtime.helpers, TRAIT.PRODIGIOUS_PINCHER, 'threshold'),
       'retain'
     ).reached
   );
@@ -140,6 +140,6 @@ export function prodigiousPincherReady(runtime: ThiefRuntime): boolean {
 /** Only Swipe pilfers receive Prolific Plunderer's extra use. */
 function prolificPlundererUses(runtime: ThiefRuntime, source: string): number {
   return source === 'swipe' && hasTrait(runtime, TRAIT.PROLIFIC_PLUNDERER)
-    ? balanceNumberFromContext(runtime, TRAIT.PROLIFIC_PLUNDERER, 'resourceGain')
+    ? balanceNumber(runtime.helpers, TRAIT.PROLIFIC_PLUNDERER, 'resourceGain')
     : 0;
 }

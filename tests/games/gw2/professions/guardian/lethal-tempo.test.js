@@ -30,7 +30,7 @@ test('Lethal Tempo uses patched caps and trait windows without sharing phase sta
     [[], 9, 2],
     [[TRAIT.TYRANTS_MOMENTUM], 3, 3]
   ]) {
-    const parameters = lethalTempoParameters({ catalog, traits: new Set(traits) });
+    const parameters = lethalTempoParameters(catalog, { catalog, traits: new Set(traits) });
     assert.deepEqual(parameters, { maximumStacks: 5, duration, stacks });
     const scheduler = { lethalTempo: { stacks: 0, expiresAt: 0 } };
     const resolver = { ...scheduler };
@@ -81,7 +81,7 @@ function grantTempo(state, at, parameters) {
   });
   const runtime = {
     time: at,
-    catalog,
+    helpers: catalog,
     traits: new Set(),
     profession: { specialization: { kind: 'Willbender', state } },
     effects: { emit() {} }
@@ -107,7 +107,7 @@ test('Lethal Tempo initialization does not multiply imported stacks by the selec
   const state = { lethalTempo: { stacks: 0, expiresAt: 0 } };
   lethalTempo.hooks.initialize({
     time: 0,
-    catalog,
+    helpers: catalog,
     traits: new Set(),
     config: { initialBuffs: [{ kind: 'lethal-tempo', stacks: 2, duration: 20 }] },
     profession: { specialization: { kind: 'Willbender', state } }

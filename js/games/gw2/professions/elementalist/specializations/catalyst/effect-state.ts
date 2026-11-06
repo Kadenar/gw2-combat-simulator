@@ -1,17 +1,18 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfile, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Register Catalyst's effect rules only when its module is selected. */
-export function catalystBuffPolicies(context: unknown): BuffStatePolicy[] {
+export function catalystBuffPolicies(source: BalanceProfileSource): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
     { kind: 'relentless fire', maximumStacks: 1 },
     { kind: 'shattering ice', maximumStacks: 1 }
   ];
-  const elementalEmpowerment = balanceProfileFromContext(context, TRAIT.ELEMENTAL_EMPOWERMENT);
+  const elementalEmpowerment = balanceProfile(source, TRAIT.ELEMENTAL_EMPOWERMENT);
 
   if (elementalEmpowerment)
     policies.push({
@@ -19,7 +20,7 @@ export function catalystBuffPolicies(context: unknown): BuffStatePolicy[] {
       maximumStacks: balanceProfileNumber(elementalEmpowerment, 'maximumStacks')
     });
 
-  const empoweringAuras = balanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS);
+  const empoweringAuras = balanceProfile(source, TRAIT.EMPOWERING_AURAS);
 
   if (empoweringAuras)
     policies.push({
@@ -39,14 +40,14 @@ export function catalystEffectStates(runtime: MechanicQueriesOf<ElementalistRunt
     timedEffectState(
       'empowering auras',
       [{ ...state.empoweringAuras }],
-      balanceProfileNumber(balanceProfileFromContext(runtime, TRAIT.EMPOWERING_AURAS)!, 'maximumStacks')
+      balanceProfileNumber(balanceProfile(runtime.helpers, TRAIT.EMPOWERING_AURAS)!, 'maximumStacks')
     ),
     timedEffectState(
       'elemental empowerment',
       catalystState
         .from(runtime.profession)
         .elementalEmpowermentExpiries.map((expiresAt) => ({ expiresAt, stacks: 1 })),
-      balanceProfileNumber(balanceProfileFromContext(runtime, TRAIT.ELEMENTAL_EMPOWERMENT)!, 'maximumStacks')
+      balanceProfileNumber(balanceProfile(runtime.helpers, TRAIT.ELEMENTAL_EMPOWERMENT)!, 'maximumStacks')
     )
   ];
 }

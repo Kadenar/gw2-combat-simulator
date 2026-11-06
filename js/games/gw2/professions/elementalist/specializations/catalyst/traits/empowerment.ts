@@ -8,11 +8,7 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { strengthOfStone } from '#gw2/professions/elementalist/core/traits/earth/index.js';
@@ -65,13 +61,13 @@ export function applyCatalystEmpowerment(
     event.at,
     event.duration || 0,
     event.stacks || 1,
-    balanceNumberFromContext(context, TRAIT.ELEMENTAL_EMPOWERMENT, 'maximumStacks')
+    balanceNumber(context.helpers, TRAIT.ELEMENTAL_EMPOWERMENT, 'maximumStacks')
   );
 }
 
 /** Baseline stacks enter through actual buff application so normal lifetime and recipient rules apply. */
 export function grantBaseEmpowerment(runtime: ElementalistRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ELEMENTAL_EMPOWERMENT);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.ELEMENTAL_EMPOWERMENT);
   const duration = balanceProfileNumber(profile, 'duration');
 
   runtime.effects.emit(
@@ -103,7 +99,7 @@ interface CatalystStateLike {
 export function elementalEmpowermentAttributes(context: ElementalistModifierContext): Gw2AttributeContributions {
   // Attribute reads count live stacks without rebuilding or mutating the runtime pool.
   const timedStacks = activeStackCount(catalystModifierState(context).elementalEmpowermentExpiries || [], context.time);
-  const elementalEmpowermentProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_EMPOWERMENT);
+  const elementalEmpowermentProfile = requireBalanceProfile(context.catalog, TRAIT.ELEMENTAL_EMPOWERMENT);
   const maximumStacks = balanceProfileNumber(elementalEmpowermentProfile, 'maximumStacks');
   const stacks = Math.min(maximumStacks, timedStacks);
   const multiplier = empowermentAttributeMultiplier(context, elementalEmpowermentProfile, stacks, maximumStacks);
@@ -154,7 +150,7 @@ function empowermentAttributeMultiplier(
 export function catalystAttributePool(context: ElementalistModifierContext): Gw2NumericAttributes {
   const pool = attributeSourcePool(context.config ?? {}, 'catalyst', context.runtime?.activeWeaponSet);
   const facts = attributeContext(context, {
-    catalog: (context.catalog ?? context.profession?.catalog)!,
+    catalog: context.catalog,
     modifierRulesById: new Map()
   });
   const traits = [burningRage, strengthOfStone].filter((trait) => hasTrait(context, trait.id));

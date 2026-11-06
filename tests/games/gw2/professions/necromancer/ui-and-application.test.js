@@ -504,7 +504,10 @@ test('Necromancer shroud transitions stay adjacent and toggle availability', () 
 test('Necromancer live transitions have an event-log presentation', () => {
   const result = simulate('Core', ['Death Shroud', 'End Death Shroud'], { initialResource: 100 });
   assert.deepEqual(result.warnings, []);
-  const rows = simulationEventLogRows(result, null, withPatchPreview(necromancerProfession));
+  const rows = simulationEventLogRows(result, null, {
+    profession: withPatchPreview(necromancerProfession),
+    catalog: necromancerProfession.catalog
+  });
   assert.ok(rows.some((row) => row.description.includes('Death Shroud')));
   assert.ok(rows.every((row) => !row.description.includes('UNPRESENTED CUSTOM EVENT')));
 });

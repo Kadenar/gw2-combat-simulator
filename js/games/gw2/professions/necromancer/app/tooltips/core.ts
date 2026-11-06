@@ -12,7 +12,7 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { necromancerBloodMagicTooltips } from '#gw2/professions/necromancer/app/tooltips/blood-magic.js';
 import { necromancerCursesTooltips } from '#gw2/professions/necromancer/app/tooltips/curses.js';
@@ -88,7 +88,7 @@ const addleTooltip: DescribeSimulationTooltip = skillTooltip(
 
 // Present Perforate's separate impacts as one coefficient total while retaining the selected balance values.
 const perforateTooltip: DescribeSimulationTooltip = (balanceContext) => {
-  const strikes = (requireSkillFromContext(balanceContext, ID.PERFORATE).effects ?? []).filter(
+  const strikes = (requireSkill(balanceContext.catalog, ID.PERFORATE).effects ?? []).filter(
     (effect) => effect.type === 'strike'
   );
   return {
@@ -109,10 +109,8 @@ const perforateTooltip: DescribeSimulationTooltip = (balanceContext) => {
         'Strike damage below 50% target health',
         tooltipFactorChange
       ),
-      ...simulationEffectFacts(
-        requireSkillFromContext(balanceContext, ID.SOUL_SHARDS).effects,
-        'per Soul Shard consumed'
-      ).facts,
+      ...simulationEffectFacts(requireSkill(balanceContext.catalog, ID.SOUL_SHARDS).effects, 'per Soul Shard consumed')
+        .facts,
       skillFact(
         balanceContext,
         ID.SOUL_SHARDS,
@@ -136,9 +134,9 @@ const distressTooltip: DescribeSimulationTooltip = skillTooltip(
 );
 
 const minionTooltip: DescribeSimulationTooltip<NecromancerSkill> = (balanceContext, entity) => {
-  const summon = requireSkillFromContext(balanceContext, entity.id);
+  const summon = requireSkill(balanceContext.catalog, entity.id);
   const profileId = summon.summonAttackId as import('#gw2/platform/skills/types.js').SkillId;
-  const profile = requireSkillFromContext(balanceContext, profileId);
+  const profile = requireSkill(balanceContext.catalog, profileId);
   const effects = simulationEffectFacts(profile.effects, 'per minion attack cycle');
   return {
     ...effects,

@@ -1,11 +1,11 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  skillNumber,
-  skillNumberFromContext
+  requireBalanceProfile,
+  requireSkill,
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -23,7 +23,7 @@ export const METICULOUS_ARTIFACT_STRIKE_IDS = new Set<number>([
 // Return the Meticulous Custodian strike multiplier only for the artifact and
 // active identity window that owns the queried packet.
 export function meticulousArtifactStrikeFactor(context: Gw2ModifierContext): number {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.METICULOUS_CUSTODIAN);
+  const profile = requireBalanceProfile(context.catalog, TRAIT.METICULOUS_CUSTODIAN);
   const event = context.event;
 
   if (event?.skillId === ID.METAL_LEGION_GUITAR) {
@@ -48,13 +48,13 @@ export function meticulousArtifactStrikeFactor(context: Gw2ModifierContext): num
 /** Each artifact supplies its lifetime unless selected Meticulous Custodian replaces it at commitment. */
 export function artifactWindowDuration(runtime: ThiefRuntime, skill: Skill): number {
   return hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)
-    ? balanceNumberFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN, 'duration')
+    ? balanceNumber(runtime.helpers, TRAIT.METICULOUS_CUSTODIAN, 'duration')
     : skillNumber(skill, 'duration');
 }
 
 /** Kryptis has its separate enhanced identity lifetime. */
 export function meticulousKryptisDuration(runtime: ThiefRuntime): number {
   return hasTrait(runtime, TRAIT.METICULOUS_CUSTODIAN)
-    ? balanceNumberFromContext(runtime, TRAIT.METICULOUS_CUSTODIAN, 'kryptisDuration')
-    : skillNumberFromContext(runtime, ID.SUMMON_KRYPTIS_TURRET, 'duration');
+    ? balanceNumber(runtime.helpers, TRAIT.METICULOUS_CUSTODIAN, 'kryptisDuration')
+    : skillNumber(requireSkill(runtime.helpers, ID.SUMMON_KRYPTIS_TURRET), 'duration');
 }

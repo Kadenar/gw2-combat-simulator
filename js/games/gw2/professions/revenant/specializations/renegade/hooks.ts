@@ -112,12 +112,12 @@ export const renegadeHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = 
       const stacks = activeKallasFervorStacks(
         renegadeState.from(runtime.profession),
         runtime.time,
-        fervorMaximumStacks(runtime)
+        fervorMaximumStacks(runtime.helpers, runtime)
       );
 
       if (!stacks) return;
 
-      const perStack = balanceProfileNumber(fervorProfile(runtime), 'lifeSiphonDamagePerStack');
+      const perStack = balanceProfileNumber(fervorProfile(runtime.helpers, runtime), 'lifeSiphonDamagePerStack');
       return {
         flatStrikeMultiplier: ((event.flatStrikeMultiplier ?? 1) * (1 + core + stacks * perStack)) / (1 + core)
       };

@@ -38,7 +38,7 @@ import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professio
 export const evokerHooks = composeRuntimeHooks<ElementalistRuntimeState, ElementalistSkill>([
   evokerSkillCommitLifecycle,
   {
-    buffPolicies: evokerBuffPolicies,
+    buffPolicies: (runtime) => evokerBuffPolicies(runtime.helpers),
     resources: { familiarCharges: familiarChargePolicy, empoweredCharges: empoweredChargePolicy },
     damageEffects: [electricEnchantmentDamageEffect],
 

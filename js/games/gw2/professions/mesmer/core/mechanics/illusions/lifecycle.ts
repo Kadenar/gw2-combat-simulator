@@ -22,7 +22,7 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 /** Illusions share one resource transaction owner; tasks and cast selection travel with that lifecycle. */
 export const mesmerIllusionHooks = {
   initialize(runtime) {
-    const resourceDefinition = mesmerResourceDefinition(runtime.profession.specialization.kind, runtime);
+    const resourceDefinition = mesmerResourceDefinition(runtime.profession.specialization.kind, runtime.helpers);
     const kind = mesmerResourceKind(runtime.profession.specialization.kind);
 
     // Numeric policies already seeded their clocks; observe the seed without granting it or earning rewards again.

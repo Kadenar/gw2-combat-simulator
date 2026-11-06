@@ -13,7 +13,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
@@ -32,7 +32,7 @@ export const troubadourTooltips = {
           description:
             "Perform this instrument's attack, then spend notes to keep it playing. Additional notes extend its duration. Different instruments overlap; performing the same instrument replaces its previous window. Instrument and note-spending traits apply.",
           facts: [
-            ...simulationEffectFacts(requireSkillFromContext(context, entity.id).effects).facts,
+            ...simulationEffectFacts(requireSkill(context.catalog, entity.id).effects).facts,
             profileFact(context, TRAIT.WANDERING_MINSTREL, 'baseDuration', 'Base instrument duration', tooltipSeconds),
             profileFact(
               context,
@@ -43,7 +43,7 @@ export const troubadourTooltips = {
             ),
             ...([ID.HARMONIOUS_HARP, ID.HARMONIOUS_HARP_ALTERNATE].some((id) => id === entity.id)
               ? simulationEffectFacts(
-                  requireSkillAction(requireSkillFromContext(context, entity.id), 'distortion').effects
+                  requireSkillAction(requireSkill(context.catalog, entity.id), 'distortion').effects
                 ).facts
               : [])
           ]
@@ -55,7 +55,7 @@ export const troubadourTooltips = {
         'Strike with increased damage for each instrument still active at impact. Fragmentation increases that bonus. Altered Chord, Life of the Party, and Fortissimo can add rewards.',
       facts: [
         ...simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(context, ID.CRESCENDO), 'crescendo').effects,
+          requireSkillAction(requireSkill(context.catalog, ID.CRESCENDO), 'crescendo').effects,
           'before active-instrument bonus'
         ).facts,
         skillFact(
@@ -80,7 +80,7 @@ export const troubadourTooltips = {
             (id === ID.TALE_OF_THE_HONORABLE_ROGUE ? ' Restore 50 endurance.' : ''),
           (context) => [
             ...simulationEffectFacts(
-              requireSkillAction(requireSkillFromContext(context, id), 'tale').effects.map((effect) => ({
+              requireSkillAction(requireSkill(context.catalog, id), 'tale').effects.map((effect) => ({
                 ...effect,
                 audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
               }))

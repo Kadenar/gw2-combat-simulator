@@ -14,7 +14,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 /** Commands describe their selected echo action; shared cadence remains command policy. */
@@ -29,7 +29,7 @@ const commandTooltip: DescribeSimulationTooltip = (balanceContext, entity) =>
             ? 'The echo grants adrenaline; revival is outside simulation scope.'
             : 'The defensive echo has no direct damage in the simulator.'),
     (context) => {
-      const selected = requireSkillFromContext(context, entity.id);
+      const selected = requireSkill(context.catalog, entity.id);
       const echo = requireSkillAction(selected, 'echo');
       return [
         skillFact(context, entity.id, 'pulseInterval', 'Delay before echo', tooltipSeconds),
@@ -48,7 +48,7 @@ const chantTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const action = entity.id === ID.CHANT_OF_ACTION;
   const recovery = entity.id === ID.CHANT_OF_RECUPERATION;
   // Activation and refrain payloads remain on the chant action, including selected removals and edits.
-  const selected = requireSkillFromContext(balanceContext, entity.id);
+  const selected = requireSkill(balanceContext.catalog, entity.id);
   const effects = requireSkillAction(selected, 'chant').effects.map((effect) => ({
     ...effect,
     audience: { recipients: RECIPIENT.PARTY }

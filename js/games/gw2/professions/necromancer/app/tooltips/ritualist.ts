@@ -15,7 +15,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { lifeForce, shroudTooltip } from '#gw2/professions/necromancer/app/tooltips/shared.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import {
@@ -80,14 +80,14 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
       description:
         'Command available active spirits to perform their coordinated attacks. Spirits still in their opening attack cannot participate. Wanderlust also dazes; Preservation has no direct damage from this command.',
       facts: RITUALIST_SPIRIT_SKILL_IDS.flatMap((skillId) => {
-        const attack = spiritAttackEffects(balanceContext, skillId)!.active;
+        const attack = spiritAttackEffects(balanceContext.catalog, skillId)!.active;
         return attack
           ? simulationEffectFacts([attack], `requires ${balanceContext.catalog.skillsById.get(skillId)!.name}`).facts
           : [];
       })
     };
 
-  const attacks = spiritAttackEffects(balanceContext, id)!;
+  const attacks = spiritAttackEffects(balanceContext.catalog, id)!;
   const { opening } = attacks;
   return {
     description:
@@ -116,12 +116,12 @@ const ritualistTooltip: DescribeSimulationTooltip = (balanceContext, entity) => 
       ...(id === ID.ANGUISH
         ? [
             ...simulationEffectFacts(
-              requireSkillFromContext(balanceContext, painfulBondSkill.id).effects?.filter(
+              requireSkill(balanceContext.catalog, painfulBondSkill.id).effects?.filter(
                 (effect) => effect.type === 'buff'
               )
             ).facts,
             ...simulationEffectFacts(
-              requireSkillFromContext(balanceContext, painfulBondSkill.id).effects?.filter(
+              requireSkill(balanceContext.catalog, painfulBondSkill.id).effects?.filter(
                 (effect) => effect.type === 'strike'
               ),
               'per Painful Bond pulse'

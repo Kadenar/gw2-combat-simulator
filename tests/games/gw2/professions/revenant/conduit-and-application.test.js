@@ -21,25 +21,49 @@ import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
-    return revenantProfession
-      .resolveProfession(context?.config || {})
-      .modifyAttributes({ catalog: revenantCatalog, ...context }, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyAttributes(
+      {
+        catalog: revenantCatalog,
+        ...context
+      },
+      value
+    );
   },
   modifyCriticalChance(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyCriticalChance(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyCriticalChance(
+      {
+        ...context,
+        catalog: revenantProfession.resolveProfession(context?.config || {}).catalog
+      },
+      value
+    );
   },
   modifyStrikeDamage(context, value) {
-    return revenantProfession
-      .resolveProfession(context?.config || {})
-      .modifyStrikeDamage({ catalog: revenantCatalog, ...context }, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyStrikeDamage(
+      {
+        catalog: revenantCatalog,
+        ...context
+      },
+      value
+    );
   },
   modifyConditionDamage(context, value) {
-    return revenantProfession
-      .resolveProfession(context?.config || {})
-      .modifyConditionDamage({ catalog: revenantCatalog, ...context }, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDamage(
+      {
+        catalog: revenantCatalog,
+        ...context
+      },
+      value
+    );
   },
   modifyConditionDuration(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDuration(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDuration(
+      {
+        ...context,
+        catalog: revenantProfession.resolveProfession(context?.config || {}).catalog
+      },
+      value
+    );
   }
 });
 
@@ -91,9 +115,10 @@ test('sword follow-ups retain their casting skill while exposing separate damage
     assert.ok(rows.some((row) => row.name === skillName));
     assert.ok(rows.some((row) => row.name === followupName));
     assert.ok(
-      simulationEventLogRows(result, null, withPatchPreview(profession)).some((row) =>
-        row.description.startsWith(`HIT ${followupName} `)
-      )
+      simulationEventLogRows(result, null, {
+        profession: withPatchPreview(profession),
+        catalog: profession.catalog
+      }).some((row) => row.description.startsWith(`HIT ${followupName} `))
     );
   }
 });

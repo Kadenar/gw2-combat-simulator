@@ -1,21 +1,25 @@
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Selects the active specialization's public resource contract at the family boundary. */
-export function mesmerResourceDefinition(specialization: string, context: unknown): MesmerResourceDefinition {
+export function mesmerResourceDefinition(
+  specialization: string,
+  source: BalanceProfileSource
+): MesmerResourceDefinition {
   if (specialization === 'Virtuoso')
     return {
       singular: 'blade',
       plural: 'blades',
-      maximum: balanceNumberFromContext(context, TRAIT.PSYCHIC_BLADES, 'maximumStacks')
+      maximum: balanceNumber(source, TRAIT.PSYCHIC_BLADES, 'maximumStacks')
     };
 
   if (specialization === 'Troubadour')
     return {
       singular: 'note',
       plural: 'notes',
-      maximum: balanceNumberFromContext(context, TRAIT.WANDERING_MINSTREL, 'maximumStacks')
+      maximum: balanceNumber(source, TRAIT.WANDERING_MINSTREL, 'maximumStacks')
     };
 
   // Clone capacity is a fixed entity limit; elite replacement resources retain their trait-owned tuning.

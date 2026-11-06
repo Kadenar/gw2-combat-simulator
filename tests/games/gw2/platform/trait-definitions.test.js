@@ -30,7 +30,7 @@ import {
   traitSkillReplacement
 } from '#gw2/platform/profession-definition/traits.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import {
   createBuildAttributeContext,
   finalizeProfessionBuildAttributes
@@ -224,7 +224,7 @@ test('rework trait positions and all tooltip lookup paths follow the selected ca
   );
 });
 
-const tuning = (context, field) => balanceNumberFromContext(context, 101, field);
+const tuning = (source, field) => balanceNumber(source, 101, field);
 const metadata = { id: 101, name: 'Fixture Trait' };
 
 // Saved rotations may hold either identity of a trait-swapped skill; the current selection alone decides the cast.
@@ -523,7 +523,12 @@ test('module registration normalizes modifier rule collections', () => {
   assert.deepEqual(moduleWith([]).modifiers, {});
   const core = moduleWith([], { modifiers: rules });
   assert.deepEqual(core.modifiers, { modifierRules: rules });
-  assert.equal(familyWith(core).runtimeFor({}).modifyStrikeDamage({}, 10), 20);
+  assert.equal(
+    familyWith(core)
+      .runtimeFor({})
+      .modifyStrikeDamage({ catalog: familyWith(core).runtimeFor({}).catalog }, 10),
+    20
+  );
 });
 
 // Registration and reconstruction both reject unsupported fields, including on an inactive elite module.
@@ -573,9 +578,15 @@ test('trait expansion preserves scalar rules, damage policies, and cached runtim
   const unselected = family.runtimeFor({ specialization: 'Elite', selectedTraitIds: [] });
   assert.equal(selected, unselected);
   const damageInputs = { strikeSigilBonus: 0.5 };
-  assert.equal(selected.modifyStrikeDamage({ selectedTraitIds: [101], damageInputs }, 10), 20);
-  assert.equal(unselected.modifyStrikeDamage({ selectedTraitIds: [], damageInputs }, 10), 10);
-  assert.equal(selected.modifyCriticalChance({}, 0), 0.1);
+  assert.equal(
+    selected.modifyStrikeDamage({ catalog: selected.catalog, selectedTraitIds: [101], damageInputs }, 10),
+    20
+  );
+  assert.equal(
+    unselected.modifyStrikeDamage({ catalog: unselected.catalog, selectedTraitIds: [], damageInputs }, 10),
+    10
+  );
+  assert.equal(selected.modifyCriticalChance({ catalog: selected.catalog }, 0), 0.1);
   assert.equal(selected.rechargeWork({ config: { selectedTraitIds: [101] }, helpers: selected.catalog }, skill, 10), 5);
   assert.equal(unselected.rechargeWork({ config: { selectedTraitIds: [] }, helpers: selected.catalog }, skill, 10), 10);
   assert.throws(() => defineTrait({ ...metadata, profiles: [] }), /Unsupported trait definition field: profiles/);
@@ -593,8 +604,8 @@ test('preview rules, active profiles, removed effects, and tooltip values share 
   const live = family.runtimeFor({});
   const patched = family.runtimeFor({ patchId: 'preview' });
   const context = (runtime) => ({ helpers: runtime.catalog, config: { selectedTraitIds: [101] } });
-  assert.equal(live.modifyStrikeDamage(context(live), 10), 20);
-  assert.equal(patched.modifyStrikeDamage(context(patched), 10), 30);
+  assert.equal(live.modifyStrikeDamage({ ...context(live), catalog: live.catalog }, 10), 20);
+  assert.equal(patched.modifyStrikeDamage({ ...context(patched), catalog: patched.catalog }, 10), 30);
   assert.equal(patched.rechargeWork(context(patched), skill, 10), 2.5);
   assert.equal(live.rechargeWork(context(live), skill, 10), 5);
   assert.equal(
@@ -944,7 +955,7 @@ test('compiled critical admission retains per-run state, actor gates, and the ex
     id: 'fixture.critical',
     when: (runtime) => hasTrait(runtime, 101),
     internalCooldown: {
-      duration: (runtime) => tuning(runtime, 'internalCooldown'),
+      duration: (runtime) => tuning(runtime.helpers, 'internalCooldown'),
       key: 101
     },
     handler: (runtime) => {

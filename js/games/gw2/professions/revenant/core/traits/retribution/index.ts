@@ -8,9 +8,9 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -39,7 +39,7 @@ export const dwarvenBattleTraining = defineTrait({
       order: 3,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.DWARVEN_BATTLE_TRAINING, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.DWARVEN_BATTLE_TRAINING, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.WEAKNESS)
     }
@@ -113,8 +113,8 @@ export const viciousReprisalTrait = defineTrait({
       operation: 'damage-additive',
       amount: (context, target) =>
         target === MODIFIER_TARGET.CONDITION_DAMAGE
-          ? balanceNumberFromContext(context, TRAIT.VICIOUS_REPRISAL, 'conditionDamageIncrease')
-          : balanceNumberFromContext(context, TRAIT.VICIOUS_REPRISAL, 'damageIncrease'),
+          ? balanceNumber(context.catalog, TRAIT.VICIOUS_REPRISAL, 'conditionDamageIncrease')
+          : balanceNumber(context.catalog, TRAIT.VICIOUS_REPRISAL, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, boonKey(BOON.RESOLUTION))
     }
   ],
@@ -126,7 +126,7 @@ function viciousReprisal(runtime: RevenantRuntime, { cause: event }: RevenantStr
   // Permanent configured Resolution and executed self applications count; pending packets never do.
   if (runtime.combat.activeBoonStacks(boonKey(BOON.RESOLUTION), runtime.time, 1) === 0) return;
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.VICIOUS_REPRISAL);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.VICIOUS_REPRISAL);
   const boon = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   // The cooldown gates only might, so a removed boon leaves it ready.
@@ -153,7 +153,7 @@ function viciousReprisal(runtime: RevenantRuntime, { cause: event }: RevenantStr
 /** Supplies the additive Enduring Recovery rate before the shared cap. */
 export function enduringRecoveryBonus(runtime: RevenantRuntime): number {
   const enduring = hasTrait(runtime, TRAIT.ENDURING_RECOVERY)
-    ? balanceNumberFromContext(runtime, TRAIT.ENDURING_RECOVERY, 'enduranceRegenerationMultiplier') - 1
+    ? balanceNumber(runtime.helpers, TRAIT.ENDURING_RECOVERY, 'enduranceRegenerationMultiplier') - 1
     : 0;
   return enduring;
 }

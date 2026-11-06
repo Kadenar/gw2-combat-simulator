@@ -7,8 +7,8 @@ import type {
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
-  ProfessionCatalogContext,
   ProfessionSkillBarGroup,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
@@ -45,7 +45,7 @@ function selectedMorphIds(context: EngineerUiContext): number[] {
 /** Projects the selected protocols and trait-selected Evolve, preferring the editable build. */
 function amalgamProfessionSkills(
   catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
-  context: EngineerUiContext & ProfessionCatalogContext
+  context: EngineerUiContext
 ): (SkillId | null)[] {
   const traits = context.build?.specializations
     ? new Set(selectedTraits(context.catalog, context.build.specializations).map((trait) => trait.id))
@@ -60,7 +60,7 @@ function amalgamProfessionSkills(
 /** Builds only editable protocol selectors; fixed F1 and F5 skills stay in the palette. */
 function amalgamSkillBarGroups(
   catalog: Readonly<CanonicalCatalog<EngineerSkill>>,
-  context: EngineerUiContext & ProfessionCatalogContext
+  context: EngineerUiContext
 ): ProfessionSkillBarGroup[] {
   const skillIds = amalgamProfessionSkills(catalog, context);
   // Match pet selectors with concise selected-name headers while dropdowns retain the full protocol names.
@@ -120,7 +120,7 @@ function updateAmalgamSkillBarSelection(
 }
 
 /** Reconstructs a source buff's remaining duration from events at the inspected timestamp. */
-function activeBuffRemaining(context: EngineerUiContext, sourceId: string, at: number): number {
+function activeBuffRemaining(context: Pick<EngineerUiContext, 'result'>, sourceId: string, at: number): number {
   let remaining = 0;
   for (const event of (context.result as { events?: readonly SimulationEvent[] } | undefined)?.events || []) {
     if ((event.at || 0) > at) break;
@@ -134,7 +134,9 @@ function activeBuffRemaining(context: EngineerUiContext, sourceId: string, at: n
 }
 
 /** Surfaces Evolve and every duration-bearing Silver Lining strain active at the inspected point. */
-function amalgamStateSnapshot(context: EngineerUiContext): RotationStateSnapshotItem[] {
+function amalgamStateSnapshot(
+  context: ProfessionStateSnapshotContext<EngineerUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const state = engineerUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
@@ -223,10 +225,10 @@ export function bindAmalgamUi(catalog: Readonly<CanonicalCatalog<EngineerSkill>>
 
     assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
     rotationStateSnapshot: amalgamStateSnapshot,
-    skillBarGroups: (context: EngineerUiContext & ProfessionCatalogContext) => amalgamSkillBarGroups(catalog, context),
+    skillBarGroups: (context: EngineerUiContext) => amalgamSkillBarGroups(catalog, context),
     updateSkillBarSelection: (context: EngineerUiContext, selection: EngineerUiSelection) =>
       updateAmalgamSkillBarSelection(catalog, context, selection),
-    paletteGroups: (context: EngineerUiContext & ProfessionCatalogContext) => [
+    paletteGroups: (context: EngineerUiContext) => [
       {
         id: 'engineer-profession',
         label: 'F',

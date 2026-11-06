@@ -20,7 +20,7 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 import {
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -202,7 +202,7 @@ export const bansheesWail = defineTrait({
     modifyEffects(runtime, cast, effects) {
       if (cast.skill.id !== ID.LOCUST_SWARM || !hasTrait(runtime, TRAIT.BANSHEES_WAIL)) return effects;
 
-      const profile = requireBalanceProfileFromContext(runtime, TRAIT.BANSHEES_WAIL);
+      const profile = requireBalanceProfile(runtime.helpers, TRAIT.BANSHEES_WAIL);
       const multiplier = balanceProfileNumber(profile, 'durationMultiplier');
       const pulseIntervalMs = balanceProfileNumber(profile, 'pulseInterval') * 1000;
       return effects.map((effect) => {
@@ -285,7 +285,7 @@ function applyVampiric(context: NecromancerResolverContext, event: NecromancerRe
 
   if (event.actorType !== ACTOR.PLAYER && !summonHit) return;
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.VAMPIRIC);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.VAMPIRIC);
   // Player and minion siphons are separately named, so removing one never borrows the other's values.
   const effect = requireEffect(profile, 'strike', minionHit ? 'minion' : 'player');
 
@@ -369,7 +369,7 @@ function applyVampiricPresence(context: NecromancerResolverContext, event: Necro
   // Ineligible effects do no balance lookup; eligible actors resolve their live profile only once.
   if (!actorKey) return;
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.VAMPIRIC_PRESENCE);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.VAMPIRIC_PRESENCE);
 
   if (!vampiricAuraActive(context, profile, event.at)) return;
 
@@ -437,7 +437,7 @@ function consumeTasteForBlood(
   event: NecromancerResolverEvent,
   recipient: string
 ): boolean {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.OVERFLOWING_THIRST);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.OVERFLOWING_THIRST);
   const effect = requireEffect(profile, 'strike', 'Strike');
   // Application time remains owner metadata: future grants cannot pay for an earlier hit.
   const grants = professionCoreState(context.profession).tasteForBloodGrants[recipient] ?? [];
@@ -524,7 +524,7 @@ const TASTE_FOR_BLOOD_SKILLS = new Set<number>([
 function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
   if (!TASTE_FOR_BLOOD_SKILLS.has(Number(cast.skill.id))) return;
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.OVERFLOWING_THIRST);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.OVERFLOWING_THIRST);
   const buff = requireEffect(profile, 'buff', 'taste-for-blood');
 
   if (!buff) return;
@@ -560,7 +560,7 @@ function applyOverflowingThirstCast(runtime: NecromancerRuntime, cast: RuntimeCa
 
 /** Persistent trait listeners consume the common ally strike without maintaining independent clocks. */
 function startNecromancerAlliedOpportunities(runtime: NecromancerRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.VAMPIRIC_PRESENCE);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.VAMPIRIC_PRESENCE);
   runtime.alliedStrikes.registerRecipients((allyIndex) => ({
     id: `necromancer.vampiric-presence:${allyIndex}`,
     trigger(opportunity) {

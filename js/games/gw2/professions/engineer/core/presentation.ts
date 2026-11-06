@@ -13,7 +13,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
@@ -46,23 +46,23 @@ const KIT_ORDER = new Map<SkillId, number>([
 const SKILL_SLOT_ORDER: readonly string[] = Object.freeze(['Heal', 'Utility1', 'Utility2', 'Utility3', 'Elite']);
 
 /** Flattens Core and active-specialization state for Engineer UI consumers. */
-export function engineerUiState(context: EngineerUiContext = {}): Partial<EngineerPlanningState> {
+export function engineerUiState(context: Pick<EngineerUiContext, 'professionState'>): Partial<EngineerPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
 
 /** Uses the active specialization already derived by the UI or simulation configuration. */
-function engineerUiSpecialization(context: EngineerUiContext = {}): string {
+function engineerUiSpecialization(context: EngineerUiContext): string {
   return context.specialization || context.config?.specialization || 'Core';
 }
 
 /** Normalizes the selected slot-skill loadout into a membership set. */
-function selectedIds(context: EngineerUiContext = {}): Set<SkillId> {
+function selectedIds(context: EngineerUiContext): Set<SkillId> {
   return new Set(selectedSkillIdSet(context.config?.selectedSkillIds || context.build?.selectedSkillIds));
 }
 
 /** Returns selected heal, utility, and elite skill names in their fixed slot order. */
-function selectedIdsInSlotOrder(context: EngineerUiContext = {}): (SkillId | undefined)[] {
+function selectedIdsInSlotOrder(context: EngineerUiContext): (SkillId | undefined)[] {
   if (context.build) return SKILL_SLOT_ORDER.map((slot) => context.build!.selectedSkillIds?.[slot] ?? undefined);
 
   return [...(context.config?.selectedSkillIds ?? [])];
@@ -94,7 +94,11 @@ function uniqueSkillsById(skills: readonly EngineerSkill[]): EngineerSkill[] {
 }
 
 /** Reports whether the build's selected trait lines activate the named trait. */
-export function hasActiveTrait(catalog: CanonicalCatalog, context: EngineerUiContext, name: string): boolean {
+export function hasActiveTrait(
+  catalog: CanonicalCatalog,
+  context: Pick<EngineerUiContext, 'build'>,
+  name: string
+): boolean {
   return selectedTraits(catalog, context.build?.specializations || []).some((trait) => trait.name === name);
 }
 
@@ -142,7 +146,7 @@ function engineerEventLogRow(
   // Show progress against the selected patch's activation cap before suppressing internal snapshots.
   if (event.type === 'engineer.kinetic-battery') {
     const charges = Number(event.kineticCharges || 0);
-    const maximum = balanceNumberFromContext(context, TRAIT.KINETIC_BATTERY, 'maximumStacks');
+    const maximum = balanceNumber(context.catalog, TRAIT.KINETIC_BATTERY, 'maximumStacks');
     return {
       type: event.type,
       description: charges
@@ -302,7 +306,7 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
         hasActiveTrait(context.balanceContext.catalog, context, 'Kinetic Battery')
       ) {
         // The inspected rotation's balance source owns the cap displayed beside its charge count.
-        const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.KINETIC_BATTERY, 'maximumStacks');
+        const maximum = balanceNumber(context.balanceContext.catalog, TRAIT.KINETIC_BATTERY, 'maximumStacks');
         items.push({
           id: 'engineer-kinetic-charges',
           label: 'Kinetic Charges',

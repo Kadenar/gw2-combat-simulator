@@ -8,7 +8,7 @@ import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js'
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { ATTRIBUTE_NAMES, baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { skillNumber, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { combineFields } from '#gw2/platform/skills/field-specs.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
@@ -257,7 +257,7 @@ test('skill-owned recharge factors and attribute grants reject invalid patches a
     }
 
     const catalog = applySkillPatch(elementalistCatalog, { skills: { [id]: { fields: { [field]: 0 } } } });
-    assert.equal(skillNumberFromContext({ catalog }, id, field), 0);
+    assert.equal(skillNumber(requireSkill(catalog, id), field), 0);
     for (const value of [undefined, null, NaN, Infinity, '3']) {
       assert.throws(
         () => skillNumber(withValue(catalog.skillsById.get(id), value), field),
@@ -267,12 +267,7 @@ test('skill-owned recharge factors and attribute grants reject invalid patches a
   }
 
   assert.throws(
-    () =>
-      skillNumberFromContext(
-        { catalog: { skillsById: new Map() }, helpers: elementalistCatalog },
-        ID.WEAVE_SELF,
-        'duration'
-      ),
+    () => skillNumber(requireSkill({ skillsById: new Map() }, ID.WEAVE_SELF), 'duration'),
     /missing required skill/
   );
 });

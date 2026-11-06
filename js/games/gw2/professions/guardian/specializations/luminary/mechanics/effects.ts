@@ -7,9 +7,9 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect,
-  requireSkillFromContext
+  requireSkill
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { buildGuardianStrike, guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -63,7 +63,7 @@ export function countEffulgentHit(runtime: GuardianRuntime, event: Gw2ResolverEv
 
   if (!isGw2PlayerActorEvent(event) && !(event.source === 'guardian' && event.actorType === ACTOR.EFFECT)) return;
 
-  const skill = requireSkillFromContext(runtime, ID.EFFULGENT_STANCE);
+  const skill = requireSkill(runtime.helpers, ID.EFFULGENT_STANCE);
   const maximum = requireBalanceNumber(skill.maximumStacks, `skill=${skill.id} field=maximumStacks`);
   state.effulgentStacks = Math.min(maximum, state.effulgentStacks + 1);
 }
@@ -73,8 +73,8 @@ const luminaryEffectTasks = {
     const grant = data as AuraGrant;
     const owner =
       'skillId' in grant
-        ? requireSkillFromContext(runtime, grant.skillId)
-        : requireBalanceProfileFromContext(runtime, grant.traitId);
+        ? requireSkill(runtime.helpers, grant.skillId)
+        : requireBalanceProfile(runtime.helpers, grant.traitId);
     grantLuminaryAura(runtime, grant.cause, owner);
   },
   [STANCE](runtime: GuardianRuntime, data: unknown) {
@@ -101,7 +101,7 @@ const luminaryEffectTasks = {
 
     if (state.effulgentActivationId !== event.activationId) return;
 
-    const skill = requireSkillFromContext(runtime, ID.EFFULGENT_STANCE);
+    const skill = requireSkill(runtime.helpers, ID.EFFULGENT_STANCE);
     const maximum = requireBalanceNumber(skill.maximumStacks, `skill=${skill.id} field=maximumStacks`);
     const stacks = Math.max(0, Math.min(maximum, state.effulgentStacks));
     state.effulgentActiveUntil = 0;

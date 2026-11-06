@@ -16,7 +16,7 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import {
@@ -96,7 +96,11 @@ export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest)
         id: `ashes:${allyIndex}`,
         isActive: (at) => activeChargeCount(current(), at, true) > 0,
         trigger(opportunity) {
-          const resolved = spendAshesCharge(runtime, current(), opportunity.at);
+          const resolved = spendAshesCharge(
+            { catalog: runtime.helpers, traits: runtime.traits },
+            current(),
+            opportunity.at
+          );
 
           if (!resolved) return false;
 
@@ -191,14 +195,18 @@ function ashesTriggerAttribution(trigger: AshesTrigger) {
 export function reactToAshesHit(context: GuardianResolverContext, event: GuardianResolverEvent): void {
   if (!isGw2PlayerActorEvent(event) || !(Number(event.coefficient) > 0)) return;
 
-  const resolved = spendAshesCharge(context, firebrandState.from(context.profession).ashes, event.at);
+  const resolved = spendAshesCharge(
+    { catalog: context.helpers, traits: context.traits },
+    firebrandState.from(context.profession).ashes,
+    event.at
+  );
 
   if (resolved) emitPersonalAshes(context, event, resolved, 'self');
 }
 
 /** Inspect a single selected charge without installing or consuming live charges. */
 export function emitAshesForInspection(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  const resolved = resolveAshes(context);
+  const resolved = resolveAshes({ catalog: context.helpers, traits: context.traits });
 
   if (resolved) emitPersonalAshes(context, event, resolved, 'inspection');
 }
@@ -249,7 +257,7 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
     skillName: cast.skill.name,
     activationId: cast.id
   };
-  const owner = requireSkillFromContext(runtime, ID.ASHES_OF_THE_JUST);
+  const owner = requireSkill(runtime.helpers, ID.ASHES_OF_THE_JUST);
   const action = requireSkillAction(owner, 'grant');
   const might = requireEffect(owner, 'boon', boonKey(BOON.MIGHT), action);
 
@@ -266,7 +274,7 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
       }
     });
 
-  const admission = resolveAshesGrantData(runtime, owner, action);
+  const admission = resolveAshesGrantData({ catalog: runtime.helpers, traits: runtime.traits }, owner, action);
 
   if (!admission) return;
 

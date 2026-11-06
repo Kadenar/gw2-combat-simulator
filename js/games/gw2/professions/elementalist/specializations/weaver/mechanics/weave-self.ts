@@ -6,7 +6,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { skillNumber, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
@@ -49,7 +49,7 @@ function handleWeaveSelfActivation(
   const core = professionCoreState(context.profession);
   const at = context.time;
   const sourceId = data as Skill['id'];
-  const duration = skillNumberFromContext(context, ID.WEAVE_SELF, 'duration');
+  const duration = skillNumber(requireSkill(context.helpers, ID.WEAVE_SELF), 'duration');
   // Availability and emitted temporary buffs expire on the same combat tick.
   state.weaveSelfUntil = gw2EffectExpiresAt(at, duration);
   state.weaveSelfVisited = [core.primaryAttunement];
@@ -115,7 +115,7 @@ export function applyWeaveSelfAttunement(
   state.weaveSelfUntil = 0;
   state.weaveSelfVisited = [];
   // Perfect Weave is Weave Self's follow-up window: Tailored Victory stays available for its flip duration.
-  const perfectWeaveDuration = skillNumberFromContext(context, ID.WEAVE_SELF, 'flipDuration');
+  const perfectWeaveDuration = skillNumber(requireSkill(context.helpers, ID.WEAVE_SELF), 'flipDuration');
   state.perfectWeaveUntil = gw2EffectExpiresAt(at, perfectWeaveDuration);
   for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
     context.effects.emit(

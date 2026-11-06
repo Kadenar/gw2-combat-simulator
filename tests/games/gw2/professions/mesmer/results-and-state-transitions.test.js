@@ -76,7 +76,7 @@ test('result summary totals the same charge-aware dead-time gaps shown on the ti
         }
       ],
       2,
-      { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }
+      { policies: mesmerBuffPolicies(mesmerProfession.catalog) }
     ),
     steps: [
       { rotationCommandIndex: 0, skillName: 'First Cast', start: 0, end: 500 },
@@ -98,7 +98,7 @@ test('result summary includes explicit wait shapes in total idle time', () => {
     observationEndTime: 1,
     combatEndTime: 1,
     deathTime: null,
-    ...effectFields([], 1, { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }),
+    ...effectFields([], 1, { policies: mesmerBuffPolicies(mesmerProfession.catalog) }),
     steps: [
       { rotationCommandIndex: 0, skillName: 'First Cast', start: 0, end: 500 },
       { rotationCommandIndex: 1, skillName: 'Wait', start: 500, end: 900, type: 'wait' },
@@ -120,7 +120,7 @@ test('result summary details legitimate gaps and groups repeated missing-commit 
     observationEndTime: 1,
     combatEndTime: 1,
     deathTime: null,
-    ...effectFields([], 1, { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }),
+    ...effectFields([], 1, { policies: mesmerBuffPolicies(mesmerProfession.catalog) }),
 
     steps: [
       {
@@ -170,7 +170,7 @@ test('Kill Time accounts for an explicit Combat Start reference', () => {
     deathTime: 93.89,
     firstHitTime: 2.06,
     ...effectFields([{ type: 'combat_start', at: 2.06 }], 93.89, {
-      policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog })
+      policies: mesmerBuffPolicies(mesmerProfession.catalog)
     })
   });
 
@@ -280,7 +280,10 @@ test('event log timestamps use the same explicit Combat Start origin as rotation
       initialResource: 0
     })
   );
-  const log = simulationEventLogRows(result, null, withPatchPreview(mesmerProfession));
+  const log = simulationEventLogRows(result, null, {
+    profession: withPatchPreview(mesmerProfession),
+    catalog: mesmerProfession.catalog
+  });
   const duelistStart = log.find((event) => event.description.startsWith('CAST Phantasmal Duelist'));
   const combatStart = log.find((event) => event.description === 'COMBAT START');
   const counterspellStart = log.find((event) => event.description.startsWith('CAST Counterspell'));
@@ -380,7 +383,7 @@ test('Vulnerability chart series caps at 25 stacks', () => {
           stacks: 1
         })),
         10,
-        { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }
+        { policies: mesmerBuffPolicies(mesmerProfession.catalog) }
       ),
       events: []
     },
@@ -407,7 +410,7 @@ test('Might chart series caps at 25 stacks', () => {
           resolvedAudience: PLAYER_RESOLVED_AUDIENCE
         })),
         10,
-        { policies: mesmerBuffPolicies({ catalog: mesmerProfession.catalog }) }
+        { policies: mesmerBuffPolicies(mesmerProfession.catalog) }
       )
     },
     100
@@ -441,7 +444,7 @@ for (const [specialization, kind, name, maximumStacks] of [
           {
             policies: mesmerProfession
               .runtimeFor({ specialization })
-              .buffPolicies({ catalog: mesmerProfession.catalog })
+              .buffPolicies({ helpers: mesmerProfession.catalog })
           }
         )
       },

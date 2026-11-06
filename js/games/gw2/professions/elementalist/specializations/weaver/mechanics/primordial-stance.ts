@@ -59,7 +59,7 @@ function emitPrimordialStancePulse(
   const sourceId = captured.sourceId;
   // Combat always has two attuned hands; matching elements still contribute once per hand.
   const attunements = [core.primaryAttunement, state.secondaryAttunement];
-  const { skill, action } = primordialStancePayload(context);
+  const { skill, action } = primordialStancePayload(context.helpers);
   const strike = requireEffect(skill, 'strike', 'Primordial Stance', action);
 
   if (strike)

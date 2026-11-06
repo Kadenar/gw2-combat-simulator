@@ -13,10 +13,10 @@ import { defineTrait, traitSkillReplacement } from '#gw2/platform/profession-def
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { buildRangerPacket, buildRangerStrikes } from '#gw2/professions/ranger/core/events.js';
@@ -49,11 +49,11 @@ function windForce(context: RangerModifierContext): number {
 function galeForceAmount(context: RangerModifierContext): number {
   const galeForce =
     (galeshotRuntimeState(context)?.galeForceUntil || 0) > context.time
-      ? balanceNumberFromContext(context, TRAIT.GALE_FORCE, 'damageIncrease')
+      ? balanceNumber(context.catalog, TRAIT.GALE_FORCE, 'damageIncrease')
       : 0;
   // Hawkeye converts the five existing stacks into a 25% flat bonus (galeForce),
   // but Wind Force earned while Gale Force is active still adds 3% per stack on top.
-  return galeForce + windForce(context) * balanceNumberFromContext(context, TRAIT.GALE_FORCE, 'damageIncreasePerStack');
+  return galeForce + windForce(context) * balanceNumber(context.catalog, TRAIT.GALE_FORCE, 'damageIncreasePerStack');
 }
 
 function activePetIsFeathered(context: RangerModifierContext): boolean {
@@ -130,7 +130,7 @@ const flockTogether = defineTrait({
       id: 'ranger.flock-together',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.FLOCK_TOGETHER, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.FLOCK_TOGETHER, 'damageMultiplier'),
       when: (context) => isPetActorEvent(context.event) && activePetIsFeathered(context)
     }
   ],
@@ -202,7 +202,7 @@ const birdOfPrey = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // Multiply the shared Gale Force and sigil bucket so the movement bonus retains its full value.
       operation: 'multiply',
-      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.BIRD_OF_PREY, 'damageIncrease'),
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.BIRD_OF_PREY, 'damageIncrease'),
       // Either movement buff activates the player bonus, including generated buffs until they expire.
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
@@ -241,7 +241,7 @@ export const galeshotTraits = [
 function applyShrike(context: RangerRuntime, event: Gw2ResolverEvent): void {
   const at = event.at;
   const state = galeshotState.from(context.profession);
-  const profile = requireBalanceProfileFromContext(context, TRAIT.SHRIKE);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.SHRIKE);
   const threshold = balanceProfileNumber(profile, 'threshold');
   // Completing the missile-hit cycle resets buildup before granting the arrow refund and optional strike.
   const progress = advanceCounter(state.missileHits, 1, threshold, 'reset');
@@ -299,7 +299,7 @@ function reactToGaleshotPet(context: RangerRuntime, event: Gw2ResolverEvent): vo
     return;
   }
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.WUTHERING_WIND);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.WUTHERING_WIND);
   const strike = requireEffect(profile, 'strike', 'Strike');
 
   // The primed charge and proc exist only for the strike, so a removed strike leaves the charge armed.
@@ -359,10 +359,7 @@ function reactToGaleshotControl(context: RangerRuntime, event: Gw2ResolverEvent)
   }
 
   // 0.25 s ICD prevents one multi-hit ability from restoring more than one arrow.
-  context.resourceController.grant(
-    'arrows',
-    balanceNumberFromContext(context, TRAIT.THRILL_OF_THE_CATCH, 'resourceGain')
-  );
+  context.resourceController.grant('arrows', balanceNumber(context.helpers, TRAIT.THRILL_OF_THE_CATCH, 'resourceGain'));
 }
 
 // Commit Galeshot resource spending, Wind Force transitions, Cyclone Bow state,
@@ -372,7 +369,7 @@ function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill): void
     return;
   }
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.FLOCK_TOGETHER);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.FLOCK_TOGETHER);
   const quickness = requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS));
 
   // The cooldown gates only quickness, so a removed boon leaves it ready.
@@ -399,7 +396,7 @@ function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill): void
 function applyGaleForce(context: RangerRuntime, skill: RangerSkill): void {
   const state = galeshotState.from(context.profession);
   {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.GALE_FORCE);
+    const profile = requireBalanceProfile(context.helpers, TRAIT.GALE_FORCE);
     const effect = requireEffect(profile, 'buff', 'gale-force');
 
     // The damage window belongs to the buff, so a removed buff opens no window.

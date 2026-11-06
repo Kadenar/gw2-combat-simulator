@@ -16,12 +16,13 @@ import { criticalProcHandler } from '#gw2/platform/profession-definition/critica
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
+  attributeBonusNumber,
+  balanceNumber,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -52,7 +53,7 @@ export const assassinsFury = defineTrait({
       when: (runtime, event) =>
         (event.kind || '').toLowerCase() === boonKey(BOON.FURY) &&
         Boolean(event.resolvedAudience?.includesSelf) &&
-        Boolean(requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.ASSASSINS_FURY), 'boon', BOON.MIGHT)),
+        Boolean(requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.ASSASSINS_FURY), 'boon', BOON.MIGHT)),
       effects: (effect) => effect.type === 'boon' && effect.name === BOON.MIGHT,
       attribution: (_runtime, event) => ({
         skillId: TRAIT.ASSASSINS_FURY,
@@ -89,10 +90,10 @@ export const deadlyAim = defineTrait({
       id: 'thief.deadly-aim',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.DEADLY_AIM, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.DEADLY_AIM, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === WEAPON.PISTOL
+        skillForEvent(context.catalog, context.event, context.skillId)?.weapon === WEAPON.PISTOL
     }
   ]
 });
@@ -110,10 +111,10 @@ export const ferociousStrikes = defineTrait({
       id: 'thief.ferocious-strikes',
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.FEROCIOUS_STRIKES, 'criticalDamage'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.FEROCIOUS_STRIKES, 'criticalDamage'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        targetHealthFraction(context) > balanceNumberFromContext(context, TRAIT.FEROCIOUS_STRIKES, 'threshold')
+        targetHealthFraction(context) > balanceNumber(context.catalog, TRAIT.FEROCIOUS_STRIKES, 'threshold')
     }
   ]
 });
@@ -131,7 +132,7 @@ export const hiddenKiller = defineTrait({
       id: 'thief.hidden-killer',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.HIDDEN_KILLER, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.HIDDEN_KILLER, 'criticalChance'),
       when: (context) => {
         const state = thiefRuntimeState(context.runtime?.profession);
         return (
@@ -161,7 +162,7 @@ export const keenObserver = defineTrait({
       operation: 'add',
       // Preserve low-health stat previews; simulation queries always return full player health.
       amount: (context) => {
-        const keenObserverProfile = requireBalanceProfileFromContext(context, TRAIT.KEEN_OBSERVER);
+        const keenObserverProfile = requireBalanceProfile(context.catalog, TRAIT.KEEN_OBSERVER);
         return playerHealthFraction(context) > balanceProfileNumber(keenObserverProfile, 'threshold')
           ? balanceProfileNumber(keenObserverProfile, 'criticalChance')
           : balanceProfileNumber(keenObserverProfile, 'lowHealthCriticalChance');
@@ -186,7 +187,7 @@ export const noQuarter = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: attributeBonusFromContext(balanceContext, TRAIT.NO_QUARTER, 'ferocity'),
+          amount: attributeBonusNumber(balanceContext.catalog, TRAIT.NO_QUARTER, 'ferocity'),
           feedsConversions: 'none',
           enabled: Boolean(thiefBuild.assumptions.fury)
         }
@@ -211,7 +212,7 @@ export const practicedTolerance = defineTrait({
           kind: 'conversion',
           from: 'Precision',
           to: 'Ferocity',
-          multiplier: balanceNumberFromContext(balanceContext, TRAIT.PRACTICED_TOLERANCE, 'attributeConversion'),
+          multiplier: balanceNumber(balanceContext.catalog, TRAIT.PRACTICED_TOLERANCE, 'attributeConversion'),
           rounding: 'round',
           input: 'eligible'
         }
@@ -232,7 +233,7 @@ export const signetsOfPower = defineTrait({
       run: (runtime) =>
         runtime.resourceController.grant(
           'initiative',
-          balanceNumberFromContext(runtime, TRAIT.SIGNETS_OF_POWER, 'resourceGain')
+          balanceNumber(runtime.helpers, TRAIT.SIGNETS_OF_POWER, 'resourceGain')
         )
     })
   ]
@@ -276,10 +277,10 @@ export const twinFangs = defineTrait({
       operation: 'multiply',
       // Preserve low-health stat previews; simulation queries always return full player health.
       factor: (context) =>
-        balanceNumberFromContext(
-          context,
+        balanceNumber(
+          context.catalog,
           TRAIT.TWIN_FANGS,
-          playerHealthFraction(context) > balanceNumberFromContext(context, TRAIT.TWIN_FANGS, 'threshold')
+          playerHealthFraction(context) > balanceNumber(context.catalog, TRAIT.TWIN_FANGS, 'threshold')
             ? 'criticalDamage'
             : 'lowHealthCriticalDamage'
         ),
@@ -290,7 +291,7 @@ export const twinFangs = defineTrait({
       id: 'thief.twin-fangs-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.TWIN_FANGS, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.TWIN_FANGS, 'criticalChance'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && Boolean(context.config?.target?.defiant)
     }
   ]
@@ -298,12 +299,12 @@ export const twinFangs = defineTrait({
 
 /** Natural expiry and forced exit share the selected patch's linger duration. */
 export function hiddenKillerLinger(runtime: ThiefRuntime): number {
-  return balanceNumberFromContext(runtime, TRAIT.HIDDEN_KILLER, 'duration');
+  return balanceNumber(runtime.helpers, TRAIT.HIDDEN_KILLER, 'duration');
 }
 
 /** Removed boons are omitted; surviving tuning is read from the selected profile. */
-function criticalBoonDefinition(context: unknown, traitId: SkillId) {
-  const selectedProfile = requireBalanceProfileFromContext(context, traitId);
+function criticalBoonDefinition(source: BalanceProfileSource, traitId: SkillId) {
+  const selectedProfile = requireBalanceProfile(source, traitId);
   const effect = requireEffect(selectedProfile, 'boon', BOON.FURY);
 
   if (!effect) return null;
@@ -327,7 +328,7 @@ function criticalBoonEligible(context: ThiefResolverContext, event: ThiefResolve
     !Number.isFinite(event.flatDamage) &&
     !Number.isFinite(event.flatStrikeBase) &&
     !Number.isFinite(event.flatStrikePowerCoeff) &&
-    criticalBoonDefinition(context, traitId) !== null
+    criticalBoonDefinition(context.helpers, traitId) !== null
   );
 }
 
@@ -338,12 +339,12 @@ const unrelentingStrikesCriticalReaction = Object.freeze({
     details.hitContext.critEligible && criticalBoonEligible(context, event, TRAIT.UNRELENTING_STRIKES),
   internalCooldown: {
     duration: (context: ThiefResolverContext) =>
-      balanceNumberFromContext(context, TRAIT.UNRELENTING_STRIKES, 'internalCooldown'),
+      balanceNumber(context.helpers, TRAIT.UNRELENTING_STRIKES, 'internalCooldown'),
     key: TRAIT.UNRELENTING_STRIKES
   },
   handler: (context, event, _details, application) => {
     // One invocation shares authored effects; each queued boon still samples live duration scaling.
-    const definition = criticalBoonDefinition(context, TRAIT.UNRELENTING_STRIKES);
+    const definition = criticalBoonDefinition(context.helpers, TRAIT.UNRELENTING_STRIKES);
 
     if (!definition) return;
 
@@ -426,13 +427,12 @@ const noQuarterCriticalReaction = Object.freeze({
     criticalBoonEligible(context, event, TRAIT.NO_QUARTER) &&
     details.hitContext.critical.furyActive === true,
   internalCooldown: {
-    duration: (context: ThiefResolverContext) =>
-      balanceNumberFromContext(context, TRAIT.NO_QUARTER, 'internalCooldown'),
+    duration: (context: ThiefResolverContext) => balanceNumber(context.helpers, TRAIT.NO_QUARTER, 'internalCooldown'),
     key: TRAIT.NO_QUARTER
   },
   handler: (context, event, _details, application) => {
     // Reuse authored duration within this batch while extending the live pool for each proc.
-    const definition = criticalBoonDefinition(context, TRAIT.NO_QUARTER);
+    const definition = criticalBoonDefinition(context.helpers, TRAIT.NO_QUARTER);
 
     if (!definition) return;
 

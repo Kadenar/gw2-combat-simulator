@@ -2,7 +2,7 @@ import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
-import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { antiquaryStruck } from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
@@ -23,7 +23,7 @@ function applyMistburnCharge(context: ThiefResolverContext, event: ThiefResolver
 
   if (!consumeCharge(state.mistburn, event.at)) return;
 
-  const mistburnProcProfile = requireSkillFromContext(context, ID.MISTBURN_MORTAR);
+  const mistburnProcProfile = requireSkill(context.helpers, ID.MISTBURN_MORTAR);
   const burning = requireEffect(
     mistburnProcProfile,
     'condition',

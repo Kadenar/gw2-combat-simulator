@@ -318,7 +318,7 @@ function extend(profession, events, at) {
       time: at,
       traits: new Set([THIEF_TRAIT_IDS.NO_QUARTER]),
       helpers: thiefProfession.catalog,
-      catalog: thiefProfession.catalog,
+
       procs: createProcRegistry(() => context)
     });
     bindTriggerPoints(context, thiefProfession);

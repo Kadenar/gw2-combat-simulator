@@ -11,7 +11,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { type RevenantCoreState } from '#gw2/professions/revenant/core/state.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -22,7 +22,9 @@ import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 /** Both displays select the same trait-dependent cap as runtime Fervor grants. */
-function fervorMaximum(context: RevenantUiContext & Pick<ProfessionStateSnapshotContext, 'balanceContext'>): number {
+function fervorMaximum(
+  context: Omit<RevenantUiContext, 'catalog'> & Pick<ProfessionStateSnapshotContext, 'balanceContext'>
+): number {
   // App snapshots provide a build; direct runtime UI queries provide resolved trait IDs.
   const lastingLegacy =
     hasTrait(context, TRAIT.LASTING_LEGACY) ||
@@ -31,8 +33,8 @@ function fervorMaximum(context: RevenantUiContext & Pick<ProfessionStateSnapshot
     );
   return Math.max(
     1,
-    balanceNumberFromContext(
-      context.balanceContext,
+    balanceNumber(
+      context.balanceContext.catalog,
       lastingLegacy ? TRAIT.LASTING_LEGACY : TRAIT.AMBUSH_COMMANDER,
       'maximumStacks'
     )
@@ -41,7 +43,7 @@ function fervorMaximum(context: RevenantUiContext & Pick<ProfessionStateSnapshot
 
 /** Shows Kalla's Fervor stacks and the one-use Band Together enhancement window. */
 function renegadeStateSnapshot(
-  context: RevenantUiContext & Pick<ProfessionStateSnapshotContext, 'balanceContext'>
+  context: ProfessionStateSnapshotContext<RevenantUiContext['professionState']>
 ): RotationStateSnapshotItem[] {
   const state = revenantUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
@@ -96,8 +98,8 @@ export const renegadeUi: RevenantUiSlice = Object.freeze({
       group: 'Mechanic',
       kind: 'special',
       scope: ['damage'],
-      max: balanceNumberFromContext(
-        context,
+      max: balanceNumber(
+        context.catalog,
         preview.has('Lasting Legacy') ? TRAIT.LASTING_LEGACY : TRAIT.AMBUSH_COMMANDER,
         'maximumStacks'
       ),

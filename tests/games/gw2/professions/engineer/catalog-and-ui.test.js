@@ -124,14 +124,14 @@ test('Mechanist preserves trait inheritance edits and rejects the removed base a
   const attributes = engineerMechAttributes(
     { selectedTraitIds: [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR] },
     { power: 4000, precision: 1000, ferocity: 1000 },
-    { catalog }
+    catalog
   );
   assert.equal(attributes.power, 500);
   assert.equal(attributes.precision, 300);
   assert.equal(attributes.ferocity, 50);
-  const untraited = engineerMechAttributes({}, {}, { catalog });
+  const untraited = engineerMechAttributes({}, {}, catalog);
   // Trait patches leave the base actor attributes unchanged.
-  const baseline = engineerMechAttributes({}, {}, { catalog: engineerCatalog });
+  const baseline = engineerMechAttributes({}, {}, engineerCatalog);
   for (const attribute of ['precision', 'toughness', 'vitality'])
     assert.equal(untraited[attribute], baseline[attribute]);
   assert.equal(catalog.balanceProfilesById.has(resourceId), false);

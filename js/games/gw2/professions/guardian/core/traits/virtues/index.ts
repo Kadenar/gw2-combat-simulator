@@ -14,7 +14,7 @@ import {
   traitSkillReplacement
 } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
 import { virtueActivated, type VirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
@@ -52,10 +52,10 @@ export const inspiredVirtue = defineTrait({
       factor: (context) =>
         1 +
         Math.min(
-          balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, 'maximumBoons'),
+          balanceNumber(context.catalog, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, 'maximumBoons'),
           countActiveBoons(context, { actor: ACTOR.PLAYER }, (boon) => guardianBoonActive(context, boon))
         ) *
-          balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, 'damagePerBoon')
+          balanceNumber(context.catalog, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE, 'damagePerBoon')
     }
   ],
   // Resolve's in-game regeneration is unconditional and is emitted by shared virtue completion.
@@ -118,7 +118,7 @@ export const inspiringVirtue = defineTrait({
       id: 'guardian.inspiring-virtue',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, GUARDIAN_TRAIT_IDS.INSPIRING_VIRTUE, 'damageIncrease'),
       when: (context) => buffActive(context, 'guardian-inspiring-virtue')
     }
   ],
@@ -194,14 +194,14 @@ export const unscathedContender = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // The assumed above-90% health bonus multiplies damage; the Aegis bonus stays additive.
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'damageMultiplier')
+      factor: (context) => balanceNumber(context.catalog, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'damageMultiplier')
     },
     {
       order: -11,
       id: 'guardian.unscathed-contender-aegis',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'damageIncrease'),
       when: (context) => guardianBoonActive(context, boonKey(BOON.AEGIS))
     }
   ]
@@ -245,7 +245,7 @@ function virtueBuff(
 /** Only selected consecrations last longer; every other skill keeps its authored lifetime. */
 function consecrationMultiplier(runtime: MechanicQueriesOf<GuardianRuntime>, skill: Skill): number {
   return skill.id === ID.PURGING_FLAMES && hasTrait(runtime, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS)
-    ? balanceNumberFromContext(runtime, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS, 'durationMultiplier')
+    ? balanceNumber(runtime.helpers, GUARDIAN_TRAIT_IDS.MASTER_OF_CONSECRATIONS, 'durationMultiplier')
     : 1;
 }
 

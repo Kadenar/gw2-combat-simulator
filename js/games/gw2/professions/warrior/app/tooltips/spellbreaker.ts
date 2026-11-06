@@ -10,7 +10,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { resourceTooltip } from '#gw2/professions/warrior/app/tooltips/shared.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
@@ -65,7 +65,7 @@ export const spellbreakerTooltips = {
       'Qualifying burst hits tether the target, increasing strike damage while the tether lasts. Alacrity shortens its recharge.',
       (context) => {
         // Tether's strike bonus is local; other buff fields may describe narrower damage categories.
-        const effect = requireEffect(requireSkillFromContext(context, ID.MAGEBANE_TETHER), 'buff', 'magebane-tether');
+        const effect = requireEffect(requireSkill(context.catalog, ID.MAGEBANE_TETHER), 'buff', 'magebane-tether');
         return effect
           ? [
               {

@@ -2,7 +2,8 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import { denyCast } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   targetAttunement,
@@ -30,13 +31,13 @@ export function commitRechargeDuration(context: ElementalistRuntime, skill: Skil
   }
 
   state.elementalBalanceUntil = 0; // single-use window; next arm cycle starts fresh
-  return duration * balanceNumberFromContext(context, TRAIT.ELEMENTAL_BALANCE, 'rechargeMultiplier');
+  return duration * balanceNumber(context.helpers, TRAIT.ELEMENTAL_BALANCE, 'rechargeMultiplier');
 }
 
 /** Specialized Elements selects the active charge cap and matching-element gain from its own profile. */
-export function evokerChargeProfile(context: unknown) {
-  return requireBalanceProfileFromContext(
-    context,
+export function evokerChargeProfile(source: BalanceProfileSource, context: unknown) {
+  return requireBalanceProfile(
+    source,
     hasTrait(context, TRAIT.SPECIALIZED_ELEMENTS) ? TRAIT.SPECIALIZED_ELEMENTS : TRAIT.EVOCATION
   );
 }
@@ -72,7 +73,7 @@ export function consumeEvokerAttunementTraitCooldown(
   return context.procs.claimCooldown(
     String(profileId),
     at,
-    balanceNumberFromContext(context, TRAIT.EVOCATION, 'internalCooldown')
+    balanceNumber(context.helpers, TRAIT.EVOCATION, 'internalCooldown')
   );
 }
 

@@ -11,12 +11,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  balanceNumberFromContext,
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { admitVirtueActivation, completeVirtueActivation } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
@@ -77,7 +72,7 @@ function activate(runtime: GuardianRuntime, data: unknown): void {
 /** Same-virtue fields overlap; a different virtue retires all pending work from the prior flame group. */
 function flames(runtime: GuardianRuntime, data: unknown): void {
   const { cast, virtue } = data as { cast: RuntimeCast<GuardianSkill>; virtue: GuardianVirtue };
-  const profile = requireSkillFromContext(runtime, FLAME_IDS[virtue]);
+  const profile = requireSkill(runtime.helpers, FLAME_IDS[virtue]);
   const strike = requireEffect(profile, 'strike', 'Strike');
 
   if (!strike) return;
@@ -137,7 +132,7 @@ function reactToWillbenderHit(
     const threshold = permeatingWrathThreshold(
       runtime,
       virtue,
-      balanceNumberFromContext(runtime, TRAIT.WILLBENDER_TRAINING, 'threshold')
+      balanceNumber(runtime.helpers, TRAIT.WILLBENDER_TRAINING, 'threshold')
     );
     // Each open virtue owns its cycle; reset it before traits and virtue rewards react to completion.
     const progress = advanceCounter(state.virtueHitCounts[virtue], 1, threshold, 'reset');
@@ -148,7 +143,7 @@ function reactToWillbenderHit(
     runtime.fireTrigger(willbenderVirtueTriggered, { cause: event, virtue });
 
     if (virtue === 'justice') {
-      const profile = requireSkillFromContext(runtime, ID.JUSTICE);
+      const profile = requireSkill(runtime.helpers, ID.JUSTICE);
       const burn = requireEffect(profile, 'condition', 'Burning (active)', requireSkillAction(profile, 'justice'));
 
       if (burn) {
@@ -178,7 +173,7 @@ function reactToWillbenderHit(
 
     if (virtue === 'courage')
       for (const name of [boonKey(BOON.AEGIS), boonKey(BOON.STABILITY)]) {
-        const profile = requireSkillFromContext(runtime, ID.CRASHING_COURAGE);
+        const profile = requireSkill(runtime.helpers, ID.CRASHING_COURAGE);
         const effect = requireEffect(profile, 'boon', name, requireSkillAction(profile, 'virtue'));
 
         if (effect) {

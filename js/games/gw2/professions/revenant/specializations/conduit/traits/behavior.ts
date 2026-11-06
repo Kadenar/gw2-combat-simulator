@@ -2,7 +2,8 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { compileRechargeRules } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceNumberFromContext, requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeSpecializationState } from '#gw2/professions/revenant/core/state-queries.js';
@@ -25,7 +26,7 @@ const LEGEND_ATTRIBUTE_GROUPS = new Map<string, string>([
 
 /** Each selected legend contributes its named grants, preserving shared attributes and the active multiplier. */
 export function bolsteredBondsBonuses(
-  context: unknown,
+  source: BalanceProfileSource,
   selectedLegendIds: readonly string[] = [],
   multiplier = 1
 ): Record<string, number> {
@@ -37,7 +38,7 @@ export function bolsteredBondsBonuses(
 
     if (!group) continue;
 
-    const profile = requireBalanceProfileFromContext(context, TRAIT.BOLSTERED_BONDS);
+    const profile = requireBalanceProfile(source, TRAIT.BOLSTERED_BONDS);
     for (const [attribute, amount] of Object.entries(profile[group] as Readonly<Record<string, number>>))
       bonuses[attribute] = (bonuses[attribute] ?? 0) + amount * multiplier;
   }
@@ -69,7 +70,7 @@ export function enhancedLegendRecharge(
 export function affinity(context: Gw2ModifierContext): number {
   // Kinetic Insight adds its patched affinity bonus for modifier calculations without changing actual state.
   const bonus = hasTrait(context, TRAIT.KINETIC_INSIGHT)
-    ? balanceNumberFromContext(context, TRAIT.KINETIC_INSIGHT, 'resourceGain')
+    ? balanceNumber(context.catalog, TRAIT.KINETIC_INSIGHT, 'resourceGain')
     : 0;
   const pool = revenantRuntimeSpecializationState(context, 'Conduit').affinity;
   return pool ? Math.min(pool.maximum, pool.value + bonus) : 0;
@@ -82,7 +83,7 @@ export function effectiveConduitAffinity(runtime: MechanicQueriesOf<RevenantRunt
     pool.maximum,
     runtime.resourceController.value('affinity') +
       (hasTrait(runtime, TRAIT.KINETIC_INSIGHT)
-        ? balanceNumberFromContext(runtime, TRAIT.KINETIC_INSIGHT, 'resourceGain')
+        ? balanceNumber(runtime.helpers, TRAIT.KINETIC_INSIGHT, 'resourceGain')
         : 0)
   );
 }

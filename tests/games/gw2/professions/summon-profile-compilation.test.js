@@ -59,7 +59,7 @@ test('minion compilation normalizes selected summon, actor, and command packets'
       ])
     }
   };
-  const summon = minionDefinitionForSkill(context, skillId);
+  const summon = minionDefinitionForSkill(context.catalog, skillId);
   assert.deepEqual(
     {
       key: summon.key,

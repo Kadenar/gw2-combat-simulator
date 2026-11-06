@@ -37,27 +37,49 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 
 const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyAttributes(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyAttributes(
+      {
+        ...context,
+        catalog: revenantProfession.resolveProfession(context?.config || {}).catalog
+      },
+      value
+    );
   },
   modifyCriticalChance(context, value) {
-    return revenantProfession
-      .resolveProfession(context?.config || {})
-      .modifyCriticalChance({ catalog: revenantCatalog, ...context }, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyCriticalChance(
+      {
+        catalog: revenantCatalog,
+        ...context
+      },
+      value
+    );
   },
   modifyStrikeDamage(context, value) {
-    return revenantProfession
-      .resolveProfession(context?.config || {})
-      .modifyStrikeDamage({ catalog: revenantCatalog, ...context }, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyStrikeDamage(
+      {
+        catalog: revenantCatalog,
+        ...context
+      },
+      value
+    );
   },
   modifyConditionDamage(context, value) {
-    return revenantProfession
-      .resolveProfession(context?.config || {})
-      .modifyConditionDamage({ catalog: revenantCatalog, ...context }, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDamage(
+      {
+        catalog: revenantCatalog,
+        ...context
+      },
+      value
+    );
   },
   modifyConditionDuration(context, value) {
-    return revenantProfession
-      .resolveProfession(context?.config || {})
-      .modifyConditionDuration({ catalog: revenantCatalog, ...context }, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDuration(
+      {
+        catalog: revenantCatalog,
+        ...context
+      },
+      value
+    );
   }
 });
 
@@ -1232,6 +1254,7 @@ test('Vindicator Dodge waits for endurance and Vigor shortens that wait', () => 
 
 test('Vindicator resource display includes live endurance', () => {
   const core = revenantProfession.ui.resourceViews({
+    catalog: revenantProfession.catalog,
     specialization: 'Core',
     professionState: {
       [STATE.ENERGY]: { value: 40.9, maximum: 100, updatedAt: 0, unitsPerSecond: 5 },
@@ -1239,6 +1262,7 @@ test('Vindicator resource display includes live endurance', () => {
     }
   });
   const conduit = revenantProfession.ui.resourceViews({
+    catalog: revenantProfession.catalog,
     specialization: 'Conduit',
     professionState: {
       [STATE.ENERGY]: { value: 40, maximum: 100, updatedAt: 0, unitsPerSecond: 5 },
@@ -1246,6 +1270,7 @@ test('Vindicator resource display includes live endurance', () => {
     }
   });
   const vindicator = revenantProfession.ui.resourceViews({
+    catalog: revenantProfession.catalog,
     specialization: 'Vindicator',
     professionState: {
       [STATE.ENERGY]: { value: 40, maximum: 100, updatedAt: 0, unitsPerSecond: 5 },
@@ -1610,7 +1635,7 @@ test('Kallas Fervor reports the same selected grant that updates its capped owne
       profession: { specialization: { kind: 'Renegade', state } },
       effects: captured.effects
     };
-    const profile = fervorProfile(runtime);
+    const profile = fervorProfile(runtime.helpers, runtime);
     runtime.helpers = withProfile(revenantCatalog, profile.id, {
       maximumStacks: 3,
       effects: profile.effects.map((effect) => ({ ...effect, stacks: 2, duration: 6 }))
@@ -1643,7 +1668,7 @@ test('Fervor modifiers and observations resolve the selected profile cap without
     const native = revenantProfession.runtimeFor(config);
     const profession = native.createState(config);
     profession.specialization.state.kallasFervor = Array.from({ length: 8 }, () => ({ at: 0, expiresAt: 10 }));
-    const profile = fervorProfile({ config, catalog: native.catalog });
+    const profile = fervorProfile(native.catalog, { config, catalog: native.catalog });
     for (const maximumStacks of [3, 7]) {
       const catalog = withProfile(native.catalog, profile.id, { maximumStacks });
       const runtime = { profession, config, traits: new Set(selectedTraitIds), helpers: catalog, time: 1 };

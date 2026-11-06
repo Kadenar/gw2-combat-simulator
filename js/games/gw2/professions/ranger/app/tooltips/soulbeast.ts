@@ -12,7 +12,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 
 /** Compose soulbeast descriptions using the selected catalog's balance data. */
@@ -30,7 +30,7 @@ export const soulbeastTooltips = {
         skillFact(balanceContext, ID.ONE_WOLF_PACK, 'duration', 'Base stance duration', tooltipSeconds),
         skillFact(balanceContext, ID.ONE_WOLF_PACK, 'internalCooldown', 'Minimum echo interval', tooltipSeconds),
         ...simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.ONE_WOLF_PACK), 'echo').effects,
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.ONE_WOLF_PACK), 'echo').effects,
           'per echo'
         ).facts
       ]
@@ -41,7 +41,7 @@ export const soulbeastTooltips = {
         skillFact(balanceContext, ID.VULTURE_STANCE, 'duration', 'Base stance duration', tooltipSeconds),
         skillFact(balanceContext, ID.VULTURE_STANCE, 'internalCooldown', 'Trigger interval', tooltipSeconds),
         ...simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.VULTURE_STANCE), 'triggered-effects').effects,
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.VULTURE_STANCE), 'triggered-effects').effects,
           'per trigger'
         ).facts
       ]

@@ -17,10 +17,10 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
+  attributeBonusNumber,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -219,7 +219,7 @@ export const arcaneLightning = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: attributeBonusFromContext(context.balanceContext, TRAIT.ARCANE_LIGHTNING, 'ferocity'),
+          amount: attributeBonusNumber(context.balanceContext.catalog, TRAIT.ARCANE_LIGHTNING, 'ferocity'),
           feedsConversions: 'all',
           enabled: activeBuffStacks(context, 'arcane-lightning', 1) > 0
         }
@@ -252,7 +252,7 @@ export const bountifulPower = defineTrait({
       order: -12,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.BOUNTIFUL_POWER, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.BOUNTIFUL_POWER, 'damageIncrease'),
       when: (context) => activeBuffStacks(context, 'bountiful-power-active', 1) > 0
     }
   ],
@@ -335,7 +335,7 @@ function applyArcaneLightning(context: ElementalistRuntime, { cast }: Elementali
   if (skill.skillFamily !== 'Arcane') return;
 
   const at = cast.effectiveEnd;
-  const arcaneLightningProfile = requireBalanceProfileFromContext(context, TRAIT.ARCANE_LIGHTNING);
+  const arcaneLightningProfile = requireBalanceProfile(context.helpers, TRAIT.ARCANE_LIGHTNING);
   const arcaneWindow = requireEffect(arcaneLightningProfile, 'buff', 'Arcane Lightning');
 
   if (arcaneWindow) {
@@ -427,7 +427,7 @@ function applyElementalLockdown(context: ElementalistRuntime, event: SimulationE
     !context.procs.claimCooldown(
       'elementalLockdown',
       event.at,
-      balanceNumberFromContext(context, TRAIT.ELEMENTAL_LOCKDOWN, 'internalCooldown')
+      balanceNumber(context.helpers, TRAIT.ELEMENTAL_LOCKDOWN, 'internalCooldown')
     )
   )
     return;
@@ -453,14 +453,14 @@ function applyElementalLockdown(context: ElementalistRuntime, event: SimulationE
 /** Multiply in-combat attunement recharge before the specialization's flat reduction and recharge-rate conversion. */
 export function elementalEnchantmentRecharge(context: ElementalistRuntime, seconds: number): number {
   return hasTrait(context, TRAIT.ELEMENTAL_ENCHANTMENT)
-    ? seconds * balanceNumberFromContext(context, TRAIT.ELEMENTAL_ENCHANTMENT, 'rechargeMultiplier')
+    ? seconds * balanceNumber(context.helpers, TRAIT.ELEMENTAL_ENCHANTMENT, 'rechargeMultiplier')
     : seconds;
 }
 
 /** Materializes Arcane Precision after its registered critical-hit reaction succeeds. */
 function applyArcanePrecision(context: ElementalistResolverContext, event: Gw2ResolverEvent): void {
   const attunement = professionCoreState(context.profession).primaryAttunement;
-  const arcanePrecisionProfile = requireBalanceProfileFromContext(context, TRAIT.ARCANE_PRECISION);
+  const arcanePrecisionProfile = requireBalanceProfile(context.helpers, TRAIT.ARCANE_PRECISION);
   const condition = requireEffect(arcanePrecisionProfile, 'condition', attunement);
 
   if (condition) {
@@ -496,7 +496,7 @@ function applyRenewingStamina(context: MechanicCombatContext, event: Gw2Resolver
     durationContext: event,
     attribution: {
       actorType: ACTOR.PLAYER,
-      skillName: requireBalanceProfileFromContext(context, TRAIT.RENEWING_STAMINA).name,
+      skillName: requireBalanceProfile(context.helpers, TRAIT.RENEWING_STAMINA).name,
       triggeredBy: resolverSourceSkill(event),
       priority: Number(event.priority || 0)
     }
@@ -510,10 +510,10 @@ const arcanePrecisionCritical = criticalProcHandler<
   NativeResolvedDamageDetails
 >({
   id: 'elementalist.arcane-precision',
-  chanceOnCriticalHit: (context) => balanceNumberFromContext(context, TRAIT.ARCANE_PRECISION, 'procChance'),
+  chanceOnCriticalHit: (context) => balanceNumber(context.helpers, TRAIT.ARCANE_PRECISION, 'procChance'),
   when: (_context, event, details) => criticalTraitEligible(event, details),
   internalCooldown: {
-    duration: (context) => balanceNumberFromContext(context, TRAIT.ARCANE_PRECISION, 'internalCooldown'),
+    duration: (context) => balanceNumber(context.helpers, TRAIT.ARCANE_PRECISION, 'internalCooldown'),
     key: 'arcanePrecision'
   },
   randomStream: 'elementalist.arcane-precision',
@@ -529,7 +529,7 @@ const renewingStaminaCritical = criticalProcHandler<
   id: 'elementalist.renewing-stamina',
   when: (_context, event, details) => criticalTraitEligible(event, details),
   internalCooldown: {
-    duration: (context) => balanceNumberFromContext(context, TRAIT.RENEWING_STAMINA, 'internalCooldown'),
+    duration: (context) => balanceNumber(context.helpers, TRAIT.RENEWING_STAMINA, 'internalCooldown'),
     key: 'renewingStamina'
   },
   handler: applyRenewingStamina
@@ -594,7 +594,7 @@ function triggerBountifulPower(
   sourceId: Skill['id'],
   emissionCast?: EffectDelivery['cast']
 ): void {
-  const bountifulPowerProfile = requireBalanceProfileFromContext(context, TRAIT.BOUNTIFUL_POWER);
+  const bountifulPowerProfile = requireBalanceProfile(context.helpers, TRAIT.BOUNTIFUL_POWER);
   const threshold = balanceProfileNumber(bountifulPowerProfile, 'threshold');
 
   // Nonpositive custom thresholds disable this proc.

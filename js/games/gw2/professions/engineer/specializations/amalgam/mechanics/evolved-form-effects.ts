@@ -2,12 +2,7 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js'
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerStrike } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
@@ -38,7 +33,7 @@ function reactToAmalgamDamage(context: EngineerRuntime, event: EngineerResolverE
     return;
 
   // The shared strain owner keeps one cooldown regardless of the last granting slot.
-  const skill = requireSkillFromContext(context, ID.DEFENSIVE_PROTOCOL_THORNS);
+  const skill = requireSkill(context.helpers, ID.DEFENSIVE_PROTOCOL_THORNS);
   // The strain's own lifetime authorizes procs, including Silver Lining grants outside Evolve.
   // Rapacious cannot trigger itself, even with a zero authored ICD.
   const cooldown = skillNumber(skill, 'rapaciousInternalCooldown');

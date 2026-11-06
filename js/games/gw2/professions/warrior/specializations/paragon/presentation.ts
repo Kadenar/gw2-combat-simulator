@@ -1,6 +1,10 @@
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { ProfessionResourceView, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type {
+  ProfessionResourceView,
+  ProfessionStateSnapshotContext,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import {
@@ -24,7 +28,7 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
       plural: 'motivation',
       // Reflect the live pool or the intrinsic Rally the Valiant capacity before initialization.
       maximum:
-        state[STATE.MOTIVATION]?.maximum ?? balanceNumberFromContext(context, TRAIT.RALLY_THE_VALIANT, 'maximumStacks'),
+        state[STATE.MOTIVATION]?.maximum ?? balanceNumber(context.catalog, TRAIT.RALLY_THE_VALIANT, 'maximumStacks'),
       value: state[STATE.MOTIVATION]?.value ?? 0,
       canStart: false,
       step: 1,
@@ -37,7 +41,9 @@ function resources(context: WarriorUiContext): ProfessionResourceView[] {
 }
 
 /** Shows the refrain currently pulsing while Paragon still has motivation to sustain it. */
-function paragonStateSnapshot(context: WarriorUiContext): RotationStateSnapshotItem[] {
+function paragonStateSnapshot(
+  context: ProfessionStateSnapshotContext<WarriorUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const state = warriorUiState(context);
   const refrain = state[STATE.ACTIVE_REFRAIN] || '';
   return refrain && (state[STATE.MOTIVATION]?.value ?? 0) > 0
@@ -62,7 +68,7 @@ export const paragonUi: WarriorUiSlice = Object.freeze({
       group: 'Mechanic',
       kind: 'special',
       scope: ['damage'],
-      max: balanceNumberFromContext(context, TRAIT.RALLY_THE_VALIANT, 'maximumStacks'),
+      max: balanceNumber(context.catalog, TRAIT.RALLY_THE_VALIANT, 'maximumStacks'),
       description: 'Current motivation'
     });
     preview.add({

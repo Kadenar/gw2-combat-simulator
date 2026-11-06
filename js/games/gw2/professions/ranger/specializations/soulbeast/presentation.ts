@@ -3,7 +3,11 @@ import type {
   ProfessionAttributePreviewContext,
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { ProfessionPaletteGroup, RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
+import type {
+  ProfessionPaletteGroup,
+  ProfessionStateSnapshotContext,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { activeRangerUiPet, rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
@@ -43,7 +47,9 @@ function paletteGroups(
 }
 
 /** Accepted personal stance windows own the countdown at the planning boundary, including post-combat editing. */
-function soulbeastStateSnapshot(context: RangerUiContext): RotationStateSnapshotItem[] {
+function soulbeastStateSnapshot(
+  context: ProfessionStateSnapshotContext<RangerUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const stance = planningBuffAt(context.planningState, 'one-wolf-pack');
   return stance
     ? [

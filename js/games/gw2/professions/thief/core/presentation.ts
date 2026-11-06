@@ -10,10 +10,7 @@ import type {
   ProfessionAttributePreviewPreparation
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
-import type {
-  ProfessionCatalogContext,
-  RotationStateSnapshotItem
-} from '#gw2/platform/profession-presentation/types.js';
+import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
@@ -28,7 +25,7 @@ import { THIEF_STOLEN_SKILL_IDS } from '#gw2/professions/thief/data/stolen-skill
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefPlanningState, ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
-export function thiefUiState(context: ThiefUiContext = {}): Partial<ThiefPlanningState> {
+export function thiefUiState(context: Pick<ThiefUiContext, 'professionState'>): Partial<ThiefPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
 }
@@ -57,7 +54,7 @@ export function thiefStealPaletteGroups() {
 }
 
 /** Show active trait stacks and skill bonuses alongside weapon trackers and stealth gates. */
-function thiefCoreStateSnapshot(context: ThiefUiContext): RotationStateSnapshotItem[] {
+function thiefCoreStateSnapshot(context: Omit<ThiefUiContext, 'catalog'>): RotationStateSnapshotItem[] {
   const state = thiefUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
@@ -300,15 +297,21 @@ export const thiefCoreUi = Object.freeze({
   targetHealthThresholds: () => [0.8, 0.5, 0.25],
   paletteGroups: (context: ThiefUiContext) =>
     (context.specialization || context.config?.specialization || 'Core') === 'Core' ? thiefStealPaletteGroups() : [],
-  resourceViews: (context: ThiefUiContext & ProfessionCatalogContext) => {
+  resourceViews: (context: ThiefUiContext) => {
     const state = thiefUiState(context);
     const specialization = context.specialization || context.config?.specialization || 'Core';
     // Starting controls resolve saved traits against the active patch so Preparedness permits all 15 points.
     const initiativeCapacity = context.build
-      ? thiefInitiativeCapacity({
-          ...context,
-          traits: new Set(selectedTraits(context.catalog, context.build.specializations).map((trait) => trait.id))
-        })
+      ? thiefInitiativeCapacity(
+          {
+            ...context,
+            traits: new Set(selectedTraits(context.catalog, context.build.specializations).map((trait) => trait.id))
+          }.catalog,
+          {
+            ...context,
+            traits: new Set(selectedTraits(context.catalog, context.build.specializations).map((trait) => trait.id))
+          }
+        )
       : context.resources!.initiative!.maximum;
     const enduranceCapacity = state[STATE.ENDURANCE]?.maximum ?? context.resources!.endurance!.maximum;
     const endurance = state[STATE.ENDURANCE]?.value ?? enduranceCapacity;

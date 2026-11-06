@@ -21,7 +21,6 @@ import {
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2BuildResources } from '#gw2/platform/builds/types.js';
 import type {
-  ProfessionCatalogContext,
   ProfessionResourceView,
   ProfessionResourceViewContext
 } from '#gw2/platform/profession-presentation/types.js';
@@ -88,7 +87,7 @@ function normalizeResourceView(view: ProfessionResourceView): ProfessionResource
  */
 export function resourceDisplayViews(
   profession: ProfessionAppContract,
-  context: ProfessionResourceViewContext & ProfessionCatalogContext
+  context: ProfessionResourceViewContext
 ): ProfessionResourceView[] {
   const views = profession.ui.resourceViews(context);
 

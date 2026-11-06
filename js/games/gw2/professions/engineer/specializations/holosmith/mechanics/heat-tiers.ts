@@ -1,5 +1,6 @@
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceSource } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { HOLOSMITH_HEAT } from '#gw2/professions/engineer/specializations/holosmith/mechanics/constants.js';
 import { holosmithState } from '#gw2/professions/engineer/specializations/holosmith/state.js';
@@ -63,8 +64,8 @@ export function holosmithHeatSnapshotFromEvent(event: unknown): HolosmithHeatSna
 }
 
 /** Classifies a heat snapshot into base, high, or ECSU-enhanced skill tiers. */
-export function holosmithHeatTier(snapshot: HolosmithHeatSnapshot, context: unknown): HolosmithHeatTier {
-  if (enhancedCapacityHeatTier(snapshot.heat, snapshot.enhancedCapacitySelected, context)) {
+export function holosmithHeatTier(snapshot: HolosmithHeatSnapshot, source: BalanceSource): HolosmithHeatTier {
+  if (enhancedCapacityHeatTier(snapshot.heat, snapshot.enhancedCapacitySelected, source)) {
     return 'enhanced';
   }
 
@@ -73,17 +74,17 @@ export function holosmithHeatTier(snapshot: HolosmithHeatSnapshot, context: unkn
 
 /** Resolves a skill's strike multiplier for a captured heat tier. */
 export function holosmithSkillStrikeFactor(
-  context: unknown,
+  source: BalanceSource,
   skillId: SkillId,
   snapshot: HolosmithHeatSnapshot
 ): number {
-  const tier = holosmithHeatTier(snapshot, context);
+  const tier = holosmithHeatTier(snapshot, source);
 
   if (tier === 'enhanced') {
-    return skillNumberFromContext(context, skillId, 'enhancedStrikeFactor');
+    return skillNumber(requireSkill(source, skillId), 'enhancedStrikeFactor');
   }
 
-  return tier === 'high' ? skillNumberFromContext(context, skillId, 'highStrikeFactor') : 1;
+  return tier === 'high' ? skillNumber(requireSkill(source, skillId), 'highStrikeFactor') : 1;
 }
 
 /** Reads an event's captured strike factor or evaluates its skill against current heat as a fallback. */
@@ -96,7 +97,7 @@ export function holosmithEventStrikeFactor(context: Gw2ModifierContext, event: u
   if (metadata.holosmithStrikeSkillId == null) return fallback;
 
   return holosmithSkillStrikeFactor(
-    context,
+    context.catalog,
     metadata.holosmithStrikeSkillId,
     snapshotHolosmithHeat(
       holosmithState.from(context.runtime!.profession as EngineerRuntimeState),

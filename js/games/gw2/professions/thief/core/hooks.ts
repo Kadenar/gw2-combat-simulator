@@ -5,7 +5,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/core/effect-state.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -120,7 +120,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     if (!hasTrait(runtime, TRAIT.LEAD_ATTACKS)) return;
 
     const stacks = Number(inputs.leadAttacks ?? 0);
-    const maximum = balanceNumberFromContext(runtime, TRAIT.LEAD_ATTACKS, 'maximumStacks');
+    const maximum = balanceNumber(runtime.helpers, TRAIT.LEAD_ATTACKS, 'maximumStacks');
 
     if (!Number.isInteger(stacks) || stacks < 0 || stacks > maximum)
       throw new RangeError('Lead Attacks exceeds the selected build maximum.');
@@ -142,7 +142,7 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     emit: (runtime) => emitVenom(runtime, damageInputEvent(runtime), venom)
   })),
 
-  buffPolicies: thiefBuffPolicies,
+  buffPolicies: (runtime) => thiefBuffPolicies(runtime.helpers),
   observeEffects: thiefEffectStates,
   sideEffectHandlers: {
     'thief.assassins-signet': activateAssassinsSignet,

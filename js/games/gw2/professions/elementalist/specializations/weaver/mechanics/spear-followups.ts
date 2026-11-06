@@ -1,7 +1,7 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { WEAVER_SPEAR_BUFFS } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
 import type { ElementalistResolverContext } from '#gw2/professions/elementalist/types.js';
 
@@ -39,7 +39,7 @@ export function triggerWeaverSpearFollowups(context: ElementalistResolverContext
   });
 
   for (const { id, grant } of armed) {
-    const skill = requireSkillFromContext(context, id);
+    const skill = requireSkill(context.helpers, id);
     const action = requireSkillAction(skill, 'additional-strike');
     context.effects.emit({
       kind: 'profile',

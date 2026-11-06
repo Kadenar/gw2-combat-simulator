@@ -1,7 +1,7 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/revenant/specializations/vindicator/rework/ids.js';
@@ -17,7 +17,7 @@ const balanceInDiscord = defineTrait({
       on: 'castCommit',
       when: (_runtime, cast) => cast.skill.id === SKILL.SWAP_LEGENDS,
       run(runtime: RevenantRuntime) {
-        runtime.endurance.grant(balanceNumberFromContext(runtime, TRAIT.BALANCE_IN_DISCORD, 'resourceGain'));
+        runtime.endurance.grant(balanceNumber(runtime.helpers, TRAIT.BALANCE_IN_DISCORD, 'resourceGain'));
       }
     }
   ]
@@ -33,7 +33,7 @@ const riseToTheOccasion = defineTrait({
       order: 100,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => 1 + balanceNumberFromContext(context, REWORK.RISE_TO_THE_OCCASION, 'damageIncrease'),
+      factor: (context) => 1 + balanceNumber(context.catalog, REWORK.RISE_TO_THE_OCCASION, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && enduranceNotFull(context)
     }
   ]

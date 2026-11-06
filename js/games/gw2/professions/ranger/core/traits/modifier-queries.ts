@@ -24,7 +24,7 @@ function petRecipient(context: Gw2ModifierContext) {
 }
 
 /** Core merged traits and Soulbeast attributes read the same live merge state. */
-export function beastmodeActive(context: RangerModifierContext): boolean {
+export function beastmodeActive(context: Pick<RangerModifierContext, 'runtime'>): boolean {
   return rangerMerged(context.runtime?.profession);
 }
 

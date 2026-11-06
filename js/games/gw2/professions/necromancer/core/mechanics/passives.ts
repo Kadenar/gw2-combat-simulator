@@ -3,11 +3,7 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
-import {
-  balanceNumberFromContext,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import {
   applyNecromancerSignetPassive,
   NECROMANCER_SIGNET_PASSIVES
@@ -58,7 +54,7 @@ export function initializeNecromancerPassives(runtime: NecromancerRuntime): void
   for (const { passive, skillId } of NECROMANCER_SIGNET_PASSIVES) {
     if (!selected.has(skillId)) continue;
 
-    const profile = requireSkillFromContext(runtime, skillId);
+    const profile = requireSkill(runtime.helpers, skillId);
     const interval = skillNumber(profile, 'pulseInterval');
 
     // A removed resource grant cannot advertise an endless sequence of unaffordable retries.
@@ -97,7 +93,7 @@ function eternalLifeReadyAt(runtime: NecromancerRuntime, cost: number): number {
   const state = runtime.profession.core;
   const eternal = state.eternalLife.nextAt;
   const threshold = Number.isFinite(eternal)
-    ? state.lifeForce.maximum * balanceNumberFromContext(runtime, TRAIT.ETERNAL_LIFE, 'threshold')
+    ? state.lifeForce.maximum * balanceNumber(runtime.helpers, TRAIT.ETERNAL_LIFE, 'threshold')
     : 0;
   return !state.activeShroud && cost <= threshold ? eternal : Infinity;
 }

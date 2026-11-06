@@ -9,12 +9,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition } from '#gw2/professions/thief/core/events.js';
@@ -613,7 +608,7 @@ export function refundMaliciousTacticalStrike(runtime: ThiefRuntime, event: Gw2R
 
 /** Pistol Torment scales with the malice the channel was cast with. */
 function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, malice: number) {
-  const profile = requireSkillFromContext(runtime, ID.MALICIOUS_SNEAK_ATTACK);
+  const profile = requireSkill(runtime.helpers, ID.MALICIOUS_SNEAK_ATTACK);
   const torment = requireEffect(profile, 'condition', CONDITION.TORMENT, requireSkillAction(profile, 'malice'));
 
   if (!torment) return;

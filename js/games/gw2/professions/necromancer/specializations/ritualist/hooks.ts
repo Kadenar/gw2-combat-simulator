@@ -3,10 +3,7 @@ import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
-import {
-  balanceNumberFromContext,
-  requireSkillFromContext as damageSkill
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireSkill as damageSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { necromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import { setNecromancerCreatureStrikeScaling } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import {
@@ -63,7 +60,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
         queueNightmareWeapon(
           runtime,
           damageInputEvent(runtime),
-          damageSkill(runtime, DAMAGE_SKILL.NIGHTMARE_WEAPON),
+          damageSkill(runtime.helpers, DAMAGE_SKILL.NIGHTMARE_WEAPON),
           'personal'
         )
     },
@@ -74,7 +71,11 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
       unit: 'charge',
       sourceIds: [DAMAGE_SKILL.SPLINTER_WEAPON],
       emit: (runtime) =>
-        queueSplinterWeapon(runtime, damageInputEvent(runtime), damageSkill(runtime, DAMAGE_SKILL.SPLINTER_WEAPON))
+        queueSplinterWeapon(
+          runtime,
+          damageInputEvent(runtime),
+          damageSkill(runtime.helpers, DAMAGE_SKILL.SPLINTER_WEAPON)
+        )
     }
   ],
 
@@ -105,7 +106,7 @@ const spiritLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> =
         )
           return (
             (-runtime.profession.core.lifeForce.maximum *
-              balanceNumberFromContext(runtime, TRAIT.SPAWNING_POWER, 'lifeForceDrain')) /
+              balanceNumber(runtime.helpers, TRAIT.SPAWNING_POWER, 'lifeForceDrain')) /
             100
           );
 

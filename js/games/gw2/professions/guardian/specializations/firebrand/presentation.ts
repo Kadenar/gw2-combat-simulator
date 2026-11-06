@@ -2,13 +2,13 @@ import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
-  ProfessionCatalogContext,
   ProfessionEventLogDescriptor,
   ProfessionPaletteGroup,
   ProfessionResourceView,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import {
   formatSecondsRemaining,
@@ -66,7 +66,9 @@ const TOME_DORMANCY_LABELS = Object.freeze([
 ] as const);
 
 /** Display the live page clock and current tome's refund progress without inventing a second regeneration timer. */
-function firebrandStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
+function firebrandStateSnapshot(
+  context: ProfessionStateSnapshotContext<GuardianUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const state = guardianUiState(context);
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
@@ -84,11 +86,7 @@ function firebrandStateSnapshot(context: GuardianUiContext): RotationStateSnapsh
   }
 
   if (state[STATE.ACTIVE_TOME]) {
-    const threshold = balanceNumberFromContext(
-      context.balanceContext,
-      GUARDIAN_TRAIT_IDS.SWIFT_SCHOLAR,
-      'minimumStacks'
-    );
+    const threshold = balanceNumber(context.balanceContext.catalog, GUARDIAN_TRAIT_IDS.SWIFT_SCHOLAR, 'minimumStacks');
     items.push({
       id: 'firebrand-swift-scholar',
       label: 'Swift Scholar',
@@ -164,7 +162,7 @@ export function bindFirebrandUi(catalog: Readonly<CanonicalCatalog<GuardianSkill
         color
       }))
     ],
-    resourceViews: (context: GuardianUiContext & ProfessionCatalogContext): ProfessionResourceView[] => {
+    resourceViews: (context: GuardianUiContext): ProfessionResourceView[] => {
       const state = guardianUiState(context);
       // Starting limits follow the current build and patch, independently of an older simulation's projection.
       const tuningContext = {

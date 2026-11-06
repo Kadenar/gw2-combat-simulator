@@ -15,11 +15,11 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
+  attributeBonusNumber,
+  balanceNumber,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
@@ -128,7 +128,7 @@ export const fierceAsFire = defineTrait({
       operation: 'damage-additive',
       // Apply profile tuning to live self stacks, preserving Core Warrior's stack and expiry policy.
       amount: (context) => {
-        const profile = requireBalanceProfileFromContext(context, TRAIT.FIERCE_AS_FIRE);
+        const profile = requireBalanceProfile(context.catalog, TRAIT.FIERCE_AS_FIRE);
         return (
           warriorActiveBuffStacks(context, 'fierce-as-fire', balanceProfileNumber(profile, 'maximumStacks')) *
           balanceProfileNumber(profile, 'damageIncreasePerStack')
@@ -207,7 +207,7 @@ const gunsAndGlory = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: attributeBonusFromContext(context.balanceContext, TRAIT.GUNS_AND_GLORY, 'ferocity'),
+          amount: attributeBonusNumber(context.balanceContext.catalog, TRAIT.GUNS_AND_GLORY, 'ferocity'),
           feedsConversions: 'none',
           // Dropping the timeline counts only live self applications, never an ally's or companion's copy.
           enabled: activeBuffStacks({ ...context, timeline: undefined }, 'guns-and-glory', 1) > 0
@@ -275,7 +275,7 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
 
   if (trait === TRAIT.UNSEEN_SWORD && !runtime.engagement.active) return;
 
-  const profile = requireBalanceProfileFromContext(runtime, trait);
+  const profile = requireBalanceProfile(runtime.helpers, trait);
   const event = {
     at: runtime.time,
     source: 'Trait',
@@ -386,7 +386,7 @@ function fierceAsFireAmmo(
   cast: RuntimeCast<WarriorSkill>,
   spent: { readonly rounds: number; readonly startedFull: boolean }
 ): void {
-  const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FIERCE_AS_FIRE);
+  const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.FIERCE_AS_FIRE);
   emitTraitProfile(runtime, TRAIT.FIERCE_AS_FIRE, TRAIT.FIERCE_AS_FIRE, undefined, {
     attribution: {
       source: 'Trait',
@@ -438,7 +438,7 @@ function lushForestAmmo(
     );
   };
 
-  const reduction = balanceNumberFromContext(runtime, TRAIT.LUSH_FOREST, 'rechargeReduction');
+  const reduction = balanceNumber(runtime.helpers, TRAIT.LUSH_FOREST, 'rechargeReduction');
   let reduced = 0;
   for (const id of new Set([
     ...runtime.cooldownController.cooldownSkillIds(),
@@ -469,7 +469,7 @@ function lushForestAmmo(
 function gunsAndGloryExplosion(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   const state = bladeswornState.from(runtime.profession);
   {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.GUNS_AND_GLORY);
+    const profile = requireBalanceProfile(runtime.helpers, TRAIT.GUNS_AND_GLORY);
     const duration = Math.min(
       balanceProfileNumber(profile, 'maximumStacks'),
       Math.max(0, state.gunsAndGloryUntil - runtime.time) + balanceProfileNumber(profile, 'resourceGain')

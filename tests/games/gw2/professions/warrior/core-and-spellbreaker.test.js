@@ -485,6 +485,7 @@ test('Paragon motivation renders as a compact emblem counter', () => {
 
   const resourceHtml = activeResourceGroup({
     profession: warriorProfession,
+    activeCatalog: warriorCatalog,
     adapter: { eliteSpecialization: () => 'Paragon' },
     build: { initialResource: 10 },
     results: result

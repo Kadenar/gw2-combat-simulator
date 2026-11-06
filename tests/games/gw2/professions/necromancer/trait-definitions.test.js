@@ -142,7 +142,7 @@ test('Carapace rejects capped grants and admits only slots freed by expiry', () 
 
   addCarapace(runtime, 10, 5, 60);
   assert.deepEqual(state.carapaceExpiries, capped);
-  assert.equal(deathCarapaceStacks(runtime, state, 10), 2);
+  assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 10), 2);
   assert.equal(
     profession.modifyAttributes({ catalog: profession.catalog, config, runtime, time: 10 }, { power: 1000 }).power,
     1020
@@ -150,8 +150,8 @@ test('Carapace rejects capped grants and admits only slots freed by expiry', () 
 
   addCarapace(runtime, 40, 10, 20);
   assert.deepEqual(state.carapaceExpiries, [21, 21, ...Array(28).fill(30)]);
-  assert.equal(deathCarapaceStacks(runtime, state, 21), 28);
-  assert.equal(deathCarapaceStacks(runtime, state, 30), 0);
+  assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 21), 28);
+  assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 30), 0);
 });
 
 // Selected minions occupy shared capacity; rejected timed stacks must not surface when those minions disappear.
@@ -165,18 +165,18 @@ test('Carapace admission includes minion stacks only with Flesh of the Master se
 
     addCarapace(runtime, 40, 0, 10);
     assert.deepEqual(state.carapaceExpiries, Array(selected ? 26 : 30).fill(10));
-    assert.equal(deathCarapaceStacks(runtime, state, 0), 30);
+    assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 0), 30);
     addCarapace(runtime, 10, 5, 60);
     assert.deepEqual(state.carapaceExpiries, Array(selected ? 26 : 30).fill(10));
 
     state.activeMinions = {};
-    assert.equal(deathCarapaceStacks(runtime, state, 5), selected ? 26 : 30);
+    assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 5), selected ? 26 : 30);
     addCarapace(runtime, 10, 5, 20);
     assert.deepEqual(
       state.carapaceExpiries,
       selected ? [...Array(26).fill(10), ...Array(4).fill(25)] : Array(30).fill(10)
     );
-    assert.equal(deathCarapaceStacks(runtime, state, 10), selected ? 4 : 0);
+    assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 10), selected ? 4 : 0);
   }
 });
 

@@ -1,7 +1,7 @@
 import { ATTRIBUTE_NAMES } from '#gw2/platform/attributes/inputs.js';
 import type { Gw2AttributeContext, Gw2AttributeEffect } from '#gw2/platform/attributes/types.js';
 import { hasSelectedSkillId } from '#gw2/platform/combat/query/runtime-query.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillAttributeKey, SkillId } from '#gw2/platform/skills/types.js';
 
 type FlatAttributeEffect = Extract<Gw2AttributeEffect, { readonly kind: 'flat' }>;
@@ -32,7 +32,7 @@ export function passiveSkillAttributes(
 ): FlatAttributeEffect[] {
   if (!hasSelectedSkillId(context, skillId)) return [];
 
-  const skill = requireSkillFromContext(context.balanceContext, skillId);
+  const skill = requireSkill(context.balanceContext.catalog, skillId);
   const enabled =
     typeof active === 'function' ? active() : (active ?? !context.timeline?.skillOnCooldownAt(skillId, context.time));
   const effects: FlatAttributeEffect[] = [];

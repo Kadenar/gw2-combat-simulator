@@ -4,11 +4,7 @@ import { boonKey, buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import type { ElementalistAuraApplier } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import {
@@ -35,7 +31,7 @@ export function emitSunspot(
 ): void {
   // Keep strike and Burning attribution aligned with the actual attunement or overload that triggered Sunspot.
   const sourceSkill = context.helpers.skillsById.get(sourceId)?.name || '';
-  const sunspotProfile = requireBalanceProfileFromContext(context, TRAIT.SUNSPOT);
+  const sunspotProfile = requireBalanceProfile(context.helpers, TRAIT.SUNSPOT);
   const sunspotAura = requireEffect(sunspotProfile, 'aura', 'Sunspot Aura');
 
   if (sunspotAura) {
@@ -106,7 +102,7 @@ export function emitFlameExpulsion(
   sourceId: Skill['id'],
   emissionCast?: EffectDelivery['cast']
 ): void {
-  const pyromancersPuissanceProfile = requireBalanceProfileFromContext(context, TRAIT.PYROMANCERS_PUISSANCE);
+  const pyromancersPuissanceProfile = requireBalanceProfile(context.helpers, TRAIT.PYROMANCERS_PUISSANCE);
   const impactAt = at + FLAME_EXPULSION_DELAY_SECONDS;
   const cappedMight = Math.min(
     balanceProfileNumber(pyromancersPuissanceProfile, 'maximumStacks'),

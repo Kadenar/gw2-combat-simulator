@@ -24,9 +24,12 @@ test('Cry of Pain augments the base condition and preserves removal and ownershi
     [undefined, 5, 12],
     [mesmerCatalog.skillsById.get(ID.FLUSTERING_FLUTE), 6, 13.5]
   ]) {
-    assert.deepEqual(cryOfPainConfusion(context, base, profile), { ...base, stacks, duration });
-    assert.equal(cryOfPainConfusion(context, undefined, profile), undefined);
-    assert.equal(cryOfPainConfusion({ ...context, traits: new Set() }, base, profile), base);
+    assert.deepEqual(cryOfPainConfusion(context.helpers, context, base, profile), { ...base, stacks, duration });
+    assert.equal(cryOfPainConfusion(context.helpers, context, undefined, profile), undefined);
+    assert.equal(
+      cryOfPainConfusion({ ...context, traits: new Set() }.helpers, { ...context, traits: new Set() }, base, profile),
+      base
+    );
   }
 
   assert.equal(base.stacks, 4);

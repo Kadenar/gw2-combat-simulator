@@ -1,7 +1,7 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { requireBalanceProfileFromContext, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -14,7 +14,7 @@ export function emitElectricDischarge(
   sourceId: Skill['id'],
   emissionCast?: EffectDelivery['cast']
 ): void {
-  const electricDischargeProfile = requireBalanceProfileFromContext(context, TRAIT.ELECTRIC_DISCHARGE);
+  const electricDischargeProfile = requireBalanceProfile(context.helpers, TRAIT.ELECTRIC_DISCHARGE);
   const electricDischargeStrike = requireEffect(electricDischargeProfile, 'strike', 'Electric Discharge');
 
   if (electricDischargeStrike) {

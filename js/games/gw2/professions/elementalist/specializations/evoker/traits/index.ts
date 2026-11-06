@@ -15,10 +15,10 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusNumber,
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  ownerAttributeBonusNumber,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -153,7 +153,7 @@ function applyGalvanicEnchantment(
   skill: Skill
 ): void {
   if (FAMILIAR_ELEMENTS.has(skill.id)) {
-    const profile = requireBalanceProfileFromContext(context, TRAIT.GALVANIC_ENCHANTMENT);
+    const profile = requireBalanceProfile(context.helpers, TRAIT.GALVANIC_ENCHANTMENT);
     grantElectricEnchantments(context, {
       at: cast.effectiveEnd,
       stacks: balanceProfileNumber(profile, 'playerStacks'),
@@ -195,14 +195,14 @@ const enhancedPotency = defineTrait({
   // Selection gates both elemental bonuses; live boons never become ordinary conversion inputs.
   attributes(context) {
     const config: ElementalistConfig | undefined = context.config;
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.ENHANCED_POTENCY);
+    const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.ENHANCED_POTENCY);
 
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: attributeBonusNumber(profile, 'ferocity'),
+          amount: ownerAttributeBonusNumber(profile, 'ferocity'),
           feedsConversions: 'none',
           enabled:
             config?.evokerElement === 'Air' &&
@@ -224,7 +224,7 @@ const enhancedPotency = defineTrait({
       id: 'elementalist.enhanced-potency-air',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.ENHANCED_POTENCY, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.ENHANCED_POTENCY, 'criticalChance'),
       when: (context: ElementalistModifierContext) =>
         context.config?.evokerElement === 'Air' &&
         Boolean(context.query?.furyActiveAt(context.time, context.runtime, context.event))
@@ -250,8 +250,8 @@ const familiarsProwess = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: (context) =>
-        balanceNumberFromContext(
-          context,
+        balanceNumber(
+          context.catalog,
           hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? TRAIT.FAMILIARS_FOCUS : TRAIT.FAMILIARS_PROWESS,
           'damageIncrease'
         ),
@@ -264,8 +264,8 @@ const familiarsProwess = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
       amount: (context) =>
-        balanceNumberFromContext(
-          context,
+        balanceNumber(
+          context.catalog,
           hasTrait(context, TRAIT.FAMILIARS_FOCUS) ? TRAIT.FAMILIARS_FOCUS : TRAIT.FAMILIARS_PROWESS,
           'conditionDamageIncrease'
         ),
@@ -334,7 +334,7 @@ const fieryMight = defineTrait({
       id: 'elementalist.fiery-might',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.FIERY_MIGHT, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.FIERY_MIGHT, 'damageMultiplier'),
       when: (context) => targetConditionActive(context, CONDITION.BURNING)
     }
   ]
@@ -360,7 +360,7 @@ function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEv
   const state = evokerState.from(context.profession);
 
   if (event.type === 'condition' && event.condition === CONDITION.BURNING && state.element === 'Fire') {
-    const evocationProfile = requireBalanceProfileFromContext(context, TRAIT.EVOCATION);
+    const evocationProfile = requireBalanceProfile(context.helpers, TRAIT.EVOCATION);
     const might = requireEffect(evocationProfile, 'boon', 'Fire Familiar');
     const sourceId = event.skillId ?? event.sourceId;
 
@@ -369,7 +369,7 @@ function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEv
       context.procs.claimCooldown(
         'elementalist.evoker.ignitePassive',
         event.at,
-        balanceNumberFromContext(context, TRAIT.EVOCATION, 'pulseInterval')
+        balanceNumber(context.helpers, TRAIT.EVOCATION, 'pulseInterval')
       )
     ) {
       emitTraitProfile(context, TRAIT.EVOCATION, TRAIT.EVOCATION, undefined, {
@@ -402,7 +402,7 @@ function applyElementalBalanceEntry(context: ElementalistRuntime, event: Simulat
   if (event.to !== state.element) return;
 
   {
-    const elementalBalanceProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_BALANCE);
+    const elementalBalanceProfile = requireBalanceProfile(context.helpers, TRAIT.ELEMENTAL_BALANCE);
     const threshold = balanceProfileNumber(elementalBalanceProfile, 'threshold');
     // Completing the selected-attunement entry cycle arms the reward and starts the next cycle at zero.
     const progress = advanceCounter(state.elementalBalanceProgress, 1, threshold, 'reset');
@@ -442,7 +442,7 @@ function applyElementalDynamoEntry(context: ElementalistRuntime, event: Simulati
 
   context.resourceController.grant(
     'familiarCharges',
-    balanceNumberFromContext(context, TRAIT.ELEMENTAL_DYNAMO, 'resourceGain')
+    balanceNumber(context.helpers, TRAIT.ELEMENTAL_DYNAMO, 'resourceGain')
   );
   context.effects.emit({
     kind: 'packet',
@@ -491,8 +491,8 @@ function applySpecializedElementsTrait(
     applyWeaponSkillRechargeMultiplier(
       context,
       cast,
-      balanceNumberFromContext(
-        context,
+      balanceNumber(
+        context.helpers,
         TRAIT.SPECIALIZED_ELEMENTS,
         basic ? 'rechargeMultiplier' : 'empoweredRechargeMultiplier'
       )
@@ -524,7 +524,7 @@ const ALTRUISTIC_ASPECT_SKILLS: ReadonlySet<SkillId> = new Set([
 function applyAltruisticAspect(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   if (!ALTRUISTIC_ASPECT_SKILLS.has(skill.id)) return;
 
-  const altruisticAspectProfile = requireBalanceProfileFromContext(context, TRAIT.ALTRUISTIC_ASPECT);
+  const altruisticAspectProfile = requireBalanceProfile(context.helpers, TRAIT.ALTRUISTIC_ASPECT);
   const effect = requireEffect(altruisticAspectProfile, 'boon', skill.name);
 
   if (effect) {
@@ -549,7 +549,7 @@ function applyAltruisticAspect(context: ElementalistRuntime, cast: RuntimeCast<E
 // refreshes the Familiar's Prowess damage buff, extending an active one rather than stacking a second
 function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const at = cast.effectiveEnd;
-  const familiarsProwessProfile = requireBalanceProfileFromContext(context, TRAIT.FAMILIARS_PROWESS);
+  const familiarsProwessProfile = requireBalanceProfile(context.helpers, TRAIT.FAMILIARS_PROWESS);
   const baseDuration = balanceProfileNumber(familiarsProwessProfile, 'baseDuration');
   const extension = balanceProfileNumber(familiarsProwessProfile, 'durationPerTier');
   const maximumDuration = balanceProfileNumber(familiarsProwessProfile, 'maximumStacks');

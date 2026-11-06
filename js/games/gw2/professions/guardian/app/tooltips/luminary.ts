@@ -15,7 +15,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
@@ -32,7 +32,7 @@ const glaringBurstTooltip: DescribeSimulationTooltip = (balanceContext) => ({
     ].flatMap(
       ([weapon, label]) =>
         simulationEffectFacts(
-          requireSkillFromContext(balanceContext, ID.GLARING_BURST).effects?.filter(
+          requireSkill(balanceContext.catalog, ID.GLARING_BURST).effects?.filter(
             (effect) => effect.metadata?.radiantWeapon === weapon
           ),
           `with ${label}; alternative`
@@ -46,7 +46,7 @@ const glaringBurstTooltip: DescribeSimulationTooltip = (balanceContext) => ({
       tooltipFactorChange
     ),
     ...simulationEffectFacts(
-      requireSkillFromContext(balanceContext, ID.GLARING_BURST).effects?.filter(
+      requireSkill(balanceContext.catalog, ID.GLARING_BURST).effects?.filter(
         (effect) => !effect.metadata?.radiantWeapon
       ),
       'all variants, after the impact'
@@ -60,11 +60,11 @@ const radiantForgeTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
         description:
           'Enter Radiant Forge and replace your weapon bar. Equipping radiant weapons changes Glaring Burst and unlocks follow-ups. Recharge starts on exit and is reduced when at most one distinct radiant weapon was used.',
         facts: [
-          ...simulationEffectFacts(requireSkillFromContext(balanceContext, ID.ENTER_RADIANT_FORGE).effects).facts,
+          ...simulationEffectFacts(requireSkill(balanceContext.catalog, ID.ENTER_RADIANT_FORGE).effects).facts,
           {
             name: 'Base recharge reduction with at most one weapon',
             detail: tooltipSeconds(
-              tooltipNumber(requireSkillFromContext(balanceContext, ID.ENTER_RADIANT_FORGE), 'rechargeReduction')
+              tooltipNumber(requireSkill(balanceContext.catalog, ID.ENTER_RADIANT_FORGE), 'rechargeReduction')
             )
           }
         ]
@@ -84,7 +84,7 @@ const radiantWeaponTooltip: DescribeSimulationTooltip = (balanceContext, entity:
 
 /** Skill-owned conditional payloads retain their qualifiers instead of appearing as unconditional grants. */
 function radiantWeaponFacts(context: ProfessionBalanceContext, id: SkillId) {
-  const effects = requireSkillFromContext(context, id).effects ?? [];
+  const effects = requireSkill(context.catalog, id).effects ?? [];
   return [
     ...simulationEffectFacts(effects.filter((effect) => !effect.metadata?.trigger)).facts,
     ...simulationEffectFacts(
@@ -162,7 +162,7 @@ export const luminaryTooltips = {
       [fromModifier('guardian.daring-advance', 'factor', 'Strike damage while active', tooltipFactorChange)]
     ),
     [ID.EFFULGENT_STANCE]: (context, entity) => {
-      const skill = requireSkillFromContext(context, entity.id);
+      const skill = requireSkill(context.catalog, entity.id);
       return {
         description:
           "Gain a light aura. Your damaging strikes, including Guardian-triggered attacks, build stacks that increase the final explosion's damage. At maximum stacks, the explosion also dazes. Summon attacks and equipment-triggered damage do not build stacks.",

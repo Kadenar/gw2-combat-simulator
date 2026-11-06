@@ -1,5 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
@@ -12,8 +12,8 @@ export function stolenSkillGrant(runtime: ThiefRuntime): readonly SkillId[] {
 
 /** The replacement cap is resolved from the active patch during initialization. */
 export function maximumDeadeyeMalice(runtime: ThiefRuntime): number {
-  return balanceNumberFromContext(
-    runtime,
+  return balanceNumber(
+    runtime.helpers,
     hasTrait(runtime, TRAIT.MALEFICENT_SEVEN) ? TRAIT.MALEFICENT_SEVEN : TRAIT.DEADEYES_GAZE,
     'maximumStacks'
   );
@@ -22,6 +22,6 @@ export function maximumDeadeyeMalice(runtime: ThiefRuntime): number {
 /** Malicious Intent seeds a fresh mark (and each spent cycle) with its starting malice. */
 export function initialMalice(runtime: ThiefRuntime): number {
   return hasTrait(runtime, TRAIT.MALICIOUS_INTENT)
-    ? balanceNumberFromContext(runtime, TRAIT.MALICIOUS_INTENT, 'resourceGain')
+    ? balanceNumber(runtime.helpers, TRAIT.MALICIOUS_INTENT, 'resourceGain')
     : 0;
 }

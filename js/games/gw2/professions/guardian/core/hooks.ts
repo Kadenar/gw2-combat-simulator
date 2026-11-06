@@ -7,7 +7,7 @@ import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianBuffPolicies, guardianEffectStates } from '#gw2/professions/guardian/core/effect-state.js';
 import { expireSpearIllumination, GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import {
@@ -62,12 +62,12 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
           at: runtime.time,
           expiresAt: runtime.time + buff.duration,
           count: buff.stacks,
-          maximumStacks: balanceNumberFromContext(runtime, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER, 'maximumStacks'),
+          maximumStacks: balanceNumber(runtime.helpers, GUARDIAN_TRAIT_IDS.SYMBOLIC_AVENGER, 'maximumStacks'),
           retain: 'latest-expiry'
         });
       }
     },
-    buffPolicies: guardianBuffPolicies,
+    buffPolicies: (runtime) => guardianBuffPolicies(runtime.helpers),
     observeEffects: guardianEffectStates,
     sideEffectHandlers: {
       // Elite virtue IDs are absent from other catalogs; select live IDs before using the shared reset action.

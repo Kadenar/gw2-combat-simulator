@@ -1,10 +1,6 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import {
-  balanceProfileNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfileNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { buildMesmerPacket, buildMesmerStrikes } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
@@ -25,7 +21,7 @@ export function completeChronomancerTimeBomb(context: MesmerRuntime, cast: Runti
   if (at < state.timeBombUntil) return;
 
   // Read the selected trait directly so patch edits and removals govern the explosion and its timer together.
-  const profile = requireBalanceProfileFromContext(context, TRAIT.TIME_BOMB);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.TIME_BOMB);
   const timeBomb = requireEffect(profile, 'strike', 'Strike');
 
   // The removed explosion cannot arm a timer or emit a synthetic hit.

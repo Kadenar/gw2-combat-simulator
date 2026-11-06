@@ -9,7 +9,7 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { weaponFlipBlock } from '#gw2/platform/execution/skill-flips.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { warriorBuffPolicies } from '#gw2/professions/warrior/core/effect-state.js';
 import {
@@ -83,7 +83,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
       });
   },
   resources: { adrenaline: coreAdrenalinePolicy },
-  buffPolicies: warriorBuffPolicies,
+  buffPolicies: (runtime) => warriorBuffPolicies(runtime.helpers),
   // Custom verbs keep specialization-dependent resource conversion and catalog-matched targets in their owner.
   sideEffectHandlers: {
     'warrior.spend-magazine'(runtime, context) {
@@ -142,7 +142,7 @@ const coreLifecycle: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
       const stamina =
         selectedSkillIdSet(runtime.config.selectedSkillIds).has(ID.SIGNET_OF_STAMINA) &&
         at >= gw2CooldownReadyAt(runtime.cooldownController.readyAt(ID.SIGNET_OF_STAMINA) ?? 0)
-          ? skillNumberFromContext(runtime, ID.SIGNET_OF_STAMINA, 'enduranceRegenerationBonus')
+          ? skillNumber(requireSkill(runtime.helpers, ID.SIGNET_OF_STAMINA), 'enduranceRegenerationBonus')
           : 0;
       return Math.min(ENDURANCE.maximumRegenerationPerSecond, enduranceRegenerationRate(vigor, stamina));
     }

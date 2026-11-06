@@ -130,7 +130,7 @@ test('Electric Artillery converts whole charges into Focused-sensitive Vulnerabi
       const conditions = [];
       handleElectricArtillery(
         {
-          catalog: engineerCatalog,
+          helpers: engineerCatalog,
           combat: createMechanicCombatServices({
             buffs: new Map([
               ['engineer-focused', [{ at: 0, expiresAt, stacks: 1, resolvedAudience: { includesSelf: true } }]]

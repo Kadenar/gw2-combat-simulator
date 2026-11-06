@@ -90,7 +90,11 @@ test('Warrior displays use selected stack caps and bonuses', () => {
         }
       })),
       120,
-      { policies: family.runtimeFor({ specialization: 'Bladesworn', patchId }).buffPolicies(balanceContext) }
+      {
+        policies: family
+          .runtimeFor({ specialization: 'Bladesworn', patchId })
+          .buffPolicies({ helpers: balanceContext.catalog })
+      }
     )
   };
   const items = family.ui.rotationStateSnapshot({

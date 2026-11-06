@@ -13,7 +13,7 @@ import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js
 import type { ConditionEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { buildThiefCondition } from '#gw2/professions/thief/core/events.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -91,7 +91,7 @@ export function applyActiveVenoms(context: ThiefResolverContext, event: ThiefRes
 
 /** One venom charge reuses its condition payload without a qualifying hit or charge grant. */
 export function emitVenom(context: ThiefResolverContext, event: ThiefResolverEvent, venom: VenomDefinition): void {
-  const profile = requireSkillFromContext(context, venom.skillId);
+  const profile = requireSkill(context.helpers, venom.skillId);
   const effects = conditionEffects(profile);
   for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
     const effect = effects[effectIndex];

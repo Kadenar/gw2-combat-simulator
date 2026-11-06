@@ -11,7 +11,7 @@ import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { effectNumber, requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
@@ -169,7 +169,7 @@ export function completeBandTogether(runtime: RevenantRuntime, cast: RuntimeCast
 
   if (selected.enhanced) return;
 
-  const window = requireSkillFromContext(runtime, ID.LEGENDARY_RENEGADE_STANCE);
+  const window = requireSkill(runtime.helpers, ID.LEGENDARY_RENEGADE_STANCE);
   const action = requireSkillAction(window, 'band-together');
   const effect = requireEffect(window, 'buff', 'band-together', action);
 

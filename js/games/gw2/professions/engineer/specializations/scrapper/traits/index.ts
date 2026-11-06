@@ -12,9 +12,9 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import type { TraitDefinition } from '#gw2/platform/profession-definition/traits.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -235,7 +235,7 @@ export const appliedForce = defineTrait<EngineerSkill>({
   },
   // Apply the trait portion of Might once for both build assumptions and live boons.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.APPLIED_FORCE);
+    const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.APPLIED_FORCE);
 
     return {
       attributeEffects: [
@@ -273,7 +273,7 @@ const objectInMotion = defineTrait<EngineerSkill>({
           (kind) =>
             (kind === STATUS.SUPERSPEED ? activeBuffStacks(context, kind, 1) : modifierBoonStacks(context, kind, 1)) > 0
         ).length;
-        return balanceNumberFromContext(context, TRAIT.OBJECT_IN_MOTION, 'damageMultiplier') ** count;
+        return balanceNumber(context.catalog, TRAIT.OBJECT_IN_MOTION, 'damageMultiplier') ** count;
       },
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
@@ -298,7 +298,7 @@ function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEv
     return false;
 
   const state = context.procs;
-  const massMomentumProfile = requireBalanceProfileFromContext(context, TRAIT.MASS_MOMENTUM);
+  const massMomentumProfile = requireBalanceProfile(context.helpers, TRAIT.MASS_MOMENTUM);
 
   if ((state.deadline('massMomentum') || 0) <= event.at) {
     state.setDeadline('massMomentum', event.at + balanceProfileNumber(massMomentumProfile, 'pulseInterval'));
@@ -356,13 +356,13 @@ function reactToAppliedForceBuff(context: EngineerRuntime, event: EngineerResolv
     activeBoonStacks(
       context,
       boonKey(BOON.MIGHT),
-      balanceNumberFromContext(context, TRAIT.APPLIED_FORCE, 'maximumStacks'),
+      balanceNumber(context.helpers, TRAIT.APPLIED_FORCE, 'maximumStacks'),
       event.at
-    ) >= balanceNumberFromContext(context, TRAIT.APPLIED_FORCE, 'threshold')
+    ) >= balanceNumber(context.helpers, TRAIT.APPLIED_FORCE, 'threshold')
   ) {
     // Reaching the threshold consumes the interval even if Stability is removed.
     if (context.procs.claim(TRAIT.APPLIED_FORCE, 'appliedForce', event.at)) {
-      const appliedForceProfile = requireBalanceProfileFromContext(context, TRAIT.APPLIED_FORCE);
+      const appliedForceProfile = requireBalanceProfile(context.helpers, TRAIT.APPLIED_FORCE);
       const appliedForceStability = requireEffect(appliedForceProfile, 'boon', boonKey(BOON.STABILITY));
 
       if (appliedForceStability) {

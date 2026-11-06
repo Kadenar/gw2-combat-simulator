@@ -5,7 +5,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { emitRangerAction } from '#gw2/professions/ranger/core/events.js';
 import { rangerOwningPetState } from '#gw2/professions/ranger/core/mechanics/actor-state.js';
@@ -235,8 +235,7 @@ export const RANGER_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
         label: "Stalker's Strike - impaired target",
         target: 'strikeDamage',
         operation: 'multiply',
-        factor: (context) =>
-          skillNumber(requireSkillFromContext(context, ID.STALKERS_STRIKE), 'impairedDamageMultiplier'),
+        factor: (context) => skillNumber(requireSkill(context.catalog, ID.STALKERS_STRIKE), 'impairedDamageMultiplier'),
         when: (context) =>
           stalkersStrikeTargetImpaired((condition) =>
             targetHasCondition(context.config ?? {}, condition, context.time, context.runtime)

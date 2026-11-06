@@ -1,7 +1,7 @@
 import { type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { completeThiefSteal } from '#gw2/professions/thief/core/mechanics/steal.js';
@@ -46,7 +46,9 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   runtime.fireTrigger(stealAccepted, { cast });
   const remarking = state.markedTargetId === 'primary-target' && state.markExpiresAt > runtime.time;
   state.markedTargetId = 'primary-target';
-  state.markExpiresAt = canonicalTime(runtime.time + skillNumberFromContext(runtime, ID.DEADEYES_MARK, 'duration'));
+  state.markExpiresAt = canonicalTime(
+    runtime.time + skillNumber(requireSkill(runtime.helpers, ID.DEADEYES_MARK), 'duration')
+  );
   // A refresh is a new mark lifetime even on the same target; older expiry tasks must not clear its malice.
   state.markGeneration += 1;
 

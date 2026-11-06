@@ -12,11 +12,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
 import { resolverSkill } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
@@ -117,7 +113,7 @@ export const kineticBattery = defineTrait({
       id: 'engineer.kinetic-battery',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.KINETIC_BATTERY, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.KINETIC_BATTERY, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && activeBuffStacks(context, 'kinetic-battery', 1) > 0
     }
@@ -177,7 +173,7 @@ export const excessiveEnergy = defineTrait({
       id: 'engineer.excessive-energy',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.EXCESSIVE_ENERGY, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.EXCESSIVE_ENERGY, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, boonKey(BOON.VIGOR), 1) > 0
     }
@@ -196,7 +192,7 @@ export const takedownRound = defineTrait({
       id: 'engineer.takedown-round',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.TAKEDOWN_ROUND, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.TAKEDOWN_ROUND, 'damageIncrease'),
       when: (context) => {
         const state = engineerRuntimeState(context);
         return (
@@ -212,7 +208,7 @@ export const takedownRound = defineTrait({
 function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
   if (skill.kitTransition !== 'equip' || !context.procs.claim(TRAIT.STREAMLINED_KITS, 'streamlinedKits', at)) return;
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.STREAMLINED_KITS);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.STREAMLINED_KITS);
   emitTraitProfile(context, profile.id, profile.id, undefined, {
     effects: (effect) => effect.type === 'boon' || (skill.id === ID.GRENADE_KIT && effect.type === 'strike'),
     at,
@@ -242,7 +238,7 @@ function applyStreamlinedKits(context: EngineerRuntime, skill: EngineerSkill, at
 /** Advances Kinetic Battery and reports charge progress after its fifth-cast buff package. */
 function chargeKineticBattery(context: EngineerRuntime, { skill, at }: ToolbeltActivation): void {
   const state = professionCoreState(context.profession);
-  const profile = requireBalanceProfileFromContext(context, TRAIT.KINETIC_BATTERY);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.KINETIC_BATTERY);
   const maximumCharges = balanceProfileNumber(profile, 'maximumStacks');
   // Start the next battery cycle before emitting its reward so reactions see the reset charge count.
   const progress = advanceCounter(state.kineticCharges, 1, maximumCharges, 'reset');
@@ -294,7 +290,7 @@ function reduceEliteRecharge(runtime: EngineerRuntime, { cast }: DodgeAcceptance
     runtime,
     cast,
     (skill) => skill.type === 'Elite' || skill.slot === 'Elite',
-    balanceNumberFromContext(runtime, TRAIT.POWER_WRENCH, 'rechargeReduction'),
+    balanceNumber(runtime.helpers, TRAIT.POWER_WRENCH, 'rechargeReduction'),
     TRAIT.POWER_WRENCH,
     'Power Wrench'
   );
@@ -306,7 +302,7 @@ function reduceToolbeltRecharge(runtime: EngineerRuntime, { cast }: DodgeAccepta
     runtime,
     cast,
     isEngineerToolbeltSkill,
-    balanceNumberFromContext(runtime, TRAIT.ADRENAL_IMPLANT, 'rechargeReduction'),
+    balanceNumber(runtime.helpers, TRAIT.ADRENAL_IMPLANT, 'rechargeReduction'),
     TRAIT.ADRENAL_IMPLANT,
     'Adrenal Implant'
   );

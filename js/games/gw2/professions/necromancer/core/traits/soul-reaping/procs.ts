@@ -1,20 +1,17 @@
 import { CONDITION } from '#gw2/platform/constants.js';
-import {
-  effectNumber,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 
 /** Share Dhuumfire projection with tooltips and apply shroud attack procs without importing shroud mechanics. */
 
 /** Mechanic metadata overrides skill duration, then trait tuning; Core needs no specialization knowledge. */
 export function dhuumfireProjection(
-  context: unknown,
+  catalog: BalanceProfileSource,
   source: { readonly dhuumfireDuration?: unknown; readonly dhuumfireInterval?: number } = {},
   skillDuration?: unknown
 ) {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.DHUUMFIRE);
+  const profile = requireBalanceProfile(catalog, TRAIT.DHUUMFIRE);
   const burning = requireEffect(profile, 'condition', CONDITION.BURNING);
   const duration = source.dhuumfireDuration ?? skillDuration;
   return {

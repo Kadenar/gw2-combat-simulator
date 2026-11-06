@@ -9,7 +9,7 @@ export const deadeye = defineRelic({
   completed(ctx, _state, event) {
     if (event.cancelled || !isGw2PlayerActorEvent(event)) return;
 
-    const skill = ctx.helpers ? skillForEvent(ctx.helpers, event) : undefined;
+    const skill = skillForEvent(ctx.helpers, event);
 
     if (skill?.skillFamily !== 'Cantrip') return;
 

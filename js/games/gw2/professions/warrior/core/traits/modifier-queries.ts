@@ -25,7 +25,7 @@ export function warriorActiveBoonCount(context: Gw2ModifierContext): number {
 
 // Recognize Sword attacks or an equipped Sword in either hand, including projected weapon swaps.
 export function warriorWieldingSword(context: Gw2ModifierContext): boolean {
-  if (skillForEvent(context.profession?.catalog, context.event, context.skillId)?.weapon === WEAPON.SWORD) return true;
+  if (skillForEvent(context.catalog, context.event, context.skillId)?.weapon === WEAPON.SWORD) return true;
 
   const weaponSet = Number(context.runtime?.activeWeaponSet ?? context.config?.startingWeaponSet) === 2 ? 2 : 1;
   const [primary, secondary] = gw2ConfiguredWeaponSet(context.config, weaponSet);

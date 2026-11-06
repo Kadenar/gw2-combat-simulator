@@ -11,7 +11,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerSelectedAmbush } from '#gw2/professions/mesmer/specializations/mirage/mechanics/ambush.js';
@@ -36,7 +36,7 @@ export const mirageTooltips = {
           (balanceContext, entity) => {
             const selected = balanceContext.catalog.skillsById.get(entity.id)!;
             // Describe repeated statuses with the same independent cadence used by the runtime.
-            const { player } = mesmerSelectedAmbush(balanceContext, selected.id);
+            const { player } = mesmerSelectedAmbush(balanceContext.catalog, selected.id);
             const playerPackets = (player.ticks ?? player.statusAtMs)?.length ?? 1;
             const facts = (selected.effects || [])
               .filter((effect) => effect.type !== 'control')
@@ -80,7 +80,7 @@ export const mirageTooltips = {
           "Create a Mirage Mirror after this skill's mirror delay. Pick up the mirror before it expires to strike, weaken the target, and gain Mirage Cloak.",
           (balanceContext, entity) => [
             ...simulationEffectFacts(
-              requireSkillFromContext(balanceContext, ID.MIRAGE_MIRROR_DAMAGE).effects?.filter(
+              requireSkill(balanceContext.catalog, ID.MIRAGE_MIRROR_DAMAGE).effects?.filter(
                 (effect) => effect.type === 'buff'
               ),
               'mirror pickup window'
@@ -109,7 +109,7 @@ export const mirageTooltips = {
         'Consume an available, unexpired Mirage Mirror to strike, weaken your target, and gain Mirage Cloak. Picking up a mirror opens the ambush window and triggers cloak traits.',
       facts: [
         ...simulationEffectFacts(
-          requireSkillFromContext(balanceContext, ID.MIRAGE_MIRROR_DAMAGE).effects?.filter(
+          requireSkill(balanceContext.catalog, ID.MIRAGE_MIRROR_DAMAGE).effects?.filter(
             (effect) => effect.type !== 'buff'
           )
         ).facts,

@@ -1,9 +1,10 @@
 import { type BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
-import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfile, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 
 /** Effect owners expose the same selected balance values as combat; presentation supplies no stacking rules. */
-export function warriorBuffPolicies(context: unknown): BuffStatePolicy[] {
+export function warriorBuffPolicies(source: BalanceProfileSource): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
     { kind: 'signet-of-fury-active', maximumStacks: 1 },
     { kind: 'peak-performance', maximumStacks: 1 },
@@ -14,7 +15,7 @@ export function warriorBuffPolicies(context: unknown): BuffStatePolicy[] {
     ['berserkers-power', TRAIT.BERSERKERS_POWER],
     ['furious-surge', TRAIT.FURIOUS]
   ] as const) {
-    const profile = balanceProfileFromContext(context, id);
+    const profile = balanceProfile(source, id);
 
     if (profile) policies.push({ kind, maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
   }

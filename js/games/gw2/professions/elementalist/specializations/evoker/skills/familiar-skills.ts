@@ -427,7 +427,7 @@ export function acceptIgniteEffects(
 
   if (cast.start - state.igniteLastUsedAt >= skillNumber(cast.skill, 'tierResetDuration')) state.igniteTier = 0;
 
-  const burning = igniteTierEffect(context, state.igniteTier);
+  const burning = igniteTierEffect(context.helpers, state.igniteTier);
   state.igniteTier = Math.min(state.igniteTier + 1, IGNITE_TIERS.length - 1);
   state.igniteLastUsedAt = cast.start;
   return projectIgniteEffects(effects, burning);

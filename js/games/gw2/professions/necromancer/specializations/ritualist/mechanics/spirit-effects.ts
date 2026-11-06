@@ -2,12 +2,7 @@ import { consumeCharge } from '#gw2/platform/combat/resources/charges.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
@@ -196,7 +191,7 @@ export function triggerRitualistWeaponSpell(
 
   if (!active) return;
 
-  const definition = requireSkillFromContext(context, spell === 'nightmare' ? ID.NIGHTMARE_WEAPON : ID.SPLINTER_WEAPON);
+  const definition = requireSkill(context.helpers, spell === 'nightmare' ? ID.NIGHTMARE_WEAPON : ID.SPLINTER_WEAPON);
   // A removed proc retains its charges; the surviving component of Nightmare can still consume one.
   const hasOutput =
     requireEffect(definition, 'strike', 'Strike', requireSkillAction(definition, 'triggered')) !== undefined ||

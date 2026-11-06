@@ -132,7 +132,7 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
     ) {
       scheduleDirectSkillResources(
         {
-          resourceDefinition: mesmerResourceDefinition(context.profession.specialization.kind, context),
+          resourceDefinition: mesmerResourceDefinition(context.profession.specialization.kind, context.helpers),
           activePrimaryWeapon: () => mesmerActivePrimaryWeapon(context),
           queueResources: createMesmerIllusionRewards(context).queueResources
         },

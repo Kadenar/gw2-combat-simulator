@@ -23,7 +23,7 @@ export const tempestHooks = composeRuntimeHooks<ElementalistRuntimeState, Elemen
   tempestOverloadLifecycle,
   tempestLightningJoltLifecycle,
   {
-    buffPolicies: tempestBuffPolicies,
+    buffPolicies: (runtime) => tempestBuffPolicies(runtime.helpers),
     initialize(runtime) {
       registerElementalistEliteEvents(runtime, observeTempestAttunement);
       registerTempestLightningJolt(runtime);

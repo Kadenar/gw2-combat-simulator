@@ -40,7 +40,10 @@ const hit = {
   damage: 10
 };
 const present = (events, resolvedEvents = [hit]) =>
-  simulationEventLogRows({ events, resolvedEvents }, null, mesmerProfession);
+  simulationEventLogRows({ events, resolvedEvents }, null, {
+    profession: mesmerProfession,
+    catalog: mesmerProfession.catalog
+  });
 
 // Consolidation follows explicit proc ownership and derives duration and recipient labels from the grants.
 test('trait grants consolidate beneath their trigger without losing applications or descendant ownership', () => {
@@ -100,6 +103,23 @@ test('trait grouping keeps distinct causes and sources separate and resolves nam
   assert.equal(rows.find((row) => row.id === 'event:4').parentId, 'event:10');
 });
 
+// Trait labels follow the selected patch even when the family still holds its Live catalog.
+test('trait summaries use the selected catalog instead of the profession family catalog', () => {
+  const catalog = {
+    ...mesmerProfession.catalog,
+    traits: mesmerProfession.catalog.traits.map((entry) =>
+      entry.id === TRAIT.MASTER_FENCER ? { ...entry, name: 'Preview Master Fencer' } : entry
+    )
+  };
+  const rows = simulationEventLogRows({ events: [proc, buff], resolvedEvents: [hit] }, null, {
+    profession: mesmerProfession,
+    catalog
+  });
+
+  assert.match(rows.find((row) => row.id === 'event:2').description, /^Preview Master Fencer/);
+  assert.match(present([proc, buff]).find((row) => row.id === 'event:2').description, /^Master Fencer/);
+});
+
 // Informational procs and procs with other effects must retain their independent meaning.
 test('consolidation preserves proc details, other effects, and zero-recipient grants', () => {
   for (const extra of [{ detail: 'Arms another effect' }, {}]) {
@@ -148,7 +168,10 @@ test('Master Fencer records its trait ID and owns both Fury grants while Critica
   assert.ok(
     result.resolvedEvents.some((event) => event.type === 'damage' && event.eventOrder === trigger.parentEventOrder)
   );
-  const rows = simulationEventLogRows(result, null, mesmerProfession);
+  const rows = simulationEventLogRows(result, null, {
+    profession: mesmerProfession,
+    catalog: mesmerProfession.catalog
+  });
   assert.match(
     rows.find((row) => row.id === `event:${trigger.eventOrder}`).description,
     /Master Fencer → Fury.*self 12s.*2 allies 6s/
@@ -188,7 +211,10 @@ for (const [traitId, specialization, rotation, extra] of [
       result.procSteps.some((step) => step.skill === trigger.name),
       'timeline marker remains'
     );
-    const rows = simulationEventLogRows(result, null, mesmerProfession);
+    const rows = simulationEventLogRows(result, null, {
+      profession: mesmerProfession,
+      catalog: mesmerProfession.catalog
+    });
     const summary = rows.find((row) => row.id === `event:${trigger.eventOrder}`);
     assert.ok(summary.description.startsWith(trigger.name));
     assert.ok(!summary.description.startsWith('TRAIT '), 'announcement was consolidated');
@@ -215,7 +241,10 @@ test('Illusionary Membrane preserves announcement, aura, and buff provenance', (
   assert.equal(grant.sourceId, TRAIT.ILLUSIONARY_MEMBRANE);
   assert.ok(result.procSteps.some((step) => step.skill === trigger.name));
 
-  const rows = simulationEventLogRows(result, null, mesmerProfession);
+  const rows = simulationEventLogRows(result, null, {
+    profession: mesmerProfession,
+    catalog: mesmerProfession.catalog
+  });
   const announcement = rows.find((row) => row.id === `event:${trigger.eventOrder}`);
   const reward = rows.find((row) => row.id === `event:${grant.eventOrder}`);
   assert.ok(announcement);

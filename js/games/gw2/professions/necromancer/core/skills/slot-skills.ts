@@ -7,12 +7,7 @@ import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumberFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { isCorruptionCompletionEffect } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
@@ -788,7 +783,7 @@ export function applyNecromancerSignetPassive(
     return;
 
   if (policy.passive === 'undeath')
-    grantNecromancerLifeForce(runtime, skillNumberFromContext(runtime, policy.skillId, 'lifeForceGain'));
+    grantNecromancerLifeForce(runtime, skillNumber(requireSkill(runtime.helpers, policy.skillId), 'lifeForceGain'));
   else {
     emitVampirismPassive(runtime);
   }
@@ -797,7 +792,7 @@ export function applyNecromancerSignetPassive(
 /** One passive siphon shares the pulse payload without its activation cadence or suppression checks. */
 export function emitVampirismPassive(runtime: NecromancerRuntime): void {
   const id = ID.SIGNET_OF_VAMPIRISM;
-  const profile = requireSkillFromContext(runtime, ID.SIGNET_OF_VAMPIRISM);
+  const profile = requireSkill(runtime.helpers, ID.SIGNET_OF_VAMPIRISM);
   const strike = requireEffect(profile, 'strike', 'Signet of Vampirism - Passive Life Siphon');
 
   if (strike)

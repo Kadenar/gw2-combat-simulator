@@ -7,7 +7,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import {
   ELEMENTALIST_TRAIT_IDS as CATALYST_TRAIT,
@@ -165,7 +165,7 @@ function catalystSphereAvailability(
     );
   }
 
-  const sphereCost = balanceNumberFromContext(context, CATALYST_TRAIT.DEPTH_OF_ELEMENTS, 'resourceCost');
+  const sphereCost = balanceNumber(context.helpers, CATALYST_TRAIT.DEPTH_OF_ELEMENTS, 'resourceCost');
   return context.resourceController.readyAt('catalystEnergy', sphereCost) === context.time
     ? { ready: true }
     : denyCast('elementalist.catalyst-energy', `${skill.name} is unavailable - requires ${sphereCost} energy.`);
@@ -179,7 +179,7 @@ function deployJadeSphere(
   skill: ElementalistSkill
 ): void {
   const state = catalystState.from(context.profession);
-  const sphereCost = balanceNumberFromContext(context, CATALYST_TRAIT.DEPTH_OF_ELEMENTS, 'resourceCost');
+  const sphereCost = balanceNumber(context.helpers, CATALYST_TRAIT.DEPTH_OF_ELEMENTS, 'resourceCost');
   // Keep spending at deployment, before sphere traits and fields, rather than moving it to cast acceptance.
   context.resourceController.spend('catalystEnergy', sphereCost);
   // The sphere field owns its active window; removing it leaves the energy cost intact.

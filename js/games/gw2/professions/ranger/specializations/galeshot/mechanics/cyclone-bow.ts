@@ -10,10 +10,10 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   effectNumber,
   requireEffect,
-  requireSkillFromContext,
+  requireSkill,
   skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -57,7 +57,7 @@ function applyMistral(context: RangerRuntime, event: Gw2ResolverEvent): void {
 
   if (!enhanced) return;
 
-  const profile = requireSkillFromContext(context, ID.MISTRAL);
+  const profile = requireSkill(context.helpers, ID.MISTRAL);
   const strike = requireEffect(profile, 'strike', 'Strike', requireSkillAction(profile, 'missile-trigger'));
   const chilled = requireEffect(
     profile,
@@ -163,7 +163,7 @@ export const missileResolved = defineTriggerPoint<{ readonly event: Gw2ResolverE
 const galeshotWindForce: ResourcePolicy<RangerRuntime> = {
   kind: 'continuous',
   state: (context) => galeshotState.from(context.profession).windForce,
-  maximum: (context) => balanceNumberFromContext(context, TRAIT.TEACHINGS_OF_THE_TENGU, 'minimumStacks'),
+  maximum: (context) => balanceNumber(context.helpers, TRAIT.TEACHINGS_OF_THE_TENGU, 'minimumStacks'),
   initial: () => 0,
   recovery: () => 0
 };
@@ -172,10 +172,10 @@ const galeshotWindForce: ResourcePolicy<RangerRuntime> = {
 const galeshotArrows: ResourcePolicy<RangerRuntime> = {
   kind: 'discrete',
   state: (context) => galeshotState.from(context.profession).arrows,
-  maximum: (context) => balanceNumberFromContext(context, TRAIT.TEACHINGS_OF_THE_TENGU, 'maximumStacks'),
+  maximum: (context) => balanceNumber(context.helpers, TRAIT.TEACHINGS_OF_THE_TENGU, 'maximumStacks'),
   initial: (context, maximum) => context.config.initialArrows ?? maximum,
   recovery: (context) => ({
-    interval: balanceNumberFromContext(context, TRAIT.TEACHINGS_OF_THE_TENGU, 'pulseInterval'),
+    interval: balanceNumber(context.helpers, TRAIT.TEACHINGS_OF_THE_TENGU, 'pulseInterval'),
     amount: 1,
     start: 'immediate'
   })
@@ -196,7 +196,7 @@ export function scheduleWindForce(runtime: RangerRuntime, cast: RuntimeCast<Rang
 /** Later projectiles consume this live window through the shared Mistral observer. */
 function activateMistral(runtime: RangerRuntime): void {
   galeshotState.from(runtime.profession).mistralUntil = canonicalTime(
-    runtime.time + skillNumber(requireSkillFromContext(runtime, ID.MISTRAL), 'duration')
+    runtime.time + skillNumber(requireSkill(runtime.helpers, ID.MISTRAL), 'duration')
   );
 }
 
@@ -290,7 +290,7 @@ export const cycloneBowLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> 
     'ranger.hawkeye-release'(runtime, skillId) {
       // Convert Wind Force at release, preserving its bonus during windup and leaving cancelled attempts unspent.
       runtime.resourceController.replace('windForce', 0);
-      runtime.fireTrigger(hawkeyeReleased, { skill: requireSkillFromContext(runtime, Number(skillId)) });
+      runtime.fireTrigger(hawkeyeReleased, { skill: requireSkill(runtime.helpers, Number(skillId)) });
     },
     // Scheduled rewards survive bar dismissal; only their original cast gate decides whether to enqueue them.
     'ranger.wind-force'(runtime, gain) {

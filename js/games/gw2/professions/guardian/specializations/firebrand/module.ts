@@ -32,8 +32,7 @@ export const firebrandModule = defineNativeModule({
   }),
   state: {
     // Initialize pages from the selected patch's compiled trait profiles.
-    create: (config, { balanceContext }) =>
-      firebrandState.create({ config, balanceProfile: (id) => balanceContext.catalog.balanceProfilesById.get(id) }),
+    create: (config, { balanceContext }) => firebrandState.create({ config, catalog: balanceContext.catalog }),
     project: projectFirebrandPlanningState
   },
   traitDefinitions: firebrandTraits,

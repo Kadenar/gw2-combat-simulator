@@ -100,7 +100,7 @@ export function createContinuumController({
     const definition = mesmerShatterDefinition(state, skill.id);
     state.fireTrigger(mesmerShatterResolved, {
       resolution,
-      shatter: definition ? mesmerSelectedShatter(state, skill.id) : undefined
+      shatter: definition ? mesmerSelectedShatter(state.helpers, skill.id) : undefined
     });
     {
       const packet = buildMesmerPacket({

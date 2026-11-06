@@ -18,7 +18,7 @@ import type { RangerResolverContext, RangerRuntimeState, RangerSkill } from '#gw
 
 /** Share the patched base and intrinsic extension so trait extensions add seconds without compounding them. */
 export function shortbowConditionDuration(context: Gw2ModifierContext) {
-  const skill = skillForEvent<RangerSkill>(context.profession?.catalog, context.event, context.skillId);
+  const skill = skillForEvent<RangerSkill>(context.catalog, context.event, context.skillId);
   const base =
     skill?.effects?.find(
       (effect): effect is ConditionEffect => effect.type === 'condition' && effect.condition === context.condition

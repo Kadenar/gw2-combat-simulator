@@ -59,8 +59,8 @@ test('Druid palette uses the live Astral Force maximum and the detached catalog 
     const context = { professionState: ready.planningState.profession };
     const skill = catalog.skillsById.get(ID.CELESTIAL_AVATAR);
     assert.equal(ready.planningState.availability[skill.id].ready, true);
-    assert.equal(ui.resourceViews(context)[0].maximum, maximum);
-    const detached = ui.resourceViews({})[0];
+    assert.equal(ui.resourceViews({ ...context, catalog: catalog })[0].maximum, maximum);
+    const detached = ui.resourceViews({ catalog: catalog })[0];
     assert.equal(detached.maximum, maximum);
     assert.equal(detached.startMaximum, maximum);
     assert.equal(detached.value, maximum);
@@ -75,7 +75,7 @@ test('Galeshot palette and Wind Force display use the patched threshold', () => 
   for (const maximum of [3, 7]) {
     const catalog = withProfile(rangerCatalog, TRAIT.TEACHINGS_OF_THE_TENGU, { minimumStacks: maximum });
     const ui = bindGaleshotUi(catalog);
-    const wind = ui.resourceViews({}).find((view) => view.id === 'wind-force');
+    const wind = ui.resourceViews({ catalog: catalog }).find((view) => view.id === 'wind-force');
     assert.equal(wind.maximum, maximum);
     assert.equal(wind.startMaximum, maximum);
     for (const value of [maximum - 1, maximum]) {

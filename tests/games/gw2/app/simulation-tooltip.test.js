@@ -587,7 +587,7 @@ test('Sinister Shroud tooltip and recharge handling share the selected profile',
     const recharge = (skillId, selectedTraitIds = [TRAIT.SINISTER_SHROUD]) => {
       const config = { specialization: 'Scourge', patchId, selectedTraitIds };
       const native = profession.runtimeFor(config);
-      return native.rechargeWork({ config, catalog: native.catalog }, native.catalog.skillsById.get(skillId), 20);
+      return native.rechargeWork({ config, helpers: native.catalog }, native.catalog.skillsById.get(skillId), 20);
     };
 
     assert.equal(recharge(ID.LIFE_TRANSFER), duration);
@@ -960,7 +960,7 @@ test('Engineer spear resolver and tooltip use the same selected action payload',
   const packets = [];
   handleElectricArtillery(
     {
-      catalog: selected.catalog,
+      helpers: selected.catalog,
       combat: createMechanicCombatServices({
         buffs: new Map([
           ['engineer-focused', [{ at: 0, expiresAt: 20, stacks: 1, resolvedAudience: { includesSelf: true } }]]

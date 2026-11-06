@@ -9,9 +9,9 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect,
-  requireSkillFromContext,
+  requireSkill,
   skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -41,7 +41,7 @@ function refreshShadeExpiry(runtime: NecromancerRuntime): void {
 
 /** Every shade command owns one common strike and Torment application, independent of the number of active shades. */
 function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  const profile = requireSkillFromContext(runtime, ID.MANIFEST_SAND_SHADE);
+  const profile = requireSkill(runtime.helpers, ID.MANIFEST_SAND_SHADE);
   const action = requireSkillAction(profile, 'shade');
   // Desert Shroud's shared shade hit lands with its first pulse, so hit-triggered traits wait for impact.
   const impactDelayMs = cast.skill.id === ID.DESERT_SHROUD ? skillNumber(cast.skill, 'impactDelayMs') : 0;
@@ -116,10 +116,10 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
 /** Select shade lifetime and capacity from the active patch's ordinary or Sand Savant profile. */
 function sandSavantShadeProfile(runtime: NecromancerRuntime) {
   return hasTrait(runtime, TRAIT.SAND_SAVANT)
-    ? { profile: requireBalanceProfileFromContext(runtime, TRAIT.SAND_SAVANT), action: undefined }
+    ? { profile: requireBalanceProfile(runtime.helpers, TRAIT.SAND_SAVANT), action: undefined }
     : {
-        profile: requireSkillFromContext(runtime, ID.MANIFEST_SAND_SHADE),
-        action: requireSkillAction(requireSkillFromContext(runtime, ID.MANIFEST_SAND_SHADE), 'shade')
+        profile: requireSkill(runtime.helpers, ID.MANIFEST_SAND_SHADE),
+        action: requireSkillAction(requireSkill(runtime.helpers, ID.MANIFEST_SAND_SHADE), 'shade')
       };
 }
 

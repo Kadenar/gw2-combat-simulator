@@ -6,6 +6,7 @@ import type {
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   ProfessionEffectPresentation,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
@@ -80,7 +81,7 @@ export const berserkerUi: WarriorUiSlice = Object.freeze({
   effectPresentations: () => [...BERSERKER_EFFECT_PRESENTATIONS],
   paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, SKILLS, PRIMAL_BURSTS_BY_WEAPON),
   resourceViews: warriorAdrenalineResourceViews,
-  rotationStateSnapshot: (context: WarriorUiContext) => {
+  rotationStateSnapshot: (context: ProfessionStateSnapshotContext<WarriorUiContext['professionState']>) => {
     const state = warriorUiState(context);
     const remaining = (state[STATE.BERSERK_UNTIL] ?? 0) - warriorSnapshotAt(context);
 

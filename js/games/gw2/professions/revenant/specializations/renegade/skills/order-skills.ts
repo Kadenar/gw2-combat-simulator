@@ -2,7 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -14,7 +14,7 @@ const boldReversalOrderEffects: NonNullable<NonNullable<Skill['effectVariants']>
   effects
 ) =>
   hasTrait(runtime, TRAIT.BOLD_REVERSAL)
-    ? [...effects, ...(requireBalanceProfileFromContext(runtime, TRAIT.BOLD_REVERSAL).effects ?? [])]
+    ? [...effects, ...(requireBalanceProfile(runtime.helpers, TRAIT.BOLD_REVERSAL).effects ?? [])]
     : effects;
 
 /** Supplies Orders from Above's trait-selected pulse variant at skill materialization. */

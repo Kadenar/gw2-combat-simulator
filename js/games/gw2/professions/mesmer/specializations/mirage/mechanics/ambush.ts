@@ -1,7 +1,8 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { ConditionEffect, StatusEffect } from '#gw2/platform/effects/types.js';
 import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
-import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillSource } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerAmbushAttack } from '#gw2/professions/mesmer/types.js';
 
@@ -19,8 +20,8 @@ function ambushStatuses<T extends 'condition' | 'boon'>(
 }
 
 /** Applies the active Mirage ambush skill to its runtime attack definition. */
-export function mesmerSelectedAmbush(context: unknown, id: SkillId): MesmerAmbushAttack {
-  const attack = requireSkillFromContext(context, id) as MesmerAmbushAttack;
+export function mesmerSelectedAmbush(source: SkillSource, id: SkillId): MesmerAmbushAttack {
+  const attack = requireSkill(source, id) as MesmerAmbushAttack;
   const profile = attack;
   const playerStrike = requireEffect(profile, 'strike', 'Player attack');
   const cloneStrike = requireEffect(profile, 'strike', 'Clone attack');

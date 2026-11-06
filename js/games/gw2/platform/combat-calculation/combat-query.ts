@@ -335,7 +335,7 @@ export function createGw2CombatQuery({
     // Project only the profession query view; equipment queries and the live runtime retain the destination set.
     const modifierRuntime = event?.weaponSwapFromSet == null ? runtime : { ...runtime, activeWeaponSet: weaponSet };
     return {
-      profession: activeProfession,
+      catalog: activeProfession.catalog,
       config: activeConfigForWeaponSet(weaponSet),
       attributePreviewPlayerHealthFraction,
       time,

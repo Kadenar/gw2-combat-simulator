@@ -3,7 +3,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { ACTOR, CONDITION, CONTROL, STATUS } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
@@ -226,7 +226,7 @@ const deadeyeSlotActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill
     const malice = runtime.resourceController.value('malice');
     runtime.resourceController.replace('malice', 0);
     state.maleficentSevenTriggered = false;
-    const mercy = requireSkillFromContext(runtime, ID.MERCY);
+    const mercy = requireSkill(runtime.helpers, ID.MERCY);
     const initiativeGain = skillNumber(mercy, 'initiativeRefund') + malice * skillNumber(mercy, 'initiativePerMalice');
 
     if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);

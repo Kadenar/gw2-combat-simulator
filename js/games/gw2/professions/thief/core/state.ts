@@ -78,13 +78,13 @@ export function createThiefCoreState(
   // Standalone construction (attribute previews) shares the runtime policy's calculations, so the pool it builds
   // matches the one simulation initializes from the same selected tuning; nobody kneels before combat.
   const context = { ...preparation.balanceContext, config };
-  const maximumInitiative = thiefInitiativeCapacity(context);
+  const maximumInitiative = thiefInitiativeCapacity(context.catalog, context);
   return {
     lastStealthBreakingStrike: null,
     initiative: {
       ...createResourceClock(thiefStartingInitiative(config, maximumInitiative)),
       maximum: maximumInitiative,
-      unitsPerSecond: thiefInitiativeRegenerationRate({ kneeling: false }, context)
+      unitsPerSecond: thiefInitiativeRegenerationRate({ kneeling: false }, context.catalog)
     },
     ...createStealthState(),
     hiddenKillerUntil: 0,

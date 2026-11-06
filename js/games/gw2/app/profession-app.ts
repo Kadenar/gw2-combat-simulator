@@ -135,7 +135,9 @@ export class ProfessionApp implements ProfessionAppState {
     // Load each specialization's declared preferences so switching builds retains the user's choices.
     this.timelineOverlayVisibility = Object.fromEntries(
       ['Core', ...this.activeCatalog.specializations.filter((spec) => spec.elite).map((spec) => spec.name)]
-        .flatMap((specialization) => this.profession.ui.timelineOverlays({ specialization }))
+        .flatMap((specialization) =>
+          this.profession.ui.timelineOverlays({ specialization, catalog: this.activeCatalog })
+        )
         .map((overlay) => [overlay.id, readStoredTimelineOverlayVisibility(document, overlay.storageKey)])
     );
     this.templatePresets = [];

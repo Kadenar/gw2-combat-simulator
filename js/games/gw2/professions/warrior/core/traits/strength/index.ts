@@ -13,10 +13,10 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
+  attributeBonusNumber,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -69,7 +69,7 @@ export const berserkersPower = defineTrait({
       operation: 'damage-additive',
       // The profile owns tuning; this rule only applies the capped-stack damage formula.
       amount: (context) => {
-        const profile = requireBalanceProfileFromContext(context, TRAIT.BERSERKERS_POWER);
+        const profile = requireBalanceProfile(context.catalog, TRAIT.BERSERKERS_POWER);
         return (
           warriorActiveBuffStacks(context, 'berserkers-power', balanceProfileNumber(profile, 'maximumStacks')) *
           balanceProfileNumber(profile, 'damageIncreasePerStack')
@@ -150,9 +150,9 @@ export const peakPerformance = defineTrait({
       operation: 'damage-additive',
 
       amount: (context) =>
-        balanceNumberFromContext(context, TRAIT.PEAK_PERFORMANCE, 'baseBonus') +
+        balanceNumber(context.catalog, TRAIT.PEAK_PERFORMANCE, 'baseBonus') +
         (warriorActiveBuffStacks(context, 'peak-performance', 1)
-          ? balanceNumberFromContext(context, TRAIT.PEAK_PERFORMANCE, 'activeBonus')
+          ? balanceNumber(context.catalog, TRAIT.PEAK_PERFORMANCE, 'activeBonus')
           : 0)
     }
   ],
@@ -236,7 +236,7 @@ export const pinnacleOfStrength = defineTrait({
           kind: 'flat',
           to: 'Power',
           amount:
-            might * balanceNumberFromContext(context.balanceContext, TRAIT.PINNACLE_OF_STRENGTH, 'attributePerStack'),
+            might * balanceNumber(context.balanceContext.catalog, TRAIT.PINNACLE_OF_STRENGTH, 'attributePerStack'),
           feedsConversions: 'none',
           enabled: true
         }
@@ -249,7 +249,7 @@ export const pinnacleOfStrength = defineTrait({
       id: 'warrior.pinnacle-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.PINNACLE_OF_STRENGTH, 'criticalChance')
+      amount: (context) => balanceNumber(context.catalog, TRAIT.PINNACLE_OF_STRENGTH, 'criticalChance')
     }
   ]
 });
@@ -273,15 +273,15 @@ export const forcefulGreatsword = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusFromContext(context.balanceContext, TRAIT.FORCEFUL_GREATSWORD, 'power'),
+          amount: attributeBonusNumber(context.balanceContext.catalog, TRAIT.FORCEFUL_GREATSWORD, 'power'),
           feedsConversions: 'all',
           enabled: true
         },
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusFromContext(
-            context.balanceContext,
+          amount: attributeBonusNumber(
+            context.balanceContext.catalog,
             TRAIT.FORCEFUL_GREATSWORD,
             'power',
             'conditionalAttributeBonuses'
@@ -321,7 +321,7 @@ export const greatFortitude = defineTrait({
           kind: 'conversion',
           from: 'Power',
           to: 'Vitality',
-          multiplier: balanceNumberFromContext(context.balanceContext, TRAIT.GREAT_FORTITUDE, 'attributeConversion'),
+          multiplier: balanceNumber(context.balanceContext.catalog, TRAIT.GREAT_FORTITUDE, 'attributeConversion'),
           rounding: 'round',
           input: 'eligible',
           enabled: true
@@ -330,7 +330,7 @@ export const greatFortitude = defineTrait({
           kind: 'conversion',
           from: 'Power',
           to: 'Ferocity',
-          multiplier: balanceNumberFromContext(context.balanceContext, TRAIT.GREAT_FORTITUDE, 'attributeConversion'),
+          multiplier: balanceNumber(context.balanceContext.catalog, TRAIT.GREAT_FORTITUDE, 'attributeConversion'),
           rounding: 'round',
           input: 'eligible',
           enabled: true
@@ -371,7 +371,7 @@ function peakPerformanceStart(runtime: WarriorRuntime, cast: RuntimeCast<Warrior
   }
 
   {
-    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.PEAK_PERFORMANCE);
+    const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.PEAK_PERFORMANCE);
     const selectedEffect = requireEffect(traitProfile, 'buff', 'peak-performance');
 
     if (selectedEffect)
@@ -395,9 +395,9 @@ function braveStrideCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSki
   const skill = cast.skill;
 
   if (skill.movementSkill) {
-    grantWarriorResource(runtime, balanceNumberFromContext(runtime, TRAIT.BRAVE_STRIDE, 'resourceGain'));
+    grantWarriorResource(runtime, balanceNumber(runtime.helpers, TRAIT.BRAVE_STRIDE, 'resourceGain'));
     {
-      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BRAVE_STRIDE);
+      const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.BRAVE_STRIDE);
       const selectedEffect = requireEffect(traitProfile, 'boon', boonKey(BOON.STABILITY));
 
       if (selectedEffect)
@@ -420,13 +420,13 @@ function braveStrideCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSki
 
 /** Apply line-owned rewards at the shared reaction boundary. */
 function buildingMomentumBurst(runtime: WarriorRuntime): void {
-  runtime.endurance.grant(balanceNumberFromContext(runtime, TRAIT.BUILDING_MOMENTUM, 'resourceGain'));
+  runtime.endurance.grant(balanceNumber(runtime.helpers, TRAIT.BUILDING_MOMENTUM, 'resourceGain'));
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
 function berserkersPowerBurst(runtime: WarriorRuntime, event: Gw2ResolverEvent, skill: WarriorSkill): void {
   if (!skill.dragonSlash && Number(event.metadata?.warriorAdrenalineSpent) > 0) {
-    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BERSERKERS_POWER);
+    const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.BERSERKERS_POWER);
     emitTraitProfile(runtime, TRAIT.BERSERKERS_POWER, TRAIT.BERSERKERS_POWER, event, {
       attribution: {
         source: 'Trait',
@@ -455,7 +455,7 @@ function forcefulGreatswordCritical(
   opportunity: ReturnType<typeof criticalOpportunity>
 ): void {
   const weapons = gw2ConfiguredWeaponSet(runtime.config, runtime.activeWeaponSet);
-  const chance = balanceNumberFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD, 'procChance');
+  const chance = balanceNumber(runtime.helpers, TRAIT.FORCEFUL_GREATSWORD, 'procChance');
   const proc = advanceCriticalProc(opportunity, {
     id: 'warrior.core.forceful-greatsword',
     at: runtime.time,
@@ -463,7 +463,7 @@ function forcefulGreatswordCritical(
       1,
       chance *
         (weapons.includes(WEAPON.GREATSWORD)
-          ? balanceNumberFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD, 'weaponProcChanceMultiplier')
+          ? balanceNumber(runtime.helpers, TRAIT.FORCEFUL_GREATSWORD, 'weaponProcChanceMultiplier')
           : 1)
     ),
     randomStream: 'warrior.forceful-greatsword',
@@ -471,7 +471,7 @@ function forcefulGreatswordCritical(
   });
 
   if (proc) {
-    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.FORCEFUL_GREATSWORD);
+    const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.FORCEFUL_GREATSWORD);
     emitTraitProfile(runtime, TRAIT.FORCEFUL_GREATSWORD, TRAIT.FORCEFUL_GREATSWORD, event, {
       attribution: {
         source: 'Trait',
@@ -497,7 +497,7 @@ function berserkersPowerDragonSlash(
   cast: RuntimeCast<WarriorSkill>,
   adrenalineSpent: number
 ): void {
-  const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BERSERKERS_POWER);
+  const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.BERSERKERS_POWER);
   emitTraitProfile(runtime, TRAIT.BERSERKERS_POWER, TRAIT.BERSERKERS_POWER, undefined, {
     attribution: {
       source: 'Trait',

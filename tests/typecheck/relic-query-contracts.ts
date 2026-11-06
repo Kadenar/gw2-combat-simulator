@@ -19,7 +19,10 @@ relicConditionDamageBonus({ config: { initialThornsStacks: 2 }, relic }, 0);
 relicConditionDurationBonus({ relic, buffs: new Map() }, 0);
 relicCriticalChanceBonus({ relic }, event, 0);
 relicOutgoingDamageBonus({ relic }, 'condition', 0);
-relicStrikeMultiplier({ relic, config: {}, totals: { strike: 0, condition: 0 } }, event);
+relicStrikeMultiplier(
+  { relic, config: {}, totals: { strike: 0, condition: 0 }, helpers: effectContext.helpers },
+  event
+);
 
 // @ts-expect-error Thorns needs configuration even when a relic runtime is present.
 relicConditionDamageBonus({ relic }, 0);

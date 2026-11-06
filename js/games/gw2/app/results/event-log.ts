@@ -19,6 +19,7 @@ import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 import { mountEventLog } from '#ui/results/event-log.js';
@@ -80,8 +81,10 @@ type OrderedEventLogRow = EventLogRow & {
 export function simulationEventLogRows(
   result: Gw2SimulationResult | null | undefined,
   build: Gw2CanonicalBuild | null = null,
-  profession: ProfessionAppContract | null = null
+  presentation: { readonly profession: ProfessionAppContract; readonly catalog: CanonicalCatalog } | null = null
 ): EventLogRow[] {
+  // The caller selects the result's patch; the family catalog must not supply preview tuning.
+  const profession = presentation?.profession;
   const rows: OrderedEventLogRow[] = [];
   // At equal times, finish each activation's effects and END before the next CAST,
   // while keeping instant casts before their own END and timestamps authoritative.
@@ -98,11 +101,10 @@ export function simulationEventLogRows(
         event.eventOrder ??
         eventOrders.get(event) ??
         eventOrders.size);
-  const professionUi = profession?.ui;
   const displayReferenceSeconds = resultCombatReferenceMs(result) / 1000;
   const planningState = professionPlanningState(result);
   const eliteNames = new Set(
-    (profession?.catalog?.specializations || [])
+    (presentation?.catalog.specializations || [])
       .filter((specialization) => specialization.elite)
       .map((specialization) => specialization.name)
   );
@@ -110,10 +112,10 @@ export function simulationEventLogRows(
   const specialization = build?.specializations?.find((selection) => eliteNames.has(selection.name))?.name || 'Core';
   // Reuse the active profession's effect labels in the event log instead of maintaining a second name table.
   const effectPresentations =
-    professionUi?.effectPresentations?.({
+    presentation?.profession.ui.effectPresentations?.({
       result,
       build,
-      catalog: profession?.catalog,
+      catalog: presentation.catalog,
       profession,
       specialization
     }) || [];
@@ -152,9 +154,10 @@ export function simulationEventLogRows(
   // Shared events a slice does not present keep their generic fallback row instead of a diagnostic.
   const pushProfessionRow = (event: SimulationEvent, fallback?: () => void): void => {
     const normalized = normalizeProfessionEventLogDescriptor(
-      professionUi?.eventLogRow?.(
+      presentation?.profession.ui.eventLogRow?.(
         {
           result,
+          catalog: presentation.catalog,
           build,
           profession,
           specialization
@@ -384,7 +387,7 @@ export function simulationEventLogRows(
         ...(event.type === 'condition' ? { tag: { label: String(event.condition), className: 'condition' } } : {})
       };
     });
-  return consolidateTraitBuffRows(attributedRows, profession?.catalog?.traits ?? []);
+  return consolidateTraitBuffRows(attributedRows, presentation?.catalog.traits ?? []);
 }
 
 const EVENT_LOG_DETAILS = '[data-role="event-log-details"]';
@@ -425,11 +428,15 @@ export function renderEventLog(app: ProfessionAppState): void {
     return;
   }
 
-  mountEventLog(element, simulationEventLogRows(result, app.build, app.profession), {
-    title: 'Event Log',
-    filename: app.adapter?.filenames?.eventLog || 'event-log.csv',
-    metricUnit: ['hit', 'hits']
-  });
+  mountEventLog(
+    element,
+    simulationEventLogRows(result, app.build, { profession: app.profession, catalog: app.activeCatalog }),
+    {
+      title: 'Event Log',
+      filename: app.adapter?.filenames?.eventLog || 'event-log.csv',
+      metricUnit: ['hit', 'hits']
+    }
+  );
   // Keep GW2 debug controls beside the log while the shared renderer remains game-independent.
   const controls = element.querySelector('.log-controls');
 

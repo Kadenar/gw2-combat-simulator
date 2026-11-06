@@ -8,10 +8,10 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
+  attributeBonusNumber,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -71,7 +71,7 @@ export const deadlyAmbush = defineTrait({
       id: 'thief.deadly-ambush-bleeding',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.DEADLY_AMBUSH, 'conditionDamageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.DEADLY_AMBUSH, 'conditionDamageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === CONDITION.BLEEDING
     }
   ],
@@ -104,7 +104,7 @@ export const leadAttacks = defineTrait({
       operation: 'damage-additive',
       // Grants, damage and siphons share selected tuning; each packet counts its own live stacks.
       amount: (context) => {
-        const profile = requireBalanceProfileFromContext(context, TRAIT.LEAD_ATTACKS);
+        const profile = requireBalanceProfile(context.catalog, TRAIT.LEAD_ATTACKS);
         return (
           Math.min(
             balanceProfileNumber(profile, 'maximumStacks'),
@@ -134,7 +134,7 @@ export const preparedness = defineTrait({
         {
           kind: 'flat',
           to: 'Expertise',
-          amount: attributeBonusFromContext(balanceContext, TRAIT.PREPAREDNESS, 'expertise'),
+          amount: attributeBonusNumber(balanceContext.catalog, TRAIT.PREPAREDNESS, 'expertise'),
           feedsConversions: 'all'
         }
       ]
@@ -213,7 +213,7 @@ function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): 
 }
 
 function applyDeadlyAmbush(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.DEADLY_AMBUSH);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.DEADLY_AMBUSH);
   const bleeding = requireEffect(profile, 'condition', CONDITION.BLEEDING);
 
   if (!bleeding) return;
@@ -237,17 +237,13 @@ function applyDeadlyAmbush(runtime: ThiefRuntime, { cast }: StealAcceptance): vo
 
 /** Applies Kleptomaniac at its established mechanical boundary. */
 function applyKleptomaniac(runtime: ThiefRuntime): void {
-  const initiativeGain = balanceNumberFromContext(runtime, TRAIT.KLEPTOMANIAC, 'resourceGain');
+  const initiativeGain = balanceNumber(runtime.helpers, TRAIT.KLEPTOMANIAC, 'resourceGain');
 
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
 
 function applySleightOfHand(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
-  const control = requireEffect(
-    requireBalanceProfileFromContext(runtime, TRAIT.SLEIGHT_OF_HAND),
-    'control',
-    CONTROL.DAZE
-  );
+  const control = requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.SLEIGHT_OF_HAND), 'control', CONTROL.DAZE);
 
   if (!control) return;
 
@@ -290,7 +286,7 @@ function grantLeadAttacks(runtime: ThiefRuntime, { cast, initiativeCost: cost }:
   if (cost <= 0) return;
 
   const core = runtime.profession.core;
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.LEAD_ATTACKS);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.LEAD_ATTACKS);
   const maximumStacks = balanceProfileNumber(profile, 'maximumStacks');
   const duration = balanceProfileNumber(profile, 'duration');
   // A patched fractional cost grants a whole stack for its remainder, so round up before the integer boundary.
@@ -319,7 +315,7 @@ function grantLeadAttacks(runtime: ThiefRuntime, { cast, initiativeCost: cost }:
 function grantQuickPockets(runtime: ThiefRuntime): void {
   if (!runtime.procs.claim(TRAIT.QUICK_POCKETS, 'thief.core.quickPockets', runtime.time)) return;
 
-  const initiativeGain = balanceNumberFromContext(runtime, TRAIT.QUICK_POCKETS, 'resourceGain');
+  const initiativeGain = balanceNumber(runtime.helpers, TRAIT.QUICK_POCKETS, 'resourceGain');
 
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }

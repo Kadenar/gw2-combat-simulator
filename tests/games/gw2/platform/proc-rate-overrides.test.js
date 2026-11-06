@@ -8,7 +8,7 @@ import { availableProcRateProfiles, normalizeProcRateOverrides } from '#gw2/plat
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { procChanceFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { procChance } from '#gw2/platform/skills/balance-profiles.js';
 import { loadProfession } from '#gw2/profession-registry.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
@@ -208,11 +208,11 @@ test('proc rate input preserves explicit zero and rejects malformed saved or hea
 test('unset overrides follow patched defaults without mutating balance data', () => {
   const profile = { id: 1, procChance: 0.42, procRate: { id: 'example.proc', field: 'procChance' } };
   const context = { catalog: { balanceProfilesById: new Map([[1, profile]]) }, config: { procRateOverrides: {} } };
-  assert.equal(procChanceFromContext(context, 1), 0.42);
+  assert.equal(procChance(context.catalog, 1, context.config?.procRateOverrides), 0.42);
   context.config.procRateOverrides['example.proc'] = 0;
-  assert.equal(procChanceFromContext(context, 1), 0);
+  assert.equal(procChance(context.catalog, 1, context.config?.procRateOverrides), 0);
   delete context.config.procRateOverrides['example.proc'];
-  assert.equal(procChanceFromContext(context, 1), 0.42);
+  assert.equal(procChance(context.catalog, 1, context.config?.procRateOverrides), 0.42);
   assert.equal(profile.procChance, 0.42);
 });
 

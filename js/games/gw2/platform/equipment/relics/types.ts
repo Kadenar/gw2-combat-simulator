@@ -50,7 +50,7 @@ interface Gw2RelicEmissionContext {
 export interface Gw2RelicContext {
   readonly buffs?: ReadonlyMap<string, readonly Gw2TimedBuffApplication[]>;
   readonly engagement: CombatEngagementQueries;
-  readonly helpers?: Gw2ResolverHelpers;
+  readonly helpers: Gw2ResolverHelpers;
   precastRelics?: readonly Gw2RelicRuntime[];
   readonly config: Gw2RelicConfig;
   /** Relics may query target thresholds; only shared damage resolution can update totals. */

@@ -15,7 +15,7 @@ import type {
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import {
   necromancerSoulShardResourceViews,
@@ -36,18 +36,18 @@ import { boundedInteger } from '#kernel/core/numeric.js';
 
 /** Builds compact Blight, Cascading Corruption, and active Meltdown rotation-state rows. */
 function harbingerStateSnapshot(
-  context: NecromancerUiContext & Pick<ProfessionStateSnapshotContext, 'balanceContext'>
+  context: ProfessionStateSnapshotContext<NecromancerUiContext['professionState']>
 ): RotationStateSnapshotItem[] {
   const state = necromancerUiState(context);
-  const maximum = harbingerBlightMaximum(context.balanceContext);
+  const maximum = harbingerBlightMaximum(context.balanceContext.catalog);
   const blight = boundedInteger(state[STATE.BLIGHT] || 0, 0, 0, maximum);
   // Progress follows the selected proc threshold rather than the saved initial-state limit.
-  const threshold = balanceNumberFromContext(context.balanceContext, TRAIT.CASCADING_CORRUPTION, 'maximumStacks');
+  const threshold = balanceNumber(context.balanceContext.catalog, TRAIT.CASCADING_CORRUPTION, 'maximumStacks');
   const stacks = boundedInteger(
     state[STATE.CASCADING_CORRUPTION_STACKS] || 0,
     0,
     0,
-    cascadingCorruptionProgressMaximum(context.balanceContext)
+    cascadingCorruptionProgressMaximum(context.balanceContext.catalog)
   );
   const hasTrait = selectedTraits(context.balanceContext.catalog, context.build?.specializations || []).some(
     (trait) => trait.id === TRAIT.CASCADING_CORRUPTION
@@ -137,7 +137,7 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
           group: 'Mechanic',
           kind: 'special',
           scope: ['damage'],
-          max: cascadingCorruptionProgressMaximum(context),
+          max: cascadingCorruptionProgressMaximum(context.catalog),
           initial: boundedInteger(
             Number(
               (context.build as { readonly initialCascadingCorruptionStacks?: unknown })
@@ -145,7 +145,7 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
             ),
             0,
             0,
-            cascadingCorruptionProgressMaximum(context)
+            cascadingCorruptionProgressMaximum(context.catalog)
           ),
           description: 'Consumed Blight toward the next Meltdown before setup'
         });
@@ -158,7 +158,7 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
         label: 'Blight',
         group: 'Mechanic',
         kind: 'special',
-        max: harbingerBlightMaximum(context),
+        max: harbingerBlightMaximum(context.catalog),
         initial: Number((context.build as { readonly initialBlight?: unknown }).initialBlight) || 0,
         scope: ['damage'],
         description: 'stacks at the start of each cast; Blight-scaling traits'
@@ -213,7 +213,7 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
         id: 'blight',
         singular: 'blight',
         plural: 'blight',
-        maximum: harbingerBlightMaximum(context),
+        maximum: harbingerBlightMaximum(context.catalog),
         value: Number(necromancerUiState(context)[STATE.BLIGHT] ?? context.initialBlight ?? 0),
         canStart: true,
         buildKey: 'initialBlight',
@@ -228,7 +228,7 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
         singular: 'Cascading Corruption stack',
         plural: 'Cascading Corruption stacks',
         // Initial progress uses the same selected cap as state construction and the preview control.
-        maximum: cascadingCorruptionProgressMaximum(context),
+        maximum: cascadingCorruptionProgressMaximum(context.catalog),
         value: boundedInteger(
           Number(
             necromancerUiState(context)[STATE.CASCADING_CORRUPTION_STACKS] ??
@@ -237,7 +237,7 @@ export function bindHarbingerUi(catalog: Readonly<CanonicalCatalog<NecromancerSk
           ),
           0,
           0,
-          cascadingCorruptionProgressMaximum(context)
+          cascadingCorruptionProgressMaximum(context.catalog)
         ),
         canStart: true,
         buildKey: 'initialCascadingCorruptionStacks',

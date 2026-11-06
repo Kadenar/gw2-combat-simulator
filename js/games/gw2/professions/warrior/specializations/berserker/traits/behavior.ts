@@ -5,11 +5,7 @@ import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import {
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
 import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -49,7 +45,7 @@ export function detonate(runtime: WarriorRuntime, payload: { activationId: strin
   if (!skill) return;
 
   state.fireAuraUntil = 0;
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.KING_OF_FIRES);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.KING_OF_FIRES);
   const strike = requireEffect(profile, 'strike', 'Strike');
   const burning = requireEffect(profile, 'condition', CONDITION.BURNING);
   const fields = {
@@ -117,8 +113,8 @@ export function detonate(runtime: WarriorRuntime, payload: { activationId: strin
 /** Query Smash Brawler's extension before the mode owner publishes its deadline. */
 export function smashBrawlerBerserkExtension(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): number {
   return cast.skill.primalBurst && hasTrait(runtime, TRAIT.SMASH_BRAWLER)
-    ? balanceNumberFromContext(
-        runtime,
+    ? balanceNumber(
+        runtime.helpers,
         TRAIT.SMASH_BRAWLER,
         cast.skill.id === ID.DECAPITATE ? 'minimumStacks' : 'resourceGain'
       )
@@ -128,6 +124,6 @@ export function smashBrawlerBerserkExtension(runtime: WarriorRuntime, cast: Runt
 /** Query Last Blaze's Rage extension without mutating the active mode. */
 export function lastBlazeBerserkExtension(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>): number {
   return cast.skill.skillFamily === 'Rage' && cast.skill.id !== ID.OUTRAGE && hasTrait(runtime, TRAIT.LAST_BLAZE)
-    ? balanceNumberFromContext(runtime, TRAIT.LAST_BLAZE, 'durationExtension')
+    ? balanceNumber(runtime.helpers, TRAIT.LAST_BLAZE, 'durationExtension')
     : 0;
 }

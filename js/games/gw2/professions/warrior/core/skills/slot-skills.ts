@@ -7,7 +7,7 @@ import { BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platfo
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { warriorActiveBuffStacks } from '#gw2/professions/warrior/core/traits/modifier-queries.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
@@ -491,7 +491,7 @@ export function signetAttributeEffects(context: Gw2AttributeContext): readonly G
 /** Intrinsic active and passive attributes use live self status and selected signet recharge. */
 export function signetActiveAttributeEffects(context: Gw2ModifierContext): readonly Gw2AttributeEffect[] {
   if (warriorActiveBuffStacks(context, 'signet-of-fury-active', 1) > 0) {
-    const skill = requireSkillFromContext(context, ID.SIGNET_OF_FURY);
+    const skill = requireSkill(context.catalog, ID.SIGNET_OF_FURY);
     return ownerAttributeEffects({ attributeBonuses: skill.activeAttributeBonuses });
   }
 

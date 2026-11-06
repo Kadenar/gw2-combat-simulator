@@ -5,12 +5,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import {
-  balanceNumberFromContext,
-  effectNumber,
-  requireEffect,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, effectNumber, requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { berserkerState } from '#gw2/professions/warrior/specializations/berserker/state.js';
@@ -43,7 +38,7 @@ const berserkerAdrenalinePolicy: typeof coreAdrenalinePolicy = {
   // Build-only resource views have catalog/config but no live mode; they use the starting Core cap.
   maximum: (runtime) =>
     'profession' in runtime && berserkerState.from(runtime.profession).berserkUntil != null
-      ? balanceNumberFromContext(runtime, TRAIT.PRIMAL_RAGE, 'maximumStacks')
+      ? balanceNumber(runtime.helpers, TRAIT.PRIMAL_RAGE, 'maximumStacks')
       : coreAdrenalinePolicy.maximum(runtime)
 };
 

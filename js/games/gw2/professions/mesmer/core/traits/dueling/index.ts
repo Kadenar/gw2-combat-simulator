@@ -14,9 +14,9 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { compileRechargeRules, onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
@@ -47,7 +47,7 @@ function superiorityComplexTargetControlled(context: Gw2ModifierContext): boolea
 }
 
 function superiorityComplexFactor(context: Gw2ModifierContext): number {
-  const superiorityComplexProfile = requireBalanceProfileFromContext(context, TRAIT.SUPERIORITY_COMPLEX);
+  const superiorityComplexProfile = requireBalanceProfile(context.catalog, TRAIT.SUPERIORITY_COMPLEX);
   // Only supported control conditions and target health qualify; generic disable state is not simulated.
   return superiorityComplexTargetControlled(context) ||
     targetHealthBelow(context, balanceProfileNumber(superiorityComplexProfile, 'threshold'))
@@ -166,7 +166,7 @@ export const phantasmalFury = defineTrait<MesmerSkill>({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       order: -1,
-      amount: (context) => balanceNumberFromContext(context, TRAIT.PHANTASMAL_FURY, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.PHANTASMAL_FURY, 'criticalChance'),
       when: (context) => context.event?.summonKind === 'phantasm'
     }
   ]
@@ -241,7 +241,7 @@ export const criticalInfusion = defineTrait<MesmerSkill>({
 // the resolver condition hook, preserving causal attribution.
 function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerResolverEvent, detail: string): void {
   const count = Math.max(1, Math.trunc(event.count || 1));
-  const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
+  const ineptitudeProfile = requireBalanceProfile(context.helpers, TRAIT.INEPTITUDE);
   const effect = requireEffect(ineptitudeProfile, 'condition', CONDITION.CONFUSION);
 
   if (!effect) return;
@@ -281,7 +281,7 @@ function applyIneptitudeConfusion(context: MesmerResolverContext, event: MesmerR
 function triggerIneptitudeFromInterrupt(context: MesmerResolverContext, event: MesmerResolverEvent): void {
   if (!context.config.target?.activatingSkills) return;
 
-  const ineptitudeProfile = requireBalanceProfileFromContext(context, TRAIT.INEPTITUDE);
+  const ineptitudeProfile = requireBalanceProfile(context.helpers, TRAIT.INEPTITUDE);
 
   // A removed Confusion packet owns no interrupt cooldown.
   if (!requireEffect(ineptitudeProfile, 'condition', CONDITION.CONFUSION)) return;
@@ -307,7 +307,7 @@ function triggerBlindingDissipation(
   count: number,
   delivery: EffectDelivery = {}
 ): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.BLINDING_DISSIPATION);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.BLINDING_DISSIPATION);
   const effect = requireEffect(profile, 'condition', CONDITION.BLINDNESS);
 
   if (!effect) return;
@@ -349,7 +349,7 @@ function triggerMasterFencer(context: MesmerRuntime, event: SimulationEvent, cha
   }
 
   // One resolved owner supplies both fury effects and the ICD for this proc attempt.
-  const masterFencerProfile = requireBalanceProfileFromContext(context, TRAIT.MASTER_FENCER);
+  const masterFencerProfile = requireBalanceProfile(context.helpers, TRAIT.MASTER_FENCER);
   const furyEffects = ['Self Fury', 'Allied Fury'].flatMap((name) => {
     const effect = requireEffect(masterFencerProfile, 'boon', name);
     return effect ? [effect] : [];
@@ -413,7 +413,7 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
     return;
   }
 
-  const sharperImagesProfile = requireBalanceProfileFromContext(context, TRAIT.SHARPER_IMAGES);
+  const sharperImagesProfile = requireBalanceProfile(context.helpers, TRAIT.SHARPER_IMAGES);
   const effect = requireEffect(sharperImagesProfile, 'condition', CONDITION.BLEEDING);
 
   if (!effect) return;
@@ -462,7 +462,7 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
 
 /** Read fixed stack tuning with the parent query cache while the applied stacks remain live. */
 function prepareFencersFinesse(context: Gw2ModifierContext) {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.FENCERS_FINESSE);
+  const profile = requireBalanceProfile(context.catalog, TRAIT.FENCERS_FINESSE);
   return {
     duration: balanceProfileNumber(profile, 'duration'),
     maximum: balanceProfileNumber(profile, 'maximumStacks'),
@@ -504,7 +504,7 @@ function applyFencersFinesse(runtime: MesmerRuntime, event: SimulationEvent): vo
 
   if (!skill || skill.weapon !== WEAPON.SWORD || event.summonKind === 'clone') return;
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.FENCERS_FINESSE);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.FENCERS_FINESSE);
   const traitSource = {
     source: 'Trait',
     sourceId: TRAIT.FENCERS_FINESSE,

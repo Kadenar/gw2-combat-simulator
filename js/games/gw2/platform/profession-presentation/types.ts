@@ -301,13 +301,8 @@ interface ProfessionUiContext<TProfessionState = unknown> {
   /** Simulation config selection, used when a resolved runtime's UI is queried outside the application. */
   readonly config?: ProfessionConfig;
   readonly build?: Gw2CanonicalBuild | null;
-  readonly catalog?: CanonicalCatalog | null;
-  readonly professionState?: TProfessionState;
-}
-
-/** Trait-dependent displays must resolve saved positions against an explicit selected catalog. */
-export interface ProfessionCatalogContext {
   readonly catalog: CanonicalCatalog;
+  readonly professionState?: TProfessionState;
 }
 
 /** Live palette projection at the rotation insertion point. */
@@ -335,13 +330,10 @@ export interface ProfessionResourceViewContext<
 }
 
 /** Result-view callbacks that describe a completed simulation. */
-interface ProfessionResultUiContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
+export interface ProfessionResultUiContext<TProfessionState = unknown> extends ProfessionUiContext<TProfessionState> {
   readonly result?: Gw2SimulationResult | null;
   readonly profession?: object | null;
 }
-
-/** Event-log rows; the caller owns time and resource formatting. */
-export type ProfessionEventLogContext<TProfessionState = unknown> = ProfessionResultUiContext<TProfessionState>;
 
 /** Rotation state snapshot at the inspected point. */
 export interface ProfessionStateSnapshotContext<TProfessionState = unknown> extends Omit<
@@ -401,7 +393,7 @@ export interface ProfessionSkillBarSelectionChange {
  */
 export type ProfessionUiCallbackContext<TProfessionState = unknown> = ProfessionPaletteContext<TProfessionState> &
   ProfessionResourceViewContext<TProfessionState> &
-  ProfessionEventLogContext<TProfessionState> &
+  ProfessionResultUiContext<TProfessionState> &
   Partial<ProfessionStateSnapshotContext<TProfessionState>> &
   ProfessionChargeReleaseContext &
   ProfessionWeaponLineContext<TProfessionState> &
@@ -443,19 +435,17 @@ export interface ProfessionUiContract<TProfessionState = unknown, TSkill extends
     context: ProfessionResultUiContext<TProfessionState>
   ) => ProfessionEffectPresentation[];
   readonly eventLogRow?: (
-    context: ProfessionEventLogContext<TProfessionState>,
+    context: ProfessionResultUiContext<TProfessionState>,
     event: SimulationEvent
   ) => ProfessionEventLogDescriptor | null | undefined;
   readonly isPaletteSkillInstant: (context: ProfessionPaletteContext<TProfessionState>, skill: TSkill) => boolean;
   /** Narrow authoring and tile-identity exceptions; ordinary gates come from the planning observation. */
   readonly paletteOverride?: (
-    context: ProfessionPaletteContext<TProfessionState> & ProfessionCatalogContext,
+    context: ProfessionPaletteContext<TProfessionState>,
     skill: TSkill
   ) => PaletteOverride | undefined;
   readonly isSlotSkillSelectable: (context: ProfessionUiContext<TProfessionState>, skill: TSkill) => boolean;
-  readonly paletteGroups: (
-    context: ProfessionPaletteContext<TProfessionState> & ProfessionCatalogContext
-  ) => ProfessionPaletteGroup[];
+  readonly paletteGroups: (context: ProfessionPaletteContext<TProfessionState>) => ProfessionPaletteGroup[];
   /** Adds or projects profession-owned actions before the shell renders them. */
   readonly paletteActionSkills: (
     context: ProfessionPaletteContext<TProfessionState>,
@@ -477,18 +467,12 @@ export interface ProfessionUiContract<TProfessionState = unknown, TSkill extends
   ) => RotationCommand | RotationCommand[] | null | undefined;
   /** Applies a profession-owned palette control action to mutable build state. */
   readonly updatePaletteControl: (context: ProfessionPaletteContext<TProfessionState>, controlId: string) => boolean;
-  readonly resourceViews: (
-    context: ProfessionResourceViewContext<TProfessionState> & ProfessionCatalogContext
-  ) => ProfessionResourceView[];
-  readonly skillBarGroups: (
-    context: ProfessionPaletteContext<TProfessionState> & ProfessionCatalogContext
-  ) => ProfessionSkillBarGroup[];
+  readonly resourceViews: (context: ProfessionResourceViewContext<TProfessionState>) => ProfessionResourceView[];
+  readonly skillBarGroups: (context: ProfessionPaletteContext<TProfessionState>) => ProfessionSkillBarGroup[];
   readonly startControls: (context: ProfessionUiContext<TProfessionState>) => ProfessionStartControl[];
   /** Shared loadout contract for build selections, skill bars, and palette projections. */
   readonly slotLoadout: FixedSlotLoadout<Gw2CanonicalBuild> | null;
-  readonly targetHealthThresholds: (
-    context: ProfessionUiContext<TProfessionState> & ProfessionCatalogContext
-  ) => number[];
+  readonly targetHealthThresholds: (context: ProfessionUiContext<TProfessionState>) => number[];
   readonly rotationStateSnapshot: (
     context: ProfessionStateSnapshotContext<TProfessionState>
   ) => RotationStateSnapshotItem[];

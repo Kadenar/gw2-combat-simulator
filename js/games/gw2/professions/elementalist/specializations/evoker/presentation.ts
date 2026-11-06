@@ -15,17 +15,13 @@ import type {
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
-  ProfessionCatalogContext,
   ProfessionResourceView,
   ProfessionSkillBarGroup,
   ProfessionSkillBarSelectionChange,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_ATTUNEMENTS, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import {
@@ -44,7 +40,7 @@ import { boundedNumber } from '#kernel/core/numeric.js';
 
 // the projected state record is absent until a simulation has produced one
 function uiState(
-  context: ElementalistUiContext
+  context: Pick<ElementalistUiContext, 'professionState'>
 ): Partial<
   ReturnType<typeof import('#gw2/professions/elementalist/specializations/evoker/state.js').projectEvokerPlanningState>
 > {
@@ -52,7 +48,9 @@ function uiState(
 }
 
 // prefers simulated state, then the build's configured element, then Fire
-function selectedElement(context: ElementalistUiContext): ElementalistAttunement {
+function selectedElement(
+  context: Pick<ElementalistUiContext, 'build' | 'config' | 'professionState'>
+): ElementalistAttunement {
   const build = context.build;
   const value = uiState(context)[STATE.ELEMENT] || build?.evokerElement || 'Fire';
   return ELEMENTALIST_ATTUNEMENTS.includes(value as ElementalistAttunement)
@@ -74,7 +72,7 @@ function familiarSkillId(context: ElementalistUiContext): number {
   const state = uiState(context);
   const build = context.build;
   const empoweredMaximum =
-    state[STATE.EMPOWERED_CHARGES]?.maximum ?? balanceNumberFromContext(context, TRAIT.EVOCATION, 'minimumStacks');
+    state[STATE.EMPOWERED_CHARGES]?.maximum ?? balanceNumber(context.catalog, TRAIT.EVOCATION, 'minimumStacks');
   const empowered = state[STATE.EMPOWERED_CHARGES]?.value ?? build?.initialEvokerEmpowered ?? 0;
   const name = FAMILIAR_SKILL_NAMES[element][empowered >= empoweredMaximum ? 'empowered' : 'basic'];
   return ELEMENTALIST_FAMILIAR_SKILL_IDS[name];
@@ -96,7 +94,7 @@ function evokerSkillDamageOccurrence(context: SkillDamagePreviewContext, skill: 
 
   if (skill.id !== basic && skill.id !== empowered) return null;
 
-  const resources = requireBalanceProfileFromContext(context, TRAIT.EVOCATION);
+  const resources = requireBalanceProfile(context.catalog, TRAIT.EVOCATION);
   // Each row starts from its own legal form using the simulation's existing initial resource fields.
   return {
     // Familiar completion may arm enchantments for a subsequent player hit.
@@ -110,7 +108,9 @@ function evokerSkillDamageOccurrence(context: SkillDamagePreviewContext, skill: 
 }
 
 /** Reports the brief Elemental Balance damage window only while it can affect the next action. */
-function evokerStateSnapshot(context: ElementalistUiContext): RotationStateSnapshotItem[] {
+function evokerStateSnapshot(
+  context: ProfessionStateSnapshotContext<ElementalistUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const remaining = (uiState(context)[STATE.ELEMENTAL_BALANCE_UNTIL] || 0) - Math.max(0, context.atSeconds || 0);
   return remaining > 0
     ? [
@@ -217,13 +217,13 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
       }
     ];
   },
-  resourceViews: (context: ElementalistUiContext & ProfessionCatalogContext): ProfessionResourceView[] => {
+  resourceViews: (context: ElementalistUiContext): ProfessionResourceView[] => {
     const state = uiState(context);
     const build = context.build;
     const maximum =
       state[STATE.FAMILIAR_CHARGES]?.maximum ??
-      balanceNumberFromContext(
-        context,
+      balanceNumber(
+        context.catalog,
         selectedTraits(context.catalog, context.build?.specializations || []).some(
           (trait) => trait.id === TRAIT.SPECIALIZED_ELEMENTS
         )
@@ -232,7 +232,7 @@ export const evokerUi: ElementalistUiSlice = Object.freeze({
         'maximumStacks'
       );
     const empoweredMaximum =
-      state[STATE.EMPOWERED_CHARGES]?.maximum ?? balanceNumberFromContext(context, TRAIT.EVOCATION, 'minimumStacks');
+      state[STATE.EMPOWERED_CHARGES]?.maximum ?? balanceNumber(context.catalog, TRAIT.EVOCATION, 'minimumStacks');
     // Keep fractional patched progress in the reading; only the decorative wedge class uses whole stacks.
     const empowered = boundedNumber(
       state[STATE.EMPOWERED_CHARGES]?.value ?? build?.initialEvokerEmpowered ?? 0,

@@ -5,7 +5,7 @@ import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -104,7 +104,7 @@ test('signet passives and Static Discharge consume independent selected skill fi
 
     const signet = selected.catalog.skillsById.get(ID.FORCE_SIGNET);
     assert.equal(
-      overclockRechargeWork(context, signet, 100),
+      overclockRechargeWork({ ...context, helpers: context.catalog }, signet, 100),
       100 * expected(ID.OVERCLOCK_SIGNET, 'rechargeMultiplier', 0.37)
     );
     assert.equal(overclockRechargeWork({ ...context, cooldownController: { readyAt: () => 10 } }, signet, 100), 100);
@@ -128,17 +128,20 @@ test('sword heat factors patch independently and missing selected fields never r
   });
   const context = { catalog, config: { selectedTraitIds: [] } };
   const snapshot = { heat: 70, enhancedCapacitySelected: false };
-  assert.equal(holosmithSkillStrikeFactor(context, ID.SUN_EDGE, snapshot), 0.4);
-  assert.equal(holosmithSkillStrikeFactor(context, ID.SUN_RIPPER, snapshot), 1.2);
+  assert.equal(holosmithSkillStrikeFactor(context.catalog, ID.SUN_EDGE, snapshot), 0.4);
+  assert.equal(holosmithSkillStrikeFactor(context.catalog, ID.SUN_RIPPER, snapshot), 1.2);
   const missing = {
     catalog: { skillsById: new Map([[ID.SUN_EDGE, { id: ID.SUN_EDGE, name: 'Missing tuning' }]]) },
     helpers: engineerCatalog
   };
   assert.throws(
-    () => skillNumberFromContext(missing, ID.SUN_EDGE, 'highStrikeFactor'),
+    () => skillNumber(requireSkill(missing.catalog, ID.SUN_EDGE), 'highStrikeFactor'),
     /skill=.*field=highStrikeFactor/
   );
-  assert.throws(() => skillNumberFromContext(missing, ID.SUN_RIPPER, 'highStrikeFactor'), /missing required skill/);
+  assert.throws(
+    () => skillNumber(requireSkill(missing.catalog, ID.SUN_RIPPER), 'highStrikeFactor'),
+    /missing required skill/
+  );
 });
 
 test('removed spear payloads preserve Focused, patched charge limits, and release settlement', () => {

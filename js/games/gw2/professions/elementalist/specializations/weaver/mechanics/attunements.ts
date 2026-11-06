@@ -152,7 +152,7 @@ function completeDualAttunement(context: ElementalistRuntime, cast: RuntimeCast<
         context,
         skill,
         state.weaveSelfUntil > at ? WEAVE_SELF_ATTUNEMENT_RECHARGE_SECONDS : WEAVER_DUAL_ATTUNEMENT_RECHARGE_SECONDS,
-        flowStateAttunementReduction(context)
+        flowStateAttunementReduction(context.helpers, context)
       )
     });
   }

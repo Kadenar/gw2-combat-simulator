@@ -8,7 +8,7 @@ import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/m
 import { ACTOR, COMBO_FIELD, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceNumberFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
@@ -201,15 +201,15 @@ function ordinaryOverclockEligible(context: MechanicQueriesOf<EngineerRuntime>, 
 /** The signet owns its base passive; J-Drive owns the replacement bonus while selected. */
 function forceSignetDamage(context: Gw2ModifierContext): number {
   return hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)
-    ? balanceNumberFromContext(context, TRAIT.MECH_CORE_J_DRIVE, 'damageIncrease')
-    : skillNumberFromContext(context, ID.FORCE_SIGNET, 'damageIncrease');
+    ? balanceNumber(context.catalog, TRAIT.MECH_CORE_J_DRIVE, 'damageIncrease')
+    : skillNumber(requireSkill(context.catalog, ID.FORCE_SIGNET), 'damageIncrease');
 }
 
 /** The selected trait balance supplies Superconducting's improved passive without a second literal rate. */
 function superconductingSignetDamage(context: Gw2ModifierContext): number {
   return hasTrait(context, TRAIT.MECH_CORE_J_DRIVE)
-    ? balanceNumberFromContext(context, TRAIT.MECH_CORE_J_DRIVE, 'conditionDamageIncrease')
-    : skillNumberFromContext(context, ID.SUPERCONDUCTING_SIGNET, 'conditionDamageIncrease');
+    ? balanceNumber(context.catalog, TRAIT.MECH_CORE_J_DRIVE, 'conditionDamageIncrease')
+    : skillNumber(requireSkill(context.catalog, ID.SUPERCONDUCTING_SIGNET), 'conditionDamageIncrease');
 }
 
 /** J-Drive keeps Shift's boon copying available while the signet recharges. */
@@ -238,6 +238,6 @@ export function overclockRechargeWork(
   return ordinaryOverclockEligible(context, skill) &&
     overclockSignetApplies(context, skill) &&
     (context.cooldownController.readyAt(ID.OVERCLOCK_SIGNET) || 0) <= context.time
-    ? work * skillNumberFromContext(context, ID.OVERCLOCK_SIGNET, 'rechargeMultiplier')
+    ? work * skillNumber(requireSkill(context.helpers, ID.OVERCLOCK_SIGNET), 'rechargeMultiplier')
     : work;
 }

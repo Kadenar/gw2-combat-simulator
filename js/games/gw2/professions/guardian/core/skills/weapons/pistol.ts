@@ -7,12 +7,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type {
@@ -236,7 +231,7 @@ export const GUARDIAN_WEAPONS_PISTOL_SKILL_MECHANICS: Readonly<Record<number, Sk
 
 /** Selected field duration is shared by placement and the public combo field. */
 export function guardianIgnitionFields(runtime: MechanicQueriesOf<GuardianRuntime>): Skill['comboFields'] {
-  const skill = requireSkillFromContext(runtime, ID.SYMBOL_OF_IGNITION);
+  const skill = requireSkill(runtime.helpers, ID.SYMBOL_OF_IGNITION);
 
   // Removing the activation declaration disables its field as well as its placement transition.
   if (!skill.sideEffects?.some(({ do: action }) => 'id' in action && action.id === 'ignition')) return [];
@@ -261,7 +256,7 @@ export function guardianIgnitionFields(runtime: MechanicQueriesOf<GuardianRuntim
 
 const guardianIgnitionActions: RuntimeProfession<GuardianRuntimeState, GuardianSkill>['sideEffectHandlers'] = {
   'guardian.place-ignition'(runtime) {
-    const skill = requireSkillFromContext(runtime, ID.SYMBOL_OF_IGNITION);
+    const skill = requireSkill(runtime.helpers, ID.SYMBOL_OF_IGNITION);
     const field = requireEffect(
       skill,
       'buff',
@@ -284,7 +279,7 @@ export const guardianIgnitionLifecycle = {
 // Symbol hits and projectile hits have independent ignition cooldowns. Torch pulses
 // and fire-whirl bolts also ignite, but ordinary conditions and ignition itself do not.
 export function reactToSymbolOfIgnition(context: GuardianResolverContext, event: GuardianResolverEvent): void {
-  const ignitionSkill = requireSkillFromContext(context, ID.SYMBOL_OF_IGNITION);
+  const ignitionSkill = requireSkill(context.helpers, ID.SYMBOL_OF_IGNITION);
 
   if (!ignitionSkill.sideEffects?.some(({ do: action }) => 'id' in action && action.id === 'ignition')) return;
 

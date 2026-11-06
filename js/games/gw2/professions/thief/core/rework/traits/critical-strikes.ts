@@ -2,7 +2,7 @@ import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
 import { thiefReworkStruck, type ThiefStrike } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
@@ -30,7 +30,7 @@ export const twinFangsRework = defineTrait({
         replaceThiefBuff(
           runtime,
           'twin-fangs',
-          balanceNumberFromContext(runtime, TRAIT.TWIN_FANGS, 'duration'),
+          balanceNumber(runtime.helpers, TRAIT.TWIN_FANGS, 'duration'),
           TRAIT.TWIN_FANGS,
           'Twin Fangs',
           'Trait'

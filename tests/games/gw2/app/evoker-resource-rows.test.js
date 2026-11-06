@@ -25,7 +25,7 @@ test('Evoker resource presentation distinguishes charge totals from gains', () =
   const rows = simulationEventLogRows(
     { events, resolvedEvents: [] },
     { specializations: [{ name: 'Evoker', traits: '0-0-0' }] },
-    elementalistProfession
+    { profession: elementalistProfession, catalog: elementalistProfession.catalog }
   );
   assert.deepEqual(
     rows.map((row) => row.description),

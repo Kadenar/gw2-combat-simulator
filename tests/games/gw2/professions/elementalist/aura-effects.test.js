@@ -222,7 +222,7 @@ test('Empowering Auras keeps queued grants, tick-aligned refreshes, exclusive ex
     schedule() {},
     observations: { record() {} },
     traits: new Set([TRAIT.EMPOWERING_AURAS]),
-    catalog: withProfile(elementalistCatalog, TRAIT.EMPOWERING_AURAS, { maximumStacks: 2 }),
+    helpers: withProfile(elementalistCatalog, TRAIT.EMPOWERING_AURAS, { maximumStacks: 2 }),
     effects
   };
   bindTriggerPoints(context, elementalistProfession, { specialization: 'Catalyst' });

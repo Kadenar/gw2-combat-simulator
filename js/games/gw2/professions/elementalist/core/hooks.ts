@@ -80,7 +80,7 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
     initialize(context) {
       validateElementalistGlyphs(context.helpers);
     },
-    buffPolicies: elementalistBuffPolicies,
+    buffPolicies: (runtime) => elementalistBuffPolicies(runtime.helpers),
     observeEffects: elementalistEffectStates,
     sideEffectHandlers: elementalistCoreSideEffectHandlers,
     endurance: elementalistEndurance,
@@ -107,7 +107,7 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
     },
     prepareEvent(runtime, event) {
       // Native and combo aura grants share the same one-time preparation before acceptance.
-      event = prepareElementalistAura(runtime, event);
+      event = prepareElementalistAura(runtime.helpers, runtime, event);
       const elemental = runtime.profession.core.summonedElemental;
 
       if (event.type === 'damage' && CONJURED_WEAPONS.has(String(event.skillWeapon)))

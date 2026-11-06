@@ -1,4 +1,4 @@
-import { requireSkillFromContext, skillNumber, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { pilferArtifacts } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
@@ -10,7 +10,7 @@ export const SKRITT_SCUFFLE = 'thief.skritt-scuffle';
 /** Each Skritt assistant keeps an independent lifetime, including a final pilfer at its expiry. */
 export function skrittScufflePilfer(runtime: ThiefRuntime, data: unknown): void {
   const { expiresAt } = data as { expiresAt: number };
-  const interval = skillNumberFromContext(runtime, ID.SKRITT_SCUFFLE, 'pulseInterval');
+  const interval = skillNumber(requireSkill(runtime.helpers, ID.SKRITT_SCUFFLE), 'pulseInterval');
 
   if (!(interval > 0) || runtime.time > expiresAt) return;
 
@@ -26,7 +26,7 @@ export function skrittScufflePilfer(runtime: ThiefRuntime, data: unknown): void 
 /** The scheduled pilfer carries its assistant's lifetime, including the final pulse. */
 export function completeSkrittScuffle(runtime: ThiefRuntime): void {
   const state = antiquaryState.from(runtime.profession);
-  const profile = requireSkillFromContext(runtime, ID.SKRITT_SCUFFLE);
+  const profile = requireSkill(runtime.helpers, ID.SKRITT_SCUFFLE);
   const interval = skillNumber(profile, 'pulseInterval');
   const expiresAt = canonicalTime(runtime.time + skillNumber(profile, 'duration'));
   state.nextSkrittScufflePilferAt = runtime.time + interval;

@@ -10,7 +10,7 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -199,7 +199,7 @@ const luminaryStanceActions: RuntimeProfession<GuardianRuntimeState, GuardianSki
     const event = { ...guardianCastCause(runtime, cast), offTarget: cast.command.offTarget === true };
     runtime.schedule(AURA_GRANT, cast.start, { cause: event, skillId: cast.skill.id }, undefined, -10);
     const state = luminaryState.from(runtime.profession);
-    const skill = requireSkillFromContext(runtime, cast.skill.id);
+    const skill = requireSkill(runtime.helpers, cast.skill.id);
     state.effulgentActiveUntil = canonicalTime(
       cast.start + requireBalanceNumber(skill.duration, `skill=${skill.id} field=duration`)
     );

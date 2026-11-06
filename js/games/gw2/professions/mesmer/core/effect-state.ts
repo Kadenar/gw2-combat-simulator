@@ -1,16 +1,13 @@
 import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import {
-  balanceProfileFromContext,
-  balanceProfileNumber,
-  requireBalanceProfileFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfile, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Core owns shared weapon and trait effects; selected elites register their own policies. */
-export function mesmerBuffPolicies(context: unknown): BuffStatePolicy[] {
+export function mesmerBuffPolicies(source: BalanceProfileSource): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
     { kind: 'clarity', maximumStacks: 1 },
     // Aura grants extend one damage-buff window with a patchable remaining-duration cap.
@@ -18,7 +15,7 @@ export function mesmerBuffPolicies(context: unknown): BuffStatePolicy[] {
       kind: 'illusionary-membrane',
       maximumStacks: 1,
       maximumDuration: balanceProfileNumber(
-        requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE),
+        requireBalanceProfile(source, TRAIT.ILLUSIONARY_MEMBRANE),
         'maximumDuration'
       )
     },
@@ -28,7 +25,7 @@ export function mesmerBuffPolicies(context: unknown): BuffStatePolicy[] {
     ['compounding', TRAIT.COMPOUNDING_POWER],
     ['fencer', TRAIT.FENCERS_FINESSE]
   ] as const) {
-    const profile = balanceProfileFromContext(context, id);
+    const profile = balanceProfile(source, id);
 
     if (profile) policies.push({ kind, maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
   }

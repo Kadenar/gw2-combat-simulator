@@ -5,7 +5,7 @@ import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { executeDamageOccurrence } from '#gw2/platform/skill-damage/run-occurrence.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianTooltips } from '#gw2/professions/guardian/app/tooltips.js';
 import { guardianPassiveAttributes } from '#gw2/professions/guardian/core/skills/attribute-passives.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
@@ -75,12 +75,7 @@ test('selected signet grants preserve independent tuning, readiness, and Perfect
     }
 
     assert.throws(
-      () =>
-        skillNumberFromContext(
-          { catalog: { skillsById: new Map() }, helpers: selected.catalog },
-          ID.BANE_SIGNET,
-          'attributeBonuses.power'
-        ),
+      () => skillNumber(requireSkill({ skillsById: new Map() }, ID.BANE_SIGNET), 'attributeBonuses.power'),
       /missing required skill/
     );
   }

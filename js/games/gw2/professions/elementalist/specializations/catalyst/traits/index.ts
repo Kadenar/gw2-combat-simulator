@@ -16,10 +16,11 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
@@ -58,7 +59,7 @@ const empoweringAuras = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: (context) => {
-        const profile = requireBalanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS);
+        const profile = requireBalanceProfile(context.catalog, TRAIT.EMPOWERING_AURAS);
         return (
           Math.min(balanceProfileNumber(profile, 'maximumStacks'), empoweringAuraStacks(context)) *
           balanceProfileNumber(profile, 'damageIncreasePerStack')
@@ -70,7 +71,7 @@ const empoweringAuras = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
       amount: (context) => {
-        const profile = requireBalanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS);
+        const profile = requireBalanceProfile(context.catalog, TRAIT.EMPOWERING_AURAS);
         return (
           Math.min(balanceProfileNumber(profile, 'maximumStacks'), empoweringAuraStacks(context)) *
           balanceProfileNumber(profile, 'conditionDamageIncreasePerStack')
@@ -133,7 +134,7 @@ export const baseEmpowermentPassive = definePeriodicTask<ElementalistRuntime>({
 });
 
 function nextBaseEmpowermentAt(runtime: ElementalistRuntime): number {
-  const next = canonicalTime(runtime.time + balanceNumberFromContext(runtime, TRAIT.ELEMENTAL_EMPOWERMENT, 'duration'));
+  const next = canonicalTime(runtime.time + balanceNumber(runtime.helpers, TRAIT.ELEMENTAL_EMPOWERMENT, 'duration'));
 
   if (next <= runtime.time) throw new RangeError('Elemental Empowerment renewal must advance the simulation clock.');
 
@@ -265,7 +266,7 @@ function applySphereStartTraits(
   // Sphere Specialist scales these procedural payouts once, separately from authored sphere packets.
 
   const durationMultiplier = sphereSpecialistDuration(context);
-  const spectacularSphereProfile = requireBalanceProfileFromContext(context, TRAIT.SPECTACULAR_SPHERE);
+  const spectacularSphereProfile = requireBalanceProfile(context.helpers, TRAIT.SPECTACULAR_SPHERE);
   const quickness = requireEffect(spectacularSphereProfile, 'boon', BOON.QUICKNESS);
 
   if (quickness) {
@@ -315,7 +316,7 @@ function applyEnergizedElements(context: ElementalistRuntime, event: SimulationE
   if (event.type === 'elementalist.attunement') {
     const state = catalystState.from(context.profession);
     const before = context.resourceController.value('catalystEnergy');
-    const energizedElementsProfile = requireBalanceProfileFromContext(context, TRAIT.ENERGIZED_ELEMENTS);
+    const energizedElementsProfile = requireBalanceProfile(context.helpers, TRAIT.ENERGIZED_ELEMENTS);
     const energyGain = balanceProfileNumber(energizedElementsProfile, 'resourceGain');
     // Report only the capped gain while preserving energy, Fury, then resource-observation ordering.
     context.resourceController.grant('catalystEnergy', energyGain);
@@ -365,7 +366,7 @@ function applyEnergizedElements(context: ElementalistRuntime, event: SimulationE
 
 /** Refresh Empowering Auras before Epitome grants an empowerment stack from the same aura. */
 function applyEmpoweringAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void {
-  const { maximumStacks, duration } = empoweringAurasParameters(context);
+  const { maximumStacks, duration } = empoweringAurasParameters(context.helpers);
   const state = catalystState.from(context.profession);
   const activeStacks = activeRefreshedStacks(state.empoweringAuras, event.at, 'exclusive');
   // Refresh survivors now, including at cap; new stacks still arrive at their queued buff-application boundary.
@@ -389,7 +390,7 @@ function applyEmpoweringAura(context: ElementalistRuntime, event: Gw2ResolverEve
         source: 'Trait',
         sourceId: TRAIT.EMPOWERING_AURAS,
         actorType: ACTOR.PLAYER,
-        skillName: requireBalanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS).name,
+        skillName: requireBalanceProfile(context.helpers, TRAIT.EMPOWERING_AURAS).name,
         kind: 'Empowering Auras'.toLowerCase(),
         stacks: 1,
         duration: duration,
@@ -427,13 +428,13 @@ function applyEpitomeAura(context: ElementalistRuntime, event: Gw2ResolverEvent)
     effect: { type: 'buff', name: 'Empowerment' },
     attribution: {
       actorType: ACTOR.PLAYER,
-      skillName: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_EPITOME).name,
+      skillName: requireBalanceProfile(context.helpers, TRAIT.ELEMENTAL_EPITOME).name,
       triggeredBy: resolverSourceSkill(event),
       priority: Number(event.priority || 0)
     },
     transform: (packet) => ({
       ...packet,
-      name: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_EPITOME).name
+      name: requireBalanceProfile(context.helpers, TRAIT.ELEMENTAL_EPITOME).name
     })
   });
 }
@@ -447,10 +448,10 @@ function applyEpitomeCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
     context.procs.claimCooldown(
       `elementalist.catalyst.elementalEpitome:${attunement}`,
       event.at,
-      balanceNumberFromContext(context, TRAIT.ELEMENTAL_EPITOME, 'internalCooldown')
+      balanceNumber(context.helpers, TRAIT.ELEMENTAL_EPITOME, 'internalCooldown')
     )
   ) {
-    const aura = elementalEpitomeAura(context, attunement);
+    const aura = elementalEpitomeAura(context.helpers, attunement);
 
     if (aura) {
       applyElementalistAura(context, {
@@ -482,7 +483,7 @@ function applySynergyCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
     context.procs.claimCooldown(
       `elementalist.catalyst.elementalSynergy:${attunement}`,
       event.at,
-      balanceNumberFromContext(context, TRAIT.ELEMENTAL_SYNERGY, 'internalCooldown')
+      balanceNumber(context.helpers, TRAIT.ELEMENTAL_SYNERGY, 'internalCooldown')
     )
   ) {
     if (attunement === 'Fire' || attunement === 'Earth') {
@@ -493,17 +494,17 @@ function applySynergyCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
         effect: { type: 'boon', name: attunement },
         attribution: {
           actorType: ACTOR.PLAYER,
-          skillName: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SYNERGY).name,
+          skillName: requireBalanceProfile(context.helpers, TRAIT.ELEMENTAL_SYNERGY).name,
           triggeredBy: resolverSourceSkill(event),
           priority: Number(event.priority || 0)
         },
         transform: (packet) => ({
           ...packet,
-          name: requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_SYNERGY).name
+          name: requireBalanceProfile(context.helpers, TRAIT.ELEMENTAL_SYNERGY).name
         })
       });
     } else if (attunement === 'Air') {
-      context.endurance.grant(balanceNumberFromContext(context, TRAIT.ELEMENTAL_SYNERGY, 'resourceGain'));
+      context.endurance.grant(balanceNumber(context.helpers, TRAIT.ELEMENTAL_SYNERGY, 'resourceGain'));
     }
 
     context.effects.emit({
@@ -514,8 +515,8 @@ function applySynergyCombo(context: ElementalistRuntime, event: Gw2ResolverEvent
 }
 
 /** Resolves the shared aura defaults; the resolver retains its canonical attunement identity. */
-function elementalEpitomeAura(context: unknown, attunement: ElementalistAttunement) {
-  const elementalEpitomeProfile = requireBalanceProfileFromContext(context, TRAIT.ELEMENTAL_EPITOME);
+function elementalEpitomeAura(source: BalanceProfileSource, attunement: ElementalistAttunement) {
+  const elementalEpitomeProfile = requireBalanceProfile(source, TRAIT.ELEMENTAL_EPITOME);
   const effect = requireEffect(elementalEpitomeProfile, 'aura', attunement);
 
   if (!effect) return undefined;
@@ -552,13 +553,13 @@ function applyViciousEmpowerment(context: MechanicCombatContext, event: Gw2Resol
     effects: (effect) => effect.type === 'boon' || effect.type === 'buff',
     attribution: {
       actorType: ACTOR.PLAYER,
-      skillName: requireBalanceProfileFromContext(context, TRAIT.VICIOUS_EMPOWERMENT).name,
+      skillName: requireBalanceProfile(context.helpers, TRAIT.VICIOUS_EMPOWERMENT).name,
       triggeredBy: resolverSourceSkill(event),
       priority: Number(event.priority || 0)
     },
     transform: (packet) => ({
       ...packet,
-      name: requireBalanceProfileFromContext(context, TRAIT.VICIOUS_EMPOWERMENT).name
+      name: requireBalanceProfile(context.helpers, TRAIT.VICIOUS_EMPOWERMENT).name
     })
   });
 
@@ -573,7 +574,7 @@ export function applyEmpoweringAurasBuff(context: ElementalistRuntime, event: Gw
   if (event.kind !== 'empowering auras' || !event.resolvedAudience?.includesSelf) return;
 
   const state = catalystState.from(context.profession);
-  const { maximumStacks } = empoweringAurasParameters(context);
+  const { maximumStacks } = empoweringAurasParameters(context.helpers);
   state.empoweringAuras = grantRefreshedStacks(
     state.empoweringAuras,
     event.stacks || 1,
@@ -591,8 +592,8 @@ export function empoweringAuraStacks(context: Gw2ModifierContext): number {
 }
 
 /** Shares aura-stack parameters while each phase retains its grant and refresh rules. */
-function empoweringAurasParameters(context: unknown) {
-  const empoweringAurasProfile = requireBalanceProfileFromContext(context, TRAIT.EMPOWERING_AURAS);
+function empoweringAurasParameters(source: BalanceProfileSource) {
+  const empoweringAurasProfile = requireBalanceProfile(source, TRAIT.EMPOWERING_AURAS);
   return {
     maximumStacks: balanceProfileNumber(empoweringAurasProfile, 'maximumStacks'),
     duration: balanceProfileNumber(empoweringAurasProfile, 'duration')

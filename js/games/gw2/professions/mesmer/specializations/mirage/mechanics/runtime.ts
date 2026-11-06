@@ -11,7 +11,7 @@ export function mesmerAmbushAttacks(context: MesmerRuntime) {
   return Object.fromEntries(
     Object.entries(MESMER_MIRAGE_AMBUSH_SKILLS).map(([weapon, attack]) => [
       weapon,
-      mesmerSelectedAmbush(context, attack.id)
+      mesmerSelectedAmbush(context.helpers, attack.id)
     ])
   );
 }

@@ -4,7 +4,7 @@ import { extendPeriodicEffects } from '#gw2/platform/effects/periodic.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
@@ -22,7 +22,7 @@ export function extendPersistingFlamesEffects(
   )
     return effects;
 
-  const extension = balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'durationPerTier');
+  const extension = balanceNumber(context.helpers, TRAIT.PERSISTING_FLAMES, 'durationPerTier');
   return extendPeriodicEffects(effects, Math.round(extension * 1000));
 }
 
@@ -34,7 +34,7 @@ export function extendPersistingFlamesFields(
 ): Skill['comboFields'] {
   if (!hasTrait(context, TRAIT.PERSISTING_FLAMES) || cast.skill.type !== 'Weapon') return fields;
 
-  const extension = balanceNumberFromContext(context, TRAIT.PERSISTING_FLAMES, 'durationPerTier');
+  const extension = balanceNumber(context.helpers, TRAIT.PERSISTING_FLAMES, 'durationPerTier');
   return fields?.map((field) =>
     field.fieldType === COMBO_FIELD.FIRE ? { ...field, duration: Number(field.duration) + extension } : field
   );

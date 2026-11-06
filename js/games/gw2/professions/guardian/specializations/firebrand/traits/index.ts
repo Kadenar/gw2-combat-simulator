@@ -9,10 +9,10 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
@@ -94,7 +94,7 @@ export const swiftScholar = defineTrait({
           state.swiftScholarCount = 0;
         }
 
-        const profile = requireBalanceProfileFromContext(runtime, TRAIT.SWIFT_SCHOLAR);
+        const profile = requireBalanceProfile(runtime.helpers, TRAIT.SWIFT_SCHOLAR);
         // Complete this tome's page cycle at acceptance while leaving the earned refund attached to its cast.
         const progress = advanceCounter(
           state.swiftScholarCount,
@@ -159,7 +159,7 @@ const legendaryLore = defineTrait<GuardianSkill>({
 
         if (!skill.tome) return;
 
-        const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.LEGENDARY_LORE);
+        const boonProfile = requireBalanceProfile(runtime.helpers, TRAIT.LEGENDARY_LORE);
         const selectedBoon = requireEffect(
           boonProfile,
           'boon',
@@ -195,7 +195,7 @@ const imbuedHaste = defineTrait({
     attributeBonuses: { conditionDamage: 250, healingPower: 250, vitality: 250 }
   },
   attributes: ({ loadout, balanceContext }) => ({
-    attributeEffects: ownerAttributeEffects(requireBalanceProfileFromContext(balanceContext, TRAIT.IMBUED_HASTE)).map(
+    attributeEffects: ownerAttributeEffects(requireBalanceProfile(balanceContext.catalog, TRAIT.IMBUED_HASTE)).map(
       (effect) => ({ ...effect, feedsConversions: 'all', enabled: loadout.assumptions.quickness !== false })
     )
   })
@@ -216,7 +216,7 @@ export const liberatorsVow = defineTrait({
 
         if (skill.type !== 'Heal') return;
 
-        const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.LIBERATORS_VOW);
+        const boonProfile = requireBalanceProfile(runtime.helpers, TRAIT.LIBERATORS_VOW);
         const selectedBoon = requireEffect(boonProfile, 'boon', boonKey(BOON.QUICKNESS));
 
         if (
@@ -263,7 +263,7 @@ const weightyTerms = defineTrait({
         const skill = cast.skill;
 
         if (MANTRAS.some(({ finalId }) => finalId === skill.id)) {
-          const gain = balanceNumberFromContext(runtime, TRAIT.WEIGHTY_TERMS, 'resourceGain');
+          const gain = balanceNumber(runtime.helpers, TRAIT.WEIGHTY_TERMS, 'resourceGain');
           // The final-charge trigger owns the rewards; the completed cast retains the proc report.
 
           runtime.effects.emit({
@@ -408,7 +408,7 @@ function openSwiftScholarSession(runtime: GuardianRuntime, { cast, virtue, ready
 
   if (!ready) return;
 
-  const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.SWIFT_SCHOLAR);
+  const boonProfile = requireBalanceProfile(runtime.helpers, TRAIT.SWIFT_SCHOLAR);
   const selectedBoon = requireEffect(boonProfile, 'boon', boonKey(BOON.QUICKNESS));
   const boonCause = guardianCastCause(runtime, cast);
 
@@ -455,7 +455,7 @@ function sharedDelivery(event: Gw2ResolverEvent): boolean {
 
 /** Delivered Aegis or Stability claims the interval only when its derived boons survive. */
 function grantStalwartSpeed(runtime: GuardianRuntime, { cause: boonCause }: FirebrandBuffApplication): void {
-  const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.STALWART_SPEED);
+  const boonProfile = requireBalanceProfile(runtime.helpers, TRAIT.STALWART_SPEED);
   const selectedBoons = (boonProfile.effects ?? []).filter((effect) => effect.type === 'boon');
 
   // Reserve the interval before delivery, so derived boons cannot reenter the proc.
@@ -493,8 +493,8 @@ function grantStalwartSpeed(runtime: GuardianRuntime, { cause: boonCause }: Fire
 /** Delivered Quickness grants the selected allied or self Ashes count once both the charge and Burning survive. */
 function grantQuickfireAshes(runtime: GuardianRuntime, { cause: event }: FirebrandBuffApplication): void {
   const allies = event.resolvedAudience?.alliedPlayerCount ?? 0;
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.QUICKFIRE);
-  const admission = resolveAshesGrantData(runtime, profile);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.QUICKFIRE);
+  const admission = resolveAshesGrantData({ catalog: runtime.helpers, traits: runtime.traits }, profile);
 
   if (!admission || !runtime.procs.claim(TRAIT.QUICKFIRE, 'guardian.firebrand.quickfire', runtime.time)) return;
 
@@ -523,7 +523,7 @@ function grantQuickfireAshes(runtime: GuardianRuntime, { cause: event }: Firebra
 
 /** Accepted player controls grant the surviving Stoic Demeanor boons. */
 function grantStoicDemeanor(runtime: GuardianRuntime, { cause: boonCause }: FirebrandControl): void {
-  const boonProfile = requireBalanceProfileFromContext(runtime, TRAIT.STOIC_DEMEANOR);
+  const boonProfile = requireBalanceProfile(runtime.helpers, TRAIT.STOIC_DEMEANOR);
   const selectedBoons = (boonProfile.effects ?? []).filter((effect) => effect.type === 'boon');
 
   if (!selectedBoons.length) return;

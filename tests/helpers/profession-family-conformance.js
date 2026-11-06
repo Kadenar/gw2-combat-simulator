@@ -164,7 +164,7 @@ export function assertProfessionFamilyConformance({ family, core, specialization
     const context = {
       catalog: family.catalog,
       resources: previewEndurance
-        ? { endurance: { maximum: previewEndurance.maximum({ catalog: family.catalog, config }) } }
+        ? { endurance: { maximum: previewEndurance.maximum({ helpers: family.catalog, config }) } }
         : {},
       config,
       build: family.createBuildDefaults(),

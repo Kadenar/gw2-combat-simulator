@@ -14,9 +14,9 @@ import type { ParsedEvtc } from '#gw2/integrations/logs/evtc/types.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import {
-  attributeBonusNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext
+  ownerAttributeBonusNumber,
+  requireBalanceProfile
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -74,12 +74,12 @@ function petExpertise(catalog: Readonly<CanonicalCatalog>, config: Gw2Config, pe
   if (!hasSelectedTrait(config, TRAIT.ARACHNOPHOBIA)) return 0;
 
   // Once selected, Arachnophobia's pet bonuses are required balance data.
-  const profile = requireBalanceProfileFromContext({ catalog }, TRAIT.ARACHNOPHOBIA);
-  const expertise = attributeBonusNumber(profile, 'expertise');
+  const profile = requireBalanceProfile(catalog, TRAIT.ARACHNOPHOBIA);
+  const expertise = ownerAttributeBonusNumber(profile, 'expertise');
   return (
     expertise +
     (['spider', 'devourer'].includes(pet.family)
-      ? attributeBonusNumber(profile, 'expertise', 'conditionalAttributeBonuses')
+      ? ownerAttributeBonusNumber(profile, 'expertise', 'conditionalAttributeBonuses')
       : 0)
   );
 }

@@ -1,7 +1,7 @@
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
-import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -18,7 +18,7 @@ interface PassiveCouragePolicy {
 /** Dormancy skips delivery without shifting Courage's cadence; removed effects or disabled intervals stop it. */
 export function createPassiveCourageTask(policy: PassiveCouragePolicy): (runtime: GuardianRuntime) => void {
   return (runtime) => {
-    const skill = requireSkillFromContext(runtime, policy.skillId);
+    const skill = requireSkill(runtime.helpers, policy.skillId);
     const interval = policy.interval(runtime, skill);
     const effect = requireEffect(skill, 'boon', boonKey(BOON.AEGIS));
 

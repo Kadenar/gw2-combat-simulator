@@ -12,7 +12,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { resolveAshes, type ResolvedAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
@@ -80,7 +80,7 @@ export const firebrandTooltips = {
           (balanceContext) => [
             {
               name: 'Base passive dormancy',
-              detail: tooltipSeconds(skillNumberFromContext(balanceContext, id, 'dormantCooldown'))
+              detail: tooltipSeconds(skillNumber(requireSkill(balanceContext.catalog, id), 'dormantCooldown'))
             },
             profileFact(balanceContext, TRAIT.PURITY_OF_WORD, 'maximumStacks', 'Base shared page capacity'),
             profileFact(
@@ -127,7 +127,7 @@ export const firebrandTooltips = {
         traits: new Set(build ? selectedTraits(context.catalog, build.specializations).map((trait) => trait.id) : [])
       });
       const grant = simulationEffectFacts(
-        requireSkillAction(requireSkillFromContext(context, ID.ASHES_OF_THE_JUST), 'grant').effects.map((effect) => ({
+        requireSkillAction(requireSkill(context.catalog, ID.ASHES_OF_THE_JUST), 'grant').effects.map((effect) => ({
           ...effect,
           audience: { recipients: RECIPIENT.PARTY }
         })),

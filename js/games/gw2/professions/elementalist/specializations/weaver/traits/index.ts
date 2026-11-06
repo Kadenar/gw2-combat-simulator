@@ -10,9 +10,9 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusNumber,
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
+  balanceNumber,
+  ownerAttributeBonusNumber,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { type ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
@@ -51,7 +51,7 @@ const elementalPolyphony = defineTrait({
   // Each distinct active attunement contributes once, including configured hands before runtime exists.
   attributes(context) {
     const config: ElementalistConfig | undefined = context.config;
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.ELEMENTAL_POLYPHONY);
+    const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.ELEMENTAL_POLYPHONY);
     const active = new Set([primaryAttunement(context)]);
     const secondary =
       readProfessionSpecializationState<{ secondaryAttunement?: string }>(context.runtime?.profession, 'Weaver')
@@ -64,28 +64,28 @@ const elementalPolyphony = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusNumber(profile, 'power'),
+          amount: ownerAttributeBonusNumber(profile, 'power'),
           feedsConversions: 'none',
           enabled: active.has('Fire')
         },
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: attributeBonusNumber(profile, 'ferocity'),
+          amount: ownerAttributeBonusNumber(profile, 'ferocity'),
           feedsConversions: 'none',
           enabled: active.has('Air')
         },
         {
           kind: 'flat',
           to: 'Healing Power',
-          amount: attributeBonusNumber(profile, 'healingPower'),
+          amount: ownerAttributeBonusNumber(profile, 'healingPower'),
           feedsConversions: 'none',
           enabled: active.has('Water')
         },
         {
           kind: 'flat',
           to: 'Condition Damage',
-          amount: attributeBonusNumber(profile, 'conditionDamage'),
+          amount: ownerAttributeBonusNumber(profile, 'conditionDamage'),
           feedsConversions: 'none',
           enabled: active.has('Earth')
         }
@@ -114,7 +114,7 @@ const superiorElements = defineTrait({
       id: 'elementalist.superior-elements',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.SUPERIOR_ELEMENTS, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.SUPERIOR_ELEMENTS, 'criticalChance'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.WEAKNESS)
     }
@@ -190,14 +190,14 @@ const elementsOfRage = defineTrait({
       id: 'elementalist.elements-of-rage-strike',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.ELEMENTS_OF_RAGE, 'damageIncrease'),
       when: (context) => activeBuffStacks(context, 'elements of rage', 1) > 0
     },
     {
       id: 'elementalist.elements-of-rage-condition',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'conditionDamageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.ELEMENTS_OF_RAGE, 'conditionDamageIncrease'),
       when: (context) => activeBuffStacks(context, 'elements of rage', 1) > 0
     }
   ],
@@ -259,7 +259,7 @@ function applyElementsOfRageAttunement(context: ElementalistRuntime, event: Simu
         actorType: ACTOR.PLAYER,
         kind: 'elements of rage',
         stacks: 1,
-        duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'duration'),
+        duration: balanceNumber(context.helpers, TRAIT.ELEMENTS_OF_RAGE, 'duration'),
         skillName: source
       })
     );
@@ -275,7 +275,7 @@ function applyWeaversProwess(context: ElementalistRuntime, event: SimulationEven
     unravelActive = weaverState.from(context.profession).unravelUntil > at;
 
   if (unravelActive || target === previous) {
-    const weaversProwessProfile = requireBalanceProfileFromContext(context, TRAIT.WEAVERS_PROWESS);
+    const weaversProwessProfile = requireBalanceProfile(context.helpers, TRAIT.WEAVERS_PROWESS);
     const resistance = requireEffect(weaversProwessProfile, 'boon', BOON.RESISTANCE);
 
     if (resistance) {
@@ -363,7 +363,7 @@ function applySwiftRevenge(context: ElementalistRuntime, { cast, dualAttunements
           }
         });
       } else if (element === 'Earth') {
-        context.endurance.grant(balanceNumberFromContext(context, TRAIT.SWIFT_REVENGE, 'resourceGain'));
+        context.endurance.grant(balanceNumber(context.helpers, TRAIT.SWIFT_REVENGE, 'resourceGain'));
       }
     }
   }
@@ -408,7 +408,7 @@ function applyUnravelElementsOfRage(
           actorType: ACTOR.PLAYER,
           name: skill.name,
           kind: 'elements of rage',
-          duration: balanceNumberFromContext(context, TRAIT.ELEMENTS_OF_RAGE, 'duration'),
+          duration: balanceNumber(context.helpers, TRAIT.ELEMENTS_OF_RAGE, 'duration'),
           stacks: 1
         },
         { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }

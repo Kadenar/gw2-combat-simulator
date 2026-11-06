@@ -12,7 +12,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 
 const willbenderVirtueTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
@@ -31,8 +31,8 @@ const willbenderVirtueTooltip: DescribeSimulationTooltip = (balanceContext, enti
         'base active window'
       ).facts,
       ...simulationEffectFacts(
-        requireSkillFromContext(
-          balanceContext,
+        requireSkill(
+          balanceContext.catalog,
           [ID.WILLBENDER_FLAMES_ID_62618, ID.WILLBENDER_FLAMES, ID.WILLBENDER_FLAMES_COURAGE][index]
         ).effects,
         'full flame trail'

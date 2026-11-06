@@ -279,7 +279,7 @@ test('Elemental Empowerment tracks all ten stacks in its timed pool', () => {
   const state = catalystState.create();
   const context = {
     procs: createProcRegistry(() => context),
-    catalog: elementalistCatalog,
+    helpers: elementalistCatalog,
     profession: {
       specialization: { kind: 'Catalyst', state }
     }
@@ -358,7 +358,7 @@ test('Relentless Fire exposes separate strike and condition modifiers for its ac
   const modifiers = createModifierHooks({ rules: relentlessFireModifiers });
   const context = {
     procs: createProcRegistry(() => context),
-    catalog: elementalistCatalog,
+    helpers: elementalistCatalog,
     time: 1,
     runtime: {
       boons: new Map([]),
@@ -402,7 +402,7 @@ test('Shattering Ice is proc-only and accepts player-owned effect and field atta
   const state = catalystState.create();
   const context = {
     procs: createProcRegistry(() => context),
-    catalog: elementalistCatalog,
+    helpers: elementalistCatalog,
     profession: { specialization: { kind: 'Catalyst', state } },
     config: {},
     queue: new StableEventQueue(),

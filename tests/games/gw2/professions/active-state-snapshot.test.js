@@ -268,7 +268,7 @@ test('force clocks are detached in snapshots and planning projections and absent
     // Projection must leave the live resource and its capacity untouched.
     assert.deepEqual(clock, { value: 37, maximum: 90, updatedAt: 2, unitsPerSecond: 0 });
     for (const professionState of [projected]) {
-      const resources = profession.ui.resourceViews({ specialization, professionState });
+      const resources = profession.ui.resourceViews({ catalog: profession.catalog, specialization, professionState });
       assert.equal(
         resources.find(({ id }) => id === (specialization === 'Druid' ? 'astral-force' : 'shadow-force')).value,
         37

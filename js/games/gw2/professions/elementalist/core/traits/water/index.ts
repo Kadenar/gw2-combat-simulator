@@ -6,9 +6,9 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
@@ -63,7 +63,7 @@ export const flowLikeWater = defineTrait({
       id: 'elementalist.flow-like-water',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.FLOW_LIKE_WATER, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.FLOW_LIKE_WATER, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -82,8 +82,8 @@ export const piercingShards = defineTrait({
 
       factor: (context) =>
         primaryAttunement(context) === 'Water'
-          ? balanceNumberFromContext(context, TRAIT.PIERCING_SHARDS, 'waterFactor')
-          : balanceNumberFromContext(context, TRAIT.PIERCING_SHARDS, 'otherFactor'),
+          ? balanceNumber(context.catalog, TRAIT.PIERCING_SHARDS, 'waterFactor')
+          : balanceNumber(context.catalog, TRAIT.PIERCING_SHARDS, 'otherFactor'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.VULNERABILITY)
     }
@@ -99,7 +99,7 @@ function applySoothingIce(context: ElementalistRuntime, { cast }: ElementalistCa
     return;
   }
 
-  const soothingIceProfile = requireBalanceProfileFromContext(context, TRAIT.SOOTHING_ICE);
+  const soothingIceProfile = requireBalanceProfile(context.helpers, TRAIT.SOOTHING_ICE);
 
   // Claim the existing owner-local timer before any derived effect.
   if (!context.procs.claimCooldown('soothingIce', at, balanceProfileNumber(soothingIceProfile, 'internalCooldown')))

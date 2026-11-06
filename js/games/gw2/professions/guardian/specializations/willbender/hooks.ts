@@ -13,7 +13,7 @@ import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guard
 export const willbenderHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianSkill>([
   willbenderVirtueLifecycle,
   {
-    buffPolicies: willbenderBuffPolicies,
+    buffPolicies: (runtime) => willbenderBuffPolicies(runtime.helpers),
     observeEffects: willbenderEffectStates,
     availability(runtime, skill) {
       // Flame identities supply virtue-owned damage; direct casts would bypass the controller's lifetime rules.

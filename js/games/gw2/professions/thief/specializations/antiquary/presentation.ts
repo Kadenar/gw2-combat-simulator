@@ -3,11 +3,10 @@ import { activeChargeCount, activeChargeGrants } from '#gw2/platform/combat/reso
 import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
-  ProfessionCatalogContext,
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -22,7 +21,7 @@ import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js
 
 /** Surfaces Combat High plus artifact effects with duration or consumable charges. */
 function antiquaryStateSnapshot(
-  context: ThiefUiContext & Pick<ProfessionStateSnapshotContext, 'balanceContext'>
+  context: ProfessionStateSnapshotContext<ThiefUiContext['professionState']>
 ): RotationStateSnapshotItem[] {
   const state = thiefUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
@@ -35,7 +34,7 @@ function antiquaryStateSnapshot(
       (trait) => trait.id === TRAIT.PRODIGIOUS_PINCHER
     )
   ) {
-    const threshold = balanceNumberFromContext(context.balanceContext, TRAIT.PRODIGIOUS_PINCHER, 'threshold');
+    const threshold = balanceNumber(context.balanceContext.catalog, TRAIT.PRODIGIOUS_PINCHER, 'threshold');
     const spent = Math.max(0, state[STATE.INITIATIVE_SPENT_SINCE_PILFER] || 0);
     items.push({
       id: 'antiquary-prodigious-pincher',
@@ -59,7 +58,7 @@ function antiquaryStateSnapshot(
   const combatHigh = purgeExpiredStacks(state[STATE.COMBAT_HIGH_EXPIRATIONS] || [], at);
 
   if (combatHigh.length > 0) {
-    const maximum = balanceNumberFromContext(context.balanceContext, TRAIT.COMBAT_HIGH, 'maximumStacks');
+    const maximum = balanceNumber(context.balanceContext.catalog, TRAIT.COMBAT_HIGH, 'maximumStacks');
     const remaining = Math.max(...combatHigh) - at;
     items.push({
       id: 'antiquary-combat-high',
@@ -171,7 +170,7 @@ export const antiquaryUi = Object.freeze({
     preStealResourceView(context.professionState?.[STATE.ARTIFACT_USES_REMAINING] || 0)
   ],
   // Reshuffle is queue-only; this veto affects direct palette insertion, never runtime legality.
-  paletteOverride: (context: ThiefUiContext & ProfessionCatalogContext, skill: ThiefSkill) => {
+  paletteOverride: (context: ThiefUiContext, skill: ThiefSkill) => {
     if (skill.id !== ID.RESHUFFLE) return;
 
     const cardSwap =

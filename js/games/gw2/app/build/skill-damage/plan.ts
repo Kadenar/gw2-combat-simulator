@@ -327,7 +327,7 @@ function slotBadge(skill: Skill): string {
 /** "chain n of m" for chained skills; followers stop where a looping chain returns to its start. */
 /** Read chain positions for labels only; no predecessors are executed. */
 function chainPredecessors(app: ProfessionAppState, skill: Skill): Skill[] {
-  const positions = (app.activeCatalog ?? app.profession.catalog).autoattackChainPositions;
+  const positions = app.activeCatalog.autoattackChainPositions;
   const position = positions.get(Number(skill.id));
 
   if (position)

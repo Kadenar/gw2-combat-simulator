@@ -59,7 +59,7 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     config,
     hasBuff: () => false,
     profession: runtime.createState(config),
-    catalog: runtime.catalog,
+    helpers: runtime.catalog,
     time: 0,
     activeWeaponSet: 1,
     events,

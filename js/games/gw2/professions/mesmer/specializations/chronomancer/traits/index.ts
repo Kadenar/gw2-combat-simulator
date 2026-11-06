@@ -14,9 +14,9 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
@@ -43,7 +43,7 @@ const dangerTime = defineTrait<MesmerSkill>({
       id: 'mesmer.danger-time',
       target: MODIFIER_TARGET.CRITICAL_DAMAGE,
       operation: 'multiply',
-      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.DANGER_TIME, 'criticalDamage'),
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.DANGER_TIME, 'criticalDamage'),
       when: (context) =>
         [ACTOR.PLAYER, ACTOR.SUMMON].some((member) => member === gw2EventActorType(context.event)) &&
         buffActive(context, 'danger-time')
@@ -65,7 +65,7 @@ const flowOfTime = defineTrait<MesmerSkill>({
     traitCriticalChance:
       loadout.assumptions.alacrity !== false &&
       (!event || [ACTOR.PLAYER, ACTOR.SUMMON].some((member) => member === gw2EventActorType(event)))
-        ? 100 * balanceNumberFromContext(balanceContext, TRAIT.FLOW_OF_TIME, 'criticalChance')
+        ? 100 * balanceNumber(balanceContext.catalog, TRAIT.FLOW_OF_TIME, 'criticalChance')
         : 0
   })
 });
@@ -96,7 +96,7 @@ const chronophantasma = defineTrait<MesmerSkill>({
           label: 'Chronophantasma',
           traitId: TRAIT.CHRONOPHANTASMA,
           traitName: 'Chronophantasma',
-          damageMultiplier: balanceNumberFromContext(runtime, TRAIT.CHRONOPHANTASMA, 'damageMultiplier')
+          damageMultiplier: balanceNumber(runtime.helpers, TRAIT.CHRONOPHANTASMA, 'damageMultiplier')
         };
       }
     })
@@ -113,7 +113,7 @@ const timeCatchesUp = defineTrait<MesmerSkill>({
       id: 'mesmer.time-catches-up',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.TIME_CATCHES_UP, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.TIME_CATCHES_UP, 'damageMultiplier'),
       order: 100,
       // Time Catches Up affects only first-strike shatter packets against a movement-impaired target.
       when: (context) =>
@@ -202,7 +202,7 @@ const timeBomb = defineTrait<MesmerSkill>({
       requiresSelection: false,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.TIME_BOMB, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.TIME_BOMB, 'damageMultiplier'),
       // Preserve Time Catches Up before the applied Time Bomb multiplier.
       order: 101,
       when: (context) => isGw2PlayerActorEvent(context.event) && buffActive(context, 'time-bomb')
@@ -232,7 +232,7 @@ function triggerShatterBoon(
   traitId: number,
   effectName: 'alacrity' | 'quickness'
 ): void {
-  const profile = requireBalanceProfileFromContext(context, traitId);
+  const profile = requireBalanceProfile(context.helpers, traitId);
 
   if (!requireEffect(profile, 'boon', effectName)) return;
 
@@ -279,13 +279,13 @@ function triggerShatterBoon(
 
 /** Refunds one clone only when a Chronomancer shatter commits the configured full-clone threshold. */
 function resolveIllusionaryReversion(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  if (resolution.spent !== balanceNumberFromContext(context, TRAIT.ILLUSIONARY_REVERSION, 'threshold')) {
+  if (resolution.spent !== balanceNumber(context.helpers, TRAIT.ILLUSIONARY_REVERSION, 'threshold')) {
     return;
   }
 
   createMesmerIllusionRewards(context).queueResources(
     resolution.at,
-    balanceNumberFromContext(context, TRAIT.ILLUSIONARY_REVERSION, 'resourceGain'),
+    balanceNumber(context.helpers, TRAIT.ILLUSIONARY_REVERSION, 'resourceGain'),
     mesmerActivePrimaryWeapon(context),
     'Illusionary Reversion',
     {
@@ -311,11 +311,11 @@ function observeChronomancerEvent(context: MesmerRuntime, event: SimulationEvent
       {
         kind: 'danger-time',
         stacks: 1,
-        duration: balanceNumberFromContext(context, TRAIT.DANGER_TIME, 'duration'),
+        duration: balanceNumber(context.helpers, TRAIT.DANGER_TIME, 'duration'),
         sourceSkill: skillName
       }
     ];
-    const traitProfile = requireBalanceProfileFromContext(context, TRAIT.DANGER_TIME);
+    const traitProfile = requireBalanceProfile(context.helpers, TRAIT.DANGER_TIME);
     const traitSource = {
       source: 'Trait',
       sourceId: TRAIT.DANGER_TIME,

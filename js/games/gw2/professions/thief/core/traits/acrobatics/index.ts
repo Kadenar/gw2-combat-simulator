@@ -5,10 +5,10 @@ import { BOON, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
+  attributeBonusNumber,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext
+  requireBalanceProfile
 } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -58,7 +58,7 @@ export const fluidStrikes = defineTrait({
       id: 'thief.fluid-strikes',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.FLUID_STRIKES, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.FLUID_STRIKES, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'fluid-strikes')
     }
   ],
@@ -95,8 +95,8 @@ export const swindlersEquilibrium = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusFromContext(
-            balanceContext,
+          amount: attributeBonusNumber(
+            balanceContext.catalog,
             TRAIT.SWINDLERS_EQUILIBRIUM,
             'power',
             weapons.includes(WEAPON.SWORD) ? 'conditionalAttributeBonuses' : 'attributeBonuses'
@@ -128,7 +128,7 @@ function applyFluidStrikes(runtime: ThiefRuntime): void {
   replaceThiefBuff(
     runtime,
     'fluid-strikes',
-    balanceNumberFromContext(runtime, TRAIT.FLUID_STRIKES, 'duration'),
+    balanceNumber(runtime.helpers, TRAIT.FLUID_STRIKES, 'duration'),
     TRAIT.FLUID_STRIKES,
     'Fluid Strikes',
     'Trait'
@@ -137,14 +137,14 @@ function applyFluidStrikes(runtime: ThiefRuntime): void {
 
 /** Applies Hard to Catch at its established mechanical boundary. */
 function applyHardToCatch(runtime: ThiefRuntime): void {
-  const enduranceGain = balanceNumberFromContext(runtime, TRAIT.HARD_TO_CATCH, 'resourceGain');
+  const enduranceGain = balanceNumber(runtime.helpers, TRAIT.HARD_TO_CATCH, 'resourceGain');
 
   if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
 }
 
 /** Upper Hand claims its cooldown when a dodge completes, before its initiative can re-enter the trait. */
 function applyUpperHand(runtime: ThiefRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.UPPER_HAND);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.UPPER_HAND);
 
   if (runtime.procs.claimCooldown(TRAIT.UPPER_HAND, runtime.time, balanceProfileNumber(profile, 'internalCooldown'))) {
     const initiativeGain = balanceProfileNumber(profile, 'resourceGain');

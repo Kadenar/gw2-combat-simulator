@@ -10,9 +10,9 @@ import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-def
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -54,7 +54,7 @@ export const draconicEcho = defineTrait({
   attributes: (context) => ({
     traitDurations: {
       'Boon Duration': draconicEchoActive(context, ID.FACET_OF_NATURE)
-        ? balanceNumberFromContext(context, TRAIT.DRACONIC_ECHO, 'boonDurationBonus')
+        ? balanceNumber(context.balanceContext.catalog, TRAIT.DRACONIC_ECHO, 'boonDurationBonus')
         : 0
     }
   }),
@@ -63,7 +63,7 @@ export const draconicEcho = defineTrait({
       id: 'revenant.draconic-echo-strength',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.DRACONIC_ECHO, 'damageIncrease'),
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.DRACONIC_ECHO, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_STRENGTH)
     },
@@ -71,7 +71,7 @@ export const draconicEcho = defineTrait({
       id: 'revenant.draconic-echo-elements',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.DRACONIC_ECHO, 'conditionDamageIncrease'),
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.DRACONIC_ECHO, 'conditionDamageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_ELEMENTS)
     },
@@ -79,7 +79,7 @@ export const draconicEcho = defineTrait({
       id: 'revenant.draconic-echo-darkness',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.DRACONIC_ECHO, 'criticalChanceBonus'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.DRACONIC_ECHO, 'criticalChanceBonus'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && draconicEchoActive(context, ID.FACET_OF_DARKNESS)
     }
@@ -141,8 +141,8 @@ const forcefulPersistence = defineTrait<RevenantSkill>({
         (revenantRuntimeCoreState(context).activeUpkeeps || []).reduce(
           (bonus, upkeep) =>
             bonus +
-            balanceNumberFromContext(
-              context,
+            balanceNumber(
+              context.catalog,
               TRAIT.FORCEFUL_PERSISTENCE,
               HERALD_BASE_SKILL_MECHANICS[Number(upkeep.skillId)]?.facet
                 ? 'damageIncreasePerStack'
@@ -176,11 +176,8 @@ const reinforcedPotency = defineTrait({
       // Boons add within Potency's own multiplier, which then scales the shared outgoing damage bucket.
       factor: (context) =>
         1 +
-        Math.min(
-          balanceNumberFromContext(context, TRAIT.REINFORCED_POTENCY, 'maximumBoons'),
-          countActiveBoons(context)
-        ) *
-          balanceNumberFromContext(context, TRAIT.REINFORCED_POTENCY, 'damagePerBoon'),
+        Math.min(balanceNumber(context.catalog, TRAIT.REINFORCED_POTENCY, 'maximumBoons'), countActiveBoons(context)) *
+          balanceNumber(context.catalog, TRAIT.REINFORCED_POTENCY, 'damagePerBoon'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -213,11 +210,7 @@ const sharedEmpowerment = defineTrait({
         isStandardBoon(String(event.kind)) &&
         Number(event.resolvedAudience?.recipientCount) > 0 &&
         Boolean(
-          requireEffect(
-            requireBalanceProfileFromContext(runtime, TRAIT.SHARED_EMPOWERMENT),
-            'boon',
-            boonKey(BOON.MIGHT)
-          )
+          requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.SHARED_EMPOWERMENT), 'boon', boonKey(BOON.MIGHT))
         ),
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.MIGHT),
       attribution: {
@@ -246,7 +239,7 @@ function retainDraconicEcho(runtime: RevenantRuntime, facet: RevenantSkill, wasA
   if (!wasActive) return;
 
   const state = heraldState.from(runtime.profession);
-  const expiresAt = canonicalTime(runtime.time + balanceNumberFromContext(runtime, TRAIT.DRACONIC_ECHO, 'duration'));
+  const expiresAt = canonicalTime(runtime.time + balanceNumber(runtime.helpers, TRAIT.DRACONIC_ECHO, 'duration'));
   // Retention preserves the pulse phase, but never keeps an Energy-draining upkeep alive.
   state.lingeringFacets[facet.id] = { startsAt: runtime.time, expiresAt, legendId: core.activeLegendId };
   const nextAt = state.facetPulseReadyAt[facet.id];
@@ -264,7 +257,7 @@ function echoExpiry(runtime: RevenantRuntime, data: unknown): void {
 }
 
 function elevatedCompassionActive(runtime: RevenantRuntime): boolean {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ELEVATED_COMPASSION);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.ELEVATED_COMPASSION);
   const threshold = Math.max(0, balanceProfileNumber(profile, 'threshold'));
   const upkeep = runtime.profession.core.activeUpkeeps.reduce(
     (total, active) => total + Math.max(0, active.upkeepCost || 0),
@@ -280,7 +273,7 @@ function elevatedCompassionActive(runtime: RevenantRuntime): boolean {
 
 /** Grants one Quickness pulse and reserves the next legal pulse so threshold re-entry cannot bypass the ICD. */
 function grantCompassion(runtime: RevenantRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ELEVATED_COMPASSION);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.ELEVATED_COMPASSION);
   const effect = requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS));
 
   // The cooldown gates only quickness, so a removed boon leaves the pulse ready.

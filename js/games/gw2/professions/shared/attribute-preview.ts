@@ -4,7 +4,7 @@ import type {
   PreviewControl,
   ProfessionAttributePreviewContext
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Assemble owner-declared controls with shared selection checks and patch-aware stack caps. */
@@ -30,7 +30,7 @@ export function createPreviewControls(context: ProfessionAttributePreviewContext
     add,
     trait,
     maximumStacks(name: string): number {
-      return balanceNumberFromContext(context, traits.get(name)!.id, 'maximumStacks');
+      return balanceNumber(context.catalog, traits.get(name)!.id, 'maximumStacks');
     },
     boon(key: string, ...names: string[]): void {
       if (has(...names))

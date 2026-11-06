@@ -2,19 +2,17 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import {
   effectNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect,
-  requireSkillFromContext,
+  requireSkill,
   skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-// Runtime passes helpers + traits; presentation passes catalog + traits.
-export type AshesSelection = { readonly traits: ReadonlySet<SkillId> } & (
-  { readonly catalog: CanonicalCatalog } | { readonly helpers: CanonicalCatalog }
-);
+// Runtime and presentation supply the selected catalog and trait membership explicitly.
+export type AshesSelection = { readonly traits: ReadonlySet<SkillId>; readonly catalog: CanonicalCatalog };
 
 interface AshesBurning {
   readonly stacks: number;
@@ -30,7 +28,7 @@ export interface ResolvedAshes {
 
 // Select values before emission so every consumer sees the same effective payload.
 export function resolveAshes(selection: AshesSelection): ResolvedAshes | undefined {
-  const mechanic: GuardianSkill = requireSkillFromContext(selection, ashesBurningSkill.id);
+  const mechanic: GuardianSkill = requireSkill(selection.catalog, ashesBurningSkill.id);
   const base = requireEffect(mechanic, 'condition', CONDITION.BURNING);
 
   if (!base) return undefined;
@@ -55,7 +53,7 @@ export function resolveAshes(selection: AshesSelection): ResolvedAshes | undefin
   let overrideTraitId: SkillId | undefined;
 
   if (traitId !== undefined && hasTrait(selection, traitId)) {
-    const trait = requireBalanceProfileFromContext(selection, traitId);
+    const trait = requireBalanceProfile(selection.catalog, traitId);
     const replacement = requireEffect(trait, 'condition', CONDITION.BURNING);
 
     if (replacement) {

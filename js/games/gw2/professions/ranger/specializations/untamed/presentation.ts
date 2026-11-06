@@ -4,8 +4,11 @@ import type {
   SkillDamagePreviewPreparation,
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type {
+  ProfessionStateSnapshotContext,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, Skill as PreviewSkill, SkillId } from '#gw2/platform/skills/types.js';
 import { rangerPetPaletteGroup, rangerUiState } from '#gw2/professions/ranger/core/presentation.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -15,7 +18,7 @@ import { createPreviewControls } from '#gw2/professions/shared/attribute-preview
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { boundedInteger } from '#kernel/core/numeric.js';
 
-function initialUntamedState(context: RangerUiContext): 'Pet' | 'Ranger' {
+function initialUntamedState(context: Pick<RangerUiContext, 'build' | 'config'>): 'Pet' | 'Ranger' {
   return context.build?.initialUntamedState === 'Ranger' || context.config?.initialUntamedState === 'Ranger'
     ? 'Ranger'
     : 'Pet';
@@ -32,7 +35,10 @@ function stateOption(catalog: Readonly<CanonicalCatalog<RangerSkill>>, value: 'P
 }
 
 /** Reports the weapon ambush deadline and each beneficiary's Ferocious Symbiosis stacks. */
-function untamedStateSnapshot(context: RangerUiContext, maximumStacks: number): RotationStateSnapshotItem[] {
+function untamedStateSnapshot(
+  context: ProfessionStateSnapshotContext<RangerUiContext['professionState']>,
+  maximumStacks: number
+): RotationStateSnapshotItem[] {
   const state = rangerUiState(context);
   const at = Math.max(0, context.atSeconds || 0);
   const items: RotationStateSnapshotItem[] = [];
@@ -156,7 +162,7 @@ export function bindUntamedUi(catalog: Readonly<CanonicalCatalog<RangerSkill>>):
     rotationStateSnapshot: (context) =>
       untamedStateSnapshot(
         context,
-        balanceNumberFromContext(context.balanceContext, TRAIT.FEROCIOUS_SYMBIOSIS, 'maximumStacks')
+        balanceNumber(context.balanceContext.catalog, TRAIT.FEROCIOUS_SYMBIOSIS, 'maximumStacks')
       )
     // Unleash synchronization is internal state bookkeeping, not a player-facing combat event.
   });

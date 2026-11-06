@@ -1,10 +1,5 @@
 import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
-import {
-  effectNumber,
-  requireSkillFromContext,
-  skillNumber,
-  type SkillCatalogSource
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireSkill, skillNumber, type SkillSource } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_MINION_SUMMON_IDS } from '#gw2/professions/necromancer/core/skills/minion-attacks.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
@@ -71,17 +66,17 @@ function minionAttackFromEffect(profile: Skill, effect: StrikeEffect): MinionAtt
 
 /** Compiles the selected summon and attack skills into the attack model used by its lifetime owner. */
 export function minionDefinitionForSkill(
-  context: SkillCatalogSource<NecromancerSkill>,
+  context: SkillSource<NecromancerSkill>,
   skillId: SkillId
 ): MinionDefinition | undefined {
   if (!NECROMANCER_MINION_SUMMON_IDS.some((id) => id === skillId)) return undefined;
 
-  const summon = requireSkillFromContext(context, skillId);
+  const summon = requireSkill(context, skillId);
 
   if (!summon.summonAttackId) return undefined;
 
   // Both explicit and configured summons compile selected canonical skill owners.
-  const profile = requireSkillFromContext(context, summon.summonAttackId);
+  const profile = requireSkill(context, summon.summonAttackId);
   // Attack lists are iterated, so removing any packet leaves the surviving ones in their declared roles.
   const strikes = (profile.effects || []).filter((effect): effect is StrikeEffect => effect.type === 'strike');
   const ordinary = strikes.filter((effect) => effect.packetLabel !== 'alternate');
@@ -121,10 +116,7 @@ export function minionDefinitionForSkill(
   };
 }
 
-export function minionDefinitionFor(
-  context: SkillCatalogSource<NecromancerSkill>,
-  key: string
-): MinionDefinition | undefined {
+export function minionDefinitionFor(context: SkillSource<NecromancerSkill>, key: string): MinionDefinition | undefined {
   for (const skillId of NECROMANCER_MINION_SUMMON_IDS) {
     const definition = minionDefinitionForSkill(context, skillId);
 

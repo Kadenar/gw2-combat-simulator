@@ -11,11 +11,11 @@ import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import {
-  attributeBonusNumber,
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  ownerAttributeBonusNumber,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
@@ -98,16 +98,16 @@ const secondOpinion = defineTrait({
   },
   attributes({ loadout, weaponSet, balanceContext }) {
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
-    const secondOpinionProfile = requireBalanceProfileFromContext(balanceContext, TRAIT.SECOND_OPINION);
+    const secondOpinionProfile = requireBalanceProfile(balanceContext.catalog, TRAIT.SECOND_OPINION);
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Condition Damage',
           amount:
-            attributeBonusNumber(secondOpinionProfile, 'conditionDamage') +
+            ownerAttributeBonusNumber(secondOpinionProfile, 'conditionDamage') +
             (weapons.includes(WEAPON.SCEPTER)
-              ? attributeBonusNumber(secondOpinionProfile, 'conditionDamage', 'conditionalAttributeBonuses')
+              ? ownerAttributeBonusNumber(secondOpinionProfile, 'conditionDamage', 'conditionalAttributeBonuses')
               : 0),
           feedsConversions: 'all'
         },
@@ -188,7 +188,7 @@ const strengthOfShadows = defineTrait({
           kind: 'conversion',
           from: 'Vitality',
           to: 'Expertise',
-          multiplier: balanceNumberFromContext(balanceContext, TRAIT.STRENGTH_OF_SHADOWS, 'attributeConversion'),
+          multiplier: balanceNumber(balanceContext.catalog, TRAIT.STRENGTH_OF_SHADOWS, 'attributeConversion'),
           rounding: 'round',
           input: 'eligible'
         }
@@ -202,7 +202,7 @@ const strengthOfShadows = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       // The Torment-specific bonus multiplies the additive Lead Attacks and Distracting Throw pool.
       operation: 'multiply',
-      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.STRENGTH_OF_SHADOWS, 'conditionDamageIncrease'),
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.STRENGTH_OF_SHADOWS, 'conditionDamageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === CONDITION.TORMENT
     }
   ]
@@ -229,7 +229,7 @@ export const specterTraits = Object.freeze([
 function applyDarkSentry(runtime: ThiefRuntime, data: unknown): void {
   const { allyIndices, cause } = data as { allyIndices: readonly number[]; cause: Gw2ResolverEvent };
   const party = gw2AlliedPlayerAssumptions(runtime.config);
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.DARK_SENTRY);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.DARK_SENTRY);
   const venom = requireEffect(profile, 'buff', 'rot-wallow-venom');
 
   if (!venom) return;
@@ -322,7 +322,7 @@ function applyLarcenousTorment(runtime: ThiefRuntime, application: Gw2ResolverEv
   if (application.condition !== CONDITION.TORMENT || application.actorType !== ACTOR.PLAYER) return;
 
   const stacks = Math.max(0, Math.trunc(application.stacks || 0));
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.LARCENOUS_TORMENT);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.LARCENOUS_TORMENT);
   const strike = requireEffect(profile, 'strike', 'Larcenous Torment');
 
   if (strike)

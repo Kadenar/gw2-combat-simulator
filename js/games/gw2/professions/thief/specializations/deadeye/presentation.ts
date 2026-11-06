@@ -6,7 +6,7 @@ import type {
   SkillDamagePreviewPreparation,
   SkillDamageState
 } from '#gw2/platform/profession-presentation/skill-damage.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -16,7 +16,7 @@ import { DEADEYE_STOLEN_SKILL_IDS } from '#gw2/professions/thief/data/stolen-ski
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefUiContext } from '#gw2/professions/thief/types.js';
 
-function deadeyeStolenSkillIds(context: ThiefUiContext = {}): SkillId[] {
+function deadeyeStolenSkillIds(context: ThiefUiContext): SkillId[] {
   const paletteTraits = context.traits;
   const fireForEffectSelected =
     hasTrait(context.config || {}, TRAIT.FIRE_FOR_EFFECT) ||
@@ -44,8 +44,8 @@ export const deadeyeUi = Object.freeze({
       group: 'Mechanic',
       kind: 'special',
       scope: ['damage'],
-      max: balanceNumberFromContext(
-        context,
+      max: balanceNumber(
+        context.catalog,
         preview.has('Maleficent Seven') ? TRAIT.MALEFICENT_SEVEN : TRAIT.DEADEYES_GAZE,
         'maximumStacks'
       ),
@@ -90,8 +90,8 @@ export const deadeyeUi = Object.freeze({
         // Render the observed clock; before a result exists use the selected profile's trait capacity.
         maximum:
           state[STATE.MALICE]?.maximum ??
-          balanceNumberFromContext(
-            context,
+          balanceNumber(
+            context.catalog,
             hasTrait(context, TRAIT.MALEFICENT_SEVEN) ? TRAIT.MALEFICENT_SEVEN : TRAIT.DEADEYES_GAZE,
             'maximumStacks'
           ),

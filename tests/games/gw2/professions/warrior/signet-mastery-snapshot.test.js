@@ -57,7 +57,7 @@ const RESULT = {
       }
     ],
     120,
-    { policies: warriorBuffPolicies({ catalog: warriorProfession.catalog }) }
+    { policies: warriorBuffPolicies(warriorProfession.catalog) }
   )
 };
 

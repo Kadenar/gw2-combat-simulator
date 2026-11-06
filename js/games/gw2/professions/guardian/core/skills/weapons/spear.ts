@@ -15,12 +15,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SPEAR_EXPIRY } from '#gw2/professions/guardian/core/mechanics/spear.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
@@ -50,7 +45,7 @@ function illuminatedSpearEffects(
 ): readonly SkillEffect[] {
   const state = runtime.profession.core;
   const luminance = state.spearLuminanceUntil > cast.start;
-  const skill = requireSkillFromContext(runtime, cast.skill.id);
+  const skill = requireSkill(runtime.helpers, cast.skill.id);
   const multiplier = skillNumber(skill, 'illuminatedDamageMultiplier');
 
   if (!(multiplier > 1)) return effects;
@@ -141,7 +136,7 @@ function completeSpearIllumination(runtime: GuardianRuntime, cast: RuntimeCast<G
   // Settle only the captured grant, leaving any replacement entitled even when its deadline matches.
   if (consumedCharges.get(cast) === state.spearIlluminated) consumeCharge(state.spearIlluminated, cast.start);
 
-  const skill = requireSkillFromContext(runtime, ID.SYMBOL_OF_LUMINANCE);
+  const skill = requireSkill(runtime.helpers, ID.SYMBOL_OF_LUMINANCE);
   const effect = requireEffect(
     skill,
     'buff',
@@ -449,7 +444,7 @@ export const guardianSpearLifecycle = {
   prepareDamageState(runtime, selectedSkill, inputs) {
     if (selectedSkill?.weapon !== WEAPON.SPEAR || !inputs.illuminated) return;
 
-    const skill = requireSkillFromContext(runtime, ID.SYMBOL_OF_LUMINANCE);
+    const skill = requireSkill(runtime.helpers, ID.SYMBOL_OF_LUMINANCE);
     const effect = requireEffect(skill, 'buff', 'illuminated', requireSkillAction(skill, 'illumination'));
 
     if (!effect) return;

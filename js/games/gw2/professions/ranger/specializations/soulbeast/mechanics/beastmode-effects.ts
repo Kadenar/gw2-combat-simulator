@@ -12,12 +12,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import {
@@ -133,7 +128,7 @@ function queueStanceProc(
   startCooldown: (internalCooldown: number) => void
 ): void {
   if (wolfPack) {
-    const profile = requireSkillFromContext(context, ID.ONE_WOLF_PACK);
+    const profile = requireSkill(context.helpers, ID.ONE_WOLF_PACK);
     const strike = requireEffect(profile, 'strike', 'Strike', requireSkillAction(profile, 'echo'));
 
     if (!strike) return;
@@ -143,7 +138,7 @@ function queueStanceProc(
     return;
   }
 
-  const profile = requireSkillFromContext(context, ID.VULTURE_STANCE);
+  const profile = requireSkill(context.helpers, ID.VULTURE_STANCE);
   const poison = requireEffect(
     profile,
     'condition',
@@ -275,7 +270,7 @@ export function reactToRangerWinterBite(context: RangerResolverContext, event: G
   }
 
   core.winterBiteReady = false;
-  const profile = requireSkillFromContext(context, ID.WINTERS_BITE);
+  const profile = requireSkill(context.helpers, ID.WINTERS_BITE);
   const weakness = requireEffect(
     profile,
     'condition',

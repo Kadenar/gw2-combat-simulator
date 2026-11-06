@@ -57,27 +57,49 @@ const calculateRevenantAttributes = createCalculateAttributes(
 
 const revenantModifiers = Object.freeze({
   modifyAttributes(context, value) {
-    return revenantProfession
-      .resolveProfession(context?.config || {})
-      .modifyAttributes({ catalog: revenantCatalog, ...context }, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyAttributes(
+      {
+        catalog: revenantCatalog,
+        ...context
+      },
+      value
+    );
   },
   modifyCriticalChance(context, value) {
-    return revenantProfession
-      .resolveProfession(context?.config || {})
-      .modifyCriticalChance({ catalog: revenantCatalog, ...context }, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyCriticalChance(
+      {
+        catalog: revenantCatalog,
+        ...context
+      },
+      value
+    );
   },
   modifyStrikeDamage(context, value) {
-    return revenantProfession
-      .resolveProfession(context?.config || {})
-      .modifyStrikeDamage({ catalog: revenantCatalog, ...context }, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyStrikeDamage(
+      {
+        catalog: revenantCatalog,
+        ...context
+      },
+      value
+    );
   },
   modifyConditionDamage(context, value) {
-    return revenantProfession
-      .resolveProfession(context?.config || {})
-      .modifyConditionDamage({ catalog: revenantCatalog, ...context }, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDamage(
+      {
+        catalog: revenantCatalog,
+        ...context
+      },
+      value
+    );
   },
   modifyConditionDuration(context, value) {
-    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDuration(context, value);
+    return revenantProfession.resolveProfession(context?.config || {}).modifyConditionDuration(
+      {
+        ...context,
+        catalog: revenantProfession.resolveProfession(context?.config || {}).catalog
+      },
+      value
+    );
   }
 });
 

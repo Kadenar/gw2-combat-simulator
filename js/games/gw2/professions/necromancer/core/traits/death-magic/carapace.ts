@@ -3,15 +3,16 @@ import { timedEffectState, type EffectState } from '#gw2/platform/combat/effect-
 import { activeStackCount, addTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { purgeTimedState } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerResolverContext, NecromancerRuntime } from '#gw2/professions/necromancer/types.js';
 
 /** Timed grants and combined stack queries share the active patch's capacity, even without minion grants selected. */
-function carapaceCapacity(context: unknown): number {
-  return balanceNumberFromContext(context, TRAIT.FLESH_OF_THE_MASTER, 'maximumStacks');
+function carapaceCapacity(source: BalanceProfileSource): number {
+  return balanceNumber(source, TRAIT.FLESH_OF_THE_MASTER, 'maximumStacks');
 }
 
 /** Reject overflow against all live Carapace so capped grants never replace or refresh existing stacks. */
@@ -23,29 +24,34 @@ export function addCarapace(
 ): void {
   const state = professionCoreState(context.profession);
   purgeTimedState(state, at);
-  const available = Math.max(0, carapaceCapacity(context) - deathCarapaceStacks(context, state, at));
+  const available = Math.max(
+    0,
+    carapaceCapacity(context.helpers) - deathCarapaceStacks(context.helpers, context, state, at)
+  );
   state.carapaceExpiries = addTimedStacks(
     state.carapaceExpiries,
     Math.min(stacks, available),
     at,
     duration,
-    carapaceCapacity(context)
+    carapaceCapacity(context.helpers)
   ).expiries;
 }
 
 /** Count active and minion-backed Carapace without mutating either lifetime owner. */
 export function deathCarapaceStacks(
+  source: BalanceProfileSource,
   context: unknown,
   state: ReadonlyMechanicState<Partial<NecromancerCoreState>>,
   at: number
 ): number {
   // Attribute reads count live stacks without rebuilding or mutating the runtime pool.
   const timedCarapace = activeStackCount(state.carapaceExpiries || [], at);
-  return Math.min(carapaceCapacity(context), timedCarapace + minionCarapaceStacks(context, state));
+  return Math.min(carapaceCapacity(source), timedCarapace + minionCarapaceStacks(source, context, state));
 }
 
 /** Analysis observes the combat-owned deadlines and living minions, so reporting never grants extra Carapace. */
 export function deathCarapaceEffectState(
+  source: BalanceProfileSource,
   context: unknown,
   state: ReadonlyMechanicState<Partial<NecromancerCoreState>>
 ): EffectState {
@@ -56,19 +62,23 @@ export function deathCarapaceEffectState(
         stacks: 1,
         expiresAt: Number.isFinite(expiresAt) ? expiresAt : null
       })),
-      { stacks: minionCarapaceStacks(context, state), expiresAt: null }
+      { stacks: minionCarapaceStacks(source, context, state), expiresAt: null }
     ],
-    carapaceCapacity(context),
+    carapaceCapacity(source),
     { name: "Death's Carapace" }
   );
 }
 
 /** Persistent stacks follow the live minion count for both gameplay and analysis. */
-function minionCarapaceStacks(context: unknown, state: ReadonlyMechanicState<Partial<NecromancerCoreState>>): number {
+function minionCarapaceStacks(
+  source: BalanceProfileSource,
+  context: unknown,
+  state: ReadonlyMechanicState<Partial<NecromancerCoreState>>
+): number {
   return hasTrait(context, TRAIT.FLESH_OF_THE_MASTER)
     ? Object.values(state.activeMinions || {}).reduce(
         (total: number, count: number) =>
-          total + (count || 0) * balanceNumberFromContext(context, TRAIT.FLESH_OF_THE_MASTER, 'resourceGain'),
+          total + (count || 0) * balanceNumber(source, TRAIT.FLESH_OF_THE_MASTER, 'resourceGain'),
         0
       )
     : 0;
@@ -77,6 +87,6 @@ function minionCarapaceStacks(context: unknown, state: ReadonlyMechanicState<Par
 /** Minion-owned strikes sample Necromantic Corruption before applying other creature multipliers. */
 export function necromanticCorruptionMultiplier(runtime: NecromancerRuntime): number {
   return hasTrait(runtime, TRAIT.NECROMANTIC_CORRUPTION)
-    ? balanceNumberFromContext(runtime, TRAIT.NECROMANTIC_CORRUPTION, 'damageMultiplier')
+    ? balanceNumber(runtime.helpers, TRAIT.NECROMANTIC_CORRUPTION, 'damageMultiplier')
     : 1;
 }

@@ -137,7 +137,7 @@ function traitContext(selectedTraitIds = []) {
   const context = {
     procs: createProcRegistry(() => context),
     profession: { core, specialization: { kind: 'Core', state: {} } },
-    catalog: thiefCatalog,
+
     config,
     traits: new Set(selectedTraitIds),
     activeWeaponSet: 1,
@@ -147,10 +147,7 @@ function traitContext(selectedTraitIds = []) {
     resolved: [],
     time: 1,
     effectiveEnd: 1,
-    helpers: {
-      skillsById: thiefCatalog.skillsById,
-      balanceProfilesById: thiefCatalog.balanceProfilesById
-    },
+    helpers: thiefCatalog,
     query: {
       statsAt: () => ({}),
       furyActiveAt: () => true,
@@ -226,7 +223,7 @@ for (const [name, traitId, invoke, output] of [
       // Each build owns its context and claim registry, because selection never changes once a context is in use.
       const prepare = (selectedTraitIds) => {
         const { context } = traitContext(selectedTraitIds);
-        context.catalog = { ...thiefCatalog, balanceProfilesById: profiles };
+        context.helpers = { ...thiefCatalog, balanceProfilesById: profiles };
         context.procs.setDeadline('unrelated', 99);
         return context;
       };
@@ -527,7 +524,7 @@ test('Thief critical proc batches reread patched effects and leave duration samp
     const { context } = traitContext([id]);
     for (const duration of [2, 3]) {
       // Replace the canonical owner between batches without changing the shared declaration in place.
-      context.catalog = withProfile(thiefCatalog, id, {
+      context.helpers = withProfile(thiefCatalog, id, {
         internalCooldown: 0,
         effects: [{ type: 'boon', name: 'Fury', boon: 'Fury', duration, stacks: 1 }]
       });

@@ -12,7 +12,7 @@ import {
   traitAttributeEffects,
   type TraitDefinition
 } from '#gw2/platform/profession-definition/traits.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { isEngineerToolbeltSkill } from '#gw2/professions/engineer/core/mechanics/toolbelt.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { type EngineerRuntime, type EngineerSkill } from '#gw2/professions/engineer/types.js';
@@ -92,7 +92,7 @@ export const boilingPoint = defineTrait({
         (event.kind || '').toLowerCase() === boonKey(BOON.MIGHT) &&
         Boolean(event.resolvedAudience?.includesSelf) &&
         runtime.combat.activeBoonStacks(boonKey(BOON.MIGHT), event.at) >=
-          balanceNumberFromContext(runtime, TRAIT.BOILING_POINT, 'threshold'),
+          balanceNumber(runtime.helpers, TRAIT.BOILING_POINT, 'threshold'),
       attribution: { name: 'Boiling Point - fury' }
     }
   ]
@@ -193,7 +193,7 @@ function prepareEngineerHghEvent(
 
   if (!isElixirSkill(skill)) return event;
 
-  const durationMultiplier = balanceNumberFromContext(context, TRAIT.HGH, 'durationMultiplier');
+  const durationMultiplier = balanceNumber(context.helpers, TRAIT.HGH, 'durationMultiplier');
 
   if (event.type === 'combo_field') {
     const duration = Number(event.expiresAt) - event.at;

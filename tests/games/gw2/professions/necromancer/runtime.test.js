@@ -894,7 +894,7 @@ test('shroud depletion precedes a simultaneous life-force refill', () => {
   const config = { ...base, initialResource: 10 };
   const native = necromancerProfession.runtimeFor(config);
   const entry = native.catalog.skillsById.get(ID.REAPERS_SHROUD);
-  const drain = necromancerShroudDrain(native, entry);
+  const drain = necromancerShroudDrain(native.catalog, entry);
   const at = Math.ceil(10 / drain / 0.04) * 0.04;
   const profession = {
     ...native,
@@ -1064,7 +1064,7 @@ test('a replacement generation cancels the old autonomous clock and pending Haun
 
 test('ordinary minion projectiles do not inherit the alternate cycle condition', () => {
   const native = necromancerProfession.runtimeFor(base);
-  const definition = minionDefinitionForSkill(native, ID.SUMMON_BONE_FIEND);
+  const definition = minionDefinitionForSkill(native.catalog, ID.SUMMON_BONE_FIEND);
   assert.ok(definition.attacks.every((attack) => attack.condition === undefined));
   assert.ok(definition.alternateAttacks.every((attack) => attack.condition[0] === 'Crippled'));
 });

@@ -2,7 +2,7 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -45,7 +45,7 @@ function land(runtime: RevenantRuntime, data: unknown): void {
     const forerunnerActive = forerunnerOfDeathActive(runtime);
     // Consume once, then retain the selected factor on every landing strike.
     const reaversCurseDamageFactor = reaversCurse
-      ? Math.max(0, balanceNumberFromContext(runtime, TRAIT.REAVERS_CURSE, 'damageMultiplier'))
+      ? Math.max(0, balanceNumber(runtime.helpers, TRAIT.REAVERS_CURSE, 'damageMultiplier'))
       : undefined;
     runtime.effects.emit({
       kind: 'profile',

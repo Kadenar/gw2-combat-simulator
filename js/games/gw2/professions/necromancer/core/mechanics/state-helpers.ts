@@ -7,7 +7,8 @@ import { purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillSource } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
@@ -17,8 +18,8 @@ import { boundedInteger } from '#kernel/core/numeric.js';
 const SOUL_SHARD_DURATION_SECONDS = 10;
 
 /** The selected canonical siphon owns whole-stack capacity for both combat grants and presentation. */
-export function necromancerSoulShardMaximum(context: unknown): number {
-  return Math.max(0, Math.trunc(skillNumberFromContext(context, ID.SOUL_SHARDS, 'maximumStacks')));
+export function necromancerSoulShardMaximum(source: SkillSource): number {
+  return Math.max(0, Math.trunc(skillNumber(requireSkill(source, ID.SOUL_SHARDS), 'maximumStacks')));
 }
 
 /** Returns stable identities for minions eligible to receive shared effects. */

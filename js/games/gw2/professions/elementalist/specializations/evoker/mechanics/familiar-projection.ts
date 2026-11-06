@@ -1,7 +1,8 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillSource } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -9,8 +10,8 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 export const IGNITE_TIERS = Object.freeze(['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4']);
 
 /** Select duration tuning by stable tier name so removed templates cannot renumber the sequence. */
-export function igniteTierEffect(context: unknown, tier: number) {
-  const skill = requireSkillFromContext(context, ID.IGNITE);
+export function igniteTierEffect(source: SkillSource, tier: number) {
+  const skill = requireSkill(source, ID.IGNITE);
   return requireEffect(skill, 'condition', IGNITE_TIERS[tier], requireSkillAction(skill, 'burning-tiers'));
 }
 

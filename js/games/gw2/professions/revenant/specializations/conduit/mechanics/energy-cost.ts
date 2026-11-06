@@ -1,4 +1,4 @@
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
@@ -18,7 +18,7 @@ const MESMER_FORM_COSTS: ReadonlySet<SkillId> = new Set([
 /** Reject malformed form costs on entry even when score output never queries the affected skill. */
 export function validateConduitMesmerEnergyCosts(catalog: CanonicalCatalog): void {
   for (const skillId of MESMER_FORM_COSTS.values()) {
-    skillNumberFromContext({ catalog }, skillId, 'mesmerEnergyCost');
+    skillNumber(requireSkill(catalog, skillId), 'mesmerEnergyCost');
   }
 }
 
@@ -37,12 +37,12 @@ export function applyConduitEnergyCostRules(
 
   // Temporary charges select the follow-up's own cost before any form-specific pricing.
   if (isBeguilingHazeFollowUp(state, skill))
-    return Math.max(0, skillNumberFromContext({ catalog }, ID.BEGUILING_HAZE_FOLLOW_UP, 'energyCost'));
+    return Math.max(0, skillNumber(requireSkill(catalog, ID.BEGUILING_HAZE_FOLLOW_UP), 'energyCost'));
 
   // The exclusive deadline also governs queries before queued form-expiry work runs.
   if (!revenantConduitFormIsActive(state, 'Mesmer', time)) return baseCost;
 
   if (!MESMER_FORM_COSTS.has(skill.id)) return baseCost;
 
-  return Math.max(0, skillNumberFromContext({ catalog }, skill.id, 'mesmerEnergyCost'));
+  return Math.max(0, skillNumber(requireSkill(catalog, skill.id), 'mesmerEnergyCost'));
 }

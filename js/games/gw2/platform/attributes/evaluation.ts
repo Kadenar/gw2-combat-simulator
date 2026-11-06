@@ -10,7 +10,7 @@ import type {
   Gw2NumericAttributes
 } from '#gw2/platform/attributes/types.js';
 import { boonKey, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
-import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2CombatObservationContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { BOON, CONDITION } from '#gw2/platform/constants.js';
@@ -24,7 +24,7 @@ const ATTRIBUTE_KEYS = new Map<string, keyof typeof ATTRIBUTE_NAMES>(
 /** Live boon reads share prototype accessors rather than allocating nine descriptors for every sample. */
 class AttributeAssumptions {
   readonly [key: string]: unknown;
-  constructor(private readonly context: Gw2ModifierContext) {}
+  constructor(private readonly context: Gw2CombatObservationContext) {}
   get fury() {
     return boonActive(this.context, boonKey(BOON.FURY));
   }
@@ -56,7 +56,7 @@ class AttributeAssumptions {
 
 /** Build and live queries supply the same read-only facts; declaration arithmetic never depends on preapplied totals. */
 export function attributeContext(
-  context: Gw2ModifierContext,
+  context: Gw2CombatObservationContext,
   balanceContext: ProfessionBalanceContext,
   loadout?: Gw2AttributeLoadout
 ): Gw2AttributeContext {
@@ -64,7 +64,7 @@ export function attributeContext(
   return {
     ...context,
     balanceContext,
-    profession: context.profession ?? { catalog: balanceContext.catalog },
+    catalog: balanceContext.catalog,
     weaponSet: context.runtime?.activeWeaponSet ?? config.startingWeaponSet ?? 1,
     loadout: loadout ?? {
       weapons: gw2ConfiguredWeaponSet(config, 1),
@@ -200,7 +200,7 @@ export function applyMightAttributes(
 
 /** Condition replacements sample final Power only after relic and actor projection. */
 export function applyFinalConditionAttributes(
-  context: Gw2ModifierContext,
+  context: Gw2CombatObservationContext,
   initial: Gw2Stats,
   contributions: readonly Gw2AttributeContributions[]
 ): Gw2Stats {

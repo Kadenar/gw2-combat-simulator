@@ -1,7 +1,7 @@
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
@@ -105,7 +105,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
 
     return {
       ...skill,
-      interruptCommitMs: skillNumberFromContext(runtime, ID.BEGUILING_HAZE_FOLLOW_UP, 'interruptCommitMs')
+      interruptCommitMs: skillNumber(requireSkill(runtime.helpers, ID.BEGUILING_HAZE_FOLLOW_UP), 'interruptCommitMs')
     };
   },
   castDurationMs(runtime, skill, durationMs) {
@@ -119,7 +119,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
       beguilingHazeCastDuration(
         durationMs / 1000,
         (specialization.state.beguilingHazeCharges || 0) > 0,
-        requireSkillFromContext(runtime, ID.BEGUILING_HAZE_FOLLOW_UP)
+        requireSkill(runtime.helpers, ID.BEGUILING_HAZE_FOLLOW_UP)
       ) * 1000
     );
   },
@@ -131,7 +131,7 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
       (skill.id === ID.PAIN_ABSORPTION || skill.id === ID.BANISH_ENCHANTMENT) &&
       revenantConduitFormIsActive(conduitState.from(runtime.profession), 'Mesmer', runtime.time)
     )
-      return Math.max(0, skillNumberFromContext(runtime, skill.id, 'mesmerRecharge'));
+      return Math.max(0, skillNumber(requireSkill(runtime.helpers, skill.id), 'mesmerRecharge'));
 
     return kineticInsightRecharge(runtime, skill, work);
   },

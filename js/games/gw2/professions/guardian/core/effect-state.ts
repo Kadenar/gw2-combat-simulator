@@ -1,18 +1,19 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { balanceProfileFromContext, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceProfile, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntime } from '#gw2/professions/guardian/types.js';
 
 /** Effect owners expose the same selected balance values as combat; presentation supplies no stacking rules. */
-export function guardianBuffPolicies(context: unknown): BuffStatePolicy[] {
+export function guardianBuffPolicies(source: BalanceProfileSource): BuffStatePolicy[] {
   const policies: BuffStatePolicy[] = [
     { kind: 'illuminated', maximumStacks: 1 },
     { kind: 'guardian-spear-luminance', maximumStacks: 1 },
     { kind: 'guardian-symbol-of-ignition-field', maximumStacks: 1 },
     { kind: 'guardian-inspiring-virtue', maximumStacks: 1 }
   ];
-  const profile = balanceProfileFromContext(context, TRAIT.SYMBOLIC_AVENGER);
+  const profile = balanceProfile(source, TRAIT.SYMBOLIC_AVENGER);
 
   if (profile)
     policies.push({ kind: 'symbolic-avenger', maximumStacks: balanceProfileNumber(profile, 'maximumStacks') });
@@ -27,7 +28,7 @@ export function guardianEffectStates(runtime: MechanicQueriesOf<GuardianRuntime>
     timedEffectState(
       'symbolic-avenger',
       core.symbolicAvengerExpirations.map((expiresAt) => ({ expiresAt, stacks: 1 })),
-      balanceProfileNumber(balanceProfileFromContext(runtime, TRAIT.SYMBOLIC_AVENGER)!, 'maximumStacks')
+      balanceProfileNumber(balanceProfile(runtime.helpers, TRAIT.SYMBOLIC_AVENGER)!, 'maximumStacks')
     )
   ];
   return effects;

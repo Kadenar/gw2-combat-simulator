@@ -10,9 +10,9 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
+  attributeBonusNumber,
+  balanceNumber,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
@@ -39,9 +39,8 @@ export const crackShot = defineTrait({
       id: 'warrior.crack-shot',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.CRACK_SHOT, 'damageMultiplier'),
-      when: (context) =>
-        skillForEvent(context.profession?.catalog, context.event, context.skillId)?.id === ID.FIERCE_SHOT
+      factor: (context) => balanceNumber(context.catalog, TRAIT.CRACK_SHOT, 'damageMultiplier'),
+      when: (context) => skillForEvent(context.catalog, context.event, context.skillId)?.id === ID.FIERCE_SHOT
     }
   ],
   triggers: [
@@ -68,10 +67,9 @@ export const burstMastery = defineTrait<WarriorSkill>({
       id: 'warrior.burst-mastery',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.BURST_MASTERY, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.BURST_MASTERY, 'damageMultiplier'),
       order: 100,
-      when: (context) =>
-        Boolean(skillForEvent<WarriorSkill>(context.profession?.catalog, context.event, context.skillId)?.burst)
+      when: (context) => Boolean(skillForEvent<WarriorSkill>(context.catalog, context.event, context.skillId)?.burst)
     }
   ],
   triggers: [
@@ -102,8 +100,8 @@ export const axeMastery = defineTrait({
         {
           kind: 'flat',
           to: 'Ferocity',
-          amount: attributeBonusFromContext(
-            context.balanceContext,
+          amount: attributeBonusNumber(
+            context.balanceContext.catalog,
             TRAIT.AXE_MASTERY,
             'ferocity',
             weapons.includes(WEAPON.AXE) ? 'conditionalAttributeBonuses' : 'attributeBonuses'
@@ -174,7 +172,7 @@ export const warriorsSprint = defineTrait({
       id: 'warrior.warriors-sprint',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.WARRIORS_SPRINT, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.WARRIORS_SPRINT, 'damageIncrease'),
       when: (context) => warriorBoonActive(context, boonKey(BOON.SWIFTNESS))
     }
   ]
@@ -190,13 +188,13 @@ function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent
   if (
     event.actorType !== ACTOR.PLAYER ||
     !((event.coefficient || 0) > 0) ||
-    !runtime.combat.targetHealthBelow(balanceNumberFromContext(runtime, TRAIT.HEIGHTENED_FOCUS, 'threshold')) ||
+    !runtime.combat.targetHealthBelow(balanceNumber(runtime.helpers, TRAIT.HEIGHTENED_FOCUS, 'threshold')) ||
     !runtime.procs.claim(TRAIT.HEIGHTENED_FOCUS)
   )
     return;
 
   {
-    const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.HEIGHTENED_FOCUS);
+    const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.HEIGHTENED_FOCUS);
     emitTraitProfile(runtime, TRAIT.HEIGHTENED_FOCUS, TRAIT.HEIGHTENED_FOCUS, event, {
       attribution: {
         source: 'Trait',
@@ -238,7 +236,7 @@ function readyHeightenedFocusBurst(runtime: WarriorRuntime, cast: RuntimeCast<Wa
 
   // Canonicalize subtraction roundoff without admitting procs outside the cast window.
   const triggeredAt = canonicalTime(
-    readyAt - balanceNumberFromContext(runtime, TRAIT.HEIGHTENED_FOCUS, 'internalCooldown')
+    readyAt - balanceNumber(runtime.helpers, TRAIT.HEIGHTENED_FOCUS, 'internalCooldown')
   );
 
   if (triggeredAt >= canonicalTime(cast.start) && triggeredAt <= canonicalTime(runtime.time))
@@ -251,22 +249,22 @@ function axeMasteryCritical(runtime: WarriorRuntime, event: Gw2ResolverEvent, cr
     const skill = runtime.helpers.skillsById.get(event.skillId ?? '');
 
     if ((skill?.skillWeapon || skill?.weapon || event.skillWeapon) === WEAPON.AXE)
-      grantWarriorResource(runtime, criticals * balanceNumberFromContext(runtime, TRAIT.AXE_MASTERY, 'resourceGain'));
+      grantWarriorResource(runtime, criticals * balanceNumber(runtime.helpers, TRAIT.AXE_MASTERY, 'resourceGain'));
   }
 }
 
 /** Apply line-owned rewards at the shared reaction boundary. */
 function versatileRageSwap(runtime: WarriorRuntime): void {
-  grantWarriorResource(runtime, balanceNumberFromContext(runtime, TRAIT.VERSATILE_RAGE, 'resourceGain'));
+  grantWarriorResource(runtime, balanceNumber(runtime.helpers, TRAIT.VERSATILE_RAGE, 'resourceGain'));
 }
 
 /** Refund the captured burst spend before later completion rewards. */
 function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>, spent: number): void {
   if (cast.skill.burst && cast.skill.id !== ID.FULL_COUNTER && spent > 0) {
-    grantWarriorResource(runtime, spent * balanceNumberFromContext(runtime, TRAIT.BURST_MASTERY, 'resourceGain'));
+    grantWarriorResource(runtime, spent * balanceNumber(runtime.helpers, TRAIT.BURST_MASTERY, 'resourceGain'));
     // The refund is live now; Swiftness resolves after same-time burst damage, preserving reward ordering.
     {
-      const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY);
+      const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.BURST_MASTERY);
       const selectedEffect = requireEffect(traitProfile, 'boon', boonKey(BOON.SWIFTNESS));
 
       if (selectedEffect)
@@ -295,10 +293,10 @@ function burstMasteryDragonSlash(
 ): void {
   runtime.resourceController.grant(
     'flow',
-    release.flowSpent * balanceNumberFromContext(runtime, TRAIT.BURST_MASTERY, 'bladeswornResourceGain')
+    release.flowSpent * balanceNumber(runtime.helpers, TRAIT.BURST_MASTERY, 'bladeswornResourceGain')
   );
 
-  const traitProfile = requireBalanceProfileFromContext(runtime, TRAIT.BURST_MASTERY);
+  const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.BURST_MASTERY);
   emitTraitProfile(runtime, TRAIT.BURST_MASTERY, TRAIT.BURST_MASTERY, undefined, {
     attribution: {
       source: 'Trait',

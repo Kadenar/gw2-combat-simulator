@@ -1,21 +1,18 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, balanceProfile, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { spellbreakerState } from '#gw2/professions/warrior/specializations/spellbreaker/state.js';
 import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Only the selected elite contributes its buff caps and observations. */
-export function spellbreakerBuffPolicies(context: unknown): BuffStatePolicy[] {
+export function spellbreakerBuffPolicies(source: BalanceProfileSource): BuffStatePolicy[] {
   return [
     { kind: 'magebane-tether', maximumStacks: 1 },
     {
       kind: 'attackers-insight',
-      maximumStacks: balanceNumberFromContext(context, TRAIT.ATTACKERS_INSIGHT, 'maximumStacks')
+      maximumStacks: balanceNumber(source, TRAIT.ATTACKERS_INSIGHT, 'maximumStacks')
     }
   ];
 }
@@ -27,7 +24,7 @@ export function spellbreakerEffectStates(runtime: MechanicQueriesOf<WarriorRunti
     timedEffectState(
       'attackers-insight',
       state.attackerInsightExpiries.map((expiresAt) => ({ expiresAt, stacks: 1 })),
-      balanceProfileNumber(balanceProfileFromContext(runtime, TRAIT.ATTACKERS_INSIGHT)!, 'maximumStacks')
+      balanceProfileNumber(balanceProfile(runtime.helpers, TRAIT.ATTACKERS_INSIGHT)!, 'maximumStacks')
     ),
     timedEffectState('magebane-tether', [{ stacks: 1, expiresAt: state.magebaneTetherUntil }], 1)
   ];

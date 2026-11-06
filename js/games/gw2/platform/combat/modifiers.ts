@@ -639,18 +639,13 @@ export interface Gw2ModifierState {
   readonly boons?: ReadonlyMap<string, readonly Gw2TimedBuffApplication[]>;
 }
 
-/** Modifier queries retain observed combat state and source identity when no event is available. */
-export interface Gw2ModifierContext {
-  /** One query samples declarations once; no result survives a separate read at the same timestamp. */
-  readonly attributeContributions?: readonly import('#gw2/platform/attributes/types.js').Gw2AttributeContributions[];
-  /** Explicit selected catalog for detached queries and profile overrides. */
-  readonly catalog?: Readonly<CanonicalCatalog>;
+/** Combat observations support state queries without requiring balance declarations. */
+export interface Gw2CombatObservationContext {
   /** Supplied only by the isolated attribute preview, outside persisted builds and simulation configuration. */
   readonly attributePreviewPlayerHealthFraction?: number;
   readonly skillId?: SkillId | null;
   readonly sourceId?: SkillId | null;
   readonly actorType?: SimulationEvent['actorType'] | null;
-  readonly profession?: { readonly catalog?: CanonicalCatalog };
   readonly state?: Gw2ModifierState;
 
   readonly config?: Gw2Config;
@@ -662,6 +657,14 @@ export interface Gw2ModifierContext {
   readonly timeline?: Readonly<Gw2TimelineIndex>;
   readonly events?: readonly SimulationEvent[];
   readonly runtime?: Gw2QueryRuntime | null;
+}
+
+/** Gameplay modifiers add one explicitly selected catalog to the observed combat facts. */
+export interface Gw2ModifierContext extends Gw2CombatObservationContext {
+  /** One query samples declarations once; no result survives a separate read at the same timestamp. */
+  readonly attributeContributions?: readonly import('#gw2/platform/attributes/types.js').Gw2AttributeContributions[];
+  /** Explicit selected catalog for detached queries and profile overrides. */
+  readonly catalog: Readonly<CanonicalCatalog>;
   readonly damageInputs?: Gw2DamageInputs;
   readonly criticalChanceContributors?: Gw2CriticalChanceContributor[];
   /** Optional preview/diagnostic sink for strike or condition damage factors; never read by rules. */

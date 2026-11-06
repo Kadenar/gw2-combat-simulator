@@ -14,12 +14,12 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusFromContext,
   attributeBonusNumber,
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  ownerAttributeBonusNumber,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile } from '#gw2/platform/skills/types.js';
@@ -54,8 +54,8 @@ export const daggerTraining = defineTrait({
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusFromContext(
-            balanceContext,
+          amount: attributeBonusNumber(
+            balanceContext.catalog,
             TRAIT.DAGGER_TRAINING,
             'power',
             weapons.includes(WEAPON.DAGGER) ? 'conditionalAttributeBonuses' : 'attributeBonuses'
@@ -81,7 +81,7 @@ export const deadlyAmbition = defineTrait({
         {
           kind: 'flat',
           to: 'Condition Damage',
-          amount: attributeBonusFromContext(balanceContext, TRAIT.DEADLY_AMBITION, 'conditionDamage'),
+          amount: attributeBonusNumber(balanceContext.catalog, TRAIT.DEADLY_AMBITION, 'conditionDamage'),
           feedsConversions: 'all'
         }
       ]
@@ -122,10 +122,10 @@ export const executioner = defineTrait({
       id: 'thief.executioner',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.EXECUTIONER, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.EXECUTIONER, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        targetHealthBelow(context, balanceNumberFromContext(context, TRAIT.EXECUTIONER, 'threshold'))
+        targetHealthBelow(context, balanceNumber(context.catalog, TRAIT.EXECUTIONER, 'threshold'))
     }
   ]
 });
@@ -146,10 +146,10 @@ export const exposedWeakness = defineTrait({
       factor: (context) =>
         1 +
         Math.min(
-          balanceNumberFromContext(context, TRAIT.EXPOSED_WEAKNESS, 'maximumConditions'),
+          balanceNumber(context.catalog, TRAIT.EXPOSED_WEAKNESS, 'maximumConditions'),
           targetConditionCount(context)
         ) *
-          balanceNumberFromContext(context, TRAIT.EXPOSED_WEAKNESS, 'damagePerCondition'),
+          balanceNumber(context.catalog, TRAIT.EXPOSED_WEAKNESS, 'damagePerCondition'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -237,7 +237,7 @@ export const potentPoison = defineTrait({
   attributes({ balanceContext }) {
     return {
       traitDurations: {
-        'Poison Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.POTENT_POISON, 'conditionDurationBonus')
+        'Poison Duration': 100 * balanceNumber(balanceContext.catalog, TRAIT.POTENT_POISON, 'conditionDurationBonus')
       }
     };
   },
@@ -247,7 +247,7 @@ export const potentPoison = defineTrait({
       id: 'thief.potent-poison-damage',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.POTENT_POISON, 'conditionDamageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.POTENT_POISON, 'conditionDamageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.event?.condition === CONDITION.POISONED
     }
   ]
@@ -262,11 +262,11 @@ export const revealedTraining = defineTrait<ThiefSkill>({
   },
   // Keep the permanent bonus and live Revealed bonus under the same selected trait.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.REVEALED_TRAINING);
+    const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.REVEALED_TRAINING);
     const state = thiefRuntimeState(context.runtime?.profession);
     // Exclude only a revealing activation's first landed hit. Judgment reveals before firing;
     // attacks that do not reveal and recalled axes use the live Revealed state without that exclusion.
-    const skill: ThiefSkill | undefined = skillForEvent(context.profession?.catalog, context.event, context.skillId);
+    const skill: ThiefSkill | undefined = skillForEvent(context.catalog, context.event, context.skillId);
     const activationId = context.event?.activationId;
     const revealingAttack =
       skill?.stealthAttack &&
@@ -280,14 +280,14 @@ export const revealedTraining = defineTrait<ThiefSkill>({
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusNumber(profile, 'power'),
+          amount: ownerAttributeBonusNumber(profile, 'power'),
           feedsConversions: 'none',
           enabled: true
         },
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusNumber(profile, 'power', 'conditionalAttributeBonuses'),
+          amount: ownerAttributeBonusNumber(profile, 'power', 'conditionalAttributeBonuses'),
           feedsConversions: 'none',
           enabled: (state.revealedUntil || 0) > context.time && !revealingAttack
         }
@@ -328,7 +328,7 @@ function reduceUtilityRecharges(runtime: ThiefRuntime): void {
   // An eligible pilfer claims the interval even when no selected utility is recharging.
   if (!runtime.procs.claim(TRAIT.IMPROVISATION, 'thief.antiquary.improvisation', runtime.time)) return;
 
-  const multiplier = balanceNumberFromContext(runtime, TRAIT.IMPROVISATION, 'rechargeMultiplier');
+  const multiplier = balanceNumber(runtime.helpers, TRAIT.IMPROVISATION, 'rechargeMultiplier');
   for (const id of selectedSkillIdSet(runtime.config.selectedSkillIds)) {
     const skill = runtime.helpers.skillsById.get(id);
 
@@ -350,7 +350,7 @@ function applyMug(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
 
 /** Serpent's Touch Poison is attributed to its trait while retaining the triggering steal. */
 function applySerpentsTouch(runtime: ThiefRuntime, { cast }: StealAcceptance): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.SERPENTS_TOUCH);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.SERPENTS_TOUCH);
   const poison = requireEffect(profile, 'condition', CONDITION.POISONED);
 
   if (!poison) return;
@@ -393,7 +393,7 @@ function applyDeadlyAmbition(context: ThiefResolverContext, { cause }: ThiefStri
 
   const state = professionCoreState(context.profession);
 
-  const deadlyAmbitionProfile = requireBalanceProfileFromContext(context, TRAIT.DEADLY_AMBITION);
+  const deadlyAmbitionProfile = requireBalanceProfile(context.helpers, TRAIT.DEADLY_AMBITION);
   const poison = requireEffect(deadlyAmbitionProfile, 'condition', CONDITION.POISONED);
 
   // Explicit removal suppresses this packet without restoring baseline tuning.
@@ -432,7 +432,7 @@ function applyLotusPoison(context: ThiefResolverContext, { cause: event }: Thief
   )
     return;
 
-  const lotusPoisonProfile = requireBalanceProfileFromContext(context, TRAIT.LOTUS_POISON);
+  const lotusPoisonProfile = requireBalanceProfile(context.helpers, TRAIT.LOTUS_POISON);
 
   if (
     !context.procs.claimCooldown(
@@ -488,7 +488,7 @@ function applyLotusPoison(context: ThiefResolverContext, { cause: event }: Thief
 function applyPanicStrike(context: ThiefResolverContext, { cause: event }: VenomConsumption): void {
   if (event.actorType !== ACTOR.PLAYER || !(Number(event.coefficient) > 0)) return;
 
-  const panicStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.PANIC_STRIKE);
+  const panicStrikeProfile = requireBalanceProfile(context.helpers, TRAIT.PANIC_STRIKE);
 
   if (poisonTargetConditionCount(context, event.at) < balanceProfileNumber(panicStrikeProfile, 'threshold')) return;
 
@@ -531,7 +531,7 @@ function applyPanicStrikePoison(
 ): void {
   if (application.condition !== CONDITION.IMMOBILIZED || application.actorType !== ACTOR.PLAYER) return;
 
-  const panicStrikeProfile = requireBalanceProfileFromContext(context, TRAIT.PANIC_STRIKE);
+  const panicStrikeProfile = requireBalanceProfile(context.helpers, TRAIT.PANIC_STRIKE);
   const poison = requireEffect(panicStrikeProfile, 'condition', CONDITION.POISONED);
 
   // Explicit removal suppresses this packet without restoring baseline tuning.

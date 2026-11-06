@@ -25,7 +25,7 @@ export const engineerCoreHooks = composeRuntimeHooks<EngineerRuntimeState, Engin
   engineerKitLifecycle,
   mineFieldLifecycle,
   {
-    buffPolicies: engineerBuffPolicies,
+    buffPolicies: (runtime) => engineerBuffPolicies(runtime.helpers),
     endurance: engineerEndurance,
     availability: engineerCoreCastAvailability,
     /** Toolbelt buttons follow the currently equipped heal/utility slot, including their flip skills. */

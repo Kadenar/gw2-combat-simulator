@@ -5,7 +5,7 @@ import {
   type SpecializationRuntimeState
 } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
-import type { BalanceProfile } from '#gw2/platform/skills/types.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import type { GuardianCoreState } from '#gw2/professions/guardian/core/state.js';
 import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
 import type { GuardianConfig } from '#gw2/professions/guardian/types.js';
@@ -28,7 +28,7 @@ export interface GuardianFirebrandState {
 /** Initializes independent resource storage from the profiles supplied by module composition. */
 function createFirebrandState(profileContext: {
   readonly config: GuardianConfig;
-  readonly balanceProfile: (id: string | number) => BalanceProfile | undefined;
+  readonly catalog: BalanceProfileSource;
 }): GuardianFirebrandState {
   const { maximum, initial, interval } = firebrandPageTuning(profileContext);
   const pages = clamp(initial, 0, maximum);

@@ -1,6 +1,6 @@
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { nextNecromancerPassiveGain } from '#gw2/professions/necromancer/core/mechanics/passives.js';
 import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
 import type { NecromancerCoreState } from '#gw2/professions/necromancer/core/state.js';
@@ -25,7 +25,7 @@ export const necromancerLifeForce: ResourcePolicy<NecromancerRuntime> = {
     const state = runtime.profession.core;
     return state.activeShroud && state.activeShroud !== 'lich'
       ? (-state.lifeForce.maximum *
-          necromancerShroudDrain(runtime, requireSkillFromContext(runtime, state.activeShroudEntryId!))) /
+          necromancerShroudDrain(runtime.helpers, requireSkill(runtime.helpers, state.activeShroudEntryId!))) /
           100
       : 0;
   },

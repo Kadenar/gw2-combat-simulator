@@ -4,7 +4,7 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import type { ElementalistRuntimeState } from '#gw2/professions/elementalist/types.js';
@@ -48,7 +48,7 @@ export function applyCatalystResolvedDamage(
     return;
   }
 
-  const skill = requireSkillFromContext(context, ID.SHATTERING_ICE);
+  const skill = requireSkill(context.helpers, ID.SHATTERING_ICE);
 
   // A qualifying hit spends its interval even when both rewards have been explicitly removed.
   if (

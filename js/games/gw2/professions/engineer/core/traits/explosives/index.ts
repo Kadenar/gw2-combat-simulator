@@ -12,10 +12,10 @@ import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-def
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  procChanceFromContext,
-  requireBalanceProfileFromContext,
+  procChance,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { isExplosion } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
@@ -42,7 +42,7 @@ export const grenadier = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       // Live remains neutral; preview tuning increases only player-owned explosion strikes with Grenadier selected.
-      factor: (context) => 1 + balanceNumberFromContext(context, TRAIT.GRENADIER, 'damageIncrease'),
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.GRENADIER, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && isExplosion(context.event)
     }
   ],
@@ -104,7 +104,7 @@ export const explosiveTemper = defineTrait({
   },
   // Count live stacks at each query; their Ferocity does not feed ordinary conversions.
   attributes(context) {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.EXPLOSIVE_TEMPER);
+    const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.EXPLOSIVE_TEMPER);
 
     return {
       attributeEffects: [
@@ -183,7 +183,7 @@ export const grandEntrance = defineTrait({
       id: 'engineer.grand-entrance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.GRAND_ENTRANCE, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.GRAND_ENTRANCE, 'criticalChance'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && activeBuffStacks(context, 'grand-entrance', 1) > 0
     }
@@ -218,10 +218,10 @@ export const glassCannon = defineTrait({
       id: 'engineer.glass-cannon',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.GLASS_CANNON, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.GLASS_CANNON, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        playerHealthFraction(context) > balanceNumberFromContext(context, TRAIT.GLASS_CANNON, 'threshold')
+        playerHealthFraction(context) > balanceNumber(context.catalog, TRAIT.GLASS_CANNON, 'threshold')
     }
   ]
 });
@@ -237,7 +237,7 @@ export const bigBoomer = defineTrait({
       id: 'engineer.big-boomer',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.BIG_BOOMER, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.BIG_BOOMER, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && playerHealthFraction(context) > targetHealthFraction(context)
     }
@@ -259,11 +259,8 @@ export const shapedCharge = defineTrait({
 
       factor: (context) =>
         1 +
-        Math.min(
-          balanceNumberFromContext(context, TRAIT.SHAPED_CHARGE, 'maximumStacks'),
-          vulnerabilityStacks(context)
-        ) *
-          balanceNumberFromContext(context, TRAIT.SHAPED_CHARGE, 'damageIncreasePerStack'),
+        Math.min(balanceNumber(context.catalog, TRAIT.SHAPED_CHARGE, 'maximumStacks'), vulnerabilityStacks(context)) *
+          balanceNumber(context.catalog, TRAIT.SHAPED_CHARGE, 'damageIncreasePerStack'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
     }
   ]
@@ -276,7 +273,7 @@ function applySteelPackedPowder(context: EngineerResolverContext, event: Enginee
 
   if (!explosion) return;
 
-  const steelPackedPowderProfile = requireBalanceProfileFromContext(context, TRAIT.STEEL_PACKED_POWDER);
+  const steelPackedPowderProfile = requireBalanceProfile(context.helpers, TRAIT.STEEL_PACKED_POWDER);
   const steelPackedPowderVulnerability = requireEffect(steelPackedPowderProfile, 'condition', CONDITION.VULNERABILITY);
 
   if (steelPackedPowderVulnerability) {
@@ -306,7 +303,7 @@ function applyShortFuse(context: EngineerResolverContext, event: EngineerResolve
   // Eligible explosions consume the interval even when the Fury packet is removed.
   if (!explosion || !context.procs.claim(TRAIT.SHORT_FUSE, 'shortFuse', event.at)) return;
 
-  const shortFuseProfile = requireBalanceProfileFromContext(context, TRAIT.SHORT_FUSE);
+  const shortFuseProfile = requireBalanceProfile(context.helpers, TRAIT.SHORT_FUSE);
   const shortFuseFury = requireEffect(shortFuseProfile, 'boon', boonKey(BOON.FURY));
 
   if (shortFuseFury) {
@@ -341,7 +338,7 @@ function applyExplosiveTemper(context: EngineerResolverContext, event: EngineerR
 
   if (!explosion) return;
 
-  const explosiveTemperProfile = requireBalanceProfileFromContext(context, TRAIT.EXPLOSIVE_TEMPER);
+  const explosiveTemperProfile = requireBalanceProfile(context.helpers, TRAIT.EXPLOSIVE_TEMPER);
   const explosiveTemperBuff = requireEffect(explosiveTemperProfile, 'buff', 'explosive-temper');
 
   if (explosiveTemperBuff) {
@@ -404,11 +401,11 @@ function applyShrapnel(context: EngineerResolverContext, event: EngineerResolver
   // Generated rocket explosions also roll Shrapnel; effect ownership must not discard their opportunity.
   if (!explosion) return;
 
-  const chance = procChanceFromContext(context, TRAIT.SHRAPNEL);
+  const chance = procChance(context.helpers, TRAIT.SHRAPNEL, context.config.procRateOverrides);
 
   if (!context.random.roll(chance, 'engineer.shrapnel')) return;
 
-  const shrapnelProfile = requireBalanceProfileFromContext(context, TRAIT.SHRAPNEL);
+  const shrapnelProfile = requireBalanceProfile(context.helpers, TRAIT.SHRAPNEL);
   const shrapnelBleeding = requireEffect(shrapnelProfile, 'condition', CONDITION.BLEEDING);
 
   if (shrapnelBleeding) {
@@ -504,7 +501,7 @@ function fireAimAssistedRocket(context: EngineerRuntime, event: EngineerResolver
   // Preserve the cumulative total used to select each orbital strike.
   const progress = advanceCyclicCounter(
     core.aimAssistedRocketCount,
-    balanceNumberFromContext(context, TRAIT.AIM_ASSISTED_ROCKET, 'maximumStacks')
+    balanceNumber(context.helpers, TRAIT.AIM_ASSISTED_ROCKET, 'maximumStacks')
   );
   core.aimAssistedRocketCount = progress.value;
   const variant = progress.reached ? ID.ORBITAL_COMMAND_STRIKE : ID.AIM_ASSISTED_ROCKET_TRAIT_SKILL;

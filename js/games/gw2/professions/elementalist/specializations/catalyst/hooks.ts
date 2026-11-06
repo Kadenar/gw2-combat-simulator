@@ -39,7 +39,7 @@ export const catalystHooks = composeRuntimeHooks<ElementalistRuntimeState, Eleme
   catalystSphereLifecycle,
   catalystAugmentLifecycle,
   {
-    buffPolicies: catalystBuffPolicies,
+    buffPolicies: (runtime) => catalystBuffPolicies(runtime.helpers),
     observeEffects: catalystEffectStates,
     resources: { catalystEnergy: catalystEnergyPolicy },
     initialize,

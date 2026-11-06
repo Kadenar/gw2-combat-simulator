@@ -46,7 +46,7 @@ export function projectMesmerCorePlanningState(input: Gw2PlanningStateInput) {
     ...(mesmerResourceKind(input.config.specialization ?? 'Core') === 'clones'
       ? {
           [STATE.RESOURCE]: state.clones.length,
-          [STATE.RESOURCE_DEFINITION]: mesmerResourceDefinition('Core', { catalog: input.catalog })
+          [STATE.RESOURCE_DEFINITION]: mesmerResourceDefinition('Core', input.catalog)
         }
       : {}),
     // The display timer projects the grant without consuming or pruning its owner.

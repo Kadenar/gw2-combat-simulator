@@ -1,6 +1,6 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
@@ -11,7 +11,7 @@ export function emitShroudEntryTrait(
   trait: SkillId
 ): void {
   emitTraitProfile(runtime, trait, trait, undefined, {
-    skillName: requireBalanceProfileFromContext(runtime, trait).name,
+    skillName: requireBalanceProfile(runtime.helpers, trait).name,
     activationId: cast.id,
     attribution: { triggeredBy: cast.skill.name },
     skillWeaponFallback: 'Unequipped',

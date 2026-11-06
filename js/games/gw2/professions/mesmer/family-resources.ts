@@ -31,7 +31,7 @@ export function createMesmerCloneScheduler(context: MesmerRuntime) {
 export function createMesmerIllusionRewards(context: MesmerRuntime) {
   return createIllusionRewardController({
     state: context,
-    resourceDefinition: mesmerResourceDefinition(context.profession.specialization.kind, context),
+    resourceDefinition: mesmerResourceDefinition(context.profession.specialization.kind, context.helpers),
     activePrimaryWeapon: () => mesmerActivePrimaryWeapon(context),
     cloneAttackScheduler: createMesmerCloneScheduler(context),
     destroyClone: (clone) => destroyClone(context, clone),

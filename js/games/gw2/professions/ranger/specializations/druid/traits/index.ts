@@ -10,11 +10,7 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
-import {
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerInitialized } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { avatarExited } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
@@ -37,7 +33,7 @@ export const naturalMenderPassive = definePeriodicTask<RangerRuntime>({
   state: (runtime) => druidState.from(runtime.profession).naturalMender,
   nextAt(runtime) {
     const state = druidState.from(runtime.profession).naturalMender;
-    const interval = balanceNumberFromContext(runtime, TRAIT.NATURAL_MENDER, 'pulseInterval');
+    const interval = balanceNumber(runtime.helpers, TRAIT.NATURAL_MENDER, 'pulseInterval');
 
     if (interval <= 0) return Infinity;
 
@@ -48,7 +44,7 @@ export const naturalMenderPassive = definePeriodicTask<RangerRuntime>({
     if (druidState.from(runtime.profession).celestialAvatarEndsAt === null)
       runtime.resourceController.grant(
         'astralForce',
-        balanceNumberFromContext(runtime, TRAIT.NATURAL_MENDER, 'resourceGain')
+        balanceNumber(runtime.helpers, TRAIT.NATURAL_MENDER, 'resourceGain')
       );
   }
 });
@@ -63,7 +59,7 @@ const naturalMender = defineTrait({
   triggers: [
     onTriggerPoint(rangerInitialized, {
       run(runtime) {
-        const interval = balanceNumberFromContext(runtime, TRAIT.NATURAL_MENDER, 'pulseInterval');
+        const interval = balanceNumber(runtime.helpers, TRAIT.NATURAL_MENDER, 'pulseInterval');
 
         if (interval > 0) {
           druidState.from(runtime.profession).naturalMender.deadline = interval;
@@ -89,7 +85,7 @@ const naturalBalance = defineTrait({
       id: 'ranger.natural-balance-condition-damage',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.NATURAL_BALANCE, 'conditionDamageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.NATURAL_BALANCE, 'conditionDamageIncrease'),
       when: naturalBalanceActive
     },
     {
@@ -97,7 +93,7 @@ const naturalBalance = defineTrait({
       id: 'ranger.natural-balance-condition-duration',
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.NATURAL_BALANCE, 'conditionDurationBonus'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.NATURAL_BALANCE, 'conditionDurationBonus'),
       when: naturalBalanceActive
     }
   ],
@@ -196,7 +192,7 @@ export const druidTraits = [intrinsicPolicy, naturalMender, naturalBalance, grac
 
 /** Fires at the Avatar transition before chain reset and swap reactions. */
 function applyNaturalBalance(runtime: RangerRuntime): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.NATURAL_BALANCE);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.NATURAL_BALANCE);
   const effect = requireEffect(profile, 'buff', 'natural-balance');
 
   if (effect)

@@ -24,7 +24,7 @@ export function harbingerEffectStates(runtime: MechanicQueriesOf<NecromancerRunt
     timedEffectState(
       'harbinger-blight',
       state.blightExpiries.map((expiresAt) => ({ expiresAt, stacks: 1 })),
-      harbingerBlightMaximum(runtime),
+      harbingerBlightMaximum(runtime.helpers),
       { name: 'Blight' }
     ),
     timedEffectState(

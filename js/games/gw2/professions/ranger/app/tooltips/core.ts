@@ -12,7 +12,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { rangerBeastmasteryTooltips } from '#gw2/professions/ranger/app/tooltips/beastmastery.js';
 import { rangerMarksmanshipTooltips } from '#gw2/professions/ranger/app/tooltips/marksmanship.js';
@@ -135,7 +135,7 @@ export const rangerCoreTooltips = {
       "Strike and chill the target. Arm Weakness for a later qualifying hit through Soulbeast's Winter's Bite reaction.",
       (balanceContext) =>
         simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.WINTERS_BITE), 'beastmode-weakness').effects,
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.WINTERS_BITE), 'beastmode-weakness').effects,
           'armed follow-up'
         ).facts
     ),
@@ -150,7 +150,7 @@ export const rangerCoreTooltips = {
         skillFact(balanceContext, ID.SHARPENING_STONE, 'charges', 'Bleeding charges'),
         skillFact(balanceContext, ID.SHARPENING_STONE, 'duration', 'Charge lifetime', tooltipSeconds),
         ...simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.SHARPENING_STONE), 'sharpening-stone').effects,
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.SHARPENING_STONE), 'sharpening-stone').effects,
           'per charge consumed'
         ).facts
       ]
@@ -161,7 +161,7 @@ export const rangerCoreTooltips = {
         skillFact(balanceContext, ID.DOUBLE_ARC, 'charges', 'Poison charges'),
         skillFact(balanceContext, ID.DOUBLE_ARC, 'duration', 'Charge lifetime', tooltipSeconds),
         ...simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.DOUBLE_ARC), 'poisonous-strikes').effects,
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.DOUBLE_ARC), 'poisonous-strikes').effects,
           'per charge consumed'
         ).facts
       ]
@@ -172,7 +172,7 @@ export const rangerCoreTooltips = {
         skillFact(balanceContext, ID.CRIPPLING_SHOT, 'charges', 'Bleeding charges'),
         skillFact(balanceContext, ID.CRIPPLING_SHOT, 'duration', 'Charge lifetime', tooltipSeconds),
         ...simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.CRIPPLING_SHOT), 'blood-thirst').effects,
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.CRIPPLING_SHOT), 'blood-thirst').effects,
           'per charge consumed'
         ).facts
       ]
@@ -261,8 +261,7 @@ export const rangerCoreTooltips = {
       'Grant the listed boons and arm might generation for your active pet. While the buff lasts, your qualifying strikes grant might to that pet.',
       (balanceContext) =>
         simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.STRENGTH_OF_THE_PACK), 'triggered-might')
-            .effects,
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.STRENGTH_OF_THE_PACK), 'triggered-might').effects,
           'to your active pet per qualifying player hit'
         ).facts
     ),
@@ -281,7 +280,7 @@ export const rangerCoreTooltips = {
           tooltipFactorChange
         ),
         ...simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.STALKERS_STRIKE), 'impaired-poison').effects
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.STALKERS_STRIKE), 'impaired-poison').effects
         ).facts
       ]
     ),

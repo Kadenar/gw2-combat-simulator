@@ -9,9 +9,9 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import { illusionSource, timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
@@ -53,8 +53,8 @@ const nomadsEndurance = defineTrait<MesmerSkill>({
         if (target === MODIFIER_TARGET.STRIKE_DAMAGE && illusionSource(context)) return 0;
 
         return target === MODIFIER_TARGET.STRIKE_DAMAGE
-          ? balanceNumberFromContext(context, TRAIT.NOMADS_ENDURANCE, 'damageIncrease')
-          : balanceNumberFromContext(context, TRAIT.NOMADS_ENDURANCE, 'conditionDamageIncrease');
+          ? balanceNumber(context.catalog, TRAIT.NOMADS_ENDURANCE, 'damageIncrease')
+          : balanceNumber(context.catalog, TRAIT.NOMADS_ENDURANCE, 'conditionDamageIncrease');
       },
       when: (context) => Boolean(context.timeline?.vigorActiveAt(context.time))
     }
@@ -151,12 +151,12 @@ const phantomPain = defineTrait<MesmerSkill>({
           timedStacks(
             context,
             'phantom-pain',
-            balanceNumberFromContext(context, TRAIT.PHANTOM_PAIN, 'duration'),
-            balanceNumberFromContext(context, TRAIT.PHANTOM_PAIN, 'maximumStacks')
+            balanceNumber(context.catalog, TRAIT.PHANTOM_PAIN, 'duration'),
+            balanceNumber(context.catalog, TRAIT.PHANTOM_PAIN, 'maximumStacks')
           ) *
           (target === MODIFIER_TARGET.CONDITION_DAMAGE
-            ? balanceNumberFromContext(context, TRAIT.PHANTOM_PAIN, 'conditionDamageIncreasePerStack')
-            : balanceNumberFromContext(context, TRAIT.PHANTOM_PAIN, 'damageIncreasePerStack'))
+            ? balanceNumber(context.catalog, TRAIT.PHANTOM_PAIN, 'conditionDamageIncreasePerStack')
+            : balanceNumber(context.catalog, TRAIT.PHANTOM_PAIN, 'damageIncreasePerStack'))
         );
       }
     }
@@ -240,7 +240,7 @@ function renewingOasisCloak(
   state: MesmerRuntime,
   { at, source, delivery }: TriggerPointInput<typeof mirageCloakGranted>
 ): void {
-  const profile = requireBalanceProfileFromContext(state, TRAIT.RENEWING_OASIS);
+  const profile = requireBalanceProfile(state.helpers, TRAIT.RENEWING_OASIS);
 
   if (!requireEffect(profile, 'boon', boonKey(BOON.REGENERATION))) return;
 
@@ -284,7 +284,7 @@ function reduceDuneCloakShatters(
     if (shatter && readyAt != null) {
       state.cooldownController.reduceSkillRecharge(
         shatter,
-        balanceNumberFromContext(state, TRAIT.DUNE_CLOAK, 'rechargeReduction'),
+        balanceNumber(state.helpers, TRAIT.DUNE_CLOAK, 'rechargeReduction'),
         at
       );
     }
@@ -320,7 +320,7 @@ function riddleAmbush(
   { ambush, impactAt, delivery }: TriggerPointInput<typeof mirageAmbushAccepted>
 ): void {
   const riddleOfSand = mirageState.from(state.profession).riddleOfSandReady
-    ? requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)
+    ? requireEffect(requireBalanceProfile(state.helpers, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)
     : undefined;
 
   if (riddleOfSand) {
@@ -355,7 +355,7 @@ function mantleAmbush(
   state: MesmerRuntime,
   { ambush, impactAt, delivery }: TriggerPointInput<typeof mirageAmbushAccepted>
 ): void {
-  const profile = requireBalanceProfileFromContext(state, TRAIT.MIRAGE_MANTLE);
+  const profile = requireBalanceProfile(state.helpers, TRAIT.MIRAGE_MANTLE);
 
   if (!requireEffect(profile, 'boon', boonKey(BOON.ALACRITY))) return;
 
@@ -432,7 +432,7 @@ function initializeRiddle(state: MesmerRuntime): void {
   mirageState.from(state.profession).riddleOfSandReady =
     hasTrait(state, TRAIT.RIDDLE_OF_SAND) &&
     Boolean(
-      requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)
+      requireEffect(requireBalanceProfile(state.helpers, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)
     );
 }
 
@@ -446,7 +446,7 @@ function selfDeceptionCommitted(
   if (skill.skillFamily === 'Deception' && currentResource > 0) {
     createMesmerIllusionRewards(state).queueResources(
       at,
-      balanceNumberFromContext(state, TRAIT.SELF_DECEPTION, 'resourceGain'),
+      balanceNumber(state.helpers, TRAIT.SELF_DECEPTION, 'resourceGain'),
       weapon,
       `Self-Deception: ${skill.name}`,
       {
@@ -465,7 +465,7 @@ function primeRiddleAfterShatter(
 ): void {
   const { skill, at, delivery } = resolution;
 
-  if (requireEffect(requireBalanceProfileFromContext(state, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)) {
+  if (requireEffect(requireBalanceProfile(state.helpers, TRAIT.RIDDLE_OF_SAND), 'condition', CONDITION.CONFUSION)) {
     mirageState.from(state.profession).riddleOfSandReady = true;
     state.effects.emit({
       ...delivery,
@@ -483,7 +483,7 @@ function grantNomadsEndurance(
   { resolution }: TriggerPointInput<typeof mesmerShatterCompleted>
 ): void {
   const { skill, at, delivery } = resolution;
-  const profile = requireBalanceProfileFromContext(state, TRAIT.NOMADS_ENDURANCE);
+  const profile = requireBalanceProfile(state.helpers, TRAIT.NOMADS_ENDURANCE);
 
   if (!requireEffect(profile, 'boon', boonKey(BOON.VIGOR))) return;
 
@@ -519,7 +519,7 @@ function grantPhantomPain(
   { resolution }: TriggerPointInput<typeof mesmerShatterCompleted>
 ): void {
   const { skill, at, spent, delivery } = resolution;
-  const profile = requireBalanceProfileFromContext(state, TRAIT.PHANTOM_PAIN);
+  const profile = requireBalanceProfile(state.helpers, TRAIT.PHANTOM_PAIN);
   const traitSource = {
     source: 'Trait',
     sourceId: TRAIT.PHANTOM_PAIN,
@@ -564,7 +564,7 @@ function createDesertDistortionMirrors(
 
   if (skill.id === ID.DISTORTION) {
     grantAmbushWindow(at, 'Desert Distortion', delivery);
-    createMirrors(at, spent * balanceNumberFromContext(state, TRAIT.DESERT_DISTORTION, 'resourceGain'));
+    createMirrors(at, spent * balanceNumber(state.helpers, TRAIT.DESERT_DISTORTION, 'resourceGain'));
     state.effects.emit({
       ...delivery,
       kind: 'announcement',
@@ -586,12 +586,12 @@ function grantDuneCloak(state: MesmerRuntime, { resolution }: TriggerPointInput<
   const { at, spent, delivery } = resolution;
   const { grantMirageCloak } = createMirageMechanics(state);
 
-  if (spent >= balanceNumberFromContext(state, TRAIT.DUNE_CLOAK, 'threshold')) {
+  if (spent >= balanceNumber(state.helpers, TRAIT.DUNE_CLOAK, 'threshold')) {
     grantMirageCloak(
       at,
       'Dune Cloak',
       {
-        duration: balanceNumberFromContext(state, TRAIT.DUNE_CLOAK, 'duration')
+        duration: balanceNumber(state.helpers, TRAIT.DUNE_CLOAK, 'duration')
       },
       delivery
     );

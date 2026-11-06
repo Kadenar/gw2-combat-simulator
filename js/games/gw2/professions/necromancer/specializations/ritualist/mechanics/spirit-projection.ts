@@ -1,5 +1,6 @@
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireEffect, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillSource } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
@@ -40,15 +41,15 @@ const SPIRIT_ATTACKS: ReadonlyMap<
 export const RITUALIST_SPIRIT_SKILL_IDS = Object.freeze([...SPIRIT_ATTACKS.keys()]);
 
 /** Resolve only the named attacks the spirit can execute from their selected skill and action owners. */
-export function spiritAttackEffects(context: unknown, skillId: SkillId) {
+export function spiritAttackEffects(source: SkillSource, skillId: SkillId) {
   const attacks = SPIRIT_ATTACKS.get(skillId);
 
   if (!attacks) return undefined;
 
-  const summon: NecromancerSkill = requireSkillFromContext(context, skillId);
-  const profile = requireSkillFromContext(context, summon.summonAttackId as SkillId);
+  const summon: NecromancerSkill = requireSkill(source, skillId);
+  const profile = requireSkill(source, summon.summonAttackId as SkillId);
   const opening = requireSkillAction(summon, 'opening');
-  const command = requireSkillFromContext(context, ID.SUMMON_SPIRITS);
+  const command = requireSkill(source, ID.SUMMON_SPIRITS);
   const commands = requireSkillAction(command, 'commands');
   return {
     key: attacks.key,

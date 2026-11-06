@@ -59,7 +59,7 @@ function instrumentContext(traits = [TRAIT.FORTISSIMO]) {
     profession,
     state,
     events,
-    catalog: profession.catalog,
+    helpers: profession.catalog,
     action: {},
     start: 0,
     fullEnd: 0,
@@ -69,7 +69,6 @@ function instrumentContext(traits = [TRAIT.FORTISSIMO]) {
     eventsOfType: (type) => events.filter((event) => event.type === type)
   };
   Object.assign(context, state);
-  context.helpers = context.catalog;
   context.effects = captureEffectEmissions({ now: () => context.time, submit: emit }).effects;
   const facts = createExecutedFacts(events);
   context.facts = facts.reader;
@@ -111,7 +110,7 @@ function instrumentContext(traits = [TRAIT.FORTISSIMO]) {
 
 function play(context, id, at, notes = 0) {
   context.fullEnd = context.effectiveEnd = at;
-  const skill = context.catalog.skillsById.get(id);
+  const skill = context.helpers.skillsById.get(id);
   context.time = at;
   context.resourceController.replace('notes', notes);
   completeTroubadourPerformance(
@@ -137,12 +136,12 @@ test('instrument commitment, damage bonuses, projection, and UI share exact excl
     const projected = projectObservedState(mesmerProfession, {
       ...context,
       config: context.config,
-      catalog: context.catalog
+      catalog: context.helpers
     });
     assert.equal(projected[STATE.ACTIVE_INSTRUMENTS].length, Number(active));
     const view = troubadourUi
       .resourceViews({
-        catalog: context.catalog,
+        catalog: context.helpers,
         professionState: projected,
         resources: { endurance: { maximum: 100 } }
       })
@@ -177,7 +176,7 @@ test('shorter instrument replays replace their own window without reviving old b
     ['Flute']
   );
   context.start = 7.301;
-  const skill = { ...context.catalog.skillsById.get(ID.CRESCENDO), damageAtMs: 0 };
+  const skill = { ...context.helpers.skillsById.get(ID.CRESCENDO), damageAtMs: 0 };
   troubadourHooks.tasks['mesmer.crescendo'](context, {
     cast: {
       skill,
@@ -206,7 +205,7 @@ test('instrument damage queries respect commitment order at the same timestamp',
 
 // Exercise acceptance and commitment separately so expiry/replacement cannot rewrite a Tale's eligibility.
 function beginTale(context, at) {
-  const skill = context.catalog.skillsById.get(ID.TALE_OF_THE_TORTURED_MASTERMIND);
+  const skill = context.helpers.skillsById.get(ID.TALE_OF_THE_TORTURED_MASTERMIND);
   const cast = { id: 'tale', skill, start: at, command: {} };
   context.time = at;
   context.effects.emit({
@@ -250,7 +249,7 @@ test('Tale rewards commit before recovery and are available to the next instrume
   play(context, ID.LIVELY_LUTE, 0);
   const cast = {
     id: 'soulkeeper',
-    skill: context.catalog.skillsById.get(ID.TALE_OF_THE_SOULKEEPER),
+    skill: context.helpers.skillsById.get(ID.TALE_OF_THE_SOULKEEPER),
     start: 1,
     fullEnd: 3,
     effectiveEnd: 2,
@@ -274,7 +273,7 @@ test('Tale rewards commit before recovery and are available to the next instrume
 
 test('Crescendo reads an instrument committed between acceptance and impact', () => {
   const context = instrumentContext();
-  const skill = context.catalog.skillsById.get(ID.CRESCENDO);
+  const skill = context.helpers.skillsById.get(ID.CRESCENDO);
   const cast = { id: 'crescendo', skill, start: 0, fullEnd: 1, effectiveEnd: 1, command: {} };
   const queued = [];
   context.scheduleForCast = (type, at, cast) => queued.push({ type, at, cast });
@@ -359,7 +358,7 @@ test('delayed performance packets survive instrument expiry without retaining it
 test('Crescendo rewards use the captured last instrument', () => {
   const context = instrumentContext([TRAIT.ALTERED_CHORD]);
   context.profession.specialization.state.lastInstrument = 'Lute';
-  const skill = context.catalog.skillsById.get(ID.CRESCENDO);
+  const skill = context.helpers.skillsById.get(ID.CRESCENDO);
   context.fireTrigger(troubadourCrescendoResolved, {
     skill,
     at: 1,

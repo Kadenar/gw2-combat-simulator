@@ -7,7 +7,7 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -292,7 +292,7 @@ export function applyAmalgamStrain(context: EngineerRuntime, skill: EngineerSkil
   const state = amalgamState.from(context.profession);
   const morphKind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id);
   // Resolve shared strain tuning before granting it, independently of the triggering slot.
-  skill = requireSkillFromContext(context, amalgamStrainOwnerId(skill.id));
+  skill = requireSkill(context.helpers, amalgamStrainOwnerId(skill.id));
   const action = requireSkillAction(skill, 'strain');
 
   if (morphKind === 'thorns') {

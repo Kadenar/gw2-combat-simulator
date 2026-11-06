@@ -12,9 +12,9 @@ import {
 } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -54,7 +54,7 @@ export const acolyteOfTorment = defineTrait({
       order: 2,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.ACOLYTE_OF_TORMENT, 'conditionDamageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.ACOLYTE_OF_TORMENT, 'conditionDamageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.condition === CONDITION.TORMENT
     }
   ]
@@ -151,7 +151,7 @@ export const yearningEmpowerment = defineTrait({
 /** Runs the trait at its original ordered mechanic boundary. */
 function reactAbyssalChill(runtime: RevenantRuntime, { cause: event }: RevenantStrike): void {
   if (event.condition === CONDITION.CHILLED) {
-    const profile = requireBalanceProfileFromContext(runtime, TRAIT.ABYSSAL_CHILL);
+    const profile = requireBalanceProfile(runtime.helpers, TRAIT.ABYSSAL_CHILL);
     const condition = requireEffect(profile, 'condition', CONDITION.TORMENT);
 
     if (condition) {

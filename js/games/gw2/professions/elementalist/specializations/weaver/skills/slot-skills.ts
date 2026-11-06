@@ -6,7 +6,8 @@ import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireEffect, requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillSource } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
@@ -226,8 +227,8 @@ export const WEAVER_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
 };
 
 /** Runtime and tooltips read the same patched stance payload. */
-export function primordialStancePayload(context: unknown) {
-  const skill = requireSkillFromContext(context, ID.PRIMORDIAL_STANCE);
+export function primordialStancePayload(source: SkillSource) {
+  const skill = requireSkill(source, ID.PRIMORDIAL_STANCE);
   return { skill, action: requireSkillAction(skill, 'pulses') };
 }
 
@@ -245,7 +246,7 @@ export function applyFerventStance(
   // Dual attacks claim Superior Elements at completion, before attempting its Weakness packet.
   // Dual attacks grant Might only while the stance is armed and strictly unexpired.
   if (dualAttunements && state.ferventStanceUntil > 0 && state.ferventStanceUntil > at) {
-    const stance = requireSkillFromContext(context, ID.FERVENT_STANCE);
+    const stance = requireSkill(context.helpers, ID.FERVENT_STANCE);
     const might = requireEffect(stance, 'boon', BOON.MIGHT, requireSkillAction(stance, 'dual-attack-might'));
 
     if (might) {

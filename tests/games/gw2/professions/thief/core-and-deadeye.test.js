@@ -335,6 +335,7 @@ test('Thief shared impacts remain independently patchable beside separate strike
 test('Thief resources use profession-specific initiative and malice pips', () => {
   const resourceViews = (specialization, config = {}) =>
     thiefProfession.ui.resourceViews({
+      catalog: thiefProfession.catalog,
       specialization,
       config: { specialization, ...config },
       // The palette renders an initialized planning state, whose pools start at their selected capacity.

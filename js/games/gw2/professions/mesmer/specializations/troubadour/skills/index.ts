@@ -9,6 +9,7 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { ACTOR, AURA, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { createDodgeSkill } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
@@ -26,6 +27,7 @@ const TROUBADOUR_TALE_ACTIONS: NonNullable<MesmerSkill['sideEffects']> = [
 
 /** Cry of Pain augments only the player's Flute performance; afterimages keep the native conditions. */
 function traitedInstrumentConditions(
+  source: BalanceProfileSource,
   runtime: unknown,
   effects: readonly SkillEffect[],
   skill: MesmerSkill
@@ -34,7 +36,7 @@ function traitedInstrumentConditions(
 
   return effects.map((effect) =>
     effect.type === 'condition' && effect.condition === CONDITION.CONFUSION
-      ? cryOfPainConfusion(runtime, effect, skill)!
+      ? cryOfPainConfusion(source, runtime, effect, skill)!
       : effect
   );
 }
@@ -48,7 +50,7 @@ function instrumentEffects(): NonNullable<MesmerSkill['effectVariants']> {
         // Performances are Mesmer skills; Mesmer narrows skill ids, so the shared cast skill is asserted once here.
         const skill = cast.skill as MesmerSkill;
         const instrument = skill.instrument as MesmerInstrument;
-        return traitedInstrumentConditions(runtime, effects, skill).map((effect): SkillEffect => {
+        return traitedInstrumentConditions(runtime.helpers, runtime, effects, skill).map((effect): SkillEffect => {
           const damageAtMs = instrument.damageAtMs ?? 0;
           const timing = {
             source: 'Player',

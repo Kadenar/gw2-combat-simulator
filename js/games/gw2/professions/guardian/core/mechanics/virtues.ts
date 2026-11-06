@@ -12,12 +12,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { permeatingWrathThreshold } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_SKILL_IDS, GUARDIAN_TRAIT_IDS } from '#gw2/professions/guardian/data/ids.js';
@@ -76,7 +71,7 @@ export function applyJusticeBurn(
     readonly passiveBurnDuration?: number;
   }
 ): JusticeBurnOutcome {
-  const justiceSkill = requireSkillFromContext(context, GUARDIAN_SKILL_IDS.JUSTICE);
+  const justiceSkill = requireSkill(context.helpers, GUARDIAN_SKILL_IDS.JUSTICE);
   const burn = requireEffect(
     justiceSkill,
     'condition',
@@ -163,7 +158,7 @@ export function reactToJusticeHitWithOptions(
 
   if (!retainsPassive && event.at < (state.virtueReadyAt.justice || 0)) return null;
 
-  const justiceSkill = requireSkillFromContext(context, GUARDIAN_SKILL_IDS.JUSTICE);
+  const justiceSkill = requireSkill(context.helpers, GUARDIAN_SKILL_IDS.JUSTICE);
 
   if (!requireEffect(justiceSkill, 'condition', 'Burning (passive)', requireSkillAction(justiceSkill, 'justice')))
     return null;

@@ -16,7 +16,7 @@ export function createNecromancerCoreState(
   // Saved starting life force is a percentage; runtime state stores points against the selected capacity.
   const maximum = necromancerLifeForceCapacity(
     config,
-    preparation.balanceContext,
+    preparation.balanceContext.catalog,
     preparation.attributes.vitality ?? 1000
   );
   const state: NecromancerCoreState = {

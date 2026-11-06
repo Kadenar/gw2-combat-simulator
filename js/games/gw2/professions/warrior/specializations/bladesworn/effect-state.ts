@@ -1,16 +1,13 @@
 import { timedEffectState, type BuffStatePolicy, type EffectState } from '#gw2/platform/combat/effect-state.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import {
-  balanceNumberFromContext,
-  balanceProfileFromContext,
-  balanceProfileNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, balanceProfile, balanceProfileNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntime } from '#gw2/professions/warrior/types.js';
 
 /** Only the selected elite contributes its buff caps and observations. */
-export function bladeswornBuffPolicies(context: unknown): BuffStatePolicy[] {
+export function bladeswornBuffPolicies(source: BalanceProfileSource): BuffStatePolicy[] {
   return [
     { kind: 'tactical-reload', maximumStacks: 1 },
     { kind: 'overcharged-cartridges', maximumStacks: 1 },
@@ -19,7 +16,7 @@ export function bladeswornBuffPolicies(context: unknown): BuffStatePolicy[] {
     { kind: 'positive-flow' },
     {
       kind: 'fierce-as-fire',
-      maximumStacks: balanceNumberFromContext(context, TRAIT.FIERCE_AS_FIRE, 'maximumStacks')
+      maximumStacks: balanceNumber(source, TRAIT.FIERCE_AS_FIRE, 'maximumStacks')
     }
   ];
 }
@@ -27,7 +24,7 @@ export function bladeswornBuffPolicies(context: unknown): BuffStatePolicy[] {
 /** Observe live owner state so consumption and expiry agree with combat. */
 export function bladeswornEffectStates(runtime: MechanicQueriesOf<WarriorRuntime>): EffectState[] {
   const state = bladeswornState.from(runtime.profession);
-  const maximum = balanceProfileNumber(balanceProfileFromContext(runtime, TRAIT.GUNS_AND_GLORY)!, 'maximumStacks');
+  const maximum = balanceProfileNumber(balanceProfile(runtime.helpers, TRAIT.GUNS_AND_GLORY)!, 'maximumStacks');
   const latest = state.overchargedCartridgeWindows.at(-1);
   return [
     timedEffectState('guns-and-glory', [{ stacks: 1, expiresAt: state.gunsAndGloryUntil }], 1, {

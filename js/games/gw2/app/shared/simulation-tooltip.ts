@@ -8,9 +8,9 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import {
   attributeBonusNumber,
-  balanceNumberFromContext,
-  requireBalanceProfileFromContext,
-  skillNumberFromContext
+  balanceNumber,
+  requireSkill,
+  skillNumber
 } from '#gw2/platform/skills/balance-profiles.js';
 import { displayedSkill } from '#gw2/platform/skills/selectors.js';
 import type { BalanceProfile, CatalogEntity, Skill, SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
@@ -330,9 +330,10 @@ export function profileFact(
   const dot = field.indexOf('.');
   const value =
     dot < 0
-      ? balanceNumberFromContext(context, id, field)
+      ? balanceNumber(context.catalog, id, field)
       : attributeBonusNumber(
-          requireBalanceProfileFromContext(context, id),
+          context.catalog,
+          id,
           field.slice(dot + 1) as import('#gw2/platform/skills/types.js').SkillAttributeKey,
           field.slice(0, dot)
         );
@@ -347,7 +348,7 @@ export function skillFact(
   name: string,
   format: (value: number) => string = tooltipDecimal
 ): TooltipFact {
-  return { name, detail: format(skillNumberFromContext(context, id, field)) };
+  return { name, detail: format(skillNumber(requireSkill(context.catalog, id), field)) };
 }
 
 /** Scalar rules and their named parameters remain the sole owners of patchable modifier inputs. */

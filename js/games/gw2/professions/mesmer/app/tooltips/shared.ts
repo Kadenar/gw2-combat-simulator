@@ -12,7 +12,7 @@ import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specialization
 export const shatterTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const id = Number(entity.id);
   const bladesong = MESMER_VIRTUOSO_SHATTERS[id] != null;
-  const shatter = mesmerSelectedShatter(balanceContext, id);
+  const shatter = mesmerSelectedShatter(balanceContext.catalog, id);
   const native = balanceContext.catalog.skillsById.get(entity.id)! as MesmerSkill;
   const projectEffects = bladesong ? bladesongEffects : cloneShatterEffects;
   // Resolve by resource tier so removing a strike cannot relabel its surviving neighbors.
@@ -20,7 +20,7 @@ export const shatterTooltip: DescribeSimulationTooltip = (balanceContext, entity
     if (tier < (shatter.minimumResource ?? 0)) return [];
 
     const qualifier = `${tier} ${bladesong ? 'blades' : 'clones'} spent`;
-    return simulationEffectFacts(projectEffects(balanceContext, shatter, native, tier), qualifier).facts;
+    return simulationEffectFacts(projectEffects(balanceContext.catalog, shatter, native, tier), qualifier).facts;
   });
 
   if (native.rechargeReductionPerSource != null)

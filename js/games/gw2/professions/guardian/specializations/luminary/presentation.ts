@@ -4,10 +4,11 @@ import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession
 import type {
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
-import { balanceNumberFromContext, requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import {
   formatSecondsRemaining,
@@ -61,9 +62,9 @@ const RADIANT_ARMAMENT_NAMES: Readonly<Record<string, string>> = Object.freeze({
 });
 
 /** Read selected modifier values without running combat predicates; round away percentage arithmetic noise. */
-function strikeBonus(context: GuardianUiContext, id: string, field: 'amount' | 'factor'): string {
+function strikeBonus(context: ProfessionStateSnapshotContext, id: string, field: 'amount' | 'factor'): string {
   const value = requireBalanceNumber(
-    context.balanceContext?.modifierRulesById.get(id)?.[field],
+    context.balanceContext.modifierRulesById.get(id)?.[field],
     `modifier=${id} field=${field}`
   );
   return formatStrikeBonus(field === 'factor' ? value - 1 : value);
@@ -75,7 +76,9 @@ function formatStrikeBonus(value: number): string {
   return `${percent > 0 ? '+' : ''}${percent}%`;
 }
 
-function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
+function luminaryStateSnapshot(
+  context: ProfessionStateSnapshotContext<GuardianUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
   const state = guardianUiState(context);
@@ -95,7 +98,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
 
   if (effulgentRemaining > 0) {
     // Display the selected cap, including patches that allow more than the baseline stack count.
-    const skill = requireSkillFromContext(context.balanceContext, GUARDIAN_SKILL_IDS.EFFULGENT_STANCE);
+    const skill = requireSkill(context.balanceContext.catalog, GUARDIAN_SKILL_IDS.EFFULGENT_STANCE);
     const maximum = requireBalanceNumber(skill.maximumStacks, `skill=${skill.id} field=maximumStacks`);
     const stacks = boundedInteger(state[STATE.EFFULGENT_STACKS] || 0, 0, 0, maximum);
     items.push({
@@ -114,7 +117,7 @@ function luminaryStateSnapshot(context: GuardianUiContext): RotationStateSnapsho
       id: 'luminary-radiant-armaments',
       label: 'Radiant Armaments',
       value: formatSecondsRemaining(radiant.remaining),
-      title: `Dazzling Hammer: ${formatStrikeBonus(balanceNumberFromContext(context.balanceContext, TRAIT.RADIANT_ARMAMENTS, 'damageIncrease'))} strike damage`
+      title: `Dazzling Hammer: ${formatStrikeBonus(balanceNumber(context.balanceContext.catalog, TRAIT.RADIANT_ARMAMENTS, 'damageIncrease'))} strike damage`
     });
   }
 

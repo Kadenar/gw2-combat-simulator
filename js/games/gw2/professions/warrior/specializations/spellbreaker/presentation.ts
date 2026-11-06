@@ -1,8 +1,11 @@
 import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { RotationStateSnapshotItem } from '#gw2/platform/profession-presentation/types.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import type {
+  ProfessionStateSnapshotContext,
+  RotationStateSnapshotItem
+} from '#gw2/platform/profession-presentation/types.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import {
@@ -44,7 +47,7 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
       group: 'Mechanic',
       kind: 'special',
       scope: ['damage'],
-      max: balanceNumberFromContext(context, TRAIT.SPELLBREAKERS_CONVICTION, 'maximumStacks'),
+      max: balanceNumber(context.catalog, TRAIT.SPELLBREAKERS_CONVICTION, 'maximumStacks'),
       initial: Number(context.build.initialResource) || 0,
       description: 'Adrenaline before setup; bursts use the Spellbreaker tier'
     });
@@ -65,9 +68,9 @@ export const spellbreakerUi: WarriorUiSlice = Object.freeze({
   resourceViews: (context: WarriorUiContext) =>
     warriorAdrenalineResourceViews(
       context,
-      balanceNumberFromContext(context, TRAIT.SPELLBREAKERS_CONVICTION, 'maximumStacks')
+      balanceNumber(context.catalog, TRAIT.SPELLBREAKERS_CONVICTION, 'maximumStacks')
     ),
-  rotationStateSnapshot: (context: WarriorUiContext) => {
+  rotationStateSnapshot: (context: ProfessionStateSnapshotContext<WarriorUiContext['professionState']>) => {
     const state = warriorUiState(context);
     const at = warriorSnapshotAt(context);
     const items: RotationStateSnapshotItem[] = [];

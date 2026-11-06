@@ -35,7 +35,7 @@ interface SpiritStrikeTick {
 // Decode each spirit's named skill and action effects into its initial,
 // autonomous, lingering, and active attack timings.
 export function spiritDefinition(context: NecromancerRuntime, skillId: SkillId): SpiritDefinition | undefined {
-  const attacks = spiritAttackEffects(context, skillId);
+  const attacks = spiritAttackEffects(context.helpers, skillId);
 
   if (!attacks) return undefined;
 

@@ -43,10 +43,10 @@ test('instrument projection retains named strike ownership while Harp intentiona
       }
     }
   });
-  const flute = mesmerSelectedInstrument({ catalog }, ID.FLUSTERING_FLUTE);
+  const flute = mesmerSelectedInstrument(catalog, ID.FLUSTERING_FLUTE);
   assert.equal(flute.type, undefined);
   assert.ok(flute.conditions.some(({ condition }) => condition === 'Confusion'));
-  assert.equal(mesmerSelectedInstrument({ catalog }, ID.HARMONIOUS_HARP).type, undefined);
+  assert.equal(mesmerSelectedInstrument(catalog, ID.HARMONIOUS_HARP).type, undefined);
 });
 
 // Selected strike and status components remain independently removable for player and clone consumers.
@@ -62,7 +62,7 @@ test('ambush projection does not restore removed Vulnerability or replace its na
       }
     }
   });
-  const ambush = mesmerSelectedAmbush({ catalog }, ID.SPLIT_SURGE);
+  const ambush = mesmerSelectedAmbush(catalog, ID.SPLIT_SURGE);
   assert.equal(ambush.player.type, undefined);
   assert.equal(ambush.clone.type, 'strike');
   assert.equal(ambush.vulnerability, undefined);
@@ -119,8 +119,12 @@ test('Flute Cry of Pain fields preserve separate trait and skill tuning', () => 
   const context = { catalog, traits: new Set([TRAIT.CRY_OF_PAIN]) };
   const condition = { type: 'condition', condition: 'Confusion', stacks: 3, duration: 6 };
   const flute = catalog.skillsById.get(ID.FLUSTERING_FLUTE);
-  assert.deepEqual(cryOfPainConfusion(context, condition, flute), { ...condition, stacks: 7, duration: 12 });
-  assert.deepEqual(cryOfPainConfusion(context, condition), { ...condition, stacks: 4, duration: 8 });
+  assert.deepEqual(cryOfPainConfusion(context.catalog, context, condition, flute), {
+    ...condition,
+    stacks: 7,
+    duration: 12
+  });
+  assert.deepEqual(cryOfPainConfusion(context.catalog, context, condition), { ...condition, stacks: 4, duration: 8 });
 });
 
 // The selected signet's cadence and amount feed the existing ready-only resource scheduler.

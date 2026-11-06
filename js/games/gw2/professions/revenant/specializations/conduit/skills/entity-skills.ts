@@ -8,7 +8,7 @@ import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { requireSkillFromContext, skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
@@ -54,7 +54,7 @@ export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCas
     hazeMainCasts.delete(cast);
     state.beguilingHazeCharges = Math.max(
       0,
-      skillNumberFromContext(runtime, ID.BEGUILING_HAZE_FOLLOW_UP, 'maximumStacks')
+      skillNumber(requireSkill(runtime.helpers, ID.BEGUILING_HAZE_FOLLOW_UP), 'maximumStacks')
     );
     state.beguilingHazeRecharge = runtime.cooldownController.readAmmo(skill.id)?.recharges[0] ?? null;
     state.beguilingHazeReadyAt =
@@ -337,11 +337,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
         when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
           conduitState.from(runtime.profession).beguilingHazeCharges > 0,
         transform: (runtime, cast) =>
-          selectBeguilingHaze(
-            runtime,
-            cast,
-            requireSkillFromContext(runtime, ID.BEGUILING_HAZE_FOLLOW_UP).effects ?? []
-          )
+          selectBeguilingHaze(runtime, cast, requireSkill(runtime.helpers, ID.BEGUILING_HAZE_FOLLOW_UP).effects ?? [])
       },
       { when: () => true, transform: selectBeguilingHaze }
     ],

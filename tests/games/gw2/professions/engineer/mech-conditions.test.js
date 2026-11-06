@@ -27,7 +27,6 @@ test('mech consumers require explicit event or condition-application ownership',
     const context = {
       config,
       catalog: profession.catalog,
-      profession: { catalog: profession.catalog },
       event,
       time: 0
     };

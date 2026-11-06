@@ -29,7 +29,7 @@ import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Cloak, mirror pickup, and endurance execute at actual command and owned-task boundaries. */
 export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
-  buffPolicies: mirageBuffPolicies,
+  buffPolicies: (runtime) => mirageBuffPolicies(runtime.helpers),
   resolveInputControl(_context, skill) {
     // Walking through a mirror is simulated as a command, but adds no discrete key press.
     return skill.id === MESMER_SKILL_IDS.PICK_UP_MIRAGE_MIRROR ? null : undefined;

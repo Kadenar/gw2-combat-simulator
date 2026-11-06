@@ -21,7 +21,7 @@ import {
 import { BOON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
   armFlipTooltip,
@@ -43,7 +43,7 @@ const heatPercent = (value: number): string => `${tooltipDecimal(value)}%`;
 /** Present each activation-heat variant in its own tab using the selected balance data. */
 function heatPacketTooltip(skillId: SkillId, description: string, { field = false } = {}): DescribeSimulationTooltip {
   return (balanceContext, entity) => {
-    const skill = requireSkillFromContext(balanceContext, skillId);
+    const skill = requireSkill(balanceContext.catalog, skillId);
     const facts = [
       ...simulationEffectFacts(
         balanceContext.catalog.skillsById
@@ -237,7 +237,7 @@ export const holosmithTooltips = {
                 {
                   type: 'boon',
                   boon: BOON.QUICKNESS,
-                  duration: tooltipNumber(requireSkillFromContext(balanceContext, ID.RADIANT_ARC), field)
+                  duration: tooltipNumber(requireSkill(balanceContext.catalog, ID.RADIANT_ARC), field)
                 }
               ],
               heatTiers(balanceContext)[index]
@@ -253,7 +253,7 @@ export const holosmithTooltips = {
           balanceContext.catalog.skillsById.get(entity.id)!.effects?.filter((effect) => effect.type !== 'custom')
         ).facts,
         ...simulationEffectFacts(
-          requireSkillAction(requireSkillFromContext(balanceContext, ID.REFRACTION_CUTTER), 'heat-payload').effects,
+          requireSkillAction(requireSkill(balanceContext.catalog, ID.REFRACTION_CUTTER), 'heat-payload').effects,
           'per additional blade'
         ).facts,
         ...['baseExtraBlades', 'highExtraBlades', 'enhancedExtraBlades'].map((field, index) =>
@@ -326,8 +326,8 @@ export const holosmithTooltips = {
       'Photon Forge autoattacks fire explosive projectiles but generate additional heat.',
       (context) => {
         // Read the replacement's mechanics so trait facts follow the selected skill balance.
-        const storm = requireSkillFromContext(context, ID.LIGHT_STRIKE_STORM);
-        const melee = requireSkillFromContext(context, ID.LIGHT_STRIKE);
+        const storm = requireSkill(context.catalog, ID.LIGHT_STRIKE_STORM);
+        const melee = requireSkill(context.catalog, ID.LIGHT_STRIKE);
         return [
           {
             name: 'Additional heat gained',
@@ -349,7 +349,7 @@ export const holosmithTooltips = {
         { ...skillFact(context, ID.VENT_EXHAUST, 'heatLoss', 'Heat lost', heatPercent), icon: HEAT_FACT_ICON },
         // The description identifies the single invoked skill; its effect rows need no repeated source labels.
         ...simulationEffectFacts(
-          requireSkillFromContext(context, ID.VENT_EXHAUST).effects?.map((effect) => ({ ...effect, name: undefined }))
+          requireSkill(context.catalog, ID.VENT_EXHAUST).effects?.map((effect) => ({ ...effect, name: undefined }))
         ).facts
       ]
     ),

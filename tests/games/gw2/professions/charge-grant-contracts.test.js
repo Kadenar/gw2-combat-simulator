@@ -57,7 +57,7 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     traits: new Set(selectedTraitIds),
     config,
     profession: state,
-    catalog: runtime.catalog,
+
     helpers: runtime.catalog,
     state: { time: 0, profession: state, cooldowns: new Map() },
     events,
@@ -146,7 +146,7 @@ test('Taste for Blood spends insertion-ordered batches independently with applic
 
 test('Taste for Blood preserves charges when its authored strike is removed', () => {
   const context = contextFor(necromancerProfession, 'Core', [NECROMANCER.OVERFLOWING_THIRST]);
-  context.catalog = applyBalanceProfilePatch(context.catalog, {
+  context.helpers = applyBalanceProfilePatch(context.helpers, {
     balanceProfiles: { [NECROMANCER.OVERFLOWING_THIRST]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } }
   });
   grantTasteForBlood(context, { at: 1, stacks: 2, duration: 5, resolvedAudience: { includesSelf: true } });
@@ -184,8 +184,8 @@ test('Sharpening Stone batches spend earliest expiry without spending on expired
   triggerSharpeningStone(context, { ...hit, at: 5 });
   assert.equal(activeChargeGrants(core.sharpeningStoneGrants, 5)[0].charges, 1);
   // Remove only the skill-owned follow-up while retaining the independently expiring charge batches.
-  const catalog = context.catalog;
-  context.catalog = applySkillPatch(context.catalog, {
+  const catalog = context.helpers;
+  context.helpers = applySkillPatch(context.helpers, {
     skills: {
       [RANGER.SHARPENING_STONE]: {
         sideEffects: { 'sharpening-stone': { removeEffects: [{ type: 'condition', name: 'Bleeding' }] } }
@@ -194,7 +194,7 @@ test('Sharpening Stone batches spend earliest expiry without spending on expired
   });
   triggerSharpeningStone(context, { ...hit, at: 6 });
   assert.equal(activeChargeGrants(core.sharpeningStoneGrants, 6)[0].charges, 1);
-  context.catalog = catalog;
+  context.helpers = catalog;
   triggerSharpeningStone(context, { ...hit, at: 11 });
   assert.deepEqual(activeChargeGrants(core.sharpeningStoneGrants, 11), []);
   assert.equal(context.events.length, 2);
@@ -270,7 +270,7 @@ test('Blood Thirst grants merged players twelve seconds, replaces remaining char
   bindTriggerPoints(context, rangerProfession, context.config);
   context.profession.specialization.state.beastmodeActive = true;
   const core = context.profession.core;
-  const skill = context.catalog.skillsById.get(RANGER.CRIPPLING_SHOT);
+  const skill = context.helpers.skillsById.get(RANGER.CRIPPLING_SHOT);
   const grant = (at) => {
     context.time = at;
     // Dispatch the skill's declared commitment reward through the same path as the runtime.

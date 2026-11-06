@@ -3,7 +3,7 @@ import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { emitTraitProfile, isTraitEffect } from '#gw2/platform/profession-definition/trait-emission.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefStrike } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
@@ -58,7 +58,7 @@ export function consumeDeftInitiation(runtime: ThiefRuntime, { cause }: ThiefStr
 
   if (!state.deftInitiationArmed || !initiatingStrike(runtime, cause)) return;
 
-  const cooldown = balanceNumberFromContext(runtime, REWORK.DEFT_INITIATION, 'internalCooldown');
+  const cooldown = balanceNumber(runtime.helpers, REWORK.DEFT_INITIATION, 'internalCooldown');
 
   if (cooldown > 0 && !runtime.procs.claimCooldown(REWORK.DEFT_INITIATION, runtime.time, cooldown)) return;
 

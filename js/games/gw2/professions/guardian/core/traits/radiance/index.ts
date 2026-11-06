@@ -9,10 +9,10 @@ import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emis
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusNumber,
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  ownerAttributeBonusNumber,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -65,7 +65,7 @@ export const righteousInstincts = defineTrait({
       id: 'guardian.righteous-instincts',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.RIGHTEOUS_INSTINCTS, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.RIGHTEOUS_INSTINCTS, 'criticalChance'),
       when: (context) => guardianBoonActive(context, boonKey(BOON.RESOLUTION))
     }
   ],
@@ -85,7 +85,7 @@ export const rightHandStrength = defineTrait({
   id: TRAIT.RIGHT_HAND_STRENGTH,
   balance: { attributeBonuses: { precision: 80, power: 80 } },
   attributes: ({ balanceContext: profileContext, loadout, weaponSet }) => {
-    const rightHandStrengthProfile = requireBalanceProfileFromContext(profileContext, TRAIT.RIGHT_HAND_STRENGTH);
+    const rightHandStrengthProfile = requireBalanceProfile(profileContext.catalog, TRAIT.RIGHT_HAND_STRENGTH);
     const weapons = weaponSet === 2 ? loadout.alternateWeapons : loadout.weapons;
     const mainHand = weapons[0] || '';
     const oneHandedMainHand =
@@ -98,13 +98,13 @@ export const rightHandStrength = defineTrait({
         {
           kind: 'flat',
           to: 'Precision',
-          amount: attributeBonusNumber(rightHandStrengthProfile, 'precision'),
+          amount: ownerAttributeBonusNumber(rightHandStrengthProfile, 'precision'),
           feedsConversions: 'none'
         },
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusNumber(rightHandStrengthProfile, 'power'),
+          amount: ownerAttributeBonusNumber(rightHandStrengthProfile, 'power'),
           // Only the one-handed Power bonus feeds conversions; the passive Precision stays excluded.
           feedsConversions: 'all',
           enabled: oneHandedMainHand
@@ -128,7 +128,7 @@ export const radiantPower = defineTrait({
       id: 'guardian.radiant-power-critical-chance',
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.RADIANT_POWER, 'criticalChance'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.RADIANT_POWER, 'criticalChance'),
       when: (context) => targetConditionActive(context, CONDITION.BURNING)
     }
   ]
@@ -145,7 +145,7 @@ export const radiantFire = defineTrait({
   },
   attributes: ({ balanceContext }) => ({
     traitDurations: {
-      'Burning Duration': 100 * balanceNumberFromContext(balanceContext, TRAIT.RADIANT_FIRE, 'conditionDurationBonus')
+      'Burning Duration': 100 * balanceNumber(balanceContext.catalog, TRAIT.RADIANT_FIRE, 'conditionDurationBonus')
     }
   }),
   // Extend only Zealot's Flame's base Burning before ordinary duration bonuses.
@@ -154,7 +154,7 @@ export const radiantFire = defineTrait({
       id: 'guardian.radiant-fire-base-duration',
       target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.RADIANT_FIRE, 'durationMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.RADIANT_FIRE, 'durationMultiplier'),
       when: (context) =>
         context.condition === CONDITION.BURNING &&
         (context.sourceId === ID.ZEALOTS_FLAME || context.event?.skillId === ID.ZEALOTS_FLAME)
@@ -182,7 +182,7 @@ export const amplifiedWrath = defineTrait({
       id: 'guardian.amplified-wrath-base-duration',
       target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.AMPLIFIED_WRATH, 'durationMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.AMPLIFIED_WRATH, 'durationMultiplier'),
       when: (context) =>
         context.condition === CONDITION.BURNING &&
         (context.sourceId === 'guardian.justice-passive' || context.event?.sourceId === 'guardian.justice-passive')
@@ -192,7 +192,7 @@ export const amplifiedWrath = defineTrait({
       id: 'guardian.amplified-wrath-damage',
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.AMPLIFIED_WRATH, 'conditionDamageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.AMPLIFIED_WRATH, 'conditionDamageMultiplier'),
       when: (context) => context.condition === CONDITION.BURNING
     }
   ]
@@ -243,7 +243,7 @@ export const retribution = defineTrait({
       id: 'guardian.retribution',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.RETRIBUTION, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.RETRIBUTION, 'damageIncrease'),
       when: (context) => guardianBoonActive(context, boonKey(BOON.RESOLUTION))
     }
   ]
@@ -266,7 +266,7 @@ export const innerFire = defineTrait({
         event.actorType === ACTOR.PLAYER &&
         details.hitContext.damage > 0 &&
         runtime.combat.targetConditionStacks(CONDITION.BURNING, event.at) >=
-          balanceNumberFromContext(runtime, TRAIT.INNER_FIRE, 'threshold')
+          balanceNumber(runtime.helpers, TRAIT.INNER_FIRE, 'threshold')
     }
   ]
 });
@@ -287,7 +287,7 @@ function resolutionDeadline(runtime: GuardianRuntime): number {
 
 /** Grant the selected Might component without moving its emission outside the Resolution cadence. */
 function righteousMight(runtime: GuardianRuntime, event: Gw2ResolverEvent): boolean {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.RIGHTEOUS_INSTINCTS);
   const effect = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
 
   if (!effect) return false;
@@ -341,7 +341,7 @@ function startRighteousInstincts(runtime: GuardianRuntime, event: Gw2ResolverEve
 
   if (!righteousMight(runtime, event)) return;
 
-  const interval = balanceNumberFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS, 'pulseInterval');
+  const interval = balanceNumber(runtime.helpers, TRAIT.RIGHTEOUS_INSTINCTS, 'pulseInterval');
 
   if (interval > 0)
     runtime.schedule(
@@ -382,14 +382,14 @@ function pulseRighteousMight(runtime: GuardianRuntime, data: unknown): void {
   )
     return;
 
-  const interval = balanceNumberFromContext(runtime, TRAIT.RIGHTEOUS_INSTINCTS, 'pulseInterval');
+  const interval = balanceNumber(runtime.helpers, TRAIT.RIGHTEOUS_INSTINCTS, 'pulseInterval');
 
   if (interval > 0) runtime.schedule(MIGHT, canonicalTime(runtime.time + interval), data, undefined, -10);
 }
 
 /** A committed heal claims Resolution's interval only when its selected boon can emit. */
 function grantHealersResolution(runtime: GuardianRuntime, { cast }: GuardianCastCompletion): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.HEALERS_RESOLUTION);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.HEALERS_RESOLUTION);
 
   // A removed boon leaves this heal's claim ready.
   if (
@@ -431,7 +431,7 @@ function blindFromJustice(runtime: GuardianRuntime, { cast }: VirtueActivation):
 /** The Core trait owns delivery; Luminary may react to the aura without owning its grant. */
 function grantJusticeAura(runtime: GuardianRuntime, data: unknown): void {
   const event = data as Gw2ResolverEvent;
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.JUSTICE_IS_BLIND);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.JUSTICE_IS_BLIND);
   const aura = requireEffect(profile, 'aura', AURA.LIGHT);
 
   if (!aura) return;

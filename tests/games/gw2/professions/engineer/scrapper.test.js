@@ -299,7 +299,7 @@ test('Kinetic Accelerators applies its strict ICD only to whirl finishers', () =
   const context = {
     effects,
     procs: createProcRegistry(() => context),
-    catalog: engineerCatalog,
+    helpers: engineerCatalog,
     config: {
       selectedTraitIds: [TRAIT.KINETIC_ACCELERATORS],
       attributeInputs: baseAttributeInputs({ concentration: 0 })

@@ -280,12 +280,14 @@ test('required profile fields fail contextually and selected catalogs cannot fal
       balanceProfilesById: new Map([[TRAIT.LETHAL_TEMPO, { ...profile, maximumStacks, balanceDataContext }]]),
       balanceDataContext
     };
-    assert.throws(() => lethalTempoParameters({ catalog }), /profession=guardian patch=malformed.*maximumStacks/);
+    assert.throws(
+      () => lethalTempoParameters(catalog, { catalog }),
+      /profession=guardian patch=malformed.*maximumStacks/
+    );
   }
 
   assert.throws(
-    () =>
-      lethalTempoParameters({ catalog: { balanceProfilesById: new Map() }, profession: { catalog: guardianCatalog } }),
+    () => lethalTempoParameters({ balanceProfilesById: new Map() }, { catalog: { balanceProfilesById: new Map() } }),
     /missing required profile/
   );
 });
@@ -309,10 +311,7 @@ test('patched resource caps and zero recurrence survive initialization and prese
   const tempoCatalog = applyBalanceProfilePatch(guardianCatalog, {
     balanceProfiles: { [TRAIT.LETHAL_TEMPO]: { fields: { maximumStacks: { from: 5, to: 2 } } } }
   });
-  assert.equal(
-    willbenderBuffPolicies({ catalog: tempoCatalog }).find((effect) => effect.kind === 'lethal-tempo').maximumStacks,
-    2
-  );
+  assert.equal(willbenderBuffPolicies(tempoCatalog).find((effect) => effect.kind === 'lethal-tempo').maximumStacks, 2);
   assert.equal(guardianCatalog.balanceProfilesById.get(TRAIT.LETHAL_TEMPO).maximumStacks, 5);
 });
 

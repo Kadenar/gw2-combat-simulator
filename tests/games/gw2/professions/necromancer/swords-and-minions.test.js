@@ -112,7 +112,10 @@ test('Taste for Blood procs log their owning trait and triggering skill', () => 
     },
     observationTail(5000)
   );
-  const eventRows = simulationEventLogRows(result, null, withPatchPreview(necromancerProfession));
+  const eventRows = simulationEventLogRows(result, null, {
+    profession: withPatchPreview(necromancerProfession),
+    catalog: necromancerProfession.catalog
+  });
 
   assert.ok(result.procSteps.some((proc) => proc.skill === 'Taste for Blood' && proc.sourceSkill === 'Wanderlust'));
   assert.equal(
@@ -841,9 +844,10 @@ test('Vampiric Presence supports four allied players and respects its five-targe
   const alliedSiphons = allies.resolvedEvents.filter(
     (event) => event.type === 'damage' && String(event.triggeredBy).startsWith('Allied Player')
   );
-  const alliedRows = simulationEventLogRows(allies, null, withPatchPreview(necromancerProfession)).filter((row) =>
-    row.description.startsWith('HIT Vampiric Presence')
-  );
+  const alliedRows = simulationEventLogRows(allies, null, {
+    profession: withPatchPreview(necromancerProfession),
+    catalog: necromancerProfession.catalog
+  }).filter((row) => row.description.startsWith('HIT Vampiric Presence'));
   const minionSiphons = (result) =>
     result.resolvedEvents.filter(
       (event) => event.type === 'damage' && event.name === 'Vampiric Presence' && event.triggeredBy === 'Bone Shard'
@@ -885,9 +889,10 @@ test('Vampiric Presence supports four allied players and respects its five-targe
     ['minion:bone-minion:0']
   );
   assert.equal(
-    simulationEventLogRows(uncappedBoneMinions, null, withPatchPreview(necromancerProfession)).some((row) =>
-      row.description.startsWith('HIT Vampiric Presence [Bone Minion #1]')
-    ),
+    simulationEventLogRows(uncappedBoneMinions, null, {
+      profession: withPatchPreview(necromancerProfession),
+      catalog: necromancerProfession.catalog
+    }).some((row) => row.description.startsWith('HIT Vampiric Presence [Bone Minion #1]')),
     true
   );
 });

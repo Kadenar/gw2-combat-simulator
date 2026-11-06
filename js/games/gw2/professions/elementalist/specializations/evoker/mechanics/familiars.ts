@@ -84,7 +84,7 @@ export function onCastStart(context: ElementalistRuntime, cast: RuntimeCast<Elem
 
   // Track pending grants so early familiar inputs can wait for their resource provider.
   if (cast.command.concurrentOffsetMs == null) {
-    const gain = weaponSkillChargeGain(context, skill, state);
+    const gain = weaponSkillChargeGain(context.helpers, context, skill, state);
     const postFamiliarGain = gain > 0 ? gain : skill.id === ID.REJUVENATE ? state.familiarCharges.maximum : 0;
 
     if (postFamiliarGain > 0)

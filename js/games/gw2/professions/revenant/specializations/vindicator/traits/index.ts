@@ -8,11 +8,11 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  attributeBonusNumber,
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
   effectNumber,
-  requireBalanceProfileFromContext,
+  ownerAttributeBonusNumber,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -39,13 +39,13 @@ const empireDivided = defineTrait({
   id: TRAIT.EMPIRE_DIVIDED,
   balance: { attributeBonuses: { power: 240 }, threshold: 0.5 },
   attributes: (context) => {
-    const profile = requireBalanceProfileFromContext(context.balanceContext, TRAIT.EMPIRE_DIVIDED);
+    const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.EMPIRE_DIVIDED);
     return {
       attributeEffects: [
         {
           kind: 'flat',
           to: 'Power',
-          amount: attributeBonusNumber(profile, 'power'),
+          amount: ownerAttributeBonusNumber(profile, 'power'),
           // The full-health Power grant participates in utility and profession conversions.
           feedsConversions: 'all',
           enabled: playerHealthFraction(context) > balanceProfileNumber(profile, 'threshold')
@@ -78,7 +78,7 @@ const forerunnerOfDeath = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // "damage-additive" goes into the GW2 shared outgoing-damage bucket alongside other % modifiers.
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.FORERUNNER_OF_DEATH, 'damageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.FORERUNNER_OF_DEATH, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
         // Prefer the event-baked flag when present; fall back to runtime state for non-dodge strikes.
@@ -107,7 +107,7 @@ const leviathanStrength = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // "multiply" runs after the damage-additive bucket, so Leviathan compounds on top of Forerunner.
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.LEVIATHAN_STRENGTH, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.LEVIATHAN_STRENGTH, 'damageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && enduranceNotFull(context)
     }
   ]
@@ -175,7 +175,7 @@ const songOfArboreum = defineTrait({
   triggers: [
     onTriggerPoint(energyMeldEnduranceGranted, {
       run(runtime) {
-        runtime.endurance.grant(balanceNumberFromContext(runtime, TRAIT.SONG_OF_ARBOREUM, 'resourceGain'));
+        runtime.endurance.grant(balanceNumber(runtime.helpers, TRAIT.SONG_OF_ARBOREUM, 'resourceGain'));
       }
     }),
     {
@@ -211,7 +211,7 @@ function grantAngsiyansTrustEnergy(runtime: RevenantRuntime): void {
   if (runtime.engagement.combatMechanicsAllowed())
     runtime.resourceController.grant(
       'energy',
-      Math.max(0, balanceNumberFromContext(runtime, TRAIT.ANGSIYANS_TRUST, 'resourceGain'))
+      Math.max(0, balanceNumber(runtime.helpers, TRAIT.ANGSIYANS_TRUST, 'resourceGain'))
     );
 }
 
@@ -219,7 +219,7 @@ function grantAngsiyansTrustEnergy(runtime: RevenantRuntime): void {
 function armReaversCurse(runtime: RevenantRuntime): void {
   const state = vindicatorState.from(runtime.profession);
   {
-    const curse = requireBalanceProfileFromContext(runtime, TRAIT.REAVERS_CURSE);
+    const curse = requireBalanceProfile(runtime.helpers, TRAIT.REAVERS_CURSE);
     const effect = requireEffect(curse, 'buff', 'reavers-curse');
 
     // The armed window is the buff, so a removed buff arms nothing.
@@ -231,7 +231,7 @@ function armReaversCurse(runtime: RevenantRuntime): void {
 /** Applies the trait at the mechanic's existing execution boundary. */
 function renewForerunnerOfDeath(runtime: RevenantRuntime, profile: RevenantSkill, activationId: string): void {
   if (profile.id === ID.DEATH_DROP) {
-    const forerunner = requireBalanceProfileFromContext(runtime, TRAIT.FORERUNNER_OF_DEATH);
+    const forerunner = requireBalanceProfile(runtime.helpers, TRAIT.FORERUNNER_OF_DEATH);
     const window = requireEffect(forerunner, 'buff', 'forerunner-of-death');
 
     // The damage window is the buff, so a removed buff opens no window.

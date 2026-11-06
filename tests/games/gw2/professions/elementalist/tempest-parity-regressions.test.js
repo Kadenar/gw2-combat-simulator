@@ -209,7 +209,7 @@ test('patched overload dwell controls runtime availability with and without Tran
   const skill = catalog.skillsById.get(ELEMENTALIST_OVERLOAD_SKILL_IDS.Fire);
   for (const selectedTraitIds of [[], [TRAIT.TRANSCENDENT_TEMPEST]]) {
     const context = {
-      catalog,
+      helpers: catalog,
       config: { specialization: 'Tempest', selectedTraitIds },
       profession: { core: state },
       time: 3

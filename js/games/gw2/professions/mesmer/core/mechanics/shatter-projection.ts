@@ -1,5 +1,6 @@
 import { CONDITION } from '#gw2/platform/constants.js';
 import type { ConditionEffect, SkillEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
+import type { BalanceSource } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerShatterConfusion } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import type { MesmerShatter } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
@@ -47,7 +48,7 @@ export function cloneShatterConfusion(condition: ConditionEffect | undefined, so
 
 /** Project base shatter effects using the same packet and condition rules as the runtime. */
 export function cloneShatterEffects(
-  context: unknown,
+  source: BalanceSource,
   shatter: MesmerShatter,
   skill: MesmerSkill,
   spent: number
@@ -55,7 +56,7 @@ export function cloneShatterEffects(
   const tier = cloneShatterTier(shatter, skill, spent);
   const confusion =
     shatter.kind === CONDITION.CONFUSION.toLowerCase()
-      ? cloneShatterConfusion(mesmerShatterConfusion(context, skill.id), tier.sources)
+      ? cloneShatterConfusion(mesmerShatterConfusion(source, skill.id), tier.sources)
       : undefined;
   return [...(shatter.kind === 'defense' ? [] : tier.strikes), ...(confusion ? [confusion] : []), ...tier.effects];
 }

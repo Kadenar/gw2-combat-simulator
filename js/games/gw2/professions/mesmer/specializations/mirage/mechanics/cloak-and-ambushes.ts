@@ -10,11 +10,7 @@ import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
-import {
-  balanceNumberFromContext,
-  requireEffect,
-  requireSkillFromContext
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { MesmerClone, MesmerCloneAttack } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import {
   buildMesmerConditions,
@@ -57,7 +53,7 @@ export function createMirageActionController({
 }: MirageActionControllerOptions): MesmerMirageController {
   // Ground mirrors use exact half-open pickup windows; skill metadata owns any creation delay.
   const createMirrors = (at: number, count: number) => {
-    const mirrorSkill = requireSkillFromContext(state, ID.MIRAGE_MIRROR_DAMAGE);
+    const mirrorSkill = requireSkill(state.helpers, ID.MIRAGE_MIRROR_DAMAGE);
     const mirror = requireEffect(mirrorSkill, 'buff', 'mirage-mirror');
 
     if (!mirror) return;
@@ -93,7 +89,7 @@ export function createMirageActionController({
 
   // The selected balance profile sets every ambush window; refresh it without shortening a surviving deadline.
   const grantAmbushWindow = (at: number, source: string, delivery: EffectDelivery = {}) => {
-    const duration = balanceNumberFromContext(state, TRAIT.MIRAGE_CLOAK, 'durationPerTier');
+    const duration = balanceNumber(state.helpers, TRAIT.MIRAGE_CLOAK, 'durationPerTier');
     at = canonicalTime(at);
     mirageState.from(state.profession).ambushUntil = Math.max(
       mirageState.from(state.profession).ambushUntil,
@@ -119,7 +115,7 @@ export function createMirageActionController({
   const grantMirageCloak = (
     at: number,
     source: string,
-    { duration = balanceNumberFromContext(state, TRAIT.MIRAGE_CLOAK, 'duration') }: MesmerMirageCloakOptions = {},
+    { duration = balanceNumber(state.helpers, TRAIT.MIRAGE_CLOAK, 'duration') }: MesmerMirageCloakOptions = {},
     delivery: EffectDelivery = {}
   ) => {
     at = canonicalTime(at);
@@ -167,7 +163,7 @@ export function createMirageActionController({
     if (index < 0) return false;
 
     mirrors.splice(index, 1);
-    const payload = requireSkillFromContext(state, skill.mirrorPayloadSkillId!);
+    const payload = requireSkill(state.helpers, skill.mirrorPayloadSkillId!);
     const pseudo = {
       id: payload.id,
       name: payload.name,

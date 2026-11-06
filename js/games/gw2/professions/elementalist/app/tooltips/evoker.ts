@@ -13,7 +13,7 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { requireSkillFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -54,7 +54,7 @@ export const evokerTooltips = {
       fromProfile(TRAIT.EVOCATION, 'maximumStacks', 'Base charges after use')
     ]),
     [ID.FOXS_FURY]: (balanceContext, entity) => {
-      const skill = requireSkillFromContext(balanceContext, entity.id);
+      const skill = requireSkill(balanceContext.catalog, entity.id);
       // Present tiers as alternatives, without duplicating them as unconditional ordinary effects.
       return {
         description:
@@ -101,7 +101,7 @@ export const evokerTooltips = {
       const tiers = IGNITE_TIERS.map((label, tier) => ({
         label,
         model: simulationEffectFacts(
-          projectIgniteEffects(familiar.effects ?? [], igniteTierEffect(balanceContext, tier))
+          projectIgniteEffects(familiar.effects ?? [], igniteTierEffect(balanceContext.catalog, tier))
         )
       }));
       return {
@@ -179,7 +179,7 @@ export const evokerTooltips = {
     [TRAIT.FAMILIARS_BLESSING]: (balanceContext) => ({
       description:
         'Completing a Fire or Air familiar grants quickness. Water or Earth familiars grant alacrity instead.',
-      facts: familiarBlessingEffects(balanceContext).flatMap(
+      facts: familiarBlessingEffects(balanceContext.catalog).flatMap(
         ({ elements, effect }) => simulationEffectFacts([effect], `${elements.join(' / ')} familiar`).facts
       )
     }),

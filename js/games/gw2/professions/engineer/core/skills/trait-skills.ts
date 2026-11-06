@@ -4,7 +4,7 @@
  */
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
@@ -84,7 +84,8 @@ export const ENGINEER_TRAIT_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
         order: -9,
         target: MODIFIER_TARGET.CRITICAL_DAMAGE,
         operation: 'multiply',
-        factor: (context) => skillNumberFromContext(context, ID.STATIC_DISCHARGE_TRAIT_SKILL, 'criticalDamage')
+        factor: (context) =>
+          skillNumber(requireSkill(context.catalog, ID.STATIC_DISCHARGE_TRAIT_SKILL), 'criticalDamage')
       }
     ],
     cooldown: 0,

@@ -2,7 +2,7 @@ import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import { requireBalanceProfileFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import {
   revenantCastCompleted,
@@ -78,7 +78,7 @@ function completeSereneRejuvenation(runtime: RevenantRuntime, { cast }: Revenant
   if (skillId === ID.PROTECTIVE_SOLACE && !activeRevenantUpkeep(runtime, skill.id)) return;
 
   {
-    const invocationProfile = requireBalanceProfileFromContext(runtime, TRAIT.SERENE_REJUVENATION);
+    const invocationProfile = requireBalanceProfile(runtime.helpers, TRAIT.SERENE_REJUVENATION);
     emitTraitProfile(runtime, TRAIT.SERENE_REJUVENATION, invocationProfile.id, undefined, {
       preserveName: true,
       effects: (effect) =>

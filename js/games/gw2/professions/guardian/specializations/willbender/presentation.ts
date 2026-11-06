@@ -1,9 +1,10 @@
 import { activeRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
 import type {
   ProfessionEffectPresentation,
+  ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
-import { balanceNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import {
   formatSecondsRemaining,
@@ -24,7 +25,9 @@ const VIRTUE_IDS = Object.freeze([
 ]);
 
 /** Reports active virtue flames and Lethal Tempo so Willbender follow-up timing is inspectable. */
-function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnapshotItem[] {
+function willbenderStateSnapshot(
+  context: ProfessionStateSnapshotContext<GuardianUiContext['professionState']>
+): RotationStateSnapshotItem[] {
   const state = guardianUiState(context);
   const at = guardianSnapshotAt(context);
   const items: RotationStateSnapshotItem[] = [];
@@ -42,7 +45,7 @@ function willbenderStateSnapshot(context: GuardianUiContext): RotationStateSnaps
   }
 
   const lethalRemaining = (state[STATE.LETHAL_TEMPO]?.expiresAt || 0) - at;
-  const maximum = balanceNumberFromContext(context.balanceContext, WILLBENDER_TRAIT.LETHAL_TEMPO, 'maximumStacks');
+  const maximum = balanceNumber(context.balanceContext.catalog, WILLBENDER_TRAIT.LETHAL_TEMPO, 'maximumStacks');
   const lethalStacks = boundedInteger(activeRefreshedStacks(state[STATE.LETHAL_TEMPO], at, 'inclusive'), 0, 0, maximum);
 
   // Lethal Tempo remains available for damage and refreshes on its final tick.
@@ -91,7 +94,7 @@ export function bindWillbenderUi(catalog: Readonly<CanonicalCatalog<GuardianSkil
         kind: 'buff',
         field: 'lethal-tempo',
         scope: ['damage'],
-        max: balanceNumberFromContext(context, WILLBENDER_TRAIT.LETHAL_TEMPO, 'maximumStacks'),
+        max: balanceNumber(context.catalog, WILLBENDER_TRAIT.LETHAL_TEMPO, 'maximumStacks'),
         description: 'Starting virtue-earned damage stacks'
       });
       return preview.controls;

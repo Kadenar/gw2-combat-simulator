@@ -5,7 +5,7 @@ import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { skillNumberFromContext } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistControlRequest } from '#gw2/professions/elementalist/core/events.js';
@@ -64,7 +64,10 @@ export function empowerElementalistSpearPacket(
           // Keep the accepted entitlement on the packet after the cast's transient state is retired.
           metadata: {
             ...event.metadata,
-            elementalistSeetheDamageFactor: skillNumberFromContext(context, ID.SEETHE, 'nextSkillDamageMultiplier')
+            elementalistSeetheDamageFactor: skillNumber(
+              requireSkill(context.helpers, ID.SEETHE),
+              'nextSkillDamageMultiplier'
+            )
           }
         }
       : {}),
@@ -101,7 +104,7 @@ export function completeElementalistSpearProgression(context: ElementalistRuntim
     const counter = advanceCounter(
       progress.otherCasts,
       1,
-      skillNumberFromContext(context, candidate.etchingId, 'etchingCompletionThreshold'),
+      skillNumber(requireSkill(context.helpers, candidate.etchingId), 'etchingCompletionThreshold'),
       'retain'
     );
     state.etchings[candidate.etching] = {

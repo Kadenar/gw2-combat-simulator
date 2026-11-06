@@ -13,9 +13,9 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import {
@@ -61,7 +61,7 @@ function grantIllusionaryDefense(
   spent: number,
   delivery: EffectDelivery
 ): void {
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ILLUSIONARY_DEFENSE);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.ILLUSIONARY_DEFENSE);
   emitTraitProfile(runtime, TRAIT.ILLUSIONARY_DEFENSE, TRAIT.ILLUSIONARY_DEFENSE, undefined, {
     ...delivery,
     at,
@@ -152,7 +152,7 @@ export const chaoticPersistence = defineTrait<MesmerSkill>({
     attributeBonuses: { expertise: 100, concentration: 250 }
   },
   attributes: ({ balanceContext, loadout }) => {
-    const profile = requireBalanceProfileFromContext(balanceContext, TRAIT.CHAOTIC_PERSISTENCE);
+    const profile = requireBalanceProfile(balanceContext.catalog, TRAIT.CHAOTIC_PERSISTENCE);
     // Regeneration enables both flat grants and their participation in utility and trait conversions.
     return {
       attributeEffects: ownerAttributeEffects(profile).map((effect) => ({
@@ -211,7 +211,7 @@ export const illusionaryMembrane = defineTrait<MesmerSkill>({
       conditionSampleInvariant: true,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE, 'conditionDamageIncrease'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.ILLUSIONARY_MEMBRANE, 'conditionDamageIncrease'),
       when: (context) => buffActive(context, 'illusionary-membrane')
     }
   ],
@@ -294,7 +294,7 @@ function triggerChaoticInterruption(context: MesmerRuntime, event: SimulationEve
 
   if (!(readyAt > event.at)) return;
 
-  const reduction = balanceNumberFromContext(context, TRAIT.CHAOTIC_INTERRUPTION, 'recharge');
+  const reduction = balanceNumber(context.helpers, TRAIT.CHAOTIC_INTERRUPTION, 'recharge');
   const target = context.helpers.skillsById.get(targetId);
 
   if (!target) return;
@@ -328,7 +328,7 @@ function grantShatterChaosAura(
 ): void {
   if (slot !== 2) return;
 
-  const profile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.ILLUSIONARY_MEMBRANE);
 
   if (!requireEffect(profile, 'aura', AURA.CHAOS)) return;
 
@@ -367,7 +367,7 @@ function grantShatterChaosAura(
 
 /** Every accepted self Chaos Aura extends the damage window by five seconds, capped at fifteen remaining. */
 function applyIllusionaryMembrane(context: MechanicCombatContext, event: Gw2ResolverEvent): void {
-  const profile = requireBalanceProfileFromContext(context, TRAIT.ILLUSIONARY_MEMBRANE);
+  const profile = requireBalanceProfile(context.helpers, TRAIT.ILLUSIONARY_MEMBRANE);
   const buff = requireEffect(profile, 'buff', 'illusionary-membrane');
 
   if (!buff) return;

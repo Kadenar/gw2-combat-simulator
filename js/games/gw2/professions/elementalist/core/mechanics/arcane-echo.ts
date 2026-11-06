@@ -2,7 +2,7 @@
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { requireSkillFromContext, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
@@ -45,7 +45,7 @@ export function completeArcaneEcho(
   const addedWork = gw2BaseRecharge(skill);
   // Like Mimic, replace the weapon skill's recharge with one base second without replenishing spent ammunition.
   context.cooldownController.replaceSkillRecharge(skill, ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS, at);
-  const arcaneEcho = requireSkillFromContext(context, ID.ARCANE_ECHO);
+  const arcaneEcho = requireSkill(context.helpers, ID.ARCANE_ECHO);
   // At weapon-cast completion, add that work to Arcane Echo's remaining base-recharge work.
   // Project combined work at the permanent recharge rate while preserving progress already earned.
   const currentReadyAt = context.cooldownController.readyAt(arcaneEcho.id) ?? at;

@@ -15,9 +15,9 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import type { Gw2HitResolutionContext } from '#gw2/platform/resolver/hit-resolution.js';
 import {
-  balanceNumberFromContext,
+  balanceNumber,
   balanceProfileNumber,
-  requireBalanceProfileFromContext,
+  requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -124,7 +124,7 @@ const bloodFury = defineTrait({
       order: 104,
       target: MODIFIER_TARGET.CONDITION_DURATION,
       operation: 'add',
-      amount: (context) => balanceNumberFromContext(context, TRAIT.BLOOD_FURY, 'conditionDurationBonus'),
+      amount: (context) => balanceNumber(context.catalog, TRAIT.BLOOD_FURY, 'conditionDurationBonus'),
       // Blood Fury shares the chronological player-Fury query used by Core Revenant modifiers.
       when: (context) => context.condition === CONDITION.BLEEDING && boonActive(context, boonKey(BOON.FURY))
     }
@@ -176,7 +176,7 @@ const brutalMomentum = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => {
-        const profile = requireBalanceProfileFromContext(context, TRAIT.BRUTAL_MOMENTUM);
+        const profile = requireBalanceProfile(context.catalog, TRAIT.BRUTAL_MOMENTUM);
         return (
           balanceProfileNumber(profile, 'fullEnduranceCriticalChance') - balanceProfileNumber(profile, 'criticalChance')
         );
@@ -193,7 +193,7 @@ const brutalMomentum = defineTrait({
         (event.kind || '').toLowerCase() === boonKey(BOON.FURY) &&
         gw2BoonApplicationRecipients(runtime.config, event).includesSelf &&
         Boolean(
-          requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.BRUTAL_MOMENTUM), 'boon', boonKey(BOON.VIGOR))
+          requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.BRUTAL_MOMENTUM), 'boon', boonKey(BOON.VIGOR))
         ),
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.VIGOR),
       attribution: {
@@ -235,7 +235,7 @@ const endlessEnmity = defineTrait({
         Number(event.coefficient) > 0 &&
         Boolean(details.hitContext.critEligible && details.hitContext.critical.didCrit) &&
         Boolean(
-          requireEffect(requireBalanceProfileFromContext(runtime, TRAIT.ENDLESS_ENMITY), 'boon', boonKey(BOON.FURY))
+          requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.ENDLESS_ENMITY), 'boon', boonKey(BOON.FURY))
         ),
       effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.FURY),
       attribution: {
@@ -260,7 +260,7 @@ const heartpiercer = defineTrait({
       order: 100,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.HEARTPIERCER, 'damageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.HEARTPIERCER, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) && targetConditionActive(context, CONDITION.BLEEDING)
     },
@@ -269,7 +269,7 @@ const heartpiercer = defineTrait({
       order: 101,
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
-      factor: (context) => balanceNumberFromContext(context, TRAIT.HEARTPIERCER, 'conditionDamageMultiplier'),
+      factor: (context) => balanceNumber(context.catalog, TRAIT.HEARTPIERCER, 'conditionDamageMultiplier'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && context.condition === CONDITION.BLEEDING
     }
   ]
@@ -305,8 +305,8 @@ const lastingLegacy = defineTrait({
 
       amount: (context) =>
         kallasFervorStacks(context) *
-        balanceNumberFromContext(
-          context,
+        balanceNumber(
+          context.catalog,
           hasTrait(context, TRAIT.LASTING_LEGACY) ? TRAIT.LASTING_LEGACY : TRAIT.AMBUSH_COMMANDER,
           'damageIncreasePerStack'
         ),
@@ -321,8 +321,8 @@ const lastingLegacy = defineTrait({
 
       amount: (context) =>
         kallasFervorStacks(context) *
-        balanceNumberFromContext(
-          context,
+        balanceNumber(
+          context.catalog,
           hasTrait(context, TRAIT.LASTING_LEGACY) ? TRAIT.LASTING_LEGACY : TRAIT.AMBUSH_COMMANDER,
           'conditionDamageIncreasePerStack'
         ),
@@ -385,7 +385,7 @@ export const traitDefinitions = [
 /** Applies the trait at the mechanic's existing execution boundary. */
 function grantAllForOneEnergy(runtime: RevenantRuntime, enhanced: boolean): void {
   if (enhanced)
-    runtime.resourceController.grant('energy', balanceNumberFromContext(runtime, TRAIT.ALL_FOR_ONE, 'resourceGain'));
+    runtime.resourceController.grant('energy', balanceNumber(runtime.helpers, TRAIT.ALL_FOR_ONE, 'resourceGain'));
 }
 
 /** Actual critical and positional facts drive Ambush Commander and Endless Enmity. */
@@ -401,7 +401,7 @@ function criticalTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent, hit: 
 function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   if (cast.skill.slot !== 'Heal') return;
 
-  const profile = requireBalanceProfileFromContext(runtime, TRAIT.ASHEN_DEMEANOR);
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.ASHEN_DEMEANOR);
 
   if (!runtime.procs.claimCooldown('ashenDemeanor', runtime.time, balanceProfileNumber(profile, 'cooldown'))) return;
 
@@ -432,7 +432,7 @@ function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
     !runtime.procs.claimCooldown(
       'revenant.renegade.bloodFury',
       runtime.time,
-      Math.max(0, balanceNumberFromContext(runtime, TRAIT.BLOOD_FURY, 'cooldown'))
+      Math.max(0, balanceNumber(runtime.helpers, TRAIT.BLOOD_FURY, 'cooldown'))
     )
   )
     return;
@@ -445,6 +445,6 @@ function kallasFervorStacks(context: Gw2ModifierContext): number {
   return activeKallasFervorStacks(
     revenantRuntimeSpecializationState(context, 'Renegade'),
     context.time,
-    fervorMaximumStacks(context)
+    fervorMaximumStacks(context.catalog, context)
   );
 }

@@ -11,12 +11,7 @@ import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/cast-effects.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import {
-  effectNumber,
-  requireEffect,
-  requireSkillFromContext,
-  skillNumber
-} from '#gw2/platform/skills/balance-profiles.js';
+import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
@@ -306,7 +301,7 @@ function handleRadiantArcQuickness(context: EngineerResolverContext, event: Holo
 /** Materializes every heat-granted Refraction Cutter blade as a strike, bleed, and projectile finisher. */
 function handleRefractionCutterExtraBlades(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   const extraBlades = Math.max(0, Math.trunc(holosmithEventMetadata(event).extraBlades || 0));
-  const skill = requireSkillFromContext(context, ID.REFRACTION_CUTTER);
+  const skill = requireSkill(context.helpers, ID.REFRACTION_CUTTER);
   const strike = requireEffect(
     skill,
     'strike',
@@ -378,7 +373,7 @@ export function prepareHolosmithSwordEvent(
 ): SimulationEventBase {
   if (event.type === 'engineer.radiant-arc-quickness' || event.type === 'engineer.refraction-cutter-extra-blades') {
     const snapshot = snapshotHolosmithHeat(holosmithState.from(context.profession), context.config);
-    const tier = holosmithHeatTier(snapshot, context);
+    const tier = holosmithHeatTier(snapshot, context.helpers);
     const arc = event.type === 'engineer.radiant-arc-quickness';
     const field = arc
       ? tier === 'enhanced'
@@ -391,7 +386,7 @@ export function prepareHolosmithSwordEvent(
         : tier === 'high'
           ? 'highExtraBlades'
           : 'baseExtraBlades';
-    const skill = requireSkillFromContext(context, arc ? ID.RADIANT_ARC : ID.REFRACTION_CUTTER);
+    const skill = requireSkill(context.helpers, arc ? ID.RADIANT_ARC : ID.REFRACTION_CUTTER);
     return {
       ...event,
       holosmithActivationHeat: snapshot.heat,

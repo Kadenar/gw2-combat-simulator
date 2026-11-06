@@ -57,7 +57,10 @@ test('Cascading Corruption links its grants without hiding its offensive effects
       effects.some((event) => event.type === type),
       type
     );
-  const rows = simulationEventLogRows(result, null, necromancerProfession);
+  const rows = simulationEventLogRows(result, null, {
+    profession: necromancerProfession,
+    catalog: necromancerProfession.catalog
+  });
   const summary = rows.find((row) => row.id === `event:${proc.eventOrder}`);
   assert.match(summary.description, /^Cascading Corruption.*Meltdown/i);
   for (const effect of effects) {
