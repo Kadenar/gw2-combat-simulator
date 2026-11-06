@@ -19,54 +19,61 @@ test("skill details group proc counts by trigger and disclose only that skill's 
         skillsById: new Map()
       },
       build: { rotation: [{ type: 'wait', durationMs: 10000 }], targetHealth: 100000 },
-      results: {
-        rotationEndTime: 10,
-        observationEndTime: 10,
-        combatEndTime: 10,
-        dpsStartTime: 1.5,
-        dpsWindow: 8.5,
-        totalDamage: 455,
-        conditionDamage: 425,
-        // Damage-only fixtures still provide the canonical reports consumed by analysis charts.
-        effectReport: { start: 0, end: 10, tracks: [] },
-        boonGeneration: { alliedPlayerCount: 4, boons: {} },
-        breakdown: [
-          { name: 'Strength of Stone', conditionDamage: 425, actorType: 'effect' },
-          { name: 'Earthen Rush', strikeDamage: 10, actorType: 'player' },
-          { name: 'Other skill', strikeDamage: 10, actorType: 'player' },
-          { name: 'Earthen Rush', strikeDamage: 10, actorType: 'summon' }
-        ],
-        resolvedEvents: [
-          { type: 'damage', name: 'Earthen Rush', actorType: 'player', at: 2, damage: 10 },
-          // Unequal damage per activation prevents the summary from estimating totals using proc counts.
-          ...[
-            {
-              at: 2,
-              triggeredBy: 'Earthen Rush',
-              damage: 120,
-              damageTicks: [
-                { at: 3, damage: 50 },
-                { at: 4, damage: 70 }
-              ]
-            },
-            { at: 5.5, triggeredBy: 'Signet <of Earth>', damage: 255, damageTicks: [{ at: 6.5, damage: 255 }] },
-            { at: 9, triggeredBy: 'Earthen Rush', damage: 50, damageTicks: [{ at: 10, damage: 50 }] }
-          ].map((event) => ({ type: 'condition', name: 'Strength of Stone', actorType: 'effect', ...event })),
-          {
-            type: 'condition',
-            name: 'Relic of the Fractal',
-            actorType: 'effect',
-            at: 2,
-            triggeredBy: 'Strength of Stone',
-            damage: 999
+      // A current analysis snapshot enables the charts and skill disclosure interactions under test.
+      analysis: {
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          results: {
+            rotationEndTime: 10,
+            observationEndTime: 10,
+            combatEndTime: 10,
+            dpsStartTime: 1.5,
+            dpsWindow: 8.5,
+            totalDamage: 455,
+            conditionDamage: 425,
+            // Damage-only fixtures still provide the canonical reports consumed by analysis charts.
+            effectReport: { start: 0, end: 10, tracks: [] },
+            boonGeneration: { alliedPlayerCount: 4, boons: {} },
+            breakdown: [
+              { name: 'Strength of Stone', conditionDamage: 425, actorType: 'effect' },
+              { name: 'Earthen Rush', strikeDamage: 10, actorType: 'player' },
+              { name: 'Other skill', strikeDamage: 10, actorType: 'player' },
+              { name: 'Earthen Rush', strikeDamage: 10, actorType: 'summon' }
+            ],
+            resolvedEvents: [
+              { type: 'damage', name: 'Earthen Rush', actorType: 'player', at: 2, damage: 10 },
+              // Unequal damage per activation prevents the summary from estimating totals using proc counts.
+              ...[
+                {
+                  at: 2,
+                  triggeredBy: 'Earthen Rush',
+                  damage: 120,
+                  damageTicks: [
+                    { at: 3, damage: 50 },
+                    { at: 4, damage: 70 }
+                  ]
+                },
+                { at: 5.5, triggeredBy: 'Signet <of Earth>', damage: 255, damageTicks: [{ at: 6.5, damage: 255 }] },
+                { at: 9, triggeredBy: 'Earthen Rush', damage: 50, damageTicks: [{ at: 10, damage: 50 }] }
+              ].map((event) => ({ type: 'condition', name: 'Strength of Stone', actorType: 'effect', ...event })),
+              {
+                type: 'condition',
+                name: 'Relic of the Fractal',
+                actorType: 'effect',
+                at: 2,
+                triggeredBy: 'Strength of Stone',
+                damage: 999
+              }
+            ],
+            procSteps: [
+              { skill: 'Strength of Stone', sourceSkill: 'Earthen Rush', start: 9000 },
+              { skill: 'Relic of the Fractal', sourceSkill: 'Strength of Stone', start: 2000 },
+              { skill: 'Strength of Stone', sourceSkill: 'Signet <of Earth>', start: 5500 },
+              { skill: 'Strength of Stone', sourceSkill: 'Earthen Rush', start: 2000 }
+            ]
           }
-        ],
-        procSteps: [
-          { skill: 'Strength of Stone', sourceSkill: 'Earthen Rush', start: 9000 },
-          { skill: 'Relic of the Fractal', sourceSkill: 'Strength of Stone', start: 2000 },
-          { skill: 'Strength of Stone', sourceSkill: 'Signet <of Earth>', start: 5500 },
-          { skill: 'Strength of Stone', sourceSkill: 'Earthen Rush', start: 2000 }
-        ]
+        }
       }
     });
     mountSimulationSection(document.querySelector('#results'), view.analysis);
