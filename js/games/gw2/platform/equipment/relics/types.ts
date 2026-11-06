@@ -140,6 +140,8 @@ export interface Gw2RelicRule {
   ) => unknown;
   readonly conditionDurationBonus?: (context: Gw2RelicDurationQueryContext, state: Gw2RelicState, at: number) => number;
   readonly conditionDamageBonus?: (context: Gw2RelicAttributeQueryContext, state: Gw2RelicState, at: number) => number;
+  /** Earned concentration scales subsequent boon grants, including grants made by companions. */
+  readonly concentrationBonus?: (context: Gw2RelicAttributeQueryContext, state: Gw2RelicState, at: number) => number;
   readonly condition?: (
     context: Gw2RelicContext,
     state: Gw2RelicState,

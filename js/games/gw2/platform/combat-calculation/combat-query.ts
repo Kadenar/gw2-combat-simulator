@@ -32,6 +32,7 @@ import {
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
 import {
+  relicConcentrationBonus,
   relicConditionDamageBonus,
   relicConditionDurationBonus,
   relicCriticalChanceBonus,
@@ -396,13 +397,17 @@ export function createGw2CombatQuery({
     // Time-varying relic Condition Damage (e.g. Relic of Thorns +30/stack) folds
     // into the sampled attribute so every downstream condition tick scales with it.
     // Query runtimes supply live relic state; the combat query owns the configuration that attribute rules require.
-    const relicConditionDamage = relicConditionDamageBonus(
-      runtime?.relic ? { config, relic: runtime.relic } : historicalRelicContext,
-      time
-    );
+    const relicContext = runtime?.relic ? { config, relic: runtime.relic } : historicalRelicContext;
+    const relicConditionDamage = relicConditionDamageBonus(relicContext, time);
+    // Concentration belongs to sampled attributes so player and companion boons share the same earned bonus.
+    const relicConcentration = relicConcentrationBonus(relicContext, time);
     const equipmentStats =
-      relicConditionDamage > 0
-        ? { ...professionStats, conditionDamage: professionStats.conditionDamage + relicConditionDamage }
+      relicConditionDamage > 0 || relicConcentration > 0
+        ? {
+            ...professionStats,
+            conditionDamage: professionStats.conditionDamage + relicConditionDamage,
+            concentration: professionStats.concentration + relicConcentration
+          }
         : professionStats;
 
     // Classify once per query; only independent profiles using Might sample their companion's live boon state.

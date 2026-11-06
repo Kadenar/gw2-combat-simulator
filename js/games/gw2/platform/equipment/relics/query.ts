@@ -51,3 +51,8 @@ export function relicConditionDurationBonus(ctx: Gw2RelicDurationQueryContext, a
 export function relicConditionDamageBonus(ctx: Gw2RelicAttributeQueryContext, at: number): number {
   return ctx.relic?.rules.conditionDamageBonus?.(ctx, ctx.relic.state, at) ?? 0;
 }
+
+/** Samples earned concentration before a new boon application claims its own relic stack. */
+export function relicConcentrationBonus(ctx: Gw2RelicAttributeQueryContext, at: number): number {
+  return ctx.relic?.rules.concentrationBonus?.(ctx, ctx.relic.state, at) ?? 0;
+}

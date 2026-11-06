@@ -7,6 +7,7 @@ export const RELIC_IDS = Object.freeze({
   BLIGHTBRINGER: 102199,
   BLOODSTONE: 104800,
   FIREWORKS: 100262,
+  HERALD: 100219,
   MISTBURN: 104994,
   MIDNIGHT_KING: 101139,
   MIRAGE: 100158,
@@ -84,6 +85,14 @@ export const RELIC_DATA = {
     trigger: 'Deal strike damage with a skill with recharge ≥20s (+7% strike damage for 6s)',
     cooldown: 0,
     icon: 'https://render.guildwars2.com/file/2999CCF7C94267B2EE3DDA7459050864622927C9/3122349.png'
+  },
+  // Boon grants build a shared concentration pool for both damage archetypes.
+  Herald: {
+    id: RELIC_IDS.HERALD,
+    category: 'Hybrid',
+    trigger: 'Grant a boon to yourself or allies (+25 Concentration for 3s, up to 10 stacks; refreshes all stacks)',
+    cooldown: 0,
+    icon: 'https://render.guildwars2.com/file/DE62250A48F802DD09A1FAFF0D2BA804EA29A3B9/3122352.png'
   },
   Mistburn: {
     id: RELIC_IDS.MISTBURN,
