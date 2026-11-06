@@ -13,6 +13,7 @@ import { amalgamAttributes } from '#gw2/professions/engineer/specializations/ama
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
+import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
 import { evaluateAttributeDeclarations } from '#tests/helpers/attribute-declarations.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
@@ -773,7 +774,11 @@ test('Amalgam food comparisons use the recalculated Evolve attribute pool', () =
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const request = modifierComparisonRequest(app, engineerAppAdapter);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === `Food:${canonical.food}`);
-  const baseline = attributeSourcePool(engineerAppAdapter.baselineSimulationRequest(app).baseConfig, 'common');
+  const baseline = attributeSourcePool(
+    captureAnalysisFixture(app, engineerAppAdapter).baseline({ collectChartData: false, comparePatch: false })
+      .baseConfig,
+    'common'
+  );
   const removed = attributeSourcePool(comparison.config, 'common');
 
   assert.equal(baseline.Power - removed.Power, 100);

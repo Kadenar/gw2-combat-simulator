@@ -5,6 +5,7 @@ import {
   createDefaultBuild as createDefaultBuildFor,
   replaceBuild as replaceBuildFor
 } from '#gw2/app/build/state/persistence.js';
+import { captureAnalysisRequestSnapshot } from '#gw2/app/simulation/analysis-request-snapshot.js';
 import {
   calculateContributionBatch,
   calculateContributionComparisons,
@@ -12,7 +13,6 @@ import {
   modifierContributionWorkerCount,
   partitionModifierComparisons
 } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
-import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
 import { bindBuildContext } from '#gw2/build-context/create.js';
 import {
   calculateCommonAttributes,
@@ -30,6 +30,7 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/catalog.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { cast } from '#tests/helpers/commands.js';
 import { modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
@@ -135,16 +136,17 @@ test('modifier requests preserve workspace target settings for baseline and remo
       attributeData: { activeTraits: [] }
     };
     const disabledEffects = [];
-    const request = createModifierContributionRequest(
-      app,
-      mesmerAppAdapter.profession,
-      ({ disabledModifier: disabled }) => {
-        disabledEffects.push(disabled?.id ?? null);
-        return { simulationConfig: () => sourceConfig };
-      },
-      100
-    );
-    assert.deepEqual(disabledEffects, [null, 'Boon:Might', ...(relic ? [`Relic:${relic}`] : [])]);
+    const request = captureAnalysisRequestSnapshot(
+      { build: app.build, patch: app.patch },
+      {
+        profession: mesmerAppAdapter.profession,
+        createBuildContext: ({ disabledModifier: disabled }) => {
+          disabledEffects.push(disabled?.id ?? null);
+          return { simulationConfig: () => sourceConfig, attributes: () => ({ activeTraits: [] }) };
+        }
+      }
+    ).modifiers(100);
+    assert.deepEqual(disabledEffects, [null, null, 'Boon:Might', ...(relic ? [`Relic:${relic}`] : [])]);
     assert.equal(request.contentId, 'mesmer');
     assert.equal(request.baselineDps, 100);
     for (const config of request.comparisons.map(({ config }) => config)) {
@@ -196,7 +198,14 @@ test('modifier contributions reject missing or nonfinite baseline DPS', () => {
     assert.throws(() => mergeModifierContributions(baselineDps, []), /finite baseline DPS/);
     // Request creation fails before preparing any omission config, so no worker batch is dispatched.
     assert.throws(
-      () => createModifierContributionRequest({}, {}, () => assert.fail('Configs must not be prepared.'), baselineDps),
+      () =>
+        captureAnalysisRequestSnapshot(
+          { build: { rotation: [] }, patch: { id: 'current' } },
+          {
+            profession: mesmerAppAdapter.profession,
+            createBuildContext: () => assert.fail('Configs must not be prepared.')
+          }
+        ).modifiers(baselineDps),
       /finite baseline DPS/
     );
   }
@@ -547,7 +556,9 @@ test('Mesmer browser simulations allow weapons from other specializations', () =
 
   assert.deepEqual(
     mesmerAppAdapter
-      .calculateBaselineSimulation(mesmerAppAdapter.baselineSimulationRequest(app))
+      .calculateBaselineSimulation(
+        captureAnalysisFixture(app, mesmerAppAdapter).baseline({ collectChartData: false, comparePatch: false })
+      )
       .result.steps.filter((step) => step.invalid)
       .map((step) => step.skillName),
     []
@@ -727,8 +738,10 @@ test('food comparisons remove both nourishment procs and attribute bonuses', () 
     .calculateModifierContributions(request)
     .find(({ id }) => id === `Food:${build.food}`);
 
-  const baselineTotals =
-    mesmerAppAdapter.baselineSimulationRequest(app).baseConfig.attributeInputs.weaponSets[0].commonTotals;
+  const baselineTotals = captureAnalysisFixture(app, mesmerAppAdapter).baseline({
+    collectChartData: false,
+    comparePatch: false
+  }).baseConfig.attributeInputs.weaponSets[0].commonTotals;
   const removedTotals = comparison.config.attributeInputs.weaponSets[0].commonTotals;
   assert.equal(comparison.config.food, '');
   assert.ok(removedTotals.power < baselineTotals.power);
@@ -753,12 +766,14 @@ test('interactive simulation leaves contribution passes to the background worker
     }
   };
 
-  const { result } = mesmerAppAdapter.calculateBaselineSimulation(mesmerAppAdapter.baselineSimulationRequest(app));
+  const { result } = mesmerAppAdapter.calculateBaselineSimulation(
+    captureAnalysisFixture(app, mesmerAppAdapter).baseline({ collectChartData: false, comparePatch: false })
+  );
 
   assert.equal(result.contributions, undefined);
 
   // The completed interactive baseline supplies the score every contribution pass compares against.
-  const request = structuredClone(mesmerAppAdapter.modifierContributionRequest(app, result.dps));
+  const request = structuredClone(captureAnalysisFixture(app, mesmerAppAdapter).modifiers(result.dps));
   const contributions = mesmerAppAdapter.calculateModifierContributions(request);
 
   // DPS-only comparisons must retain the same modifier deltas as the chart-producing simulation.
@@ -770,7 +785,7 @@ test('interactive simulation leaves contribution passes to the background worker
   );
   assert.deepEqual(
     contributions,
-    mesmerAppAdapter.calculateModifierContributions(mesmerAppAdapter.modifierContributionRequest(app, result.dps))
+    mesmerAppAdapter.calculateModifierContributions(captureAnalysisFixture(app, mesmerAppAdapter).modifiers(result.dps))
   );
 });
 

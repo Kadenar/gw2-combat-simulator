@@ -18,14 +18,14 @@ function fixture() {
 test('comparison requires both versions and ordinary edits invalidate both', () => {
   const f = fixture();
   const live = f.publish({ dps: 10 });
-  assert.equal(f.lifecycle.needsPatchComparison(), true);
+  assert.equal(f.lifecycle.needsPatchComparison(f.execution.captureInputs()), true);
   f.switchPatch('preview');
-  assert.equal(f.lifecycle.needsPatchComparison(), false);
+  assert.equal(f.lifecycle.needsPatchComparison(f.execution.captureInputs()), false);
   const preview = f.publish({ dps: 20 });
   assert.deepEqual(f.lifecycle.state.patchComparison, { current: live, preview });
   f.lifecycle.changeInputs();
   assert.equal(f.lifecycle.state.patchComparison, null);
-  assert.equal(f.lifecycle.needsPatchComparison(), true);
+  assert.equal(f.lifecycle.needsPatchComparison(f.execution.captureInputs()), true);
   f.publish({ dps: 30 });
   f.switchPatch('current');
   f.publish({ dps: 40 });
@@ -99,7 +99,7 @@ test('obsolete publication cannot populate the newly selected patch cache', () =
   old.complete({ result: { dps: 999 } });
   f.publish({ dps: 20 });
   assert.equal(f.lifecycle.state.patchComparison, null);
-  assert.equal(f.lifecycle.needsPatchComparison(), true);
+  assert.equal(f.lifecycle.needsPatchComparison(f.execution.captureInputs()), true);
 });
 
 test('Boss scenarios neither populate nor reuse Golem patch comparisons', () => {
@@ -109,7 +109,7 @@ test('Boss scenarios neither populate nor reuse Golem patch comparisons', () => 
   f.switchPatch('preview');
   f.publish({ dps: 20 });
   assert.equal(f.lifecycle.state.patchComparison, null);
-  assert.equal(f.lifecycle.needsPatchComparison(), false);
+  assert.equal(f.lifecycle.needsPatchComparison(f.execution.captureInputs()), false);
   const before = f.work.baseline.length;
   f.lifecycle.refreshBaseline();
   assert.equal(f.work.baseline.length, before + 1);

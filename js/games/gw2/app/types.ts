@@ -9,6 +9,7 @@ import type { RotationComparisonSession } from '#gw2/app/rotation/comparison-sta
 import type { RotationActionOptions, RotationEditingState } from '#gw2/app/rotation/editing/state.js';
 import type { RotationTimelineState } from '#gw2/app/rotation/timeline/state.js';
 import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
+import type { AnalysisRequestInput, AnalysisRequestSnapshot } from '#gw2/app/simulation/analysis-request-snapshot.js';
 import type { AnalysisResult, AnalysisResultLifecycle } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
 import type {
@@ -16,7 +17,6 @@ import type {
   ModifierContributionRequest
 } from '#gw2/app/simulation/modifier-contributions/types.js';
 import type {
-  RandomDistributionJobRequest,
   RandomDistributionOptions,
   RandomDistributionRequest,
   RandomDistributionSummary
@@ -111,9 +111,8 @@ export interface ProfessionRuntimeOptions {
 export interface ProfessionRuntimeApi {
   eliteSpecialization(build: Gw2CanonicalBuild): string;
   readonly createBuildContext: BuildContextFactory;
-  modifierContributionRequest(app: ProfessionAppState, baselineDps: number): ModifierContributionRequest;
+  captureAnalysis(input: AnalysisRequestInput): AnalysisRequestSnapshot;
   calculateModifierContributions(request: ModifierContributionRequest): ModifierContribution[];
-  randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest;
   relicComparisonRequest(app: ProfessionAppState, comparisonRelic?: string): RelicComparisonRequest | null;
   calculateRandomDistribution(
     request: RandomDistributionRequest,
@@ -125,7 +124,6 @@ export interface ProfessionRuntimeApi {
     insertionIndex: number,
     appended?: readonly RotationCommand[]
   ): Gw2SimulationResult;
-  baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest;
   calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput;
 }
 

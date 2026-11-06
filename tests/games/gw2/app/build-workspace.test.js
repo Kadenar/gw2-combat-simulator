@@ -23,6 +23,7 @@ import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runne
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { recordRotationHistory, undoRotation } from '#gw2/app/rotation/editing/history.js';
+import { captureAnalysisRequestSnapshot } from '#gw2/app/simulation/analysis-request-snapshot.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
@@ -152,7 +153,7 @@ const adapter = {
   toApplicationBuild: (value) => structuredClone(value),
   eliteSpecialization: () => 'Core',
   slotLoadout: { normalizeBuild: () => ({}) },
-  createBuildContext: () => ({ attributes: () => null })
+  createBuildContext: () => ({ attributes: () => null, simulationConfig: () => ({}) })
 };
 
 // A minimal editor exercises real tab activation and rotation history without a DOM or combat fixture.
@@ -189,10 +190,10 @@ function appFixture() {
   });
   app.adapter = {
     ...adapter,
-    baselineSimulationRequest: () => ({ rotation: app.build.rotation, baseConfig: {}, selectedPatchId: app.patch.id })
+    captureAnalysis: (input) => captureAnalysisRequestSnapshot(input, adapter)
   };
   app.analysis = createAnalysisResultLifecycle(app, () => {});
-  app.analysis.restore({ results: null, patchComparison: null, fresh: false });
+  app.analysis.restore({ results: null, patchComparison: null, fresh: false, inputs: null });
   cancelled.length = 0;
   recordRotationHistory(app);
   return { app, tab, scheduled, cancelled };

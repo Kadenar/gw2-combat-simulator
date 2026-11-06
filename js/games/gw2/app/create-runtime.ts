@@ -1,20 +1,13 @@
-import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
-import { buildWithPatchSkillSelections } from '#gw2/app/build/state/skill-selection.js';
 import { relicComparisonAvailable } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { RelicComparisonRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
-import { cloneRotation } from '#gw2/app/rotation/editing/history.js';
+import { captureAnalysisRequestSnapshot } from '#gw2/app/simulation/analysis-request-snapshot.js';
 import { calculateBaselineSimulation as calculateBaseline } from '#gw2/app/simulation/baseline/baseline-simulation.js';
 import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
 import { calculateContributionComparisons } from '#gw2/app/simulation/modifier-contributions/modifier-contributions.js';
-import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
 import type { ModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/types.js';
-import {
-  calculateRandomDistribution as calculateDistribution,
-  DEFAULT_RANDOM_DISTRIBUTION_TRIALS
-} from '#gw2/app/simulation/random-distribution/random-distribution.js';
+import { calculateRandomDistribution as calculateDistribution } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import type {
-  RandomDistributionJobRequest,
   RandomDistributionOptions,
   RandomDistributionRequest,
   RandomDistributionSummary
@@ -28,9 +21,8 @@ import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { clamp } from '#kernel/core/numeric.js';
-import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 
-/** Coordinates browser analysis requests using the shared headless build calculation. */
+/** Binds headless analysis capture and calculation; synchronous preview and relic workflows retain their own inputs. */
 export function createProfessionRuntime({
   profession,
   createBuildContext
@@ -50,29 +42,6 @@ export function createProfessionRuntime({
     return calculateContributionComparisons({ rotation, baselineDps, comparisons }, (rotation, config) =>
       simulateGw2({ profession, rotation, config, output: 'score' })
     );
-  }
-
-  /** Capture the requested rotation before deferred execution so later editor mutations cannot alter the job. */
-  function randomDistributionRequest(app: ProfessionAppState): RandomDistributionJobRequest {
-    const config = createBuildContext({
-      build: app.build,
-      patch: app.patch,
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
-    }).simulationConfig();
-    const baseConfig = {
-      ...withScenarioConfig(config, app.workspace?.scenario),
-      randomness: {
-        ...config.randomness,
-        mode: SIMULATION_RANDOMNESS_MODES.STOCHASTIC
-      }
-    };
-    return {
-      gameId: 'gw2',
-      contentId: profession.id,
-      rotation: cloneRotation(app.build.rotation),
-      baseConfig,
-      trials: DEFAULT_RANDOM_DISTRIBUTION_TRIALS
-    };
   }
 
   /** Uses the on-screen equipped relic as the baseline for an explicitly selected alternative. */
@@ -102,13 +71,11 @@ export function createProfessionRuntime({
     );
   }
 
-  function baselineSimulationConfig(app: ProfessionAppState, patchId = app.patch.id): Gw2Config {
-    const patch = profession.resolvePatch({ id: patchId, values: app.patch.values });
-    // An unvisited version needs the same loadout mapping as an actual switch, on a copy.
-    const build = patchId === app.patch.id ? app.build : buildWithPatchSkillSelections(app, patch.catalog);
+  function baselineSimulationConfig(app: ProfessionAppState): Gw2Config {
+    const patch = profession.resolvePatch({ id: app.patch.id, values: app.patch.values });
     const config = deterministicSimulationConfig(
       createBuildContext({
-        build,
+        build: app.build,
         patch,
         transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
       }).simulationConfig()
@@ -143,39 +110,6 @@ export function createProfessionRuntime({
     });
   }
 
-  /** Captures a clone-safe baseline job before later edits can mutate the rotation. */
-  function baselineSimulationRequest(app: ProfessionAppState): BaselineSimulationRequest {
-    // Workspace runs only the displayed version. Analysis refreshes an absent comparison on demand.
-    const baseConfig = baselineSimulationConfig(app);
-    const comparisonPatchId =
-      analysisViewIsActive() && profession.preview && app.analysis.needsPatchComparison()
-        ? app.patch.id === 'current'
-          ? profession.preview.id
-          : 'current'
-        : null;
-    return {
-      gameId: 'gw2',
-      contentId: profession.id,
-      rotation: cloneRotation(app.build.rotation),
-      damageDiagnostics: app.damageDiagnostics,
-      // Only the displayed version needs chart histories; the opposite patch supplies damage totals and events.
-      collectChartData: analysisViewIsActive() || Boolean(app.rotationComparison?.referenceRotation.length),
-      ...(app.rotationComparison?.referenceStatus === 'queued'
-        ? { referenceRotation: cloneRotation(app.rotationComparison.referenceRotation) }
-        : null),
-      baseConfig,
-      selectedPatchId: app.patch.id,
-      ...(comparisonPatchId
-        ? {
-            comparisonConfig: {
-              ...baselineSimulationConfig(app, comparisonPatchId),
-              patchId: comparisonPatchId
-            }
-          }
-        : null)
-    };
-  }
-
   /** Runs a serialized baseline job without depending on browser application state. */
   function calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput {
     return calculateBaseline(request, profession);
@@ -184,14 +118,11 @@ export function createProfessionRuntime({
   const api: ProfessionRuntimeApi = {
     eliteSpecialization,
     createBuildContext,
-    modifierContributionRequest: (app, baselineDps) =>
-      createModifierContributionRequest(app, profession, createBuildContext, baselineDps),
+    captureAnalysis: (input) => captureAnalysisRequestSnapshot(input, { profession, createBuildContext }),
     calculateModifierContributions,
-    randomDistributionRequest,
     relicComparisonRequest,
     calculateRandomDistribution,
     rotationPreviewAt,
-    baselineSimulationRequest,
     calculateBaselineSimulation
   };
   return api;

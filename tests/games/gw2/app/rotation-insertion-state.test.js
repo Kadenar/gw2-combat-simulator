@@ -9,6 +9,7 @@ import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lo
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 function planningState(overrides = {}) {
@@ -138,7 +139,9 @@ test('Bloodstone appears only after the insertion prefix includes Detonate', asy
         return this.patch.catalog;
       }
     };
-    app.analysis.state.results = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app)).result;
+    app.analysis.state.results = adapter.calculateBaselineSimulation(
+      captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: false })
+    ).result;
     assert.deepEqual(app.analysis.state.results.warnings, []);
     const detonation = app.analysis.state.results.steps.find((step) => step.skillName === 'Detonate');
     app.rotationInsertionIndex = detonation.rotationCommandIndex;
@@ -202,7 +205,9 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     // Publish the baseline explicitly so insertion previews can reuse its planning state.
-    const { result } = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
+    const { result } = adapter.calculateBaselineSimulation(
+      captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: false })
+    );
     app.analysis.state.results = result;
     assert.deepEqual(result.warnings, []);
     const beforeHit = adapter.rotationPreviewAt(app, 2).planningState;
@@ -253,7 +258,9 @@ test('Ranger prefix simulations keep precast traps armed until the inherited bou
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   // Publish the baseline explicitly so insertion previews can reuse its planning state.
-  const { result } = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
+  const { result } = adapter.calculateBaselineSimulation(
+    captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: false })
+  );
   app.analysis.state.results = result;
   assert.deepEqual(result.warnings, []);
   // A future boundary must remain pending: publishing its timestamp early would trigger the trap immediately.
@@ -318,7 +325,9 @@ test('native insertion previews project weapon set and cooldown state', async ()
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   // Publish the baseline explicitly so insertion previews can reuse its planning state.
-  const { result } = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
+  const { result } = adapter.calculateBaselineSimulation(
+    captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: false })
+  );
   app.analysis.state.results = result;
   const initial = adapter.rotationPreviewAt(app, 0).planningState;
   const afterFirstSkill = adapter.rotationPreviewAt(app, 1).planningState;

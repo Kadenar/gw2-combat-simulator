@@ -9,6 +9,7 @@ import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-qu
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { rangerPetCombatMetadata } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
 import { modifierComparisonRequest, modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
@@ -128,7 +129,10 @@ for (const [name, entries] of Object.entries(signets)) {
     const request = structuredClone(modifierComparisonRequest(app, app.adapter));
     const comparisons = request.comparisons.filter(({ modifier }) => modifier.type === 'Skill');
     assert.equal(comparisons.length, entries.length);
-    const { baseConfig } = app.adapter.baselineSimulationRequest(app);
+    const { baseConfig } = captureAnalysisFixture(app, app.adapter).baseline({
+      collectChartData: false,
+      comparePatch: false
+    });
     const baseline = stats(app.adapter.profession, baseConfig);
     for (const [label, attribute] of entries) {
       const skill = app.activeCatalog.skills.find((candidate) => candidate.name === label);
@@ -232,9 +236,12 @@ for (const [name, label, traitName, buff, attribute, activeBonus] of [
       return result;
     };
 
-    const baselineInput = app.adapter.baselineSimulationRequest(app);
+    const baselineInput = captureAnalysisFixture(app, app.adapter).baseline({
+      collectChartData: false,
+      comparePatch: false
+    });
     const baseline = simulate(baselineInput.rotation, baselineInput.baseConfig);
-    const request = app.adapter.modifierContributionRequest(app, baseline.dps);
+    const request = captureAnalysisFixture(app, app.adapter).modifiers(baseline.dps);
     const comparison = request.comparisons.find(({ modifier }) => modifier.skillId === skillId);
     const contributions = calculateContributionComparisons({ ...request, comparisons: [comparison] }, simulate);
     assert.equal(contributions.length, 1);
@@ -279,7 +286,10 @@ test('Signet of the Wild contribution includes player and pet passive removal', 
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const request = modifierContributionRequest(app, app.adapter);
   const comparison = request.comparisons.find(({ modifier }) => modifier.skillId === skillId);
-  const snapshots = [app.adapter.baselineSimulationRequest(app).baseConfig, comparison.config].map((config) => {
+  const snapshots = [
+    captureAnalysisFixture(app, app.adapter).baseline({ collectChartData: false, comparePatch: false }).baseConfig,
+    comparison.config
+  ].map((config) => {
     let snapshot;
     observeGw2Runtime({
       profession: app.adapter.profession.runtimeFor(config),

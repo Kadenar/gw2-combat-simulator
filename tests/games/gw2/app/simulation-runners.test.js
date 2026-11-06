@@ -2,17 +2,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createBossScenario } from '#gw2/app/boss-scenarios/model.js';
 import { createBuildTab } from '#gw2/app/build/state/workspace.js';
 import { createAnalysisResultLifecycle } from '#gw2/app/create-analysis-lifecycle.js';
 import { createProfessionRuntime } from '#gw2/app/create-runtime.js';
 import { calculateRelicComparison } from '#gw2/app/optimizer/relic-comparison/calculate.js';
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
 import { ProfessionApp } from '#gw2/app/profession-app.js';
+import { captureAnalysisRequestSnapshot } from '#gw2/app/simulation/analysis-request-snapshot.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { analysisFixture } from '#tests/helpers/analysis-lifecycle.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
@@ -23,104 +22,6 @@ const STRIKE_ROTATION = [{ type: 'cast', skillId: 'Strike' }];
 function testPresentation(render = () => {}) {
   return { createViewModel: () => ({}), render };
 }
-
-// Workspace prepares one patch; Analysis requests a missing opposite patch only for Golem.
-test('baseline requests scope patch comparison to visible Analysis and reuse fresh comparisons', (t) => {
-  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
-  const body = { dataset: { simulatorView: 'workspace' } };
-  Object.defineProperty(globalThis, 'document', { configurable: true, value: { body } });
-  t.after(() => {
-    if (previous) Object.defineProperty(globalThis, 'document', previous);
-    else delete globalThis.document;
-  });
-  for (const preview of [undefined, { id: 'preview' }]) {
-    const prepared = [];
-    const profession = {
-      id: 'fixture',
-      catalog: { specializations: [] },
-      preview,
-      resolvePatch: (patch) => ({ ...patch, catalog: { skills: [], skillsById: new Map() } })
-    };
-    const runtime = createProfessionRuntime({
-      profession,
-      createBuildContext: ({ patch }) => {
-        prepared.push(patch.id);
-        return { simulationConfig: () => ({ patchId: patch.id }) };
-      }
-    });
-    for (const id of preview ? ['current', 'preview'] : ['current']) {
-      for (const bosses of [false, true]) {
-        prepared.length = 0;
-        const build = { profession: 'fixture', rotation: [] };
-        const app = {
-          profession,
-          build,
-          patch: { id, values: {} },
-          analysis: { needsPatchComparison: () => Boolean(preview && !bosses) },
-          workspace: bosses ? { scenario: createBossScenario('020102', build, 'Fixture', id) } : undefined
-        };
-        body.dataset.simulatorView = 'workspace';
-        const request = runtime.baselineSimulationRequest(app);
-        assert.deepEqual(prepared, [id]);
-        assert.equal(request.baseConfig.patchId, id);
-        assert.equal(request.comparisonConfig, undefined);
-
-        prepared.length = 0;
-        body.dataset.simulatorView = 'analysis';
-        const analysis = runtime.baselineSimulationRequest(app);
-        const opposite = id === 'current' ? 'preview' : 'current';
-        assert.deepEqual(prepared, preview && !bosses ? [id, opposite] : [id]);
-        assert.equal(analysis.comparisonConfig?.patchId, preview && !bosses ? opposite : undefined);
-
-        prepared.length = 0;
-        app.analysis.needsPatchComparison = () => false;
-        assert.equal(runtime.baselineSimulationRequest(app).comparisonConfig, undefined);
-        assert.deepEqual(prepared, [id]);
-      }
-    }
-  }
-});
-
-test('baseline requests refresh a queued reference once, using independent command clones', async () => {
-  const adapter = await loadProfessionAppAdapter('engineer');
-  const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());
-  build.rotation = [{ type: 'wait', durationMs: 1 }];
-  const referenceRotation = [{ type: 'wait', durationMs: 2 }];
-  const app = {
-    adapter,
-    profession: adapter.profession,
-    activeCatalog: adapter.profession.catalog,
-    analysis: { needsPatchComparison: () => false },
-    attributeWeaponSet: 1,
-    patch: adapter.profession.resolvePatch({ id: 'current' }),
-    build,
-    rotationComparison: {
-      referenceRotation,
-      referenceResult: {},
-      referenceStatus: 'fresh',
-      referenceError: ''
-    }
-  };
-  app.attributeData = adapter
-    .createBuildContext({
-      build: app.build,
-      transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-      patch: adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
-    })
-    .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-
-  assert.equal(adapter.baselineSimulationRequest(app).referenceRotation, undefined);
-  app.rotationComparison.referenceStatus = 'queued';
-  const request = adapter.baselineSimulationRequest(app);
-  assert.deepEqual(request.referenceRotation, referenceRotation);
-  assert.notEqual(request.referenceRotation, referenceRotation);
-  assert.notEqual(request.referenceRotation[0], referenceRotation[0]);
-
-  const output = adapter.calculateBaselineSimulation(request);
-  assert.ok(output.referenceResult);
-  app.rotationComparison.referenceStatus = 'fresh';
-  assert.equal(adapter.baselineSimulationRequest(app).referenceRotation, undefined);
-});
 
 function minimalResult(damageAt1s) {
   // buildChartSeries only needs the DPS window, resolved damage events, and
@@ -649,7 +550,12 @@ test('rotation-only changes paint the builder once with their matching result', 
     }
   });
 
-  app.analysis.restore({ results: { id: 'old', contributions: [] }, patchComparison: null, fresh: true });
+  app.analysis.restore({
+    inputs: f.execution.captureInputs(),
+    results: { id: 'old', contributions: [] },
+    patchComparison: null,
+    fresh: true
+  });
   app.changed(false);
   assert.equal(f.work.baseline.length, 1);
   assert.deepEqual(renderedResults, [], 'the prior builder remains until the worker result is ready');
@@ -689,6 +595,8 @@ test('build edits cancel prior analysis even when browser storage rejects writes
   let scheduled = null;
   const cancelled = [];
   const profession = {
+    id: 'fixture',
+    resolvePatch: () => ({ id: 'current', catalog: { skills: [], skillsById: new Map() } }),
     ui: {},
     migrateBuild: (build) => build
   };
@@ -698,8 +606,8 @@ test('build edits cancel prior analysis even when browser storage rejects writes
     toApplicationBuild: (build) => build,
     eliteSpecialization: () => 'Core',
     slotLoadout: { normalizeBuild: () => ({}) },
-    createBuildContext: () => ({ attributes: () => null }),
-    baselineSimulationRequest: () => ({ rotation: tab.build.rotation, baseConfig: {} }),
+    createBuildContext: () => ({ attributes: () => null, simulationConfig: () => ({}) }),
+    captureAnalysis: (input) => captureAnalysisRequestSnapshot(input, adapter),
     buildEditor: {}
   };
   // Supply normalized build inputs and a real tab so the edit reaches the failing storage write.
@@ -731,6 +639,7 @@ test('build edits cancel prior analysis even when browser storage rejects writes
 
   app.analysis = createAnalysisResultLifecycle(app, () => {});
   app.analysis.restore({
+    inputs: app.adapter.captureAnalysis({ build: app.build, patch: app.patch }),
     results: { contributions: [], modifierContributionsStale: false },
     fresh: true,
     patchComparison: null

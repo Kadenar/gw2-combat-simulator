@@ -19,6 +19,7 @@ import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-
 import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
@@ -652,10 +653,13 @@ test('baseline, RNG, and modifier requests share the encounter configuration', (
     patch: adapter.profession.resolvePatch({ id: 'current' }),
     attributeData: { activeTraits: [] }
   };
-  const baseline = adapter.baselineSimulationRequest(app).baseConfig;
-  const random = adapter.randomDistributionRequest(app).baseConfig;
+  const baseline = captureAnalysisFixture(app, adapter).baseline({
+    collectChartData: false,
+    comparePatch: false
+  }).baseConfig;
+  const random = captureAnalysisFixture(app, adapter).distribution().baseConfig;
   // Comparisons reuse a supplied baseline score and carry encounter settings in each omission config.
-  const modifier = adapter.modifierContributionRequest(app, 0);
+  const modifier = captureAnalysisFixture(app, adapter).modifiers(0);
   assert.equal(modifier.baselineDps, 0);
   assert.ok(modifier.comparisons.length > 0);
   for (const config of [baseline, random, ...modifier.comparisons.map((entry) => entry.config)]) {
@@ -670,10 +674,22 @@ test('baseline, RNG, and modifier requests share the encounter configuration', (
   assert.equal(draft.build.assumptions.alliedPlayerCount, 0);
   assert.equal(draft.build.assumptions.sharePlayerBoonsWithSummons, true);
   app.workspace = undefined;
-  assert.equal(adapter.baselineSimulationRequest(app).baseConfig.allies.count, 0);
-  assert.equal(adapter.baselineSimulationRequest(app).baseConfig.sharePlayerBoonsWithSummons, true);
-  assert.equal(adapter.baselineSimulationRequest(app).baseConfig.encounter, undefined);
-  assert.equal(adapter.modifierContributionRequest(app, 0).comparisons[0].config.target.armor, 5346);
+  assert.equal(
+    captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: false }).baseConfig.allies
+      .count,
+    0
+  );
+  assert.equal(
+    captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: false }).baseConfig
+      .sharePlayerBoonsWithSummons,
+    true
+  );
+  assert.equal(
+    captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: false }).baseConfig
+      .encounter,
+    undefined
+  );
+  assert.equal(captureAnalysisFixture(app, adapter).modifiers(0).comparisons[0].config.target.armor, 5346);
 });
 
 // Optional downtime is preserved by authoring without altering boss-owned split layouts or the rotation.

@@ -38,6 +38,7 @@ import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { createThiefBuildDefaults } from '#gw2/professions/thief/build/build.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
 
 const contexts = new Map(
   await Promise.all(['engineer', 'necromancer'].map(async (id) => [id, await loadBuildContext(id)]))
@@ -462,11 +463,11 @@ test('RNG analysis is available while detailed Engineer results stay determinist
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   // Keep test setup on the same baseline request/calculation path as the application.
   app.analysis.state.results = engineerAppAdapter.calculateBaselineSimulation(
-    engineerAppAdapter.baselineSimulationRequest(app)
+    captureAnalysisFixture(app, engineerAppAdapter).baseline({ collectChartData: false, comparePatch: false })
   ).result;
   assert.equal(app.analysis.state.results.randomness.mode, 'deterministic');
 
-  const request = engineerAppAdapter.randomDistributionRequest(app);
+  const request = captureAnalysisFixture(app, engineerAppAdapter).distribution();
 
   assert.equal(request.baseConfig.randomness.mode, 'stochastic');
   const distribution = engineerAppAdapter.calculateRandomDistribution({

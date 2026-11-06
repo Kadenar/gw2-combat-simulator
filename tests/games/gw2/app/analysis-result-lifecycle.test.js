@@ -108,9 +108,11 @@ test('chart failures permit modifier work while modifier failures clear carried 
 test('RNG availability is cheap; explicit sampling owns progress, waiting, and errors', () => {
   let prepared = 0;
   const f = analysisFixture({
-    distributionRequest: () => {
-      prepared++;
-      return { rotation: [], baseConfig: {}, trials: 2 };
+    snapshot: {
+      distribution: () => {
+        prepared++;
+        return { rotation: [], baseConfig: {}, trials: 2 };
+      }
     }
   });
   f.publish({ dps: 10, effectReport: {} });

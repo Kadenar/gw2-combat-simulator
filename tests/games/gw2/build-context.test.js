@@ -14,6 +14,7 @@ import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { resolveRevenantSkillLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as REVENANT } from '#gw2/professions/revenant/data/ids.js';
+import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
 
 const input = (profession, build, patchId = 'current') => ({
   build,
@@ -131,7 +132,10 @@ test('Revenant starting legend determines skills regardless of displayed set or 
     attributeData: { activeTraits: [] },
     results: { planningState: { profession: { activeLegend: LEGEND.DWARF } } }
   };
-  assert.deepEqual(revenantAppAdapter.randomDistributionRequest(app).baseConfig.selectedSkillIds, expected);
+  assert.deepEqual(
+    captureAnalysisFixture(app, revenantAppAdapter).distribution().baseConfig.selectedSkillIds,
+    expected
+  );
 });
 
 test('headless fixed loadouts retain both bars while attribute skills follow the starting legend', async () => {

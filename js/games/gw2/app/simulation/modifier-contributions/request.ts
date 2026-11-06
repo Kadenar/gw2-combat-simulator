@@ -1,21 +1,17 @@
 /** Build modifier-preview requests from selected runtime calculations and scenario assumptions. */
-import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import type { ModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/types.js';
-import type { ProfessionAppState, ProfessionRuntimeOptions } from '#gw2/app/types.js';
-import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
-import type { BuildContextFactory, ProfessionModifier } from '#gw2/build-context/types.js';
+import type { BuildAttributes, BuildContextProfession, ProfessionModifier } from '#gw2/build-context/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
+import type { Gw2CanonicalBuild, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 /** Enumerates equipped effects and active assumptions for one-at-a-time removal comparisons. */
-function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
+function modifierCandidates(build: Gw2CanonicalBuild, attributes: BuildAttributes): ProfessionModifier[] {
   const candidates: ProfessionModifier[] = [];
-  const assumptions = app.build.assumptions as ProfessionBuildAssumptions;
+  const assumptions = build.assumptions as ProfessionBuildAssumptions;
 
   if (Number(assumptions.might) > 0) {
     candidates.push({
@@ -53,7 +49,7 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
     });
   }
 
-  for (const name of new Set((app.build.weaponSigils || []).flat())) {
+  for (const name of new Set((build.weaponSigils || []).flat())) {
     if (!name) continue;
 
     candidates.push({
@@ -64,35 +60,35 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
     });
   }
 
-  if (app.build.relic) {
+  if (build.relic) {
     candidates.push({
-      id: `Relic:${app.build.relic}`,
+      id: `Relic:${build.relic}`,
       type: 'Relic',
-      name: app.build.relic,
-      label: `Relic of ${app.build.relic}`
+      name: build.relic,
+      label: `Relic of ${build.relic}`
     });
   }
 
-  if (FOOD_DATA[app.build.food]?.proc) {
+  if (FOOD_DATA[build.food]?.proc) {
     candidates.push({
-      id: `Food:${app.build.food}`,
+      id: `Food:${build.food}`,
       type: 'Food',
-      name: app.build.food,
-      label: `Food: ${FOOD_DATA[app.build.food].proc.name}`
+      name: build.food,
+      label: `Food: ${FOOD_DATA[build.food].proc.name}`
     });
   }
 
   // Damage-only utilities need removal comparisons even though they add no attributes.
-  if (UTILITY_STRIKE_DAMAGE_BONUSES[app.build.utility]) {
+  if (UTILITY_STRIKE_DAMAGE_BONUSES[build.utility]) {
     candidates.push({
-      id: `Utility:${app.build.utility}`,
+      id: `Utility:${build.utility}`,
       type: 'Utility',
-      name: app.build.utility,
-      label: app.build.utility
+      name: build.utility,
+      label: build.utility
     });
   }
 
-  for (const trait of app.attributeData?.activeTraits || []) {
+  for (const trait of attributes.activeTraits) {
     candidates.push({
       id: `Trait:${trait.name}`,
       type: 'Trait',
@@ -106,29 +102,17 @@ function modifierCandidates(app: ProfessionAppState): ProfessionModifier[] {
 
 /** Preserves workspace target settings so comparisons share its health thresholds and combat endpoint. */
 export function createModifierContributionRequest(
-  app: ProfessionAppState,
-  profession: ProfessionRuntimeOptions['profession'],
-  createBuildContext: BuildContextFactory,
+  build: Gw2CanonicalBuild,
+  attributes: () => BuildAttributes,
+  profession: BuildContextProfession,
+  comparisonConfig: (disabled?: ProfessionModifier) => Gw2Config,
   baselineDps: number
 ): ModifierContributionRequest {
   // Reject an unusable baseline before preparing omission configs or dispatching any worker.
   if (!Number.isFinite(baselineDps)) throw new TypeError('Modifier contributions require a finite baseline DPS.');
 
-  const comparisonConfig = (disabled: ProfessionModifier | null = null): Gw2Config =>
-    withScenarioConfig(
-      deterministicSimulationConfig(
-        createBuildContext({
-          build: app.build,
-          patch: app.patch,
-          transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays),
-          disabledModifier: disabled ?? undefined
-        }).simulationConfig()
-      ),
-      app.workspace?.scenario
-    );
-
   const baseConfig = comparisonConfig();
-  const candidates = modifierCandidates(app);
+  const candidates = modifierCandidates(build, attributes());
   const runtime = profession.runtimeFor(baseConfig);
   const selected = selectedSkillIdSet(baseConfig.selectedSkillIds);
   // Discover passive owners from native attribute declarations, including currently suppressed or zero-valued grants.
@@ -155,5 +139,11 @@ export function createModifierContributionRequest(
 
   const comparisons = candidates.map((modifier) => ({ modifier, config: comparisonConfig(modifier) }));
   // The baseline config discovers passive owners locally; comparison execution reuses the caller's score.
-  return { gameId: 'gw2', contentId: profession.id, rotation: app.build.rotation, baselineDps, comparisons };
+  return {
+    gameId: 'gw2',
+    contentId: profession.id,
+    rotation: build.rotation.map((command) => ({ ...command })),
+    baselineDps,
+    comparisons
+  };
 }

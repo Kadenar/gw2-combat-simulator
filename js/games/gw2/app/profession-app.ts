@@ -254,8 +254,8 @@ export class ProfessionApp implements ProfessionAppState {
   /** Initial publication stays synchronous; later requests use the existing worker queue. */
   private updateSimulationStateSynchronously(): void {
     this.prepareSimulationState();
-    this.analysis.initialize();
     this.analysis.setAnalysisVisible(analysisViewIsActive());
+    this.analysis.initialize();
   }
 
   /** Recapture the same seeded baseline without changing the build, history, or saved preferences. */

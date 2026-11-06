@@ -17,7 +17,7 @@ import {
 import { authoredStepIndexesAtPreviewTime, rotationPreviewSchedulerTimeMs } from '#gw2/app/rotation/timeline/view.js';
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
-import { analysisFixture } from '#tests/helpers/analysis-lifecycle.js';
+import { analysisFixture, controlledAnalysisSnapshot } from '#tests/helpers/analysis-lifecycle.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 
 function result(id, dps = 100, totalDamage = 400, duration = 4, resolvedEvents = []) {
@@ -43,12 +43,6 @@ function comparisonApp(rotation = [{ type: 'cast', skillId: 1 }], currentResult 
     rotationComparison: null,
     scheduledRevisions: [],
     changedCalls: [],
-    adapter: {
-      baselineSimulationRequest: () => ({
-        rotation: app.build.rotation,
-        referenceRotation: app.rotationComparison?.referenceRotation
-      })
-    },
     baselineSimulationRunner: {
       run: (operation) => {
         app.pendingBaseline = operation;
@@ -61,7 +55,13 @@ function comparisonApp(rotation = [{ type: 'cast', skillId: 1 }], currentResult 
     }
   });
   const f = analysisFixture({
-    baselineRequest: () => app.adapter.baselineSimulationRequest(app),
+    context: () => ({
+      build: app.build,
+      damageDiagnostics: false,
+      referenceRotation: app.rotationComparison?.referenceRotation ?? null,
+      referenceQueued: app.rotationComparison?.referenceStatus === 'queued'
+    }),
+    captureInputs: () => controlledAnalysisSnapshot({ ...f.inputs, rotation: app.build.rotation }),
     baseline: {
       run: (operation) => {
         app.scheduledRevisions.push(app.analysis.state.buildRevision);
@@ -76,7 +76,12 @@ function comparisonApp(rotation = [{ type: 'cast', skillId: 1 }], currentResult 
     }
   });
   app.analysis = f.lifecycle;
-  app.analysis.restore({ results: currentResult, patchComparison: null, fresh: true });
+  app.analysis.restore({
+    results: currentResult,
+    patchComparison: null,
+    fresh: true,
+    inputs: f.execution.captureInputs()
+  });
   return app;
 }
 
@@ -328,12 +333,6 @@ test('the baseline queue rejects replaced references at the same build revision'
     else delete globalThis.Worker;
   });
   const app = comparisonApp();
-  app.adapter = {
-    baselineSimulationRequest: () => ({
-      rotation: app.build.rotation,
-      referenceRotation: app.rotationComparison?.referenceRotation
-    })
-  };
   app.baselineSimulationRunner = new BaselineSimulationRunner(() => assert.fail('Worker expected'));
   t.after(() => app.baselineSimulationRunner.cancel());
   app.startRotationComparison();

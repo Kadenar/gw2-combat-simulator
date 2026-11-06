@@ -5,6 +5,7 @@ import { availableSlotSkills, swapSelectedSkillsForPatch } from '#gw2/app/build/
 import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
+import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
@@ -65,7 +66,9 @@ test('Mesmer comparison projects Warden and Disenchanter selections without muta
   };
   Object.defineProperty(app, 'activeCatalog', { get: () => app.patch.catalog });
   const original = structuredClone(build);
-  const direct = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
+  const direct = adapter.calculateBaselineSimulation(
+    captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: true })
+  );
   assert.deepEqual(build, original);
   assert.ok(direct.comparisonResult.result.dps > 0);
   assert.doesNotMatch(JSON.stringify(direct.comparisonResult.result.warnings), /not equipped/);
@@ -74,7 +77,9 @@ test('Mesmer comparison projects Warden and Disenchanter selections without muta
   swapSelectedSkillsForPatch(app, target.catalog);
   app.patch = target;
   assert.equal(build.selectedSkillIds.Utility1, MESMER_SKILL_IDS.PHANTASMAL_WARDEN);
-  const visited = adapter.calculateBaselineSimulation(adapter.baselineSimulationRequest(app));
+  const visited = adapter.calculateBaselineSimulation(
+    captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: true })
+  );
   assert.equal(visited.result.dps, direct.comparisonResult.result.dps);
   assert.equal(visited.comparisonResult.result.dps, direct.result.dps);
   assert.equal(build.selectedSkillIds.Utility1, MESMER_SKILL_IDS.PHANTASMAL_WARDEN);

@@ -10,6 +10,7 @@ import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lo
 import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
+import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
 import { modifierContributionRequest } from '#tests/helpers/modifier-contributions.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
@@ -88,7 +89,10 @@ test('slaying selections survive build loading and potion removal comparisons re
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const request = modifierContributionRequest(app, mesmerAppAdapter);
   const comparison = request.comparisons.find(({ modifier }) => modifier.id === 'Utility:Potion of Slaying');
-  const { baseConfig } = mesmerAppAdapter.baselineSimulationRequest(app);
+  const { baseConfig } = captureAnalysisFixture(app, mesmerAppAdapter).baseline({
+    collectChartData: false,
+    comparePatch: false
+  });
   assert.equal(baseConfig.utility, build.utility);
   assert.equal(comparison.config.utility, '');
   assert.deepEqual(

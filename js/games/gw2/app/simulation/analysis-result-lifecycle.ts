@@ -1,5 +1,6 @@
 /** Owns result freshness and publication while injected runners retain execution and browser code retains rendering. */
-import { PatchResultCache, type PatchResultIdentity } from '#gw2/app/patch-preview/results.js';
+import { PatchResultCache } from '#gw2/app/patch-preview/results.js';
+import type { AnalysisRequestSnapshot } from '#gw2/app/simulation/analysis-request-snapshot.js';
 import type {
   BaselineSimulationOutput,
   BaselineSimulationRequest,
@@ -18,6 +19,7 @@ import type {
   RandomDistributionResultState,
   RandomDistributionSummary
 } from '#gw2/app/simulation/random-distribution/types.js';
+import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
 type OwnedResult = BaselineSimulationResult & ModifierContributionResultState & RandomDistributionResultState;
@@ -37,11 +39,13 @@ export interface AnalysisSnapshot {
   readonly results: AnalysisResult | null;
   readonly patchComparison: PatchComparison | null;
   readonly fresh: boolean;
+  readonly inputs: AnalysisRequestSnapshot | null;
 }
 
-export interface AnalysisInputs {
-  readonly identity: PatchResultIdentity;
-  readonly rotationLength: number;
+export interface AnalysisContext {
+  readonly build: object;
+  readonly damageDiagnostics: boolean;
+  readonly referenceRotation: readonly RotationCommand[] | null;
   readonly referenceQueued: boolean;
 }
 
@@ -83,10 +87,8 @@ export type AnalysisChange = {
 };
 
 export interface AnalysisExecution {
-  readonly inputs: () => AnalysisInputs;
-  readonly baselineRequest: () => BaselineSimulationRequest;
-  readonly modifierRequest: (baselineDps: number) => ModifierContributionRequest;
-  readonly distributionRequest: () => RandomDistributionJobRequest;
+  readonly context: () => AnalysisContext;
+  readonly captureInputs: () => AnalysisRequestSnapshot;
   readonly calculateBaseline: (request: BaselineSimulationRequest) => BaselineSimulationOutput;
   readonly baseline: { run: (operation: BaselineOperation) => void; cancel: () => void };
   readonly modifiers: { run: (operation: ModifierOperation) => void; cancel: () => void };
@@ -106,6 +108,8 @@ export class AnalysisResultLifecycle {
   });
   private readonly cache = new PatchResultCache<AnalysisResult>();
   private visible = false;
+  private currentInputs: AnalysisRequestSnapshot | null = null;
+  private readonly resultInputs = new WeakMap<AnalysisResult, AnalysisRequestSnapshot>();
   private baselineWork: { readonly operation: BaselineOperation; readonly chartsOnly: boolean } | null = null;
   private modifierWork: object | null = null;
   private distributionWork: object | null = null;
@@ -125,7 +129,7 @@ export class AnalysisResultLifecycle {
 
   /** Build edits retain stale display separately from reusable cached results; adopted references are already current. */
   changeInputs(patchSwitch = false, adoptedResult?: AnalysisResult): number {
-    const { identity } = this.execution.inputs();
+    const context = this.execution.context();
     const revision = this.current.buildRevision + 1;
     const previous = adoptedResult ?? this.current.results;
     this.update({
@@ -139,7 +143,9 @@ export class AnalysisResultLifecycle {
     this.cancelModifiers();
     this.cancelDistribution();
 
-    if (!patchSwitch) this.cache.invalidate(identity.build);
+    if (adoptedResult) this.currentInputs = this.resultInputs.get(adoptedResult) ?? null;
+
+    if (!patchSwitch) this.cache.invalidate(context.build);
 
     return revision;
   }
@@ -157,6 +163,7 @@ export class AnalysisResultLifecycle {
   capture(): AnalysisSnapshot {
     return Object.freeze({
       results: this.current.results,
+      inputs: this.currentInputs,
       patchComparison: this.current.patchComparison,
       fresh:
         this.current.results !== null &&
@@ -168,8 +175,10 @@ export class AnalysisResultLifecycle {
   /** Restored data belongs to a new active revision, never to the outgoing tab's operation identities. */
   restore(snapshot: AnalysisSnapshot): void {
     this.suspend();
-    const { identity } = this.execution.inputs();
-    const fresh = snapshot.fresh && Boolean(snapshot.results?.debugInputs) === identity.damageDiagnostics;
+    const context = this.execution.context();
+    const fresh =
+      snapshot.fresh && snapshot.inputs != null && Boolean(snapshot.results?.debugInputs) === context.damageDiagnostics;
+    this.currentInputs = fresh ? snapshot.inputs : null;
     const revision = this.current.buildRevision + 1;
     this.update({
       results: fresh ? snapshot.results : null,
@@ -183,7 +192,7 @@ export class AnalysisResultLifecycle {
 
   /** Resume only missing work after the app has restored and normalized the destination's inputs. */
   resume(): void {
-    if (this.current.resultRevision !== this.current.buildRevision || this.execution.inputs().referenceQueued)
+    if (this.current.resultRevision !== this.current.buildRevision || this.execution.context().referenceQueued)
       this.refreshBaseline();
     else {
       if (this.current.results?.randomDistributionStale) this.requestDistribution(false);
@@ -193,8 +202,9 @@ export class AnalysisResultLifecycle {
     }
   }
 
-  needsPatchComparison(): boolean {
-    return !this.current.patchComparison && this.cache.needsComparison(this.execution.inputs().identity);
+  /** Checks comparison eligibility against the caller's capture without preparing fresh inputs. */
+  needsPatchComparison(inputs: AnalysisRequestSnapshot): boolean {
+    return !this.current.patchComparison && this.cache.needsComparison(inputs.identity);
   }
 
   /** View changes affect optional work, not the validity of already completed results. */
@@ -232,9 +242,9 @@ export class AnalysisResultLifecycle {
       !this.visible ||
       this.baselineWork ||
       !this.current.results ||
-      !this.execution.inputs().rotationLength ||
+      !this.currentInputs?.rotationLength ||
       this.current.resultRevision !== this.current.buildRevision ||
-      (this.current.results.effectReport && !this.needsPatchComparison())
+      (this.current.results.effectReport && !this.needsPatchComparison(this.currentInputs))
     )
       return;
 
@@ -256,9 +266,13 @@ export class AnalysisResultLifecycle {
 
   /** Each request, including same-revision recapture, owns its callbacks and captured cache identity. */
   private requestBaseline(chartsOnly: boolean, synchronous: boolean): void {
-    const inputs = this.execution.inputs();
-    const raw = this.execution.baselineRequest();
-    const request = chartsOnly ? { ...raw, collectChartData: true } : raw;
+    const inputs = chartsOnly ? this.currentInputs! : this.execution.captureInputs();
+    const context = this.execution.context();
+    const request = inputs.baseline({
+      collectChartData: chartsOnly || this.visible || Boolean(context.referenceRotation?.length),
+      comparePatch: this.visible && this.needsPatchComparison(inputs),
+      ...(context.referenceQueued && !chartsOnly ? { referenceRotation: context.referenceRotation! } : {})
+    });
 
     if ((!chartsOnly && this.baselineWork?.chartsOnly) || !request.rotation.length) this.cancelBaseline();
 
@@ -303,6 +317,10 @@ export class AnalysisResultLifecycle {
             result.modifierContributionsError = '';
           }
 
+          // Reuse validates selected inputs; a return to Current may also reset opposite-patch tuning.
+          // Bind the admitted capture so later chart comparisons use that newly selected context.
+          this.currentInputs = inputs;
+          this.resultInputs.set(result, this.currentInputs);
           this.update({ results: result, resultRevision: revision });
 
           if (result !== cached || !result.randomDistributionRequested || result.randomDistributionStale)
@@ -313,6 +331,10 @@ export class AnalysisResultLifecycle {
 
         if (output.comparisonResult)
           this.cache.record(inputs.identity, output.comparisonResult.result, output.comparisonResult.patchId);
+
+        if (output.referenceResult && request.referenceRotation) {
+          this.resultInputs.set(output.referenceResult, inputs.withRotation(request.referenceRotation));
+        }
 
         this.update({
           simulationStatus: 'idle',
@@ -358,7 +380,7 @@ export class AnalysisResultLifecycle {
       this.modifierWork ||
       !this.visible ||
       !baseline ||
-      !this.execution.inputs().rotationLength ||
+      !this.currentInputs?.rotationLength ||
       this.current.resultRevision !== this.current.buildRevision ||
       ['queued', 'running'].includes(this.current.simulationStatus) ||
       (Array.isArray(baseline.contributions) && !baseline.modifierContributionsStale)
@@ -386,7 +408,7 @@ export class AnalysisResultLifecycle {
     result.modifierContributionsError = '';
     this.notify('modifiers');
     try {
-      const request = this.execution.modifierRequest(result.dps);
+      const request = this.currentInputs!.modifiers(result.dps);
       this.execution.modifiers.run({
         request,
         ready: () => valid() && !this.baselineWork && !this.distributionWork,
@@ -411,7 +433,7 @@ export class AnalysisResultLifecycle {
 
     if (!result) return;
 
-    if (!this.execution.inputs().rotationLength) {
+    if (!this.currentInputs?.rotationLength) {
       result.randomDistributionRequested = false;
       result.randomDistributionStale = false;
       return;
@@ -436,7 +458,7 @@ export class AnalysisResultLifecycle {
     this.cancelDistribution();
     const baseline = this.current.results;
 
-    if (!baseline || !this.execution.inputs().rotationLength) return;
+    if (!baseline || !this.currentInputs?.rotationLength) return;
 
     const identity = {};
     this.distributionWork = identity;
@@ -457,7 +479,7 @@ export class AnalysisResultLifecycle {
     };
 
     try {
-      const request = this.execution.distributionRequest();
+      const request = this.currentInputs!.distribution();
       this.prepareDistribution(true, request.trials);
       this.execution.distribution.run({
         request,

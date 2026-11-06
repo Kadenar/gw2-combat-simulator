@@ -61,7 +61,7 @@ export function createBuildTab(build: Gw2CanonicalBuild, name = 'New build', pat
     build,
     patchId,
     session: emptyBuildTabSession(),
-    analysis: { results: null, patchComparison: null, fresh: false }
+    analysis: { results: null, patchComparison: null, fresh: false, inputs: null }
   };
 }
 

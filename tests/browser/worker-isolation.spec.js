@@ -35,9 +35,13 @@ test('simulation workers load current and preview patches without UI dependencie
   );
   const baseline = await page.evaluate(() => {
     const app = window.professionApp;
-    const previewRequest = app.adapter.baselineSimulationRequest(app);
+    const previewRequest = app.adapter
+      .captureAnalysis({ build: app.build, patch: app.patch, simulationSettings: app.simulationSettings })
+      .baseline({ collectChartData: false, comparePatch: false });
     app.patch = app.profession.resolvePatch({ id: 'current' });
-    const liveRequest = app.adapter.baselineSimulationRequest(app);
+    const liveRequest = app.adapter
+      .captureAnalysis({ build: app.build, patch: app.patch, simulationSettings: app.simulationSettings })
+      .baseline({ collectChartData: false, comparePatch: false });
     app.patch = app.profession.resolvePatch({ id: previewRequest.selectedPatchId });
     return new Promise((resolve, reject) => {
       let liveOutput;
@@ -71,7 +75,9 @@ test('simulation workers load current and preview patches without UI dependencie
   const contributions = await page.evaluate((baselineDps) => {
     const app = window.professionApp;
     app.modifierContributionRunner.cancel();
-    const { gameId, contentId, rotation, comparisons } = app.adapter.modifierContributionRequest(app, baselineDps);
+    const { gameId, contentId, rotation, comparisons } = app.adapter
+      .captureAnalysis({ build: app.build, patch: app.patch, simulationSettings: app.simulationSettings })
+      .modifiers(baselineDps);
     const request = { gameId, contentId, rotation, comparisons };
     return new Promise((resolve, reject) => {
       const worker = new Worker('/js/games/gw2/app/simulation/modifier-contributions/worker.ts', {
@@ -98,7 +104,12 @@ test('simulation workers load current and preview patches without UI dependencie
   );
   const random = await page.evaluate(() => {
     const app = window.professionApp;
-    const request = { ...app.adapter.randomDistributionRequest(app), trials: 2 };
+    const request = {
+      ...app.adapter
+        .captureAnalysis({ build: app.build, patch: app.patch, simulationSettings: app.simulationSettings })
+        .distribution(),
+      trials: 2
+    };
     return new Promise((resolve, reject) => {
       const worker = new Worker('/js/games/gw2/app/simulation/random-distribution/worker.ts', {
         type: 'module'
@@ -150,7 +161,9 @@ test('simulation workers load current and preview patches without UI dependencie
   expect(
     await page.evaluate(() => {
       const app = window.professionApp;
-      return app.adapter.baselineSimulationRequest(app).comparisonConfig;
+      return app.adapter
+        .captureAnalysis({ build: app.build, patch: app.patch, simulationSettings: app.simulationSettings })
+        .baseline({ collectChartData: false, comparePatch: false }).comparisonConfig;
     })
   ).toBeUndefined();
   await page.locator('.simulator-view-tab[data-simulator-view="analysis"]').click();
