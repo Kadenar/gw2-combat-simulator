@@ -7,8 +7,8 @@ import {
   loadEditorPayload,
   setNumericEdit,
   toggleEffect
-} from '#gw2/integrations/patches/app/editor-state.js';
-import { bindPatchAuthoringView, renderPatchAuthoring } from '#gw2/integrations/patches/app/render.js';
+} from '#gw2/app/patch-authoring/editor-state.js';
+import { bindPatchAuthoringView, renderPatchAuthoring } from '#gw2/app/patch-authoring/render.js';
 import { skillAuthoringReference } from '#gw2/integrations/patches/authoring/fields.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';

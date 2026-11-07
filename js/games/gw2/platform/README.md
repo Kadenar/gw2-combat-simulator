@@ -24,9 +24,10 @@ simulation entry point, `simulateGw2`; consumers import every contract directly 
 | `results/`                 | Optional observers, detached combat/planning projections, result queries, APM, boon summaries                                                              | Authoritative gameplay history and live-state mutation           |
 | `simulation/`              | Public run options/configuration, owner construction, one queue/clock, causal scope, stop policy                                                           | Domain rules and build-control definitions                       |
 
-Profession implementations live in `../professions/<profession>/`. Optional patch authoring and overlays belong in
-`../integrations/patches/`; equipment picker icons belong in `../app/shared/equipment/icons.ts`. See
-[Simulator modules](../../../../docs/architecture/MODULES.md) for the wider map.
+Profession implementations live in `../professions/<profession>/`. Optional patch authoring contracts and overlays
+belong in `../integrations/patches/`; the browser editor lives in `../app/patch-authoring/`. Equipment picker icons
+belong in `../app/shared/equipment/icons.ts`. See [Simulator modules](../../../../docs/architecture/MODULES.md) for the
+wider map.
 
 ## Execution and mutation authority
 

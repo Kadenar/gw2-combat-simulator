@@ -1,4 +1,4 @@
-import type { AuthoringPayload } from '#gw2/integrations/patches/app/editor-state.js';
+import type { AuthoringPayload } from '#gw2/app/patch-authoring/editor-state.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 
 export interface SavedAuthoringPayload {

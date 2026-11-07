@@ -28,7 +28,7 @@ import {
   toggleEffect,
   type AuthoringSection,
   type TraitAuthoringView
-} from '#gw2/integrations/patches/app/editor-state.js';
+} from '#gw2/app/patch-authoring/editor-state.js';
 import {
   authoringNumericFieldLabel,
   compactPatchPreview,
@@ -36,7 +36,7 @@ import {
   groupPatchAuthoringSkills,
   numericEditValue,
   patchSearchText
-} from '#gw2/integrations/patches/app/model.js';
+} from '#gw2/app/patch-authoring/model.js';
 import {
   balanceProfileEffectNumericFieldTier,
   balanceProfileNumericFieldTier,

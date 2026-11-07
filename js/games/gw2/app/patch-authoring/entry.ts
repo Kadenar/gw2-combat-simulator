@@ -4,10 +4,10 @@ import {
   loadEditorPayload,
   prepareEditorStateForRender,
   setEditorStatus
-} from '#gw2/integrations/patches/app/editor-state.js';
-import { compactPatchPreview } from '#gw2/integrations/patches/app/model.js';
-import { loadPatchAuthoring, savePatchAuthoring } from '#gw2/integrations/patches/app/persistence.js';
-import { bindPatchAuthoringView, renderPatchAuthoring } from '#gw2/integrations/patches/app/render.js';
+} from '#gw2/app/patch-authoring/editor-state.js';
+import { compactPatchPreview } from '#gw2/app/patch-authoring/model.js';
+import { loadPatchAuthoring, savePatchAuthoring } from '#gw2/app/patch-authoring/persistence.js';
+import { bindPatchAuthoringView, renderPatchAuthoring } from '#gw2/app/patch-authoring/render.js';
 
 const app = document.querySelector<HTMLElement>('[data-patch-authoring-app]');
 

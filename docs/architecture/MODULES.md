@@ -76,6 +76,9 @@ assembles browser adapters, and `create-runtime.ts` connects builds to simulatio
 | `boss-scenarios/` | Scenario documents, build workspace, plan compilation, and result presentation |
 | `input-profile/`  | Binding editor, persistence, and input activity views                          |
 
+The standalone patch editor lives in `patch-authoring/`. Simulator patch-selection and comparison controls live in
+`patch-preview/`; both consume the contracts in `../integrations/patches/`.
+
 Non-type imports between application features:
 
 | Folder           | Allowed app dependencies and exceptions                                                  |
@@ -306,15 +309,15 @@ owns windows, uses, identities, and retirement. Planning projects visible window
 
 ## Integrations
 
-| Package                   | Owns                                                                      |
-| ------------------------- | ------------------------------------------------------------------------- |
-| `logs/shared/`            | Normalized contracts, player selection, lookup, and replay timeline       |
-| `logs/evtc/`              | ArcDPS parsing and reconstruction                                         |
-| `logs/dps-report/`        | Elite Insights JSON reconstruction                                        |
-| `logs/wingman/`           | Fetch/reshape into dps.report input; delegates reconstruction there       |
-| `keybinds/`, `chat-code/` | External input and build-template decoding                                |
-| `patches/`                | Sparse overlays on owning skill/trait declarations and patch-authoring UI |
-| `assets.ts`               | Shared JSON/rotation loading for browser and headless consumers           |
+| Package                   | Owns                                                                       |
+| ------------------------- | -------------------------------------------------------------------------- |
+| `logs/shared/`            | Normalized contracts, player selection, lookup, and replay timeline        |
+| `logs/evtc/`              | ArcDPS parsing and reconstruction                                          |
+| `logs/dps-report/`        | Elite Insights JSON reconstruction                                         |
+| `logs/wingman/`           | Fetch/reshape into dps.report input; delegates reconstruction there        |
+| `keybinds/`, `chat-code/` | External input and build-template decoding                                 |
+| `patches/`                | Sparse overlays on owning skill/trait declarations and authoring contracts |
+| `assets.ts`               | Shared JSON/rotation loading for browser and headless consumers            |
 
 Log adapters do not import each other's implementation except Wingman's explicit dps.report delegation. Engine code has
 no log-specific assumptions; reconstructed rotations use ordinary simulation. See

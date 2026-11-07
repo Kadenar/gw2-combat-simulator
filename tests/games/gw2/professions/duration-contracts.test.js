@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { authoringNumericFieldLabel } from '#gw2/app/patch-authoring/model.js';
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
-import { authoringNumericFieldLabel } from '#gw2/integrations/patches/app/model.js';
 import { skillPatchableNumericFields } from '#gw2/integrations/patches/authoring/fields.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';

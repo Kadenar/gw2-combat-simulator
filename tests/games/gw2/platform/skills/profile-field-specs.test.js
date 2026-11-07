@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { authoringNumericFieldLabel } from '#gw2/integrations/patches/app/model.js';
+import { authoringNumericFieldLabel } from '#gw2/app/patch-authoring/model.js';
 import {
   balanceProfileAuthoringReference,
   balanceProfileNumericFieldTier

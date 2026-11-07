@@ -8,7 +8,7 @@ import {
   overviewForProfession,
   prepareEditorStateForRender,
   setNumericEdit
-} from '#gw2/integrations/patches/app/editor-state.js';
+} from '#gw2/app/patch-authoring/editor-state.js';
 import { generatePatchOverview } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import { validatePatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -18,7 +18,7 @@ import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import {
   serializeActivePatchPreview,
   validateAuthoringPreview
-} from '../../../../scripts/patch-preview/patch-preview-authoring-api.mjs';
+} from '../../../../../scripts/patch-preview/patch-preview-authoring-api.mjs';
 
 const skillId = WARRIOR_SKILL_IDS.TO_THE_LIMIT;
 const otherSkillId = WARRIOR_SKILL_IDS.HEAD_BUTT;

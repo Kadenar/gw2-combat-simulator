@@ -1,8 +1,4 @@
-import {
-  createEffectTemplate,
-  createPatchPreviewDraft,
-  numericEditForValue
-} from '#gw2/integrations/patches/app/model.js';
+import { createEffectTemplate, createPatchPreviewDraft, numericEditForValue } from '#gw2/app/patch-authoring/model.js';
 import type {
   NativePatchAuthoringMetadata,
   NativePatchAuthoringModule
