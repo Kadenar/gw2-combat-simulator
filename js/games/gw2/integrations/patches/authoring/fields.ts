@@ -2,8 +2,15 @@
 import { deepFreeze } from '#gw2/integrations/patches/authoring/immutable.js';
 import { hasActionEffects } from '#gw2/platform/effects/actions.js';
 import { effectTicks, type ConditionTick, type SkillEffect, type StrikeTick } from '#gw2/platform/effects/types.js';
-import { patchableNumericFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { FieldSpecs, NumericFieldSpec } from '#gw2/platform/skills/field-specs.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
+
+/** Patchable numeric fields, in declaration order, with their editor tier. */
+export function patchableNumericFields(fields: FieldSpecs): readonly (readonly [string, NumericFieldSpec])[] {
+  return Object.entries(fields).filter(
+    (entry): entry is [string, NumericFieldSpec] => entry[1].kind === 'number' && entry[1].patch !== undefined
+  );
+}
 
 // Effect and profile timing internals stay out of authoring references; skill fields declare their own visibility.
 const EFFECT_RUNTIME_ONLY_NUMERIC_FIELDS = [

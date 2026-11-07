@@ -201,10 +201,3 @@ export function validateFieldValues(owner: object, fields: FieldSpecs, label: st
       );
   }
 }
-
-/** Patchable numeric fields, in declaration order, with their editor tier. */
-export function patchableNumericFields(fields: FieldSpecs): readonly (readonly [string, NumericFieldSpec])[] {
-  return Object.entries(fields).filter(
-    (entry): entry is [string, NumericFieldSpec] => entry[1].kind === 'number' && entry[1].patch !== undefined
-  );
-}

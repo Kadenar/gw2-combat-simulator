@@ -3,6 +3,7 @@ import {
   balanceProfileAuthoringReference,
   balanceProfileHasAuthorableControls,
   balanceProfilePatchableNumericFields,
+  patchableNumericFields,
   skillAuthoringReference,
   skillPatchableNumericFields
 } from '#gw2/integrations/patches/authoring/fields.js';
@@ -42,7 +43,7 @@ import type { Gw2SpecializationData } from '#gw2/platform/profession-definition/
 import { traitAttributeFieldLabels } from '#gw2/platform/profession-definition/traits.js';
 import type { ProfessionModuleCatalogFragment } from '#gw2/platform/profession-definition/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import { patchableNumericFields, type FieldSpecs } from '#gw2/platform/skills/field-specs.js';
+import type { FieldSpecs } from '#gw2/platform/skills/field-specs.js';
 import { catalogSkillFields } from '#gw2/platform/skills/shared-fields.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { assertObject } from '#kernel/core/objects.js';
