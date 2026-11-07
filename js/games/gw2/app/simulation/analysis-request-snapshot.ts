@@ -2,10 +2,10 @@
 import type { BossScenarioDraft } from '#gw2/app/boss-scenarios/model.js';
 import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import { buildWithPatchSkillSelections } from '#gw2/app/build/state/skill-selection.js';
-import type { PatchResultIdentity } from '#gw2/app/patch-preview/results.js';
 import type { BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
 import { createModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/request.js';
 import type { ModifierContributionRequest } from '#gw2/app/simulation/modifier-contributions/types.js';
+import type { PatchResultIdentity } from '#gw2/app/simulation/patch-result-cache.js';
 import { DEFAULT_RANDOM_DISTRIBUTION_TRIALS } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import type { RandomDistributionJobRequest } from '#gw2/app/simulation/random-distribution/types.js';
 import type { SimulationSettings } from '#gw2/app/simulation/settings.js';

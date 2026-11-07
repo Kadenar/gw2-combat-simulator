@@ -1,5 +1,4 @@
 /** Owns result freshness and publication while injected runners retain execution and browser code retains rendering. */
-import { PatchResultCache } from '#gw2/app/patch-preview/results.js';
 import type { AnalysisRequestSnapshot } from '#gw2/app/simulation/analysis-request-snapshot.js';
 import type {
   BaselineSimulationOutput,
@@ -12,6 +11,7 @@ import type {
   ModifierContributionRequest,
   ModifierContributionResultState
 } from '#gw2/app/simulation/modifier-contributions/types.js';
+import { PatchResultCache } from '#gw2/app/simulation/patch-result-cache.js';
 import { DEFAULT_RANDOM_DISTRIBUTION_TRIALS } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import type {
   RandomDistributionJobRequest,
