@@ -9,6 +9,7 @@ import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-st
 import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 
@@ -375,6 +376,7 @@ test('relic proc state survives recording and refreshes replace stack counts', (
   // This reporting fixture composes its observer explicitly, just like the simulation entry point.
   const effectRecorder = new EffectRecorder();
   const context = createGw2ResolverRuntimeState({
+    conditions: createTestConditionResolution(),
     config: { relic: 'Thief' },
     effectRecorder,
     procRecorder: new ProcStepRecorder(effectRecorder)
@@ -401,6 +403,7 @@ test('relic proc state survives recording and refreshes replace stack counts', (
   // A persistent state without an expiry ends at the observation horizon and uses a fresh value on replacement.
   const thornsRecorder = new EffectRecorder();
   const thorns = createGw2ResolverRuntimeState({
+    conditions: createTestConditionResolution(),
     config: { relic: 'Thorns', initialThornsStacks: 9 },
     effectRecorder: thornsRecorder,
     procRecorder: new ProcStepRecorder(thornsRecorder)

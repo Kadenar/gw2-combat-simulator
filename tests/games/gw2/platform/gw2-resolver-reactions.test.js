@@ -307,6 +307,7 @@ test('condition stage runs once per stack after insertion, including profession 
   });
   const queue = new StableEventQueue();
   const context = createGw2ResolverRuntimeState({
+    conditions,
     config: {
       relic: 'Fractal',
       target: { conditions: { Bleeding: 1 } }

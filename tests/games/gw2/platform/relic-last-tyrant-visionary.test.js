@@ -71,6 +71,7 @@ function conditionResolver() {
     reactions
   });
   const ctx = createGw2ResolverRuntimeState({
+    conditions,
     config,
     horizon: 20,
     query: createGw2CombatQuery({ profession: testProfession, config }),

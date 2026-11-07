@@ -252,7 +252,7 @@ export function runRuntime<T extends object>(
     effects,
     professionState: profession.createState(config),
     helpers: { conditionName: canonicalTargetConditionName, ...profession.catalog },
-    onFirstDamage: conditions.startDamageClock,
+    conditions,
     random: execution.random
   });
   const clock = {

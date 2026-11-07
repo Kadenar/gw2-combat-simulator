@@ -9,6 +9,7 @@ import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { applyRuntimeSigils } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
@@ -22,7 +23,7 @@ test('Mischief shares its nine-second cooldown across equipped copies', () => {
   const procs = [];
   const engagement = createCombatEngagement();
   const runtime = {
-    ...createGw2ResolverRuntimeState({ config: {} }),
+    ...createGw2ResolverRuntimeState({ conditions: createTestConditionResolution(), config: {} }),
     engagement: engagement.query,
     activeWeaponSet: 1,
     config: { sigilSets: [{ names: ['Mischief'] }, { names: [] }] },
@@ -62,7 +63,7 @@ test('Ice rejects non-defiant hits without consuming its shared cooldown', () =>
   for (const didCrit of [false, true]) {
     const emitted = [];
     const runtime = {
-      ...createGw2ResolverRuntimeState({ config: {} }),
+      ...createGw2ResolverRuntimeState({ conditions: createTestConditionResolution(), config: {} }),
       engagement: enteredCombat(),
       activeWeaponSet: 1,
       config: { target: { defiant: false }, sigilSets: [{ names: ['Ice', 'Ice'] }] },

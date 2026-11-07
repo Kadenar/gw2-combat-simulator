@@ -18,10 +18,11 @@ import {
 } from '#gw2/app/results/skill-breakdown.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
 import type { ResultIconRow } from '#gw2/app/results/skill-icons.js';
-import { mountResultSummary } from '#gw2/app/results/summary-view.js';
+import { mountResultSummary, type ResultMetric } from '#gw2/app/results/summary-view.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
 import type { SimulationViewModel, SimulationViewSection } from '#ui/results/simulation-view.js';
 
@@ -111,18 +112,23 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
   const presentation = app.build.rotation.length && result ? workspace.results(app, result) : null;
 
   if (!result || !presentation) {
+    const metrics: ResultMetric[] = EMPTY_RESULT_METRICS.map((metric) =>
+      app.build.rotation.length && metric.className === 'dps' ? { ...metric, label: 'Baseline Player DPS' } : metric
+    );
+
+    // Configured golem conditions predict the extra target metrics before their first damage ticks are measured.
+    if (
+      app.build.rotation.length &&
+      !app.workspace?.scenario &&
+      GW2_DAMAGING_CONDITIONS.some((name) => Number(app.build.assumptions?.targetConditions?.[name]) > 0)
+    )
+      metrics.push(
+        { label: 'Environment Damage', value: '-', className: 'environment', group: 'target' },
+        { label: 'Target Damage', value: '-', className: 'target-damage', group: 'target' }
+      );
+
     return {
-      summary: resultSection((container) =>
-        mountResultSummary(container, {
-          // The pending baseline uses the same DPS label width as the completed Analysis summary.
-          metrics: EMPTY_RESULT_METRICS.map((metric) =>
-            app.build.rotation.length && metric.className === 'dps'
-              ? { ...metric, label: 'Baseline Player DPS' }
-              : metric
-          ),
-          summaryPlaceholder: true
-        })
-      ),
+      summary: resultSection((container) => mountResultSummary(container, { metrics, summaryPlaceholder: true })),
       workspace: null,
       // A mounted pending section also keeps the summary mirror visible before the first baseline arrives.
       analysis: app.build.rotation.length

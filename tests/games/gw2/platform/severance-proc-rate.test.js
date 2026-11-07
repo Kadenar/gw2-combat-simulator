@@ -5,6 +5,7 @@ import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { applyRuntimeSigils } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { createSimulationRandom } from '#kernel/core/simulation-random.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
 
@@ -14,6 +15,7 @@ const cooldownKey = `sigil.${SIGIL_IDS.SEVERANCE}`;
 function fixture(chance, mode = 'deterministic') {
   const capture = captureEffectEmissions();
   const runtime = createGw2ResolverRuntimeState({
+    conditions: createTestConditionResolution(),
     config: {
       sigilSets: [{ names: ['Severance'] }, { names: ['Severance'] }],
       procRateOverrides: chance === undefined ? {} : { 'sigil.severance': chance },

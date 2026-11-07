@@ -609,15 +609,13 @@ test('environment scheduling preserves permanent status counts without duplicati
   const context = {
     horizon: null,
     queue: new StableEventQueue({ phaseFor: gw2ResolverPhase }),
-    conditionState: new Map(),
-    environmentConditions: new Map()
+    conditionState: resolution.state
   };
 
   resolution.initializeEnvironment(context);
 
   assert.equal(resolution.activeConditionStackCount(context, 'Bleeding', 1), 2);
   assert.equal(context.conditionState.size, 0);
-  assert.equal(context.environmentConditions.get('Bleeding').stacks, 2);
   // Unknown observation ends retain one sampler and one successor, never a precomputed horizon of payouts.
   assert.equal(context.queue.pending().length, 2);
   assert.equal(context.queue.dequeue().type, 'condition_buffer');

@@ -1,3 +1,4 @@
+/** Owns accepted condition lifetimes, retirement, and payouts while exposing read-only observations. */
 import {
   conditionApplicationDuration,
   type Gw2ConditionDurationTrace
@@ -5,9 +6,10 @@ import {
 import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
-import { conditionDamageOwner } from '#gw2/platform/combat/state/event-ownership.js';
+import { conditionDamageOwner, isIndependentConditionOwner } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2RuntimeConditionEntry } from '#gw2/platform/combat/state/targets.js';
 import {
+  conditionApplicationExpiry,
   conditionStackLimit,
   createPermanentTargetConditionStacks,
   GW2_DAMAGING_CONDITIONS,
@@ -38,10 +40,15 @@ export function createGw2ConditionResolution({
   reactions,
   config = {}
 }: CreateGw2ConditionResolutionOptions): Readonly<Gw2ConditionResolution> {
+  const conditionState = new Map<string, ConditionState>();
+  const environmentConditions = new Map<string, Gw2EnvironmentConditionState>();
+  const groupHandles = new WeakMap<object, Gw2ResolverConditionGroup>();
+  let conditionBufferAt: number | undefined;
+  let conditionBufferedAt: number | undefined;
   const permanentTargetConditionStacks = createPermanentTargetConditionStacks(config);
   const environmentWakes = new Map<string, Gw2ResolverEvent>();
   // Equal-weight stacks expanded from one packet have identical attribute inputs, but retain separate damage records.
-  const attributeBatches = new WeakMap<Gw2ResolvedConditionApplication, object>();
+  const attributeBatches = new WeakMap<ConditionApplication, object>();
   // Natural expiry is fixed at acceptance, so each instant's applications are found without scanning every owner.
   const expiryBuckets = new Map<number, Gw2ConditionExpiryBucket>();
   // A binary min-heap of those instants yields the sampler's next expiry wake.
@@ -77,12 +84,12 @@ export function createGw2ConditionResolution({
     return rate;
   }
 
-  function ensureConditionState(ctx: Gw2ResolverRuntime, name: string): Gw2ResolverConditionState {
-    if (!ctx.conditionState.has(name)) {
-      ctx.conditionState.set(name, { stacks: [] });
+  function ensureConditionState(name: string): ConditionState {
+    if (!conditionState.has(name)) {
+      conditionState.set(name, { stacks: [] });
     }
 
-    return ctx.conditionState.get(name)!;
+    return conditionState.get(name)!;
   }
 
   /**
@@ -98,7 +105,7 @@ export function createGw2ConditionResolution({
 
       if (!(stacks > 0)) continue;
 
-      ctx.environmentConditions.set(condition, {
+      environmentConditions.set(condition, {
         name: condition,
         stacks
       });
@@ -106,11 +113,11 @@ export function createGw2ConditionResolution({
 
     scheduleEnvironment(ctx, 0);
 
-    if (ctx.environmentConditions.size) scheduleBuffer(ctx, 0);
+    if (environmentConditions.size) scheduleBuffer(ctx, 0);
   }
 
   function scheduleEnvironment(ctx: Gw2ResolverRuntime, after: number): void {
-    for (const { name: condition, stacks } of ctx.environmentConditions.values()) {
+    for (const { name: condition, stacks } of environmentConditions.values()) {
       // Keep one successor per condition even before rotation end is known; rephasing cancels its predecessor.
       const previous = environmentWakes.get(condition);
 
@@ -144,7 +151,7 @@ export function createGw2ConditionResolution({
     // An opening condition payout already lies on the provisional phase and must finish its entire batch.
     if (timeKey(at) % 1_000_000 === 0) return;
 
-    for (const state of ctx.conditionState.values()) {
+    for (const state of conditionState.values()) {
       for (const group of state.groups?.values() ?? []) {
         for (const application of group.applications) {
           application.settledThrough = Math.min(application.naturalExpiresAt, at);
@@ -158,13 +165,29 @@ export function createGw2ConditionResolution({
       }
     }
 
-    for (const entry of ctx.environmentConditions.values()) entry.bufferedRate = 0;
+    for (const entry of environmentConditions.values()) entry.bufferedRate = 0;
     scheduleEnvironment(ctx, at);
-    ctx.conditionBufferAt = undefined;
+    conditionBufferAt = undefined;
     scheduleBuffer(ctx, at);
   }
 
-  function isRemoved(application: Gw2ResolvedConditionApplication, at: number): boolean {
+  /** Retirement cancels unpaid damage even after natural expiry, without changing damage already settled. */
+  function retireCompanionConditions(companionId: string, at: number): void {
+    for (const state of conditionState.values()) {
+      let shortened = false;
+      for (const application of state.stacks) {
+        if (!isIndependentConditionOwner(application) || application.summonOwner !== companionId) continue;
+
+        shortened ||= conditionApplicationExpiry(application) > at;
+        application.removedAt = Math.min(application.removedAt ?? Infinity, at);
+      }
+
+      if (shortened) reviseEffectState(state);
+    }
+    // Existing wakes discard removed applications in queue order, including same-time retirement reactions.
+  }
+
+  function isRemoved(application: ConditionApplication, at: number): boolean {
     return application.removedAt != null && canonicalTime(application.removedAt) <= at;
   }
 
@@ -178,7 +201,7 @@ export function createGw2ConditionResolution({
   }
 
   /** Record an accepted application under its natural expiry so its expiry sample and wake need no owner scan. */
-  function indexExpiry(application: Gw2ResolvedConditionApplication): void {
+  function indexExpiry(application: ConditionApplication): void {
     const key = timeKey(application.naturalExpiresAt);
     let bucket = expiryBuckets.get(key);
 
@@ -244,7 +267,7 @@ export function createGw2ConditionResolution({
   /** Maintain one effective owner/condition wake on the target clock; expiry remainders wait for that pulse. */
   function scheduleGroup(ctx: Gw2ResolverRuntime, group: Gw2ResolverConditionGroup): void {
     if (!group.applications.length) {
-      ctx.conditionState.get(group.condition)?.groups?.delete(group.owner);
+      conditionState.get(group.condition)?.groups?.delete(group.owner);
       group.wakeToken += 1;
       group.wakeAt = null;
       return;
@@ -270,7 +293,7 @@ export function createGw2ConditionResolution({
         sourceId: `condition.${group.condition.toLowerCase()}`,
         actorType: ACTOR.EFFECT,
         condition: group.condition,
-        conditionGroup: group,
+        conditionGroup: group.handle,
         wakeToken: group.wakeToken
       });
     } finally {
@@ -281,7 +304,7 @@ export function createGw2ConditionResolution({
   /** Sample at whole-second pulses and exact expirations, without stepping through intervening milliseconds. */
   function scheduleBuffer(ctx: Gw2ResolverRuntime, after: number, newExpiresAt?: number): void {
     let at = nextPulseAt(ctx, after);
-    let active = ctx.environmentConditions.size > 0;
+    let active = environmentConditions.size > 0;
 
     if (newExpiresAt !== undefined) {
       // Existing applications already have a queued sample; only the new expiry can bring it forward.
@@ -297,16 +320,12 @@ export function createGw2ConditionResolution({
       }
     }
 
-    if (
-      !active ||
-      (ctx.conditionBufferAt != null && ctx.conditionBufferAt <= at) ||
-      (ctx.horizon != null && at > ctx.horizon)
-    )
+    if (!active || (conditionBufferAt != null && conditionBufferAt <= at) || (ctx.horizon != null && at > ctx.horizon))
       return;
 
     if (bufferWake && bufferWake.at > after) ctx.queue.cancel(bufferWake);
 
-    ctx.conditionBufferAt = at;
+    conditionBufferAt = at;
     const causalOrder = ctx.queue.currentCausalOrder;
     ctx.queue.currentCausalOrder = null;
     try {
@@ -324,9 +343,9 @@ export function createGw2ConditionResolution({
 
   /** Sample every owner before any whole-second payout; never retroactively query earlier mutable state. */
   function bufferConditions(ctx: Gw2ResolverRuntime, at: number): void {
-    if (ctx.conditionBufferedAt != null && at <= ctx.conditionBufferedAt) return;
+    if (conditionBufferedAt != null && at <= conditionBufferedAt) return;
 
-    ctx.conditionBufferedAt = at;
+    conditionBufferedAt = at;
     const onGrid = (timeKey(at) - timeKey(ctx.firstHitTime ?? 0)) % 1_000_000 === 0;
     // Each target needs its own vulnerability and modifier sample within this observation pass.
     const samples = new Map<string, { vulnerabilityStacks: number; modifierValues: Map<object, number | null> }>();
@@ -345,7 +364,7 @@ export function createGw2ConditionResolution({
     // Reuse only within this observation pass; later state changes always get a fresh attribute sample.
     let conditionDamageByBatch: Map<object, number> | undefined;
     /** Settle one application through this pass, buffering its damage for its owner's whole-second payout. */
-    const settleOnTarget = (application: Gw2ResolvedConditionApplication): void => {
+    const settleOnTarget = (application: ConditionApplication): void => {
       if (isRemoved(application, at)) return;
 
       // An application always carries its owner group's canonical condition name.
@@ -411,7 +430,7 @@ export function createGw2ConditionResolution({
       application.settledThrough = through;
     };
 
-    const settle = (application: Gw2ResolvedConditionApplication): void => {
+    const settle = (application: ConditionApplication): void => {
       const key = application.encounterTargetKey;
 
       if (ctx.encounter && key !== undefined) ctx.encounter.withTarget(key, () => settleOnTarget(application));
@@ -419,7 +438,7 @@ export function createGw2ConditionResolution({
     };
 
     if (onGrid) {
-      for (const state of ctx.conditionState.values())
+      for (const state of conditionState.values())
         for (const group of state.groups?.values() ?? [])
           for (const application of group.applications) settle(application);
     } else {
@@ -429,7 +448,7 @@ export function createGw2ConditionResolution({
         if (application.naturalExpiresAt === at) settle(application);
     }
 
-    for (const entry of ctx.environmentConditions.values()) {
+    for (const entry of environmentConditions.values()) {
       if (!onGrid) continue;
 
       // The sample ending at Combat Start contains no in-combat interval and must not fund a boundary payout.
@@ -445,15 +464,15 @@ export function createGw2ConditionResolution({
 
   function handleConditionBuffer(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent): void {
     // An earlier expiry can replace a queued pulse sampler; obsolete entries must not sample twice.
-    if (event.at !== ctx.conditionBufferAt) return;
+    if (event.at !== conditionBufferAt) return;
 
-    ctx.conditionBufferAt = undefined;
+    conditionBufferAt = undefined;
     bufferConditions(ctx, event.at);
     // Natural expiry stops sampling, while the owner wake retains its buffered remainder until payout.
     scheduleBuffer(ctx, event.at);
   }
 
-  function applyCondition(ctx: Gw2ResolverRuntime, event: SimulationEventBase): Gw2ResolvedConditionApplication[] {
+  function applyCondition(ctx: Gw2ResolverRuntime, event: SimulationEventBase): ConditionApplication[] {
     // Synchronous reaction applications bypass enqueue, so normalize before querying or inserting live state.
     event = canonicalEvent(event);
 
@@ -482,7 +501,7 @@ export function createGw2ConditionResolution({
     expansionBudget.reserve(stackCount, `condition=${name} source=${event.sourceId}`);
     // Every producer shares per-stack reactions; create applications directly without an intermediate packet array.
     // Preserve fractional weight on the final stack and dispatch before inserting the next one.
-    const applications: Gw2ResolvedConditionApplication[] = [];
+    const applications: ConditionApplication[] = [];
     // A cache pays only when at least two equal-weight siblings can reuse the sample.
     const attributeBatch = stacks >= 2 ? {} : undefined;
     // Threshold reactions use the target state before this application adds any of its stacks.
@@ -515,14 +534,14 @@ export function createGw2ConditionResolution({
               }
             }
           : {})
-      } as Gw2ResolvedConditionApplication;
+      } as ConditionApplication;
 
       if (attributeBatch && application.stacks === 1) attributeBatches.set(application, attributeBatch);
 
       if (ctx.retainsResolved(application)) ctx.resolved.push(application);
 
       // Queries and queued damage share the accepted application, including its natural expiry and retirement.
-      const state = ensureConditionState(ctx, name);
+      const state = ensureConditionState(name);
       state.stacks.push(application);
       // Accepted applications invalidate report windows without involving later damage settlement.
       reviseEffectState(state);
@@ -546,6 +565,7 @@ export function createGw2ConditionResolution({
       if (!group) {
         // New applications join the first-damage clock, even after the target had no active conditions.
         group = {
+          handle: {},
           owner,
           condition: name,
           nextPulseAt: nextPulseAt(ctx, event.at),
@@ -553,6 +573,7 @@ export function createGw2ConditionResolution({
           wakeAt: null,
           applications: []
         };
+        groupHandles.set(group.handle, group);
         groups.set(owner, group);
       }
 
@@ -575,7 +596,7 @@ export function createGw2ConditionResolution({
 
   /** Round the complete owner/condition packet once, then attribute integer shares without changing its total. */
   function handleConditionTick(ctx: Gw2ResolverRuntime, event: Gw2ConditionWorkEvent): Gw2ConditionTickResult | null {
-    const group = event.conditionGroup;
+    const group = event.conditionGroup ? groupHandles.get(event.conditionGroup) : undefined;
 
     if (!group || event.wakeToken !== group.wakeToken || group.wakeAt == null) return null;
 
@@ -656,7 +677,7 @@ export function createGw2ConditionResolution({
 
     const condition = ctx.helpers.conditionName(event.condition);
     const stacks = Math.max(0, event.stacks || 0);
-    const entry = ctx.environmentConditions.get(condition);
+    const entry = environmentConditions.get(condition);
 
     if (!entry || !(stacks > 0)) return;
 
@@ -680,6 +701,8 @@ export function createGw2ConditionResolution({
   }
 
   return Object.freeze({
+    state: conditionState,
+    retireCompanionConditions,
     activeConditionStackCount,
     applyCondition,
     handleConditionTick,
@@ -690,21 +713,17 @@ export function createGw2ConditionResolution({
   });
 }
 
-/** Condition application, owner-clock, and damage-allocation records retained by the condition resolver. */
-
-export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
+/** Shared fields keep accepted lifetimes and damage observations consistent with internal records. */
+interface ConditionApplicationFields {
   readonly name: string;
   readonly condition: string;
   readonly stacks: number;
   readonly effectiveDuration: number;
   readonly encounterTargetKey?: string;
-  activeDuration: number;
-  expiresAt: number;
+  readonly activeDuration: number;
+  readonly expiresAt: number;
   readonly naturalExpiresAt: number;
   removedAt?: number;
-  settledThrough: number;
-  bufferedRawDamage: number;
-  bufferedDurationUs: number;
   damage: number;
   /** Present only in diagnostic runs. */
   conditionCalculation?: Gw2ConditionCalculation;
@@ -713,28 +732,49 @@ export type Gw2ResolvedConditionApplication = Gw2ResolverEvent & {
     damage: number;
     fraction: number;
   }>;
-};
+}
 
+/** Queries and reactions observe the same accepted records that resolution updates. */
+export type Gw2ResolvedConditionApplication = Gw2ResolverEvent &
+  Readonly<Omit<ConditionApplicationFields, 'conditionCalculation' | 'damageTicks'>> & {
+    readonly conditionCalculation?: Readonly<NonNullable<ConditionApplicationFields['conditionCalculation']>>;
+    readonly damageTicks: readonly Readonly<ConditionApplicationFields['damageTicks'][number]>[];
+  };
+
+/** Stable state identity lets observations cache lifetimes until the condition module revises them. */
 export interface Gw2ResolverConditionState extends Gw2RuntimeConditionEntry {
-  stacks: Gw2ResolvedConditionApplication[];
-  groups?: Map<string | Gw2ResolvedConditionApplication, Gw2ResolverConditionGroup>;
+  readonly stacks: readonly Gw2ResolvedConditionApplication[];
+}
+
+/** Mutable application and payout records stay inside condition resolution. */
+type ConditionApplication = Gw2ResolverEvent &
+  ConditionApplicationFields & {
+    settledThrough: number;
+    bufferedRawDamage: number;
+    bufferedDurationUs: number;
+  };
+
+interface ConditionState {
+  stacks: ConditionApplication[];
+  groups?: Map<string | ConditionApplication, Gw2ResolverConditionGroup>;
 }
 
 /** Owner clocks reference canonical applications so removal and reporting share the same lifetime. */
 interface Gw2ResolverConditionGroup {
-  readonly owner: string | Gw2ResolvedConditionApplication;
+  readonly handle: object;
+  readonly owner: string | ConditionApplication;
   readonly condition: string;
   nextPulseAt: number;
   wakeToken: number;
   wakeAt: number | null;
-  applications: Gw2ResolvedConditionApplication[];
+  applications: ConditionApplication[];
 }
 
 /** Every application sharing one natural expiry instant, ordered in the sampler's heap by its microsecond key. */
 interface Gw2ConditionExpiryBucket {
   readonly at: number;
   readonly key: number;
-  readonly applications: Gw2ResolvedConditionApplication[];
+  readonly applications: ConditionApplication[];
 }
 
 /** Retains each application's exposure and damage for packet rounding and attribution. */
@@ -754,8 +794,10 @@ interface Gw2ConditionTickResult {
 }
 
 export interface Gw2ConditionResolution {
+  readonly state: ReadonlyMap<string, Gw2ResolverConditionState>;
+  retireCompanionConditions(companionId: string, at: number): void;
   activeConditionStackCount(context: Gw2ResolverRuntime, name: string, at: number): number;
-  applyCondition(context: Gw2ResolverRuntime, event: SimulationEventBase): Gw2ResolvedConditionApplication[];
+  applyCondition(context: Gw2ResolverRuntime, event: SimulationEventBase): readonly Gw2ResolvedConditionApplication[];
   handleConditionTick(context: Gw2ResolverRuntime, event: Gw2ConditionWorkEvent): Gw2ConditionTickResult | null;
   handleConditionBuffer(context: Gw2ResolverRuntime, event: Gw2ResolverEvent): void;
   initializeEnvironment(context: Gw2ResolverRuntime): void;
@@ -765,13 +807,12 @@ export interface Gw2ConditionResolution {
 
 /** Resolver-private references never belong to the persisted or worker event payload contract. */
 export interface Gw2ConditionWork {
-  readonly application?: Gw2ResolvedConditionApplication;
-  readonly conditionGroup?: Gw2ResolverConditionGroup;
+  readonly conditionGroup?: object;
   readonly wakeToken?: number;
 }
 
 /** Permanent target conditions retain only the live data used for buffering and shared-clock scheduling. */
-export interface Gw2EnvironmentConditionState {
+interface Gw2EnvironmentConditionState {
   readonly name: string;
   readonly stacks: number;
   bufferedRate?: number;

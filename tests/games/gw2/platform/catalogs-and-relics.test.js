@@ -24,6 +24,7 @@ import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-st
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { mesmerCatalog } from '#gw2/professions/mesmer/profession.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureAcceptedBuffEmissions, captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
@@ -324,9 +325,7 @@ test('named equipment inputs resolve item identities without changing the saved 
 // Runtime construction owns fresh equipment state independently of shared relic rules.
 test('resolver runtimes own isolated relic and equipment state', () => {
   const createRuntime = (relic) =>
-    createGw2ResolverRuntimeState({
-      config: { relic }
-    });
+    createGw2ResolverRuntimeState({ conditions: createTestConditionResolution(), config: { relic } });
   const thief = createRuntime('Thief');
   const anotherThief = createRuntime('Thief');
   assert.equal(thief.relic.id, RELIC_IDS.THIEF);

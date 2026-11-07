@@ -60,6 +60,10 @@ receipts. `effects/actions.ts` declares actions; `effects/action-dispatch.ts` ap
 recharge, flip, and emission services. `resolver/effect-reactions.ts` receives its action dispatcher from simulation. It
 selects eligible reactions without importing simulation construction or acquiring resource stores.
 
+`resolver/condition-resolution.ts` controls condition lifetimes. Natural expiry retains unpaid damage for the next
+payout; companion retirement discards it while preserving damage already paid. Shortening a lifetime invalidates cached
+effect observations. Simulation phases and event order determine whether a same-time payout precedes retirement.
+
 Simulation owns task admission, detached work, causal scope, and queue cancellation. Execution supplies cast facts;
 delivery supplies packet lifetime ownership. Generation cancellation must not erase separately owned committed
 projectiles.

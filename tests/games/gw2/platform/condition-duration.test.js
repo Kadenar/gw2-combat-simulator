@@ -35,6 +35,7 @@ test('condition duration preserves phase context, fixed durations, and natural e
       reactions: { dispatch() {} }
     });
     const resolver = createGw2ResolverRuntimeState({
+      conditions: resolution,
       config: {},
       horizon: 5.5,
       helpers: { conditionName: (name) => name },

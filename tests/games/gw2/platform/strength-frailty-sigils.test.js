@@ -6,6 +6,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { applyRuntimeSigilStrike } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
@@ -105,7 +106,7 @@ test('Strength Might scales with boon duration, increases live attributes, and e
 test('Frailty rejects non-defiant hits without spending its cooldown', () => {
   const captured = captureEffectEmissions();
   const runtime = {
-    ...createGw2ResolverRuntimeState({ config: {} }),
+    ...createGw2ResolverRuntimeState({ conditions: createTestConditionResolution(), config: {} }),
     engagement: enteredCombat(),
     activeWeaponSet: 1,
     config: { target: { defiant: false }, sigilSets: [{ names: ['Frailty'] }] },

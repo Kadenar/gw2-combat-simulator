@@ -295,7 +295,13 @@ test('one expiry instant samples every owner ending there and skips removed appl
       [
         condition(0, { sourceId: 'bleed', duration: 0.4 }),
         condition(0, { sourceId: 'burn', name: 'Burn', condition: 'Burning', duration: 0.4 }),
-        condition(0, { sourceId: 'removed', duration: 0.6 }),
+        condition(0, {
+          sourceId: 'removed',
+          duration: 0.6,
+          actorType: 'summon',
+          independentConditionOwner: true,
+          summonOwner: 'removed-pet'
+        }),
         condition(0, { sourceId: 'long', duration: 0.7 }),
         condition(0.1, {
           sourceId: 'pet',
@@ -328,8 +334,8 @@ test('one expiry instant samples every owner ending there and skips removed appl
           'condition.applied': (_ctx, event) => {
             if (event.sourceId === 'removed') removed = event;
           },
-          'buff.applied': () => {
-            removed.removedAt = 0.2;
+          'buff.applied': (runtime) => {
+            runtime.combat.retireCompanion(removed.summonOwner, 0.2);
           }
         }
       }
@@ -1012,12 +1018,17 @@ test('lethal packets finish atomically with simultaneous owner packets but rejec
   }
 });
 
-test('forced condition removal discards unsettled damage', () => {
+test('companion retirement discards unsettled condition damage', () => {
   for (const output of ['detailed', 'score']) {
     let original;
     const result = resolve(
       [
-        condition(0, { duration: 5 }),
+        condition(0, {
+          duration: 5,
+          actorType: 'summon',
+          independentConditionOwner: true,
+          summonOwner: 'retiring-pet'
+        }),
         {
           type: 'buff',
           at: 0.4,
@@ -1036,8 +1047,8 @@ test('forced condition removal discards unsettled damage', () => {
           'condition.applied': (_ctx, event) => {
             if (event.at === 0) original = event;
           },
-          'buff.applied': () => {
-            original.removedAt = 0.4;
+          'buff.applied': (runtime) => {
+            runtime.combat.retireCompanion('retiring-pet', 0.4);
           }
         }
       }
@@ -1223,4 +1234,80 @@ test('environment conditions sample target modifiers at the whole-second pulse',
   // Vulnerability ended before the sample at 1s, so the pulse uses the unmodified rate.
   assert.equal(result.environmentDamage, 22);
   assert.equal(result.conditionDamage, 0);
+});
+
+// Retirement uses queue order at a payout timestamp, including calls made inside another owner's settlement reaction.
+test('same-time companion retirement preserves completed payouts and cancels later owner payouts', () => {
+  for (const output of ['score', 'detailed']) {
+    for (const mode of ['ordinary', 'player-first', 'pet-first']) {
+      const paid = [];
+      let pet;
+      const playerCondition = condition(0, { sourceId: 'player', duration: 1 });
+      const petCondition = condition(0, {
+        sourceId: 'pet',
+        actorType: 'summon',
+        independentConditionOwner: true,
+        summonOwner: 'retiring-pet',
+        duration: 3
+      });
+      const retire = (runtime, at) => {
+        paid.push('retire');
+        runtime.combat.retireCompanion('retiring-pet', at);
+        assert.equal(runtime.combat.targetConditionStacks('Bleeding', at), 0);
+      };
+
+      resolve(
+        [
+          ...(mode === 'pet-first' ? [petCondition, playerCondition] : [playerCondition, petCondition]),
+          ...(mode === 'ordinary'
+            ? [
+                {
+                  type: 'buff',
+                  at: 1,
+                  priority: -1000,
+                  source: 'Player',
+                  sourceId: 'retire',
+                  actorType: 'player',
+                  kind: 'might',
+                  stacks: 1,
+                  duration: 1
+                }
+              ]
+            : [])
+        ],
+        {
+          output,
+          end: 3,
+          reactions: {
+            'condition.applied': (_runtime, event) => {
+              if (event.sourceId === 'pet') pet = event;
+            },
+            'condition-tick.resolved': (runtime, event, { resolved }) => {
+              for (const { application } of resolved.contributions) paid.push(application.sourceId);
+
+              if (
+                mode !== 'ordinary' &&
+                resolved.contributions.some(({ application }) => application.sourceId === 'player')
+              ) {
+                retire(runtime, event.at);
+              }
+            },
+            'buff.applied': (runtime, event) => {
+              if (event.sourceId === 'retire') retire(runtime, event.at);
+            }
+          }
+        }
+      );
+      assert.deepEqual(
+        paid,
+        mode === 'ordinary'
+          ? ['player', 'pet', 'retire']
+          : mode === 'pet-first'
+            ? ['pet', 'player', 'retire']
+            : ['player', 'retire']
+      );
+      assert.equal(pet.removedAt, 1);
+      assert.equal(pet.damage > 0, mode !== 'player-first');
+    }
+  }
 });

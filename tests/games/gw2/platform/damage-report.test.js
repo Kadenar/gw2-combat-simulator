@@ -177,12 +177,6 @@ test('combat and environment stay authoritative with charts or all reporting dis
         assert.equal(result.firstHitTime, null);
       }
 
-      for (const state of runtime.environmentConditions.values()) {
-        assert.equal('damage' in state, false);
-        assert.equal('damageTicks' in state, false);
-        assert.equal('stackSeconds' in state, false);
-      }
-
       if (options.output === 'score') assert.equal(runtime.damageRecorder, null);
       else {
         assert.ok(runtime.damageRecorder);

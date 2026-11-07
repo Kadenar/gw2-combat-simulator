@@ -174,7 +174,7 @@ export function runtimeTargetConditionStacks(
   name: string,
   at: number
 ): number {
-  if (!(runtime?.conditionState instanceof Map)) return 0;
+  if (!runtime?.conditionState) return 0;
 
   const canonicalName = canonicalTargetConditionName(name);
   // Runtime writers store canonical condition names, so queries need only one lookup.
@@ -258,7 +258,7 @@ export interface Gw2RuntimeConditionApplication {
 }
 
 export interface Gw2RuntimeConditionEntry {
-  readonly stacks: Gw2RuntimeConditionApplication[];
+  readonly stacks: readonly Gw2RuntimeConditionApplication[];
 }
 
 export interface Gw2RuntimeStateLike {
@@ -266,7 +266,7 @@ export interface Gw2RuntimeStateLike {
     EncounterController,
     'activeTargetKey' | 'remainingHealthFraction' | 'maximumHealth' | 'remainingHealth'
   >;
-  readonly conditionState?: Map<string, Gw2RuntimeConditionEntry>;
+  readonly conditionState?: ReadonlyMap<string, Gw2RuntimeConditionEntry>;
   readonly totals?: {
     readonly strike?: number;
     readonly condition?: number;

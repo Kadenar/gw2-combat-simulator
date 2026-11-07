@@ -6,6 +6,7 @@ import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
 import { applyRuntimeSigils, applyRuntimeSigilStrike } from '#gw2/platform/equipment/sigils/runtime.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { enteredCombat } from '#tests/helpers/engagement.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
@@ -22,7 +23,7 @@ function liveFixture(name) {
     config,
     captured,
     runtime: {
-      ...createGw2ResolverRuntimeState({ config }),
+      ...createGw2ResolverRuntimeState({ conditions: createTestConditionResolution(), config }),
       engagement: enteredCombat(),
       activeWeaponSet: 1,
       effects: captured.effects

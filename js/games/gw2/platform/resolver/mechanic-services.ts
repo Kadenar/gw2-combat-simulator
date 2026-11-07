@@ -1,16 +1,15 @@
+/** Coordinates mechanic requests while each combat module handles its own state changes. */
 import type { Gw2ResolvedStats } from '#gw2/platform/attributes/stats.js';
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
-import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import type { EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.js';
 import { liveBoonSnapshot } from '#gw2/platform/combat/query/effect-stacks.js';
 import { activeBoonStacks, activeBuffStacks, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
-import { isIndependentConditionOwner } from '#gw2/platform/combat/state/event-ownership.js';
 import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
-import { conditionApplicationExpiry } from '#gw2/platform/combat/state/targets.js';
 import type { ComboFieldEvent } from '#gw2/platform/combos/types.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type { Gw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -56,7 +55,10 @@ export interface MechanicCombatServices extends MechanicCombatQueries {
 }
 
 /** Mechanics request shared-state changes at their existing phase; resolver stores never leave their owner. */
-export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): MechanicCombatServices {
+export function createMechanicCombatServices(
+  runtime: Gw2ResolverRuntime,
+  conditions: Pick<Gw2ConditionResolution, 'retireCompanionConditions'>
+): MechanicCombatServices {
   const operations = {
     registerCompanion(companionId: string, effects: CompanionEffects): void {
       runtime.companions.set(companionId, effects);
@@ -130,18 +132,7 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
       effects?.boons.clear();
       effects?.buffs.clear();
       runtime.companions.delete(companionId);
-      // End future payouts and live stacks without rolling back damage already settled.
-      for (const condition of runtime.conditionState.values())
-        for (const application of condition.stacks) {
-          if (!isIndependentConditionOwner(application) || application.summonOwner !== companionId) continue;
-
-          // Even naturally expired stacks can have unpaid buffered damage, which removal cancels.
-          const shortened = conditionApplicationExpiry(application) > removedAt;
-          application.removedAt = Math.min(application.removedAt ?? Infinity, removedAt);
-
-          // Invalidate cached windows only when retirement shortens the accepted lifetime.
-          if (shortened) reviseEffectState(condition);
-        }
+      conditions.retireCompanionConditions(companionId, removedAt);
     },
     fieldFor: (skillId: SkillId, at: number | undefined): Readonly<ComboFieldEvent> | undefined =>
       [...runtime.combo.fields.values()].find((field) => field.skillId === skillId && field.at === at),

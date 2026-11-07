@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
-import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
+import { effectStateRevision, effectStateValue } from '#gw2/platform/combat/effect-state.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
@@ -19,6 +19,7 @@ for (const output of ['score', 'detailed']) {
       reactions: { dispatch() {} }
     });
     const context = createGw2ResolverRuntimeState({
+      conditions,
       output,
       config: {},
       horizon: 3,
@@ -70,6 +71,10 @@ for (const output of ['score', 'detailed']) {
         assert.equal(effectStateValue(observeBleeding(), swappedAt).count, 2);
         assert.equal(context.combat.companionRetiredAt(outgoing), event.at);
         assert.equal(conditions.activeConditionStackCount(context, 'Bleeding', swappedAt), 2);
+        const revision = effectStateRevision(context.conditionState.get('Bleeding'));
+        // Exercise condition invalidation directly, bypassing the companion's duplicate-retirement guard.
+        conditions.retireCompanionConditions(outgoing, event.at);
+        assert.equal(effectStateRevision(context.conditionState.get('Bleeding')), revision);
       } else if (event.type === 'condition_buffer') {
         conditions.handleConditionBuffer(context, event);
       } else {

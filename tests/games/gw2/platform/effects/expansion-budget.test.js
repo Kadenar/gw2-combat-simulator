@@ -227,6 +227,7 @@ test('conditions share the packet budget and reject a whole stack batch without 
     }
   });
   const runtime = createGw2ResolverRuntimeState({
+    conditions,
     config: {},
     horizon: 2,
     helpers: { conditionName: (name) => name },

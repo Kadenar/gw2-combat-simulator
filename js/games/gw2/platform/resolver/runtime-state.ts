@@ -14,11 +14,7 @@ import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
 import { createSigilRuntimeState } from '#gw2/platform/equipment/sigils/runtime.js';
 import type { Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import type {
-  Gw2ConditionResolution,
-  Gw2EnvironmentConditionState,
-  Gw2ResolverConditionState
-} from '#gw2/platform/resolver/condition-resolution.js';
+import type { Gw2ConditionResolution, Gw2ResolverConditionState } from '#gw2/platform/resolver/condition-resolution.js';
 import { createMechanicCombatServices, type MechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import type { Gw2EventQueue, Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
 import type { DamageReportObserver } from '#gw2/platform/results/damage-report.js';
@@ -50,7 +46,7 @@ export function createGw2ResolverRuntimeState({
   queue,
   effects,
   professionState = {},
-  onFirstDamage,
+  conditions,
   random = createSimulationRandom(config.randomness)
 }: CreateGw2ResolverRuntimeStateOptions): Gw2ResolverRuntime {
   const criticalDamageMode = normalizeCriticalDamageMode(config.criticalDamageMode);
@@ -81,8 +77,7 @@ export function createGw2ResolverRuntimeState({
     // Each resolution pass collects its own warnings without sharing mutable state with another run.
     warnings: [],
     environmentDamage: 0,
-    environmentConditions: new Map(),
-    conditionState: new Map(),
+    conditionState: conditions.state,
     resolved: [],
     procs: createProcRegistry(() => runtime),
     boons: new Map(),
@@ -115,13 +110,13 @@ export function createGw2ResolverRuntimeState({
       // First positive damage starts both DPS reporting and the shared condition clock.
       if (this.firstHitTime == null) {
         this.firstHitTime = at;
-        onFirstDamage?.(this);
+        conditions.startDamageClock(this);
       }
 
       this.lastHitTime = at;
     }
   };
-  const combat = createMechanicCombatServices(runtime);
+  const combat = createMechanicCombatServices(runtime, conditions);
   return runtime;
 }
 
@@ -146,10 +141,7 @@ export interface Gw2ResolverRuntime {
   readonly effects: EffectEmissionService;
   warnings: Gw2SimulationDiagnostic[];
   environmentDamage: number;
-  environmentConditions: Map<string, Gw2EnvironmentConditionState>;
-  conditionState: Map<string, Gw2ResolverConditionState>;
-  conditionBufferAt?: number;
-  conditionBufferedAt?: number;
+  readonly conditionState: ReadonlyMap<string, Gw2ResolverConditionState>;
   resolved: Gw2ResolverEvent[];
   boons: Map<string, Gw2TimedBuffApplication[]>;
   /** Retirement ends a companion's live effects while retaining pre-removal history. */
@@ -190,7 +182,7 @@ interface CreateGw2ResolverRuntimeStateOptions {
   readonly queue: Gw2EventQueue;
   readonly effects: EffectEmissionService;
   readonly professionState?: object;
-  readonly onFirstDamage?: Gw2ConditionResolution['startDamageClock'];
+  readonly conditions: Gw2ConditionResolution;
   /** Isolated executions may supply their own roll policy; combat always seeds from its configured randomness. */
   readonly random?: Readonly<SimulationRandom>;
 }

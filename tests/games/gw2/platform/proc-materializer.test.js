@@ -10,6 +10,7 @@ import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-ev
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
@@ -17,7 +18,7 @@ import { defineTestProfession } from '#tests/helpers/profession.js';
 test('critical sigil decisions use sampled outcomes and strict deadlines without mutating inputs', () => {
   const hit = { type: 'damage', at: 2, source: 'fixture', sourceId: 1, actorType: 'player', coefficient: 1 };
   // Read shared namespaced deadlines without claiming them during the pure decision step.
-  const { procs } = createGw2ResolverRuntimeState({ config: {} });
+  const { procs } = createGw2ResolverRuntimeState({ conditions: createTestConditionResolution(), config: {} });
   // Seed deadlines through the registry and compare its detached observations below.
   procs.setDeadline(`sigil.${SIGIL_IDS.EARTH}`, 2);
   procs.setDeadline(`sigil.${SIGIL_IDS.AIR}`, 3);
