@@ -1,9 +1,9 @@
 /** Detects a saved file's contents and commits the selected build, rotation, and shared input changes together. */
 import { replaceBuild, replaceBuildRotation } from '#gw2/app/build/state/persistence.js';
+import { applyTransitionDelays } from '#gw2/app/build/state/workspace.js';
 import { manifestRotationMatchesBuild } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { readRotationTransitionDelays } from '#gw2/app/import-export/rotation-transition-delays.js';
 import { commitBuildReplacement, commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
-import { applyTransitionDelays } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { getRotationItems } from '#gw2/integrations/assets.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';

@@ -1,4 +1,4 @@
-import { applyTransitionDelays } from '#gw2/app/simulation/settings.js';
+import { applyTransitionDelays } from '#gw2/app/build/state/workspace.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { TRANSITION_DELAY_KEYS, type TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 

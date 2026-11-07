@@ -7,10 +7,20 @@ import {
 } from '#gw2/app/build/state/tab-session.js';
 import { queueRotationReference } from '#gw2/app/rotation/comparison-state.js';
 import type { AnalysisSnapshot } from '#gw2/app/simulation/analysis-result-lifecycle.js';
-import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
+import {
+  defaultSimulationSettings,
+  loadSimulationSettings,
+  saveSimulationSettings,
+  type SimulationSettings
+} from '#gw2/app/simulation/settings.js';
 import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
 import { SelectedSkillMigrationError } from '#gw2/platform/builds/codec.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import {
+  normalizeTransitionDelays,
+  TRANSITION_DELAY_KEYS,
+  type TransitionDelays
+} from '#gw2/platform/execution/transition-lockouts.js';
 
 export interface BuildTab {
   id: string;
@@ -142,6 +152,24 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
 
   const tab = createBuildTab(loadBuild(adapter), 'Build 1');
   return { simulationSettings, tabs: [tab], activeTabId: tab.id };
+}
+
+/** Apply shared delays before the caller refreshes the active build, invalidating other tabs and their references. */
+export function applyTransitionDelays(app: ProfessionAppState, delays: TransitionDelays | null): boolean {
+  if (!delays) return false;
+
+  const settings = app.workspace?.simulationSettings ?? (app.simulationSettings ??= defaultSimulationSettings());
+  const next = normalizeTransitionDelays(delays);
+
+  if (TRANSITION_DELAY_KEYS.every((key) => settings.transitionDelays[key] === next[key])) return false;
+
+  settings.transitionDelays = next;
+
+  if (app.workspace?.scenario) app.workspace.persist?.();
+  else saveSimulationSettings(settings);
+
+  invalidateInactiveBuildTabs(app);
+  return true;
 }
 
 /** Shared simulation inputs invalidate inactive caches so activation refreshes Current and Reference together. */
