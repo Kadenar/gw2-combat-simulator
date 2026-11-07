@@ -1,8 +1,10 @@
+/** Preserve equipped inventory and warning navigation while sharing one captured cursor observation. */
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import {
-  createPaletteContext,
   paletteSkillGroups,
-  rotationSelectedSlotSkills,
-  weaponSkills
+  queryPaletteContext,
+  queryWeaponSkills,
+  rotationSelectedSlotSkills
 } from '#gw2/app/rotation/palette/model.js';
 import { currentTimelineResults } from '#gw2/app/rotation/timeline/model.js';
 import { formatResultTimelineTime } from '#gw2/app/shared/result-clock.js';
@@ -43,12 +45,13 @@ function revealWarningSource(element: HTMLElement): void {
 
 /** Flags equipped skills whose API-style cast time likely still needs simulator calibration. */
 function equippedSkillCastTimeWarnings(app: ProfessionAppState): RotationWarning[] {
-  const context = createPaletteContext(app);
-  const palette = paletteSkillGroups(app, context);
+  const input = capturePaletteInput(app);
+  const context = queryPaletteContext(input);
+  const palette = paletteSkillGroups(input, context);
   const equippedSkills = [
-    ...weaponSkills(app, 1),
-    ...weaponSkills(app, 2),
-    ...rotationSelectedSlotSkills(app),
+    ...queryWeaponSkills(input, 1),
+    ...queryWeaponSkills(input, 2),
+    ...rotationSelectedSlotSkills(input, context),
     ...palette.renderedProfessionGroups.flatMap((group) => group.skills),
     ...palette.renderedLoadoutGroups.flatMap((group) => group.skills)
   ];

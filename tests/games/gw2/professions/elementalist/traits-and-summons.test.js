@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { paletteActionSkills } from '#gw2/app/rotation/palette/model.js';
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
+import { queryPaletteActions } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
@@ -973,14 +974,14 @@ test('Elementalist actions expose Dodge and contextual conjure controls', () => 
   });
 
   assert.deepEqual(
-    paletteActionSkills(app).map((skill) => skill.name),
+    queryPaletteActions(capturePaletteInput(app)).map((skill) => skill.name),
     ['Dodge']
   );
 
   const renderResult = (result) => {
     app.analysis.state.results = result;
     // Contextual controls filter the shared candidates without adding duplicate action tiles.
-    const actionIds = paletteActionSkills(app).map((skill) => skill.id);
+    const actionIds = queryPaletteActions(capturePaletteInput(app)).map((skill) => skill.id);
     assert.equal(new Set(actionIds).size, actionIds.length);
     const palette = inertContainer();
     const previousDocument = globalThis.document;

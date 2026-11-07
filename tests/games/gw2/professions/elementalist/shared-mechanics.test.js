@@ -11,6 +11,7 @@ import {
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 
 test('every Elementalist specialization can prepare attunements without precombat recharge', () => {
   // Cover each recharge override, including Weave Self, with and without an explicit future combat marker.
@@ -323,21 +324,21 @@ test('rotation palette resolves equipped glyphs to the active attunement', () =>
       Utility2: 5734
     }
   });
-  const app = {
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: {
-          planningState: { availability: {}, profession: { [STATE.PRIMARY_ATTUNEMENT]: 'Air' } }
-        }
-      }
-    },
-    patch: elementalistAppAdapter.profession.resolvePatch(),
+  const app = paletteInputFixture({
+    planning: { availability: {}, profession: { [STATE.PRIMARY_ATTUNEMENT]: 'Air' } },
     build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    activeCatalog: elementalistCatalog
-  };
+    specialization: elementalistAppAdapter.eliteSpecialization(build),
+    isSkillAvailable: elementalistAppAdapter.isSkillAvailable,
+    weaponSkillMatchesSet: elementalistAppAdapter.weaponSkillMatchesSet,
+    slotLoadout: elementalistAppAdapter.slotLoadout,
+    weaponData: elementalistAppAdapter.weaponData,
+    ui: elementalistProfession.ui,
+    projectActions: elementalistProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: elementalistProfession.resolveProfession({
+      specialization: elementalistAppAdapter.eliteSpecialization(build)
+    }).canSwapWeaponSetsInCombat,
+    catalog: elementalistCatalog
+  });
 
   assert.equal(
     rotationSelectedSlotSkills(app).some((skill) => skill.name === 'Glyph of Storms (Air)'),

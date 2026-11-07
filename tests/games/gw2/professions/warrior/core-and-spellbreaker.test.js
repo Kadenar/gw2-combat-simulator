@@ -455,10 +455,10 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
 
   const resourceHtml = activeResourceGroup(
     activeResourceDefinitions({
-      analysis: { needsPatchComparison: () => false, state: { results: result } },
-      profession: warriorProfession,
-      adapter: { eliteSpecialization: () => 'Core' },
-      build: { initialResource: 25 }
+      ui: warriorProfession.ui,
+      build: { initialResource: 25 },
+      specialization: 'Core',
+      planning: result.planningState
     })
   );
 
@@ -487,11 +487,11 @@ test('Paragon motivation renders as a compact emblem counter', () => {
 
   const resourceHtml = activeResourceGroup(
     activeResourceDefinitions({
-      analysis: { needsPatchComparison: () => false, state: { results: result } },
-      profession: warriorProfession,
-      activeCatalog: warriorCatalog,
-      adapter: { eliteSpecialization: () => 'Paragon' },
-      build: { initialResource: 10 }
+      ui: warriorProfession.ui,
+      build: { initialResource: 10 },
+      specialization: 'Paragon',
+      planning: result.planningState,
+      catalog: warriorCatalog
     })
   );
 

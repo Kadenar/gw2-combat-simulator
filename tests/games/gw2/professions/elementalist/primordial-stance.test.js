@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { paletteSkillView, rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
 import { rotationSkillHighlightKey } from '#gw2/app/rotation/timeline/model.js';
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
@@ -113,9 +114,11 @@ test('stance palette and highlight identities remain the same in every live attu
         profession: { [STATE.PRIMARY_ATTUNEMENT]: element, [STATE.SECONDARY_ATTUNEMENT]: 'Earth' }
       }
     };
-    const displayed = rotationSelectedSlotSkills(app).find((skill) => skill.id === ID.PRIMORDIAL_STANCE);
+    const displayed = rotationSelectedSlotSkills(capturePaletteInput(app)).find(
+      (skill) => skill.id === ID.PRIMORDIAL_STANCE
+    );
     assert.ok(displayed);
-    const view = paletteSkillView(app, displayed);
+    const view = paletteSkillView(capturePaletteInput(app), displayed);
     assert.equal(view.skillId, ID.PRIMORDIAL_STANCE);
     assert.equal(view.displaySkillId, undefined);
     keys.add(rotationSkillHighlightKey({ type: 'cast', skillId: view.skillId }));

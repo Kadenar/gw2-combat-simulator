@@ -10,6 +10,7 @@ import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { revenantCatalog } from '#gw2/professions/revenant/profession.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 
 const AUDITED_WEAPON_FLIPS = Object.freeze([
   [thiefCatalog, "Infiltrator's Strike", "Infiltrator's Return"],
@@ -47,43 +48,26 @@ test('audited weapon flip families project one live palette identity', () => {
   for (const [catalog, parentIdentity, childIdentity] of AUDITED_WEAPON_FLIPS) {
     const parent = catalogSkill(catalog, parentIdentity);
     const child = catalogSkill(catalog, childIdentity);
-    const app = {
-      activeCatalog: catalog,
-      profession: {},
-      analysis: {
-        state: {
-          buildRevision: 0,
-          resultRevision: 0,
-          simulationStatus: 'idle',
-          simulationError: '',
-          patchComparison: null,
-          results: {
-            planningState: {
-              atSeconds: 0,
+    const input = paletteInputFixture({
+      catalog: catalog,
+      planning: {
+        atSeconds: 0,
 
-              profession: { ...{}, [STATE.AVAILABLE_FLIPS]: {} }
-            }
-          }
-        }
+        profession: { ...{}, [STATE.AVAILABLE_FLIPS]: {} }
       }
-    };
+    });
 
     assert.ok(parent, `missing audited parent ${parentIdentity}`);
     assert.ok(child, `missing audited child ${childIdentity}`);
     assert.deepEqual(
-      displayedSkillTiles(app, [parent]).map((skill) => skill.id),
+      displayedSkillTiles(input, [parent]).map((skill) => skill.id),
       [parent.id],
       `${parent.name} should display before its follow-up is armed`
     );
 
-    app.analysis.state.results.planningState.profession[STATE.AVAILABLE_FLIPS][child.id] = armSkillFlip(
-      {},
-      0,
-      0,
-      Infinity
-    );
+    input.planning.profession[STATE.AVAILABLE_FLIPS][child.id] = armSkillFlip({}, 0, 0, Infinity);
     assert.deepEqual(
-      displayedSkillTiles(app, [parent]).map((skill) => skill.id),
+      displayedSkillTiles(input, [parent]).map((skill) => skill.id),
       [child.id],
       `${child.name} should replace ${parent.name} while armed`
     );

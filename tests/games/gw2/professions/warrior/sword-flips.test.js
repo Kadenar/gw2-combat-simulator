@@ -7,6 +7,7 @@ import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 
 const simulate = createObservedProfessionSimulator(warriorProfession, {
   primaryWeapon: 'Sword',
@@ -17,19 +18,25 @@ const simulate = createObservedProfessionSimulator(warriorProfession, {
 // Use real simulation projections so a missing runtime window cannot be hidden by a fabricated UI fixture.
 function assertDisplayed(result, parentId, childId, expectedId) {
   const catalog = warriorProfession.catalog;
-  const app = {
-    analysis: { needsPatchComparison: () => false, state: { results: result } },
+  const app = paletteInputFixture({
+    planning: result.planningState,
     build: { rotation: [] },
-    profession: warriorProfession,
-    activeCatalog: catalog
-  };
+    ui: warriorProfession.ui,
+    projectActions: warriorProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: warriorProfession.resolveProfession({ specialization: 'Core' })
+      .canSwapWeaponSetsInCombat,
+    catalog: catalog
+  });
   const parent = catalog.skillsById.get(parentId);
   const child = catalog.skillsById.get(childId);
   assert.deepEqual(
     displayedSkillTiles(app, [parent, child], { specialization: 'Core' }).map((skill) => skill.id),
     [expectedId]
   );
-  assert.equal(skillBarDisplaySkill(app, parent).id, expectedId);
+  assert.equal(
+    skillBarDisplaySkill({ activeCatalog: catalog, analysis: { state: { results: result } } }, parent).id,
+    expectedId
+  );
 }
 
 for (const [parentId, childId] of [

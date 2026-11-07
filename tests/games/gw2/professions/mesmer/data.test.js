@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createRotationItem } from '#gw2/app/rotation/editing/actions.js';
-import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
+import { queryWeaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import {
@@ -378,7 +379,7 @@ test('Mesmer explicit variant identities agree across loading, editing, and simu
 
     if (runtime.catalog.skillsById.get(expectedId).type === 'Weapon') {
       assert.deepEqual(
-        weaponSkills(app)
+        queryWeaponSkills(capturePaletteInput(app))
           .filter((skill) => skill.name === name)
           .map((skill) => skill.id),
         [expectedId]
@@ -401,7 +402,7 @@ test('Mesmer explicit variant identities agree across loading, editing, and simu
       }
     };
     assert.deepEqual(
-      weaponSkills(app)
+      queryWeaponSkills(capturePaletteInput(app))
         .filter((skill) => skill.slot === 'Weapon_3' && !skill.flipParentId)
         .map((skill) => skill.id),
       [specialization === 'Troubadour' ? ID.BLADE_LEAP : ID.ILLUSIONARY_LEAP]

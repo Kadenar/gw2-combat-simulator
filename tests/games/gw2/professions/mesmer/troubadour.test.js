@@ -13,6 +13,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 
 // Trait-owned scheduling must keep honoring balance edits for both the disable proc and delayed wave.
 test('Syncopate reads patched damage from its trait profile', () => {
@@ -307,15 +308,25 @@ test('Shatter Storm gives Lively Lute a second charge without a full cooldown', 
   const shatterStormAfterOne = simulateMesmer([{ type: 'cast', skillId: 76552 }], config([TRAIT.SHATTER_STORM]));
   const shatterStormBeforeUse = simulateMesmer([], config([TRAIT.SHATTER_STORM]));
   const livelyLute = mesmerCatalog.skillsById.get(ID.LIVELY_LUTE);
-  const paletteApp = (results) => ({
-    analysis: { needsPatchComparison: () => false, state: { results: results } },
-    patch: mesmerAppAdapter.profession.resolvePatch(),
-    // Palette models now resolve tooltip presentation through the profession adapter.
-    adapter: mesmerAppAdapter,
-    profession: mesmerProfession,
-    activeCatalog: mesmerCatalog,
-    build: { rotation: [], specializations: [{ name: 'Troubadour' }] }
-  });
+  const paletteApp = (results) =>
+    paletteInputFixture({
+      planning: results.planningState,
+      specialization: mesmerAppAdapter.eliteSpecialization({ rotation: [], specializations: [{ name: 'Troubadour' }] }),
+      isSkillAvailable: mesmerAppAdapter.isSkillAvailable,
+      weaponSkillMatchesSet: mesmerAppAdapter.weaponSkillMatchesSet,
+      slotLoadout: mesmerAppAdapter.slotLoadout,
+      weaponData: mesmerAppAdapter.weaponData,
+      ui: mesmerProfession.ui,
+      projectActions: mesmerProfession.ui.paletteActionSkills,
+      canSwapWeaponSetsInCombat: mesmerProfession.resolveProfession({
+        specialization: mesmerAppAdapter.eliteSpecialization({
+          rotation: [],
+          specializations: [{ name: 'Troubadour' }]
+        })
+      }).canSwapWeaponSetsInCombat,
+      catalog: mesmerCatalog,
+      build: { rotation: [], specializations: [{ name: 'Troubadour' }] }
+    });
 
   assert.equal(ordinary.steps[1].start, 10160);
   assert.equal(shatterStorm.steps[1].start, shatterStorm.steps[0].end);
@@ -733,11 +744,11 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
   assert.ok(playingView.statusItems.every((item) => /^\d+\.\d+s$/.test(item.valueLabel)));
   const resourceHtml = activeResourceGroup(
     activeResourceDefinitions({
-      analysis: { needsPatchComparison: () => false, state: { results: result } },
-      activeCatalog: mesmerCatalog,
-      profession: mesmerProfession,
-      adapter: { eliteSpecialization: () => 'Troubadour' },
-      build: { initialResource: 0 }
+      ui: mesmerProfession.ui,
+      build: { initialResource: 0 },
+      specialization: 'Troubadour',
+      planning: result.planningState,
+      catalog: mesmerCatalog
     })
   );
 

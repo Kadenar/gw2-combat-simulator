@@ -15,6 +15,7 @@ import {
   observedRuntime,
   planningFixture
 } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const config = {
@@ -38,11 +39,14 @@ test('Binding Blade flips back when its ten-second tether expires', () => {
     const result = createObservedProfessionSimulator(guardianProfession, settings)(undefined, rotation);
     assert.deepEqual(result.warnings, []);
     const tiles = displayedSkillTiles(
-      {
-        analysis: { needsPatchComparison: () => false, state: { results: result } },
-        activeCatalog: guardianCatalog,
-        profession: guardianProfession
-      },
+      paletteInputFixture({
+        planning: result.planningState,
+        catalog: guardianCatalog,
+        ui: guardianProfession.ui,
+        projectActions: guardianProfession.ui.paletteActionSkills,
+        canSwapWeaponSetsInCombat: guardianProfession.resolveProfession({ specialization: 'Core' })
+          .canSwapWeaponSetsInCombat
+      }),
       [parent]
     );
     assert.deepEqual(
@@ -199,14 +203,27 @@ test('Firebrand final mantra face shows the shared charges and next charge timer
   const surge = guardianCatalog.skillsById.get(FLAME_SURGE);
   const view = (results) =>
     paletteSkillView(
-      {
-        analysis: { needsPatchComparison: () => false, state: { results: results } },
-        patch: guardianAppAdapter.profession.resolvePatch(),
-        adapter: guardianAppAdapter,
-        profession: guardianProfession,
-        activeCatalog: guardianCatalog,
+      paletteInputFixture({
+        planning: results.planningState,
+        specialization: guardianAppAdapter.eliteSpecialization({
+          rotation: [],
+          specializations: [{ name: 'Firebrand' }]
+        }),
+        isSkillAvailable: guardianAppAdapter.isSkillAvailable,
+        weaponSkillMatchesSet: guardianAppAdapter.weaponSkillMatchesSet,
+        slotLoadout: guardianAppAdapter.slotLoadout,
+        weaponData: guardianAppAdapter.weaponData,
+        ui: guardianProfession.ui,
+        projectActions: guardianProfession.ui.paletteActionSkills,
+        canSwapWeaponSetsInCombat: guardianProfession.resolveProfession({
+          specialization: guardianAppAdapter.eliteSpecialization({
+            rotation: [],
+            specializations: [{ name: 'Firebrand' }]
+          })
+        }).canSwapWeaponSetsInCombat,
+        catalog: guardianCatalog,
         build: { rotation: [], specializations: [{ name: 'Firebrand' }] }
-      },
+      }),
       surge
     );
   // Observe the next resource recovery once the shared face is usable, so the tile displays its charge timer.

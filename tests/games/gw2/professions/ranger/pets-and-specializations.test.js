@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import {
-  createPaletteContext,
-  paletteActionSkills,
-  weaponPaletteRows,
-  weaponSkills
+  queryPaletteActions,
+  queryPaletteContext,
+  queryWeaponSkills,
+  weaponPaletteRows
 } from '#gw2/app/rotation/palette/model.js';
 import {
   activeResourceDefinitions,
@@ -31,6 +32,7 @@ import { createCalculateAttributes, createProfessionBuildAttributeRules } from '
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
@@ -355,20 +357,13 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
   assert.equal(endurance.value, 35);
   assert.equal(endurance.paletteSkillId, SHARED_SKILL_IDS.DODGE);
   const resourceApp = {
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: {
-          planningState: {
-            availability: {},
-            profession: { [STATE.ENDURANCE]: { value: 35, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } }
-          }
-        }
-      }
-    },
-    profession: rangerProfession,
-    adapter: { eliteSpecialization: () => 'Core' },
-    build: { initialResource: 0 }
+    ui: rangerProfession.ui,
+    build: { initialResource: 0 },
+    specialization: 'Core',
+    planning: {
+      availability: {},
+      profession: { [STATE.ENDURANCE]: { value: 35, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } }
+    }
   };
 
   assert.deepEqual(paletteSkillResourceView(activeResourceDefinitions(resourceApp), SHARED_SKILL_IDS.DODGE), {
@@ -1051,25 +1046,29 @@ test('Soulbeast palette swaps between merged skills and the active pet', () => {
   assert.equal(availability(unmerged.planningState, ID.BEASTMODE), true);
   assert.equal(availability(unmerged.planningState, ID.LEAVE_BEASTMODE), false);
 
-  const actionApp = {
-    analysis: {
-      needsPatchComparison: () => false,
-      state: { results: { planningState: { availability: {}, profession: merged.planningState.profession } } }
-    },
-    patch: rangerAppAdapter.profession.resolvePatch(),
-    activeCatalog: rangerCatalog,
-    adapter: rangerAppAdapter,
-    profession: rangerProfession,
+  const actionApp = paletteInputFixture({
+    planning: { availability: {}, profession: merged.planningState.profession },
+    catalog: rangerCatalog,
+    specialization: rangerAppAdapter.eliteSpecialization({ ...createRangerBuildDefaults(), rotation: [] }),
+    isSkillAvailable: rangerAppAdapter.isSkillAvailable,
+    weaponSkillMatchesSet: rangerAppAdapter.weaponSkillMatchesSet,
+    slotLoadout: rangerAppAdapter.slotLoadout,
+    weaponData: rangerAppAdapter.weaponData,
+    ui: rangerProfession.ui,
+    projectActions: rangerProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: rangerProfession.resolveProfession({
+      specialization: rangerAppAdapter.eliteSpecialization({ ...createRangerBuildDefaults(), rotation: [] })
+    }).canSwapWeaponSetsInCombat,
     build: { ...createRangerBuildDefaults(), rotation: [] }
-  };
+  });
 
   assert.equal(
-    paletteActionSkills(actionApp, 'Soulbeast').some((skill) => skill.id === ID.PET_SWAP),
+    queryPaletteActions(actionApp).some((skill) => skill.id === ID.PET_SWAP),
     false
   );
-  actionApp.analysis.state.results.planningState.profession = unmerged.planningState.profession;
+  actionApp.planning.profession = unmerged.planningState.profession;
   assert.equal(
-    paletteActionSkills(actionApp, 'Soulbeast').some((skill) => skill.id === ID.PET_SWAP),
+    queryPaletteActions(actionApp).some((skill) => skill.id === ID.PET_SWAP),
     true
   );
 });
@@ -1267,20 +1266,27 @@ test('Ranger Hammer autoattacks advance their palette chain', () => {
     weapons: ['Hammer', ''],
     selectedHammerSkillIds: config.selectedHammerSkillIds
   };
-  const app = {
-    analysis: { needsPatchComparison: () => false, state: { results: afterStrike } },
-    patch: rangerAppAdapter.profession.resolvePatch(),
+  const app = paletteInputFixture({
+    planning: afterStrike.planningState,
     build,
-    activeCatalog: rangerCatalog,
-    adapter: rangerAppAdapter,
-    profession: rangerProfession
-  };
+    catalog: rangerCatalog,
+    specialization: rangerAppAdapter.eliteSpecialization(build),
+    isSkillAvailable: rangerAppAdapter.isSkillAvailable,
+    weaponSkillMatchesSet: rangerAppAdapter.weaponSkillMatchesSet,
+    slotLoadout: rangerAppAdapter.slotLoadout,
+    weaponData: rangerAppAdapter.weaponData,
+    ui: rangerProfession.ui,
+    projectActions: rangerProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: rangerProfession.resolveProfession({
+      specialization: rangerAppAdapter.eliteSpecialization(build)
+    }).canSwapWeaponSetsInCombat
+  });
 
-  assert.equal(createPaletteContext(app).activeAutoattack.id, ID.HAMMER_SLAM);
-  app.analysis.state.results = afterSlam;
-  assert.equal(createPaletteContext(app).activeAutoattack.id, ID.HEAVY_SMASH);
-  app.analysis.state.results = afterSmash;
-  assert.equal(createPaletteContext(app).activeAutoattack.id, ID.HAMMER_STRIKE);
+  assert.equal(queryPaletteContext(app).activeAutoattack.id, ID.HAMMER_SLAM);
+  app.planning = afterSlam.planningState;
+  assert.equal(queryPaletteContext(app).activeAutoattack.id, ID.HEAVY_SMASH);
+  app.planning = afterSmash.planningState;
+  assert.equal(queryPaletteContext(app).activeAutoattack.id, ID.HAMMER_STRIKE);
 });
 
 test('Ranger rejects out-of-order autoattack chain steps', () => {
@@ -1326,7 +1332,7 @@ test('Selected unleashed Hammer skills remain castable after Overbearing Smash',
     adapter: rangerAppAdapter,
     profession: rangerProfession
   };
-  const availableIds = new Set(weaponSkills(app, 1).map((skill) => skill.id));
+  const availableIds = new Set(queryWeaponSkills(capturePaletteInput(app), 1).map((skill) => skill.id));
 
   for (const skillId of [ID.UNLEASHED_WILD_SWING, ID.UNLEASHED_SAVAGE_SHOCK_WAVE, ID.UNLEASHED_THUMP]) {
     assert.equal(availableIds.has(skillId), true);
@@ -1510,22 +1516,28 @@ test('Untamed ambush skills require the specialization and an active unleash pro
     ],
     initialUntamedState: 'Pet'
   };
-  const app = {
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    patch: rangerAppAdapter.profession.resolvePatch(),
+  const app = paletteInputFixture({
+    planning: null,
     build,
-    adapter: rangerAppAdapter,
-    profession: rangerProfession,
-    activeCatalog: rangerCatalog,
+    specialization: rangerAppAdapter.eliteSpecialization(build),
+    isSkillAvailable: rangerAppAdapter.isSkillAvailable,
+    weaponSkillMatchesSet: rangerAppAdapter.weaponSkillMatchesSet,
+    slotLoadout: rangerAppAdapter.slotLoadout,
+    ui: rangerProfession.ui,
+    projectActions: rangerProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: rangerProfession.resolveProfession({
+      specialization: rangerAppAdapter.eliteSpecialization(build)
+    }).canSwapWeaponSetsInCombat,
+    catalog: rangerCatalog,
     weaponData: rangerAppAdapter.weaponData
-  };
+  });
   const paletteNamesAfter = (rotation) => {
-    app.analysis.state.results = simulate('Untamed', rotation, {
+    app.planning = simulate('Untamed', rotation, {
       initialUntamedState: 'Pet',
       primaryWeapon: 'Hammer',
       weaponSet2Primary: '',
       weaponSet2Secondary: ''
-    });
+    }).planningState;
 
     return weaponPaletteRows(app, 1)[0].skills.map((skill) => skill.name);
   };
@@ -1552,22 +1564,28 @@ test('Greatsword Counterattack flips to Counterattack Kick and restores its tile
       { name: 'Wilderness Survival', traits: '1-1-1' }
     ]
   };
-  const app = {
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    patch: rangerAppAdapter.profession.resolvePatch(),
+  const app = paletteInputFixture({
+    planning: null,
     build,
-    adapter: rangerAppAdapter,
-    profession: rangerProfession,
-    activeCatalog: rangerCatalog,
+    specialization: rangerAppAdapter.eliteSpecialization(build),
+    isSkillAvailable: rangerAppAdapter.isSkillAvailable,
+    weaponSkillMatchesSet: rangerAppAdapter.weaponSkillMatchesSet,
+    slotLoadout: rangerAppAdapter.slotLoadout,
+    ui: rangerProfession.ui,
+    projectActions: rangerProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: rangerProfession.resolveProfession({
+      specialization: rangerAppAdapter.eliteSpecialization(build)
+    }).canSwapWeaponSetsInCombat,
+    catalog: rangerCatalog,
     weaponData: rangerAppAdapter.weaponData
-  };
+  });
   const paletteAfter = (rotation) => {
-    app.analysis.state.results = simulate('Core', rotation, {
+    app.planning = simulate('Core', rotation, {
       primaryWeapon: 'Greatsword',
       secondaryWeapon: '',
       weaponSet2Primary: '',
       weaponSet2Secondary: ''
-    });
+    }).planningState;
 
     return weaponPaletteRows(app, 1)[0].skills.map((skill) => skill.name);
   };
@@ -1597,22 +1615,28 @@ test("Panther's Prowl replaces all four Ranger spear stealth-attack slots", () =
       { name: 'Wilderness Survival', traits: '1-1-1' }
     ]
   };
-  const app = {
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    patch: rangerAppAdapter.profession.resolvePatch(),
+  const app = paletteInputFixture({
+    planning: null,
     build,
-    adapter: rangerAppAdapter,
-    profession: rangerProfession,
-    activeCatalog: rangerCatalog,
+    specialization: rangerAppAdapter.eliteSpecialization(build),
+    isSkillAvailable: rangerAppAdapter.isSkillAvailable,
+    weaponSkillMatchesSet: rangerAppAdapter.weaponSkillMatchesSet,
+    slotLoadout: rangerAppAdapter.slotLoadout,
+    ui: rangerProfession.ui,
+    projectActions: rangerProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: rangerProfession.resolveProfession({
+      specialization: rangerAppAdapter.eliteSpecialization(build)
+    }).canSwapWeaponSetsInCombat,
+    catalog: rangerCatalog,
     weaponData: rangerAppAdapter.weaponData
-  };
+  });
   const paletteAfter = (rotation) => {
-    app.analysis.state.results = simulate('Core', rotation, {
+    app.planning = simulate('Core', rotation, {
       primaryWeapon: 'Spear',
       secondaryWeapon: '',
       weaponSet2Primary: '',
       weaponSet2Secondary: ''
-    });
+    }).planningState;
 
     return weaponPaletteRows(app, 1)[0].skills.map((skill) => skill.name);
   };

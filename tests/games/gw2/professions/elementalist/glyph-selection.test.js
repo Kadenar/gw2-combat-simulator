@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import { clearedValues, createSkillDamagePlan, skillDamageControls } from '#gw2/app/build/skill-damage/plan.js';
 import { resolveEntryDisplaySkill } from '#gw2/app/rotation/editing/actions.js';
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { dispatchPaletteActivation, resolvePaletteDropItem } from '#gw2/app/rotation/palette/interactions.js';
 import { paletteSkillView, rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
 import { paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
@@ -186,9 +187,11 @@ test('palette display, click, drag and modified activation retain generic input 
       profession: { [STATE.PRIMARY_ATTUNEMENT]: 'Air' }
     }
   };
-  const displayed = rotationSelectedSlotSkills(app).find((skill) => skill.inputSkillId === ID.GLYPH_OF_STORMS);
+  const displayed = rotationSelectedSlotSkills(capturePaletteInput(app)).find(
+    (skill) => skill.inputSkillId === ID.GLYPH_OF_STORMS
+  );
   assert.equal(displayed.id, ID.GLYPH_OF_STORMS_AIR);
-  const view = paletteSkillView(app, displayed);
+  const view = paletteSkillView(capturePaletteInput(app), displayed);
   assert.equal(view.skillId, ID.GLYPH_OF_STORMS);
   assert.equal(view.displaySkillId, ID.GLYPH_OF_STORMS_AIR);
   assert.match(paletteSkillHtml(view), /data-skill-id="5734"/);

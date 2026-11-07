@@ -13,6 +13,7 @@ import { createCalculateAttributes, createProfessionBuildAttributeRules } from '
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
@@ -420,16 +421,19 @@ test('Luminary Radiant Forge enforces entry and radiant weapon flips', () => {
 });
 
 test('Guardian weapon and Radiant Forge flips occupy one live palette tile', () => {
-  const app = {
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    activeCatalog: guardianCatalog,
-    profession: guardianProfession
-  };
+  const app = paletteInputFixture({
+    planning: null,
+    catalog: guardianCatalog,
+    ui: guardianProfession.ui,
+    projectActions: guardianProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: guardianProfession.resolveProfession({ specialization: 'Core' })
+      .canSwapWeaponSetsInCombat
+  });
   const displayedIdsAfter = (rotation, skillIds, extraConfig = {}) => {
-    app.analysis.state.results = createObservedProfessionSimulator(guardianProfession, { ...config, ...extraConfig })(
+    app.planning = createObservedProfessionSimulator(guardianProfession, { ...config, ...extraConfig })(
       undefined,
       rotation
-    );
+    ).planningState;
 
     return displayedSkillTiles(
       app,

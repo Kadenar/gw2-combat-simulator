@@ -1,9 +1,10 @@
 /** Composes palette markup from projected state and binds the current rendered controls. */
 import { updatePaletteFreshness } from '#gw2/app/rotation/palette/freshness.js';
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { bindAppPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
 import {
-  createPaletteContext,
   projectPalette,
+  queryPaletteContext,
   type PaletteGroupView,
   type PaletteProjection,
   type PaletteSkillView
@@ -278,8 +279,9 @@ export function renderPalette(app: ProfessionAppState): void {
       : null;
   const focusIdentity = focused?.dataset;
   const focusIndex = focused ? [...element.querySelectorAll('button')].indexOf(focused) : -1;
-  const paletteContext = createPaletteContext(app);
-  element.innerHTML = paletteHtml(projectPalette(app, paletteContext));
+  const input = capturePaletteInput(app);
+  const paletteContext = queryPaletteContext(input);
+  element.innerHTML = paletteHtml(projectPalette(input));
   updatePaletteFreshness(app);
 
   bindAppPaletteInteractions(app, element, paletteContext);

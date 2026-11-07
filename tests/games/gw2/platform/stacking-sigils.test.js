@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
+import { queryWeaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { calculateCommonAttributes, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -114,8 +115,8 @@ for (const adapter of [elementalistAppAdapter, engineerAppAdapter]) {
     for (const set of [1, 2]) {
       build.startingWeaponSet = set;
       // Equipment enumeration supports precombat swapping and isolated previews for either starting set.
-      assert.ok(weaponSkills(app, set === 1 ? 2 : 1).length > 0);
-      assert.ok(weaponSkills(app, set).length > 0);
+      assert.ok(queryWeaponSkills(capturePaletteInput(app), set === 1 ? 2 : 1).length > 0);
+      assert.ok(queryWeaponSkills(capturePaletteInput(app), set).length > 0);
     }
 
     app.attributeData = adapter

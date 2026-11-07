@@ -108,6 +108,13 @@ Profession presentation supplies variants, groups, markers, badges, and event de
 facts without reproducing combat rules. Timeline preferences live in `rotation/timeline/preferences.ts`; snapshot
 contracts are documented in [Rotation state snapshots](./ROTATION_STATE_SNAPSHOT.md).
 
+`rotation/palette/input.ts` captures the cursor observation, build/catalog facts, and presentation dependencies once.
+The palette model projects tiles, resources, and weapon placement from that explicit input without reading application
+state. Cursor-prefix simulation and caching stay in `rotation/context.ts`; cooldown tooltip labels retain the displayed
+result's combat origin. Isolated skill-damage previews use the smaller palette queries without a cursor observation.
+Warnings use those queries to inspect both equipped weapon sets and their existing selected-skill inventory,
+independently of which tiles the current palette displays.
+
 `results/view.ts` composes section models and mounts; `breakdown/` owns skill rows and inspectors, and `charts/` owns
 series and hit timelines. Section mounts append to their assigned hosts; independently refreshed analysis must not
 replace unrelated charts or expanded rows.

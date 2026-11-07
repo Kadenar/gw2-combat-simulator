@@ -11,6 +11,7 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Mirage tests cover endurance, cloak, ambushes, mirrors, and specialization traits.
@@ -126,15 +127,16 @@ test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () =>
   const axeSkillOne = mesmerCatalog.skills.filter(
     (skill) => skill.type === 'Weapon' && skill.weapon === 'Axe' && skill.slot === 'Weapon_1'
   );
-  const paletteApp = {
-    analysis: { needsPatchComparison: () => false, state: { results: cloakOnly } },
-    build: { rotation: [], weapons: ['Axe', 'Pistol'], alternateWeapons: ['', ''], startingWeaponSet: 1 },
-    activeCatalog: mesmerCatalog,
-    profession: mesmerProfession
-  };
+  const paletteInput = paletteInputFixture({
+    planning: cloakOnly.planningState,
+    build: { weapons: ['Axe', 'Pistol'] },
+    catalog: mesmerCatalog,
+    ui: mesmerProfession.ui,
+    specialization: 'Mirage'
+  });
 
   assert.deepEqual(
-    displayedWeaponSkills(paletteApp, axeSkillOne).map((skill) => skill.name),
+    displayedWeaponSkills(paletteInput, axeSkillOne).map((skill) => skill.name),
     ['Imaginary Axes']
   );
 
@@ -150,9 +152,9 @@ test('Mirage Cloak enables an explicit ambush instead of auto-casting it', () =>
     )
   );
   assert.equal(used.planningState.profession[STATE.AVAILABLE_AMBUSH], null);
-  paletteApp.analysis.state.results = used;
+  paletteInput.planning = used.planningState;
   assert.deepEqual(
-    displayedWeaponSkills(paletteApp, axeSkillOne).map((skill) => skill.name),
+    displayedWeaponSkills(paletteInput, axeSkillOne).map((skill) => skill.name),
     ['Lacerating Chop']
   );
 });

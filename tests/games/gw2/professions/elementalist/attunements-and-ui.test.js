@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { paletteSkillView, weaponPaletteRows, weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
+import { paletteSkillView, queryWeaponSkills, weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import {
   activeResourceDefinitions,
   activeResourceGroup,
@@ -25,6 +26,7 @@ import {
   runNative
 } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
@@ -612,7 +614,7 @@ test('weapon palette rows group Elementalist skills by attunement and slot', () 
     activeCatalog: elementalistProfession.catalog,
     weaponData: elementalistAppAdapter.weaponData
   };
-  const rows = weaponPaletteRows(app, 1);
+  const rows = weaponPaletteRows(capturePaletteInput(app), 1);
 
   assert.deepEqual(
     rows.map((row) => row.label),
@@ -630,13 +632,13 @@ test('weapon palette rows group Elementalist skills by attunement and slot', () 
 
   app.build.weapons = ['Pistol', 'Dagger'];
   assert.deepEqual(
-    weaponPaletteRows(app, 1).map((row) => row.label),
+    weaponPaletteRows(capturePaletteInput(app), 1).map((row) => row.label),
     ['Fire', 'Water', 'Air', 'Earth', 'Special']
   );
 
   app.build.weapons = ['Sword', 'Warhorn'];
   app.build.specializations[2] = { name: 'Weaver', traits: '1-1-1' };
-  const weaverRows = weaponPaletteRows(app, 1);
+  const weaverRows = weaponPaletteRows(capturePaletteInput(app), 1);
 
   assert.deepEqual(
     weaverRows.map((row) => row.label),
@@ -645,7 +647,7 @@ test('weapon palette rows group Elementalist skills by attunement and slot', () 
   const dual = weaverRows.find((row) => row.label === 'Dual');
 
   // Group every eligible dual attack from the equipped weapon without fixing the catalog's size.
-  const dualSkills = weaponSkills(app, 1).filter((skill) => skill.attunement?.includes('+'));
+  const dualSkills = queryWeaponSkills(capturePaletteInput(app), 1).filter((skill) => skill.attunement?.includes('+'));
   assert.ok(dualSkills.length > 0);
   assert.deepEqual(new Set(dual.skills.map((skill) => skill.id)), new Set(dualSkills.map((skill) => skill.id)));
   assert.equal(
@@ -1007,15 +1009,11 @@ test('Evoker layers familiar charges beside F5', () => {
 
   const resourceHtml = activeResourceGroup(
     activeResourceDefinitions({
-      analysis: {
-        needsPatchComparison: () => false,
-        state: { results: { planningState: { availability: {}, profession: professionState } } }
-      },
-      patch: elementalistAppAdapter.profession.resolvePatch(),
-      build,
-      adapter: elementalistAppAdapter,
-      profession: elementalistProfession,
-      activeCatalog: elementalistProfession.catalog
+      ui: elementalistProfession.ui,
+      build: build,
+      specialization: elementalistAppAdapter.eliteSpecialization(build),
+      planning: { availability: {}, profession: professionState },
+      catalog: elementalistProfession.catalog
     })
   );
 
@@ -1026,50 +1024,34 @@ test('Evoker layers familiar charges beside F5', () => {
 
   const basicReadyHtml = activeResourceGroup(
     activeResourceDefinitions({
-      analysis: {
-        needsPatchComparison: () => false,
-        state: {
-          results: {
-            planningState: {
-              availability: {},
-              profession: {
-                ...professionState,
-                [STATE.FAMILIAR_CHARGES]: { value: 6, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
-                [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
-              }
-            }
-          }
+      ui: elementalistProfession.ui,
+      build: build,
+      specialization: elementalistAppAdapter.eliteSpecialization(build),
+      planning: {
+        availability: {},
+        profession: {
+          ...professionState,
+          [STATE.FAMILIAR_CHARGES]: { value: 6, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
+          [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
         }
       },
-      patch: elementalistAppAdapter.profession.resolvePatch(),
-      build,
-      adapter: elementalistAppAdapter,
-      profession: elementalistProfession,
-      activeCatalog: elementalistProfession.catalog
+      catalog: elementalistProfession.catalog
     })
   );
   const empoweredReadyHtml = activeResourceGroup(
     activeResourceDefinitions({
-      analysis: {
-        needsPatchComparison: () => false,
-        state: {
-          results: {
-            planningState: {
-              availability: {},
-              profession: {
-                ...professionState,
-                [STATE.FAMILIAR_CHARGES]: { value: 4, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
-                [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
-              }
-            }
-          }
+      ui: elementalistProfession.ui,
+      build: build,
+      specialization: elementalistAppAdapter.eliteSpecialization(build),
+      planning: {
+        availability: {},
+        profession: {
+          ...professionState,
+          [STATE.FAMILIAR_CHARGES]: { value: 4, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
+          [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
         }
       },
-      patch: elementalistAppAdapter.profession.resolvePatch(),
-      build,
-      adapter: elementalistAppAdapter,
-      profession: elementalistProfession,
-      activeCatalog: elementalistProfession.catalog
+      catalog: elementalistProfession.catalog
     })
   );
 
@@ -1183,14 +1165,21 @@ test('core attunements enforce and report their individual recharge', () => {
   assert.equal(waterAvailability.code, 'elementalist.attunement-recharge');
   assert.ok(waterAvailability.retryAt > result.planningState.atSeconds);
   const waterView = paletteSkillView(
-    {
-      analysis: { needsPatchComparison: () => false, state: { results: result } },
-      patch: elementalistAppAdapter.profession.resolvePatch(),
+    paletteInputFixture({
+      planning: result.planningState,
       build: elementalistProfession.createBuildDefaults(),
-      adapter: elementalistAppAdapter,
-      profession: elementalistProfession,
-      activeCatalog: elementalistProfession.catalog
-    },
+      specialization: elementalistAppAdapter.eliteSpecialization(elementalistProfession.createBuildDefaults()),
+      isSkillAvailable: elementalistAppAdapter.isSkillAvailable,
+      weaponSkillMatchesSet: elementalistAppAdapter.weaponSkillMatchesSet,
+      slotLoadout: elementalistAppAdapter.slotLoadout,
+      weaponData: elementalistAppAdapter.weaponData,
+      ui: elementalistProfession.ui,
+      projectActions: elementalistProfession.ui.paletteActionSkills,
+      canSwapWeaponSetsInCombat: elementalistProfession.resolveProfession({
+        specialization: elementalistAppAdapter.eliteSpecialization(elementalistProfession.createBuildDefaults())
+      }).canSwapWeaponSetsInCombat,
+      catalog: elementalistProfession.catalog
+    }),
     elementalistCatalog.skillsById.get(5493)
   );
 

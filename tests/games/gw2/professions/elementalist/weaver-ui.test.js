@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { paletteView, projectPalette } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
@@ -156,7 +157,7 @@ for (const primaryAttunement of ['Fire', 'Air']) {
     assert.match(currentHtml, /data-skill="Polaric Slash"/);
     assert.match(currentHtml, /data-skill="Polaric Slash"[^>]*draggable="true"/);
     assert.equal((currentHtml.match(/data-skill="Polaric Slash"/g) || []).length, 1);
-    const occurrences = projectPalette(app).customWeaponPalette.skills.filter(
+    const occurrences = projectPalette(capturePaletteInput(app)).customWeaponPalette.skills.filter(
       (tile) => tile.skillId === airFollowup.id
     );
     assert.equal(occurrences.filter((tile) => tile.hotkeyAction).length, 1, 'one actionable carried attack');

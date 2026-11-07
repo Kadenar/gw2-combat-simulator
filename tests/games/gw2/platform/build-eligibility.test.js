@@ -7,6 +7,7 @@ import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profes
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 
 test('shared eligibility precedes profession filters and cast state changes', () => {
   let stateChecks = 0;
@@ -62,7 +63,14 @@ test('shared eligibility precedes profession filters and cast state changes', ()
   for (const skill of [excluded, profession.catalog.skillsById.get(wrongSpecialization.id)]) {
     assert.equal(adapter.isSkillAvailable(skill, context), false);
     assert.equal(
-      paletteAvailability({ profession, analysis: { state: { results: null } } }, context, skill).available,
+      paletteAvailability(
+        paletteInputFixture({
+          ui: profession.ui,
+          planning: null
+        }),
+        context,
+        skill
+      ).available,
       false
     );
   }
@@ -70,7 +78,14 @@ test('shared eligibility precedes profession filters and cast state changes', ()
   assert.equal(filterChecks, 0, 'Rejected builds must not reach the profession browser filter');
   assert.equal(adapter.isSkillAvailable(weapon, context), true);
   assert.equal(
-    paletteAvailability({ profession, analysis: { state: { results: null } } }, context, weapon).available,
+    paletteAvailability(
+      paletteInputFixture({
+        ui: profession.ui,
+        planning: null
+      }),
+      context,
+      weapon
+    ).available,
     true
   );
 
@@ -111,12 +126,14 @@ test('every profession inherits build rejection in browser, palette, and resolve
         const label = `${entry.id}/${specialization}: ${skill.name}`;
         assert.equal(adapter.isSkillAvailable(skill, context), false, label);
         assert.equal(
-          paletteAvailability({ profession: adapter.profession, results: null }, context, skill).available,
+          paletteAvailability(paletteInputFixture({ ui: adapter.profession.ui, specialization }), context, skill)
+            .available,
           false,
           label
         );
         assert.equal(
-          paletteAvailability({ profession: adapter.profession, results: null }, context, skill).available,
+          paletteAvailability(paletteInputFixture({ ui: adapter.profession.ui, specialization }), context, skill)
+            .available,
           false,
           label
         );

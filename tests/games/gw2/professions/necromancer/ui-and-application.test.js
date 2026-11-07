@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { queryWeaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { formatResourceValue } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
@@ -15,6 +15,7 @@ import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necr
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { createObservedProfessionSimulator, planningFixture } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 const baseConfig = Object.freeze({
@@ -552,41 +553,23 @@ test('slot skills are inaccessible in transformed shrouds', () => {
 
 test('Harbinger can equip torch skills through Weaponmaster Training', async () => {
   const adapter = await loadProfessionAppAdapter('necromancer');
-  const skills = weaponSkills({
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    patch: adapter.profession.resolvePatch(),
-    adapter,
-    activeCatalog: necromancerCatalog,
-    build: {
-      weapons: ['Pistol', 'Torch'],
-      alternateWeapons: ['Scepter', 'Dagger'],
-      specializations: [
-        { name: 'Curses', traits: '1-1-3' },
-        { name: 'Harbinger', traits: '3-3-1' }
-      ]
-    },
-    weaponData: {
-      Pistol: { wielding: '1h' },
-      Torch: { wielding: '1h' },
-      Scepter: { wielding: '1h' },
-      Dagger: { wielding: '1h' }
-    }
-  });
-
-  assert.equal(
-    skills.some((skill) => skill.name === 'Harrowing Wave'),
-    true
-  );
-  assert.equal(
-    skills.some((skill) => skill.name === 'Oppressive Collapse'),
-    true
-  );
-  const scepterSkills = weaponSkills(
-    {
-      analysis: { needsPatchComparison: () => false, state: { results: null } },
-      patch: adapter.profession.resolvePatch(),
-      adapter,
-      activeCatalog: necromancerCatalog,
+  const skills = queryWeaponSkills(
+    paletteInputFixture({
+      planning: null,
+      specialization: adapter.eliteSpecialization({
+        weapons: ['Pistol', 'Torch'],
+        alternateWeapons: ['Scepter', 'Dagger'],
+        specializations: [
+          { name: 'Curses', traits: '1-1-3' },
+          { name: 'Harbinger', traits: '3-3-1' }
+        ]
+      }),
+      isSkillAvailable: adapter.isSkillAvailable,
+      weaponSkillMatchesSet: adapter.weaponSkillMatchesSet,
+      slotLoadout: adapter.slotLoadout,
+      ui: adapter.profession.ui,
+      projectActions: adapter.profession.ui.paletteActionSkills,
+      catalog: necromancerCatalog,
       build: {
         weapons: ['Pistol', 'Torch'],
         alternateWeapons: ['Scepter', 'Dagger'],
@@ -601,7 +584,49 @@ test('Harbinger can equip torch skills through Weaponmaster Training', async () 
         Scepter: { wielding: '1h' },
         Dagger: { wielding: '1h' }
       }
-    },
+    })
+  );
+
+  assert.equal(
+    skills.some((skill) => skill.name === 'Harrowing Wave'),
+    true
+  );
+  assert.equal(
+    skills.some((skill) => skill.name === 'Oppressive Collapse'),
+    true
+  );
+  const scepterSkills = queryWeaponSkills(
+    paletteInputFixture({
+      planning: null,
+      specialization: adapter.eliteSpecialization({
+        weapons: ['Pistol', 'Torch'],
+        alternateWeapons: ['Scepter', 'Dagger'],
+        specializations: [
+          { name: 'Curses', traits: '1-1-3' },
+          { name: 'Harbinger', traits: '3-3-1' }
+        ]
+      }),
+      isSkillAvailable: adapter.isSkillAvailable,
+      weaponSkillMatchesSet: adapter.weaponSkillMatchesSet,
+      slotLoadout: adapter.slotLoadout,
+      ui: adapter.profession.ui,
+      projectActions: adapter.profession.ui.paletteActionSkills,
+      catalog: necromancerCatalog,
+      build: {
+        weapons: ['Pistol', 'Torch'],
+        alternateWeapons: ['Scepter', 'Dagger'],
+        specializations: [
+          { name: 'Curses', traits: '1-1-3' },
+          { name: 'Harbinger', traits: '3-3-1' }
+        ]
+      },
+      weaponData: {
+        Pistol: { wielding: '1h' },
+        Torch: { wielding: '1h' },
+        Scepter: { wielding: '1h' },
+        Dagger: { wielding: '1h' }
+      }
+    }),
     2
   );
 

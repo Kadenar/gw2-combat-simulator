@@ -10,16 +10,19 @@ import {
 } from '#gw2/app/rotation/palette/model.js';
 import { paletteHtml, paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
+import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { observedRuntime, observeGw2Runtime, planningFixture } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
-function projectionApp(
+/** Build presentation facts independently of the application lifecycle. */
+function projectionInput(
   profession,
   {
     specialization = 'Core',
@@ -31,48 +34,32 @@ function projectionApp(
     useProfessionUi = true
   } = {}
 ) {
-  const build = profession.createBuildDefaults?.() || {};
-  return {
-    build: {
-      ...build,
-      rotation: build.rotation || [],
-      startingWeaponSet: build.startingWeaponSet || 1
-    },
-    adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => specialization },
-    profession: useProfessionUi ? profession : { catalog: profession.catalog, ui: {} },
-    activeCatalog: profession.catalog,
-    analysis: {
-      state: {
-        buildRevision: 0,
-        resultRevision: 0,
-        simulationStatus: 'idle',
-        simulationError: '',
-        patchComparison: null,
-        results: {
-          planningState: {
-            availability: {},
-            atSeconds: time,
-            activeWeaponSet: 1,
-            cooldownsBySkillId,
-            ammoBySkillId,
-
-            profession: { ...professionState, [STATE.AVAILABLE_FLIPS]: flips }
-          }
-        }
-      }
+  return paletteInputFixture({
+    build: profession.createBuildDefaults?.() || {},
+    specialization,
+    ui: useProfessionUi && profession.ui ? profession.ui : { ...normalizeProfessionUi('palette-fixture') },
+    projectActions: profession.ui?.paletteActionSkills,
+    catalog: profession.catalog,
+    planning: {
+      availability: {},
+      atSeconds: time,
+      activeWeaponSet: 1,
+      cooldownsBySkillId,
+      ammoBySkillId,
+      profession: { ...professionState, [STATE.AVAILABLE_FLIPS]: flips }
     }
-  };
+  });
 }
 
 // The dodge tile renders the projected fractional pool as endurance, without inventing ammunition.
 test('Mirage dodge markup exposes projected endurance instead of ammo', async () => {
   const profession = await loadProfession('mesmer');
-  const app = projectionApp(profession, {
+  const input = projectionInput(profession, {
     specialization: 'Mirage',
     professionState: { [STATE.ENDURANCE]: { value: 7.5, maximum: 100, updatedAt: 0, unitsPerSecond: 0 } }
   });
   const skill = profession.catalog.skillsById.get(-1);
-  const markup = paletteSkillHtml(paletteSkillView(app, skill));
+  const markup = paletteSkillHtml(paletteSkillView(input, skill));
   assert.match(markup, /class="pal-skill-resource" data-resource-id="endurance"/);
   assert.match(markup, /aria-valuenow="7\.5"/);
   assert.doesNotMatch(markup, /pal-ammo-pip|Ammunition:|Count recharge/);
@@ -94,11 +81,11 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
   ]) {
     const config = { boons: { alacrity } };
     const result = observeGw2Runtime({ profession: profession.runtimeFor(config), rotation: [skill.name], config });
-    const app = projectionApp(profession, {
+    const input = projectionInput(profession, {
       time: result.planningState.atSeconds,
       cooldownsBySkillId: result.planningState.cooldownsBySkillId
     });
-    const view = paletteSkillView(app, skill, true);
+    const view = paletteSkillView(input, skill, true);
     assert.equal(view.cooldownLabel, label);
     assert.equal(view.disabled, true);
     assert.equal(observedRuntime(result).cooldownController.rechargeFor(skill.id).work, 20);
@@ -106,25 +93,25 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
 });
 
 // Tiny catalogs keep family expectations independent of the production grouping algorithm.
-function catalogApp(skills, { professionState = {}, flips = {} } = {}) {
+function catalogInput(skills, { professionState = {}, flips = {} } = {}) {
   const catalog = {
     skills,
     skillsById: new Map(skills.map((skill) => [skill.id, skill]))
   };
-  return projectionApp({ catalog }, { professionState, flips, useProfessionUi: false });
+  return projectionInput({ catalog }, { professionState, flips, useProfessionUi: false });
 }
 
 // Display labels do not couple independent variants' countdowns, disabled states, or charge counts.
 test('same-name palette skills use their own cooldown and ammo identities', () => {
   const skills = [990101, 990102].map((id) => ({ id, name: 'Shared Name', type: 'Utility', effects: [] }));
-  const app = catalogApp(skills);
-  app.profession.ui.resourceViews = () => [];
-  app.analysis.state.results.planningState.cooldownsBySkillId = { 990101: { remainingMs: 4000, readyAtMs: 4000 } };
-  app.analysis.state.results.planningState.ammoBySkillId = {
+  const input = catalogInput(skills);
+  input.ui.resourceViews = () => [];
+  input.planning.cooldownsBySkillId = { 990101: { remainingMs: 4000, readyAtMs: 4000 } };
+  input.planning.ammoBySkillId = {
     990101: { charges: 0, maximum: 2, nextRechargeAt: null },
     990102: { charges: 2, maximum: 2, nextRechargeAt: null }
   };
-  const [cooling, ready] = skills.map((skill) => paletteSkillView(app, skill));
+  const [cooling, ready] = skills.map((skill) => paletteSkillView(input, skill));
   assert.equal(cooling.cooldownLabel, '4.000s');
   assert.equal(cooling.disabled, true);
   assert.equal(cooling.ammo.current, 0);
@@ -136,29 +123,29 @@ test('same-name palette skills use their own cooldown and ammo identities', () =
 // Startup is unknown; once observed, a missing candidate is a contract failure rather than permission to insert.
 test('palette distinguishes startup, missing verdicts, and runtime retry boundaries', () => {
   const skill = { id: 990001, name: 'Candidate', type: 'Utility', effects: [] };
-  const app = catalogApp([skill]);
-  app.profession.ui.resourceViews = () => [];
+  const input = catalogInput([skill]);
+  input.ui.resourceViews = () => [];
   const context = { specialization: 'Core' };
-  const observation = app.analysis.state.results;
-  app.analysis.state.results = null;
-  assert.deepEqual(paletteAvailability(app, context, skill), {
+  const observation = input.planning;
+  input.planning = null;
+  assert.deepEqual(paletteAvailability(input, context, skill), {
     available: true,
     message: 'Runtime availability has not been evaluated yet.'
   });
-  app.analysis.state.results = observation;
-  assert.equal(paletteAvailability(app, context, skill).available, false);
-  app.analysis.state.results.planningState.availability[skill.id] = {
+  input.planning = observation;
+  assert.equal(paletteAvailability(input, context, skill).available, false);
+  input.planning.availability[skill.id] = {
     ready: false,
     code: 'fixture.wait',
     reason: 'Await a tick.',
     retryAt: 2
   };
-  const availability = paletteAvailability(app, context, skill);
-  const view = paletteSkillView(app, skill, availability.available, availability.message, availability.retryAt);
+  const availability = paletteAvailability(input, context, skill);
+  const view = paletteSkillView(input, skill, availability.available, availability.message, availability.retryAt);
   assert.equal(view.contextDisabled, false);
   assert.equal(view.cooldownLabel, '2.000s');
   assert.match(view.castDetails, /Availability rechecked in: 2\.000s/);
-  assert.equal(paletteAvailability(app, context, { ...skill, specialization: 'Bladesworn' }).available, false);
+  assert.equal(paletteAvailability(input, context, { ...skill, specialization: 'Bladesworn' }).available, false);
 });
 
 // Completed projection retains retries across surfaces, while weapon placement and loadout vetoes still block insertion.
@@ -186,10 +173,11 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
     const adapter = await loadProfessionAppAdapter(id);
     const profession = adapter.profession;
     const specialization = config.specialization || 'Core';
-    const app = {
-      patch: adapter.profession.resolvePatch(),
-      ...projectionApp(profession, { specialization }),
-      adapter,
+    const input = paletteInputFixture({
+      ...projectionInput(profession, { specialization }),
+      isSkillAvailable: adapter.isSkillAvailable,
+      weaponSkillMatchesSet: adapter.weaponSkillMatchesSet,
+      slotLoadout: adapter.slotLoadout,
       weaponData: adapter.weaponData,
       build: {
         ...createDefaultBuild(adapter),
@@ -199,23 +187,14 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
         alternateWeapons: ['Dagger', 'Dagger'],
         rotation: []
       },
-      analysis: {
-        state: {
-          buildRevision: 0,
-          resultRevision: 0,
-          simulationStatus: 'idle',
-          simulationError: '',
-          patchComparison: null,
-          results: simulateGw2({ profession, config: { specialization, ...config }, rotation })
-        }
-      }
-    };
-    const skill = app.activeCatalog.skills.find((candidate) => candidate.name === name);
-    const verdict = app.analysis.state.results.planningState.availability[skill.id];
+      planning: simulateGw2({ profession, config: { specialization, ...config }, rotation }).planningState
+    });
+    const skill = input.catalog.skills.find((candidate) => candidate.name === name);
+    const verdict = input.planning.availability[skill.id];
     assert.equal(verdict.ready, false, name);
-    assert.ok(verdict.retryAt > app.analysis.state.results.planningState.atSeconds, name);
+    assert.ok(verdict.retryAt > input.planning.atSeconds, name);
     const projectedTiles = () => {
-      const projection = projectPalette(app);
+      const projection = projectPalette(input);
       const groups = [
         ...projection.weaponGroups,
         ...projection.renderedProfessionGroups,
@@ -239,10 +218,7 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
     }
 
     if (id === 'revenant') {
-      app.adapter = {
-        ...adapter,
-        slotLoadout: { ...adapter.slotLoadout, unavailableReason: () => 'Requires another loadout' }
-      };
+      input.slotLoadout = { ...adapter.slotLoadout, unavailableReason: () => 'Requires another loadout' };
       const denied = projectedTiles()[0];
       assert.equal(denied.contextDisabled, true);
       assert.doesNotMatch(denied.castDetails, /Availability rechecked in:/);
@@ -259,10 +235,10 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
     }
 
     // The completed projection can render after its source state and hooks are no longer accessible.
-    const projection = projectPalette(app);
+    const projection = projectPalette(input);
     const expectedMarkup = paletteHtml(projection);
-    for (const key of ['build', 'profession', 'adapter', 'analysis', 'activeCatalog']) {
-      Object.defineProperty(app, key, {
+    for (const key of ['build', 'ui', 'tooltip', 'planning', 'catalog']) {
+      Object.defineProperty(input, key, {
         get() {
           throw new Error(`Renderer read ${key}`);
         }
@@ -276,10 +252,11 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
 // A transformed-away active row must leave swap accessible; virtual control state follows authored commands.
 test('projection places weapon swap once and derives timeline controls from the rotation', async () => {
   const adapter = await loadProfessionAppAdapter('guardian');
-  const app = {
-    ...projectionApp(adapter.profession),
-    adapter,
-    patch: adapter.profession.resolvePatch(),
+  const input = {
+    ...projectionInput(adapter.profession),
+    isSkillAvailable: adapter.isSkillAvailable,
+    weaponSkillMatchesSet: adapter.weaponSkillMatchesSet,
+    slotLoadout: adapter.slotLoadout,
     weaponData: adapter.weaponData,
     build: {
       ...createDefaultBuild(adapter),
@@ -288,19 +265,16 @@ test('projection places weapon swap once and derives timeline controls from the 
       rotation: []
     }
   };
-  const projection = projectPalette(app);
+  const projection = projectPalette(input);
   const swaps = (group) => group.skills.filter((tile) => tile.name === 'Swap Weapons');
   assert.equal(projection.weaponGroups.flatMap(swaps).length, 1);
   assert.equal(swaps(projection.actionGroup).length, 0);
   assert.equal(projection.timelineControls[0].skills[0].contextDisabled, false);
   assert.equal(projection.timelineControls[2].skills[0].draggable, true);
 
-  app.profession = {
-    ...app.profession,
-    ui: { ...app.profession.ui, paletteWeaponSkills: (context, skills) => (context.weaponSet === 1 ? [] : skills) }
-  };
-  app.build.rotation = [{ type: 'combat-start' }];
-  const withoutActiveRow = projectPalette(app);
+  input.ui = { ...input.ui, paletteWeaponSkills: (context, skills) => (context.weaponSet === 1 ? [] : skills) };
+  input.build.rotation = [{ type: 'combat-start' }];
+  const withoutActiveRow = projectPalette(input);
   assert.equal(withoutActiveRow.weaponGroups.flatMap(swaps).length, 0);
   assert.equal(swaps(withoutActiveRow.actionGroup).length, 1);
   assert.equal(withoutActiveRow.timelineControls[0].skills[0].contextDisabled, true);
@@ -310,15 +284,15 @@ test('projection places weapon swap once and derives timeline controls from the 
 test('a denied follow-up stays in the shared palette slot', () => {
   const root = { id: 990010, name: 'Root', type: 'Weapon', flipSkillId: 990011 };
   const followup = { id: 990011, name: 'Follow-up', type: 'Weapon', flipParentId: 990010 };
-  const app = catalogApp([root, followup], { flips: { [followup.id]: armSkillFlip({}, 0, 0, 10) } });
-  app.analysis.state.results.planningState.availability[followup.id] = {
+  const input = catalogInput([root, followup], { flips: { [followup.id]: armSkillFlip({}, 0, 0, 10) } });
+  input.planning.availability[followup.id] = {
     ready: false,
     code: 'fixture.cost',
     reason: 'Resource depleted.',
     retryAt: null
   };
   assert.deepEqual(
-    displayedSkillTiles(app, [root, followup]).map((skill) => skill.id),
+    displayedSkillTiles(input, [root, followup]).map((skill) => skill.id),
     [followup.id]
   );
 });
@@ -326,12 +300,12 @@ test('a denied follow-up stays in the shared palette slot', () => {
 // The synthetic button checks the same two skills its existing resolver inserts, including the current chain step.
 test('Dodge + Auto derives availability from its unchanged command expansion', async () => {
   const profession = await loadProfession('revenant');
-  const app = projectionApp(profession, { specialization: 'Vindicator' });
+  const input = projectionInput(profession, { specialization: 'Vindicator' });
   const opener = profession.catalog.skillsById.get(29057);
   const followup = profession.catalog.skillsById.get(29256);
   const context = { specialization: 'Vindicator', activeAutoattack: followup };
   const skill = profession.ui.paletteActionSkills(context, []).find((entry) => entry.id === '__vindicator_dodge_auto');
-  const availability = app.analysis.state.results.planningState.availability;
+  const availability = input.planning.availability;
   availability[SHARED_SKILL_IDS.DODGE] = { ready: true };
   availability[opener.id] = { ready: true };
   availability[followup.id] = { ready: true };
@@ -340,7 +314,7 @@ test('Dodge + Auto derives availability from its unchanged command expansion', a
     { type: 'cast', skillId: SHARED_SKILL_IDS.DODGE },
     { type: 'cast', skillId: followup.id, concurrentOffsetMs: 0 }
   ]);
-  assert.deepEqual(paletteAvailability(app, context, skill), { available: true, message: '' });
+  assert.deepEqual(paletteAvailability(input, context, skill), { available: true, message: '' });
 
   availability[SHARED_SKILL_IDS.DODGE] = {
     ready: false,
@@ -348,23 +322,23 @@ test('Dodge + Auto derives availability from its unchanged command expansion', a
     code: 'fixture.endurance',
     retryAt: 5
   };
-  const retry = paletteAvailability(app, context, skill);
+  const retry = paletteAvailability(input, context, skill);
   assert.equal(retry.retryAt, 5);
-  assert.equal(paletteSkillView(app, skill, retry.available, retry.message, retry.retryAt).contextDisabled, false);
+  assert.equal(paletteSkillView(input, skill, retry.available, retry.message, retry.retryAt).contextDisabled, false);
   availability[followup.id] = { ready: false, reason: 'Weapon unavailable.', code: 'fixture.weapon', retryAt: null };
-  assert.deepEqual(paletteAvailability(app, context, skill), {
+  assert.deepEqual(paletteAvailability(input, context, skill), {
     available: false,
     message: 'Weapon unavailable.',
     retryAt: null
   });
   availability[followup.id] = { ready: false, reason: 'Recharge.', code: 'fixture.cooldown', retryAt: 8 };
-  assert.equal(paletteAvailability(app, context, skill).retryAt, 8);
+  assert.equal(paletteAvailability(input, context, skill).retryAt, 8);
   // Neither a ready opener nor a retryable dodge may excuse a missing verdict for the selected chain step.
   delete availability[followup.id];
-  assert.equal(paletteAvailability(app, context, skill).available, false);
+  assert.equal(paletteAvailability(input, context, skill).available, false);
   availability[followup.id] = { ready: true };
   delete availability[SHARED_SKILL_IDS.DODGE];
-  assert.equal(paletteAvailability(app, context, skill).available, false);
+  assert.equal(paletteAvailability(input, context, skill).available, false);
   assert.deepEqual(profession.ui.resolvePaletteAction(context, { name: skill.name }), commands);
 });
 
@@ -373,8 +347,8 @@ test('composite palette availability only admits owned cast actions with observe
   const component = { id: 990001, name: 'Component', type: 'Weapon' };
   const ordinary = { id: 990002, name: 'Ordinary', type: 'Weapon' };
   const action = { id: '__fixture', name: '__fixture', type: 'Action' };
-  const app = catalogApp([component, ordinary]);
-  app.analysis.state.results.planningState.availability[component.id] = { ready: true };
+  const input = catalogInput([component, ordinary]);
+  input.planning.availability[component.id] = { ready: true };
   const context = { specialization: 'Core' };
   for (const expansion of [
     undefined,
@@ -383,50 +357,46 @@ test('composite palette availability only admits owned cast actions with observe
     [{ type: 'wait', durationMs: 100 }],
     [{ type: 'cast', skillId: 999 }]
   ]) {
-    app.profession.ui.resolvePaletteAction = () => expansion;
-    assert.equal(paletteAvailability(app, context, action).available, false);
+    input.ui.resolvePaletteAction = () => expansion;
+    assert.equal(paletteAvailability(input, context, action).available, false);
   }
 
-  app.profession.ui.resolvePaletteAction = () => [{ type: 'cast', skillId: component.id }];
-  assert.equal(paletteAvailability(app, context, ordinary).available, false);
-  assert.equal(paletteAvailability(app, context, action).available, true);
+  input.ui.resolvePaletteAction = () => [{ type: 'cast', skillId: component.id }];
+  assert.equal(paletteAvailability(input, context, ordinary).available, false);
+  assert.equal(paletteAvailability(input, context, action).available, true);
 });
 
 // Command editors can expose valid lower-charge releases while the default maximum-charge command is denied.
 test('Dragon Slash editor access is separate from its default verdict and requires an observed candidate', async () => {
   const profession = await loadProfession('warrior');
-  const app = projectionApp(profession, { specialization: 'Bladesworn' });
-  app.analysis.state.results.planningState = planningFixture(
-    profession,
-    { specialization: 'Bladesworn' },
-    (runtime) => {
-      Object.assign(runtime.profession.specialization.state, {
-        gunsaberActive: true,
-        dragonTriggerActive: true,
-        dragonCharges: { value: 1, maximum: 10, unitsPerSecond: 0, updatedAt: 0 },
-        nextDragonChargeAt: 0
-      });
-    }
-  );
+  const input = projectionInput(profession, { specialization: 'Bladesworn' });
+  input.planning = planningFixture(profession, { specialization: 'Bladesworn' }, (runtime) => {
+    Object.assign(runtime.profession.specialization.state, {
+      gunsaberActive: true,
+      dragonTriggerActive: true,
+      dragonCharges: { value: 1, maximum: 10, unitsPerSecond: 0, updatedAt: 0 },
+      nextDragonChargeAt: 0
+    });
+  });
   const skill = profession.catalog.skills.find((skill) => skill.dragonSlash);
   const availability = paletteAvailability(
-    app,
-    { specialization: 'Bladesworn', professionState: app.analysis.state.results.planningState.profession },
+    input,
+    { specialization: 'Bladesworn', professionState: input.planning.profession },
     skill
   );
   assert.equal(availability.available, false);
-  assert.equal(paletteSkillView(app, skill, false, availability.message).contextDisabled, false);
+  assert.equal(paletteSkillView(input, skill, false, availability.message).contextDisabled, false);
   // Editor access cannot bypass a denied command unless a descriptor actually exists; lookup stays lazy.
-  app.profession = { ...profession, ui: { ...profession.ui, castEditor: () => null } };
-  assert.equal(paletteSkillView(app, skill, false).contextDisabled, true);
-  app.profession.ui.castEditor = () => ({
+  input.ui = { ...profession.ui, castEditor: () => null };
+  assert.equal(paletteSkillView(input, skill, false).contextDisabled, true);
+  input.ui.castEditor = () => ({
     prepare() {
       throw new Error('Eligibility must not prepare choices');
     }
   });
-  assert.equal(paletteSkillView(app, skill, false).contextDisabled, false);
-  delete app.analysis.state.results.planningState.availability[skill.id];
-  assert.equal(paletteSkillView(app, skill, false).contextDisabled, true);
+  assert.equal(paletteSkillView(input, skill, false).contextDisabled, false);
+  delete input.planning.availability[skill.id];
+  assert.equal(paletteSkillView(input, skill, false).contextDisabled, true);
 });
 
 for (const [label, skills, states] of [
@@ -457,10 +427,10 @@ for (const [label, skills, states] of [
 ]) {
   test(`shared ${label} selects one live tile from the full family or its root alone`, () => {
     for (const [availableFlips, expected] of states) {
-      const app = catalogApp(skills, { flips: availableFlips });
-      for (const input of [skills, [skills[0]]]) {
+      const input = catalogInput(skills, { flips: availableFlips });
+      for (const candidates of [skills, [skills[0]]]) {
         assert.deepEqual(
-          displayedSkillTiles(app, input).map((skill) => skill.id),
+          displayedSkillTiles(input, candidates).map((skill) => skill.id),
           expected
         );
       }
@@ -483,12 +453,12 @@ test('autoattack links, replacements, and excluded flips never expand a root-onl
       { id: 1, name: 'Root', flipSkillId: 2, ...parent },
       { id: 2, name: 'Excluded', flipParentId: 1, ...child }
     ];
-    const app = catalogApp(skills, {
+    const input = catalogInput(skills, {
       flips: { 2: armSkillFlip({}, 0, 0, Infinity) },
       professionState: { [STATE.AUTOATTACK_CHAINS]: { 1: 2 } }
     });
     assert.deepEqual(
-      displayedSkillTiles(app, [skills[0]]).map((skill) => skill.id),
+      displayedSkillTiles(input, [skills[0]]).map((skill) => skill.id),
       [1],
       label
     );
@@ -500,19 +470,19 @@ test('every profession catalog projects tiles and active autoattack stages', asy
 
   for (const option of professionOptions) {
     const profession = await loadProfession(option.id);
-    const baseApp = projectionApp(profession, { useProfessionUi: false });
-    assert.ok(displayedSkillTiles(baseApp, profession.catalog.skills).length > 0, option.id);
+    const baseInput = projectionInput(profession, { useProfessionUi: false });
+    assert.ok(displayedSkillTiles(baseInput, profession.catalog.skills).length > 0, option.id);
 
     for (const chain of profession.catalog.autoattackChains) {
       const skills = chain.map((skillId) => profession.catalog.skillsById.get(skillId));
-      assert.equal(displayedSkillTiles(baseApp, skills)[0].id, chain[0], `${option.id}: ${skills[0].name}`);
+      assert.equal(displayedSkillTiles(baseInput, skills)[0].id, chain[0], `${option.id}: ${skills[0].name}`);
       for (const skill of skills) {
-        const app = projectionApp(profession, {
+        const input = projectionInput(profession, {
           professionState: { [STATE.AUTOATTACK_CHAINS]: { [chain[0]]: skill.id } },
           useProfessionUi: false
         });
         assert.deepEqual(
-          displayedSkillTiles(app, skills).map((candidate) => candidate.id),
+          displayedSkillTiles(input, skills).map((candidate) => candidate.id),
           [skill.id],
           `${option.id}: ${skills[0].name} -> ${skill.name}`
         );
@@ -539,7 +509,7 @@ test('UI-only tile declarations collapse through the same profession-neutral hoo
     for (const [tileId, family] of families) {
       assert.ok(family.length > 1, `${option.id}: ${tileId}`);
       assert.equal(
-        displayedSkillTiles(projectionApp(profession, { useProfessionUi: false }), family).length,
+        displayedSkillTiles(projectionInput(profession, { useProfessionUi: false }), family).length,
         1,
         `${option.id}: ${tileId}`
       );
@@ -689,21 +659,21 @@ test('stateful transforms select one live tile across professions', async () => 
   for (const [professionId, specialization, state, names, expected, flips = {}] of cases) {
     const profession = professions.get(professionId);
     // Renamed labels must not change which skill ID occupies a stateful tile.
-    const app = projectionApp(profession, { specialization, professionState: state, flips });
-    const renamedSkills = app.activeCatalog.skills.map((skill) => ({ ...skill, name: `Renamed ${skill.name}` }));
+    const input = projectionInput(profession, { specialization, professionState: state, flips });
+    const renamedSkills = input.catalog.skills.map((skill) => ({ ...skill, name: `Renamed ${skill.name}` }));
     // Keep every lookup consistent while isolating renamed labels from the shared profession catalog.
-    app.activeCatalog = {
-      ...app.activeCatalog,
+    input.catalog = {
+      ...input.catalog,
       skills: renamedSkills,
       skillsById: new Map(renamedSkills.map((skill) => [skill.id, skill]))
     };
     const skills = names.map((name) =>
-      app.activeCatalog.skills.find(
+      input.catalog.skills.find(
         (skill) => skill.id === profession.catalog.skills.find((candidate) => candidate.name === name).id
       )
     );
     assert.deepEqual(
-      displayedSkillTiles(app, skills).map((skill) => skill.id),
+      displayedSkillTiles(input, skills).map((skill) => skill.id),
       [profession.catalog.skills.find((candidate) => candidate.name === expected).id],
       `${professionId}: ${expected}`
     );
@@ -725,7 +695,7 @@ test('Untamed ambush tiles glow only while their window is open and recharge is 
         time,
         professionState: { [STATE.RANGER_UNLEASHED]: rangerUnleashed, [STATE.AMBUSH_READY_UNTIL]: 4 }
       };
-      const app = projectionApp(profession, {
+      const input = projectionInput(profession, {
         ...context,
         cooldownsBySkillId: { [skill.id]: { remainingMs, readyAtMs: 4000 } }
       });
@@ -733,7 +703,7 @@ test('Untamed ambush tiles glow only while their window is open and recharge is 
         Object.assign(runtime.profession.specialization.state, { rangerUnleashed, ambushReadyUntil: time < 4 ? 4 : 0 });
       });
       const availability = planning.availability[skill.id];
-      assert.equal(paletteSkillView(app, skill, availability.ready).highlighted, expected, name);
+      assert.equal(paletteSkillView(input, skill, availability.ready).highlighted, expected, name);
     }
   }
 });
@@ -747,10 +717,10 @@ test('Gunsaber tile shows the shared cooldown after direct or Dragon Trigger ent
       rotation: ['__combat_start', entry],
       config: { specialization: 'Bladesworn', initialResource: 100, primaryWeapon: 'Sword' }
     });
-    const app = projectionApp(profession, { specialization: 'Bladesworn' });
-    app.analysis.state.results = result;
-    const [skill] = displayedSkillTiles(app, [profession.catalog.skillsById.get(62745)]);
-    const view = paletteSkillView(app, skill);
+    const input = projectionInput(profession, { specialization: 'Bladesworn' });
+    input.planning = result.planningState;
+    const [skill] = displayedSkillTiles(input, [profession.catalog.skillsById.get(62745)]);
+    const view = paletteSkillView(input, skill);
 
     assert.deepEqual(result.warnings, []);
     assert.equal(skill.name, 'Sheathe Gunsaber');
@@ -761,7 +731,7 @@ test('Gunsaber tile shows the shared cooldown after direct or Dragon Trigger ent
 
 test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', async () => {
   const profession = await loadProfession('elementalist');
-  const app = projectionApp(profession, {
+  const input = projectionInput(profession, {
     specialization: 'Core',
     professionState: {},
     flips: {},
@@ -770,8 +740,8 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
       [profession.catalog.skillsById.get(5695).id]: { remainingMs: 8000, readyAtMs: 9000 }
     }
   });
-  const [skill] = displayedSkillTiles(app, [profession.catalog.skillsById.get(5695)]);
-  const view = paletteSkillView(app, skill, true);
+  const [skill] = displayedSkillTiles(input, [profession.catalog.skillsById.get(5695)]);
+  const view = paletteSkillView(input, skill, true);
 
   assert.equal(skill.name, 'Rock Barrier');
   assert.equal(view.cooldownLabel, '8.000s');
@@ -782,15 +752,15 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
 test('cooldown tooltip reports availability relative to combat start', async () => {
   const profession = await loadProfession('necromancer');
   const skill = profession.catalog.skillsById.get(76961);
-  const app = projectionApp(profession, {
+  const input = projectionInput(profession, {
     time: 14.84,
     cooldownsBySkillId: {
       [skill.id]: { remainingMs: 8160, readyAtMs: 23000 }
     }
   });
-  app.analysis.state.results.events = [{ type: 'combat_start', at: 10 }];
+  input.combatReferenceMs = 10000;
 
-  assert.match(paletteSkillView(app, skill).castDetails, /Ready in: 8\.160s\nAvailable at: 13\.000s/);
+  assert.match(paletteSkillView(input, skill).castDetails, /Ready in: 8\.160s\nAvailable at: 13\.000s/);
 });
 
 test('Holosmith Photon Forge autos are catalog autoattack chains', async () => {
@@ -807,16 +777,16 @@ test('Holosmith Forge tiles follow weapon slots for normal and Storm autos', asy
   const profession = await loadProfession('engineer');
   // Trait variants must preserve the same five-slot Forge layout after chain projection.
   for (const storm of [false, true]) {
-    const app = projectionApp(profession, {
+    const input = projectionInput(profession, {
       specialization: 'Holosmith',
       professionState: { [STATE.PHOTON_FORGE_ACTIVE]: true }
     });
-    app.build.specializations = [{ name: 'Holosmith', traits: storm ? '1-1-1' : '1-2-1' }];
+    input.build.specializations = [{ name: 'Holosmith', traits: storm ? '1-1-1' : '1-2-1' }];
     const group = profession.ui
-      .paletteGroups({ specialization: 'Holosmith', build: app.build, catalog: app.activeCatalog })
+      .paletteGroups({ specialization: 'Holosmith', build: input.build, catalog: input.catalog })
       .find((candidate) => candidate.id === 'engineer-forge');
     const tiles = displayedSkillTiles(
-      app,
+      input,
       group.skillIds.map((skillId) => profession.catalog.skillsById.get(skillId))
     );
 
@@ -834,7 +804,7 @@ test('Herald legend-dependent True Nature variants use one shared Facet tile', a
     const professionState = {
       [STATE.ACTIVE_LEGEND_ID]: 'LegendaryAssassin'
     };
-    const app = projectionApp(profession, {
+    const input = projectionInput(profession, {
       specialization: 'Herald',
       flips: availableFlips,
       professionState
@@ -843,13 +813,13 @@ test('Herald legend-dependent True Nature variants use one shared Facet tile', a
       .paletteGroups({
         specialization: 'Herald',
         professionState,
-        build: app.build,
+        build: input.build,
         catalog: profession.catalog
       })
       .find((candidate) => candidate.id === 'revenant-profession');
 
     return displayedSkillTiles(
-      app,
+      input,
       group.skillIds.map((skillId) => profession.catalog.skillsById.get(skillId))
     ).map((skill) => skill.name);
   };
@@ -866,7 +836,7 @@ test('undeclared reciprocal links never become palette flips', () => {
       { id: 990202, name: 'Child', nextChainId: 990201 }
     ]
   });
-  const app = projectionApp(
+  const input = projectionInput(
     { catalog },
     {
       useProfessionUi: false,
@@ -875,7 +845,7 @@ test('undeclared reciprocal links never become palette flips', () => {
     }
   );
   assert.deepEqual(
-    displayedSkillTiles(app, catalog.skills).map((skill) => skill.id),
+    displayedSkillTiles(input, catalog.skills).map((skill) => skill.id),
     [990201, 990202]
   );
 });

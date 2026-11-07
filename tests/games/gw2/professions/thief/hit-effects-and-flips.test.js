@@ -9,6 +9,7 @@ import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 
 const simulate = createObservedProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Staff',
@@ -124,12 +125,15 @@ test('Fist Flurry flips its equipped tile only after connecting and restores it 
       professionState: result.planningState.profession,
       time: result.rotationEndTime
     };
-    const app = {
-      analysis: { needsPatchComparison: () => false, state: { results: result } },
-      profession: thiefProfession,
-      activeCatalog: thiefCatalog,
+    const app = paletteInputFixture({
+      planning: result.planningState,
+      ui: thiefProfession.ui,
+      projectActions: thiefProfession.ui.paletteActionSkills,
+      canSwapWeaponSetsInCombat: thiefProfession.resolveProfession({ specialization: 'Core' })
+        .canSwapWeaponSetsInCombat,
+      catalog: thiefCatalog,
       build: { rotation: [] }
-    };
+    });
     assert.equal(displayedSkillTiles(app, [parent], context)[0].id, expected);
     assert.equal(
       Number(

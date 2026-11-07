@@ -3,14 +3,14 @@ import test from 'node:test';
 
 import { skillBarDisplaySkill } from '#gw2/app/build/panels/skills.js';
 import { resultSkillIcon } from '#gw2/app/results/skill-icons.js';
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import {
   displayedSkillTiles,
   displayedWeaponSkills,
-  paletteActionSkills,
   queryPaletteActions,
   queryPaletteContext,
-  weaponPaletteRows,
-  weaponSkills
+  queryWeaponSkills,
+  weaponPaletteRows
 } from '#gw2/app/rotation/palette/model.js';
 import { weaponPaletteSectionHtml, weaponPaletteStackHtml } from '#gw2/app/rotation/palette/view.js';
 import { ACTION_ICONS, resolveProcIcon } from '#gw2/app/shared/icons.js';
@@ -29,31 +29,22 @@ import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createDefaultConfig, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 test('Mesmer and Guardian palettes show only equipped weapon-set rows', () => {
-  const appFor = (profession, build) => ({
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: null,
-        buildRevision: 0,
-        resultRevision: 0,
-        simulationStatus: 'idle',
-        simulationError: '',
-        patchComparison: null
-      }
-    },
-    profession,
-    build,
-    activeCatalog: profession.catalog,
-    adapter: {
-      eliteSpecialization: () => '',
-      isSkillAvailable: () => true
-    },
-    weaponData: createProfessionWeaponData(profession.catalog)
-  });
+  const appFor = (profession, build) =>
+    paletteInputFixture({
+      planning: null,
+      ui: profession.ui,
+      projectActions: profession.ui.paletteActionSkills,
+      build,
+      catalog: profession.catalog,
+      specialization: '',
+      isSkillAvailable: () => true,
+      weaponData: createProfessionWeaponData(profession.catalog)
+    });
 
   for (const app of [
     appFor(mesmerProfession, createMesmerBuildDefaults()),
@@ -89,7 +80,7 @@ test('Mesmer and Guardian palettes show only equipped weapon-set rows', () => {
       ['W1']
     );
     assert.equal(
-      paletteActionSkills(app).some((skill) => skill.name === 'Swap Weapons'),
+      queryPaletteActions(app).some((skill) => skill.name === 'Swap Weapons'),
       false
     );
   }
@@ -124,41 +115,27 @@ test('weapon palette families display one live autoattack or flip skill', () => 
   const flip = { id: 4, name: 'Counter Attack', flipParentId: 3 };
   const skills = [autoRoot, autoSecond, flipRoot, flip];
   const skillById = new Map(skills.map((skill) => [skill.id, skill]));
-  const app = {
-    patch: patchSelectionFixture({ skills, skillsById: skillById }),
+  const app = paletteInputFixture({
     build: { rotation: [] },
-    activeCatalog: { skills, skillsById: skillById },
-    profession: {},
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        buildRevision: 0,
-        resultRevision: 0,
-        simulationStatus: 'idle',
-        simulationError: '',
-        patchComparison: null,
-        results: {
-          planningState: {
-            availability: {},
-            profession: {
-              ...{
-                [STATE.AUTOATTACK_CHAINS]: { 1: 2 }
-              },
-              [STATE.AVAILABLE_FLIPS]: { 4: armSkillFlip({}, 0, 0, Infinity) }
-            }
-          }
-        }
+    catalog: { skills, skillsById: skillById },
+    planning: {
+      availability: {},
+      profession: {
+        ...{
+          [STATE.AUTOATTACK_CHAINS]: { 1: 2 }
+        },
+        [STATE.AVAILABLE_FLIPS]: { 4: armSkillFlip({}, 0, 0, Infinity) }
       }
     }
-  };
+  });
 
   assert.deepEqual(
     displayedWeaponSkills(app, skills).map((skill) => skill.name),
     ['Second Strike', 'Counter Attack']
   );
 
-  app.analysis.state.results.planningState.profession = { [STATE.AUTOATTACK_CHAINS]: {} };
-  app.analysis.state.results.planningState.profession[STATE.AVAILABLE_FLIPS] = {};
+  app.planning.profession = { [STATE.AUTOATTACK_CHAINS]: {} };
+  app.planning.profession[STATE.AVAILABLE_FLIPS] = {};
   assert.deepEqual(
     displayedWeaponSkills(app, skills).map((skill) => skill.name),
     ['First Strike', 'Counter Stance']
@@ -171,35 +148,21 @@ test('palette flip projection follows canonical children and honors timed expiry
   const child = { id: 11, name: 'Follow-up Skill', flipParentId: 10 };
   const skills = [parent, child];
   const skillsById = new Map(skills.map((skill) => [skill.id, skill]));
-  const app = {
-    patch: patchSelectionFixture({ skills, skillsById }),
-    activeCatalog: { skills, skillsById },
-    profession: {},
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        buildRevision: 0,
-        resultRevision: 0,
-        simulationStatus: 'idle',
-        simulationError: '',
-        patchComparison: null,
-        results: {
-          planningState: {
-            availability: {},
-            atSeconds: 1.5,
-            profession: { ...{}, [STATE.AVAILABLE_FLIPS]: { 11: armSkillFlip({}, 0, 0, 2) } }
-          }
-        }
-      }
+  const app = paletteInputFixture({
+    catalog: { skills, skillsById },
+    planning: {
+      availability: {},
+      atSeconds: 1.5,
+      profession: { ...{}, [STATE.AVAILABLE_FLIPS]: { 11: armSkillFlip({}, 0, 0, 2) } }
     }
-  };
+  });
 
   assert.deepEqual(
     displayedSkillTiles(app, [parent]).map((skill) => skill.name),
     ['Follow-up Skill']
   );
 
-  app.analysis.state.results.planningState.atSeconds = 2;
+  app.planning.atSeconds = 2;
   assert.deepEqual(
     displayedSkillTiles(app, [parent]).map((skill) => skill.name),
     ['Opening Skill']
@@ -216,25 +179,15 @@ test('Mesmer weapon flips replace and restore their parent palette tile', () => 
   };
   const parent = mesmerProfession.catalog.skillsById.get(10276);
   const flip = mesmerProfession.catalog.skillsById.get(10314);
-  const app = {
-    patch: patchSelectionFixture(mesmerProfession.catalog),
+  const app = paletteInputFixture({
     build: { rotation: [] },
-    activeCatalog: mesmerProfession.catalog,
-    profession: mesmerProfession,
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        buildRevision: 0,
-        resultRevision: 0,
-        simulationStatus: 'idle',
-        simulationError: '',
-        patchComparison: null,
-        results: null
-      }
-    }
-  };
+    catalog: mesmerProfession.catalog,
+    ui: mesmerProfession.ui,
+    projectActions: mesmerProfession.ui.paletteActionSkills,
+    planning: null
+  });
   const displayedAfter = (rotation) => {
-    app.analysis.state.results = simulateMesmer(rotation, config);
+    app.planning = simulateMesmer(rotation, config).planningState;
 
     return displayedWeaponSkills(app, [parent, flip]).map((skill) => skill.name);
   };
@@ -249,28 +202,16 @@ test('Mesmer weapon palette displays only the current autoattack chain step', ()
 
   build.specializations[2] = { name: 'Mirage', traits: '1-1-1' };
   build.weapons = ['Axe', 'Sword'];
-  const app = {
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: null,
-        buildRevision: 0,
-        resultRevision: 0,
-        simulationStatus: 'idle',
-        simulationError: '',
-        patchComparison: null
-      }
-    },
-    patch: patchSelectionFixture(mesmerProfession.catalog),
-    profession: mesmerProfession,
+  const app = paletteInputFixture({
+    planning: null,
+    ui: mesmerProfession.ui,
+    projectActions: mesmerProfession.ui.paletteActionSkills,
     build,
-    activeCatalog: mesmerProfession.catalog,
-    adapter: {
-      eliteSpecialization: () => 'Mirage',
-      isSkillAvailable: () => true
-    },
+    catalog: mesmerProfession.catalog,
+    specialization: 'Mirage',
+    isSkillAvailable: () => true,
     weaponData: createProfessionWeaponData(mesmerProfession.catalog)
-  };
+  });
 
   assert.deepEqual(
     weaponPaletteRows(app, 1)[0]
@@ -288,47 +229,25 @@ test('weapon-set palette groups render side by side in set order', () => {
 });
 
 test('weapon actions stay ordered beside the stacked weapon sets', () => {
-  const mesmer = {
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: null,
-        buildRevision: 0,
-        resultRevision: 0,
-        simulationStatus: 'idle',
-        simulationError: '',
-        patchComparison: null
-      }
-    },
-    profession: mesmerProfession,
+  const mesmer = paletteInputFixture({
+    planning: null,
+    ui: mesmerProfession.ui,
+    projectActions: mesmerProfession.ui.paletteActionSkills,
     build: createMesmerBuildDefaults(),
-    activeCatalog: mesmerProfession.catalog,
-    adapter: {
-      eliteSpecialization: () => 'Mirage',
-      isSkillAvailable: () => true
-    }
-  };
-  const guardian = {
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: null,
-        buildRevision: 0,
-        resultRevision: 0,
-        simulationStatus: 'idle',
-        simulationError: '',
-        patchComparison: null
-      }
-    },
-    profession: guardianProfession,
+    catalog: mesmerProfession.catalog,
+    specialization: 'Mirage',
+    isSkillAvailable: () => true
+  });
+  const guardian = paletteInputFixture({
+    planning: null,
+    ui: guardianProfession.ui,
+    projectActions: guardianProfession.ui.paletteActionSkills,
     build: createGuardianBuildDefaults(),
-    activeCatalog: guardianProfession.catalog,
-    adapter: {
-      eliteSpecialization: () => 'Firebrand',
-      isSkillAvailable: () => true
-    }
-  };
-  const mesmerActions = paletteActionSkills(mesmer);
+    catalog: guardianProfession.catalog,
+    specialization: 'Firebrand',
+    isSkillAvailable: () => true
+  });
+  const mesmerActions = queryPaletteActions(mesmer);
 
   assert.deepEqual(
     mesmerActions.map((skill) => skill.name),
@@ -339,21 +258,24 @@ test('weapon actions stay ordered beside the stacked weapon sets', () => {
   assert.equal(mesmerActions.find((skill) => skill.name === 'Pick Up Mirage Mirror')?.icon, mirrorIcon);
   assert.equal(ACTION_ICONS['Pick Up Mirage Mirror'], mirrorIcon);
   assert.equal(ACTION_ICONS['Mirage Mirror'], mirrorIcon);
-  assert.equal(resultSkillIcon(mesmer, { name: 'Mirage Mirror', skillId: 44677 }), mirrorIcon);
+  assert.equal(
+    resultSkillIcon(
+      { activeCatalog: mesmer.catalog, analysis: { state: { results: null } } },
+      { name: 'Mirage Mirror', skillId: 44677 }
+    ),
+    mirrorIcon
+  );
   const troubadour = {
     ...mesmer,
-    adapter: {
-      ...mesmer.adapter,
-      eliteSpecialization: () => 'Troubadour'
-    }
+    specialization: 'Troubadour'
   };
 
   assert.deepEqual(
-    paletteActionSkills(troubadour).map((skill) => skill.name),
+    queryPaletteActions(troubadour).map((skill) => skill.name),
     ['Dodge', 'Swap Weapons']
   );
   assert.deepEqual(
-    paletteActionSkills(guardian).map((skill) => skill.name),
+    queryPaletteActions(guardian).map((skill) => skill.name),
     ['Swap Weapons']
   );
 
@@ -385,7 +307,7 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
   };
 
   assert.equal(
-    paletteActionSkills(engineer).some((skill) => skill.name === 'Swap Weapons'),
+    queryPaletteActions(capturePaletteInput(engineer)).some((skill) => skill.name === 'Swap Weapons'),
     true
   );
   const swapWeapons = engineer.activeCatalog.skillsById.get(-3);
@@ -402,7 +324,7 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
   );
   // The swap stays beside Dodge without an alternate set; availability disables it when no kit can be stowed.
   engineer.build = { ...engineer.build, alternateWeapons: ['', ''] };
-  const actionIds = paletteActionSkills(engineer).map((skill) => skill.id);
+  const actionIds = queryPaletteActions(capturePaletteInput(engineer)).map((skill) => skill.id);
   assert.equal(actionIds[actionIds.indexOf(SHARED_SKILL_IDS.DODGE) + 1], swapWeapons.id);
   assert.equal(planningFixture(engineer.profession).availability[swapWeapons.id].ready, false);
   const combatSwapReady = (rotation) => {
@@ -421,7 +343,7 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
   };
   // Swap Weapons and the kit's stow are separate in-game inputs, so the swap stays in the action row
   // while the stow remains owned by its kit group.
-  const kitActions = paletteActionSkills(engineer).map((skill) => skill.id);
+  const kitActions = queryPaletteActions(capturePaletteInput(engineer)).map((skill) => skill.id);
   assert.equal(kitActions.includes(swapWeapons.id), true);
   assert.equal(kitActions.includes(ENGINEER_SKILL_IDS.STOW_GRENADE_KIT), false);
   assert.equal(
@@ -484,12 +406,12 @@ test('Engineer swap action changes from precombat equipment swapping to a live k
     engineer.analysis.state.results.planningState.profession[STATE.AVAILABLE_FLIPS] = {
       [flip.id]: armSkillFlip({}, 0, 0)
     };
-    assert.equal(displayedSkillTiles(engineer, [parent])[0]?.name, flipName, parentName);
+    assert.equal(displayedSkillTiles(capturePaletteInput(engineer), [parent])[0]?.name, flipName, parentName);
   }
 
   const grenadeKit = engineer.activeCatalog.skillsById.get(5805);
   engineer.analysis.state.results.planningState.profession[STATE.AVAILABLE_FLIPS] = {};
-  assert.equal(displayedSkillTiles(engineer, [grenadeKit])[0]?.name, 'Grenade Kit');
+  assert.equal(displayedSkillTiles(capturePaletteInput(engineer), [grenadeKit])[0]?.name, 'Grenade Kit');
 });
 
 test('Firebrand mantra flips replace their selected skill-bar parent', async () => {
@@ -536,55 +458,13 @@ test('Firebrand mantra flips replace their selected skill-bar parent', async () 
 });
 
 test('shared palettes reject supplemental effects from weapon and action rows', () => {
-  const app = {
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: null,
-        buildRevision: 0,
-        resultRevision: 0,
-        simulationStatus: 'idle',
-        simulationError: '',
-        patchComparison: null
-      }
-    },
-    patch: patchSelectionFixture({
-      skills: [
-        {
-          id: 1,
-          name: 'Rifle Shot',
-          type: 'Weapon',
-          slot: 'Weapon_1',
-          weapon: 'Rifle'
-        },
-        {
-          id: 2,
-          name: 'Temporary Bundle Shot',
-          type: 'Weapon',
-          slot: 'Weapon_1',
-          weapon: ''
-        },
-        {
-          id: 3,
-          name: 'Trait Proc',
-          type: 'Action',
-          slot: 'Action'
-        },
-        {
-          id: -3,
-          inputCategory: 'weapon-swap',
-          name: 'Swap Weapons',
-          type: 'Action',
-          slot: 'Action'
-        }
-      ]
-    }),
+  const app = paletteInputFixture({
+    planning: null,
     build: {
       weapons: ['Rifle', ''],
       alternateWeapons: ['', '']
     },
-    profession: {},
-    activeCatalog: {
+    catalog: {
       weaponHands: new Map([['Rifle', '2h']]),
       skills: [
         {
@@ -616,18 +496,16 @@ test('shared palettes reject supplemental effects from weapon and action rows', 
         }
       ]
     },
-    adapter: {
-      eliteSpecialization: () => 'Core',
-      isSkillAvailable: () => true
-    }
-  };
+    specialization: 'Core',
+    isSkillAvailable: () => true
+  });
 
   assert.deepEqual(
-    weaponSkills(app).map((skill) => skill.name),
+    queryWeaponSkills(app).map((skill) => skill.name),
     ['Rifle Shot']
   );
   assert.deepEqual(
-    paletteActionSkills(app).map((skill) => skill.name),
+    queryPaletteActions(app).map((skill) => skill.name),
     []
   );
 });
@@ -656,32 +534,21 @@ test("weaponmaster palettes keep the active spec's weapon-skill variant", () => 
       specialization: ''
     }
   ];
-  const makeApp = (specialization) => ({
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: null,
-        buildRevision: 0,
-        resultRevision: 0,
-        simulationStatus: 'idle',
-        simulationError: '',
-        patchComparison: null
-      }
-    },
-    build: { weapons: ['Dagger', ''], alternateWeapons: ['', ''] },
-    activeCatalog: { skills, weaponHands: new Map([['Dagger', 'mh']]) },
-    adapter: {
-      eliteSpecialization: () => specialization,
+  const makeApp = (specialization) =>
+    paletteInputFixture({
+      planning: null,
+      build: { weapons: ['Dagger', ''], alternateWeapons: ['', ''] },
+      catalog: { skills, weaponHands: new Map([['Dagger', 'mh']]) },
+      specialization: specialization,
       isSkillAvailable: () => true
-    }
-  });
+    });
 
   assert.deepEqual(
-    weaponSkills(makeApp('Chronomancer')).map((skill) => skill.id),
+    queryWeaponSkills(makeApp('Chronomancer')).map((skill) => skill.id),
     [69311]
   );
   assert.deepEqual(
-    weaponSkills(makeApp('Troubadour')).map((skill) => skill.id),
+    queryWeaponSkills(makeApp('Troubadour')).map((skill) => skill.id),
     [62560]
   );
 });

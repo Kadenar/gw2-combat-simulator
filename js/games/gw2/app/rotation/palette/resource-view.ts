@@ -14,10 +14,10 @@
  */
 import {
   activeSpecialization,
-  palettePlanningState,
-  paletteProfessionState,
-  professionPlanningState
+  professionPlanningState,
+  type RotationProfessionState
 } from '#gw2/app/rotation/context.js';
+import type { PaletteInput } from '#gw2/app/rotation/palette/model.js';
 import type { ProfessionAppContract, ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2BuildResources } from '#gw2/platform/builds/types.js';
 import type {
@@ -86,7 +86,7 @@ function normalizeResourceView(view: ProfessionResourceView): ProfessionResource
  * the rotation palette renders it or exposes it as a starting-state control.
  */
 export function resourceDisplayViews(
-  profession: ProfessionAppContract,
+  profession: Pick<ProfessionAppContract, 'ui'>,
   context: ProfessionResourceViewContext
 ): ProfessionResourceView[] {
   const views = profession.ui.resourceViews(context);
@@ -108,24 +108,25 @@ export function formatResourceValue(value: unknown): string {
 }
 
 /** Resolve the live palette resources once, before rendering groups or skill meters. */
-export function activeResourceDefinitions(app: ProfessionAppState): ProfessionResourceView[] {
-  if (!app.profession?.ui) return [];
-
-  const professionState = paletteProfessionState(app);
-  // Resource views use the same canonical build selection as the rest of the palette.
-  const specialization = activeSpecialization(app);
-  return resourceDisplayViews(app.profession, {
-    catalog: app.activeCatalog,
-    specialization,
-    build: app.build,
-    // Profession views use scheduler seconds for their live cooldown labels.
-    simulationTime: Number(palettePlanningState(app)?.atSeconds || 0),
-    value: professionState[STATE.RESOURCE] ?? app.build?.initialResource,
-    professionState,
-    initialResource: app.build?.initialResource,
-    initialBlight: app.build?.initialBlight,
-    initialCascadingCorruptionStacks: app.build?.initialCascadingCorruptionStacks
-  }).filter((definition) => definition.showInPalette !== false);
+export function activeResourceDefinitions(
+  input: Pick<PaletteInput, 'ui' | 'catalog' | 'build' | 'specialization' | 'planning'>
+): ProfessionResourceView[] {
+  const professionState = (input.planning?.profession ?? {}) as RotationProfessionState;
+  return resourceDisplayViews(
+    { ui: input.ui },
+    {
+      catalog: input.catalog,
+      specialization: input.specialization,
+      build: input.build,
+      // Profession views use scheduler seconds for their live cooldown labels.
+      simulationTime: Number(input.planning?.atSeconds || 0),
+      value: professionState[STATE.RESOURCE] ?? input.build.initialResource,
+      professionState,
+      initialResource: input.build.initialResource,
+      initialBlight: input.build.initialBlight,
+      initialCascadingCorruptionStacks: input.build.initialCascadingCorruptionStacks
+    }
+  ).filter((definition) => definition.showInPalette !== false);
 }
 
 /** Returns the live resource meter attached to a rotation-palette skill. */

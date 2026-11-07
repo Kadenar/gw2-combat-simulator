@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { paletteAvailability, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
@@ -138,11 +139,11 @@ test('Tempest overload palette availability follows the active attunement', () =
   const air = catalog.skillsById.get(29719);
   const fire = catalog.skillsById.get(29706);
 
-  assert.deepEqual(paletteAvailability(app, context, air), {
+  assert.deepEqual(paletteAvailability(capturePaletteInput(app), context, air), {
     available: true,
     message: ''
   });
-  assert.deepEqual(paletteAvailability(app, context, fire), {
+  assert.deepEqual(paletteAvailability(capturePaletteInput(app), context, fire), {
     available: false,
     message: app.analysis.state.results.planningState.availability[fire.id].reason,
     retryAt: null
@@ -153,16 +154,16 @@ test('Tempest overload singularity delays a newly entered attunement but not the
   const startingApp = createTempestApp();
   const startingAir = catalog.skillsById.get(29719);
 
-  assert.deepEqual(paletteAvailability(startingApp, paletteContext(startingApp), startingAir), {
+  assert.deepEqual(paletteAvailability(capturePaletteInput(startingApp), paletteContext(startingApp), startingAir), {
     available: true,
     message: ''
   });
 
   const enteredApp = createTempestApp(['Fire Attunement']);
   const fire = catalog.skillsById.get(29706);
-  const enteredAvailability = paletteAvailability(enteredApp, paletteContext(enteredApp), fire);
+  const enteredAvailability = paletteAvailability(capturePaletteInput(enteredApp), paletteContext(enteredApp), fire);
   const enteredView = paletteSkillView(
-    enteredApp,
+    capturePaletteInput(enteredApp),
     fire,
     enteredAvailability.available,
     enteredAvailability.message,
@@ -184,14 +185,17 @@ test('Tempest overload singularity delays a newly entered attunement but not the
 
   const unbuffedApp = createTempestApp(['Fire Attunement'], { alacrity: false });
 
-  assert.equal(paletteAvailability(unbuffedApp, paletteContext(unbuffedApp), fire).retryAt, 4.8);
+  assert.equal(paletteAvailability(capturePaletteInput(unbuffedApp), paletteContext(unbuffedApp), fire).retryAt, 4.8);
   const transcendentApp = createTempestApp(['Fire Attunement'], { tempestTraits: '1-1-1' });
 
-  assert.equal(paletteAvailability(transcendentApp, paletteContext(transcendentApp), fire).retryAt, 3.2);
+  assert.equal(
+    paletteAvailability(capturePaletteInput(transcendentApp), paletteContext(transcendentApp), fire).retryAt,
+    3.2
+  );
 
   const dwelledApp = createTempestApp(['Fire Attunement', 4800]);
 
-  assert.deepEqual(paletteAvailability(dwelledApp, paletteContext(dwelledApp), fire), {
+  assert.deepEqual(paletteAvailability(capturePaletteInput(dwelledApp), paletteContext(dwelledApp), fire), {
     available: true,
     message: ''
   });
@@ -200,9 +204,9 @@ test('Tempest overload singularity delays a newly entered attunement but not the
 test('an overload with 0.1 seconds remaining stays click-queueable and casts when ready', () => {
   const nearlyReadyApp = createTempestApp(['Fire Attunement', 4700]);
   const fire = catalog.skillsById.get(29706);
-  const availability = paletteAvailability(nearlyReadyApp, paletteContext(nearlyReadyApp), fire);
+  const availability = paletteAvailability(capturePaletteInput(nearlyReadyApp), paletteContext(nearlyReadyApp), fire);
   const view = paletteSkillView(
-    nearlyReadyApp,
+    capturePaletteInput(nearlyReadyApp),
     fire,
     availability.available,
     availability.message,
@@ -235,8 +239,8 @@ test('a time-zero attunement swap still enforces overload singularity', () => {
 test('Tempest overload palette shows its active cooldown after use', () => {
   const app = createTempestApp(['Overload Air']);
   const air = catalog.skillsById.get(29719);
-  const availability = paletteAvailability(app, paletteContext(app), air);
-  const view = paletteSkillView(app, air, availability.available, availability.message);
+  const availability = paletteAvailability(capturePaletteInput(app), paletteContext(app), air);
+  const view = paletteSkillView(capturePaletteInput(app), air, availability.available, availability.message);
 
   assert.equal(view.disabled, true);
   assert.equal(view.cooldownLabel, '16.000s');

@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { isSlotSkillSelectable } from '#gw2/app/build/state/skill-selection.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
-import { weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { queryWeaponSkills } from '#gw2/app/rotation/palette/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { resourceAnchor } from '#gw2/platform/combat/resources/clock.js';
@@ -17,6 +17,7 @@ import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necr
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
@@ -395,22 +396,32 @@ test('Scourge point capacity and fixed costs use the selected balance profiles',
 
 test('Reaper greatsword chain is ordered and Chilling Scythe recharges Gravedigger', async () => {
   const adapter = await loadProfessionAppAdapter('necromancer');
-  const skills = weaponSkills({
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    patch: adapter.profession.resolvePatch(),
-    adapter,
-    activeCatalog: necromancerCatalog,
-    build: {
-      weapons: ['Greatsword', ''],
-      alternateWeapons: ['Axe', 'Focus'],
-      specializations: [{ name: 'Reaper', traits: '1-1-1' }]
-    },
-    weaponData: {
-      Greatsword: { wielding: '2h' },
-      Axe: { wielding: '1h' },
-      Focus: { wielding: '1h' }
-    }
-  });
+  const skills = queryWeaponSkills(
+    paletteInputFixture({
+      planning: null,
+      specialization: adapter.eliteSpecialization({
+        weapons: ['Greatsword', ''],
+        alternateWeapons: ['Axe', 'Focus'],
+        specializations: [{ name: 'Reaper', traits: '1-1-1' }]
+      }),
+      isSkillAvailable: adapter.isSkillAvailable,
+      weaponSkillMatchesSet: adapter.weaponSkillMatchesSet,
+      slotLoadout: adapter.slotLoadout,
+      ui: adapter.profession.ui,
+      projectActions: adapter.profession.ui.paletteActionSkills,
+      catalog: necromancerCatalog,
+      build: {
+        weapons: ['Greatsword', ''],
+        alternateWeapons: ['Axe', 'Focus'],
+        specializations: [{ name: 'Reaper', traits: '1-1-1' }]
+      },
+      weaponData: {
+        Greatsword: { wielding: '2h' },
+        Axe: { wielding: '1h' },
+        Focus: { wielding: '1h' }
+      }
+    })
+  );
   const result = simulate(
     'Reaper',
     ['Gravedigger', 'Dusk Strike', 'Fading Twilight', 'Chilling Scythe', 'Gravedigger'],

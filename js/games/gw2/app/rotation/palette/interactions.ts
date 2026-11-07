@@ -8,7 +8,8 @@ import {
   openDoubleEdgeEditor
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
 import type { ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
-import { createPaletteContext, paletteSkillIsInstant, type PaletteContext } from '#gw2/app/rotation/palette/model.js';
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
+import { paletteSkillIsInstant, queryPaletteContext, type PaletteContext } from '#gw2/app/rotation/palette/model.js';
 import type { RotationSkill } from '#gw2/app/rotation/skill-views.js';
 import { clearTimelineDropIndicators } from '#gw2/app/rotation/timeline/interactions.js';
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
@@ -156,7 +157,7 @@ function resolveProfessionPaletteAction(
   app: ProfessionAppState,
   name: string,
   skillId: number | null,
-  context: PaletteContext = createPaletteContext(app)
+  context: PaletteContext = queryPaletteContext(capturePaletteInput(app))
 ): RotationCommand | RotationCommand[] | null | undefined {
   const resolveAction = app.profession.ui?.resolvePaletteAction;
   return typeof resolveAction === 'function' ? resolveAction(context, { name, skillId }) : undefined;
@@ -176,7 +177,12 @@ export function resolvePaletteDropItem(
 ): RotationCommand | RotationCommand[] | null {
   if (!name) return null;
 
-  const professionAction = resolveProfessionPaletteAction(app, name, skillId, createPaletteContext(app));
+  const professionAction = resolveProfessionPaletteAction(
+    app,
+    name,
+    skillId,
+    queryPaletteContext(capturePaletteInput(app))
+  );
 
   if (professionAction !== undefined) return professionAction;
 
@@ -217,7 +223,8 @@ export function dispatchPaletteActivation(
   const parsedSkillId = Number(icon.dataset.skillId);
   const skillId = icon.dataset.skillId != null && Number.isFinite(parsedSkillId) ? parsedSkillId : null;
   const identity = skillId == null ? {} : { skillId };
-  const context = createPaletteContext(app);
+  const input = capturePaletteInput(app);
+  const context = queryPaletteContext(input);
   const professionAction = resolveProfessionPaletteAction(app, name, skillId, context);
 
   // `undefined` means the profession does not own the action. `null` means it handled the activation without insertion.
@@ -293,7 +300,7 @@ export function dispatchPaletteActivation(
     return;
   }
 
-  const instant = paletteSkillIsInstant(app, context, skill, name);
+  const instant = paletteSkillIsInstant(input, context, skill, name);
 
   // Companion animations can overlap the player just like instant player skills.
   if (

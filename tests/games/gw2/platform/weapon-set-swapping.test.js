@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { weaponPaletteRows, weaponSkills } from '#gw2/app/rotation/palette/model.js';
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
+import { queryWeaponSkills, weaponPaletteRows } from '#gw2/app/rotation/palette/model.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
@@ -179,16 +180,16 @@ test('restricted palettes expose both sets precombat and only the active set in 
     weaponData: adapter.weaponData
   };
   assert.deepEqual(
-    weaponPaletteRows(app, 2).map((row) => row.weaponSet),
+    weaponPaletteRows(capturePaletteInput(app), 2).map((row) => row.weaponSet),
     [1, 2]
   );
   app.analysis.state.results.planningState.combatActive = true;
   assert.deepEqual(
-    weaponPaletteRows(app, 2).map((row) => row.weaponSet),
+    weaponPaletteRows(capturePaletteInput(app), 2).map((row) => row.weaponSet),
     [2]
   );
-  assert.ok(weaponSkills(app, 1).length);
-  assert.ok(weaponSkills(app, 2).length);
+  assert.ok(queryWeaponSkills(capturePaletteInput(app), 1).length);
+  assert.ok(queryWeaponSkills(capturePaletteInput(app), 2).length);
 });
 
 // Precombat permission does not bypass a replacement bar's explicit exit contract.

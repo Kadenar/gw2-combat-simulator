@@ -19,6 +19,7 @@ import {
 } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -849,26 +850,33 @@ test('Spear slots 2 and 3 expose and enforce their linked chain', () => {
       .map((skill) => skill.name);
   const paletteAtStage = (stage) =>
     weaponPaletteRows(
-      {
-        analysis: {
-          needsPatchComparison: () => false,
-          state: {
-            results: {
-              planningState: { availability: {}, activeWeaponSet: 1, profession: { [STATE.SPEAR_CHAIN_STAGE]: stage } }
-            }
-          }
-        },
-        patch: thiefAppAdapter.profession.resolvePatch(),
+      paletteInputFixture({
+        planning: { availability: {}, activeWeaponSet: 1, profession: { [STATE.SPEAR_CHAIN_STAGE]: stage } },
         build: {
           ...createThiefBuildDefaults(),
           weapons: ['Spear', ''],
           alternateWeapons: ['Spear', '']
         },
-        adapter: thiefAppAdapter,
-        profession: thiefProfession,
-        activeCatalog: thiefCatalog,
+        specialization: thiefAppAdapter.eliteSpecialization({
+          ...createThiefBuildDefaults(),
+          weapons: ['Spear', ''],
+          alternateWeapons: ['Spear', '']
+        }),
+        isSkillAvailable: thiefAppAdapter.isSkillAvailable,
+        weaponSkillMatchesSet: thiefAppAdapter.weaponSkillMatchesSet,
+        slotLoadout: thiefAppAdapter.slotLoadout,
+        ui: thiefProfession.ui,
+        projectActions: thiefProfession.ui.paletteActionSkills,
+        canSwapWeaponSetsInCombat: thiefProfession.resolveProfession({
+          specialization: thiefAppAdapter.eliteSpecialization({
+            ...createThiefBuildDefaults(),
+            weapons: ['Spear', ''],
+            alternateWeapons: ['Spear', '']
+          })
+        }).canSwapWeaponSetsInCombat,
+        catalog: thiefCatalog,
         weaponData: thiefAppAdapter.weaponData
-      },
+      }),
       1
     )[0]
       .skills.filter((skill) => [2, 3].includes(Number(String(skill.slot).split('_').at(-1))))

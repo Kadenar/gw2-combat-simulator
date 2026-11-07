@@ -38,6 +38,7 @@ import {
   observedRuntime,
   planningFixture
 } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 // Inputs are equipment attributes; baseline Might and its trait adjustment share one stage.
@@ -227,7 +228,14 @@ test('profession palette deduplicates actions and shows only active Conduit rele
   assert.equal(vindicatorIds.filter((id) => revenantCatalog.skillsById.get(id)?.name === 'Energy Meld').length, 1);
   // Verify the rendered tile, since catalog flip-family expansion can replace an explicitly listed skill.
   const vindicatorTiles = displayedSkillTiles(
-    { analysis: { state: { results: null } }, profession: revenantProfession, activeCatalog: revenantCatalog },
+    paletteInputFixture({
+      planning: null,
+      ui: revenantProfession.ui,
+      projectActions: revenantProfession.ui.paletteActionSkills,
+      canSwapWeaponSetsInCombat: revenantProfession.resolveProfession({ specialization: 'Core' })
+        .canSwapWeaponSetsInCombat,
+      catalog: revenantCatalog
+    }),
     vindicatorIds.map((id) => revenantCatalog.skillsById.get(id)),
     { specialization: 'Vindicator', build: { ...baseConfig, startingLegend: LEGEND.ALLIANCE } }
   );
@@ -277,22 +285,18 @@ test('Soulcleave stays on its parent tile at zero Energy until its release is ar
         [STATE.ENERGY]: { value: energy, maximum: 100, unitsPerSecond: 5, updatedAt: 0 }
       };
       const flips = {};
-      const app = {
-        analysis: {
-          needsPatchComparison: () => false,
-          state: {
-            results: {
-              planningState: {
-                availability: {},
-                profession: { ...professionState, [STATE.AVAILABLE_FLIPS]: flips },
-                atSeconds: 0
-              }
-            }
-          }
+      const app = paletteInputFixture({
+        planning: {
+          availability: {},
+          profession: { ...professionState, [STATE.AVAILABLE_FLIPS]: flips },
+          atSeconds: 0
         },
-        profession: revenantProfession,
-        activeCatalog: revenantCatalog
-      };
+        ui: revenantProfession.ui,
+        projectActions: revenantProfession.ui.paletteActionSkills,
+        canSwapWeaponSetsInCombat: revenantProfession.resolveProfession({ specialization: 'Core' })
+          .canSwapWeaponSetsInCombat,
+        catalog: revenantCatalog
+      });
       const context = {
         specialization: 'Renegade',
         professionState: { ...professionState, [STATE.AVAILABLE_FLIPS]: flips }
@@ -1197,11 +1201,17 @@ test('Revenant palette exposes upkeep releases and enforces Energy costs', () =>
     [relinquish, '0']
   ]) {
     const view = paletteSkillView(
-      {
-        analysis: { state: { results: null } },
-        adapter: revenantAppAdapter,
-        patch: revenantAppAdapter.profession.resolvePatch()
-      },
+      paletteInputFixture({
+        tooltip: (skill) => revenantAppAdapter.skillTooltip(skill, revenantAppAdapter.profession.resolvePatch()),
+        planning: null,
+        specialization: 'Core',
+        isSkillAvailable: revenantAppAdapter.isSkillAvailable,
+        weaponSkillMatchesSet: revenantAppAdapter.weaponSkillMatchesSet,
+        slotLoadout: revenantAppAdapter.slotLoadout,
+        weaponData: revenantAppAdapter.weaponData,
+        ui: revenantAppAdapter.profession.ui,
+        projectActions: revenantAppAdapter.profession.ui.paletteActionSkills
+      }),
       skill
     );
     assert.equal(view.tooltip.facts.find((fact) => fact.name === 'Base energy cost').detail, cost);

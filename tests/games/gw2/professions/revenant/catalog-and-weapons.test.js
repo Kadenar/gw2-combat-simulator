@@ -7,8 +7,8 @@ import {
   displayedSkillTiles,
   paletteSkillView,
   paletteView,
-  rotationSelectedSlotSkills,
-  weaponSkills
+  queryWeaponSkills,
+  rotationSelectedSlotSkills
 } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { findNamedRotationSkill } from '#gw2/integrations/logs/shared/rotation/catalog.js';
@@ -32,6 +32,7 @@ import { createCalculateAttributes, createProfessionBuildAttributeRules } from '
 import { inertContainer } from '#tests/helpers/dom.js';
 import { modifierComparisonRequest } from '#tests/helpers/modifier-contributions.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
@@ -502,24 +503,22 @@ test('legend palette shows only the destination legend with the shared swap cool
 
   assert.equal(
     paletteSkillView(
-      {
-        analysis: {
-          state: {
-            results: {
-              planningState: {
-                availability: {},
-                atSeconds: 1,
-                ammoBySkillId: {},
-                cooldownsBySkillId: cooldownContext.cooldownsBySkillId,
-                profession: cooldownContext.professionState
-              }
-            }
-          }
+      paletteInputFixture({
+        planning: {
+          availability: {},
+          atSeconds: 1,
+          ammoBySkillId: {},
+          cooldownsBySkillId: cooldownContext.cooldownsBySkillId,
+          profession: cooldownContext.professionState
         },
-        adapter: revenantAppAdapter,
-        // Palette rendering describes the skill using the application's selected balance patch.
-        patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' })
-      },
+        specialization: 'Core',
+        isSkillAvailable: revenantAppAdapter.isSkillAvailable,
+        weaponSkillMatchesSet: revenantAppAdapter.weaponSkillMatchesSet,
+        slotLoadout: revenantAppAdapter.slotLoadout,
+        weaponData: revenantAppAdapter.weaponData,
+        ui: revenantAppAdapter.profession.ui,
+        projectActions: revenantAppAdapter.profession.ui.paletteActionSkills
+      }),
       revenantCatalog.skillsById.get(SKILL.SWAP_LEGENDS),
       true
     ).cooldownLabel,
@@ -566,13 +565,17 @@ test('legend palette shows only the destination legend with the shared swap cool
     ['revenant-profession']
   );
   assert.equal(revenantLegendLoadout.palettePlacement, 'after-actions');
-  const rotationApp = {
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    profession: revenantProfession,
-    adapter: { slotLoadout: revenantLegendLoadout },
+  const rotationApp = paletteInputFixture({
+    planning: null,
+    ui: revenantProfession.ui,
+    projectActions: revenantProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: revenantProfession.resolveProfession({ specialization: 'Core' })
+      .canSwapWeaponSetsInCombat,
+    specialization: 'Core',
+    slotLoadout: revenantLegendLoadout,
     build: context.build,
-    activeCatalog: revenantCatalog
-  };
+    catalog: revenantCatalog
+  });
 
   assert.deepEqual(rotationSelectedSlotSkills(rotationApp), []);
 
@@ -722,17 +725,19 @@ test('weapon swap changes the active Revenant weapon set', () => {
 });
 
 test('Revenant scepter follow-ups replace and restore weapon slots 2 and 3', () => {
-  const app = {
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    patch: revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
-    activeCatalog: revenantCatalog,
-    profession: revenantProfession
-  };
+  const app = paletteInputFixture({
+    planning: null,
+    catalog: revenantCatalog,
+    ui: revenantProfession.ui,
+    projectActions: revenantProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: revenantProfession.resolveProfession({ specialization: 'Core' })
+      .canSwapWeaponSetsInCombat
+  });
   const paletteAfter = (rotation, names) => {
-    app.analysis.state.results = simulate('Core', rotation, {
+    app.planning = simulate('Core', rotation, {
       primaryWeapon: 'Scepter',
       secondaryWeapon: 'Sword'
-    });
+    }).planningState;
 
     return displayedSkillTiles(
       app,
@@ -872,22 +877,23 @@ test('Abyssal Strike repeats without exposing a separate second-swing palette ti
     result.events.filter((event) => event.type === 'damage').every((event) => event.skillName === 'Abyssal Strike')
   );
 
-  const paletteApp = {
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    profession: revenantProfession,
-    activeCatalog: revenantCatalog,
+  const paletteApp = paletteInputFixture({
+    planning: null,
+    ui: revenantProfession.ui,
+    projectActions: revenantProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: revenantProfession.resolveProfession({ specialization: 'Core' })
+      .canSwapWeaponSetsInCombat,
+    catalog: revenantCatalog,
     build: {
       weapons: ['Spear', ''],
       alternateWeapons: ['Sword', 'Sword']
     },
-    adapter: {
-      eliteSpecialization: () => 'Core',
-      isSkillAvailable: (skill) => !skill.rotationInputExcluded
-    }
-  };
+    specialization: 'Core',
+    isSkillAvailable: (skill) => !skill.rotationInputExcluded
+  });
 
   assert.deepEqual(
-    weaponSkills(paletteApp)
+    queryWeaponSkills(paletteApp)
       .filter((skill) => skill.slot === 'Weapon_1')
       .map((skill) => skill.name),
     ['Abyssal Strike']
@@ -897,18 +903,19 @@ test('Abyssal Strike repeats without exposing a separate second-swing palette ti
 // The shared Greatsword input wins over its excluded hit identity in both palette and name-only log lookup.
 test('Phantom’s Onslaught remains the shared Greatsword input for every Revenant specialization', () => {
   for (const specializationName of ['Core', 'Herald', 'Renegade', 'Vindicator', 'Conduit']) {
-    const app = {
-      analysis: { needsPatchComparison: () => false, state: { results: null } },
-      profession: revenantProfession,
-      activeCatalog: revenantCatalog,
+    const app = paletteInputFixture({
+      planning: null,
+      ui: revenantProfession.ui,
+      projectActions: revenantProfession.ui.paletteActionSkills,
+      canSwapWeaponSetsInCombat: revenantProfession.resolveProfession({ specialization: specializationName })
+        .canSwapWeaponSetsInCombat,
+      catalog: revenantCatalog,
       build: { weapons: ['Greatsword', ''], alternateWeapons: ['', ''] },
-      adapter: {
-        eliteSpecialization: () => specializationName,
-        isSkillAvailable: (skill) => revenantAppAdapter.isSkillAvailable(skill, { specialization: specializationName })
-      }
-    };
+      specialization: specializationName,
+      isSkillAvailable: (skill) => revenantAppAdapter.isSkillAvailable(skill, { specialization: specializationName })
+    });
     assert.deepEqual(
-      weaponSkills(app)
+      queryWeaponSkills(app)
         .filter((skill) => skill.name === "Phantom's Onslaught")
         .map((skill) => skill.id),
       [62895]

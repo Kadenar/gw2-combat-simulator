@@ -93,31 +93,12 @@ test('starting resource clamps cover every active resource view', () => {
 test('15-pip initiative uses specialization-neutral rows', () => {
   const html = activeResourceGroup(
     activeResourceDefinitions({
-      adapter: { eliteSpecialization: () => 'Core' },
+      specialization: 'Core',
       build: { initialResource: 15 },
-      profession: {
-        ui: {
-          resourceViews: () => [
-            {
-              id: 'resource',
-              maximum: 15,
-              value: 9,
-              pipRows: 2,
-              pipStyle: 'thief-initiative'
-            }
-          ]
-        }
+      ui: {
+        resourceViews: () => [{ id: 'resource', maximum: 15, value: 9, pipRows: 2, pipStyle: 'thief-initiative' }]
       },
-      analysis: {
-        state: {
-          buildRevision: 0,
-          resultRevision: 0,
-          simulationStatus: 'idle',
-          simulationError: '',
-          patchComparison: null,
-          results: { planningState: { availability: {}, atSeconds: 0, profession: {} } }
-        }
-      }
+      planning: { availability: {}, atSeconds: 0, profession: {} }
     })
   );
 

@@ -3,12 +3,13 @@ import { describe, test } from 'node:test';
 
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { resolvePaletteDropItem } from '#gw2/app/rotation/palette/interactions.js';
 import {
-  createPaletteContext,
-  paletteActionSkills,
   paletteSkillView,
-  weaponSkills
+  queryPaletteActions,
+  queryPaletteContext,
+  queryWeaponSkills
 } from '#gw2/app/rotation/palette/model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
@@ -32,6 +33,7 @@ import {
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { revenantHit, runRevenant } from '#tests/helpers/revenant-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
@@ -1429,16 +1431,16 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
     }
   };
 
-  assert.equal(createPaletteContext(app).activeAutoattack.name, 'Preparation Thrust');
-  const paletteSkill = paletteActionSkills(app, 'Vindicator').find(
+  assert.equal(queryPaletteContext(capturePaletteInput(app)).activeAutoattack.name, 'Preparation Thrust');
+  const paletteSkill = queryPaletteActions(capturePaletteInput(app)).find(
     (skill) => skill.name === VINDICATOR_DODGE_AUTO_ACTION
   );
   assert.equal(paletteSkill.name, VINDICATOR_DODGE_AUTO_ACTION);
-  assert.equal(paletteSkillView(app, paletteSkill).draggable, true);
+  assert.equal(paletteSkillView(capturePaletteInput(app), paletteSkill).draggable, true);
   assert.deepEqual(
     vindicatorDodgeAutoRotationEntries({
       specialization: 'Vindicator',
-      activeAutoattack: createPaletteContext(app).activeAutoattack
+      activeAutoattack: queryPaletteContext(capturePaletteInput(app)).activeAutoattack
     }),
     [
       {
@@ -1501,13 +1503,15 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
 
   app.analysis.state.results.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST] =
     SKILL.BRUTAL_BLADE;
-  assert.equal(createPaletteContext(app).activeAutoattack.name, 'Brutal Blade');
+  assert.equal(queryPaletteContext(capturePaletteInput(app)).activeAutoattack.name, 'Brutal Blade');
 
   const combined = simulate(
     'Vindicator',
     [
       'Preparation Thrust',
-      ...vindicatorDodgeAutoRotationEntries({ activeAutoattack: createPaletteContext(app).activeAutoattack })
+      ...vindicatorDodgeAutoRotationEntries({
+        activeAutoattack: queryPaletteContext(capturePaletteInput(app)).activeAutoattack
+      })
     ],
     {
       selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
@@ -1539,22 +1543,23 @@ test('Vindicator legend skills preserve the Greatsword autoattack chain', () => 
 });
 
 test('Imperial Guard exposes True Strike after cancellation or completion', () => {
-  const paletteApp = {
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    profession: revenantProfession,
-    activeCatalog: revenantCatalog,
+  const paletteApp = paletteInputFixture({
+    planning: null,
+    ui: revenantProfession.ui,
+    projectActions: revenantProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: revenantProfession.resolveProfession({ specialization: 'Vindicator' })
+      .canSwapWeaponSetsInCombat,
+    catalog: revenantCatalog,
     build: {
       weapons: ['Greatsword', ''],
       alternateWeapons: ['Sword', 'Sword']
     },
-    adapter: {
-      eliteSpecialization: () => 'Vindicator',
-      isSkillAvailable: () => true
-    }
-  };
+    specialization: 'Vindicator',
+    isSkillAvailable: () => true
+  });
 
   assert.deepEqual(
-    weaponSkills(paletteApp)
+    queryWeaponSkills(paletteApp)
       .filter((skill) => skill.slot === 'Weapon_4')
       .map((skill) => skill.name),
     ['Imperial Guard', 'True Strike']
@@ -1595,35 +1600,28 @@ test('Imperial Guard exposes True Strike after cancellation or completion', () =
 });
 
 test('Deathstrike weapon palette keeps the primary skill identity on cooldown', () => {
-  const app = {
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: {
-          planningState: {
-            atSeconds: 0.72,
-            ammoBySkillId: {},
-            cooldownsBySkillId: {
-              [SKILL.DEATHSTRIKE]: { readyAtMs: 12420, remainingMs: 11700 }
-            }
-          }
-        }
+  const app = paletteInputFixture({
+    planning: {
+      atSeconds: 0.72,
+      ammoBySkillId: {},
+      cooldownsBySkillId: {
+        [SKILL.DEATHSTRIKE]: { readyAtMs: 12420, remainingMs: 11700 }
       }
     },
-    profession: revenantProfession,
-    activeCatalog: revenantCatalog,
-
+    ui: revenantProfession.ui,
+    projectActions: revenantProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: revenantProfession.resolveProfession({ specialization: 'Conduit' })
+      .canSwapWeaponSetsInCombat,
+    catalog: revenantCatalog,
     build: {
       weapons: ['Sword', 'Sword'],
       alternateWeapons: ['', '']
     },
-    adapter: {
-      skillTooltip: revenantAppAdapter.skillTooltip,
-      eliteSpecialization: () => 'Conduit',
-      isSkillAvailable: () => true
-    }
-  };
-  const deathstrike = weaponSkills(app).find((skill) => skill.name === 'Deathstrike');
+    specialization: 'Conduit',
+    tooltip: revenantAppAdapter.skillTooltip,
+    isSkillAvailable: () => true
+  });
+  const deathstrike = queryWeaponSkills(app).find((skill) => skill.name === 'Deathstrike');
 
   assert.equal(deathstrike.id, SKILL.DEATHSTRIKE);
 });

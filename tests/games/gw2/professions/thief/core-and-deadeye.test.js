@@ -27,6 +27,7 @@ import {
   observedRuntime,
   planningFixture
 } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
 
 const baseConfig = Object.freeze({
@@ -777,22 +778,28 @@ test('stealth replaces weapon skill 1 without a separate palette group', () => {
     alternateWeapons: ['', ''],
     specializations: []
   };
-  const app = {
-    analysis: { needsPatchComparison: () => false, state: { results: null } },
-    patch: thiefAppAdapter.profession.resolvePatch(),
+  const app = paletteInputFixture({
+    planning: null,
     build,
-    adapter: thiefAppAdapter,
-    profession: thiefProfession,
-    activeCatalog: thiefCatalog,
+    specialization: thiefAppAdapter.eliteSpecialization(build),
+    isSkillAvailable: thiefAppAdapter.isSkillAvailable,
+    weaponSkillMatchesSet: thiefAppAdapter.weaponSkillMatchesSet,
+    slotLoadout: thiefAppAdapter.slotLoadout,
+    ui: thiefProfession.ui,
+    projectActions: thiefProfession.ui.paletteActionSkills,
+    canSwapWeaponSetsInCombat: thiefProfession.resolveProfession({
+      specialization: thiefAppAdapter.eliteSpecialization(build)
+    }).canSwapWeaponSetsInCombat,
+    catalog: thiefCatalog,
     weaponData: thiefAppAdapter.weaponData
-  };
+  });
   const paletteNamesAfter = (rotation) => {
-    app.analysis.state.results = simulate('Core', rotation, {
+    app.planning = simulate('Core', rotation, {
       primaryWeapon: 'Dagger',
       secondaryWeapon: 'Dagger',
       weaponSet2Primary: '',
       weaponSet2Secondary: ''
-    });
+    }).planningState;
 
     return weaponPaletteRows(app, 1)[0].skills.map((skill) => skill.name);
   };
@@ -922,30 +929,41 @@ test('Thief weapon chains and follow-ups occupy one live palette tile', () => {
       { name: 'Critical Strikes', traits: '1-1-1' },
       { name: specialization === 'Core' ? 'Shadow Arts' : specialization, traits: '1-1-1' }
     ];
-    const app = {
-      analysis: {
-        needsPatchComparison: () => false,
-        state: {
-          results: simulate(specialization, rotation, {
-            primaryWeapon: weapons[0],
-            secondaryWeapon: weapons[1],
-            weaponSet2Primary: '',
-            weaponSet2Secondary: ''
-          })
-        }
-      },
-      patch: thiefAppAdapter.profession.resolvePatch(),
+    const app = paletteInputFixture({
+      planning: simulate(specialization, rotation, {
+        primaryWeapon: weapons[0],
+        secondaryWeapon: weapons[1],
+        weaponSet2Primary: '',
+        weaponSet2Secondary: ''
+      }).planningState,
       build: {
         ...defaults,
         weapons,
         alternateWeapons: ['', ''],
         specializations
       },
-      adapter: thiefAppAdapter,
-      profession: thiefProfession,
-      activeCatalog: thiefCatalog,
+      specialization: thiefAppAdapter.eliteSpecialization({
+        ...defaults,
+        weapons,
+        alternateWeapons: ['', ''],
+        specializations
+      }),
+      isSkillAvailable: thiefAppAdapter.isSkillAvailable,
+      weaponSkillMatchesSet: thiefAppAdapter.weaponSkillMatchesSet,
+      slotLoadout: thiefAppAdapter.slotLoadout,
+      ui: thiefProfession.ui,
+      projectActions: thiefProfession.ui.paletteActionSkills,
+      canSwapWeaponSetsInCombat: thiefProfession.resolveProfession({
+        specialization: thiefAppAdapter.eliteSpecialization({
+          ...defaults,
+          weapons,
+          alternateWeapons: ['', ''],
+          specializations
+        })
+      }).canSwapWeaponSetsInCombat,
+      catalog: thiefCatalog,
       weaponData: thiefAppAdapter.weaponData
-    };
+    });
 
     return weaponPaletteRows(app, 1)[0].skills;
   };

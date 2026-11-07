@@ -10,6 +10,7 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 function planningState(overrides = {}) {
@@ -73,7 +74,7 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
   assert.deepEqual(palettePlanningResult(app).procSteps, []);
   assert.deepEqual(paletteProfessionState(app), { [STATE.RESOURCE]: 2 });
   assert.equal(
-    paletteSkillView(app, {
+    paletteSkillView(paletteInputFixture({ planning: palettePlanningState(app) }), {
       id: 1,
       name: 'Test',
       icon: 'test.png',

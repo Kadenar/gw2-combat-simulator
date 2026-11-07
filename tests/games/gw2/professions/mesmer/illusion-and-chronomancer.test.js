@@ -215,20 +215,13 @@ test('clone state remains capped at three when input or new summons exceed the c
 test('clone resource pips render without a redundant numeric count', () => {
   const resourceHtml = activeResourceGroup(
     activeResourceDefinitions({
-      analysis: {
-        needsPatchComparison: () => false,
-        state: {
-          results: {
-            planningState: {
-              profession: { [STATE.RESOURCE]: 3 }
-            }
-          }
-        }
+      ui: mesmerProfession.ui,
+      build: { initialResource: 0 },
+      specialization: 'Chronomancer',
+      planning: {
+        profession: { [STATE.RESOURCE]: 3 }
       },
-      activeCatalog: mesmerProfession.catalog,
-      profession: mesmerProfession,
-      adapter: { eliteSpecialization: () => 'Chronomancer' },
-      build: { initialResource: 0 }
+      catalog: mesmerProfession.catalog
     })
   );
 

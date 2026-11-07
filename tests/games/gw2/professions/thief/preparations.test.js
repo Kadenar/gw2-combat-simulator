@@ -5,6 +5,7 @@ import test from 'node:test';
 import { displayedSkillTiles } from '#gw2/app/rotation/palette/model.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 
 const simulate = createObservedProfessionSimulator(thiefProfession, {
   primaryWeapon: 'Dagger',
@@ -31,12 +32,15 @@ test('preparations flip while arming, use Alacrity, and restore placement after 
       });
       const tile = (result) =>
         displayedSkillTiles(
-          {
-            analysis: { needsPatchComparison: () => false, state: { results: result } },
-            profession: thiefProfession,
-            activeCatalog: thiefCatalog,
+          paletteInputFixture({
+            planning: result.planningState,
+            ui: thiefProfession.ui,
+            projectActions: thiefProfession.ui.paletteActionSkills,
+            canSwapWeaponSetsInCombat: thiefProfession.resolveProfession({ specialization: 'Core' })
+              .canSwapWeaponSetsInCombat,
+            catalog: thiefCatalog,
             build: { rotation: [] }
-          },
+          }),
           [prepare],
           context(result)
         )[0];
