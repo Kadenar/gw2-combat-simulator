@@ -1,4 +1,3 @@
-import type { DynamicFields } from '#kernel/core/dynamic-fields.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
 /** Reject overlapping public identities so module order cannot silently replace another owner's observation. */
@@ -16,7 +15,7 @@ export function composePlanningState(projections: readonly object[]): object {
 }
 
 /** Reads only the owned Core runtime slice; public projections are read by their presentation consumers. */
-export function readProfessionCoreState<TCoreState extends object = DynamicFields>(
+export function readProfessionCoreState<TCoreState extends object = Record<string, unknown>>(
   professionState: unknown
 ): Partial<TCoreState> {
   if (!professionState || typeof professionState !== 'object') return {};
@@ -26,7 +25,7 @@ export function readProfessionCoreState<TCoreState extends object = DynamicField
 }
 
 /** Reads one active specialization without exposing another specialization's state shape. */
-export function readProfessionSpecializationState<TState extends object = DynamicFields>(
+export function readProfessionSpecializationState<TState extends object = Record<string, unknown>>(
   professionState: unknown,
   expectedKind: string
 ): Partial<TState> | undefined {

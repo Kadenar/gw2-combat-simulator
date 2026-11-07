@@ -1,6 +1,5 @@
 /** Interprets actor inheritance for calculations, condition grouping, and derived effects. */
-import { ACTOR, type SimulationActorType } from '#gw2/platform/constants.js';
-import { ACTOR_TYPES } from '#gw2/platform/events/actors.js';
+import { ACTOR, ACTOR_TYPES, type SimulationActorType } from '#gw2/platform/constants.js';
 import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
 
 /** Reads explicit ownership; absent query events remain unknown and display labels never determine actors. */

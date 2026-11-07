@@ -28,7 +28,6 @@ import {
   thiefThousandNeedlesActions
 } from '#gw2/integrations/logs/evtc/rotation/professions/thief.js';
 import type { EvtcRecordedRotationAction } from '#gw2/integrations/logs/evtc/rotation/professions/types.js';
-import { evtcRotationProfile } from '#gw2/integrations/logs/evtc/rotation/profiles.js';
 import {
   EVTC_STATE_CHANGE,
   type EvtcRotationAction,
@@ -52,6 +51,7 @@ import {
 } from '#gw2/integrations/logs/shared/rotation/model.js';
 import type { RotationReconstructionBase } from '#gw2/integrations/logs/shared/rotation/model.js';
 import type { ResolvedLogAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
+import { findRotationProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import type { RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';
@@ -411,7 +411,7 @@ export function reconstructEvtcRotation(
   const playerEvidence = options.playerEvidence ?? detectEvtcRotationPlayers(log);
   const selected = selectPlayerAgent(playerEvidence, options.playerAddress);
   const { player } = selected;
-  const profile = evtcRotationProfile(player.professionId, player.specializationId);
+  const profile = findRotationProfile(player.professionId, player.specializationId);
 
   if (!profile) {
     throw new EvtcError(

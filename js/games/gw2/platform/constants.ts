@@ -84,6 +84,9 @@ export const ACTOR = Object.freeze({
   UNKNOWN: 'unknown'
 });
 
+/** Reuse actor membership checks across event, effect, and ownership validation. */
+export const ACTOR_TYPES: ReadonlySet<string> = new Set(Object.values(ACTOR));
+
 export const RECIPIENT = Object.freeze({
   SELF: 'self',
   PARTY: 'party',

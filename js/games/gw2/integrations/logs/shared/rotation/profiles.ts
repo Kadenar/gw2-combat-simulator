@@ -97,3 +97,10 @@ export const ROTATION_PROFILES: readonly RotationProfessionProfile[] = Object.fr
     );
   })
 );
+
+/** Resolve both log formats through the same profession and specialization identity pair. */
+export function findRotationProfile(professionId: string, specializationId: string): RotationProfessionProfile | null {
+  return (
+    ROTATION_PROFILES.find((p) => p.professionId === professionId && p.specializationId === specializationId) ?? null
+  );
+}

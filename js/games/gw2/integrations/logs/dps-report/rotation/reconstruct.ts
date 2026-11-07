@@ -33,7 +33,11 @@ import {
   SIGNET_OF_MIGHT_PASSIVE_ID,
   signetOfMightProcAt
 } from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
-import { ROTATION_PROFILES, type RotationProfessionProfile } from '#gw2/integrations/logs/shared/rotation/profiles.js';
+import {
+  findRotationProfile,
+  ROTATION_PROFILES,
+  type RotationProfessionProfile
+} from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { alignConduitHazeCombatOffset } from '#gw2/integrations/logs/shared/rotation/rules/conduit.js';
 import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
 import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
@@ -463,10 +467,7 @@ export function reconstructDpsReportRotation(
   }
 
   const player = selection.player;
-  const profile = ROTATION_PROFILES.find(
-    (candidate) =>
-      candidate.professionId === player.professionId && candidate.specializationId === player.specializationId
-  );
+  const profile = findRotationProfile(player.professionId, player.specializationId);
 
   if (!profile) {
     throw new DpsReportError(

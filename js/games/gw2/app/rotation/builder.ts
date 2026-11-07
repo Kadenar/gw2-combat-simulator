@@ -1,6 +1,5 @@
 import { renderEventLog } from '#gw2/app/results/event-log.js';
 import { renderRotationComparison } from '#gw2/app/rotation/comparison.js';
-import { renderRotationHistoryControls } from '#gw2/app/rotation/editing/history.js';
 import { mountRotationHotkeys } from '#gw2/app/rotation/hotkeys.js';
 import { renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
@@ -43,4 +42,18 @@ function renderSimulationDetails(app: ProfessionAppState): void {
   renderEventLog(app);
   const viewModel = app.adapter.presentation.createViewModel(app);
   app.adapter.presentation.render(app, viewModel);
+}
+
+/** Reflect undo/redo availability on the toolbar buttons. */
+function renderRotationHistoryControls(app: ProfessionAppState): void {
+  const undoButton = document.getElementById('btn-sim-undo');
+  const redoButton = document.getElementById('btn-sim-redo');
+
+  if (undoButton instanceof HTMLButtonElement) {
+    undoButton.disabled = !app._rotationHistory?.undo.length;
+  }
+
+  if (redoButton instanceof HTMLButtonElement) {
+    redoButton.disabled = !app._rotationHistory?.redo.length;
+  }
 }
