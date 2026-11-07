@@ -436,7 +436,8 @@ function applyCascadingCorruption(
             type: 'trait',
             at: runtime.time,
             name: 'Meltdown',
-            icon: new URL('@images/wiki/meltdown.png', import.meta.url).href,
+            // Proc overlays and damage rows share the Meltdown effect artwork used by tooltip facts.
+            icon: 'https://render.guildwars2.com/file/03291423C8D1BE039F100726B40BC218F021EFEF/3790487.png',
             sourceSkill: cast.skill.name
           }
         });

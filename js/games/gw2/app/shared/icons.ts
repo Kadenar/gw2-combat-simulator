@@ -165,6 +165,9 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   'Consecutive page skills required':
     'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Maximum stacks': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
+  // Cascading Corruption's named cap uses the same stack-limit glyph as generic maximum stacks.
+  'Maximum Cascading Corruption stacks':
+    'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Max stacks': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Life Force': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
   'Condition Threshold': 'https://render.guildwars2.com/file/9352ED3244417304995F26CB01AE76BB7E547052/156661.png',
