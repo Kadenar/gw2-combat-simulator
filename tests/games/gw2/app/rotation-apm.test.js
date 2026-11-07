@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { resultSummaryMetrics } from '#gw2/app/results/model.js';
+import { resultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
 import { mountResultSummary } from '#gw2/app/results/summary-view.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';

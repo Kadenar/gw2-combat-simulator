@@ -1,5 +1,5 @@
 /** Turns a hit's captured formula facts into the event log's calculation: the equation first, raw facts on request. */
-import { effectName } from '#gw2/app/results/model.js';
+import { effectName } from '#gw2/app/results/effect-labels.js';
 import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import {
   BASE_CRITICAL_DAMAGE_MULTIPLIER,

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildChartSeries } from '#gw2/app/results/model.js';
+import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';

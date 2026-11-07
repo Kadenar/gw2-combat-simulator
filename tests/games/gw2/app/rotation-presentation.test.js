@@ -11,13 +11,13 @@ import {
 import { rotationObservations } from '#gw2/app/rotation/insights/rotation-observations.js';
 import { bindPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
 import { paletteGroupHtml, paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
+import { targetHealthTimelineMarkers } from '#gw2/app/rotation/timeline/encounter.js';
 import { bindTimelineInteractions, getSkillDropInsertionIndex } from '#gw2/app/rotation/timeline/interactions.js';
 import {
   formatTimelineDuration,
   formatTimelineSkillTooltip,
   rotationEntryName,
   rotationSkillHighlightKey,
-  targetHealthTimelineMarkers,
   timelineDeadTimeMarkers,
   timelineImpactOffsets,
   timelineSkillCastOrdinals,

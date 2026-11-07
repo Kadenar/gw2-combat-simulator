@@ -6,9 +6,9 @@ import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js'
 import { SKILL_COLS, type DamageBreakdownModel } from '#gw2/app/results/breakdown/model.js';
 import { mountDamageBreakdown, type DamageBreakdownOptions } from '#gw2/app/results/breakdown/view.js';
 import { mountResultCharts, type ResultChartsModel } from '#gw2/app/results/charts/section-view.js';
+import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import type { ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { mountAnalysisLoading } from '#gw2/app/results/loading-view.js';
-import { buildChartSeries } from '#gw2/app/results/model.js';
 import { modifierContributionsHtml, mountModifierContributions } from '#gw2/app/results/modifier-contributions-view.js';
 import { mountRandomDistribution } from '#gw2/app/results/random-distribution-view.js';
 import {

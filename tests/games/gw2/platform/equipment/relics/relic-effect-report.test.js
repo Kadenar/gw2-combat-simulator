@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildChartSeries } from '#gw2/app/results/model.js';
+import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';

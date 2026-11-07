@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
-import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
+import { resultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
 import { professionTimelineMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { rotationWarningItems } from '#gw2/app/rotation/warnings.js';
 import { formatResultTimelineTime } from '#gw2/app/shared/result-clock.js';

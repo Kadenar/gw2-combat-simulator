@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
-import { buildChartSeries } from '#gw2/app/results/model.js';
+import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { dispatchPaletteAction } from '#gw2/app/rotation/palette/interactions.js';
 import {

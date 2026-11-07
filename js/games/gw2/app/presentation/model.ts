@@ -1,9 +1,9 @@
 import type { ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
-import { resultSummaryMetrics } from '#gw2/app/results/model.js';
+import { resultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
 import type { ResultSummaryMetric } from '#gw2/app/results/summary-metrics.js';
 import type { ResultSummaryModel } from '#gw2/app/results/summary-view.js';
-import type { EncounterTimelineMarker } from '#gw2/app/rotation/timeline/encounter.js';
-import type { targetHealthTimelineMarkers, TimelineDeadTimeOptions } from '#gw2/app/rotation/timeline/model.js';
+import type { EncounterTimelineMarker, targetHealthTimelineMarkers } from '#gw2/app/rotation/timeline/encounter.js';
+import type { TimelineDeadTimeOptions } from '#gw2/app/rotation/timeline/model.js';
 import { timelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
 import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';

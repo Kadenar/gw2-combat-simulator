@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildChartSeries } from '#gw2/app/results/model.js';
+import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { paletteView } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';

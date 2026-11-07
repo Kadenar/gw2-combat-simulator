@@ -1,13 +1,19 @@
+/** Builds chart data with shared damage sampling, effect labels and skill attribution. */
 import type { ConditionTickContribution, SkillHit } from '#gw2/app/results/charts/hit-timeline-model.js';
+import { effectName } from '#gw2/app/results/effect-labels.js';
+import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/skill-breakdown.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import type {
+  ProfessionChartApplication,
+  ProfessionEffectPresentation
+} from '#gw2/platform/profession-presentation/types.js';
 import { type BoonGenerationByAudience } from '#gw2/platform/results/boon-generation.js';
 import { eventDamagePackets, recordedDamageTicks } from '#gw2/platform/results/damage-packets.js';
 import { effectStateAt, effectSummary, type EffectSource } from '#gw2/platform/results/effect-report.js';
-import type { Gw2ResolverResult } from '#gw2/platform/results/types.js';
+import type { Gw2ResolverResult, Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
-// Builds renderer-independent chart data so simulations and views share one time-series contract.
 export interface ChartPoint {
   readonly t: number;
   readonly v: number;
@@ -180,6 +186,49 @@ function sampleDamageSeries(
 /** Build comparison curves without allocating effect, per-skill, or condition-inspection records. */
 export function buildDamageSeries(result: DamageSeriesResult, sampleStepMs = 250): DamageSeries {
   return sampleDamageSeries(prepareDamageTimeline(result, sampleStepMs));
+}
+
+/** Associates chart damage and applications with their breakdown rows and presentation labels. */
+export function buildChartSeries(
+  result: Gw2SimulationResult,
+  sampleStepMs = 250,
+  presentations: readonly ProfessionEffectPresentation[] = [],
+  applications: readonly ProfessionChartApplication[] = [],
+  skillKeyByIdentity: ReadonlyMap<string, string> = skillDamageKeyByIdentity(result)
+): ChartSeries {
+  // Attribute each per-hit event to the same breakdown row key the skill table
+  // uses, so expanding a row shows exactly its hits in the local timeline.
+  const series = buildTimeSeries(result, sampleStepMs, {
+    effectName: (kind, event) => effectName(kind, event, presentations),
+    skillKey: (event) =>
+      skillKeyByIdentity.get(
+        skillDamageIdentityKey({
+          skillId: event.skillId,
+          sourceId: event.sourceId,
+          actorType: event.actorType,
+          summonKind: event.summonKind,
+          entityName: event.entityName,
+          source: event.source,
+          parentSkill: event.parentSkillName,
+          name: event.name
+        })
+      ) ?? null
+  });
+  // Align applications to the damage window so the inspector can identify empowered strikes.
+  const startMs = Number(result.dpsStartTime ?? result.firstHitTime ?? 0) * 1000;
+  const skillApplications: Record<string, { t: number; empowered: boolean }[]> = {};
+  for (const application of applications) {
+    const t = application.at * 1000 - startMs;
+
+    if (t < 0 || t >= series.durationMs) continue;
+
+    (skillApplications[application.series] ||= []).push({
+      t,
+      empowered: application.empowered
+    });
+  }
+
+  return { ...series, skillApplications };
 }
 
 /** Full charts require collected effects and enrich the shared damage sweep with phase contributions and inspection histories. */

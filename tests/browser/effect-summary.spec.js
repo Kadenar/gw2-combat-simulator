@@ -13,7 +13,7 @@ test('boon charts switch between self, allies, and comparison without losing eff
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
     const { effectFields } = await import('/tests/helpers/effect-report.js');
-    const { buildChartSeries } = await import('/js/games/gw2/app/results/model.ts');
+    const { buildChartSeries } = await import('/js/games/gw2/app/results/charts/time-series-model.ts');
     const { mountTimeSeriesCharts } = await import('/js/games/gw2/app/results/charts/time-series-view.ts');
     const resolvedAudience = {
       includesSelf: true,
@@ -95,7 +95,7 @@ test('effect summaries show average stacks and stay readable on narrow screens',
   await page.evaluate(async () => {
     const { effectFields } = await import('/tests/helpers/effect-report.js');
     const { timedEffectState } = await import('/js/games/gw2/platform/combat/effect-state.ts');
-    const { buildChartSeries } = await import('/js/games/gw2/app/results/model.ts');
+    const { buildChartSeries } = await import('/js/games/gw2/app/results/charts/time-series-model.ts');
     const { mountTimeSeriesCharts } = await import('/js/games/gw2/app/results/charts/time-series-view.ts');
     const resolvedAudience = {
       includesSelf: true,

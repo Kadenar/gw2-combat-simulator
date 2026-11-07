@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildChartSeries } from '#gw2/app/results/model.js';
+import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { professionRegistry } from '#gw2/profession-registry.js';

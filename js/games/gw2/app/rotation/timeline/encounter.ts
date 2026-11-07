@@ -1,4 +1,6 @@
+/** Places observed encounter phases and target-health milestones among rotation commands. */
 import type { EncounterExecutionPhaseDefinition } from '#gw2/app/boss-scenarios/phases.js';
+import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import type { Gw2SimulationResult, SimulationStep } from '#gw2/platform/results/types.js';
 
 export interface EncounterTimelineMarker {
@@ -64,4 +66,33 @@ export function encounterStepContext(step: SimulationStep | undefined, markers: 
     phase: markers.filter((marker) => marker.start <= step.start).at(-1),
     crossings: markers.filter((marker) => marker.start > step.start && marker.start < step.end)
   };
+}
+
+/** Places target-health milestones at the next command without changing rotation timing. */
+export function targetHealthTimelineMarkers(
+  result: Gw2SimulationResult | null | undefined,
+  targetHealth: number,
+  thresholds: readonly number[] = [],
+  rotationLength = 0,
+  startingHealthPercent = 100
+) {
+  const percents = [...new Set(thresholds)]
+    .map((threshold) => Number(threshold) * 100)
+    .filter((percent) => percent > 0 && percent < 100);
+
+  if (!percents.length) return [];
+
+  const steps = (result?.steps || [])
+    .filter((step) => step.rotationCommandIndex >= 0 && !step.invalid)
+    .sort((left, right) => left.start - right.start || left.rotationCommandIndex - right.rotationCommandIndex);
+  return targetHealthBreakpointSnapshots(result, targetHealth, percents, startingHealthPercent).map((snapshot) => {
+    const start = Math.round(snapshot.at * 1000);
+    const next = steps.find((step) => step.start >= start);
+    return {
+      insertionIndex: next?.rotationCommandIndex ?? rotationLength,
+      healthPercent: snapshot.healthPercent,
+      start,
+      damage: snapshot.damage
+    };
+  });
 }

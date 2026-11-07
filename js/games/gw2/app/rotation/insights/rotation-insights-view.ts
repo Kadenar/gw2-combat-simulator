@@ -1,6 +1,6 @@
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
 import { bindRotationImportDialog } from '#gw2/app/import-export/rotation-import-dialog.js';
-import { effectName } from '#gw2/app/results/model.js';
+import { effectName } from '#gw2/app/results/effect-labels.js';
 import type { ComparisonWindowMode, RotationComparisonState } from '#gw2/app/rotation/comparison-state.js';
 import type {
   ComparisonMetric,

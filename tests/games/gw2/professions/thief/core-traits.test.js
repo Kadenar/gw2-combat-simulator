@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { buildChartSeries } from '#gw2/app/results/model.js';
+import { buildChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { applyBoonExtension, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';

@@ -1,4 +1,3 @@
-import { targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { EncounterPhaseResult } from '#gw2/platform/combat/state/encounter.js';
@@ -866,34 +865,6 @@ export function timelineWeaponRows(
     isWeaponSwap,
     // Profession transitions own named-lane boundaries.
     weaponLineTransition
-  });
-}
-
-export function targetHealthTimelineMarkers(
-  result: Gw2SimulationResult | null | undefined,
-  targetHealth: number,
-  thresholds: readonly number[] = [],
-  rotationLength = 0,
-  startingHealthPercent = 100
-) {
-  const percents = [...new Set(thresholds)]
-    .map((threshold) => Number(threshold) * 100)
-    .filter((percent) => percent > 0 && percent < 100);
-
-  if (!percents.length) return [];
-
-  const steps = (result?.steps || [])
-    .filter((step) => step.rotationCommandIndex >= 0 && !step.invalid)
-    .sort((left, right) => left.start - right.start || left.rotationCommandIndex - right.rotationCommandIndex);
-  return targetHealthBreakpointSnapshots(result, targetHealth, percents, startingHealthPercent).map((snapshot) => {
-    const start = Math.round(snapshot.at * 1000);
-    const next = steps.find((step) => step.start >= start);
-    return {
-      insertionIndex: next?.rotationCommandIndex ?? rotationLength,
-      healthPercent: snapshot.healthPercent,
-      start,
-      damage: snapshot.damage
-    };
   });
 }
 

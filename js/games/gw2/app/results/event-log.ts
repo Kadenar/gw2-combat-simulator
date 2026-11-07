@@ -2,6 +2,7 @@
 import { downloadJson } from '#gw2/app/import-export/files.js';
 import { damageCalculationPresentation } from '#gw2/app/results/damage-calculation.js';
 import { damageDebugPayload } from '#gw2/app/results/damage-debug.js';
+import { effectName } from '#gw2/app/results/effect-labels.js';
 import {
   CAST_LINK,
   deriveEventLogOwnership,
@@ -9,7 +10,6 @@ import {
   eventLogSource,
   minionAttackerLabel
 } from '#gw2/app/results/event-ownership.js';
-import { effectName } from '#gw2/app/results/model.js';
 import { consolidateTraitBuffRows } from '#gw2/app/results/trait-buff-rows.js';
 import type { AttributedEventLogRow } from '#gw2/app/results/trait-buff-rows.js';
 import { professionPlanningState } from '#gw2/app/rotation/context.js';

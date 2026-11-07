@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildChartSeries } from '#gw2/app/results/model.js';
+import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { comboDefinition } from '#gw2/platform/combos/definitions.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';

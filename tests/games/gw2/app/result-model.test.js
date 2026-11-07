@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
-import { buildChartSeries, resultSummaryMetrics } from '#gw2/app/results/model.js';
+import { buildChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { skillDamageIdentityKey } from '#gw2/app/results/skill-breakdown.js';
+import { resultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
 import { formatResultTimelineTime, formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
