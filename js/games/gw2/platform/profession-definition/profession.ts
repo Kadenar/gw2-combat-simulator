@@ -112,13 +112,11 @@ function assertNativeModuleDefinition(definition: {
 }
 
 /**
- * Declares a module without exposing engine normalization plumbing.
+ * Declares a module and leaves engine normalization to composition.
  *
- * Runtime immutability starts at composition, not at each content literal:
- * this boundary copies and freezes the module shell and its owned records,
- * catalog assembly normalizes and freezes catalog collections, and
- * `defineProfession` freezes the final engine contract. Values exported or
- * consumed before those boundaries must still protect their shared identity.
+ * This function copies and freezes the module shell and its owned records. Catalog assembly normalizes and freezes
+ * catalog collections, and `defineProfession` freezes the final engine contract. Values exported or consumed before
+ * these boundaries must protect their shared identity.
  */
 export function defineNativeModule<
   const TId extends string,

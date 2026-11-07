@@ -166,7 +166,7 @@ test('planning verdicts and state are detached; score runs never capture candida
   assert.equal(queries, 0);
 });
 
-// A stale cached recharge must not be refreshed by merely inspecting either identity of Beguiling Haze.
+// A stale cached recharge must not be refreshed by inspecting either identity of Beguiling Haze.
 test('Conduit recharge queries leave the committed resource state untouched', async () => {
   const family = await loadProfession('revenant');
   const config = {

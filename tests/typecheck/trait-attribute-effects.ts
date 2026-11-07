@@ -1,7 +1,7 @@
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
-// Simple declarations retain concrete trait types and require explicit conversion policies.
+// Trait declarations retain concrete types and require explicit conversion policies.
 export const attributeTrait = defineTrait<ElementalistSkill>({
   id: 1,
   name: 'Typed attributes',

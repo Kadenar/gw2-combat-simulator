@@ -1,11 +1,7 @@
 /**
- * Core Elementalist UI contract.
- *
- * Projects live core state onto the shared build/rotation views: the attunement
- * and weapon-resource palette, which variant of a state-flipped skill is shown
- * and castable at the inspection point, the profession event-log rows, and the
- * timeline's attunement lane. Read-only over simulation state - the one
- * exception is `updatePaletteControl`, which edits the build's starting stock.
+ * Projects Core Elementalist state into build and rotation views. Supplies the attunement and weapon-resource
+ * palette, visible and castable skill variants, event-log rows, and the timeline's attunement lane.
+ * Reads simulation state without changing it. `updatePaletteControl` edits the build's starting stock.
  */
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';

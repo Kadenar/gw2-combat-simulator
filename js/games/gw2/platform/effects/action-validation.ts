@@ -125,7 +125,7 @@ export function validateSideEffectAction(
       if (action.amount !== undefined) validateSideEffectAmount(catalog, action.amount, `${label} amount`);
 
       if (action.effects !== undefined) {
-        // Inline rewards are selected by their handler; nested reaction execution is intentionally unsupported.
+        // Inline rewards are selected by their handler; nested reaction execution is unsupported.
         if (typeof action.id !== 'string' || !action.id.trim())
           throw new TypeError(`${label} payload requires an action id.`);
 

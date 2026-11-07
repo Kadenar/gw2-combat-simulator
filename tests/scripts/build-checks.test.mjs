@@ -50,7 +50,7 @@ test('dist validation retains nested missing, duplicate, and stale-output checks
     await writeFile(path.join(directory, 'js/nested/types.d.ts'), 'export {};');
     await writeFile(path.join(directory, 'dist/js/nested/skill.js'), 'export {};');
 
-    // Exercise the CLI against a tiny build so traversal changes cannot silently drop an artifact check.
+    // Exercise the CLI against a small build so traversal changes cannot skip an artifact check.
     const run = () => spawnSync(process.execPath, [checker], { cwd: directory, encoding: 'utf8' });
     const valid = run();
 

@@ -87,7 +87,7 @@ test('platform imports preserve declaration, composition, history, and presentat
     if (file === 'results/damage-report.ts')
       assert.doesNotMatch(specifier, /^#gw2\/platform\/(simulation|resolver)\/runtime-state\.js$/, label);
 
-    // Author contributions define the compiled runtime surface, rather than depending on that output contract.
+    // Author contributions define the compiled runtime interface without depending on its output contract.
     if (file === 'profession-definition/runtime-hooks.ts')
       assert.notEqual(specifier, '#gw2/platform/profession-definition/runtime-contract.js', label);
   }

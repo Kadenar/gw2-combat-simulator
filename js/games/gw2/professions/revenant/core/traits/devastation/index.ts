@@ -56,7 +56,6 @@ const assassinsPresencePassive = definePeriodicTask<RevenantRuntime>({
   run: revenantAssassinsPresencePulse
 });
 
-/** Owns Assassin's Presence tuning and behavior at its established execution boundaries. */
 export const assassinsPresence = defineTrait({
   id: TRAIT.ASSASSINS_PRESENCE,
   balance: {
@@ -76,7 +75,6 @@ export const assassinsPresence = defineTrait({
   lifetime: assassinsPresencePassive.hooks
 });
 
-/** Owns Battle Scarred tuning and behavior at its established execution boundaries. */
 export const battleScarred = defineTrait({
   id: TRAIT.BATTLE_SCARRED,
   balance: {
@@ -94,7 +92,6 @@ export const battleScarred = defineTrait({
   triggers: [onTriggerPoint(revenantCastCompleted, { run: completeBattleScarred })]
 });
 
-/** Owns Brutality tuning and behavior at its established execution boundaries. */
 export const brutality = defineTrait({
   id: TRAIT.BRUTALITY,
   balance: {
@@ -113,7 +110,6 @@ export const brutality = defineTrait({
   triggers: [onTriggerPoint(revenantWeaponSwapped, { run: completeRevenantBrutality })]
 });
 
-/** Owns Dance of Death tuning and behavior at its established execution boundaries. */
 export const danceOfDeath = defineTrait({
   id: TRAIT.DANCE_OF_DEATH,
   // Each accepted Vulnerability stack grants this trait's independently patchable scar payload.
@@ -125,7 +121,6 @@ export const danceOfDeath = defineTrait({
   triggers: [onTriggerPoint(revenantConditionApplied, { run: reactDanceOfDeath })]
 });
 
-/** Owns Destructive Impulses tuning and behavior at its established execution boundaries. */
 export const destructiveImpulses = defineTrait({
   id: TRAIT.DESTRUCTIVE_IMPULSES,
   balance: {
@@ -159,7 +154,6 @@ export const destructiveImpulses = defineTrait({
   ]
 });
 
-/** Owns Expose Defenses tuning and behavior at its established execution boundaries. */
 export const exposeDefensesTrait = defineTrait({
   id: TRAIT.EXPOSE_DEFENSES,
   balance: {
@@ -177,7 +171,6 @@ export const exposeDefensesTrait = defineTrait({
   triggers: [onTriggerPoint(battleScarConsumed, { run: exposeDefenses })]
 });
 
-/** Owns Notoriety tuning and behavior at its established execution boundaries. */
 export const notoriety = defineTrait({
   id: TRAIT.NOTORIETY,
   balance: {
@@ -201,7 +194,6 @@ export const notoriety = defineTrait({
   triggers: [onTriggerPoint(revenantCastCompleted, { run: completeNotoriety })]
 });
 
-/** Owns Swift Termination tuning and behavior at its established execution boundaries. */
 export const swiftTermination = defineTrait({
   id: TRAIT.SWIFT_TERMINATION,
   // Trait balance owns both the bonus and its supported target-health threshold.
@@ -220,7 +212,6 @@ export const swiftTermination = defineTrait({
   ]
 });
 
-/** Owns Targeted Destruction tuning and behavior at its established execution boundaries. */
 export const targetedDestruction = defineTrait({
   id: TRAIT.TARGETED_DESTRUCTION,
   balance: { damageIncreasePerStack: 0.005 },
@@ -239,7 +230,6 @@ export const targetedDestruction = defineTrait({
   ]
 });
 
-/** Owns Thrill of Combat tuning and behavior at its established execution boundaries. */
 export const thrillOfCombatTrait = defineTrait({
   id: TRAIT.THRILL_OF_COMBAT,
   balance: {
@@ -258,7 +248,6 @@ export const thrillOfCombatTrait = defineTrait({
   triggers: [onTriggerPoint(revenantStruck, { run: thrillOfCombat })]
 });
 
-/** Owns Unsuspecting Strikes tuning and behavior at its established execution boundaries. */
 export const unsuspectingStrikes = defineTrait({
   id: TRAIT.UNSUSPECTING_STRIKES,
   // Trait balance owns both the bonus and its supported target-health threshold.

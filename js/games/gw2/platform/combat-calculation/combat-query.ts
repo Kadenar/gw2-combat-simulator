@@ -149,11 +149,9 @@ function projectIndependentSummonAttributes(
 }
 
 /**
- * Combines combat primitives, equipment rules, and profession hooks into
- * timestamp-aware combat values shared by simulation and attribute previews.
- * A supplied runtime makes same-timestamp buffs, weapon sets, profession state,
- * conditions, and active equipment effects chronological instead of looking
- * ahead in the completed event stream.
+ * Combines combat calculations, equipment rules, and profession hooks into values shared by simulation and attribute previews.
+ * With a runtime, queries read buffs, weapon sets, profession state, conditions, and equipment effects at the current
+ * timestamp. They do not read future entries in the completed event stream.
  */
 export function createGw2CombatQuery({
   profession,
@@ -473,8 +471,8 @@ export function createGw2CombatQuery({
       const professionAttributeBonus = (stats.professionCriticalChanceBonus ?? 0) / 100;
       addContributor('precision', 'Precision', chance);
       // Illusions inherit only the summoner's base (precision-derived) crit
-      // chance. Player-only gear bonuses - configured crit-chance and weapon
-      // sigils - do not carry over to them.
+      // chance. Player-only bonuses, including configured critical chance and weapon
+      // sigils, do not apply to them.
       const illusionEvent = isGw2IllusionEvent(event);
 
       if (!illusionEvent) {

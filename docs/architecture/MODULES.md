@@ -1,7 +1,6 @@
 # Simulator modules
 
-Use this ownership guide to decide where a change belongs. [Architecture](./ARCHITECTURE.md) explains composition; the
-[platform guide](../../js/games/gw2/platform/README.md) owns the detailed engine service map.
+Use this guide to find the module responsible for a change. [Architecture](./ARCHITECTURE.md) explains how modules combine. The [platform guide](../../js/games/gw2/platform/README.md) describes engine services.
 
 ## Repository map
 
@@ -32,7 +31,7 @@ Use this ownership guide to decide where a change belongs. [Architecture](./ARCH
 | Profession build defaults and normalization                  | `build/build.ts`                                             |
 | Shared GW2 behavior                                          | Platform domain that owns the concept                        |
 | Game-neutral scheduling                                      | `js/kernel/`                                                 |
-| Browser editing or presentation                              | GW2 `app/`, or `js/ui/` for neutral primitives               |
+| Browser editing or presentation                              | GW2 `app/`, or `js/ui/` for game-neutral helpers               |
 | Profession registration                                      | `js/games/gw2/profession-registry.ts`                        |
 
 Share behavior in the platform when multiple professions need it. Several callers within one profession do not justify
@@ -42,9 +41,9 @@ moving that profession's mechanics into the platform.
 
 `browser/entry.ts` and `bootstrap.ts` start the active game. `game/` owns plug-in contracts and worker lifecycle;
 `page/` owns host integration; `shell/` composes result views and the rotation workspace. `ui/results/` and
-`ui/rotation/` supply neutral primitives; `ui/shared/` supplies leaf DOM utilities.
+`ui/rotation/` supply game-neutral views; `ui/shared/` supplies DOM utilities.
 
-Non-type import boundaries are enforced in `eslint.config.js`:
+`eslint.config.js` enforces these boundaries for imports other than type imports:
 
 | Folder           | Allowed dependencies within UI/browser/game packages                  |
 | ---------------- | --------------------------------------------------------------------- |
@@ -109,8 +108,7 @@ facts without reproducing combat rules. Timeline preferences live in `rotation/t
 contracts are documented in [Rotation state snapshots](./ROTATION_STATE_SNAPSHOT.md).
 
 `rotation/palette/input.ts` captures the cursor observation, build/catalog facts, and presentation dependencies once.
-The palette model projects tiles, resources, and weapon placement from that explicit input without reading application
-state. Cursor-prefix simulation and caching stay in `rotation/context.ts`; cooldown tooltip labels retain the displayed
+The palette model derives tiles, resources, and weapon placement from this captured input. It does not read application state. Cursor-prefix simulation and caching stay in `rotation/context.ts`; cooldown tooltip labels retain the displayed
 result's combat origin. Isolated skill-damage previews use the smaller palette queries without a cursor observation.
 Warnings use those queries to inspect both equipped weapon sets and their existing selected-skill inventory,
 independently of which tiles the current palette displays.
@@ -137,12 +135,11 @@ live encounter execution. See [Benchmarks](../../wiki/Benchmarks.md) and [Boss s
 
 The [platform ownership guide](../../js/games/gw2/platform/README.md) maps execution, calculation, and observation
 services. `simulation/simulate.ts` is the public entry, `runtime.ts` assembles services, and `coordinator.ts` owns the
-single queue and clock. Game-neutral primitives remain in the kernel. See the [event clock](./SIMULATION-EVENT-CLOCK.md)
+single queue and clock. The kernel contains game-neutral scheduling and calculation helpers. See the [event clock](./SIMULATION-EVENT-CLOCK.md)
 for scheduling contracts.
 
 `kernel/core/clone.ts` owns `cloneData`, a copy helper for primitive data, plain objects, and dense ordinary arrays with
-enumerable data properties, including shared references and cycles. It is not a general serializer: unsupported shapes
-require native `structuredClone` on the entire graph. Contract exclusions and benchmark evidence are retained in the
+enumerable data properties, including shared references and cycles. Use native `structuredClone` on the entire graph for unsupported shapes. Contract exclusions and benchmark evidence are retained in the
 [clone performance audit](../audits/CLONE-PERFORMANCE.md).
 
 ### GW2 build context
@@ -186,8 +183,7 @@ Paths are relative to `professions/<profession>/`, or its owning Core/elite dire
 | Core/elite `presentation.ts`               | Palette, resource, timeline, and snapshot contributions               |
 | `state-ids.ts`                             | Stable public planning identities                                     |
 
-`catalog.ts` remains separate from `profession.ts`: the latter imports build code that reads the catalog during module
-loading. Modules contribute data upward and must not import the assembled catalog. Presentation may receive it through a
+`catalog.ts` remains separate from `profession.ts` because profession composition imports build code that reads the catalog during module loading. Modules contribute data upward and must not import the assembled catalog. Presentation may receive it through a
 binding factory. Projectors publish stable IDs without mutating their runtime slice; duplicate IDs fail composition.
 
 `platform/profession-presentation/compose.ts` owns the complete presentation contract. Each callback declares its
@@ -224,21 +220,20 @@ interleave intrinsic work without making untraited execution depend on a trait d
 work. `trait.lifetime` admits delivery and settlement of existing work, not unrelated startup or arbitrary new
 reactions. Disabling `traitTriggers` removes producers while retaining value rules and admitted lifetime delivery.
 Modifier rules normally receive selection gates; `requiresSelection: false` needs an explicit predicate for
-already-created effects. Imperative modifier callbacks are not an authoring surface.
+already-created effects. Declare modifiers through rules, not imperative modifier callbacks.
 
 Register complete hook contributions with `composeRuntimeHooks` rather than copying fields or spreading handler maps.
 The composer preserves transforms and notifications and rejects duplicate named handlers. Trait value/lifetime hooks
 precede module hooks; Core precedes the active elite. Mechanic point listeners follow their explicitly declared order.
 Changing a callback's registration location requires reviewing selection, phase, and ordering.
 
-Use `emitTraitProfile` and `invokeTraitSkill` for ordinary profile/skill materialization. Stateful choices and custom
+Use `emitTraitProfile` to create profile effects and `invokeTraitSkill` to invoke trait skills. Stateful choices and custom
 lifetimes remain with their owner. See [profession guides](../professions/) for family-specific ordering and exceptions.
 
 ### Skill-owned modifiers
 
 Place modifiers after identity/scalar fields and before effects. Default `scope: 'skill'` filters by attributed skill;
-`scope: 'profession'` removes that filter while retaining `sourceSkillId`. Profession scope adds no actor or selection
-gate: `when` must express activation and audience. Effect-level modifiers cannot use profession scope.
+`scope: 'profession'` removes that filter while retaining `sourceSkillId`. Profession scope adds no actor or selection gate. The `when` predicate must define when the rule applies and which actors it affects. Effect-level modifiers cannot use profession scope.
 
 Skill targets are `strikeDamage`, `conditionDamage`, `criticalChance`, `criticalDamage`, `conditionDuration`, and
 `conditionBaseDuration`. Damage uses `multiply` or `damage-additive`; critical/duration targets use `multiply` or `add`.
@@ -278,7 +273,7 @@ no log-specific assumptions; reconstructed rotations use ordinary simulation. Se
 
 ## Adding things and validating
 
-Extend the existing owner and source of truth. New elites add a native module after Core in `catalog.ts`, maintained
+Add behavior to the module that already owns its data and rules. New elites add a native module after Core in `catalog.ts`, maintained
 selection/build metadata, focused tests, and a profession guide. For a new family, follow
 [Adding another profession](./ARCHITECTURE.md#adding-another-profession).
 

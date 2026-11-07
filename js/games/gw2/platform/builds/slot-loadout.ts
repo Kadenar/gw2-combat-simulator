@@ -4,22 +4,15 @@ import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
 /**
- * Shared model for profession slot skills chosen as fixed packages rather than
- * as independent skills (for example, a Revenant legend and its entire bar).
+ * Models profession slot skills selected as fixed packages, such as a Revenant legend and its entire bar.
  *
- * A loadout definition supplies stable entries, the build keys that store the
- * selected and starting entries, and optional specialization restrictions.
- * The resulting model:
+ * A loadout definition supplies stable entries, build keys for selected and starting entries, and optional
+ * specialization restrictions. The model validates saved selections and provides selector and bar data to the UI.
+ * It resolves the active bar from projected profession state, or the build's starting entry when state is absent.
+ * It also identifies skills that belong to a selected but inactive bar.
  *
- * - normalizes and validates persisted build selections;
- * - exposes selector and bar data for the UI and skill palette;
- * - resolves the active bar from projected profession state, falling back to the
- *   build's starting entry; and
- * - explains when a skill belongs to a selected but inactive bar.
- *
- * Entry definitions and the returned model are frozen. `normalizeBuild`
- * returns a build patch, while `updateBuild` intentionally mutates the build
- * object supplied by the application state layer.
+ * Entry definitions and the returned model are frozen. `normalizeBuild` returns a build patch. `updateBuild`
+ * mutates the build object supplied by application state.
  *
  * @module fixed-slot-loadout
  */

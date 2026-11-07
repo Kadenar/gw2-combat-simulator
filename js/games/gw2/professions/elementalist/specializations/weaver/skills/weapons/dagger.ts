@@ -1,13 +1,7 @@
 /**
- * Dagger weapon-skill mechanics owned by the Weaver module.
- *
- * Weaver occupies the slot-3 dagger position with a dual attack selected by the
- * unordered pair of attunements held across its two hands; every definition names
- * its pair in `attunement`, and Weaver availability only offers the skill when
- * both of those elements are currently attuned.
- *
- * Declarative data only - no handler logic lives here. Effect offsets are
- * authored against castTimeMs and follow runtime skill variants through the shared scheduler policy.
+ * Defines Weaver dagger dual attacks in slot 3. Each skill declares an unordered attunement pair in
+ * `attunement` and is available only when both elements are attuned. Effect offsets use castTimeMs and follow
+ * runtime skill variants through the shared scheduler. This file contains declarations without handlers.
  */
 import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -118,7 +112,7 @@ export const WEAVER_DAGGER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   // Air+Water. Two crowd-control applications far apart on the timeline: the
   // opening 0.1 packet at 240 ms carries the Blast finisher, Chilled,
   // Regeneration and the first control, while the 1.25 payoff hit and second
-  // control land at 1520 ms - long after the 280 ms cast has ended.
+  // control land at 1520 ms, after the 280 ms cast has ended.
   [ID.KATABATIC_WIND]: {
     name: 'Katabatic Wind',
     icon: 'https://render.guildwars2.com/file/5897FEF03F0759D065BAAAE69EA9F26D2E3F51B8/1770341.png',

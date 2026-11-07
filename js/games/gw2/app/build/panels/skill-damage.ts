@@ -225,7 +225,7 @@ function renderPreparedStats(host: HTMLElement, preparation: SkillDamagePreparat
   if (stats) stats.innerHTML = preparation.statsHtml;
 }
 
-/** Reopening resumes canceled work; completed and failed requests never restart merely because the panel renders. */
+/** Reopening resumes canceled work. Rendering the panel never restarts completed or failed requests. */
 function requestMeasurements(state: SkillDamagePanelState): void {
   if (!state.plan) return;
 

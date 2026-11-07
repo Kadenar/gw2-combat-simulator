@@ -31,7 +31,7 @@ interface IllusionRewardOptions {
   readonly scheduleResourceTask: (candidate: MesmerPendingResource, delivery?: EffectDelivery) => unknown;
 }
 
-/** Orchestrates clone creation and earned numeric rewards and exposes committed gains to active specialization reactions. */
+/** Creates clones, grants earned numeric rewards, and reports committed gains to active specialization reactions. */
 export function createIllusionRewardController({
   state,
   resourceDefinition,

@@ -27,7 +27,7 @@ import { grantWarriorResource } from '#gw2/professions/warrior/resource-rules.js
 import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-/** Enhance the ranged autoattacks, applying Burning separately for each Dual Shot arrow that hits. */
+/** Adds bonuses to ranged autoattacks and applies Burning for each Dual Shot arrow that hits. */
 export const crackShot = defineTrait({
   id: TRAIT.CRACK_SHOT,
   balance: {
@@ -181,7 +181,7 @@ export const warriorsSprint = defineTrait({
 /**
  * Heightened Focus: the first player strike after its internal cooldown that lands while the target is below half
  * health grants Quickness and readies every Burst skill, so execute phases can chain bursts. The adrenaline-scaled
- * outgoing-healing stacks are support-only and intentionally not modeled.
+ * outgoing-healing stacks are support-only and not modeled.
  */
 function triggerHeightenedFocus(runtime: WarriorRuntime, event: Gw2ResolverEvent): void {
   // The trait listener admits selection; only strike eligibility, target health, and proc availability remain.

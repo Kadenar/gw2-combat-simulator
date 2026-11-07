@@ -139,7 +139,7 @@ function smokeField(runtime) {
   });
 }
 
-// A real smoke leap must unlock the follow-up stealth attack, beyond merely reporting a combo buff.
+// A smoke leap must unlock the follow-up stealth attack as well as report a combo buff.
 test('Thief: smoke leap stealth enables Backstab through the ordinary packet lifecycle', () => {
   const result = runThief(
     ['Heartseeker', { type: 'wait', durationMs: 100 }, 'Backstab'],

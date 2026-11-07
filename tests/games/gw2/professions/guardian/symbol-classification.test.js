@@ -19,7 +19,7 @@ test('Writ and symbol reactions survive renamed skills, including ordinary and s
         selectedTraitIds: [TRAIT.WRIT_OF_PERSISTENCE, TRAIT.SYMBOLIC_AVENGER, TRAIT.SYMBOLIC_EXPOSURE]
       },
       {
-        // Display text is deliberately unrelated to symbols; authored identity must survive catalog replacement.
+        // Display text is unrelated to symbols; authored identity must survive catalog replacement.
         catalog: (catalog) => withSkill(catalog, id, { name: 'Renamed attack' })
       }
     );

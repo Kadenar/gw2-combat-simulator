@@ -133,7 +133,7 @@ test('planning observations require explicit projection and retain shared execut
   }
 });
 
-// Resource presentation is normalized by its own application adapter.
+// The presentation composer supplies empty resource views when no slice owns them.
 test('presentation contract supports zero or multiple resource views', () => {
   const none = professionUiFixture();
   const multiple = professionUiFixture({

@@ -38,7 +38,7 @@ export function reconstructGuardianCompositeActions(
             : null;
 
     if (followupId == null) {
-      // EVTC labels every charge level simply "Jurisdiction"; an unpaired release must not become a new charge cast.
+      // EVTC labels every charge level "Jurisdiction"; an unpaired release must not become a new charge cast.
       normalized.push(
         skillId === JURISDICTION_RELEASE_ID ? { ...action, canonicalName: 'Fire Jurisdiction (Level 1)' } : action
       );

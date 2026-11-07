@@ -66,7 +66,7 @@ const pageEntries = [
   ...Object.keys(professionPages).map((professionId) => `${professionId}.html`)
 ];
 
-// Expands each thin profession entry into the shared simulator document before Vite processes its assets.
+// Expands each profession entry into the shared simulator document before Vite processes its assets.
 function renderProfessionPages() {
   const templatePath = path.resolve('templates', 'profession.html');
 
@@ -199,7 +199,7 @@ export default defineConfig(({ command, mode }) => ({
   publicDir: false,
   // Browser code uses local ES modules only; skip crawling every profession for npm dependencies to prebundle.
   optimizeDeps: { noDiscovery: true, include: [] },
-  // Local captures and compiled copies can dwarf the app; keep their watcher crawl from starving source reads.
+  // Exclude local captures and compiled copies from file watching so their size does not delay source reads.
   server: {
     watch: {
       ignored: ['**/.scratch/**', '**/.tmp/**', '**/.lavish/**', '**/dist/**', '**/reference-repos/**']
@@ -223,7 +223,7 @@ export default defineConfig(({ command, mode }) => ({
     format: 'es',
     // Feature folders identify worker chunks now that each source entry is named worker.ts.
     rolldownOptions: {
-      // Worker builds repeat overlapping hook timings; keep routine logs focused on actionable warnings.
+      // Worker builds repeat hook timings. Limit routine logs to warnings that require action.
       checks: { pluginTimings: false },
       output: {
         entryFileNames: (chunk) => `assets/${path.basename(path.dirname(chunk.facadeModuleId))}-worker-[hash].js`

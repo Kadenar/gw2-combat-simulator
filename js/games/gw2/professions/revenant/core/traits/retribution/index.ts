@@ -17,7 +17,6 @@ import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { battleScarConsumed, type RevenantStrike } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
-/** Owns Dwarven Battle Training tuning and behavior at its established execution boundaries. */
 export const dwarvenBattleTraining = defineTrait({
   id: TRAIT.DWARVEN_BATTLE_TRAINING,
   balance: {
@@ -62,7 +61,6 @@ export const dwarvenBattleTraining = defineTrait({
   ]
 });
 
-/** Owns Enduring Recovery tuning and behavior at its established execution boundaries. */
 export const enduringRecovery = defineTrait({
   id: TRAIT.ENDURING_RECOVERY,
   balance: {
@@ -71,7 +69,6 @@ export const enduringRecovery = defineTrait({
   }
 });
 
-/** Owns Versed in Stone tuning and behavior at its established execution boundaries. */
 export const versedInStone = defineTrait({
   id: TRAIT.VERSED_IN_STONE,
   balance: { attributeConversion: 0.13 },
@@ -87,7 +84,6 @@ export const versedInStone = defineTrait({
   ])
 });
 
-/** Owns Vicious Reprisal tuning and behavior at its established execution boundaries. */
 export const viciousReprisalTrait = defineTrait({
   id: TRAIT.VICIOUS_REPRISAL,
   balance: {

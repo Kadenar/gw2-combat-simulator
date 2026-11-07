@@ -61,7 +61,7 @@ export function prepareRangerPetEvent(context: RangerRuntime, event: SimulationE
   if (event.summonOwner) return { ...event, independentConditionOwner: true };
 
   // Every pet-owned event needs concrete caster identity for audience resolution;
-  // damaging packets additionally receive the pet's independent combat stats.
+  // damaging packets also receive the pet's independent combat stats.
   return event.type === 'damage' || event.type === 'condition'
     ? {
         ...event,

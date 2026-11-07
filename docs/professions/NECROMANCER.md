@@ -1,6 +1,6 @@
 # Necromancer
 
-Native shared-engine profession. Entry point `necromancer.html`. `profession.ts` composes the Core-first tuple from
+This profession uses the shared engine. Its browser entry point is `necromancer.html`. `profession.ts` composes the Core-first tuple from
 `catalog.ts`; a runtime contains Core plus at most one of Reaper, Scourge, Harbinger, or Ritualist. Only the selected
 elite's skills, traits, state, and activation behavior are present in that runtime, except elite weapon skills shared
 through Core for Weaponmaster Training.
@@ -8,26 +8,24 @@ through Core for Weaponmaster Training.
 ## Data
 
 - Maintained skill and trait constants live in `data/ids.ts`.
-- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
-  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
-  required.
+- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
 - `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
   complete declarations contributed by each module.
 
 ## Implemented systems
 
-- **Core** - Death Shroud (five-skill bar, minimum entry resource, continuous life-force drain, manual/forced exit,
+- Core implements Death Shroud (five-skill bar, minimum entry resource, continuous life-force drain, manual/forced exit,
   entry-skill recharge starting on exit); all terrestrial weapon families with swap validation, ammo, recharge, flips,
   and autoattack chains; persistent minions, command flips, minion attacks/consumption; signets, life siphons,
   corruption self-conditions, and duration-preserving condition transfers; Lich Form; Spear Soul Shards; Weaponmaster
   Training presentation.
-- **Reaper** - Reaper's Shroud (full bar, autoattack chain, flips, channels, control, chill), wells, shouts, and Reaper
+- Reaper implements Reaper's Shroud (full bar, autoattack chain, flips, channels, control, chill), wells, shouts, and Reaper
   trait modifiers.
-- **Scourge** - F1-F5, three-charge Manifest Sand Shade, fixed base-health life-force costs, Desert/Sandstorm Shroud,
+- Scourge implements F1-F5, three-charge Manifest Sand Shade, fixed base-health life-force costs, Desert/Sandstorm Shroud,
   and barrier-reactive traits. Scourge is the non-transform exception.
-- **Harbinger** - Harbinger Shroud (zero-resource entry, Blight generation to a 25-stack cap, empowered-consumption
+- Harbinger implements Harbinger Shroud (zero-resource entry, Blight generation to a 25-stack cap, empowered-consumption
   thresholds), elixirs, and Dark Barrage.
-- **Ritualist** - Ritualist's Shroud, spirits (Anguish/Wanderlust/Preservation), spirit attacks, Essence Blast,
+- Ritualist implements Ritualist's Shroud, spirits (Anguish/Wanderlust/Preservation), spirit attacks, Essence Blast,
   innervates, and its supporting traits.
 - Static and resolver-time strike/critical/condition/duration/recharge/resource/ shroud/chill/fear/minion/spirit/Blight
   modifiers, with additive vs. multiplicative grouping. Critical procs use the shared seeded critical-hit facts in both
@@ -75,14 +73,12 @@ remove independent rewards.
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Ally
+The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Ally
 healing/revival/barrier, dynamic enemy-boon tracking, projectile interaction, pathing, incoming attacks, enemy
-positioning, secondary targets, and competitive (PvP/WvW) splits are out of model; skills whose only effects are in
+positioning, secondary targets, and competitive PvP and WvW balance splits are outside the model; skills whose only effects are in
 those categories are excluded rather than shown as zero-damage.
 
 Offensive boon-removal consequences use configured target-boon assumptions (for example, Dark Pact's life-force gain);
 the simulator does not maintain a changing enemy boon inventory.
 
-Life-force capacity is 69% of maximum health (scales with Vitality; +20% with Soul Battery). Death Shroud drains 3%/sec
-and Reaper's Shroud 4%/sec. Damage-resolved target-health feedback is passed back to the scheduler (e.g. Gravedigger
-recharges when its hit lands below 50% target health).
+Life-force capacity is 69% of maximum health, scales with Vitality, and increases by 20% with Soul Battery. Death Shroud drains 3% per second; Reaper's Shroud drains 4% per second. The resolver sends target-health changes to the scheduler. For example, Gravedigger recharges when its hit lands below 50% target health.

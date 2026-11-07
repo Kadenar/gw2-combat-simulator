@@ -44,7 +44,7 @@ const DEFAULT_GEAR_ALIASES = Object.freeze({
 
 const GEAR_STATS_BY_NAME = GEAR_STATS as Readonly<Record<string, unknown>>;
 
-/** One major-trait choice per tier; zero keeps a tier deliberately empty. */
+/** One major-trait choice per tier; zero keeps a tier empty. */
 const TRAIT_POSITIONS = /^[0-3]-[0-3]-[0-3]$/;
 
 /**
@@ -398,7 +398,7 @@ function normalizeGear(
   }
 
   for (const slot of GEAR_SLOTS) {
-    // Resolve abbreviated names ("Berserker" → "Berserker's") before lookup.
+    // Resolve abbreviated names, such as "Berserker" to "Berserker's", before lookup.
     gear[slot] = aliases[gear[slot]] || gear[slot];
 
     // If the resolved prefix still isn't a known stat, fall back to the default.
@@ -469,7 +469,7 @@ function normalizeSpecializations(
       );
       return {
         name: String(candidate.name || ''),
-        // Zero keeps a deliberately empty tier through saving and loading; malformed choices still reset.
+        // Zero keeps a empty tier through saving and loading; malformed choices still reset.
         traits: TRAIT_POSITIONS.test(String(candidate.traits || '')) ? String(candidate.traits) : '1-1-1',
         // Persist only valid minor-tier opt-outs, leaving older builds fully enabled by default.
         ...(Array.isArray(disabledMinorTraits)

@@ -31,7 +31,6 @@ const DISABLE_CONTROL_KINDS: ReadonlySet<string> = new Set([
   CONTROL.FEAR
 ]);
 
-/** Owns HGH tuning and behavior at its established runtime and build boundaries. */
 export const hgh = defineTrait({
   id: TRAIT.HGH,
   balance: {
@@ -65,7 +64,6 @@ export const hgh = defineTrait({
   hooks: { prepareEvent: prepareEngineerHghEvent }
 });
 
-/** Owns Compounding Chemicals tuning and behavior at its established runtime and build boundaries. */
 export const compoundingChemicals = defineTrait({
   id: TRAIT.COMPOUNDING_CHEMICALS,
   balance: { attributeBonuses: { concentration: 240 } },

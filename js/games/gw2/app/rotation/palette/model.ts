@@ -922,7 +922,7 @@ export function paletteSkillGroups(input: PaletteInput, paletteContext: PaletteC
   return { renderedProfessionGroups, renderedLoadoutGroups };
 }
 
-/** Complete tile state and weapon placement before rendering, using the same facts for every palette surface. */
+/** Resolve tile state and weapon placement before rendering. All palette views use these values. */
 export function projectPalette(input: PaletteInput) {
   const paletteContext = queryPaletteContext(input);
   const professionState = paletteContext.professionState as RotationProfessionState;

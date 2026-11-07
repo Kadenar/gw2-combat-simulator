@@ -1,10 +1,7 @@
 /**
- * Evoker rotation-palette presentation.
- *
- * Renders the active F5 familiar, mirrors charge/empowered state into palette
- * availability and resource dials, and surfaces the Elemental Balance window in
- * the rotation snapshot. Reads a projected UI-side state record rather than live
- * simulation state, falling back to build defaults before a run exists.
+ * Renders the active Evoker F5 familiar and its charge and empowered state in the palette.
+ * Adds the Elemental Balance window to the rotation snapshot. Reads projected UI state,
+ * or build defaults before a simulation has run.
  */
 import type {
   ProfessionAttributePreviewContext,

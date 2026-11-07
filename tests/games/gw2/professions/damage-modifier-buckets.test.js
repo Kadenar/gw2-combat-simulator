@@ -13,7 +13,7 @@ import { warriorNativeModules } from '#gw2/professions/warrior/catalog.js';
 
 // GW2 sums damage-additive bonuses into one shared outgoing-damage bucket and applies true multipliers after it.
 // This table pins only which bucket each damage modifier uses. Magnitudes stay in balance data, so a balance patch
-// never needs a test edit, while moving a modifier to another bucket must be done deliberately here.
+// never needs a test edit, while moving a modifier to another bucket must be done here.
 const BUCKET_BY_OPERATION = { 'damage-additive': 'additive', multiply: 'multiplier' };
 const DAMAGE_TARGET_LABELS = { strikeDamage: 'strike', conditionDamage: 'condition' };
 

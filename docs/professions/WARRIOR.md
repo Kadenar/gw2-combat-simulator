@@ -1,6 +1,6 @@
 # Warrior
 
-Native shared-engine profession. Entry point `warrior.html`. `profession.ts` is the stable export and composes the
+This profession uses the shared engine. Its browser entry point is `warrior.html`. `profession.ts` is the stable export and composes the
 Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of Berserker, Spellbreaker, Bladesworn, or
 Paragon. Core owns adrenaline, bursts, weapon state, shared traits, and profession actions; each specialization owns its
 state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
@@ -16,9 +16,7 @@ state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
 ## Data
 
 - Maintained skill and trait constants live in `data/ids.ts`.
-- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
-  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
-  required.
+- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
 - `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
   complete declarations contributed by each module.
 
@@ -53,16 +51,16 @@ registering an independent hook would reorder resource changes or same-time even
 
 ## Implemented systems
 
-- **Core** - adrenaline generation on player strikes (30-point cap), burst availability/spending, three-level burst
+- Core implements adrenaline generation on player strikes (30-point cap), burst availability/spending, three-level burst
   traits, weapon swapping, endurance and Dodge, and current weapon families; Strength/Tactics attribute and damage
   modifiers, Soldier's Focus, party boons, and control/dodge interactions.
-- **Berserker** - Berserk entry cost/duration, Primal Burst gating, Rage-skill extensions, and specialization
+- Berserker implements Berserk entry cost/duration, Primal Burst gating, Rage-skill extensions, and specialization
   damage/cast-speed/attribute traits.
-- **Spellbreaker** - 20-point adrenaline cap, level-one bursts, Full Counter, control tracking, and its
+- Spellbreaker implements 20-point adrenaline cap, level-one bursts, Full Counter, control tracking, and its
   target/tether/disenchantment traits.
-- **Bladesworn** - flow replaces adrenaline, gunsaber entry/exit and gating, gunsaber/pistol ammo, armament reloads,
+- Bladesworn implements flow replaces adrenaline, gunsaber entry/exit and gating, gunsaber/pistol ammo, armament reloads,
   Dragon Trigger charge conversion, and scaling Dragon Slash packets. Normal weapon swapping is disabled.
-- **Paragon** - a 30-point adrenaline pool with a 10-point burst-spending cap, chants, motivation, active refrains,
+- Paragon implements a 30-point adrenaline pool with a 10-point burst-spending cap, chants, motivation, active refrains,
   periodic motivation drain, and refrain traits.
 
 ## Dragon Trigger (Bladesworn) rotations
@@ -93,7 +91,7 @@ intentional hold from a Flow shortage or processing delay. Imported holds can be
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Incoming attacks,
+The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Incoming attacks,
 active defense, ally healing/revival, projectile interaction, pathing, secondary targets, and competitive (PvP/WvW)
 splits are out of model. Full Counter activation spends adrenaline and starts recharge, but does not produce an
 automatic counterattack or successful-burst rewards without an incoming attack.

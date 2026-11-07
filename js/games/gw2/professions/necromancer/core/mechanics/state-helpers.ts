@@ -40,7 +40,7 @@ export function necromancerActiveMinionCompanionIds(
 /** Includes every active Necromancer summon that can compete for a shared boon slot. */
 export function necromancerActiveBoonCompanionIds(context: Pick<NecromancerRuntime, 'profession'>): readonly string[] {
   const runtime = context.profession;
-  // Presence in the live actor map is the spirit's single source of active membership.
+  // A spirit is active exactly when it appears in the live actor map.
   const spiritIds = Object.keys(
     runtime.specialization.kind === 'Ritualist' ? runtime.specialization.state.activeSpirits : {}
   ).map((key) => `spirit:${key}`);

@@ -139,7 +139,7 @@ export function createGw2SimulationConfig({
     target: {
       armor: build.targetArmor,
       health: Math.max(0, Number(build.targetHealth) || 0),
-      // Starting health is a fraction of maximum health so low-health gates and death share one source of truth.
+      // Starting target health is a fraction of maximum health. Low-health gates and death use that same value.
       startingHealthFraction: boundedNumber(Number(build.targetStartingHealthPercent ?? 100) / 100, 1, 0, 1),
       // Existing professions retain the historical defiant-golem default.
       // Defiant doubles as the positional proxy: a defiant golem never rotates,

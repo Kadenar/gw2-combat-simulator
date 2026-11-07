@@ -1,4 +1,4 @@
-/* The live comparison is isolated from the lightweight dashboard and uses its existing panel palette. */
+/* The live comparison uses the dashboard's panel colors but runs separately from its saved-metric views. */
 #benchmarks-view[data-benchmark-active-panel='comparison'] .benchmark-filters {
   display: none;
 }

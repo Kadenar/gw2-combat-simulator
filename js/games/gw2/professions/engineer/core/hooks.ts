@@ -18,7 +18,7 @@ import { handleAirBlast } from '#gw2/professions/engineer/core/skills/kits/flame
 import { mineFieldLifecycle } from '#gw2/professions/engineer/core/skills/profession-skills.js';
 import type { EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
-/** Shared toolbelt, dodge, and recharge wiring composed with each Core mechanic and skill owner's registered work. */
+/** Registers toolbelt, dodge, and recharge callbacks with the callbacks from each Core mechanic and skill. */
 export const engineerCoreHooks = composeRuntimeHooks<EngineerRuntimeState, EngineerSkill>([
   engineerSpearLifecycle,
   engineerTurretLifecycle,

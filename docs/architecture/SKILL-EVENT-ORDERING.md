@@ -6,7 +6,7 @@ consumers.
 
 ## Rotation order is not event priority
 
-Rotation commands are consumed in their authored order. Cast duration, cooldowns, ammo, lockouts, waits, interrupts, and
+The driver consumes rotation commands in their authored order. Cast duration, cooldowns, ammo, lockouts, waits, interrupts, and
 explicit concurrent offsets determine when each command can execute.
 
 Event priority does not:
@@ -30,10 +30,10 @@ The runtime processes queued work in this order:
    ordering metadata sorts after finite values); and
 5. stable insertion order when the preceding fields tie.
 
-A missing priority is treated as `0`. Lower numbers run first, so `-10` runs before `0`, and `0` runs before `10`.
+A missing priority defaults to `0`. Lower numbers run first, so `-10` runs before `0`, and `0` runs before `10`.
 Priority only changes the order of events with the same timestamp and phase. Authors cannot override phases.
 
-Public events retain seconds, rounded to the nearest microsecond before queue ingress. Integer keys make arithmetic
+Public events retain seconds, rounded to the nearest microsecond before entering the queue. Integer keys make arithmetic
 aliases such as `0.56 + 0.04` and `0.6` equal without merging adjacent microseconds. Nonfinite or unsafe timestamps are
 rejected. This is numerical normalization, not a change to authored strike grids or projectile delays. Observation
 cutoffs are inclusive at the canonical instant; delayed completion effects need an explicit observation tail.
@@ -94,8 +94,7 @@ open < skill packet < close
 
 ### Consume, trigger, then replace
 
-A mechanic that consumes existing state, creates a triggered packet, and grants replacement state can use three ordered
-lanes:
+Use ordered priorities when a mechanic must consume state, resolve a triggered packet, then grant replacement state:
 
 ```text
 -20  consume existing state
@@ -158,7 +157,7 @@ These mechanisms are independent:
 | `comboBindingPriority`   | Selecting an authoritative combo field   | Higher wins         |
 
 Hook order does not move events on the timeline. Modifier order does not determine which damage event resolves first.
-`comboBindingPriority` selects a field and deliberately uses the opposite numeric direction from queue priority.
+`comboBindingPriority` selects a field. Higher values win, the reverse of queue priority.
 
 ## Authoring rules
 

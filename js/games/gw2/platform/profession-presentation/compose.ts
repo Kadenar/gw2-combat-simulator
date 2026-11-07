@@ -1,6 +1,6 @@
 /**
- * Profession UI composition. Combines Core, active-specialization, and family
- * UI slices without leaking runtime ownership policy into the application.
+ * Combines Core, active-specialization, and family UI callbacks.
+ * Runtime ownership rules remain in profession runtime composition.
  */
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -152,10 +152,8 @@ function normalizeApplicationUiList(values: readonly unknown[], callbackName: st
 }
 
 /**
- * Composes the complete application UI from Core, the selected elite, and
- * narrowly scoped family callbacks. Unknown elite names and ordinary Core
- * trait-line names intentionally fall back to Core for application rendering;
- * runtime resolution remains strict.
+ * Composes the application UI from Core, the selected elite, and family callbacks.
+ * Unknown elite names and Core trait-line names use the Core UI. Runtime resolution rejects unknown elites.
  */
 export function createProfessionFamilyUi(
   definition: ProfessionFamilyUiDefinition
@@ -376,7 +374,7 @@ export function createProfessionFamilyUi(
     },
     paletteWeaponGroups(context, skills) {
       const selected = active(context);
-      // Null deliberately retains an unlabelled bar; only undefined defers to another owner.
+      // Null retains an unlabelled bar; only undefined defers to another owner.
       return firstUiMatch(
         [...selected.slices.reverse(), family],
         'paletteWeaponGroups',

@@ -42,7 +42,7 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
   const rotationAction = preset.rotation
     ? `<button type="button" role="menuitem" data-template-action="rotation" data-template-index="${index}">Load rotation only</button>`
     : '';
-  // Surface manifest freshness where users choose a template so stale builds are not mistaken for current ones.
+  // Show manifest freshness in the template picker so users can identify stale builds.
   const freshnessWarning =
     preset.upToDate === false
       ? '<span class="template-preset-warning" title="This template may no longer match the current game balance.">⚠ Out of date</span>'

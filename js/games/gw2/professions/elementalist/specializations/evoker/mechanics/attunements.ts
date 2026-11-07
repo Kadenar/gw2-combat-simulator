@@ -1,11 +1,8 @@
 /**
- * Evoker attunement behaviour layered over the Core Elementalist system.
- *
- * Three responsibilities: gate Core's attunement-entry trait procs behind
- * Evocation's shared internal cooldown, apply Evoker's own off-attunement
- * recharge policy after a swap, and - under Specialized Elements, where swapping
- * is disabled - fire the entry effects from empowered familiar casts without any
- * attunement actually changing.
+ * Applies Evoker attunement rules to the Core Elementalist system. Evocation's shared internal cooldown gates
+ * Core attunement-entry trait procs. Swaps apply Evoker's off-attunement recharge policy.
+ * With Specialized Elements, swapping is disabled. Empowered familiar casts instead trigger entry effects
+ * without changing the attunement.
  */
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';

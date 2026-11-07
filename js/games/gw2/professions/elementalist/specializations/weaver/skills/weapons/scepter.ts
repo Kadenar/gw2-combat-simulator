@@ -1,13 +1,7 @@
 /**
- * Scepter weapon-skill mechanics owned by the Weaver module.
- *
- * Weaver occupies the slot-3 scepter position with a dual attack selected by the
- * unordered pair of attunements held across its two hands; every definition names
- * its pair in `attunement`, and Weaver availability only offers the skill when
- * both of those elements are currently attuned.
- *
- * Declarative data only - no handler logic lives here. Effect offsets are
- * authored against castTimeMs and follow runtime skill variants through the shared scheduler policy.
+ * Defines Weaver scepter dual attacks in slot 3. Each skill declares an unordered attunement pair in
+ * `attunement` and is available only when both elements are attuned. Effect offsets use castTimeMs and follow
+ * runtime skill variants through the shared scheduler. This file contains declarations without handlers.
  */
 import { BOON, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -40,7 +34,7 @@ export const WEAVER_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     ])
   },
   // Fire+Air. Five equal 0.55 beam pulses across the cast (240/360/520/640/760
-  // ms) with no conditions attached - pure strike damage split five ways.
+  // ms) with no conditions. The five packets deal only strike damage.
   [ID.PLASMA_BEAM]: {
     name: 'Plasma Beam',
     icon: 'https://render.guildwars2.com/file/F3801A70180946B60E5F14A174BEBA15E106B60A/1770345.png',

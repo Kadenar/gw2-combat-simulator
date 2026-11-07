@@ -174,11 +174,11 @@ function attributeBreakdownEntry(entry: Gw2DamageBreakdownEntry): BreakdownAttri
   };
 }
 
-// Identity shared between a breakdown entry and the resolved damage/condition
-// events it aggregates, mirroring the resolver's own breakdown key
-// (`identityId|actor|parentSkill|name|entityName`). Using the full identity - not just the
-// name - keeps sibling rows of one skill (e.g. a cast strike vs its field
-// pulses) from collapsing into one chart bucket.
+// Use the resolver's breakdown key to match rows to resolved damage and condition events.
+// The key contains `identityId|actor|parentSkill|name|entityName`.
+// Matching only by name would merge different damage sources from one skill,
+// such as the cast's direct strike and its later field pulses,
+// into the same chart bucket.
 export function skillDamageIdentityKey(fields: {
   readonly skillId?: SkillId | null;
   readonly sourceId?: SkillId | null;

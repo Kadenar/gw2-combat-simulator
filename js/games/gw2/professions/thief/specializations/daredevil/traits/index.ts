@@ -151,7 +151,7 @@ const havocSpecialist = defineTrait({
       factor: (context) => balanceNumber(context.catalog, TRAIT.HAVOC_SPECIALIST, 'damageMultiplier'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        // Trait activates whenever endurance is not at maximum - any spent dodge qualifies
+        // The trait activates whenever endurance is below maximum, so any spent dodge qualifies.
         (thiefRuntimeState(context.runtime?.profession).endurance?.value ?? 0) <
           balanceNumber(context.catalog, TRAIT.PHYSICAL_SUPREMACY, 'maximumStacks')
     }
@@ -264,14 +264,14 @@ function grantBrawlersTenacity(runtime: ThiefRuntime, { context }: PhysicalSkill
   });
 }
 
-/** Applies Endurance Thief at its established mechanical boundary. */
+/** Applies Endurance Thief when the owning mechanic invokes it. */
 function grantEnduranceThief(runtime: ThiefRuntime): void {
   const enduranceGain = balanceNumber(runtime.helpers, TRAIT.ENDURANCE_THIEF, 'resourceGain');
 
   if (enduranceGain > 0) runtime.endurance.grant(enduranceGain);
 }
 
-/** Applies Staff Master at its established mechanical boundary. */
+/** Applies Staff Master when the owning mechanic invokes it. */
 function refundStaffMaster(runtime: ThiefRuntime, { cast }: DaredevilCast): void {
   const skill = cast.skill;
   const cost = thiefInitiativeCost(skill);

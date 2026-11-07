@@ -1,7 +1,6 @@
 # Simulation event clock specification
 
-The engine uses a deterministic logical clock, advancing directly to the next work or boundary rather than in fixed-size
-steps. This document owns exact time, readiness, expiry, and observation semantics. See
+The engine uses a deterministic logical clock. It advances directly to the next queued operation or boundary instead of taking fixed-size steps. This document defines time, readiness, expiry, and observation rules. See
 [event ordering](./SKILL-EVENT-ORDERING.md) for priority authoring and
 [programmatic simulation](./PROGRAMMATIC-SIMULATION.md) for command/configuration shapes.
 
@@ -43,7 +42,7 @@ authored packet offsets retain microsecond precision; the queue itself never app
 
 ## 2. Runtime advancement
 
-One cursor, heap, profession/target state, resource controller, and RNG own the run. Score and detailed modes share
+Each run has one command cursor, event heap, profession and target state, resource controller, and random number generator. Score and detailed modes share
 execution. Time advances to the earliest queued work, readiness boundary, or observation endpoint. Continuous resources
 and cooldowns settle before discrete work; due work drains before another command is accepted.
 
@@ -90,8 +89,7 @@ commit-mode effects follow their commit cutoff and persistence metadata.
 Resource mutation settles elapsed work at the old rate before changing value, capacity, or rate. Readiness/depletion
 wakes carry generations so stale work cannot mutate replacement lifetimes. Spending or expiry does not replay grants.
 
-Eligibility precedes critical draws and proc claims. One hit's critical outcome is shared by eligible traits/equipment;
-separate proc chances use their own seeded streams and strict ICDs. Derived strikes with different sources own separate
+The runtime checks eligibility before drawing critical outcomes or claiming procs. Eligible traits and equipment share the hit's critical outcome. Separate proc chances use their own seeded streams and strict internal cooldowns. Derived strikes with different sources own separate
 activations/weapon-strength rolls; related condition/control packets retain attribution. Recharge entitlements are
 reserved once for accepted commit-eligible casts; rejection or pre-commit cancellation leaves them available.
 
@@ -124,7 +122,7 @@ becoming ready only later. Its `readyAt = 0` sentinel means never armed and is r
 input recovery. Delayed damage alone does not extend it.
 
 Observation defaults to rotation end. A tail adds its duration once; an absolute policy supplies an endpoint that must
-not precede canonical rotation end. Durations/endpoints must be finite and non-negative. Arithmetic values rounding to
+not precede canonical rotation end. Durations and endpoints must be finite and non-negative. Arithmetic values rounding to
 the same microsecond represent the same endpoint.
 
 The heap drains through that endpoint inclusively. Work one microsecond later remains pending and cannot affect the
@@ -181,16 +179,14 @@ with half-even rounding after modifiers, then expiry rounds up to the next absol
 delayed-attack timers instead store `canonicalTime(start + duration)`. A mechanic may explicitly include a final pulse
 or charge timestamp through exact comparisons and queue ordering, never an epsilon extension.
 
-Conditions use a shared clock anchored to first positive player damage. Sample precedes Settle so owners see coherent
-target state before payouts change health. Off-grid expiry buffering, provisional pre-damage wakes, attribution, and
+Conditions use a shared clock anchored to first positive player damage. Sample runs before Settle so every owner reads the same target state before payouts change health. Off-grid expiry buffering, provisional pre-damage wakes, attribution, and
 rounding belong to [Shared condition ticks](./SHARED-CONDITION-TICKS.md). Observation clipping must not change a
 condition's natural semantic expiry.
 
 ## Safety and determinism
 
 The engine throws on runaway or invalid work instead of silently truncating it. Limits include 100,000 normalized
-commands and bounded runtime iterations/same-time dequeues. Effect expansion has a cumulative 100,000-record budget:
-each packet, announcement, or condition stack (including a fractional stack) costs one. Profiles reserve packets before
+commands and bounded runtime iterations/same-time dequeues. Effect expansion has a cumulative budget of 100,000 records. Each packet, announcement, or condition stack costs one record, including fractional stacks. Profiles reserve packets before
 materialization; conditions reserve stacks before insertion/reactions. Filtering and cancellation do not refund budget.
 
 Hit/repetition counts must be positive safe integers at most 100,000. Effect lists and tick arrays are bounded before

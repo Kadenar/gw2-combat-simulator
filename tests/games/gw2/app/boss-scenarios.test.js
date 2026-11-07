@@ -434,7 +434,7 @@ test('Twin Largos CM pauses at 80/60/40/20 percent and resumes the same bar afte
   }
 });
 
-// The compiled CM plan must pause real command admission, not merely suppress damage from a continuing rotation.
+// The compiled CM plan must pause command admission during intermissions. Suppressing damage alone would let the rotation continue.
 test('Twin Largos barrier intermissions hold rotation commands and resume after all six pauses', () => {
   const profession = defineTestProfession({
     id: 'largos-intermission',

@@ -30,9 +30,7 @@ export interface BuildAttributeContext<TTrait extends BuildAttributeTrait> {
 
 /**
  * Resolves active traits and the balance context for profession build attributes.
- *
- * disabledTrait is intentionally filtered here so every downstream lookup sees
- * the same effective trait set.
+ * Filters disabledTrait so all subsequent lookups use the same effective trait set.
  */
 export function createBuildAttributeContext<TTrait extends BuildAttributeTrait>(
   {

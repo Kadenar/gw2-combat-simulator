@@ -23,7 +23,6 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_ELITE_INVOCATIONS } from '#gw2/professions/revenant/data/legends.js';
 
-/** Owns Charged Mists tuning and behavior at its established execution boundaries. */
 export const chargedMists = defineTrait({
   id: TRAIT.CHARGED_MISTS,
   balance: {
@@ -33,7 +32,6 @@ export const chargedMists = defineTrait({
   }
 });
 
-/** Owns Ferocious Aggression tuning and behavior at its established execution boundaries. */
 export const ferociousAggression = defineTrait({
   id: TRAIT.FEROCIOUS_AGGRESSION,
   balance: { damageIncrease: 0.1 },
@@ -50,7 +48,6 @@ export const ferociousAggression = defineTrait({
   ]
 });
 
-/** Owns Incensed Response tuning and behavior at its established execution boundaries. */
 export const incensedResponse = defineTrait({
   id: TRAIT.INCENSED_RESPONSE,
   balance: {
@@ -78,7 +75,6 @@ export const incensedResponse = defineTrait({
   ]
 });
 
-/** Owns Invoker's Rage tuning and behavior at its established execution boundaries. */
 export const invokersRage = defineTrait({
   id: TRAIT.INVOKERS_RAGE,
   balance: {
@@ -87,7 +83,6 @@ export const invokersRage = defineTrait({
   triggers: [onTriggerPoint(legendInvoked, { run: invokeInvokersRage })]
 });
 
-/** Owns Rising Tide tuning and behavior at its established execution boundaries. */
 export const risingTide = defineTrait({
   id: TRAIT.RISING_TIDE,
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -106,7 +101,6 @@ export const risingTide = defineTrait({
   ]
 });
 
-/** Owns Roiling Mists tuning and behavior at its established execution boundaries. */
 export const roilingMists = defineTrait({
   id: TRAIT.ROILING_MISTS,
   balance: { criticalChance: 0.25 },
@@ -122,7 +116,6 @@ export const roilingMists = defineTrait({
   ]
 });
 
-/** Owns Song of the Mists tuning and behavior at its established execution boundaries. */
 export const songOfTheMists = defineTrait({
   id: TRAIT.SONG_OF_THE_MISTS,
   balance: { resourceGain: 2 },
@@ -137,7 +130,6 @@ export const songOfTheMists = defineTrait({
   ]
 });
 
-/** Owns Spirit Boon tuning and behavior at its established execution boundaries. */
 export const spiritBoon = defineTrait({
   id: TRAIT.SPIRIT_BOON,
   balance: {
@@ -287,7 +279,7 @@ function invokeSongOfTheMists(runtime: RevenantRuntime): void {
   }
 }
 
-/** Core emits the invocation packets; Kalla additionally grants two Fervor stacks for Song of the Mists. */
+/** Core emits the invocation packets. Kalla also grants two Fervor stacks for Song of the Mists. */
 function grantRenegadeInvocationFervor(runtime: RevenantRuntime): void {
   if (runtime.profession.core.activeLegendId !== LEGEND.RENEGADE || !runtime.engagement.combatMechanicsAllowed())
     return;
@@ -300,7 +292,7 @@ function grantRenegadeInvocationFervor(runtime: RevenantRuntime): void {
     runtime.fireTrigger(invocationFervorGranted, { sourceId: TRAIT.SONG_OF_THE_MISTS, sourceName: song.name });
 }
 
-/** Core emits the invocation packets; Alliance additionally restores the Song skill's authored endurance. */
+/** Core emits the invocation packets. Alliance also restores the endurance declared by the Song skill. */
 function grantAllianceInvocationEndurance(runtime: RevenantRuntime): void {
   if (runtime.profession.core.activeLegendId !== LEGEND.ALLIANCE || !runtime.engagement.combatMechanicsAllowed())
     return;

@@ -341,7 +341,7 @@
   color: var(--text-bright);
 }
 
-/* Full-width icon rows keep actions easy to scan; separators distinguish loading and resetting from edits. */
+/* Use full-width icon rows for actions. Separators distinguish loading and resetting from edits. */
 .build-switcher-actions {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -868,7 +868,7 @@
   font-weight: 700;
 }
 
-/* Filters remain easy to open with a thumb without widening the compact template dialog. */
+/* Enlarge the filter touch target without widening the template dialog. */
 @media (max-width: 600px) {
   .template-filters {
     flex-wrap: wrap;
@@ -965,7 +965,7 @@
   display: none;
 }
 
-/* Merge borderless preset rows into one surface while retaining hover and keyboard-focus feedback. */
+/* Group borderless preset rows on one background while retaining hover and keyboard-focus feedback. */
 .template-preset {
   display: flex;
   align-items: stretch;
@@ -1312,7 +1312,7 @@
   padding: 0;
 }
 
-/* Continue the shared editor surface through rotation while retaining section boundaries. */
+/* Extend the shared editor background through the rotation section while retaining section boundaries. */
 .build-editor > .simulation-workspace {
   margin-bottom: 0;
   border-top: 1px solid var(--border);
@@ -1401,7 +1401,7 @@ body[data-profession] #app {
   background: var(--bg-panel);
 }
 
-/* Workspace sections share the page surface without extra panel borders. */
+/* Workspace sections share the page background without extra panel borders. */
 .gear-panel
   :is(
     .equipment-consumables,
@@ -2260,7 +2260,7 @@ body[data-profession='revenant'] .workspace-build-choices .selectable-skills-pan
   text-transform: uppercase;
 }
 
-/* Single-column stats leave space for base → preview deltas. */
+/* Single-column stats leave space to compare base and preview values. */
 .attribute-values {
   grid-column: 1 / -1;
   min-width: 0;

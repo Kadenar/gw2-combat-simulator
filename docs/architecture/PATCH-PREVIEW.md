@@ -1,7 +1,6 @@
 ﻿# Patch preview
 
-The simulator supports one upcoming PvE balance patch alongside Live data. A preview is a sparse overlay on existing
-skills, balance profiles, and modifier rules; it does not duplicate catalogs, builds, or rotations. Untouched values
+The simulator supports one upcoming PvE balance patch alongside Live data. A preview overrides selected fields in existing skills, balance profiles, and modifier rules. It does not copy entire catalogs, builds, or rotations. Untouched values
 remain live, and constructing a preview does not mutate live declarations.
 
 ## Authoring workflow
@@ -127,11 +126,7 @@ Runtime resolver functions are not patched. Expose changing numeric inputs as na
 parameters with the same stale-value guards. Behavioral changes belong in a complete replacement module registered in
 `moduleVariants` and selected by name in the manifest's `reworks` array. The manifest selects behavior; it never carries
 code. Replacement modules own changed traits, specialization layouts, profiles and mechanics. Saved trait positions are
-Live positions. A line whose major-trait slots a preview changes is relaid: in that preview it reads only its own
-`patchTraits[patchId]` positions and selects no majors without them, while unchanged lines use their Live positions on
-both patches. Build codecs store these positions without interpreting them, because they run without a selected patch:
-saved rotations store trait-independent skill identities, and `modifySkillId` selects the traited variant when a
-rotation is simulated or displayed.
+Live positions. If a preview changes a line's major-trait layout, that line reads only its `patchTraits[patchId]` positions. Without those positions, it selects no major traits. Unchanged lines use their Live positions on both patches. Build codecs run without a selected patch, so they store positions without interpreting them. Saved rotations store trait-independent skill IDs. The `modifySkillId` callback selects the traited variant during simulation or display.
 
 Register replacement tooltip maps under the same variant ID in `ProfessionTooltips.reworks`. The shared resolver merges
 them in manifest order, including descriptions for reused IDs. Live code may gain only inert extension points: a trigger
@@ -140,9 +135,8 @@ with no live listener or a profile field read by shared mechanics. Mark each wit
 
 ### Session-only provisional values
 
-Use `provisional` only while published values are unknown. Each control names an existing numeric balance-profile field
-or one effect field, its owning `traitId`, specialization, label, unit, range and step. Controls cannot patch skills or
-modifier rules. Percentage bonuses use fractions: `0.1` displays as `10%`. Limits and session values remain in canonical
+Use `provisional` only while published values are unknown. Each control targets an existing numeric balance-profile field or one effect field. It declares the owning `traitId`, specialization, label, unit, range, and step. Controls cannot patch skills or
+modifier rules. Percentage bonuses use fractions. For example, `0.1` displays as `10%`. Limits and session values remain in canonical
 units. `resolvePatch({ id, values })` validates and caches the selection; values overlay the preview catalog without
 compiling another profession family. Live discards values. **Preview assumptions** appears directly below Traits, with
 equipped traits first and other traits in a separate disclosure. The panel and result notices appear only on Preview.

@@ -42,7 +42,7 @@ export interface Gw2ProfessionContract<
   readonly projectPlanningState: (input: Gw2PlanningStateInput<TProfessionState>) => unknown;
 }
 
-/** Joins the application surface to a runtime source whose GW2 resolver callbacks remain type checked. */
+/** Joins the application interface to a runtime source while preserving type checks for GW2 resolver callbacks. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- The application registry holds multiple profession state types; concrete sources retain their generic state.
 export type Gw2ProfessionSource<TProfessionState extends object = any> = ProfessionFamilyContract<
   TProfessionState,

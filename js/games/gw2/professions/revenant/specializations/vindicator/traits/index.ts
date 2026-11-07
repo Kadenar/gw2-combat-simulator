@@ -27,14 +27,12 @@ import { vindicatorState } from '#gw2/professions/revenant/specializations/vindi
 import { enduranceNotFull } from '#gw2/professions/revenant/specializations/vindicator/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-/** Owns Angsiyan's Trust tuning and behavior at its established execution boundaries. */
 const angsiyansTrust = defineTrait({
   id: TRAIT.ANGSIYANS_TRUST,
   balance: { resourceGain: 25, effects: [] },
   triggers: [onTriggerPoint(energyMeldCompleted, { run: grantAngsiyansTrustEnergy })]
 });
 
-/** Owns Empire Divided tuning and behavior at its established execution boundaries. */
 const empireDivided = defineTrait({
   id: TRAIT.EMPIRE_DIVIDED,
   balance: { attributeBonuses: { power: 240 }, threshold: 0.5 },
@@ -55,7 +53,6 @@ const empireDivided = defineTrait({
   }
 });
 
-/** Owns Forerunner of Death tuning and behavior at its established execution boundaries. */
 const forerunnerOfDeath = defineTrait({
   id: TRAIT.FORERUNNER_OF_DEATH,
   balance: {
@@ -81,7 +78,7 @@ const forerunnerOfDeath = defineTrait({
       amount: (context) => balanceNumber(context.catalog, TRAIT.FORERUNNER_OF_DEATH, 'damageIncrease'),
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        // Prefer the event-baked flag when present; fall back to runtime state for non-dodge strikes.
+        // Use the flag captured on the event when present. Read runtime state for non-dodge strikes.
         (context.event?.forerunnerOfDeathActive != null
           ? Boolean(context.event.forerunnerOfDeathActive)
           : buffActive(context, 'forerunner-of-death'))
@@ -95,7 +92,6 @@ const forerunnerOfDeath = defineTrait({
   ]
 });
 
-/** Owns Leviathan Strength tuning and behavior at its established execution boundaries. */
 const leviathanStrength = defineTrait({
   id: TRAIT.LEVIATHAN_STRENGTH,
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -113,7 +109,6 @@ const leviathanStrength = defineTrait({
   ]
 });
 
-/** Owns Reaver's Curse tuning and behavior at its established execution boundaries. */
 const reaversCurse = defineTrait({
   id: TRAIT.REAVERS_CURSE,
   balance: {
@@ -152,10 +147,8 @@ const reaversCurse = defineTrait({
 
 const ENERGY_MELD_IDS = new Set<SkillId>([ID.ENERGY_MELD, ID.ENERGY_MELD_ID_72058]);
 
-/** Owns Saint of zu Heltzer tuning and behavior at its established execution boundaries. */
 const saintOfZuHeltzer = defineTrait({ id: TRAIT.SAINT_OF_ZU_HELTZER });
 
-/** Owns Song of Arboreum tuning and behavior at its established execution boundaries. */
 const songOfArboreum = defineTrait({
   id: TRAIT.SONG_OF_ARBOREUM,
   balance: {
@@ -192,7 +185,6 @@ const songOfArboreum = defineTrait({
   ]
 });
 
-/** Owns Vassals of the Empire tuning and behavior at its established execution boundaries. */
 const vassalsOfTheEmpire = defineTrait({ id: TRAIT.VASSALS_OF_THE_EMPIRE });
 
 export const traitDefinitions = [

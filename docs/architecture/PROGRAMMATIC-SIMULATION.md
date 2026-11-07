@@ -6,7 +6,7 @@ the [agent API reference](AGENT-API-REFERENCE.md).
 
 ## Run a script
 
-Requires Node.js 24.11+ and installed dependencies. Run `npm run build:modules` before running scripts and after source
+Scripts require Node.js 24.11 or later and installed dependencies. Run `npm run build:modules` before running scripts and after source
 changes. Package aliases such as `#gw2/` resolve to compiled `dist/js/` modules in Node and TypeScript source in Vite.
 
 Save this example as `run-engineer.mjs` in the repository root, then run `node run-engineer.mjs`:
@@ -43,7 +43,7 @@ runtime factory; it does not load a saved build or UI defaults.
 ## Running a saved build
 
 Use the profession-bound build context to decode a saved build and calculate its simulation inputs without an app
-adapter. Supply explicit patch and transition settings; the codec remains the saved-input normalization boundary.
+adapter. Supply explicit patch and transition settings. The codec normalizes the saved input.
 
 ```js
 import { loadBuildContext } from '#gw2/build-context/load.js';
@@ -150,8 +150,7 @@ difficulty. `scenarioSimulation()` in `app/boss-scenarios/simulation.ts` compile
 sharing with summons, and a defiant target). All scenario analysis jobs use that same configuration.
 
 `result.encounter` reports target health, current phase, defeat state, transition estimates, and observed phases with
-player/group damage and player DPS. Its `overallDps` includes splits and intermissions in elapsed time. It can describe
-an incomplete encounter when observation ends first. The browser workflow is documented in
+player/group damage and player DPS. Its `overallDps` includes split and intermission time. The result describes an incomplete encounter if observation ends before the boss dies. The browser workflow is documented in
 [Boss scenarios](../../wiki/Boss-Scenarios.md).
 
 ## Rotation commands
@@ -231,7 +230,7 @@ fields in `planningState.cooldownsBySkillId` use milliseconds; `planningState.am
 [rotation state](ROTATION_STATE_SNAPSHOT.md) for insertion/continuation queries.
 
 Use `skillBreakdownRows(result)` for per-skill display aggregation. Entries own their source, parent, actor, label, and
-icon metadata; a null `skillId` intentionally represents an effect without catalog identity. For UI-equivalent rows, use
+icon metadata; a null `skillId` represents an effect without catalog identity. For UI-equivalent rows, use
 `simulationEventLogRows` from `app/results/event-log.ts` and `resultSummaryMetrics` from `app/results/model.ts`.
 
 `damageDiagnostics: true` attaches `damageCalculation` to detailed damage events, capturing the actual pre-hit target

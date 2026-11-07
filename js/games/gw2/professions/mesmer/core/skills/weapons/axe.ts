@@ -254,7 +254,7 @@ export function scheduleAxesClones(state: MesmerRuntime, cast: RuntimeCast<Mesme
   }
 }
 
-/** The alternate intentionally selects surviving pre-cast clones at commitment, including same-time creation. */
+/** The alternate selects surviving pre-cast clones at commitment, including same-time creation. */
 export function completeAxesConfusion(state: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   const skill = cast.skill;
   const at = state.time,

@@ -725,7 +725,7 @@ test('Tome of Justice applies Amplified Wrath once before the condition duration
       attributeInputs: baseAttributeInputs({ ...config.attributeInputs?.weaponSets[0].commonTotals, expertise: 1500 }),
       selectedTraitIds: amplifiedWrath ? [GUARDIAN_TRAIT_IDS.AMPLIFIED_WRATH] : []
     })(undefined, ['Peacekeeper', { type: 'wait', durationMs: 3000 }]);
-    // Expertise doubles the base duration; the trait's separate multiplier must not be baked in twice.
+    // Expertise doubles the base duration. Apply the trait's separate multiplier only once.
     const passive = result.resolvedEvents.find((event) => event.sourceId === 'guardian.justice-passive');
     assert.equal(passive.effectiveDuration, amplifiedWrath ? 2.4 : 2);
   }
@@ -1104,7 +1104,7 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
   assert.equal(pages.interval, 2);
 });
 
-// Canonical normal charges never become final merely because ammo or names say so.
+// Normal charges never become final charges based on ammo count or display names.
 test('Weighty Terms follows canonical mantra IDs and ignores names', () => {
   const config = {
     specialization: 'Firebrand',

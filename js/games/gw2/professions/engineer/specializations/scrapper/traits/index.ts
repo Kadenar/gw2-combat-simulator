@@ -263,7 +263,7 @@ const objectInMotion = defineTrait<EngineerSkill>({
   modifierRules: [
     {
       // Object in Motion: +5% strike damage per active movement status (stability/swiftness/superspeed).
-      // Multiplicative - three statuses = 1.05^3 ≈ +15.8%.
+      // The bonuses multiply. Three statuses give 1.05^3, about a 15.8% increase.
       id: 'engineer.object-in-motion',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',

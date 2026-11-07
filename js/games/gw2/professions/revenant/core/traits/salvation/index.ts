@@ -11,7 +11,6 @@ import {
 import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
-/** Owns Life Attunement tuning and behavior at its established execution boundaries. */
 export const lifeAttunement = defineTrait({
   id: TRAIT.LIFE_ATTUNEMENT,
   balance: { attributeConversion: 0.07, attributeBonuses: { healingPower: 120 } },
@@ -28,7 +27,6 @@ export const lifeAttunement = defineTrait({
   ])
 });
 
-/** Owns Serene Rejuvenation tuning and behavior at its established execution boundaries. */
 export const sereneRejuvenation = defineTrait({
   id: TRAIT.SERENE_REJUVENATION,
   balance: {

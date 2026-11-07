@@ -1,20 +1,18 @@
 /**
- * Performance-sensitive copies of trusted internal simulation packets and reports. Direct traversal avoids native
- * serialization on each packet. Reproduce the tradeoff with scripts/analysis/benchmark-clone.mjs; see
- * docs/architecture/CLONE-PERFORMANCE.md for measured speedups, input auditing, and simulation-result parity.
- * The 2026-10-22 Node 24 benchmark cut simulation time by about 12% across 18 presets; all 151 audited presets
- * produced equal detailed and score results. These measurements justify retaining the restricted fast path.
+ * Copies trusted internal simulation packets and reports by direct traversal to avoid native serialization per packet.
+ * Run scripts/analysis/benchmark-clone.mjs to reproduce the comparison. See docs/audits/CLONE-PERFORMANCE.md for
+ * input restrictions and result comparisons. The 2026-10-22 Node 24 benchmark reduced simulation time by about 12%
+ * across 18 presets. All 151 audited presets produced equal detailed and score results.
  */
 
 /**
- * Supported inputs are primitive data, plain objects (including null prototypes), and dense ordinary arrays.
- * Enumerable properties must be data properties; exclude symbol keys, own `__proto__` keys, extra array properties,
- * functions, symbols, and non-plain objects. Shared references and cycles within this plain-data graph are preserved.
+ * Accepts primitive data, plain objects with ordinary or null prototypes, and dense ordinary arrays.
+ * Enumerable properties must be data properties. Inputs must not contain symbol keys, own `__proto__` keys, extra
+ * array properties, functions, symbols, or non-plain objects. Copies preserve shared references and cycles.
  *
- * This is deliberately a restricted internal copier, not a general `structuredClone` replacement. Sparse arrays,
- * own `__proto__`, and aliases crossing a Map/Set or other native-cloned object boundary have different semantics.
- * Callers needing those shapes must use `structuredClone` on the whole graph. Keep validation in the benchmark
- * audit rather than adding a second traversal to every hot-path copy; re-audit when introducing new payload shapes.
+ * Use `structuredClone` on the whole graph for unsupported shapes. Sparse arrays, own `__proto__` keys, and aliases
+ * crossing a Map, Set, or other native-cloned object boundary have different semantics. Validate payload shapes in
+ * the benchmark audit rather than traversing every packet twice. Repeat the audit when adding new payload shapes.
  */
 export function cloneData<T>(value: T): T {
   return copy(value, new Map()) as T;

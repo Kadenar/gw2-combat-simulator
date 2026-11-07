@@ -1,13 +1,10 @@
 /**
- * Familiar cast lifecycle - the heart of the Evoker specialization.
+ * Controls the Evoker familiar cast lifecycle. A basic familiar spends the full charge bar and grants an empowered
+ * stack. At three stacks, the empowered flip becomes available and consumes all three when used.
  *
- * A basic familiar spends the whole charge bar and adds an empowered stack; at
- * three stacks its empowered flip form becomes castable and spends them back to
- * zero. This module drives that cycle across the cast-start, after-cast, and
- * cast-complete phases. Skill-owned replacement, tiering, and flip logic lives
- * in `skills/familiar-skills.ts`; this module coordinates the familiar traits
- * (Prowess, Blessing, Galvanic Enchantment, Specialized Elements) and the Evoker
- * meditation payloads.
+ * Coordinates this cycle across cast start, after cast, and cast completion. Handles familiar traits including Prowess,
+ * Blessing, Galvanic Enchantment, and Specialized Elements, plus meditation effects. Skill replacement, tiers,
+ * and flips are defined in `skills/familiar-skills.ts`.
  */
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction, type ActionContext, type SideEffectAction } from '#gw2/platform/effects/actions.js';

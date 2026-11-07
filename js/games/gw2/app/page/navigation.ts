@@ -182,11 +182,9 @@ function viewportScrollPosition(root: Document): ScrollPosition {
 }
 
 /**
- * Mounts the profession selector and simulator tool tabs into the
- * simulator header. No-op unless the header exists, a profession is set, and the
- * tabs are not already mounted. Mounts the analysis heading,
- * builds direct profession navigation and simulator tabs, and
- * wires hash/history-driven view switching with per-view scroll restoration.
+ * Mounts the profession selector, analysis heading, and simulator tabs in the header.
+ * Returns without changes if the header is absent, no profession is selected, or tabs already exist.
+ * Registers hash and history handlers to switch views and restore each view's scroll position.
  */
 export function mountSimulatorNavigation(): void {
   const body = document.body;

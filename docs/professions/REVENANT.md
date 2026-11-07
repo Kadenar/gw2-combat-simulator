@@ -1,6 +1,6 @@
 # Revenant
 
-Native shared-engine profession. Entry point `revenant.html`. `profession.ts` is the stable export and composes the
+This profession uses the shared engine. Its browser entry point is `revenant.html`. `profession.ts` is the stable export and composes the
 Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of Herald, Renegade, Vindicator, or
 Conduit. Core owns the always-active energy, legend, weapon, upkeep, trait, state, rules, and UI behavior; each
 specialization owns a complete vertical slice under `specializations/<name>/`. Only the selected elite module is present
@@ -9,29 +9,26 @@ in a given runtime.
 ## Data
 
 - Maintained skill and trait constants live in `data/ids.ts`.
-- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
-  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
-  required.
+- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
 - `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
   complete declarations contributed by each module.
 
 ## Implemented systems
 
-- **Core** - ten terrestrial weapon families with cooldowns, ammo, chains, and damage/condition/control/boon packets; a
+- Core implements ten terrestrial weapon families with cooldowns, ammo, chains, and damage/condition/control/boon packets; a
   fixed-bar loadout with exactly two legend IDs and a validated starting legend; legend-bar replacement with a
   ten-second in-combat legend-swap cooldown (none out of combat), 50-energy reset, Charged Mists, and swap-sigil
   triggers; continuous five-energy/sec regeneration, explicit skill costs, concurrent upkeep, and timestamped starvation
   cancellation.
-- **Herald** - facet upkeep and consume flips.
-- **Renegade** - warband actor ownership and Soulcleave strike reactions.
-- **Vindicator** - legend skills, trait-selected dodge variants, and Energy Meld; shared legend state remains in Core.
-- **Conduit** - affinity, legend-specific Release Potential, and Cosmic Wisdom state.
+- Herald implements facet upkeep and consume flips.
+- Renegade implements warband actor ownership and Soulcleave strike reactions.
+- Vindicator implements legend skills, trait-selected dodge variants, and Energy Meld; shared legend state remains in Core.
+- Conduit implements affinity, legend-specific Release Potential, and Cosmic Wisdom state.
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Incoming attacks,
-active defense, ally healing/barrier/cleanse, pathing, secondary targets, and competitive (PvP/WvW) splits are out of
-model.
+The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Incoming attacks,
+active defense, ally healing, barrier, and cleansing, pathing, secondary targets, and competitive PvP and WvW balance splits are outside the model.
 
 ## Trait ownership
 

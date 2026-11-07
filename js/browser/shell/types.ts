@@ -6,7 +6,7 @@ export interface BuildEditorContribution<TSession> {
   render(session: TSession): void;
 }
 
-/** Complete game-supplied editor surface plus optional initialization hooks. */
+/** Complete game-supplied editor interface with optional initialization hooks. */
 export interface BuildEditor<TSession> {
   readonly sections: readonly BuildEditorContribution<TSession>[];
   initialize?(session: TSession): void | Promise<void>;

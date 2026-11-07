@@ -34,7 +34,7 @@ export const thief = defineRelic({
       effectState: { stacks: buff.stacks, maximumStacks: 5 }
     });
   },
-  // Returns 1 (not 0) when no stacks are active - it's a multiplier, not additive.
+  // Return 1 when no stacks are active because the result is a multiplier.
   strikeMultiplier(_ctx, state, event) {
     return 1 + activeRefreshedStacks(state.refreshedStacks, event.at, 'exclusive') * 0.01;
   }

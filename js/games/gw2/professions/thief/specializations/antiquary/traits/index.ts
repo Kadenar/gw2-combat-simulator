@@ -40,7 +40,7 @@ import { canonicalTime } from '#kernel/core/clock.js';
 
 /**
  * Card Swap is the only source of Reshuffle, so the skill is denied whenever the trait is not selected. Its condition
- * removal on reshuffles and artifact use is outside the damage model and is intentionally not simulated.
+ * removal on reshuffles and artifact use is outside the damage model and is not simulated.
  */
 const cardSwap = defineTrait({
   id: TRAIT.CARD_SWAP,

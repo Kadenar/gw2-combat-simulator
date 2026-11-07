@@ -1,4 +1,4 @@
-/** Capture is the application seam; every projected fact must come from that input even after the session changes. */
+/** Capture supplies all inputs for palette projection. Later session changes must not affect the projected values. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

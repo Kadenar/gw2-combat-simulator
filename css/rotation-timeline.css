@@ -1,8 +1,9 @@
 /* Owns authored timeline rows, comparison timelines, state summaries, and proc presentation. */
 
-/* Reads active state (crit chance, profession timers, target debuffs) at the
-   current rotation point - or at the insertion cursor when one is set. Sits
-   above the internally-scrolling timeline, reusing the controls divider above. */
+/**
+ * Shows critical chance, profession timers, and target debuffs at the current rotation point or insertion cursor.
+ * The bar stays above the scrolling timeline and uses the divider below the controls.
+ */
 .rotation-active-buffs {
   flex: 0 0 auto;
   display: flex;
@@ -84,7 +85,7 @@
   margin-bottom: 0;
 }
 
-/* Offset both DPS summaries from surrounding content so each strip stays easy to scan. */
+/* Add space around both DPS summaries to separate them from surrounding content. */
 :is(.rotation-dps-summary, .analysis-dps-summary) .res-summary {
   background: var(--bg-panel-alt);
 }

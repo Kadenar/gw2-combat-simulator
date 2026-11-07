@@ -1,11 +1,7 @@
 /**
- * Mutable Evoker specialization state.
- *
- * Holds the selected familiar element, the familiar charge/empowered economy,
- * trait timers (Evocation ICDs, Ignite tiering, Elemental Balance), and the
- * bookkeeping ledgers that let familiar casts interrupt, defer, and re-apply
- * work scheduled by surrounding commands. One instance owns accepted casts,
- * completion grants, and impact reactions throughout the simulation.
+ * Stores mutable Evoker state for one run. Includes the selected familiar element, charges, empowered stacks,
+ * and timers for Evocation, Ignite tiers, and Elemental Balance. Tracks accepted casts, completion grants,
+ * and impact reactions so familiar casts can interrupt, defer, and reapply scheduled work.
  */
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';

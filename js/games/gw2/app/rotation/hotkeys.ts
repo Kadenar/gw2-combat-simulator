@@ -96,7 +96,7 @@ export function saveRotationHotkeysEnabled(enabled: boolean, storage: HotkeyStor
   }
 }
 
-/** Shared logical controls intentionally select the first enabled palette face, in visible palette order. */
+/** Shared logical controls select the first enabled palette face, in visible palette order. */
 function currentHotkeyTarget(root: HTMLElement, action: InputControlId): HTMLElement | null {
   const candidates = [...root.querySelectorAll<HTMLElement>('.pal-skill[data-hotkey-action]')].filter(
     (candidate) => candidate.dataset.hotkeyAction === action

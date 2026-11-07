@@ -21,8 +21,7 @@ The condition table reports damage, DPS, and average stacks for each damaging co
 
 ## DPS and effects over time
 
-The charts show how damage develops across the fight and when tracked boons, conditions, and buffs are active. Hover the
-charts for values at a specific time and use the effect toggles to reduce visual noise.
+The charts show how damage develops across the fight and when tracked boons, conditions, and buffs are active. Hover the charts for values at a specific time. Use the effect toggles to hide effects you do not need to compare.
 
 ![Analysis walkthrough](https://raw.githubusercontent.com/Kadenar/gw2-combat-simulator/main/images/tutorials/gw2-combat-simulator-analysis.gif)
 
@@ -39,7 +38,7 @@ The normal detailed result is deterministic and reproducible. **Calculate range*
 modeled random effects and reports the mean, median, likely range, and lucky or unlucky outcomes.
 
 Keep the build's **Simulation seed** fixed for reproducible A/B comparisons. The detailed result uses midpoint weapon
-strength and defaults to rolled critical damage; **Critical damage → Averaged** uses expected critical damage instead.
+strength and defaults to rolled critical damage; selecting **Averaged** under **Critical damage** uses expected critical damage instead.
 Stochastic trials sample weapon strength and always use rolled critical damage. Use the range to judge whether random
 variation could hide a small difference.
 

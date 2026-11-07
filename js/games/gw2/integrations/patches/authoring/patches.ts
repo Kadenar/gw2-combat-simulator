@@ -39,7 +39,7 @@ export interface EffectSelector {
   readonly name?: string;
   readonly condition?: string;
   readonly boon?: string;
-  /** Required when a selector intentionally targets multiple effects. */
+  /** Required when a selector targets multiple effects. */
   readonly all?: boolean;
 }
 

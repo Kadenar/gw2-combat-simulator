@@ -146,7 +146,7 @@ test('break-even model interpolates the crossover where Thorns overtakes the opp
 
 test('break-even model treats an early tie then lead as "always ahead", not a crossover', () => {
   // Thorns is tied before its Condition Damage ramps (t=0), then pulls ahead and
-  // never falls behind. That is not an "overtake" - the opponent never leads.
+  // never falls behind. No overtake occurs because the opponent never leads.
   const opponentDps = [
     { t: 0, v: 1000 },
     { t: 1000, v: 1000 },
@@ -261,7 +261,7 @@ test('break-even model reports a crossover that occurs past the opener threshold
     { t: 12000, v: 1000 }
   ];
   const thornsDps = [
-    { t: 2000, v: 1200 }, // Thorns "ahead" in the opener - ignored
+    { t: 2000, v: 1200 }, // Ignore Thorns leading during the opener.
     { t: 8000, v: 900 },
     { t: 10000, v: 1000 },
     { t: 12000, v: 1100 }

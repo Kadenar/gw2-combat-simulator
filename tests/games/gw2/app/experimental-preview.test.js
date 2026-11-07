@@ -24,7 +24,7 @@ import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition
 const profession = adapter.profession;
 const preview = profession.preview;
 
-// Capture content and event wiring without asserting browser layout, focus, or native input behavior.
+// Capture content and event handlers without asserting browser layout, focus, or native input behavior.
 function element(tag) {
   return {
     tag,

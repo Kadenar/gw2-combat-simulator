@@ -14,9 +14,9 @@ type SkillIdSelector = (skillId: SkillId) => SkillId;
 let lastSelection: { readonly patch: object; readonly layout: string; readonly select: SkillIdSelector } | null = null;
 
 /**
- * Applies the same trait-selected identity transform as the rotation driver, so stored commands display the variant
- * that will actually be cast (for example, Evolve under Double Helix). Timeline rows call this for every entry, so only
- * a patch or trait change rebuilds the selector.
+ * Applies the rotation driver's trait-selected identity transform to display the variant that will be cast,
+ * such as Evolve under Double Helix. Timeline rows call this for every entry. The selector rebuilds only when
+ * the patch or traits change.
  */
 function selectedSkillId(app: ProfessionAppState, skillId: SkillId): SkillId {
   const layout = JSON.stringify(app.build.specializations ?? []);

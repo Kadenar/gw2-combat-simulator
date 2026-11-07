@@ -1,6 +1,6 @@
-# Guild Wars 2 Combat Simulator
+# Guild Wars 2 combat simulator
 
-A browser-based PvE build and rotation simulator for **Guild Wars 2**.
+A browser-based PvE build and rotation simulator for Guild Wars 2.
 
 Run a rotation against a modeled target to compare builds, inspect damage and profession mechanics, or reconstruct
 supported actions from combat logs.
@@ -48,7 +48,7 @@ mean, median, likely range, and unlucky/lucky outcomes.
 
 Supported `.evtc` and compressed logs can be converted into simulator rotations. The importer matches the active
 profession and specialization and extracts supported combat actions. See
-[EVTC Rotation Reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md) for details and limitations.
+[EVTC rotation reconstruction](docs/EVTC-ROTATION-RECONSTRUCTION.md) for details and limitations.
 
 ### Benchmarks and boss scenarios
 
@@ -108,15 +108,14 @@ Production builds exclude the local `patch-preview.html` authoring page. Run `np
 editor and its authoring API, and validate that development build with
 `node scripts/build/check-site.mjs --development`.
 
-[`package.json`](package.json) is the source of truth for commands; see [`scripts/README.md`](scripts/README.md) for
-analysis tooling.
+[`package.json`](package.json) defines project commands. See [`scripts/README.md`](scripts/README.md) for analysis tools.
 
 ## Project structure
 
 ```text
 gw2-combat-simulator/
 ├── js/
-│   ├── kernel/            Game-neutral simulation primitives
+│   ├── kernel/            Game-neutral simulation helpers
 │   ├── ui/                Game-neutral simulation views
 │   ├── browser/           Shared browser services and shell
 │   └── games/gw2/         GW2 platform, professions, app, and integrations
@@ -142,7 +141,7 @@ gw2-combat-simulator/
 
 Submit build and rotation presets through the repository's GitHub Issue Form with an exported `build.json`, matching
 `rotation.json`, profession and specialization, expected simulator DPS, and optional benchmark source and reviewer
-notes. Submissions are reviewed before being added. See [Community Build Submissions](docs/BUILD-SUBMISSIONS.md).
+notes. Submissions are reviewed before being added. See [Community build submissions](docs/BUILD-SUBMISSIONS.md).
 
 ## Accuracy and scope
 

@@ -82,7 +82,7 @@ export interface EffectOwnershipContext<TSkill extends Skill = Skill> {
   readonly skillFor: (id: SkillId) => TSkill | undefined;
 }
 
-/** Construct once per run from the selected live or patch catalog; no runtime escape hatch is retained. */
+/** Construct once per run from the selected live or patch catalog without exposing the runtime. */
 export function createEffectOwnershipContext<TSkill extends Skill>(
   catalog: CanonicalCatalog<TSkill>
 ): EffectOwnershipContext<TSkill> {

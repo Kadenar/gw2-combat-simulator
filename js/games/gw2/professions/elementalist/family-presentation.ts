@@ -1,13 +1,7 @@
 /**
- * Family-level UI contract for the Elementalist.
- *
- * Holds the presentation rules that are true for every Elementalist build regardless of
- * elite specialization: which palette
- * skills the current attunement allows, and the start-attunement build controls.
- * Attunement is shown in the palette, so the active-state summary omits it.
- * Specialization modules contribute their own UI slices on top of this;
- * Weaver opts out of the attunement gates here
- * because its dual-attunement model is owned by the Weaver presentation.
+ * Supplies Elementalist palette attunement rules and starting-attunement controls. Attunement appears in the
+ * palette, so the active-state summary omits it. Specialization modules add their own presentation callbacks.
+ * Weaver skips these palette gates because its presentation handles dual attunements.
  */
 import { uiSpecialization } from '#gw2/platform/profession-presentation/compose.js';
 import type { ProfessionStartControl } from '#gw2/platform/profession-presentation/types.js';

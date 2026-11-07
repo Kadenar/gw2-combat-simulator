@@ -51,7 +51,7 @@ test('shared modals dismiss consistently and return focus to their launcher', as
   for (const [triggerSelector, dialogSelector] of launchers) {
     const trigger = page.locator(triggerSelector).first();
     const dialog = page.locator(dialogSelector);
-    // Check the shared dismissal matrix once, then each launcher's close/focus wiring.
+    // Check the shared dismissal behavior once, then verify closing and focus for each launcher.
     for (const dismiss of triggerSelector === launchers[0][0] ? ['button', 'escape', 'backdrop'] : ['button']) {
       await trigger.focus();
       await trigger.click();

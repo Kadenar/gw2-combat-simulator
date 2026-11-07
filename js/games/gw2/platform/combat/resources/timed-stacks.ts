@@ -20,13 +20,13 @@ type Gw2TimedStackExpiries = readonly number[];
 
 interface Gw2TimedStackGrant {
   readonly expiries: number[];
-  /** Applications that actually landed, which is what a caller reports as the granted stack count. */
+  /** Number of applications that landed, reported as the granted stack count. */
   readonly added: number;
 }
 
 interface Gw2TimedStackConsumption {
   readonly expiries: number[];
-  /** Applications actually removed, which can fall short of the request when too few were live. */
+  /** Number of applications removed. May be less than requested if too few were active. */
   readonly consumed: number;
 }
 

@@ -171,7 +171,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     effects: [
       {
         type: 'strike',
-        // Six impacts cluster around 400–480 ms in the benchmark, independently of aftercast cancellation.
+        // Six impacts cluster around 400 to 480 ms in the benchmark, independently of aftercast cancellation.
         ticks: [400, 440, 440, 440, 440, 480].map((atMs) => ({ atMs, coefficient: 3.6 / 6 })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',

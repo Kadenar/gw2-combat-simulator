@@ -8,7 +8,7 @@ import {
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { escapeHtml as html } from '#ui/shared/html.js';
 
-/** Open the shared controls from either DPS surface without changing the selected game-data version. */
+/** Open the shared controls from either DPS display without changing the selected game-data version. */
 function openPreviewAssumptions(root: Document = document): void {
   const panel = root.querySelector<HTMLDetailsElement>('#preview-assumptions');
 

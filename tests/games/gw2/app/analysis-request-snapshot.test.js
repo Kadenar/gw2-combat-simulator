@@ -1,4 +1,4 @@
-/** Snapshot contracts exercise the production input seam without browser state or workers. */
+/** Tests request snapshots through the production input interface without browser state or workers. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

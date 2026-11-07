@@ -17,7 +17,7 @@ const airBurns = (result) =>
 const rockets = (result) =>
   result.resolvedEvents.filter((event) => event.type === 'damage' && event.name === 'Aim-Assisted Rocket');
 
-// Clean targets retain knockback but must not acquire Burning or create a missile proc.
+// Targets without Burning retain knockback but must not acquire Burning or create a missile proc.
 test('Air Blast burns and triggers Aim-Assisted Rocket only against burning targets', () => {
   for (const burning of [false, true]) {
     const result = simulate('Core', ['Flamethrower', 'Air Blast', { type: 'wait', durationMs: 1000 }], {
@@ -48,7 +48,7 @@ test('Air Blast burns and triggers Aim-Assisted Rocket only against burning targ
   assert.equal(rockets(withoutTrait).length, 0);
 });
 
-// Burning must survive until impact, rather than merely being present when Air Blast starts casting.
+// Burning must remain active until impact for Air Blast to receive the bonus.
 test('Air Blast checks live Burning expiry at impact', () => {
   const setup = ['Flamethrower', 'Flame Blast'];
   const initial = simulate('Core', setup);

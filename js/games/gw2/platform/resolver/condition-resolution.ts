@@ -481,7 +481,7 @@ export function createGw2ConditionResolution({
     const name = ctx.helpers.conditionName(event.condition);
     const queryEvent = event as unknown as Gw2ResolverEvent;
     // Duration is snapshotted at application time. Damage stats and multipliers
-    // are deliberately queried later at each tick.
+    // are queried later at each tick.
     // Diagnostics capture this application's own duration facts; ordinary runs pass no trace.
     const durationTrace: Gw2ConditionDurationTrace | undefined = ctx.damageDiagnostics
       ? { durationContributors: [] }

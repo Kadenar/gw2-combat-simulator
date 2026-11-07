@@ -40,8 +40,7 @@ encounter conditions and unmodeled effects.
 
 ## Comparing results
 
-Use the simulator to compare two setups under identical assumptions, inspect why their damage differs, and identify
-questions worth validating in game.
+Compare setups under identical assumptions, then inspect the damage breakdown to identify what to test in game.
 
 Keep targets, boons, seeds, and observation windows fixed so their effects do not obscure the build or rotation change.
 

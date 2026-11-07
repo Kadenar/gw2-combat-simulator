@@ -1,6 +1,6 @@
 # Engineer
 
-Native shared-engine profession. Entry point `engineer.html` boots the shared application shell. `profession.ts` is the
+This profession uses the shared engine. Its browser entry point is `engineer.html`. `profession.ts` is the
 stable export and composes the Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of Scrapper,
 Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mechanics, and UI under
 `specializations/<name>/`.
@@ -15,29 +15,26 @@ Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mech
 ## Data
 
 - Maintained skill and trait constants live in `data/ids.ts`.
-- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
-  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
-  required.
+- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
 - `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
   complete declarations contributed by each module.
 
 ## Implemented systems
 
-- **Core** - eight terrestrial weapon families and both equipment sets; engineering kits as weapon-bar replacements (a
+- Core implements eight terrestrial weapon families and both equipment sets; engineering kits as weapon-bar replacements (a
   kit swap emits a sigil-swap trigger without changing the equipped set); tool-belt skills derived from the selected
   heal/utility/elite; ammo, cooldowns, autoattack chains, damage, conditions, controls, boons, and offensive traits.
-- **Holosmith** - Photon Forge, passive and skill heat, the six-second kit lockout, overheat, and piecewise cooling.
-- **Mechanist** - trait-selected F1-F3 commands, an always-present mech, inherited mech attributes with base caps,
+- Holosmith implements Photon Forge, passive and skill heat, the six-second kit lockout, overheat, and piecewise cooling.
+- Mechanist implements trait-selected F1-F3 commands, an always-present mech, inherited mech attributes with base caps,
   persistent mech basic attacks, signets, and damage-relevant mech trait reactions. The mech resolves an independent
   attribute set inherited from the owner and emits summon-owned strikes and conditions.
-- **Amalgam** - F2-F4 morph loadout persistence and Evolve state.
-- **Scrapper** - Hammer, gyros, Function Gyro, superspeed, and whirl-finisher / kinetic trait reactions.
+- Amalgam implements F2-F4 morph loadout persistence and Evolve state.
+- Scrapper implements Hammer, gyros, Function Gyro, superspeed, and whirl-finisher / kinetic trait reactions.
 
 ## Modeling boundaries
 
-- Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Incoming attacks,
-  active defense, ally healing/barrier/cleanse, pathing, secondary targets, and competitive (PvP/WvW) splits are out of
-  model.
+- The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Incoming attacks,
+  active defense, ally healing, barrier, and cleansing, pathing, secondary targets, and competitive PvP and WvW balance splits are outside the model.
 - Mech summon/recall, health, death, pathing, target acquisition, and autonomous command use are not modeled; commands
   are explicit rotation actions and the mech is assumed in Mechanical Genius range.
 - Deterministic simulations average critical damage by default, with rolled critical damage available in simulation

@@ -58,7 +58,7 @@ function createCastReservations<T extends object>() {
   };
 }
 
-/** One owner reserves, admits, and completes casts; isolated evaluation deliberately enters below readiness. */
+/** One service reserves, admits, and completes casts. Isolated evaluation skips readiness checks. */
 export function createCastExecution<T extends object>(
   runtime: Gw2Runtime<T>,
   profession: RuntimeProfession<T>,

@@ -1498,7 +1498,7 @@
   line-height: normal;
 }
 
-/* Selects take their border and surface from the shared select look so hover and open states stay visible. */
+/* Use the shared select border and background so hover and open states remain visible. */
 #perma-boons :is(.boon-control, .transition-delay-table) input[type='number'],
 #perma-boons .assumption-icon-select summary {
   border: 1px solid var(--border-light);

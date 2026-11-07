@@ -10,11 +10,9 @@ import {
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 
 /**
- * Numeric skill tuning read by platform, application, or integration code, with its bounds, units, and patch tiers.
- * A numeric field read only by one profession's code is declared by that profession's module instead, so this table
- * never grows with profession vocabulary. Non-numeric fields are declared only on the skill types; the table keeps
- * groups solely to own their dotted numeric leaves. It keeps its literal keys because `Skill` derives its numeric
- * properties from it.
+ * Defines numeric skill fields read by platform, application, or integration code, including bounds, units, and patch tiers.
+ * Each profession declares fields read only by its own code. Skill types declare non-numeric fields. This table
+ * contains group records only for nested numeric fields and preserves literal keys so `Skill` can derive its numeric properties.
  */
 export const SHARED_SKILL_FIELDS = defineFields(
   {

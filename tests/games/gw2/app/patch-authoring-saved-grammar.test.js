@@ -15,7 +15,7 @@ import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { SHARED_PROFILE_FIELDS } from '#gw2/platform/skills/profile-fields.js';
 
-// Exercise accepted saved grammar through loading, rendering, editing, and runtime application on tiny declarations.
+// Exercise accepted saved grammar through loading, rendering, editing, and runtime application on small declarations.
 for (const section of ['skills', 'balanceProfiles']) {
   for (const stacked of [false, true]) {
     test(`${section} editor round-trips ${stacked ? 'stacked selectors and shorthands' : 'zero and coefficient shorthand'}`, () => {

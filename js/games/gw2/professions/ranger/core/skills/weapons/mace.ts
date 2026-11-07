@@ -249,7 +249,7 @@ export const maceLifecycle = {
   },
   reactions: {
     'buff.applied'(runtime, event) {
-      // Cultivate and Rampant Growth may reach the cap, but only mace skills 2–5 can consume it.
+      // Cultivate and Rampant Growth may reach the cap, but only mace skills 2 through 5 can consume it.
       if (
         event.kind !== NATURES_STRENGTH ||
         !event.resolvedAudience?.includesSelf ||

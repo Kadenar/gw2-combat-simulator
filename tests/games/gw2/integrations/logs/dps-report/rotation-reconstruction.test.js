@@ -18,7 +18,7 @@ import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 
-// The fixture is intentionally minimal: it exercises report contracts without
+// The minimal fixture exercises report contracts without
 // pinning the supplied benchmark's full rotation or aggregate report shape.
 function reportFixture() {
   return {

@@ -44,8 +44,8 @@ function dragonSlashCoefficient(minimum: number, maximum: number, charges: numbe
   return minimum + (maximum - minimum) * ((resolvedCharges - 1) / (maximumCharges - 1));
 }
 
-// Maps charges to adrenaline bars spent (1 bar = 10): 1-4 charges → 10,
-// 5-9 → 20, 10 → 30. Used by burst traits that scale on adrenaline bars.
+// Convert charges to adrenaline spent. One bar is 10 adrenaline. Charges 1 through 4 spend 10,
+// charges 5 through 9 spend 20, and 10 charges spend 30. Burst traits use the resulting bar count.
 export function dragonChargesToAdrenalineSpent(charges: number): number {
   if (charges >= 10) return 30;
 
@@ -61,7 +61,7 @@ function requestedDragonCharges(configured: number | undefined, maximumCharges: 
   return clamp(configured, 1, maximumCharges);
 }
 // Shared reason string so both the availability check and the charge-release
-// projection surface the same message in the UI.
+// projection show the same message in the UI.
 
 export const ENTER_DRAGON_TRIGGER_REASON = 'Enter Dragon Trigger before using this skill.';
 

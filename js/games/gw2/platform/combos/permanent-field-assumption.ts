@@ -16,7 +16,7 @@ const FIELD_TYPE_OPTIONS: readonly { value: string; label: string }[] = [
   ...COMBO_FIELD_TYPES.map((value) => ({ value, label: value }))
 ];
 
-/** Profession-agnostic testing assumption: keep one combo field of the chosen type up for the whole fight. */
+/** Testing assumption shared by professions. Keeps one combo field of the chosen type active for the whole fight. */
 export const PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS: ReadonlyArray<ProfessionAssumptionControl> =
   createProfessionAssumptionControls([
     {
@@ -47,7 +47,7 @@ export function permanentComboFieldAssumption(
   if (typeof fieldType !== 'string' || fieldType === NONE) return;
 
   // Finishers only bind to fields sharing their owner id, so the assumption must own its
-  // field as the active profession - the same convention every profession's own finishers use.
+  // field as the active profession, matching the convention used by profession finishers.
   const fieldId = `${ownerId}:assumption:permanent-combo-field:${fieldType}`;
   return {
     type: 'combo_field',

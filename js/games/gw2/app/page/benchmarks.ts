@@ -76,7 +76,7 @@ export function readBenchmarks(profession: { id: string; name: string }, manifes
   });
 }
 
-/** Both chart levels use the same filtered population and a zero-based scale for honest comparisons. */
+/** Both chart levels use the same filtered builds and a zero-based scale for comparison. */
 export function filterBenchmarks(rows: readonly Benchmark[], filters: BenchmarkFilters): Benchmark[] {
   const query = filters.query.trim().toLowerCase();
   return rows

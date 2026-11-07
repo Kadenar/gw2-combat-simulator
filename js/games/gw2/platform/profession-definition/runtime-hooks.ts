@@ -285,7 +285,7 @@ const CALLBACK_RULES = {
   modifyEffects: transformThird,
   // Core and specialization modifiers compose before the runtime reserves the selected work.
   rechargeWork: transformThird,
-  // Read-only capacity policies transform in declaration order; zero intentionally disables the pool.
+  // Read-only capacity policies transform in declaration order; zero disables the pool.
   maximumAmmo: transformThird,
   reserveRecharge: transformThird,
   // Compose game rules after shared duration scaling; authors never need a profession-specific emitter.

@@ -448,7 +448,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     slot: 'Elite',
     cooldown: 40,
     castTimeMs: 680,
-    // Model only its control contribution on activation; venom sharing and on-hit charges are intentionally omitted.
+    // Model only its control contribution on activation; venom sharing and on-hit charges are omitted.
     effects: [{ type: 'control', controlKind: CONTROL.STUN, atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }]
   },
   [ID.SKELK_VENOM]: {

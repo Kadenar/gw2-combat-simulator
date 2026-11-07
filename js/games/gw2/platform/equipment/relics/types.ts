@@ -8,7 +8,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverHelpers } from '#gw2/platform/resolver/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
-/** Minimal configuration surface consumed by relic rules. */
+/** Configuration fields consumed by relic rules. */
 interface Gw2RelicConfig {
   readonly relic?: string;
   readonly precastRelics?: readonly string[];

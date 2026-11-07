@@ -137,7 +137,7 @@ select optgroup option {
   font-weight: 400;
 }
 
-/* OS popups cannot composite translucent surfaces, so fallback rows stay opaque and dark. */
+/* OS popups cannot composite translucent backgrounds, so fallback rows stay opaque and dark. */
 @supports not (appearance: base-select) {
   select :is(option, optgroup) {
     background-color: var(--menu-surface);

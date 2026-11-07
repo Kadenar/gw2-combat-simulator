@@ -174,7 +174,7 @@ export function paletteHtml(projection: PaletteProjection): string {
       ? `<div class="utility-palette-group loadout-utility-palette-group"
             data-role="loadout-utility-palette-group">${loadoutStack}</div>`
       : '';
-  // Place each profession-owned group beside its declared palette surface.
+  // Place each profession-owned group beside its declared palette section.
   const standardProfessionGroups = renderedProfessionGroups.filter(
     (group) => group.placement === 'profession' || !group.placement
   );

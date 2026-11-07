@@ -675,7 +675,7 @@ test('anonymous target conditions remain bounded alongside named damage conditio
   assert.equal(config.target.conditions.Burning, undefined);
 });
 
-// A named target gate must affect the corresponding skill payload, not just the generic stat strip.
+// A named target gate must affect both the corresponding skill payload and the generic stat strip.
 test('Life Siphon previews its Bleeding-target bonus without applying actual Bleeding damage', () => {
   const app = previewApp('necromancer');
   app.build.weapons = ['Dagger', 'Focus'];

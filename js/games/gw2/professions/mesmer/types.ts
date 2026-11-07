@@ -109,7 +109,7 @@ export interface MesmerAmbushAttack extends MesmerSkill {
  * Inherited persistsAfterInterrupt lets launched performance packets outlive interruption after commitment.
  */
 export interface MesmerInstrument extends Partial<StrikeEffect> {
-  /** Harp intentionally has no native strike; other instruments retain their named strike owner after removal. */
+  /** Harp has no native strike; other instruments retain their named strike owner after removal. */
   readonly hasStrike?: boolean;
   readonly slot: number;
   readonly instrument: string;

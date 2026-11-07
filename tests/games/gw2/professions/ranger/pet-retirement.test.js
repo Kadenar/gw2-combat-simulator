@@ -58,7 +58,7 @@ for (const output of ['detailed', 'score']) {
     const embraceConditions = result.resolvedEvents.filter(
       (event) => event.type === 'condition' && event.skillId === ID.JACARANDAS_EMBRACE
     );
-    // The first proc rides the pet's strike and is entirely pet-owned; only the four later vine procs are the Ranger's.
+    // The pet's strike triggers and owns the first proc. Only the four later vine procs belong to the Ranger.
     const opener = embraceConditions.filter((event) => event.actorType === 'summon');
     const embrace = embraceConditions.filter((event) => event.actorType !== 'summon');
     assert.deepEqual(

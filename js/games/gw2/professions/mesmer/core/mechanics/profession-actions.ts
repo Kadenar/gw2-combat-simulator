@@ -128,7 +128,7 @@ export function createProfessionActionController({
     state.resourceController.grant(kind, Math.max(0, spent || 0));
   };
 
-  // Orchestrates resource spending and shared traits while the registered resolver owns packet behavior.
+  // Spends resources and applies shared traits. The registered resolver handles packets.
   // resourcesSpent=null means consume resources now; a pre-computed value skips the consume.
   const handleShatter = (
     context: MesmerRuntime,

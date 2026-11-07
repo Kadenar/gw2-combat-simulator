@@ -59,7 +59,7 @@ test('shared header combines profession toggles and retains damage and role filt
   await expect(page.locator('#benchmark-outdated')).not.toBeChecked();
 });
 
-// Native controls must update both chart surfaces and recover from empty searches without losing focus.
+// Native controls must update both charts and recover from empty searches without losing focus.
 test('benchmark filters, card scrolling, and APM point inspection work with keyboard input', async ({ page }) => {
   await openDashboard(page);
   const search = page.getByRole('searchbox', { name: 'Search benchmarks' });

@@ -13,7 +13,7 @@ export interface ModifierPresentation extends SimulationTooltip {
   readonly icon?: string;
 }
 
-/** Null explicitly excludes internal arithmetic plumbing from the gameplay reference. */
+/** Null excludes internal arithmetic rules from the gameplay reference. */
 export type DescribeModifier = (
   context: ProfessionBalanceContext,
   rule: Gw2ModifierRule

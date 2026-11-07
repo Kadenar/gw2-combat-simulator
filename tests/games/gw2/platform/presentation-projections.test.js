@@ -198,7 +198,7 @@ test('presentation lists include Core, the selected elite, and family contributi
   }
 });
 
-// An elite may deliberately keep a single unlabelled bar even when Core would split variants.
+// An elite may keep a single unlabelled bar even when Core would split variants.
 test('Weaver single dual group is authoritative and utility variants follow live attunement', () => {
   const ui = elementalistProfession.ui;
   const duals = [

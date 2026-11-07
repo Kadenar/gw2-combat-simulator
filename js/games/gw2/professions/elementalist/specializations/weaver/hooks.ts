@@ -25,7 +25,7 @@ import { weaverPistolLifecycle } from '#gw2/professions/elementalist/specializat
 import { weaverSpearLifecycle } from '#gw2/professions/elementalist/specializations/weaver/skills/weapons/spear.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
-/** Wire hand transitions and stance owners; completion traits precede the Fervent Stance reward. */
+/** Register hand transitions and stance callbacks. Completion traits run before the Fervent Stance reward. */
 export const weaverHooks = composeRuntimeHooks<ElementalistRuntimeState, ElementalistSkill>([
   weaverAttunementLifecycle,
   weaverPistolLifecycle,

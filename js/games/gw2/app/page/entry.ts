@@ -54,7 +54,7 @@ function mountCommunityActions(root: Document): void {
   host.append(actions);
 }
 
-/** Publishes the header height and adds its surface only after the page scrolls. */
+/** Publishes the header height and adds its background after the page scrolls. */
 function mountStickyHeader(root: Document): void {
   const header = root.querySelector<HTMLElement>('#app > header');
   const appRoot = header?.parentElement;

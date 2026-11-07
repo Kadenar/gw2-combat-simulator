@@ -1,4 +1,4 @@
-# Guild Wars 2 Combat Simulator Wiki
+# Guild Wars 2 combat simulator wiki
 
 [Launch the simulator](https://kadenar.github.io/gw2-combat-simulator/) and model a PvE build and rotation in your
 browser.

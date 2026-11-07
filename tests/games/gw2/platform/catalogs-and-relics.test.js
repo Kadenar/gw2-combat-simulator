@@ -479,7 +479,7 @@ test('Aristocracy accepted applications preserve combat entry and historical sta
   assert.equal(relicConditionDurationBonus(context, 2.001), 0.03);
 });
 
-// Labels cannot grant eligibility, and summons do not become player effects merely by carrying an owner.
+// Labels cannot grant eligibility. Assigning an owner to a summon does not make its effects player effects.
 test('Aristocracy requires a landed condition with eligible explicit ownership', () => {
   for (const [actorType, ownerActorType, expected] of [
     ['player', undefined, 1],

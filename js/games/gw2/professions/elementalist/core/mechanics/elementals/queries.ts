@@ -90,9 +90,9 @@ export function activeElemental(
 }
 
 /**
- * Availability gate for this subsystem. Command flips (Flame Barrage / Stomp) are usable when
- * the matching elemental is active - or its automatic opener has not yet spawned; the glyphs themselves are
- * blocked (with a retry time) while their elemental lives. Returns null for unrelated skills.
+ * Controls availability for elemental commands and summons. Flame Barrage and Stomp are available when their
+ * elemental is active or its automatic opener has yet to spawn. Glyphs are blocked with a retry time while
+ * their elemental is alive. Returns null for unrelated skills.
  */
 export function elementalistElementalAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,

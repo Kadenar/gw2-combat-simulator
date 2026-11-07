@@ -29,7 +29,7 @@ export function weaverDualAttunements(
   return [first, second];
 }
 
-/** Slots 1–2 use the primary hand, 3 requires both elements, and 4–5 use the secondary; Unravel uses only primary. */
+/** Slots 1 and 2 use the primary hand, slot 3 requires both elements, and slots 4 and 5 use the secondary. Unravel uses only the primary hand. */
 export function weaverWeaponAttunementAvailable(
   skill: ElementalistSkill,
   primary: string,

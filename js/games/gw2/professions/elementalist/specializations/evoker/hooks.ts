@@ -89,7 +89,7 @@ export const evokerHooks = composeRuntimeHooks<ElementalistRuntimeState, Element
     },
     onCastCommit(runtime, cast) {
       onCastCommit(runtime, cast, cast.skill);
-      // This tail follows the skill-declared intrinsic tasks, retaining reset -> deferred grants -> final trait order.
+      // Run after skill-declared intrinsic tasks. Reset first, apply deferred grants, then run the final trait callbacks.
       runtime.scheduleForCast('elementalist.evoker.finish-commit', runtime.time, cast, {}, undefined, -101);
     },
     tasks: {

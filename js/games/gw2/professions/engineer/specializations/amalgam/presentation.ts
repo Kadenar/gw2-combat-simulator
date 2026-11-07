@@ -133,7 +133,7 @@ function activeBuffRemaining(context: Pick<EngineerUiContext, 'result'>, sourceI
   return Math.max(0, remaining);
 }
 
-/** Surfaces Evolve and every duration-bearing Silver Lining strain active at the inspected point. */
+/** Shows Evolve and each Silver Lining strain with a duration that is active at the inspected point. */
 function amalgamStateSnapshot(
   context: ProfessionStateSnapshotContext<EngineerUiContext['professionState']>
 ): RotationStateSnapshotItem[] {

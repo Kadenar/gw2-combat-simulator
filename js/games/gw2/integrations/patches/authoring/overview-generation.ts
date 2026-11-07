@@ -35,8 +35,8 @@ export function numericFieldSpec(
 }
 
 /**
- * Converts stable storage keys into concise labels shared by generated overview prose and editor field labels.
- * Profession-owned skill fields pass their declaration, because only the selected profession knows them.
+ * Converts storage keys into labels for generated overviews and editor fields.
+ * Profession-owned skill fields supply their declaration because only the selected profession defines them.
  */
 export function patchFieldLabel(field: string, spec?: Pick<NumericFieldSpec, 'label' | 'unit'>): string {
   return (

@@ -73,7 +73,6 @@ export const explosiveEntrance = defineTrait({
   lifetime: { eventHandlers: { 'engineer.dodge': resetExplosiveEntrance } }
 });
 
-/** Owns Steel-Packed Powder tuning and behavior at its established runtime and build boundaries. */
 export const steelPackedPowder = defineTrait({
   id: TRAIT.STEEL_PACKED_POWDER,
   balance: {
@@ -84,7 +83,6 @@ export const steelPackedPowder = defineTrait({
   triggers: [{ on: 'damage.resolved', run: applySteelPackedPowder }]
 });
 
-/** Owns Short Fuse tuning and behavior at its established runtime and build boundaries. */
 export const shortFuse = defineTrait({
   id: TRAIT.SHORT_FUSE,
   balance: {
@@ -94,7 +92,6 @@ export const shortFuse = defineTrait({
   triggers: [{ on: 'damage.resolved', run: applyShortFuse }]
 });
 
-/** Owns Explosive Temper tuning and behavior at its established runtime and build boundaries. */
 export const explosiveTemper = defineTrait({
   id: TRAIT.EXPLOSIVE_TEMPER,
   balance: {
@@ -123,7 +120,6 @@ export const explosiveTemper = defineTrait({
   triggers: [{ on: 'damage.resolved', run: applyExplosiveTemper }]
 });
 
-/** Owns Shrapnel tuning and behavior at its established runtime and build boundaries. */
 export const shrapnel = defineTrait({
   id: TRAIT.SHRAPNEL,
   balance: {
@@ -142,7 +138,6 @@ export const shrapnel = defineTrait({
   triggers: [{ on: 'damage.resolved', run: applyShrapnel }]
 });
 
-/** Owns Aim-Assisted Rocket tuning and behavior at its established runtime and build boundaries. */
 export const aimAssistedRocket = defineTrait({
   id: TRAIT.AIM_ASSISTED_ROCKET,
   balance: {
@@ -166,7 +161,6 @@ export const aimAssistedRocket = defineTrait({
   ]
 });
 
-/** Owns Grand Entrance tuning and behavior at its established runtime and build boundaries. */
 export const grandEntrance = defineTrait({
   id: TRAIT.GRAND_ENTRANCE,
   balance: {
@@ -191,7 +185,6 @@ export const grandEntrance = defineTrait({
   triggers: [{ on: 'damage.resolved', run: applyGrandEntrance }]
 });
 
-/** Owns Blast Shield tuning and behavior at its established runtime and build boundaries. */
 export const blastShield = defineTrait({
   id: TRAIT.BLAST_SHIELD,
   balance: { attributeConversion: 0.1 },
@@ -207,7 +200,6 @@ export const blastShield = defineTrait({
   ])
 });
 
-/** Owns Glass Cannon tuning and behavior at its established runtime and build boundaries. */
 export const glassCannon = defineTrait({
   id: TRAIT.GLASS_CANNON,
   // The trait balance owns tuning consumed by damage rules and presentation.
@@ -226,7 +218,6 @@ export const glassCannon = defineTrait({
   ]
 });
 
-/** Owns Big Boomer tuning and behavior at its established runtime and build boundaries. */
 export const bigBoomer = defineTrait({
   id: TRAIT.BIG_BOOMER,
   // The trait balance owns tuning consumed by damage rules and presentation.
@@ -244,7 +235,6 @@ export const bigBoomer = defineTrait({
   ]
 });
 
-/** Owns Shaped Charge tuning and behavior at its established runtime and build boundaries. */
 export const shapedCharge = defineTrait({
   id: TRAIT.SHAPED_CHARGE,
   // The trait balance owns tuning consumed by damage rules and presentation.

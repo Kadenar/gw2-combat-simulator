@@ -150,7 +150,7 @@ export function antiquaryChakShieldActions(context: EvtcProfessionReconstruction
 /**
  * The supplied core-thief log pairs this target effect with Serpent's Touch and Deadly Ambush.
  * Require both condition bursts from the same player onto the same foe: the visual alone is not a proven Steal.
- * This is a local evidence rule, not an EI finder, and deliberately leaves uncorroborated steals missing.
+ * This is a local evidence rule, not an EI finder, and leaves uncorroborated steals missing.
  */
 export function thiefStealActions(context: EvtcProfessionReconstructionContext): EvtcRecordedRotationAction[] {
   if (context.profile.professionId !== 'thief' || context.profile.specializationId !== 'core') return [];

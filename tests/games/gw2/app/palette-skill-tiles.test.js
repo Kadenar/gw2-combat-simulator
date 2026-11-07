@@ -92,7 +92,7 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
   }
 });
 
-// Tiny catalogs keep family expectations independent of the production grouping algorithm.
+// Small catalogs make family expectations independent of the production grouping algorithm.
 function catalogInput(skills, { professionState = {}, flips = {} } = {}) {
   const catalog = {
     skills,
@@ -148,7 +148,7 @@ test('palette distinguishes startup, missing verdicts, and runtime retry boundar
   assert.equal(paletteAvailability(input, context, { ...skill, specialization: 'Bladesworn' }).available, false);
 });
 
-// Completed projection retains retries across surfaces, while weapon placement and loadout vetoes still block insertion.
+// The projection retains retries across palette views. Weapon placement and loadout vetoes still block insertion.
 test('weapon, action, loadout, and custom weapon tiles preserve runtime retries', async () => {
   for (const [id, name, config, rotation] of [
     ['thief', 'Heartseeker', { initialInitiative: 0, primaryWeapon: 'Dagger', secondaryWeapon: 'Dagger' }, []],

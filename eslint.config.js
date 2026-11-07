@@ -124,7 +124,7 @@ export default [
       parser: tseslint.parser
     },
     rules: {
-      // Reject redundant control-flow scaffolding left behind by removed branches.
+      // Reject redundant control flow left behind by removed branches.
       'no-lone-blocks': 'error',
       'no-useless-return': 'error'
     }
@@ -292,7 +292,7 @@ export default [
       })
     }
   },
-  // Combat primitives retain explicit capabilities even when their caller supplies a full runtime.
+  // Combat helpers retain explicit capabilities even when their caller supplies a full runtime.
   {
     files: ['js/games/gw2/platform/combat/**/*.ts'],
     rules: {

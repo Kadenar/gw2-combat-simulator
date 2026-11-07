@@ -303,7 +303,7 @@ test('endurance observations settle once and retain the current policy rate', ()
 });
 
 test('endurance interval readiness respects caps without predicting impossible recovery', () => {
-  // A cap is an affordability limit, not merely a clamp applied after an unbounded prediction.
+  // The cap limits predicted affordability before any resource grant is clamped.
   const state = clock(40, 0, 50);
   const intervals = [{ start: 0, end: Infinity, rate: 5 }];
   const unreadable = new Proxy([], { get: () => assert.fail('Impossible costs must not consume intervals') });

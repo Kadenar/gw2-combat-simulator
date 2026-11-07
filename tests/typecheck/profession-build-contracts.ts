@@ -42,11 +42,11 @@ declare const modifiers: ProfessionModifierDefinition;
 canonical.targetHeath;
 // @ts-expect-error Modifier declaration fields must stay closed through composition.
 modifiers.modifyAttribtes;
-// @ts-expect-error Imperative attribute hooks are not a modifier authoring surface.
+// @ts-expect-error Imperative attribute hooks cannot declare modifiers.
 const invalidRules: ProfessionModifierDefinition = { modifyAttributes: () => ({ power: 42 }) };
 void invalidRules;
 const invalidHooks: ProfessionModifierDefinition = {
-  // @ts-expect-error Ordered scalar hook arrays are not a modifier authoring surface.
+  // @ts-expect-error Ordered scalar hook arrays cannot declare modifiers.
   modifyCriticalChance: [{ id: 'crit', order: 1, handler: () => 1 }]
 };
 void invalidHooks;

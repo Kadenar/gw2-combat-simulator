@@ -22,7 +22,7 @@ export const mesmerProfession = defineNativeProfession({
   modules: mesmerNativeModules,
   weaponSkillMatchesSet: mesmerWeaponSkillMatchesSet,
   autoattackChains: {
-    // Mesmer roots have deliberately different persistence contracts; each
+    // Mesmer roots have different persistence contracts; each
     // override is evaluated against the pending root instead of the profession globally.
     overrides: [
       {

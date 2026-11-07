@@ -1,9 +1,6 @@
 /**
- * Tempest module wiring.
- *
- * Assembles the specialization's catalog data, per-run state, overload cast rules and
- * live deadlines, shout completion, aura reactions, and skill-bar presentation into
- * the single native module the elementalist family registers.
+ * Assembles the Tempest module registered by the Elementalist family. Includes catalog data, per-run state,
+ * overload cast rules and deadlines, shout completion, aura reactions, and skill-bar presentation.
  */
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';

@@ -267,7 +267,7 @@ function prepareEngineerMechEvent(context: EngineerRuntime, event: SimulationEve
     );
   }
 
-  // Positive damage packets additionally need the native scaling metadata
+  // Positive damage packets also need the native scaling metadata
   // consumed by summon damage resolution; other mech events need ownership only.
   if (event.type === 'damage' && Number(event.coefficient) > 0) {
     const basicAttack =

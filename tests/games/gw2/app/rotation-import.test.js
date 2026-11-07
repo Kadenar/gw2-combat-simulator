@@ -46,7 +46,7 @@ function appFor(line = 'Virtuoso') {
   };
 }
 
-// Both entry points honor the same exported settings; rotation history intentionally leaves workspace preferences alone.
+// Both entry points honor the same exported settings; rotation history leaves workspace preferences alone.
 test('rotation and combined exports import identical delays through either dialog and Undo preserves the imported settings', async () => {
   for (const [useBuildImport, includeBuild] of [
     [false, false],

@@ -15,7 +15,7 @@ function ownership(context: EffectOwnershipContext<WarriorSkill>) {
   context.history.push({});
   // @ts-expect-error Lifetime selection cannot mutate unrelated mechanic state.
   context.profession.core.adrenaline.value = 0;
-  // @ts-expect-error Lifetime selection has no runtime escape hatch.
+  // @ts-expect-error Lifetime selection does not expose the runtime.
   context.runtime;
   // @ts-expect-error Selected-content queries cannot be replaced by a mechanic.
   context.skillFor = () => undefined;
@@ -76,7 +76,7 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     context.ammo.clear();
     // @ts-expect-error Capacity selection cannot reset recharge.
     context.cooldownController.resetAll();
-    // @ts-expect-error There is no runtime escape hatch or registry identity.
+    // @ts-expect-error This context exposes neither the runtime nor registry identity.
     context.runtime;
     // @ts-expect-error Capacity selection cannot inspect commands.
     context.cursor;
@@ -115,7 +115,7 @@ const hooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = {
     context.queue.enqueue({});
     // @ts-expect-error Acceptance labels cannot append report history.
     context.history.push({});
-    // @ts-expect-error There is no aggregate runtime escape hatch.
+    // @ts-expect-error This context does not expose the aggregate runtime.
     context.runtime;
     // @ts-expect-error The state query itself cannot be replaced.
     context.readProfessionState = () => state;

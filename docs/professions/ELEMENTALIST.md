@@ -59,21 +59,19 @@ from their own inputs.
 
 ## Owned systems
 
-- **Core** - attunements, weapon and slot skills, cast and recharge rules, autoattack transitions, auras, endurance,
+- Core implements attunements, weapon and slot skills, cast and recharge rules, autoattack transitions, auras, endurance,
   conjures, summoned elementals, core trait reactions, and weapon resources such as pistol bullets, hammer orbs, and
   spear etchings.
-- **Tempest** - overload availability and scheduling, Tempest skill handlers, aura reactions, modifiers, state, and UI.
-- **Weaver** - dual attunements, dual-attunement weapon skills, Weaver cast rules, modifiers, state, and UI.
-- **Catalyst** - energy, Jade Spheres, Elemental Empowerment, combo and aura reactions, modifiers, state, and UI.
-- **Evoker** - specialized-element familiars, charges, empowerment, recharge rules, skill handlers, modifiers, state,
+- Tempest implements overload availability and scheduling, Tempest skill handlers, aura reactions, modifiers, state, and UI.
+- Weaver implements dual attunements, dual-attunement weapon skills, Weaver cast rules, modifiers, state, and UI.
+- Catalyst implements energy, Jade Spheres, Elemental Empowerment, combo and aura reactions, modifiers, state, and UI.
+- Evoker implements specialized-element familiars, charges, empowerment, recharge rules, skill handlers, modifiers, state,
   and UI.
 
 ## Data
 
 - Maintained skill and trait constants live in `data/ids.ts`.
-- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
-  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
-  required.
+- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
 - `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
   complete declarations contributed by each module.
 

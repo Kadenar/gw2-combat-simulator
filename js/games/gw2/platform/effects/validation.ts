@@ -447,8 +447,8 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
       throw new TypeError('Cast-scaled effect timing must be anchored to castStart.');
     }
 
-    // An interval with no atMs means "start immediately after the anchor" - castEnd
-    // is the only sensible anchor for that pattern (castStart + 0 = during cast).
+    // An interval without atMs starts immediately after the anchor. Use castEnd
+    // because castStart with a zero offset would begin the interval during the cast.
     if (!hasTicks && !hasAtMs && normalizedEffect.timingAnchor != null && normalizedEffect.timingAnchor !== 'castEnd') {
       throw new TypeError('An interval without atMs must be anchored to castEnd.');
     }

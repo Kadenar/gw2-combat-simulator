@@ -141,7 +141,7 @@ test('minion strike multipliers read Necromantic Corruption and Spirits Strength
   assert.equal(attack.summonStrikeMultiplier, 1.4 * 1.8);
 });
 
-/** Profile removal is exercised through the selected listener's canonical trigger surface. */
+/** Exercises profile removal through the selected listener's trigger. */
 function vampiricOpportunity(runtime, event) {
   bindTriggerPoints(runtime, necromancerProfession, runtime.config);
   runtime.fireTrigger(necromancerStrike, {

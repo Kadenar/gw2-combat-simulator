@@ -85,7 +85,7 @@ test('ZIP inflation cancels before forged size metadata can exhaust the expansio
   let largestChunk = 0;
   let cancelled = false;
 
-  // Count native output without prefetching so the check measures early cancellation, not just eventual rejection.
+  // Count native output without prefetching to verify that cancellation stops processing before it finishes.
   t.mock.method(globalThis, 'DecompressionStream', function (format) {
     const stream = new NativeDecompressionStream(format);
     const reader = stream.readable.getReader();

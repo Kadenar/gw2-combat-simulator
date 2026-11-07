@@ -34,4 +34,4 @@ unmodeled effects may be omitted or represented approximately. After import:
 5. Save the cleaned rotation as JSON if you want to reuse it.
 
 For implementation details, see
-[EVTC Rotation Reconstruction](https://github.com/Kadenar/gw2-combat-simulator/blob/main/docs/EVTC-ROTATION-RECONSTRUCTION.md).
+[EVTC rotation reconstruction](https://github.com/Kadenar/gw2-combat-simulator/blob/main/docs/EVTC-ROTATION-RECONSTRUCTION.md).

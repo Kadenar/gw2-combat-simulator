@@ -58,7 +58,7 @@ export interface SkillDamageViewModel {
 
 const PROC_GROUP_ID = 'procs';
 
-/** Projects a plan and its latest evaluation into rows; skills without measurable damage are simply left out. */
+/** Projects a plan and its latest evaluation into rows, omitting skills without measurable damage. */
 export function createSkillDamageViewModel(
   plan: SkillDamagePlan,
   evaluation: SkillDamageEvaluation | null,

@@ -1,7 +1,4 @@
-/**
- * Game-neutral timing primitives keep timestamps, ordering keys, and window
- * comparisons on the same canonical clock.
- */
+/** Game-neutral timing helpers put timestamps, ordering keys, and window comparisons on the same canonical clock. */
 
 /** Integer microseconds make equality transitive without moving authored events onto a combat tick grid. */
 export function timeKey(seconds: number): number {

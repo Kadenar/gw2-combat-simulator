@@ -113,7 +113,7 @@ const BASE_CRITICAL_DAMAGE_PERCENT = BASE_CRITICAL_DAMAGE_MULTIPLIER * PERCENT_S
 const FEROCITY_PER_CRITICAL_DAMAGE_PERCENT = FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER / PERCENT_SCALE;
 const EXPERTISE_PER_CONDITION_DURATION_PERCENT = EXPERTISE_PER_CONDITION_DURATION_MULTIPLIER / PERCENT_SCALE;
 
-// These helpers intentionally preserve each API's existing evaluation order.
+// These helpers preserve each API's existing evaluation order.
 // Caps, floors, and other policy remain with the caller.
 /** Converts precision to critical chance in percentage-point form. */
 export function criticalChancePercentFromPrecision(precision: number): number {

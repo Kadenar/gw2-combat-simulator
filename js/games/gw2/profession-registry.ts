@@ -14,7 +14,7 @@ import { PROFESSION_IDENTITIES } from '#gw2/profession-identities.js';
 // Preserve native composition metadata so engine consumers can apply previews without loading an app adapter.
 type RegisteredProfession = NativeProfessionContract<readonly [AnyNativeModule<'Core'>, ...AnyNativeModule[]]>;
 
-/** Armor classes, ordered as navigation surfaces group professions. */
+/** Armor classes in profession navigation order. */
 const ARMOR_WEIGHTS = ['light', 'medium', 'heavy'] as const;
 
 export type ArmorWeight = (typeof ARMOR_WEIGHTS)[number];
@@ -24,11 +24,11 @@ export interface ProfessionRegistryEntry {
   readonly id: string;
   /** Numeric profession identity encoded in GW2 build-template chat links. */
   readonly buildTemplateCode: number;
-  /** Armor class used to group professions in navigation surfaces. */
+  /** Armor class used to group professions in navigation. */
   readonly armorWeight: ArmorWeight;
   /** Human-readable profession name. */
   readonly name: string;
-  /** Official base-profession icon used by navigation surfaces. */
+  /** Official base-profession icon used in navigation. */
   readonly icon?: string;
   /** Browser route for the profession application. */
   readonly route: string;
@@ -45,9 +45,8 @@ export interface ProfessionRegistryEntry {
 
 // Portraits are grouped by profession, with core.png for the base profession and named elite portraits.
 // Names come from shared identity metadata; artwork and lazy loaders remain application registry concerns.
-// Entries are ordered by armor class so navigation surfaces group
-// professions Light → Medium → Heavy: the shared UI (landing card grid and
-// simulator header select) renders in registry order.
+// Registry order groups professions by Light, Medium, then Heavy armor.
+// The landing card grid and simulator header select both use this order.
 const entries: readonly ProfessionRegistryEntry[] = [
   // Light armor: Elementalist, Mesmer, Necromancer.
   {

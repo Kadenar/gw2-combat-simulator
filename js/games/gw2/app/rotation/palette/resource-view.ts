@@ -175,11 +175,9 @@ function offsetPipRows(rowCount: number): ReadonlySet<number> {
 }
 
 /**
- * Assigns each pip its fill rank in on-screen left-to-right order. Columns are
- * two half-pitch units wide and an interlocking (offset) row adds one, so
- * sorting by that x - tie-broken top-to-bottom - makes the active state advance
- * across the zigzag rather than lighting an entire row before the next begins.
- * Single-row resources keep their natural left-to-right order.
+ * Assigns pip fill order from left to right. Columns span two half-pitch units, and an offset row adds one unit.
+ * Sort by that horizontal position, then top to bottom for ties, to fill across the zigzag instead of completing
+ * one row first. Single-row resources use their existing left-to-right order.
  */
 function pipFillRanks(rows: readonly number[]): number[][] {
   const offsetRows = offsetPipRows(rows.length);
@@ -257,7 +255,7 @@ function resourceStatusItemsHtml(definition: ProfessionResourceView): string {
   if (!items.length) return '';
 
   const label = definition.statusItemsLabel || '';
-  // An empty visible label intentionally produces a chips-only row while the
+  // An empty visible label produces a chips-only row while the
   // resource status remains available to assistive technology.
   const ariaLabel = label || definition.statusLabel || 'Status';
   return `<div class="active-resource-statuses"
@@ -335,12 +333,8 @@ export function activeResourceGroup(
 
 /**
  * Mounts starting-state controls and binds them to the application build.
- *
- * Startable bars and counters use numeric inputs; startable pips use count
- * buttons. A
- * resource with `canStart: false` remains visible in the live display but has
- * no starting control. Every accepted change calls `app.changed()` so the
- * simulation and both resource displays refresh together.
+ * Bars and counters use numeric inputs; pips use count buttons. A resource with `canStart: false` appears in the live
+ * display but has no starting control. Accepted changes call `app.changed()` to refresh the simulation and both displays.
  */
 export function renderStartResource(app: ProfessionAppState): void {
   const element = document.getElementById('start-att-selector');

@@ -1,9 +1,10 @@
 /**
- * Declares field metadata for skills and balance profiles. The platform owns the vocabulary its own code reads; each
- * profession module contributes the fields that only its code reads. Numeric records drive bounds validation, the patch
- * allowlist, and authoring labels, and skill types derive their numeric properties from them. Skill types declare every
- * non-numeric field, so skill tables hold data records only for groups that own dotted numeric leaves; profile tables
- * also list their non-numeric fields because profiles stay open and are checked against their table at runtime.
+ * Declares field metadata for skills and balance profiles. The platform defines fields its code reads;
+ * each profession adds fields read only by that profession. Numeric records supply validation bounds, the patch
+ * allowlist, authoring labels, and numeric skill property types.
+ *
+ * Skill types declare non-numeric fields. Skill tables therefore contain group records only for nested numeric fields.
+ * Profile tables also list non-numeric fields because profiles allow additional fields and need runtime validation.
  */
 
 /** Units select the editor suffix; stored values keep their declared unit. */

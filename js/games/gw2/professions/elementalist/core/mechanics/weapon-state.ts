@@ -52,8 +52,8 @@ export function shareAttunementVariantRecharge(context: ElementalistRuntime, ski
 }
 
 /**
- * Gates weapon skills on the attuned element. Denials here are permanent for the
- * command - only a different attunement, never elapsed time, makes them usable.
+ * Allows weapon skills only in their attuned element. A denial is permanent for the command.
+ * Changing attunement can make the skill usable; waiting cannot.
  */
 export function weaponAttunementAvailable(
   context: MechanicQueriesOf<ElementalistRuntime>,

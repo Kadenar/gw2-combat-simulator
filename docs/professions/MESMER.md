@@ -1,25 +1,21 @@
 # Mesmer
 
-Native shared-engine profession. Entry point `mesmer.html`. `profession.ts` composes the Core-first tuple from
+This profession uses the shared engine. Its browser entry point is `mesmer.html`. `profession.ts` composes the Core-first tuple from
 `catalog.ts`; a runtime contains Core plus at most one of Chronomancer, Mirage, Virtuoso, or Troubadour. Core owns the
-shared shatter, phantasm, clone, weapon, and trait behavior; each specialization owns a vertical slice under
+shared shatter, phantasm, clone, weapon, and trait behavior; each specialization defines its data, state, mechanics, and presentation under
 `specializations/<name>/`.
 
 ## Data
 
 - Maintained skill and trait constants live in `data/ids.ts`.
-- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
-  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
-  required.
+- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
 - `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
   complete declarations contributed by each module.
 
 ## Architecture notes
 
 Ordinary effects use shared declarative scheduling; shatters, bladesongs, instruments, phantasms, ambushes, flips,
-resources, and Continuum actions select registered `mesmer.*` handler strategies by stable skill/trait ID. Display names
-are labels only - routing, resource causes, flips, trait decisions, and timing all key off IDs, and legacy name
-rotations are resolved at the build-migration boundary.
+resources, and Continuum actions select registered `mesmer.*` handler strategies by stable skill/trait ID. Routing, resource causes, flips, trait decisions, and timing use stable IDs. Display names serve only as labels. Build migration resolves names in older saved rotations.
 
 Core trait definitions live in `core/traits/<line>/index.ts`; each elite registers its definitions in `traits/index.ts`.
 Definitions own profiles, modifiers, build contributions, triggers, and recharge policies. Shared mechanics own illusion
@@ -48,16 +44,16 @@ independent of trait selection.
 
 ## Implemented systems
 
-- **Core** - weapon sets with a ten-second in-combat swap recharge (none out of combat), clone/phantasm/shatter
+- Core implements weapon sets with a ten-second in-combat swap recharge (none out of combat), clone/phantasm/shatter
   mechanics, ID-keyed phantasm timing, and profession-specific resolver reactions such as Ineptitude.
-- **Chronomancer** - Continuum Split (restores cooldown state but not clones) and its shatter/alacrity behavior.
-- **Mirage** - a continuous endurance pool, Mirage Cloak dodges, and ambush attacks.
-- **Virtuoso** - bladesongs that require and spend all stocked blades, Jagged Mind bleeding, and Bloodsong blade gains.
-- **Troubadour** - instruments resource, Crescendo, Dagger, and its dodge/ ambush interactions.
+- Chronomancer implements Continuum Split (restores cooldown state but not clones) and its shatter/alacrity behavior.
+- Mirage implements a continuous endurance pool, Mirage Cloak dodges, and ambush attacks.
+- Virtuoso implements bladesongs that require and spend all stocked blades, Jagged Mind bleeding, and Bloodsong blade gains.
+- Troubadour implements instruments resource, Crescendo, Dagger, and its dodge and ambush interactions.
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Phantasm and clone
+The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Phantasm and clone
 travel time uses fixed delays. Critical-condition applications consume the shared seeded critical-hit facts in both
 simulation modes. Bloodsong grants blades at each five-stack bleeding-application threshold. Ally healing, barriers,
 control damage, stealth, and defensive effects stay outside the damage total; boon/distortion applications are still

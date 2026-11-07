@@ -426,7 +426,7 @@ test('combo streams are seeded and isolated from unrelated rolls in both modes',
     assert.equal(seededSignature(mode, 7), first);
     assert.equal(seededSignature(mode, 7, true), first);
     assert.notEqual(seededSignature(mode, 8), first);
-    // Exercise resolver wiring as well as the shared attempt contract, including guaranteed outcomes.
+    // Exercise resolver integration and the shared attempt contract, including guaranteed outcomes.
     const events = [
       field('fire:seeded', 'Fire'),
       ...[0, 0.5, 0.5, 0.5, 1].map((chance, index) => finisher(`seeded:${index}`, 'fire:seeded', { chance }))

@@ -57,7 +57,7 @@ import type {
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
-/** Shared cast, resource, and reaction wiring composed with each Core mechanic owner's registered work. */
+/** Registers cast, resource, and reaction callbacks with the callbacks from each Core mechanic. */
 export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeState, ElementalistSkill>([
   elementalistElementalLifecycle,
   elementalistWeaponStateLifecycle,

@@ -29,7 +29,7 @@ function createAmalgamState(config: EngineerConfig = {}): AmalgamState {
     plasmaticStateUntil: 0, // set by Plasmatic State cast
     rapaciousUntil: 0, // Rapacious Strain (Thorns silver-lining strain)
     predatorUntil: 0, // Predator Strain (Shred silver-lining strain)
-    titanicUntil: 0, // Titanic Strain (Obliterate silver-lining strain) - boosts might scaling
+    titanicUntil: 0, // Titanic Strain, Obliterate's Silver Lining strain, increases Might scaling.
     berserkerUntil: 0 // Berserker Strain (Demolish silver-lining strain)
   };
 }

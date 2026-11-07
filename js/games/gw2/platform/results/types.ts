@@ -88,7 +88,7 @@ export interface Gw2SimulationResult extends Gw2ResolverResult {
   readonly planningState: Gw2SimulationPlanningState;
 }
 
-/** Numeric output deliberately omits histories and end-state projections. */
+/** Numeric output omits histories and end-state projections. */
 export type Gw2SimulationScore = Pick<
   Gw2ResolverResult,
   | 'rotationEndTime'

@@ -24,10 +24,7 @@ function freezeChain(chain: readonly SkillId[]): readonly number[] {
   return Object.freeze(chain.map(Number));
 }
 
-/**
- * Produces a per-skill lookup describing where that skill sits inside its
- * chain.
- */
+/** Builds a lookup of each skill's position in its chain. */
 export function indexAutoattackChains(chains: readonly (readonly SkillId[])[]): Map<number, AutoattackChainPosition> {
   const positions = new Map<number, AutoattackChainPosition>();
   for (const source of chains) {

@@ -37,7 +37,7 @@ test('attribute preview controls, build adjustments, and preparation select the 
   }
 });
 
-// Each key represents one input; duplicate owners must fail before normalization discards either value.
+// Each key represents one input; composition must reject duplicate owners rather than discard a value.
 test('attribute preview composition rejects duplicate control keys', () => {
   const ui = createProfessionFamilyUi({
     professionId: 'fixture',
@@ -50,7 +50,7 @@ test('attribute preview composition rejects duplicate control keys', () => {
 });
 
 // Professions without conditional previews retain empty projections and cannot accidentally mutate query inputs.
-test('attribute preview hooks normalize to no-ops', () => {
+test('unowned attribute preview hooks default to no-ops', () => {
   const ui = professionUiFixture();
   const context = Object.freeze({});
   assert.deepEqual(ui.previewControls(context), []);

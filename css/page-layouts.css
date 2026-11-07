@@ -626,10 +626,7 @@
   }
 }
 
-/* ---------------------------------------------------------------------------
-   Embedded mode (?embed=1) - strips standalone-site chrome so the tool blends
-   into a host page (e.g. an iframe on another site). Tune the hidden set here.
-   --------------------------------------------------------------------------- */
+/* With ?embed=1, hide standalone page elements so the simulator fits within its host iframe. */
 
 /* Keep viewport observation independent of content removed from flow when focus mode starts. */
 html.embed {

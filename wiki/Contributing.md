@@ -9,7 +9,7 @@ Export and attach both the build JSON and matching rotation JSON. Include the pr
 simulator DPS, optional benchmark source, and any relevant modeling notes. Repository issue attachments are public, so
 remove private notes or identifying information first.
 
-See [Community Build Submissions](https://github.com/Kadenar/gw2-combat-simulator/blob/main/docs/BUILD-SUBMISSIONS.md)
+See [Community build submissions](https://github.com/Kadenar/gw2-combat-simulator/blob/main/docs/BUILD-SUBMISSIONS.md)
 for the review process.
 
 ## Report a problem

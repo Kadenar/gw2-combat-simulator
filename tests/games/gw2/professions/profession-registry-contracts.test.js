@@ -42,7 +42,7 @@ function assertUiContracts(entry, profession, specialization) {
   )
     ? specialization
     : 'Core';
-  // UI state must pass through selected policy initialization; detached factories deliberately contain empty clocks.
+  // UI state must pass through selected policy initialization; detached factories contain empty clocks.
   const planningState = planningFixture(profession, { specialization: runtimeSpecialization });
   const context = {
     catalog: profession.catalog,

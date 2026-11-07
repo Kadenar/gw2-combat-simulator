@@ -1,4 +1,4 @@
-/** Game-agnostic numeric helpers shared by the kernel, games, applications, and neutral UI. */
+/** Game-neutral numeric helpers shared by the kernel, games, applications, and neutral UI. */
 
 /** Restricts a number to an inclusive range. */
 export function clamp(value: number, minimum: number, maximum: number): number {

@@ -6,13 +6,12 @@ internal APIs tied to the repository revision.
 ## Run a simulation
 
 Use the runnable examples for [direct inputs](./PROGRAMMATIC-SIMULATION.md#run-a-script) or
-[saved builds](./PROGRAMMATIC-SIMULATION.md#running-a-saved-build). Run `npm run build:modules` after source changes:
-Node resolves `#gw2/`, `#kernel/`, and `#ui/` imports to compiled `dist/js/` modules. Keep scripts inside the
+[saved builds](./PROGRAMMATIC-SIMULATION.md#running-a-saved-build). Run `npm run build:modules` after source changes. Node resolves `#gw2/`, `#kernel/`, and `#ui/` imports to compiled `dist/js/` modules. Keep scripts inside the
 repository.
 
 Key pitfalls:
 
-- Supply base attributes through `baseAttributeInputs`, not totals already including profession/combat bonuses.
+- Supply base attributes through `baseAttributeInputs`. The runtime adds profession and combat bonuses.
 - Saved builds and run configs are different contracts; use the build-context loader for saved builds.
 - Preserve skill ID types. Prefer canonical cast commands for persistent scripts.
 - Inspect every run's warnings. Score output uses the same mechanics but omits detailed histories.

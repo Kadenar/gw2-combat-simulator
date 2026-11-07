@@ -19,7 +19,7 @@ import { DEFAULT_EXECUTION_ITERATION_LIMIT } from '#kernel/execution/limits.js';
 import type { ObservationPolicy } from '#kernel/execution/observation.js';
 import { observationEndTime } from '#kernel/execution/observation.js';
 
-/** Condition pulses are scheduled for every active stack at once, so they deliberately carry no causal identity. */
+/** Condition pulses are scheduled for every active stack at once, so they carry no causal identity. */
 const SHARED_PULSE_TYPES = new Set(['condition_tick', 'condition_buffer']);
 
 /** The coordinator is the sole clock authority and retains causal scope on the same stable event heap. */
@@ -59,7 +59,7 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
   let currentCause: Gw2ResolverEvent | null = null;
   // Set while scheduled work runs: summon attack loops reschedule themselves and must not inherit the first cause.
   let causeIsScheduled = false;
-  // Each accepted cast's action, so work done for the cast outside event handling still knows its cause.
+  // Records the accepted cast's action as the cause of work performed outside event handling.
   const castActions = new Map<string, Gw2ResolverEvent>();
   // The cause active when each piece of internal work was scheduled.
   const workCauses = new WeakMap<object, Gw2ResolverEvent>();

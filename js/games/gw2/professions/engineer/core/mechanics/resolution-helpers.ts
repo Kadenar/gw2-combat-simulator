@@ -83,7 +83,7 @@ export function buildEngineerStrike(
     actorType,
     // Effect-owned strikes can inherit player modifiers without becoming player actors for proc eligibility.
     ...(ownerActorType == null ? {} : { ownerActorType }),
-    // skillId only on player events - summon/effect damage should not carry the parent skill ID
+    // Set skillId only on player events. Summon and effect damage must not carry the parent skill ID.
     skillId: actorType === ACTOR.PLAYER ? event.skillId : undefined,
     ...(actorType === ACTOR.PLAYER ? { activationId: event.activationId, offTarget: event.offTarget } : {}),
     skillWeapon,

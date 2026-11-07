@@ -7,9 +7,8 @@ import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { THIEF_SKILL_IDS } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { withoutTraitSkillVariants } from '#tests/helpers/patch-selection.js';
-import { professionUiFixture } from '#tests/helpers/presentation.js';
 
-// Builds only the app surface used by palette activation so each branch stays isolated.
+// Builds only the application fields used by palette activation to isolate each branch.
 function activationApp(skills) {
   const catalog = {
     skills,
@@ -30,10 +29,10 @@ function activationApp(skills) {
     },
     profession: {
       catalog,
-      // Input capture reads resolved build capabilities before activation queries the presentation.
-      resolveProfession: () => ({ canSwapWeaponSetsInCombat: true }),
       ui: {
-        ...professionUiFixture({ resolvePaletteAction: () => professionAction })
+        castEditor: () => null,
+        isPaletteSkillInstant: () => false,
+        resolvePaletteAction: () => professionAction
       }
     },
     activeCatalog: catalog,

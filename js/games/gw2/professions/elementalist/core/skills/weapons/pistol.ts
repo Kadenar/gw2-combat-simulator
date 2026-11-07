@@ -112,7 +112,7 @@ export const ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS: Readonly<Record<number, S
     ]
   },
   // Blast finisher up front, then a four-shot salvo landing together a second later. Spending a Fire
-  // bullet additionally grants a Fire Aura through the pistol cast handler.
+  // bullet also grants a Fire Aura through the pistol cast handler.
   [ID.SEARING_SALVO]: {
     name: 'Searing Salvo',
     icon: 'https://render.guildwars2.com/file/7546C0CAE32CD437249FC903BF1AC84122B0EAC4/3256335.png',

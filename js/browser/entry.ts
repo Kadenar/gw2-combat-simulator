@@ -60,7 +60,7 @@ window.addEventListener('DOMContentLoaded', () => {
     content.className = 'loader-content';
     const message = document.createElement('p');
     message.setAttribute('role', 'alert');
-    // Surface actionable build-load failures without interpreting or discarding persisted data.
+    // Report build-load failures without interpreting or discarding persisted data.
     message.textContent =
       error instanceof Error
         ? `Unable to start the simulator: ${error.message}`

@@ -230,14 +230,9 @@ interface RecomputeDerivedOptions {
 }
 
 /**
- * Rebuilds every percentage-derived attribute from the current finalized
- * primaries. Shared by the pre-trait common pass and the finalized pass: trait
- * terms default to zero, and because `x + 0 === x` for finite floats, the
- * common pass produces results identical to the prior inlined block.
- *
- * Derived stats use percent-form scaling helpers so the exact values asserted
- * by the attribute tests do not shift under the fraction form's different
- * evaluation order.
+ * Recalculates percentage-derived attributes from finalized primary attributes. The pre-trait pass and the final pass
+ * share this function. Trait terms default to zero, which leaves finite values unchanged.
+ * Uses percent-form scaling helpers to preserve evaluation order and exact results in attribute tests.
  */
 function recomputeDerivedAttributes(
   attributes: Gw2AttributeMap,
@@ -291,7 +286,7 @@ function recomputeDerivedAttributes(
 
     if (!value) {
       // Finalize prunes zero-valued provisional entries to keep the public
-      // result sparse; the common pass simply never adds them.
+      // result sparse; the common pass never adds them.
       if (pruneZeros) delete attributes[key];
 
       continue;

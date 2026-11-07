@@ -132,11 +132,10 @@ export function createPermanentTargetConditionStacks(config: Gw2Config): (name: 
 }
 
 /**
- * Gets stack count of permanent condition on target.
- * Boolean true converts to one stack; numeric values respect the condition intensity cap.
- * Stack count (≥0)
+ * Returns the target's permanent condition stack count as a non-negative number.
+ * Boolean true means one stack. Numeric values are capped at the condition's intensity limit.
  * @example
- * permanentTargetConditionStacks(config, "Vulnerability") // → 2
+ * permanentTargetConditionStacks(config, "Vulnerability") // Returns 2 when configured with two stacks.
  */
 export function permanentTargetConditionStacks(config: Gw2Config, name: string): number {
   const value = configuredConditionValue(config, name);

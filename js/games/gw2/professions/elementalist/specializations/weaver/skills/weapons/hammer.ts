@@ -16,14 +16,10 @@ import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /**
- * The six Dual Orbits definitions, keyed by skill id and merged into
- * `WEAVER_SKILL_MECHANICS`: one per attunement pair.
- *
- * Every entry follows the same shape - an instant (0 ms) cast on an 18 s
- * cooldown, and a single 1000 ms `field-tick` packet whose 0.001 coefficient is
- * a placeholder carrier rather than meaningful strike damage. The real payload
- * is the two conditions, one contributed by each element of the pair: Fire ->
- * Burning, Water -> Vulnerability, Air -> Weakness, Earth -> Bleeding.
+ * Defines one Dual Orbits skill per attunement pair, keyed by skill ID and merged into `WEAVER_SKILL_MECHANICS`.
+ * Each skill casts instantly, has an 18 s cooldown, and emits one `field-tick` packet at 1000 ms.
+ * Its 0.001 coefficient is a placeholder for delivering conditions. Each element supplies one condition.
+ * Fire applies Burning, Water applies Vulnerability, Air applies Weakness, and Earth applies Bleeding.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const WEAVER_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {

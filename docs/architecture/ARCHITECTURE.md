@@ -9,7 +9,7 @@ implementation owner, the [platform ownership guide](../../js/games/gw2/platform
 ```text
 js/
   kernel/          game-neutral clock, queues, randomness, and observation
-  ui/              game-neutral view models and DOM/rotation primitives
+  ui/              game-neutral view models and DOM/rotation helpers
   browser/         game-neutral page entry, game boundary, and shell
   games/gw2/
     platform/      shared GW2 engine, combat, builds, equipment, and simulation
@@ -18,7 +18,7 @@ js/
     integrations/  logs, keybinds, chat codes, and patch-preview adapters
 ```
 
-Dependency rules are enforced by ESLint and architecture tests:
+ESLint and architecture tests enforce these dependencies:
 
 - `kernel` imports no GW2, UI, application, or profession modules; `ui` consumes game-neutral contracts only.
 - The GW2 platform may import the kernel, but no concrete profession or application modules.
@@ -31,8 +31,7 @@ branching on profession identity.
 
 ## Native profession modules
 
-`defineNativeModule()` declares a Core or elite module as one vertical slice: authored data, state factory and public
-projection, lifecycle hooks, declarative modifiers, attributes, trait definitions, and presentation.
+`defineNativeModule()` declares a Core or elite module. Each module contains its data, state factory, public state projection, lifecycle hooks, declarative modifiers, attributes, trait definitions, and presentation.
 `defineNativeProfession()` composes a Core-first module tuple and exposes `runtimeFor(config)`. Runtime composition
 selects Core plus the active elite; unknown elites are rejected. Each run creates fresh state:
 `{ core, specialization: { kind, state } }`.
@@ -55,10 +54,10 @@ cooldowns, and live mechanic state impose separate checks.
 
 ### Rules and hooks
 
-Modifiers are authored as declarative `modifierRules`, with optional damage-bucket policies. Catalog admission validates
+Declare modifiers in `modifierRules`, with optional damage-bucket policies. Catalog admission validates
 and detaches declarations; selected runtime composition compiles one immutable `calculations` object shared by the
 normalized selection and runtime trigger modes. Its `modify*` methods are query operations, not authoring hooks.
-`RuntimeHooks` defines the author contribution surface independently of compiled output. Equipment and profession
+`RuntimeHooks` defines the callbacks modules can declare, independently of compiled output. Equipment and profession
 additions share one damage calculation, and each damage-bucket policy has at most one owner across selected modules.
 
 `defineTrait()` expands definitions once during module construction. Selection gates apply to ordinary rules and
@@ -95,12 +94,11 @@ consequences, before rotation commands at that deadline; work enqueued by those 
 protect rearmed windows, and natural-expiry handlers can claim their matching occurrence before generic cleanup.
 
 Score and detailed output modes execute the same mechanics and use the same gameplay history and seeded randomness.
-Detailed mode additionally retains reports and diagnostics. Rotation, tail, and absolute observation policies bound
+Detailed mode also retains reports and diagnostics. Rotation, tail, and absolute observation policies bound
 delayed work without extending rotation duration recursively. Combat reports stop at `combatEndTime`; after target
 death, commands may continue while hostile effects and hit-dependent grants are suppressed.
 
-Service owners construct restricted objects, and binding reuses those views while following live state and replaceable
-services. Cooldown and combat interfaces use inheritance instead of repeating method-name allowlists in types. Runtime
+Each service exposes a restricted object to its consumers. Bindings reuse these objects and read current state and replacement services through them. Cooldown and combat interfaces use inheritance instead of repeating method-name allowlists in types. Runtime
 objects still select exposed methods explicitly. Isolated occurrence completion is a simulation-owned observation
 policy; it does not advance the clock or rely on report aggregates.
 

@@ -7,7 +7,7 @@ export interface AmmoDisplayView {
 }
 
 /**
- * Normalizes charge counts into a renderer-agnostic ammo view.
+ * Normalizes charge counts into an ammo view independent of the renderer.
  * Returns null for non-ammo skills instead of a zero-length indicator.
  */
 export function ammoDisplayView(charges: unknown, maximum: unknown): AmmoDisplayView | null {

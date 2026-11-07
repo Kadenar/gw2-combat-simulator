@@ -37,7 +37,6 @@ import type { HolosmithSkill } from '#gw2/professions/engineer/specializations/h
 import { type EngineerResolverContext } from '#gw2/professions/engineer/types.js';
 import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
-/** Owns Thermal Release Valve at its established heat and impact boundaries. */
 const thermalReleaseValve = defineTrait({
   id: TRAIT.THERMAL_RELEASE_VALVE,
   balance: {
@@ -66,7 +65,6 @@ const crystalConfigurationStorm = defineTrait({
   }
 });
 
-/** Owns Enhanced Capacity Storage Unit at its established heat and impact boundaries. */
 const enhancedCapacityStorageUnit = defineTrait({
   id: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
   balance: {
@@ -110,7 +108,6 @@ const enhancedCapacityStorageUnit = defineTrait({
   }
 });
 
-/** Owns Photonic Blasting Module at its established heat and impact boundaries. */
 const photonicBlastingModule = defineTrait({
   id: TRAIT.PHOTONIC_BLASTING_MODULE,
   balance: {
@@ -172,7 +169,6 @@ const lasersEdge = defineTrait({
   ]
 });
 
-/** Owns Solar Focusing Lens at its established heat and impact boundaries. */
 export const solarFocusingLens = defineTrait({
   id: TRAIT.SOLAR_FOCUSING_LENS,
   balance: {

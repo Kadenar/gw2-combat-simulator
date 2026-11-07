@@ -103,9 +103,9 @@ export function expireSkillFlip(
 type WeaponFlipBlock = { readonly kind: 'closed'; readonly parent: Skill } | { readonly kind: 'open' };
 
 /**
- * The one bar-slot rule for weapon follow-ups: a follow-up that replaces its parent is castable only while its window
- * is ready, and while that window is ready the parent stays hidden behind it. A chained autoattack step shares its slot
- * without a window, so it never hides its parent. Runtime availability and the palette both read this rule.
+ * Controls weapon follow-ups in a shared bar slot. A follow-up that replaces its parent is castable only while
+ * its window is ready. The parent is hidden during that window. Chained autoattack steps share a slot without
+ * a window and never hide their parent. Runtime availability and the palette both use this rule.
  */
 export function weaponFlipBlock(
   flips: Readonly<SkillFlipWindows> | undefined,

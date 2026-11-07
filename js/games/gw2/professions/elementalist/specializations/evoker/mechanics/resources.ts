@@ -172,7 +172,7 @@ export function grantWeaponSkillCharges(
     gain
   };
 
-  // defer if a charge-resetting basic familiar is still casting - granting before the reset would lose the charges
+  // Defer grants while a basic familiar is casting. Its charge reset would otherwise erase them.
   // reservationId check excludes the familiar itself from deferring its own grant
   if (
     state.activeFamiliarCast &&

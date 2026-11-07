@@ -94,7 +94,7 @@ export function projectObservedPlanningState(family, input) {
   );
 }
 
-/** Inspect just the profession projection when shared execution observations are irrelevant. */
+/** Inspect only the profession projection when shared execution observations are irrelevant. */
 export function projectObservedState(family, input) {
   return projectObservedPlanningState(family, input).profession;
 }

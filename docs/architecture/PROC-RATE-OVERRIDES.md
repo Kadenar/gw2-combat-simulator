@@ -4,8 +4,7 @@ The build editor exposes **Proc rate overrides** for selected, supported traits.
 the field blank or use Reset to inherit the active balance profile. Changes rerun the simulation and invalidate
 dependent comparisons. Rates apply to seeded rolls in both simulation modes; trigger eligibility, internal cooldowns,
 and effects remain unchanged. Critical procs first require the hit's shared `didCrit` outcome, then roll any separate
-trait proc chance. Shrapnel rolls directly for each eligible explosion. All eligibility, draws, and cooldown claims
-execute once on the unified clock; rejected target effects do not consume a draw or claim. See
+trait proc chance. Shrapnel rolls directly for each eligible explosion. The runtime checks eligibility, draws outcomes, and claims cooldowns once on the shared clock. Rejected target effects consume neither draws nor claims. See
 [resource and proc lifecycle](SIMULATION-EVENT-CLOCK.md#resource-and-proc-lifecycle).
 
 For supported condition procs, Analysis displays activations in the Hits column. The primary resolved effect carries
@@ -14,8 +13,7 @@ and can represent multiple activations batched into one application. Existing st
 attacks.
 
 Build JSON stores optional fractional rates in `assumptions.procRateOverrides`, keyed by stable namespaced proc IDs.
-Simulation configuration carries a detached `procRateOverrides` map to workers and headless runs. Zero is explicit;
-absence inherits the current or preview balance value. Invalid rates fail validation. Unknown IDs remain saved but have
+Simulation configuration carries a detached `procRateOverrides` map to workers and headless runs. A stored zero disables the proc chance. An absent value uses the current or preview balance value. Invalid rates fail validation. Unknown IDs remain saved but have
 no effect unless an active proc explicitly consumes them. Imported log observations never set overrides automatically.
 
 ## Adding a supported proc
@@ -34,5 +32,4 @@ Elite-specific declarations belong in that elite's module; Core declarations aut
 Multiple independently tunable procs from one trait can use separate profiles with distinct proc IDs and the same
 `traitId`. Catalog validation rejects duplicate IDs and invalid defaults. The generic UI needs no profession switch.
 
-Initial coverage: Necromancer Barbed Precision, Engineer Serrated Steel and Shrapnel, Warrior Bloodlust, and
-Elementalist Burning Precision. Changing a rate approximates an observed proc frequency, not exact logged timestamps.
+Supported procs include Necromancer Barbed Precision, Engineer Serrated Steel and Shrapnel, Warrior Bloodlust, and Elementalist Burning Precision. Changing a rate approximates an observed proc frequency, not exact logged timestamps.

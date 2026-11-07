@@ -1,7 +1,7 @@
 /**
- * Profession skill fields the shared rotation editor and palette read. Each owning profession type declares its field;
- * the rotation UI reads them through this view, so base `Skill` stays free of profession vocabulary and every leak is
- * listed in one place. Catalog skills pass into the view without a cast because every view field is optional.
+ * Lists profession skill fields read by the shared rotation editor and palette. Each profession declares its own fields;
+ * this view lets the UI read them without adding them to base `Skill`. All view fields are optional, so catalog skills
+ * can pass into the view without a cast.
  */
 import type { ProfessionPaletteSkill } from '#gw2/platform/profession-presentation/types.js';
 import type { Skill } from '#gw2/platform/skills/types.js';

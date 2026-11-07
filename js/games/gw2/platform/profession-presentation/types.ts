@@ -143,7 +143,7 @@ export interface ProfessionPaletteGroup {
   readonly skillIds: readonly SkillId[];
   /** Lower values render before other profession palette groups. */
   readonly order?: number;
-  /** Moves a profession group beside the indicated palette surface. */
+  /** Moves a profession group beside the indicated palette section. */
   readonly placement?: 'profession' | 'weapon-set-1' | 'active-weapon' | 'utility';
   /** Optional row label used when placing a group beside the active weapon. */
   readonly weaponRowLabel?: string;
@@ -267,11 +267,9 @@ export interface PaletteOverride {
 }
 
 /**
- * One inspectable value in the rotation "active state" bar (crit chance, a
- * profession timer such as Berserk, a target debuff, etc.). Rendered as text at
- * the current point in the rotation, or at the insertion cursor when one is set.
- * Professions contribute cherry-picked items; each `id` must be unique across
- * the merged set for the active specialization.
+ * A text value in the rotation's active-state bar, such as critical chance, a profession timer, or a target debuff.
+ * Displays the value at the current rotation point or insertion cursor. Professions choose which values to show.
+ * Each `id` must be unique across the merged items for the active specialization.
  */
 export interface RotationStateSnapshotItem {
   readonly id: string;

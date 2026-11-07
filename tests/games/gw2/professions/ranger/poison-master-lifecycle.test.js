@@ -96,7 +96,7 @@ test('swapping during a Beast command cannot grant Poison Master to the replacem
   assert.ok(result.resolvedEvents.some((e) => e.type === 'damage' && e.skillId === ID.TWIN_DARTS && e.damage > 0));
 });
 
-// Old caster provenance must not consume a fresh incoming grant, even for effects intentionally surviving retirement.
+// Old caster provenance must not consume a fresh incoming grant, even for effects surviving retirement.
 test('lingering Ranger-owned effects leave the new pet’s Poison Master grant available', () => {
   let outgoing;
   const result = runRanger(

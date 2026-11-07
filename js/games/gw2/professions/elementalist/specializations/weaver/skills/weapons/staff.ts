@@ -1,13 +1,7 @@
 /**
- * Staff weapon-skill mechanics owned by the Weaver module.
- *
- * Weaver occupies the slot-3 staff position with a dual attack selected by the
- * unordered pair of attunements held across its two hands; every definition names
- * its pair in `attunement`, and Weaver availability only offers the skill when
- * both of those elements are currently attuned.
- *
- * Declarative data only - no handler logic lives here. Effect offsets are
- * authored against castTimeMs and follow runtime skill variants through the shared scheduler policy.
+ * Defines Weaver staff dual attacks in slot 3. Each skill declares an unordered attunement pair in
+ * `attunement` and is available only when both elements are attuned. Effect offsets use castTimeMs and follow
+ * runtime skill variants through the shared scheduler. This file contains declarations without handlers.
  */
 import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -123,7 +117,7 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
     ]
   },
   // Air+Water. Three 0.25 hits at 280/640/1000 ms, but only the first carries
-  // the payload - eight stacks of Vulnerability, Chilled and the crowd-control
+  // the payload, including eight stacks of Vulnerability, Chilled, and the crowd-control
   // application; the follow-ups are strike damage alone.
   [ID.MONSOON]: {
     name: 'Monsoon',
@@ -167,8 +161,8 @@ export const WEAVER_STAFF_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
       }
     ]
   },
-  // Water+Earth. Five one-second pulses from 1280 ms to 5280 ms - all of them
-  // after the 640 ms cast - each re-applying Cripple and Immobilize.
+  // Water and Earth. Five one-second pulses occur from 1280 ms to 5280 ms,
+  // after the 640 ms cast. Each pulse reapplies Cripple and Immobilize.
   [ID.LAHAR]: {
     name: 'Lahar',
     icon: 'https://render.guildwars2.com/file/063CA2E1A6EEA00EB1AADE09C80C77D5D8222EBA/1770350.png',

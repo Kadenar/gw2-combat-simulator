@@ -45,7 +45,6 @@ export const lockOn = defineTrait({
   ]
 });
 
-/** Owns Streamlined Kits tuning and behavior at its established runtime and build boundaries. */
 export const streamlinedKits = defineTrait({
   id: TRAIT.STREAMLINED_KITS,
   balance: {
@@ -64,7 +63,6 @@ export const streamlinedKits = defineTrait({
   ]
 });
 
-/** Owns Optimized Activation tuning and behavior at its established runtime and build boundaries. */
 export const optimizedActivation = defineTrait({
   id: TRAIT.OPTIMIZED_ACTIVATION,
   balance: {
@@ -79,7 +77,6 @@ export const optimizedActivation = defineTrait({
   ]
 });
 
-/** Owns Static Discharge tuning and behavior at its established runtime and build boundaries. */
 export const staticDischarge = defineTrait({
   id: TRAIT.STATIC_DISCHARGE,
   // The skill owns damage; the toolbelt action is retained only as its causal trigger.
@@ -94,7 +91,6 @@ export const staticDischarge = defineTrait({
   ]
 });
 
-/** Owns Kinetic Battery tuning and behavior at its established runtime and build boundaries. */
 export const kineticBattery = defineTrait({
   id: TRAIT.KINETIC_BATTERY,
   balance: {
@@ -122,21 +118,18 @@ export const kineticBattery = defineTrait({
   lifetime: { eventHandlers: { 'engineer.kinetic-battery': OBSERVABLE_EVENT_HANDLER } }
 });
 
-/** Owns Adrenal Implant tuning and behavior at its established runtime and build boundaries. */
 export const adrenalImplant = defineTrait({
   id: TRAIT.ADRENAL_IMPLANT,
   balance: { rechargeReduction: 1, enduranceRegenerationBonus: 0.25 },
   triggers: [onTriggerPoint(dodgeAccepted, { run: reduceToolbeltRecharge })]
 });
 
-/** Owns Power Wrench tuning and behavior at its established runtime and build boundaries. */
 export const powerWrench = defineTrait({
   id: TRAIT.POWER_WRENCH,
   balance: { rechargeReduction: 3 },
   triggers: [onTriggerPoint(dodgeAccepted, { run: reduceEliteRecharge })]
 });
 
-/** Owns Gadgeteer tuning and behavior at its established runtime and build boundaries. */
 export const gadgeteer = defineTrait({
   id: TRAIT.GADGETEER,
   balance: { rechargeMultiplier: 0.8 },
@@ -150,7 +143,6 @@ export const gadgeteer = defineTrait({
   ]
 });
 
-/** Owns Mechanized Deployment tuning and behavior at its established runtime and build boundaries. */
 export const mechanizedDeployment = defineTrait({
   id: TRAIT.MECHANIZED_DEPLOYMENT,
   balance: { rechargeMultiplier: 0.85 },
@@ -162,7 +154,6 @@ export const mechanizedDeployment = defineTrait({
   ]
 });
 
-/** Owns Excessive Energy tuning and behavior at its established runtime and build boundaries. */
 export const excessiveEnergy = defineTrait({
   id: TRAIT.EXCESSIVE_ENERGY,
   // The trait balance owns tuning consumed by damage rules and presentation.
@@ -180,7 +171,6 @@ export const excessiveEnergy = defineTrait({
   ]
 });
 
-/** Owns Takedown Round tuning and behavior at its established runtime and build boundaries. */
 export const takedownRound = defineTrait({
   id: TRAIT.TAKEDOWN_ROUND,
   // The trait balance owns tuning consumed by damage rules and presentation.

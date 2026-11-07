@@ -40,13 +40,9 @@ const DEFAULT_STARTING_WEAPON_SET = 1;
 type ProfessionAssumptionOverrides = Readonly<Record<string, unknown>>;
 
 /**
- * Creates the simulation assumptions shared by all profession build defaults.
- *
- * A fresh targetConditions object is created every time so builds do not share
- * mutable nested state.
- *
- * Profession-specific assumptions are applied last and may intentionally
- * override a common default.
+ * Creates simulation assumptions shared by all profession build defaults.
+ * Each call creates a fresh targetConditions object so builds do not share mutable nested state.
+ * Profession-specific assumptions apply last and may override common defaults.
  */
 function createDefaultSimulationAssumptions(overrides: ProfessionAssumptionOverrides = {}): ProfessionBuildAssumptions {
   return {
@@ -91,13 +87,9 @@ interface CommonBuildDefaults {
 }
 
 /**
- * Creates the portion of a canonical profession build that is identical across
- * professions. Weapon and target defaults stay fixed here; saved builds own
- * their configurable values.
- *
- * Gear, weapons, specializations, selected skills, resources, and other
- * profession-specific defaults intentionally remain in the profession's own
- * build.ts.
+ * Creates build defaults shared across professions. Weapon and target defaults are fixed here;
+ * saved builds store their configured values. Each profession's build.ts defines its gear, weapons,
+ * specializations, selected skills, resources, and other profession-specific defaults.
  */
 export function createCommonBuildDefaults({ assumptions = {} }: CommonBuildDefaultsOptions = {}): CommonBuildDefaults {
   return {

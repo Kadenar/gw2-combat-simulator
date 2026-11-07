@@ -304,7 +304,7 @@ export const necromancerScourgeTraits = [
 
 // Convert eligible Torment applications into Demonic Lore burns while enforcing its resolver-owned cooldown.
 function reactToCondition(context: NecromancerResolverContext, event: NecromancerResolverEvent): void {
-  // Only Torment triggers Demonic Lore - all other conditions are ignored here
+  // Only Torment triggers Demonic Lore. Ignore other conditions here.
   if (event.condition !== CONDITION.TORMENT) {
     return;
   }

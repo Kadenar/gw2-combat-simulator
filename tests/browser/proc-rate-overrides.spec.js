@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-// Exercise the real worker and workspace persistence instead of merely asserting generated input markup.
+// Exercise the worker and workspace persistence through the proc-rate controls.
 test('proc controls rerun the build, survive reload, clear to defaults, and follow selected traits', async ({
   page
 }) => {

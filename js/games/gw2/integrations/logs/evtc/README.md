@@ -45,7 +45,7 @@ Core Steal also has a local, non-EI finder, observed in `20260810-102224.zevtc`:
 `A0F99AB672E77E459EBF8185867C4961` must accompany at least two long Poison applications and three long Bleeding
 applications from the selected player to the same target within 10 ms. These corroborate Serpent's Touch and Deadly
 Ambush. Initial snapshots, other actors, other specializations, and uncorroborated visuals do not establish a cast.
-Recorded casts and repeated markers within 50 ms suppress duplicates. This intentionally does not detect every Steal
+Recorded casts and repeated markers within 50 ms suppress duplicates. This does not detect every Steal
 loadout; logs without the effect or the two condition bursts remain incomplete. Inference notices distinguish this
 empirical rule from EI finders, and dps.report rotations remain unchanged.
 
@@ -75,8 +75,8 @@ its timestamp and accurate skill-origin metadata, and collapse projectiles using
 skill/caster. Launch/remove events and damage do not supply these casts. Unsupported effect fallbacks with secondary
 same-source checks and missile-availability gates remain excluded; ambiguous evidence must not guess a skill.
 
-Coverage is intentionally incomplete. Unsupported extension healing/barrier and custom checker families are not replaced
-by generic damage or catalog guesses. Mechanist summon/recall skills are intentionally outside simulator scope. See the
+Coverage is incomplete. Unsupported extension healing/barrier and custom checker families are not replaced
+by generic damage or catalog guesses. Mechanist summon/recall skills are outside simulator scope. See the
 [coverage limits](../../../../../../docs/LOG-IMPORT-EI-ALIGNMENT.md#implemented-coverage-and-remaining-limits). This
 implementation is not a full EI parity certification; encounter logic and time-aware ownership remain limited.
 
@@ -104,7 +104,7 @@ Every successful import returns this informational notice once:
 Unsupported mappings, unknown animations and missing interruption commit metadata have separate warnings. An incomplete
 opener is a successful import and can require manual repair before simulation.
 
-## Safety Limits
+## Safety limits
 
 EVTC files are treated as untrusted binary input.
 

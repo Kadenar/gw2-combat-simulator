@@ -1,7 +1,7 @@
 /* Owns the workspace skill damage preview: a full-width disclosure below gear and attributes. */
 
 .skill-damage-preview {
-  /* Condition identity colors are validated for dark surfaces and always appear beside the condition name. */
+  /* Condition identity colors are validated for dark backgrounds and always appear beside the condition name. */
   --sd-bleeding: #d9564f;
   --sd-poison: #2ea58a;
   --sd-burning: #bf7d14;

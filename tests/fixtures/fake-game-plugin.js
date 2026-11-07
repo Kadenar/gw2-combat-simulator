@@ -1,4 +1,4 @@
-// Supplies one vocabulary-neutral playable entry for exercising the shared game seam without loading GW2 code.
+// Supplies a game-neutral playable entry to test the shared game interface without loading GW2 code.
 export function createFakeGamePlugin(gameId = 'fake') {
   const content = {
     gameId,

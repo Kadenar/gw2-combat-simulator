@@ -100,7 +100,7 @@ export function bindPaletteInteractions(
       // Blur before queueing so a rerender cannot restore mouse-acquired focus.
       if (event.detail > 0) icon.blur();
 
-      // Context restrictions block activation; a cooldown merely delays the queued cast.
+      // Context restrictions block activation. A cooldown delays the queued cast.
       if (icon.getAttribute('aria-disabled') === 'true') return;
 
       handlers.onActivate?.(name, event as unknown as PaletteActivationEvent);

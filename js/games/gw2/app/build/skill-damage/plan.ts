@@ -460,7 +460,7 @@ export function createSkillDamagePlan(
     return id;
   };
 
-  // Build-start enumeration intentionally supplies no planning observation, regardless of cursor or prior results.
+  // Build-start enumeration supplies no planning observation, regardless of cursor or prior results.
   const query: PaletteQueryInput = {
     catalog: app.activeCatalog,
     build: app.build,

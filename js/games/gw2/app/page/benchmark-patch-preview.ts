@@ -13,7 +13,7 @@ interface MeasuredPatchBenchmark {
   readonly outcome: 'up' | 'down' | 'same';
 }
 
-/** TBD rows deliberately carry no preview measurement, so they cannot enter numerical rankings. */
+/** TBD rows carry no preview measurement, so they cannot enter numerical rankings. */
 type PatchBenchmark =
   | MeasuredPatchBenchmark
   | {
@@ -161,7 +161,7 @@ export function sortPatchBenchmarks(rows: readonly PatchBenchmark[], sort: strin
   );
 }
 
-/** Render captured results only; the lightweight preview panel never starts a simulation. */
+/** Render captured results only. The preview panel never starts a simulation. */
 export function mountBenchmarkPatchPreview(
   panel: HTMLElement,
   preview: BenchmarkPreview | null,

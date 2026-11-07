@@ -252,7 +252,7 @@ test('Electric Enchantment spends the earliest expiry even when the shorter gran
 });
 
 test('Familiar and meditation enchantments cannot enhance a strike after their idle expiry', () => {
-  // Minimal native casts verify grant wiring and expiry through actual strike eligibility.
+  // Minimal native casts verify charge grants and expiry through strike eligibility.
   for (const [skill, duration] of [
     ['Ignite', 6],
     ["Hare's Agility", 10]

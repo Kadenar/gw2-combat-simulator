@@ -622,7 +622,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     else if (rowBounds.bottom > viewport.bottom) scroll.scrollTop += rowBounds.bottom - viewport.bottom;
   }
 
-  /** Explicit row or point activation opens a persistent inspector, leaving ordinary hover lightweight. */
+  /** Activating a row or point opens a persistent inspector. Hovering shows a temporary tooltip. */
   function openApmInspector(row: Benchmark, origin: 'table' | 'graph'): void {
     apmInspectedBuild = row;
     apmInspectorOrigin = origin;
@@ -709,7 +709,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     if (inspectedBuild) openBuildInspector(inspectedBuild);
   }
 
-  /** Use the same saved-build preview and workspace action from either chart surface. */
+  /** Open the same saved-build preview and workspace action from either chart. */
   function buildInspectorMarkup(id: string): string {
     return `<aside id="${id}" class="benchmark-build-inspector" aria-label="Build inspector" hidden><div class="benchmark-inspector-heading"><h3 data-inspector-title></h3><button type="button" data-close-build-inspector aria-label="Close build inspector">&#215;</button></div><p data-inspector-metrics></p><a class="benchmark-workspace-link" data-open-benchmark>Open in workspace</a><div class="benchmark-build-preview" data-build-preview aria-live="polite"></div></aside>`;
   }
@@ -829,7 +829,7 @@ export function mountBenchmarks(root: HTMLElement): void {
   root.querySelector('[data-bar-specialization]')!.addEventListener('change', render);
 
   const barChart = root.querySelector<HTMLElement>('[data-bar-chart]')!;
-  /** Keep hover lightweight and transient; only explicit activation opens or changes the saved-build inspector. */
+  /** Hover shows a temporary tooltip. Only explicit activation opens or changes the saved-build inspector. */
   function hideBarHover(): void {
     barChart.querySelectorAll('.benchmark-inspection').forEach((hover) => hover.setAttribute('hidden', ''));
     barChart.querySelector('.is-selected')?.classList.remove('is-selected');
@@ -987,7 +987,7 @@ export function mountBenchmarks(root: HTMLElement): void {
     if (focused instanceof HTMLElement && barChart.contains(focused)) focused.blur();
   });
 
-  /** Load only lightweight manifests; one unavailable profession must not prevent comparison of the others. */
+  /** Load only manifests. One unavailable profession must not prevent comparison of the others. */
   async function load(): Promise<void> {
     root.setAttribute('aria-busy', 'true');
     retry.disabled = true;

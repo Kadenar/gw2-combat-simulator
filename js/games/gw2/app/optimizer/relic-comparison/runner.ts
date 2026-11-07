@@ -122,7 +122,7 @@ export class RelicComparisonRunner {
     this.baseline = results;
     this.revision = app.analysis.state.buildRevision;
 
-    // Finish this lightweight comparison on the calling thread, with no pending job or cloned baseline.
+    // Finish the comparison on the calling thread without a pending job or cloned baseline.
     try {
       const request = app.adapter.relicComparisonRequest(app, this.comparisonRelic);
 

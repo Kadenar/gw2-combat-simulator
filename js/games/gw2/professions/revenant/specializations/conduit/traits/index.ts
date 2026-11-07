@@ -43,7 +43,6 @@ import { conduitState } from '#gw2/professions/revenant/specializations/conduit/
 import { bolsteredBondsBonuses } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-/** Owns Bolstered Bonds tuning and behavior at its established execution boundaries. */
 const bolsteredBonds = defineTrait({
   id: TRAIT.BOLSTERED_BONDS,
   balance: {
@@ -94,7 +93,6 @@ const BUILD_ATTRIBUTE_NAMES = Object.freeze({
   healingPower: 'Healing Power'
 });
 
-/** Owns Conductive Armaments tuning and behavior at its established execution boundaries. */
 const conductiveArmaments = defineTrait({
   id: TRAIT.CONDUCTIVE_ARMAMENTS,
   triggers: [
@@ -105,7 +103,6 @@ const conductiveArmaments = defineTrait({
   ]
 });
 
-/** Owns Enhanced Embodiment tuning and behavior at its established execution boundaries. */
 const enhancedEmbodiment = defineTrait({
   id: TRAIT.ENHANCED_EMBODIMENT,
   balance: {
@@ -128,7 +125,6 @@ const enhancedEmbodiment = defineTrait({
   ]
 });
 
-/** Owns Expanded Consciousness tuning and behavior at its established execution boundaries. */
 const expandedConsciousness = defineTrait({
   id: TRAIT.EXPANDED_CONSCIOUSNESS,
   balance: { resourceGain: 15, effects: [] },
@@ -140,7 +136,6 @@ const expandedConsciousness = defineTrait({
   ]
 });
 
-/** Owns Found Purpose tuning and behavior at its established execution boundaries. */
 const foundPurpose = defineTrait({
   id: TRAIT.FOUND_PURPOSE,
   triggers: [
@@ -151,13 +146,11 @@ const foundPurpose = defineTrait({
   ]
 });
 
-/** Owns Kinetic Insight tuning and behavior at its established execution boundaries. */
 const kineticInsight = defineTrait({
   id: TRAIT.KINETIC_INSIGHT,
   balance: { rechargeMultiplier: 0.8, resourceGain: 2, effects: [] }
 });
 
-/** Owns Lingering Determination tuning and behavior at its established execution boundaries. */
 const lingeringDetermination = defineTrait({
   id: TRAIT.LINGERING_DETERMINATION,
   balance: { resourceGain: 2, effects: [] },
@@ -169,7 +162,6 @@ const lingeringDetermination = defineTrait({
   ]
 });
 
-/** Owns Mistfire tuning and behavior at its established execution boundaries. */
 const mistfire = defineTrait({
   id: TRAIT.MISTFIRE,
   balance: {
@@ -225,7 +217,6 @@ const numinousDurations = traitAttributeBonuses(TRAIT.NUMINOUS_GIFT, (profile) =
   )
 }));
 
-/** Owns Numinous Gift tuning and behavior at its established execution boundaries. */
 const numinousGiftTrait = defineTrait({
   id: TRAIT.NUMINOUS_GIFT,
   balance: {
@@ -299,7 +290,6 @@ const numinousGiftTrait = defineTrait({
   ]
 });
 
-/** Owns Shared Wisdom tuning and behavior at its established execution boundaries. */
 const sharedWisdom = defineTrait({
   id: TRAIT.SHARED_WISDOM,
   balance: {

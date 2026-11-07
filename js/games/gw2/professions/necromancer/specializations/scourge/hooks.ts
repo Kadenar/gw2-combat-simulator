@@ -16,7 +16,7 @@ import { scourgeShroudLifecycle } from '#gw2/professions/necromancer/specializat
 import { scourgeState } from '#gw2/professions/necromancer/specializations/scourge/state.js';
 import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
-/** Wire shade and shroud owners while preserving shroud invocation before shade commitment. */
+/** Register shade and shroud callbacks with shroud invocation before shade commitment. */
 export const scourgeHooks = composeRuntimeHooks<NecromancerRuntimeState, NecromancerSkill>([
   scourgeShadeLifecycle,
   scourgeShroudLifecycle,

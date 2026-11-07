@@ -41,7 +41,6 @@ import { warbandCompleted } from '#gw2/professions/revenant/specializations/rene
 import { fervorMaximumStacks } from '#gw2/professions/revenant/specializations/renegade/traits/fervor.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-/** Owns All for One tuning and behavior at its established execution boundaries. */
 const allForOne = defineTrait({
   id: TRAIT.ALL_FOR_ONE,
   balance: {
@@ -62,7 +61,6 @@ const allForOne = defineTrait({
   ]
 });
 
-/** Owns Ambush Commander tuning and behavior at its established execution boundaries. */
 const ambushCommander = defineTrait({
   id: TRAIT.AMBUSH_COMMANDER,
   balance: {
@@ -92,7 +90,6 @@ const ambushCommander = defineTrait({
   ]
 });
 
-/** Owns Ashen Demeanor tuning and behavior at its established execution boundaries. */
 const ashenDemeanorTrait = defineTrait({
   id: TRAIT.ASHEN_DEMEANOR,
   balance: {
@@ -110,7 +107,6 @@ const ashenDemeanorTrait = defineTrait({
   ]
 });
 
-/** Owns Blood Fury tuning and behavior at its established execution boundaries. */
 const bloodFury = defineTrait({
   id: TRAIT.BLOOD_FURY,
   balance: {
@@ -157,7 +153,6 @@ const boldReversal = defineTrait({
   }
 });
 
-/** Owns Brutal Momentum tuning and behavior at its established execution boundaries. */
 const brutalMomentum = defineTrait({
   id: TRAIT.BRUTAL_MOMENTUM,
   balance: {
@@ -207,7 +202,6 @@ const brutalMomentum = defineTrait({
   ]
 });
 
-/** Owns Endless Enmity tuning and behavior at its established execution boundaries. */
 const endlessEnmity = defineTrait({
   id: TRAIT.ENDLESS_ENMITY,
   balance: {
@@ -249,7 +243,6 @@ const endlessEnmity = defineTrait({
   ]
 });
 
-/** Owns Heartpiercer tuning and behavior at its established execution boundaries. */
 const heartpiercer = defineTrait({
   id: TRAIT.HEARTPIERCER,
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -275,7 +268,6 @@ const heartpiercer = defineTrait({
   ]
 });
 
-/** Owns Lasting Legacy tuning and behavior at its established execution boundaries. */
 const lastingLegacy = defineTrait({
   id: TRAIT.LASTING_LEGACY,
   balance: {
@@ -331,12 +323,10 @@ const lastingLegacy = defineTrait({
   ]
 });
 
-/** Owns Righteous Rebel tuning and behavior at its established execution boundaries. */
 const righteousRebel = defineTrait({
   id: TRAIT.RIGHTEOUS_REBEL
 });
 
-/** Owns Vindication tuning and behavior at its established execution boundaries. */
 const vindication = defineTrait({
   id: TRAIT.VINDICATION,
   balance: {

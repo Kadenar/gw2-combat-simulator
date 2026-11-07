@@ -15,7 +15,7 @@ export const MUSHROOM_KINGS_BLESSING_BUFF_ID = 34523;
 
 export const MUSHROOM_KINGS_BLESSING_NAME = "Mushroom King's Blessing";
 
-/** Weapon-stow animations intentionally replay as timing waits, so they need no missing-skill warning. */
+/** Weapon-stow animations replay as timing waits, so they need no missing-skill warning. */
 export function isWeaponStow(action: {
   readonly rawSkillId: number;
   readonly rawName?: string;

@@ -37,7 +37,7 @@ export function renderSimulationOutput(app: ProfessionAppState): void {
   renderSimulationDetails(app);
 }
 
-/** Refreshes analysis-only output without repainting the already-current authoring surface. */
+/** Refreshes analysis output without repainting the unchanged rotation editor. */
 function renderSimulationDetails(app: ProfessionAppState): void {
   renderWarnings(app);
   renderEventLog(app);

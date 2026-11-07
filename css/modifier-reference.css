@@ -1,4 +1,4 @@
-/* Keep reference browsing on the simulator's shared surfaces, controls, typography, and gold accent. */
+/* Use the simulator's shared backgrounds, controls, typography, and gold accent for reference browsing. */
 body[data-profession]:not([data-simulator-view='modifiers']) #modifier-reference,
 body[data-simulator-view='modifiers']
   :is(.profession-layout, .build-editor, .patch-preview-picker, #build-workspace-tabs, .simulator-view-tabs) {

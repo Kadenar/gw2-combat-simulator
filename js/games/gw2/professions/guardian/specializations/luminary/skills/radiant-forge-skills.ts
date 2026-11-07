@@ -56,7 +56,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
         when: (context) => context.event?.metadata?.radiantWeapon === 'hammer'
       }
     ],
-    // Variants follow weapon slots 2–5; shared Vulnerability always follows the selected payload.
+    // Variants follow weapon slots 2 through 5. Shared Vulnerability follows the selected payload.
     effects: [
       {
         type: 'strike',

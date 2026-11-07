@@ -25,7 +25,6 @@ import {
 } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 
-/** Owns Abyssal Chill tuning and behavior at its established execution boundaries. */
 export const abyssalChill = defineTrait({
   id: TRAIT.ABYSSAL_CHILL,
   balance: {
@@ -43,7 +42,6 @@ export const abyssalChill = defineTrait({
   triggers: [onTriggerPoint(revenantConditionApplied, { run: reactAbyssalChill })]
 });
 
-/** Owns Acolyte of Torment tuning and behavior at its established execution boundaries. */
 export const acolyteOfTorment = defineTrait({
   id: TRAIT.ACOLYTE_OF_TORMENT,
   // Trait balance is the single tuning source for modifiers and presentation.
@@ -60,7 +58,6 @@ export const acolyteOfTorment = defineTrait({
   ]
 });
 
-/** Owns Diabolic Inferno tuning and behavior at its established execution boundaries. */
 export const diabolicInferno = defineTrait({
   id: TRAIT.DIABOLIC_INFERNO,
   balance: {
@@ -116,7 +113,6 @@ export const invokingTorment = defineTrait({
   triggers: [onTriggerPoint(legendInvoked, { run: invokeTorment })]
 });
 
-/** Owns Pact of Pain tuning and behavior at its established execution boundaries. */
 export const pactOfPain = defineTrait({
   id: TRAIT.PACT_OF_PAIN,
   balance: { conditionDurationBonus: 0.15 },
@@ -125,7 +121,6 @@ export const pactOfPain = defineTrait({
   }))
 });
 
-/** Owns Seething Malice tuning and behavior at its established execution boundaries. */
 export const seethingMalice = defineTrait({
   id: TRAIT.SEETHING_MALICE,
   balance: { attributeBonuses: { conditionDamage: 120 } },
@@ -134,7 +129,6 @@ export const seethingMalice = defineTrait({
   ])
 });
 
-/** Owns Yearning Empowerment tuning and behavior at its established execution boundaries. */
 export const yearningEmpowerment = defineTrait({
   id: TRAIT.YEARNING_EMPOWERMENT,
   balance: { conditionDurationBonus: 0.1 },

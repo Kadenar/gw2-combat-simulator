@@ -1,8 +1,7 @@
 # Log import: follow Elite Insights, leave opener repair to the user
 
 For day-to-day maintenance (reviewing a new EI release, fixing a mismatch), start at
-[EI-PARSER-MAINTENANCE.md](../js/games/gw2/integrations/logs/EI-PARSER-MAINTENANCE.md). This document is the contract
-that guide maintains: evidence requirements, replay boundaries, and coverage limits.
+[EI-PARSER-MAINTENANCE.md](../js/games/gw2/integrations/logs/EI-PARSER-MAINTENANCE.md). This document defines the evidence requirements, replay boundaries, and coverage limits used by that guide.
 
 The reference for EVTC behavior is EI commit `d7f186c8579a5cab4ed362f0703e49e4a81b9a2a`
 ([GW2-Elite-Insights-Parser](https://github.com/baaron4/GW2-Elite-Insights-Parser)). This is a source behavior baseline,
@@ -75,8 +74,7 @@ Examples that constrain the design:
 - Engineer kit detection uses an actual kit weapon swap and subsequent bundle casts to identify the kit. Merely needing
   a kit for the next skill does not establish an equip cast at that timestamp.
 - EI's `MinionSpawnCastFinder` consumes spawn events; an already-present minion does not establish a timed summon chain.
-- EI has specific custom animated-cast rules as well as instant finders. Do not delete them merely because they infer a
-  cast from a non-animation event.
+- EI has specific custom animated-cast rules as well as instant finders. Preserve rules that infer casts from non-animation events when their evidence requirements are met.
 
 [Sources: BuffGainCastFinder][ei-buff-gain], [EngineerHelper][ei-engineer], [MinionSpawnCastFinder][ei-minion-spawn],
 [EICastParse][ei-combat-data].
@@ -101,7 +99,7 @@ per-actor/per-skill pairing, 10 ms tolerance, unknown casts, status and accelera
 The ordinary finder table (`evtc/rotation/ei-rules.ts`) contains explicit descriptors. Custom animated finders,
 Ranger/Reaper spawn detection, Engineer kit swaps and Chronomancer shatter checks are implemented separately beside it -
 this is not a complete EI parity certification. Extension healing/barrier and unported custom predicates are omitted; no
-generic catalog or damage guess replaces them. Mechanist summon/recall skills are intentionally outside simulator scope.
+generic catalog or damage guess replaces them. Mechanist summon/recall skills are outside simulator scope.
 Time-aware ownership changes and reused instance IDs are conservatively rejected. ArcDPS encoding selection currently
 uses the header build. Training golems with `LogNPCUpdate` use the target's first nonzero damage for combat start,
 following the pinned EI

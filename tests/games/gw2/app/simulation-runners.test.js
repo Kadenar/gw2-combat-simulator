@@ -25,7 +25,7 @@ function testPresentation(render = () => {}) {
 
 function minimalResult(damageAt1s) {
   // buildChartSeries only needs the DPS window, resolved damage events, and
-  // (optionally) breakdown/events - keep it minimal but non-empty.
+  // optional breakdown and event records. Use a small, non-empty result.
   return {
     dps: damageAt1s / 4,
     dpsStartTime: 0,

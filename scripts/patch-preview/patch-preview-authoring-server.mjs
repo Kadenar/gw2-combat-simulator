@@ -34,7 +34,7 @@ function isWithin(directory, target) {
   return target === directory || target.startsWith(`${directory}${path.sep}`);
 }
 
-// Resolves a file path for the given pathname, ensuring it is within the site root.
+// Resolves a pathname to a file and rejects paths outside the site root.
 async function resolveAuthoringFile(pathname) {
   const relative = pathname === '/' || pathname === '/patch-preview.html' ? 'patch-preview.html' : pathname.slice(1);
 

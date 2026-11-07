@@ -19,7 +19,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
  * single-use and is cleared here as soon as one skill consumes it.
  */
 export function commitRechargeDuration(context: ElementalistRuntime, skill: Skill, duration: number): number {
-  // Weapon_1 excluded - auto-attacks don't benefit from Elemental Balance CDR
+  // Exclude Weapon_1 because autoattacks do not receive Elemental Balance recharge reduction.
   if (skill.type !== 'Weapon' || String(skill.slot) === 'Weapon_1' || !hasTrait(context, TRAIT.ELEMENTAL_BALANCE)) {
     return duration;
   }

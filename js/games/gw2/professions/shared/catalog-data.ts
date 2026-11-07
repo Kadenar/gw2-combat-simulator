@@ -5,11 +5,7 @@ interface ProfessionWeaponData {
   readonly weaponHands: Readonly<Record<string, ProfessionWeaponHand>>;
 }
 
-/**
- * Defines the weapon catalog for a profession from a single source of truth.
- *
- * Object key insertion order determines the resulting `weapons` ordering.
- */
+/** Defines a profession's weapon catalog in object key insertion order. */
 export function defineProfessionWeapons(
   weaponHands: Readonly<Record<string, ProfessionWeaponHand>>
 ): ProfessionWeaponData {

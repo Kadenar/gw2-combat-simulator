@@ -14,7 +14,7 @@ export interface SoulbeastState {
 
 export function createSoulbeastState(): SoulbeastState {
   return {
-    // Soulbeast starts merged - the rotation begins in Beastmode by default.
+    // Soulbeast starts merged in Beastmode.
     beastmodeActive: true,
 
     // Tracks per-activation-id whether the beast-ability first-hit proc already fired, preventing multi-hit skills from triggering trait effects more than once per cast.

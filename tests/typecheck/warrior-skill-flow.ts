@@ -45,7 +45,7 @@ defineNativeModule({
   }
 });
 
-// Each composition boundary must preserve the concrete skill type, not merely accept a cast back to it.
+// Each composition boundary must preserve the concrete skill type without a cast.
 export type WarriorSkillFlowAssertions = [
   Assert<Equal<NonNullable<typeof warriorCoreModule.data.skills>[number], WarriorSkill>>,
   Assert<Equal<(typeof warriorCatalog.skills)[number], WarriorSkill>>,

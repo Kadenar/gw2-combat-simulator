@@ -23,9 +23,9 @@ export interface DamageExecutionOptions<T extends object> {
 }
 
 /**
- * Included trait procs are only those that always trigger: only certain rolls succeed, so a proc gated by a chance or a
- * critical hit appears only when that chance is 100%. Averaged critical damage never reads the sampled outcome, so the
- * skill's own damage is unchanged. Combo finisher rolls keep the seeded outcome because they are not trait behavior.
+ * Includes trait procs only when their chance of triggering is 100%. Procs that require a critical hit also require
+ * 100% critical chance. Averaged critical damage ignores the sampled outcome, so it does not change the skill's damage.
+ * Combo finishers retain seeded rolls because they are not trait behavior.
  */
 export function certainTraitRandom(base: Readonly<SimulationRandom>): Readonly<SimulationRandom> {
   return Object.freeze({

@@ -28,8 +28,7 @@ remainder stays buffered until the next whole-second payout. Changes after expir
 no intermediate 40ms samples or 1ms simulation steps. Expiry sampling affects only applications expiring at that
 timestamp, so one application's expiry cannot change another application's sampling schedule.
 
-For a two-second burn applied at fight time 0.960s with a constant rate of 100 damage per stack-second (all times below
-are relative to first damage):
+Consider a two-second burn applied at fight time 0.960s with a constant rate of 100 damage per stack-second. All times below are relative to first damage.
 
 | Packet time | Sample time | Elapsed time | Damage |
 | ----------- | ----------- | ------------ | ------ |
@@ -43,9 +42,7 @@ invented.
 
 ## Rounding, ownership, and attribution
 
-Each application buffers `rate * elapsedSeconds * stacks` without rounding, including partial expiry damage. At each
-global pulse, all contributions for the same condition and owner are summed, regardless of source skill, and half-even
-rounding runs once. One stack at 29.5 damage per second deals 30; two stacks deal 59 whether applied together or by
+Each application buffers `rate * elapsedSeconds * stacks` without rounding, including partial expiry damage. At each global pulse, the resolver sums contributions for each condition and owner, regardless of source skill. It then applies half-even rounding once per group. One stack at 29.5 damage per second deals 30; two stacks deal 59 whether applied together or by
 different skills. Distinct conditions and independent owners retain separate packets.
 
 Application damage, elapsed stack-seconds, and reporting attribution stay together. Owner/condition groups retain
@@ -69,7 +66,7 @@ Non-damage reactions emitted during settlement inherit Settle at that timestamp.
 events receive their normal phase. Priority, causal order, and insertion order break ties within a phase. Resolved
 queries expose only events whose handlers have already executed.
 
-Status windows remain half-open: active at application, inactive at expiry. This is independent of final accrual and its
+Status windows remain half-open. They are active at application and inactive at expiry. This is independent of final accrual and its
 later payout. Forced removal discards pending damage; natural expiry retains its sampled remainder. Explicit Combat
 Start gates payouts, and expiry remainders sampled before Combat Start are discarded. Precombat whole-second wakes
 advance without creating catch-up damage. Environment samples ending at Combat Start are excluded.
@@ -83,8 +80,7 @@ scheduler feedback. Direct damage events marked `damageKind: condition` retain d
 Duration rounding follows
 [gw2combat's effect duration calculation](https://github.com/Mk-Chan/gw2combat/blob/master/src/utils/effect_utils.hpp).
 Pulse/expiry sampling follows
-[its condition resolution](https://github.com/Mk-Chan/gw2combat/blob/master/src/system/effects.cpp). This project's
-first-damage-relative phase deliberately differs from the reference's default zero condition-tick offset.
+[its condition resolution](https://github.com/Mk-Chan/gw2combat/blob/master/src/system/effects.cpp). This project anchors condition ticks to first damage. The reference defaults to a zero condition-tick offset.
 
 This project's contracts are one rounding per owner/condition group, Sample/Settle/Ordinary ordering, and half-open
 status queries. Reference code is background, not a claim of complete simulator parity or an override of these

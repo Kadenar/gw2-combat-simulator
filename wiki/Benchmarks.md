@@ -19,7 +19,7 @@ filters.
   or the top DPS build per profession.
 
 These views read saved simulator metrics. Unreached health endpoints have no value; if the target survives, the final
-20–0% band uses final overall DPS. Treat the numbers as results for those saved setups, not guaranteed in-game damage.
+20% to 0% band uses final overall DPS. Treat the numbers as results for those saved setups, not guaranteed in-game damage.
 
 ## Run a comparison
 

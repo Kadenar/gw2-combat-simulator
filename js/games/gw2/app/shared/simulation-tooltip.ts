@@ -111,7 +111,7 @@ export type FactSpec =
 type TooltipFacts<T, TSkill extends Skill = Skill> =
   readonly FactSpec[] | ((context: ProfessionBalanceContext<TSkill>, entity: T) => readonly TooltipFact[]);
 
-/** Select another profile without repeating balance-context plumbing in every authored row. */
+/** Select another profile while reusing the balance context for authored rows. */
 export const fromProfile = (
   profile: SkillId,
   field: string,
@@ -703,7 +703,7 @@ export function describeSimulationSkill(
   };
 }
 
-/** Every trait must have a reviewed local declaration, including traits deliberately outside simulation scope. */
+/** Every trait must have a reviewed local declaration, including traits outside simulation scope. */
 export function describeSimulationTrait(
   context: ProfessionBalanceContext,
   trait: CatalogEntity,

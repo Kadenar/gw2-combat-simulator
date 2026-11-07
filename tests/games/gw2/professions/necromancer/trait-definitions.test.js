@@ -157,7 +157,7 @@ test('Carapace rejects capped grants and admits only slots freed by expiry', () 
   assert.equal(deathCarapaceStacks(runtime.helpers, runtime, state, 30), 0);
 });
 
-// Selected minions occupy shared capacity; rejected timed stacks must not surface when those minions disappear.
+// Selected minions occupy shared capacity. Rejected timed stacks must not appear when those minions disappear.
 test('Carapace admission includes minion stacks only with Flesh of the Master selected', () => {
   for (const selected of [false, true]) {
     const config = { specialization: 'Core', selectedTraitIds: selected ? [TRAIT.FLESH_OF_THE_MASTER] : [] };

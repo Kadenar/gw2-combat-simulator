@@ -1,6 +1,6 @@
 # Guardian
 
-Native shared-engine profession. Entry point `guardian.html`. `profession.ts` is the stable export and composes the
+This profession uses the shared engine. Its browser entry point is `guardian.html`. `profession.ts` is the stable export and composes the
 Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of Dragonhunter, Firebrand, Willbender, or
 Luminary. Virtues, Firebrand tomes, Radiant Forge, and weapon state each own their cast validation, scheduler hooks,
 skill handlers, and resolver reactions under `core/` or `specializations/<name>/`.
@@ -19,26 +19,22 @@ Firebrand's `initial-state.ts` supplies default profiles without importing trait
 ## Data
 
 - Maintained skill and trait constants live in `data/ids.ts`.
-- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
-  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
-  required.
+- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
 - `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
   complete declarations contributed by each module.
 
 ## Implemented systems
 
-- **Core** - executable terrestrial weapon, slot, and profession skills with strike packets, damaging conditions,
+- Core implements executable terrestrial weapon, slot, and profession skills with strike packets, damaging conditions,
   cooldowns, ammo, chains, flips, symbols, traps, channels, and persistent attacks; Justice/Resolve/Courage activation
   and recharge; Justice active and passive burning; Renewed Focus; weapon swapping and active-set validation.
-- **Dragonhunter** - physical virtues, Spear of Justice / Hunter's Verdict.
-- **Firebrand** - tome equip/stow, shared pages, page costs, regeneration, and Archivist of Whispers / Loremaster /
+- Dragonhunter implements physical virtues, Spear of Justice / Hunter's Verdict.
+- Firebrand implements tome equip/stow, shared pages, page costs, regeneration, and Archivist of Whispers / Loremaster /
   Ashes of the Just.
-- **Willbender** - physical skills and movement virtues.
-- **Luminary** - Radiant Forge entry/exit, duration, radiant-weapon flips, weapon-dependent Glaring Burst, per-entry
+- Willbender implements physical skills and movement virtues.
+- Luminary implements Radiant Forge entry/exit, duration, radiant-weapon flips, weapon-dependent Glaring Burst, per-entry
   recharge reduction, and light-field / finisher / Sovereign of Light detonation behavior.
-- **Spear (Janthir Wilds)** - the Illuminated mechanic (armed by spear 2/3/4, held open by Symbol of Luminance; consumed
-  by the next supported enhanced spear skill: Helio Rush, Gleaming Disc, or Solar Storm; filler autoattacks do not
-  consume it). Skill data lives in `core/skills/weapons/spear.ts`; persistent Illuminated behavior lives in
+- Spear from Janthir Wilds implements Illuminated. Spear skills 2, 3, and 4 arm it, and Symbol of Luminance holds it open. The next Helio Rush, Gleaming Disc, or Solar Storm consumes it. Autoattacks do not consume it. Skill data lives in `core/skills/weapons/spear.ts`; persistent Illuminated behavior lives in
   `core/mechanics/spear.ts`.
 - Explicit strike-modifier grouping (Force/Impact, Empowered/Radiant Armaments, Furious Focus, Retribution, Symbolic
   Avenger, Piercing Stance share one additive bucket; Fiery Wrath, Symbolic Exposure, gates, vulnerability, and relics
@@ -47,7 +43,7 @@ Firebrand's `initial-state.ts` supplies default profiles without importing trait
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Ally positioning,
+The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Ally positioning,
 incoming damage, revival, and other encounter-side support effects are outside the damage total. Some support-only casts
 remain in the catalog as timing or trait-triggering actions. Cast timings are checked into owner-local skill fragments;
 catalog assembly does not infer a duration from the skill's type.

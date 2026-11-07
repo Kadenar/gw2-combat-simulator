@@ -1,7 +1,7 @@
 /* Owns shared page foundations, navigation, tutorials, and reusable controls. */
 
 :root {
-  /* Keep page, card, and control surfaces neutral; profession themes only change accents. */
+  /* Keep page, card, and control backgrounds neutral; profession themes only change accents. */
   --bg-dark: oklch(0.205 0 0);
   --bg-deep: #111113;
   --bg-panel: oklch(0.21 0.006 285.885);
@@ -17,7 +17,7 @@
   --radius: 4px;
   /* Use one monospace stack for numeric controls and readouts. */
   --mono: 'Consolas', 'Courier New', monospace;
-  /* Every dropdown menu floats on one raised surface so native selects and custom pickers read as one control family. */
+  /* Use the same raised background for native selects and custom picker menus. */
   --menu-surface: oklch(0.24 0.006 285.885);
   --menu-border: var(--border-light);
 }
@@ -94,7 +94,7 @@ header {
   position: static;
 }
 
-/* Separate workspace identity, tool navigation, and build context in one sticky surface. */
+/* Separate workspace identity, tool navigation, and build context within the sticky header. */
 body[data-profession] #app > header {
   display: flex;
   flex-wrap: wrap;
@@ -986,7 +986,7 @@ body[data-profession] #app > header .community-actions {
     outline-offset: -2px;
   }
 
-  /* Replace the native blue tap overlay with a quiet pressed surface; keyboard focus keeps its outline. */
+  /* Replace the native blue tap overlay with a subdued pressed background. Keyboard focus retains its outline. */
   #app > header :is(.mobile-header-trigger, .build-switcher) {
     -webkit-tap-highlight-color: transparent;
   }

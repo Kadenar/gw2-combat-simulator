@@ -10,10 +10,7 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 
-/**
- * Skill-id → definition table for the conjured-bundle weapon skills.
- * Entries are keyed by GW2 skill ID and supply complete catalog entries.
- */
+/** Complete conjured-bundle weapon skill definitions keyed by GW2 skill ID. */
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
   // --- Frost Bow (conjure) ---------------------------------------------------
@@ -107,7 +104,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       }
     ])
   },
-  // Channelled field: strikes reuse the shared tick timeline, and Bleeding rides every tick
+  // Channelled field. Strikes use the shared tick timeline, and every tick applies Bleeding
   // except the opening one.
   [ID.FROST_STORM]: withSmallHitboxCap(
     {
@@ -182,7 +179,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
   },
   // --- Lightning Hammer (conjure) --------------------------------------------
   // Weapon_1 uses the explicit sequence in autoattack-chains.ts:
-  // Lightning Swing → Static Swing → Thunderclap → back to Lightning Swing.
+  // The chain repeats Lightning Swing, Static Swing, then Thunderclap.
   [ID.LIGHTNING_SWING]: {
     // Ordinary repeatable attack; excluded from player-input metrics.
     name: 'Lightning Swing',

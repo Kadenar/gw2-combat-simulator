@@ -194,7 +194,7 @@ function composeNativeCatalog<TSkill extends Skill>(
     chainContributions.set(module.id, []);
   }
 
-  // Each autoattack chain must be entirely within one runtime module - a chain
+  // Each autoattack chain must be contained in one runtime module. A chain
   // that spans Core and a spec module would be impossible to schedule correctly.
   for (const [index, { owner: declarationOwner }] of declaredChains.entries()) {
     // Runtime fragments retain the validated immutable copy, never the author's mutable input array.

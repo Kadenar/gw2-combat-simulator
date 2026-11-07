@@ -1,16 +1,15 @@
 /**
- * Derives which visible event-log row caused each other row, using provenance the runtime already records.
+ * Finds the parent of each visible event-log row from recorded provenance. Uses the first matching rule:
  *
- * Rules run in order and the first match wins:
- * 1. Recorded parent: `parentEventOrder`, walked through events the log hides (combo finishers, sigil swaps); a walk
- *    that ends on a hidden packet of a cast resolves to that cast.
- * 2. Proc pairs: a proc's damage sits under its trigger row (inferred).
- * 3. Activation: `activationId` names a cast.
- * 4. Spawned entity: derived activation ids such as `guardian.symbol:<id>:cast:3:1.6` or `cast:3:flames`
- *    become a synthetic group under the cast that spawned them.
- * 5. Named trigger: `triggeredBy` matches the latest hit, condition, or proc from that skill, preferring the hit
- *    when several share that instant (inferred).
- * Rows that should have an owner but match nothing are marked as orphans; autonomous summon packets are not.
+ * 1. Follow `parentEventOrder` through hidden events such as combo finishers and sigil swaps. If the last hidden
+ *    packet belongs to a cast, use that cast.
+ * 2. Infer the trigger row for paired proc damage.
+ * 3. Match a cast by `activationId`.
+ * 4. Group spawned-entity activations such as `guardian.symbol:<id>:cast:3:1.6` or `cast:3:flames` under their cast.
+ * 5. Infer a parent from `triggeredBy`, choosing the latest hit, condition, or proc from that skill. Prefer the hit
+ *    when multiple candidates share a timestamp.
+ *
+ * Mark unmatched rows as orphans when they require an owner. Autonomous summon packets do not require one.
  */
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';

@@ -61,7 +61,7 @@ test('event-log tree nests rows depth first with guides, offsets, and group summ
   assert.match(html, /data-view="tree" aria-pressed="true"/);
   assert.ok(html.indexOf('HIT Strike') < html.indexOf('BUFF Might'));
   assert.ok(html.indexOf('BUFF Might') < html.indexOf('HIT Echo'));
-  // The buff sits under a non-last sibling, so its trail continues the cast's trunk.
+  // The buff is under a sibling that is not last, so its connector continues the cast's tree line.
   assert.match(html, /log-guide log-guide-pipe"><\/span><span class="log-guide log-guide-elbow"/);
   assert.match(html, /log-guide log-guide-elbow log-guide-inferred/);
   assert.match(html, /log-time log-time-offset log-time-late"[^>]*>\+0\.900</);

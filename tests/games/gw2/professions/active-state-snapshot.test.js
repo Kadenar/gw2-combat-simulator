@@ -186,7 +186,7 @@ test('filtered public windows remain deeply detached from their live owners', ()
 });
 
 test('Mesmer public projectors do not traverse private cast history', () => {
-  // Private acceptance records must not be visited merely to publish the Core and active elite observations.
+  // Publishing Core and active elite observations must not traverse private acceptance records.
   for (const specialization of ['Core', 'Chronomancer', 'Mirage', 'Virtuoso', 'Troubadour']) {
     const config = { specialization };
     const profession = mesmerProfession.runtimeFor(config).createState(config);

@@ -2,8 +2,8 @@
 import { BOON, CONDITION } from '#gw2/platform/constants.js';
 
 // ─── Food Data ────────────────────────────────────────────────────────────────
-// isConverted: true  → stats feed into the conversion pool (subject to utility/trait conversions)
-// isConverted: false → stats applied after conversions as flat buffs
+// When isConverted is true, utility and trait conversions can use these stats as inputs.
+// When isConverted is false, apply these stats as flat buffs after conversions.
 // durations: percentage bonuses stored as numbers
 export const NOURISHMENT_ICON = new URL('@images/wiki/nourishment-food.png', import.meta.url).href;
 

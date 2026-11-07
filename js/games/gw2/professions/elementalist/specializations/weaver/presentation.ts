@@ -125,7 +125,7 @@ function rotationStateSnapshot(
   // Read the inspected point's resolved buff windows so Rage refreshes and expiry match combat state.
   const rage = planningBuffAt(context.planningState, 'elements of rage');
 
-  // Surface only the Weaver windows currently affecting the inspected rotation point,
+  // Show only the Weaver windows currently affecting the inspected rotation point,
   // so stance follow-ups and the temporary single-attunement override are easy to time.
   for (const [id, label, expiresAt] of [
     ['elements-of-rage', 'Elements of Rage', rage ? at + rage.remaining : 0],

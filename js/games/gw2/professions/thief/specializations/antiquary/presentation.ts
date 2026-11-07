@@ -19,7 +19,7 @@ import {
 import { preStealResourceView } from '#gw2/professions/thief/family-presentation.js';
 import type { ThiefSkill, ThiefUiContext } from '#gw2/professions/thief/types.js';
 
-/** Surfaces Combat High plus artifact effects with duration or consumable charges. */
+/** Shows Combat High and artifact effects with duration or consumable charges. */
 function antiquaryStateSnapshot(
   context: ProfessionStateSnapshotContext<ThiefUiContext['professionState']>
 ): RotationStateSnapshotItem[] {

@@ -33,7 +33,6 @@ import { canonicalInterval, canonicalTime } from '#kernel/core/clock.js';
 const COMPASSION = 'revenant.herald-elevated-compassion';
 const ECHO_EXPIRY = 'revenant.herald-echo-expiry';
 
-/** Owns Core Value tuning and behavior at its established execution boundaries. */
 const coreValue = defineTrait({
   id: TRAIT.CORE_VALUE,
   balance: { duration: 1 }
@@ -93,7 +92,6 @@ export const draconicEcho = defineTrait({
   lifetime: { tasks: { [ECHO_EXPIRY]: echoExpiry } }
 });
 
-/** Owns Elevated Compassion tuning and behavior at its established execution boundaries. */
 const elevatedCompassion = defineTrait({
   id: TRAIT.ELEVATED_COMPASSION,
   balance: {
@@ -126,7 +124,6 @@ const elevatedCompassion = defineTrait({
   lifetime: { tasks: { [COMPASSION]: compassionPulse } }
 });
 
-/** Owns Forceful Persistence tuning and behavior at its established execution boundaries. */
 const forcefulPersistence = defineTrait<RevenantSkill>({
   id: TRAIT.FORCEFUL_PERSISTENCE,
   balance: { damageIncreasePerStack: 0.1, upkeepDamageIncrease: 0.25 },
@@ -155,7 +152,6 @@ const forcefulPersistence = defineTrait<RevenantSkill>({
   ]
 });
 
-/** Owns Reinforced Potency tuning and behavior at its established execution boundaries. */
 const reinforcedPotency = defineTrait({
   id: TRAIT.REINFORCED_POTENCY,
   balance: {
@@ -183,7 +179,6 @@ const reinforcedPotency = defineTrait({
   ]
 });
 
-/** Owns Shared Empowerment tuning and behavior at its established execution boundaries. */
 const sharedEmpowerment = defineTrait({
   id: TRAIT.SHARED_EMPOWERMENT,
   balance: {

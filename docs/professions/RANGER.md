@@ -1,6 +1,6 @@
 # Ranger
 
-Native shared-engine profession. Entry point `ranger.html`. `profession.ts` composes the Core-first tuple from
+This profession uses the shared engine. Its browser entry point is `ranger.html`. `profession.ts` composes the Core-first tuple from
 `catalog.ts`; a runtime contains Core plus at most one of Druid, Soulbeast, Untamed, or Galeshot. Core owns pets, pet
 swapping and commands, weapon state, Hammer variants, shared traits, and profession resources. Each specialization owns
 its data, state, mechanics, and UI under `specializations/<name>/`.
@@ -14,9 +14,7 @@ its data, state, mechanics, and UI under `specializations/<name>/`.
 ## Data
 
 - Maintained skill and trait constants live in `data/ids.ts`.
-- The existing keyed entries under Core and specialization `skills/` own names, descriptions, icons, selection metadata,
-  costs, recharge, and effects. Patch those definitions directly; no skill scrape or generated metadata refresh is
-  required.
+- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
 - `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
   complete declarations contributed by each module.
 - Pet identities and membership remain in `data/ranger-pet-data.ts`. Every pet skill uses `definePetSkill` for shared
@@ -24,12 +22,12 @@ its data, state, mechanics, and UI under `specializations/<name>/`.
 
 ## Implemented systems
 
-- **Core** - active and alternate pets, autonomous pet attacks, Beast commands, pet Alacrity, pet swaps, pet traits, two
-  weapon sets, shared gear/resolver rules.
-- **Druid** - Astral Force, Celestial Avatar entry/drain/exit, glyphs, and damage-relevant Avatar traits.
-- **Soulbeast** - merge state, Beast skills, pet-family bonuses, and stance / damage modifiers.
-- **Untamed** - player/pet unleash state, Hammer variants, ambush windows, and specialization traits.
-- **Galeshot** - Cyclone Bow, rechargeable arrows, Wind Force, bow transitions, and its pet interactions.
+- Core implements active and alternate pets, autonomous pet attacks, Beast commands, pet Alacrity, pet swaps, pet traits, two
+  weapon sets, shared gear and resolver rules.
+- Druid implements Astral Force, Celestial Avatar entry/drain/exit, glyphs, and damage-relevant Avatar traits.
+- Soulbeast implements merge state, Beast skills, pet-family bonuses, and stance and damage modifiers.
+- Untamed implements player/pet unleash state, Hammer variants, ambush windows, and specialization traits.
+- Galeshot implements Cyclone Bow, rechargeable arrows, Wind Force, bow transitions, and its pet interactions.
 
 `data/gw2/builds/ranger/manifest.json` and `data/gw2/rotations/ranger/` hold the supported build and rotation corpus.
 
@@ -73,6 +71,5 @@ The following execution boundaries remain explicit to preserve ordering and acto
 
 ## Modeling boundaries
 
-Single-target, outgoing-damage focused. Player health stays at 100%; target health remains modeled. Incoming attacks,
-active defense, ally healing/barrier/cleanse, pathing, secondary targets, and competitive (PvP/WvW) splits are out of
-model.
+The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Incoming attacks,
+active defense, ally healing, barrier, and cleansing, pathing, secondary targets, and competitive PvP and WvW balance splits are outside the model.

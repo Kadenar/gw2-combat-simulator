@@ -1,8 +1,6 @@
 /**
- * Static Evoker lookup tables shared by the mechanics modules.
- *
- * Skill-ID lookup tables. Patchable tuning lives with
- * its owning skill, trait, or shared mechanic and is read through the shared contract.
+ * Skill ID lookup tables shared by Evoker mechanics.
+ * Patchable tuning belongs to the owning skill, trait, or shared mechanic and is read through the shared contract.
  */
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';

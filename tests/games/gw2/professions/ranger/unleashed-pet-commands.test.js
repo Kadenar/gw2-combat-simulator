@@ -12,7 +12,7 @@ const petActions = (result) =>
 // Every Unleashed command replaces autonomous work, preserving landed hits and cancelling pending contacts.
 for (const skillId of [ID.VENOMOUS_OUTBURST, ID.RENDING_VINES, ID.ENVELOPING_HAZE]) {
   test(`Unleashed command ${skillId} retains off-target behavior under pet ownership`, () => {
-    // Changing the packet owner must not make an intentionally missed command damage the target.
+    // Changing the packet owner must not make an missed command damage the target.
     const result = runRanger([{ type: 'cast', skillId, offTarget: true }, wait(6000)], config);
     assert.deepEqual(result.warnings, []);
     assert.ok(result.events.some((event) => event.type === 'action' && event.skillId === skillId));

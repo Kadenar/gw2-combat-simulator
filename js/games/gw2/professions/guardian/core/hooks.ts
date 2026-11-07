@@ -36,7 +36,7 @@ import { masterOfConsecrationsFields } from '#gw2/professions/guardian/core/trai
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-/** Shared virtue, symbol, and follow-up wiring composed with each Core skill owner's registered actions. */
+/** Registers virtue, symbol, and follow-up callbacks with the actions from each Core skill. */
 export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianSkill>([
   guardianTorchLifecycle,
   guardianSpearLifecycle,

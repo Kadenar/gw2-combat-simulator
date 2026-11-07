@@ -40,7 +40,7 @@ function paletteGroups(
     }
   ];
 
-  // Pet palette is only meaningful when unmerged - in Beastmode the pet's skills are subsumed into beast skills.
+  // Show the pet palette only while unmerged. Beastmode uses Beast skills in place of pet skills.
   if (!active) groups.push(rangerPetPaletteGroup(catalog, context));
 
   return groups;

@@ -137,7 +137,7 @@ export function bindWikiTooltips(): void {
     panel.hidden = true;
   };
 
-  // Give the pointer time to cross to the card; entering either surface cancels dismissal.
+  // Give the pointer time to cross to the card. Entering the trigger or card cancels dismissal.
   const scheduleClose = () => {
     cancelClose();
     closeTimer = setTimeout(() => {

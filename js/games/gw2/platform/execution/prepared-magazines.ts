@@ -3,10 +3,10 @@ import { type SkillFlipCommands, type SkillFlipWindows } from '#gw2/platform/exe
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 
 /**
- * A prepared magazine is a charge pool that exists only while one of its faces is on the bar. Mantras use it:
- * preparation opens a face over a fresh pool, and the final charge closes every face and discards the pool. Keeping
- * the open/close operations and the capacity gate together stops a closed magazine from holding stale or phantom
- * charges, whichever profession owns its recharge and face-selection rules.
+ * A prepared magazine is a charge pool that exists only while one of its skill variants is on the bar.
+ * Mantra preparation opens a variant with a fresh pool. The final charge closes every variant and discards the pool.
+ * This module handles opening, closing, and capacity together so closed magazines cannot retain charges.
+ * Professions supply recharge and variant-selection rules.
  */
 export interface PreparedMagazine<TSkill extends Skill = Skill> {
   /** The skill whose ammo pool holds the prepared charges. */

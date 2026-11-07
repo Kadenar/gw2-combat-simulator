@@ -32,7 +32,7 @@
   }
 }
 
-/* Stack the equipment columns on narrow surfaces. */
+/* Stack the equipment columns on narrow screens. */
 @container gear-loadout (max-width: 379px) {
   .gear-loadout-body {
     grid-template-columns: minmax(0, 1fr);

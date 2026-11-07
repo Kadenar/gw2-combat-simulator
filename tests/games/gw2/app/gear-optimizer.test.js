@@ -335,7 +335,7 @@ test('invalid chunk results and progress fail the job and reject late verificati
   }
 });
 
-// Real enumeration/evaluation behind a tiny transport fake isolates partitioning and message ownership.
+// A small transport fake isolates partitioning and message ownership while running production enumeration and evaluation.
 class OptimizerTestWorker {
   listeners = new Map();
   terminated = false;
@@ -773,7 +773,7 @@ test('unique totals preserve every ordinary vector and multiplicity with unequal
   }
 });
 
-// Tiny ordinary builds isolate enumeration contracts without saved-rotation regressions.
+// Small builds isolate enumeration contracts without saved-rotation regressions.
 function request(selections = {}, overrides = {}) {
   const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());
   Object.assign(build, overrides);
@@ -1309,7 +1309,7 @@ test('two-handed and alternate-set prefixes use actual slots and explicit fallba
   assert.deepEqual(captured.build.alternateWeaponPrefixes, [captured.build.gear.Weapon1, captured.build.gear.Weapon2]);
 });
 
-// Exhaustive tiny products check that stat merging preserves both weapon sets, upgrade identities, and exact ties.
+// Exhaustive combinations of small input sets check that stat merging preserves both weapon sets, upgrade identities, and exact ties.
 test('unique ordinals preserve independent weapon budgets, upgrades, and canonical representatives', () => {
   const initial = request({}, { weapons: ['Greatsword', ''], alternateWeapons: ['Axe', 'Axe'] });
   const captured = request(
@@ -1428,7 +1428,7 @@ test('a rotation swapping to a valid second set retains its independent equipmen
   }
 });
 
-// Compare every tiny ordinary assignment, including duplicates, against the merged result's actual detailed score.
+// Compare every assignment in the small input set, including duplicates, against the merged result's detailed score.
 test('gear, rune and infusion totals merge with exact score and representative parity', () => {
   const initial = request();
   for (const selections of [

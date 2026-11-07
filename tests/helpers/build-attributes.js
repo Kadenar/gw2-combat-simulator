@@ -19,7 +19,7 @@ export function createProfessionBuildAttributeRules(catalog) {
     );
 }
 
-/** Prepare equipment and trait inputs for focused attribute tests using the production calculation primitives. */
+/** Prepare equipment and trait inputs for focused attribute tests using the production calculation helpers. */
 export function createCalculateAttributes(applyBuildAttributeRules, attributeContributions) {
   return function calculateAttributes(
     build,
