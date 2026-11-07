@@ -18,7 +18,6 @@ export interface BuildTab {
   pinned: boolean;
   build: Gw2CanonicalBuild;
   templateBuild?: Gw2CanonicalBuild;
-  templateUndoResetBuild?: Gw2CanonicalBuild;
   patchId: string;
   session: StoredBuildTabSession;
   analysis: AnalysisSnapshot;

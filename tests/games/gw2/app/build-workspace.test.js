@@ -4,6 +4,13 @@ import test from 'node:test';
 import { createScenarioEditor } from '#gw2/app/boss-scenarios/editor.js';
 import { createBossScenario, selectScenarioEncounter } from '#gw2/app/boss-scenarios/model.js';
 import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/actions.js';
+import {
+  beginLibraryLoad,
+  loadLibraryBuild,
+  loadLibraryTemplate,
+  undoLibraryLoad
+} from '#gw2/app/build/library/load.js';
+import { buildSignature } from '#gw2/app/build/library/model.js';
 import { deleteMyBuild, loadMyBuilds, myBuildsStorageKey, saveMyBuild } from '#gw2/app/build/library/storage.js';
 import { loadBuild } from '#gw2/app/build/state/persistence.js';
 import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
@@ -678,7 +685,7 @@ test('switching preserves independent rotations, history, templates, comparisons
   commitRotationEdit(app, { type: 'insert', entries: [{ type: 'wait', durationMs: 10 }] });
   publishResult(app, { dps: 10 });
   app.currentTemplate = { build: 'template.json', signature: 'original' };
-  app.templateUndoBuild = build('before-template');
+  app.templateUndo = { build: build('before-template'), selection: null, message: 'Loaded template.' };
   app.rotationComparison = { referenceRotation: [{ type: 'wait', durationMs: 20 }], referenceStatus: 'fresh' };
   // Feature-local defaults must reset tab-owned filters and sorting while retaining shared display preferences.
   app.procVisibility = new Set(['first-proc']);
@@ -709,7 +716,7 @@ test('switching preserves independent rotations, history, templates, comparisons
   assert.equal(app.analysis.state.resultRevision, app.analysis.state.buildRevision);
   assert.equal(scheduled.length, before, 'fresh cached output needs no baseline job');
   assert.equal(app.currentTemplate.build, 'template.json');
-  assert.equal(app.templateUndoBuild.gear.Helm, 'before-template');
+  assert.equal(app.templateUndo.build.gear.Helm, 'before-template');
   assert.equal(app.rotationComparison.referenceRotation[0].durationMs, 20);
   assert.equal(app.procVisibility, originalFilters);
   assert.deepEqual([...app.procVisibility], ['first-proc']);
@@ -833,7 +840,7 @@ test('template loading cannot overwrite a tab selected while its fetch is pendin
         finish = resolve;
       })
   );
-  const loading = loadTemplateAction(app, { label: 'Example', build: 'build.json' }, 'build', { innerHTML: 'Load' });
+  const loading = loadTemplateAction(app, { label: 'Example', build: 'build.json' }, 'build');
   addBuildTab(app, build('other'));
   finish({ ok: true, json: async () => build('downloaded') });
   await loading;
@@ -855,7 +862,7 @@ test('template build loads rename only the active tab and persist its name', asy
     const { app, tab } = appFixture();
     addBuildTab(app, build('other'), 'Custom name');
     const active = app.workspace.tabs.at(-1);
-    await loadTemplateAction(app, preset, action, { innerHTML: 'Load' });
+    await loadTemplateAction(app, preset, action);
     const expectedName = action === 'rotation' ? 'Custom name' : 'Chronomancer · Power';
     assert.equal(active.name, expectedName);
     assert.equal(tab.name, 'Original');
@@ -885,13 +892,18 @@ test('template undo restores each tab reset target across tab switches and persi
     for (const baseline of [undefined, build('previous-template')]) {
       const { app, tab } = appFixture();
       tab.templateBuild = baseline;
-      await loadTemplateAction(app, { label: 'Example', build: 'build.json', rotation: 'rotation.json' }, action, {});
+      const selection = baseline ? { build: 'previous.json', signature: 'previous-signature' } : null;
+      app.currentTemplate = selection;
+      await loadTemplateAction(app, { label: 'Example', build: 'build.json', rotation: 'rotation.json' }, action);
       addBuildTab(app, build('other'), 'Other');
       const other = app.workspace.tabs.at(-1);
       app.activateBuildTab(tab.id);
       undoTemplateLoad(app);
       assert.equal(app.build.gear.Helm, 'original');
       assert.deepEqual(tab.templateBuild, baseline);
+      assert.equal(tab.name, 'Original');
+      assert.deepEqual(app.currentTemplate, selection);
+      assert.equal(loadBuildWorkspace(adapter).tabs.find(({ id }) => id === tab.id).name, 'Original');
       assert.equal(other.templateBuild, undefined);
       assert.deepEqual(loadBuildWorkspace(adapter).tabs.find(({ id }) => id === tab.id).templateBuild, baseline);
     }
@@ -906,16 +918,87 @@ test('open template in new tab commits the complete bundle and preserves the sou
     json: async () =>
       String(url).startsWith('rotation') ? { rotation: [{ type: 'wait', durationMs: 8 }] } : build('downloaded')
   }));
-  await loadTemplateAction(app, { label: 'Example', build: 'build.json', rotation: 'rotation.json' }, 'new-tab', {
-    innerHTML: 'Load'
-  });
+  await loadTemplateAction(app, { label: 'Example', build: 'build.json', rotation: 'rotation.json' }, 'new-tab');
   assert.equal(app.workspace.tabs.length, 2);
   assert.equal(app.build.gear.Helm, 'downloaded');
   assert.equal(app.build.rotation[0].durationMs, 8);
   assert.equal(tab.build.gear.Helm, 'original');
-  assert.equal(app.templateUndoBuild, null);
+  assert.equal(app.templateUndo, null);
   assert.deepEqual(app.workspace.tabs[1].templateBuild, app.build);
   assert.notEqual(app.workspace.tabs[1].templateBuild, app.build);
+});
+
+// Persistence and simulation callbacks must see the complete library state on their first notification.
+test('library replacement and Undo install their metadata before notifying the editor', async (t) => {
+  storage(t);
+  const { app, tab } = appFixture();
+  const previousSelection = { build: 'previous.json', signature: buildSignature(app.build) };
+  app.currentTemplate = previousSelection;
+  tab.templateBuild = build('reset');
+  const observed = [];
+  const changed = app.changed;
+  app.changed = function (...args) {
+    observed.push(
+      structuredClone({
+        name: tab.name,
+        reset: tab.templateBuild,
+        selection: app.currentTemplate,
+        undo: app.templateUndo
+      })
+    );
+    changed.apply(this, args);
+  };
+
+  t.mock.method(globalThis, 'fetch', async () => ({ ok: true, json: async () => build('downloaded') }));
+  const request = beginLibraryLoad(app, 'template');
+  await loadLibraryTemplate(app, request, { label: 'Loaded', build: 'build.json' });
+  assert.equal(observed.length, 1);
+  assert.equal(observed[0].name, 'Loaded');
+  assert.deepEqual(observed[0].reset, app.build);
+  assert.equal(observed[0].selection.signature, buildSignature(app.build));
+  assert.equal(observed[0].undo.name, 'Original');
+  assert.deepEqual(observed[0].undo.selection, previousSelection);
+  undoLibraryLoad(app);
+  assert.equal(observed.length, 2);
+  assert.equal(observed[1].name, 'Original');
+  assert.equal(observed[1].reset.gear.Helm, 'reset');
+  assert.deepEqual(observed[1].selection, previousSelection);
+  assert.equal(observed[1].undo, null);
+
+  loadLibraryBuild(app, build('mine'), 'Saved build', false);
+  assert.equal(observed.length, 3);
+  assert.equal(observed[2].name, 'Saved build');
+  assert.equal(observed[2].selection, null);
+  assert.equal(observed[2].reset.gear.Helm, 'mine');
+  undoLibraryLoad(app);
+  assert.deepEqual(app.currentTemplate, previousSelection);
+  assert.equal(tab.name, 'Original');
+});
+
+test('new-tab loading preserves edits to the source and installs metadata before activation', async (t) => {
+  storage(t);
+  const { app, tab } = appFixture();
+  const ready = Promise.withResolvers();
+  t.mock.method(globalThis, 'fetch', () => ready.promise);
+  const request = beginLibraryLoad(app, 'new-tab');
+  const loading = loadLibraryTemplate(app, request, { label: 'Example', build: 'build.json' });
+  app.build.gear.Helm = 'edited during download';
+  app.changed();
+  const activate = app.activateBuildTab;
+  app.activateBuildTab = (id) => {
+    const destination = app.workspace.tabs.find((entry) => entry.id === id);
+    assert.deepEqual(destination.templateBuild, destination.build);
+    assert.equal(destination.session.currentTemplate.signature, buildSignature(destination.build));
+    assert.equal(destination.session.currentTemplate.build, 'build.json');
+    activate(id);
+  };
+
+  ready.resolve({ ok: true, json: async () => build('downloaded') });
+  assert.equal(await loading, true);
+  assert.equal(app.workspace.tabs.length, 2);
+  assert.equal(tab.build.gear.Helm, 'edited during download');
+  assert.equal(app.currentTemplate.build, 'build.json');
+  assert.equal(app.currentTemplate.signature, buildSignature(app.build));
 });
 
 test('invalid saved template targets preserve the tab and fall back to defaults', (t) => {

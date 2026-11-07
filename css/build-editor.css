@@ -1,5 +1,11 @@
 /* Owns build templates, equipment, attributes, traits, and skill-selection layouts. */
 
+/* Show which destination controls are unavailable while a library download is pending. */
+.simulator-navigation [inert],
+#build-workspace-tabs [inert] {
+  opacity: 0.5;
+}
+
 /* The switcher holds every open build; optional pinned shortcuts occupy their own bounded row. */
 .build-workspace-tabs {
   /* Span a full row below navigation and help. */

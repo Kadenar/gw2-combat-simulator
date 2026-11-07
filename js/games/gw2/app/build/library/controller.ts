@@ -220,7 +220,7 @@ export async function initBuildTemplates(app: ProfessionAppState): Promise<void>
       // Browsing from New creates an independent build; explicit partial-load actions still target the current build.
       const destination = action === 'template' && container.dataset.newBuild === 'true' ? 'new-tab' : action;
       delete container.dataset.newBuild;
-      loadTemplateAction(app, preset, destination, button);
+      loadTemplateAction(app, preset, destination);
     });
     window.addEventListener('storage', (event) => {
       // Another browser tab changed the library; show its snapshots instead of a stale list.

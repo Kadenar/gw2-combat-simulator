@@ -84,7 +84,7 @@ export class ProfessionApp implements ProfessionAppState {
   templatePresets: BuildTemplatePreset[];
   templateContainer: HTMLElement | null;
   currentTemplate: BuildTemplateSelection | null;
-  templateUndoBuild: Gw2CanonicalBuild | null;
+  templateUndo: ProfessionAppState['templateUndo'];
   readonly modifierContributionRunner: ModifierContributionRunner;
   readonly randomDistributionRunner: RandomDistributionRunner;
   readonly skillDamageRunner: SkillDamageRunner;
@@ -135,7 +135,7 @@ export class ProfessionApp implements ProfessionAppState {
     this.templatePresets = [];
     this.templateContainer = null;
     this.currentTemplate = null;
-    this.templateUndoBuild = null;
+    this.templateUndo = null;
     this.modifierContributionRunner = new ModifierContributionRunner((request) =>
       this.adapter.calculateModifierContributions(request)
     );

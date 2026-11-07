@@ -448,12 +448,25 @@ test('Load build replaces the current build and Reset restores only that build',
   await expect(dialog).toBeHidden();
   // Hold the download to verify that dismissal and progress do not wait for the assets.
   await expect(page.locator('.template-load-status')).toContainText('Loading Mirage · Power (Spear)');
+  await expect(page.locator('.simulator-workspace-control')).toHaveAttribute('inert', '');
+  await expect(page.locator('.simulator-profession-control')).toHaveAttribute('inert', '');
+  await expect(page.locator('#build-switcher-menu .build-tab-list')).toHaveAttribute('inert', '');
+  await expect(switcher).toBeFocused();
+  // Native inert prevents mouse navigation as well as focus, while the library launcher remains reachable.
+  await page.locator('.mobile-workspace-trigger').click({ force: true });
+  await expect(page.locator('#simulator-workspace-menu')).toBeHidden();
+  await page.locator('.mobile-workspace-trigger').focus();
+  await expect(page.locator('.mobile-workspace-trigger')).not.toBeFocused();
+  await switcher.focus();
   await expect(page.locator('#rotation-timeline .rotation-skeleton')).toBeVisible();
   await expect(page.locator('#rotation-timeline .rot-skill:visible')).toHaveCount(0);
   expect(await page.evaluate(() => window.professionApp.build.targetArmor)).toBe(initialArmor);
   await expect(switcher).toBeFocused();
   releaseBuild();
   await expect(page.locator('.template-load-status')).toBeHidden();
+  await expect(page.locator('.simulator-workspace-control')).not.toHaveAttribute('inert', '');
+  await expect(page.locator('.simulator-profession-control')).not.toHaveAttribute('inert', '');
+  await expect(page.locator('#build-switcher-menu .build-tab-list')).not.toHaveAttribute('inert', '');
   await settled(page);
   await expect(page.locator('#rotation-timeline .rotation-skeleton')).toHaveCount(0);
   await expect(page.locator('.build-tab')).toHaveCount(2);
@@ -479,12 +492,14 @@ test('Load build replaces the current build and Reset restores only that build',
 });
 
 // A failed background download leaves the current build intact and allows the same template to be retried.
-test('failed template loading clears progress and re-enables the picker', async ({ page }) => {
+test('failed template loading clears progress and keeps the picker available', async ({ page }) => {
   let releaseBuild;
+  let downloads = 0;
   const buildReady = new Promise((resolve) => {
     releaseBuild = resolve;
   });
   await page.route('**/data/gw2/builds/mesmer/b-*.json*', async (route) => {
+    downloads++;
     await buildReady;
     await route.fulfill({ status: 503, body: 'Unavailable' });
   });
@@ -502,18 +517,25 @@ test('failed template loading clears progress and re-enables the picker', async 
   await expect(page.locator('#rotation-timeline .rot-skill:visible')).toHaveCount(0);
   await page.locator('.build-tab-new').click();
   await page.getByRole('button', { name: /Browse templates/ }).click();
-  await expect(picker.locator('.template-load-btn').first()).toBeDisabled();
+  await expect(picker.locator('.template-load-btn').first()).toBeEnabled();
+  // A second selection is allowed during the download; only its failure should reach the user.
+  await picker.locator('.template-load-btn').first().click();
+  await expect.poll(() => downloads).toBe(2);
+  const alerts = [];
+  page.on('dialog', (dialog) => alerts.push(dialog.message()));
   const failure = page.waitForEvent('dialog');
   releaseBuild();
   const alert = await failure;
   expect(alert.message()).toContain('Failed to load');
   await alert.accept();
   await expect(page.locator('.template-load-status')).toBeHidden();
+  await expect(page.locator('.simulator-workspace-control')).not.toHaveAttribute('inert', '');
   await expect(picker.locator('.template-load-btn').first()).toBeEnabled();
   await expect(page.locator('#rotation-timeline .rotation-skeleton')).toHaveCount(0);
   await expect(page.locator('#rotation-timeline .rot-skill[data-idx]')).toHaveCount(1);
   expect(await page.evaluate(() => window.professionApp.build)).toEqual(originalBuild);
   await expect(page.locator('.build-tab')).toHaveCount(1);
+  expect(alerts).toHaveLength(1);
 });
 
 // Workspace selection and global navigation leave the three tool tabs readable at every width.

@@ -1,3 +1,4 @@
+/** Renders library controls, progress, and destination locks around the headless load workflow. */
 import {
   buildSignature,
   TEMPLATE_BOON_FILTERS,
@@ -13,7 +14,33 @@ import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/t
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 
-/** Renders library controls and feedback; loading and persistence stay with the feature's actions and controller. */
+/** Lock destination controls during downloads while leaving the library and ordinary build edits available. */
+export function setLibraryNavigationLoading(app: ProfessionAppState, loading: boolean): void {
+  const root = app.templateContainer?.ownerDocument;
+
+  if (!root) return;
+
+  // These containers survive tab-list redraws, so newly rendered rows inherit the same lock.
+  const controls = [
+    '.simulator-workspace-control',
+    '.simulator-profession-control',
+    '#simulator-profession-menu',
+    '.simulator-view-tabs',
+    '.build-tab-list',
+    '.build-pinned-tabs',
+    '[data-build-tab-action="new"]',
+    '[data-build-tab-action="duplicate"]',
+    '#boss-scenario-select',
+    '#boss-scenario-menu'
+  ];
+  for (const control of root.querySelectorAll<HTMLElement>(controls.join(','))) {
+    control.inert = loading;
+
+    if (loading) control.setAttribute('aria-disabled', 'true');
+    else control.removeAttribute('aria-disabled');
+  }
+}
+
 export function templateSnowCrowsLink(preset: Pick<BuildTemplatePreset, 'snowCrowsUrl'>): string {
   // Only presets with explicit source metadata expose an external build-page action.
   return preset.snowCrowsUrl
@@ -281,10 +308,10 @@ export function updateTemplateSelection(app: ProfessionAppState): void {
   const toast = container.querySelector<HTMLElement>('.template-toast');
 
   if (toast) {
-    toast.hidden = !app.templateUndoBuild;
+    toast.hidden = !app.templateUndo;
     const message = toast.querySelector('.template-toast-message');
 
-    if (message) message.textContent = app.templateUndoMessage || 'Loaded template.';
+    if (message) message.textContent = app.templateUndo?.message || 'Loaded template.';
   }
 
   const current = app.currentTemplate;

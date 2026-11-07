@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/actions.js';
+import { loadMyBuildEntry, loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/actions.js';
 import { loadPresetBundle } from '#gw2/app/build/library/assets.js';
+import { beginLibraryLoad, loadLibraryTemplate } from '#gw2/app/build/library/load.js';
 import { templateBoon, templateCategory, templateSpecializations } from '#gw2/app/build/library/model.js';
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
@@ -28,6 +29,8 @@ function createApp() {
     adapter: {
       id: 'mesmer',
       profession: {},
+      eliteSpecialization: () => 'Core',
+      slotLoadout: { normalizeBuild: () => ({}) },
       storageKey: 'test-build',
       toApplicationBuild: (build) => ({
         ...structuredClone(build),
@@ -45,15 +48,7 @@ function createApp() {
     },
     currentTemplate: null,
     templateContainer: null,
-    templateUndoBuild: null
-  };
-}
-
-function createButton() {
-  return {
-    disabled: false,
-    innerHTML: '<span>Template</span>',
-    textContent: ''
+    templateUndo: null
   };
 }
 
@@ -161,7 +156,7 @@ test('template actions load paired or partial state and support undo', async (t)
 
   const templateApp = createApp();
 
-  await loadTemplateAction(templateApp, preset, 'template', createButton());
+  await loadTemplateAction(templateApp, preset, 'template');
   assert.equal(templateApp.build.marker, 'template');
   assert.deepEqual(templateApp.build.rotation, [{ type: 'cast', skillId: 'Template rotation' }]);
   assert.deepEqual(templateApp.changedCalls, [[true, true, { deferRotationRender: true }]]);
@@ -177,14 +172,14 @@ test('template actions load paired or partial state and support undo', async (t)
 
   const buildOnlyApp = createApp();
 
-  await loadTemplateAction(buildOnlyApp, preset, 'build', createButton());
+  await loadTemplateAction(buildOnlyApp, preset, 'build');
   assert.equal(buildOnlyApp.build.marker, 'template');
   assert.deepEqual(buildOnlyApp.build.rotation, [{ type: 'cast', skillId: 'Current rotation' }]);
   assert.deepEqual(buildOnlyApp.changedCalls, [[true, true, { deferRotationRender: true }]]);
 
   const rotationOnlyApp = createApp();
 
-  await loadTemplateAction(rotationOnlyApp, preset, 'rotation', createButton());
+  await loadTemplateAction(rotationOnlyApp, preset, 'rotation');
   assert.equal(rotationOnlyApp.build.marker, 'current');
   assert.deepEqual(rotationOnlyApp.build.rotation, [{ type: 'cast', skillId: 'Template rotation' }]);
   assert.deepEqual(
@@ -247,8 +242,7 @@ test('template loading preserves explicit Mesmer variant IDs before the first si
       build: 'data/gw2/builds/mesmer/ambiguous-mirage.json',
       rotation: 'data/gw2/rotations/mesmer/ambiguous-mirage.json'
     },
-    'template',
-    createButton()
+    'template'
   );
   app.attributeData = mesmerAppAdapter
     .createBuildContext({
@@ -316,7 +310,7 @@ test('Engineer rotation-only template loading resolves morph slots before simula
     },
     patch: adapter.profession.resolvePatch({ id: 'current' })
   };
-  await loadTemplateAction(app, { label: 'Morph rotation', rotation: 'rotation.json' }, 'rotation', createButton());
+  await loadTemplateAction(app, { label: 'Morph rotation', rotation: 'rotation.json' }, 'rotation');
   assert.deepEqual(app.build, {
     ...original,
     rotation: [
@@ -365,8 +359,7 @@ test('a complete template without a rotation clears stale rotation state', async
       label: 'Power',
       build: 'data/gw2/builds/mesmer/build-only.json'
     },
-    'template',
-    createButton()
+    'template'
   );
 
   assert.equal(app.build.marker, 'build-only-template');
@@ -390,7 +383,7 @@ test('boss manifest selections fetch only the build and clear the rotation with 
       app.build.rotation = structuredClone(rotation);
       app.workspace = { scenario: {}, tabs: [], persist() {} };
       requested.length = 0;
-      await loadTemplateAction(app, preset, action, createButton());
+      await loadTemplateAction(app, preset, action);
       assert.deepEqual(requested, [preset.build]);
       assert.equal(app.build.marker, 'downloaded');
       assert.deepEqual(app.build.rotation, []);
@@ -400,4 +393,136 @@ test('boss manifest selections fetch only the build and clear the rotation with 
       assert.deepEqual(app.build.rotation, rotation);
     }
   }
+});
+
+// Pending requests must not own feedback or replacement after a newer library choice, even if they fail.
+test('superseded template success and failure leave the latest request and its progress intact', async (t) => {
+  for (const fails of [false, true]) {
+    const first = Promise.withResolvers();
+    const second = Promise.withResolvers();
+    t.mock.method(globalThis, 'fetch', (url) => (String(url).startsWith('first') ? first.promise : second.promise));
+    const app = createApp();
+    const oldLoad = loadTemplateAction(app, { label: 'First', build: 'first.json' }, 'template');
+    const newLoad = loadTemplateAction(app, { label: 'Second', build: 'second.json' }, 'template');
+    const request = app.libraryLoad;
+    const progress = app.templateRotationLoading;
+
+    if (fails) first.reject(new Error('Obsolete failure must not alert'));
+    else first.resolve({ ok: true, json: async () => ({ profession: 'mesmer', marker: 'first' }) });
+
+    await oldLoad;
+    assert.equal(app.libraryLoad, request);
+    assert.equal(app.templateRotationLoading, progress);
+    assert.equal(app.build.marker, 'current');
+    second.resolve({ ok: true, json: async () => ({ profession: 'mesmer', marker: 'second' }) });
+    await newLoad;
+    assert.equal(app.build.marker, 'second');
+    assert.equal(app.libraryLoad, undefined);
+    assert.equal(app.templateUndo.build.marker, 'current');
+    assert.equal(app.changedCalls.length, 1);
+  }
+});
+
+test('a late template cannot overwrite a newer template or My Builds selection', async (t) => {
+  for (const source of ['template', 'mine']) {
+    const first = Promise.withResolvers();
+    t.mock.method(globalThis, 'fetch', async (url) =>
+      String(url).startsWith('first')
+        ? first.promise
+        : {
+            ok: true,
+            json: async () => ({ profession: 'mesmer', marker: 'second' })
+          }
+    );
+    const app = createApp();
+    const oldLoad = loadTemplateAction(app, { label: 'First', build: 'first.json' }, 'template');
+
+    if (source === 'template') await loadTemplateAction(app, { label: 'Second', build: 'second.json' }, 'template');
+    else loadMyBuildEntry(app, { name: 'Mine', build: { ...app.build, marker: 'second' } });
+
+    first.resolve({ ok: true, json: async () => ({ profession: 'mesmer', marker: 'first' }) });
+    await oldLoad;
+    assert.equal(app.build.marker, 'second');
+    assert.equal(app.changedCalls.length, 1);
+    assert.equal(app.libraryLoad, undefined);
+    undoTemplateLoad(app);
+    assert.equal(app.build.marker, 'current');
+  }
+});
+
+// Undo must cancel ownership immediately, including pending loads that would create a separate tab.
+test('library Undo supersedes pending downloads and ignores their late success or failure', async (t) => {
+  for (const action of ['template', 'new-tab']) {
+    for (const fails of [false, true]) {
+      const ready = Promise.withResolvers();
+      t.mock.method(globalThis, 'fetch', () => ready.promise);
+      const app = createApp();
+      const original = structuredClone(app.build);
+      loadMyBuildEntry(app, { name: 'Mine', build: { ...app.build, marker: 'saved' } });
+      const loading = loadTemplateAction(app, { label: 'Pending', build: 'pending.json' }, action);
+      undoTemplateLoad(app);
+      assert.deepEqual(app.build, original);
+      assert.equal(app.libraryLoad, undefined);
+      assert.equal(app.templateRotationLoading, undefined);
+      assert.equal(app.templateUndo, null);
+
+      if (fails) ready.reject(new Error('Cancelled download'));
+      else ready.resolve({ ok: true, json: async () => ({ profession: 'mesmer', marker: 'late' }) });
+
+      await loading;
+      assert.deepEqual(app.build, original);
+      assert.equal(app.changedCalls.length, 2);
+    }
+  }
+});
+
+test('headless template loads reject edits and destination changes before installing metadata', async (t) => {
+  for (const change of ['edit', 'workspace', 'tab', 'patch']) {
+    for (const action of ['template', 'new-tab']) {
+      if (change === 'edit' && action === 'new-tab') continue;
+
+      const ready = Promise.withResolvers();
+      t.mock.method(globalThis, 'fetch', () => ready.promise);
+      const app = createApp();
+      app.workspace = { activeTabId: 'original', tabs: [] };
+      const request = beginLibraryLoad(app, action);
+      const loading = loadLibraryTemplate(app, request, { label: 'Example', build: 'build.json' });
+
+      if (change === 'edit') app.analysis.state.buildRevision++;
+
+      if (change === 'workspace') app.workspace = { ...app.workspace };
+
+      if (change === 'tab') app.workspace.activeTabId = 'other';
+
+      if (change === 'patch') app.patch = { ...app.patch, id: 'other' };
+
+      ready.resolve({ ok: true, json: async () => ({ profession: 'mesmer', marker: 'downloaded' }) });
+      await assert.rejects(loading, /build changed while loading/);
+      assert.equal(app.build.marker, 'current');
+      assert.equal(app.templateUndo, null);
+      assert.equal(app.currentTemplate, null);
+      assert.equal(app.changedCalls.length, 0);
+      assert.equal(app.workspace.tabs.length, 0);
+    }
+  }
+});
+
+test('a malformed paired rotation leaves the build and library metadata untouched', async (t) => {
+  t.mock.method(globalThis, 'fetch', async (url) => ({
+    ok: true,
+    json: async () => (String(url).startsWith('rotation') ? {} : { profession: 'mesmer', marker: 'downloaded' })
+  }));
+  const app = createApp();
+  const request = beginLibraryLoad(app, 'template');
+  await assert.rejects(
+    loadLibraryTemplate(app, request, {
+      label: 'Example',
+      build: 'build.json',
+      rotation: 'rotation.json'
+    }),
+    /Rotation array missing/
+  );
+  assert.equal(app.build.marker, 'current');
+  assert.equal(app.templateUndo, null);
+  assert.equal(app.changedCalls.length, 0);
 });

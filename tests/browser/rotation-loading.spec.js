@@ -188,7 +188,7 @@ test('template skeleton preserves the populated builder dimensions', async ({ pa
     const visibleDuringLoad = await page.evaluate(async () => {
       const { loadTemplateAction } = await import('/js/games/gw2/app/build/library/actions.ts');
       const app = window.professionApp;
-      void loadTemplateAction(app, app.templatePresets[0], 'template', document.querySelector('.template-load-btn'));
+      void loadTemplateAction(app, app.templatePresets[0], 'template');
       // Check the first paint without locator retries masking a visibility transition.
       return [...document.querySelectorAll('#rotation-timeline .rot-skill, #rotation-timeline .rot-skill span')]
         .filter((element) => getComputedStyle(element).visibility !== 'hidden')
