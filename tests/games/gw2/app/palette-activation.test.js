@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import { hasConfigurableDoubleEdgeOutcome } from '#gw2/app/rotation/editing/double-edge-editor.js';
+import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { dispatchPaletteAction, dispatchPaletteActivation } from '#gw2/app/rotation/palette/interactions.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { THIEF_SKILL_IDS } from '#gw2/professions/thief/data/ids.js';
@@ -77,6 +78,25 @@ function request(type, skill = ordinary) {
     ...(type === 'drop' ? { index: 2 } : {})
   };
 }
+
+// Dropping at the displayed cursor reuses its prefix; probing another position preserves that cached result.
+test('drop planning reuses the normalized cursor preview', () => {
+  const { app } = actionApp([ordinary]);
+  app.build.rotation = [{ type: 'cooldown-reset' }, { type: 'combat-start' }];
+  app.rotationInsertionIndex = '1';
+  const previewed = [];
+  app.adapter.calculateCursorPreview = ({ rotation }) => {
+    previewed.push(rotation.length);
+    return { planningState: { atSeconds: rotation.length } };
+  };
+
+  const cursorState = capturePaletteInput(app).planning;
+  assert.equal(capturePaletteInput(app, 1).planning, cursorState);
+  assert.deepEqual(previewed, [1]);
+  assert.equal(capturePaletteInput(app, 0).planning.atSeconds, 0);
+  assert.equal(capturePaletteInput(app, 1).planning, cursorState);
+  assert.deepEqual(previewed, [1, 0]);
+});
 
 for (const type of ['activate', 'drop']) {
   test(`${type} waits for matching accepted results before resolving actions or editors`, () => {

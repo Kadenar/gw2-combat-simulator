@@ -3,12 +3,16 @@ import { activeSpecialization, cursorPreview, palettePlanningState } from '#gw2/
 import type { PaletteInput } from '#gw2/app/rotation/palette/model.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { normalizeRotationInsertionIndex } from '#ui/rotation/insertion-cursor.js';
 
 export function capturePaletteInput(app: ProfessionAppState, insertionIndex?: number): PaletteInput {
   const { build, activeCatalog: catalog, adapter, profession, patch } = app;
   const specialization = activeSpecialization(app);
+  const cursorIndex =
+    normalizeRotationInsertionIndex(app.rotationInsertionIndex, build.rotation.length) ?? build.rotation.length;
+  // A drop at the cursor can reuse the prefix already calculated for the palette.
   const planning =
-    insertionIndex === undefined
+    insertionIndex === undefined || insertionIndex === cursorIndex
       ? palettePlanningState(app)
       : (cursorPreview(app).candidate(insertionIndex)?.planningState ?? null);
   const skillTooltip = adapter.skillTooltip;
