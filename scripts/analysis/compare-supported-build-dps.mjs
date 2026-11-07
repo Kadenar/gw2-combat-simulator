@@ -10,7 +10,7 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { format, resolveConfig } from 'prettier';
 
-import { findPendingPatchBenchmark } from '#gw2/app/page/benchmark-patch-preview.js';
+import { findPendingPatchBenchmark } from '#gw2/app/page/benchmarks/patch-preview.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 

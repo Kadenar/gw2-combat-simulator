@@ -2,7 +2,7 @@ import {
   comparisonDpsAt,
   type ComparisonMode,
   type ComparisonResult
-} from '#gw2/app/page/benchmark-comparison/model.js';
+} from '#gw2/app/page/benchmarks/comparison/model.js';
 import { chartAxisMaximum, type ChartPoint } from '#gw2/app/results/charts/time-series-model.js';
 
 export interface ComparisonLine {

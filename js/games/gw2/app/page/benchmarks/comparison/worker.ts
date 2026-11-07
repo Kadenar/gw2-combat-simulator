@@ -1,5 +1,5 @@
-import type { ComparisonRequest } from '#gw2/app/page/benchmark-comparison/model.js';
-import type { Benchmark } from '#gw2/app/page/benchmarks.js';
+import type { ComparisonRequest } from '#gw2/app/page/benchmarks/comparison/model.js';
+import type { Benchmark } from '#gw2/app/page/benchmarks/model.js';
 
 const prepared = new Map<string, ComparisonRequest>();
 
@@ -17,8 +17,8 @@ self.addEventListener(
         { simulateGw2 },
         { loadGw2WorkerDriver }
       ] = await Promise.all([
-        import('#gw2/app/page/benchmark-comparison/request.js'),
-        import('#gw2/app/page/benchmark-comparison/model.js'),
+        import('#gw2/app/page/benchmarks/comparison/request.js'),
+        import('#gw2/app/page/benchmarks/comparison/model.js'),
         import('#gw2/platform/simulation/simulate.js'),
         import('#gw2/worker-driver.js')
       ]);

@@ -26,7 +26,7 @@ async function mountProfession(contentId: string, root: Document): Promise<Profe
   await app.init();
 
   if (new URLSearchParams(root.defaultView?.location.search).has('benchmark')) {
-    const { openBenchmarkWorkspace } = await import('#gw2/app/page/benchmark-workspace.js');
+    const { openBenchmarkWorkspace } = await import('#gw2/app/page/benchmarks/workspace.js');
     await openBenchmarkWorkspace(app, root);
   }
 

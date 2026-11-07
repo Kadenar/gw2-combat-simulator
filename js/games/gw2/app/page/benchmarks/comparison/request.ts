@@ -1,5 +1,5 @@
-import type { ComparisonRequest } from '#gw2/app/page/benchmark-comparison/model.js';
-import type { Benchmark } from '#gw2/app/page/benchmarks.js';
+import type { ComparisonRequest } from '#gw2/app/page/benchmarks/comparison/model.js';
+import type { Benchmark } from '#gw2/app/page/benchmarks/model.js';
 import { loadBuildContext } from '#gw2/build-context/load.js';
 import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
 import type { BuildContextModule } from '#gw2/build-context/types.js';

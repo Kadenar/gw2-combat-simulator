@@ -5,8 +5,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { benchmarkPreviewPath, validateBenchmarkPreview } from '#gw2/app/page/benchmark-preview-data.js';
-import { readBenchmarks } from '#gw2/app/page/benchmarks.js';
+import { readBenchmarks } from '#gw2/app/page/benchmarks/model.js';
+import { benchmarkPreviewPath, validateBenchmarkPreview } from '#gw2/app/page/benchmarks/preview-data.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 
 import { benchmarkPreviews, createPreviewGenerator } from '../../scripts/build/benchmark-previews.mjs';
@@ -45,12 +45,12 @@ test('preview refreshes pick up preset edits, source edits, and removed manifest
     'js/games/gw2/profession-registry.ts': `import { name } from './name.ts';
       export const professionRegistry = [{ id: 'revenant', loadBuildContext: async () => ({ name }) }];`,
     'js/games/gw2/name.ts': `export const name = 'Original';`,
-    'js/games/gw2/app/page/benchmarks.ts': `export const readBenchmarks = (_entry, manifest) => manifest;`,
-    'js/games/gw2/app/page/benchmark-preview-generation.ts': `export const createBenchmarkPreview = (adapter, candidate, build) => ({
+    'js/games/gw2/app/page/benchmarks/model.ts': `export const readBenchmarks = (_entry, manifest) => manifest;`,
+    'js/games/gw2/app/page/benchmarks/preview-generation.ts': `export const createBenchmarkPreview = (adapter, candidate, build) => ({
       build, equipment: [{ label: adapter.name, value: candidate.weapon }], specializations: [], skills: []
     });`,
-    'js/games/gw2/app/page/benchmark-preview-data.ts': await readFile(
-      new URL('../../js/games/gw2/app/page/benchmark-preview-data.ts', import.meta.url),
+    'js/games/gw2/app/page/benchmarks/preview-data.ts': await readFile(
+      new URL('../../js/games/gw2/app/page/benchmarks/preview-data.ts', import.meta.url),
       'utf8'
     ),
     'data/gw2/builds/revenant/manifest.json': JSON.stringify([{ build }]),
@@ -83,7 +83,7 @@ test('dev previews are lazy, scoped, cached, invalidated, and retryable', async 
   const root = await mkdtemp(path.join(tmpdir(), 'gw2-preview-dev-'));
   const build = 'data/gw2/builds/revenant/test.json';
   const otherBuild = 'data/gw2/builds/revenant/other.json';
-  const source = 'js/games/gw2/app/page/benchmark-preview-generation.ts';
+  const source = 'js/games/gw2/app/page/benchmarks/preview-generation.ts';
   const files = {
     'js/games/gw2/profession-registry.ts': `import process from 'node:process';
       export const professionRegistry = [
@@ -93,13 +93,13 @@ test('dev previews are lazy, scoped, cached, invalidated, and retryable', async 
       } },
       { id: 'mesmer', loadBuildContext: async () => { throw new Error('Unrequested profession loaded'); } }
     ];`,
-    'js/games/gw2/app/page/benchmarks.ts': `export const readBenchmarks = (_entry, manifest) => manifest;`,
+    'js/games/gw2/app/page/benchmarks/model.ts': `export const readBenchmarks = (_entry, manifest) => manifest;`,
     [source]: `let count = 0;
       export const createBenchmarkPreview = (_adapter, candidate, build) => ({
         build, equipment: [{ label: String(++count), value: candidate.weapon }], specializations: [], skills: []
       });`,
-    'js/games/gw2/app/page/benchmark-preview-data.ts': await readFile(
-      new URL('../../js/games/gw2/app/page/benchmark-preview-data.ts', import.meta.url),
+    'js/games/gw2/app/page/benchmarks/preview-data.ts': await readFile(
+      new URL('../../js/games/gw2/app/page/benchmarks/preview-data.ts', import.meta.url),
       'utf8'
     ),
     'data/gw2/builds/revenant/manifest.json': JSON.stringify([{ build }, { build: otherBuild }]),

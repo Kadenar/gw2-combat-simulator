@@ -1,5 +1,5 @@
-import { comparisonKey, type ComparisonResult } from '#gw2/app/page/benchmark-comparison/model.js';
-import type { Benchmark } from '#gw2/app/page/benchmarks.js';
+import { comparisonKey, type ComparisonResult } from '#gw2/app/page/benchmarks/comparison/model.js';
+import type { Benchmark } from '#gw2/app/page/benchmarks/model.js';
 
 export interface ComparisonEntry {
   status: 'queued' | 'running' | 'complete' | 'error';

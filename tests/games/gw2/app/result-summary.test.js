@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { comparisonResult } from '#gw2/app/page/benchmark-comparison/model.js';
+import { comparisonResult } from '#gw2/app/page/benchmarks/comparison/model.js';
 import { buildTimeSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { baseResultSummaryMetrics, targetHealthBreakpointSnapshots } from '#gw2/app/results/summary-metrics.js';
 import { dismissResultMetricDetails, mountResultSummary } from '#gw2/app/results/summary-view.js';

@@ -1,7 +1,7 @@
 import { loadPresetBundle } from '#gw2/app/build/library/assets.js';
 import { renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { addBuildTab, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
-import { readBenchmarks } from '#gw2/app/page/benchmarks.js';
+import { readBenchmarks } from '#gw2/app/page/benchmarks/model.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Open only a manifest-listed benchmark in a new tab, preserving existing workspace builds and hosting flags. */

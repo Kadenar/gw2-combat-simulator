@@ -1,6 +1,6 @@
 import { templateCategory, templateTileContent } from '#gw2/app/build/library/model.js';
-import { mountComparisonChart, type ComparisonLine } from '#gw2/app/page/benchmark-comparison/chart.js';
-import { createComparisonExecutor } from '#gw2/app/page/benchmark-comparison/execute.js';
+import { mountComparisonChart, type ComparisonLine } from '#gw2/app/page/benchmarks/comparison/chart.js';
+import { createComparisonExecutor } from '#gw2/app/page/benchmarks/comparison/execute.js';
 import {
   comparisonCurve,
   comparisonDamageAt,
@@ -8,10 +8,10 @@ import {
   comparisonKey,
   type ComparisonMode,
   type ComparisonResult
-} from '#gw2/app/page/benchmark-comparison/model.js';
-import { ComparisonRunner } from '#gw2/app/page/benchmark-comparison/runner.js';
-import { assignComparisonSlots, comparisonStyle } from '#gw2/app/page/benchmark-comparison/styles.js';
-import type { Benchmark } from '#gw2/app/page/benchmarks.js';
+} from '#gw2/app/page/benchmarks/comparison/model.js';
+import { ComparisonRunner } from '#gw2/app/page/benchmarks/comparison/runner.js';
+import { assignComparisonSlots, comparisonStyle } from '#gw2/app/page/benchmarks/comparison/styles.js';
+import type { Benchmark } from '#gw2/app/page/benchmarks/model.js';
 import { formatSimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { escapeHtml as html } from '#ui/shared/html.js';

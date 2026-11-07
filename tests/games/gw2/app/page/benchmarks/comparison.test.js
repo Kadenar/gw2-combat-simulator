@@ -10,9 +10,9 @@ import {
   comparisonKey,
   comparisonResult,
   savedComparisonAlliedPlayerCount
-} from '#gw2/app/page/benchmark-comparison/model.js';
-import { prepareComparisonRequest } from '#gw2/app/page/benchmark-comparison/request.js';
-import { ComparisonRunner } from '#gw2/app/page/benchmark-comparison/runner.js';
+} from '#gw2/app/page/benchmarks/comparison/model.js';
+import { prepareComparisonRequest } from '#gw2/app/page/benchmarks/comparison/request.js';
+import { ComparisonRunner } from '#gw2/app/page/benchmarks/comparison/runner.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
@@ -185,7 +185,8 @@ test('cache identity includes profession and rotation, not the display label', (
 // These smoke tests exercise canonical preset preparation and compare only total DPS to manifest values.
 for (const profession of ['guardian', 'mesmer']) {
   test(`comparison prepares and simulates a saved ${profession} preset through the canonical pipeline`, async () => {
-    const load = async (path) => JSON.parse(await readFile(new URL(`../../../../${path}`, import.meta.url), 'utf8'));
+    const load = async (path) =>
+      JSON.parse(await readFile(new URL(`../../../../../../${path}`, import.meta.url), 'utf8'));
     const manifest = await load(`data/gw2/builds/${profession}/manifest.json`);
     const preset = manifest
       .flatMap((section) => section.presets)

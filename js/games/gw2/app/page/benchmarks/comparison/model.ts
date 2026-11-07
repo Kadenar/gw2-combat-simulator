@@ -1,5 +1,5 @@
 import type { GameContentAddress } from '#browser/game/contracts.js';
-import type { Benchmark } from '#gw2/app/page/benchmarks.js';
+import type { Benchmark } from '#gw2/app/page/benchmarks/model.js';
 import type { ChartPoint } from '#gw2/app/results/charts/time-series-model.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2Build } from '#gw2/platform/builds/types.js';

@@ -111,7 +111,7 @@ function updateActiveView(root: Document, view: SimulatorView): void {
     const host = root.getElementById('benchmarks-view');
 
     if (host) {
-      void import('#gw2/app/page/benchmark-dashboard.js')
+      void import('#gw2/app/page/benchmarks/dashboard.js')
         .then(({ mountBenchmarks }) => mountBenchmarks(host))
         .catch(() => {
           host.textContent = 'Could not load the benchmark view. Reload the page to retry.';

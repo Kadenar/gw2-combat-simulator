@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { benchmarkBuildPreview } from '#gw2/app/page/benchmark-build-preview.js';
-import { benchmarkPreviewPath, validateBenchmarkPreview } from '#gw2/app/page/benchmark-preview-data.js';
-import { createBenchmarkPreview } from '#gw2/app/page/benchmark-preview-generation.js';
+import { benchmarkBuildPreview } from '#gw2/app/page/benchmarks/build-preview.js';
+import { benchmarkPreviewPath, validateBenchmarkPreview } from '#gw2/app/page/benchmarks/preview-data.js';
+import { createBenchmarkPreview } from '#gw2/app/page/benchmarks/preview-generation.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { createRevenantBuildDefaults } from '#gw2/professions/revenant/build/build.js';
 

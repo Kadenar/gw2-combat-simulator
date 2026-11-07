@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { patchBenchmarks, patchProfessionSummary, sortPatchBenchmarks } from '#gw2/app/page/benchmark-patch-preview.js';
+import {
+  patchBenchmarks,
+  patchProfessionSummary,
+  sortPatchBenchmarks
+} from '#gw2/app/page/benchmarks/patch-preview.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { validatePatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
@@ -9,7 +13,7 @@ import { validatePatchPreview } from '#gw2/integrations/patches/authoring/patche
 import {
   serializeActivePatchPreview,
   validateAuthoringPreview
-} from '../../../../scripts/patch-preview/patch-preview-authoring-api.mjs';
+} from '../../../../../../scripts/patch-preview/patch-preview-authoring-api.mjs';
 
 // Minimal measurements isolate pending eligibility and rankings from saved rotation results.
 function build(profession, specialization, label = 'Condition', previewDps = 1100) {

@@ -241,7 +241,7 @@ function bindProfessionSelector(): void {
   }
 
   if (benchmarkHost) {
-    void import('#gw2/app/page/benchmark-dashboard.js')
+    void import('#gw2/app/page/benchmarks/dashboard.js')
       .then(({ mountBenchmarks }) => mountBenchmarks(benchmarkHost))
       .catch(() => {
         benchmarkHost.textContent = 'Could not load the benchmark view. Reload the page to retry.';

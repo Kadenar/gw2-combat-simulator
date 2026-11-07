@@ -163,7 +163,7 @@ test('comparison loads on demand, runs different professions, and keeps chart in
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.goto('/benchmarks.html');
   await expect(page.locator('[data-benchmark-dashboard]')).toHaveAttribute('aria-busy', 'false');
-  expect(requests.some((url) => url.includes('/benchmark-comparison/'))).toBe(false);
+  expect(requests.some((url) => url.includes('/benchmarks/comparison/'))).toBe(false);
   expect(workers).toBe(0);
   await page.getByRole('button', { name: 'Simulate comparison', exact: true }).click();
   await expect(page.locator('[data-bc-search]')).toBeVisible();
@@ -334,7 +334,7 @@ test('repeated comparisons reuse workers and prepared preset assets', async ({ p
 // Control result delivery and the browser clock to verify reveals without depending on worker speed.
 test('fresh results reveal once while cached visibility changes stay immediate', async ({ page }) => {
   await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
-  await page.route('**/benchmark-comparison/execute.ts*', (route) =>
+  await page.route('**/benchmarks/comparison/execute.ts*', (route) =>
     route.fulfill({
       contentType: 'application/javascript',
       body: `

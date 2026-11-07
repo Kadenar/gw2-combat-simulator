@@ -10,7 +10,7 @@ import {
   filterBenchmarks,
   hasBenchmarkApm,
   readBenchmarks
-} from '#gw2/app/page/benchmarks.js';
+} from '#gw2/app/page/benchmarks/model.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 
 const profession = { id: 'mesmer', name: 'Mesmer' };
@@ -121,7 +121,7 @@ test('every rotation-backed manifest entry supplies APM and explicit health-band
     'warrior'
   ]) {
     const sections = JSON.parse(
-      await readFile(new URL(`../../../../data/gw2/builds/${id}/manifest.json`, import.meta.url), 'utf8')
+      await readFile(new URL(`../../../../../../data/gw2/builds/${id}/manifest.json`, import.meta.url), 'utf8')
     );
     for (const { presets } of sections) {
       for (const preset of presets.filter((entry) => entry.rotation)) {

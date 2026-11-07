@@ -1,9 +1,8 @@
 import { navigationRoute } from '#browser/page/embed.js';
 import { templateBoon, templateCategory } from '#gw2/app/build/library/model.js';
-import { benchmarkBuildPreview } from '#gw2/app/page/benchmark-build-preview.js';
-import type { BenchmarkComparisonView } from '#gw2/app/page/benchmark-comparison/view.js';
-import { mountHealthInteractions } from '#gw2/app/page/benchmark-health-interactions.js';
-import { mountBenchmarkPatchPreview, patchBenchmarks } from '#gw2/app/page/benchmark-patch-preview.js';
+import { benchmarkBuildPreview } from '#gw2/app/page/benchmarks/build-preview.js';
+import type { BenchmarkComparisonView } from '#gw2/app/page/benchmarks/comparison/view.js';
+import { mountHealthInteractions } from '#gw2/app/page/benchmarks/health-interactions.js';
 import {
   benchmarkApmScale,
   benchmarkColors,
@@ -13,7 +12,8 @@ import {
   hasBenchmarkApm,
   readBenchmarks,
   type Benchmark
-} from '#gw2/app/page/benchmarks.js';
+} from '#gw2/app/page/benchmarks/model.js';
+import { mountBenchmarkPatchPreview, patchBenchmarks } from '#gw2/app/page/benchmarks/patch-preview.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
@@ -1088,7 +1088,7 @@ export function mountBenchmarks(root: HTMLElement): void {
 
     const panel = root.querySelector<HTMLElement>('[data-chart-panel="comparison"]')!;
     panel.textContent = 'Loading comparison…';
-    comparisonLoading = import('#gw2/app/page/benchmark-comparison/view.js')
+    comparisonLoading = import('#gw2/app/page/benchmarks/comparison/view.js')
       .then(({ mountBenchmarkComparison }) => {
         comparison = mountBenchmarkComparison(panel);
         comparison.update(benchmarks, colors);

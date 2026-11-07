@@ -109,7 +109,7 @@ test('home benchmark access fits a phone viewport', async ({ page }) => {
 // The entry page paints a responsive skeleton before the lazy dashboard module can mount.
 test('benchmark startup shows a skeleton before loading its module', async ({ page }) => {
   const moduleReady = Promise.withResolvers();
-  await page.route('**/js/games/gw2/app/page/benchmark-dashboard.ts*', async (route) => {
+  await page.route('**/js/games/gw2/app/page/benchmarks/dashboard.ts*', async (route) => {
     await moduleReady.promise;
     await route.continue();
   });

@@ -26,12 +26,12 @@ export async function createPreviewGenerator(root) {
     invalidate: () => runner.moduleGraph.invalidateAll(),
     async generate(requestedPath) {
       const { professionRegistry } = await runner.ssrLoadModule('/js/games/gw2/profession-registry.ts');
-      const { readBenchmarks } = await runner.ssrLoadModule('/js/games/gw2/app/page/benchmarks.ts');
+      const { readBenchmarks } = await runner.ssrLoadModule('/js/games/gw2/app/page/benchmarks/model.ts');
       const { createBenchmarkPreview } = await runner.ssrLoadModule(
-        '/js/games/gw2/app/page/benchmark-preview-generation.ts'
+        '/js/games/gw2/app/page/benchmarks/preview-generation.ts'
       );
       const { benchmarkPreviewPath, validateBenchmarkPreview } = await runner.ssrLoadModule(
-        '/js/games/gw2/app/page/benchmark-preview-data.ts'
+        '/js/games/gw2/app/page/benchmarks/preview-data.ts'
       );
       const assets = new Map();
       for (const entry of professionRegistry) {

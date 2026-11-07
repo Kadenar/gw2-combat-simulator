@@ -1,5 +1,5 @@
 import type { ProfessionSpecialization } from '#gw2/app/build/types.js';
-import type { BenchmarkPreviewData, PreviewIcon } from '#gw2/app/page/benchmark-preview-data.js';
+import type { BenchmarkPreviewData, PreviewIcon } from '#gw2/app/page/benchmarks/preview-data.js';
 import type { BuildContextModule } from '#gw2/build-context/types.js';
 import type { CatalogEntity } from '#gw2/platform/skills/types.js';
 

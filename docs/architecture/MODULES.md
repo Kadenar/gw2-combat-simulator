@@ -169,7 +169,8 @@ loads preview-aware engines without browser adapters. Jobs use the headless buil
 Import/export applies transition-delay metadata there; rotation undo does not roll it back. Settings controls live in
 `build/panels/simulation-settings.ts`.
 
-`page/benchmark-comparison/` owns explicit simulation comparisons; browsing saved dashboard metrics does not launch
+`page/benchmarks/` owns the dashboard, build previews, workspace entry, and comparison tools.
+`page/benchmarks/comparison/` owns explicit simulation comparisons; browsing saved dashboard metrics does not launch
 simulations. `boss-scenarios/simulation.ts` compiles scenario plans, while `platform/combat/state/encounter.ts` owns
 live encounter execution. See [Benchmarks](../../wiki/Benchmarks.md) and [Boss scenarios](../../wiki/Boss-Scenarios.md).
 
