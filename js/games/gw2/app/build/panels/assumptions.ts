@@ -1,9 +1,4 @@
-import {
-  normalizeTargetArmor,
-  STACKING_TARGET_CONDITIONS,
-  TARGET_ARMOR_OPTIONS,
-  TARGET_CONDITION_GROUPS
-} from '#gw2/app/build/panels/metadata.js';
+/** Owns assumption controls and target choices while preserving encounter-owned health and armor. */
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
@@ -14,11 +9,62 @@ import type {
   ProfessionBuildAssumptions
 } from '#gw2/platform/builds/types.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
-import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
+import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
+import { BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { requiredInput, requiredSelect } from '#ui/shared/dom.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 import { optionHtml } from '#ui/shared/select-options.js';
+
+// Controls use runtime condition names so saved assumptions and result icons share the same keys.
+export const TARGET_CONDITION_GROUPS = Object.freeze([
+  Object.freeze({
+    label: 'Damaging',
+    conditions: Object.freeze([
+      CONDITION.BURNING,
+      CONDITION.BLEEDING,
+      CONDITION.TORMENT,
+      CONDITION.CONFUSION,
+      CONDITION.POISONED
+    ])
+  }),
+  Object.freeze({
+    label: 'Control',
+    conditions: Object.freeze([
+      CONDITION.VULNERABILITY,
+      CONDITION.WEAKNESS,
+      CONDITION.BLINDNESS,
+      CONDITION.SLOW,
+      CONDITION.CHILLED,
+      CONDITION.CRIPPLED,
+      CONDITION.IMMOBILIZED,
+      CONDITION.FEAR,
+      CONDITION.TAUNT
+    ])
+  })
+]);
+
+export const STACKING_TARGET_CONDITIONS = new Set<string>([
+  CONDITION.VULNERABILITY,
+  CONDITION.BLEEDING,
+  CONDITION.TORMENT,
+  CONDITION.CONFUSION
+]);
+
+export const TARGET_ARMOR_OPTIONS = Object.freeze([
+  Object.freeze({ value: STANDARD_TARGET_ARMOR, label: 'Base' }),
+  Object.freeze({ value: 1910, label: 'Vale Guardian / Keep Construct' }),
+  Object.freeze({ value: 5346, label: 'McLeod' }),
+  Object.freeze({ value: 2460, label: 'Berg' }),
+  Object.freeze({ value: 2323, label: 'Zane' }),
+  Object.freeze({ value: 2184, label: 'Narella' })
+]);
+
+/** Keeps custom armor positive and replaces nonfinite values with standard armor. */
+export function normalizeTargetArmor(value: number | string): number {
+  const armor = Number(value);
+  return Number.isFinite(armor) ? Math.max(1, armor) : STANDARD_TARGET_ARMOR;
+}
 
 const PERMANENT_BOONS: readonly (readonly [string, string])[] = [
   [boonKey(BOON.FURY), BOON.FURY],

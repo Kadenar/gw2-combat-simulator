@@ -1,15 +1,27 @@
+/** Renders attribute values and isolated preview controls with panel-owned display ordering and formatting. */
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
-import {
-  DERIVED_ATTRIBUTES,
-  PERCENT_ATTRIBUTES,
-  PRIMARY_ATTRIBUTES,
-  SPECIFIC_CONDITION_DURATION_ATTRIBUTES
-} from '#gw2/app/build/panels/metadata.js';
 import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { CONDITION_DURATION_ATTRIBUTES, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
 import type { AttributePreviewValues } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
+
+const DERIVED_ATTRIBUTES = Object.freeze([
+  'Critical Chance',
+  'Critical Damage',
+  'Condition Duration',
+  'Boon Duration',
+  'Bleeding Duration',
+  'Burning Duration',
+  'Confusion Duration',
+  'Poison Duration',
+  'Torment Duration'
+]);
+
+const PERCENT_ATTRIBUTES = new Set(DERIVED_ATTRIBUTES);
+
+const SPECIFIC_CONDITION_DURATION_ATTRIBUTES = new Set([...CONDITION_DURATION_ATTRIBUTES]);
 
 export function renderAttributes(app: ProfessionAppState): void {
   const weaponSet = document.getElementById('attribute-weapon-set');
