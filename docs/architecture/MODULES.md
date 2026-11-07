@@ -135,9 +135,10 @@ replace unrelated charts or expanded rows.
 
 ### Skill-damage preview
 
-`build/skill-damage/lifecycle.ts` owns preparation, measurement requests and accepted results. One instance per
-profession app retains preview choices and the last completed result across build tabs. The panel owns HTML, filters,
-row expansion, focus, scrolling and the saved disclosure preference.
+`build/skill-damage/` keeps the panel, lifecycle, stat calculation, worker runner, and worker entry together.
+`lifecycle.ts` owns preparation, measurement requests and accepted results. One instance per profession app retains
+preview choices and the last completed result across build tabs. The panel owns HTML, filters, row expansion, focus,
+scrolling and the saved disclosure preference.
 
 The lifecycle requests captured inputs only when needed. Closed refreshes, closing the panel and unchanged normalized
 values skip capture. `input.ts` returns no input while build attributes are unavailable. Otherwise it copies the build

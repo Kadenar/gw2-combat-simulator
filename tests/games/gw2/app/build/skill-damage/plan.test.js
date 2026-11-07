@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { attributeEffectControls, attributePreviewContext } from '#gw2/app/build/attribute-effects.js';
-import { calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
+import { calculateSkillDamageAttributes } from '#gw2/app/build/skill-damage/attributes.js';
 import {
   clearedValues,
   createSkillDamagePlan,

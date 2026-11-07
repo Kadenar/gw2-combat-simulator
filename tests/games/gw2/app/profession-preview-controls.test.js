@@ -3,7 +3,8 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 import { attributeEffectControls, attributePreviewContext } from '#gw2/app/build/attribute-effects.js';
-import { calculateBuffedAttributes, calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
+import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
+import { calculateSkillDamageAttributes } from '#gw2/app/build/skill-damage/attributes.js';
 import { clearedValues, createSkillDamagePlan, skillDamageControls } from '#gw2/app/build/skill-damage/plan.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { renderSkillDamage, renderSkillDamageChange } from '#gw2/app/build/panels/skill-damage.js';
+import { renderSkillDamage, renderSkillDamageChange } from '#gw2/app/build/skill-damage/panel.js';
 import { evaluateSkillDamage } from '#gw2/platform/skill-damage/measure-occurrences.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { firstPresetBuildPath, headlessApp, skillDamageFixture } from '#tests/helpers/skill-damage.js';

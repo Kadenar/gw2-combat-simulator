@@ -3,9 +3,10 @@ import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#browser/shell/rotation-workspace.js';
 import { ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
 import { mountBossScenarios } from '#gw2/app/boss-scenarios/view.js';
-import { renderSkillDamageChange, skillDamageDisclosureOpen } from '#gw2/app/build/panels/skill-damage.js';
 import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { SkillDamageLifecycle } from '#gw2/app/build/skill-damage/lifecycle.js';
+import { renderSkillDamageChange, skillDamageDisclosureOpen } from '#gw2/app/build/skill-damage/panel.js';
+import { SkillDamageRunner } from '#gw2/app/build/skill-damage/runner.js';
 import {
   normalizeSelectedSkillsAndAttributes,
   swapSelectedSkillsForPatch
@@ -44,7 +45,6 @@ import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js
 import { ModifierContributionRunner } from '#gw2/app/simulation/modifier-contributions/runner.js';
 import { RandomDistributionRunner } from '#gw2/app/simulation/random-distribution/runner.js';
 import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
-import { SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.js';
 import type { Gw2AppAdapter, ProfessionAppState, ProfessionChangeOptions } from '#gw2/app/types.js';
 import type { BuildAttributes } from '#gw2/build-context/types.js';
 import type { ResolvedPatch } from '#gw2/integrations/patches/selection.js';

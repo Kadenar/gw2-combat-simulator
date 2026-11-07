@@ -1,6 +1,6 @@
 /** Prepares isolated damage inputs and accepts matching results without reading browser state. */
 import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
-import { calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
+import { calculateSkillDamageAttributes } from '#gw2/app/build/skill-damage/attributes.js';
 import type { SkillDamageInput } from '#gw2/app/build/skill-damage/input.js';
 import {
   clearedValues,
@@ -9,7 +9,7 @@ import {
   skillDamageControls,
   type SkillDamagePlan
 } from '#gw2/app/build/skill-damage/plan.js';
-import type { SkillDamageListener, SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.js';
+import type { SkillDamageListener, SkillDamageRunner } from '#gw2/app/build/skill-damage/runner.js';
 import type { Gw2AttributeMap } from '#gw2/platform/attributes/types.js';
 import type {
   AttributePreviewValues,
