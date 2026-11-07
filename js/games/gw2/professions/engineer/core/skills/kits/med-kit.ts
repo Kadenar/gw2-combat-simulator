@@ -94,7 +94,8 @@ export const ENGINEER_MED_KIT_SKILL_MECHANICS: Readonly<Record<string, SkillDefi
       {
         ownerId: 'engineer',
         fieldType: COMBO_FIELD.WATER,
-        duration: 3,
+        // The field remains combo-eligible after its final cleanse pulse, matching the recorded four-second effect.
+        duration: 4,
         startAnchor: 'castEnd'
       }
     ],

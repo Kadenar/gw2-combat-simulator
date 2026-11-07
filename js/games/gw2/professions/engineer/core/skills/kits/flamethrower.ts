@@ -1,3 +1,4 @@
+/** Defines Flamethrower attacks and keeps launched blasts alive when a kit swap ends their recovery. */
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
@@ -102,7 +103,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
           coefficient: 1.3,
           hits: 1,
           name: 'Flame Blast',
-          interruptCommitMs: 480,
+          interruptCommitMs: 400,
           actorType: ACTOR.PLAYER,
           comboFinishers: [
             {
@@ -117,7 +118,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
           condition: CONDITION.BURNING,
           stacks: 1,
           duration: 6,
-          interruptCommitMs: 480,
+          interruptCommitMs: 400,
           actorType: ACTOR.PLAYER
         }
       ]

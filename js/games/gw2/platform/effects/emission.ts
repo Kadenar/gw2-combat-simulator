@@ -79,6 +79,8 @@ export interface AnnouncementEmission extends EffectDelivery, EmissionOptions {
     readonly type: string;
     readonly name: string;
     readonly at: number;
+    /** Distinguishes independent occurrences that share a timestamp and display text. */
+    readonly occurrenceId?: string;
     readonly sourceSkill?: string;
     readonly detail?: string;
     readonly icon?: string;

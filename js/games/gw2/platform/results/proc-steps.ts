@@ -1,3 +1,4 @@
+/** Preserves identified proc occurrences while coalescing repeated announcements of the same occurrence. */
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { AnnouncementEmission } from '#gw2/platform/effects/emission.js';
@@ -22,6 +23,7 @@ export class ProcStepRecorder implements ProcStepObserver {
       type,
       name,
       at,
+      occurrenceId,
       sourceSkill = '',
       detail = '',
       icon = '',
@@ -44,9 +46,8 @@ export class ProcStepRecorder implements ProcStepObserver {
       );
 
     const start = Math.round(at * 1000);
-    // Detail distinguishes genuinely sequential procs (e.g. per-blade stack counts)
-    // landing at the same instant from the same skill; without it they'd collapse to one row.
-    const key = `${type}|${name}|${start}|${sourceSkill}|${detail}`;
+    // Independent combos can have identical display text and timestamps; their IDs preserve each visible proc.
+    const key = JSON.stringify([type, name, start, sourceSkill, detail, occurrenceId]);
 
     if (this.keys.has(key)) return;
 

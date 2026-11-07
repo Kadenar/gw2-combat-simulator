@@ -591,6 +591,25 @@ test('Shred fires three Burning Bolts through Stoke the Flames', () => {
   );
 });
 
+// Combo eligibility lasts through the water field's final second and ends when the field expires.
+test('Cleansing Field permits late water combos only while its field remains active', () => {
+  for (const [waitMs, expectedCombos] of [
+    [3200, 1],
+    [4200, 0]
+  ]) {
+    const result = simulate(
+      'Core',
+      ['Med Kit', 'Cleansing Field', 'Stow Med Kit', { type: 'wait', durationMs: waitMs }, 'Conduit Surge'],
+      { selectedSkillIds: [ID.MED_KIT], primaryWeapon: 'Spear' }
+    );
+    assert.deepEqual(result.warnings, []);
+    const combos = result.resolvedEvents.filter(
+      (event) => event.type === 'combo' && event.skillName === 'Conduit Surge' && event.fieldType === 'Water'
+    );
+    assert.equal(combos.length, expectedCombos);
+  }
+});
+
 test('Engineer spear focus selects its condition branch and consumes Lightning Rod charges', () => {
   const focused = simulate(
     'Amalgam',

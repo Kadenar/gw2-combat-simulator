@@ -326,6 +326,50 @@ test('Steamshrieker burns from water blasts and leaps without broadening Bloodst
   );
 });
 
+// Trait effects retain the player's combo ownership without granting the relic to summons or unowned effects.
+test('Steamshrieker accepts player-owned effect finishers and rejects other actors', () => {
+  for (const [actorType, ownerActorType, expectedProcs] of [
+    ['effect', 'player', 1],
+    ['effect', undefined, 0],
+    ['summon', 'player', 0],
+    ['environment', 'player', 0]
+  ]) {
+    const result = resolve(
+      [
+        field('water:ownership', 'Water'),
+        finisher('owned-blast', 'water:ownership', { finisherType: 'Blast', actorType, ownerActorType })
+      ],
+      { relic: 'Steamshrieker' }
+    );
+    assert.equal(
+      result.resolvedEvents.filter(
+        (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.STEAMSHRIEKER}`
+      ).length,
+      expectedProcs,
+      actorType
+    );
+  }
+});
+
+// Distinct outcomes from a single finisher must remain distinct in both damage and timeline observations.
+test('simultaneous Steamshrieker combos retain each relic announcement', () => {
+  const result = resolve(
+    [
+      field('water:double', 'Water'),
+      finisher('double-blast', 'water:double', { finisherType: 'Blast', successfulCombos: 2 })
+    ],
+    { relic: 'Steamshrieker' }
+  );
+  const combos = result.resolvedEvents.filter((event) => event.type === 'combo');
+  const burns = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.sourceId === `relic.${RELIC_IDS.STEAMSHRIEKER}`
+  );
+  const announcements = result.procSteps.filter((step) => step.skill === 'Relic of Steamshrieker');
+  assert.equal(new Set(combos.map((event) => event.comboId)).size, 2);
+  assert.equal(burns.length, combos.length);
+  assert.equal(announcements.length, combos.length);
+});
+
 test('target death prevents later authoritative combo outcomes', () => {
   const result = resolve(
     [
