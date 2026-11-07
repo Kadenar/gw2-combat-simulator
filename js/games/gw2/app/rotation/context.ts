@@ -56,9 +56,4 @@ export function palettePlanningResult(app: ProfessionAppState) {
 export const palettePlanningState = (app: ProfessionAppState): AnalysisResult['planningState'] | null =>
   palettePlanningResult(app)?.planningState ?? null;
 
-export const paletteProfessionState = (app: ProfessionAppState): RotationProfessionState => {
-  const profession = palettePlanningState(app)?.profession;
-  return profession && typeof profession === 'object' ? (profession as RotationProfessionState) : {};
-};
-
 export const activeSpecialization = (app: ProfessionAppState): string => app.adapter.eliteSpecialization(app.build);

@@ -121,11 +121,7 @@ export function targetConditionCount(context: Gw2CombatObservationContext): numb
 
 /** Reads target Vulnerability through the shared combat-query stack calculation. */
 export function vulnerabilityStacks(context: Gw2CombatObservationContext): number {
-  return (
-    context.query?.targetConditionStacks(CONDITION.VULNERABILITY, context.time, context.runtime) ??
-    context.query?.vulnerabilityStacksAt(context.time, context.runtime) ??
-    0
-  );
+  return context.query?.targetConditionStacks(CONDITION.VULNERABILITY, context.time, context.runtime) ?? 0;
 }
 
 /** Ordinary buffs share recipient and source selection without inheriting configured boons. */

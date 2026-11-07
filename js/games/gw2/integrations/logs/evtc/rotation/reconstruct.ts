@@ -222,11 +222,7 @@ function replayActionEnd(action: ResolvedAction): number {
     : observedReplayEnd;
 }
 
-function buildRotation(
-  actions: readonly ResolvedAction[],
-  origin: number,
-  combatStart: number | null
-): RotationCommand[] {
+function buildRotation(actions: readonly ResolvedAction[], origin: number, combatStart: number): RotationCommand[] {
   return buildReplayTimeline(actions, origin, combatStart, {
     timingToleranceMs: TIMING_TOLERANCE_MS,
     quantizeMs: quantizeGw2ActionTimingMs,
@@ -360,7 +356,7 @@ function reconstructWithProfile(
     throw new EvtcError('NO_ROTATION_ACTIONS', 'The selected player has no reconstructable EVTC actions.');
   }
 
-  const origin = Math.min(resolved[0].start, combatStart == null ? Number.POSITIVE_INFINITY : combatStart);
+  const origin = Math.min(resolved[0].start, combatStart);
   const actions: EvtcRotationAction[] = resolved.map((action) => ({
     ...rotationActionSummary(action, origin),
     evidence: action.evidence,
@@ -385,7 +381,7 @@ function reconstructWithProfile(
       eiRule: action.eiRule,
       castOrigin: action.castOrigin
     })),
-    combatStartTimestampMs: combatStart == null ? null : Math.max(0, combatStart - origin),
+    combatStartTimestampMs: Math.max(0, combatStart - origin),
     actions,
     rotation: buildRotation(resolved, origin, combatStart),
     warnings: [
