@@ -9,6 +9,7 @@ import { galeshotState } from '#gw2/professions/ranger/specializations/galeshot/
 import { activeSoulbeastBuff } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
@@ -22,7 +23,7 @@ const config = {
   target: { armor: 2597, conditions: {} }
 };
 // Bind real owner operations for this focused mechanic fixture.
-config.combat = createMechanicCombatServices(config);
+config.combat = createMechanicCombatServices(config, createTestConditionResolution());
 const simulate = createObservedProfessionSimulator(rangerProfession, config);
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, `${actual} != ${expected}`);
 // Seed only initial state; every gain, expiry, extension, and wait runs on the common queue.
@@ -151,12 +152,15 @@ test('personal stances ignore pet-only combat and trigger on the next player str
   assert.equal(
     activeSoulbeastBuff(
       {
-        combat: createMechanicCombatServices({
-          boons: new Map([]),
-          buffs: new Map([
-            ['vulture-stance', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: false } }]]
-          ])
-        })
+        combat: createMechanicCombatServices(
+          {
+            boons: new Map([]),
+            buffs: new Map([
+              ['vulture-stance', [{ at: 0, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: false } }]]
+            ])
+          },
+          createTestConditionResolution()
+        )
       },
       'vulture-stance',
       1

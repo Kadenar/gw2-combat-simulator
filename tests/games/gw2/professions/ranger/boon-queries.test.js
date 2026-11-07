@@ -12,6 +12,7 @@ import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { rangerActiveBoonCount } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { soulbeastModule } from '#gw2/professions/ranger/specializations/soulbeast/module.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 
 // Use production recipient selection so boon queries honor sharing policy and party caps.
 function buff(kind, audience, config = {}) {
@@ -56,11 +57,10 @@ test('pet retirement clears live boon queries while preserving pre-swap history'
     boons: new Map(),
     buffs: new Map(),
     retiredCompanions: new Map(),
-    companions: new Map(),
-    conditionState: new Map()
+    companions: new Map()
   };
-  // Bind real owner operations for this focused mechanic fixture.
-  runtime.combat = createMechanicCombatServices(runtime);
+  // Bind the condition owner so retirement follows the production ownership contract.
+  runtime.combat = createMechanicCombatServices(runtime, createTestConditionResolution());
   const oldPet = rangerPetCompanionId(runtime);
   runtime.companions.set(oldPet, runtime.profession.core.pet.effects);
   const fury = buff('fury', { recipients: 'summons', affectsSelf: false, eligibleCompanionIds: [oldPet] });
@@ -112,11 +112,11 @@ test('pet boon queries honor resolved party caps and explicit summon grants in b
   ]) {
     const config = { allies: { count: allies }, sharePlayerBoonsWithSummons: share, boons: { fury: true } };
     // Bind real owner operations for this focused mechanic fixture.
-    config.combat = createMechanicCombatServices(config);
+    config.combat = createMechanicCombatServices(config, createTestConditionResolution());
     const event = buff('might', { recipients, eligibleCompanionIds: ['pet'] }, config);
     const runtime = { boons: new Map(), buffs: new Map(), companions: new Map([['pet', createCompanionEffects()]]) };
     // Bind real owner operations for this focused mechanic fixture.
-    runtime.combat = createMechanicCombatServices(runtime);
+    runtime.combat = createMechanicCombatServices(runtime, createTestConditionResolution());
     recordBuffApplication(runtime.companions.get('pet').boons, event);
     const context = {
       config,

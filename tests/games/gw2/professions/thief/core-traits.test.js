@@ -22,6 +22,7 @@ import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief, thiefHit } from '#tests/helpers/thief-simulation.js';
@@ -182,7 +183,7 @@ function traitContext(selectedTraitIds = []) {
     })
   };
   // Bind real owner operations for this focused mechanic fixture.
-  context.combat = createMechanicCombatServices(context);
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
   bindTriggerPoints(context, thiefProfession);
 
   return { context, core, events, conditions };

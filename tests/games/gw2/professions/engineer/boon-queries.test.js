@@ -6,6 +6,7 @@ import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 
 // No Scope must keep its ferocity bonus through the whole live Fury pool.
 test('Engineer No Scope survives overlapping Fury packet expiries', () => {
@@ -13,7 +14,15 @@ test('Engineer No Scope survives overlapping Fury packet expiries', () => {
     ['fury', [0, 1].map((at) => ({ at, expiresAt: at + 5, stacks: 1, resolvedAudience: { includesSelf: true } }))]
   ]);
   const context = { config: {}, traits: new Set([TRAIT.NO_SCOPE]), runtime: { boons }, time: 7 };
-  assert.equal(activeBoonStacks({ combat: createMechanicCombatServices({ config: {}, boons }) }, 'Fury', 1, 7), 1);
+  assert.equal(
+    activeBoonStacks(
+      { combat: createMechanicCombatServices({ config: {}, boons }, createTestConditionResolution()) },
+      'Fury',
+      1,
+      7
+    ),
+    1
+  );
   assert.equal(
     engineerProfession
       .resolveProfession({})
@@ -43,7 +52,7 @@ test('Engineer boon stacks preserve normalization, permanent stacks, caps, and l
     boons: new Map([['might', applications]]),
     buffs: new Map([])
   };
-  context.combat = createMechanicCombatServices(context);
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
   assert.equal(activeBoonStacks(context, 'Might', 25, 5), 7);
   assert.equal(activeBoonStacks(context, 'might', 6, 5), 6);
   assert.equal(activeBoonStacks(context, 'Stability', 1, 5), 1);
@@ -58,7 +67,12 @@ test('Engineer boon stacks preserve normalization, permanent stacks, caps, and l
   assert.equal(activeBoonStacks(context, 'might', 25, 10), 4);
   assert.equal(
     activeBoonStacks(
-      { combat: createMechanicCombatServices({ config: {}, boons: new Map(), buffs: new Map() }) },
+      {
+        combat: createMechanicCombatServices(
+          { config: {}, boons: new Map(), buffs: new Map() },
+          createTestConditionResolution()
+        )
+      },
       'might',
       25,
       5

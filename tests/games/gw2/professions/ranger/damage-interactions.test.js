@@ -16,6 +16,7 @@ import { createRangerCoreState } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { wait } from '#tests/helpers/commands.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -69,7 +70,7 @@ test('Core damage reactions preserve trait and skill ordering without spending c
   // Exercise the same selected point listeners as the live profession.
   bindTriggerPoints(context, rangerProfession, config);
   // Bind real owner operations for this focused mechanic fixture.
-  context.combat = createMechanicCombatServices(context);
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
   const event = {
     type: 'damage',
     at: 1,

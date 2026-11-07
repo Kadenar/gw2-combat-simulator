@@ -38,6 +38,7 @@ import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { antiquaryResolverEventReactions } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifact-effects.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
@@ -68,7 +69,7 @@ function contextFor(profession, specialization, selectedTraitIds = []) {
     start: 0,
     effectiveEnd: 1
   };
-  context.combat = createMechanicCombatServices(context);
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
   // Manual grant tests use the real recipient capability with no autonomous strike rate.
   context.alliedStrikes = createAlliedStrikeController(() => context, {
     schedule() {},

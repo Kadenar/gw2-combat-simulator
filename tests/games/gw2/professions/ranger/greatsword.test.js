@@ -12,6 +12,7 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { wait } from '#tests/helpers/commands.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
@@ -242,7 +243,7 @@ test('Attack of Opportunity ignores effect damage and consumes only its recipien
   ]);
   const context = { buffs, companions, profession: { core: { pet: null } } };
   // Bind real owner operations for this focused mechanic fixture.
-  context.combat = createMechanicCombatServices(context);
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
   const event = {
     type: 'damage',
     at: 1,

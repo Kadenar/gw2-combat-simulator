@@ -13,6 +13,7 @@ import {
 import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { timedStacks } from '#gw2/professions/mesmer/core/mechanics/modifier-queries.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 
 // These grants isolate query source and recipient contracts from profession packet schedules.
 function grant(kind, stacks, companionId = null) {
@@ -97,7 +98,7 @@ test('boon and buff queries isolate recipients and player assumptions in live an
     assert.equal(boonActive({ ...context, time: 11 }, 'fury', oldPet), false);
   }
 
-  const services = createMechanicCombatServices({ ...runtime, config });
+  const services = createMechanicCombatServices({ ...runtime, config }, createTestConditionResolution());
   assert.equal(services.activeBoonStacks('might', 2, 25, oldPet), 3);
   assert.equal(services.activeBuffStacks('custom', 2, 25, newPet), 9);
 });

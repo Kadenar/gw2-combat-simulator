@@ -8,6 +8,7 @@ import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-se
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/hitbox.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
@@ -119,15 +120,21 @@ test('encounter hitbox classification uses the measured 700-unit large golem bou
       [700, 'large'],
       [1000, 'large']
     ]) {
-      const combat = createMechanicCombatServices({
-        config: { professionAssumptions: { hitboxSize } },
-        encounter: { hitboxWidth }
-      });
+      const combat = createMechanicCombatServices(
+        {
+          config: { professionAssumptions: { hitboxSize } },
+          encounter: { hitboxWidth }
+        },
+        createTestConditionResolution()
+      );
       assert.equal(combat.targetHitboxSize(), expected);
     }
 
     assert.equal(
-      createMechanicCombatServices({ config: { professionAssumptions: { hitboxSize } } }).targetHitboxSize(),
+      createMechanicCombatServices(
+        { config: { professionAssumptions: { hitboxSize } } },
+        createTestConditionResolution()
+      ).targetHitboxSize(),
       hitboxSize
     );
   }

@@ -9,6 +9,7 @@ import { handleElectricArtillery } from '#gw2/professions/engineer/core/mechanic
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import {
   createObservedProfessionSimulator,
   observedRuntime,
@@ -131,11 +132,14 @@ test('Electric Artillery converts whole charges into Focused-sensitive Vulnerabi
       handleElectricArtillery(
         {
           helpers: engineerCatalog,
-          combat: createMechanicCombatServices({
-            buffs: new Map([
-              ['engineer-focused', [{ at: 0, expiresAt, stacks: 1, resolvedAudience: { includesSelf: true } }]]
-            ])
-          }),
+          combat: createMechanicCombatServices(
+            {
+              buffs: new Map([
+                ['engineer-focused', [{ at: 0, expiresAt, stacks: 1, resolvedAudience: { includesSelf: true } }]]
+              ])
+            },
+            createTestConditionResolution()
+          ),
           effects: {
             emit(request) {
               if (request.settlement === 'reaction') conditions.push(request.event);

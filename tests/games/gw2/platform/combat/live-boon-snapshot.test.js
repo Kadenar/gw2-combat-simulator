@@ -4,6 +4,7 @@ import test from 'node:test';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import { recordCompanionBuff } from '#gw2/platform/combat/state/companion.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 
 // Record only executed grants so each query observes its exact position in same-time event ordering.
 function fixture(boons = {}) {
@@ -15,7 +16,7 @@ function fixture(boons = {}) {
     retiredCompanions: new Map()
   };
   return {
-    combat: createMechanicCombatServices(runtime),
+    combat: createMechanicCombatServices(runtime, createTestConditionResolution()),
     grant(kind, at, duration, stacks, companionId) {
       const event = {
         type: 'buff',

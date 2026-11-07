@@ -24,6 +24,7 @@ import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
@@ -961,11 +962,14 @@ test('Engineer spear resolver and tooltip use the same selected action payload',
   handleElectricArtillery(
     {
       helpers: selected.catalog,
-      combat: createMechanicCombatServices({
-        buffs: new Map([
-          ['engineer-focused', [{ at: 0, expiresAt: 20, stacks: 1, resolvedAudience: { includesSelf: true } }]]
-        ])
-      }),
+      combat: createMechanicCombatServices(
+        {
+          buffs: new Map([
+            ['engineer-focused', [{ at: 0, expiresAt: 20, stacks: 1, resolvedAudience: { includesSelf: true } }]]
+          ])
+        },
+        createTestConditionResolution()
+      ),
       effects: captureEffectEmissions({
         submit: (event) => {
           packets.push(event);

@@ -23,6 +23,7 @@ import { REVENANT_LEGEND_IDS, REVENANT_SKILL_IDS } from '#gw2/professions/revena
 import { thiefStruck } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { THIEF_TRAIT_IDS } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
@@ -310,7 +311,7 @@ function extend(profession, events, at) {
     config: {},
     effects: captureEffectEmissions({ submit: (event) => applyBoonExtension(boons, event) }).effects
   };
-  context.combat = createMechanicCombatServices(context);
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
 
   if (profession === 'Thief') {
     // Enter the registered strike boundary with one accepted critical hit and the real selected profile.

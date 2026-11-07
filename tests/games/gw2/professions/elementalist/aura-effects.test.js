@@ -16,6 +16,7 @@ import {
 } from '#gw2/professions/elementalist/specializations/catalyst/traits/index.js';
 import { reenterEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { effectPlanningState } from '#tests/helpers/effect-report.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
@@ -156,7 +157,10 @@ test('Tempest preserves aura damage windows and grants boons for every actual au
       effects: captureEffectEmissions({ submit: (event) => queued.push(event) }).effects
     };
     // Bind real owner operations for this focused mechanic fixture.
-    context.combat = createMechanicCombatServices(Object.assign(context, { companions: new Map() }));
+    context.combat = createMechanicCombatServices(
+      Object.assign(context, { companions: new Map() }),
+      createTestConditionResolution()
+    );
     bindTriggerPoints(context, elementalistProfession, { specialization: 'Tempest' });
     context.fireTrigger(auraAccepted, {
       cause: { type: 'aura', at: 1, skillName: 'Fixture Aura', ...origin }
@@ -194,7 +198,10 @@ test('Catalyst caps and refreshes Empowering Auras while granting Elemental Epit
     }).effects
   };
   // Bind real owner operations for this focused mechanic fixture.
-  context.combat = createMechanicCombatServices(Object.assign(context, { companions: new Map() }));
+  context.combat = createMechanicCombatServices(
+    Object.assign(context, { companions: new Map() }),
+    createTestConditionResolution()
+  );
   bindTriggerPoints(context, elementalistProfession, { specialization: 'Catalyst' });
   const event = { type: 'aura', aura: 'Fire Aura', duration: 4, at: 1, skillName: 'Fixture Aura', sourceId: 1 };
   catalystRuntime.reactions['aura.applied'](context, event);

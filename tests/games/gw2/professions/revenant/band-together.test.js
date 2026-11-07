@@ -13,6 +13,7 @@ import { RENEGADE_ENHANCED_SKILL_BY_ID } from '#gw2/professions/revenant/data/re
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { renegadeHooks } from '#gw2/professions/revenant/specializations/renegade/hooks.js';
 import { bandTogetherReady } from '#gw2/professions/revenant/specializations/renegade/mechanics/kalla-and-band-together.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
@@ -32,7 +33,7 @@ function fixture(traits = []) {
   };
   runtime.buffs = new Map();
   runtime.companions = new Map();
-  runtime.combat = createMechanicCombatServices(runtime);
+  runtime.combat = createMechanicCombatServices(runtime, createTestConditionResolution());
   const acceptBuff = (event) => {
     if (event.type === 'buff')
       recordBuffApplication(runtime.buffs, {

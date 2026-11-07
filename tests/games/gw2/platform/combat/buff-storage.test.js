@@ -15,6 +15,7 @@ import { recordTimedBuffProc } from '#gw2/platform/equipment/relics/rules/shared
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { captureAcceptedBuffEmissions } from '#tests/helpers/effect-emission.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
@@ -113,7 +114,10 @@ test('live empty stores never borrow scheduled grants or non-boon configuration'
 
 test('buff expiry revisions preserve historical intervals and select only the consumed recipient', () => {
   const runtime = { config: {}, boons: new Map(), buffs: new Map() };
-  const combat = createMechanicCombatServices(Object.assign(runtime, { companions: new Map() }));
+  const combat = createMechanicCombatServices(
+    Object.assign(runtime, { companions: new Map() }),
+    createTestConditionResolution()
+  );
   for (const includesSelf of [true, false])
     recordBuffApplication(runtime.buffs, {
       ...packet('fixture-buff', { duration: 10 }),
@@ -149,7 +153,10 @@ test('reaction-settled buffs use ordinary acceptance and remain visible in execu
 
 test('replacement and overlapping refresh windows retain their distinct historical semantics', () => {
   const runtime = { ...captureAcceptedBuffEmissions(), config: {}, time: 0 };
-  runtime.combat = createMechanicCombatServices(Object.assign(runtime, { companions: new Map() }));
+  runtime.combat = createMechanicCombatServices(
+    Object.assign(runtime, { companions: new Map() }),
+    createTestConditionResolution()
+  );
   replaceThiefBuff(runtime, 'fluid-strikes', 10, 'fixture', 'Fluid Strikes', 'Trait');
   runtime.time = 1;
   replaceThiefBuff(runtime, 'fluid-strikes', 2, 'fixture', 'Fluid Strikes', 'Trait');

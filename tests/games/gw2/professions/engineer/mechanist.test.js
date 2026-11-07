@@ -12,6 +12,7 @@ import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { engineerMechHasQuickness } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech.js';
 import { engineerMechAttributes } from '#gw2/professions/engineer/specializations/mechanist/traits/frames.js';
+import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
 import { createObservedProfessionSimulator } from '#tests/helpers/observed-runtime.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
@@ -141,7 +142,7 @@ test('mech Quickness uses its own boon audience and retains copied applications'
       setReadyAt: (id, at) => context.cooldowns.set(id, at)
     }
   };
-  context.combat = createMechanicCombatServices(context);
+  context.combat = createMechanicCombatServices(context, createTestConditionResolution());
   context.facts = { read: () => assert.fail('Live mech queries must use accepted applications') };
   assert.equal(engineerMechHasQuickness(context, 0), false);
   context.config.selectedSkillIds = [63111];
