@@ -2,9 +2,8 @@ import assert from 'node:assert/strict';
 import { describe, test } from 'node:test';
 
 import { buildChartSeries } from '#gw2/app/results/model.js';
-import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
-import { resolvePaletteDropItem } from '#gw2/app/rotation/palette/interactions.js';
+import { dispatchPaletteAction } from '#gw2/app/rotation/palette/interactions.js';
 import {
   paletteSkillView,
   queryPaletteActions,
@@ -1459,20 +1458,12 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
       }
     ]
   );
-  const firstInsertion = resolvePaletteDropItem(app, VINDICATOR_DODGE_AUTO_ACTION);
-
-  assert.deepEqual(firstInsertion, [
-    {
-      type: 'cast',
-      skillId: SHARED_SKILL_IDS.DODGE
-    },
-    {
-      type: 'cast',
-      skillId: SKILL.PREPARATION_THRUST,
-      concurrentOffsetMs: 0
-    }
-  ]);
-  commitRotationEdit(app, { type: 'insert', entries: firstInsertion });
+  dispatchPaletteAction(app, {
+    type: 'activate',
+    name: VINDICATOR_DODGE_AUTO_ACTION,
+    skillId: null,
+    anchor: null
+  });
   assert.deepEqual(app.build.rotation, [
     {
       type: 'cast',
@@ -1486,25 +1477,45 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   ]);
   assert.equal(changeCount, 1);
 
-  app.build.rotation = [{ type: 'cast', skillId: 'Tail' }];
-  app.rotationInsertionIndex = 0;
-  const secondInsertion = resolvePaletteDropItem(app, VINDICATOR_DODGE_AUTO_ACTION);
+  // Both a middle drop and a tail drop use the destination's chain step while the cursor remains at the start.
+  const before = [
+    { type: 'cast', skillId: SKILL.PREPARATION_THRUST },
+    { type: 'wait', durationMs: 1 }
+  ];
+  const initialResult = structuredClone(app.analysis.state.results);
+  for (const index of [1, 2]) {
+    app.build.rotation = [...before];
+    app.rotationInsertionIndex = 0;
+    app.analysis.capture = cursorPreviewCapture(before);
+    app.analysis.state.results = structuredClone(initialResult);
+    app.analysis.state.results.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST] =
+      SKILL.BRUTAL_BLADE;
+    const previewed = [];
+    app.adapter.calculateCursorPreview = ({ rotation }) => {
+      previewed.push(rotation);
+      return rotation.length ? app.analysis.state.results : initialResult;
+    };
 
-  commitRotationEdit(app, { type: 'insert', entries: secondInsertion });
-  assert.deepEqual(app.build.rotation, [
-    {
-      type: 'cast',
-      skillId: SHARED_SKILL_IDS.DODGE
-    },
-    {
-      type: 'cast',
-      skillId: SKILL.PREPARATION_THRUST,
-      concurrentOffsetMs: 0
-    },
-    { type: 'cast', skillId: 'Tail' }
-  ]);
-  assert.equal(app.rotationInsertionIndex, 2);
-  assert.equal(changeCount, 2);
+    assert.equal(queryPaletteContext(capturePaletteInput(app)).activeAutoattack.id, SKILL.PREPARATION_THRUST);
+    previewed.length = 0;
+
+    dispatchPaletteAction(app, {
+      type: 'drop',
+      name: VINDICATOR_DODGE_AUTO_ACTION,
+      skillId: null,
+      anchor: null,
+      index
+    });
+    assert.deepEqual(previewed, index === before.length ? [] : [before.slice(0, index)]);
+    assert.deepEqual(app.build.rotation, [
+      ...before.slice(0, index),
+      { type: 'cast', skillId: SHARED_SKILL_IDS.DODGE },
+      { type: 'cast', skillId: SKILL.BRUTAL_BLADE, concurrentOffsetMs: 0 },
+      ...before.slice(index)
+    ]);
+    assert.equal(app.rotationInsertionIndex, null);
+    assert.equal(changeCount, index + 1);
+  }
 
   app.analysis.state.results.planningState.profession[STATE.AUTOATTACK_CHAINS][SKILL.PREPARATION_THRUST] =
     SKILL.BRUTAL_BLADE;

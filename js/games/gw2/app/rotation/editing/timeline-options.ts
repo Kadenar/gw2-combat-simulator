@@ -14,7 +14,7 @@ import {
   openDoubleEdgeEditor
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
 import { updateRotationEntry } from '#gw2/app/rotation/editing/operations.js';
-import { resolvePaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
+import { dispatchPaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
 import type { RotationSkill } from '#gw2/app/rotation/skill-views.js';
 import type { TimelineInteractionOptions } from '#gw2/app/rotation/timeline/interactions.js';
 import {
@@ -291,8 +291,7 @@ export function timelineInteractionOptions(app: ProfessionAppState): TimelineInt
       app.dragState = value;
     },
     moveEntry: (fromIndex, toIndex) => commitRotationEdit(app, { type: 'move', from: fromIndex, to: toIndex }),
-    insertEntries: (entries, insertAt) => commitRotationEdit(app, { type: 'drop', index: insertAt, entries }),
-    resolvePaletteEntry: (name, drag, insertAt) => resolvePaletteDrop(app, name, drag, insertAt),
+    onPaletteDrop: (name, drag, insertAt) => dispatchPaletteDrop(app, name, drag, insertAt),
     onRemove: (index) => commitRotationEdit(app, { type: 'remove', index }),
     onTruncate: (index) => commitRotationEdit(app, { type: 'truncate', index }),
     onEditActivation: (index, event) => editRotationActivation(app, index, event),

@@ -1,35 +1,29 @@
+/** Palette gestures share decisions and completion while preserving their distinct cursor behavior. */
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import { hasConfigurableDoubleEdgeOutcome } from '#gw2/app/rotation/editing/double-edge-editor.js';
-import { dispatchPaletteActivation, resolvePaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
+import { dispatchPaletteAction, dispatchPaletteActivation } from '#gw2/app/rotation/palette/interactions.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { THIEF_SKILL_IDS } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog } from '#gw2/professions/thief/profession.js';
 import { withoutTraitSkillVariants } from '#tests/helpers/patch-selection.js';
 
-// Builds only the application fields used by palette activation to isolate each branch.
-function activationApp(skills) {
-  const catalog = {
-    skills,
-    skillsById: new Map(skills.map((skill) => [skill.id, skill]))
-  };
-  const added = [];
+// Real edit commits expose command, cursor, and history behavior without requiring a browser editor.
+function actionApp(skills) {
+  const catalog = { skills, skillsById: new Map(skills.map((skill) => [skill.id, skill])) };
+  const changes = [];
   let professionAction;
   const app = withoutTraitSkillVariants({
-    build: {
-      rotation: [],
-      startingWeaponSet: 1,
-      weapons: ['', ''],
-      alternateWeapons: ['', '']
-    },
+    build: { rotation: [], startingWeaponSet: 1, weapons: ['', ''], alternateWeapons: ['', ''] },
     adapter: {
       eliteSpecialization: () => 'Core',
-      isSkillAvailable: () => true
+      isSkillAvailable: () => true,
+      calculateCursorPreview: () => app.analysis.state.results
     },
     profession: {
       catalog,
-      // Supply the resolved weapon-swap capability read when capturing palette input.
       resolveProfession: () => ({ canSwapWeaponSetsInCombat: true }),
       ui: {
         castEditor: () => null,
@@ -39,142 +33,234 @@ function activationApp(skills) {
     },
     activeCatalog: catalog,
     analysis: {
-      state: {
-        buildRevision: 0,
-        resultRevision: 0,
-        simulationStatus: 'idle',
-        simulationError: '',
-        patchComparison: null,
-        results: {}
-      }
+      capture: () => ({ inputs: { baseline: () => ({ rotation: app.build.rotation, baseConfig: {} }) } }),
+      state: { buildRevision: 0, resultRevision: 0, results: {} }
     },
     attributeData: null,
     rotationInsertionIndex: null,
-    changed() {},
-    addRotation(name, options) {
-      added.push({ name, options });
+    changed(...args) {
+      changes.push(args);
     }
   });
   return {
     app,
-    added,
+    changes,
     setProfessionAction(value) {
       professionAction = value;
     }
   };
 }
 
-function activationEvent(skillId, { shiftKey = false, ctrlKey = false } = {}) {
+const ordinary = { id: 1, name: 'Ordinary', type: 'Utility', castTimeMs: 500 };
+const instant = { id: 2, name: 'Instant', type: 'Utility', castTimeMs: 0 };
+const dragonSlash = { id: 3, name: 'Dragon Slash', type: 'Profession', dragonSlash: true };
+const doubleEdge = {
+  id: 4,
+  name: 'Double Edge',
+  type: 'Utility',
+  usableWhileRecharging: true,
+  sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' } }]
+};
+const anchor = { querySelector: () => null };
+const descriptor = {
+  prepare() {
+    assert.fail('The browser editor owns choice preparation');
+  }
+};
+
+function request(type, skill = ordinary) {
   return {
-    currentTarget: {
-      dataset: { skillId: String(skillId) },
-      classList: { contains: () => false },
-      querySelector: () => null
-    },
-    shiftKey,
-    ctrlKey
+    type,
+    name: skill.name,
+    skillId: skill.id,
+    anchor,
+    ...(type === 'drop' ? { index: 2 } : {})
   };
 }
 
-// A retained tile must not resolve a profession macro or skill against a newer, unsimulated rotation.
-test('palette activation waits for matching result and build revisions', () => {
-  const skill = { id: 1, name: 'Ordinary', type: 'Weapon' };
-  const { app, added } = activationApp([skill]);
-  app.analysis.state.buildRevision = 2;
-  app.analysis.state.resultRevision = 1;
-  dispatchPaletteActivation(app, skill.name, activationEvent(skill.id));
-  assert.deepEqual(added, []);
-  app.analysis.state.resultRevision = 2;
-  for (const results of [null, undefined]) {
-    app.analysis.state.results = results;
-    dispatchPaletteActivation(app, skill.name, activationEvent(skill.id));
-    assert.deepEqual(added, []);
+for (const type of ['activate', 'drop']) {
+  test(`${type} waits for matching accepted results before resolving actions or editors`, () => {
+    const { app, changes } = actionApp([ordinary]);
+    app.profession.ui.resolvePaletteAction = () => assert.fail('A stale gesture must not resolve an action');
+    app.analysis.state.buildRevision = 2;
+    app.analysis.state.resultRevision = 1;
+    dispatchPaletteAction(app, request(type), {});
+    app.analysis.state.resultRevision = 2;
+    for (const results of [null, undefined]) {
+      app.analysis.state.results = results;
+      dispatchPaletteAction(app, request(type), {});
+    }
+
+    assert.deepEqual(app.build.rotation, []);
+    assert.equal(changes.length, 0);
+    app.analysis.state.results = {};
+    app.profession.ui.resolvePaletteAction = () => undefined;
+    dispatchPaletteAction(app, request(type), {});
+    assert.deepEqual(app.build.rotation, [{ type: 'cast', skillId: ordinary.id }]);
+  });
+
+  test(`${type} commits ordinary skills at its destination as one undoable edit`, () => {
+    const { app, changes } = actionApp([ordinary]);
+    const before = [{ type: 'cooldown-reset' }, { type: 'combat-start' }];
+    app.build.rotation = before;
+    app.rotationInsertionIndex = 0;
+    dispatchPaletteAction(app, request(type), {});
+    const cast = { type: 'cast', skillId: ordinary.id };
+    assert.deepEqual(app.build.rotation, type === 'drop' ? [...before, cast] : [cast, ...before]);
+    assert.equal(app.rotationInsertionIndex, type === 'drop' ? null : 1);
+    assert.equal(changes.length, 1);
+    assert.deepEqual(app._rotationHistory.undo, [before]);
+    commitRotationEdit(app, { type: 'undo' });
+    assert.deepEqual(app.build.rotation, before);
+  });
+
+  test(`${type} commits profession actions atomically and preserves handled no-ops`, () => {
+    for (const result of [
+      null,
+      [],
+      { type: 'cooldown-reset' },
+      [
+        { type: 'cast', skillId: 10 },
+        { type: 'cast', skillId: 11 }
+      ]
+    ]) {
+      const { app, changes, setProfessionAction } = actionApp([]);
+      setProfessionAction(result);
+      const before = [{ type: 'combat-start' }];
+      app.build.rotation = before;
+      app.rotationInsertionIndex = 0;
+      dispatchPaletteAction(app, { ...request(type, { name: '__profession_action', id: null }), index: 1 }, {});
+      const commands = result === null ? [] : Array.isArray(result) ? result : [result];
+      assert.deepEqual(app.build.rotation, type === 'drop' ? [...before, ...commands] : [...commands, ...before]);
+      assert.equal(changes.length, commands.length ? 1 : 0);
+
+      if (commands.length) {
+        assert.deepEqual(app._rotationHistory.undo, [before]);
+        assert.equal(app.rotationInsertionIndex, type === 'drop' ? null : commands.length);
+      } else {
+        assert.equal(app._rotationHistory, undefined);
+        assert.equal(app.rotationInsertionIndex, 0);
+      }
+    }
+  });
+
+  for (const [skill, editor, choice, command] of [
+    [{ name: '__wait', id: null }, 'openDuration', 800, { type: 'wait', durationMs: 800 }],
+    [dragonSlash, 'openCast', { releaseAtCharges: 3 }, { type: 'cast', skillId: 3, releaseAtCharges: 3 }],
+    [doubleEdge, 'openDoubleEdge', 'backfire', { type: 'cast', skillId: 4, doubleEdgeOutcome: 'backfire' }]
+  ]) {
+    test(`${type} ${skill.name} leaves cancellation untouched and commits only the accepted editor choice`, () => {
+      const { app, changes } = actionApp([dragonSlash, doubleEdge]);
+      app.profession.ui.castEditor = (_context, value) => (value.id === dragonSlash.id ? descriptor : null);
+      const before = [{ type: 'cooldown-reset' }, { type: 'combat-start' }];
+      app.build.rotation = before;
+      app.rotationInsertionIndex = 0;
+      let opened;
+      dispatchPaletteAction(app, request(type, skill), {
+        [editor]: (options) => {
+          opened = options;
+        }
+      });
+      assert.ok(opened);
+      assert.equal(opened.anchor, anchor);
+      assert.equal(app.build.rotation, before);
+      assert.equal(app._rotationHistory, undefined);
+      assert.equal(app.rotationInsertionIndex, 0);
+      assert.equal(changes.length, 0);
+
+      if (editor === 'openCast') {
+        assert.equal(opened.insertionIndex, type === 'drop' ? 2 : 0);
+        assert.equal(opened.descriptor, descriptor);
+      }
+
+      opened.onApply(choice);
+      assert.deepEqual(app.build.rotation, type === 'drop' ? [...before, command] : [command, ...before]);
+      assert.equal(app.rotationInsertionIndex, type === 'drop' ? null : 1);
+      assert.deepEqual(app._rotationHistory.undo, [before]);
+      assert.equal(changes.length, 1);
+    });
   }
 
-  app.analysis.state.results = {};
-  dispatchPaletteActivation(app, skill.name, activationEvent(skill.id));
-  assert.deepEqual(added, [{ name: skill.name, options: { skillId: skill.id } }]);
+  test(`${type} rejects duplicate combat markers and missing editor anchors without changing history`, () => {
+    const { app, changes } = actionApp([]);
+    app.build.rotation = [{ type: 'combat-start' }];
+    dispatchPaletteAction(app, request(type, { name: '__combat_start', id: null }), {});
+    dispatchPaletteAction(app, { ...request(type, { name: '__wait', id: null }), anchor: null }, {});
+    assert.deepEqual(app.build.rotation, [{ type: 'combat-start' }]);
+    assert.equal(app._rotationHistory, undefined);
+    assert.equal(changes.length, 0);
+  });
+}
+
+test('native activation uses the displayed face for its editor but inserts the canonical input', () => {
+  const input = { id: 10, name: 'Generic input' };
+  const displayed = { id: 11, name: 'Displayed form', castTimeMs: 500 };
+  const { app } = actionApp([input, displayed]);
+  let opened;
+  dispatchPaletteActivation(
+    app,
+    displayed.name,
+    {
+      currentTarget: { ...anchor, dataset: { skillId: '10', displaySkillId: '11' } },
+      ctrlKey: true,
+      shiftKey: false
+    },
+    {
+      openActivation: (options) => {
+        opened = options;
+      }
+    }
+  );
+  assert.equal(opened.skillName, displayed.name);
+  opened.onApply(600);
+  assert.deepEqual(app.build.rotation, [{ type: 'cast', skillId: input.id, interruptAfterMs: 600 }]);
 });
 
-test('palette activation dispatches ordinary and exceptional actions', () => {
-  const ordinary = { id: 1, name: 'Ordinary', type: 'Utility', castTimeMs: 500 };
-  const instant = { id: 2, name: 'Instant', type: 'Utility', castTimeMs: 0 };
-  const dragonSlash = { id: 3, name: 'Dragon Slash', type: 'Profession', castTimeMs: 0, dragonSlash: true };
-  const doubleEdge = {
-    id: 4,
-    name: 'Double Edge',
-    type: 'Utility',
-    usableWhileRecharging: true,
-    sideEffects: [{ on: 'castStart', do: { type: 'thief.double-edge' } }]
-  };
-  const { app, added, setProfessionAction } = activationApp([ordinary, instant, dragonSlash, doubleEdge]);
-  const descriptor = {
-    prepare: () => {
-      throw new Error('routing must not prepare choices');
+// Editor defaults come from the displayed skill's authored choice, without inserting a command before Apply.
+test('Ctrl activation passes the authored interrupt default to the editor', () => {
+  const skill = { ...ordinary, defaultInterruptMs: 480 };
+  const { app } = actionApp([skill]);
+  let opened;
+  dispatchPaletteAction(
+    app,
+    { ...request('activate', skill), ctrlKey: true },
+    {
+      openActivation(options) {
+        opened = options;
+      }
     }
-  };
-  app.profession.ui.castEditor = (_context, skill) => (skill.id === dragonSlash.id ? descriptor : null);
-  const opened = {};
-  const editors = {
-    openDuration(options) {
-      opened.duration = options;
-    },
-    openCast(options) {
-      opened.dragonSlash = options;
-    },
-    openDoubleEdge(options) {
-      opened.doubleEdge = options;
-    },
-    openActivation(options) {
-      opened.activation = options;
-    }
-  };
-
-  dispatchPaletteActivation(app, ordinary.name, activationEvent(ordinary.id), editors);
-  assert.deepEqual(added.pop(), { name: ordinary.name, options: { skillId: ordinary.id } });
-
-  setProfessionAction({ type: 'cooldown-reset' });
-  dispatchPaletteActivation(app, 'Profession Action', activationEvent(-1), editors);
-  assert.deepEqual(app.build.rotation, [{ type: 'cooldown-reset' }]);
-  setProfessionAction(undefined);
-
-  dispatchPaletteActivation(app, '__wait', activationEvent(-2), editors);
-  opened.duration.onApply(750);
-  assert.deepEqual(added.pop(), { name: '__wait', options: { durationMs: 750 } });
-
-  app.build.rotation = [];
-  dispatchPaletteActivation(app, dragonSlash.name, activationEvent(dragonSlash.id), editors);
-  assert.equal(opened.dragonSlash.insertionIndex, 0);
-  opened.dragonSlash.onApply({ releaseAtCharges: 3 });
-  assert.deepEqual(added.pop(), {
-    name: dragonSlash.name,
-    options: { skillId: dragonSlash.id, releaseAtCharges: 3 }
-  });
-
-  dispatchPaletteActivation(app, doubleEdge.name, activationEvent(doubleEdge.id), editors);
-  opened.doubleEdge.onApply('backfire');
-  assert.deepEqual(added.pop(), {
-    name: doubleEdge.name,
-    options: { skillId: doubleEdge.id, doubleEdgeOutcome: 'backfire' }
-  });
-
-  app.build.rotation = [{ type: 'cast', skillId: ordinary.id }];
-  dispatchPaletteActivation(app, instant.name, activationEvent(instant.id, { shiftKey: true }), editors);
-  assert.deepEqual(added.pop(), {
-    name: instant.name,
-    options: { skillId: instant.id, concurrentOffsetMs: 120 }
-  });
-
-  dispatchPaletteActivation(app, ordinary.name, activationEvent(ordinary.id, { ctrlKey: true }), editors);
-  opened.activation.onApply(120);
-  assert.deepEqual(added.pop(), {
-    name: ordinary.name,
-    options: { skillId: ordinary.id, interruptAfterMs: 120 }
-  });
+  );
+  assert.equal(opened.interruptMs, 480);
+  assert.equal(opened.suggestedInterruptMs, 480);
+  assert.deepEqual(app.build.rotation, []);
 });
 
-test('pet recharge handling does not expose Double Edge outcomes', () => {
-  // Real catalog skills keep palette insertion and timeline badges tied to the authored Double Edge mechanic.
+test('Shift applies concurrency only to eligible activations; Ctrl remains an activation editor gesture', () => {
+  const companion = { id: 5, name: 'Companion', independentCast: true, castTimeMs: 750 };
+  for (const skill of [ordinary, instant, companion, { ...companion, canCastConcurrently: false }]) {
+    for (const type of ['activate', 'drop']) {
+      const { app } = actionApp([skill]);
+      app.build.rotation = [{ type: 'cooldown-reset' }];
+      dispatchPaletteAction(
+        app,
+        { ...request(type, skill), shiftKey: true, ctrlKey: true },
+        {
+          openActivation: (options) => options.onApply(600)
+        }
+      );
+      const command = app.build.rotation.at(-1);
+      const concurrent = type === 'activate' && skill !== ordinary && skill.canCastConcurrently !== false;
+      assert.equal(command.concurrentOffsetMs, concurrent ? 120 : undefined);
+      assert.equal(command.interruptAfterMs, type === 'activate' && !concurrent ? 600 : undefined);
+    }
+  }
+
+  const { app } = actionApp([instant]);
+  dispatchPaletteAction(app, { ...request('activate', instant), shiftKey: true }, {});
+  assert.deepEqual(app.build.rotation, [{ type: 'cast', skillId: instant.id }]);
+});
+
+test('pet recharge handling does not expose Double Edge outcomes through either gesture', () => {
   const pets = rangerCatalog.skills.filter((skill) => skill.petSkill);
   assert.ok(pets.length > 0);
   for (const skill of pets) assert.equal(hasConfigurableDoubleEdgeOutcome(skill), false, skill.name);
@@ -189,43 +275,9 @@ test('pet recharge handling does not expose Double Edge outcomes', () => {
   const maul = pets.find((skill) => skill.name === 'Maul');
   assert.ok(maul);
   assert.equal(maul.usableWhileRecharging, true);
-  const { app, added } = activationApp([maul]);
-  dispatchPaletteActivation(app, maul.name, activationEvent(maul.id), {});
-  assert.deepEqual(added, [{ name: maul.name, options: { skillId: maul.id } }]);
-  assert.deepEqual(resolvePaletteDrop(app, maul.name, { skillId: maul.id }, 0), {
-    type: 'cast',
-    skillId: maul.id
-  });
-});
-
-test('Ctrl-click initializes the editor with the authored interrupt default and accepts an override', () => {
-  const skill = {
-    id: 1,
-    name: 'Default Interrupted Cast',
-    castTimeMs: 2000,
-    defaultInterruptMs: 480
-  };
-  const { app, added } = activationApp([skill]);
-  // Verify the editor receives the same default used when inserting a cast normally.
-  dispatchPaletteActivation(app, skill.name, activationEvent(skill.id, { ctrlKey: true }), {
-    openActivation(options) {
-      assert.equal(options.interruptMs, 480);
-      assert.equal(options.suggestedInterruptMs, 480);
-      options.onApply(600);
-    }
-  });
-  assert.deepEqual(added, [{ name: skill.name, options: { skillId: skill.id, interruptAfterMs: 600 } }]);
-});
-
-test('Shift-click queues companion animations concurrently while respecting explicit prohibitions', () => {
-  const command = { id: 1, name: 'Mech Command', castTimeMs: 750, independentCast: true };
-  const { app, added } = activationApp([command]);
-  app.build.rotation = [{ type: 'cast', skillId: 2 }];
-
-  dispatchPaletteActivation(app, command.name, activationEvent(command.id, { shiftKey: true }), {});
-  assert.deepEqual(added.pop().options, { skillId: command.id, concurrentOffsetMs: 120 });
-
-  command.canCastConcurrently = false;
-  dispatchPaletteActivation(app, command.name, activationEvent(command.id, { shiftKey: true }), {});
-  assert.deepEqual(added.pop().options, { skillId: command.id });
+  for (const type of ['activate', 'drop']) {
+    const { app } = actionApp([maul]);
+    dispatchPaletteAction(app, request(type, maul), {});
+    assert.deepEqual(app.build.rotation, [{ type: 'cast', skillId: maul.id }]);
+  }
 });

@@ -149,104 +149,88 @@ export function bindPaletteInteractions(
 
 const CONCURRENT_OFFSET_MS = 120;
 
+/** Keeps absent and nonnumeric palette IDs out of skill lookups. */
+function paletteSkillId(raw: string | number | null | undefined): number | null {
+  const parsed = Number(raw);
+  return raw != null && Number.isFinite(parsed) ? parsed : null;
+}
+
 /** Honors authored interrupt defaults before falling back to the commit point or normal cast time. */
 function defaultPaletteInterruptMs(skill: Skill | null | undefined): number {
   return Math.round(Number(skill?.defaultInterruptMs ?? skill?.interruptCommitMs ?? skill?.castTimeMs ?? 0));
 }
 
-function resolveProfessionPaletteAction(
-  app: ProfessionAppState,
-  name: string,
-  skillId: number | null,
-  context: PaletteContext = queryPaletteContext(capturePaletteInput(app))
-): RotationCommand | RotationCommand[] | null | undefined {
-  const resolveAction = app.profession.ui?.resolvePaletteAction;
-  return typeof resolveAction === 'function' ? resolveAction(context, { name, skillId }) : undefined;
-}
-
-/**
- * Converts a dragged palette identity into one or more rotation entries.
- * Returns `null` for waits that require editor input, empty names, and duplicate
- * combat-start markers. Profession-owned actions resolve through their UI
- * contract before ordinary skills are converted; composite actions may return
- * multiple items.
- */
-export function resolvePaletteDropItem(
-  app: ProfessionAppState,
-  name: string,
-  skillId: number | null = null
-): RotationCommand | RotationCommand[] | null {
-  if (!name) return null;
-
-  const professionAction = resolveProfessionPaletteAction(
-    app,
-    name,
-    skillId,
-    queryPaletteContext(capturePaletteInput(app))
-  );
-
-  if (professionAction !== undefined) return professionAction;
-
-  if (name === '__combat_start' && app.build.rotation.some((entry) => rotationEntryName(entry) === '__combat_start')) {
-    return null;
-  }
-
-  if (name === '__wait') return null;
-
-  return createRotationItem(app, name, skillId == null ? {} : { skillId });
-}
-
-type PaletteActivationEditors = {
+type PaletteActionEditors = {
   readonly openDuration: typeof openDurationEditor;
   readonly openCast: typeof openProfessionCastEditor;
   readonly openDoubleEdge: typeof openDoubleEdgeEditor;
   readonly openActivation: typeof openActivationEditor;
 };
 
-const PALETTE_ACTIVATION_EDITORS: PaletteActivationEditors = {
+const PALETTE_ACTION_EDITORS: PaletteActionEditors = {
   openDuration: openDurationEditor,
   openCast: openProfessionCastEditor,
   openDoubleEdge: openDoubleEdgeEditor,
   openActivation: openActivationEditor
 };
 
-/** Routes a palette activation through profession actions and the smallest applicable cast editor. */
-export function dispatchPaletteActivation(
-  app: ProfessionAppState,
-  name: string,
-  event: Pick<PaletteActivationEvent, 'currentTarget' | 'shiftKey' | 'ctrlKey'>,
-  editors: PaletteActivationEditors = PALETTE_ACTIVATION_EDITORS
-): void {
-  // Retained palette tiles cannot author commands against a rotation whose new state has not rendered yet.
-  if (!cursorPreviewReady(app.analysis.state)) return;
-
-  const icon = event.currentTarget;
-  const parsedSkillId = Number(icon.dataset.skillId);
-  const skillId = icon.dataset.skillId != null && Number.isFinite(parsedSkillId) ? parsedSkillId : null;
-  const identity = skillId == null ? {} : { skillId };
-  const input = capturePaletteInput(app);
-  const context = queryPaletteContext(input);
-  const professionAction = resolveProfessionPaletteAction(app, name, skillId, context);
-
-  // `undefined` means the profession does not own the action. `null` means it handled the activation without insertion.
-  if (professionAction !== undefined) {
-    if (professionAction !== null) {
-      commitRotationEdit(app, {
-        type: 'insert',
-        entries: Array.isArray(professionAction) ? professionAction : [professionAction]
-      });
+type PaletteActionRequest = {
+  readonly name: string;
+  readonly skillId: number | null;
+  readonly anchor: HTMLElement | null;
+} & (
+  | {
+      readonly type: 'activate';
+      readonly displaySkillId?: number;
+      readonly shiftKey?: boolean;
+      readonly ctrlKey?: boolean;
     }
+  | { readonly type: 'drop'; readonly index: number }
+);
+
+/** Shares action precedence, editor choice, and completed insertion while retaining each gesture's cursor rules. */
+export function dispatchPaletteAction(
+  app: ProfessionAppState,
+  request: PaletteActionRequest,
+  editors: PaletteActionEditors = PALETTE_ACTION_EDITORS
+): void {
+  // Retained tiles cannot author commands against a rotation whose new state has not rendered yet.
+  if (!request.name || !cursorPreviewReady(app.analysis.state)) return;
+
+  const { name, skillId, anchor } = request;
+  const identity = skillId == null ? {} : { skillId };
+  const complete = (entries: readonly RotationCommand[]): void => {
+    commitRotationEdit(
+      app,
+      request.type === 'drop' ? { type: 'drop', index: request.index, entries } : { type: 'insert', entries }
+    );
+  };
+
+  const insert = (options: RotationActionOptions = {}): void => {
+    complete([createRotationItem(app, name, { ...identity, ...options })]);
+  };
+
+  // Dropped macros resolve their commands from the state where they will be inserted.
+  const input = capturePaletteInput(app, request.type === 'drop' ? request.index : undefined);
+  const context = queryPaletteContext(input);
+  const professionAction = app.profession.ui.resolvePaletteAction(context, { name, skillId });
+
+  // Undefined delegates to ordinary routing; null and empty macros are handled without insertion.
+  if (professionAction !== undefined) {
+    if (professionAction !== null) complete(Array.isArray(professionAction) ? professionAction : [professionAction]);
 
     return;
   }
 
-  // The one-per-rotation restriction belongs to the command state, independently of tile styling.
+  // Enforce one combat-start marker from the commands, regardless of tile styling.
   if (name === '__combat_start' && app.build.rotation.some((entry) => rotationEntryName(entry) === '__combat_start'))
     return;
 
   if (name === '__wait') {
+    if (!anchor) return;
+
     editors.openDuration({
-      anchor: icon,
+      anchor,
       heading: 'Add wait',
       name: 'Wait',
       icon: WAIT_ICON,
@@ -254,91 +238,109 @@ export function dispatchPaletteActivation(
       value: 1000,
       minimumMs: GW2_ACTION_TICK_MS,
       stepMs: GW2_ACTION_TICK_MS,
-      onApply(waitMs) {
-        app.addRotation(name, { durationMs: waitMs });
-      }
+      onApply: (durationMs) => insert({ durationMs })
     });
     return;
   }
 
-  // Editors inspect the live bar face; every authored command retains the canonical input identity.
-  const displaySkillId = icon.dataset.displaySkillId == null ? skillId : Number(icon.dataset.displaySkillId);
+  // Activation inspects the displayed face; drops retain trait-selected canonical lookup. Commands keep input identity.
+  const displaySkillId = request.type === 'activate' ? (request.displaySkillId ?? skillId) : null;
   const skill: RotationSkill | undefined =
-    displaySkillId == null ? undefined : app.activeCatalog.skillsById.get(displaySkillId);
-
+    request.type === 'drop'
+      ? resolveEntrySkill(app, { name, skillId })
+      : displaySkillId == null
+        ? undefined
+        : app.activeCatalog.skillsById.get(displaySkillId);
   const castEditor = castEditorForSkill(app, skill);
 
   if (skill && castEditor) {
-    const insertionIndex =
-      normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length) ??
-      app.build.rotation.length;
+    if (!anchor) return;
+
     editors.openCast({
       app,
-      anchor: icon,
+      anchor,
       skill,
       descriptor: castEditor,
-      insertionIndex,
-      onApply(patch) {
-        app.addRotation(name, { ...identity, ...patch });
-      }
+      insertionIndex:
+        request.type === 'drop'
+          ? request.index
+          : (normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length) ??
+            app.build.rotation.length),
+      onApply: insert
     });
     return;
   }
 
   if (hasConfigurableDoubleEdgeOutcome(skill)) {
+    if (!anchor) return;
+
     editors.openDoubleEdge({
-      anchor: icon,
+      anchor,
       skillName: String(skill.displayName || skill.name),
       icon: skill.icon || undefined,
       outcome: 'success',
-      onApply(outcome) {
-        app.addRotation(name, {
-          ...identity,
-          doubleEdgeOutcome: outcome
-        });
-      }
+      onApply: (doubleEdgeOutcome) => insert({ doubleEdgeOutcome })
     });
     return;
   }
 
-  const instant = paletteSkillIsInstant(input, context, skill, name);
+  // Modified activation is separate from dragging; drop does not inherit Shift or Ctrl behavior.
+  if (request.type === 'activate') {
+    const instant = paletteSkillIsInstant(input, context, skill, name);
 
-  // Companion animations can overlap the player just like instant player skills.
-  if (
-    event.shiftKey &&
-    (instant || skill?.independentCast === true) &&
-    skill?.canCastConcurrently !== false &&
-    app.build.rotation.length
-  ) {
-    app.addRotation(name, {
-      ...identity,
-      concurrentOffsetMs: CONCURRENT_OFFSET_MS
-    });
-    return;
+    if (
+      request.shiftKey &&
+      (instant || skill?.independentCast === true) &&
+      skill?.canCastConcurrently !== false &&
+      app.build.rotation.length
+    ) {
+      insert({ concurrentOffsetMs: CONCURRENT_OFFSET_MS });
+      return;
+    }
+
+    if (request.ctrlKey && !instant) {
+      if (!anchor) return;
+
+      const suggestedInterruptMs = defaultPaletteInterruptMs(skill);
+      editors.openActivation({
+        anchor,
+        skillName: String(skill?.displayName || skill?.name || name),
+        icon: skill?.icon || anchor.querySelector('img')?.getAttribute('src') || undefined,
+        interruptMs: suggestedInterruptMs,
+        fullCastMs: Number(skill?.castTimeMs) || null,
+        quicknessCastMs: skill?.independentCast ? summonQuicknessCastTimeMs(skill) : undefined,
+        suggestedInterruptMs,
+        damageCommitMs: activationDamageCommitMs(skill),
+        onApply: (interruptMs) => insert(interruptMs == null ? {} : { interruptAfterMs: interruptMs })
+      });
+      return;
+    }
   }
 
-  if (event.ctrlKey && !instant) {
-    const suggestedInterruptMs = defaultPaletteInterruptMs(skill);
-    editors.openActivation({
+  insert();
+}
+
+/** Translates a native click or keyboard activation into the same action request used by drops. */
+export function dispatchPaletteActivation(
+  app: ProfessionAppState,
+  name: string,
+  event: Pick<PaletteActivationEvent, 'currentTarget' | 'shiftKey' | 'ctrlKey'>,
+  editors: PaletteActionEditors = PALETTE_ACTION_EDITORS
+): void {
+  const icon = event.currentTarget;
+  dispatchPaletteAction(
+    app,
+    {
+      type: 'activate',
+      name,
+      skillId: paletteSkillId(icon.dataset.skillId),
+      displaySkillId: icon.dataset.displaySkillId == null ? undefined : Number(icon.dataset.displaySkillId),
       anchor: icon,
-      skillName: String(skill?.displayName || skill?.name || name),
-      icon: skill?.icon || icon.querySelector('img')?.getAttribute('src') || undefined,
-      interruptMs: suggestedInterruptMs,
-      fullCastMs: Number(skill?.castTimeMs) || null,
-      quicknessCastMs: skill?.independentCast ? summonQuicknessCastTimeMs(skill) : undefined,
-      suggestedInterruptMs,
-      damageCommitMs: activationDamageCommitMs(skill),
-      onApply(interruptMs) {
-        app.addRotation(name, {
-          ...identity,
-          ...(interruptMs == null ? {} : { interruptAfterMs: interruptMs })
-        });
-      }
-    });
-    return;
-  }
-
-  app.addRotation(name, identity);
+      shiftKey: event.shiftKey,
+      ctrlKey: event.ctrlKey
+    },
+    editors
+  );
 }
 
 /** Binds the current palette to application edits and drag state after each render. */
@@ -361,13 +363,11 @@ export function bindAppPaletteInteractions(
     onDragStart(name, event) {
       if (!cursorPreviewReady(app.analysis.state)) return false;
 
-      const parsedSkillId = Number(event.currentTarget.dataset.skillId);
+      const skillId = paletteSkillId(event.currentTarget.dataset.skillId);
       app.dragState = {
         source: 'palette',
         name,
-        ...(event.currentTarget.dataset.skillId != null && Number.isFinite(parsedSkillId)
-          ? { skillId: parsedSkillId }
-          : {})
+        ...(skillId == null ? {} : { skillId })
       };
     },
     onDragEnd() {
@@ -387,79 +387,18 @@ function paletteDragAnchor(name: string): HTMLElement | null {
   );
 }
 
-/** Resolves a drop immediately or opens the required editor before inserting at the chosen boundary. */
-export function resolvePaletteDrop(
+/** Sends the dragged identity and chosen position to the action owner, which also completes editor-backed drops. */
+export function dispatchPaletteDrop(
   app: ProfessionAppState,
   name: string,
-  drag: ProfessionRotationDragState | null | undefined,
+  drag: ProfessionRotationDragState,
   insertAt: number
-): RotationCommand | RotationCommand[] | null {
-  if (!cursorPreviewReady(app.analysis.state)) return null;
-
-  const parsedSkillId = Number(drag?.skillId);
-  const skill: RotationSkill | undefined = resolveEntrySkill(app, {
+): void {
+  dispatchPaletteAction(app, {
+    type: 'drop',
     name,
-    skillId: drag?.skillId
+    skillId: paletteSkillId(drag.skillId),
+    anchor: paletteDragAnchor(name),
+    index: insertAt
   });
-  const insert = (options: RotationActionOptions = {}): void => {
-    const item = createRotationItem(app, name, {
-      ...(Number.isFinite(parsedSkillId) ? { skillId: parsedSkillId } : {}),
-      ...options
-    });
-    commitRotationEdit(app, { type: 'drop', index: insertAt, entries: [item] });
-  };
-
-  if (name === '__wait') {
-    const anchor = paletteDragAnchor(name);
-
-    if (!anchor) return null;
-
-    openDurationEditor({
-      anchor,
-      heading: 'Add wait',
-      name: 'Wait',
-      icon: WAIT_ICON,
-      label: 'Duration',
-      value: 1000,
-      minimumMs: GW2_ACTION_TICK_MS,
-      stepMs: GW2_ACTION_TICK_MS,
-      onApply: (durationMs) => insert({ durationMs })
-    });
-    return null;
-  }
-
-  const castEditor = castEditorForSkill(app, skill);
-
-  if (skill && castEditor) {
-    const anchor = paletteDragAnchor(name);
-
-    if (!anchor) return null;
-
-    openProfessionCastEditor({
-      app,
-      anchor,
-      skill,
-      descriptor: castEditor,
-      insertionIndex: insertAt,
-      onApply: insert
-    });
-    return null;
-  }
-
-  if (hasConfigurableDoubleEdgeOutcome(skill)) {
-    const anchor = paletteDragAnchor(name);
-
-    if (!anchor) return null;
-
-    openDoubleEdgeEditor({
-      anchor,
-      skillName: String(skill.displayName || skill.name),
-      icon: skill.icon || undefined,
-      outcome: 'success',
-      onApply: (doubleEdgeOutcome) => insert({ doubleEdgeOutcome })
-    });
-    return null;
-  }
-
-  return resolvePaletteDropItem(app, name, Number.isFinite(parsedSkillId) ? parsedSkillId : null);
 }

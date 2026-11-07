@@ -2,12 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import {
-  cursorPreview,
-  palettePlanningResult,
-  palettePlanningState,
-  paletteProfessionState
-} from '#gw2/app/rotation/context.js';
+import { cursorPreview, palettePlanningResult, palettePlanningState } from '#gw2/app/rotation/context.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
@@ -83,7 +78,6 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
 
   assert.equal(palettePlanningState(app), checkpoint);
   assert.deepEqual(palettePlanningResult(app).procSteps, []);
-  assert.deepEqual(paletteProfessionState(app), { [STATE.RESOURCE]: 2 });
   assert.equal(
     paletteSkillView(paletteInputFixture({ planning: palettePlanningState(app) }), {
       id: 1,

@@ -472,7 +472,7 @@ test('palette and timeline removal suppress repeated native activation keys', ()
       getDragState: () => null,
       setDragState() {},
       moveEntry: () => false,
-      insertEntries: () => false
+      onPaletteDrop() {}
     }
   );
   for (const [handler, target] of [
@@ -530,7 +530,7 @@ test('timeline canonical entries expose stable presentation names', () => {
   assert.equal(rotationEntryName({ type: 'wait', durationMs: 50 }), '__wait');
 });
 
-test('timeline binding inserts palette entries and drop positions use tile halves', (t) => {
+test('timeline binding forwards palette drops and drop positions use tile halves', (t) => {
   // Drive the registered drop handler through an insertion gap, as the browser does.
   const originalElement = Object.getOwnPropertyDescriptor(globalThis, 'Element');
   class DropTarget {
@@ -544,68 +544,34 @@ test('timeline binding inserts palette entries and drop positions use tile halve
     else delete globalThis.Element;
   });
   const drop = () => root.ondrop({ target: new DropTarget(), preventDefault() {}, stopPropagation() {} });
-  let dragState = { source: 'palette', name: 'New', skillId: 12345 };
-  let changes = 0;
-  const rotation = [{ type: 'cast', skillId: 'A' }];
+  const dragged = { source: 'palette', name: 'New', skillId: 12345 };
+  let dragState = dragged;
+  let current = true;
+  const drops = [];
   const root = {
     classList: { add() {}, remove() {} },
     querySelectorAll: () => []
   };
-  const insertEntries = (entries, insertAt) => {
-    if (!entries.length) return false;
-
-    rotation.splice(insertAt, 0, ...entries);
-    changes += 1;
-    return true;
-  };
-
   bindTimelineInteractions(root, {
-    rotation,
+    rotation: [{ type: 'cast', skillId: 'A' }],
+    canInteract: () => current,
     getDragState: () => dragState,
     setDragState: (value) => {
       dragState = value;
     },
-    moveEntry: () => false,
-    insertEntries,
-    resolvePaletteEntry: (_name, drag) => ({
-      type: 'cast',
-      skillId: drag.skillId,
-      interruptAfterMs: 100
-    })
+    moveEntry: () => assert.fail('A palette drop must not reorder the timeline'),
+    onPaletteDrop(name, drag, index) {
+      assert.equal(dragState, null);
+      drops.push({ name, drag, index });
+    }
   });
-
   drop();
-  assert.deepEqual(rotation, [
-    { type: 'cast', skillId: 'A' },
-    { type: 'cast', skillId: 12345, interruptAfterMs: 100 }
-  ]);
-  assert.equal(dragState, null);
-  assert.equal(changes, 1);
-
-  dragState = { source: 'palette', name: 'Macro' };
-  bindTimelineInteractions(root, {
-    rotation,
-    getDragState: () => dragState,
-    setDragState: (value) => {
-      dragState = value;
-    },
-    moveEntry: () => false,
-    insertEntries,
-    resolvePaletteEntry: () => [
-      { type: 'cast', skillId: 10 },
-      { type: 'cast', skillId: -5, concurrentOffsetMs: 0 }
-    ]
-  });
-
+  assert.deepEqual(drops, [{ name: 'New', drag: dragged, index: 1 }]);
+  current = false;
+  dragState = dragged;
   drop();
-  assert.deepEqual(rotation, [
-    { type: 'cast', skillId: 'A' },
-    { type: 'cast', skillId: 10 },
-    { type: 'cast', skillId: -5, concurrentOffsetMs: 0 },
-    { type: 'cast', skillId: 12345, interruptAfterMs: 100 }
-  ]);
+  assert.equal(drops.length, 1);
   assert.equal(dragState, null);
-  assert.equal(changes, 2);
 
   const tile = {
     dataset: { idx: '3' },
@@ -635,7 +601,7 @@ test('timeline binding routes the wait pencil to duration editing', () => {
     getDragState: () => null,
     setDragState() {},
     moveEntry: () => false,
-    insertEntries: () => false,
+    onPaletteDrop() {},
     onEditWait(index) {
       editedIndex = index;
     }

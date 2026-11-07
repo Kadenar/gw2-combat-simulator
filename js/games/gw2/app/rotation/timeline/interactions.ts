@@ -11,13 +11,8 @@ export interface TimelineInteractionOptions {
   readonly setDragState: (value: ProfessionRotationDragState | null) => void;
   /** Applies a timeline drag through the application-owned rotation editing layer. */
   readonly moveEntry: (fromIndex: number, toIndex: number) => unknown;
-  /** Applies one resolved palette item or macro through the application-owned editing layer. */
-  readonly insertEntries: (entries: readonly RotationCommand[], insertAt: number) => unknown;
-  readonly resolvePaletteEntry?: (
-    name: string,
-    drag: ProfessionRotationDragState | null | undefined,
-    insertAt: number
-  ) => RotationCommand | RotationCommand[] | null | undefined;
+  /** Palette actions own both immediate insertion and completion after an editor is applied. */
+  readonly onPaletteDrop: (name: string, drag: ProfessionRotationDragState, insertAt: number) => void;
   readonly onRemove?: (index: number) => unknown;
   readonly onTruncate?: (index: number) => unknown;
   readonly onEditActivation?: (index: number, event?: Event) => void;
@@ -80,11 +75,7 @@ export function bindTimelineInteractions(
 
     if (drag.source === 'palette') {
       const name = String(drag.name ?? '');
-      const resolved = options.resolvePaletteEntry?.(name, drag, insertAt);
-      // Palette macros may resolve to multiple adjacent entries.
-      const entries = Array.isArray(resolved) ? resolved : resolved ? [resolved] : [];
-
-      options.insertEntries(entries, insertAt);
+      options.onPaletteDrop(name, drag, insertAt);
     }
   };
 

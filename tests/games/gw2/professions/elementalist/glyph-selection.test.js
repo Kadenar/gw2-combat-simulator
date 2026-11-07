@@ -5,7 +5,7 @@ import test from 'node:test';
 import { clearedValues, createSkillDamagePlan, skillDamageControls } from '#gw2/app/build/skill-damage/plan.js';
 import { resolveEntryDisplaySkill } from '#gw2/app/rotation/editing/actions.js';
 import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
-import { dispatchPaletteActivation, resolvePaletteDropItem } from '#gw2/app/rotation/palette/interactions.js';
+import { dispatchPaletteAction, dispatchPaletteActivation } from '#gw2/app/rotation/palette/interactions.js';
 import { paletteSkillView, rotationSelectedSlotSkills } from '#gw2/app/rotation/palette/model.js';
 import { paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
 import { rotationSkillHighlightKey } from '#gw2/app/rotation/timeline/model.js';
@@ -23,6 +23,7 @@ import { ELEMENTALIST_GLYPHS, validateElementalistGlyphs } from '#gw2/profession
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { prepareCursorPreviewFixture } from '#tests/helpers/cursor-preview.js';
 import { createNativeApp, runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 
 const lines = [['Fire'], ['Air'], ['Arcane']];
@@ -195,8 +196,8 @@ test('palette display, click, drag and modified activation retain generic input 
   assert.equal(view.skillId, ID.GLYPH_OF_STORMS);
   assert.equal(view.displaySkillId, ID.GLYPH_OF_STORMS_AIR);
   assert.match(paletteSkillHtml(view), /data-skill-id="5734"/);
-  const added = [];
-  app.addRotation = (_name, options) => added.push(options);
+  app.changed = () => {};
+
   const event = {
     currentTarget: {
       dataset: { skillId: String(view.skillId), displaySkillId: String(view.displaySkillId) },
@@ -207,7 +208,7 @@ test('palette display, click, drag and modified activation retain generic input 
     ctrlKey: false
   };
   dispatchPaletteActivation(app, displayed.name, event);
-  assert.equal(added.pop().skillId, ID.GLYPH_OF_STORMS);
+  assert.equal(app.build.rotation.at(-1).skillId, ID.GLYPH_OF_STORMS);
   let editor;
   dispatchPaletteActivation(
     app,
@@ -221,8 +222,18 @@ test('palette display, click, drag and modified activation retain generic input 
   );
   assert.ok(editor);
   editor.onApply(null);
-  assert.equal(added.pop().skillId, ID.GLYPH_OF_STORMS);
-  assert.equal(resolvePaletteDropItem(app, displayed.name, view.skillId).skillId, ID.GLYPH_OF_STORMS);
+  assert.equal(app.build.rotation.at(-1).skillId, ID.GLYPH_OF_STORMS);
+  const lengthBeforeDrop = app.build.rotation.length;
+  prepareCursorPreviewFixture(app);
+  dispatchPaletteAction(app, {
+    type: 'drop',
+    name: displayed.name,
+    skillId: view.skillId,
+    anchor: null,
+    index: 0
+  });
+  assert.equal(app.build.rotation.length, lengthBeforeDrop + 1);
+  assert.equal(app.build.rotation[0].skillId, ID.GLYPH_OF_STORMS);
 });
 
 test('damage preview resolves generic glyph rows from detached state without duplicate selector payloads', () => {
