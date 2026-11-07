@@ -5,7 +5,11 @@ import { ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
 import { mountBossScenarios } from '#gw2/app/boss-scenarios/view.js';
 import { receiveSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
 import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
-import { normalizeSelectedSkills, swapSelectedSkillsForPatch } from '#gw2/app/build/state/skill-selection.js';
+import {
+  normalizeSelectedSkillsAndAttributes,
+  swapSelectedSkillsForPatch
+} from '#gw2/app/build/state/skill-selection.js';
+import { activateBuildTab } from '#gw2/app/build/state/tab-activation.js';
 import { loadBuildWorkspace, saveBuildWorkspace, type BuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import type { BuildTemplatePreset, BuildTemplateSelection } from '#gw2/app/build/types.js';
 import { createAnalysisResultLifecycle } from '#gw2/app/create-analysis-lifecycle.js';
@@ -47,7 +51,6 @@ import { normalizeInfusions } from '#gw2/platform/builds/codec.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { RELIC_NAMES as SHARED_RELIC_NAMES } from '#gw2/platform/equipment/relics/catalog.js';
-import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { closeFloatingEditor } from '#ui/rotation/editing/floating-editor.js';
 
 export class ProfessionApp implements ProfessionAppState {
@@ -88,6 +91,7 @@ export class ProfessionApp implements ProfessionAppState {
   readonly gearOptimizerRunner: GearOptimizerRunner;
   readonly relicComparisonRunner: RelicComparisonRunner;
   readonly baselineSimulationRunner: BaselineSimulationRunner;
+  private activatingBuildTab = false;
   private initialRenderGeneration: number;
   private deferredRotationRenderRevision: number | null;
 
@@ -142,7 +146,9 @@ export class ProfessionApp implements ProfessionAppState {
     this.baselineSimulationRunner = new BaselineSimulationRunner((request) =>
       this.adapter.calculateBaselineSimulation(request)
     );
-    this.gearOptimizerRunner = new GearOptimizerRunner(this, () => renderGearOptimizer(this));
+    this.gearOptimizerRunner = new GearOptimizerRunner(this, () => {
+      if (!this.activatingBuildTab) renderGearOptimizer(this);
+    });
     // Browser-owned workers follow the existing runner lifecycle and stay out of headless adapter imports.
     this.skillDamageRunner = new SkillDamageRunner((signature, result, error) =>
       receiveSkillDamage(this, signature, result, error)
@@ -234,14 +240,7 @@ export class ProfessionApp implements ProfessionAppState {
     // Optimizer results can contain zero or one allocation; keep both editor rows before recalculating.
     if (this.build.infusions.length !== 2) this.build.infusions = normalizeInfusions(this.build.infusions, []);
 
-    normalizeSelectedSkills(this);
-    this.attributeData = this.adapter
-      .createBuildContext({
-        build: this.build,
-        patch: this.patch,
-        transitionDelays: normalizeTransitionDelays(this.simulationSettings?.transitionDelays)
-      })
-      .attributes(this.attributeWeaponSet === 2 ? 2 : 1);
+    normalizeSelectedSkillsAndAttributes(this);
     this.analysis.changeInputs(options.patchSwitch, options.adoptedResult);
     this.gearOptimizerRunner.cancel();
     this.relicComparisonRunner.schedule();
@@ -279,6 +278,16 @@ export class ProfessionApp implements ProfessionAppState {
   /** Accepted lifecycle changes retain targeted renders and editor ordering without reproducing freshness policy. */
   private onAnalysisChange(change: AnalysisChange): void {
     const { kind, revision, render, referenceResult } = change;
+
+    // Synchronous publications still update the destination model while activation defers browser painting.
+    if (kind === 'baseline-error') comparisonState.failRotationReference(this, this.analysis.state.simulationError);
+
+    if (kind === 'baseline') {
+      comparisonState.publishRotationReference(this, referenceResult);
+      this.relicComparisonRunner.schedule();
+    }
+
+    if (this.activatingBuildTab) return;
 
     if (document.body) document.body.dataset.simulationStatus = this.analysis.state.simulationStatus;
 
@@ -320,7 +329,6 @@ export class ProfessionApp implements ProfessionAppState {
     if (deferred) this.deferredRotationRenderRevision = null;
 
     if (kind === 'baseline-error') {
-      comparisonState.failRotationReference(this, this.analysis.state.simulationError);
       updatePaletteFreshness(this);
 
       if (deferred) this.adapter.renderRotationBuilder(this);
@@ -328,9 +336,6 @@ export class ProfessionApp implements ProfessionAppState {
 
       return;
     }
-
-    comparisonState.publishRotationReference(this, referenceResult);
-    this.relicComparisonRunner.schedule();
 
     if (this.analysis.state.results?.encounter) document.dispatchEvent(new Event(ENCOUNTER_RESULT_EVENT));
 
@@ -351,71 +356,38 @@ export class ProfessionApp implements ProfessionAppState {
     });
   }
 
-  /** Switches the existing editor atomically; global revisions never rewind into an old worker job. */
+  /** Paints the destination once after headless activation has installed its session and analysis. */
   activateBuildTab(id: string, workspace = this.workspace): void {
-    if (workspace === this.workspace && id === this.workspace.activeTabId) return;
-
-    const tab = workspace.tabs.find((entry) => entry.id === id);
-
-    if (!tab) return;
+    this.activatingBuildTab = true;
+    try {
+      if (!activateBuildTab(this, { tabId: id, workspace })) return;
+    } finally {
+      this.activatingBuildTab = false;
+    }
 
     closeFloatingEditor();
-    // Capture and persist the outgoing document before the same editors receive another workspace.
-    saveBuildWorkspace(this);
-    this.analysis.suspend();
-    this.gearOptimizerRunner?.reset();
     this.initialRenderGeneration += 1;
     this.deferredRotationRenderRevision = null;
-    this.workspace = workspace;
-    // Restore the destination's simulation inputs before reusing caches or scheduling any new work.
-    this.simulationSettings = workspace.simulationSettings;
-    this.workspace.activeTabId = id;
-    this.build = tab.build;
-    this.patch = this.profession.resolvePatch({ id: tab.patchId, values: tab.session.patchPreviewValues });
-    const { patchPreviewValues: _patchPreviewValues, ...session } = tab.session;
-    Object.assign(this, session);
-
-    commitRotationEdit(this, { type: 'select', index: this.rotationInsertionIndex });
-    this.dragState = null;
-    this.analysis.restore(tab.analysis);
-
-    normalizeSelectedSkills(this);
-    this.attributeData = this.adapter
-      .createBuildContext({
-        build: this.build,
-        patch: this.patch,
-        transitionDelays: normalizeTransitionDelays(this.simulationSettings?.transitionDelays)
-      })
-      .attributes(this.attributeWeaponSet === 2 ? 2 : 1);
-
-    this.relicComparisonRunner.schedule();
-
-    this.analysis.resume();
-
-    saveBuildWorkspace(this);
-
-    if (typeof document !== 'undefined') {
-      document.body.dataset.simulationStatus = this.analysis.state.simulationStatus;
-      // Discard transient dialogs and previews tied to the outgoing editor, including unfinished imports.
-      document.querySelectorAll<HTMLDialogElement>('dialog[open]').forEach((dialog) => dialog.close());
-      for (const option of document.querySelectorAll<HTMLButtonElement>('.patch-preview-option')) {
-        const active = option.dataset.patchId === this.patch.id;
-        option.classList.toggle('active', active);
-        option.setAttribute('aria-pressed', String(active));
-      }
-
-      const weaponSet = document.getElementById('attribute-weapon-set') as HTMLSelectElement | null;
-
-      if (weaponSet) weaponSet.value = String(this.attributeWeaponSet);
-
-      if (this.rotationComparison?.view === 'timelines') enterRotationFocus();
-
-      this.renderBuildSections(true);
-      this.adapter.buildEditor.updateSelection?.(this);
-      this.adapter.renderRotationBuilder(this);
-      renderBuildTabs(this);
-      renderGearOptimizer(this);
+    document.body.dataset.simulationStatus = this.analysis.state.simulationStatus;
+    // Discard transient dialogs and previews tied to the outgoing editor, including unfinished imports.
+    document.querySelectorAll<HTMLDialogElement>('dialog[open]').forEach((dialog) => dialog.close());
+    for (const option of document.querySelectorAll<HTMLButtonElement>('.patch-preview-option')) {
+      const active = option.dataset.patchId === this.patch.id;
+      option.classList.toggle('active', active);
+      option.setAttribute('aria-pressed', String(active));
     }
+
+    const weaponSet = document.getElementById('attribute-weapon-set') as HTMLSelectElement | null;
+
+    if (weaponSet) weaponSet.value = String(this.attributeWeaponSet);
+
+    if (this.rotationComparison?.view === 'timelines') enterRotationFocus();
+
+    this.renderBuildSections(true);
+    this.adapter.buildEditor.updateSelection?.(this);
+    this.adapter.renderRotationBuilder(this);
+    renderBuildTabs(this);
+    renderGearOptimizer(this);
   }
 
   addRotation(name: string, options: RotationActionOptions = {}): void {

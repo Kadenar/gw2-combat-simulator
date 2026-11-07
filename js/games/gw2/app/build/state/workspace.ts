@@ -1,31 +1,16 @@
-import { emptyBuildLibrarySession } from '#gw2/app/build/library/state.js';
+/** Manages workspace documents and durable storage; activation owns transfers between their editing sessions. */
 import { createDefaultBuild, loadBuild, replaceBuild } from '#gw2/app/build/state/persistence.js';
-import { emptyResultViewState } from '#gw2/app/results/state.js';
-import { emptyRotationComparisonSession, queueRotationReference } from '#gw2/app/rotation/comparison-state.js';
-import { emptyRotationEditingSession } from '#gw2/app/rotation/editing/state.js';
-import { emptyRotationTimelineSession } from '#gw2/app/rotation/timeline/state.js';
+import {
+  captureActiveBuildTab,
+  emptyBuildTabSession,
+  type StoredBuildTabSession
+} from '#gw2/app/build/state/tab-session.js';
+import { queueRotationReference } from '#gw2/app/rotation/comparison-state.js';
 import type { AnalysisSnapshot } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import { loadSimulationSettings, type SimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { Gw2AppAdapter, ProfessionAppState } from '#gw2/app/types.js';
 import { SelectedSkillMigrationError } from '#gw2/platform/builds/codec.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-
-/** Only build-specific editing state travels with a tab; display preferences remain shared. */
-export function emptyBuildTabSession() {
-  return {
-    attributeData: null,
-    attributeWeaponSet: 1,
-    ...emptyBuildLibrarySession(),
-    ...emptyRotationEditingSession(),
-    ...emptyRotationTimelineSession(),
-    ...emptyRotationComparisonSession(),
-    ...emptyResultViewState()
-  } satisfies Partial<ProfessionAppState>;
-}
-
-type BuildTabSession = Pick<ProfessionAppState, keyof ReturnType<typeof emptyBuildTabSession>> & {
-  patchPreviewValues?: Readonly<Record<string, number>>;
-};
 
 export interface BuildTab {
   id: string;
@@ -35,7 +20,7 @@ export interface BuildTab {
   templateBuild?: Gw2CanonicalBuild;
   templateUndoResetBuild?: Gw2CanonicalBuild;
   patchId: string;
-  session: BuildTabSession;
+  session: StoredBuildTabSession;
   analysis: AnalysisSnapshot;
 }
 
@@ -66,7 +51,7 @@ export function createBuildTab(build: Gw2CanonicalBuild, name = 'New build', pat
 }
 
 /** A new storage envelope preserves the legacy single build as a migration fallback. */
-export function workspaceStorageKey(adapter: Gw2AppAdapter): string {
+export function workspaceStorageKey(adapter: Pick<Gw2AppAdapter, 'storageKey'>): string {
   return `${adapter.storageKey}-workspace-v1`;
 }
 
@@ -160,21 +145,6 @@ export function loadBuildWorkspace(adapter: Gw2AppAdapter): BuildWorkspace {
   return { simulationSettings, tabs: [tab], activeTabId: tab.id };
 }
 
-/** Snapshots references owned by the outgoing tab without cloning large simulation results. */
-function captureActiveBuildTab(app: ProfessionAppState): void {
-  const tab = app.workspace?.tabs.find(({ id }) => id === app.workspace?.activeTabId);
-
-  if (!tab) return;
-
-  tab.build = app.build;
-  tab.patchId = app.patch.id;
-  tab.session = Object.fromEntries(
-    Object.keys(emptyBuildTabSession()).map((key) => [key, app[key as keyof ReturnType<typeof emptyBuildTabSession>]])
-  ) as unknown as BuildTabSession;
-  tab.session.patchPreviewValues = app.patch.values;
-  tab.analysis = app.analysis.capture();
-}
-
 /** Shared simulation inputs invalidate inactive caches so activation refreshes Current and Reference together. */
 export function invalidateInactiveBuildTabs(app: ProfessionAppState): void {
   for (const tab of app.workspace?.tabs ?? []) {
@@ -192,7 +162,14 @@ export function saveBuildWorkspace(app: ProfessionAppState): void {
   if (!workspace) return;
 
   captureActiveBuildTab(app);
+  persistBuildWorkspace(workspace, app.adapter);
+}
 
+/** Storage consumes an already captured document, so callers control when session state is saved. */
+export function persistBuildWorkspace(
+  workspace: BuildWorkspace,
+  adapter: Pick<Gw2AppAdapter, 'storageKey' | 'profession'>
+): void {
   if (workspace.persist) {
     workspace.persist();
     return;
@@ -200,7 +177,7 @@ export function saveBuildWorkspace(app: ProfessionAppState): void {
 
   try {
     localStorage.setItem(
-      workspaceStorageKey(app.adapter),
+      workspaceStorageKey(adapter),
       JSON.stringify({
         version: 1,
         activeTabId: workspace.activeTabId,
@@ -209,8 +186,8 @@ export function saveBuildWorkspace(app: ProfessionAppState): void {
           name,
           pinned,
           patchId,
-          build: app.profession.migrateBuild(build),
-          templateBuild: templateBuild ? app.profession.migrateBuild(templateBuild) : undefined
+          build: adapter.profession.migrateBuild(build),
+          templateBuild: templateBuild ? adapter.profession.migrateBuild(templateBuild) : undefined
         }))
       })
     );

@@ -12,7 +12,8 @@ import {
 } from '#gw2/app/build/panels/metadata.js';
 import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
-import { createBuildTab, emptyBuildTabSession } from '#gw2/app/build/state/workspace.js';
+import { emptyBuildTabSession } from '#gw2/app/build/state/tab-session.js';
+import { createBuildTab } from '#gw2/app/build/state/workspace.js';
 import { createAnalysisResultLifecycle } from '#gw2/app/create-analysis-lifecycle.js';
 import { applyBuildFileImport, previewBuildFileImport } from '#gw2/app/import-export/build-file-import.js';
 import { getBuildWithRotationExportPayload } from '#gw2/app/import-export/files.js';
@@ -240,6 +241,73 @@ function settingsWorkspace(t, initialDelay = 0) {
 
   const click = (label) => controls.find((control) => control.textContent === label).handlers.click();
   return { app, tab, cached, reference, settle, input, click, remount };
+}
+
+// Synchronous runner callbacks may update state during activation but paint only the installed destination.
+for (const failed of [false, true]) {
+  test(`browser activation batches synchronous ${failed ? 'failure' : 'publication'} and optimizer reset`, (t) => {
+    settingsWorkspace(t);
+    const renders = [];
+    const adapter = {
+      ...mesmerAppAdapter,
+      buildEditor: { sections: [], updateSelection: (app) => renders.push(['selection', app.workspace.activeTabId]) },
+      presentation: { createViewModel: () => ({}), render: () => renders.push(['premature analysis render']) },
+      renderRotationBuilder: (app) => renders.push(['rotation', app.workspace.activeTabId])
+    };
+    const app = new ProfessionApp(adapter);
+    t.after(() => app.analysis.suspend());
+    const notifications = [];
+    t.mock.method(globalThis.document, 'dispatchEvent', (event) => notifications.push(event.type));
+    const originalTabId = app.workspace.activeTabId;
+    const lookups = [];
+    t.mock.method(globalThis.document, 'getElementById', (id) => {
+      lookups.push([id, app.workspace.activeTabId]);
+      return null;
+    });
+    const other = createBuildTab(createDefaultBuild(adapter), 'Destination');
+    other.build.rotation = [{ type: 'wait', durationMs: 100 }];
+    other.session.rotationComparison = {
+      referenceRotation: [{ type: 'wait', durationMs: 200 }],
+      referenceResult: null,
+      referenceStatus: 'queued',
+      referenceError: ''
+    };
+    app.workspace.tabs.push(other);
+    const reference = { dps: 12 };
+    t.mock.method(app.baselineSimulationRunner, 'run', (operation) => {
+      if (failed) operation.fail(new Error('Destination failed'));
+      else operation.complete({ result: { dps: 24, encounter: {} }, referenceResult: reference });
+    });
+    app.activateBuildTab(other.id);
+    assert.deepEqual(renders, [
+      ['selection', other.id],
+      ['rotation', other.id]
+    ]);
+    assert.ok(
+      lookups.every(([, id]) => id === other.id),
+      'no view reads the outgoing tab during reset'
+    );
+    assert.equal(lookups.filter(([id]) => id === 'gear-optimizer').length, 1);
+    assert.equal(app.rotationComparison.referenceStatus, failed ? 'error' : 'fresh');
+    assert.equal(app.rotationComparison.referenceResult, failed ? null : reference);
+    assert.equal(globalThis.document.body.dataset.simulationStatus, failed ? 'error' : 'idle');
+    assert.equal(other.analysis.fresh, !failed);
+    assert.deepEqual(notifications, [], 'activation leaves encounter drawing to editor.open callers');
+    renders.length = 0;
+    lookups.length = 0;
+    app.activateBuildTab(other.id);
+    app.activateBuildTab('missing');
+    assert.deepEqual(renders, []);
+    assert.deepEqual(lookups, []);
+
+    if (!failed) {
+      app.activateBuildTab(originalTabId);
+      app.activateBuildTab(other.id);
+      assert.deepEqual(notifications, [], 'fresh encounter restores do not publish another result event');
+      app.analysis.refreshBaseline();
+      assert.deepEqual(notifications, ['gw2:encounter-result'], 'ordinary result publication still notifies the view');
+    }
+  });
 }
 
 // Every shared field and both bulk actions invalidate Current and Reference without eagerly running inactive tabs.

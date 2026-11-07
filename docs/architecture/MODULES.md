@@ -100,6 +100,9 @@ history in `rotation/editing/state.ts`, timeline filters in `rotation/timeline/s
 `results/state.ts`. Workspace tabs compose those defaults; transient loading/drag state and shared display preferences
 remain outside tab capture. Durable saved builds live in `build/library/storage.ts`, separately from open tabs.
 
+Tab activation captures the outgoing session, suspends analysis, installs the destination inputs, restores analysis,
+normalizes selections, and resumes work before the browser redraws.
+
 `build/state/skill-selection.ts` owns slot-selection queries and normalization. Isolated attribute controls live in
 `build/attribute-effects.ts`; `build/buffed-attributes.ts` owns their query lifecycle. Profession preview hooks prepare
 private state. Preview player health never becomes a saved assumption or simulation input.

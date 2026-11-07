@@ -7,12 +7,13 @@ import { loadTemplateAction, undoTemplateLoad } from '#gw2/app/build/library/act
 import { deleteMyBuild, loadMyBuilds, myBuildsStorageKey, saveMyBuild } from '#gw2/app/build/library/storage.js';
 import { loadBuild } from '#gw2/app/build/state/persistence.js';
 import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
+import { activateBuildTab } from '#gw2/app/build/state/tab-activation.js';
+import { emptyBuildTabSession } from '#gw2/app/build/state/tab-session.js';
 import {
   addBuildTab,
   captureBuildDestination,
   closeBuildTab,
   createBuildTab,
-  emptyBuildTabSession,
   loadBuildWorkspace,
   saveBuildWorkspace,
   workspaceStorageKey
@@ -20,7 +21,6 @@ import {
 import { createAnalysisResultLifecycle } from '#gw2/app/create-analysis-lifecycle.js';
 import { previewRotationFile } from '#gw2/app/import-export/rotation-import-dialog.js';
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
-import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { commitRotationEdit } from '#gw2/app/rotation/editing/commit.js';
 import { captureAnalysisRequestSnapshot } from '#gw2/app/simulation/analysis-request-snapshot.js';
@@ -162,16 +162,14 @@ function appFixture() {
   const simulationSettings = defaultSimulationSettings();
   const scheduled = [];
   const cancelled = [];
-  const app = Object.assign(Object.create(ProfessionApp.prototype), emptyBuildTabSession(), {
+  const app = Object.assign({}, emptyBuildTabSession(), {
     adapter,
     profession: adapter.profession,
-
     workspace: { tabs: [tab], activeTabId: tab.id, simulationSettings },
     simulationSettings,
     build: tab.build,
     patch: adapter.profession.resolvePatch({ id: 'current' }),
     damageDiagnostics: false,
-    initialRenderGeneration: 0,
     baselineSimulationRunner: {
       cancel: () => cancelled.push('baseline'),
       run: (operation) => {
@@ -191,11 +189,163 @@ function appFixture() {
     ...adapter,
     captureAnalysis: (input) => captureAnalysisRequestSnapshot(input, adapter)
   };
+  Object.defineProperty(app, 'activeCatalog', { get: () => app.patch.catalog });
   app.analysis = createAnalysisResultLifecycle(app, () => {});
+  app.activateBuildTab = (tabId, workspace) => activateBuildTab(app, { tabId, workspace });
   app.analysis.restore({ results: null, patchComparison: null, fresh: false, inputs: null });
   cancelled.length = 0;
   return { app, tab, scheduled, cancelled };
 }
+
+// Workspace persistence also supports headless activation without installing browser storage.
+test('headless activation returns false without touching an active or missing destination', () => {
+  const unexpected = () => assert.fail('A no-op must not invoke activation operations');
+  const { app, tab, scheduled, cancelled } = appFixture();
+  app.workspace.persist = unexpected;
+  app.gearOptimizerRunner = { reset: unexpected };
+  app.relicComparisonRunner.schedule = unexpected;
+  const initial = app.analysis.state;
+  const session = tab.session;
+  assert.equal(activateBuildTab(app, { tabId: tab.id }), false);
+  assert.equal(activateBuildTab(app, { tabId: 'missing' }), false);
+  const otherWorkspace = { tabs: [], activeTabId: '', simulationSettings: defaultSimulationSettings() };
+  assert.equal(activateBuildTab(app, { tabId: 'missing', workspace: otherWorkspace }), false);
+  assert.equal(app.analysis.state, initial);
+  assert.equal(tab.session, session);
+  assert.deepEqual(scheduled, []);
+  assert.deepEqual(cancelled, []);
+});
+
+for (const lazyCatalog of [false, true]) {
+  test(`invalid destination ${lazyCatalog ? 'catalog' : 'patch'} leaves the active session and jobs intact`, () => {
+    const { app, tab, cancelled } = appFixture();
+    app.workspace.persist = () => assert.fail('Unexpected save');
+    app.analysis.refreshBaseline();
+    const pending = app.pendingBaseline;
+    const initial = app.analysis.state;
+    const other = createBuildTab(build('other'), 'Unavailable', 'removed');
+    app.workspace.tabs.push(other);
+
+    if (lazyCatalog) {
+      app.profession = {
+        ...app.profession,
+        resolvePatch: () => ({
+          get catalog() {
+            throw new Error('Unavailable catalog');
+          }
+        })
+      };
+    }
+
+    cancelled.length = 0;
+    assert.throws(() => activateBuildTab(app, { tabId: other.id }), /Removed preview|Unavailable catalog/);
+    assert.equal(app.workspace.activeTabId, tab.id);
+    assert.equal(app.build, tab.build);
+    assert.equal(app.analysis.state, initial);
+    assert.deepEqual(cancelled, []);
+    pending.complete({ result: { dps: 10 } });
+    assert.equal(app.analysis.state.results.dps, 10, 'the outgoing job remains valid');
+  });
+}
+
+test('headless activation captures outgoing state and installs destination inputs before resuming analysis', () => {
+  const saved = [];
+  const { app, tab } = appFixture();
+  app.build.rotation = [{ type: 'wait', durationMs: 20 }];
+  app.rotationInsertionIndex = 0;
+  app.dragState = { source: 'timeline', index: 0 };
+  app.patch = app.profession.resolvePatch({ id: 'preview', values: { example: 2 } });
+  app.analysis.refreshBaseline();
+  const outgoing = app.pendingBaseline;
+  const revision = app.analysis.state.buildRevision;
+  const other = createBuildTab(build('destination'));
+  other.build.rotation = [{ type: 'wait', durationMs: 10 }];
+  other.session.rotationInsertionIndex = 99;
+  other.session.attributeWeaponSet = 2;
+  const workspace = { tabs: [other], activeTabId: other.id, simulationSettings: defaultSimulationSettings() };
+  workspace.simulationSettings.transitionDelays.weaponSwapMs = 250;
+  const originalWorkspace = app.workspace;
+  for (const destination of [originalWorkspace, workspace]) {
+    destination.persist = () =>
+      saved.push({
+        workspace: destination,
+        activeTabId: destination.activeTabId,
+        snapshot: destination.tabs.find(({ id }) => id === destination.activeTabId).analysis
+      });
+  }
+
+  const order = [];
+  app.baselineSimulationRunner.cancel = () => {
+    // Cancellation may synchronously emit callbacks, including after destination installation.
+    outgoing.complete({ result: { dps: -1 } });
+    outgoing.fail(new Error('obsolete failure'));
+  };
+
+  app.gearOptimizerRunner = {
+    reset() {
+      assert.equal(app.build, tab.build);
+      assert.equal(tab.session.rotationInsertionIndex, 0);
+      assert.equal(tab.session.patchPreviewValues, app.patch.values);
+      order.push('reset');
+    }
+  };
+  app.adapter = {
+    ...app.adapter,
+    captureAnalysis(input) {
+      assert.equal(input.simulationSettings, workspace.simulationSettings);
+      assert.equal(input.patch, app.patch);
+      return captureAnalysisRequestSnapshot(input, adapter);
+    },
+    slotLoadout: {
+      normalizeBuild(_build, context) {
+        assert.equal(app.analysis.state.results, null);
+        assert.equal(context.professionState, undefined);
+        assert.equal(app.build, other.build);
+        order.push('normalize');
+        return {};
+      }
+    },
+    createBuildContext: ({ transitionDelays }) => ({
+      attributes(weaponSet) {
+        assert.equal(transitionDelays.weaponSwapMs, 250);
+        assert.equal(weaponSet, 2);
+        order.push('attributes');
+        return { Power: 1234 };
+      }
+    })
+  };
+  app.relicComparisonRunner.schedule = () => {
+    assert.equal(app.attributeData.Power, 1234);
+    order.push('relics');
+  };
+
+  app.baselineSimulationRunner.run = (operation) => {
+    assert.equal(app.workspace, workspace);
+    assert.equal(app.simulationSettings, workspace.simulationSettings);
+    assert.equal(app.activeCatalog, app.patch.catalog);
+    assert.equal(app.rotationInsertionIndex, null);
+    assert.equal(app.dragState, null);
+    order.push('resume');
+    operation.complete({ result: { dps: 20 } });
+  };
+
+  assert.equal(activateBuildTab(app, { tabId: other.id, workspace }), true);
+  assert.deepEqual(order, ['reset', 'normalize', 'attributes', 'relics', 'resume']);
+  assert.deepEqual(
+    saved.map(({ workspace }) => workspace),
+    [originalWorkspace, workspace]
+  );
+  assert.equal(saved[0].activeTabId, tab.id);
+  assert.equal(saved[1].activeTabId, other.id);
+  assert.equal(saved[1].snapshot.fresh, true, 'synchronous publication is captured before persistence');
+  assert.equal(saved[1].snapshot.results, app.analysis.state.results);
+  assert.ok(app.analysis.state.buildRevision > revision);
+  assert.equal(app.analysis.state.results.dps, 20);
+  outgoing.complete({ result: { dps: -2 } });
+  outgoing.fail(new Error('late failure'));
+  assert.equal(app.analysis.state.results.dps, 20);
+  assert.equal(app.analysis.state.simulationError, '');
+});
 
 // Changing encounter assumptions never switches the active rotation document or leaks into Golem.
 test('encounter editor keeps one rotation and history across boss and difficulty changes', (t) => {

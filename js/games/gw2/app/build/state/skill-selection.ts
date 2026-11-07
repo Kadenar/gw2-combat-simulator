@@ -1,9 +1,19 @@
+/** Queries and repairs slot selections, then derives attributes from the normalized build for edits and tab restoration. */
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { CanonicalCatalog, Skill, SkillId } from '#gw2/platform/skills/types.js';
 
+export interface SlotSelectionState {
+  readonly build: ProfessionAppState['build'];
+  readonly activeCatalog: ProfessionAppState['activeCatalog'];
+  readonly profession: Pick<ProfessionAppState['profession'], 'ui'>;
+  readonly adapter: Pick<ProfessionAppState['adapter'], 'eliteSpecialization' | 'slotLoadout' | 'isSkillAvailable'>;
+  readonly analysis: { readonly state: Pick<ProfessionAppState['analysis']['state'], 'results'> };
+}
+
 export function isSlotSkillSelectable(
-  app: ProfessionAppState,
+  app: SlotSelectionState,
   skill: Skill | null | undefined,
   specialization: string
 ): boolean {
@@ -25,7 +35,7 @@ export function isSlotSkillSelectable(
 }
 
 /** Lists the legal, deduplicated choices for a heal, utility, or elite slot. */
-export function availableSlotSkills(app: ProfessionAppState, type: string): Skill[] {
+export function availableSlotSkills(app: SlotSelectionState, type: string): Skill[] {
   const spec = app.adapter.eliteSpecialization(app.build);
   const byLoadoutId = new Map<Skill['id'], Skill>();
   for (const skill of app.activeCatalog.skills) {
@@ -90,7 +100,7 @@ export function swapSelectedSkillsForPatch(
   }
 }
 
-export function normalizeSelectedSkills(app: ProfessionAppState): void {
+export function normalizeSelectedSkills(app: SlotSelectionState): void {
   const spec = app.adapter.eliteSpecialization(app.build);
 
   if (app.adapter.slotLoadout) {
@@ -148,4 +158,34 @@ export function normalizeSelectedSkills(app: ProfessionAppState): void {
 
     selected.add(app.build.selectedSkillIds[slot]);
   }
+}
+
+/** Repairs slot selections before deriving attributes so edits and restored tabs use the same build inputs. */
+export function normalizeSelectedSkillsAndAttributes(
+  state: Pick<
+    ProfessionAppState,
+    | 'build'
+    | 'patch'
+    | 'profession'
+    | 'adapter'
+    | 'analysis'
+    | 'simulationSettings'
+    | 'attributeWeaponSet'
+    | 'attributeData'
+  >
+): void {
+  normalizeSelectedSkills({
+    build: state.build,
+    activeCatalog: state.patch.catalog,
+    profession: state.profession,
+    adapter: state.adapter,
+    analysis: state.analysis
+  });
+  state.attributeData = state.adapter
+    .createBuildContext({
+      build: state.build,
+      patch: state.patch,
+      transitionDelays: normalizeTransitionDelays(state.simulationSettings?.transitionDelays)
+    })
+    .attributes(state.attributeWeaponSet === 2 ? 2 : 1);
 }
