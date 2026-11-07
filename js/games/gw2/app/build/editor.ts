@@ -1,4 +1,3 @@
-import type { BuildEditor } from '#browser/shell/types.js';
 import { initBuildTemplates } from '#gw2/app/build/library/controller.js';
 import { updateTemplateSelection } from '#gw2/app/build/library/view.js';
 import { renderAssumptions } from '#gw2/app/build/panels/assumptions.js';
@@ -12,9 +11,9 @@ import { renderSkillDamage } from '#gw2/app/build/skill-damage/panel.js';
 import { bindBuildTemplateImportDialog } from '#gw2/app/import-export/build-template-import-dialog.js';
 import { mountPreviewAssumptions } from '#gw2/app/patch-preview/assumptions.js';
 import { mountRotationDisplayControls } from '#gw2/app/rotation/timeline/display-controls.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { BuildEditor, ProfessionAppState } from '#gw2/app/types.js';
 
-/** Supplies the existing GW2 editor sections through the game-neutral contribution contract. */
+/** Supplies ordered build sections and lifecycle hooks to the GW2 application. */
 export const gw2BuildEditor: BuildEditor<ProfessionAppState> = Object.freeze({
   sections: Object.freeze([
     { id: 'gear', render: renderGear },

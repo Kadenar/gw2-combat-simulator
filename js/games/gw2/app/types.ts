@@ -1,5 +1,4 @@
 /** Composes application state, adapters, and runtime callbacks from domain-owned contracts. */
-import type { BuildEditor, SimulationPresentation } from '#browser/shell/types.js';
 import type { BuildLibraryState } from '#gw2/app/build/library/state.js';
 import type { ProfessionDefaultOffhand, ProfessionIsSkillAvailable } from '#gw2/app/build/types.js';
 import type { ModifierPresentation } from '#gw2/app/modifier-reference/presentation.js';
@@ -34,6 +33,7 @@ import type { ProfessionResourceView } from '#gw2/platform/profession-presentati
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { CanonicalCatalog, CatalogEntity, Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { SimulationViewModel } from '#ui/results/simulation-view.js';
 
 /** UI adapters retain the same bound calculator and patch contract as headless build contexts. */
 export type ProfessionAppContract = BuildContextProfession & {
@@ -122,6 +122,26 @@ export interface ProfessionRuntimeApi {
   /** Executes detached cursor work; the cursor preview module owns selection, freshness, and reuse. */
   calculateCursorPreview(request: CursorPreviewRun): Gw2SimulationResult;
   calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput;
+}
+
+/** One editor section that the GW2 application orders and renders for its session. */
+export interface BuildEditorContribution<TSession> {
+  readonly id: string;
+  render(session: TSession): void;
+}
+
+/** Declares GW2 editor sections and optional hooks for initialization, controls and selection. */
+export interface BuildEditor<TSession> {
+  readonly sections: readonly BuildEditorContribution<TSession>[];
+  initialize?(session: TSession): void | Promise<void>;
+  bindControls?(session: TSession): void;
+  updateSelection?(session: TSession): void;
+}
+
+/** Converts GW2 application output into the neutral result view model and renders it. */
+export interface SimulationPresentation<TSession> {
+  createViewModel(session: TSession): SimulationViewModel;
+  render(session: TSession, viewModel: SimulationViewModel): void;
 }
 
 export interface Gw2AppAdapter extends ProfessionRuntimeApi {
