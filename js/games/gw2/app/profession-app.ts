@@ -3,7 +3,6 @@ import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#browser/shell/rotation-workspace.js';
 import { ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
 import { mountBossScenarios } from '#gw2/app/boss-scenarios/view.js';
-import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
 import { SkillDamageLifecycle } from '#gw2/app/build/skill-damage/lifecycle.js';
 import { renderSkillDamageChange, skillDamageDisclosureOpen } from '#gw2/app/build/skill-damage/panel.js';
 import { SkillDamageRunner } from '#gw2/app/build/skill-damage/runner.js';
@@ -14,6 +13,7 @@ import {
 import { activateBuildTab } from '#gw2/app/build/state/tab-activation.js';
 import { loadBuildWorkspace, saveBuildWorkspace, type BuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import type { BuildTemplatePreset, BuildTemplateSelection } from '#gw2/app/build/types.js';
+import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/workspace-tabs.js';
 import { createAnalysisResultLifecycle } from '#gw2/app/create-analysis-lifecycle.js';
 import { renderGearOptimizer } from '#gw2/app/optimizer/gear/panel.js';
 import { GearOptimizerRunner } from '#gw2/app/optimizer/gear/runner.js';
