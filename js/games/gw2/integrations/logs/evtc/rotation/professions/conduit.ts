@@ -8,9 +8,9 @@ import { alignConduitHazeCombatOffset } from '#gw2/integrations/logs/shared/rota
 export function restoreConduitHazeOpener(
   context: EvtcProfessionReconstructionContext,
   actions: readonly EvtcRecordedRotationAction[],
-  combatStart: number | null
+  combatStart: number
 ): readonly EvtcRecordedRotationAction[] {
-  if (context.profile.specializationId !== 'conduit' || combatStart == null) return actions;
+  if (context.profile.specializationId !== 'conduit') return actions;
 
   const firstAnimation = context.recordedActions.find(
     (action) => action.evidence === 'animation' || action.evidence === 'legacy-activation'
