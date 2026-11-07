@@ -91,24 +91,16 @@ export function createCombatExecution<T extends object>(
         }
       };
     },
+    // Dispatch at the existing execution stages; the relic owner selects the participating instances.
     castCompleted(runtime, event) {
-      for (const relic of [runtime.relic, ...(runtime.precastRelics ?? [])])
-        relic.rules.completed?.(runtime, relic.state, event);
+      runtime.relic.completed(runtime, event);
     },
     action(runtime, event) {
-      // Direct calls retain the rule signatures while sharing the equipped relic's state.
-      const relic = runtime.relic;
-
-      if (!event.cancelled)
-        relic.rules.emitActionEffects?.(runtime, relic.state, event, skillForEvent(profession.catalog, event));
-
-      relic.rules.action?.(runtime, relic.state, event);
+      runtime.relic.action?.(runtime, event, skillForEvent(profession.catalog, event));
     },
     condition(runtime, event) {
-      // The selected relic's optional hook owns condition-trigger eligibility.
-      runtime.relic.rules.emitConditionEffects?.(runtime, runtime.relic.state, event);
+      runtime.relic.emitConditionEffects(runtime, event);
     },
-    report: (runtime, combatEndTime) =>
-      runtime.relic.rules.passiveTimeline?.(runtime, runtime.relic.state, combatEndTime)
+    report: (runtime, combatEndTime) => runtime.relic.passiveTimeline(runtime, combatEndTime)
   };
 }

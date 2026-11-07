@@ -120,14 +120,17 @@ test('Tyrian Hero requires a player cast with a known eligible skill identity', 
     { skillId: undefined }
   ]) {
     const captured = captureEffectEmissions();
-    relic.rules.completed({ helpers: profession.catalog, effects: captured.effects }, relic.state, {
-      type: 'action',
-      at: 0,
-      actorType: 'player',
-      skillId: 941000,
-      skillName: 'Shout',
-      ...overrides
-    });
+    relic.completed(
+      { helpers: profession.catalog, effects: captured.effects },
+      {
+        type: 'action',
+        at: 0,
+        actorType: 'player',
+        skillId: 941000,
+        skillName: 'Shout',
+        ...overrides
+      }
+    );
     assert.deepEqual(captured.events, []);
     assert.deepEqual(captured.announcements, []);
   }

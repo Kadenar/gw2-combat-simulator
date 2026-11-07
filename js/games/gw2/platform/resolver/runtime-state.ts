@@ -99,7 +99,7 @@ export function createGw2ResolverRuntimeState({
     activeWeaponSet: Number(config.startingWeaponSet) === 2 ? 2 : 1,
     combo: createGw2ComboRuntimeState(),
     // Equipment state belongs to this resolution pass, including repeated runs with the same configuration.
-    relic: createRelicRuntime(config.relic),
+    relic: createRelicRuntime(config.relic, config.precastRelics),
     profession: professionState,
     sigil: createSigilRuntimeState(),
     random,
@@ -164,7 +164,6 @@ export interface Gw2ResolverRuntime {
   activeWeaponSet: number;
   combo: Gw2ComboRuntimeState;
   relic: Gw2RelicRuntime;
-  precastRelics?: readonly Gw2RelicRuntime[];
   profession: object;
   sigil: Gw2SigilRuntimeState;
   random: Readonly<SimulationRandom>;

@@ -38,8 +38,8 @@ import {
   relicCriticalChanceBonus,
   relicOutgoingDamageBonus
 } from '#gw2/platform/equipment/relics/query.js';
-import { createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import type { Gw2RelicRuntime } from '#gw2/platform/equipment/relics/types.js';
+import { createRelicTimelineQueries } from '#gw2/platform/equipment/relics/runtime.js';
+import type { Gw2RelicQueryOwner } from '#gw2/platform/equipment/relics/types.js';
 import { gw2SigilSet } from '#gw2/platform/equipment/sigils/loadout.js';
 import { severanceCriticalContribution } from '#gw2/platform/equipment/sigils/severance.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -178,7 +178,7 @@ export function createGw2CombatQuery({
   });
   const historicalRelicContext = Object.freeze({
     config,
-    relic: createRelicTimelineRuntime(config.relic, events)
+    relic: createRelicTimelineQueries(config.relic, events)
   });
   // `query` is assigned after `completedQuery` is constructed. Hook handlers
   // that reference `query` are only called during scheduling/resolution (after
@@ -782,7 +782,7 @@ export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
   readonly boons?: Map<string, Gw2TimedBuffApplication[]>;
   readonly buffs?: Map<string, Gw2TimedBuffApplication[]>;
   readonly activeWeaponSet?: number;
-  readonly relic?: Gw2RelicRuntime;
+  readonly relic?: Gw2RelicQueryOwner;
   readonly profession?: object | null;
 }
 

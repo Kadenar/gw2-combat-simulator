@@ -108,8 +108,7 @@ export function createEffectDelivery<T extends object>(
       },
       'relic.activate'(context, event) {
         // Delayed relic activations own their state only when this queue packet executes.
-        for (const relic of [context.relic, ...(context.precastRelics ?? [])])
-          if (relic.id === event.sourceId) relic.rules.activate?.(context, relic.state, event);
+        context.relic.activate(context, event);
       }
     })
     .registerAll(
@@ -392,12 +391,7 @@ export function createEffectDelivery<T extends object>(
 
       // Relics may accept non-damaging preparation strikes without running damage or critical-hit reactions.
       if (precombat && event.type === 'damage' && !missesTarget(event) && runtime.encounter?.damageable !== false)
-        runtime.relic.rules.precombatStrike?.(
-          runtime,
-          runtime.relic.state,
-          event,
-          skillForEvent(runtime.helpers, event)
-        );
+        runtime.relic.precombatStrike?.(runtime, event, skillForEvent(runtime.helpers, event));
 
       // A missed impact can still finish a field and grant self effects; hostile combo outcomes retain its miss.
       if (runtime.deathTime == null && !preparedCombos.has(event))
@@ -444,8 +438,7 @@ export function createEffectDelivery<T extends object>(
     // Shared relic descriptors react to actual events and queue their effects on this clock.
     if (event.type === 'action') execution.action?.(runtime, event);
 
-    if (event.type === 'combat_start')
-      for (const relic of [runtime.relic, ...(runtime.precastRelics ?? [])]) relic.state.combatMarker = event;
+    if (event.type === 'combat_start') runtime.relic.setCombatMarker(event);
 
     if (event.type === 'condition') execution.condition?.(runtime, event);
 

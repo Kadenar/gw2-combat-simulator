@@ -10,9 +10,8 @@ test('Relic of the Fractal ignores bleeding owned by an independent pet or mech'
   const trigger = (owner) => {
     const relic = createRelicRuntime('Fractal');
     const { effects, events } = captureEffectEmissions();
-    relic.rules.condition(
+    relic.condition(
       { relic, config: {}, effects },
-      relic.state,
       { type: 'condition', at: 1, condition: 'Bleeding', stacks: 1, duration: 5, ...owner },
       { activeConditionStackCount: () => 7, stacksBeforeApplication: 6 }
     );

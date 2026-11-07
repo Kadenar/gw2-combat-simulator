@@ -30,14 +30,14 @@ for (const [relic, name, hook, skill, extra] of [
       endTime: 12,
       helpers: { skillsById: new Map([[991001, skill]]) },
       engineInitialize(runtime) {
-        runtime.relic.rules[hook](
+        runtime.relic[hook](
           runtime,
-          runtime.relic.state,
           {
             type: 'damage',
             at: 0,
             source: 'Test',
-            sourceId: 'test.relic-trigger',
+            // Delayed activations and payloads resolve their owning relic by ID; other triggers stay external.
+            sourceId: hook === 'activate' || hook === 'damagePayload' ? runtime.relic.id : 'test.relic-trigger',
             actorType: 'player',
             skillId: 991001,
             skillName: 'Relic trigger',

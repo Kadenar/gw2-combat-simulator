@@ -24,8 +24,6 @@ import { validateResourceGrantSupport } from '#gw2/platform/effects/action-valid
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { type EffectReactionStage } from '#gw2/platform/effects/reactions.js';
-import { normalizePrecastRelics } from '#gw2/platform/equipment/relics/catalog.js';
-import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { sigilBuffPolicies } from '#gw2/platform/equipment/sigils/runtime.js';
 import { assertSimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -257,9 +255,6 @@ export function runRuntime<T extends object>(
     onFirstDamage: conditions.startDamageClock,
     random: execution.random
   });
-  const precastRelics = normalizePrecastRelics(config.precastRelics)
-    .map(createRelicRuntime)
-    .filter((relic) => relic.id !== base.relic.id);
   const clock = {
     get time() {
       return runtime.time;
@@ -311,11 +306,7 @@ export function runRuntime<T extends object>(
         enqueueWork(makeWork({ type: 'runtime.allied-strike', at, priority: -200, payload: { sequence } }), true);
       }
     }),
-    precastRelics,
-    equipmentBuffPolicies: [
-      ...sigilBuffPolicies(config),
-      ...[base.relic, ...precastRelics].flatMap((relic) => relic.rules.buffPolicies ?? [])
-    ],
+    equipmentBuffPolicies: [...sigilBuffPolicies(config), ...base.relic.buffPolicies],
     effectReactions,
     profession: base.profession as T,
     time: 0,
@@ -439,7 +430,7 @@ export function runRuntime<T extends object>(
       actorType: ACTOR.ENVIRONMENT,
       eventOrder: 0
     });
-    for (const relic of [runtime.relic, ...precastRelics]) relic.state.combatMarker = marker;
+    runtime.relic.setCombatMarker(marker);
     // An inherited marker is also an executed boundary, so timed profession producers see the same start as rotation markers.
     runtime.effects.emit({ kind: 'packet', event: marker });
   }

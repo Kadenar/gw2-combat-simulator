@@ -34,7 +34,7 @@ function fixture() {
     ...context,
     grant(at, overrides = {}) {
       const event = boon(at, overrides);
-      context.relic.rules.boon(context, context.relic.state, {
+      context.relic.boon(context, {
         ...event,
         resolvedAudience: gw2BoonApplicationRecipients({ allies: { count: 4 } }, event)
       });
@@ -65,10 +65,9 @@ test('Herald accepts simultaneous applications, caps at 250 concentration, and r
   assert.equal(context.announcements.at(-1).announcement.expiresAt, 5);
   context.grant(5);
   assert.equal(context.concentration(5), 25, 'an application at expiry starts a new pool');
-  const before = structuredClone(context.relic.state);
   assert.equal(context.concentration(1), 250, 'later grants do not replace earlier observations');
   assert.equal(context.concentration(-0.000001), 0);
-  assert.deepEqual(context.relic.state, before, 'attribute queries do not mutate stacks');
+  assert.equal(context.concentration(5), 25, 'earlier queries do not change the current pool');
 });
 
 test('Herald refreshes a partial pool and does not scale its three-second lifetime with boon duration', () => {

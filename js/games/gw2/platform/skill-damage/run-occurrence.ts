@@ -108,14 +108,9 @@ export function executeDamageOccurrence(
     (includeTraitProcs && event.type === 'combat_start');
   const emit = (runtime: Gw2Runtime) => {
     if (relic?.damagePayload && effect.kind === 'relic') {
-      // A precast occurrence mutates its own state, so its payload's bonuses remain owned by that relic.
-      const owner = [runtime.relic, ...(runtime.precastRelics ?? [])].find((entry) => entry.id === effect.id);
-
-      if (!owner) throw new DamageCalculationError('missing-input', 'Select the relic in the build or precast relics.');
-
-      relic.damagePayload(
+      // The relic owner resolves equipped or supported precast state before emitting an isolated payload.
+      const emitted = runtime.relic.damagePayload(
         runtime,
-        owner.state,
         {
           type: 'proc',
           at: runtime.time,
@@ -126,6 +121,9 @@ export function executeDamageOccurrence(
         },
         inputs
       );
+
+      if (!emitted)
+        throw new DamageCalculationError('missing-input', 'Select the relic in the build or precast relics.');
     } else if (sigil && effect.kind === 'sigil') {
       // Isolated measurement evaluates the earned payload directly, including Doom's eventual next-hit condition.
       for (const event of createSigilDamagePayload(effect.id, sigil, occurrence.name))

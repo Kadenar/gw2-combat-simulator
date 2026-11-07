@@ -19,6 +19,7 @@ import {
   targetHealthFraction,
   vulnerabilityStacks
 } from '#gw2/platform/combat/query/runtime-query.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
@@ -209,7 +210,7 @@ test('empty profession rules retain equipment bonuses through the combat query',
       target: { conditions: { Vulnerability: 25 } }
     }
   });
-  const relic = { state: {}, rules: { outgoingDamageBonus: () => 0.25 } };
+  const relic = { queries: { ...createRelicRuntime('').queries, outgoingDamageBonus: () => 0.25 } };
   for (const activeWeaponSet of [1, 2]) {
     const runtime = { activeWeaponSet, relic };
     for (const [kind, expected] of [
@@ -276,7 +277,7 @@ test('Force and Bursting neither boost nor dilute independent companion damage',
   assert.ok(Math.abs(query.strikeMultiplier({ actorType: 'player' }, 0) - 1.15) < 1e-12);
   assert.ok(Math.abs(query.conditionMultiplier('Burning', 0, { actorType: 'summon' }, {}) - 1.15) < 1e-12);
   // Independent strikes apply eligible relics separately from profession additions, with no player sigils.
-  const relic = { state: {}, rules: { outgoingDamageBonus: () => 0.25 } };
+  const relic = { queries: { ...createRelicRuntime('').queries, outgoingDamageBonus: () => 0.25 } };
   for (const summonUsesEquipmentModifiers of [true, false]) {
     for (const summonUsesProfessionModifiers of [true, false]) {
       assert.equal(

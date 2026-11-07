@@ -7,6 +7,7 @@ import { relicStrikeMultiplier } from '#gw2/platform/equipment/relics/query.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { migrateGuardianBuild, validateGuardianBuild } from '#gw2/professions/guardian/build/build.js';
+import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
@@ -78,7 +79,7 @@ test('Deadeye relic follows player cantrip completions independently of professi
 
   const ctx = observedRuntime(result);
   const until = ctx.buffs.get('relic-deadeye').at(-1).expiresAt;
-  ctx.relic.rules.completed(ctx, ctx.relic.state, { type: 'action', at: 100, skillId: 940012, actorType: 'summon' });
+  ctx.relic.completed(ctx, { type: 'action', at: 100, skillId: 940012, actorType: 'summon' });
   assert.equal(ctx.buffs.get('relic-deadeye').at(-1).expiresAt, until);
   assert.equal(relicStrikeMultiplier(ctx, { at: until - 0.001, actorType: 'summon' }), 1);
   assert.equal(relicStrikeMultiplier(ctx, { at: until - 0.001, actorType: 'effect', ownerActorType: 'player' }), 1.1);
@@ -280,9 +281,11 @@ for (const [relic, skillType, cooldown, delay, multiplier] of [
       (step) => step.skill === 'Relic of the ' + relic || step.skill === 'Relic of ' + relic
     );
     // A summon completion cannot claim a player relic even once its cooldown is ready.
-    const readyAt = ctx.relic.state.readyAt;
-    ctx.relic.rules.completed(ctx, ctx.relic.state, { type: 'action', at: 100, skillType, actorType: 'summon' });
-    assert.equal(ctx.relic.state.readyAt, readyAt);
+    const emissions = captureEffectEmissions();
+    ctx.effects = emissions.effects;
+    ctx.relic.completed(ctx, { type: 'action', at: 100, skillType, actorType: 'summon' });
+    assert.deepEqual(emissions.events, []);
+    assert.deepEqual(emissions.announcements, []);
 
     assert.deepEqual(
       procs.map((proc) => proc.start),
@@ -390,4 +393,22 @@ test('Director off-target precasts grant the buff without preloading vulnerabili
   assert.equal(offTarget.strikeDamage, baseline.strikeDamage);
   assertFlooredDamageMultiplier(onTarget.strikeDamage, baseline.strikeDamage, 1.08 * 1.1);
   assert.equal(offTarget.procSteps.filter((step) => step.type === 'relic_proc').length, 1);
+});
+
+// Preparation owns the pending activation even when combat starts before its delayed buff lands.
+test('Mount Balrior completes its earned precast activation after combat entry', () => {
+  const config = { relic: 'Thief', precastRelics: ['Mount Balrior'] };
+  const result = observeGw2Runtime({
+    profession: slotProfession.runtimeFor(config),
+    config,
+    rotation: ['Instant Elite', '__combat_start', 'Strike', { type: 'wait', durationMs: 1500 }, 'Strike']
+  });
+  assert.deepEqual(result.warnings, []);
+  const runtime = observedRuntime(result);
+  const grants = runtime.buffs.get('relic-mount-balrior');
+  assert.equal(grants.length, 1);
+  assert.ok(grants[0].at > result.combatStartTime);
+  assert.equal(relicStrikeMultiplier(runtime, { at: result.combatStartTime, actorType: 'player' }), 1);
+  assert.equal(relicStrikeMultiplier(runtime, { at: grants[0].at, actorType: 'player' }), 1.15);
+  assert.equal(relicStrikeMultiplier(runtime, { at: grants[0].expiresAt, actorType: 'player' }), 1);
 });

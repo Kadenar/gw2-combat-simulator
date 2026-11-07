@@ -99,17 +99,24 @@ function relicHarness(name) {
   };
   ctx.effects = captureEffectEmissions({
     announce: ({ announcement: a }) =>
-      procs.push({ kind: a.type, procName: a.name, at: a.at, sourceSkill: a.sourceSkill, detail: a.detail }),
+      procs.push({
+        kind: a.type,
+        procName: a.name,
+        at: a.at,
+        sourceSkill: a.sourceSkill,
+        detail: a.detail,
+        effectState: a.effectState
+      }),
     submit: (event, delivery) => {
       if (delivery.settlement !== 'reaction') return queued.push(event);
 
       conditions.push(event);
       // Relic-applied conditions re-enter the condition stage like the resolver does.
-      relic.rules.condition?.(ctx, relic.state, event, helpers);
+      relic.condition(ctx, event, helpers);
       return event;
     }
   }).effects;
-  return { relic, ctx, helpers, procs, conditions, queued };
+  return { relic, ctx, helpers, procs, conditions, queued, stacks: () => procs.at(-1)?.effectState?.stacks ?? 0 };
 }
 
 function burning(at, overrides = {}) {
@@ -128,11 +135,11 @@ function burning(at, overrides = {}) {
 }
 
 test('Last Tyrant explodes on the burning after five Fury stacks and respects its 12s cooldown', () => {
-  const { relic, ctx, helpers, conditions, queued } = relicHarness('Last Tyrant');
-  const apply = (event) => relic.rules.condition(ctx, relic.state, event, helpers);
+  const { relic, ctx, helpers, conditions, queued, stacks } = relicHarness('Last Tyrant');
+  const apply = (event) => relic.condition(ctx, event, helpers);
 
   for (let at = 0; at < 5; at += 1) apply(burning(at));
-  assert.equal(relic.state.stacks, 5);
+  assert.equal(stacks(), 5);
   assert.equal(conditions.length, 0);
 
   apply(burning(5));
@@ -147,61 +154,60 @@ test('Last Tyrant explodes on the burning after five Fury stacks and respects it
     [[3, `relic.${RELIC_IDS.LAST_TYRANT}`]]
   );
   // The explosion's own burning does not start the next Fury cycle.
-  assert.equal(relic.state.stacks, 0);
+  assert.equal(stacks(), 0);
 
   // No Fury stacks build during the cooldown, including at its boundary timestamp.
   for (let at = 6; at <= 17; at += 1) apply(burning(at));
-  assert.equal(relic.state.stacks, 0, 'cooldown blocks stack gain');
+  assert.equal(stacks(), 0, 'cooldown blocks stack gain');
   assert.equal(conditions.length, 1);
 
   // Once the cooldown expires, stacks rebuild before the next explosion.
   for (const at of [17.25, 18, 19, 20, 21]) apply(burning(at));
-  assert.equal(relic.state.stacks, 5);
+  assert.equal(stacks(), 5);
   assert.equal(conditions.length, 1);
   apply(burning(22));
   assert.equal(conditions.length, 2);
 });
 
 test('Last Tyrant rounds its 250ms stack marker to 40ms ticks and lets the sixth application explode immediately', () => {
-  const { relic, ctx, helpers, conditions, queued } = relicHarness('Last Tyrant');
-  const apply = (at, sourceId = 'skill-a') =>
-    relic.rules.condition(ctx, relic.state, burning(at, { sourceId, stacks: 3 }), helpers);
+  const { relic, ctx, helpers, conditions, queued, stacks } = relicHarness('Last Tyrant');
+  const apply = (at, sourceId = 'skill-a') => relic.condition(ctx, burning(at, { sourceId, stacks: 3 }), helpers);
 
   // Each eligible application grants one Fury stack, regardless of its Burning stack count.
   for (const [index, at] of [0, 0.28, 0.56, 0.84].entries()) {
     apply(at);
-    assert.equal(relic.state.stacks, index + 1);
+    assert.equal(stacks(), index + 1);
     // Other sources remain blocked before expiry, even if 250ms has elapsed.
     apply(at + 0.279, 'skill-b');
-    assert.equal(relic.state.stacks, index + 1);
+    assert.equal(stacks(), index + 1);
     assert.equal(conditions.length, 0);
     assert.equal(queued.length, 0);
   }
 
   apply(1.12);
-  assert.equal(relic.state.stacks, 5);
+  assert.equal(stacks(), 5);
   apply(1.121);
-  assert.equal(relic.state.stacks, 0);
+  assert.equal(stacks(), 0);
   assert.equal(conditions.length, 1);
   assert.equal(queued.length, 1);
 
   // Tick rounding is absolute: a marker started at 41ms expires at 320ms.
   const second = relicHarness('Last Tyrant');
-  const applySecond = (at) => second.relic.rules.condition(second.ctx, second.relic.state, burning(at), second.helpers);
+  const applySecond = (at) => second.relic.condition(second.ctx, burning(at), second.helpers);
   applySecond(0.041);
   applySecond(0.319);
-  assert.equal(second.relic.state.stacks, 1);
+  assert.equal(second.stacks(), 1);
   applySecond(0.32);
-  assert.equal(second.relic.state.stacks, 2);
+  assert.equal(second.stacks(), 2);
 });
 
 test('Last Tyrant ignores non-burning and non-player applications', () => {
-  const { relic, ctx, helpers } = relicHarness('Last Tyrant');
-  relic.rules.condition(ctx, relic.state, burning(0, { condition: 'Bleeding' }), helpers);
-  relic.rules.condition(ctx, relic.state, burning(0, { actorType: 'summon' }), helpers);
-  assert.equal(Number(relic.state.stacks || 0), 0);
-  relic.rules.condition(ctx, relic.state, burning(0, { actorType: 'effect', ownerActorType: 'player' }), helpers);
-  assert.equal(relic.state.stacks, 1);
+  const { relic, ctx, helpers, stacks } = relicHarness('Last Tyrant');
+  relic.condition(ctx, burning(0, { condition: 'Bleeding' }), helpers);
+  relic.condition(ctx, burning(0, { actorType: 'summon' }), helpers);
+  assert.equal(stacks(), 0);
+  relic.condition(ctx, burning(0, { actorType: 'effect', ownerActorType: 'player' }), helpers);
+  assert.equal(stacks(), 1);
 });
 
 // Consuming Fury ends its report window; the next eligible application starts a fresh stack cycle.
@@ -250,8 +256,8 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
           materializeSkillEffectApplications({
             skill,
             effect,
-            start: 1,
-            fullEnd: 2,
+            start: 2,
+            fullEnd: 3,
             baseEvent: { source: profession, sourceId: skill.id, skillName: skill.name, actorType: 'player' }
           })
         )
@@ -263,7 +269,8 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
         skill.name
       );
       const { ctx, conditions: resolution } = conditionResolver();
-      ctx.relic.state.stacks = 4;
+      for (const at of [0, 0.28, 0.56, 0.84])
+        ctx.relic.condition(ctx, burning(at), { activeConditionStackCount: () => 0, stacksBeforeApplication: 0 });
       const applications = packets.flatMap((event) => resolution.applyCondition(ctx, event));
       assert.equal(
         applications.reduce((total, event) => total + event.stacks, 0),
@@ -286,7 +293,7 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
         relicBurning.every((event) => event.at === canonicalTime(packets[0].at)),
         skill.name
       );
-      assert.equal(ctx.relic.state.stacks, 0, skill.name);
+      assert.equal(ctx.procRecorder.steps.at(-1).effectState.stacks, 0, skill.name);
     }
   }
 });
@@ -327,7 +334,8 @@ test('profiled condition procs preserve fractional totals and source attribution
       [stacks]
     );
     const { ctx, conditions: resolution } = conditionResolver();
-    ctx.relic.state.stacks = 4;
+    for (const at of [0, 0.28, 0.56, 0.84])
+      ctx.relic.condition(ctx, burning(at), { activeConditionStackCount: () => 0, stacksBeforeApplication: 0 });
     const applications = events.flatMap((event) => resolution.applyCondition(ctx, event));
     assert.deepEqual(
       applications.map((event) => event.stacks),
@@ -378,7 +386,7 @@ test('condition application returns no packets for zero stacks or duration and r
   const { ctx, conditions: resolution } = conditionResolver();
   assert.deepEqual(resolution.applyCondition(ctx, burning(0, { stacks: 0 })), []);
   assert.deepEqual(resolution.applyCondition(ctx, burning(0, { duration: 0 })), []);
-  assert.equal(ctx.relic.state.stacks, 0);
+  assert.equal(ctx.procRecorder.steps.length, 0);
   assert.throws(() => resolution.applyCondition(ctx, burning(0, { stacks: Infinity })), /stacks must be finite/);
 });
 
@@ -455,12 +463,12 @@ test("Visionary reports a new buildup and buff cycle after Vloxx's Vision expire
 });
 
 test('Visionary counts whirl finishers at most once per 3s', () => {
-  const { relic, ctx } = relicHarness('Visionary');
-  for (const at of [0, 0, 0.5, 2.9]) relic.rules.combo(ctx, relic.state, combo(at, 'Whirl'));
-  assert.equal(relic.state.stacks, 1);
-  relic.rules.combo(ctx, relic.state, combo(1, 'Projectile'));
-  relic.rules.combo(ctx, relic.state, combo(3, 'Whirl'));
-  assert.equal(relic.state.stacks, 2, 'the whirl ICD blocks through its boundary');
-  relic.rules.combo(ctx, relic.state, combo(3.25, 'Whirl'));
-  assert.equal(relic.state.stacks, 3);
+  const { relic, ctx, stacks } = relicHarness('Visionary');
+  for (const at of [0, 0, 0.5, 2.9]) relic.combo(ctx, combo(at, 'Whirl'));
+  assert.equal(stacks(), 1);
+  relic.combo(ctx, combo(1, 'Projectile'));
+  relic.combo(ctx, combo(3, 'Whirl'));
+  assert.equal(stacks(), 2, 'the whirl ICD blocks through its boundary');
+  relic.combo(ctx, combo(3.25, 'Whirl'));
+  assert.equal(stacks(), 3);
 });

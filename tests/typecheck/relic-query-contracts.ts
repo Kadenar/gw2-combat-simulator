@@ -5,7 +5,7 @@ import {
   relicOutgoingDamageBonus,
   relicStrikeMultiplier
 } from '#gw2/platform/equipment/relics/query.js';
-import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { createRelicRuntime, createRelicTimelineQueries } from '#gw2/platform/equipment/relics/runtime.js';
 import type { Gw2RelicAttributeQueryContext, Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
@@ -26,9 +26,16 @@ relicStrikeMultiplier(
 
 // @ts-expect-error Thorns needs configuration even when a relic runtime is present.
 relicConditionDamageBonus({ relic }, 0);
-// @ts-expect-error Calling the rule directly must enforce the same configuration requirement.
-relic.rules.conditionDamageBonus?.({ relic }, relic.state, 0);
+// @ts-expect-error Bound queries still require the rule's configuration observations.
+relic.queries.conditionDamageBonus({ relic }, 0);
+// @ts-expect-error Mutable instances never leave the owner.
+relic.state;
+// @ts-expect-error Callers cannot dispatch rules against arbitrary state.
+relic.rules;
+const historical = createRelicTimelineQueries('Thorns', []);
+// @ts-expect-error Detached historical observations cannot mutate gameplay state.
+historical.completed(effectContext, event);
 // @ts-expect-error Typed hooks reject a timestamp where a completed action is required.
-relic.rules.completed?.(effectContext, relic.state, 0);
+relic.completed(effectContext, 0);
 // @ts-expect-error Attribute queries cannot emit gameplay effects.
 attributeContext.effects.emit({ kind: 'packet', event });

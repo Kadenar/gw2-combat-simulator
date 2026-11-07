@@ -9,7 +9,11 @@ import {
   relicOutgoingDamageBonus,
   relicStrikeMultiplier
 } from '#gw2/platform/equipment/relics/query.js';
-import { createRelicRuntime, createRelicTimelineRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import {
+  createAristocracyPreviewQueries,
+  createRelicRuntime,
+  createRelicTimelineQueries
+} from '#gw2/platform/equipment/relics/runtime.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
@@ -28,12 +32,12 @@ test('relic queries return neutral contributions without an applicable rule', ()
 
 // Live and historical attribute queries need configured observations, not an effect-emission service.
 test('Thorns query wrappers preserve initial stacks and leave relic state unchanged', () => {
-  for (const relic of [createRelicRuntime('Thorns'), createRelicTimelineRuntime('Thorns', [])]) {
+  for (const relic of [createRelicRuntime('Thorns'), createRelicTimelineQueries('Thorns', [])]) {
     const context = { config: { initialThornsStacks: 2 }, relic };
-    const before = structuredClone(relic.state);
     assert.equal(relicConditionDamageBonus(context, 3), 90);
     assert.equal(relicConditionDamageBonus(context, 0), 60);
-    assert.deepEqual(relic.state, before);
+    assert.equal(relicConditionDamageBonus(context, 3), 90);
+    assert.equal('state' in relic, false);
   }
 });
 
@@ -55,4 +59,21 @@ test('combat attribute queries supply Thorns configuration for live and historic
     assert.equal(query.statsAt(at).conditionDamage, baseline + bonus);
     assert.equal(query.statsAt(at, null, runtime).conditionDamage, baseline + bonus);
   }
+});
+
+// Hypothetical attribute stacks stay separate from fresh live and detached historical observations.
+test('Aristocracy preview queries own their assumed window without changing live state', () => {
+  const preview = createAristocracyPreviewQueries(3);
+  const live = createRelicRuntime('Aristocracy');
+  const historical = createRelicTimelineQueries('Aristocracy', []);
+  for (const owner of [preview, historical]) {
+    assert.equal('state' in owner, false);
+    assert.equal('completed' in owner, false);
+  }
+
+  assert.equal(relicConditionDurationBonus({ relic: preview }, 1), 0.09);
+  assert.equal(relicConditionDurationBonus({ relic: preview }, 60), 0);
+  assert.equal(relicConditionDurationBonus({ relic: preview }, 1), 0.09);
+  assert.equal(relicConditionDurationBonus({ relic: live }, 1), 0);
+  assert.equal(relicConditionDurationBonus({ relic: historical }, 1), 0);
 });

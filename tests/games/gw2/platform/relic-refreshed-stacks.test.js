@@ -10,16 +10,21 @@ function fixture(name, config = {}) {
   return { ...captured, relic: createRelicRuntime(name), config };
 }
 
+// Stack observations come from the emitted report, without exposing the relic's mutable pool.
+function stackReport(context, name) {
+  return context.announcements.findLast(({ announcement }) => !name || announcement.name === name)?.announcement;
+}
+
 // A grant one canonical microsecond in the future cannot affect stats or leak into a completed report.
 test('Thorns and Nourys respect exact grant and reporting boundaries', () => {
   const context = fixture('Thorns');
-  assert.equal(context.relic.rules.conditionDamageBonus(context, context.relic.state, 2.999999), 0);
-  assert.equal(context.relic.rules.conditionDamageBonus(context, context.relic.state, 3), 30);
+  assert.equal(context.relic.queries.conditionDamageBonus(context, 2.999999), 0);
+  assert.equal(context.relic.queries.conditionDamageBonus(context, 3), 30);
   for (const name of ['Thorns', 'Nourys']) {
     const before = fixture(name);
-    before.relic.rules.passiveTimeline(before, before.relic.state, 2.999999);
+    before.relic.passiveTimeline(before, 2.999999);
     assert.deepEqual(before.announcements, []);
-    before.relic.rules.passiveTimeline(before, before.relic.state, 3);
+    before.relic.passiveTimeline(before, 3);
     assert.equal(before.announcements.length, 1);
   }
 });
@@ -29,13 +34,8 @@ test('Thief relic reads the selected resource price without a derived resource l
   for (const amount of [0, 3]) {
     const context = fixture('Thief');
     const skill = { type: 'Weapon', cooldown: 0, cost: { resource: 'initiative', amount } };
-    context.relic.rules.afterHit(
-      context,
-      context.relic.state,
-      { at: 0, actorType: 'player', skillName: 'Fixture' },
-      skill
-    );
-    assert.equal(context.relic.state.refreshedStacks.stacks, amount > 0 ? 1 : 0);
+    context.relic.afterHit(context, { at: 0, actorType: 'player', skillName: 'Fixture' }, skill);
+    assert.equal(stackReport(context)?.effectState.stacks ?? 0, amount > 0 ? 1 : 0);
   }
 });
 
@@ -43,19 +43,24 @@ test('Thief relic refreshes all stacks at cap and rejects hits outside its weapo
   const context = fixture('Thief');
   const skill = { type: 'Weapon', cooldown: 5 };
   const hit = (at, actorType = 'player', weapon = skill) =>
-    context.relic.rules.afterHit(context, context.relic.state, { at, actorType, skillName: 'Fixture weapon' }, weapon);
+    context.relic.afterHit(context, { at, actorType, skillName: 'Fixture weapon' }, weapon);
   for (const at of [0, 1, 2, 3, 4, 5.001]) hit(at);
-  const buff = context.relic.state.refreshedStacks;
-  assert.deepEqual(buff, { stacks: 5, expiresAt: 11.04 });
+  const buff = stackReport(context);
+  assert.equal(buff.effectState.stacks, 5);
+  assert.equal(buff.expiresAt, 11.04);
   hit(6, 'summon');
   hit(6, 'player', { type: 'Utility', cooldown: 5 });
   hit(6, 'player', { type: 'Weapon', cooldown: 0 });
-  assert.deepEqual(context.relic.state.refreshedStacks, buff);
-  assert.equal(context.relic.rules.strikeMultiplier(context, context.relic.state, { at: 11.039 }), 1.05);
-  assert.equal(context.relic.rules.strikeMultiplier(context, context.relic.state, { at: 11.04 }), 1);
-  assert.deepEqual(context.relic.state.refreshedStacks, buff, 'queries cannot settle the owner');
+  assert.equal(stackReport(context), buff);
+  assert.equal(context.relic.queries.strikeMultiplier(context, { at: 11.039 }), 1.05);
+  assert.equal(context.relic.queries.strikeMultiplier(context, { at: 11.04 }), 1);
+  assert.equal(
+    context.relic.queries.strikeMultiplier(context, { at: 11.039 }),
+    1.05,
+    'later queries do not erase earlier windows'
+  );
   hit(11.04);
-  assert.equal(context.relic.state.refreshedStacks.stacks, 1);
+  assert.equal(stackReport(context)?.effectState.stacks ?? 0, 1);
   const refresh = context.announcements[5].announcement;
   assert.equal(refresh.expiresAt, 11.04);
   assert.deepEqual(refresh.effectState, { stacks: 5, maximumStacks: 5 });
@@ -64,19 +69,20 @@ test('Thief relic refreshes all stacks at cap and rejects hits outside its weapo
 test('Bloodstone refreshes Volatility until the fourth blast consumes it and blocks grants during Fervor', () => {
   const context = fixture('Bloodstone');
   const combo = (at, finisherType = 'Blast') =>
-    context.relic.rules.combo(context, context.relic.state, { at, finisherType, skillName: 'Fixture blast' });
+    context.relic.combo(context, { at, finisherType, skillName: 'Fixture blast' });
   combo(0.001);
-  assert.deepEqual(context.relic.state.refreshedStacks, { stacks: 1, expiresAt: 10.04 });
+  assert.equal(stackReport(context).effectState.stacks, 1);
+  assert.equal(stackReport(context).expiresAt, 10.04);
   combo(9);
   combo(18);
-  assert.deepEqual(context.relic.state.refreshedStacks, { stacks: 3, expiresAt: 28 });
+  assert.equal(stackReport(context).effectState.stacks, 3);
+  assert.equal(stackReport(context).expiresAt, 28);
   // Three stored stacks display progress toward the fourth blast that activates Fervor.
   assert.equal(context.announcements.at(-1).announcement.detail, '3/4 stacks');
   assert.deepEqual(context.announcements.at(-1).announcement.effectState, { stacks: 3, maximumStacks: 4 });
   combo(19, 'Leap');
-  assert.equal(context.relic.state.refreshedStacks.stacks, 3);
+  assert.equal(stackReport(context)?.effectState.stacks ?? 0, 3);
   combo(20);
-  assert.deepEqual(context.relic.state.refreshedStacks, { stacks: 0, expiresAt: 0 });
   assert.equal(context.buffs.get('bloodstone-fervor').at(-1).expiresAt, 28);
   const consumption = context.announcements.at(-2).announcement;
   assert.equal(consumption.name, 'Bloodstone Volatility');
@@ -84,16 +90,17 @@ test('Bloodstone refreshes Volatility until the fourth blast consumes it and blo
   assert.equal(consumption.effectState.stacks, 0, 'reporting ends the consumed pool at the transition');
   assert.equal(context.announcements.at(-1).announcement.name, 'Relic of Bloodstone');
   combo(27.999);
-  assert.equal(context.relic.state.refreshedStacks.stacks, 0);
+  assert.equal(stackReport(context, 'Bloodstone Volatility').effectState.stacks, 0);
   combo(28);
-  assert.equal(context.relic.state.refreshedStacks.stacks, 1);
+  assert.equal(stackReport(context)?.effectState.stacks ?? 0, 1);
   combo(38);
-  assert.deepEqual(context.relic.state.refreshedStacks, { stacks: 1, expiresAt: 48 });
+  assert.equal(stackReport(context).effectState.stacks, 1);
+  assert.equal(stackReport(context).expiresAt, 48);
 });
 
 test('Thorns preserves its deterministic ramp while reporting finite refreshes after reaching the cap', () => {
   const context = fixture('Thorns', { initialThornsStacks: 9 });
-  context.relic.rules.passiveTimeline(context, context.relic.state, 80);
+  context.relic.passiveTimeline(context, 80);
   const rows = context.announcements.map(({ announcement }) => announcement);
   assert.equal(rows[0].effectState.stacks, 9);
   assert.equal(rows[0].expiresAt, 30);
@@ -111,8 +118,6 @@ test('Thorns preserves its deterministic ramp while reporting finite refreshes a
     [0, 270],
     [48, 300]
   ]) {
-    assert.equal(context.relic.rules.conditionDamageBonus(context, context.relic.state, at), damage);
+    assert.equal(context.relic.queries.conditionDamageBonus(context, at), damage);
   }
-
-  assert.deepEqual(context.relic.state, {});
 });

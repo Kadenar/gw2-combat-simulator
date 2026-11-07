@@ -14,7 +14,7 @@ import {
 } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { relicConditionDurationBonus } from '#gw2/platform/equipment/relics/query.js';
-import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
+import { createAristocracyPreviewQueries } from '#gw2/platform/equipment/relics/runtime.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import type {
@@ -203,9 +203,7 @@ function calculatePreview(
     attributePreviewPlayerHealthFraction: playerHealth
   });
   // Seed an isolated active stack window so both displayed and conjure durations use the relic's combat formula.
-  const relic = values.aristocracy ? createRelicRuntime('Aristocracy') : undefined;
-
-  if (relic) relic.state.activations = [{ at: 0, expiresAt: 60, stacks: Number(values.aristocracy) }];
+  const relic = values.aristocracy ? createAristocracyPreviewQueries(Number(values.aristocracy)) : undefined;
 
   const runtime = {
     profession: professionState,

@@ -3,6 +3,8 @@ import test from 'node:test';
 
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
+import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
@@ -207,15 +209,17 @@ test('every notification stage preserves the original event and returns nothing'
 
 // Generic buffs share the stage with boons but must not activate relic boon rules.
 test('relic boon reactions accept standard boons and ignore generic buffs', () => {
-  const seen = [];
+  const captured = captureEffectEmissions();
   const reactions = createGw2ResolverReactionRegistry({ contributions: createGw2EquipmentReactionContributions() });
-  const context = { relic: { state: {}, rules: { boon: (_ctx, _state, event) => seen.push(event) } } };
-  const boon = { type: 'buff', at: 0, kind: 'might' };
-  const legacyBoon = { type: 'buff', at: 0, boon: 'fury' };
-  reactions.dispatch('buff.applied', context, { type: 'buff', at: 0, kind: 'generic-buff' });
-  reactions.dispatch('buff.applied', context, boon);
-  reactions.dispatch('buff.applied', context, legacyBoon);
-  assert.deepEqual(seen, [boon, legacyBoon]);
+  const context = { relic: createRelicRuntime('Mistburn'), effects: captured.effects };
+  // Mistburn reports its own accepted boons, so the owner must reject generic buff packets before dispatch.
+  const packet = { type: 'buff', at: 0, sourceId: `relic.${RELIC_IDS.MISTBURN}` };
+  reactions.dispatch('buff.applied', context, { ...packet, kind: 'generic-buff' });
+  assert.equal(captured.announcements.length, 0);
+  reactions.dispatch('buff.applied', context, { ...packet, kind: 'might' });
+  assert.equal(captured.announcements.length, 1);
+  reactions.dispatch('buff.applied', context, { ...packet, boon: 'fury' });
+  assert.equal(captured.announcements.length, 2);
 });
 
 // Direct stage compilation retains validation at both public composition boundaries and dispatch.

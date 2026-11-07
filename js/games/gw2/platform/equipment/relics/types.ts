@@ -1,3 +1,4 @@
+/** Relic rules receive typed observations while the runtime privately owns their state. */
 import type { Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import type { BuffStatePolicy } from '#gw2/platform/combat/effect-state.js';
 import type { CombatEngagementQueries } from '#gw2/platform/combat/engagement.js';
@@ -39,7 +40,7 @@ export interface Gw2RelicState {
 
 export interface Gw2RelicRuntimeContext {
   readonly engagement?: Pick<CombatEngagementQueries, 'startTime'>;
-  readonly relic?: Gw2RelicRuntime;
+  readonly relic?: Gw2RelicQueryOwner;
 }
 
 interface Gw2RelicEmissionContext {
@@ -51,12 +52,11 @@ export interface Gw2RelicContext {
   readonly buffs?: ReadonlyMap<string, readonly Gw2TimedBuffApplication[]>;
   readonly engagement: CombatEngagementQueries;
   readonly helpers: Gw2ResolverHelpers;
-  precastRelics?: readonly Gw2RelicRuntime[];
   readonly config: Gw2RelicConfig;
   /** Relics may query target thresholds; only shared damage resolution can update totals. */
   readonly totals: { readonly strike: number; readonly condition: number };
   readonly effects: EffectEmissionService;
-  readonly relic?: Gw2RelicRuntime;
+  readonly relic?: Gw2RelicQueryOwner;
 }
 
 export interface Gw2ConditionHelpers {
@@ -65,7 +65,7 @@ export interface Gw2ConditionHelpers {
 
 /** Pure relic queries expose only their required observations, never emission capabilities. */
 export type Gw2RelicStrikeQueryContext = Readonly<
-  Pick<Gw2RelicContext, 'config' | 'totals' | 'buffs' | 'helpers' | 'precastRelics' | 'relic'>
+  Pick<Gw2RelicContext, 'config' | 'totals' | 'buffs' | 'helpers' | 'relic'>
 >;
 
 export type Gw2RelicDurationQueryContext = Pick<Gw2RelicContext, 'buffs' | 'relic'>;
@@ -151,8 +151,58 @@ export interface Gw2RelicRule {
   readonly damageResolved?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
 }
 
-export interface Gw2RelicRuntime {
+/** Query owners expose no mutable instances or gameplay operations. */
+export interface Gw2RelicQueryOwner {
   readonly id: number | null;
-  readonly rules: Readonly<Gw2RelicRule>;
-  readonly state: Gw2RelicState;
+  readonly queries: Gw2RelicQueries;
+}
+
+export interface Gw2RelicQueries {
+  strikeMultiplier(context: Gw2RelicStrikeQueryContext, event: SimulationEvent): number;
+  outgoingDamageBonus(
+    context: Gw2RelicRuntimeContext,
+    damageType: 'strike' | 'condition',
+    at: number,
+    event: SimulationEvent | null
+  ): number;
+  criticalChanceBonus(context: Gw2RelicRuntimeContext, event: SimulationEvent, mightStacks: number): number;
+  conditionDurationBonus(context: Gw2RelicDurationQueryContext, at: number): number;
+  conditionDamageBonus(context: Gw2RelicAttributeQueryContext, at: number): number;
+  concentrationBonus(context: Gw2RelicAttributeQueryContext, at: number): number;
+}
+
+/**
+ * Events enter at their existing execution stages; this owner selects instances and pairs their private state.
+ * Equipped-only hooks whose callers derive inputs are absent unless the equipped rule observes them, so an optional
+ * call skips that per-hit or per-application work.
+ */
+export interface Gw2RelicRuntime extends Gw2RelicQueryOwner {
+  readonly buffPolicies: readonly BuffStatePolicy[];
+  setCombatMarker(event: SimulationEvent): void;
+  completed(context: Gw2RelicContext, event: SimulationEvent): void;
+  readonly action?: (context: Gw2RelicContext, event: SimulationEvent, skill: Skill | undefined) => void;
+  emitConditionEffects(context: Gw2RelicContext, event: SimulationEvent): void;
+  activate(context: Gw2RelicContext, event: SimulationEvent): void;
+  passiveTimeline(context: Gw2RelicContext, end: number): void;
+  boon(context: Gw2RelicContext, event: SimulationEvent): void;
+  combo(context: Gw2RelicContext, event: SimulationEvent): void;
+  damageResolved(context: Gw2RelicContext, event: SimulationEvent): void;
+  readonly afterHit?: (context: Gw2RelicContext, event: SimulationEvent, skill: Skill | null | undefined) => void;
+  readonly precombatStrike?: (
+    context: Gw2RelicContext,
+    event: SimulationEvent,
+    skill: Skill | null | undefined
+  ) => void;
+  readonly control?: (context: Gw2RelicContext, event: SimulationEvent, helpers: Gw2ConditionHelpers) => void;
+  readonly condition?: (
+    context: Gw2RelicContext,
+    event: SimulationEvent,
+    helpers: Gw2ConditionHelpers & { readonly stacksBeforeApplication: number }
+  ) => void;
+  /** Isolated measurement executes an owned payload without enabling ordinary equipment triggers. */
+  damagePayload(
+    context: Gw2RelicContext,
+    event: SimulationEvent,
+    inputs?: import('#gw2/platform/skill-damage/types.js').DamageInputs
+  ): boolean;
 }

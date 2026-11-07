@@ -780,7 +780,6 @@ test('Peitha preserves expiry-boundary damage without extending buff lifetimes o
     );
     assert.deepEqual(result.warnings, []);
     const runtime = observedRuntime(result);
-    assert.deepEqual(runtime.relic.state, { readyAt: 8.04 });
     assert.deepEqual(
       runtime.buffs.get('relic-peitha').map(({ at, expiresAt }) => [at, expiresAt]),
       [

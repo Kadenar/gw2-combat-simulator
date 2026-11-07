@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
+import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_TRAIT_IDS } from '#gw2/professions/elementalist/data/ids.js';
@@ -107,7 +108,7 @@ for (const [name, catalog, modifiers, trait, condition, other, damage, coefficie
       const query = createGw2CombatQuery({ profession, config });
       assert.equal(query.conditionMultiplier(condition, 1, application), 1);
       assert.equal(reads.size, 0, 'Damage multipliers must not resolve attributes');
-      const relic = { name: 'test', state: {}, rules: { conditionDamageBonus: () => 300 } };
+      const relic = { queries: { ...createRelicRuntime('').queries, conditionDamageBonus: () => 300 } };
       assert.equal(query.statsAt(1, application, { relic }).conditionDamage, 2000 * coefficient);
       assert.equal(query.statsAt(1, events[3], { relic }).conditionDamage, 2300);
       assert.equal(query.statsAt(1, events[0], { relic }).conditionDamage, 1300);

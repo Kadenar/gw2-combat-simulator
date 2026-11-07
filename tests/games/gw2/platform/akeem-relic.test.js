@@ -9,9 +9,8 @@ import { resolveTestGw2Events } from '#tests/helpers/gw2-resolver.js';
 test('Akeem Confusion and Torment inherit player condition modifiers', () => {
   const relic = createRelicRuntime('Akeem');
   const captured = captureEffectEmissions();
-  relic.rules.control(
+  relic.control(
     { effects: captured.effects },
-    relic.state,
     { type: 'control', at: 1, actorType: 'player' },
     {
       activeConditionStackCount: () => 5

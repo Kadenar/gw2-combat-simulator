@@ -36,6 +36,14 @@ function createAristocracyState(): AristocracyState {
   };
 }
 
+/**
+ * Attribute previews assume one accepted stack window instead of replaying triggers. The window spans every preview
+ * sample time, and queries read only accepted windows, so no cooldown or live stack count is needed.
+ */
+export function createAristocracyPreviewState(stacks: number): AristocracyState {
+  return { ...createAristocracyState(), activations: [{ at: 0, expiresAt: 60, stacks }] };
+}
+
 /** Only real landed player applications and explicitly player-owned effects can grant stacks. */
 function isAristocracyApplication(event: SimulationEvent): boolean {
   return (

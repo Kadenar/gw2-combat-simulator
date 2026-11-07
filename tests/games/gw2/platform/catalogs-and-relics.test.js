@@ -322,29 +322,18 @@ test('named equipment inputs resolve item identities without changing the saved 
 });
 
 // Runtime construction owns fresh equipment state independently of shared relic rules.
-test('resolver runtimes create isolated state only for the selected relic', () => {
+test('resolver runtimes own isolated relic and equipment state', () => {
   const createRuntime = (relic) =>
     createGw2ResolverRuntimeState({
       config: { relic }
     });
   const thief = createRuntime('Thief');
   const anotherThief = createRuntime('Thief');
-  const brawler = createRuntime('Brawler');
-  const aristocracy = createRuntime('Aristocracy');
-
   assert.equal(thief.relic.id, RELIC_IDS.THIEF);
-  assert.deepEqual(thief.relic.state, { refreshedStacks: { stacks: 0, expiresAt: 0 } });
-  assert.deepEqual(brawler.relic.state, { readyAt: 0 });
-  assert.deepEqual(aristocracy.relic.state, {
-    readyAt: 0,
-    stacks: 0,
-    expiresAt: 0,
-    activations: []
-  });
-  assert.notEqual(thief.relic.state, anotherThief.relic.state);
-
-  thief.relic.state.refreshedStacks.stacks = 3;
-  assert.equal(anotherThief.relic.state.refreshedStacks.stacks, 0);
+  thief.effects = captureEffectEmissions().effects;
+  thief.relic.afterHit(thief, { at: 0, actorType: 'player' }, { type: 'Weapon', cooldown: 5 });
+  assert.equal(relicStrikeMultiplier(thief, { at: 1, actorType: 'player' }), 1.01);
+  assert.equal(relicStrikeMultiplier(anotherThief, { at: 1, actorType: 'player' }), 1);
   // Equipment deadlines and armed effects belong to one run, independently of shared rule definitions.
   thief.procs.claimCooldown(`sigil.${SIGIL_IDS.AIR}`, 0, 5);
   thief.procs.claimCooldown('food.critical-strike', 0, 0.5);
@@ -418,7 +407,7 @@ test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   const relic = createRelicRuntime('Aristocracy');
   const context = { engagement: enteredCombat(), relic, effects: captureEffectEmissions().effects };
   const trigger = (at) =>
-    context.relic.rules.condition(context, context.relic.state, {
+    context.relic.condition(context, {
       type: 'condition',
       condition: 'Vulnerability',
       stacks: 1,
@@ -432,15 +421,14 @@ test('Aristocracy rule state owns strict ICD, stack cap, and expiry', () => {
   assert.equal(relicConditionDurationBonus(context, 0), 0);
   assert.equal(relicConditionDurationBonus(context, 0.001), 0.03);
   trigger(0.999999);
-  assert.equal(relic.state.stacks, 1);
+  assert.equal(relicConditionDurationBonus(context, 1.000001), 0.03);
   trigger(1);
-  assert.equal(relic.state.stacks, 1);
+  assert.equal(relicConditionDurationBonus(context, 1.000001), 0.03);
   trigger(1.000001);
-  assert.equal(relic.state.stacks, 2);
+  assert.equal(relicConditionDurationBonus(context, 1.000002), 0.06);
   trigger(1.000001);
-  assert.equal(relic.state.stacks, 2);
+  assert.equal(relicConditionDurationBonus(context, 1.000002), 0.06);
   for (const at of [1.001, 2.002, 3.003, 4.004, 5.005]) trigger(at);
-  assert.equal(relic.state.stacks, 5);
   assert.equal(relicConditionDurationBonus(context, 5.006), 0.15);
   assert.equal(relicConditionDurationBonus(context, 13.039999), 0.15);
   assert.equal(relicConditionDurationBonus(context, 13.04), 0);
@@ -453,7 +441,7 @@ test('Aristocracy accepted applications preserve combat entry and historical sta
     effects: captureEffectEmissions().effects
   };
   const trigger = (at) =>
-    context.relic.rules.condition(context, context.relic.state, {
+    context.relic.condition(context, {
       type: 'condition',
       condition: 'Vulnerability',
       stacks: 1,
@@ -465,15 +453,13 @@ test('Aristocracy accepted applications preserve combat entry and historical sta
 
   // A precombat application cannot consume the cooldown or create a stack window.
   trigger(1);
-  assert.equal(context.relic.state.stacks, 0);
+  assert.equal(relicConditionDurationBonus(context, 1.001), 0);
   trigger(2);
   assert.equal(relicConditionDurationBonus(context, 2), 0);
   assert.equal(relicConditionDurationBonus(context, 2.001), 0.03);
   trigger(3);
-  assert.equal(context.relic.state.stacks, 1);
   assert.equal(relicConditionDurationBonus(context, 3), 0.03);
   trigger(3.001);
-  assert.equal(context.relic.state.stacks, 2);
   assert.equal(relicConditionDurationBonus(context, 3.002), 0.06);
   // Reading an earlier time uses the accepted window at that time, not the latest stack total.
   assert.equal(relicConditionDurationBonus(context, 2.001), 0.03);
@@ -491,9 +477,8 @@ test('Aristocracy requires a landed condition with eligible explicit ownership',
   ]) {
     for (const offTarget of [false, true]) {
       const relic = createRelicRuntime('Aristocracy');
-      relic.rules.condition(
+      relic.condition(
         { engagement: enteredCombat(), relic, effects: captureEffectEmissions().effects },
-        relic.state,
         {
           type: 'condition',
           at: 1,
@@ -506,7 +491,7 @@ test('Aristocracy requires a landed condition with eligible explicit ownership',
           duration: 5
         }
       );
-      assert.equal(relic.state.stacks, offTarget ? 0 : expected);
+      assert.equal(relicConditionDurationBonus({ relic }, 1.001), offTarget ? 0 : expected * 0.03);
     }
   }
 });
@@ -559,13 +544,13 @@ test('Brawler requires player-cast Protection or Resolution that reaches the pla
         audience
       };
       event.resolvedAudience = gw2BoonApplicationRecipients({ allies: { count: 1 } }, event);
-      context.relic.rules.boon(context, context.relic.state, event);
+      context.relic.boon(context, event);
       assert.equal(relicStrikeMultiplier(context, { at: 1.5, actorType: 'player' }), activates ? 1.1 : 1, label);
-      assert.deepEqual(context.relic.state, activates ? { readyAt: 9 } : { readyAt: 0 }, label);
+      assert.equal(context.announcements.length, activates ? 1 : 0, label);
 
       // A rejected application must leave the next qualifying self application ready to activate.
       if (!activates) {
-        context.relic.rules.boon(context, context.relic.state, {
+        context.relic.boon(context, {
           ...event,
           at: 2,
           actorType: 'player',
@@ -576,6 +561,34 @@ test('Brawler requires player-cast Protection or Resolution that reaches the pla
       }
     }
   }
+});
+
+// An accepted activation blocks later qualifying boons through its deadline, using the shared inclusive ICD boundary.
+test('Brawler cooldown rejects activations through its deadline', () => {
+  const context = {
+    engagement: enteredCombat(),
+    relic: createRelicRuntime('Brawler'),
+    ...captureAcceptedBuffEmissions()
+  };
+  const grant = (at) => {
+    const event = {
+      type: 'buff',
+      kind: 'protection',
+      at,
+      duration: 2,
+      stacks: 1,
+      actorType: 'player',
+      audience: { recipients: 'self' }
+    };
+    event.resolvedAudience = gw2BoonApplicationRecipients({}, event);
+    context.relic.boon(context, event);
+  };
+
+  grant(1);
+  grant(9);
+  assert.equal(context.announcements.length, 1);
+  grant(9.000001);
+  assert.equal(context.announcements.length, 2);
 });
 
 test('Mistburn also grants once per eligible resolver-created player Might application', () => {
@@ -634,7 +647,7 @@ test('Relic of Mistburn uses a strict one-second internal cooldown', () => {
     effects: captureEffectEmissions({ submit: (event) => emitted.push(event) }).effects
   };
   const grantMight = (at, extra = {}) =>
-    relic.rules.boon(context, relic.state, {
+    relic.boon(context, {
       type: 'buff',
       at,
       skillName: `Grant Might ${at}`,

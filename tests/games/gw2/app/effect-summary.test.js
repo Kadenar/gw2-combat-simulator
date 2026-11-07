@@ -383,8 +383,8 @@ test('relic proc state survives recording and refreshes replace stack counts', (
     announce: (request) => context.procRecorder.record(request.announcement, context.deathTime)
   }).effects;
   const hit = (at) => ({ type: 'damage', actorType: 'player', at, skillName: 'Weapon' });
-  context.relic.rules.afterHit(context, context.relic.state, hit(0), { type: 'Weapon', cooldown: 1 });
-  context.relic.rules.afterHit(context, context.relic.state, hit(1), { type: 'Weapon', cooldown: 1 });
+  context.relic.afterHit(context, hit(0), { type: 'Weapon', cooldown: 1 });
+  context.relic.afterHit(context, hit(1), { type: 'Weapon', cooldown: 1 });
   const summary = buildChartSeries({
     rotationEndTime: 8,
     observationEndTime: 8,
@@ -408,7 +408,7 @@ test('relic proc state survives recording and refreshes replace stack counts', (
   thorns.effects = captureEffectEmissions({
     announce: (request) => thorns.procRecorder.record(request.announcement, thorns.deathTime)
   }).effects;
-  thorns.relic.rules.passiveTimeline(thorns, thorns.relic.state, 5);
+  thorns.relic.passiveTimeline(thorns, 5);
   const ramp = buildChartSeries({
     rotationEndTime: 5,
     observationEndTime: 5,

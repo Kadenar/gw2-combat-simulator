@@ -1,4 +1,3 @@
-import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
@@ -71,7 +70,10 @@ function createResolvedCriticalSigilEffects(
   }
 }
 
-/** Resolver-time equipment calls preserve each relic hook's typed inputs and owning state. */
+/**
+ * Resolver stages preserve reaction order while the relic owner dispatches each observation. Optional relic hooks
+ * let a stage skip deriving inputs for relics that ignore that observation.
+ */
 export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionContributions {
   const criticalFoodReaction = criticalProcHandler<Gw2ResolverRuntime, Gw2ResolverEvent, NativeResolvedDamageDetails>({
     id: 'food.critical-strike',
@@ -100,7 +102,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         order: GW2_REACTION_ORDER.COMMON,
         // All successful combos reach the relic runtime so Steamshrieker can accept leaps as well as blasts.
         handler(ctx, event) {
-          ctx.relic.rules.combo?.(ctx, ctx.relic.state, event);
+          ctx.relic.combo(ctx, event);
         }
       }
     ],
@@ -109,14 +111,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'relic.boon',
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, event) {
-          // Only standard boons trigger relic boon rules; generic buffs share this stage.
-          if (!isStandardBoon(event.kind || event.boon)) return;
-
-          ctx.relic.rules.boon?.(ctx, ctx.relic.state, event);
-          // Precast runtimes retain their own buff and cooldown; their rules gate precombat activation.
-          for (const relic of ctx.precastRelics || []) {
-            relic.rules.boon?.(ctx, relic.state, event);
-          }
+          ctx.relic.boon(ctx, event);
         }
       }
     ],
@@ -132,7 +127,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'relic.damage-resolved',
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, event) {
-          ctx.relic.rules.damageResolved?.(ctx, ctx.relic.state, event);
+          ctx.relic.damageResolved(ctx, event);
         }
       },
       {
@@ -146,9 +141,8 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         handler(ctx, event, details) {
           // Eligibility uses the resolved profile even when the authored packet inherited its weapon strength.
           const profile = details.hitContext.weaponStrength?.profileId;
-          ctx.relic.rules.afterHit?.(
+          ctx.relic.afterHit?.(
             ctx,
-            ctx.relic.state,
             profile ? { ...event, weaponStrengthProfileId: profile } : event,
             skillForEvent(ctx.helpers, event)
           );
@@ -162,7 +156,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         handler(ctx, application, details) {
           // Disable-triggered relics also accept Fear, once its condition is present on the target.
           if (application.condition === CONDITION.FEAR)
-            ctx.relic.rules.control?.(ctx, ctx.relic.state, application, conditionHelpers(ctx, details));
+            ctx.relic.control?.(ctx, application, conditionHelpers(ctx, details));
         }
       },
       {
@@ -170,7 +164,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         order: GW2_REACTION_ORDER.LATE_COMMON,
         handler(ctx, application, details) {
           // Forward the original target count so relic thresholds do not include sibling stacks.
-          ctx.relic.rules.condition?.(ctx, ctx.relic.state, application, {
+          ctx.relic.condition?.(ctx, application, {
             ...conditionHelpers(ctx, details),
             stacksBeforeApplication: details.stacksBeforeApplication
           });
@@ -182,7 +176,7 @@ export function createGw2EquipmentReactionContributions(): Gw2ResolverReactionCo
         id: 'relic.control',
         order: GW2_REACTION_ORDER.COMMON,
         handler(ctx, event, details) {
-          ctx.relic.rules.control?.(ctx, ctx.relic.state, event, conditionHelpers(ctx, details));
+          ctx.relic.control?.(ctx, event, conditionHelpers(ctx, details));
         }
       }
     ]
