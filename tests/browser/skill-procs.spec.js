@@ -7,12 +7,19 @@ test("skill details group proc counts by trigger and disclose only that skill's 
   await page.evaluate(async () => {
     const { createGw2SimulationViewModel } = await import('/js/games/gw2/app/results/view.ts');
     const { mountSimulationSection } = await import('/js/ui/results/simulation-view.ts');
-    const { normalizeProfessionUi } = await import('/js/games/gw2/platform/profession-presentation/contract.ts');
+    const { createProfessionFamilyUi } = await import('/js/games/gw2/platform/profession-presentation/compose.ts');
     document.body.innerHTML = '<main id="results"></main>';
     // Charts and skill timelines are built only while Analysis is the active view.
     document.body.dataset.simulatorView = 'analysis';
     const view = createGw2SimulationViewModel({
-      profession: { ui: normalizeProfessionUi('fixture') },
+      profession: {
+        ui: createProfessionFamilyUi({
+          professionId: 'fixture',
+          catalog: { specializations: [] },
+          core: {},
+          specializations: {}
+        })
+      },
       adapter: { eliteSpecialization: () => 'Core' },
       activeCatalog: {
         skills: [],

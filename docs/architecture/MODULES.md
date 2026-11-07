@@ -190,6 +190,11 @@ Paths are relative to `professions/<profession>/`, or its owning Core/elite dire
 loading. Modules contribute data upward and must not import the assembled catalog. Presentation may receive it through a
 binding factory. Projectors publish stable IDs without mutating their runtime slice; duplicate IDs fail composition.
 
+`platform/profession-presentation/compose.ts` owns the complete presentation contract. Each callback declares its
+composition rule and default there. TypeScript checks every contract member, including optional callbacks, so adding a
+callback requires an explicit composition rule. Core, active elite, and family declarations remain partial slices. The
+profession initializes the composer lazily when the application first requests presentation.
+
 Code outside a profession imports only its `profession.js`, `app/app-definition.js`, `build/` entry points (including
 `build/build.js` and `build/context.js`), `types.js`, `data/**`, `state-ids.js`, and fixed subsystem `profiles.js`
 tables. Tests are exempt. Log integrations use `data/` helpers rather than loading the profession graph. ESLint enforces

@@ -5,10 +5,10 @@ import test from 'node:test';
 import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { projectPalette } from '#gw2/app/rotation/palette/model.js';
 import { paletteHtml } from '#gw2/app/rotation/palette/view.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { paletteInputFixture } from '#tests/helpers/palette.js';
+import { professionUiFixture } from '#tests/helpers/presentation.js';
 
 test('captured cursor facts drive the whole palette independently of later application state', () => {
   const catalog = createCanonicalCatalog({
@@ -23,7 +23,7 @@ test('captured cursor facts drive the whole palette independently of later appli
     availability: { [skill.id]: { ready: true } },
     profession: { [STATE.RESOURCE]: 2 }
   };
-  const ui = normalizeProfessionUi('observed-palette', {
+  const ui = professionUiFixture({
     resourceViews: ({ professionState, simulationTime }) => {
       assert.equal(simulationTime, 5);
       return [{ id: 'focus', value: professionState[STATE.RESOURCE], maximum: 10, paletteSkillId: skill.id }];

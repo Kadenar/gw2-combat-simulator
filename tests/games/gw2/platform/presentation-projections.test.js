@@ -15,6 +15,121 @@ import { bindRangerCoreUi } from '#gw2/professions/ranger/core/presentation.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { warriorCoreUi } from '#gw2/professions/warrior/core/presentation.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { professionUiFixture } from '#tests/helpers/presentation.js';
+
+// These fixtures exercise owner selection through the complete public composer, including authoritative empty results.
+test('first-match projections preserve callback-specific null and undefined decisions', () => {
+  for (const decision of [null, undefined]) {
+    const coreGroup = [{ id: 'core', skillIds: [1] }];
+    const coreAnnotation = { badge: 'core' };
+    const command = { type: 'cast', skillId: 1 };
+    const ui = professionUiFixture(
+      {
+        paletteWeaponGroups: () => coreGroup,
+        timelineAnnotation: () => coreAnnotation,
+        resolvePaletteAction: () => command,
+        timelineWeaponLineTransition: () => 'core',
+        timelineSkillIcon: () => 'core-icon',
+        eventLogRow: () => null
+      },
+      {
+        catalog: { specializations: [{ name: 'Elite', elite: true }] },
+        specializations: {
+          Elite: {
+            paletteWeaponGroups: () => decision,
+            timelineAnnotation: () => decision,
+            resolvePaletteAction: () => decision,
+            timelineWeaponLineTransition: () => decision,
+            timelineSkillIcon: () => '',
+            eventLogRow: () => ({ label: 'elite' })
+          }
+        }
+      }
+    );
+    const context = { specialization: 'Elite' };
+    assert.equal(ui.paletteWeaponGroups(context, []), decision === null ? null : coreGroup);
+    assert.equal(ui.timelineAnnotation(context), coreAnnotation);
+    assert.equal(ui.resolvePaletteAction(context, {}), decision === null ? null : command);
+    assert.equal(ui.timelineWeaponLineTransition(context), decision === null ? null : 'core');
+    assert.equal(ui.timelineSkillIcon(context), 'core-icon');
+    assert.equal(ui.eventLogRow(context, {}), null);
+  }
+});
+
+// Scalar queries can infer an elite from the skill, while an explicit unknown selection must use Core.
+test('scalar callbacks preserve inferred selection and normalize explicit Core fallbacks', () => {
+  const calls = [];
+  const slice = (name) => ({
+    paletteOverride(context) {
+      calls.push([name, context.specialization, context.config?.specialization]);
+      return { message: name };
+    }
+  });
+  const ui = professionUiFixture(slice('core'), {
+    catalog: {
+      specializations: [
+        { name: 'Elite', elite: true },
+        { name: 'Sibling', elite: true }
+      ]
+    },
+    specializations: { Elite: slice('elite'), Sibling: slice('sibling') },
+    family: slice('family')
+  });
+  for (const [context, skill, owners] of [
+    [{}, { specialization: 'Elite' }, ['core', 'elite', 'family']],
+    [{}, {}, ['core', 'elite', 'sibling', 'family']],
+    [{ specialization: 'Unknown', config: { specialization: 'Elite' } }, {}, ['core', 'family']]
+  ]) {
+    calls.length = 0;
+    assert.deepEqual(ui.paletteOverride(context, skill), { message: 'family' });
+    assert.deepEqual(
+      calls.map(([name]) => name),
+      owners
+    );
+
+    if (context.specialization === 'Unknown') {
+      assert.ok(
+        calls.every(([, specialization, configSelection]) => specialization === 'Core' && configSelection === 'Core')
+      );
+    }
+  }
+});
+
+// Each transform consumes the preceding owner's result, and unowned transforms still copy caller input.
+test('palette transformations compose in Core, elite, family order without mutating input', () => {
+  const callbacks = ['paletteActionSkills', 'paletteWeaponSkills', 'paletteSelectedSlotSkills'];
+  const slice = (id) => Object.fromEntries(callbacks.map((name) => [name, (_context, skills) => [...skills, { id }]]));
+  const ui = professionUiFixture(slice(2), {
+    catalog: { specializations: [{ name: 'Elite', elite: true }] },
+    specializations: { Elite: slice(3) },
+    family: slice(4)
+  });
+  const skills = Object.freeze([{ id: 1 }]);
+  const empty = professionUiFixture();
+  for (const name of callbacks) {
+    assert.deepEqual(
+      ui[name]({ specialization: 'Elite' }, skills).map(({ id }) => id),
+      [1, 2, 3, 4]
+    );
+    const unchanged = empty[name]({}, skills);
+    assert.deepEqual(unchanged, skills);
+    assert.notEqual(unchanged, skills);
+  }
+});
+
+// Loadout ownership spans inactive elites too, because it describes saved build selections for the whole family.
+test('complete presentation keeps one loadout owner and freezes its contract', () => {
+  const loadout = { id: 'loadout' };
+  const ui = professionUiFixture({}, { specializations: { Elite: { slotLoadout: loadout } } });
+  assert.equal(ui.slotLoadout, loadout);
+  assert.equal(Object.isFrozen(ui), true);
+  assert.equal(Object.isFrozen(ui.assumptionControls), true);
+  assert.equal(professionUiFixture().slotLoadout, null);
+  assert.throws(
+    () => professionUiFixture({ slotLoadout: loadout }, { family: { slotLoadout: loadout } }),
+    /ui\.slotLoadout has multiple application owners/
+  );
+});
 
 // Presentation owners share the composer's precedence, including its fallback after trimming the selected name.
 test('presentation selection resolves direct and config inputs consistently', () => {
@@ -56,6 +171,7 @@ test('presentation lists include Core, the selected elite, and family contributi
   const callbacks = ['chartApplications', 'timelineMarkers', 'timelineOverlays'];
   const slice = (id) => Object.fromEntries(callbacks.map((name) => [name, () => [{ id }]]));
   const ui = createProfessionFamilyUi({
+    professionId: 'fixture',
     catalog: {
       specializations: [
         { name: 'First', elite: true },

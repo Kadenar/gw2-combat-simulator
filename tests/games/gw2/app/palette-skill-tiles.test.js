@@ -10,7 +10,6 @@ import {
 } from '#gw2/app/rotation/palette/model.js';
 import { paletteHtml, paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -18,6 +17,7 @@ import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { observedRuntime, observeGw2Runtime, planningFixture } from '#tests/helpers/observed-runtime.js';
 import { paletteInputFixture } from '#tests/helpers/palette.js';
+import { professionUiFixture } from '#tests/helpers/presentation.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
@@ -37,7 +37,7 @@ function projectionInput(
   return paletteInputFixture({
     build: profession.createBuildDefaults?.() || {},
     specialization,
-    ui: useProfessionUi && profession.ui ? profession.ui : { ...normalizeProfessionUi('palette-fixture') },
+    ui: useProfessionUi && profession.ui ? profession.ui : { ...professionUiFixture() },
     projectActions: profession.ui?.paletteActionSkills,
     catalog: profession.catalog,
     planning: {

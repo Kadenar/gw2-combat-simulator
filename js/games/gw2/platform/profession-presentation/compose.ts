@@ -4,40 +4,29 @@
  */
 import type { ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
 import type { EndurancePolicy, ResourcePolicies } from '#gw2/platform/combat/resources/resource-policy.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { ProfessionConfig } from '#gw2/platform/profession-definition/types.js';
-import type { ProfessionAttributePreviewPreparation } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
-  SkillDamageConfigPatch,
-  SkillDamagePreviewPreparation
-} from '#gw2/platform/profession-presentation/skill-damage.js';
-import type {
-  ProfessionPaletteActionIdentity,
-  ProfessionPaletteContext,
+  PaletteOverride,
   ProfessionPaletteGroup,
   ProfessionResourceViewContext,
-  ProfessionResultUiContext,
-  ProfessionSkillBarSelectionChange,
   ProfessionUiContract
 } from '#gw2/platform/profession-presentation/types.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
+import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
 
-type UiCallbackName = keyof ProfessionUiContract;
-
-const UI_LIST_CALLBACK_NAMES = Object.freeze([
-  'previewControls',
-  'skillDamageGroups',
-  'chartApplications',
-  'timelineMarkers',
-  'timelineOverlays',
-  'effectPresentations',
-  'paletteGroups',
-  'resourceViews',
-  'skillBarGroups',
-  'startControls',
-  'targetHealthThresholds',
-  'rotationStateSnapshot'
-] as const satisfies readonly UiCallbackName[]);
+type UiCallbackName = {
+  [K in keyof ProfessionUiContract]-?: NonNullable<ProfessionUiContract[K]> extends (...args: never[]) => unknown
+    ? K
+    : never;
+}[keyof ProfessionUiContract];
+type UiCallback<K extends UiCallbackName> = NonNullable<ProfessionUiContract[K]>;
+type UiListCallbackName = {
+  [K in UiCallbackName]: Parameters<UiCallback<K>> extends [unknown]
+    ? ReturnType<UiCallback<K>> extends unknown[]
+      ? K
+      : never
+    : never;
+}[UiCallbackName];
 
 /** Selection fields composition reads from an arbitrary callback context before choosing slices. */
 interface UiSelectionCandidate {
@@ -49,6 +38,7 @@ interface UiSelectionCandidate {
 type UiSlice = Partial<ProfessionUiContract>;
 
 interface ProfessionFamilyUiDefinition {
+  readonly professionId: string;
   readonly resourcesFor?: (specialization: string) => ResourcePolicies & { readonly endurance?: EndurancePolicy };
   readonly catalog: CanonicalCatalog;
   readonly core: UiSlice;
@@ -167,14 +157,16 @@ function normalizeApplicationUiList(values: readonly unknown[], callbackName: st
  * trait-line names intentionally fall back to Core for application rendering;
  * runtime resolution remains strict.
  */
-export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinition): UiSlice {
+export function createProfessionFamilyUi(
+  definition: ProfessionFamilyUiDefinition
+): Readonly<Required<ProfessionUiContract>> {
   const family = definition.family || {};
   const eliteNames = new Set(
     definition.catalog.specializations
       .filter((specialization) => specialization.elite)
       .map((specialization) => specialization.name)
   );
-  const active = (context: unknown): { readonly context: unknown; readonly slices: UiSlice[] } => {
+  const active = <T>(context: T): { readonly context: T; readonly slices: UiSlice[] } => {
     const requested = uiSpecialization(context);
     const specialization = definition.specializations[requested];
 
@@ -186,13 +178,13 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     }
 
     return {
-      context: requested === 'Core' ? context : normalizedCoreUiContext(context),
+      context: requested === 'Core' ? context : (normalizedCoreUiContext(context) as T),
       slices: [definition.core]
     };
   };
 
   const allSlices = [definition.core, ...Object.values(definition.specializations)];
-  const scalarSlices = (context: unknown, skill?: Skill): { readonly context: unknown; readonly slices: UiSlice[] } => {
+  const scalarSlices = <T>(context: T, skill?: Skill): { readonly context: T; readonly slices: UiSlice[] } => {
     if (explicitUiSpecialization(context)) {
       const selected = active(context);
       return {
@@ -217,18 +209,10 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     };
   };
 
-  // Callbacks are composed by name, so the slice under construction is a dynamic record until it is returned.
-  const ui: Record<string, unknown> = {
-    assumptionControls: Object.freeze(
-      deduplicateUiEntries(
-        [...(family.assumptionControls || []), ...allSlices.flatMap((slice) => slice.assumptionControls || [])],
-        'assumptionControls'
-      ) as ProfessionAssumptionControl[]
-    )
-  };
-
-  for (const name of UI_LIST_CALLBACK_NAMES) {
-    ui[name] = (context: unknown) => {
+  // List selection, identity checks, and ordering share one path; each callback is registered in the complete contract below.
+  const list =
+    <K extends UiListCallbackName>(name: K) =>
+    (context: Parameters<UiCallback<K>>[0]): ReturnType<UiCallback<K>> => {
       const selected = active(context);
       // Preview capacity uses selected policies and the active catalog without starting gameplay tasks.
       const policies =
@@ -236,7 +220,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
       const resourceContext = selected.context as ProfessionResourceViewContext;
       const callbackContext = policies
         ? {
-            ...(selected.context as object),
+            ...selected.context,
             resources: Object.fromEntries(
               Object.entries(policies)
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Optional policies may be explicitly undefined in authored module objects.
@@ -245,7 +229,7 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
                   key,
                   {
                     maximum: policy.maximum({
-                      ...(selected.context as object),
+                      ...selected.context,
                       config: ((selected.context as UiSelectionCandidate).config ??
                         selected.context) as ProfessionConfig,
                       helpers: resourceContext.catalog
@@ -255,229 +239,255 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
             )
           }
         : selected.context;
-      const values = mergeUiList([...selected.slices, family], name, [callbackContext]);
-      return normalizeApplicationUiList(values, name);
+      // The key ties this argument tuple and the normalized entries to the callback's declared list type.
+      const args = [callbackContext] as Parameters<UiCallback<K>>;
+      const values = [...selected.slices, family].flatMap<unknown>((slice) => callUiSlice(slice, name, args) || []);
+      return normalizeApplicationUiList(values, name) as ReturnType<UiCallback<K>>;
     };
-  }
 
-  // Prepare only Core, the active elite, and family preview state, in the same order as their controls.
-  ui.prepareAttributePreview = (context: ProfessionAttributePreviewPreparation) => {
-    const selected = active(context);
-    for (const slice of [...selected.slices, family])
-      slice.prepareAttributePreview?.(selected.context as ProfessionAttributePreviewPreparation);
-  };
-
-  // Each active slice may seed its own runtime fields; later slices refine earlier ones, as their controls are ordered.
-  ui.prepareSkillDamagePreview = (context: SkillDamagePreviewPreparation): SkillDamageConfigPatch => {
-    const selected = active(context);
-    return Object.assign(
-      {},
-      ...[...selected.slices, family].map((slice) =>
-        slice.prepareSkillDamagePreview?.(selected.context as SkillDamagePreviewPreparation)
-      )
-    );
-  };
-
-  // The elite owns its mechanics' setup, so it answers before Core; the family slice is the last fallback.
-  ui.skillDamageState = (context: SkillDamagePreviewPreparation, skill: Skill) => {
-    const selected = active(context);
-    return firstUiMatch(
-      [...[...selected.slices].reverse(), family],
-      'skillDamageState',
-      [selected.context, skill],
-      (result) => result != null,
-      null
-    );
-  };
-
-  ui.paletteOverride = (context: unknown, skill: Skill) => {
-    const selected = scalarSlices(context, skill);
-    // Core and elite exceptions own independent fields; later slices refine tile identity or editor access.
-    return Object.assign(
-      {},
-      ...selected.slices.map((slice) => slice.paletteOverride?.(selected.context as ProfessionPaletteContext, skill))
-    );
-  };
-
-  ui.eventLogRow = (context: ProfessionResultUiContext, event: SimulationEvent) => {
-    const selected = active(context);
-    return firstUiMatch(
-      [...selected.slices, family],
-      'eventLogRow',
-      [selected.context, event],
-      (result) => result !== undefined,
-      undefined
-    );
-  };
-
-  ui.isPaletteSkillInstant = (context: ProfessionPaletteContext, skill: Skill) => {
-    const selected = scalarSlices(context, skill);
-    return someUiSlice(
-      selected.slices,
-      'isPaletteSkillInstant',
-      [selected.context, skill],
-      (result) => result === true
-    );
-  };
-
-  ui.isSlotSkillSelectable = (context: ProfessionPaletteContext, skill: Skill) => {
-    const selected = scalarSlices(context, skill);
-    // Only an explicit rejection from an owning slice disables selection.
-    return selected.slices.every((slice) => {
-      const callback = slice.isSlotSkillSelectable;
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare -- Untyped slices may return no decision; only explicit false rejects selection.
-      return typeof callback !== 'function' || callback(selected.context as ProfessionPaletteContext, skill) !== false;
-    });
-  };
-
-  for (const name of ['paletteActionSkills', 'paletteWeaponSkills', 'paletteSelectedSlotSkills'] as const) {
-    ui[name] = (context: ProfessionPaletteContext, skills: readonly Skill[]) => {
+  const transform =
+    <K extends 'paletteActionSkills' | 'paletteWeaponSkills' | 'paletteSelectedSlotSkills'>(
+      name: K
+    ): ProfessionUiContract[K] =>
+    (context, skills) => {
       const selected = active(context);
-      // Core normalization keeps the caller's palette fields, so the selected context is still a palette context.
-      const selectedContext = selected.context as ProfessionPaletteContext;
       return [...selected.slices, family].reduce(
         (current, slice) => {
           const project = slice[name];
-          return typeof project === 'function' ? project(selectedContext, current) : current;
+          return typeof project === 'function' ? project(selected.context, current) : current;
         },
         [...skills]
       );
     };
-  }
 
-  ui.projectWeaponPalette = (context: ProfessionPaletteContext) => {
-    const selected = active(context);
-    return firstUiMatch(
-      [...selected.slices.slice().reverse(), family],
-      'projectWeaponPalette',
-      [selected.context],
-      (result) => result != null,
-      null
-    );
-  };
+  const loadoutOwners = [family, ...allSlices].filter((slice) => slice.slotLoadout != null);
 
-  // Elite projections override Core for one tile or row; null grouping deliberately retains an unlabelled bar.
-  for (const name of ['timelineAnnotation', 'timelineOccupiedInterval', 'paletteWeaponGroups', 'castEditor'] as const) {
-    ui[name] = (context: unknown, ...args: unknown[]) => {
+  if (loadoutOwners.length > 1) throw new TypeError('ui.slotLoadout has multiple application owners.');
+
+  // This object owns composition and defaults together. Required also checks optional contract members so new callbacks cannot be silently omitted.
+  const ui: Required<ProfessionUiContract> = {
+    previewControls: list('previewControls'),
+    skillDamageGroups: list('skillDamageGroups'),
+    chartApplications: list('chartApplications'),
+    timelineMarkers: list('timelineMarkers'),
+    timelineOverlays: list('timelineOverlays'),
+    effectPresentations: list('effectPresentations'),
+    paletteGroups: list('paletteGroups'),
+    resourceViews: list('resourceViews'),
+    skillBarGroups: list('skillBarGroups'),
+    startControls: list('startControls'),
+    targetHealthThresholds: list('targetHealthThresholds'),
+    rotationStateSnapshot: list('rotationStateSnapshot'),
+    assumptionControls: Object.freeze(
+      deduplicateUiEntries(
+        [...(family.assumptionControls || []), ...allSlices.flatMap((slice) => slice.assumptionControls || [])],
+        'assumptionControls'
+      ) as ProfessionAssumptionControl[]
+    ),
+    slotLoadout: loadoutOwners[0]?.slotLoadout ?? null,
+
+    // Prepare only Core, the active elite, and family preview state, in the same order as their controls.
+    prepareAttributePreview(context) {
+      const selected = active(context);
+      for (const slice of [...selected.slices, family]) slice.prepareAttributePreview?.(selected.context);
+    },
+    // Later slices refine the runtime fields seeded by earlier preview owners.
+    prepareSkillDamagePreview(context) {
+      const selected = active(context);
+      return Object.assign(
+        {},
+        ...[...selected.slices, family].map((slice) => slice.prepareSkillDamagePreview?.(selected.context))
+      );
+    },
+    // The elite owns its mechanics' setup, so it answers before Core; family answers last.
+    skillDamageState(context, skill) {
       const selected = active(context);
       return firstUiMatch(
-        [...selected.slices.slice().reverse(), family],
-        name,
-        [selected.context, ...args],
-        (result) => (name === 'paletteWeaponGroups' ? result !== undefined : result != null),
+        [...selected.slices.reverse(), family],
+        'skillDamageState',
+        [selected.context, skill],
+        (result) => result != null,
         null
       );
-    };
-  }
-
-  ui.resolvePaletteAction = (context: ProfessionPaletteContext, action: ProfessionPaletteActionIdentity) => {
-    const selected = active(context);
-    return firstUiMatch(
-      [...selected.slices.slice().reverse(), family],
-      'resolvePaletteAction',
-      [selected.context, action],
-      (result) => result !== undefined,
-      undefined
-    ) as ReturnType<ProfessionUiContract['resolvePaletteAction']>;
-  };
-
-  ui.updatePaletteControl = (context: ProfessionPaletteContext, controlId: string) => {
-    const selected = active(context);
-    return someUiSlice(
-      [...selected.slices.slice().reverse(), family],
-      'updatePaletteControl',
-      [selected.context, controlId],
-      (result) => Boolean(result)
-    );
-  };
-
-  ui.updateSkillBarSelection = (context: ProfessionPaletteContext, selection: ProfessionSkillBarSelectionChange) => {
-    const selected = active(context);
-    return someUiSlice(
-      [...selected.slices.slice().reverse(), family],
-      'updateSkillBarSelection',
-      [selected.context, selection],
-      (result) => Boolean(result)
-    );
-  };
-
-  for (const name of ['timelineWeaponLineTransition', 'timelineSkillIcon'] as const) {
-    ui[name] = (context: ProfessionPaletteContext) => {
+    },
+    paletteOverride(context, skill) {
+      const selected = scalarSlices(context, skill);
+      // Later owners refine independent fields before the completed override is validated.
+      return normalizePaletteOverride(
+        Object.assign({}, ...selected.slices.map((slice) => slice.paletteOverride?.(selected.context, skill))),
+        definition.professionId
+      );
+    },
+    eventLogRow(context, event) {
       const selected = active(context);
       return firstUiMatch(
-        [...selected.slices.slice().reverse(), family],
-        name,
+        [...selected.slices, family],
+        'eventLogRow',
+        [selected.context, event],
+        (result) => result !== undefined,
+        undefined
+      );
+    },
+    isPaletteSkillInstant(context, skill) {
+      const selected = scalarSlices(context, skill);
+      return selected.slices.some(
+        (slice) => callUiSlice(slice, 'isPaletteSkillInstant', [selected.context, skill]) === true
+      );
+    },
+    isSlotSkillSelectable(context, skill) {
+      const selected = scalarSlices(context, skill);
+      // Only an explicit rejection from an owning slice disables selection.
+      return selected.slices.every(
+        (slice) => callUiSlice(slice, 'isSlotSkillSelectable', [selected.context, skill]) !== false
+      );
+    },
+    paletteActionSkills: transform('paletteActionSkills'),
+    paletteWeaponSkills: transform('paletteWeaponSkills'),
+    paletteSelectedSlotSkills: transform('paletteSelectedSlotSkills'),
+    projectWeaponPalette(context) {
+      const selected = active(context);
+      return firstUiMatch(
+        [...selected.slices.reverse(), family],
+        'projectWeaponPalette',
+        [selected.context],
+        (result) => result != null,
+        null
+      );
+    },
+    timelineAnnotation(context) {
+      const selected = active(context);
+      return firstUiMatch(
+        [...selected.slices.reverse(), family],
+        'timelineAnnotation',
+        [selected.context],
+        (result) => result != null,
+        null
+      );
+    },
+    timelineOccupiedInterval(context) {
+      const selected = active(context);
+      return firstUiMatch(
+        [...selected.slices.reverse(), family],
+        'timelineOccupiedInterval',
+        [selected.context],
+        (result) => result != null,
+        null
+      );
+    },
+    paletteWeaponGroups(context, skills) {
+      const selected = active(context);
+      // Null deliberately retains an unlabelled bar; only undefined defers to another owner.
+      return firstUiMatch(
+        [...selected.slices.reverse(), family],
+        'paletteWeaponGroups',
+        [selected.context, skills],
+        (result) => result !== undefined,
+        null
+      );
+    },
+    castEditor(context, skill) {
+      const selected = active(context);
+      return firstUiMatch(
+        [...selected.slices.reverse(), family],
+        'castEditor',
+        [selected.context, skill],
+        (result) => result != null,
+        null
+      );
+    },
+    resolvePaletteAction(context, action) {
+      const selected = active(context);
+      // Null means handled without insertion, while undefined lets another owner resolve the action.
+      return firstUiMatch(
+        [...selected.slices.reverse(), family],
+        'resolvePaletteAction',
+        [selected.context, action],
+        (result) => result !== undefined,
+        undefined
+      );
+    },
+    updatePaletteControl(context, controlId) {
+      const selected = active(context);
+      return [...selected.slices.reverse(), family].some((slice) =>
+        Boolean(callUiSlice(slice, 'updatePaletteControl', [selected.context, controlId]))
+      );
+    },
+    updateSkillBarSelection(context, selection) {
+      const selected = active(context);
+      return [...selected.slices.reverse(), family].some((slice) =>
+        Boolean(callUiSlice(slice, 'updateSkillBarSelection', [selected.context, selection]))
+      );
+    },
+    timelineWeaponLineTransition(context) {
+      const selected = active(context);
+      return firstUiMatch(
+        [...selected.slices.reverse(), family],
+        'timelineWeaponLineTransition',
         [selected.context],
         (result) => result !== undefined && result !== '',
-        name === 'timelineSkillIcon' ? '' : undefined
+        undefined
       );
-    };
-  }
-
-  for (const name of ['slotLoadout'] as const) {
-    const owners = [family, ...allSlices].filter((slice) => slice[name] != null);
-
-    if (owners.length > 1) {
-      throw new TypeError(`ui.${name} has multiple application owners.`);
+    },
+    timelineSkillIcon(context) {
+      const selected = active(context);
+      return firstUiMatch(
+        [...selected.slices.reverse(), family],
+        'timelineSkillIcon',
+        [selected.context],
+        (result) => result !== undefined && result !== '',
+        ''
+      );
     }
-
-    if (owners.length) ui[name] = owners[0][name];
-  }
-
+  };
   return Object.freeze(ui);
 }
 
-/**
- * Private slice-merge helpers for application UI composition. Each helper is order-
- * agnostic and only knows how to combine an ordered list of UI slices for one
- * callback; the selection strategy (which slices, in what order, and any
- * post-processing) stays with each caller.
- */
-type UiSliceLike = Readonly<Record<string, unknown>>;
-
-type UiCallback = (...args: unknown[]) => unknown;
-
-/** Concatenates every slice's list result for `name`, skipping non-owners. */
-function mergeUiList(slices: readonly UiSliceLike[], name: string, args: readonly unknown[]): unknown[] {
-  return slices.flatMap((slice) => {
-    const callback = slice[name];
-    return typeof callback === 'function' ? (callback as UiCallback)(...args) || [] : [];
-  });
+/** The key preserves the relationship between a callback's arguments and result during dynamic dispatch. */
+function callUiSlice<K extends UiCallbackName>(
+  slice: UiSlice,
+  name: K,
+  args: Parameters<UiCallback<K>>
+): ReturnType<UiCallback<K>> | undefined {
+  const callback = slice[name] as ((...args: Parameters<UiCallback<K>>) => ReturnType<UiCallback<K>>) | undefined;
+  return typeof callback === 'function' ? callback(...args) : undefined;
 }
 
-/**
- * Returns the first slice result that satisfies `isMatch`, or `fallback` when
- * no owner matches. Callers pass already-reversed slices when later slices win.
- */
-function firstUiMatch(
-  slices: readonly UiSliceLike[],
-  name: string,
-  args: readonly unknown[],
-  isMatch: (result: unknown) => boolean,
-  fallback: unknown
-): unknown {
+/** Selection order and acceptance of null or undefined belong to the callback, not the dispatch helper. */
+function firstUiMatch<K extends UiCallbackName>(
+  slices: readonly UiSlice[],
+  name: K,
+  args: Parameters<UiCallback<K>>,
+  isMatch: (result: ReturnType<UiCallback<K>> | undefined) => boolean,
+  fallback: ReturnType<UiCallback<K>>
+): ReturnType<UiCallback<K>> {
   for (const slice of slices) {
-    const callback = slice[name];
+    if (typeof slice[name] !== 'function') continue;
 
-    if (typeof callback !== 'function') continue;
+    const result = callUiSlice(slice, name, args);
 
-    const result = (callback as UiCallback)(...args);
-
-    if (isMatch(result)) return result;
+    if (isMatch(result)) return result as ReturnType<UiCallback<K>>;
   }
 
   return fallback;
 }
 
-/** True when any owning slice's result satisfies `isTrue`. */
-function someUiSlice(
-  slices: readonly UiSliceLike[],
-  name: string,
-  args: readonly unknown[],
-  isTrue: (result: unknown) => boolean
-): boolean {
-  return slices.some((slice) => {
-    const callback = slice[name];
-    return typeof callback === 'function' && isTrue((callback as UiCallback)(...args));
-  });
+/** Validate narrow presentation exceptions without inventing a runtime verdict. */
+function normalizePaletteOverride(value: unknown, professionId: string): PaletteOverride | undefined {
+  if (value === undefined) return undefined;
+
+  if (!value || typeof value !== 'object')
+    throw new TypeError(`${professionId} paletteOverride must return an object.`);
+
+  const result = value as UnvalidatedFields;
+  for (const key of ['available', 'tileActive', 'editorAccess']) {
+    if (result[key] != null && typeof result[key] !== 'boolean')
+      throw new TypeError(`${professionId} paletteOverride.${key} must be boolean.`);
+  }
+
+  return {
+    ...(result.available == null ? {} : { available: result.available as boolean }),
+    ...(result.tileActive == null ? {} : { tileActive: result.tileActive as boolean }),
+    ...(result.editorAccess == null ? {} : { editorAccess: result.editorAccess as boolean }),
+    ...(result.message == null ? {} : { message: String(result.message) })
+  };
 }

@@ -22,12 +22,12 @@ import {
   isGw2WeaponSkillEquipped
 } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
+import { professionUiFixture } from '#tests/helpers/presentation.js';
 
 test('shared build eligibility follows module labels for weapons, slot skills, and actions', () => {
   // Core weapons have no label; elite-owned variants use the same gate as other skills.
@@ -61,19 +61,22 @@ function resolvedAudience({ includesSelf = true, companionIds = [] } = {}) {
 
 test('palette overrides are optional and validate each authored field', () => {
   // Authoring exceptions are optional and cannot manufacture a runtime verdict.
-  assert.equal(normalizeProfessionUi('fixture').paletteOverride, undefined);
+  assert.deepEqual(professionUiFixture().paletteOverride({}, {}), {});
   for (const field of ['available', 'tileActive', 'editorAccess']) {
-    const ui = normalizeProfessionUi('fixture', { paletteOverride: () => ({ [field]: true }) });
+    const ui = professionUiFixture({ paletteOverride: () => ({ [field]: true }) });
     assert.deepEqual(ui.paletteOverride({}, {}), { [field]: true });
-    const invalid = normalizeProfessionUi('fixture', { paletteOverride: () => ({ [field]: 'yes' }) });
+    const invalid = professionUiFixture({ paletteOverride: () => ({ [field]: 'yes' }) });
     assert.throws(() => invalid.paletteOverride({}, {}), /must be boolean/);
   }
 });
 
-test('profession composition validates palette overrides and scheduler refiners', () => {
-  const invalidAvailability = normalizeProfessionUi('invalid-availability', { paletteOverride: () => true });
-
-  assert.throws(() => invalidAvailability.paletteOverride({}, {}), /must return an object/);
+// Validation follows composition, so a later owner may replace an earlier field before it is checked.
+test('profession composition validates the completed palette override', () => {
+  const ui = professionUiFixture(
+    { paletteOverride: () => ({ available: 'superseded', message: 123, ignored: true }) },
+    { family: { paletteOverride: () => ({ available: false, editorAccess: true }) } }
+  );
+  assert.deepEqual(ui.paletteOverride({}, {}), { available: false, editorAccess: true, message: '123' });
 });
 
 test('target-condition queries combine assumptions and chronological runtime state', () => {

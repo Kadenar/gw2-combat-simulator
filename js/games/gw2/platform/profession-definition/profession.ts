@@ -59,7 +59,6 @@ import type {
   ProfessionModifierDefinition
 } from '#gw2/platform/profession-definition/types.js';
 import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import type { ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { nativeSkillModifierRules } from '#gw2/platform/skills/modifiers.js';
@@ -596,29 +595,27 @@ export function defineNativeProfession<
     resolveProfession,
     runtimeFor,
     get ui() {
-      return (presentation ??= normalizeProfessionUi(
-        definition.id,
-        createProfessionFamilyUi({
-          catalog: assembly.catalog,
-          core: createModuleUi(core, assembly.catalog),
-          specializations: Object.fromEntries(
-            [...specializations].map(([name, module]) => [name, createModuleUi(module, assembly.catalog)])
-          ),
-          // Family and module factories stay lazy so headless compilation never initializes presentation.
-          family:
-            typeof definition.presentation === 'function'
-              ? definition.presentation(assembly.catalog)
-              : definition.presentation,
-          // Capacity previews use live hook policies without creating state or starting gameplay tasks.
-          resourcesFor(specialization) {
-            const runtime = runtimeFor({ specialization });
-            return {
-              ...(runtime.resources as ProfessionResourcePreview),
-              ...(runtime.endurance == null ? {} : { endurance: runtime.endurance })
-            };
-          }
-        })
-      ));
+      return (presentation ??= createProfessionFamilyUi({
+        professionId: definition.id,
+        catalog: assembly.catalog,
+        core: createModuleUi(core, assembly.catalog),
+        specializations: Object.fromEntries(
+          [...specializations].map(([name, module]) => [name, createModuleUi(module, assembly.catalog)])
+        ),
+        // Family and module factories stay lazy so headless compilation never initializes presentation.
+        family:
+          typeof definition.presentation === 'function'
+            ? definition.presentation(assembly.catalog)
+            : definition.presentation,
+        // Capacity previews use live hook policies without creating state or starting gameplay tasks.
+        resourcesFor(specialization) {
+          const runtime = runtimeFor({ specialization });
+          return {
+            ...(runtime.resources as ProfessionResourcePreview),
+            ...(runtime.endurance == null ? {} : { endurance: runtime.endurance })
+          };
+        }
+      }));
     }
   });
 }

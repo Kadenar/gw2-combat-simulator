@@ -17,6 +17,7 @@ const control = (key, extra = {}) =>
 test('assumption composition rejects duplicate keys from core, elite, and family owners', () => {
   for (const duplicateOwner of ['core', 'elite', 'family']) {
     const definition = {
+      professionId: 'fixture',
       catalog,
       core: { assumptionControls: control('sharedFlag') },
       specializations: { Elite: { assumptionControls: control('eliteFlag', { specializations: ['Elite'] }) } },
@@ -34,6 +35,7 @@ test('assumption composition rejects duplicate keys from core, elite, and family
 // Valid composed controls retain defaults and specialization visibility for their existing consumers.
 test('unique composed assumption controls preserve normalization and specialization scope', () => {
   const { assumptionControls } = createProfessionFamilyUi({
+    professionId: 'fixture',
     catalog,
     core: { assumptionControls: control('coreFlag') },
     specializations: {

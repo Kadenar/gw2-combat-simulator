@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
+import { professionUiFixture } from '#tests/helpers/presentation.js';
 
 // All preview phases must select the same Core/elite/family owners, without initializing sibling state.
 test('attribute preview controls, build adjustments, and preparation select the active owners', () => {
@@ -10,20 +10,18 @@ test('attribute preview controls, build adjustments, and preparation select the 
     previewControls: () => [{ key, kind: 'special' }],
     prepareAttributePreview: (context) => context.events.push(key)
   });
-  const ui = normalizeProfessionUi(
-    'fixture',
-    createProfessionFamilyUi({
-      catalog: {
-        specializations: [
-          { name: 'First', elite: true },
-          { name: 'Second', elite: true }
-        ]
-      },
-      core: slice('core'),
-      specializations: { First: slice('first'), Second: slice('second') },
-      family: slice('family')
-    })
-  );
+  const ui = createProfessionFamilyUi({
+    professionId: 'fixture',
+    catalog: {
+      specializations: [
+        { name: 'First', elite: true },
+        { name: 'Second', elite: true }
+      ]
+    },
+    core: slice('core'),
+    specializations: { First: slice('first'), Second: slice('second') },
+    family: slice('family')
+  });
   for (const [specialization, owners] of [
     ['Core', ['core', 'family']],
     ['First', ['core', 'first', 'family']],
@@ -42,6 +40,7 @@ test('attribute preview controls, build adjustments, and preparation select the 
 // Each key represents one input; duplicate owners must fail before normalization discards either value.
 test('attribute preview composition rejects duplicate control keys', () => {
   const ui = createProfessionFamilyUi({
+    professionId: 'fixture',
     catalog: { specializations: [] },
     core: { previewControls: () => [{ key: 'shared' }] },
     specializations: {},
@@ -52,7 +51,7 @@ test('attribute preview composition rejects duplicate control keys', () => {
 
 // Professions without conditional previews retain empty projections and cannot accidentally mutate query inputs.
 test('attribute preview hooks normalize to no-ops', () => {
-  const ui = normalizeProfessionUi('fixture');
+  const ui = professionUiFixture();
   const context = Object.freeze({});
   assert.deepEqual(ui.previewControls(context), []);
   assert.equal(ui.prepareAttributePreview(context), undefined);

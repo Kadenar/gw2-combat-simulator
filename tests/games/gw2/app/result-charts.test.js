@@ -4,9 +4,9 @@ import test from 'node:test';
 import { mountResultCharts } from '#gw2/app/results/charts/section-view.js';
 import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
 import { createGw2SimulationViewModel } from '#gw2/app/results/view.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
+import { professionUiFixture } from '#tests/helpers/presentation.js';
 import { mountSimulationSection } from '#ui/results/simulation-view.js';
 
 // Hidden views keep shared output available without reading Analysis data; re-entry prepares fresh projections.
@@ -39,7 +39,7 @@ test('Analysis projections are prepared only when the Analysis view is active', 
 
   const app = {
     profession: {
-      ui: normalizeProfessionUi('fixture', {
+      ui: professionUiFixture({
         effectPresentations: () => recordAnalysisRead('effectPresentations', []),
         chartApplications: () => recordAnalysisRead('chartApplications', [])
       })
@@ -187,7 +187,7 @@ for (const [startingHealthPercent, targetDied] of [
       querySelector: (selector) => (selector === '[data-role="result-charts"]' ? chartContainer : null)
     };
     const view = createGw2SimulationViewModel({
-      profession: { ui: normalizeProfessionUi('fixture') },
+      profession: { ui: professionUiFixture() },
       adapter: { eliteSpecialization: () => 'Core' },
       build: {
         rotation: [{ type: 'cast', skillId: 'Strike' }],

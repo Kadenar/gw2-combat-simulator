@@ -4,11 +4,11 @@ import test from 'node:test';
 import { createAutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
 import { defineProfession } from '#gw2/platform/profession-definition/compile-contract.js';
 import { defineNativeModule, defineNativeProfession } from '#gw2/platform/profession-definition/profession.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { planningState } from '#gw2/platform/results/planning-state.js';
 import { SHARED_STATE_IDS } from '#gw2/platform/results/state-ids.js';
 import { resolvedTestHitDetails } from '#tests/helpers/gw2-resolver.js';
 import { projectObservedState } from '#tests/helpers/observed-runtime.js';
+import { professionUiFixture } from '#tests/helpers/presentation.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
 // JavaScript definitions must fail before obsolete or misspelled declarations can lose their formulas.
@@ -135,8 +135,8 @@ test('planning observations require explicit projection and retain shared execut
 
 // Resource presentation is normalized by its own application adapter.
 test('presentation contract supports zero or multiple resource views', () => {
-  const none = normalizeProfessionUi('resourceless');
-  const multiple = normalizeProfessionUi('multi-resource', {
+  const none = professionUiFixture();
+  const multiple = professionUiFixture({
     resourceViews: () => [
       { id: 'pages', maximum: 5, value: 2 },
       { id: 'charges', maximum: 3, value: 1 }

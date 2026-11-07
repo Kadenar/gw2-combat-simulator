@@ -3,18 +3,15 @@ import test from 'node:test';
 
 import { previewControlScopes } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import { createProfessionFamilyUi } from '#gw2/platform/profession-presentation/compose.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 
 function familyUi(core, elite, family = {}) {
-  return normalizeProfessionUi(
-    'fixture',
-    createProfessionFamilyUi({
-      catalog: { specializations: [{ name: 'Elite', elite: true }] },
-      core,
-      specializations: { Elite: elite },
-      family
-    })
-  );
+  return createProfessionFamilyUi({
+    professionId: 'fixture',
+    catalog: { specializations: [{ name: 'Elite', elite: true }] },
+    core,
+    specializations: { Elite: elite },
+    family
+  });
 }
 
 test('skill damage groups merge across active slices and reject duplicate ids', () => {

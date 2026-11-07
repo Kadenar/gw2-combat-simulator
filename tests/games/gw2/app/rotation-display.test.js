@@ -18,9 +18,9 @@ import {
 } from '#gw2/app/rotation/timeline/preferences.js';
 import { timelineRowsView } from '#gw2/app/rotation/timeline/rows.js';
 import { reconcileTimelineRows, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
 import { runGw2Runtime } from '#gw2/platform/simulation/runtime.js';
 import { withoutTraitSkillVariants } from '#tests/helpers/patch-selection.js';
+import { professionUiFixture } from '#tests/helpers/presentation.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 // Interrupted packet casts turn red only without damage; committed non-damaging effects keep normal styling.
@@ -39,7 +39,7 @@ test('timeline marks failed zero-damage casts without marking committed buffs as
     },
     adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => '' },
     profession: {
-      ui: normalizeProfessionUi('fixture', { timelineWeaponLineTransition: () => null })
+      ui: professionUiFixture({ timelineWeaponLineTransition: () => null })
     }
   });
   const steps = [
@@ -170,7 +170,7 @@ test('timeline labels the executed skill variant while preserving the saved comm
     },
     adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => 'Amalgam' },
     profession: {
-      ui: normalizeProfessionUi('fixture', { timelineWeaponLineTransition: () => null })
+      ui: professionUiFixture({ timelineWeaponLineTransition: () => null })
     }
   });
   const build = {
@@ -220,7 +220,7 @@ test('row annotations share display resolution for executed, invalid, and pendin
     activeCatalog: { skills, skillsById: new Map(skills.map((skill) => [skill.id, skill])) },
     adapter: { skillTooltip: () => ({ description: '', facts: [] }), eliteSpecialization: () => 'Core' },
     profession: {
-      ui: normalizeProfessionUi('fixture', {
+      ui: professionUiFixture({
         paletteSelectedSlotSkills: () => [selected],
         timelineAnnotation: (context) => {
           seen.push(context);

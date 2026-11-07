@@ -6,7 +6,7 @@ import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js'
 import { encounterStepContext, encounterTimelineMarkers } from '#gw2/app/rotation/timeline/encounter.js';
 import { timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { timelineRowsView } from '#gw2/app/rotation/timeline/rows.js';
-import { normalizeProfessionUi } from '#gw2/platform/profession-presentation/contract.js';
+import { professionUiFixture } from '#tests/helpers/presentation.js';
 
 const definitions = encounterPhasePlan('020102', 'normal').phases;
 
@@ -104,7 +104,7 @@ test('encounter phases render as separate full-width rows while keeping their co
     workspace: { scenario: { encounterId: '020102', difficulty: 'normal' } },
     activeCatalog: { skills: [], skillsById: new Map() },
     adapter: { eliteSpecialization: () => '' },
-    profession: { ui: normalizeProfessionUi('fixture', { targetHealthThresholds: () => [0.8, 0.5, 0.25] }) }
+    profession: { ui: professionUiFixture({ targetHealthThresholds: () => [0.8, 0.5, 0.25] }) }
   };
   for (const readOnly of [false, true]) {
     const render = (results) =>
