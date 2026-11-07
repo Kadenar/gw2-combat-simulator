@@ -1,5 +1,5 @@
 /** Partitions RNG execution and aggregates worker progress; the lifecycle decides which outcomes remain current. */
-import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/game/worker-harness.js';
+import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/game/managed-worker-batch.js';
 import type { DistributionOperation } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import {
   partitionRandomDistributionTrials,

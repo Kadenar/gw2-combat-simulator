@@ -1,4 +1,4 @@
-import { ManagedWorkerBatch } from '#browser/game/worker-harness.js';
+import { ManagedWorkerBatch } from '#browser/game/managed-worker-batch.js';
 import {
   createOptimizerResultGroups,
   retainOptimizerGroup,

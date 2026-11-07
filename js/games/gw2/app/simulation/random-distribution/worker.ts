@@ -1,4 +1,4 @@
-import { createGameWorkerEndpoint } from '#browser/game/worker-harness.js';
+import { createGameWorkerEndpoint } from '#browser/game/worker-endpoint.js';
 import { calculateRandomDistributionOutcomes } from '#gw2/app/simulation/random-distribution/random-distribution.js';
 import type { RandomDistributionJobRequest } from '#gw2/app/simulation/random-distribution/types.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';

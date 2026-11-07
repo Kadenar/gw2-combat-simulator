@@ -1,5 +1,5 @@
 /** Debounces and partitions modifier execution without owning application result state. */
-import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/game/worker-harness.js';
+import { ManagedWorkerBatch, type GameWorkerResponseEnvelope } from '#browser/game/managed-worker-batch.js';
 import type { ModifierOperation } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import {
   mergeModifierContributions,

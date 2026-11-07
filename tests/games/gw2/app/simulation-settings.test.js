@@ -5,11 +5,10 @@ import { createScenarioEditor } from '#gw2/app/boss-scenarios/editor.js';
 import { createBossScenario, parseBossScenario } from '#gw2/app/boss-scenarios/model.js';
 import {
   normalizeTargetArmor,
-  PRIMARY_ATTRIBUTES,
   STACKING_TARGET_CONDITIONS,
   TARGET_ARMOR_OPTIONS,
   TARGET_CONDITION_GROUPS
-} from '#gw2/app/build/panels/metadata.js';
+} from '#gw2/app/build/panels/assumptions.js';
 import { mountSimulationSettings } from '#gw2/app/build/panels/simulation-settings.js';
 import { createDefaultBuild, replaceBuildConfiguration } from '#gw2/app/build/state/persistence.js';
 import { emptyBuildTabSession } from '#gw2/app/build/state/tab-session.js';
@@ -30,6 +29,7 @@ import {
   saveSimulationSettings,
   SIMULATION_SETTINGS_STORAGE_KEY
 } from '#gw2/app/simulation/settings.js';
+import { PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { normalizeTransitionDelays, TRANSITION_DELAY_KEYS } from '#gw2/platform/execution/transition-lockouts.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
@@ -466,7 +466,7 @@ test('target armor presets use base by default and allow custom values', () => {
   assert.equal(normalizeTargetArmor('not armor'), STANDARD_TARGET_ARMOR);
 });
 
-test('shared app metadata owns common attributes and target conditions', () => {
+test('attribute and target choices include condition damage and supported target conditions', () => {
   const defaultTargetConditions = createMesmerBuildDefaults().assumptions.targetConditions;
 
   assert.equal(PRIMARY_ATTRIBUTES.includes('Condition Damage'), true);
