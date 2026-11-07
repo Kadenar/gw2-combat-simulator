@@ -24,6 +24,11 @@
   min-width: 80px;
 }
 
+/* Pending metrics reserve the label height occupied by the completed summary's disclosure icons. */
+#analysis-dps-summary .res-summary-placeholder .res-label {
+  min-height: 13px;
+}
+
 /* Separate target-wide damage from player attribution and anchor that pair to the summary's right edge. */
 .res-stat-target-start {
   padding-left: 16px;
@@ -757,6 +762,36 @@
 
 .res-breakdown-section .res-breakdown {
   margin-bottom: 0;
+}
+
+/* Share loaded row geometry and column breakpoints while reserving icon and number space. */
+.analysis-loading-row {
+  min-height: 27px;
+  align-items: center;
+}
+
+.analysis-loading-row > span {
+  height: 12px;
+  margin: 4px 0;
+  border-radius: 3px;
+  background: var(--border);
+  animation: analysis-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.analysis-loading-row > span:first-child {
+  width: 80%;
+  height: 20px;
+  margin: 0;
+}
+
+.analysis-loading-row:nth-child(even) > span:first-child {
+  width: 65%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analysis-loading-row > span {
+    animation: none;
+  }
 }
 
 .res-section-title {
@@ -1871,6 +1906,15 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
 
 .chart-loading-legend span:nth-child(2) {
   width: 88px;
+}
+
+/* Boon coverage rows include secondary lines once measured; reserve that height beneath the charts. */
+.chart-loading-summary :is(th, td) span {
+  display: block;
+  height: 28px;
+  min-width: 60px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--text-dim) 12%, transparent);
 }
 
 @keyframes chart-loading-spin {

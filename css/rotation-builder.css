@@ -121,8 +121,7 @@ body[data-profession][data-simulator-view='analysis'] .analysis-dps-summary {
   color: var(--accent);
 }
 
-/* Reserve chart and table space while results load, with a quiet pulse that respects reduced motion. */
-.analysis-skeleton,
+/* Cover the authored timeline while results load, with a pulse that respects reduced motion. */
 .rotation-skeleton {
   display: grid;
   gap: 12px;
@@ -132,24 +131,10 @@ body[data-profession][data-simulator-view='analysis'] .analysis-dps-summary {
   border-radius: var(--radius);
 }
 
-.analysis-skeleton > div,
 .rotation-skeleton > div {
   background: var(--border);
   border-radius: var(--radius);
   animation: analysis-skeleton-pulse 1.5s ease-in-out infinite;
-}
-
-.analysis-skeleton-heading {
-  width: 35%;
-  height: 20px;
-}
-
-.analysis-skeleton-chart {
-  height: 220px;
-}
-
-.analysis-skeleton-row {
-  height: 28px;
 }
 
 /* Retain the authored rows' layout so loading cannot collapse content-sized focus timelines. */
@@ -189,7 +174,6 @@ body[data-profession][data-simulator-view='analysis'] .analysis-dps-summary {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .analysis-skeleton > div,
   .rotation-skeleton > div {
     animation: none;
   }

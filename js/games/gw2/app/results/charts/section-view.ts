@@ -1,3 +1,4 @@
+/** Uses the same chart panels during initial Analysis loading and deferred report preparation. */
 import type { ChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { mountTimeSeriesCharts, type ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
 import { escapeHtml } from '#ui/shared/html.js';
@@ -19,12 +20,29 @@ function chartLoadingHtml(): string {
     <div class="chart-panels" aria-hidden="true">
       <div class="chart-panel">
         <div class="chart-panel-title">Average DPS Over Time</div>
+        <div class="chart-loading-legend"><span></span><span></span><span></span></div>
+        <div class="chart-loading-legend"><span></span><span></span><span></span></div>
         <div class="chart-loading-plot"></div>
       </div>
       <div class="chart-panel">
-        <div class="chart-panel-title">Effects Over Time</div>
+        <div class="chart-panel-title">Boons &amp; Buffs Over Time</div>
+        <div class="chart-loading-legend"><span></span><span></span><span></span></div>
         <div class="chart-loading-legend"><span></span><span></span><span></span></div>
         <div class="chart-loading-plot chart-loading-effects"></div>
+      </div>
+      <div class="chart-panel">
+        <div class="chart-panel-title">Conditions Over Time</div>
+        <div class="chart-loading-legend"><span></span><span></span><span></span></div>
+        <div class="chart-loading-plot chart-loading-effects"></div>
+      </div>
+      <div class="effect-summary chart-loading-summary">
+        <div class="effect-summary-scroll">
+          <table>
+            <caption>Boons</caption>
+            <thead><tr><th>Effect</th><th>Average stacks</th><th>Coverage</th></tr></thead>
+            <tbody>${Array.from({ length: 5 }, () => '<tr><th><span></span></th><td><span></span></td><td><span></span></td></tr>').join('')}</tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>`;

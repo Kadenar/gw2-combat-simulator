@@ -1,3 +1,4 @@
+/** Composes pending and completed Analysis sections in the same order to limit layout changes during loading. */
 import { analysisViewIsActive, renderSimulationViewModel } from '#browser/shell/result-view.js';
 import { mountInputActivity } from '#gw2/app/input-profile/results.js';
 import { mountPreviewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
@@ -6,6 +7,7 @@ import { SKILL_COLS, type DamageBreakdownModel } from '#gw2/app/results/breakdow
 import { mountDamageBreakdown, type DamageBreakdownOptions } from '#gw2/app/results/breakdown/view.js';
 import { mountResultCharts, type ResultChartsModel } from '#gw2/app/results/charts/section-view.js';
 import type { ChartOptions } from '#gw2/app/results/charts/time-series-view.js';
+import { mountAnalysisLoading } from '#gw2/app/results/loading-view.js';
 import { buildChartSeries } from '#gw2/app/results/model.js';
 import { modifierContributionsHtml, mountModifierContributions } from '#gw2/app/results/modifier-contributions-view.js';
 import { mountRandomDistribution } from '#gw2/app/results/random-distribution-view.js';
@@ -111,21 +113,27 @@ export function createGw2SimulationViewModel(app: ProfessionAppState): Simulatio
   if (!result || !presentation) {
     return {
       summary: resultSection((container) =>
-        mountResultSummary(container, { metrics: EMPTY_RESULT_METRICS, summaryPlaceholder: true })
+        mountResultSummary(container, {
+          // The pending baseline uses the same DPS label width as the completed Analysis summary.
+          metrics: EMPTY_RESULT_METRICS.map((metric) =>
+            app.build.rotation.length && metric.className === 'dps'
+              ? { ...metric, label: 'Baseline Player DPS' }
+              : metric
+          ),
+          summaryPlaceholder: true
+        })
       ),
       workspace: null,
-      analysis: null,
+      // A mounted pending section also keeps the summary mirror visible before the first baseline arrives.
+      analysis: app.build.rotation.length
+        ? resultSection(
+            (container) => mountAnalysisLoading(container, app.build.rotation),
+            (container) => mountResultCharts(container, { chartSeries: null, chartsPending: true }),
+            (container) => mountModifierContributions(container, { contributionsStale: true })
+          )
+        : null,
       headerDps: null,
-      // An existing rotation is waiting for results, so reserve the analysis layout instead of prompting for skills.
-      analysisEmptyHtml: app.build.rotation.length
-        ? `<div class="analysis-skeleton" role="status" aria-label="Loading combat analysis" aria-busy="true">
-          <div class="analysis-skeleton-heading" aria-hidden="true"></div>
-          <div class="analysis-skeleton-chart" aria-hidden="true"></div>
-          <div class="analysis-skeleton-row" aria-hidden="true"></div>
-          <div class="analysis-skeleton-row" aria-hidden="true"></div>
-          <div class="analysis-skeleton-row" aria-hidden="true"></div>
-        </div>`
-        : `<div class="analysis-empty-state">
+      analysisEmptyHtml: `<div class="analysis-empty-state">
         <strong>No analysis yet</strong>
         <span>Add skills to the rotation in <a href="${workspace.authoringLink.href}">${workspace.authoringLink.label}</a> to generate results.</span>
       </div>`

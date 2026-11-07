@@ -1,8 +1,11 @@
+// Pending Analysis uses mounted sections so its summary and independently completed results keep their places.
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { gw2SimulationPresentation } from '#gw2/app/results/view.js';
+import { inertContainer } from '#tests/helpers/dom.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
+import { mountSimulationSection } from '#ui/results/simulation-view.js';
 
 test('empty rotations keep placeholder DPS metrics grouped with the builder', () => {
   const results = {
@@ -80,15 +83,19 @@ test('rotations waiting for results show an accessible analysis skeleton', () =>
       }
     };
     const model = gw2SimulationPresentation.createViewModel(app);
-    assert.equal(model.analysis, null);
-    assert.match(model.analysisEmptyHtml, /class="analysis-skeleton"/);
-    assert.match(model.analysisEmptyHtml, /role="status" aria-label="Loading combat analysis" aria-busy="true"/);
-    assert.doesNotMatch(model.analysisEmptyHtml, /No analysis yet|Add skills/);
+    const pending = inertContainer();
+    mountSimulationSection(pending, model.analysis);
+    assert.match(pending.innerHTML, /role="status" aria-label="Loading combat analysis" aria-busy="true"/);
+    assert.match(pending.innerHTML, /Damage Breakdown/);
+    assert.match(pending.innerHTML, /Preparing charts/);
+    assert.match(pending.innerHTML, /Conditions Over Time/);
+    assert.match(pending.innerHTML, /Calculating modifier contributions/);
+    assert.doesNotMatch(pending.innerHTML, /No analysis yet|Add skills/);
 
     app.build.rotation = [];
     const emptyModel = gw2SimulationPresentation.createViewModel(app);
     assert.match(emptyModel.analysisEmptyHtml, /No analysis yet/);
-    assert.doesNotMatch(emptyModel.analysisEmptyHtml, /analysis-skeleton/);
+    assert.equal(emptyModel.analysis, null);
   }
 });
 

@@ -213,8 +213,10 @@ test('boss analysis preserves separate target bars and links an empty scenario b
   assert.match(createGw2SimulationViewModel(app).analysisEmptyHtml, /href="#bosses"/);
   app.build.rotation = [{ type: 'wait', durationMs: 1000 }];
   app.analysis.state.results = { totalDamage: 99999 };
-  assert.equal(createGw2SimulationViewModel(app).analysis, null);
-  assert.match(createGw2SimulationViewModel(app).analysisEmptyHtml, /Loading combat analysis/);
+  // An unavailable encounter result keeps shared pending sections mounted instead of showing an empty rotation.
+  const pending = inertContainer();
+  for (const panel of createGw2SimulationViewModel(app).analysis.panels) panel.mount(pending);
+  assert.match(pending.innerHTML, /Loading combat analysis/);
 });
 
 // Phase results share the golem disclosure without treating downtime or unreached health bands as damage phases.
