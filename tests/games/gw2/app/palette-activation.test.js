@@ -29,6 +29,8 @@ function activationApp(skills) {
     },
     profession: {
       catalog,
+      // Supply the resolved weapon-swap capability read when capturing palette input.
+      resolveProfession: () => ({ canSwapWeaponSetsInCombat: true }),
       ui: {
         castEditor: () => null,
         isPaletteSkillInstant: () => false,
