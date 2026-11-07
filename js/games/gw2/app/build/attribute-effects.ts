@@ -1,4 +1,4 @@
-import type { AttributePreviewState } from '#gw2/app/build/types.js';
+import type { AttributePreviewInput, AttributePreviewState } from '#gw2/app/build/types.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
 import {
@@ -11,15 +11,15 @@ import { clamp } from '#kernel/core/numeric.js';
 
 /** Supply the active preview catalog and weapon set without exposing application state to profession hooks. */
 export function attributePreviewContext(
-  app: AttributePreviewState,
+  input: AttributePreviewInput,
   weaponSet: number
 ): ProfessionAttributePreviewContext {
   return {
-    build: app.build,
-    specialization: app.adapter.eliteSpecialization(app.build),
-    activeTraits: app.attributeData!.activeTraits,
-    weapons: weaponSet === 2 ? app.build.alternateWeapons : app.build.weapons,
-    catalog: app.activeCatalog
+    build: input.build,
+    specialization: input.adapter.eliteSpecialization(input.build),
+    activeTraits: input.attributeData!.activeTraits,
+    weapons: weaponSet === 2 ? input.build.alternateWeapons : input.build.weapons,
+    catalog: input.activeCatalog
   };
 }
 

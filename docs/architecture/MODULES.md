@@ -133,6 +133,31 @@ existing selected-skill inventory, independently of which tiles the current pale
 series and hit timelines. Section mounts append to their assigned hosts; independently refreshed analysis must not
 replace unrelated charts or expanded rows.
 
+### Skill-damage preview
+
+`build/skill-damage/lifecycle.ts` owns preparation, measurement requests and accepted results. One instance per
+profession app retains preview choices and the last completed result across build tabs. The panel owns HTML, filters,
+row expansion, focus, scrolling and the saved disclosure preference.
+
+The lifecycle requests captured inputs only when needed. Closed refreshes, closing the panel and unchanged normalized
+values skip capture. `input.ts` returns no input while build attributes are unavailable. Otherwise it copies the build
+without rotation commands, copies transition delays and active-trait membership, and retains shared catalog and
+calculation-owner references.
+
+Preparation uses the patch key and calculation inputs, excluding rotation. Catalog and calculation-owner identity checks
+still detect replaced content. Cleared baseline attributes are reused while those inputs and available controls stay
+unchanged. Preview values live only in the completed preparation. Exceptions during control discovery or normalization
+leave the previous preparation and cache intact.
+
+Measurement reuse compares the resulting request. A completed result retains its original plan while new work runs.
+Closing cancels work but retains preparation, errors and results; reopening resumes unfinished work. Failed plans and
+measurements remain suppressed until their inputs change. Attribute errors appear in the stat strip without discarding a
+valid measurement plan.
+
+The lifecycle notifies the panel after updating state and before submitting work. Value changes preserve control nodes;
+measurement completion updates result-dependent regions. The worker runner owns request ordering and worker reuse. Node
+tests exercise lifecycle rules without browser globals and check the panel's rendering separately.
+
 ### Simulation jobs and settings
 
 Each simulation or optimizer feature keeps its runner, worker, contracts, and views together. Scheduling remains

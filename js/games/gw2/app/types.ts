@@ -49,7 +49,7 @@ export type ProfessionAppContract = BuildContextProfession & {
 
 export interface ProfessionAppState
   extends BuildLibraryState, RotationEditingState, RotationTimelineState, RotationComparisonSession, ResultViewState {
-  skillDamageRunner: import('#gw2/app/simulation/skill-damage/runner.js').SkillDamageRunner;
+  readonly skillDamage: import('#gw2/app/build/skill-damage/lifecycle.js').SkillDamageLifecycle;
   gearOptimizerRunner?: import('#gw2/app/optimizer/gear/runner.js').GearOptimizerRunner;
   workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace;
   activateBuildTab?(id: string, workspace?: import('#gw2/app/build/state/workspace.js').BuildWorkspace): void;

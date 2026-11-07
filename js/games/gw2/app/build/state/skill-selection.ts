@@ -13,7 +13,7 @@ export interface SlotSelectionState {
 }
 
 export function isSlotSkillSelectable(
-  app: SlotSelectionState,
+  app: Pick<SlotSelectionState, 'build' | 'activeCatalog' | 'profession'>,
   skill: Skill | null | undefined,
   specialization: string
 ): boolean {
@@ -35,7 +35,10 @@ export function isSlotSkillSelectable(
 }
 
 /** Lists the legal, deduplicated choices for a heal, utility, or elite slot. */
-export function availableSlotSkills(app: SlotSelectionState, type: string): Skill[] {
+export function availableSlotSkills(
+  app: Pick<SlotSelectionState, 'build' | 'activeCatalog' | 'profession' | 'adapter'>,
+  type: string
+): Skill[] {
   const spec = app.adapter.eliteSpecialization(app.build);
   const byLoadoutId = new Map<Skill['id'], Skill>();
   for (const skill of app.activeCatalog.skills) {

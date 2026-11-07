@@ -1,6 +1,7 @@
 // Headless application state for skill damage tests: a saved build loaded through the real adapter, without a DOM.
 import { readFile } from 'node:fs/promises';
 
+import { SkillDamageLifecycle } from '#gw2/app/build/skill-damage/lifecycle.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
@@ -46,4 +47,23 @@ export async function headlessApp(professionId, buildPath) {
 export async function firstPresetBuildPath(professionId) {
   const manifest = JSON.parse(await readFile(repoUrl(`data/gw2/builds/${professionId}/manifest.json`), 'utf8'));
   return manifest.flatMap((section) => section.presets)[0].build;
+}
+
+/** Supplies a runner whose completion can be controlled without a worker or DOM. */
+export function skillDamageFixture(t, { open = true, changed = () => {}, schedule = () => {} } = {}) {
+  let receive;
+  const runner = {
+    cancel: t.mock.fn(),
+    discardQueued: t.mock.fn(),
+    schedule: t.mock.fn(schedule)
+  };
+  const lifecycle = new SkillDamageLifecycle({
+    open,
+    changed,
+    createRunner: (complete) => {
+      receive = complete;
+      return runner;
+    }
+  });
+  return { lifecycle, runner, receive: (...args) => receive(...args) };
 }

@@ -3,8 +3,9 @@ import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#browser/shell/rotation-workspace.js';
 import { ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
 import { mountBossScenarios } from '#gw2/app/boss-scenarios/view.js';
-import { receiveSkillDamage } from '#gw2/app/build/panels/skill-damage.js';
+import { renderSkillDamageChange, skillDamageDisclosureOpen } from '#gw2/app/build/panels/skill-damage.js';
 import { mountBuildTabs, renderBuildTabs } from '#gw2/app/build/panels/workspace-tabs.js';
+import { SkillDamageLifecycle } from '#gw2/app/build/skill-damage/lifecycle.js';
 import {
   normalizeSelectedSkillsAndAttributes,
   swapSelectedSkillsForPatch
@@ -87,7 +88,7 @@ export class ProfessionApp implements ProfessionAppState {
   templateUndo: ProfessionAppState['templateUndo'];
   readonly modifierContributionRunner: ModifierContributionRunner;
   readonly randomDistributionRunner: RandomDistributionRunner;
-  readonly skillDamageRunner: SkillDamageRunner;
+  readonly skillDamage: SkillDamageLifecycle;
   readonly gearOptimizerRunner: GearOptimizerRunner;
   readonly relicComparisonRunner: RelicComparisonRunner;
   readonly baselineSimulationRunner: BaselineSimulationRunner;
@@ -150,9 +151,11 @@ export class ProfessionApp implements ProfessionAppState {
       if (!this.activatingBuildTab) renderGearOptimizer(this);
     });
     // Browser-owned workers follow the existing runner lifecycle and stay out of headless adapter imports.
-    this.skillDamageRunner = new SkillDamageRunner((signature, result, error) =>
-      receiveSkillDamage(this, signature, result, error)
-    );
+    this.skillDamage = new SkillDamageLifecycle({
+      open: skillDamageDisclosureOpen(),
+      createRunner: (receive) => new SkillDamageRunner(receive),
+      changed: (change) => renderSkillDamageChange(this, change)
+    });
     this.analysis = createAnalysisResultLifecycle(this, (change) => this.onAnalysisChange(change));
     this.initialRenderGeneration = 0;
     this.deferredRotationRenderRevision = null;

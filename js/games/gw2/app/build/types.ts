@@ -61,15 +61,14 @@ export type ProfessionIsSkillAvailable = (skill: Skill, context: ProfessionSkill
 
 export type ProfessionDefaultOffhand = (context?: ProfessionOffhandContext) => string;
 
-/** Detached facts needed by attribute panels; no editor actions or previous results enter calculation. */
-export type AttributePreviewState = Pick<
+/** Calculation inputs shared by isolated previews, without editor state or a preview weapon selector. */
+export type AttributePreviewInput = Pick<
   import('#gw2/app/types.js').ProfessionAppState,
-  | 'build'
-  | 'patch'
-  | 'simulationSettings'
-  | 'adapter'
-  | 'profession'
-  | 'activeCatalog'
-  | 'attributeWeaponSet'
-  | 'attributeData'
->;
+  'build' | 'patch' | 'simulationSettings' | 'adapter' | 'profession' | 'activeCatalog'
+> & {
+  readonly attributeData: Pick<import('#gw2/build-context/types.js').BuildAttributes, 'activeTraits'> | null;
+};
+
+/** The attribute panel also supplies its chosen weapon set and complete calculated attributes. */
+export type AttributePreviewState = AttributePreviewInput &
+  Pick<import('#gw2/app/types.js').ProfessionAppState, 'attributeWeaponSet' | 'attributeData'>;

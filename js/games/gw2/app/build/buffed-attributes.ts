@@ -1,7 +1,7 @@
 import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
-import type { AttributePreviewState } from '#gw2/app/build/types.js';
+import type { AttributePreviewInput, AttributePreviewState } from '#gw2/app/build/types.js';
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
 import type { Gw2NumericStatKey } from '#gw2/platform/attributes/stats.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
@@ -35,13 +35,13 @@ export function calculateBuffedAttributes(
 
 /** The damage strip queries the same prepared runtime as its rows, at full player health and without a skill override. */
 export function calculateSkillDamageAttributes(
-  app: AttributePreviewState,
-  input: Readonly<Record<string, unknown>>,
+  input: AttributePreviewInput,
+  rawValues: Readonly<Record<string, unknown>>,
   controls: readonly PreviewControl[]
 ) {
-  const { preview, config, inputs } = createSkillDamagePreview(app, controls, input);
+  const { preview, config, inputs } = createSkillDamagePreview(input, controls, rawValues);
   const attributes = structuredClone(preview.attributeData!.attributes);
-  return queryDamagePreview(app.profession, config, inputs, (runtime) => {
+  return queryDamagePreview(input.profession, config, inputs, (runtime) => {
     const at = runtime.time;
     const event: SimulationEvent = {
       type: 'action',

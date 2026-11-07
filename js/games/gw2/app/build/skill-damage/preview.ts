@@ -1,6 +1,6 @@
 import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
-import type { AttributePreviewState } from '#gw2/app/build/types.js';
+import type { AttributePreviewInput } from '#gw2/app/build/types.js';
 import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { BOON } from '#gw2/platform/constants.js';
@@ -14,11 +14,11 @@ const PREVIEW_BUFF_SECONDS = 3600;
  * buffs, and profession fields applied; deterministic runs average critical damage, and the target cannot die.
  */
 export function createSkillDamagePreview(
-  app: AttributePreviewState,
+  input: AttributePreviewInput,
   controls: readonly PreviewControl[],
-  input: Readonly<Record<string, unknown>>
+  rawValues: Readonly<Record<string, unknown>>
 ) {
-  const values = normalizeAttributePreview(controls, input);
+  const values = normalizeAttributePreview(controls, rawValues);
   const boons = Object.fromEntries(
     GW2_STANDARD_BOONS.map((kind) => [
       kind,
@@ -26,11 +26,11 @@ export function createSkillDamagePreview(
     ])
   );
   const isolated = createIsolatedPreview(
-    app,
+    input,
     controls,
     values,
     boons,
-    Number(app.build.startingWeaponSet) === 2 ? 2 : 1
+    Number(input.build.startingWeaponSet) === 2 ? 2 : 1
   );
   const { config, context } = isolated;
   // Only this panel's explicit values become assumptions; hidden saved conditions cannot leak into Clear buffs.
@@ -67,7 +67,7 @@ export function createSkillDamagePreview(
       name: control.label
     }));
   const targetHealth = values.targetHealth == null ? null : Number(values.targetHealth) / 100;
-  const patch = app.profession.ui.prepareSkillDamagePreview(context);
+  const patch = input.profession.ui.prepareSkillDamagePreview(context);
   const queryConfig: Gw2Config = {
     ...config,
     ...patch,

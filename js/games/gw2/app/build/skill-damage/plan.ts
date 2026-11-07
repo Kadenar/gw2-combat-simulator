@@ -1,6 +1,8 @@
+/** Prepares isolated damage occurrences and their table descriptions from captured calculation inputs. */
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import { attributePreviewContext, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
 import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
+import type { SkillDamageInput } from '#gw2/app/build/skill-damage/input.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
 import { availableSlotSkills } from '#gw2/app/build/state/skill-selection.js';
 import {
@@ -10,7 +12,6 @@ import {
   queryWeaponSkills,
   type PaletteQueryInput
 } from '#gw2/app/rotation/palette/model.js';
-import type { ProfessionAppState } from '#gw2/app/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { BOON, CONDITION } from '#gw2/platform/constants.js';
@@ -120,11 +121,11 @@ function sharedDamageControls(): PreviewControl[] {
 }
 
 /** Shared controls first, then the profession's damage-scoped controls; a profession key never duplicates a shared one. */
-export function skillDamageControls(app: ProfessionAppState): PreviewControl[] {
+export function skillDamageControls(input: SkillDamageInput): PreviewControl[] {
   const shared = sharedDamageControls();
 
   // Reuse the selected relic's opening stack state and cap without changing saved simulation assumptions.
-  if (app.build.relic === 'Thorns')
+  if (input.build.relic === 'Thorns')
     shared.push({
       key: 'thornsStacks',
       label: 'Thorns stacks',
@@ -138,7 +139,7 @@ export function skillDamageControls(app: ProfessionAppState): PreviewControl[] {
   const keys = new Set(shared.map((control) => control.key));
   // Retain profession boons such as Resolution; only shared keys are already represented.
   // Damage rows cover every equipped set, independently of the Attribute Preview selector.
-  const owned = professionDamageControls(app).filter((control) => {
+  const owned = professionDamageControls(input).filter((control) => {
     if (keys.has(control.key)) return false;
 
     keys.add(control.key);
@@ -148,19 +149,19 @@ export function skillDamageControls(app: ProfessionAppState): PreviewControl[] {
 }
 
 /** Both equipped sets contribute owner-declared dependencies, independently of the attribute-preview selector. */
-function professionDamageControls(app: ProfessionAppState): PreviewControl[] {
-  const sets = app.build.alternateWeapons?.[0] ? [1, 2] : [1];
+function professionDamageControls(input: SkillDamageInput): PreviewControl[] {
+  const sets = input.build.alternateWeapons?.[0] ? [1, 2] : [1];
   return sets
-    .flatMap((set) => app.profession.ui.previewControls(attributePreviewContext(app, set)))
+    .flatMap((set) => input.profession.ui.previewControls(attributePreviewContext(input, set)))
     .filter((control) => previewControlScopes(control).includes('damage'));
 }
 
 /** The saved simulation assumptions, expressed as this panel's values; nothing is written back. */
 export function simulationConfigValues(
-  app: ProfessionAppState,
+  input: SkillDamageInput,
   controls: readonly PreviewControl[]
 ): AttributePreviewValues {
-  const assumptions = app.build.assumptions as Record<string, unknown> & {
+  const assumptions = input.build.assumptions as Record<string, unknown> & {
     readonly targetConditions?: Readonly<Record<string, unknown>>;
   };
   const values: Record<string, unknown> = {};
@@ -172,10 +173,10 @@ export function simulationConfigValues(
     else if (control.key === 'targetMoving') values[control.key] = assumptions.targetMoving;
     else if (control.key === 'thornsStacks')
       values[control.key] =
-        app.adapter.createBuildContext(buildContextInput(app)).simulationConfig().initialThornsStacks ?? 0;
+        input.adapter.createBuildContext(buildContextInput(input)).simulationConfig().initialThornsStacks ?? 0;
     else if (control.key === 'targetHealth')
       values[control.key] =
-        (app.adapter.createBuildContext(buildContextInput(app)).simulationConfig().target?.startingHealthFraction ??
+        (input.adapter.createBuildContext(buildContextInput(input)).simulationConfig().target?.startingHealthFraction ??
           1) * 100;
   }
 
@@ -222,26 +223,26 @@ function weaponRows(query: PaletteQueryInput): { set: number; weapon: string; sk
 }
 
 /** Every slot skill the specialization can use; professions with fixed loadouts list their selected skills. */
-function slotSkills(app: ProfessionAppState): { skill: Skill; status: SkillDamageRowStatus }[] {
-  const specialization = app.adapter.eliteSpecialization(app.build);
+function slotSkills(input: SkillDamageInput): { skill: Skill; status: SkillDamageRowStatus }[] {
+  const specialization = input.adapter.eliteSpecialization(input.build);
 
-  if (app.adapter.slotLoadout) {
+  if (input.adapter.slotLoadout) {
     // Follow-up rows must use the same selected relationships as the palette and runtime.
-    const context = { build: app.build, specialization, professionState: undefined, catalog: app.activeCatalog };
-    const ids = app.adapter.slotLoadout
+    const context = { build: input.build, specialization, professionState: undefined, catalog: input.activeCatalog };
+    const ids = input.adapter.slotLoadout
       .view(context)
       .bars.flatMap((bar) =>
-        bar.skillIds.flatMap((id) => [id, ...(app.adapter.slotLoadout!.skillChildren?.(context, id) ?? [])])
+        bar.skillIds.flatMap((id) => [id, ...(input.adapter.slotLoadout!.skillChildren?.(context, id) ?? [])])
       );
     return [...new Set(ids)].flatMap((id) => {
-      const skill = app.activeCatalog.skillsById.get(id);
+      const skill = input.activeCatalog.skillsById.get(id);
       return skill ? [{ skill, status: 'equipped' as const }] : [];
     });
   }
 
-  const selected = selectedSkillIdSet(app.build.selectedSkillIds);
+  const selected = selectedSkillIdSet(input.build.selectedSkillIds);
   const choices = SLOT_TYPES.flatMap((type) =>
-    availableSlotSkills(app, type).map((skill) => ({
+    availableSlotSkills(input, type).map((skill) => ({
       skill,
       status: selected.has(skill.id) ? ('equipped' as const) : ('unslotted' as const)
     }))
@@ -251,7 +252,7 @@ function slotSkills(app: ProfessionAppState): { skill: Skill; status: SkillDamag
   for (const row of rows.values()) {
     if (row.skill.flipSkillId == null) continue;
 
-    const child = app.activeCatalog.skillsById.get(Number(row.skill.flipSkillId));
+    const child = input.activeCatalog.skillsById.get(Number(row.skill.flipSkillId));
 
     if (child && !rows.has(child.id)) rows.set(child.id, { skill: child, status: row.status });
   }
@@ -261,11 +262,11 @@ function slotSkills(app: ProfessionAppState): { skill: Skill; status: SkillDamag
 
 /** Profession mechanic groups; without declared groups, the profession's palette groups supply them. */
 function mechanicGroups(
-  app: ProfessionAppState,
+  input: SkillDamageInput,
   query: PaletteQueryInput,
   claimed: ReadonlySet<SkillId>
 ): { id: string; title: string; skills: Skill[] }[] {
-  const declared = app.profession.ui.skillDamageGroups(attributePreviewContext(app, app.build.startingWeaponSet));
+  const declared = input.profession.ui.skillDamageGroups(attributePreviewContext(input, input.build.startingWeaponSet));
   const sorted = [...declared].sort((left, right) => (left.order ?? 0) - (right.order ?? 0));
   const seen = new Set(claimed);
   const groups = [
@@ -275,7 +276,7 @@ function mechanicGroups(
       skillIds: group.skillIds,
       includeActionSkills: true
     })),
-    ...paletteView(app.profession, queryPaletteContext(query)).map((group, index) => ({
+    ...paletteView(input.profession, queryPaletteContext(query)).map((group, index) => ({
       id: `palette-${group.id}`,
       title: index ? group.label : 'Profession skills',
       includeActionSkills: group.includeActionSkills,
@@ -288,7 +289,7 @@ function mechanicGroups(
       id: group.id,
       title: group.title,
       skills: group.skillIds.flatMap((id) => {
-        const skill = app.activeCatalog.skillsById.get(id);
+        const skill = input.activeCatalog.skillsById.get(id);
 
         if (!skill || seen.has(skill.id) || (skill.type === 'Action' && !group.includeActionSkills)) return [];
 
@@ -326,15 +327,15 @@ function slotBadge(skill: Skill): string {
 
 /** "chain n of m" for chained skills; followers stop where a looping chain returns to its start. */
 /** Read chain positions for labels only; no predecessors are executed. */
-function chainPredecessors(app: ProfessionAppState, skill: Skill): Skill[] {
-  const positions = app.activeCatalog.autoattackChainPositions;
+function chainPredecessors(input: SkillDamageInput, skill: Skill): Skill[] {
+  const positions = input.activeCatalog.autoattackChainPositions;
   const position = positions.get(Number(skill.id));
 
   if (position)
     return [...positions.entries()]
       .filter(([, candidate]) => candidate.rootSkillId === position.rootSkillId && candidate.index < position.index)
       .sort(([, left], [, right]) => left.index - right.index)
-      .map(([id]) => app.activeCatalog.skillsById.get(id)!)
+      .map(([id]) => input.activeCatalog.skillsById.get(id)!)
       .filter(Boolean);
 
   const chain: Skill[] = [];
@@ -343,8 +344,8 @@ function chainPredecessors(app: ProfessionAppState, skill: Skill): Skill[] {
     const currentId: SkillId = current.id;
     const parent: Skill | undefined =
       current.flipParentId != null
-        ? app.activeCatalog.skillsById.get(Number(current.flipParentId))
-        : app.activeCatalog.skills.find(
+        ? input.activeCatalog.skillsById.get(Number(current.flipParentId))
+        : input.activeCatalog.skills.find(
             (candidate) => candidate.flipSkillId === currentId || candidate.nextChainId === currentId
           );
 
@@ -365,8 +366,8 @@ function chainPredecessors(app: ProfessionAppState, skill: Skill): Skill[] {
   return chain;
 }
 
-function chainContext(app: ProfessionAppState, skill: Skill): string {
-  const before = chainPredecessors(app, skill);
+function chainContext(input: SkillDamageInput, skill: Skill): string {
+  const before = chainPredecessors(input, skill);
 
   if (!before.length && skill.flipSkillId == null && skill.nextChainId == null) return '';
 
@@ -374,7 +375,7 @@ function chainContext(app: ProfessionAppState, skill: Skill): string {
   let length = before.length + 1;
   let next = skill.nextChainId ?? skill.flipSkillId;
   for (let depth = 0; next != null && depth < 8; depth += 1) {
-    const following = app.activeCatalog.skillsById.get(Number(next));
+    const following = input.activeCatalog.skillsById.get(Number(next));
 
     if (!following || seen.has(following.id) || chainStep(following) === 1) break;
 
@@ -388,14 +389,14 @@ function chainContext(app: ProfessionAppState, skill: Skill): string {
 
 /** Enumerates rows and occurrences, then attaches the preview configuration every occurrence shares. */
 export function createSkillDamagePlan(
-  app: ProfessionAppState,
+  input: SkillDamageInput,
   controls: readonly PreviewControl[],
   values: AttributePreviewValues
 ): SkillDamagePlan {
-  const { config, context, inputs } = createSkillDamagePreview(app, controls, values);
+  const { config, context, inputs } = createSkillDamagePreview(input, controls, values);
   // Inspect declarations and the rows already being collected; never sample extra health states in the engine.
   const usesTargetHealth =
-    config.relic === 'Eagle' || professionDamageControls(app).some((control) => control.key === 'targetHealth');
+    config.relic === 'Eagle' || professionDamageControls(input).some((control) => control.key === 'targetHealth');
   const groups: SkillDamageGroupDefinition[] = [];
   const rows = new Map<string, SkillDamageRowDefinition>();
   const occurrences: SkillDamageOccurrence[] = [];
@@ -406,11 +407,15 @@ export function createSkillDamagePlan(
     base: { context: string; weaponSet?: number }
   ): string => {
     const id = `${group.id}:${skill.id}`;
-    const owned: SkillDamageState | null = app.profession.ui.skillDamageState(
+    const owned: SkillDamageState | null = input.profession.ui.skillDamageState(
       {
         ...context,
         weapons:
-          base.weaponSet === 2 ? app.build.alternateWeapons : base.weaponSet === 1 ? app.build.weapons : context.weapons
+          base.weaponSet === 2
+            ? input.build.alternateWeapons
+            : base.weaponSet === 1
+              ? input.build.weapons
+              : context.weapons
       },
       skill
     );
@@ -462,14 +467,14 @@ export function createSkillDamagePlan(
 
   // Build-start enumeration supplies no planning observation, regardless of cursor or prior results.
   const query: PaletteQueryInput = {
-    catalog: app.activeCatalog,
-    build: app.build,
-    specialization: app.adapter.eliteSpecialization(app.build),
-    weaponData: app.weaponData,
-    isSkillAvailable: app.adapter.isSkillAvailable,
-    weaponSkillMatchesSet: app.adapter.weaponSkillMatchesSet,
-    projectActions: app.profession.ui?.paletteActionSkills,
-    selectedTraitIds: (app.attributeData?.activeTraits || []).map((trait) => trait.id)
+    catalog: input.activeCatalog,
+    build: input.build,
+    specialization: input.adapter.eliteSpecialization(input.build),
+    weaponData: input.weaponData,
+    isSkillAvailable: input.adapter.isSkillAvailable,
+    weaponSkillMatchesSet: input.adapter.weaponSkillMatchesSet,
+    projectActions: input.profession.ui?.paletteActionSkills,
+    selectedTraitIds: (input.attributeData?.activeTraits || []).map((trait) => trait.id)
   };
   const weaponGroups = weaponRows(query);
   const repeated = new Set(
@@ -484,7 +489,7 @@ export function createSkillDamagePlan(
     };
     const rowIds = weaponGroup.skills.map((skill) => {
       const slot = slotBadge(skill);
-      const chain = chainContext(app, skill);
+      const chain = chainContext(input, skill);
       return addRow(group, skill, 'equipped', {
         context: [`${weaponGroup.weapon} ${slot}`, chain].filter(Boolean).join(' · '),
         weaponSet: weaponGroup.set
@@ -493,22 +498,22 @@ export function createSkillDamagePlan(
     groups.push({ ...group, rowIds });
   }
 
-  const slots = slotSkills(app);
+  const slots = slotSkills(input);
   const claimed = new Set(
     [...weaponGroups.flatMap((group) => group.skills), ...slots.map(({ skill }) => skill)].map((skill) => skill.id)
   );
-  for (const mechanic of mechanicGroups(app, query, claimed)) {
+  for (const mechanic of mechanicGroups(input, query, claimed)) {
     const group = { id: `mechanic-${mechanic.id}`, title: mechanic.title };
     const rowIds = mechanic.skills.flatMap((skill) => {
-      const weaponSet = (app.build.alternateWeapons?.[0] ? [1, 2] : [1]).find((set) =>
+      const weaponSet = (input.build.alternateWeapons?.[0] ? [1, 2] : [1]).find((set) =>
         isGw2WeaponSkillEquipped(
           { config, weaponSet: set, catalog: context.catalog },
           skill,
-          app.adapter.weaponSkillMatchesSet
+          input.adapter.weaponSkillMatchesSet
         )
       );
 
-      const chain = chainContext(app, skill);
+      const chain = chainContext(input, skill);
       const badge = slotBadge(skill);
       // Numbered mechanic slots read like weapon slots ("Gunsaber 2"); profession slots keep the group title.
       const slot = /^\d$/.test(badge) ? `${mechanic.title} ${badge}` : mechanic.title;
@@ -528,7 +533,7 @@ export function createSkillDamagePlan(
   }
 
   // Reuse the profession's action palette, including damage owned by dodge and swap actions.
-  const actions = queryPaletteActions(query).filter((skill) => app.activeCatalog.skillsById.has(Number(skill.id)));
+  const actions = queryPaletteActions(query).filter((skill) => input.activeCatalog.skillsById.has(Number(skill.id)));
   const actionGroup = { id: 'action', title: 'Actions' };
   const actionIds = actions
     .filter((skill) => ![...rows.values()].some((row) => row.skillId === skill.id))
@@ -536,7 +541,7 @@ export function createSkillDamagePlan(
 
   if (actionIds.length) groups.push({ ...actionGroup, rowIds: actionIds });
 
-  occurrences.push(...damageOccurrences(app.profession.runtimeFor(config), config));
-  const request = { gameId: app.gameId, contentId: app.contentId, config, inputs, occurrences };
+  occurrences.push(...damageOccurrences(input.profession.runtimeFor(config), config));
+  const request = { gameId: input.gameId, contentId: input.contentId, config, inputs, occurrences };
   return { groups, rows, request, usesTargetHealth, signature: JSON.stringify(request) };
 }

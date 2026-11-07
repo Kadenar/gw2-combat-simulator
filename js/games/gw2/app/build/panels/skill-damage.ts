@@ -1,13 +1,10 @@
-import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
-import { calculateSkillDamageAttributes } from '#gw2/app/build/buffed-attributes.js';
-import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
-import {
-  clearedValues,
-  createSkillDamagePlan,
-  simulationConfigValues,
-  skillDamageControls,
-  type SkillDamagePlan
-} from '#gw2/app/build/skill-damage/plan.js';
+/** Renders preview state and binds panel interactions; calculation and request policy belong to the lifecycle. */
+import { captureSkillDamageInput } from '#gw2/app/build/skill-damage/input.js';
+import type {
+  SkillDamageChange,
+  SkillDamagePreparation,
+  SkillDamagePreviewState
+} from '#gw2/app/build/skill-damage/lifecycle.js';
 import {
   conditionLabel,
   conditionPerSecond,
@@ -17,7 +14,6 @@ import {
   type SkillDamageRowView,
   type SkillDamageViewModel
 } from '#gw2/app/build/skill-damage/view-model.js';
-import type { SkillDamageRunner } from '#gw2/app/simulation/skill-damage/runner.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { Gw2AttributeMap } from '#gw2/platform/attributes/types.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
@@ -26,37 +22,13 @@ import type {
   AttributePreviewValues,
   PreviewControl
 } from '#gw2/platform/profession-presentation/attribute-preview.js';
-import type { SkillDamageEvaluation } from '#gw2/platform/skill-damage/types.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 
-/** Prepared inputs and stats survive presentation updates; content references identify replaced catalogs and owners. */
-interface SkillDamagePreparation extends Pick<
-  ProfessionAppState,
-  'adapter' | 'profession' | 'activeCatalog' | 'weaponData'
-> {
-  readonly signature: string;
-  readonly controls: readonly PreviewControl[];
-  readonly values: AttributePreviewValues;
-  readonly statsHtml: string;
-}
-
-/** Preview values stay local to this panel; only its disclosure preference survives a page reload. */
+/** Row display preferences stay with the panel and do not invalidate calculation inputs. */
 interface SkillDamagePanelState {
-  open: boolean;
-  values: AttributePreviewValues | null;
   filter: SkillDamageFilter;
   expanded: string | null;
   closedGroups: Set<string>;
-  preparation: SkillDamagePreparation | null;
-  plan: SkillDamagePlan | null;
-  evaluation: {
-    readonly signature: string;
-    readonly result: SkillDamageEvaluation;
-    readonly plan: SkillDamagePlan;
-  } | null;
-  error: string;
-  failedSignature: string | null;
-  readonly runner: SkillDamageRunner;
 }
 
 const panels = new WeakMap<ProfessionAppState, SkillDamagePanelState>();
@@ -70,183 +42,83 @@ const CONTROL_GROUPS = Object.freeze([
   'Other buffs'
 ]);
 
+/** Restore whether the panel is open without saving preview values or measurements. */
+export function skillDamageDisclosureOpen(): boolean {
+  try {
+    return localStorage.getItem(DISCLOSURE_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
 function panelState(app: ProfessionAppState): SkillDamagePanelState {
   let state = panels.get(app);
 
   if (!state) {
-    let open = false;
-    try {
-      open = localStorage.getItem(DISCLOSURE_STORAGE_KEY) === 'true';
-    } catch {
-      // A blocked browser preference store must not prevent opening the preview.
-    }
-
-    state = {
-      open,
-      values: null,
-      filter: 'all',
-      expanded: null,
-      closedGroups: new Set(),
-      preparation: null,
-      plan: null,
-      evaluation: null,
-      error: '',
-      failedSignature: null,
-      runner: app.skillDamageRunner
-    };
+    state = { filter: 'all', expanded: null, closedGroups: new Set() };
     panels.set(app, state);
   }
 
   return state;
 }
 
-/** Applies a worker result without rebuilding the assumption controls or losing the focused input. */
-export function receiveSkillDamage(
-  app: ProfessionAppState,
-  signature: string,
-  result: SkillDamageEvaluation | null,
-  error: string
-): void {
-  const current = panels.get(app);
+/** Let the lifecycle capture available inputs when the open panel needs them. */
+export function renderSkillDamage(app: ProfessionAppState): void {
+  if (!document.getElementById('skill-damage-preview') || !app.attributeData) return;
 
-  if (!current?.open || current.plan?.signature !== signature) return;
-
-  current.error = error;
-  current.failedSignature = error ? signature : null;
-
-  if (result) current.evaluation = { signature, result, plan: current.plan };
-
-  renderRegions(app);
+  app.skillDamage.refresh(() => captureSkillDamageInput(app));
 }
 
-/** Renders the collapsible section; measurement starts only once it is opened, and only for changed inputs. */
-export function renderSkillDamage(app: ProfessionAppState): void {
+/** Render published state; measurement updates leave focused controls in place. */
+export function renderSkillDamageChange(app: ProfessionAppState, change: SkillDamageChange): void {
   const host = document.getElementById('skill-damage-preview');
 
-  if (!host || !app.attributeData) return;
+  if (!host) return;
 
-  const state = panelState(app);
   bindHost(host, app);
+  const state = app.skillDamage.state;
 
   if (!state.open) {
-    state.runner.cancel();
     host.innerHTML = disclosureHtml(false, '');
     return;
   }
 
-  const preparation = prepareInputs(app, state);
-  host.innerHTML = disclosureHtml(
-    true,
-    `<div class="skill-damage-body"><div class="skill-damage-stats" data-sd-region="stats"></div><div class="skill-damage-layout">${assumptionsHtml(preparation.controls, preparation.values)}<div class="skill-damage-main" data-sd-region="table"></div></div></div>`
-  );
-  renderPreparedStats(host, preparation);
-  requestMeasurements(state);
+  const preparation = state.preparation;
+
+  if (!preparation) return;
+
+  if (change === 'inputs') {
+    host.innerHTML = disclosureHtml(
+      true,
+      `<div class="skill-damage-body"><div class="skill-damage-stats" data-sd-region="stats"></div><div class="skill-damage-layout">${assumptionsHtml(preparation.controls, preparation.values)}<div class="skill-damage-main" data-sd-region="table"></div></div></div>`
+    );
+  }
+
+  if (change !== 'measurement') renderPreparedStats(host, preparation);
+
   renderRegions(app);
 }
 
-/**
- * Snapshot mutable inputs before any build calculation; rotation results and the other preview are independent. The
- * build-context input is the object the preview calculations pass to the adapter, so new context fields join the key.
- */
-function preparationSignature(app: ProfessionAppState, values: AttributePreviewValues | null): string {
-  return JSON.stringify({
-    gameId: app.gameId,
-    contentId: app.contentId,
-    buildContext: buildContextInput(app),
-    // Profession controls read trait membership; trait records themselves come from the catalog checked by identity.
-    activeTraitIds: app.attributeData?.activeTraits.map((trait) => trait.id),
-    values
-  });
-}
-
-const errorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));
-
-/** Only changed calculation inputs rebuild the plan and run the two attribute previews. */
-function prepareInputs(app: ProfessionAppState, state: SkillDamagePanelState): SkillDamagePreparation {
-  const previous = state.preparation;
-
-  if (
-    previous?.signature === preparationSignature(app, state.values) &&
-    previous.adapter === app.adapter &&
-    previous.profession === app.profession &&
-    previous.activeCatalog === app.activeCatalog &&
-    previous.weaponData === app.weaponData
-  )
-    return previous;
-
-  const controls = skillDamageControls(app);
-  // First open adopts saved assumptions; later builds retain choices for controls that still exist.
-  const values = normalizeAttributePreview(controls, state.values ?? simulationConfigValues(app, controls));
-  state.values = values;
-  state.error = '';
-  state.failedSignature = null;
-  try {
-    state.plan = createSkillDamagePlan(app, controls, values);
-  } catch (error) {
-    state.runner.cancel();
-    state.plan = null;
-    state.error = errorMessage(error);
-  }
-
-  state.preparation = {
-    signature: preparationSignature(app, values),
-    adapter: app.adapter,
-    profession: app.profession,
-    activeCatalog: app.activeCatalog,
-    weaponData: app.weaponData,
-    controls,
-    values,
-    // The table already reports a failed plan; stats from a valid plan are prepared separately.
-    statsHtml: state.plan ? preparedStatsHtml(app, controls, values) : ''
-  };
-  return state.preparation;
-}
-
-/** Stats are an independent preview, so their failure is reported in place without discarding the plan. */
-function preparedStatsHtml(
-  app: ProfessionAppState,
-  controls: readonly PreviewControl[],
-  values: AttributePreviewValues
-): string {
-  try {
-    return statsHtml(
-      calculateSkillDamageAttributes(app, values, controls).attributes,
-      calculateSkillDamageAttributes(app, clearedValues(controls), controls).attributes
-    );
-  } catch (error) {
-    return `<p class="sd-status is-error">${esc(errorMessage(error))}</p>`;
-  }
-}
-
-/** Reuse prepared markup when mounting the body or changing assumptions, without touching it on table updates. */
+/** Show attribute errors in the stat strip without replacing damage results. */
 function renderPreparedStats(host: HTMLElement, preparation: SkillDamagePreparation): void {
   const stats = host.querySelector<HTMLElement>('[data-sd-region="stats"]');
 
-  if (stats) stats.innerHTML = preparation.statsHtml;
+  if (!stats) return;
+
+  stats.innerHTML = preparation.statsError
+    ? `<p class="sd-status is-error">${esc(preparation.statsError)}</p>`
+    : preparation.stats
+      ? statsHtml(preparation.stats.current, preparation.stats.baseline)
+      : '';
 }
 
-/** Reopening resumes canceled work. Rendering the panel never restarts completed or failed requests. */
-function requestMeasurements(state: SkillDamagePanelState): void {
-  if (!state.plan) return;
-
-  if (state.evaluation?.signature === state.plan.signature) {
-    // Returning to the displayed inputs drops waiting edits; active work finishes on its warm worker and is ignored.
-    state.runner.discardQueued();
-    return;
-  }
-
-  if (state.failedSignature === state.plan.signature) return;
-
-  state.error = '';
-  state.runner.schedule(state.plan);
-}
-
-/** Repaints rows and evaluation-dependent controls from stored state, preserving input focus and list scroll. */
+/** Update rows and result-dependent controls while retaining input focus and list scroll. */
 function renderRegions(app: ProfessionAppState): void {
   const host = document.getElementById('skill-damage-preview');
-  const state = panels.get(app);
+  const state = app.skillDamage.state;
+  const display = panelState(app);
 
-  if (!host || !state?.open) return;
+  if (!host || !state.open) return;
 
   const table = host.querySelector<HTMLElement>('[data-sd-region="table"]');
 
@@ -278,15 +150,15 @@ function renderRegions(app: ProfessionAppState): void {
   // Keep labels and measurements from the same completed plan while a changed build is being measured.
   const displayedPlan = state.evaluation?.plan ?? state.plan;
   const model = createSkillDamageViewModel(displayedPlan, state.evaluation?.result ?? null, {
-    filter: state.filter,
-    expanded: state.expanded,
-    closedGroups: state.closedGroups,
+    filter: display.filter,
+    expanded: display.expanded,
+    closedGroups: display.closedGroups,
     targetArmor: Number(displayedPlan.request.config.target?.armor) || 0
   });
   // Expanding a row or receiving new measurements must not jump the independently scrolled list back to its top.
   const scroller = table.querySelector('.sd-table-scroll');
   const position = { top: scroller?.scrollTop ?? 0, left: scroller?.scrollLeft ?? 0 };
-  table.innerHTML = tableHtml(model, state, current);
+  table.innerHTML = tableHtml(model, display, state, current);
   table.querySelector('.sd-table-scroll')?.scrollTo(position);
 }
 
@@ -308,16 +180,17 @@ function bindHost(host: HTMLElement, app: ProfessionAppState): void {
 
       if (!(details instanceof HTMLDetailsElement) || !details.classList.contains('skill-damage')) return;
 
-      if (state.open === details.open) return;
+      if (app.skillDamage.state.open === details.open) return;
 
-      state.open = details.open;
+      app.skillDamage.setOpen(() => captureSkillDamageInput(app), details.open);
+
+      if (app.skillDamage.state.open !== details.open) return;
+
       try {
-        localStorage.setItem(DISCLOSURE_STORAGE_KEY, String(state.open));
+        localStorage.setItem(DISCLOSURE_STORAGE_KEY, String(details.open));
       } catch {
         // Keep the current page's choice even when persistence is unavailable.
       }
-
-      renderSkillDamage(app);
     },
     true
   );
@@ -338,10 +211,10 @@ function bindHost(host: HTMLElement, app: ProfessionAppState): void {
     } else if (target.dataset.sdFilter) {
       state.filter = target.dataset.sdFilter as SkillDamageFilter;
     } else if (target.dataset.sdAction) {
-      const controls = state.preparation!.controls;
-      state.values =
-        target.dataset.sdAction === 'use-config' ? simulationConfigValues(app, controls) : clearedValues(controls);
-      renderSkillDamage(app);
+      app.skillDamage.resetValues(
+        () => captureSkillDamageInput(app),
+        target.dataset.sdAction === 'use-config' ? 'saved' : 'clear'
+      );
       return;
     }
 
@@ -350,7 +223,6 @@ function bindHost(host: HTMLElement, app: ProfessionAppState): void {
   // The input event already applied a value; repainting again on blur's change event would replace the table under
   // a pending click, so only a real change repaints.
   const readControls = (): void => {
-    const controls = state.preparation!.controls;
     const input = Object.fromEntries(
       Array.from(
         host.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-skill-damage-control]'),
@@ -360,14 +232,7 @@ function bindHost(host: HTMLElement, app: ProfessionAppState): void {
         ]
       )
     );
-    const values = normalizeAttributePreview(controls, input);
-
-    if (JSON.stringify(values) === JSON.stringify(state.values)) return;
-
-    state.values = values;
-    renderPreparedStats(host, prepareInputs(app, state));
-    requestMeasurements(state);
-    renderRegions(app);
+    app.skillDamage.setValues(() => captureSkillDamageInput(app), input);
   };
 
   host.addEventListener('input', (event) => {
@@ -381,7 +246,8 @@ function bindHost(host: HTMLElement, app: ProfessionAppState): void {
     readControls();
 
     // Write the clamped value back so the field never shows a number the preview did not use.
-    if (control.type === 'number') control.value = String(state.values?.[control.dataset.skillDamageControl!] ?? '');
+    if (control.type === 'number')
+      control.value = String(app.skillDamage.state.preparation?.values[control.dataset.skillDamageControl!] ?? '');
   });
   // The ladder readout follows pointer and keyboard focus; exact values are always printed beneath the bars.
   const showVariant = (event: Event): void => {
@@ -471,11 +337,16 @@ function columnTemplate(model: SkillDamageViewModel): string {
   ].join(' ');
 }
 
-function tableHtml(model: SkillDamageViewModel, state: SkillDamagePanelState, current: boolean): string {
+function tableHtml(
+  model: SkillDamageViewModel,
+  display: SkillDamagePanelState,
+  state: SkillDamagePreviewState,
+  current: boolean
+): string {
   const filters = (['all', 'equipped', 'unslotted', 'procs'] as const)
     .map((filter) => {
       const label = { all: 'All', equipped: 'Equipped', unslotted: 'Not slotted', procs: 'Procs' }[filter];
-      return `<button type="button" class="sd-chip" data-sd-filter="${filter}" aria-pressed="${state.filter === filter}">${label} <span>${model.counts[filter]}</span></button>`;
+      return `<button type="button" class="sd-chip" data-sd-filter="${filter}" aria-pressed="${display.filter === filter}">${label} <span>${model.counts[filter]}</span></button>`;
     })
     .join('');
   const columns = columnTemplate(model);

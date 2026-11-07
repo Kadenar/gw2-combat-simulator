@@ -1,4 +1,4 @@
-import type { AttributePreviewState } from '#gw2/app/build/types.js';
+import type { AttributePreviewInput } from '#gw2/app/build/types.js';
 import type { BuildAttributes, BuildContextInput } from '#gw2/build-context/types.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type {
@@ -16,29 +16,29 @@ export interface IsolatedPreview {
 
 /** Build-context inputs for the saved build or a detached copy; preview caches key on this same object. */
 export function buildContextInput(
-  app: Pick<AttributePreviewState, 'build' | 'patch' | 'simulationSettings'>,
-  build: AttributePreviewState['build'] = app.build
+  input: Pick<AttributePreviewInput, 'build' | 'patch' | 'simulationSettings'>,
+  build: AttributePreviewInput['build'] = input.build
 ): BuildContextInput {
   return {
     build,
-    patch: app.patch,
-    transitionDelays: normalizeTransitionDelays(app.simulationSettings?.transitionDelays)
+    patch: input.patch,
+    transitionDelays: normalizeTransitionDelays(input.simulationSettings?.transitionDelays)
   };
 }
 
 /** Calculates a detached preview build; conditional query controls never alter saved assumptions. */
 export function createIsolatedPreview(
-  app: AttributePreviewState,
+  input: AttributePreviewInput,
   controls: readonly PreviewControl[],
   values: AttributePreviewValues,
   boons: Readonly<Record<string, number | boolean>>,
   weaponSet: number
 ): IsolatedPreview {
   const build = {
-    ...app.build,
-    selectedSkillIds: { ...app.build.selectedSkillIds },
+    ...input.build,
+    selectedSkillIds: { ...input.build.selectedSkillIds },
     startingWeaponSet: weaponSet,
-    assumptions: { ...app.build.assumptions, ...boons }
+    assumptions: { ...input.build.assumptions, ...boons }
   };
   // Removing a disabled passive before recalculation also updates conversions that use the passive's attributes.
   for (const control of controls) {
@@ -50,14 +50,14 @@ export function createIsolatedPreview(
   }
 
   // Preview health and conditional state remain explicit query values, outside the build context.
-  const calculation = app.adapter.createBuildContext(buildContextInput(app, build));
+  const calculation = input.adapter.createBuildContext(buildContextInput(input, build));
   const attributeData = calculation.attributes(weaponSet === 2 ? 2 : 1);
   const context = {
     build,
     specialization: calculation.specialization,
     activeTraits: attributeData.activeTraits,
     weapons: weaponSet === 2 ? build.alternateWeapons : build.weapons,
-    catalog: app.activeCatalog,
+    catalog: input.activeCatalog,
     values
   };
   return { preview: { attributeData }, context, config: calculation.simulationConfig() };
