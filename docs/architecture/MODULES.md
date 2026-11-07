@@ -119,11 +119,11 @@ state.
 inputs. It caches prefix results and rejects requests when build and result revisions differ. `rotation/context.ts`
 connects it to the analysis snapshot and profession execution adapter.
 
-Cursor movement and edits to the currently rendered revision remain available after simulation failures. Retained
-controls from older revisions cannot edit shifted command indexes. Palette activations and preview calculations require
-a result that matches the build. Deferred rotation rendering preserves the previous display while work is pending;
+Cursor movement and edits to the currently rendered revision remain available after simulation failures. Controls from
+older revisions cannot edit commands whose indexes have changed. Palette activations and preview calculations require a
+result that matches the build. Deferred rotation rendering preserves the previous display while work is pending;
 explicit renders clear unavailable state. Comparison metrics retain their last cursor time until a new observation is
-ready. Editor candidates use captured commands without evicting the palette's prefix cache.
+ready. Editor candidates use captured commands and leave the palette's cached prefix available for reuse.
 
 Cooldown tooltip labels retain the displayed result's combat origin. Isolated skill-damage previews use the smaller
 palette queries without a cursor observation. Warnings use those queries to inspect both equipped weapon sets and their

@@ -1,4 +1,4 @@
-/** Binds application observations to the headless cursor preview owner. */
+/** Connects the app's analysis state and simulation adapter to cursor previews. */
 import { CursorPreview } from '#gw2/app/rotation/cursor-preview.js';
 import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -18,7 +18,7 @@ export interface RotationProfessionState extends Partial<Gw2SharedProfessionPlan
 
 const cursorPreviews = new WeakMap<ProfessionAppState, CursorPreview>();
 
-/** One owner shares captured inputs and prefix results between palette, snapshot, and cast editors. */
+/** Shares one cursor preview per app so the palette, snapshots, and cast editors reuse captured inputs and results. */
 export function cursorPreview(app: ProfessionAppState): CursorPreview {
   let preview = cursorPreviews.get(app);
 
@@ -48,7 +48,7 @@ export const professionPlanningState = (result: AnalysisResult | null | undefine
     ? (result.planningState.profession as RotationProfessionState)
     : {};
 
-/** Cursor consumers share the preview owner's freshness and observation policy. */
+/** Returns the result at the insertion cursor only when the baseline matches the current build revision. */
 export function palettePlanningResult(app: ProfessionAppState) {
   return cursorPreview(app).at(normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length));
 }

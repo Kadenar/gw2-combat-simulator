@@ -42,7 +42,7 @@ function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: S
       triggeredBy: event.skillName
     }
   });
-  // Multiple successful combos from one finisher each own a proc, even when they resolve simultaneously.
+  // Each successful combo from a finisher triggers a separate proc, even when the combos resolve simultaneously.
   announceRelic(ctx, event, 'Relic of Steamshrieker', {
     occurrenceId: typeof event.comboId === 'string' ? event.comboId : undefined
   });

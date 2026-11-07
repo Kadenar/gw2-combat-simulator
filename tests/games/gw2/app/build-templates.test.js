@@ -395,7 +395,7 @@ test('boss manifest selections fetch only the build and clear the rotation with 
   }
 });
 
-// Pending requests must not own feedback or replacement after a newer library choice, even if they fail.
+// A superseded request must neither replace the build nor report an error.
 test('superseded template success and failure leave the latest request and its progress intact', async (t) => {
   for (const fails of [false, true]) {
     const first = Promise.withResolvers();
@@ -450,7 +450,7 @@ test('a late template cannot overwrite a newer template or My Builds selection',
   }
 });
 
-// Undo must cancel ownership immediately, including pending loads that would create a separate tab.
+// Undo must immediately invalidate pending loads, including those that would create a separate tab.
 test('library Undo supersedes pending downloads and ignores their late success or failure', async (t) => {
   for (const action of ['template', 'new-tab']) {
     for (const fails of [false, true]) {

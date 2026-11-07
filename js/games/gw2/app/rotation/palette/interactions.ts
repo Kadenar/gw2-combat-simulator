@@ -188,13 +188,13 @@ type PaletteActionRequest = {
   | { readonly type: 'drop'; readonly index: number }
 );
 
-/** Shares action precedence, editor choice, and completed insertion while retaining each gesture's cursor rules. */
+/** Routes clicks, keyboard activations, and drops through the same editors while preserving their insertion positions. */
 export function dispatchPaletteAction(
   app: ProfessionAppState,
   request: PaletteActionRequest,
   editors: PaletteActionEditors = PALETTE_ACTION_EDITORS
 ): void {
-  // Retained tiles cannot author commands against a rotation whose new state has not rendered yet.
+  // Block tile actions until simulation results match the current build.
   if (!request.name || !cursorPreviewReady(app.analysis.state)) return;
 
   const { name, skillId, anchor } = request;
@@ -243,7 +243,8 @@ export function dispatchPaletteAction(
     return;
   }
 
-  // Activation inspects the displayed face; drops retain trait-selected canonical lookup. Commands keep input identity.
+  // Activation uses the displayed skill. Drops resolve the skill from the build's selected traits.
+  // Both keep the requested skill identity in the inserted command.
   const displaySkillId = request.type === 'activate' ? (request.displaySkillId ?? skillId) : null;
   const skill: RotationSkill | undefined =
     request.type === 'drop'
@@ -387,7 +388,7 @@ function paletteDragAnchor(name: string): HTMLElement | null {
   );
 }
 
-/** Sends the dragged identity and chosen position to the action owner, which also completes editor-backed drops. */
+/** Dispatches the dragged skill at the drop position, including insertion after an editor is applied. */
 export function dispatchPaletteDrop(
   app: ProfessionAppState,
   name: string,

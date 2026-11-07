@@ -1,4 +1,4 @@
-/** Owns equipped and precast instances, query access, and lifecycle dispatch without changing event order. */
+/** Stores equipped and precast relic state and dispatches rule hooks in the order callers invoke them. */
 import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { normalizePrecastRelics, relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 import { createAristocracyPreviewState } from '#gw2/platform/equipment/relics/rules/aristocracy.js';
@@ -25,7 +25,7 @@ function createInstance(name: unknown): RelicInstance {
   return { id, rules, state: rules.createState?.() || {} };
 }
 
-/** All live contributions use the same owned state; only strike buffs include precast instances. */
+/** Queries share the equipped relic's state. Strike multipliers also include precast relics. */
 function queryOwner(equipped: RelicInstance, precasts: readonly RelicInstance[] = []): Gw2RelicQueryOwner {
   const { rules, state } = equipped;
   return Object.freeze({
@@ -47,7 +47,7 @@ function queryOwner(equipped: RelicInstance, precasts: readonly RelicInstance[] 
   });
 }
 
-/** A relic selected for both roles shares one state, including cooldowns claimed before combat. */
+/** A relic selected for equipment and precasting shares one state, including cooldowns started before combat. */
 export function createRelicRuntime(name: unknown, precastNames: readonly string[] = []): Readonly<Gw2RelicRuntime> {
   const equipped = createInstance(name);
   const precasts = normalizePrecastRelics(precastNames)
@@ -65,7 +65,7 @@ export function createRelicRuntime(name: unknown, precastNames: readonly string[
     completed(context, event) {
       for (const relic of instances) relic.rules.completed?.(context, relic.state, event);
     },
-    // Hooks whose callers derive inputs exist only when the equipped rule observes them, so most relics skip that work.
+    // Omit unused hooks so callers using optional calls skip calculating their arguments.
     action:
       emitActionEffects || action
         ? (context, event, skill) => {
@@ -82,7 +82,7 @@ export function createRelicRuntime(name: unknown, precastNames: readonly string[
       rules.emitConditionEffects?.(context, state, event);
     },
     activate(context, event) {
-      // Earned delayed work retains its original owner even after preparation ends.
+      // Resolve delayed activations by source ID so precast relics can still activate after combat starts.
       const relic = instances.find((entry) => entry.id === event.sourceId);
 
       if (relic) relic.rules.activate?.(context, relic.state, event);
@@ -121,7 +121,7 @@ export function createRelicTimelineQueries(name: unknown, events: readonly Simul
 
 /** Attribute controls may assume an Aristocracy window without accessing a live simulation's mutable state. */
 export function createAristocracyPreviewQueries(stacks: number): Gw2RelicQueryOwner {
-  // The rule owns its state layout; this owner only binds the assumed window to the shared query surface.
+  // The Aristocracy rule creates the assumed stack window. Expose it through the same queries as live state.
   const { id, rules } = createInstance('Aristocracy');
   return queryOwner({ id, rules, state: createAristocracyPreviewState(stacks) });
 }

@@ -238,7 +238,7 @@ test('canonical state is read-only and synchronous initialization uses the same 
   assert.equal(f.changes.find((change) => change.kind === 'baseline').render, false);
 });
 
-// External adoption without provenance remains paintable but cannot authorize cursor work.
+// An adopted result without captured inputs can be displayed but cannot supply cursor previews.
 test('adopted results without captured inputs wait for a baseline before previews become ready', () => {
   const f = analysisFixture();
   f.publish({ dps: 10 });

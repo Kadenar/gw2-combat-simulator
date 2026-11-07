@@ -172,9 +172,8 @@ export interface Gw2RelicQueries {
 }
 
 /**
- * Events enter at their existing execution stages; this owner selects instances and pairs their private state.
- * Equipped-only hooks whose callers derive inputs are absent unless the equipped rule observes them, so an optional
- * call skips that per-hit or per-application work.
+ * Dispatches events to the relevant relic rules with their private state. Callers determine execution order.
+ * Unused equipped-relic hooks are absent so optional calls skip calculating per-hit or per-application arguments.
  */
 export interface Gw2RelicRuntime extends Gw2RelicQueryOwner {
   readonly buffPolicies: readonly BuffStatePolicy[];

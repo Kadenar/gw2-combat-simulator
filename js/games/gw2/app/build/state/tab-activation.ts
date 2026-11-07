@@ -1,4 +1,4 @@
-/** Switches the editing document and analysis ownership before the browser paints the destination. */
+/** Installs the destination tab's editing state and analysis before the browser redraws. */
 import { normalizeSelectedSkillsAndAttributes } from '#gw2/app/build/state/skill-selection.js';
 import {
   captureActiveBuildTab,
@@ -20,7 +20,7 @@ type BuildTabActivationState = BuildTabCaptureState &
     | 'relicComparisonRunner'
   >;
 
-/** Missing and active destinations do nothing; a switch advances analysis identity and resumes only missing work. */
+/** Ignores missing or already active tabs. Switching tabs invalidates outgoing work and resumes missing analysis. */
 export function activateBuildTab(
   state: BuildTabActivationState,
   { workspace = state.workspace, tabId }: { workspace?: BuildWorkspace; tabId: string }

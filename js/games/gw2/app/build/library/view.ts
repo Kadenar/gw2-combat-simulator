@@ -1,4 +1,4 @@
-/** Renders library controls, progress, and destination locks around the headless load workflow. */
+/** Renders library controls and loading progress, and disables destination changes during downloads. */
 import {
   buildSignature,
   TEMPLATE_BOON_FILTERS,

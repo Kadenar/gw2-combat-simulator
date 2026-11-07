@@ -26,7 +26,7 @@ export interface BuildTabSession
   attributeWeaponSet: number;
 }
 
-/** Captured patch tuning belongs to the stored tab, not the active editing fields. */
+/** Stores patch tuning with the tab so activation can resolve its patch. */
 export type StoredBuildTabSession = BuildTabSession & { patchPreviewValues?: Readonly<Record<string, number>> };
 
 export interface BuildTabCaptureState extends BuildTabSession {
@@ -48,7 +48,7 @@ export function emptyBuildTabSession(): BuildTabSession {
   };
 }
 
-/** Large results, histories, and filters remain owned by their tab instead of being cloned on each switch. */
+/** Retains references to each tab's results, history, and filters to avoid copying them on every switch. */
 export function captureActiveBuildTab(state: BuildTabCaptureState): void {
   const tab = state.workspace?.tabs.find(({ id }) => id === state.workspace?.activeTabId);
 

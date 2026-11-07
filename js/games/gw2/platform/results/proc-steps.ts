@@ -1,4 +1,4 @@
-/** Preserves identified proc occurrences while coalescing repeated announcements of the same occurrence. */
+/** Groups repeated announcements of the same proc while keeping procs with different IDs separate. */
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import type { AnnouncementEmission } from '#gw2/platform/effects/emission.js';

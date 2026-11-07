@@ -73,9 +73,9 @@ writer for custom transitions and action interruptions. Delivery records ordinar
 store. Recording remains independent of optional chart/report collection.
 
 `equipment/relics/runtime.ts` owns the equipped relic and supported precast relics. A relic selected for both roles
-shares one state and cooldown. Execution and resolver stages send observations to this owner; it dispatches the existing
-rule hooks and resolves delayed activations by relic ID. Combat entry preserves already-earned pending activations. The
-owner also supplies buff policies and isolated damage payloads. Simulation still owns scheduling and reaction order.
+shares one state and cooldown. Execution and resolver stages call its rule hooks. It resolves delayed activations by
+relic ID, including precast activations that occur after combat starts. It also supplies buff policies and isolated
+damage payloads. The simulation controls scheduling and reaction order.
 
 Relic callers cannot access mutable rule state. Live calculations use the owner's queries. Detached timeline queries
 keep the equipped relic's base context without replaying earned stacks or precast buffs. The attribute preview supplies

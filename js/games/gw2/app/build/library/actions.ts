@@ -1,4 +1,4 @@
-/** Presents library progress while the headless workflow owns replacement, destination checks, and Undo. */
+/** Shows library loading progress. The load module checks destinations, replaces builds, and handles Undo. */
 import {
   beginLibraryLoad,
   loadLibraryBuild,
@@ -20,8 +20,8 @@ export function loadMyBuildEntry(app: ProfessionAppState, entry: MyBuild): void 
   if (container) delete container.dataset.newBuild;
 
   container?.querySelector<HTMLDialogElement>('.build-templates-dialog')?.close();
-  // changed() and tab activation own the timeline paint. A superseded download's skeleton stays until the
-  // replacement build's first result, just as it does for template loads.
+  // changed() and tab activation redraw the timeline. Keep the loading placeholder until the replacement
+  // build has its first result, as with template loads.
   delete app.templateRotationLoading;
   try {
     loadLibraryBuild(app, entry.build, entry.name, newTab);
@@ -31,7 +31,7 @@ export function loadMyBuildEntry(app: ProfessionAppState, entry: MyBuild): void 
   }
 }
 
-/** Hides progress and releases the destination lock once no request owns them. */
+/** Hides loading progress and enables destination controls when loading ends. */
 function finishLoading(app: ProfessionAppState): void {
   const loading = app.templateContainer?.querySelector<HTMLElement>('.template-load-status');
 

@@ -158,7 +158,7 @@ export async function loadLibraryTemplate(
   }
 }
 
-/** Saved snapshots supersede downloads too, while retaining their existing whole-build loading behavior. */
+/** Loading a saved build replaces the whole build and supersedes any pending download. */
 export function loadLibraryBuild(
   app: ProfessionAppState,
   build: Gw2CanonicalBuild,
