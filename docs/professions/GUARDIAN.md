@@ -1,52 +1,42 @@
-# Guardian
+# Guardian code navigation
 
-This profession uses the shared engine. Its browser entry point is `guardian.html`. `profession.ts` is the stable export and composes the
-Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of Dragonhunter, Firebrand, Willbender, or
-Luminary. Virtues, Firebrand tomes, Radiant Forge, and weapon state each own their cast validation, scheduler hooks,
-skill handlers, and resolver reactions under `core/` or `specializations/<name>/`.
+Virtues, symbols, weapon state, and their trait reactions. This guide locates the family owners. Skill declarations,
+trait definitions, and their callers describe current behavior.
 
-Trait definitions live in `core/traits/<line>/index.ts` and each elite's `traits/index.ts`. They own profiles,
-modifiers, build contributions, and hooks; supporting functions stay beside their definitions. Shared symbol emission
-lives in `core/traits/symbols.ts`. Mechanics preserve virtue activation, page accounting, equip rewards, and proc order.
-Firebrand's `initial-state.ts` supplies default profiles without importing trait definitions into its state factory.
+## Entry points
 
-## Ordering and lifetime rules
+- [profession.ts](../../js/games/gw2/professions/guardian/profession.ts) composes the family;
+  [catalog.ts](../../js/games/gw2/professions/guardian/catalog.ts) collects its modules.
+- [build/](../../js/games/gw2/professions/guardian/build/) owns defaults, validation, attributes, and the headless
+  context.
+- [core/module.ts](../../js/games/gw2/professions/guardian/core/module.ts) registers Core contributions. Each elite has
+  its own `module.ts`.
+- [core/state.ts](../../js/games/gw2/professions/guardian/core/state.ts) and each elite's `state.ts` own runtime state
+  and public projections.
+- [core/skills/](../../js/games/gw2/professions/guardian/core/skills/) and
+  [core/traits/](../../js/games/gw2/professions/guardian/core/traits/) contain Core declarations. Elite declarations
+  live under their specialization.
+- [app/](../../js/games/gw2/professions/guardian/app/) binds the browser adapter and tooltips; Core and elite
+  `presentation.ts` files contribute views.
 
-- Firebrand checks tome availability before mantra availability. On player hits, Ashes reactions run before Firebrand's
-  strike trigger, followed by tome Justice reactions.
-- A Luminary cast accepted during an earlier Radiant Forge session cannot equip a weapon in a later session.
+## Mechanic owners
 
-## Data
+| Area                          | Start here                                                                                             |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Core virtues                  | [core/mechanics/virtues.ts](../../js/games/gw2/professions/guardian/core/mechanics/virtues.ts)         |
+| Spear illumination expiry     | [core/mechanics/spear.ts](../../js/games/gw2/professions/guardian/core/mechanics/spear.ts)             |
+| Dragonhunter physical virtues | [specializations/dragonhunter/](../../js/games/gw2/professions/guardian/specializations/dragonhunter/) |
+| Firebrand tomes and pages     | [specializations/firebrand/](../../js/games/gw2/professions/guardian/specializations/firebrand/)       |
+| Willbender movement virtues   | [specializations/willbender/](../../js/games/gw2/professions/guardian/specializations/willbender/)     |
+| Luminary Radiant Forge        | [specializations/luminary/](../../js/games/gw2/professions/guardian/specializations/luminary/)         |
 
-- Maintained skill and trait constants live in `data/ids.ts`.
-- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
-- `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
-  complete declarations contributed by each module.
+Read the relevant `hooks.ts`, trait registrations, and callers when changing reaction order or lifetime behavior. The
+[shared module map](../architecture/MODULES.md#profession-file-roles) explains the file roles without duplicating their
+rules.
 
-## Implemented systems
+## Presets and validation
 
-- Core implements executable terrestrial weapon, slot, and profession skills with strike packets, damaging conditions,
-  cooldowns, ammo, chains, flips, symbols, traps, channels, and persistent attacks; Justice/Resolve/Courage activation
-  and recharge; Justice active and passive burning; Renewed Focus; weapon swapping and active-set validation.
-- Dragonhunter implements physical virtues, Spear of Justice / Hunter's Verdict.
-- Firebrand implements tome equip/stow, shared pages, page costs, regeneration, and Archivist of Whispers / Loremaster /
-  Ashes of the Just.
-- Willbender implements physical skills and movement virtues.
-- Luminary implements Radiant Forge entry/exit, duration, radiant-weapon flips, weapon-dependent Glaring Burst, per-entry
-  recharge reduction, and light-field / finisher / Sovereign of Light detonation behavior.
-- Spear from Janthir Wilds implements Illuminated. Spear skills 2, 3, and 4 arm it, and Symbol of Luminance holds it open. The next Helio Rush, Gleaming Disc, or Solar Storm consumes it. Autoattacks do not consume it. Skill data lives in `core/skills/weapons/spear.ts`; persistent Illuminated behavior lives in
-  `core/mechanics/spear.ts`.
-- Explicit strike-modifier grouping (Force/Impact, Empowered/Radiant Armaments, Furious Focus, Retribution, Symbolic
-  Avenger, Piercing Stance share one additive bucket; Fiery Wrath, Symbolic Exposure, gates, vulnerability, and relics
-  stay separate multipliers). Permanent Protection/Resolution/Regeneration/Swiftness are on by default; permanent Aegis
-  is also on by default and can be toggled off.
-
-## Modeling boundaries
-
-The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Ally positioning,
-incoming damage, revival, and other encounter-side support effects are outside the damage total. Some support-only casts
-remain in the catalog as timing or trait-triggering actions. Cast timings are checked into owner-local skill fragments;
-catalog assembly does not infer a duration from the skill's type.
-
-Uncompressed ArcDPS EVTC logs can be inspected with
-`node scripts/analysis/analyze-evtc.mjs <log.evtc> --game=gw2 --summary` after `npm run build`.
+The [build manifest](../../data/gw2/builds/guardian/manifest.json) identifies saved presets and rotations.
+[Profession tests](../../tests/games/gw2/professions/guardian/) cover behavior and composition. Use
+[AGENTS.md](../../AGENTS.md) for simulation scope and validation policy; shared run settings are located by the
+[programmatic guide](../architecture/PROGRAMMATIC-SIMULATION.md#randomness).

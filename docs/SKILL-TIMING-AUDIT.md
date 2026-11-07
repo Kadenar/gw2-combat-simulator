@@ -1,5 +1,9 @@
 # Skill timing audit: 40 ms boundaries
 
+Historical findings last rechecked on October 27, 2026. The tables below preserve that investigation and may differ from
+current declarations. Off-grid authored values are observations, not a requirement to change timing. Use the
+[clock owner map](architecture/SIMULATION-EVENT-CLOCK.md) to inspect current behavior.
+
 Rechecked the existing cast findings against the assembled current catalogs and both listed damage-offset findings
 against their source declarations on 2026-10-27. Rows that now fall on the 40 ms grid have been removed. This is a
 recheck of the earlier findings, not a complete inventory of newly added skills or procedural runtime timing.

@@ -1,63 +1,41 @@
-# Engineer
+# Engineer code navigation
 
-This profession uses the shared engine. Its browser entry point is `engineer.html`. `profession.ts` is the
-stable export and composes the Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of Scrapper,
-Holosmith, Mechanist, or Amalgam. Each specialization owns its data, state, mechanics, and UI under
-`specializations/<name>/`.
+Kits, toolbelt skills, turrets, and weapon state. This guide locates the family owners. Skill declarations, trait
+definitions, and their callers describe current behavior.
 
-## Ordering rules
+## Entry points
 
-- Core availability checks turrets, spear stages, kits, skill flips, and toolbelt skills in that order.
-- Combat entry drains each pending Mine Field activation once and publishes its packets before toolbelt traits are
-  notified.
-- Amalgam's Core cast traits emit first; Thorns Retaliation then precedes the Morph trait tail and the next completion.
+- [profession.ts](../../js/games/gw2/professions/engineer/profession.ts) composes the family;
+  [catalog.ts](../../js/games/gw2/professions/engineer/catalog.ts) collects its modules.
+- [build/](../../js/games/gw2/professions/engineer/build/) owns defaults, validation, attributes, and the headless
+  context.
+- [core/module.ts](../../js/games/gw2/professions/engineer/core/module.ts) registers Core contributions. Each elite has
+  its own `module.ts`.
+- [core/state.ts](../../js/games/gw2/professions/engineer/core/state.ts) and each elite's `state.ts` own runtime state
+  and public projections.
+- [core/skills/](../../js/games/gw2/professions/engineer/core/skills/) and
+  [core/traits/](../../js/games/gw2/professions/engineer/core/traits/) contain Core declarations. Elite declarations
+  live under their specialization.
+- [app/](../../js/games/gw2/professions/engineer/app/) binds the browser adapter and tooltips; Core and elite
+  `presentation.ts` files contribute views.
 
-## Data
+## Mechanic owners
 
-- Maintained skill and trait constants live in `data/ids.ts`.
-- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
-- `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
-  complete declarations contributed by each module.
+| Area                               | Start here                                                                                                                         |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Kits and toolbelt                  | [core/mechanics/](../../js/games/gw2/professions/engineer/core/mechanics/)                                                         |
+| Scrapper gyros and combo reactions | [specializations/scrapper/](../../js/games/gw2/professions/engineer/specializations/scrapper/)                                     |
+| Holosmith Forge and heat           | [specializations/holosmith/](../../js/games/gw2/professions/engineer/specializations/holosmith/)                                   |
+| Mechanist mech execution           | [specializations/mechanist/mechanics/mech.ts](../../js/games/gw2/professions/engineer/specializations/mechanist/mechanics/mech.ts) |
+| Amalgam morphs and Evolve          | [specializations/amalgam/](../../js/games/gw2/professions/engineer/specializations/amalgam/)                                       |
 
-## Implemented systems
+Read the relevant `hooks.ts`, trait registrations, and callers when changing reaction order or lifetime behavior. The
+[shared module map](../architecture/MODULES.md#profession-file-roles) explains the file roles without duplicating their
+rules.
 
-- Core implements eight terrestrial weapon families and both equipment sets; engineering kits as weapon-bar replacements (a
-  kit swap emits a sigil-swap trigger without changing the equipped set); tool-belt skills derived from the selected
-  heal/utility/elite; ammo, cooldowns, autoattack chains, damage, conditions, controls, boons, and offensive traits.
-- Holosmith implements Photon Forge, passive and skill heat, the six-second kit lockout, overheat, and piecewise cooling.
-- Mechanist implements trait-selected F1-F3 commands, an always-present mech, inherited mech attributes with base caps,
-  persistent mech basic attacks, signets, and damage-relevant mech trait reactions. The mech resolves an independent
-  attribute set inherited from the owner and emits summon-owned strikes and conditions.
-- Amalgam implements F2-F4 morph loadout persistence and Evolve state.
-- Scrapper implements Hammer, gyros, Function Gyro, superspeed, and whirl-finisher / kinetic trait reactions.
+## Presets and validation
 
-## Modeling boundaries
-
-- The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Incoming attacks,
-  active defense, ally healing, barrier, and cleansing, pathing, secondary targets, and competitive PvP and WvW balance splits are outside the model.
-- Mech summon/recall, health, death, pathing, target acquisition, and autonomous command use are not modeled; commands
-  are explicit rotation actions and the mech is assumed in Mechanical Genius range.
-- Deterministic simulations average critical damage by default, with rolled critical damage available in simulation
-  settings. RNG simulations always use rolled critical damage. An EVTC can differ from either the expected damage or the
-  simulated seed's critical-hit outcomes.
-
-## Authoritative locations
-
-- `core/state.ts` and each `specializations/<name>/state.ts` - owned state.
-- `core/skills/` and each specialization's `skills/` - skill packets, cooldowns, and timings.
-- `core/mechanics/` and specialization `mechanics/` directories - resources, availability, state transitions, and event
-  behavior.
-- `core/traits/<line>/index.ts` and each elite's `traits/index.ts` - trait definitions, profiles, modifiers, attribute
-  contributions, and triggers. Supporting helpers remain beside their definitions.
-- `core/mechanics/trigger-points.ts` - ordered trait trigger points; mechanics retain kit/toolbelt state and recharge.
-- Scrapper traits own combo rewards and Function Gyro ammo; specialization state retains the pending Stability pulse.
-- Holosmith traits own heat policies and Solar Focusing Lens rewards; mechanics own heat cadence and transitions.
-- Mechanist traits own command selection, arm procs, and attribute inheritance; mechanics own the independent mech lane
-  and packet ownership.
-- Amalgam traits own Morph/Evolve rewards and recharge policy; the committed Morph task preserves cross-trait ordering.
-- `specializations/mechanist/mechanics/mech.ts` - persistent mech attacks and commands.
-- `core/module.ts` and each specialization's `module.ts` - native module registration and phase ownership.
-
-Build and live attributes share `engineerProfession.attributeContributions`. Module declarations supply skill and
-mechanic attributes; selected trait definitions supply their own bonuses and conversions. The shared evaluator starts
-from equipment attribute seeds and resolves conversion inputs once per calculation using the active balance context.
+The [build manifest](../../data/gw2/builds/engineer/manifest.json) identifies saved presets and rotations.
+[Profession tests](../../tests/games/gw2/professions/engineer/) cover behavior and composition. Use
+[AGENTS.md](../../AGENTS.md) for simulation scope and validation policy; shared run settings are located by the
+[programmatic guide](../architecture/PROGRAMMATIC-SIMULATION.md#randomness).

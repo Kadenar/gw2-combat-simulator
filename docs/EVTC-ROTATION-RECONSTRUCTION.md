@@ -1,86 +1,41 @@
-# EVTC rotation reconstruction
+# EVTC rotation import navigation
 
-The simulator can reconstruct a rotation from a local ArcDPS `.evtc`, `.evtc.zip`, or `.zevtc` combat log. Import runs
-entirely in the browser and does not upload the log.
+The simulator imports local ArcDPS logs through its browser log adapter. The
+[EVTC implementation](../js/games/gw2/integrations/logs/evtc/) determines supported formats, evidence rules, and limits.
 
-For the implementation-level reference, including parser behavior, safety limits, profession-specific inference, and
-known limitations, see the colocated [EVTC analyzer documentation](../js/games/gw2/integrations/logs/evtc/README.md).
+## Use the importer
 
-## Import flow
+Open the recorded profession, select Load Rotation, choose the log, and review the resulting actions and warnings. Logs
+can omit preparation; the editor lets the user complete an opener after import.
 
-1. Open the simulator page for the recorded profession and specialization.
-2. Select **Load Rotation**.
-3. Choose the EVTC or compressed EVTC file.
-4. Review the reconstructed rotation and any import warnings before using it for analysis.
+The [EVTC adapter guide](../js/games/gw2/integrations/logs/evtc/README.md) provides background.
+[EI alignment](LOG-IMPORT-EI-ALIGNMENT.md) links to evidence and replay owners. For supplied report rotations, start
+with the [dps.report adapter](../js/games/gw2/integrations/logs/dps-report/).
 
-The importer:
+## Follow an import
 
-- decompresses and validates supported archives;
-- parses the raw EVTC agent, skill, and combat-event tables;
-- selects the player matching the active profession and specialization;
-- converts recorded casts, explicit EI finder results, waits and represented weapon/state changes;
-- resolves recorded skills against the active simulator catalog; and
-- converts the result into normal simulator rotation commands.
+| Stage                                      | Owner                                                                                                                                                                    |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Browser file selection and warning display | [app/import-export/logs/](../js/games/gw2/app/import-export/logs/)                                                                                                       |
+| Archive decoding and binary parsing        | [decompression.ts](../js/games/gw2/integrations/logs/evtc/decompression.ts), [parser.ts](../js/games/gw2/integrations/logs/evtc/parser.ts)                               |
+| Recording format and boundaries            | [recording.ts](../js/games/gw2/integrations/logs/evtc/recording.ts)                                                                                                      |
+| Recorded animations                        | [rotation/animations.ts](../js/games/gw2/integrations/logs/evtc/rotation/animations.ts)                                                                                  |
+| Player and encounter selection             | [rotation/players.ts](../js/games/gw2/integrations/logs/evtc/rotation/players.ts), [rotation/encounter.ts](../js/games/gw2/integrations/logs/evtc/rotation/encounter.ts) |
+| Reconstruction orchestration               | [rotation/reconstruct.ts](../js/games/gw2/integrations/logs/evtc/rotation/reconstruct.ts)                                                                                |
+| Shared identity and replay conversion      | [shared/rotation/](../js/games/gw2/integrations/logs/shared/rotation/)                                                                                                   |
 
-If several matching players are equally plausible, import stops instead of silently choosing one.
+Source evidence and simulator commands are separate representations. Inspect both when an imported cast looks wrong; the
+replay conversion can affect timing without changing the retained source record.
 
-## Reconstruction boundaries
+## Command-line tools
 
-An EVTC file records combat events, not keyboard input. Some actions have no unique event, share evidence with another
-skill, begin before the log, or are generated automatically by traits and profession mechanics.
-
-The importer follows explicit supported EI rules and leaves missing setup for manual editing. Initial buffs, existing
-minions, later casts and resource requirements do not construct a preparation sequence. Every successful import shows
-this notice once:
-
-> The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating.
-
-Source timestamps and durations remain separate from simulator command conversion. Typical independent warnings include:
-
-- an inferred instant cast;
-- a recorded skill missing from the simulator catalog;
-- an animation without a matching stop event; or
-- an interrupted cast without safe simulator commit timing.
-
-Automatic effects already modeled by the simulator are not inserted as player actions. Always review imported rotations
-before treating them as benchmark reproductions.
-
-## Encounter-end inputs
-
-Shared EVTC reconstruction keeps only actions whose reconstructed start is strictly before the encounter boundary.
-Starts exactly at the boundary or later are excluded for every profession, including weapon swaps, buff transitions, and
-EI-inferred instant actions. Mirage and Druid have no post-encounter grace period.
-
-The boundary is computed once from the earliest death or combat exit of an agent whose profession code matches the EVTC
-encounter ID. This remains a heuristic: temporary combat exits, multiple matching targets, or encounter IDs that do not
-identify an agent can make it incomplete. With no matching target end event, inputs remain unbounded.
-
-A cast that starts before the boundary retains its recorded duration, even when its stop or split-animation finish
-occurs later. Precombat inputs remain eligible. This input window does not set the simulator's damage observation
-duration. With no surviving actions, import fails with the no-actions error.
-
-## Development tools
-
-Build the compiled modules first:
+Build modules, then inspect or reconstruct a local log:
 
 ```sh
 npm run build:modules
+node scripts/analysis/analyze-evtc.mjs path/to/fight.zevtc
+node scripts/analysis/reconstruct-evtc-rotation.mjs path/to/fight.zevtc --timeline
 ```
 
-Inspect a log without opening the browser:
-
-```sh
-node scripts/analysis/analyze-evtc.mjs <fight.evtc|fight.evtc.zip|fight.zevtc>
-```
-
-Reconstruct simulator commands:
-
-```sh
-node scripts/analysis/reconstruct-evtc-rotation.mjs <fight.evtc|fight.evtc.zip|fight.zevtc>
-```
-
-Add `--timeline` to reconstruction output for source and normalized actions. See the
-[script guide](../scripts/README.md#analysis-tools) for other log-analysis tools.
-
-The original EVTC is preferred when available. For reconstruction from a public Elite Insights report, use the
-[dps.report adapter](../js/games/gw2/integrations/logs/dps-report/README.md).
+The [script guide](../scripts/README.md#analysis-tools) lists related tools.
+[Log integration tests](../tests/games/gw2/integrations/logs/) cover parser and replay behavior.

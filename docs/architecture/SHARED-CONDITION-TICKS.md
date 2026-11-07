@@ -1,87 +1,33 @@
-# Shared condition ticks
+# Condition damage navigation
 
-## Timing contract
+Condition applications, damage sampling, and payouts have separate lifetimes. Start with
+[condition-resolution.ts](../../js/games/gw2/platform/resolver/condition-resolution.ts), which owns accepted
+applications, buffering, settlement, and companion retirement.
 
-Boon and condition durations round half-even to whole milliseconds after duration bonuses. Fixed-duration grants still
-round; generic profession buffs retain authored durations. A condition's natural expiration is application time plus
-rounded duration, with no 40ms ceiling or further snapping. Boon expiry uses the action-tick ceiling described in the
-[event clock](SIMULATION-EVENT-CLOCK.md#8-status-and-condition-clocks). Application timestamps retain canonical
-microsecond precision.
+## Reading path
 
-First positive player damage starts both the DPS reporting window and the shared condition clock. All condition owners
-pay at `firstHitTime + 1s`, `firstHitTime + 2s`, and so on, displayed as 1s, 2s, 3s of fight time. An explicit Combat
-Start marker gates damage but does not establish this phase. Empty target windows stop unnecessary queued work;
-subsequent applications resume on the same first-damage clock.
+| Question                                         | Owner                                                                                                                                                  |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| How does a condition enter the runtime?          | [effect-delivery.ts](../../js/games/gw2/platform/resolver/effect-delivery.ts)                                                                          |
+| When does it sample or pay damage?               | [condition-resolution.ts](../../js/games/gw2/platform/resolver/condition-resolution.ts)                                                                |
+| Which work runs first at a shared timestamp?     | [event-phase.ts](../../js/games/gw2/platform/resolver/event-phase.ts), [queue.ts](../../js/kernel/events/queue.ts)                                     |
+| How are duration and expiry calculated?          | [effect-timing.ts](../../js/games/gw2/platform/combat/effect-timing.ts)                                                                                |
+| Whose attributes and modifiers apply?            | [combat-query.ts](../../js/games/gw2/platform/combat-calculation/combat-query.ts)                                                                      |
+| How does damage affect target health?            | [target-health.ts](../../js/games/gw2/platform/combat/state/target-health.ts)                                                                          |
+| How are observations and damage totals reported? | [resolved-events.ts](../../js/games/gw2/platform/results/resolved-events.ts), [damage-report.ts](../../js/games/gw2/platform/results/damage-report.ts) |
 
-Before first damage, provisional encounter-second pulses allow a condition-only opener to deal its first damage. If a
-condition payout opens combat, that opening packet is at fight time zero and subsequent pulses are at 1s, 2s, and so on.
-If a direct hit opens combat between provisional pulses, pending player, pet, and environment wakes move to the new
-phase; obsolete wakes are inert. Existing applications retain their natural expiry, but their accrual restarts at first
-damage without carrying pre-fight buffered damage into the first full-second payout.
+Natural expiry, forced retirement, and the end of observation are different boundaries. Follow the lifetime owner when
+investigating an unpaid remainder; a clipped report alone does not describe why a condition stopped contributing.
 
-For example, an explicit marker at 7.88s followed by first damage at 8.72s produces condition payouts at 9.72s, 10.72s,
-11.72s, and so on. Kill Time and chart timestamps already use that same first-damage origin.
+## Executable examples
 
-Each condition application samples its owner's current stats and modifiers at a pulse for the elapsed interval since its
-last sample. If it expires between pulses, it samples the final partial interval at that exact expiration time. That
-remainder stays buffered until the next whole-second payout. Changes after expiry cannot alter stored damage. There are
-no intermediate 40ms samples or 1ms simulation steps. Expiry sampling affects only applications expiring at that
-timestamp, so one application's expiry cannot change another application's sampling schedule.
+- [Shared condition ticks](../../tests/games/gw2/platform/resolver/shared-condition-ticks.test.js) covers sampling,
+  settlement, and shared-clock behavior.
+- [Condition resolution](../../tests/games/gw2/platform/resolver/condition-resolution.test.js) covers application
+  ownership and retirement.
+- [Condition duration](../../tests/games/gw2/platform/resolver/condition-duration.test.js) covers duration calculation.
+- [Condition-owner queries](../../tests/games/gw2/platform/combat-calculation/condition-owner-query.test.js) covers
+  attribute ownership.
 
-Consider a two-second burn applied at fight time 0.960s with a constant rate of 100 damage per stack-second. All times below are relative to first damage.
-
-| Packet time | Sample time | Elapsed time | Damage |
-| ----------- | ----------- | ------------ | ------ |
-| 1.000s      | 1.000s      | 0.040s       | 4      |
-| 2.000s      | 2.000s      | 1.000s       | 100    |
-| 3.000s      | 2.960s      | 0.960s       | 96     |
-
-A duration of 1.01s applied at 0.375s expires at 1.385s. Its first sample covers 0.625s at 1s, and its expiry sample
-covers the remaining 0.385s, payable at 2s. Stopping observation at 1.5s omits that future payout; no endpoint packet is
-invented.
-
-## Rounding, ownership, and attribution
-
-Each application buffers `rate * elapsedSeconds * stacks` without rounding, including partial expiry damage. At each global pulse, the resolver sums contributions for each condition and owner, regardless of source skill. It then applies half-even rounding once per group. One stack at 29.5 damage per second deals 30; two stacks deal 59 whether applied together or by
-different skills. Distinct conditions and independent owners retain separate packets.
-
-Application damage, elapsed stack-seconds, and reporting attribution stay together. Owner/condition groups retain
-application references and allocate the rounded packet total using floors plus the largest fractional remainders; stable
-application order breaks ties. Those integer reporting shares do not add a second damage rounding. Groups commit
-atomically before dispatching one `condition-tick.resolved` reaction. Detailed and score modes use identical arithmetic.
-Cancelled and fully settled applications leave the working group; stale queued wakes are inert.
-
-Player skills, player-owned effects, and ordinary summons use player condition attributes, equipment, traits, and Might.
-Ranger pets and mechs marked `independentConditionOwner` retain their own condition profiles and owner groups. Original
-source metadata remains available for attribution. Configured permanent target conditions use the same pulse clock,
-sample target Vulnerability at each pulse, and retain separate environment totals without player reactions.
-
-## Ordering and boundaries
-
-At a canonical timestamp the resolver runs Sample, Settle, then Ordinary. All owners sample before any condition payout
-changes health. Settlement commits condition damage before same-time strikes and buffs, regardless of ordinary priority.
-A same-time ordinary buff affects the next eligible sample. An application created on a pulse owes no preceding time.
-
-Non-damage reactions emitted during settlement inherit Settle at that timestamp. Direct damage remains Ordinary; future
-events receive their normal phase. Priority, causal order, and insertion order break ties within a phase. Resolved
-queries expose only events whose handlers have already executed.
-
-Status windows remain half-open. They are active at application and inactive at expiry. This is independent of final accrual and its
-later payout. Forced removal discards pending damage; natural expiry retains its sampled remainder. Explicit Combat
-Start gates payouts, and expiry remainders sampled before Combat Start are discarded. Precombat whole-second wakes
-advance without creating catch-up damage. Environment samples ending at Combat Start are excluded.
-
-The loop checks death after a complete packet. Other condition packets at the lethal timestamp may finish, while
-subsequent independent attacks are rejected. Application records continue to drive health milestones and Necromancer
-scheduler feedback. Direct damage events marked `damageKind: condition` retain direct packet semantics.
-
-## Reference and deliberate differences
-
-Duration rounding follows
-[gw2combat's effect duration calculation](https://github.com/Mk-Chan/gw2combat/blob/master/src/utils/effect_utils.hpp).
-Pulse/expiry sampling follows
-[its condition resolution](https://github.com/Mk-Chan/gw2combat/blob/master/src/system/effects.cpp). This project anchors condition ticks to first damage. The reference defaults to a zero condition-tick offset.
-
-This project's contracts are one rounding per owner/condition group, Sample/Settle/Ordinary ordering, and half-open
-status queries. Reference code is background, not a claim of complete simulator parity or an override of these
-contracts.
+Use these owners and tests for exact rounding and boundary behavior. [Clock navigation](SIMULATION-EVENT-CLOCK.md) and
+[event ordering](SKILL-EVENT-ORDERING.md) locate the surrounding runtime.

@@ -1,182 +1,74 @@
-# Profession-neutral simulator architecture
+# Simulator architecture
 
-This overview describes composition, ownership, and runtime invariants. Use [MODULES.md](./MODULES.md) to locate an
-implementation owner, the [platform ownership guide](../../js/games/gw2/platform/README.md) for service boundaries, and
-[PROGRAMMATIC-SIMULATION.md](./PROGRAMMATIC-SIMULATION.md) for input and output contracts.
+This overview follows the main execution path. Use the [module map](MODULES.md) for locations and the
+[glossary](../GLOSSARY.md) for terminology. Read the linked implementation and tests for current behavior.
 
 ## Layers
 
-```text
-js/
-  kernel/          game-neutral clock, queues, randomness, and observation
-  ui/              game-neutral view models and DOM/rotation helpers
-  browser/         game-neutral page entry, game boundary, and shell
-  games/gw2/
-    platform/      shared GW2 engine, combat, builds, equipment, and simulation
-    professions/   profession-owned builds, skills, state, mechanics, and presentation
-    app/           GW2 browser composition, persistence, and presentation
-    integrations/  logs, keybinds, chat codes, and patch-preview adapters
-```
+| Layer          | Role                                                              | Entry point                                                      |
+| -------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Kernel         | Game-neutral clocks, queues, randomness, and observation          | [js/kernel/](../../js/kernel/)                                   |
+| Platform       | Shared GW2 execution, combat, equipment, and results              | [platform/](../../js/games/gw2/platform/)                        |
+| Professions    | Core and elite content, mechanics, and presentation contributions | [profession registry](../../js/games/gw2/profession-registry.ts) |
+| Build context  | Headless build-to-attributes and configuration binding            | [build-context/](../../js/games/gw2/build-context/)              |
+| Application    | GW2 editing, persistence, analysis, and browser composition       | [profession-app.ts](../../js/games/gw2/app/profession-app.ts)    |
+| Browser and UI | Game loading, workers, shared shell, and neutral views            | [browser/](../../js/browser/), [ui/](../../js/ui/)               |
+| Integrations   | Logs, chat codes, keybindings, assets, and patch previews         | [integrations/](../../js/games/gw2/integrations/)                |
 
-ESLint and architecture tests enforce these dependencies:
+Import restrictions live in [eslint.config.js](../../eslint.config.js). [Architecture tests](../../tests/architecture/)
+check selected ownership and dependency properties. The tables here describe responsibilities rather than duplicate
+those restrictions.
 
-- `kernel` imports no GW2, UI, application, or profession modules; `ui` consumes game-neutral contracts only.
-- The GW2 platform may import the kernel, but no concrete profession or application modules.
-- Profession runtimes depend on the kernel and platform. Profession `app/` adapters may also depend on the GW2 app.
-- `browser` and the GW2 `app` are the composition roots for neutral and game-specific browser concerns.
+## A simulation run
 
-The shared shell receives registered profession application adapters. Each adapter supplies build persistence,
-runtime/configuration binding, and presentation contributions. Shared views consume those contributions rather than
-branching on profession identity.
+1. A profession's `build/context.ts` binds its build codec and attribute calculator to the shared
+   [build context](../../js/games/gw2/build-context/). Direct callers can instead supply explicit
+   [run configuration](../../js/games/gw2/platform/simulation/config.ts).
+2. [simulateGw2](../../js/games/gw2/platform/simulation/simulate.ts) selects the runtime. The
+   [native profession compiler](../../js/games/gw2/platform/profession-definition/profession.ts) composes Core and the
+   selected elite.
+3. [runtime.ts](../../js/games/gw2/platform/simulation/runtime.ts) assembles services. The
+   [coordinator](../../js/games/gw2/platform/simulation/coordinator.ts) advances one clock and queue across commands,
+   tasks, and combat effects.
+4. [Cast execution](../../js/games/gw2/platform/execution/cast-execution.ts) handles activation.
+   [Effect delivery](../../js/games/gw2/platform/resolver/effect-delivery.ts) admits and resolves packets through combat
+   services and profession contributions.
+5. [Result projection](../../js/games/gw2/platform/results/project-runtime.ts) reads the settled run. The application
+   builds result views and cursor previews from those observations.
 
-## Native profession modules
+[Programmatic simulation](PROGRAMMATIC-SIMULATION.md) provides runnable examples.
+[Event clock](SIMULATION-EVENT-CLOCK.md) and [event ordering](SKILL-EVENT-ORDERING.md) locate scheduling code;
+[state snapshots](ROTATION_STATE_SNAPSHOT.md) follows the editor's observations.
 
-`defineNativeModule()` declares a Core or elite module. Each module contains its data, state factory, public state projection, lifecycle hooks, declarative modifiers, attributes, trait definitions, and presentation.
-`defineNativeProfession()` composes a Core-first module tuple and exposes `runtimeFor(config)`. Runtime composition
-selects Core plus the active elite; unknown elites are rejected. Each run creates fresh state:
-`{ core, specialization: { kind, state } }`.
+## Profession composition
 
-### Catalog and ownership
+Each profession's `catalog.ts` collects Core and elite modules; `profession.ts` binds them to build and presentation
+services. Each module's `module.ts` registers its data, state projector, rules, and hooks.
 
-Owner-local skill files contain complete declarations, including presentation, selection metadata, costs, recharge, and
-intrinsic behavior. `data/ids.ts` maintains identities; catalog assembly builds indexes without joining external skill
-metadata. Trait definitions own their profiles, rules, triggers, and build contributions. Shared mechanic behavior stays
-with its Core or elite owner.
+Skills and traits keep their declarations with their owners. Named mechanics handle state that spans activations. Shared
+platform services receive these contributions through
+[profession contracts](../../js/games/gw2/platform/profession-definition/) and
+[presentation contracts](../../js/games/gw2/platform/profession-presentation/).
 
-`createNativeModuleData()` gathers module data, and `assembleNativeApplicationCatalog()` builds the full editor catalog.
-Runtime selection reuses canonical records in fresh collections for Core and the selected elite. Assembly validates
-ownership, references, weapon hands, chains, and flips; selected catalogs cannot resolve references into inactive
-modules. Skill specialization follows the owning module. Shared Weaponmaster Training weapons belong to Core.
+The [profession guides](../professions/) link to those owners. They do not maintain a second inventory of tuning values
+or trait execution order.
 
-Build eligibility is a shared baseline: excluded skills are unavailable, and elite skills require their owning
-specialization. Profession availability can add restrictions but cannot bypass this gate. Equipment, resources,
-cooldowns, and live mechanic state impose separate checks.
+## Builds, previews, and encounters
 
-### Rules and hooks
+The workspace, workers, and headless tools use build contexts to calculate inputs. The
+[attribute preview](../../js/games/gw2/app/build/attribute-effects.ts) has separate hypothetical controls. Simulation
+scope, including full player health, is recorded in [AGENTS.md](../../AGENTS.md#simulation-scope).
 
-Declare modifiers in `modifierRules`, with optional damage-bucket policies. Catalog admission validates
-and detaches declarations; selected runtime composition compiles one immutable `calculations` object shared by the
-normalized selection and runtime trigger modes. Its `modify*` methods are query operations, not authoring hooks.
-`RuntimeHooks` defines the callbacks modules can declare, independently of compiled output. Equipment and profession
-additions share one damage calculation, and each damage-bucket policy has at most one owner across selected modules.
-
-`defineTrait()` expands definitions once during module construction. Selection gates apply to ordinary rules and
-triggers; already-created effects may retain explicit lifetime ownership. Module and trait hooks use the same ordered
-composer. Unknown fields and duplicate named handlers fail validation.
-
-Author callbacks receive query, mutation, or lifecycle capabilities appropriate to their role. They do not receive the
-command cursor, heap, or report collections. See [profession file roles](./MODULES.md#profession-file-roles) for
-authoring layout and the [platform ownership guide](../../js/games/gw2/platform/README.md) for calculation and
-capability boundaries.
-
-## Runtime and simulation
-
-`simulateGw2()` validates input and invokes one runtime. Its main owners are:
-
-- `simulation/runtime.ts`: per-run service assembly.
-- `simulation/coordinator.ts`: the single heap, clock, causal scope, and advancement loop.
-- `simulation/task-scheduler.ts`: named task admission, detached cast work, and resource-depletion wake generations.
-- `execution/cast-execution.ts`: readiness, reservations, acceptance, commitment, and completion.
-- `execution/skill-flip-controller.ts`: live flip windows and expiry requests.
-- `combat/resources/`: resource/endurance policy application and settlement through injected clock/context capabilities.
-- `resolver/effect-delivery.ts`: packet admission, preparation, target gates, and reaction settlement.
-- `results/damage-report.ts`: optional damage aggregation with separate writing and detached projection capabilities.
-- `results/project-runtime.ts`: projection of the settled run without advancing it.
-
-Commands, internal tasks, and combat packets share one clock and queue. Internal work carries detached payloads and
-lifetime ownership without public packet identity. Cast commitment and lifetime generations determine which work
-survives cancellation; committed projectiles can outlive their cast. Pending work enters gameplay history only when
-executed.
-
-Execution owns cooldowns, ammo, and follow-up windows separately from profession state. Flip readiness and visibility
-close at their deadline. Generic flip cleanup runs in the Ordinary phase after queued gameplay and its same-time
-consequences, before rotation commands at that deadline; work enqueued by those commands runs afterward. Identity checks
-protect rearmed windows, and natural-expiry handlers can claim their matching occurrence before generic cleanup.
-
-Score and detailed output modes execute the same mechanics and use the same gameplay history and seeded randomness.
-Detailed mode also retains reports and diagnostics. Rotation, tail, and absolute observation policies bound
-delayed work without extending rotation duration recursively. Combat reports stop at `combatEndTime`; after target
-death, commands may continue while hostile effects and hit-dependent grants are suppressed.
-
-Each service exposes a restricted object to its consumers. Bindings reuse these objects and read current state and replacement services through them. Cooldown and combat interfaces use inheritance instead of repeating method-name allowlists in types. Runtime
-objects still select exposed methods explicitly. Isolated occurrence completion is a simulation-owned observation
-policy; it does not advance the clock or rely on report aggregates.
-
-`planningState` is a detached observation, not a checkpoint. It includes execution state and composed profession facts
-under stable state IDs. Projectors are pure, duplicate IDs are rejected, and the observer deep-clones the public record.
-The shared flip projection lives at `planningState.profession[STATE.AVAILABLE_FLIPS]`. Availability observations
-describe profession gates, separately from scheduler cooldown and lane checks.
-
-Player health is fixed at 100%; target health remains live. Attribute-preview health is a separate input. Application
-builds assume permanent console Quickness and Alacrity; player cast durations are authored with Quickness already
-included, while independent summons retain their own timing and received-boon policies.
-
-See [event clock](./SIMULATION-EVENT-CLOCK.md), [same-time ordering](./SKILL-EVENT-ORDERING.md),
-[observation boundaries](./PROGRAMMATIC-SIMULATION.md#observation-boundaries), and
-[state snapshots](./ROTATION_STATE_SNAPSHOT.md) for precise contracts.
-
-## Events and resolution
-
-Behavior keys on stable skill and actor identities; display labels do not determine ownership or rules. Each activation
-has a stable identity shared by its packets. Weapon-strength profiles are captured while the originating weapon or form
-is known.
-
-The resolver handles standard combat events; professions register namespaced handlers and stage-specific reactions. Only
-`damage.resolving` returns packet patches. Other stages notify handlers of resolved facts, and effects are submitted
-through the emission service. Critical effects reuse the hit's actual outcome rather than predicting it during
-scheduling.
-
-Seeded streams drive critical outcomes and proc chances. Deterministic damage may use an expected critical multiplier;
-stochastic damage uses the same sampled critical outcome for damage, proc eligibility, and reporting. See
-[randomness](./PROGRAMMATIC-SIMULATION.md#randomness) and [condition settlement](./SHARED-CONDITION-TICKS.md).
-
-## Skills and rotations
-
-Catalogs validate declarations and references; procedural behavior belongs in module hooks. Rotation normalization
-resolves input names to stable IDs, and saved presets use canonical commands. The driver executes casts, waits, combat
-start, and cooldown resets through shared execution services.
-
-Cast acceptance reserves lane, resource, and recharge decisions. Costs are paid at their declared boundary, before
-completion rewards. Commitment controls side effects and cancellation; named tasks and resolved reactions operate on the
-same live state as subsequent commands. Temporary availability blocks can retry after intervening work; permanent blocks
-are invalid.
-
-Use the [rotation command reference](./PROGRAMMATIC-SIMULATION.md#rotation-commands) and
-[skill ordering guide](./SKILL-EVENT-ORDERING.md) for command shapes, timing, and lifecycle details.
-
-## Builds and attributes
-
-Professions own versioned build schemas, defaults, profession-specific normalization, and resource validation. The
-shared build codec handles common equipment, selection, target, and rotation fields. Browser persistence stays in
-application adapters; execution consumes normalized configuration.
-
-Shared attribute calculation combines equipment and base stats with profession contributions. A profession's headless
-`build/context.ts` binding provides canonical per-weapon-set attributes and simulation configuration from the build's
-starting state. Create a new context when inputs change. The workspace, optimizer workers, and benchmark jobs use this
-same calculation path; displayed weapon sets and previous results do not participate.
-
-Build context receives pure loadout resolvers and assumption definitions rather than reading UI state. Attribute
-provenance prevents static rules from applying twice; dynamic modifiers read live combat facts.
-
-## Boss encounter execution
-
-Optional encounter configuration adds target health pools, phase transitions, and damage windows to the existing
-runtime. Splits allow preparation while blocking boss damage; intermissions also hold rotation commands. Neither resets
-player state or starts another clock. Group damage never contributes to player damage totals.
-
-The boss-scenario application owns persistence and plan compilation. Ordinary observation boundaries still limit the
-run. See [boss encounters](./PROGRAMMATIC-SIMULATION.md#boss-encounters) for configuration and results.
+[Patch selection](../../js/games/gw2/integrations/patches/selection.ts) connects live or preview content to calculation.
+[Boss scenario compilation](../../js/games/gw2/app/boss-scenarios/simulation.ts) adds encounter inputs;
+[encounter state](../../js/games/gw2/platform/combat/state/encounter.ts) executes them on the same runtime.
 
 ## Adding another profession
 
-The roster lives in `js/games/gw2/profession-registry.ts`; [profession guides](../professions/) describe existing
-families.
+Start with the [registry](../../js/games/gw2/profession-registry.ts), an existing family's `catalog.ts`,
+`profession.ts`, and `build/context.ts`, and the
+[native module types](../../js/games/gw2/platform/profession-definition/module-types.ts). Browser registration also
+needs an `app/app-definition.ts` adapter.
 
-1. Create the build codec, Core and elite modules, and Core-first native profession composition. Assemble the
-   application catalog from those modules rather than hand-building runtime fragments.
-2. Declare stable identities, weapon hands, required hooks, and presentation contributions with their owners.
-3. Add the page and lazy application/runtime loaders to the profession registry.
-4. Add focused Node coverage for the profession's contracts and run `npm run check`.
-
-New professions should not require branches in the engine or shared UI. Promote behavior into the platform only when
-multiple professions share it.
+Use the owning profession's focused tests and [repository validation policy](../../AGENTS.md#testing-policy) when
+changing composition. Keep this overview focused on the execution path and update navigation links when owners move.

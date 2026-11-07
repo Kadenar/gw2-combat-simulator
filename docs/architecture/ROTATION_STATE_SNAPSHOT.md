@@ -1,160 +1,41 @@
-# Rotation active-state snapshot
+# Rotation state snapshot navigation
 
-The **Active state** bar above the rotation timeline shows resources, modes, buffs, and other combat-dependent values at
-the inspected rotation position. It defaults to rotation end. Insertion index `0` means before the first command; index
-`n` means after the first `n` commands; the rotation length selects the final state.
+The Active state bar displays combat state at the rotation cursor. Its inputs come from a simulation observation and
+result queries. This guide follows those inputs to their owners.
 
-The shared profession page template includes the `rotation-active-buffs` host. The application model lives in
-`js/games/gw2/app/rotation/state-snapshot/model.ts`; `view.ts` renders its prepared items.
+## From cursor to display
 
-## State and observation time
+1. [rotation/context.ts](../../js/games/gw2/app/rotation/context.ts) connects the editor to its accepted analysis
+   inputs.
+2. [CursorPreview](../../js/games/gw2/app/rotation/cursor-preview.ts) reuses or simulates the selected prefix. It owns
+   revision checks and candidate queries.
+3. [results/planning-state.ts](../../js/games/gw2/platform/results/planning-state.ts) projects execution state and
+   profession observations.
+4. [state-snapshot/model.ts](../../js/games/gw2/app/rotation/state-snapshot/model.ts) combines the observation with
+   shared result-derived items and profession presentation.
+5. [state-snapshot/view.ts](../../js/games/gw2/app/rotation/state-snapshot/view.ts) renders the prepared items.
 
-`palettePlanningState(app)` supplies a detached `planningState` at the selected position. Insertion points use a cached
-prefix simulation through `CursorPreview.at()`. Rotation end reuses the current result unless an observation tail
-requires a separate rotation-end observation. Prefix and append previews use the same runtime without a tail.
+Planning state is an observation, not a checkpoint for resuming execution. The current shape and units live in
+[results/types.ts](../../js/games/gw2/platform/results/types.ts).
 
-Planning queries return `null` until the baseline matches the current build revision. Deferred rotation rendering keeps
-the previous display during an edit. An explicit render clears the state bar when no current planning observation is
-available. A simulation failure leaves timeline editing and cursor movement available, so users can repair the rotation.
-Editor candidates use the accepted baseline inputs without replacing the palette's cached prefix.
+## Finding a profession value
 
-After target death, authored commands continue for editor planning while hostile effects and hit-dependent grants are
-suppressed. Combat reports stop at `combatEndTime`; planning state describes the observation boundary. It is not a
-resumable checkpoint. Snapshot hooks consume the provided state and time; they must not run simulations themselves.
+A Core or elite `state.ts` owns its public projector, registered through `module.ts`. Its `presentation.ts` builds
+display items from that observation. For a small example, read Berserker's
+[state projector](../../js/games/gw2/professions/warrior/specializations/berserker/state.ts) and
+[presentation callback](../../js/games/gw2/professions/warrior/specializations/berserker/presentation.ts).
 
-The profession's `rotationStateSnapshot(context)` receives:
+Public identities live in each family's `state-ids.ts` and the
+[aggregate registry](../../js/games/gw2/professions/state-ids.ts). Shared identities live in
+[platform/results/state-ids.ts](../../js/games/gw2/platform/results/state-ids.ts).
 
-| Field             | Meaning                                                           |
-| ----------------- | ----------------------------------------------------------------- |
-| `specialization`  | Active elite or `Core`                                            |
-| `professionState` | Public projected profession state at the inspected point          |
-| `planningState`   | Generic planning observation, including resources and cooldowns   |
-| `atSeconds`       | Inspection time in simulation seconds                             |
-| `build`           | Current application build                                         |
-| `result`          | Full result for event-derived state; filter it by inspection time |
-| `balanceContext`  | Selected Live/Preview balance declarations                        |
+[Presentation types](../../js/games/gw2/platform/profession-presentation/types.ts) define callback inputs and display
+items. [Presentation composition](../../js/games/gw2/platform/profession-presentation/compose.ts) combines
+contributions; [state composition](../../js/games/gw2/platform/profession-definition/state.ts) combines public
+projections.
 
-It returns items with this contract:
+## Focused tests
 
-```ts
-interface RotationStateSnapshotItem {
-  readonly id: string;
-  readonly label: string;
-  readonly value: string;
-  readonly active?: boolean;
-  readonly title?: string;
-}
-```
-
-The renderer displays values as supplied. Use short values such as `4.2s`, `3/5`, or `62%` and put explanations in
-`title`. The renderer escapes labels, values, and tooltips. Return `[]` for an irrelevant value; items with
-`active: false` are also hidden. To display a meaningful zero, return its formatted value without marking the item
-inactive.
-
-## Adding a state value
-
-Choose the existing simulation owner before adding presentation:
-
-| Source                                         | Change                                             |
-| ---------------------------------------------- | -------------------------------------------------- |
-| Already in projected profession state          | Add an item in the owning `presentation.ts`        |
-| Runtime state omitted from public projection   | Extend that module's projection, then add the item |
-| Generic planning state or shared result events | Extend `state-snapshot/model.ts`                   |
-| Not modeled by the simulation                  | Implement and test the mechanic first              |
-
-Do not create UI-only timers or duplicate simulation state. Core UI owns shared profession mechanics; elite UI owns
-elite-specific mechanics; the shared model owns profession-neutral state. Core, active elite, and family list callbacks
-compose automatically. Snapshot item IDs must be unique across profession contributions. Avoid shared IDs such as
-`critical-chance` and `relic:<name>`.
-
-### Profession item example
-
-Berserker's `specializations/berserker/presentation.ts` reads its existing public state:
-
-```ts
-import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-
-rotationStateSnapshot: (context: WarriorUiContext) => {
-  const state = warriorUiState(context);
-  const remaining = (state[STATE.BERSERK_UNTIL] || 0) - warriorSnapshotAt(context);
-  if (remaining <= 0) return [];
-  return [
-    {
-      id: 'berserk',
-      label: 'Berserk',
-      value: formatSecondsRemaining(remaining),
-      title: 'Time remaining in Berserk mode'
-    }
-  ];
-};
-```
-
-Use `context.atSeconds`, or a profession helper that reads it, for every timer and window. Timers in profession state
-normally use seconds; derived duration fields and report records such as `procSteps` may use milliseconds. Preserve the
-owning field's units and expiry policy. For exclusive expiry windows:
-
-```ts
-const activeStacks = expirations.filter((expiresAt) => expiresAt > context.atSeconds).length;
-const currentWindow = windows.find(
-  (window) => window.startedAt <= context.atSeconds && context.atSeconds < window.expiresAt
-);
-```
-
-### Exposing runtime state
-
-Each Core or elite module owns an explicit public projector. Runtime fields keep their local property names; public
-observations use stable IDs from `PROFESSION_STATE_IDS`, conventionally imported as `STATE`. For example, Berserker's
-owner publishes its mode deadline:
-
-```ts
-/** Select visible mode state; the shared planning observer detaches the public record. */
-export function projectBerserkerPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
-  const state = berserkerState.from(input.profession);
-  return { [STATE.BERSERK_UNTIL]: state.berserkUntil };
-}
-```
-
-`Gw2PlanningStateInput` comes from `platform/results/types.ts`; `SpecializationRuntimeState` comes from
-`platform/profession-definition/state.ts`.
-
-Register the projector in `module.ts`, with all imports at the top:
-
-```ts
-state: { create: berserkerState.create, project: projectBerserkerPlanningState }
-```
-
-Declare profession-specific identities in `professions/<profession>/state-ids.ts`; the aggregate registry is
-`professions/state-ids.ts`. Shared identities such as endurance and available flips live in
-`platform/results/state-ids.ts`. IDs are namespaced strings such as `gw2.berserker.berserk-until`; they are independent
-of runtime property names, display labels, build settings, skill IDs, and snapshot item IDs. Use the exported constants
-in consumers and fixtures. Do not add old-name aliases or infer IDs from runtime keys.
-
-Only Core and the active elite contribute observations. Each projector receives explicit runtime state, reads its actual
-owner, and selects visible facts without mutation. Composition rejects duplicate IDs instead of letting module order
-overwrite a value. A field owned by Core must be read from Core even if an elite is responsible for exposing it. Derive
-public types from `ReturnType<typeof projector>` so TypeScript catches renamed IDs and omitted fields in presentation
-code.
-
-The shared planning observer deep-clones the composed public record once. Module projectors may borrow read-only values;
-expiry, charge, and cap transformations must construct new values instead of mutating those borrowed objects. Standalone
-observation consumers must use the same result boundary rather than treat a raw projector return as a detached snapshot.
-Never traverse private cast histories, task queues, or pet internals to build a public observation.
-
-### Shared and event-derived items
-
-Add generic values once in `state-snapshot/model.ts`. It already owns critical chance and relic buffs:
-
-- Critical chance comes from the next eligible resolved strike at or after the cursor, falling back to the last earlier
-  strike. It is that strike's value, not a recalculated attribute snapshot.
-- Relic items inspect `result.procSteps`, ignore activations after the cursor, and use expiry timestamps and the latest
-  applicable stack count.
-
-Filter full-result events by inspection time so a later activation cannot appear at an earlier cursor position.
-
-## Validation
-
-Use focused Node tests for snapshot callbacks: inactive/active state, exact expiry, stack caps, selection gates, and
-specialization composition as relevant. For new projected fields, verify they appear in `planningState.profession` and
-remain detached from runtime state. Use browser tests only for changed rendering or cursor integration; each profession
-need not retest shared insertion infrastructure. The shared renderer displays items returned by the hook without
-additional HTML or timeline code.
+[Cursor preview tests](../../tests/games/gw2/app/cursor-preview.test.js) cover prefix reuse and revision handling.
+[State snapshot tests](../../tests/games/gw2/app/state-snapshot.test.js) cover the shared display model.
+Profession-specific projection tests live under the [owning family](../../tests/games/gw2/professions/).

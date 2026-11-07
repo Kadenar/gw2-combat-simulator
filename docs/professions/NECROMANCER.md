@@ -1,84 +1,42 @@
-# Necromancer
+# Necromancer code navigation
 
-This profession uses the shared engine. Its browser entry point is `necromancer.html`. `profession.ts` composes the Core-first tuple from
-`catalog.ts`; a runtime contains Core plus at most one of Reaper, Scourge, Harbinger, or Ritualist. Only the selected
-elite's skills, traits, state, and activation behavior are present in that runtime, except elite weapon skills shared
-through Core for Weaponmaster Training.
+Life force, shroud transitions, minions, and weapon state. This guide locates the family owners. Skill declarations,
+trait definitions, and their callers describe current behavior.
 
-## Data
+## Entry points
 
-- Maintained skill and trait constants live in `data/ids.ts`.
-- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
-- `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
-  complete declarations contributed by each module.
+- [profession.ts](../../js/games/gw2/professions/necromancer/profession.ts) composes the family;
+  [catalog.ts](../../js/games/gw2/professions/necromancer/catalog.ts) collects its modules.
+- [build/](../../js/games/gw2/professions/necromancer/build/) owns defaults, validation, attributes, and the headless
+  context.
+- [core/module.ts](../../js/games/gw2/professions/necromancer/core/module.ts) registers Core contributions. Each elite
+  has its own `module.ts`.
+- [core/state.ts](../../js/games/gw2/professions/necromancer/core/state.ts) and each elite's `state.ts` own runtime
+  state and public projections.
+- [core/skills/](../../js/games/gw2/professions/necromancer/core/skills/) and
+  [core/traits/](../../js/games/gw2/professions/necromancer/core/traits/) contain Core declarations. Elite declarations
+  live under their specialization.
+- [app/](../../js/games/gw2/professions/necromancer/app/) binds the browser adapter and tooltips; Core and elite
+  `presentation.ts` files contribute views.
 
-## Implemented systems
+## Mechanic owners
 
-- Core implements Death Shroud (five-skill bar, minimum entry resource, continuous life-force drain, manual/forced exit,
-  entry-skill recharge starting on exit); all terrestrial weapon families with swap validation, ammo, recharge, flips,
-  and autoattack chains; persistent minions, command flips, minion attacks/consumption; signets, life siphons,
-  corruption self-conditions, and duration-preserving condition transfers; Lich Form; Spear Soul Shards; Weaponmaster
-  Training presentation.
-- Reaper implements Reaper's Shroud (full bar, autoattack chain, flips, channels, control, chill), wells, shouts, and Reaper
-  trait modifiers.
-- Scourge implements F1-F5, three-charge Manifest Sand Shade, fixed base-health life-force costs, Desert/Sandstorm Shroud,
-  and barrier-reactive traits. Scourge is the non-transform exception.
-- Harbinger implements Harbinger Shroud (zero-resource entry, Blight generation to a 25-stack cap, empowered-consumption
-  thresholds), elixirs, and Dark Barrage.
-- Ritualist implements Ritualist's Shroud, spirits (Anguish/Wanderlust/Preservation), spirit attacks, Essence Blast,
-  innervates, and its supporting traits.
-- Static and resolver-time strike/critical/condition/duration/recharge/resource/ shroud/chill/fear/minion/spirit/Blight
-  modifiers, with additive vs. multiplicative grouping. Critical procs use the shared seeded critical-hit facts in both
-  simulation modes.
+| Area                         | Start here                                                                                                          |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Core shroud lifecycle        | [core/mechanics/shroud-lifecycle.ts](../../js/games/gw2/professions/necromancer/core/mechanics/shroud-lifecycle.ts) |
+| Resources and capacity       | [core/mechanics/resources.ts](../../js/games/gw2/professions/necromancer/core/mechanics/resources.ts)               |
+| Reaper shroud                | [specializations/reaper/](../../js/games/gw2/professions/necromancer/specializations/reaper/)                       |
+| Scourge shades               | [specializations/scourge/](../../js/games/gw2/professions/necromancer/specializations/scourge/)                     |
+| Harbinger Blight and elixirs | [specializations/harbinger/](../../js/games/gw2/professions/necromancer/specializations/harbinger/)                 |
+| Ritualist spirits            | [specializations/ritualist/](../../js/games/gw2/professions/necromancer/specializations/ritualist/)                 |
 
-Core, Reaper, Harbinger, and Ritualist shroud skills stay visible while the matching shroud is inactive but are disabled
-until entry; weapon/slot skills are disabled while a transformed bar is active.
+Read the relevant `hooks.ts`, trait registrations, and callers when changing reaction order or lifetime behavior. The
+[shared module map](../architecture/MODULES.md#profession-file-roles) explains the file roles without duplicating their
+rules.
 
-## Trait ownership
+## Presets and validation
 
-Core trait definitions live in `core/traits/<line>/index.ts`; each elite registers its definitions under `traits/`.
-Definitions own profiles, modifiers, triggers, recharge rules, and attribute contributions. Helpers stay beside their
-owners: Death Magic's `carapace.ts`, Soul Reaping's `procs.ts` and `resource-queries.ts`, and Curses' `availability.ts`.
-Resource queries remain independent of active handlers to avoid importing their callers.
-
-Core availability checks trait replacement, minion ownership, weapon flips, Lich, and shroud access in that order.
-Successful Lich and shroud-entry checks short-circuit the remaining form restrictions; life-force denials preserve the
-resource controller's retry deadline.
-
-`necromancerProfession.attributeContributions` combines module and selected trait declarations for build and live
-queries. Core skill passives come from `core/skills/attribute-passives.ts`; `core/initial-state.ts` uses prepared
-attributes and the active balance context to construct resources.
-
-Explicit calls into trait helpers retain the boundaries that matter for state and ordering:
-
-- Core shroud preparation samples Carapace before entry grants and condition removal, then arms Plague Sending.
-  Post-entry effects run after specialization callbacks and resource refresh; automatic exits also refresh Soul Barbs.
-- Resolved strikes preserve siphon, target-health, Dhuumfire, critical-proc, and recipient-pool ordering. Minion
-  multipliers and successful life-force grants call their trait owners before shared resource accounting.
-- Attribute queries start from equipment seeds and apply native contributions through the shared conversion rules.
-  Carapace grants and queries use Flesh of the Master's active stack cap; Deadly Strength owns the conversion from those
-  stacks. Soul Battery, Spiteful Fortitude, and Vital Persistence own the maximum-health-derived resource contributions.
-- Scourge mechanics own shades; its shroud skills own their effects and delayed barriers. Barrier traits settle before
-  their boon samples the live party audience, Core owns life-force spending, and shroud invocation fires before shade
-  commitment.
-- Harbinger mechanics own Blight accrual, expiry, spending, and publication. Elixir and shroud actions retain the
-  selected empowerment and post-spend Blight snapshots from launch to impact. Cascading Corruption observes consumed
-  stacks before publication; Doom Approaches owns Dark Barrage's replacement profile and effect transformation.
-- Ritualist keeps spirit generations, autonomous schedules, and weapon-spell pools in mechanics. Trait helpers own
-  summon rewards, Soul Twisting consumption, Lingering Spirits lifetime policy, allied charges, and spirit multipliers.
-
-Applied siphons, scheduled passive pulses, and committed delayed work keep their existing lifetime rules. Trait helpers
-resolve active balance context at execution; removing one patchable effect does not recreate it from base values or
-remove independent rewards.
-
-## Modeling boundaries
-
-The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Ally
-healing/revival/barrier, dynamic enemy-boon tracking, projectile interaction, pathing, incoming attacks, enemy
-positioning, secondary targets, and competitive PvP and WvW balance splits are outside the model; skills whose only effects are in
-those categories are excluded rather than shown as zero-damage.
-
-Offensive boon-removal consequences use configured target-boon assumptions (for example, Dark Pact's life-force gain);
-the simulator does not maintain a changing enemy boon inventory.
-
-Life-force capacity is 69% of maximum health, scales with Vitality, and increases by 20% with Soul Battery. Death Shroud drains 3% per second; Reaper's Shroud drains 4% per second. The resolver sends target-health changes to the scheduler. For example, Gravedigger recharges when its hit lands below 50% target health.
+The [build manifest](../../data/gw2/builds/necromancer/manifest.json) identifies saved presets and rotations.
+[Profession tests](../../tests/games/gw2/professions/necromancer/) cover behavior and composition. Use
+[AGENTS.md](../../AGENTS.md) for simulation scope and validation policy; shared run settings are located by the
+[programmatic guide](../architecture/PROGRAMMATIC-SIMULATION.md#randomness).

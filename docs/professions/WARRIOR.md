@@ -1,97 +1,41 @@
-# Warrior
+# Warrior code navigation
 
-This profession uses the shared engine. Its browser entry point is `warrior.html`. `profession.ts` is the stable export and composes the
-Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of Berserker, Spellbreaker, Bladesworn, or
-Paragon. Core owns adrenaline, bursts, weapon state, shared traits, and profession actions; each specialization owns its
-state, skill handlers, modifier rules, and UI under `specializations/<name>/`.
+Adrenaline, bursts, weapon state, and shared trait reactions. This guide locates the family owners. Skill declarations,
+trait definitions, and their callers describe current behavior.
 
-## Ordering rules
+## Entry points
 
-- Cast-start traits fire before adrenaline is spent. Burst completion rewards observe the accepted spend before
-  weapon-swap rewards.
-- Every burst packet keeps the spend and tier captured at acceptance, even if the adrenaline pool changes during the
-  cast.
-- A Paragon burst completion consumes active command echoes before Paragon's completion trigger fires.
+- [profession.ts](../../js/games/gw2/professions/warrior/profession.ts) composes the family;
+  [catalog.ts](../../js/games/gw2/professions/warrior/catalog.ts) collects its modules.
+- [build/](../../js/games/gw2/professions/warrior/build/) owns defaults, validation, attributes, and the headless
+  context.
+- [core/module.ts](../../js/games/gw2/professions/warrior/core/module.ts) registers Core contributions. Each elite has
+  its own `module.ts`.
+- [core/state.ts](../../js/games/gw2/professions/warrior/core/state.ts) and each elite's `state.ts` own runtime state
+  and public projections.
+- [core/skills/](../../js/games/gw2/professions/warrior/core/skills/) and
+  [core/traits/](../../js/games/gw2/professions/warrior/core/traits/) contain Core declarations. Elite declarations live
+  under their specialization.
+- [app/](../../js/games/gw2/professions/warrior/app/) binds the browser adapter and tooltips; Core and elite
+  `presentation.ts` files contribute views.
 
-## Data
+## Mechanic owners
 
-- Maintained skill and trait constants live in `data/ids.ts`.
-- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
-- `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
-  complete declarations contributed by each module.
+| Area                               | Start here                                                                                            |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Core adrenaline                    | [core/mechanics/adrenaline.ts](../../js/games/gw2/professions/warrior/core/mechanics/adrenaline.ts)   |
+| Berserker mode and Rage skills     | [specializations/berserker/](../../js/games/gw2/professions/warrior/specializations/berserker/)       |
+| Spellbreaker counter and tether    | [specializations/spellbreaker/](../../js/games/gw2/professions/warrior/specializations/spellbreaker/) |
+| Bladesworn Flow and Dragon Trigger | [specializations/bladesworn/](../../js/games/gw2/professions/warrior/specializations/bladesworn/)     |
+| Paragon commands and Motivation    | [specializations/paragon/](../../js/games/gw2/professions/warrior/specializations/paragon/)           |
 
-## Trait ownership
+Read the relevant `hooks.ts`, trait registrations, and callers when changing reaction order or lifetime behavior. The
+[shared module map](../architecture/MODULES.md#profession-file-roles) explains the file roles without duplicating their
+rules.
 
-Core definitions live in `core/traits/<line>/index.ts`; each elite registers its traits in `traits/index.ts`.
-Definitions own profiles, modifiers, triggers, recharge rules, build contributions, and trait policies. Supporting
-helpers live under `traits/`; Core shared modifier queries live in `traits/modifier-queries.ts`.
+## Presets and validation
 
-Build and live queries share `warriorProfession.attributeContributions`, combining skill-owned signet attributes with
-selected trait declarations from equipment seeds and the active balance context. Versatile Power's recharge order keeps
-it before weapon rules and the weapon-swap cap. Burst Mastery owns its separate Bladesworn conversion profile.
-
-Retained imperative boundaries preserve shared observations and granted lifetimes:
-
-- Core claims the first surviving burst hit once and computes one critical opportunity. It calls trait owners in the
-  original order before ordinary strike adrenaline. Soldier's Focus retains one shared claim; Martial Cadence owns its
-  swap reset. Attribute declarations distinguish common, conversion-eligible, and live inputs for Might, signets, and
-  Berserk. Spellbreaker's Insight owns its accepted-stack attributes through its definition's `grantedAttributes`.
-- Berserker mechanics publish mode extension after owner calculations; completion rewards and aura detonation keep their
-  causal timing. King of Fires owns aura acquisition, the live deadline, and queued detonation.
-- Bladesworn mechanics retain Flow ticks, charge capture, bar transitions, and ammunition spending. Trait owners retain
-  the shared adept cooldown, Positive Flow lifetime, ammunition rewards, Glory extension, action substitution, and
-  selected charge policy. Core owners receive converted Dragon Slash spend for completion rewards.
-- Paragon mechanics retain the capped Motivation pool and refrain/echo tasks. Tiers are read before spending; trait
-  adrenaline follows actual spend. Feverish Pulse follows chant opening and scheduling, Inspiring Implements follows
-  burst echo consumption, and each captured echo count survives for its admitted lifetime.
-
-Intrinsic specialization resource prerequisites remain shared with their native mode owners. Generic emission and
-modifier-query helpers carry no concrete trait selection policy. Ordinary `hooks.ts` files call owner helpers where
-registering an independent hook would reorder resource changes or same-time events.
-
-## Implemented systems
-
-- Core implements adrenaline generation on player strikes (30-point cap), burst availability/spending, three-level burst
-  traits, weapon swapping, endurance and Dodge, and current weapon families; Strength/Tactics attribute and damage
-  modifiers, Soldier's Focus, party boons, and control/dodge interactions.
-- Berserker implements Berserk entry cost/duration, Primal Burst gating, Rage-skill extensions, and specialization
-  damage/cast-speed/attribute traits.
-- Spellbreaker implements 20-point adrenaline cap, level-one bursts, Full Counter, control tracking, and its
-  target/tether/disenchantment traits.
-- Bladesworn implements flow replaces adrenaline, gunsaber entry/exit and gating, gunsaber/pistol ammo, armament reloads,
-  Dragon Trigger charge conversion, and scaling Dragon Slash packets. Normal weapon swapping is disabled.
-- Paragon implements a 30-point adrenaline pool with a 10-point burst-spending cap, chants, motivation, active refrains,
-  periodic motivation drain, and refrain traits.
-
-## Dragon Trigger (Bladesworn) rotations
-
-Queue Dragon Slash directly after Dragon Trigger; the scheduler waits for the specialization's current maximum charge
-count automatically:
-
-```js
-[
-  { type: 'cast', skillId: 62803 }, // Dragon Trigger
-  { type: 'cast', skillId: 62797 } // Dragon Slash - Force
-];
-```
-
-Set `releaseAtCharges` (or use the timeline's Dragon Slash pencil editor) to release early; the value is capped to the
-active spec maximum, including Daring Dragon's five. If the requested count cannot be reached by the end of the channel,
-the slash is rejected with a resource warning instead of waiting indefinitely.
-
-The same editor has an optional **Additional release delay (ms)** field below the charge choices, in 40 ms increments.
-Its canonical `releaseDelayMs` value holds the selected charges after their actual threshold is reached, including any
-Flow stalls. For a full ten-charge release, 80 ms adds to the normal 2400 ms or Tactical Reload's 1200 ms. Charging
-spends no additional Flow and gains no extra charges during the hold; regeneration, cooldowns, and buff expiry continue.
-Zero or blank clears the field. A hold cannot extend Dragon Trigger's lifetime.
-
-EVTC and DPS-report imports retain positive observed time beyond the inferred charge threshold in `releaseDelayMs`,
-rounded to the existing action-tick grid. This is inferred from animation duration; the log cannot distinguish an
-intentional hold from a Flow shortage or processing delay. Imported holds can be edited or cleared in the same field.
-
-## Modeling boundaries
-
-The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Incoming attacks,
-active defense, ally healing/revival, projectile interaction, pathing, secondary targets, and competitive (PvP/WvW)
-splits are out of model. Full Counter activation spends adrenaline and starts recharge, but does not produce an
-automatic counterattack or successful-burst rewards without an incoming attack.
+The [build manifest](../../data/gw2/builds/warrior/manifest.json) identifies saved presets and rotations.
+[Profession tests](../../tests/games/gw2/professions/warrior/) cover behavior and composition. Use
+[AGENTS.md](../../AGENTS.md) for simulation scope and validation policy; shared run settings are located by the
+[programmatic guide](../architecture/PROGRAMMATIC-SIMULATION.md#randomness).

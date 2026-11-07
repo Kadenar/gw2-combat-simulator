@@ -1,35 +1,22 @@
-# Proc rate overrides
+# Proc rate override navigation
 
-The build editor exposes **Proc rate overrides** for selected, supported traits. Enter a percentage from 0 to 100; leave
-the field blank or use Reset to inherit the active balance profile. Changes rerun the simulation and invalidate
-dependent comparisons. Rates apply to seeded rolls in both simulation modes; trigger eligibility, internal cooldowns,
-and effects remain unchanged. Critical procs first require the hit's shared `didCrit` outcome, then roll any separate
-trait proc chance. Shrapnel rolls directly for each eligible explosion. The runtime checks eligibility, draws outcomes, and claims cooldowns once on the shared clock. Rejected target effects consume neither draws nor claims. See
-[resource and proc lifecycle](SIMULATION-EVENT-CLOCK.md#resource-and-proc-lifecycle).
+Proc rate overrides let a build supply a probability for a supported trait proc. The implementation separates that
+probability from the proc's eligibility, cooldown, and effects.
 
-For supported condition procs, Analysis displays activations in the Hits column. The primary resolved effect carries
-`metadata.procCount`; secondary effects do not repeat it. The count is independent of condition stacks and damage ticks,
-and can represent multiple activations batched into one application. Existing strike-hit counts retain their meaning for
-attacks.
+## Locate a change
 
-Build JSON stores optional fractional rates in `assumptions.procRateOverrides`, keyed by stable namespaced proc IDs.
-Simulation configuration carries a detached `procRateOverrides` map to workers and headless runs. A stored zero disables the proc chance. An absent value uses the current or preview balance value. Invalid rates fail validation. Unknown IDs remain saved but have
-no effect unless an active proc explicitly consumes them. Imported log observations never set overrides automatically.
+| Concern                                          | Owner                                                                                                                                                                 |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stored rates, validation, and available profiles | [builds/proc-rates.ts](../../js/games/gw2/platform/builds/proc-rates.ts)                                                                                              |
+| Balance-profile declarations                     | [skills/types.ts](../../js/games/gw2/platform/skills/types.ts), [balance-profiles.ts](../../js/games/gw2/platform/skills/balance-profiles.ts)                         |
+| Run configuration                                | [simulation/config.ts](../../js/games/gw2/platform/simulation/config.ts), [build-context/simulation-config.ts](../../js/games/gw2/build-context/simulation-config.ts) |
+| Proc claims and intervals                        | [combat/procs/registry.ts](../../js/games/gw2/platform/combat/procs/registry.ts)                                                                                      |
+| Trait selection and reactions                    | Owning profession's `traits/` declarations                                                                                                                            |
+| Activation reporting                             | [results/](../../js/games/gw2/platform/results/), search for `procCount`                                                                                              |
 
-## Adding a supported proc
+Search the owning trait for `procRate` and `procChanceFromContext` to follow an existing declaration through its roll.
+Search [app/build/](../../js/games/gw2/app/build/) for `procRateOverrides` to find the editor controls. The active
+catalog supplies the supported proc inventory.
 
-1. Add `procRate: { id, traitId, field, opportunity }` to its profession-owned balance profile. `field` identifies the
-   existing chance field, and `opportunity` describes its denominator, such as `eligible critical hit` or
-   `eligible explosion hit`.
-2. Read its probability through `procChanceFromContext(context, profileId)` and use it for the seeded proc roll in both
-   modes, retaining existing eligibility and cooldown logic. The profile must declare a valid baseline chance even when
-   an override is supplied.
-3. Add a minimal trait-contract check covering zero, full probability, and ineligible opportunities. Mark the primary
-   condition effect with `metadata.procCount` to expose its activations in Analysis.
-
-The shared UI enumerates the active Core-plus-specialization runtime's profiles and filters by selected trait IDs.
-Elite-specific declarations belong in that elite's module; Core declarations automatically work across its elites.
-Multiple independently tunable procs from one trait can use separate profiles with distinct proc IDs and the same
-`traitId`. Catalog validation rejects duplicate IDs and invalid defaults. The generic UI needs no profession switch.
-
-Supported procs include Necromancer Barbed Precision, Engineer Serrated Steel and Shrapnel, Warrior Bloodlust, and Elementalist Burning Precision. Changing a rate approximates an observed proc frequency, not exact logged timestamps.
+[Proc-rate override tests](../../tests/games/gw2/platform/builds/proc-rate-overrides.test.js) cover the shared behavior.
+Trait-specific eligibility belongs in the [profession tests](../../tests/games/gw2/professions/).

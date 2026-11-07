@@ -1,72 +1,42 @@
-# Revenant
+# Revenant code navigation
 
-This profession uses the shared engine. Its browser entry point is `revenant.html`. `profession.ts` is the stable export and composes the
-Core-first tuple from `catalog.ts`. A runtime contains Core plus at most one of Herald, Renegade, Vindicator, or
-Conduit. Core owns the always-active energy, legend, weapon, upkeep, trait, state, rules, and UI behavior; each
-specialization owns a complete vertical slice under `specializations/<name>/`. Only the selected elite module is present
-in a given runtime.
+Legends, Energy, upkeep, and weapon state. This guide locates the family owners. Skill declarations, trait definitions,
+and their callers describe current behavior.
 
-## Data
+## Entry points
 
-- Maintained skill and trait constants live in `data/ids.ts`.
-- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
-- `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
-  complete declarations contributed by each module.
+- [profession.ts](../../js/games/gw2/professions/revenant/profession.ts) composes the family;
+  [catalog.ts](../../js/games/gw2/professions/revenant/catalog.ts) collects its modules.
+- [build/](../../js/games/gw2/professions/revenant/build/) owns defaults, validation, attributes, and the headless
+  context.
+- [core/module.ts](../../js/games/gw2/professions/revenant/core/module.ts) registers Core contributions. Each elite has
+  its own `module.ts`.
+- [core/state.ts](../../js/games/gw2/professions/revenant/core/state.ts) and each elite's `state.ts` own runtime state
+  and public projections.
+- [core/skills/](../../js/games/gw2/professions/revenant/core/skills/) and
+  [core/traits/](../../js/games/gw2/professions/revenant/core/traits/) contain Core declarations. Elite declarations
+  live under their specialization.
+- [app/](../../js/games/gw2/professions/revenant/app/) binds the browser adapter and tooltips; Core and elite
+  `presentation.ts` files contribute views.
 
-## Implemented systems
+## Mechanic owners
 
-- Core implements ten terrestrial weapon families with cooldowns, ammo, chains, and damage/condition/control/boon packets; a
-  fixed-bar loadout with exactly two legend IDs and a validated starting legend; legend-bar replacement with a
-  ten-second in-combat legend-swap cooldown (none out of combat), 50-energy reset, Charged Mists, and swap-sigil
-  triggers; continuous five-energy/sec regeneration, explicit skill costs, concurrent upkeep, and timestamped starvation
-  cancellation.
-- Herald implements facet upkeep and consume flips.
-- Renegade implements warband actor ownership and Soulcleave strike reactions.
-- Vindicator implements legend skills, trait-selected dodge variants, and Energy Meld; shared legend state remains in Core.
-- Conduit implements affinity, legend-specific Release Potential, and Cosmic Wisdom state.
+| Area                                  | Start here                                                                                         |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Core resource policies                | [core/mechanics/resources.ts](../../js/games/gw2/professions/revenant/core/mechanics/resources.ts) |
+| Family cost composition               | [energy-cost.ts](../../js/games/gw2/professions/revenant/energy-cost.ts)                           |
+| Herald facets                         | [specializations/herald/](../../js/games/gw2/professions/revenant/specializations/herald/)         |
+| Renegade warband skills               | [specializations/renegade/](../../js/games/gw2/professions/revenant/specializations/renegade/)     |
+| Vindicator dodges and alliance skills | [specializations/vindicator/](../../js/games/gw2/professions/revenant/specializations/vindicator/) |
+| Conduit affinity and Cosmic Wisdom    | [specializations/conduit/](../../js/games/gw2/professions/revenant/specializations/conduit/)       |
 
-## Modeling boundaries
+Read the relevant `hooks.ts`, trait registrations, and callers when changing reaction order or lifetime behavior. The
+[shared module map](../architecture/MODULES.md#profession-file-roles) explains the file roles without duplicating their
+rules.
 
-The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Incoming attacks,
-active defense, ally healing, barrier, and cleansing, pathing, secondary targets, and competitive PvP and WvW balance splits are outside the model.
+## Presets and validation
 
-## Trait ownership
-
-Core trait definitions live in `core/traits/<line>/index.ts`; each elite registers its definitions in `traits/index.ts`.
-Definitions own profiles, modifiers, triggers, build contributions, and trait policies. Supporting helpers remain beside
-them. `core/mechanics/trigger-points.ts` declares ordered trigger points; Core hooks interleave trait and intrinsic
-on-hit work, and `core/mechanics/resources.ts` owns Energy and Endurance policies.
-
-Herald mechanics own facets; Facet of Nature's skill owns its boon extension and the Assassin passive siphon. Core
-completion rewards run before facet completion and the settled-upkeep observer. Draconic Echo's duration policy belongs
-to its trait definition. Renegade's warband, Heroic Command, and Soulcleave behavior live with skills. Conduit mechanics
-own form transitions and Affinity; traits own cap rewards and form policies. `data/legends.ts` supplies elite Song of
-the Mists IDs without loading their runtime behavior. `energy-cost.ts` composes Core costs with the selected elite's
-cost policy.
-
-Build and live queries share `revenantProfession.attributeContributions`, combining module-owned skill/mechanic
-attributes and selected trait declarations from equipment seeds. The evaluator uses active patch tuning and live facts.
-Spirit Boon's legend profiles remain stable patch targets; Brutal Momentum owns both its baseline critical chance and
-additional full-endurance modifier.
-
-Ordered mechanic trigger points preserve execution order where definition-local trait handlers interleave mechanics:
-
-- Core cast rewards precede Herald consumes, Renegade commands, and Conduit form/ammo transitions. Compiled listeners
-  publish each reward at its declared boundary. Legend invocations remain Fury, Spirit Boon, Song of the Mists, then
-  Invoke Torment.
-- Charged Mists samples pre-reset Energy; Enduring Recovery adds to Vigor before the endurance cap. Landed strikes catch
-  up Thrill of Combat, consume Battle Scars, apply Vicious Reprisal and Expose Defenses, then consume skill-owned
-  Enchanted Daggers charges.
-- Draconic Echo retains a facet after consume recharge begins and preserves the original pulse phase. Elevated
-  Compassion follows completed upkeep changes; starvation and facet scheduling remain mechanics.
-- Renegade samples Lasting Legacy when selecting Fervor and command payloads. All for One grants Energy after Band
-  Together is consumed; critical and Fury reactions retain their existing actor attribution and cooldowns.
-- Vindicator consumes Reaver's Curse before landing packets, snapshots the existing Forerunner window, then renews it.
-  Trait-owned dodge selectors and Energy Meld actions retain the skill scheduler.
-- Conduit resolves Mistfire before opening Cosmic Wisdom, then grants Numinous Gift. Swap affinity reset, Lingering
-  Determination, Enhanced Embodiment extension, form reselection, and Found Purpose remain ordered. Shared Wisdom
-  actions retain their positions around Entity skill transitions; trait recharge helpers run after form-specific base
-  recharge selection.
-
-Focused coverage includes resources, task expiry, applied-effect lifetimes, selection, actor ownership, profile
-removal/patching, and cross-line build contributions. Player health stays fixed at full health in combat.
+The [build manifest](../../data/gw2/builds/revenant/manifest.json) identifies saved presets and rotations.
+[Profession tests](../../tests/games/gw2/professions/revenant/) cover behavior and composition. Use
+[AGENTS.md](../../AGENTS.md) for simulation scope and validation policy; shared run settings are located by the
+[programmatic guide](../architecture/PROGRAMMATIC-SIMULATION.md#randomness).

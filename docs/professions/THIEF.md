@@ -1,64 +1,41 @@
-# Thief
+# Thief code navigation
 
-This profession uses the shared engine. Its browser entry point is `thief.html`. `profession.ts` composes the Core-first tuple from
-`catalog.ts`; a runtime contains Core plus at most one of Daredevil, Deadeye, Specter, or Antiquary. Core owns shared
-initiative, stealth, weapons, and traits; each specialization defines its data, state, mechanics, and presentation under
-`specializations/<name>/`.
+Initiative, stealth, stolen skills, and weapon state. This guide locates the family owners. Skill declarations, trait
+definitions, and their callers describe current behavior.
 
-## Ordering rules
+## Entry points
 
-- Core availability checks closed follow-ups, spear stages, preparations, active follow-ups, stealth, rifle stance, and
-  stolen inventory in that order.
-- A malicious attack's damage bonus uses the malice it was cast with, even after its first hit spends it.
+- [profession.ts](../../js/games/gw2/professions/thief/profession.ts) composes the family;
+  [catalog.ts](../../js/games/gw2/professions/thief/catalog.ts) collects its modules.
+- [build/](../../js/games/gw2/professions/thief/build/) owns defaults, validation, attributes, and the headless context.
+- [core/module.ts](../../js/games/gw2/professions/thief/core/module.ts) registers Core contributions. Each elite has its
+  own `module.ts`.
+- [core/state.ts](../../js/games/gw2/professions/thief/core/state.ts) and each elite's `state.ts` own runtime state and
+  public projections.
+- [core/skills/](../../js/games/gw2/professions/thief/core/skills/) and
+  [core/traits/](../../js/games/gw2/professions/thief/core/traits/) contain Core declarations. Elite declarations live
+  under their specialization.
+- [app/](../../js/games/gw2/professions/thief/app/) binds the browser adapter and tooltips; Core and elite
+  `presentation.ts` files contribute views.
 
-## Data
+## Mechanic owners
 
-- Maintained skill and trait constants live in `data/ids.ts`.
-- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
-- `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
-  complete declarations contributed by each module.
+| Area                                 | Start here                                                                                      |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| Core resource policies               | [core/mechanics/resources.ts](../../js/games/gw2/professions/thief/core/mechanics/resources.ts) |
+| Steal and trait dispatch             | [core/mechanics/steal.ts](../../js/games/gw2/professions/thief/core/mechanics/steal.ts)         |
+| Daredevil dodges and physical skills | [specializations/daredevil/](../../js/games/gw2/professions/thief/specializations/daredevil/)   |
+| Deadeye Mark and malice              | [specializations/deadeye/](../../js/games/gw2/professions/thief/specializations/deadeye/)       |
+| Specter shroud and Shadow Force      | [specializations/specter/](../../js/games/gw2/professions/thief/specializations/specter/)       |
+| Antiquary artifacts                  | [specializations/antiquary/](../../js/games/gw2/professions/thief/specializations/antiquary/)   |
 
-## Trait and resource ownership
+Read the relevant `hooks.ts`, trait registrations, and callers when changing reaction order or lifetime behavior. The
+[shared module map](../architecture/MODULES.md#profession-file-roles) explains the file roles without duplicating their
+rules.
 
-Core definitions live in `core/traits/<line>/index.ts`; each elite registers its traits in `traits/index.ts`.
-Definitions own balance profiles, modifiers, triggers, recharge rules, and build contributions. Supporting helpers stay
-beside their owners; mechanics own resource clocks, stealth/Revealed, Mark/malice, shroud, artifacts, and applied
-windows.
+## Presets and validation
 
-Build and live queries share `thiefProfession.attributeContributions`, combining equipped signet passives from
-`core/skills/attribute-passives.ts` with selected trait declarations. The evaluator starts from equipment seeds and uses
-the active balance context. Preparedness owns initiative capacity for both initial state and live resource queries.
-
-Ordered mechanic trigger points preserve these boundaries:
-
-- Stealth breaks before Unrelenting Strikes and No Quarter; steal traits run before stolen-skill acquisition and
-  initiative rewards. `core/mechanics/steal.ts` dispatches the boundary from `core/mechanics/trigger-points.ts`.
-- Dodge packets resolve before their new damage windows; Mark resets precede stolen-skill replacement and malice
-  rewards.
-- Specter emits barrier before Dark Sentry's task and resolves Amplified Siphoning before Improvisation. Siphon's skill
-  owns Shadow Force calculation; Dark Sentry owns Rot Wallow Venom delivery.
-- Antiquary preserves artifact grant order, Sun Crystal before Mistburn, and the granted lifetime of applied charges and
-  windows. Shared strike dispatch remains in `core/hooks.ts` and delegates venom consumption to its mechanic owner.
-
-## Implemented systems
-
-- Core implements nine terrestrial weapon families with exact main-hand/off-hand matching for every dual-wield and
-  empty-offhand slot-3 skill; shared initiative, passive regeneration, explicit weapon-skill costs, weapon-swap
-  preservation, Preparedness, and initiative-gain traits; stealth stacking, Revealed, active-weapon stealth attacks, and
-  core/Daredevil stolen skills.
-- Daredevil implements physical-skill endurance, the Fist Flurry/Palm Strike window, delayed Pulmonary Impact, staff packets,
-  and its damage-window traits.
-- Deadeye implements Mark, malice, Kneel, malicious stealth attacks, and per-malice Backstab scaling.
-- Specter implements Shadow Force pool and Shadow Shroud transitions, Scepter and shroud hit packets, wells, Siphon, and
-  initiative-to-Shadow-Force gain.
-- Antiquary implements artifact uses with all artifacts selectable, per-cast Double Edge outcomes, backfire state, and
-  persistent Antiquary summons.
-
-Core Steal exposes Detonate Plasma, Throw Magnetic Bomb, and Soul Stone Venom as its standard stolen-skill choice pool.
-Double Edge success/backfire is saved per rotation entry; simulation never uses unseeded randomness.
-
-## Modeling boundaries
-
-The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Incoming attacks,
-active defense, ally support (Shallow Grave, Consume Shadows, Traversing Dusk, Panaku's Ambition, Hungering Darkness,
-etc.), pathing, secondary targets, and competitive PvP and WvW balance splits are outside the model.
+The [build manifest](../../data/gw2/builds/thief/manifest.json) identifies saved presets and rotations.
+[Profession tests](../../tests/games/gw2/professions/thief/) cover behavior and composition. Use
+[AGENTS.md](../../AGENTS.md) for simulation scope and validation policy; shared run settings are located by the
+[programmatic guide](../architecture/PROGRAMMATIC-SIMULATION.md#randomness).

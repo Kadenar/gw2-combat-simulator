@@ -1,63 +1,42 @@
-# Mesmer
+# Mesmer code navigation
 
-This profession uses the shared engine. Its browser entry point is `mesmer.html`. `profession.ts` composes the Core-first tuple from
-`catalog.ts`; a runtime contains Core plus at most one of Chronomancer, Mirage, Virtuoso, or Troubadour. Core owns the
-shared shatter, phantasm, clone, weapon, and trait behavior; each specialization defines its data, state, mechanics, and presentation under
-`specializations/<name>/`.
+Illusions, shatters, weapon state, and shared trait reactions. This guide locates the family owners. Skill declarations,
+trait definitions, and their callers describe current behavior.
 
-## Data
+## Entry points
 
-- Maintained skill and trait constants live in `data/ids.ts`.
-- Core and specialization `skills/` entries define names, descriptions, icons, selection metadata, costs, recharge, and effects. Edit these definitions directly without scraping skills or regenerating metadata.
-- `data/trait-lines.ts` retains specialization and trait presentation. `createNativeModuleData` materializes the
-  complete declarations contributed by each module.
+- [profession.ts](../../js/games/gw2/professions/mesmer/profession.ts) composes the family;
+  [catalog.ts](../../js/games/gw2/professions/mesmer/catalog.ts) collects its modules.
+- [build/](../../js/games/gw2/professions/mesmer/build/) owns defaults, validation, attributes, and the headless
+  context.
+- [core/module.ts](../../js/games/gw2/professions/mesmer/core/module.ts) registers Core contributions. Each elite has
+  its own `module.ts`.
+- [core/state.ts](../../js/games/gw2/professions/mesmer/core/state.ts) and each elite's `state.ts` own runtime state and
+  public projections.
+- [core/skills/](../../js/games/gw2/professions/mesmer/core/skills/) and
+  [core/traits/](../../js/games/gw2/professions/mesmer/core/traits/) contain Core declarations. Elite declarations live
+  under their specialization.
+- [app/](../../js/games/gw2/professions/mesmer/app/) binds the browser adapter and tooltips; Core and elite
+  `presentation.ts` files contribute views.
 
-## Architecture notes
+## Mechanic owners
 
-Ordinary effects use shared declarative scheduling; shatters, bladesongs, instruments, phantasms, ambushes, flips,
-resources, and Continuum actions select registered `mesmer.*` handler strategies by stable skill/trait ID. Routing, resource causes, flips, trait decisions, and timing use stable IDs. Display names serve only as labels. Build migration resolves names in older saved rotations.
+| Area                             | Start here                                                                                           |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Illusion ownership and execution | [core/mechanics/illusions/](../../js/games/gw2/professions/mesmer/core/mechanics/illusions/)         |
+| Family resource binding          | [family-resources.ts](../../js/games/gw2/professions/mesmer/family-resources.ts)                     |
+| Chronomancer Continuum actions   | [specializations/chronomancer/](../../js/games/gw2/professions/mesmer/specializations/chronomancer/) |
+| Mirage cloak and ambushes        | [specializations/mirage/](../../js/games/gw2/professions/mesmer/specializations/mirage/)             |
+| Virtuoso blades and bladesongs   | [specializations/virtuoso/](../../js/games/gw2/professions/mesmer/specializations/virtuoso/)         |
+| Troubadour instruments           | [specializations/troubadour/](../../js/games/gw2/professions/mesmer/specializations/troubadour/)     |
 
-Core trait definitions live in `core/traits/<line>/index.ts`; each elite registers its definitions in `traits/index.ts`.
-Definitions own profiles, modifiers, build contributions, triggers, and recharge policies. Shared mechanics own illusion
-entities, resources, snapshots, and packet emission. `family-resources.ts` binds clone scheduling and resource rewards
-without creating an import cycle through `family-mechanics.ts`.
+Read the relevant `hooks.ts`, trait registrations, and callers when changing reaction order or lifetime behavior. The
+[shared module map](../architecture/MODULES.md#profession-file-roles) explains the file roles without duplicating their
+rules.
 
-Phantasm attacks deliver strikes, conditions, controls, and bonus strikes from the same prepared execution record,
-including repeated attacks; simultaneous conversions are batched. Troubadour snapshots instrument eligibility at cast
-start and consumes that snapshot at commitment.
+## Presets and validation
 
-Preserve the explicit reaction order: Master Fencer, Sharper Images, then Fencer's Finesse on critical hits; Maim before
-Illusionary Membrane after shatters; Deadly Blades before Jagged Mind for Virtuoso. Master of Fragmentation transforms
-specialization effects before emission. Applied buffs retain their granted lifetime independently of current selection.
-Chronomancer owns Continuum restoration in mechanics and delayed explosions in `traits/time-bomb.ts`; Troubadour owns
-instrument policies in its trait definitions and snapshots in mechanics.
-
-Cry of Pain augments native F2 confusion by one stack and one-third duration; Troubadour uses two stacks and 50%
-duration for the player's Flute performance. Afterimages retain the base application. Illusionary Membrane grants Chaos
-Aura from F2, including Flute, and reacts to every self Chaos Aura gain, including Chaos Armor and ethereal combos. Each
-aura extends the condition-damage buff by five seconds, capped at fifteen seconds remaining.
-
-Build and live queries share `mesmerProfession.attributeContributions`. The evaluator starts from equipment seeds and
-combines module declarations with selected trait attributes, using active balance profiles and live stacks/boons.
-Detached previews select contributions from their own inputs. Intrinsic Harmonize and Symphonic Resonance remain
-independent of trait selection.
-
-## Implemented systems
-
-- Core implements weapon sets with a ten-second in-combat swap recharge (none out of combat), clone/phantasm/shatter
-  mechanics, ID-keyed phantasm timing, and profession-specific resolver reactions such as Ineptitude.
-- Chronomancer implements Continuum Split (restores cooldown state but not clones) and its shatter/alacrity behavior.
-- Mirage implements a continuous endurance pool, Mirage Cloak dodges, and ambush attacks.
-- Virtuoso implements bladesongs that require and spend all stocked blades, Jagged Mind bleeding, and Bloodsong blade gains.
-- Troubadour implements instruments resource, Crescendo, Dagger, and its dodge and ambush interactions.
-
-## Modeling boundaries
-
-The simulation models outgoing damage against one target. Player health stays at 100%; target health remains modeled. Phantasm and clone
-travel time uses fixed delays. Critical-condition applications consume the shared seeded critical-hit facts in both
-simulation modes. Bloodsong grants blades at each five-stack bleeding-application threshold. Ally healing, barriers,
-control damage, stealth, and defensive effects stay outside the damage total; boon/distortion applications are still
-emitted. Mirage and Troubadour use the shared 100-point endurance pool, 50-point dodges, and continuous regeneration at
-5/sec or 7.5/sec with Vigor. Troubadour's Flute adds 1.25 endurance/sec while playing, including when Vigor is active;
-Honorable Rogue restores 50 endurance without losing partial regeneration. Competitive (PvP/WvW) splits are out of
-model.
+The [build manifest](../../data/gw2/builds/mesmer/manifest.json) identifies saved presets and rotations.
+[Profession tests](../../tests/games/gw2/professions/mesmer/) cover behavior and composition. Use
+[AGENTS.md](../../AGENTS.md) for simulation scope and validation policy; shared run settings are located by the
+[programmatic guide](../architecture/PROGRAMMATIC-SIMULATION.md#randomness).
