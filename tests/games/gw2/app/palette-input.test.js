@@ -7,6 +7,7 @@ import { projectPalette } from '#gw2/app/rotation/palette/model.js';
 import { paletteHtml } from '#gw2/app/rotation/palette/view.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { cursorPreviewCapture } from '#tests/helpers/cursor-preview.js';
 import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { professionUiFixture } from '#tests/helpers/presentation.js';
 
@@ -59,13 +60,18 @@ test('captured cursor facts drive the whole palette independently of later appli
         assert.equal(build, facts.build);
         return { description: 'Captured tooltip', facts: [] };
       },
-      rotationPreviewAt: (_app, index) => {
+      calculateCursorPreview: ({ rotation }) => {
+        const index = rotation.length;
         assert.equal(index, 1);
         previews += 1;
         return { planningState: cursor };
       }
     },
     analysis: {
+      capture: cursorPreviewCapture([
+        { type: 'wait', durationMs: 1 },
+        { type: 'wait', durationMs: 1 }
+      ]),
       state: {
         results: {
           rotationEndTime: 20,

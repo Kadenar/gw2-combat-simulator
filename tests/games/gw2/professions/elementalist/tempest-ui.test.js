@@ -162,13 +162,11 @@ test('Tempest overload singularity delays a newly entered attunement but not the
   const enteredApp = createTempestApp(['Fire Attunement']);
   const fire = catalog.skillsById.get(29706);
   const enteredAvailability = paletteAvailability(capturePaletteInput(enteredApp), paletteContext(enteredApp), fire);
-  const enteredView = paletteSkillView(
-    capturePaletteInput(enteredApp),
-    fire,
-    enteredAvailability.available,
-    enteredAvailability.message,
-    enteredAvailability.retryAt
-  );
+  const enteredView = paletteSkillView(capturePaletteInput(enteredApp), fire, {
+    contextAvailable: enteredAvailability.available,
+    contextMessage: enteredAvailability.message,
+    contextRetryAt: enteredAvailability.retryAt
+  });
 
   assert.deepEqual(enteredAvailability, {
     available: false,
@@ -205,13 +203,11 @@ test('an overload with 0.1 seconds remaining stays click-queueable and casts whe
   const nearlyReadyApp = createTempestApp(['Fire Attunement', 4700]);
   const fire = catalog.skillsById.get(29706);
   const availability = paletteAvailability(capturePaletteInput(nearlyReadyApp), paletteContext(nearlyReadyApp), fire);
-  const view = paletteSkillView(
-    capturePaletteInput(nearlyReadyApp),
-    fire,
-    availability.available,
-    availability.message,
-    availability.retryAt
-  );
+  const view = paletteSkillView(capturePaletteInput(nearlyReadyApp), fire, {
+    contextAvailable: availability.available,
+    contextMessage: availability.message,
+    contextRetryAt: availability.retryAt
+  });
 
   assert.equal(view.disabled, true);
   assert.equal(view.contextDisabled, false);
@@ -240,7 +236,10 @@ test('Tempest overload palette shows its active cooldown after use', () => {
   const app = createTempestApp(['Overload Air']);
   const air = catalog.skillsById.get(29719);
   const availability = paletteAvailability(capturePaletteInput(app), paletteContext(app), air);
-  const view = paletteSkillView(capturePaletteInput(app), air, availability.available, availability.message);
+  const view = paletteSkillView(capturePaletteInput(app), air, {
+    contextAvailable: availability.available,
+    contextMessage: availability.message
+  });
 
   assert.equal(view.disabled, true);
   assert.equal(view.cooldownLabel, '16.000s');

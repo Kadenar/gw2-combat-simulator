@@ -29,6 +29,22 @@ test('trait-dependent state rows use the snapshot balance catalog', () => {
   ]) {
     const patch = withPatchPreview(profession, null).resolvePatch();
     const selection = selectTrait(patch.catalog, trait);
+    // Snapshot rows require an accepted observation; an empty rotation reads the baseline's rotation-end state.
+    const results = {
+      steps: [],
+      resolvedEvents: [],
+      rotationEndTime: 0,
+      planningState: {
+        combatActive: false,
+        effects: [],
+        availability: {},
+        atSeconds: 0,
+        cooldownsBySkillId: {},
+        ammoBySkillId: {},
+        activeWeaponSet: 1,
+        profession: {}
+      }
+    };
     const app = {
       profession,
       patch,
@@ -42,7 +58,7 @@ test('trait-dependent state rows use the snapshot balance catalog', () => {
           simulationStatus: 'idle',
           simulationError: '',
           patchComparison: null,
-          results: null
+          results
         }
       }
     };

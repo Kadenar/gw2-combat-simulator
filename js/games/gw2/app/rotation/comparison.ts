@@ -4,6 +4,7 @@ import { buildDamageSeries, chartValueAt } from '#gw2/app/results/charts/time-se
 import type { DamageSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { beginRotationComparison } from '#gw2/app/rotation/comparison-state.js';
 import { palettePlanningState } from '#gw2/app/rotation/context.js';
+import { cursorPreviewReady } from '#gw2/app/rotation/cursor-preview.js';
 import { openRotationInsights, renderRotationInsights } from '#gw2/app/rotation/insights/rotation-insights-view.js';
 import { applyTimelinePreviewHighlight, renderTimeline } from '#gw2/app/rotation/timeline/view.js';
 import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
@@ -23,6 +24,8 @@ export interface RotationComparisonMetrics {
   readonly damageDifference: number;
   readonly damagePercentDifference: number | null;
 }
+
+const comparisonTimes = new WeakMap<ProfessionAppState, number | null>();
 
 const seriesByResult = new WeakMap<Gw2SimulationResult, DamageSeries>();
 let comparisonScrollLifecycle: AbortController | null = null;
@@ -44,9 +47,22 @@ function percentDifference(current: number, reference: number): number | null {
 
 /** Uses the insertion checkpoint's elapsed combat time; an end cursor keeps the final comparison. */
 export function rotationComparisonTimeMs(app: ProfessionAppState): number | null {
+  const result = app.analysis.state.results;
+
+  if (!result) {
+    comparisonTimes.delete(app);
+    return null;
+  }
+
+  // Retained results keep their last comparison time while a new cursor observation is unavailable.
+  if (!cursorPreviewReady(app.analysis.state)) return comparisonTimes.get(app) ?? null;
+
   const index = normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length);
 
-  if (index == null || index === app.build.rotation.length || !app.analysis.state.results) return null;
+  if (index == null || index === app.build.rotation.length) {
+    comparisonTimes.set(app, null);
+    return null;
+  }
 
   const state = palettePlanningState(app);
 
@@ -54,7 +70,9 @@ export function rotationComparisonTimeMs(app: ProfessionAppState): number | null
 
   const startMs =
     Number(app.analysis.state.results.dpsStartTime ?? app.analysis.state.results.firstHitTime ?? 0) * 1000;
-  return Math.max(0, Number(state.atSeconds || 0) * 1000 - startMs);
+  const time = Math.max(0, Number(state.atSeconds || 0) * 1000 - startMs);
+  comparisonTimes.set(app, time);
+  return time;
 }
 
 /** Projects final or shared-time cumulative metrics from already prepared 250 ms chart series. */
@@ -105,9 +123,8 @@ export function rotationComparisonMetrics(
 
 function currentIsFresh(app: ProfessionAppState): boolean {
   return (
-    Boolean(app.analysis.state.results) &&
+    cursorPreviewReady(app.analysis.state) &&
     app.build.rotation.length > 0 &&
-    app.analysis.state.resultRevision === app.analysis.state.buildRevision &&
     app.analysis.state.simulationStatus === 'idle' &&
     !app.analysis.state.simulationError
   );

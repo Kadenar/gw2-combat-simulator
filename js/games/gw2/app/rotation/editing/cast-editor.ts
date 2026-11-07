@@ -1,4 +1,5 @@
 /** Renders profession-owned cast choices while callers retain insertion, edit guards, and command identity. */
+import { cursorPreview } from '#gw2/app/rotation/context.js';
 import { formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { CastCommand } from '#gw2/platform/builds/rotation.js';
@@ -29,11 +30,11 @@ export function openProfessionCastEditor(options: {
   readonly command?: CastCommand;
   readonly onApply: (patch: CastEditorPatch) => void;
 }): FloatingEditorHandle {
+  const preview = cursorPreview(options.app);
   const referenceMs = resultCombatReferenceMs(options.app.analysis.state.results);
   const model = options.descriptor.prepare({
     command: options.command,
-    preview: (command) =>
-      options.app.adapter.rotationPreviewAt(options.app, options.insertionIndex, command ? [command] : []),
+    preview: (command) => preview.candidate(options.insertionIndex, command ? [command] : [])!,
     formatTime: (atMs) => formatTimelineTime(atMs, referenceMs, 3)
   });
   const editor = document.createElement('div');

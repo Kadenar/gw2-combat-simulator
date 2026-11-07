@@ -13,6 +13,7 @@ import { createNecromancerBuildDefaults } from '#gw2/professions/necromancer/bui
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerCatalog, necromancerProfession } from '#gw2/professions/necromancer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { cursorPreviewCapture } from '#tests/helpers/cursor-preview.js';
 import { inertContainer } from '#tests/helpers/dom.js';
 import { createObservedProfessionSimulator, planningFixture } from '#tests/helpers/observed-runtime.js';
 import { paletteInputFixture } from '#tests/helpers/palette.js';
@@ -112,6 +113,10 @@ test('Carapace state tracking follows the inspected observation across Necromanc
         );
         const app = {
           analysis: {
+            capture: cursorPreviewCapture([
+              { type: 'wait', durationMs: 1 },
+              { type: 'wait', durationMs: 1 }
+            ]),
             needsPatchComparison: () => false,
             state: { results: { planningState: { ...planningState, atSeconds: 10 }, rotationEndTime: 10 } }
           },
@@ -124,7 +129,7 @@ test('Carapace state tracking follows the inspected observation across Necromanc
 
           adapter: {
             eliteSpecialization: () => specialization,
-            rotationPreviewAt: () => ({ planningState })
+            calculateCursorPreview: () => ({ planningState })
           },
           rotationInsertionIndex: 0
         };

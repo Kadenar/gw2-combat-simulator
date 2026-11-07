@@ -1,3 +1,5 @@
+/** Binds application observations to the headless cursor preview owner. */
+import { CursorPreview } from '#gw2/app/rotation/cursor-preview.js';
 import type { AnalysisResult } from '#gw2/app/simulation/analysis-result-lifecycle.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
@@ -14,45 +16,41 @@ export interface RotationProfessionState extends Partial<Gw2SharedProfessionPlan
   readonly [STATE.AVAILABLE_AMBUSH]?: { readonly name?: string } | null;
 }
 
-const palettePreviewCache = new WeakMap<
-  ProfessionAppState,
-  {
-    readonly result: AnalysisResult;
-    readonly insertionIndex: number;
-    readonly preview: AnalysisResult;
+const cursorPreviews = new WeakMap<ProfessionAppState, CursorPreview>();
+
+/** One owner shares captured inputs and prefix results between palette, snapshot, and cast editors. */
+export function cursorPreview(app: ProfessionAppState): CursorPreview {
+  let preview = cursorPreviews.get(app);
+
+  if (!preview) {
+    preview = new CursorPreview({
+      source: () => ({
+        results: app.analysis.state.results,
+        buildRevision: app.analysis.state.buildRevision,
+        resultRevision: app.analysis.state.resultRevision,
+        rotationLength: app.build.rotation.length
+      }),
+      capture: () => {
+        const inputs = app.analysis.capture().inputs;
+
+        return inputs?.baseline({ collectChartData: false, comparePatch: false }) ?? null;
+      },
+      simulate: (request) => app.adapter.calculateCursorPreview(request)
+    });
+    cursorPreviews.set(app, preview);
   }
->();
+
+  return preview;
+}
 
 export const professionPlanningState = (result: AnalysisResult | null | undefined): RotationProfessionState =>
   result?.planningState?.profession && typeof result.planningState.profession === 'object'
     ? (result.planningState.profession as RotationProfessionState)
     : {};
 
-/** Share one prefix simulation so cursor state and proc history cannot include actions after the cursor. */
-export function palettePlanningResult(app: ProfessionAppState): AnalysisResult | null {
-  const result = app.analysis.state.results;
-
-  if (!result) return null;
-
-  const rotation = Array.isArray(app.build?.rotation) ? app.build.rotation : [];
-  const insertionIndex =
-    normalizeRotationInsertionIndex(app.rotationInsertionIndex, rotation.length) ?? rotation.length;
-  // Appending still needs rotation-end availability when the displayed result includes a tail.
-  const hasTail = (result.planningState?.atSeconds ?? 0) > result.rotationEndTime;
-
-  if (insertionIndex === rotation.length && !hasTail) {
-    return result;
-  }
-
-  const cached = palettePreviewCache.get(app);
-
-  if (cached?.result === result && cached.insertionIndex === insertionIndex) {
-    return cached.preview;
-  }
-
-  const preview = app.adapter.rotationPreviewAt(app, insertionIndex);
-  palettePreviewCache.set(app, { result, insertionIndex, preview });
-  return preview;
+/** Cursor consumers share the preview owner's freshness and observation policy. */
+export function palettePlanningResult(app: ProfessionAppState) {
+  return cursorPreview(app).at(normalizeRotationInsertionIndex(app.rotationInsertionIndex, app.build.rotation.length));
 }
 
 export const palettePlanningState = (app: ProfessionAppState): AnalysisResult['planningState'] | null =>

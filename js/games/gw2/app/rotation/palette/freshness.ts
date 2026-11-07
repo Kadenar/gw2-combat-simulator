@@ -1,3 +1,4 @@
+import { cursorPreviewReady } from '#gw2/app/rotation/cursor-preview.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 
 /** Keep retained palette input and its status in sync while a newer rotation waits for simulation. */
@@ -8,7 +9,7 @@ export function updatePaletteFreshness(app: ProfessionAppState): void {
 
   if (!root) return;
 
-  const pending = app.analysis.state.resultRevision !== app.analysis.state.buildRevision;
+  const pending = !cursorPreviewReady(app.analysis.state);
   root.dataset.palettePending = String(pending);
   root.setAttribute('aria-busy', String(pending && app.analysis.state.simulationStatus !== 'error'));
   const status = document.querySelector<HTMLElement>('.rotation-builder-heading [data-palette-update-status]');

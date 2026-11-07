@@ -6,6 +6,7 @@ import type { ModifierPresentation } from '#gw2/app/modifier-reference/presentat
 import type { RelicComparisonRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
 import type { ResultViewState } from '#gw2/app/results/state.js';
 import type { RotationComparisonSession } from '#gw2/app/rotation/comparison-state.js';
+import type { CursorPreviewRun } from '#gw2/app/rotation/cursor-preview.js';
 import type { RotationActionOptions, RotationEditingState } from '#gw2/app/rotation/editing/state.js';
 import type { RotationTimelineState } from '#gw2/app/rotation/timeline/state.js';
 import type { ProfessionTooltips, SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
@@ -118,12 +119,8 @@ export interface ProfessionRuntimeApi {
     request: RandomDistributionRequest,
     options?: RandomDistributionOptions
   ): RandomDistributionSummary;
-  /** Simulates a prefix and optional candidate commands with the original combat-start boundary. */
-  rotationPreviewAt(
-    app: ProfessionAppState,
-    insertionIndex: number,
-    appended?: readonly RotationCommand[]
-  ): Gw2SimulationResult;
+  /** Executes detached cursor work; the cursor preview module owns selection, freshness, and reuse. */
+  calculateCursorPreview(request: CursorPreviewRun): Gw2SimulationResult;
   calculateBaselineSimulation(request: BaselineSimulationRequest): BaselineSimulationOutput;
 }
 

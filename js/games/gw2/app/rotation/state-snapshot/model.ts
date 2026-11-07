@@ -46,6 +46,10 @@ export function rotationStateSnapshot(app: ProfessionAppState): {
   const atInsertion = app.rotationInsertionIndex != null && app.rotationInsertionIndex !== rotationLength;
 
   const items: RotationStateSnapshotItem[] = [];
+
+  // No accepted cursor observation means no timestamped state, including event-derived critical chance.
+  if (!state) return { items, atInsertion, timeMs };
+
   const criticalEvent = criticalChanceEventAt(result, timeMs);
 
   if (criticalEvent) {

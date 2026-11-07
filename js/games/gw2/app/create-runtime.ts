@@ -1,6 +1,7 @@
 import { withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import { relicComparisonAvailable } from '#gw2/app/optimizer/relic-comparison/relic-comparison.js';
 import type { RelicComparisonRequest } from '#gw2/app/optimizer/relic-comparison/types.js';
+import type { CursorPreviewRun } from '#gw2/app/rotation/cursor-preview.js';
 import { captureAnalysisRequestSnapshot } from '#gw2/app/simulation/analysis-request-snapshot.js';
 import { calculateBaselineSimulation as calculateBaseline } from '#gw2/app/simulation/baseline/baseline-simulation.js';
 import type { BaselineSimulationOutput, BaselineSimulationRequest } from '#gw2/app/simulation/baseline/types.js';
@@ -14,13 +15,11 @@ import type {
 } from '#gw2/app/simulation/random-distribution/types.js';
 import type { ProfessionAppState, ProfessionRuntimeApi, ProfessionRuntimeOptions } from '#gw2/app/types.js';
 import { deterministicSimulationConfig } from '#gw2/build-context/simulation-config.js';
-import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
-import { clamp } from '#kernel/core/numeric.js';
 
 /** Binds headless analysis capture and calculation; synchronous preview and relic workflows retain their own inputs. */
 export function createProfessionRuntime({
@@ -83,31 +82,9 @@ export function createProfessionRuntime({
     return withScenarioConfig(config, app.workspace?.scenario);
   }
 
-  /** Prefix and candidate previews use the same engine and inherited combat boundary, without an observation tail. */
-  function rotationPreviewAt(
-    app: ProfessionAppState,
-    insertionIndex: number,
-    appended: readonly RotationCommand[] = []
-  ): Gw2SimulationResult {
-    const rotation = app.build.rotation;
-    const index = clamp(Math.floor(Number(insertionIndex) || 0), 0, rotation.length);
-    const config = baselineSimulationConfig(app);
-    // A prefix before the marker still uses the full rotation's boundary, including casts that finish across it.
-    const combatStartTime =
-      index <= rotation.findIndex((command) => command.type === 'combat-start')
-        ? (
-            app.analysis.state.results ??
-            simulateGw2({ profession, rotation, config, observationPolicy: { kind: 'rotation' } })
-          ).combatStartTime
-        : undefined;
-    return simulateGw2({
-      profession,
-      rotation: [...rotation.slice(0, index), ...appended],
-      config,
-      observationPolicy: { kind: 'rotation' },
-      collectChartData: false,
-      combatStartTime: combatStartTime ?? undefined
-    });
+  /** Runs captured cursor work through the shared engine without extending it by an observation tail. */
+  function calculateCursorPreview(request: CursorPreviewRun): Gw2SimulationResult {
+    return simulateGw2({ profession, ...request, observationPolicy: { kind: 'rotation' }, collectChartData: false });
   }
 
   /** Runs a serialized baseline job without depending on browser application state. */
@@ -122,7 +99,7 @@ export function createProfessionRuntime({
     calculateModifierContributions,
     relicComparisonRequest,
     calculateRandomDistribution,
-    rotationPreviewAt,
+    calculateCursorPreview,
     calculateBaselineSimulation
   };
   return api;

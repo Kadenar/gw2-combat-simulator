@@ -21,6 +21,67 @@ import { professionUiFixture } from '#tests/helpers/presentation.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
+// A projection must derive its context once and share it across availability, editor access, and reference tiles.
+test('palette projection reuses one context for every tile and returns it for interactions', () => {
+  const catalog = createCanonicalCatalog({
+    skills: [
+      { id: 990301, name: 'Weapon', type: 'Weapon', weapon: 'Sword', slot: 'Weapon_1' },
+      { id: 990302, name: 'Utility', type: 'Utility', slot: 'Utility' },
+      { id: 990303, name: 'Mechanic', type: 'Profession' },
+      { id: -990304, name: 'Action', type: 'Action' }
+    ]
+  });
+  const weapon = catalog.skillsById.get(990301);
+  for (const customLayout of [false, true]) {
+    const contexts = [];
+    let traitReads = 0;
+    const selectedTraitIds = [42];
+    selectedTraitIds[Symbol.iterator] = function* () {
+      traitReads += 1;
+      yield 42;
+    };
+
+    const input = paletteInputFixture({
+      catalog,
+      selectedTraitIds,
+      build: { weapons: ['Sword', ''], selectedSkillIds: { utility1: 990302 } },
+      planning: {
+        atSeconds: 1,
+        activeWeaponSet: 1,
+        profession: {},
+        cooldownsBySkillId: {},
+        ammoBySkillId: {},
+        availability: Object.fromEntries(catalog.skills.map((skill) => [skill.id, { ready: false }]))
+      },
+      ui: professionUiFixture({
+        paletteGroups: () => [{ id: 'mechanic', skillIds: [990303] }],
+        paletteOverride(context, skill) {
+          contexts.push({ context, skillId: skill.id });
+          return { editorAccess: true };
+        },
+        castEditor: () => ({ prepare: () => ({}) }),
+        projectWeaponPalette: () =>
+          customLayout
+            ? {
+                skills: [{ skill: weapon }, { skill: weapon, referenceOnly: true }],
+                render: () => ''
+              }
+            : null
+      })
+    });
+    const projection = projectPalette(input);
+    assert.equal(traitReads, 1);
+    assert.ok(contexts.length > catalog.skills.length);
+    assert.deepEqual(new Set(contexts.map(({ skillId }) => skillId)), new Set(catalog.skills.map((skill) => skill.id)));
+    for (const { context } of contexts) assert.equal(context, projection.paletteContext);
+    assert.equal(projection.paletteContext.activeAutoattack, weapon);
+    assert.deepEqual([...projection.paletteContext.traits], [42]);
+    assert.equal(projection.utilityGroup.skills[0].contextDisabled, false);
+
+    if (customLayout) assert.equal(projection.customWeaponPalette.skills[1].draggable, false);
+  }
+});
+
 /** Build presentation facts independently of the application lifecycle. */
 function projectionInput(
   profession,
@@ -85,7 +146,7 @@ test('a used 20-second skill displays 16 seconds under Alacrity', () => {
       time: result.planningState.atSeconds,
       cooldownsBySkillId: result.planningState.cooldownsBySkillId
     });
-    const view = paletteSkillView(input, skill, true);
+    const view = paletteSkillView(input, skill, { contextAvailable: true });
     assert.equal(view.cooldownLabel, label);
     assert.equal(view.disabled, true);
     assert.equal(observedRuntime(result).cooldownController.rechargeFor(skill.id).work, 20);
@@ -141,7 +202,11 @@ test('palette distinguishes startup, missing verdicts, and runtime retry boundar
     retryAt: 2
   };
   const availability = paletteAvailability(input, context, skill);
-  const view = paletteSkillView(input, skill, availability.available, availability.message, availability.retryAt);
+  const view = paletteSkillView(input, skill, {
+    contextAvailable: availability.available,
+    contextMessage: availability.message,
+    contextRetryAt: availability.retryAt
+  });
   assert.equal(view.contextDisabled, false);
   assert.equal(view.cooldownLabel, '2.000s');
   assert.match(view.castDetails, /Availability rechecked in: 2\.000s/);
@@ -324,7 +389,14 @@ test('Dodge + Auto derives availability from its unchanged command expansion', a
   };
   const retry = paletteAvailability(input, context, skill);
   assert.equal(retry.retryAt, 5);
-  assert.equal(paletteSkillView(input, skill, retry.available, retry.message, retry.retryAt).contextDisabled, false);
+  assert.equal(
+    paletteSkillView(input, skill, {
+      contextAvailable: retry.available,
+      contextMessage: retry.message,
+      contextRetryAt: retry.retryAt
+    }).contextDisabled,
+    false
+  );
   availability[followup.id] = { ready: false, reason: 'Weapon unavailable.', code: 'fixture.weapon', retryAt: null };
   assert.deepEqual(paletteAvailability(input, context, skill), {
     available: false,
@@ -385,18 +457,21 @@ test('Dragon Slash editor access is separate from its default verdict and requir
     skill
   );
   assert.equal(availability.available, false);
-  assert.equal(paletteSkillView(input, skill, false, availability.message).contextDisabled, false);
+  assert.equal(
+    paletteSkillView(input, skill, { contextAvailable: false, contextMessage: availability.message }).contextDisabled,
+    false
+  );
   // Editor access cannot bypass a denied command unless a descriptor actually exists; lookup stays lazy.
   input.ui = { ...profession.ui, castEditor: () => null };
-  assert.equal(paletteSkillView(input, skill, false).contextDisabled, true);
+  assert.equal(paletteSkillView(input, skill, { contextAvailable: false }).contextDisabled, true);
   input.ui.castEditor = () => ({
     prepare() {
       throw new Error('Eligibility must not prepare choices');
     }
   });
-  assert.equal(paletteSkillView(input, skill, false).contextDisabled, false);
+  assert.equal(paletteSkillView(input, skill, { contextAvailable: false }).contextDisabled, false);
   delete input.planning.availability[skill.id];
-  assert.equal(paletteSkillView(input, skill, false).contextDisabled, true);
+  assert.equal(paletteSkillView(input, skill, { contextAvailable: false }).contextDisabled, true);
 });
 
 for (const [label, skills, states] of [
@@ -703,7 +778,11 @@ test('Untamed ambush tiles glow only while their window is open and recharge is 
         Object.assign(runtime.profession.specialization.state, { rangerUnleashed, ambushReadyUntil: time < 4 ? 4 : 0 });
       });
       const availability = planning.availability[skill.id];
-      assert.equal(paletteSkillView(input, skill, availability.ready).highlighted, expected, name);
+      assert.equal(
+        paletteSkillView(input, skill, { contextAvailable: availability.ready }).highlighted,
+        expected,
+        name
+      );
     }
   }
 });
@@ -741,7 +820,7 @@ test('Rock Barrier tile shows the root cooldown after Hurl consumes the flip', a
     }
   });
   const [skill] = displayedSkillTiles(input, [profession.catalog.skillsById.get(5695)]);
-  const view = paletteSkillView(input, skill, true);
+  const view = paletteSkillView(input, skill, { contextAvailable: true });
 
   assert.equal(skill.name, 'Rock Barrier');
   assert.equal(view.cooldownLabel, '8.000s');

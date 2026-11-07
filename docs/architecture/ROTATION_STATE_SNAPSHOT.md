@@ -10,8 +10,13 @@ The shared profession page template includes the `rotation-active-buffs` host. T
 ## State and observation time
 
 `palettePlanningState(app)` supplies a detached `planningState` at the selected position. Insertion points use a cached
-prefix simulation through `rotationPlanningStateAt()`. Rotation end reuses the current result unless an observation tail
+prefix simulation through `CursorPreview.at()`. Rotation end reuses the current result unless an observation tail
 requires a separate rotation-end observation. Prefix and append previews use the same runtime without a tail.
+
+Planning queries return `null` until the baseline matches the current build revision. Deferred rotation rendering keeps
+the previous display during an edit. An explicit render clears the state bar when no current planning observation is
+available. A simulation failure leaves timeline editing and cursor movement available, so users can repair the rotation.
+Editor candidates use the accepted baseline inputs without replacing the palette's cached prefix.
 
 After target death, authored commands continue for editor planning while hostile effects and hit-dependent grants are
 suppressed. Combat reports stop at `combatEndTime`; planning state describes the observation boundary. It is not a
@@ -41,9 +46,10 @@ interface RotationStateSnapshotItem {
 }
 ```
 
-The renderer displays values as supplied. Use short values such as `4.2s`, `3/5`, or `62%` and put explanations in `title`. The renderer
-escapes labels, values, and tooltips. Return `[]` for an irrelevant value; items with `active: false` are also hidden.
-To display a meaningful zero, return its formatted value without marking the item inactive.
+The renderer displays values as supplied. Use short values such as `4.2s`, `3/5`, or `62%` and put explanations in
+`title`. The renderer escapes labels, values, and tooltips. Return `[]` for an irrelevant value; items with
+`active: false` are also hidden. To display a meaningful zero, return its formatted value without marking the item
+inactive.
 
 ## Adding a state value
 
@@ -58,7 +64,8 @@ Choose the existing simulation owner before adding presentation:
 
 Do not create UI-only timers or duplicate simulation state. Core UI owns shared profession mechanics; elite UI owns
 elite-specific mechanics; the shared model owns profession-neutral state. Core, active elite, and family list callbacks
-compose automatically. Snapshot item IDs must be unique across profession contributions. Avoid shared IDs such as `critical-chance` and `relic:<name>`.
+compose automatically. Snapshot item IDs must be unique across profession contributions. Avoid shared IDs such as
+`critical-chance` and `relic:<name>`.
 
 ### Profession item example
 
@@ -124,7 +131,9 @@ in consumers and fixtures. Do not add old-name aliases or infer IDs from runtime
 
 Only Core and the active elite contribute observations. Each projector receives explicit runtime state, reads its actual
 owner, and selects visible facts without mutation. Composition rejects duplicate IDs instead of letting module order
-overwrite a value. A field owned by Core must be read from Core even if an elite is responsible for exposing it. Derive public types from `ReturnType<typeof projector>` so TypeScript catches renamed IDs and omitted fields in presentation code.
+overwrite a value. A field owned by Core must be read from Core even if an elite is responsible for exposing it. Derive
+public types from `ReturnType<typeof projector>` so TypeScript catches renamed IDs and omitted fields in presentation
+code.
 
 The shared planning observer deep-clones the composed public record once. Module projectors may borrow read-only values;
 expiry, charge, and cap transformations must construct new values instead of mutating those borrowed objects. Standalone
@@ -147,4 +156,5 @@ Filter full-result events by inspection time so a later activation cannot appear
 Use focused Node tests for snapshot callbacks: inactive/active state, exact expiry, stack caps, selection gates, and
 specialization composition as relevant. For new projected fields, verify they appear in `planningState.profession` and
 remain detached from runtime state. Use browser tests only for changed rendering or cursor integration; each profession
-need not retest shared insertion infrastructure. The shared renderer displays items returned by the hook without additional HTML or timeline code.
+need not retest shared insertion infrastructure. The shared renderer displays items returned by the hook without
+additional HTML or timeline code.

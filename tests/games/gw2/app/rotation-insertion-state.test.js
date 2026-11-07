@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import { palettePlanningResult, palettePlanningState, paletteProfessionState } from '#gw2/app/rotation/context.js';
+import {
+  cursorPreview,
+  palettePlanningResult,
+  palettePlanningState,
+  paletteProfessionState
+} from '#gw2/app/rotation/context.js';
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
 import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
@@ -10,6 +15,7 @@ import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
+import { cursorPreviewCapture, prepareCursorPreviewFixture } from '#tests/helpers/cursor-preview.js';
 import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
@@ -49,6 +55,10 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
     },
     rotationInsertionIndex: 1,
     analysis: {
+      capture: cursorPreviewCapture([
+        { type: 'wait', durationMs: 1 },
+        { type: 'wait', durationMs: 1 }
+      ]),
       needsPatchComparison: () => false,
       state: {
         buildRevision: 0,
@@ -61,7 +71,8 @@ test('palette state uses and caches the selected insertion checkpoint', () => {
     },
     adapter: {
       skillTooltip: () => ({ description: '', facts: [] }),
-      rotationPreviewAt(_app, index) {
+      calculateCursorPreview({ rotation }) {
+        const index = rotation.length;
         previewCount += 1;
         assert.equal(index, 1);
 
@@ -95,7 +106,7 @@ test('every profession adapter exposes insertion-state previews', async () => {
   for (const entry of professionRegistry) {
     const adapter = await loadProfessionAppAdapter(entry.id);
 
-    assert.equal(typeof adapter.rotationPreviewAt, 'function', entry.id);
+    assert.equal(typeof adapter.calculateCursorPreview, 'function', entry.id);
   }
 });
 
@@ -145,6 +156,7 @@ test('Bloodstone appears only after the insertion prefix includes Detonate', asy
       captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: false })
     ).result;
     assert.deepEqual(app.analysis.state.results.warnings, []);
+    prepareCursorPreviewFixture(app);
     const detonation = app.analysis.state.results.steps.find((step) => step.skillName === 'Detonate');
     app.rotationInsertionIndex = detonation.rotationCommandIndex;
     const before = rotationStateSnapshot(app);
@@ -212,11 +224,12 @@ test('precombat insertion previews preserve Flow and the boundary inside an unfi
     );
     app.analysis.state.results = result;
     assert.deepEqual(result.warnings, []);
-    const beforeHit = adapter.rotationPreviewAt(app, 2).planningState;
+    prepareCursorPreviewFixture(app);
+    const beforeHit = cursorPreview(app).at(2).planningState;
     assert.equal(beforeHit.atSeconds, 1);
     assert.ok(Math.abs(beforeHit.profession[STATE.FLOW].value - 4) < 1e-9);
-    const beforeMarker = adapter.rotationPreviewAt(app, 3).planningState;
-    const afterMarker = adapter.rotationPreviewAt(app, 4).planningState;
+    const beforeMarker = cursorPreview(app).at(3).planningState;
+    const afterMarker = cursorPreview(app).at(4).planningState;
     assert.equal(beforeMarker.atSeconds, afterMarker.atSeconds);
     assert.equal(beforeMarker.profession[STATE.FLOW].value, afterMarker.profession[STATE.FLOW].value);
     const expectedFlow = 4 * beforeMarker.atSeconds + 2 * (beforeMarker.atSeconds - result.combatStartTime);
@@ -331,15 +344,16 @@ test('native insertion previews project weapon set and cooldown state', async ()
     captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: false })
   );
   app.analysis.state.results = result;
-  const initial = adapter.rotationPreviewAt(app, 0).planningState;
-  const afterFirstSkill = adapter.rotationPreviewAt(app, 1).planningState;
-  const afterFirstSwap = adapter.rotationPreviewAt(app, 2).planningState;
+  prepareCursorPreviewFixture(app);
+  const initial = cursorPreview(app).at(0).planningState;
+  const afterFirstSkill = cursorPreview(app).at(1).planningState;
+  const afterFirstSwap = cursorPreview(app).at(2).planningState;
 
   assert.equal(initial.activeWeaponSet, 1);
   assert.ok(afterFirstSkill.cooldownsBySkillId[10221].remainingMs > 0);
   assert.equal(afterFirstSwap.activeWeaponSet, 2);
   assert.ok(afterFirstSwap.cooldownsBySkillId[10221].remainingMs > 0);
-  assert.deepEqual(adapter.rotationPreviewAt(app, 3).planningState, result.planningState);
+  assert.deepEqual(cursorPreview(app).at(3).planningState, result.planningState);
 
   // Reusing a tailed result would make recovered cooldownsBySkillId available too early when appending.
   app.analysis.state.results = simulateGw2({
@@ -355,7 +369,7 @@ test('native insertion previews project weapon set and cooldown state', async ()
     observationPolicy: { kind: 'tail', durationMs: 20000 }
   });
   assert.ok(app.analysis.state.results.planningState.atSeconds * 1000 > result.planningState.atSeconds * 1000);
-  assert.deepEqual(adapter.rotationPreviewAt(app, 3).planningState, result.planningState);
+  assert.deepEqual(cursorPreview(app).at(3).planningState, result.planningState);
   for (const insertionIndex of [null, build.rotation.length]) {
     app.rotationInsertionIndex = insertionIndex;
     assert.deepEqual(palettePlanningState(app), result.planningState);

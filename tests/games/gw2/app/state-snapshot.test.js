@@ -8,6 +8,7 @@ import { elementalistProfession } from '#gw2/professions/elementalist/profession
 import { MESMER_TRAIT_IDS as MESMER_TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
+import { cursorPreviewCapture } from '#tests/helpers/cursor-preview.js';
 import { effectFields, effectPlanningState } from '#tests/helpers/effect-report.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -30,6 +31,10 @@ test('Catalyst snapshots use the active balance catalog before and after simulat
     activeCatalog: patched.resolveProfession({ specialization: 'Catalyst', patchId: 'snapshot-test' }).catalog,
     adapter: { eliteSpecialization: () => 'Catalyst' },
     analysis: {
+      capture: cursorPreviewCapture([
+        { type: 'wait', durationMs: 1 },
+        { type: 'wait', durationMs: 1 }
+      ]),
       state: {
         buildRevision: 0,
         resultRevision: 0,
@@ -113,6 +118,10 @@ test('active state shows one countdown per active relic and ignores future, expi
     patch: withPatchPreview(mesmerProfession, null).resolvePatch(),
     build: { relic: 'Claw', rotation: ['a', 'b'] },
     analysis: {
+      capture: cursorPreviewCapture([
+        { type: 'wait', durationMs: 1 },
+        { type: 'wait', durationMs: 1 }
+      ]),
       state: {
         buildRevision: 0,
         resultRevision: 0,
@@ -137,7 +146,7 @@ test('active state shows one countdown per active relic and ignores future, expi
     },
     adapter: {
       eliteSpecialization: () => 'Core',
-      rotationPreviewAt: (app) => ({ ...app.analysis.state.results, planningState: { atSeconds: 3 } })
+      calculateCursorPreview: () => ({ ...app.analysis.state.results, planningState: { atSeconds: 3 } })
     },
     profession: {
       ui: { rotationStateSnapshot: () => [] }
@@ -176,6 +185,10 @@ test('Bloodstone active state clears consumed Volatility during Fervor and start
       patch: withPatchPreview(mesmerProfession, null).resolvePatch(),
       build: { rotation: ['a', 'b'] },
       analysis: {
+        capture: cursorPreviewCapture([
+          { type: 'wait', durationMs: 1 },
+          { type: 'wait', durationMs: 1 }
+        ]),
         state: {
           buildRevision: 0,
           resultRevision: 0,
@@ -197,7 +210,7 @@ test('Bloodstone active state clears consumed Volatility during Fervor and start
       profession: { ui: { rotationStateSnapshot: () => [] } },
       adapter: {
         eliteSpecialization: () => 'Core',
-        rotationPreviewAt: (app) => ({ ...app.analysis.state.results, planningState: { atSeconds: 2 } })
+        calculateCursorPreview: () => ({ ...app.analysis.state.results, planningState: { atSeconds: 2 } })
       },
       rotationInsertionIndex: 1
     };
@@ -232,6 +245,10 @@ test('Deadeye cantrip relic windows reach the shared active-state display and ex
       patch: withPatchPreview(thiefProfession, null).resolvePatch(),
       build: { relic: 'Deadeye', rotation: ['Shadow Gust', '__wait'] },
       analysis: {
+        capture: cursorPreviewCapture([
+          { type: 'wait', durationMs: 1 },
+          { type: 'wait', durationMs: 1 }
+        ]),
         state: {
           buildRevision: 0,
           resultRevision: 0,
@@ -262,6 +279,10 @@ test('Aristocracy shows current stacks with the remaining duration in its toolti
     patch: withPatchPreview(mesmerProfession, null).resolvePatch(),
     build: { rotation: ['a', 'b'] },
     analysis: {
+      capture: cursorPreviewCapture([
+        { type: 'wait', durationMs: 1 },
+        { type: 'wait', durationMs: 1 }
+      ]),
       state: {
         buildRevision: 0,
         resultRevision: 0,
@@ -279,7 +300,7 @@ test('Aristocracy shows current stacks with the remaining duration in its toolti
     },
     adapter: {
       eliteSpecialization: () => 'Core',
-      rotationPreviewAt: (app) => ({ ...app.analysis.state.results, planningState: { atSeconds: 1.5 } })
+      calculateCursorPreview: () => ({ ...app.analysis.state.results, planningState: { atSeconds: 1.5 } })
     },
     rotationInsertionIndex: 1
   };
@@ -320,6 +341,10 @@ test('Chronomancer active state shows only pending conversions from phantasms al
       patch: withPatchPreview(mesmerProfession, null).resolvePatch(),
       build: { rotation: ['Phantasmal Warlock', '__wait'] },
       analysis: {
+        capture: cursorPreviewCapture([
+          { type: 'wait', durationMs: 1 },
+          { type: 'wait', durationMs: 1 }
+        ]),
         state: {
           buildRevision: 0,
           resultRevision: 0,
@@ -333,7 +358,10 @@ test('Chronomancer active state shows only pending conversions from phantasms al
       rotationInsertionIndex: 1,
       adapter: {
         eliteSpecialization: () => 'Chronomancer',
-        rotationPreviewAt: () => ({ ...result, planningState: { ...effectPlanningState(result, at), profession: {} } })
+        calculateCursorPreview: () => ({
+          ...result,
+          planningState: { ...effectPlanningState(result, at), profession: {} }
+        })
       }
     }).items.filter((item) => item.id.startsWith('chronomancer-phantasm:'));
 

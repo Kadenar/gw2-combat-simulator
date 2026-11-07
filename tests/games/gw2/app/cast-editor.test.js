@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
+import { cursorPreview } from '#gw2/app/rotation/context.js';
 import { formatTimelineTime } from '#gw2/app/shared/result-clock.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+import { prepareCursorPreviewFixture } from '#tests/helpers/cursor-preview.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 const skill = warriorProfession.catalog.skillsById.get(62797);
@@ -131,7 +133,8 @@ test('Dragon Slash editor choices execute prefix candidates through the applicat
       patch: app.patch
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-  const preview = (command) => adapter.rotationPreviewAt(app, 1, command ? [command] : []);
+  prepareCursorPreviewFixture(app);
+  const preview = (command) => cursorPreview(app).at(1, command ? [command] : []);
   const prefix = preview();
   assert.equal(prefix.planningState.atSeconds, 0);
   assert.equal(prefix.combatStartTime, 1);
@@ -149,7 +152,7 @@ test('Dragon Slash editor choices execute prefix candidates through the applicat
   assert.ok(row.label.includes(`${release.flowAfter.toFixed(2)} Flow`));
   assert.ok(row.label.includes(`${release.coefficient.toFixed(2)} coefficient`));
   assert.equal(
-    descriptor.prepare({ preview: () => adapter.rotationPreviewAt(app, 0), formatTime: String }).unavailableMessage,
+    descriptor.prepare({ preview: () => cursorPreview(app).at(0), formatTime: String }).unavailableMessage,
     'Enter Dragon Trigger before using this skill.'
   );
 });

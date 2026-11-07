@@ -520,7 +520,7 @@ test('legend palette shows only the destination legend with the shared swap cool
         projectActions: revenantAppAdapter.profession.ui.paletteActionSkills
       }),
       revenantCatalog.skillsById.get(SKILL.SWAP_LEGENDS),
-      true
+      { contextAvailable: true }
     ).cooldownLabel,
     '9.000s'
   );

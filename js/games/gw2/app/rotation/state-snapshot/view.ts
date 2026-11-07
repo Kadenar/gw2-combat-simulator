@@ -3,6 +3,7 @@
  * The view hides empty snapshots so the timeline only reserves space for state
  * that the user can inspect.
  */
+import { cursorPreviewReady } from '#gw2/app/rotation/cursor-preview.js';
 import { rotationStateSnapshot } from '#gw2/app/rotation/state-snapshot/model.js';
 import { formatResultTimelineTime } from '#gw2/app/shared/result-clock.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -14,7 +15,8 @@ export function renderRotationStateSnapshot(app: ProfessionAppState): void {
 
   if (!element) return;
 
-  if (!app.analysis.state.results || !app.build.rotation.length) {
+  // Explicit renders clear unavailable state; deferred rotation rendering owns preservation during edits.
+  if (!cursorPreviewReady(app.analysis.state) || !app.build.rotation.length) {
     element.innerHTML = '';
     element.hidden = true;
     return;

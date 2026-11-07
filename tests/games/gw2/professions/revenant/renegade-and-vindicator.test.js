@@ -31,6 +31,7 @@ import {
   vindicatorDodgeAutoRotationEntries
 } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { cursorPreviewCapture } from '#tests/helpers/cursor-preview.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { paletteInputFixture } from '#tests/helpers/palette.js';
@@ -1396,6 +1397,10 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
   let changeCount = 0;
   const app = {
     analysis: {
+      capture: cursorPreviewCapture([
+        { type: 'wait', durationMs: 1 },
+        { type: 'wait', durationMs: 1 }
+      ]),
       needsPatchComparison: () => false,
       state: {
         results: {
@@ -1423,7 +1428,7 @@ test('Vindicator Dodge + Auto palette action uses the current chain step', () =>
       skillTooltip: revenantAppAdapter.skillTooltip,
       eliteSpecialization: () => 'Vindicator',
       // Cursor previews use the manually controlled chain state for this palette-action fixture.
-      rotationPreviewAt: (app) => app.analysis.state.results,
+      calculateCursorPreview: () => app.analysis.state.results,
       isSkillAvailable: () => true
     },
     changed: () => {

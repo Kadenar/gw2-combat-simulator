@@ -45,7 +45,7 @@ function activationApp(skills) {
         simulationStatus: 'idle',
         simulationError: '',
         patchComparison: null,
-        results: null
+        results: {}
       }
     },
     attributeData: null,
@@ -85,6 +85,13 @@ test('palette activation waits for matching result and build revisions', () => {
   dispatchPaletteActivation(app, skill.name, activationEvent(skill.id));
   assert.deepEqual(added, []);
   app.analysis.state.resultRevision = 2;
+  for (const results of [null, undefined]) {
+    app.analysis.state.results = results;
+    dispatchPaletteActivation(app, skill.name, activationEvent(skill.id));
+    assert.deepEqual(added, []);
+  }
+
+  app.analysis.state.results = {};
   dispatchPaletteActivation(app, skill.name, activationEvent(skill.id));
   assert.deepEqual(added, [{ name: skill.name, options: { skillId: skill.id } }]);
 });

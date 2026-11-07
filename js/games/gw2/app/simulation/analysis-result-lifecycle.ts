@@ -132,9 +132,11 @@ export class AnalysisResultLifecycle {
     const context = this.execution.context();
     const revision = this.current.buildRevision + 1;
     const previous = adoptedResult ?? this.current.results;
+    // Adoption is fresh only when its original inputs are available for cursor previews and later analysis.
+    const adoptedInputs = adoptedResult ? this.resultInputs.get(adoptedResult) : null;
     this.update({
       buildRevision: revision,
-      resultRevision: adoptedResult ? revision : this.current.resultRevision,
+      resultRevision: adoptedInputs ? revision : this.current.resultRevision,
       results: previous?.contributions ? { ...previous, modifierContributionsStale: true } : previous,
       simulationStatus: 'queued',
       simulationError: '',
@@ -143,7 +145,7 @@ export class AnalysisResultLifecycle {
     this.cancelModifiers();
     this.cancelDistribution();
 
-    if (adoptedResult) this.currentInputs = this.resultInputs.get(adoptedResult) ?? null;
+    if (adoptedResult) this.currentInputs = adoptedInputs ?? null;
 
     if (!patchSwitch) this.cache.invalidate(context.build);
 
@@ -166,7 +168,8 @@ export class AnalysisResultLifecycle {
       inputs: this.currentInputs,
       patchComparison: this.current.patchComparison,
       fresh:
-        this.current.results !== null &&
+        this.current.results != null &&
+        this.currentInputs != null &&
         this.current.resultRevision === this.current.buildRevision &&
         this.current.simulationStatus === 'idle'
     });
@@ -179,6 +182,9 @@ export class AnalysisResultLifecycle {
     const fresh =
       snapshot.fresh && snapshot.inputs != null && Boolean(snapshot.results?.debugInputs) === context.damageDiagnostics;
     this.currentInputs = fresh ? snapshot.inputs : null;
+
+    if (fresh && snapshot.results && snapshot.inputs) this.resultInputs.set(snapshot.results, snapshot.inputs);
+
     const revision = this.current.buildRevision + 1;
     this.update({
       results: fresh ? snapshot.results : null,

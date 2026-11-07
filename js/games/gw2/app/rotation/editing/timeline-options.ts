@@ -1,4 +1,6 @@
 /** Connects timeline gestures to complete edits while preserving captured-command guards. */
+import { cursorPreview } from '#gw2/app/rotation/context.js';
+import { cursorPreviewReady } from '#gw2/app/rotation/cursor-preview.js';
 import { resolveEntryDisplaySkill, resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import {
   activationDamageCommitMs,
@@ -98,7 +100,7 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
   // The displayed skill selects its profession editor; edits retain the authored command's identity.
   const descriptor = castEditorForSkill(app, skill);
 
-  if (skill && descriptor && item.command.type === 'cast') {
+  if (skill && descriptor && item.command.type === 'cast' && cursorPreviewReady(app.analysis.state)) {
     const target = event?.currentTarget;
     const anchor =
       (target instanceof HTMLElement ? target : null) ||
@@ -190,15 +192,17 @@ function editRotationActivation(app: ProfessionAppState, index: number, event?: 
     previewCombatStartAfterCastMs:
       isPrecast && behavior === 'concurrent'
         ? (timingMs) => {
+            if (app.build.rotation[index] !== entry || !cursorPreviewReady(app.analysis.state)) return null;
+
             if (timingMs === (item.concurrentOffsetMs ?? null)) return combatStartAfterCastMs;
 
             // Reuse the scheduler through Combat Start: changing a precast can move both the cast and marker.
-            const rotation = app.build.rotation.slice(0, combatStartIndex + 1);
-            rotation[index] = updateRotationEntry(entry, { concurrentOffsetMs: timingMs ?? undefined });
-            const preview = app.adapter.rotationPreviewAt(
-              { ...app, build: { ...app.build, rotation } },
-              rotation.length
+            const preview = cursorPreview(app).editThrough(index, combatStartIndex, (captured) =>
+              updateRotationEntry(captured, { concurrentOffsetMs: timingMs ?? undefined })
             );
+
+            if (!preview) return null;
+
             const previewStep = preview.steps.find(
               (candidate) => candidate.rotationCommandIndex === index && !candidate.invalid
             );

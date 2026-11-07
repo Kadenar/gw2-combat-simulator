@@ -4,7 +4,6 @@ import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { bindAppPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
 import {
   projectPalette,
-  queryPaletteContext,
   type PaletteGroupView,
   type PaletteProjection,
   type PaletteSkillView
@@ -280,11 +279,12 @@ export function renderPalette(app: ProfessionAppState): void {
   const focusIdentity = focused?.dataset;
   const focusIndex = focused ? [...element.querySelectorAll('button')].indexOf(focused) : -1;
   const input = capturePaletteInput(app);
-  const paletteContext = queryPaletteContext(input);
-  element.innerHTML = paletteHtml(projectPalette(input));
+  // Tiles and interactions share the context computed by this projection.
+  const projection = projectPalette(input);
+  element.innerHTML = paletteHtml(projection);
   updatePaletteFreshness(app);
 
-  bindAppPaletteInteractions(app, element, paletteContext);
+  bindAppPaletteInteractions(app, element, projection.paletteContext);
 
   if (focusIdentity) {
     const buttons = [...element.querySelectorAll<HTMLButtonElement>('button')];

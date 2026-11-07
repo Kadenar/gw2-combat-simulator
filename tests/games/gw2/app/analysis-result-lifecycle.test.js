@@ -161,7 +161,7 @@ test('restoring a tab rejects outgoing callbacks and reuses data without restori
 test('reference adoption marks matching Current fresh while replacement work is queued', () => {
   const f = analysisFixture();
   f.publish({ dps: 10 });
-  const reference = { dps: 20 };
+  const reference = f.publish({ dps: 20 });
   f.lifecycle.changeInputs(false, reference);
   assert.equal(f.lifecycle.state.results, reference);
   assert.equal(f.lifecycle.state.resultRevision, f.lifecycle.state.buildRevision);
@@ -236,4 +236,20 @@ test('canonical state is read-only and synchronous initialization uses the same 
     f.lifecycle.state.resultRevision = 999;
   }, TypeError);
   assert.equal(f.changes.find((change) => change.kind === 'baseline').render, false);
+});
+
+// External adoption without provenance remains paintable but cannot authorize cursor work.
+test('adopted results without captured inputs wait for a baseline before previews become ready', () => {
+  const f = analysisFixture();
+  f.publish({ dps: 10 });
+  const external = { dps: 20 };
+  f.lifecycle.changeInputs(false, external);
+  assert.equal(f.lifecycle.state.results, external);
+  assert.notEqual(f.lifecycle.state.resultRevision, f.lifecycle.state.buildRevision);
+  assert.equal(f.lifecycle.capture().inputs, null);
+  assert.equal(f.lifecycle.capture().fresh, false);
+  f.lifecycle.refreshBaseline();
+  f.work.baseline.at(-1).complete({ result: { dps: 30 } });
+  assert.equal(f.lifecycle.capture().fresh, true);
+  assert.ok(f.lifecycle.capture().inputs);
 });

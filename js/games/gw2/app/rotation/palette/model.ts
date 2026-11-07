@@ -786,25 +786,37 @@ function currentAmmo(
   };
 }
 
+interface PaletteSkillViewOptions {
+  readonly contextAvailable?: boolean;
+  readonly contextMessage?: string;
+  readonly contextRetryAt?: number | null;
+  readonly resources?: readonly ProfessionResourceView[];
+  readonly paletteContext?: PaletteContext;
+}
+
 /**
  * Projects a skill and the latest simulation state into generic palette UI.
  * `contextAvailable` is the caller's combined state/placement decision;
  * cooldown and ammo state are derived here so styling, dragging, and tooltips
- * share one decision.
+ * share one decision. Whole-palette projection supplies its context to avoid
+ * repeating catalog queries for each tile; isolated callers derive it once here.
  */
 export function paletteSkillView(
   input: PaletteInput,
   skill: PaletteSkill,
-  contextAvailable = true,
-  contextMessage = '',
-  contextRetryAt: number | null = null,
-  resources: readonly ProfessionResourceView[] = activeResourceDefinitions(input)
+  {
+    contextAvailable = true,
+    contextMessage = '',
+    contextRetryAt = null,
+    resources = activeResourceDefinitions(input),
+    paletteContext = queryPaletteContext(input)
+  }: PaletteSkillViewOptions = {}
 ): PaletteSkillView {
   const cd = currentCooldown(input, skill);
   const editorAccess =
     input.planning?.availability[skill.id] != null &&
     isBuildSkillAvailable(skill, { specialization: input.specialization }) &&
-    input.ui?.paletteOverride?.(queryPaletteContext(input), skill)?.editorAccess === true &&
+    input.ui?.paletteOverride?.(paletteContext, skill)?.editorAccess === true &&
     input.ui.castEditor({ build: input.build, catalog: input.catalog, specialization: input.specialization }, skill) !=
       null;
   const endTime = Number(input.planning?.atSeconds || 0) * 1000;
@@ -1020,23 +1032,21 @@ export function projectPalette(input: PaletteInput) {
 
   const resources = activeResourceDefinitions(input);
   const professionTile = (skill: PaletteSkill): PaletteSkillView =>
-    paletteSkillView(
-      input,
-      skill,
-      professionAllowsPaletteSkill(skill),
-      professionPaletteUnavailableMessage(skill),
-      professionPaletteRetryAt(skill),
-      resources
-    );
+    paletteSkillView(input, skill, {
+      contextAvailable: professionAllowsPaletteSkill(skill),
+      contextMessage: professionPaletteUnavailableMessage(skill),
+      contextRetryAt: professionPaletteRetryAt(skill),
+      resources,
+      paletteContext
+    });
   const weaponTile = (skill: PaletteSkill, weaponSet: number): PaletteSkillView =>
-    paletteSkillView(
-      input,
-      skill,
-      weaponSkillAvailable(skill, weaponSet),
-      weaponSkillUnavailableMessage(skill, weaponSet),
-      weaponSkillRetryAt(skill, weaponSet),
-      resources
-    );
+    paletteSkillView(input, skill, {
+      contextAvailable: weaponSkillAvailable(skill, weaponSet),
+      contextMessage: weaponSkillUnavailableMessage(skill, weaponSet),
+      contextRetryAt: weaponSkillRetryAt(skill, weaponSet),
+      resources,
+      paletteContext
+    });
   const projectGroup = (group: SelectedPaletteGroup): ProjectedPaletteGroup => ({
     id: group.id,
     label: group.label,
@@ -1070,7 +1080,7 @@ export function projectPalette(input: PaletteInput) {
         skills: customLayout.skills.map(({ skill, referenceOnly }) =>
           referenceOnly
             ? {
-                ...paletteSkillView(input, skill, true, '', null, resources),
+                ...paletteSkillView(input, skill, { resources, paletteContext }),
                 draggable: false,
                 hotkeyAction: ''
               }
@@ -1116,6 +1126,7 @@ export function projectPalette(input: PaletteInput) {
 
   const virtualTile = (view: PaletteSkillView): PaletteSkillView => ({ color: '#8d7a57', draggable: true, ...view });
   return {
+    paletteContext,
     renderedProfessionGroups: professionGroups,
     renderedLoadoutGroups: renderedLoadoutGroups.map(projectGroup),
     resources,

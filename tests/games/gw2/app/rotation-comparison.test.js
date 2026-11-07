@@ -18,6 +18,7 @@ import { authoredStepIndexesAtPreviewTime, rotationPreviewSchedulerTimeMs } from
 import { BaselineSimulationRunner } from '#gw2/app/simulation/baseline/runner.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
 import { analysisFixture, controlledAnalysisSnapshot } from '#tests/helpers/analysis-lifecycle.js';
+import { cursorPreviewCapture } from '#tests/helpers/cursor-preview.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 
 function result(id, dps = 100, totalDamage = 400, duration = 4, resolvedEvents = []) {
@@ -402,10 +403,10 @@ test('swap exchanges independent rotations and results and resets Current histor
   assert.deepEqual(app._rotationHistory.redo, []);
   assert.equal(app.changedCalls[0][0], false);
   assert.equal(app.changedCalls[0][2].adoptedResult, referenceResult);
-  assert.equal(
+  assert.notEqual(
     app.analysis.state.resultRevision,
     app.analysis.state.buildRevision,
-    'the cached reference result stays paintable while queued'
+    'an externally supplied reference stays paintable but must recapture its inputs'
   );
 });
 
@@ -419,24 +420,37 @@ test('comparison follows the insertion checkpoint and restores final metrics at 
       ]
     },
     analysis: {
+      capture: cursorPreviewCapture([
+        { type: 'wait', durationMs: 1 },
+        { type: 'wait', durationMs: 1 }
+      ]),
       state: {
         buildRevision: 0,
         resultRevision: 0,
         simulationStatus: 'idle',
         simulationError: '',
         patchComparison: null,
-        results: { dpsStartTime: 2 }
+        results: { dpsStartTime: 2, planningState: {} }
       }
     },
     rotationInsertionIndex: 1,
     adapter: {
-      rotationPreviewAt(_app, index) {
+      calculateCursorPreview({ rotation }) {
+        const index = rotation.length;
         return { planningState: { atSeconds: index === 0 ? 0 : 2.75 } };
       }
     }
   };
 
   assert.equal(rotationComparisonTimeMs(app), 750);
+  app.analysis.state.buildRevision++;
+  for (const simulationStatus of ['queued', 'running', 'error']) {
+    app.analysis.state.simulationStatus = simulationStatus;
+    assert.equal(rotationComparisonTimeMs(app), 750, 'pending results retain the cursor comparison');
+  }
+
+  app.analysis.state.resultRevision++;
+
   app.rotationInsertionIndex = 0;
   assert.equal(rotationComparisonTimeMs(app), 0, 'precombat cursor positions start at zero DPS elapsed time');
   for (const index of [null, 2, 3]) {
@@ -445,7 +459,7 @@ test('comparison follows the insertion checkpoint and restores final metrics at 
   }
 
   app.rotationInsertionIndex = 1;
-  app.analysis.state.results = { firstHitTime: 1 };
+  app.analysis.state.results = { firstHitTime: 1, planningState: {} };
   assert.equal(rotationComparisonTimeMs(app), 1750);
   app.analysis.state.results = null;
   assert.equal(rotationComparisonTimeMs(app), null);

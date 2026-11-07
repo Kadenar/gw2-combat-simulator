@@ -1,4 +1,5 @@
 /** Routes palette gestures to editors and complete rotation edits. */
+import { cursorPreviewReady } from '#gw2/app/rotation/cursor-preview.js';
 import { createRotationItem, resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { activationDamageCommitMs, openActivationEditor } from '#gw2/app/rotation/editing/activation-editor.js';
 import { castEditorForSkill, openProfessionCastEditor } from '#gw2/app/rotation/editing/cast-editor.js';
@@ -217,7 +218,7 @@ export function dispatchPaletteActivation(
   editors: PaletteActivationEditors = PALETTE_ACTIVATION_EDITORS
 ): void {
   // Retained palette tiles cannot author commands against a rotation whose new state has not rendered yet.
-  if (app.analysis.state.resultRevision !== app.analysis.state.buildRevision) return;
+  if (!cursorPreviewReady(app.analysis.state)) return;
 
   const icon = event.currentTarget;
   const parsedSkillId = Number(icon.dataset.skillId);
@@ -348,7 +349,7 @@ export function bindAppPaletteInteractions(
 ): void {
   bindPaletteInteractions(element, {
     onControlActivate(controlId) {
-      if (app.analysis.state.resultRevision !== app.analysis.state.buildRevision) return;
+      if (!cursorPreviewReady(app.analysis.state)) return;
 
       if (app.profession.ui.updatePaletteControl(paletteContext, controlId)) {
         app.changed();
@@ -358,7 +359,7 @@ export function bindAppPaletteInteractions(
       dispatchPaletteActivation(app, name, event);
     },
     onDragStart(name, event) {
-      if (app.analysis.state.resultRevision !== app.analysis.state.buildRevision) return false;
+      if (!cursorPreviewReady(app.analysis.state)) return false;
 
       const parsedSkillId = Number(event.currentTarget.dataset.skillId);
       app.dragState = {
@@ -393,6 +394,8 @@ export function resolvePaletteDrop(
   drag: ProfessionRotationDragState | null | undefined,
   insertAt: number
 ): RotationCommand | RotationCommand[] | null {
+  if (!cursorPreviewReady(app.analysis.state)) return null;
+
   const parsedSkillId = Number(drag?.skillId);
   const skill: RotationSkill | undefined = resolveEntrySkill(app, {
     name,
