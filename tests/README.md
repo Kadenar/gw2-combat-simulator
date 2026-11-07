@@ -8,11 +8,15 @@ Tests mirror the source tree under `js/`:
 - `ui/` covers game-neutral presentation primitives, including rotation editors, insertion cursors, warnings, and ammo
   display.
 - `games/gw2/app/` covers GW2 application composition and user-facing workflows, plus the saved-preset benchmarks in
-  `games/gw2/app/benchmarks/`.
+  `games/gw2/app/benchmarks/`. Dashboard tests live in `app/page/benchmarks/`, skill-damage preview tests in
+  `app/build/skill-damage/`, and patch-editor tests in `app/patch-authoring/`.
+- `games/gw2/input/` covers physical bindings and input activity analysis.
 - `games/gw2/platform/` covers GW2 platform contracts, including condition resolution, observation windows, and
-  equipment procs. Its `events/`, `effects/`, `execution/`, `resolver/`, `skills/`, and `profession-definition/`
-  directories cover the corresponding platform owners; `architecture/platform-ownership.test.mjs` enforces their import
-  boundaries.
+  equipment procs. Suites live under their source domain, including `attributes/`, `builds/`, `combat/`,
+  `combat-calculation/`, `combos/`, `equipment/`, `events/`, `effects/`, `execution/`, `resolver/`, `results/`,
+  `simulation/`, `skills/`, `skill-damage/`, `profession-definition/`, and `profession-presentation/`. Combat state,
+  queries, history, procs, and resources have separate subfolders, as do the equipment owners.
+  `architecture/platform-ownership.test.mjs` enforces source import rules.
 - `games/gw2/professions/` covers cross-profession contracts, while `games/gw2/professions/<profession>/` owns
   profession behavior.
 - `games/gw2/integrations/logs/` covers combat-log reconstruction: `evtc/`, `dps-report/`, and `wingman/` for each
@@ -30,8 +34,8 @@ shared profession contracts step runs `tests/games/gw2/professions/*.test.js`. A
 test groups, but any failed check still blocks deployment or release asset publication.
 
 `architecture/test-discovery.test.js` checks that publication CI assigns every Node suite to exactly one group. Update
-the publication globs when adding a new test owner; build-context tests run with app/UI and all integration tests run
-with importers.
+the publication globs when adding a new test owner; build-context and input tests run with app/UI and all integration
+tests run with importers.
 
 Browser benchmark coverage is separated into dashboard controls, navigation/loading, charts, build previews, health
 charts, and patch previews. Shared page setup lives in `helpers/browser-benchmarks.js` and
