@@ -1,6 +1,7 @@
 /** Fractal relic rules. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { isIndependentConditionOwner } from '#gw2/platform/combat/state/event-ownership.js';
+import { CONDITION } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -17,7 +18,7 @@ export const fractal = defineRelic({
       application.condition !== CONDITION.BLEEDING ||
       // Only bleeding the player owns arms the relic. Pets and the mech own the bleeding they apply, so their
       // applications never trigger it; other summons share the player's condition packets and still do.
-      (application.actorType === ACTOR.SUMMON && application.independentConditionOwner === true) ||
+      isIndependentConditionOwner(application) ||
       !isInternalCooldownReady(application.at, state.readyAt) ||
       stacksBeforeApplication < REQUIRED_BLEEDING
     ) {

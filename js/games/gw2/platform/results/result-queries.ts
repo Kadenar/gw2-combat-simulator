@@ -1,5 +1,9 @@
 import { effectStateValue } from '#gw2/platform/combat/effect-state.js';
-import { gw2EventActorType, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import {
+  gw2EventActorType,
+  isGw2PlayerModifierOwnedEvent,
+  usesIndependentCriticalProfile
+} from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2SimulationPlanningState, Gw2SimulationResult } from '#gw2/platform/results/types.js';
@@ -23,13 +27,8 @@ export function criticalChanceEventAt(
     // Only effects explicitly owned by the player join player actors in this sample.
     if (actor !== ACTOR.PLAYER && (actor !== ACTOR.EFFECT || !isGw2PlayerModifierOwnedEvent(event))) continue;
 
-    // Match combat-query's independent critical profile: attribution alone does not imply player stats.
-    if (
-      event.independentSummonStrike === true &&
-      event.summonInheritsAttributes !== true &&
-      event.summonInheritsCriticalAttributes !== true
-    )
-      continue;
+    // Player attribution alone does not imply player critical stats.
+    if (usesIndependentCriticalProfile(event)) continue;
 
     // Flat ticks and other non-critical packets report zero chance, which must
     // not replace the player strike being inspected.

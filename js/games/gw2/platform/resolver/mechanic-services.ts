@@ -5,6 +5,7 @@ import type { EffectRecipient } from '#gw2/platform/combat/query/effect-stacks.j
 import { liveBoonSnapshot } from '#gw2/platform/combat/query/effect-stacks.js';
 import { activeBoonStacks, activeBuffStacks, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
+import { isIndependentConditionOwner } from '#gw2/platform/combat/state/event-ownership.js';
 import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { conditionApplicationExpiry } from '#gw2/platform/combat/state/targets.js';
 import type { ComboFieldEvent } from '#gw2/platform/combos/types.js';
@@ -132,12 +133,7 @@ export function createMechanicCombatServices(runtime: Gw2ResolverRuntime): Mecha
       // End future payouts and live stacks without rolling back damage already settled.
       for (const condition of runtime.conditionState.values())
         for (const application of condition.stacks) {
-          if (
-            !application.independentConditionOwner ||
-            application.actorType !== ACTOR.SUMMON ||
-            application.summonOwner !== companionId
-          )
-            continue;
+          if (!isIndependentConditionOwner(application) || application.summonOwner !== companionId) continue;
 
           // Even naturally expired stacks can have unpaid buffered damage, which removal cancels.
           const shortened = conditionApplicationExpiry(application) > removedAt;

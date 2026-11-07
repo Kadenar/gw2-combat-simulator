@@ -5,6 +5,7 @@ import {
 import { reviseEffectState } from '#gw2/platform/combat/effect-state.js';
 import { CONDITION_FORMULAS, conditionTickDamage } from '#gw2/platform/combat/formulas.js';
 import type { Gw2ModifierContribution } from '#gw2/platform/combat/modifiers.js';
+import { conditionDamageOwner } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2RuntimeConditionEntry } from '#gw2/platform/combat/state/targets.js';
 import {
   conditionStackLimit,
@@ -161,24 +162,6 @@ export function createGw2ConditionResolution({
     scheduleEnvironment(ctx, at);
     ctx.conditionBufferAt = undefined;
     scheduleBuffer(ctx, at);
-  }
-
-  /** Summons share player condition packets unless their producer marks an independent pet/mech owner. */
-  function damageOwner(application: Gw2ResolvedConditionApplication): string | Gw2ResolvedConditionApplication {
-    if (application.actorType === ACTOR.SUMMON) {
-      if (!application.independentConditionOwner) return ACTOR.PLAYER;
-
-      return application.summonOwner ? `summon:${application.summonOwner}` : application;
-    }
-
-    if (
-      application.actorType === ACTOR.PLAYER ||
-      (application.actorType === ACTOR.EFFECT && application.ownerActorType === ACTOR.PLAYER)
-    )
-      return ACTOR.PLAYER;
-
-    // Unclassified actors remain isolated until their producer supplies concrete ownership.
-    return application;
   }
 
   function isRemoved(application: Gw2ResolvedConditionApplication, at: number): boolean {
@@ -544,7 +527,7 @@ export function createGw2ConditionResolution({
       // Accepted applications invalidate report windows without involving later damage settlement.
       reviseEffectState(state);
       const groups = (state.groups ??= new Map());
-      const baseOwner = damageOwner(application);
+      const baseOwner = conditionDamageOwner(application);
       const owner =
         ctx.encounter && typeof baseOwner === 'string'
           ? JSON.stringify([baseOwner, ctx.encounter.activeTargetKey])

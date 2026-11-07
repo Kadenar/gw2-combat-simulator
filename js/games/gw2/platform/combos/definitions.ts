@@ -1,3 +1,4 @@
+import { derivedActorMetadata } from '#gw2/platform/combat/state/event-ownership.js';
 import type { ComboEvent } from '#gw2/platform/combos/types.js';
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 import {
@@ -19,33 +20,12 @@ const COMBO_COMBAT_METADATA_FIELDS = Object.freeze([
   // Combo conditions share the finisher's damage row even when its cast uses a variant name.
   'damageBreakdownName',
   // A missed finisher can still grant self effects, but its hostile outcomes must also miss.
-  'offTarget',
-  'ownerActorType',
-  'summonKind',
-  'summonOwner',
-  // Combo conditions belong to the named finisher owner, including a pet that has since swapped out.
-  'entityName',
-  'independentSummonStrike',
-  'independentConditionOwner',
-  'summonInheritsAttributes',
-  'summonInheritsCriticalAttributes',
-  'summonIgnoresBoons',
-  'summonUsesMight',
-  'summonUsesEquipmentModifiers',
-  'summonUsesProfessionModifiers',
-  'summonBasePower',
-  'summonBasePrecision',
-  'summonBaseFerocity',
-  'summonBaseConditionDamage',
-  'summonBaseExpertise',
-  'summonCriticalChance',
-  'summonCriticalDamage',
-  'summonDamagePerCoefficient'
+  'offTarget'
 ]);
 
 /** Carries finisher ownership and summon scaling through semantic combo events and outcomes. */
 export function comboCombatMetadata(event: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> {
-  const metadata: Record<string, unknown> = {};
+  const metadata = derivedActorMetadata(event);
   for (const field of COMBO_COMBAT_METADATA_FIELDS) {
     if (event[field] !== undefined) metadata[field] = event[field];
   }

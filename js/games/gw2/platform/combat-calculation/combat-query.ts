@@ -18,10 +18,13 @@ import type { Gw2DamageInputs, Gw2ModifierContext, Gw2ModifierContribution } fro
 import { appliedEffectStacks } from '#gw2/platform/combat/query/effect-stacks.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import {
+  conditionOwnerEvent,
   gw2EventActorType,
   isGw2IllusionEvent,
   isGw2PhantasmEvent,
-  isGw2PlayerModifierOwnedEvent
+  isGw2PlayerModifierOwnedEvent,
+  isIndependentConditionOwner,
+  usesIndependentCriticalProfile
 } from '#gw2/platform/combat/state/event-ownership.js';
 import type { Gw2RuntimeStateLike } from '#gw2/platform/combat/state/targets.js';
 import {
@@ -96,24 +99,6 @@ function closeContributions(contributors: Gw2ModifierContribution[], total: numb
   const product = (1 + additive) * multiplier;
 
   if (product > 0) traceFactor(contributors, 'other', 'Other effects', total / product);
-}
-
-/** Conditions use their owner's bonuses; summon strike profiles and original actor metadata stay intact. */
-function conditionOwnerEvent(event: SimulationEvent | null): SimulationEvent | null {
-  if (event?.actorType !== ACTOR.SUMMON || event.independentConditionOwner) return event;
-
-  return {
-    ...event,
-    actorType: ACTOR.PLAYER,
-    ownerActorType: ACTOR.PLAYER,
-    summonKind: undefined,
-    summonOwner: undefined,
-    independentSummonStrike: false,
-    summonInheritsAttributes: true,
-    summonIgnoresBoons: false,
-    summonUsesEquipmentModifiers: true,
-    summonUsesProfessionModifiers: true
-  };
 }
 
 /** Independent profiles replace owner attributes only when the packet supplies finite actor Power. */
@@ -436,11 +421,7 @@ export function createGw2CombatQuery({
       // Preserve the hit's boon fact even when forced critical chance replaces its presentation contributors.
       const furyActive = furyActiveAt(time, runtime, event);
 
-      if (
-        event.independentSummonStrike === true &&
-        event.summonInheritsAttributes !== true &&
-        event.summonInheritsCriticalAttributes !== true
-      ) {
+      if (usesIndependentCriticalProfile(event)) {
         const summonFuryBonus = furyActive ? 0.25 : 0;
         const professionBonus =
           event.summonUsesProfessionModifiers === true
@@ -666,8 +647,7 @@ export function createGw2CombatQuery({
       const relicBonus = usesEquipmentModifiers ? relicOutgoingDamageBonus(relicContext, 'condition', time, event) : 0;
       const sigils = activeSigilSetAt(time, runtime);
       // Ordinary summon conditions use their player's bonuses; independent pet/mech owners never inherit Bursting.
-      const usesSigil =
-        usesEquipmentModifiers && !(event?.actorType === ACTOR.SUMMON && event.independentConditionOwner);
+      const usesSigil = usesEquipmentModifiers && !isIndependentConditionOwner(event);
       const sigilFactor = usesSigil ? sigils.condition || 1 : 1;
       const sigilBonus = usesSigil
         ? Number.isFinite(Number(sigils.conditionAdd))
@@ -711,8 +691,7 @@ export function createGw2CombatQuery({
       const sigils = activeSigilSetAt(time, runtime);
       const usesEquipmentModifiers = event?.summonUsesEquipmentModifiers !== false;
       // Independent pet/mech conditions cannot inherit player duration sigils, just as they cannot inherit Bursting.
-      const usesSigil =
-        usesEquipmentModifiers && !(event?.actorType === ACTOR.SUMMON && event.independentConditionOwner);
+      const usesSigil = usesEquipmentModifiers && !isIndependentConditionOwner(event);
       const sigilBonus = usesSigil
         ? ((sigils.conditionDurationBonus || 0) + (sigils.conditionDurationBonuses?.[name] || 0)) / 100
         : 0;

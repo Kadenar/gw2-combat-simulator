@@ -4,6 +4,7 @@ import test from 'node:test';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { conditionApplicationDuration, createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { recordBuffApplication } from '#gw2/platform/combat/boons.js';
+import { comboCombatMetadata } from '#gw2/platform/combos/definitions.js';
 import { resolveProfessionContract } from '#gw2/platform/profession-definition/compile-contract.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
@@ -99,6 +100,15 @@ test('Thieves Guild strike scaling and explicitly independent pet/mech condition
     const condition = { ...independent, independentConditionOwner: true, summonOwner };
     assert.equal(combat.statsAt(0, condition).conditionDamage, 0);
     assert.equal(combat.conditionMultiplier('Poisoned', 0, condition), 1);
+    // Derived combo conditions must preserve zero attributes and disabled inheritance, not regain player bonuses.
+    const derived = { ...player, actorType: condition.actorType, ...comboCombatMetadata(condition) };
+    assert.equal(derived.summonOwner, summonOwner);
+    assert.equal(combat.statsAt(0, derived).conditionDamage, 0);
+    assert.equal(combat.conditionMultiplier('Poisoned', 0, derived), 1);
+    assert.equal(
+      conditionApplicationDuration(combat, 'Poisoned', derived),
+      conditionApplicationDuration(combat, 'Poisoned', condition)
+    );
   }
 });
 

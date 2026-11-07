@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { timedEffectState } from '#gw2/platform/combat/effect-state.js';
+import { criticalChance } from '#gw2/platform/combat/formulas.js';
 import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { criticalChanceEventAt, planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
+import { defineTestProfession } from '#tests/helpers/profession.js';
 
 test('planning buff queries select accepted personal windows and respect exclusive expiry', () => {
   // Profession countdowns share this filter; foreign recipients and assumed/projected grants cannot extend them.
@@ -144,10 +147,16 @@ test('critical chance query selects the next eligible player strike', () => {
 
 test('critical chance query excludes independent critical profiles even on player-attributed strikes', () => {
   // Stat inheritance, rather than actor attribution, decides whether an independent strike represents player crit.
+  const combat = createGw2CombatQuery({
+    profession: defineTestProfession({ id: 'critical-profile', name: 'Critical profile' })
+  });
+  const stats = { precision: 2050, ferocity: 0 };
   const strike = { type: 'damage', at: 1, critEligible: true, criticalChance: 0.05, independentSummonStrike: true };
   for (const ownership of [{ actorType: 'player' }, { actorType: 'effect', ownerActorType: 'player' }]) {
     for (const profile of [{}, { summonInheritsAttributes: false, summonInheritsCriticalAttributes: false }]) {
       const independent = { ...strike, ...ownership, ...profile };
+      independent.criticalChance = combat.critical(independent, 1, null, stats).chance;
+      assert.equal(independent.criticalChance, 0.05);
       assert.equal(criticalChanceEventAt({ resolvedEvents: [independent] }, 0), null);
     }
 
@@ -157,6 +166,8 @@ test('critical chance query excludes independent critical profiles even on playe
       { independentSummonStrike: false }
     ]) {
       const inherited = { ...strike, ...ownership, ...profile };
+      inherited.criticalChance = combat.critical(inherited, 1, null, stats).chance;
+      assert.equal(inherited.criticalChance, criticalChance(stats.precision));
       assert.equal(criticalChanceEventAt({ resolvedEvents: [inherited] }, 0), inherited);
     }
   }
