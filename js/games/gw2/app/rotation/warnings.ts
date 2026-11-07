@@ -1,6 +1,6 @@
 import {
   createPaletteContext,
-  projectPalette,
+  paletteSkillGroups,
   rotationSelectedSlotSkills,
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
@@ -44,7 +44,7 @@ function revealWarningSource(element: HTMLElement): void {
 /** Flags equipped skills whose API-style cast time likely still needs simulator calibration. */
 function equippedSkillCastTimeWarnings(app: ProfessionAppState): RotationWarning[] {
   const context = createPaletteContext(app);
-  const palette = projectPalette(app, context);
+  const palette = paletteSkillGroups(app, context);
   const equippedSkills = [
     ...weaponSkills(app, 1),
     ...weaponSkills(app, 2),

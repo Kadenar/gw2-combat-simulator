@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { paletteView } from '#gw2/app/rotation/palette/model.js';
+import { paletteView, projectPalette } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
 import { ELEMENTALIST_WEAVER_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
@@ -96,67 +96,78 @@ test('Weaver exposes primary and secondary starting attunements', () => {
   );
 });
 
-test('Weaver current bar exposes a carried autoattack from the previous primary attunement', () => {
-  const build = {
-    ...weaverBuild('1-1-1'),
-    weapons: ['Sword', 'Dagger'],
-    startAttunement: 'Air',
-    secondaryAttunement: 'Fire'
-  };
-  const airRoot = elementalistCatalog.skillsById.get(44681).id;
-  const airFollowup = elementalistCatalog.skillsById.get(45259);
-  const app = {
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: {
-          planningState: {
-            availability: Object.fromEntries(elementalistCatalog.skills.map((skill) => [skill.id, { ready: true }])),
-            activeWeaponSet: 1,
-            atSeconds: 1,
-            cooldownsBySkillId: {},
-            // Carryover changes the active chain without changing the ammo projection.
-            ammoBySkillId: {},
-            profession: {
-              [STATE.PRIMARY_ATTUNEMENT]: 'Fire',
-              [STATE.SECONDARY_ATTUNEMENT]: 'Air',
-              [STATE.AUTOATTACK_CHAINS]: { [airRoot]: airFollowup.id },
-              [STATE.AUTOATTACK_CARRYOVER]: { root: airRoot, attunement: 'Air' }
+for (const primaryAttunement of ['Fire', 'Air']) {
+  // Matching attunements must not insert a carried attack that already occupies the current weapon slot.
+  test(`Weaver current bar shows its carried attack once in ${primaryAttunement}/Air`, () => {
+    const build = {
+      ...weaverBuild('1-1-1'),
+      weapons: ['Sword', 'Dagger'],
+      startAttunement: 'Air',
+      secondaryAttunement: 'Fire'
+    };
+    const airRoot = elementalistCatalog.skillsById.get(44681).id;
+    const airFollowup = elementalistCatalog.skillsById.get(45259);
+    const app = {
+      analysis: {
+        needsPatchComparison: () => false,
+        state: {
+          results: {
+            planningState: {
+              availability: Object.fromEntries(elementalistCatalog.skills.map((skill) => [skill.id, { ready: true }])),
+              activeWeaponSet: 1,
+              atSeconds: 1,
+              cooldownsBySkillId: {},
+              // Carryover changes the active chain without changing the ammo projection.
+              ammoBySkillId: {},
+              profession: {
+                [STATE.PRIMARY_ATTUNEMENT]: primaryAttunement,
+                [STATE.SECONDARY_ATTUNEMENT]: 'Air',
+                [STATE.AUTOATTACK_CHAINS]: { [airRoot]: airFollowup.id },
+                [STATE.AUTOATTACK_CARRYOVER]: { root: airRoot, attunement: 'Air' }
+              }
             }
           }
         }
-      }
-    },
-    patch: elementalistAppAdapter.profession.resolvePatch(),
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    activeCatalog: elementalistCatalog,
-    weaponData: elementalistAppAdapter.weaponData
-  };
-  const palette = inertContainer();
-  const previousDocument = globalThis.document;
+      },
+      patch: elementalistAppAdapter.profession.resolvePatch(),
+      build,
+      adapter: elementalistAppAdapter,
+      profession: elementalistProfession,
+      activeCatalog: elementalistCatalog,
+      weaponData: elementalistAppAdapter.weaponData
+    };
+    const palette = inertContainer();
+    const previousDocument = globalThis.document;
 
-  globalThis.document = {
-    querySelector: () => null,
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
+    globalThis.document = {
+      querySelector: () => null,
+      getElementById: (id) => (id === 'rotation-palette' ? palette : null)
+    };
+    try {
+      renderPalette(app);
+    } finally {
+      globalThis.document = previousDocument;
+    }
 
-  const currentStart = palette.innerHTML.indexOf('data-role="weaver-current-bar"');
-  const currentEnd = palette.innerHTML.indexOf('utility-palette-group', currentStart);
-  const currentHtml = palette.innerHTML.slice(currentStart, currentEnd);
+    const currentStart = palette.innerHTML.indexOf('data-role="weaver-current-bar"');
+    const currentEnd = palette.innerHTML.indexOf('utility-palette-group', currentStart);
+    const currentHtml = palette.innerHTML.slice(currentStart, currentEnd);
 
-  assert.match(currentHtml, /data-skill="Polaric Slash"/);
-  assert.match(currentHtml, /data-skill="Fire Strike"/);
-  assert.ok(currentHtml.indexOf('data-skill="Polaric Slash"') < currentHtml.indexOf('data-skill="Fire Strike"'));
-  assert.match(currentHtml, /data-skill="Polaric Slash"[^>]*draggable="true"/);
-  assert.match(currentHtml, /data-skill="Fire Strike"[^>]*draggable="true"/);
-});
+    assert.match(currentHtml, /data-skill="Polaric Slash"/);
+    assert.match(currentHtml, /data-skill="Polaric Slash"[^>]*draggable="true"/);
+    assert.equal((currentHtml.match(/data-skill="Polaric Slash"/g) || []).length, 1);
+    const occurrences = projectPalette(app).customWeaponPalette.skills.filter(
+      (tile) => tile.skillId === airFollowup.id
+    );
+    assert.equal(occurrences.filter((tile) => tile.hotkeyAction).length, 1, 'one actionable carried attack');
+    assert.equal(occurrences.filter((tile) => !tile.hotkeyAction).length, 1, 'one separate cooldown reference');
+
+    if (primaryAttunement === 'Fire') {
+      assert.match(currentHtml, /data-skill="Fire Strike"[^>]*draggable="true"/);
+      assert.ok(currentHtml.indexOf('data-skill="Polaric Slash"') < currentHtml.indexOf('data-skill="Fire Strike"'));
+    }
+  });
+}
 
 test('Weaver active state reads Elements of Rage at the inspected rotation point', () => {
   // Inspecting an earlier cursor must show its live buff even when the completed rotation has expired it.

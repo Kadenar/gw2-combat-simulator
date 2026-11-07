@@ -1,20 +1,7 @@
-import { renderPalette } from '#gw2/app/rotation/palette/view.js';
-import { inertContainer } from '#tests/helpers/dom.js';
+/** Exercises the same completed projection and markup seam as the mounted palette. */
+import { projectPalette } from '#gw2/app/rotation/palette/model.js';
+import { paletteHtml } from '#gw2/app/rotation/palette/view.js';
 
-/** Captures palette markup without binding DOM controls and restores the document even if rendering fails. */
 export function renderPaletteMarkup(app) {
-  const palette = inertContainer();
-  const previousDocument = globalThis.document;
-
-  globalThis.document = {
-    querySelector: () => null,
-    getElementById: (id) => (id === 'rotation-palette' ? palette : null)
-  };
-  try {
-    renderPalette(app);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-
-  return palette.innerHTML;
+  return paletteHtml(projectPalette(app));
 }

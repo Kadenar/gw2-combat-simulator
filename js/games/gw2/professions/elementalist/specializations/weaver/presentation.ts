@@ -15,9 +15,10 @@ import type {
 import type { SkillDamagePreviewPreparation } from '#gw2/platform/profession-presentation/skill-damage.js';
 import type {
   ProfessionEventLogDescriptor,
-  ProfessionPaletteSkillRenderer,
   ProfessionStateSnapshotContext,
-  ProfessionWeaponPaletteRenderContext,
+  ProfessionWeaponPaletteContext,
+  ProfessionWeaponPaletteOccurrence,
+  ProfessionWeaponPaletteProjection,
   ProfessionWeaponPaletteView,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
@@ -58,7 +59,7 @@ function hasElementsOfRage(context: ElementalistUiContext): boolean {
 // An attunement swap changes Weaver's primary-hand bar immediately, but GW2
 // leaves the previous element's progressed autoattack on slot 1 until its chain resolves.
 function isCarriedAutoattackSkill(
-  context: ElementalistUiContext & Partial<Pick<ProfessionWeaponPaletteRenderContext, 'autoattackChains'>>,
+  context: ElementalistUiContext & Partial<Pick<ProfessionWeaponPaletteContext, 'autoattackChains'>>,
   skill: ElementalistSkill
 ): boolean {
   const state = elementalistUiState(context);
@@ -69,7 +70,7 @@ function isCarriedAutoattackSkill(
 
   if ((carryover?.attunement || '') !== (skill.attunement || '')) return false;
 
-  const chains: ProfessionWeaponPaletteRenderContext['autoattackChains'] =
+  const chains: ProfessionWeaponPaletteContext['autoattackChains'] =
     state[STATE.AUTOATTACK_CHAINS] || context.autoattackChains || {};
   const expected = chains[String(root)] ?? root;
   return skill.id === expected;
@@ -208,68 +209,37 @@ function attunementBadge(attunement: unknown): string {
     .join('/');
 }
 
-// Render one weapon cell with availability, equipped-state, and optional
-// attunement badge while delegating the actual skill tile to the shared renderer.
-function skillCellHtml(
-  skill: ElementalistSkill,
-  isAvailable: (skill: Skill) => boolean,
-  unavailableMessage: (skill: Skill) => string,
-  renderSkill: ProfessionPaletteSkillRenderer,
-  options: {
-    readonly badge?: boolean;
-    readonly equipped?: boolean;
-    readonly staticCooldown?: boolean;
-  } = {}
-): string {
-  const available = isAvailable(skill);
-  const projectedSkill = options.badge ? { ...skill, variantBadge: attunementBadge(skill.attunement) } : skill;
-  const renderedSkill = renderSkill(projectedSkill, {
-    contextAvailable: options.staticCooldown ? true : available,
-    contextMessage: options.staticCooldown ? '' : unavailableMessage(skill),
-    view: options.staticCooldown ? { draggable: false, hotkeyAction: '' } : undefined
-  });
-  const equipped = !options.staticCooldown && (options.equipped || available) ? ' is-equipped' : '';
-  return `<div class="weaver-skill-cell${equipped}${options.staticCooldown ? ' is-static' : ''}"
-      data-attunement="${esc(skill.attunement || 'Special')}"
-      ${options.staticCooldown ? 'data-palette-static="true"' : ''}>
-      ${renderedSkill}
-    </div>`;
+/** Prepared placement is independent of skill markup and retains separate current/reference occurrences. */
+interface WeaverPaletteCell {
+  readonly index: number;
+  readonly attunement: string;
+  readonly equipped: boolean;
+  readonly referenceOnly: boolean;
 }
 
-// One labelled row per element, used by the collapsible cooldown banks.
-function elementRowsHtml(
-  rows: readonly WeaverWeaponPaletteRow[],
-  selectedAttunement: string,
-  autoattackChains: ProfessionWeaponPaletteRenderContext['autoattackChains'],
-  isAvailable: (skill: Skill) => boolean,
-  unavailableMessage: (skill: Skill) => string,
-  renderSkill: ProfessionPaletteSkillRenderer
-): string {
-  return rows
-    .map((row) => {
-      const visibleSkills = row.skills.filter((skill) => autoattackChainSkillAvailable(skill, autoattackChains));
-
-      if (!visibleSkills.length) return '';
-
-      return `<div class="weaver-attunement-row${row.attunement === selectedAttunement ? ' is-selected' : ''}"
-          data-attunement="${esc(row.attunement)}">
-          <span class="weaver-attunement-label">${esc(row.attunement)}</span>
-          <div class="weaver-attunement-skills">${visibleSkills
-            .map((skill) =>
-              skillCellHtml(skill, isAvailable, unavailableMessage, renderSkill, { staticCooldown: true })
-            )
-            .join('')}</div>
-        </div>`;
-    })
-    .join('');
+interface WeaverPaletteRow {
+  readonly attunement: string;
+  readonly selected: boolean;
+  readonly cells: readonly WeaverPaletteCell[];
 }
 
-// Arrange Weaver weapon skills by primary hand, dual slot, and secondary hand,
-// keeping the optional cooldown inventory behind a native disclosure.
-// The palette dispatcher invokes this renderer only for the selected Weaver specialization.
-function renderWeaverWeaponPalette(
-  context: ProfessionWeaponPaletteRenderContext<Partial<ElementalistPlanningState>>
-): ProfessionWeaponPaletteView | null {
+interface WeaverPaletteView {
+  readonly primaryAttunement: string;
+  readonly secondaryAttunement: string;
+  readonly primarySkills: readonly WeaverPaletteCell[];
+  readonly slotThreeSkills: readonly WeaverPaletteCell[];
+  readonly secondarySkills: readonly WeaverPaletteCell[];
+  readonly primaryRows: readonly WeaverPaletteRow[];
+  readonly secondaryRows: readonly WeaverPaletteRow[];
+  readonly sameAttunementSkills: readonly WeaverPaletteCell[];
+  readonly dualSkills: readonly WeaverPaletteCell[];
+  readonly extraSkills: readonly WeaverPaletteCell[];
+}
+
+/** Select the live hands and cooldown inventory before any tile or layout markup is generated. */
+function projectWeaverWeaponPalette(
+  context: ProfessionWeaponPaletteContext<Partial<ElementalistPlanningState>>
+): ProfessionWeaponPaletteProjection | null {
   const skills = context.skills;
 
   if (!skills.length) return null;
@@ -280,8 +250,6 @@ function renderWeaverWeaponPalette(
   const secondaryAttunement = state?.[STATE.SECONDARY_ATTUNEMENT] || build?.secondaryAttunement || primaryAttunement;
   const autoattackChains = context.autoattackChains;
   const isAvailable = context.isSkillAvailable;
-  const unavailableMessage = context.unavailableMessage;
-  const renderSkill = context.renderSkill;
   // Select the current hands independently of affordability so denied skills keep their bar slots.
   const layout = weaverWeaponPaletteLayout(skills);
   const active = (candidates: readonly Skill[]): Skill[] =>
@@ -300,6 +268,10 @@ function renderWeaverWeaponPalette(
     if (!carriedAutoattack || placedCarriedAutoattack || skill.slot !== 'Weapon_1') return [skill];
 
     placedCarriedAutoattack = true;
+
+    // Matching attunements can already display the carried step in this slot; keep that occurrence once.
+    if (carriedAutoattack.id === skill.id) return [skill];
+
     // Keep the carried step first for normal weapon-1 input, while exposing the
     // current root beside it as an explicit way to cancel and restart the chain.
     return [carriedAutoattack, skill];
@@ -310,41 +282,87 @@ function renderWeaverWeaponPalette(
 
   const slotThreeSkills = active([...layout.sameAttunementSkills, ...layout.dualSkills]);
   const secondarySkills = active(layout.secondaryRows.flatMap((row) => row.skills));
-  const currentCluster = (candidates: readonly Skill[], badge = false): string => `<div class="weaver-current-cluster">
-      ${candidates
-        .map((skill) =>
-          skillCellHtml(skill, isAvailable, unavailableMessage, renderSkill, {
-            badge,
-            equipped: true
-          })
-        )
-        .join('')}
-    </div>`;
-  const slotThreeBank = (
-    candidates: readonly Skill[],
-    variant: 'same' | 'dual'
-  ): string => `<div class="weaver-slot-three-row" data-weaver-variant="${variant}">
-      <span class="weaver-slot-three-label">${variant === 'same' ? 'Same' : 'Mixed'}</span>
-      <div class="weaver-slot-three-skills">${candidates
-        .map((skill) =>
-          skillCellHtml(skill, isAvailable, unavailableMessage, renderSkill, {
-            badge: true,
-            staticCooldown: true
-          })
-        )
-        .join('')}</div>
-    </div>`;
-  // Skills no slot role claimed (bundles, transformed bars) keep their own bank.
-  const extraSkills = layout.extraSkills.filter((skill) => autoattackChainSkillAvailable(skill, autoattackChains));
-  const extrasHtml = extraSkills.length
-    ? `<div class="weaver-extra-bank" data-role="weaver-extra-bank">
-        <span class="weaver-bank-title">Other weapon skills</span>
-        <div class="weaver-attunement-skills">${extraSkills
-          .map((skill) => skillCellHtml(skill, isAvailable, unavailableMessage, renderSkill))
-          .join('')}</div>
-      </div>`
-    : '';
 
+  const occurrences: ProfessionWeaponPaletteOccurrence[] = [];
+  const cells = (
+    candidates: readonly ElementalistSkill[],
+    { badge = false, equipped = false, referenceOnly = false } = {}
+  ): WeaverPaletteCell[] =>
+    candidates.map((skill) => {
+      const index = occurrences.length;
+      occurrences.push({
+        skill: badge ? { ...skill, variantBadge: attunementBadge(skill.attunement) } : skill,
+        referenceOnly
+      });
+      return {
+        index,
+        attunement: skill.attunement || 'Special',
+        equipped: !referenceOnly && (equipped || isAvailable(skill)),
+        referenceOnly
+      };
+    });
+  const rows = (candidates: readonly WeaverWeaponPaletteRow[], selected: string): WeaverPaletteRow[] =>
+    candidates.flatMap((row) => {
+      const visible = row.skills.filter((skill) => autoattackChainSkillAvailable(skill, autoattackChains));
+      return visible.length
+        ? [
+            {
+              attunement: row.attunement,
+              selected: row.attunement === selected,
+              cells: cells(visible, { referenceOnly: true })
+            }
+          ]
+        : [];
+    });
+  const view: WeaverPaletteView = {
+    primaryAttunement,
+    secondaryAttunement,
+    primarySkills: cells(primarySkills, { equipped: true }),
+    slotThreeSkills: cells(slotThreeSkills, { equipped: true, badge: true }),
+    secondarySkills: cells(secondarySkills, { equipped: true }),
+    primaryRows: rows(layout.primaryRows, primaryAttunement),
+    secondaryRows: rows(layout.secondaryRows, secondaryAttunement),
+    sameAttunementSkills: cells(layout.sameAttunementSkills, { referenceOnly: true, badge: true }),
+    dualSkills: cells(layout.dualSkills, { referenceOnly: true, badge: true }),
+    extraSkills: cells(layout.extraSkills.filter((skill) => autoattackChainSkillAvailable(skill, autoattackChains)))
+  };
+  return { skills: occurrences, render: (tiles) => renderWeaverWeaponPalette(view, tiles) };
+}
+
+/** Render only prepared placement and completed tile markup; no profession or build state is consulted. */
+function renderWeaverWeaponPalette(view: WeaverPaletteView, tiles: readonly string[]): ProfessionWeaponPaletteView {
+  const { primaryAttunement, secondaryAttunement, primarySkills, slotThreeSkills, secondarySkills } = view;
+  const skillCellHtml = (
+    cell: WeaverPaletteCell
+  ): string => `<div class="weaver-skill-cell${cell.equipped ? ' is-equipped' : ''}${cell.referenceOnly ? ' is-static' : ''}"
+      data-attunement="${esc(cell.attunement)}"
+      ${cell.referenceOnly ? 'data-palette-static="true"' : ''}>
+      ${tiles[cell.index]}
+    </div>`;
+  const elementRowsHtml = (rows: readonly WeaverPaletteRow[]): string =>
+    rows
+      .map(
+        (row) =>
+          `<div class="weaver-attunement-row${row.selected ? ' is-selected' : ''}" data-attunement="${esc(row.attunement)}">
+      <span class="weaver-attunement-label">${esc(row.attunement)}</span>
+      <div class="weaver-attunement-skills">${row.cells.map(skillCellHtml).join('')}</div>
+    </div>`
+      )
+      .join('');
+  const currentCluster = (cells: readonly WeaverPaletteCell[]): string => `<div class="weaver-current-cluster">
+      ${cells.map(skillCellHtml).join('')}
+    </div>`;
+  const slotThreeBank = (cells: readonly WeaverPaletteCell[], variant: 'same' | 'dual'): string =>
+    `<div class="weaver-slot-three-row" data-weaver-variant="${variant}">
+      <span class="weaver-slot-three-label">${variant === 'same' ? 'Same' : 'Mixed'}</span>
+      <div class="weaver-slot-three-skills">${cells.map(skillCellHtml).join('')}</div>
+    </div>`;
+  const extrasHtml = view.extraSkills.length
+    ? `<div class="weaver-extra-bank" data-role="weaver-extra-bank">
+      <span class="weaver-bank-title">Other weapon skills</span>
+      <div class="weaver-attunement-skills">${view.extraSkills.map(skillCellHtml).join('')}</div>
+    </div>`
+    : '';
   return {
     primaryClassName: 'weaver-top-palette',
     primaryRole: 'weaver-top-palette',
@@ -359,7 +377,7 @@ function renderWeaverWeaponPalette(
         <div class="weaver-current-composition">
           ${currentCluster(primarySkills)}
           <span class="weaver-current-divider" aria-hidden="true"></span>
-          ${currentCluster(slotThreeSkills, true)}
+          ${currentCluster(slotThreeSkills)}
           <span class="weaver-current-divider" aria-hidden="true"></span>
           ${currentCluster(secondarySkills)}
         </div>
@@ -372,31 +390,17 @@ function renderWeaverWeaponPalette(
         <div class="weaver-cooldown-bank" data-role="weaver-cooldown-bank">
         <section class="weaver-cooldown-lane" data-role="weaver-primary-bank">
           <div class="weaver-bank-title">Slots 1-2 <span>Primary</span></div>
-          ${elementRowsHtml(
-            layout.primaryRows,
-            primaryAttunement,
-            autoattackChains,
-            isAvailable,
-            unavailableMessage,
-            renderSkill
-          )}
+          ${elementRowsHtml(view.primaryRows)}
         </section>
         <section class="weaver-cooldown-lane weaver-slot-three-bank"
             data-role="weaver-slot-three-bank">
           <div class="weaver-bank-title">Slot 3 <span>Same / dual</span></div>
-          ${slotThreeBank(layout.sameAttunementSkills, 'same')}
-          ${slotThreeBank(layout.dualSkills, 'dual')}
+          ${slotThreeBank(view.sameAttunementSkills, 'same')}
+          ${slotThreeBank(view.dualSkills, 'dual')}
         </section>
         <section class="weaver-cooldown-lane" data-role="weaver-secondary-bank">
           <div class="weaver-bank-title">Slots 4-5 <span>Secondary</span></div>
-          ${elementRowsHtml(
-            layout.secondaryRows,
-            secondaryAttunement,
-            autoattackChains,
-            isAvailable,
-            unavailableMessage,
-            renderSkill
-          )}
+          ${elementRowsHtml(view.secondaryRows)}
         </section>
       </div>
       ${extrasHtml}
@@ -485,5 +489,5 @@ export const weaverUi: ElementalistUiSlice = Object.freeze({
     ),
   timelineWeaponLineTransition: unravelTimelineWeaponLineTransition,
   eventLogRow,
-  renderWeaponPalette: renderWeaverWeaponPalette
+  projectWeaponPalette: projectWeaverWeaponPalette
 });

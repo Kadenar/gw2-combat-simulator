@@ -2,8 +2,13 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
-import { displayedSkillTiles, paletteAvailability, paletteSkillView } from '#gw2/app/rotation/palette/model.js';
-import { paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
+import {
+  displayedSkillTiles,
+  paletteAvailability,
+  paletteSkillView,
+  projectPalette
+} from '#gw2/app/rotation/palette/model.js';
+import { paletteHtml, paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
 import { armSkillFlip } from '#gw2/platform/execution/skill-flips.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
@@ -11,7 +16,6 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { loadProfession, professionOptions } from '#gw2/profession-registry.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { observedRuntime, observeGw2Runtime, planningFixture } from '#tests/helpers/observed-runtime.js';
-import { renderPaletteMarkup } from '#tests/helpers/palette.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 import { defineTestProfession } from '#tests/helpers/profession.js';
 
@@ -157,7 +161,7 @@ test('palette distinguishes startup, missing verdicts, and runtime retry boundar
   assert.equal(paletteAvailability(app, context, { ...skill, specialization: 'Bladesworn' }).available, false);
 });
 
-// Every rendered surface must retain retry insertion, while weapon placement and loadout vetoes still block it.
+// Completed projection retains retries across surfaces, while weapon placement and loadout vetoes still block insertion.
 test('weapon, action, loadout, and custom weapon tiles preserve runtime retries', async () => {
   for (const [id, name, config, rotation] of [
     ['thief', 'Heartseeker', { initialInitiative: 0, primaryWeapon: 'Dagger', secondaryWeapon: 'Dagger' }, []],
@@ -210,17 +214,28 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
     const verdict = app.analysis.state.results.planningState.availability[skill.id];
     assert.equal(verdict.ready, false, name);
     assert.ok(verdict.retryAt > app.analysis.state.results.planningState.atSeconds, name);
-    const tiles = () => [
-      ...renderPaletteMarkup(app).matchAll(new RegExp(`<button[^>]*data-skill-id="${skill.id}"[^>]*>`, 'g'))
-    ];
-    const tile = tiles()[0]?.[0];
-    assert.ok(tile, name);
-    assert.doesNotMatch(tile, /pal-context-disabled/, name);
-    assert.match(tile, /Availability rechecked in:/, name);
+    const projectedTiles = () => {
+      const projection = projectPalette(app);
+      const groups = [
+        ...projection.weaponGroups,
+        ...projection.renderedProfessionGroups,
+        ...projection.renderedLoadoutGroups,
+        projection.actionGroup,
+        projection.utilityGroup
+      ];
+      return [...groups.flatMap((group) => group.skills), ...(projection.customWeaponPalette?.skills || [])].filter(
+        (tile) => tile.skillId === skill.id
+      );
+    };
+
+    const tiles = projectedTiles();
+    assert.ok(tiles.length, name);
+    assert.equal(tiles[0].contextDisabled, false, name);
+    assert.match(tiles[0].castDetails, /Availability rechecked in:/, name);
 
     if (name === 'Heartseeker') {
-      assert.match(tiles()[1][0], /pal-context-disabled/);
-      assert.doesNotMatch(tiles()[1][0], /Availability rechecked in:/);
+      assert.equal(tiles[1].contextDisabled, true);
+      assert.doesNotMatch(tiles[1].castDetails, /Availability rechecked in:/);
     }
 
     if (id === 'revenant') {
@@ -228,10 +243,67 @@ test('weapon, action, loadout, and custom weapon tiles preserve runtime retries'
         ...adapter,
         slotLoadout: { ...adapter.slotLoadout, unavailableReason: () => 'Requires another loadout' }
       };
-      assert.match(tiles()[0][0], /pal-context-disabled/);
-      assert.doesNotMatch(tiles()[0][0], /Availability rechecked in:/);
+      const denied = projectedTiles()[0];
+      assert.equal(denied.contextDisabled, true);
+      assert.doesNotMatch(denied.castDetails, /Availability rechecked in:/);
     }
+
+    if (id === 'elementalist') {
+      const current = tiles.find((tile) => tile.hotkeyAction);
+      const reference = tiles.find((tile) => !tile.hotkeyAction);
+      assert.ok(current, 'Weaver current bar retains its input');
+      assert.ok(reference, 'The same skill also has a cooldown reference');
+      assert.equal(reference.draggable, false);
+      assert.equal(reference.contextDisabled, false);
+      assert.doesNotMatch(reference.castDetails, /Availability rechecked in:/);
+    }
+
+    // The completed projection can render after its source state and hooks are no longer accessible.
+    const projection = projectPalette(app);
+    const expectedMarkup = paletteHtml(projection);
+    for (const key of ['build', 'profession', 'adapter', 'analysis', 'activeCatalog']) {
+      Object.defineProperty(app, key, {
+        get() {
+          throw new Error(`Renderer read ${key}`);
+        }
+      });
+    }
+
+    assert.equal(paletteHtml(projection), expectedMarkup);
   }
+});
+
+// A transformed-away active row must leave swap accessible; virtual control state follows authored commands.
+test('projection places weapon swap once and derives timeline controls from the rotation', async () => {
+  const adapter = await loadProfessionAppAdapter('guardian');
+  const app = {
+    ...projectionApp(adapter.profession),
+    adapter,
+    patch: adapter.profession.resolvePatch(),
+    weaponData: adapter.weaponData,
+    build: {
+      ...createDefaultBuild(adapter),
+      weapons: ['Sword', 'Focus'],
+      alternateWeapons: ['Greatsword', ''],
+      rotation: []
+    }
+  };
+  const projection = projectPalette(app);
+  const swaps = (group) => group.skills.filter((tile) => tile.name === 'Swap Weapons');
+  assert.equal(projection.weaponGroups.flatMap(swaps).length, 1);
+  assert.equal(swaps(projection.actionGroup).length, 0);
+  assert.equal(projection.timelineControls[0].skills[0].contextDisabled, false);
+  assert.equal(projection.timelineControls[2].skills[0].draggable, true);
+
+  app.profession = {
+    ...app.profession,
+    ui: { ...app.profession.ui, paletteWeaponSkills: (context, skills) => (context.weaponSet === 1 ? [] : skills) }
+  };
+  app.build.rotation = [{ type: 'combat-start' }];
+  const withoutActiveRow = projectPalette(app);
+  assert.equal(withoutActiveRow.weaponGroups.flatMap(swaps).length, 0);
+  assert.equal(swaps(withoutActiveRow.actionGroup).length, 1);
+  assert.equal(withoutActiveRow.timelineControls[0].skills[0].contextDisabled, true);
 });
 
 // An active flip keeps its identity even when a resource gate denies its default command.

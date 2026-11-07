@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { clampStartingResourceValues } from '#gw2/app/build/panels/traits.js';
-import { activeResourceGroup, resourceDisplayViews } from '#gw2/app/rotation/palette/resource-view.js';
+import {
+  activeResourceDefinitions,
+  activeResourceGroup,
+  resourceDisplayViews
+} from '#gw2/app/rotation/palette/resource-view.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { planningFixture } from '#tests/helpers/observed-runtime.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
@@ -87,33 +91,35 @@ test('starting resource clamps cover every active resource view', () => {
 });
 
 test('15-pip initiative uses specialization-neutral rows', () => {
-  const html = activeResourceGroup({
-    adapter: { eliteSpecialization: () => 'Core' },
-    build: { initialResource: 15 },
-    profession: {
-      ui: {
-        resourceViews: () => [
-          {
-            id: 'resource',
-            maximum: 15,
-            value: 9,
-            pipRows: 2,
-            pipStyle: 'thief-initiative'
-          }
-        ]
+  const html = activeResourceGroup(
+    activeResourceDefinitions({
+      adapter: { eliteSpecialization: () => 'Core' },
+      build: { initialResource: 15 },
+      profession: {
+        ui: {
+          resourceViews: () => [
+            {
+              id: 'resource',
+              maximum: 15,
+              value: 9,
+              pipRows: 2,
+              pipStyle: 'thief-initiative'
+            }
+          ]
+        }
+      },
+      analysis: {
+        state: {
+          buildRevision: 0,
+          resultRevision: 0,
+          simulationStatus: 'idle',
+          simulationError: '',
+          patchComparison: null,
+          results: { planningState: { availability: {}, atSeconds: 0, profession: {} } }
+        }
       }
-    },
-    analysis: {
-      state: {
-        buildRevision: 0,
-        resultRevision: 0,
-        simulationStatus: 'idle',
-        simulationError: '',
-        patchComparison: null,
-        results: { planningState: { availability: {}, atSeconds: 0, profession: {} } }
-      }
-    }
-  });
+    })
+  );
 
   const rowPipCounts = [
     ...html.matchAll(/<span class="resource-pip-row">((?:<span class="active-resource-pip[^"]*"><\/span>)+)<\/span>/g)

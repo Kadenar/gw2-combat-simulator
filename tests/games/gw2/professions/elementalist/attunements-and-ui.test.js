@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { paletteSkillView, weaponPaletteRows, weaponSkills } from '#gw2/app/rotation/palette/model.js';
-import { activeResourceGroup, renderStartResource } from '#gw2/app/rotation/palette/resource-view.js';
+import {
+  activeResourceDefinitions,
+  activeResourceGroup,
+  renderStartResource
+} from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { elementalistAppAdapter } from '#gw2/professions/elementalist/app/app-definition.js';
@@ -1001,67 +1005,73 @@ test('Evoker layers familiar charges beside F5', () => {
   assert.equal(charges.pipStyle, 'elementalist-evoker-air-2');
   assert.equal(charges.showValue, false);
 
-  const resourceHtml = activeResourceGroup({
-    analysis: {
-      needsPatchComparison: () => false,
-      state: { results: { planningState: { availability: {}, profession: professionState } } }
-    },
-    patch: elementalistAppAdapter.profession.resolvePatch(),
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    activeCatalog: elementalistProfession.catalog
-  });
+  const resourceHtml = activeResourceGroup(
+    activeResourceDefinitions({
+      analysis: {
+        needsPatchComparison: () => false,
+        state: { results: { planningState: { availability: {}, profession: professionState } } }
+      },
+      patch: elementalistAppAdapter.profession.resolvePatch(),
+      build,
+      adapter: elementalistAppAdapter,
+      profession: elementalistProfession,
+      activeCatalog: elementalistProfession.catalog
+    })
+  );
 
   assert.match(resourceHtml, /data-resource-id="evoker-charges"/);
   assert.match(resourceHtml, /data-resource-count="4"/);
   assert.match(resourceHtml, /active-resource-pips elementalist-evoker-air-2/);
   assert.doesNotMatch(resourceHtml, /<strong>4\/6<\/strong>/);
 
-  const basicReadyHtml = activeResourceGroup({
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: {
-          planningState: {
-            availability: {},
-            profession: {
-              ...professionState,
-              [STATE.FAMILIAR_CHARGES]: { value: 6, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
-              [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
+  const basicReadyHtml = activeResourceGroup(
+    activeResourceDefinitions({
+      analysis: {
+        needsPatchComparison: () => false,
+        state: {
+          results: {
+            planningState: {
+              availability: {},
+              profession: {
+                ...professionState,
+                [STATE.FAMILIAR_CHARGES]: { value: 6, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
+                [STATE.EMPOWERED_CHARGES]: { value: 0, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
+              }
             }
           }
         }
-      }
-    },
-    patch: elementalistAppAdapter.profession.resolvePatch(),
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    activeCatalog: elementalistProfession.catalog
-  });
-  const empoweredReadyHtml = activeResourceGroup({
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: {
-          planningState: {
-            availability: {},
-            profession: {
-              ...professionState,
-              [STATE.FAMILIAR_CHARGES]: { value: 4, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
-              [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
+      },
+      patch: elementalistAppAdapter.profession.resolvePatch(),
+      build,
+      adapter: elementalistAppAdapter,
+      profession: elementalistProfession,
+      activeCatalog: elementalistProfession.catalog
+    })
+  );
+  const empoweredReadyHtml = activeResourceGroup(
+    activeResourceDefinitions({
+      analysis: {
+        needsPatchComparison: () => false,
+        state: {
+          results: {
+            planningState: {
+              availability: {},
+              profession: {
+                ...professionState,
+                [STATE.FAMILIAR_CHARGES]: { value: 4, maximum: 6, unitsPerSecond: 0, updatedAt: 0 },
+                [STATE.EMPOWERED_CHARGES]: { value: 3, maximum: 3, unitsPerSecond: 0, updatedAt: 0 }
+              }
             }
           }
         }
-      }
-    },
-    patch: elementalistAppAdapter.profession.resolvePatch(),
-    build,
-    adapter: elementalistAppAdapter,
-    profession: elementalistProfession,
-    activeCatalog: elementalistProfession.catalog
-  });
+      },
+      patch: elementalistAppAdapter.profession.resolvePatch(),
+      build,
+      adapter: elementalistAppAdapter,
+      profession: elementalistProfession,
+      activeCatalog: elementalistProfession.catalog
+    })
+  );
 
   assert.match(basicReadyHtml, /data-resource-count="6"/);
   assert.match(basicReadyHtml, /active-resource-pips elementalist-evoker-air-0-ready/);

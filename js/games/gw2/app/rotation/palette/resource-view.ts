@@ -107,7 +107,10 @@ export function formatResourceValue(value: unknown): string {
   return String(Math.round((numeric + Number.EPSILON) * 1000) / 1000);
 }
 
-function activeResourceDefinitions(app: ProfessionAppState): ProfessionResourceView[] {
+/** Resolve the live palette resources once, before rendering groups or skill meters. */
+export function activeResourceDefinitions(app: ProfessionAppState): ProfessionResourceView[] {
+  if (!app.profession?.ui) return [];
+
   const professionState = paletteProfessionState(app);
   // Resource views use the same canonical build selection as the rest of the palette.
   const specialization = activeSpecialization(app);
@@ -126,11 +129,11 @@ function activeResourceDefinitions(app: ProfessionAppState): ProfessionResourceV
 }
 
 /** Returns the live resource meter attached to a rotation-palette skill. */
-export function paletteSkillResourceView(app: ProfessionAppState, skillId: SkillId): PaletteResourceView | null {
-  // Some isolated palette consumers project skills without a profession.
-  if (!app.profession?.ui) return null;
-
-  const definition = activeResourceDefinitions(app).find(
+export function paletteSkillResourceView(
+  definitions: readonly ProfessionResourceView[],
+  skillId: SkillId
+): PaletteResourceView | null {
+  const definition = definitions.find(
     (candidate) => candidate.paletteSkillId != null && String(candidate.paletteSkillId) === String(skillId)
   );
 
@@ -272,11 +275,11 @@ function resourceStatusItemsHtml(definition: ProfessionResourceView): string {
 }
 
 /**
- * Returns the read-only resource HTML for the latest simulation end state.
+ * Renders prepared resource definitions without querying build or simulation state.
  * Multiple resource views are wrapped in an `active-resource-stack`.
  */
 export function activeResourceGroup(
-  app: ProfessionAppState,
+  resources: readonly ProfessionResourceView[],
   {
     includeIds,
     excludeIds
@@ -287,7 +290,7 @@ export function activeResourceGroup(
 ): string {
   const included = includeIds ? new Set(includeIds.map(String)) : null;
   const excluded = new Set((excludeIds || []).map(String));
-  const definitions = activeResourceDefinitions(app).filter(
+  const definitions = resources.filter(
     (definition) =>
       definition.paletteSkillId == null && (!included || included.has(definition.id)) && !excluded.has(definition.id)
   );
@@ -298,8 +301,7 @@ export function activeResourceGroup(
             data-resource-id="${esc(definition.id)}">${resourceStatusItemsHtml(definition)}</div>`;
       }
 
-      const buildValue = definition.buildKey ? app.build[definition.buildKey] : 0;
-      const value = boundedNumber(definition.value ?? buildValue, 0, 0, definition.maximum);
+      const value = boundedNumber(definition.value, 0, 0, definition.maximum);
       const displayValue = formatResourceValue(value);
       const valueLabel = `${definition.statusLabel} ${definition.plural}: ${displayValue}/${definition.maximum}`;
       const title = definition.showValue === false ? `${definition.statusLabel} ${definition.plural}` : valueLabel;

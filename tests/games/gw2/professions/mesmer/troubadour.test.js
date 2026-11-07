@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { paletteSkillView } from '#gw2/app/rotation/palette/model.js';
-import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
+import { activeResourceDefinitions, activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { mechanicResourceSpends } from '#gw2/app/rotation/timeline/model.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -731,13 +731,15 @@ test('Troubadour instrument note spends retain rotation timeline metadata', () =
     ['Lute', 'Flute']
   );
   assert.ok(playingView.statusItems.every((item) => /^\d+\.\d+s$/.test(item.valueLabel)));
-  const resourceHtml = activeResourceGroup({
-    analysis: { needsPatchComparison: () => false, state: { results: result } },
-    activeCatalog: mesmerCatalog,
-    profession: mesmerProfession,
-    adapter: { eliteSpecialization: () => 'Troubadour' },
-    build: { initialResource: 0 }
-  });
+  const resourceHtml = activeResourceGroup(
+    activeResourceDefinitions({
+      analysis: { needsPatchComparison: () => false, state: { results: result } },
+      activeCatalog: mesmerCatalog,
+      profession: mesmerProfession,
+      adapter: { eliteSpecialization: () => 'Troubadour' },
+      build: { initialResource: 0 }
+    })
+  );
 
   assert.match(resourceHtml, /active-resource-pips mesmer-notes/);
   assert.equal([...resourceHtml.matchAll(/<span class="active-resource-pip(?: active)?"><\/span>/g)].length, 3);

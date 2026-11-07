@@ -54,7 +54,7 @@ export function normalizeProfessionUi(
     paletteGroups: ui.paletteGroups || (() => []),
     paletteActionSkills: ui.paletteActionSkills || ((_context, skills) => [...skills]),
     paletteWeaponSkills: ui.paletteWeaponSkills || ((_context, skills) => [...skills]),
-    renderWeaponPalette: ui.renderWeaponPalette || (() => null),
+    projectWeaponPalette: ui.projectWeaponPalette || (() => null),
     resolvePaletteAction: ui.resolvePaletteAction || (() => undefined),
     resourceViews,
     isPaletteSkillInstant: ui.isPaletteSkillInstant || (() => false),

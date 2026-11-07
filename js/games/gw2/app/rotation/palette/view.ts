@@ -3,29 +3,16 @@ import { updatePaletteFreshness } from '#gw2/app/rotation/palette/freshness.js';
 import { bindAppPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
 import {
   createPaletteContext,
-  displayedWeaponSkills,
-  paletteSkillView,
   projectPalette,
-  weaponPaletteRows,
-  weaponSkills,
-  type PaletteContext,
   type PaletteGroupView,
-  type PaletteSkillView,
-  type RenderedPaletteGroup
+  type PaletteProjection,
+  type PaletteSkillView
 } from '#gw2/app/rotation/palette/model.js';
 import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
-import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
-import { COMBAT_START_ICON, COOLDOWN_RESET_ICON, WAIT_ICON } from '#gw2/app/shared/icons.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import { restoreFocusWithoutTooltip, skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
-import type {
-  ProfessionPaletteContext,
-  ProfessionPaletteControl,
-  ProfessionPaletteGroup,
-  ProfessionPaletteSkillRenderOptions
-} from '#gw2/platform/profession-presentation/types.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { ProfessionPaletteControl } from '#gw2/platform/profession-presentation/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 
@@ -93,15 +80,6 @@ export function paletteSkillHtml(view: PaletteSkillView = {}): string {
   </button>`;
 }
 
-export function virtualPaletteSkillHtml(view: PaletteSkillView = {}): string {
-  // Virtual actions get neutral defaults while retaining full caller override.
-  return paletteSkillHtml({
-    color: '#8d7a57',
-    draggable: true,
-    ...view
-  });
-}
-
 function paletteControlHtml(view: ProfessionPaletteControl): string {
   const classes = [
     'pal-control',
@@ -157,80 +135,20 @@ export function weaponPaletteSectionHtml(weaponGroups: readonly string[] = [], a
     : '';
 }
 
-/** Adapts a resolved skill list and optional controls to generic group markup. */
-function addGroup(
-  app: ProfessionAppState,
-  label: string,
-  skills: readonly Skill[],
-  color = '#a88be8',
-  isAvailable: (skill: Skill) => boolean = () => true,
-  unavailableMessage: (skill: Skill) => string = () => '',
-  className = '',
-  statusIcon?: ProfessionPaletteGroup['statusIcon'],
-  controls: ProfessionPaletteGroup['controls'] = [],
-  id = '',
-  retryAt: (skill: Skill) => number | null = () => null
-): string {
-  if (!skills.length && !controls.length && !statusIcon) return '';
-
-  return paletteGroupHtml({
-    id,
-    label,
-    color,
-    className,
-    statusIcon,
-    controls,
-    skills: skills.map((skill) =>
-      paletteSkillView(app, skill, isAvailable(skill), unavailableMessage(skill), retryAt(skill))
-    )
-  });
-}
-
-/** Composes palette markup from one immutable point-in-time context without mutating the DOM. */
-function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): string {
-  const {
-    renderedProfessionGroups,
-    renderedLoadoutGroups,
-    actions,
-    weaponSwapActions,
-    generalActions,
-    activeWeaponSet,
-    autoattackChains,
-    professionAllowsPaletteSkill,
-    professionPaletteUnavailableMessage,
-    professionPaletteRetryAt,
-    weaponSkillAvailable,
-    weaponSkillRetryAt,
-    weaponSkillUnavailableMessage,
-    selectedWithFlips
-  } = projectPalette(app, paletteContext);
+/** Compose markup from completed projection data; rendering does not consult application state. */
+export function paletteHtml(projection: PaletteProjection): string {
+  const { renderedProfessionGroups, renderedLoadoutGroups, resources, loadoutAfterActions } = projection;
   const loadoutHasResourceAnchor = renderedLoadoutGroups.some((group) => group.resourceAnchor);
   const loadoutStackHtml = renderedLoadoutGroups.length
     ? `<div class="weapon-palette-stack loadout-palette-stack"
             data-role="loadout-palette-stack"
-            >${renderedLoadoutGroups
-              .map((group) =>
-                addGroup(
-                  app,
-                  group.label,
-                  group.skills,
-                  group.color || '#c49cff',
-                  professionAllowsPaletteSkill,
-                  professionPaletteUnavailableMessage,
-                  group.className,
-                  group.statusIcon,
-                  group.controls,
-                  group.id,
-                  professionPaletteRetryAt
-                )
-              )
-              .join('')}</div>`
+            >${renderedLoadoutGroups.map(paletteGroupHtml).join('')}</div>`
     : '';
   const attachedResourceIds = renderedProfessionGroups.flatMap((group) => group.resourceIds || []);
 
   // Resources attached to a specific group are rendered with that group and
   // excluded from the remaining unpositioned resource block.
-  const resourceGroupsHtml = activeResourceGroup(app, {
+  const resourceGroupsHtml = activeResourceGroup(resources, {
     excludeIds: attachedResourceIds
   });
 
@@ -249,7 +167,6 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
   };
 
   const loadoutStack = stackWithResources(loadoutStackHtml, loadoutHasResourceAnchor);
-  const loadoutAfterActions = app.adapter.slotLoadout?.palettePlacement === 'after-actions';
   const loadoutBeforeWeapons = loadoutAfterActions ? '' : loadoutStack;
   const loadoutUtilityGroup =
     loadoutAfterActions && loadoutStack
@@ -257,28 +174,14 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
             data-role="loadout-utility-palette-group">${loadoutStack}</div>`
       : '';
   // Place each profession-owned group beside its declared palette surface.
-  const weaponSetOneProfessionGroups = renderedProfessionGroups.filter((group) => group.placement === 'weapon-set-1');
-  const activeWeaponProfessionGroups = renderedProfessionGroups.filter((group) => group.placement === 'active-weapon');
   const standardProfessionGroups = renderedProfessionGroups.filter(
     (group) => group.placement === 'profession' || !group.placement
   );
 
-  const renderProfessionGroup = (group: RenderedPaletteGroup): string => {
-    const groupHtml = addGroup(
-      app,
-      group.label,
-      group.skills,
-      group.color || '#c49cff',
-      professionAllowsPaletteSkill,
-      professionPaletteUnavailableMessage,
-      group.className,
-      group.statusIcon,
-      group.controls,
-      group.id,
-      professionPaletteRetryAt
-    );
+  const renderProfessionGroup = (group: PaletteGroupView): string => {
+    const groupHtml = paletteGroupHtml(group);
     const attachedResourcesHtml = group.resourceIds?.length
-      ? activeResourceGroup(app, { includeIds: group.resourceIds })
+      ? activeResourceGroup(resources, { includeIds: group.resourceIds })
       : '';
 
     if (!groupHtml || !attachedResourcesHtml) return groupHtml;
@@ -317,154 +220,22 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
           data-role="profession-palette-section">${professionPaletteContent}</div>`
     : '';
 
-  const utilitySkillsHtml = addGroup(
-    app,
-    'Skill',
-    selectedWithFlips,
-    '#cbb8ea',
-    professionAllowsPaletteSkill,
-    professionPaletteUnavailableMessage,
-    'utility-palette-group',
-    undefined,
-    [],
-    '',
-    professionPaletteRetryAt
-  );
+  const utilitySkillsHtml = paletteGroupHtml(projection.utilityGroup);
   // Stack conjure bars and their controls below utilities, preserving the utility column on every layout.
   const utilityProfessionGroups = renderedProfessionGroups.filter((group) => group.placement === 'utility');
   const utilityGroupHtml = utilityProfessionGroups.length
     ? `<div class="profession-palette-stack utility-palette-group" data-role="utility-palette-stack">${utilitySkillsHtml}${utilityProfessionGroups.map(renderProfessionGroup).join('')}</div>`
     : utilitySkillsHtml;
 
-  const paletteWeaponSkills = (skills: readonly Skill[], context: Partial<ProfessionPaletteContext> = {}): Skill[] =>
-    app.profession.ui.paletteWeaponSkills({ ...paletteContext, ...context }, skills);
-  // Custom weapon layouts still receive generic availability, tooltip, and
-  // interaction markup instead of rebuilding those policies themselves.
-  const renderWeaponSkill = (skill: Skill, options: ProfessionPaletteSkillRenderOptions = {}): string => {
-    const contextAvailable = options.contextAvailable ?? weaponSkillAvailable(skill, activeWeaponSet);
-    const contextMessage = options.contextMessage ?? weaponSkillUnavailableMessage(skill, activeWeaponSet);
-    return paletteSkillHtml({
-      ...paletteSkillView(
-        app,
-        skill,
-        contextAvailable,
-        contextMessage,
-        contextAvailable ? null : weaponSkillRetryAt(skill, activeWeaponSet)
-      ),
-      ...((options.view || {}) as PaletteSkillView)
-    });
-  };
-
-  // Custom layouts such as Weaver follow the chosen active set just like standard weapon rows.
-  const customWeaponPalette = app.profession.ui.renderWeaponPalette({
-    ...paletteContext,
-    skills: paletteWeaponSkills(
-      displayedWeaponSkills(app, weaponSkills(app, activeWeaponSet), activeWeaponSet, paletteContext),
-      { weaponSet: activeWeaponSet }
-    ),
-    autoattackChains,
-    isSkillAvailable: (skill) => weaponSkillAvailable(skill, activeWeaponSet),
-    unavailableMessage: (skill) => weaponSkillUnavailableMessage(skill, activeWeaponSet),
-    renderSkill: renderWeaponSkill
-  });
-
-  const positionedActiveWeaponGroups = new Set<string>();
-  // Standard layouts place weapon swap in the first active weapon row and then
-  // omit it from the shared action row.
-  let weaponSwapEmbedded = false;
-  const weaponGroupsHtml = (() => {
-    if (customWeaponPalette) {
-      return [
-        ...customWeaponPalette.weaponGroupsHtml,
-        ...weaponSetOneProfessionGroups.map(renderProfessionGroup)
-      ].filter(Boolean);
-    }
-
-    const weaponRows = weaponPaletteRows(app, activeWeaponSet, paletteContext)
-      .map((row) => ({
-        ...row,
-        skills: paletteWeaponSkills(row.skills, {
-          weaponSet: row.weaponSet
-        })
-      }))
-      .filter((row) => row.skills.length);
-    return weaponRows.flatMap((row, index) => {
-      const rowWeaponSwapActions = row.active && !weaponSwapEmbedded ? weaponSwapActions : [];
-
-      if (rowWeaponSwapActions.length) weaponSwapEmbedded = true;
-
-      const renderedRow = addGroup(
-        app,
-        row.label,
-        [...row.skills, ...rowWeaponSwapActions],
-        row.active ? '#a98fd8' : '#625a73',
-        (skill) =>
-          skill.name === 'Swap Weapons'
-            ? professionAllowsPaletteSkill(skill)
-            : weaponSkillAvailable(skill, row.weaponSet),
-        (skill) =>
-          skill.name === 'Swap Weapons'
-            ? professionPaletteUnavailableMessage(skill)
-            : weaponSkillUnavailableMessage(skill, row.weaponSet),
-        '',
-        undefined,
-        [],
-        '',
-        (skill) =>
-          skill.name === 'Swap Weapons' ? professionPaletteRetryAt(skill) : weaponSkillRetryAt(skill, row.weaponSet)
-      );
-      const positionedGroups = activeWeaponProfessionGroups.filter(
-        (group) =>
-          row.active &&
-          !positionedActiveWeaponGroups.has(group.id) &&
-          (!group.weaponRowLabel || group.weaponRowLabel === row.label)
-      );
-      positionedGroups.forEach((group) => positionedActiveWeaponGroups.add(group.id));
-      return [
-        renderedRow,
-        ...positionedGroups.map(renderProfessionGroup),
-        ...(row.weaponSet === 1 && weaponRows[index + 1]?.weaponSet !== 1
-          ? weaponSetOneProfessionGroups.map(renderProfessionGroup)
-          : [])
-      ];
-    });
-  })();
-
-  if (!customWeaponPalette) {
-    weaponGroupsHtml.push(
-      ...activeWeaponProfessionGroups
-        .filter((group) => !positionedActiveWeaponGroups.has(group.id))
-        .map(renderProfessionGroup)
-    );
-  }
-
-  const activeWeaponPrimaryHtml = customWeaponPalette
-    ? activeWeaponProfessionGroups.map(renderProfessionGroup).join('')
-    : '';
-
-  const timelineControlsHtml = `<div class="pal-group"><div class="pal-label" style="color:#d66d2f">Cmb</div>
-            <div class="pal-row">${virtualPaletteSkillHtml({
-              name: '__combat_start',
-              title: 'Combat Start',
-              icon: COMBAT_START_ICON,
-              // Combat Start is a one-per-rotation action, not a skill waiting on cooldown.
-              contextDisabled: app.build.rotation.some((item) => rotationEntryName(item) === '__combat_start')
-            })}</div>
-        </div>
-        <div class="pal-group"><div class="pal-label" style="color:#7e9ac7">Rst</div>
-            <div class="pal-row">${virtualPaletteSkillHtml({
-              name: '__cooldown_reset',
-              title: 'Cooldown Reset',
-              icon: COOLDOWN_RESET_ICON
-            })}</div>
-        </div>
-        <div class="pal-group"><div class="pal-label" style="color:#8d7a57">W8</div>
-            <div class="pal-row">${virtualPaletteSkillHtml({
-              name: '__wait',
-              title: 'Wait',
-              icon: WAIT_ICON
-            })}</div>
-        </div>`;
+  const customWeaponPalette = projection.customWeaponPalette?.render(
+    projection.customWeaponPalette.skills.map(paletteSkillHtml)
+  );
+  const weaponGroupsHtml = [
+    ...(customWeaponPalette?.weaponGroupsHtml || []),
+    ...projection.weaponGroups.map(renderProfessionGroup)
+  ];
+  const activeWeaponPrimaryHtml = projection.activeWeaponPrimaryGroups.map(renderProfessionGroup).join('');
+  const timelineControlsHtml = projection.timelineControls.map(paletteGroupHtml).join('');
 
   const timelineToolsHtml = `<div class="timeline-tools-palette-stack"
         data-role="timeline-tools-palette-stack">
@@ -472,19 +243,7 @@ function paletteHtml(app: ProfessionAppState, paletteContext: PaletteContext): s
           ${timelineControlsHtml}
       </div>`;
 
-  const actionGroupHtml = addGroup(
-    app,
-    'Act',
-    weaponSwapEmbedded ? generalActions : actions,
-    '#70b6d0',
-    professionAllowsPaletteSkill,
-    professionPaletteUnavailableMessage,
-    'action-palette-group',
-    undefined,
-    [],
-    '',
-    professionPaletteRetryAt
-  );
+  const actionGroupHtml = paletteGroupHtml(projection.actionGroup);
 
   const primaryPaletteHtml = customWeaponPalette
     ? `<div class="${esc(customWeaponPalette.primaryClassName || 'profession-weapon-primary')}" data-role="${esc(customWeaponPalette.primaryRole || 'profession-weapon-primary')}">
@@ -520,7 +279,7 @@ export function renderPalette(app: ProfessionAppState): void {
   const focusIdentity = focused?.dataset;
   const focusIndex = focused ? [...element.querySelectorAll('button')].indexOf(focused) : -1;
   const paletteContext = createPaletteContext(app);
-  element.innerHTML = paletteHtml(app, paletteContext);
+  element.innerHTML = paletteHtml(projectPalette(app, paletteContext));
   updatePaletteFreshness(app);
 
   bindAppPaletteInteractions(app, element, paletteContext);

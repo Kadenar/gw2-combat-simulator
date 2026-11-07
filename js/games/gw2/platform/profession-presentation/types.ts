@@ -163,30 +163,28 @@ export interface ProfessionPaletteGroup {
   readonly statusIcon?: ProfessionPaletteStatusIcon;
 }
 
-export interface ProfessionPaletteSkillRenderOptions {
-  readonly contextAvailable?: boolean;
-  readonly contextMessage?: string;
-  /** Palette tile fields a custom layout overrides after the shell projects the skill. */
-  readonly view?: {
-    readonly draggable?: boolean;
-    readonly hotkeyAction?: string;
-  };
-}
-
 /** One catalog skill placed in a profession palette group with display overrides. */
 export type ProfessionPaletteSkillEntry = Partial<Skill> & { readonly skillId: SkillId };
 
-export type ProfessionPaletteSkillRenderer = (skill: Skill, options?: ProfessionPaletteSkillRenderOptions) => string;
-
-export interface ProfessionWeaponPaletteRenderContext<
+export interface ProfessionWeaponPaletteContext<
   TProfessionState = unknown
 > extends ProfessionPaletteContext<TProfessionState> {
   readonly skills: readonly Skill[];
   /** Active autoattack chain step by chain root id or name. */
   readonly autoattackChains: Readonly<Record<string, unknown>>;
   readonly isSkillAvailable: (skill: Skill) => boolean;
-  readonly unavailableMessage: (skill: Skill) => string;
-  readonly renderSkill: ProfessionPaletteSkillRenderer;
+}
+
+/** A skill occurrence can be a cooldown reference independently of its actionable bar occurrence. */
+export interface ProfessionWeaponPaletteOccurrence {
+  readonly skill: Skill;
+  readonly referenceOnly: boolean;
+}
+
+/** Profession layout captures prepared placement only; rendering receives the completed tile markup in occurrence order. */
+export interface ProfessionWeaponPaletteProjection {
+  readonly skills: readonly ProfessionWeaponPaletteOccurrence[];
+  readonly render: (tiles: readonly string[]) => ProfessionWeaponPaletteView;
 }
 
 export interface ProfessionWeaponPaletteView {
@@ -469,9 +467,9 @@ export interface ProfessionUiContract<TProfessionState = unknown, TSkill extends
     skills: readonly TSkill[]
   ) => TSkill[];
   /** Lets a specialization own an exceptional weapon layout without shell policy. */
-  readonly renderWeaponPalette: (
-    context: ProfessionWeaponPaletteRenderContext<TProfessionState>
-  ) => ProfessionWeaponPaletteView | null;
+  readonly projectWeaponPalette: (
+    context: ProfessionWeaponPaletteContext<TProfessionState>
+  ) => ProfessionWeaponPaletteProjection | null;
   /** Resolves a profession-owned palette action into canonical rotation items. */
   readonly resolvePaletteAction: (
     context: ProfessionPaletteContext<TProfessionState>,

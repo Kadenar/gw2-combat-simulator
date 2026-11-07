@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
+import { activeResourceDefinitions, activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import {
   formatConcurrentTimelineBadge,
   formatInterruptTimelineBadge,
@@ -213,22 +213,24 @@ test('clone state remains capped at three when input or new summons exceed the c
 });
 
 test('clone resource pips render without a redundant numeric count', () => {
-  const resourceHtml = activeResourceGroup({
-    analysis: {
-      needsPatchComparison: () => false,
-      state: {
-        results: {
-          planningState: {
-            profession: { [STATE.RESOURCE]: 3 }
+  const resourceHtml = activeResourceGroup(
+    activeResourceDefinitions({
+      analysis: {
+        needsPatchComparison: () => false,
+        state: {
+          results: {
+            planningState: {
+              profession: { [STATE.RESOURCE]: 3 }
+            }
           }
         }
-      }
-    },
-    activeCatalog: mesmerProfession.catalog,
-    profession: mesmerProfession,
-    adapter: { eliteSpecialization: () => 'Chronomancer' },
-    build: { initialResource: 0 }
-  });
+      },
+      activeCatalog: mesmerProfession.catalog,
+      profession: mesmerProfession,
+      adapter: { eliteSpecialization: () => 'Chronomancer' },
+      build: { initialResource: 0 }
+    })
+  );
 
   assert.match(resourceHtml, /data-resource-id="clones"/);
   assert.equal(resourceHtml.match(/active-resource-pip active/g)?.length, 3);

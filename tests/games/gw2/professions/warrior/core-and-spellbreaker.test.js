@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
+import { activeResourceDefinitions, activeResourceGroup } from '#gw2/app/rotation/palette/resource-view.js';
 import { mechanicResourceSpends, timelineDeadTimeMarkers } from '#gw2/app/rotation/timeline/model.js';
 import { presentedTimelineSteps } from '#gw2/app/rotation/timeline/occupancy.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
@@ -453,12 +453,14 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
     1
   );
 
-  const resourceHtml = activeResourceGroup({
-    analysis: { needsPatchComparison: () => false, state: { results: result } },
-    profession: warriorProfession,
-    adapter: { eliteSpecialization: () => 'Core' },
-    build: { initialResource: 25 }
-  });
+  const resourceHtml = activeResourceGroup(
+    activeResourceDefinitions({
+      analysis: { needsPatchComparison: () => false, state: { results: result } },
+      profession: warriorProfession,
+      adapter: { eliteSpecialization: () => 'Core' },
+      build: { initialResource: 25 }
+    })
+  );
 
   assert.equal(
     [...resourceHtml.matchAll(/class="active-resource-bar compact-profession-resource-warrior-adrenaline"/g)].length,
@@ -483,13 +485,15 @@ test('Paragon motivation renders as a compact emblem counter', () => {
   assert.equal(motivation.displayMode, 'counter');
   assert.equal(motivation.pipStyle, 'warrior-motivation');
 
-  const resourceHtml = activeResourceGroup({
-    analysis: { needsPatchComparison: () => false, state: { results: result } },
-    profession: warriorProfession,
-    activeCatalog: warriorCatalog,
-    adapter: { eliteSpecialization: () => 'Paragon' },
-    build: { initialResource: 10 }
-  });
+  const resourceHtml = activeResourceGroup(
+    activeResourceDefinitions({
+      analysis: { needsPatchComparison: () => false, state: { results: result } },
+      profession: warriorProfession,
+      activeCatalog: warriorCatalog,
+      adapter: { eliteSpecialization: () => 'Paragon' },
+      build: { initialResource: 10 }
+    })
+  );
 
   assert.match(resourceHtml, /class="active-resource-counter warrior-motivation"[^>]*>[\s\S]*?<span>4<\/span>/);
   assert.doesNotMatch(resourceHtml, /<strong>4\/10<\/strong>/);

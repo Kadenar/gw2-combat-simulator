@@ -8,9 +8,14 @@ import {
   rotationLoadoutHotkeyActions,
   rotationUtilityHotkeyAction
 } from '#gw2/app/rotation/hotkeys.js';
-import { paletteSkillResourceView, type PaletteResourceView } from '#gw2/app/rotation/palette/resource-view.js';
+import {
+  activeResourceDefinitions,
+  paletteSkillResourceView,
+  type PaletteResourceView
+} from '#gw2/app/rotation/palette/resource-view.js';
 import type { PaletteSkill } from '#gw2/app/rotation/skill-views.js';
-import { ACTION_ICONS } from '#gw2/app/shared/icons.js';
+import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
+import { ACTION_ICONS, COMBAT_START_ICON, COOLDOWN_RESET_ICON, WAIT_ICON } from '#gw2/app/shared/icons.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import { resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
 import type { SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
@@ -28,7 +33,8 @@ import type {
   ProfessionPaletteControl,
   ProfessionPaletteGroup,
   ProfessionPaletteSkillEntry,
-  ProfessionPaletteStatusIcon
+  ProfessionPaletteStatusIcon,
+  ProfessionResourceView
 } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2PlanningAmmo, Gw2SimulationPlanningState } from '#gw2/platform/results/types.js';
 import { inputControlForSkillSlot } from '#gw2/platform/skills/input-controls.js';
@@ -748,6 +754,8 @@ export interface PaletteSkillView {
 }
 
 export interface PaletteGroupView {
+  readonly resourceIds?: readonly string[];
+  readonly resourcePlacement?: 'above' | 'beside';
   readonly id?: string;
   readonly label?: string;
   readonly color?: string;
@@ -757,7 +765,13 @@ export interface PaletteGroupView {
   readonly statusIcon?: ProfessionPaletteStatusIcon;
 }
 
-export type RenderedPaletteGroup = ProfessionPaletteGroup & { skills: PaletteSkill[] };
+type SelectedPaletteGroup = ProfessionPaletteGroup & { skills: PaletteSkill[] };
+
+/** Final tiles retain their profession-owned placement metadata. */
+export type ProjectedPaletteGroup = PaletteGroupView &
+  Pick<ProfessionPaletteGroup, 'id' | 'placement' | 'weaponRowLabel' | 'stackId' | 'resourceAnchor'> & {
+    readonly skills: readonly PaletteSkillView[];
+  };
 
 export type PaletteContext = SlotLoadoutContext &
   ProfessionPaletteContext & {
@@ -823,7 +837,8 @@ export function paletteSkillView(
   skill: PaletteSkill,
   contextAvailable = true,
   contextMessage = '',
-  contextRetryAt: number | null = null
+  contextRetryAt: number | null = null,
+  resources: readonly ProfessionResourceView[] = activeResourceDefinitions(app)
 ): PaletteSkillView {
   const cd = currentCooldown(app, skill);
   const editorAccess =
@@ -902,17 +917,15 @@ export function paletteSkillView(
     draggable: contextAvailable,
     cooldownLabel,
     ammo: ammoDisplay,
-    resource: paletteSkillResourceView(app, skill.id)
+    resource: paletteSkillResourceView(resources, skill.id)
   };
 }
 
-/** Projects groups and availability once so every palette layout uses the same live state. */
-export function projectPalette(app: ProfessionAppState, paletteContext: PaletteContext) {
-  const spec = paletteContext.specialization;
-  const professionState = paletteContext.professionState as RotationProfessionState;
+/** Select profession and loadout skills without building tooltips or display state, also used by warnings. */
+export function paletteSkillGroups(app: ProfessionAppState, paletteContext: PaletteContext) {
   const professionGroups = paletteView(app.profession, paletteContext);
   const loadoutGroups = app.adapter.slotLoadout?.paletteGroups(paletteContext) || [];
-  const renderGroups = (groups: readonly ProfessionPaletteGroup[]): RenderedPaletteGroup[] =>
+  const renderGroups = (groups: readonly ProfessionPaletteGroup[]): SelectedPaletteGroup[] =>
     groups.map((group) => {
       const skillIds = group.skillIds || [];
       const skills = [
@@ -945,6 +958,14 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
       hotkeyAction: loadoutHotkeys.get(Number(skill.id)) || ''
     }))
   }));
+  return { renderedProfessionGroups, renderedLoadoutGroups };
+}
+
+/** Complete tile state and weapon placement before rendering, using the same facts for every palette surface. */
+export function projectPalette(app: ProfessionAppState, paletteContext: PaletteContext = createPaletteContext(app)) {
+  const spec = paletteContext.specialization;
+  const professionState = paletteContext.professionState as RotationProfessionState;
+  const { renderedProfessionGroups, renderedLoadoutGroups } = paletteSkillGroups(app, paletteContext);
   const selected = rotationSelectedSlotSkills(app);
   // The shared projector discovers and selects descendants from the catalog;
   // selected utilities only need to contribute their root tile and hotkey.
@@ -1036,20 +1057,144 @@ export function projectPalette(app: ProfessionAppState, paletteContext: PaletteC
 
   const selectedWithFlips = displayedSkillTiles(app, selectedWithFlipChains, paletteContext);
 
-  return {
-    renderedProfessionGroups,
-    renderedLoadoutGroups,
-    actions,
-    weaponSwapActions,
-    generalActions,
-    activeWeaponSet,
+  const resources = activeResourceDefinitions(app);
+  const professionTile = (skill: PaletteSkill): PaletteSkillView =>
+    paletteSkillView(
+      app,
+      skill,
+      professionAllowsPaletteSkill(skill),
+      professionPaletteUnavailableMessage(skill),
+      professionPaletteRetryAt(skill),
+      resources
+    );
+  const weaponTile = (skill: PaletteSkill, weaponSet: number): PaletteSkillView =>
+    paletteSkillView(
+      app,
+      skill,
+      weaponSkillAvailable(skill, weaponSet),
+      weaponSkillUnavailableMessage(skill, weaponSet),
+      weaponSkillRetryAt(skill, weaponSet),
+      resources
+    );
+  const projectGroup = (group: SelectedPaletteGroup): ProjectedPaletteGroup => ({
+    id: group.id,
+    label: group.label,
+    color: group.color || '#c49cff',
+    className: group.className,
+    controls: group.controls,
+    statusIcon: group.statusIcon,
+    placement: group.placement,
+    weaponRowLabel: group.weaponRowLabel,
+    stackId: group.stackId,
+    resourceAnchor: group.resourceAnchor,
+    resourceIds: group.resourceIds,
+    resourcePlacement: group.resourcePlacement,
+    skills: group.skills.map(professionTile)
+  });
+  const professionGroups = renderedProfessionGroups.map(projectGroup);
+  const paletteWeaponSkills = (skills: readonly PaletteSkill[], weaponSet: number): PaletteSkill[] =>
+    app.profession.ui.paletteWeaponSkills({ ...paletteContext, weaponSet }, skills);
+  const customLayout = app.profession.ui.projectWeaponPalette({
+    ...paletteContext,
+    skills: paletteWeaponSkills(
+      displayedWeaponSkills(app, weaponSkills(app, activeWeaponSet), activeWeaponSet, paletteContext),
+      activeWeaponSet
+    ),
     autoattackChains,
-    professionAllowsPaletteSkill,
-    professionPaletteUnavailableMessage,
-    professionPaletteRetryAt,
-    weaponSkillAvailable,
-    weaponSkillRetryAt,
-    weaponSkillUnavailableMessage,
-    selectedWithFlips
+    isSkillAvailable: (skill) => weaponSkillAvailable(skill, activeWeaponSet)
+  });
+  // Reference occurrences share cooldowns with their live tiles but never expose activation or dragging.
+  const customWeaponPalette = customLayout
+    ? {
+        skills: customLayout.skills.map(({ skill, referenceOnly }) =>
+          referenceOnly
+            ? {
+                ...paletteSkillView(app, skill, true, '', null, resources),
+                draggable: false,
+                hotkeyAction: ''
+              }
+            : weaponTile(skill, activeWeaponSet)
+        ),
+        render: customLayout.render
+      }
+    : null;
+  const weaponSetOneGroups = professionGroups.filter((group) => group.placement === 'weapon-set-1');
+  const activeWeaponGroups = professionGroups.filter((group) => group.placement === 'active-weapon');
+  const weaponGroups: PaletteGroupView[] = [];
+  let weaponSwapEmbedded = false;
+
+  if (customWeaponPalette) {
+    weaponGroups.push(...weaponSetOneGroups);
+  } else {
+    // Filter transformed rows first so an empty row cannot consume the embedded swap action.
+    const rows = weaponPaletteRows(app, activeWeaponSet, paletteContext)
+      .map((row) => ({ ...row, skills: paletteWeaponSkills(row.skills, row.weaponSet) }))
+      .filter((row) => row.skills.length);
+    const positioned = new Set<string>();
+    rows.forEach((row, index) => {
+      const swaps = row.active && !weaponSwapEmbedded ? weaponSwapActions : [];
+
+      if (swaps.length) weaponSwapEmbedded = true;
+
+      weaponGroups.push({
+        label: row.label,
+        color: row.active ? '#a98fd8' : '#625a73',
+        skills: [...row.skills.map((skill) => weaponTile(skill, row.weaponSet)), ...swaps.map(professionTile)]
+      });
+      const attached = activeWeaponGroups.filter(
+        (group) =>
+          row.active && !positioned.has(group.id) && (!group.weaponRowLabel || group.weaponRowLabel === row.label)
+      );
+      attached.forEach((group) => positioned.add(group.id));
+      weaponGroups.push(...attached);
+
+      if (row.weaponSet === 1 && rows[index + 1]?.weaponSet !== 1) weaponGroups.push(...weaponSetOneGroups);
+    });
+    weaponGroups.push(...activeWeaponGroups.filter((group) => !positioned.has(group.id)));
+  }
+
+  const virtualTile = (view: PaletteSkillView): PaletteSkillView => ({ color: '#8d7a57', draggable: true, ...view });
+  return {
+    renderedProfessionGroups: professionGroups,
+    renderedLoadoutGroups: renderedLoadoutGroups.map(projectGroup),
+    resources,
+    loadoutAfterActions: app.adapter.slotLoadout?.palettePlacement === 'after-actions',
+    customWeaponPalette,
+    weaponGroups,
+    activeWeaponPrimaryGroups: customWeaponPalette ? activeWeaponGroups : [],
+    utilityGroup: {
+      label: 'Skill',
+      color: '#cbb8ea',
+      className: 'utility-palette-group',
+      skills: selectedWithFlips.map(professionTile)
+    },
+    actionGroup: {
+      label: 'Act',
+      color: '#70b6d0',
+      className: 'action-palette-group',
+      skills: (weaponSwapEmbedded ? generalActions : actions).map(professionTile)
+    },
+    timelineControls: [
+      {
+        label: 'Cmb',
+        color: '#d66d2f',
+        skills: [
+          virtualTile({
+            name: '__combat_start',
+            title: 'Combat Start',
+            icon: COMBAT_START_ICON,
+            contextDisabled: app.build.rotation.some((item) => rotationEntryName(item) === '__combat_start')
+          })
+        ]
+      },
+      {
+        label: 'Rst',
+        color: '#7e9ac7',
+        skills: [virtualTile({ name: '__cooldown_reset', title: 'Cooldown Reset', icon: COOLDOWN_RESET_ICON })]
+      },
+      { label: 'W8', color: '#8d7a57', skills: [virtualTile({ name: '__wait', title: 'Wait', icon: WAIT_ICON })] }
+    ]
   };
 }
+
+export type PaletteProjection = ReturnType<typeof projectPalette>;

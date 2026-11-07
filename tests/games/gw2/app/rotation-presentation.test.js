@@ -10,7 +10,7 @@ import {
 } from '#gw2/app/rotation/editing/activation-editor.js';
 import { rotationObservations } from '#gw2/app/rotation/insights/rotation-observations.js';
 import { bindPaletteInteractions } from '#gw2/app/rotation/palette/interactions.js';
-import { paletteGroupHtml, paletteSkillHtml, virtualPaletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
+import { paletteGroupHtml, paletteSkillHtml } from '#gw2/app/rotation/palette/view.js';
 import { bindTimelineInteractions, getSkillDropInsertionIndex } from '#gw2/app/rotation/timeline/interactions.js';
 import {
   formatTimelineDuration,
@@ -342,9 +342,6 @@ test('palette primitives escape values and render state, ammo, cooldowns, and gr
     title: 'Wait',
     icon: 'wait.png'
   };
-  const virtual = virtualPaletteSkillHtml(virtualView);
-
-  assert.match(virtual, /draggable="true"/);
   assert.match(
     paletteGroupHtml({
       label: '<Group>',

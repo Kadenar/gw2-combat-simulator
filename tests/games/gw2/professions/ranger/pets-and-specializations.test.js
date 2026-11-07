@@ -8,7 +8,11 @@ import {
   weaponPaletteRows,
   weaponSkills
 } from '#gw2/app/rotation/palette/model.js';
-import { activeResourceGroup, paletteSkillResourceView } from '#gw2/app/rotation/palette/resource-view.js';
+import {
+  activeResourceDefinitions,
+  activeResourceGroup,
+  paletteSkillResourceView
+} from '#gw2/app/rotation/palette/resource-view.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
@@ -367,13 +371,13 @@ test('Ranger pet AI skills are autonomous and Beast commands stay independent', 
     build: { initialResource: 0 }
   };
 
-  assert.deepEqual(paletteSkillResourceView(resourceApp, SHARED_SKILL_IDS.DODGE), {
+  assert.deepEqual(paletteSkillResourceView(activeResourceDefinitions(resourceApp), SHARED_SKILL_IDS.DODGE), {
     id: 'endurance',
     label: 'Current endurance: 35/100',
     value: 35,
     maximum: 100
   });
-  assert.equal(activeResourceGroup(resourceApp), '');
+  assert.equal(activeResourceGroup(activeResourceDefinitions(resourceApp)), '');
 
   const directAuto = simulate('Core', ['Twin Darts'], {
     selectedPet: 'Carrion Devourer'

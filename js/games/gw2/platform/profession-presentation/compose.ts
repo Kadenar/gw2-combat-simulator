@@ -345,11 +345,11 @@ export function createProfessionFamilyUi(definition: ProfessionFamilyUiDefinitio
     };
   }
 
-  ui.renderWeaponPalette = (context: ProfessionPaletteContext) => {
+  ui.projectWeaponPalette = (context: ProfessionPaletteContext) => {
     const selected = active(context);
     return firstUiMatch(
       [...selected.slices.slice().reverse(), family],
-      'renderWeaponPalette',
+      'projectWeaponPalette',
       [selected.context],
       (result) => result != null,
       null
