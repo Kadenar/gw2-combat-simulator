@@ -1,3 +1,4 @@
+import { DEFAULT_FRACTAL_BUFFS } from '#gw2/platform/builds/fractal-buffs.js';
 import { DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS } from '#gw2/platform/builds/randomness-assumptions.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
@@ -49,6 +50,8 @@ function createDefaultSimulationAssumptions(overrides: ProfessionAssumptionOverr
     ...DEFAULT_SIMULATION_RANDOMNESS_ASSUMPTIONS,
     ...DEFAULT_PERMANENT_COMBO_FIELD_ASSUMPTIONS,
 
+    // Fresh nested settings keep edits local to this build.
+    fractal: { ...DEFAULT_FRACTAL_BUFFS },
     might: 25,
 
     fury: true,

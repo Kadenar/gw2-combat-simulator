@@ -1,3 +1,4 @@
+import { applyFractalAttributes } from '#gw2/build-context/fractal-buffs.js';
 import { createGw2SimulationConfig } from '#gw2/build-context/simulation-config.js';
 import type {
   BuildAttributes,
@@ -9,6 +10,7 @@ import type {
 import { calculateCommonAttributes } from '#gw2/platform/attributes/calculation.js';
 import { attributeSeedFromCommon } from '#gw2/platform/attributes/inputs.js';
 import type { Gw2AttributeSeed, Gw2CommonAttributeResult } from '#gw2/platform/attributes/types.js';
+import { validateFractalBuffs } from '#gw2/platform/builds/fractal-buffs.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
@@ -79,6 +81,7 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
 ): BuildContextFactory<TBuild> {
   const assumptionControls = buildAssumptionControls(declarations.assumptionControls);
   return ({ build: inputBuild, patch, transitionDelays, disabledModifier: disabled }) => {
+    validateFractalBuffs(inputBuild.assumptions.fractal);
     const { catalog, balanceContext } = patch;
     const eliteNames = new Set(catalog.specializations.filter((spec) => spec.elite).map((spec) => spec.name));
     const specialization = inputBuild.specializations.find((spec) => eliteNames.has(spec.name))?.name || 'Core';
@@ -139,6 +142,8 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild>(
           balanceContext,
           attributeContributions: profession.attributeContributions
         }) as BuildAttributes;
+        // Potions increase final stats without becoming a source for further conversions.
+        result = applyFractalAttributes(result, build.assumptions.fractal);
         cache.set(weaponSet, result);
       }
 

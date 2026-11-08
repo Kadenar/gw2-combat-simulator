@@ -4,8 +4,6 @@ import {
   type OptimizerResultFilter
 } from '#gw2/app/optimizer/gear/candidate-results.js';
 import { renderOptimizerPreview } from '#gw2/app/optimizer/gear/equipment-preview.js';
-import type { FractalBuffs } from '#gw2/app/optimizer/gear/fractal-buffs.js';
-import { readFractalControls, renderFractalControls } from '#gw2/app/optimizer/gear/fractal-controls.js';
 import { MAX_OPTIMIZER_WORKERS } from '#gw2/app/optimizer/gear/runner.js';
 import {
   applyOptimizerCandidate,
@@ -41,8 +39,6 @@ import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import { escapeHtml } from '#ui/shared/html.js';
 
-// Keep search preferences in memory without adding them to builds, exports, or main simulation settings.
-const fractalSelections = new WeakMap<ProfessionAppState['build'], FractalBuffs>();
 const renderedControls = new WeakMap<HTMLElement, { build: ProfessionAppState['build']; key: string }>();
 
 const filterDismissalRoots = new WeakSet<Document>();
@@ -181,25 +177,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       });
       form.dispatchEvent(new Event('change', { bubbles: true }));
     });
-    form.addEventListener('change', (event) => {
-      if ((event.target as HTMLElement).matches('[data-fractal]')) {
-        if (
-          ![...form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-fractal]')].every((input) =>
-            input.reportValidity()
-          )
-        )
-          return;
-
-        const fractal = readFractalControls(form);
-        fractalSelections.set(app.build, fractal);
-        // Clear scores from the previous environment without scheduling or saving a main simulation.
-        runner.reset();
-        const summary = form.querySelector('[name="fractal-enabled"]')!.closest('details')!.querySelector('summary')!;
-        summary.textContent = `Fractal buffs${fractal.enabled ? ' (enabled)' : ''}`;
-        estimate();
-        return;
-      }
-
+    form.addEventListener('change', () => {
       runner.cancel();
       estimate();
     });
@@ -363,7 +341,6 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
           )
           .join('')}</div>
       </details>
-      ${renderFractalControls(fractalSelections.get(build))}
       <details class="optimizer-section optimizer-disclosure optimizer-forced-slots"><summary>Force slots</summary>
         <p>Choose a stat prefix to require it in that slot for every result.</p>
         <div class="optimizer-forced-grid">${slots
@@ -394,7 +371,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   const stale = runner.request !== null && !isOptimizerRequestCurrent(app, runner.request);
   // Keep current gear visible before a search and restore it when the build or search changes.
   const preview = panel.querySelector<HTMLElement>('[data-role="optimizer-preview"]')!;
-  const previewRequest = `${runner.request?.revision}:${state.started}:${JSON.stringify(fractalSelections.get(app.build))}`;
+  const previewRequest = `${runner.request?.revision}:${state.started}`;
 
   if (
     preview.dataset.request !== previewRequest ||
@@ -405,8 +382,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     panel.dataset.selectedKey = 'equipped';
     renderOptimizerPreview(preview, app, {
       build: app.build,
-      patch: app.patch,
-      selections: { fractal: fractalSelections.get(app.build) }
+      patch: app.patch
     });
   }
 
@@ -560,7 +536,6 @@ function readSelections(form: HTMLFormElement): GearOptimizerSelections {
   );
   return {
     ...requirements,
-    fractal: readFractalControls(form),
     // Blank slots follow the shared candidates; explicit overrides remain active while collapsed.
     forcedSlots: Object.fromEntries(
       [...form.querySelectorAll<HTMLSelectElement>('[data-forced-slot]')]

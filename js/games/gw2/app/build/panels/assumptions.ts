@@ -2,6 +2,11 @@
 import { MODIFIER_EFFECT_ICONS } from '#gw2/app/shared/icons.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
+import {
+  DEFAULT_FRACTAL_BUFFS,
+  FRACTAL_AUGMENTATIONS,
+  validateFractalBuffs
+} from '#gw2/platform/builds/fractal-buffs.js';
 import { isSimulationRandomnessControl } from '#gw2/platform/builds/randomness-assumptions.js';
 import type {
   ProfessionAssumptionControl,
@@ -110,6 +115,20 @@ export function renderAssumptions(app: ProfessionAppState): void {
     app.adapter.eliteSpecialization(app.build)
   );
   const conditions = (a.targetConditions ||= {});
+  const fractal = a.fractal ?? DEFAULT_FRACTAL_BUFFS;
+  const fractalControls = `<label class="boon-control"><input type="checkbox" data-fractal="enabled"${fractal.enabled ? ' checked' : ''}> Enable fractal buffs</label>
+    <p>Assumes maximum mastery and 5 stacks of each potion. Applies to this build's attributes, DPS, and gear optimizer.</p>
+    <label class="boon-control">Total agony resistance<input data-fractal="agonyResistance" type="number" min="0" max="${Number.MAX_SAFE_INTEGER}" step="1" required value="${fractal.agonyResistance}"></label>
+    <label class="boon-control">Account augmentation<select class="gear-select" data-fractal="augmentation">${Object.entries(
+      FRACTAL_AUGMENTATIONS
+    )
+      .map(
+        ([value, choice]) =>
+          `<option value="${value}"${fractal.augmentation === value ? ' selected' : ''}>${choice.label}</option>`
+      )
+      .join('')}</select></label>
+    <p>Enter total AR inside fractals, including augmentation and temporary bonuses.</p>`;
+
   const section = (key: string, label: string, contents: string): string =>
     `<details class="perma-group" data-assumption-section="${esc(key)}"${expandedSections.get(key) !== false ? ' open' : ''}>
         <summary class="perma-group-label">${esc(label)}</summary>
@@ -332,6 +351,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
             ${conditionGroups}
           </div>
           <div id="simulation-options" class="simulation-settings-column">
+            ${section('fractal', 'Fractal buffs', fractalControls)}
             ${section(
               'simulation',
               'Simulation',
@@ -351,6 +371,25 @@ export function renderAssumptions(app: ProfessionAppState): void {
             `
             )}
           </div>`;
+
+  // Save valid fractal settings through the same persistence and invalidation path as other assumptions.
+  const enabled = container.querySelector<HTMLInputElement>('[data-fractal="enabled"]')!;
+  const agonyResistance = container.querySelector<HTMLInputElement>('[data-fractal="agonyResistance"]')!;
+  const augmentation = container.querySelector<HTMLSelectElement>('[data-fractal="augmentation"]')!;
+  const updateFractal = (): void => {
+    if (!agonyResistance.reportValidity()) return;
+
+    const buffs = {
+      enabled: enabled.checked,
+      agonyResistance: Number(agonyResistance.value),
+      augmentation: augmentation.value
+    };
+    validateFractalBuffs(buffs);
+    app.build.assumptions.fractal = buffs;
+    app.changed();
+  };
+
+  for (const control of [enabled, agonyResistance, augmentation]) control.addEventListener('change', updateFractal);
 
   // Hover and keyboard focus preview the explanation; clicking keeps it open for reading.
   const criticalDetails = container.querySelector<HTMLDetailsElement>('#critical-damage-details');

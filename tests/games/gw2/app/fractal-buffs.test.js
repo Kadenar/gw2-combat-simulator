@@ -3,13 +3,6 @@ import test from 'node:test';
 
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import { loadOptimizerContext } from '#gw2/app/optimizer/gear/context.js';
-import {
-  createOptimizerBuildContext,
-  DEFAULT_FRACTAL_BUFFS,
-  fractalAttributes,
-  optimizerBuildContextFactory,
-  validateFractalBuffs
-} from '#gw2/app/optimizer/gear/fractal-buffs.js';
 import { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js';
 import {
   applyOptimizerCandidate,
@@ -20,13 +13,14 @@ import {
   optimizerScore,
   verifyOptimizerScore
 } from '#gw2/app/optimizer/gear/search.js';
+import { DEFAULT_FRACTAL_BUFFS, fractalAttributes, validateFractalBuffs } from '#gw2/platform/builds/fractal-buffs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 
 const enabled = { ...DEFAULT_FRACTAL_BUFFS, enabled: true };
 const warrior = await loadOptimizerContext('warrior');
-const buildContext = (adapter, build, fractal) =>
-  createOptimizerBuildContext(adapter, { build, patch: adapter.profession.resolvePatch({ id: 'current' }) }, fractal);
+const buildContext = (adapter, build) =>
+  adapter.createBuildContext({ build, patch: adapter.profession.resolvePatch({ id: 'current' }) });
 
 // Maximum mastery and five potion stacks are fixed; AR already includes title bonuses.
 test('fractal potion conversions use total AR with full potions', () => {
@@ -42,8 +36,8 @@ test('fractal potion conversions use total AR with full potions', () => {
   }
 });
 
-// Invalid search environments fail before workers start; obsolete settings are not accepted.
-test('fractal optimizer input rejects malformed fields', () => {
+// Invalid saved assumptions fail loading, validation, and optimizer capture before workers start.
+test('saved fractal assumptions reject malformed fields', () => {
   const build = warrior.profession.createBuildDefaults();
   const app = {
     contentId: 'warrior',
@@ -75,7 +69,11 @@ test('fractal optimizer input rejects malformed fields', () => {
     { ...enabled, extra: true }
   ]) {
     assert.throws(() => validateFractalBuffs(invalid), /Invalid fractal/);
-    assert.throws(() => captureGearOptimizerRequest(app, { fractal: invalid }), /Invalid fractal/);
+    build.assumptions.fractal = invalid;
+    assert.equal(warrior.profession.validateBuild(build).valid, false);
+    assert.throws(() => warrior.profession.migrateBuild(build), /Invalid fractal/);
+    assert.throws(() => buildContext(warrior, build), /Invalid fractal/);
+    assert.throws(() => captureGearOptimizerRequest(app, {}), /Invalid fractal/);
   }
 });
 
@@ -90,16 +88,16 @@ for (const name of [
   'thief',
   'warrior'
 ]) {
-  // Optimizer contexts and detached previews share bonuses while normal build contexts remain unaffected.
-  test(`${name}: fractal attributes remain isolated from saved builds`, async () => {
+  // Saved settings survive loading and feed both ordinary contexts and detached previews.
+  test(`${name}: saved fractal buffs reach previews and runtime stats`, async () => {
     const adapter = await loadOptimizerContext(name);
     const original = adapter.profession.createBuildDefaults();
     const baseline = buildContext(adapter, original);
-    // Round-trip the canonical build; optimizer-only potion settings must never be written into it.
-    const saved = JSON.stringify(original);
+    const originalJson = JSON.stringify(original);
+    const saved = JSON.stringify({ ...original, assumptions: { ...original.assumptions, fractal: enabled } });
     const loaded = adapter.profession.migrateBuild(JSON.parse(saved));
-    assert.equal(loaded.assumptions.fractal, undefined);
-    const context = buildContext(adapter, loaded, enabled);
+    assert.deepEqual(loaded.assumptions.fractal, enabled);
+    const context = buildContext(adapter, loaded);
     const config = context.simulationConfig();
     assert.equal(config.modifiers.playerStrike, 1.15);
     assert.equal(config.modifiers.playerCondition, 1.15);
@@ -137,7 +135,7 @@ for (const name of [
 
     const preview = createIsolatedPreview(
       {
-        adapter: { ...adapter, createBuildContext: optimizerBuildContextFactory(adapter, enabled) },
+        adapter,
         build: loaded,
         patch: adapter.profession.resolvePatch({ id: 'current' }),
         activeCatalog: adapter.profession.catalog
@@ -155,9 +153,14 @@ for (const name of [
     config.attributeInputs.weaponSets[0].commonTotals.concentration = 999;
     assert.equal(context.simulationConfig().attributeInputs.weaponSets[0].commonTotals.concentration, concentration);
     assert.equal(enabled.agonyResistance, 150);
-    assert.equal(JSON.stringify(original), saved);
-    assert.equal(loaded.assumptions.fractal, undefined);
-    assert.equal(buildContext(adapter, loaded).simulationConfig().fractal, undefined);
+    assert.equal(JSON.stringify(original), originalJson);
+    assert.deepEqual(loaded.assumptions.fractal, enabled);
+    const secondLoad = adapter.profession.migrateBuild(loaded);
+    secondLoad.assumptions.fractal.agonyResistance = 0;
+    assert.equal(loaded.assumptions.fractal.agonyResistance, 150);
+    const withoutSettings = JSON.parse(originalJson);
+    delete withoutSettings.assumptions.fractal;
+    assert.deepEqual(adapter.profession.migrateBuild(withoutSettings).assumptions.fractal, DEFAULT_FRACTAL_BUFFS);
   });
 }
 
@@ -165,7 +168,10 @@ for (const name of [
 test('fractal damage affects player strikes and conditions without affecting summons', () => {
   const build = warrior.profession.createBuildDefaults();
   const queryFor = (fractal) => {
-    const current = buildContext(warrior, build, fractal).simulationConfig();
+    const current = buildContext(warrior, {
+      ...build,
+      assumptions: { ...build.assumptions, fractal }
+    }).simulationConfig();
     return createGw2CombatQuery({
       profession: warrior.profession.runtimeFor(current),
       config: current,
@@ -249,13 +255,14 @@ test('optimizer checks potion attributes and verifies scores under the captured 
     createOptimizerEvaluator(createOptimizerSpace(unbuffed, warrior), warrior).score(optimizerEquipment(build)),
     null
   );
+  build.assumptions.fractal = { ...enabled, augmentation: 'god' };
   const savedBuild = structuredClone(build);
-  const selections = { ...limits, fractal: { ...enabled, augmentation: 'god' } };
-  const request = captureGearOptimizerRequest(app, selections);
-  selections.fractal.agonyResistance = 0;
-  assert.equal(request.selections.fractal.agonyResistance, 150);
-  assert.deepEqual(request.build, savedBuild);
+  const request = captureGearOptimizerRequest(app, limits);
   assert.deepEqual(build, savedBuild);
+  build.assumptions.fractal.agonyResistance = 0;
+  assert.equal(request.build.assumptions.fractal.agonyResistance, 150);
+  assert.deepEqual(request.build, savedBuild);
+  build.assumptions.fractal.agonyResistance = 150;
   const evaluator = createOptimizerEvaluator(createOptimizerSpace(request, warrior), warrior);
   const equipment = optimizerEquipment(request.build);
   const score = evaluator.score(equipment);
@@ -268,7 +275,7 @@ test('optimizer checks potion attributes and verifies scores under the captured 
   verifyOptimizerScore(optimizerScore(score), optimizerScore(evaluator.evaluate(equipment)));
   const tooMuchToughness = {
     ...request,
-    selections: { fractal: request.selections.fractal, maxToughness: before.Toughness.final }
+    selections: { maxToughness: before.Toughness.final }
   };
   assert.equal(
     createOptimizerEvaluator(createOptimizerSpace(tooMuchToughness, warrior), warrior).score(equipment),
@@ -280,6 +287,9 @@ test('optimizer checks potion attributes and verifies scores under the captured 
   verifyOptimizerScore(result.winners[0].score, score);
   applyOptimizerCandidate(app, request, result.winners[0]);
   assert.deepEqual(build.assumptions, savedBuild.assumptions);
-  assert.equal(buildContext(warrior, build).simulationConfig().fractal, undefined);
-  assert.equal(buildContext(warrior, build).attributes(1).attributes.Concentration.final, before.Concentration.final);
+  assert.equal(buildContext(warrior, build).simulationConfig().modifiers.playerStrike, 1.15 * 1.07);
+  assert.equal(
+    buildContext(warrior, build).attributes(1).attributes.Concentration.final,
+    before.Concentration.final + 225
+  );
 });

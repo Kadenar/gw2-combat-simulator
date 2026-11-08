@@ -1,6 +1,6 @@
-import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
-
 /** Saved-build schemas, assumption controls, and codec contracts shared by the app and runtime. */
+import type { FractalBuffs } from '#gw2/platform/builds/fractal-buffs.js';
+import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
 /** A saved build's fields before migration and validation; every value is unverified input. */
 export type UnvalidatedBuildRecord = Record<string, unknown>;
@@ -8,6 +8,7 @@ export type UnvalidatedBuildRecord = Record<string, unknown>;
 /** Build assumptions shared by profession definitions and application adapters. */
 /** Custom control keys remain unverified until the registered assumption normalizers read them. */
 export interface ProfessionBuildAssumptions extends UnvalidatedBuildRecord {
+  fractal?: FractalBuffs;
   procRateOverrides?: Record<string, number>;
   might?: number;
   fury?: boolean;

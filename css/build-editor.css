@@ -66,6 +66,26 @@
   flex-shrink: 0;
 }
 
+/* Reserve a compact mode label beside the build name, including in narrow workspace headers. */
+.build-mode-status {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 0 6px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.build-mode-status[data-mode='fractal'] {
+  border-color: #528e9e;
+  background: #18383f;
+  color: #a6e3ef;
+}
+
 .build-switcher-name,
 .build-switcher-count {
   overflow: hidden;
@@ -428,6 +448,10 @@
 
   .build-workspace-tabs .build-switcher-name {
     font-size: 14px;
+  }
+
+  .build-workspace-tabs .build-mode-status {
+    margin-left: 0;
   }
 
   .build-workspace-tabs .build-switcher-count {

@@ -75,6 +75,27 @@ function previewApp(name, traitNames = [], specialization = null) {
 const stats = (app, input = {}) => calculateAttributePreview(app, input).attributes;
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, actual + ' != ' + expected);
 
+// Fractal settings survive detached preview calculations without accumulating or entering conversion pools.
+test('saved fractal buffs update preview concentration and boon duration once', () => {
+  const app = previewApp('warrior');
+  const before = stats(app);
+  app.build.assumptions.fractal = { enabled: true, agonyResistance: 150, augmentation: 'god' };
+  app.attributeData = app.adapter.createBuildContext({ build: app.build, patch: app.patch }).attributes(1);
+  const saved = structuredClone(app.build);
+
+  for (const input of [{}, { might: 25 }, {}]) {
+    const after = stats(app, input);
+    close(after.Concentration.final - before.Concentration.final, 225);
+    close(after['Boon Duration'].final - before['Boon Duration'].final, 15);
+    assert.equal(after.Concentration.fractalPotions, 225);
+  }
+
+  assert.deepEqual(app.build, saved);
+  app.build.assumptions.fractal.enabled = false;
+  app.attributeData = app.adapter.createBuildContext({ build: app.build, patch: app.patch }).attributes(1);
+  close(stats(app)['Boon Duration'].final, before['Boon Duration'].final);
+});
+
 // Preparation owns the final assumptions; repeated grants replace rather than accumulate in either effect store.
 test('preview grants use the final prepared stacks, audience and expiry without leaking into later queries', () => {
   const app = previewApp('mesmer', ["Fencer's Finesse"]);

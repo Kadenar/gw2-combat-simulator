@@ -1,3 +1,4 @@
+import { DEFAULT_FRACTAL_BUFFS, validateFractalBuffs } from '#gw2/platform/builds/fractal-buffs.js';
 import { normalizeProcRateOverrides } from '#gw2/platform/builds/proc-rates.js';
 import type {
   ProfessionAssumptionControl,
@@ -145,6 +146,10 @@ export function normalizeCommonAssumptions(
   defaults: Record<string, unknown> = {}
 ): Record<string, unknown> {
   const result = { ...assumptions };
+  // Each loaded build owns its fractal settings; omitted settings use the disabled default.
+  const fractal = Object.hasOwn(assumptions, 'fractal') ? assumptions.fractal : defaults.fractal;
+  validateFractalBuffs(fractal);
+  result.fractal = { ...(fractal ?? DEFAULT_FRACTAL_BUFFS) };
 
   // Clone saved overrides so independently loaded builds never share mutable proc settings.
   if (Object.hasOwn(assumptions, 'procRateOverrides')) {
@@ -170,6 +175,12 @@ export function validateCommonAssumptions(assumptions: unknown): string[] {
   }
 
   const errors: string[] = [];
+
+  try {
+    validateFractalBuffs((assumptions as Record<string, unknown>).fractal);
+  } catch (error) {
+    errors.push(error instanceof Error ? error.message : String(error));
+  }
 
   try {
     normalizeProcRateOverrides((assumptions as Record<string, unknown>).procRateOverrides);

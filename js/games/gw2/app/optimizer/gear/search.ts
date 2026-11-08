@@ -1,9 +1,4 @@
 import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
-import {
-  createOptimizerBuildContext,
-  validateFractalBuffs,
-  type FractalBuffs
-} from '#gw2/app/optimizer/gear/fractal-buffs.js';
 import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { PatchSelection } from '#gw2/integrations/patches/selection.js';
@@ -24,7 +19,6 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { SIMULATION_RANDOMNESS_MODES } from '#kernel/core/simulation-random.js';
 
 export interface GearOptimizerSelections {
-  fractal?: FractalBuffs;
   prefixes?: string[];
   rune?: string[];
   relic?: string[];
@@ -233,7 +227,6 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
           'infusionCount',
           'locks',
           'forcedSlots',
-          'fractal',
           ...Object.keys(OPTIMIZER_REQUIREMENTS)
         ].includes(key)
     )
@@ -241,7 +234,6 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
     throw new TypeError('Invalid optimizer selections.');
   }
 
-  validateFractalBuffs(selections.fractal);
   // Omitted requirements are unrestricted; reject malformed bounds before starting workers.
   for (const key of Object.keys(OPTIMIZER_REQUIREMENTS) as (keyof typeof OPTIMIZER_REQUIREMENTS)[]) {
     const value = selections[key];
@@ -465,15 +457,11 @@ export function createOptimizerEvaluator(space: OptimizerSpace, adapter: Optimiz
     }
 
     // Each candidate borrows the captured build and computes only the sets required before rejection.
-    const context = createOptimizerBuildContext(
-      adapter,
-      {
-        build: { ...request.build, ...equipment },
-        patch,
-        transitionDelays
-      },
-      request.selections.fractal
-    );
+    const context = adapter.createBuildContext({
+      build: { ...request.build, ...equipment },
+      patch,
+      transitionDelays
+    });
 
     // Reject candidates using finalized build attributes on every usable set before creating a combat simulation.
     if (enforceRequirements && hasRequirements) {

@@ -1,3 +1,4 @@
+import { fractalAttributeSeed, fractalDamageModifiers } from '#gw2/build-context/fractal-buffs.js';
 import type { BuildContextInput, ProfessionModifier } from '#gw2/build-context/types.js';
 import type { Gw2AttributeSeed } from '#gw2/platform/attributes/types.js';
 import { assumptionControlsForSpecialization } from '#gw2/platform/builds/assumptions.js';
@@ -77,14 +78,20 @@ export function createGw2SimulationConfig({
     .map((setNumber) => weaponSigilsForSet(build, setNumber))
     .map((names) => (disabled?.type === 'Sigil' ? names.filter((name) => name !== disabled.name) : names))
     .map(aggregateSigilSet);
-  // Only common equipment seeds cross the worker boundary; profession bonuses are evaluated by the selected runtime.
+  // Equipment and fractal seeds cross the worker boundary; the selected runtime evaluates profession bonuses.
   const attributeInputs = {
-    weaponSets: [snapshotSeed(attributeSeeds[0]), snapshotSeed(attributeSeeds[1])] as const
+    weaponSets: [
+      snapshotSeed(fractalAttributeSeed(attributeSeeds[0], assumptions.fractal)),
+      snapshotSeed(fractalAttributeSeed(attributeSeeds[1], assumptions.fractal))
+    ] as const
   };
   const professionAssumptionControls = assumptionControlsForSpecialization(assumptionControls, specialization);
 
+  // Saved fractal assumptions reach every worker through the common seeds and player damage channels.
+  const fractalModifiers = fractalDamageModifiers(assumptions.fractal);
   return {
     patchId,
+    ...(fractalModifiers ? { modifiers: fractalModifiers } : {}),
     // Carry build-local rates into workers and every comparison/optimization request.
     procRateOverrides: normalizeProcRateOverrides(assumptions.procRateOverrides),
     // Snapshot explicit timing preferences for workers, comparisons, and optimizer candidates.

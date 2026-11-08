@@ -4,6 +4,7 @@ import { mountHeaderDps } from '#browser/shell/dps-status.js';
 import { mountMobileMenu } from '#browser/shell/mobile-menu.js';
 import { addBuildTab, closeBuildTab, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { FRACTAL_AUGMENTATIONS } from '#gw2/platform/builds/fractal-buffs.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { escapeHtml } from '#ui/shared/html.js';
 
@@ -196,7 +197,7 @@ export function mountBuildTabs(app: ProfessionAppState): void {
   strip.innerHTML = `
     <button type="button" id="build-switcher" class="build-switcher" popovertarget="build-switcher-menu">
       <span class="build-switcher-text">
-        <span class="build-switcher-title"><span class="build-switcher-name"></span>${CHEVRON_ICON}</span>
+        <span class="build-switcher-title"><span class="build-switcher-name"></span><span class="build-mode-status" role="status" aria-live="polite"></span>${CHEVRON_ICON}</span>
         <span class="build-switcher-count"></span>
       </span>
     </button>
@@ -371,6 +372,18 @@ export function renderBuildTabs(app: ProfessionAppState): void {
   // Update the trigger in place so it keeps focus while builds are renamed, loaded, or closed.
   strip.querySelector<HTMLElement>('#build-switcher')!.title = active?.name ?? '';
   strip.querySelector('.build-switcher-name')!.textContent = active?.name ?? '';
+  // Keep the saved simulation mode visible across tools and update it when the active build changes.
+  const fractal = app.build.assumptions.fractal;
+  const mode = strip.querySelector<HTMLElement>('.build-mode-status')!;
+  const modeName = fractal?.enabled ? 'Fractal' : 'Raid';
+
+  if (mode.textContent !== modeName) mode.textContent = modeName;
+
+  mode.dataset.mode = fractal?.enabled ? 'fractal' : 'raid';
+  mode.title = fractal?.enabled
+    ? `Fractal mode: ${fractal.agonyResistance} AR. ${fractal.augmentation === 'none' ? 'No account augmentation' : FRACTAL_AUGMENTATIONS[fractal.augmentation].label}.`
+    : 'Raid mode: fractal buffs disabled.';
+  mode.setAttribute('aria-label', mode.title);
   strip.querySelector('.build-switcher-count')!.textContent = `${count} open build${count === 1 ? '' : 's'}`;
   const list = strip.querySelector<HTMLElement>('.build-tab-list')!;
   const scrollTop = list.scrollTop;
