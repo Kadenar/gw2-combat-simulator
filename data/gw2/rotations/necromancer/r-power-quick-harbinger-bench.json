@@ -168,10 +168,6 @@
       "skillId": 30860
     },
     {
-      "type": "wait",
-      "durationMs": 160
-    },
-    {
       "type": "cast",
       "skillId": 29855
     },
@@ -407,10 +403,6 @@
       "skillId": 30860
     },
     {
-      "type": "wait",
-      "durationMs": 160
-    },
-    {
       "type": "cast",
       "skillId": 29705,
       "interruptAfterMs": 80
@@ -566,11 +558,8 @@
     },
     {
       "type": "cast",
-      "skillId": 30860
-    },
-    {
-      "type": "wait",
-      "durationMs": 80
+      "skillId": 30860,
+      "interruptAfterMs": 800
     },
     {
       "type": "cast",
@@ -801,10 +790,6 @@
       "skillId": 30860
     },
     {
-      "type": "wait",
-      "durationMs": 160
-    },
-    {
       "type": "cast",
       "skillId": 30163
     },
@@ -944,10 +929,6 @@
     {
       "type": "cast",
       "skillId": 30860
-    },
-    {
-      "type": "wait",
-      "durationMs": 160
     },
     {
       "type": "cast",

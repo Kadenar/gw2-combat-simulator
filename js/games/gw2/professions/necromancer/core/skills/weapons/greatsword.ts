@@ -144,8 +144,10 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
     weapon: 'Greatsword',
     slot: 'Weapon_3',
     cooldown: 10,
-    castTimeMs: 720,
-    effects: [
+    // The impact commits before the full activation ends, so shortened casts keep their damage.
+    castTimeMs: 880,
+    interruptCommitMs: 720,
+    effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
         coefficient: 3,
@@ -176,7 +178,7 @@ export const NECROMANCER_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<num
         duration: 10,
         stacks: 12
       }
-    ]
+    ])
   },
   [ID.NIGHTFALL]: {
     name: 'Nightfall',

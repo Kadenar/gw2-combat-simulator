@@ -191,7 +191,8 @@
     },
     {
       "type": "cast",
-      "skillId": 30860
+      "skillId": 30860,
+      "interruptAfterMs": 720
     },
     {
       "type": "cast",
@@ -303,7 +304,8 @@
     },
     {
       "type": "cast",
-      "skillId": 30860
+      "skillId": 30860,
+      "interruptAfterMs": 720
     },
     {
       "type": "cast",
@@ -502,7 +504,8 @@
     },
     {
       "type": "cast",
-      "skillId": 30860
+      "skillId": 30860,
+      "interruptAfterMs": 720
     },
     {
       "type": "cast",
@@ -602,7 +605,8 @@
     },
     {
       "type": "cast",
-      "skillId": 30860
+      "skillId": 30860,
+      "interruptAfterMs": 720
     },
     {
       "type": "cast",
