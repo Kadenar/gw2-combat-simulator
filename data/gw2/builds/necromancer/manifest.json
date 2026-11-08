@@ -93,25 +93,25 @@
         "build": "data/gw2/builds/necromancer/b-condi-reaper.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-reaper-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-reaper-spear-dagger-sword",
-        "benchmarkDps": 43601,
+        "benchmarkDps": 43685,
         "upToDate": true,
         "benchmarkApm": 84.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44641, "phase": 44641 },
-          "80-60": { "cumulative": 43459, "phase": 42314 },
-          "60-40": { "cumulative": 42146, "phase": 39790 },
-          "40-20": { "cumulative": 44318, "phase": 52573 },
-          "20-0": { "cumulative": 43601, "phase": 43601 }
+          "100-80": { "cumulative": 44708, "phase": 44708 },
+          "80-60": { "cumulative": 43528, "phase": 42380 },
+          "60-40": { "cumulative": 42213, "phase": 39868 },
+          "40-20": { "cumulative": 44404, "phase": 52733 },
+          "20-0": { "cumulative": 43685, "phase": 43685 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 43601,
+          "benchmarkDps": 43685,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 44641, "phase": 44641 },
-            "80-60": { "cumulative": 43459, "phase": 42314 },
-            "60-40": { "cumulative": 42146, "phase": 39790 },
-            "40-20": { "cumulative": 44318, "phase": 52573 },
-            "20-0": { "cumulative": 43601, "phase": 43601 }
+            "100-80": { "cumulative": 44708, "phase": 44708 },
+            "80-60": { "cumulative": 43528, "phase": 42380 },
+            "60-40": { "cumulative": 42213, "phase": 39868 },
+            "40-20": { "cumulative": 44404, "phase": 52733 },
+            "20-0": { "cumulative": 43685, "phase": 43685 }
           }
         }
       },

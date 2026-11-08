@@ -18,6 +18,7 @@ function spore(parentSkillName: string): SkillEffect[] {
     {
       type: 'strike',
       sourceId: ID.EXPLODING_SPORE,
+      independentSourceStrike: true,
       name: 'Exploding Spore',
       damageBreakdownName: 'Exploding Spore',
       skillName: 'Exploding Spore',

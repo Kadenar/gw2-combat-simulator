@@ -96,7 +96,7 @@ for (const audienceField of ['audience', 'resolvedAudience']) {
 // Distinct combat, damage, and observation clocks expose accidental credit for preparation or the end boundary.
 for (const explicit of [false, true]) {
   for (const targetDeath of [false, true]) {
-    test(`score and detail agree with ${explicit ? 'explicit' : 'implicit'} entry and ${targetDeath ? 'target death' : 'observation end'}`, () => {
+    test(`output modes agree with ${explicit ? 'explicit' : 'implicit'} entry and ${targetDeath ? 'target death' : 'observation end'}`, () => {
       const run = (output, collectBoonCoverage = true) =>
         observeGw2Runtime({
           profession: profession.runtimeFor({}),
@@ -129,6 +129,8 @@ for (const explicit of [false, true]) {
         });
       const detailed = run('detailed');
       const score = run('score');
+      // Batch consumers can request generated coverage without enabling chart or breakdown collectors.
+      const observations = run('observations');
       const unconstrained = run('score', false);
       const start = detailed.combatStartTime ?? detailed.dpsStartTime;
       const replay = buildBoonGeneration(detailed.resolvedEvents, start, detailed.combatEndTime);
@@ -139,6 +141,8 @@ for (const explicit of [false, true]) {
       );
       assert.deepEqual(score.boonCoverage, generatedBoonCoverage(replay.boons, detailed.dpsWindow));
       assert.deepEqual(score.boonCoverage, detailed.boonCoverage);
+      assert.deepEqual(observations.boonCoverage, detailed.boonCoverage);
+      assert.equal(observedRuntime(observations).effectRecorder, null);
       assert.equal(score.dpsStartTime, 4);
       assert.equal(score.combatStartTime, explicit ? 2 : 4);
       assert.equal(score.combatEndTime, targetDeath ? 4 : 8);

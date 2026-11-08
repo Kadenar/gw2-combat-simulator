@@ -38,9 +38,9 @@ export function severanceCriticalContribution(
   return {
     chance,
     damage: (severance.procFerocity || 0) / FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER,
-    // Scores consume the numeric grant without allocating presentation labels for every critical query.
+    // Scores and batch observations consume the numeric grant without allocating presentation labels.
     chanceContributors:
-      runtime?.output === 'score'
+      runtime?.output === 'score' || runtime?.output === 'observations'
         ? NO_CRITICAL_CONTRIBUTION.chanceContributors
         : [
             {

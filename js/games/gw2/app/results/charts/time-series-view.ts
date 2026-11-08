@@ -24,6 +24,8 @@ export interface ChartHealthBreakpoint {
 }
 
 export interface ChartOptions {
+  /** Focused previews reuse effect interactions without mounting damage or condition panels. */
+  readonly allyBoonsOnly: boolean;
   readonly title: string;
   readonly dpsLabel: string;
   readonly dpsColor: string;
@@ -90,6 +92,7 @@ interface ChartLayout {
 }
 
 const DEFAULT_OPTIONS: ChartOptions = {
+  allyBoonsOnly: false,
   title: 'DPS & Effects Over Time',
   dpsLabel: 'DPS',
   dpsColor: '#54c96b',
@@ -629,6 +632,10 @@ function chartHtml(
       <button type="button" data-role="chart-reset-zoom" disabled>Reset zoom</button>
     </div>
     <div class="chart-panels">
+      ${
+        options.allyBoonsOnly
+          ? ''
+          : `
       <div class="chart-panel">
         <div class="chart-panel-title" data-role="dps-panel-title">${escapeHtml(options.dpsLabel)} Over Time</div>
         <div class="chart-toggles chart-dps-controls" role="group" aria-label="Damage sources">
@@ -650,8 +657,14 @@ function chartHtml(
           <div class="chart-tooltip" data-role="dps-tooltip"></div>
         </div>
       </div>
+      `
+      }
       <div class="chart-panel">
         <div class="chart-panel-title" data-role="effects-panel-title">Boons &amp; Buffs Over Time</div>
+        ${
+          options.allyBoonsOnly
+            ? '<p>Allies · Remaining boon duration in seconds</p>'
+            : `
         <div class="chart-phase-toggles" data-role="boon-audience" role="group" aria-label="Boon audience">
           <span class="chart-toggle-label">Boons</span>
           <button type="button" data-boon-audience="self" aria-pressed="true">Self</button>
@@ -659,6 +672,8 @@ function chartHtml(
           <button type="button" data-boon-audience="both" aria-pressed="false">Both</button>
           <span>Self: solid · Allies: dashed</span>
         </div>
+        `
+        }
         ${effectTogglesMarkup(false)}
         <div class="chart-canvas-wrap">
           <canvas class="chart-canvas" data-role="effects-canvas" tabindex="0" aria-label="Boons and buffs chart"></canvas>
@@ -666,6 +681,10 @@ function chartHtml(
           <div class="chart-tooltip" data-role="effects-tooltip"></div>
         </div>
       </div>
+      ${
+        options.allyBoonsOnly
+          ? ''
+          : `
       <div class="chart-panel">
         <div class="chart-panel-title" data-role="conditions-panel-title">Conditions Over Time</div>
         ${effectTogglesMarkup(true)}
@@ -676,6 +695,8 @@ function chartHtml(
         </div>
       </div>
       ${effectSummaryHtml(series)}
+      `
+      }
     </div>
   </div>`;
 }
@@ -689,7 +710,7 @@ export function mountTimeSeriesCharts(
   container: HTMLElement | null | undefined,
   series: ChartSeries,
   options: Partial<ChartOptions> = {}
-): void {
+): (() => void) | undefined {
   if (!container) return;
 
   // A token makes a queued animation-frame redraw from an older mount harmless.
@@ -733,7 +754,7 @@ export function mountTimeSeriesCharts(
       );
   const phases = fightPhases(resolvedSeries, healthMarkers, resolvedOptions);
   let activePhaseId = 'full';
-  let boonAudience: string = RECIPIENT.SELF;
+  let boonAudience: string = resolvedOptions.allyBoonsOnly ? 'ally' : RECIPIENT.SELF;
   const effectNames = [
     ...new Set([...Object.keys(resolvedSeries.effects), ...Object.keys(resolvedSeries.alliedEffects!)])
   ];
@@ -750,7 +771,7 @@ export function mountTimeSeriesCharts(
     revealProgress: number;
     revealStarted: number | null;
     paint: () => void;
-  }[] = ['dps', 'effects', 'conditions'].map((kind) => ({
+  }[] = (resolvedOptions.allyBoonsOnly ? ['effects'] : ['dps', 'effects', 'conditions']).map((kind) => ({
     kind,
     layout: null,
     lines: [],
@@ -827,7 +848,13 @@ export function mountTimeSeriesCharts(
     for (const panel of panels) {
       const title = container.querySelector<HTMLElement>(`[data-role="${panel.kind}-panel-title"]`);
       const label =
-        panel.kind === 'dps' ? resolvedOptions.dpsLabel : panel.kind === 'conditions' ? 'Conditions' : 'Boons & Buffs';
+        panel.kind === 'dps'
+          ? resolvedOptions.dpsLabel
+          : panel.kind === 'conditions'
+            ? 'Conditions'
+            : resolvedOptions.allyBoonsOnly
+              ? 'Ally Boons'
+              : 'Boons & Buffs';
 
       if (title) title.textContent = `${label} Over Time${activePhase.id === 'full' ? '' : ` - ${activePhase.label}`}`;
 
@@ -1093,7 +1120,7 @@ export function mountTimeSeriesCharts(
     });
   };
 
-  const observedCanvas = container.querySelector<HTMLCanvasElement>('[data-role="dps-canvas"]');
+  const observedCanvas = panels[0]?.canvas;
   const observedContainer = observedCanvas?.parentElement;
   const ResizeObserverConstructor = container.ownerDocument?.defaultView?.ResizeObserver || globalThis.ResizeObserver;
 
@@ -1171,5 +1198,13 @@ export function mountTimeSeriesCharts(
     if (redrawFrame !== null) chartWindow?.cancelAnimationFrame(redrawFrame);
 
     activeMount.resizeObserver?.disconnect();
+  };
+
+  // Dialogs release observers and queued redraws when removed; older disposers cannot tear down newer mounts.
+  return () => {
+    if (ACTIVE_MOUNTS.get(container)?.token !== mountToken) return;
+
+    activeMount.dispose?.();
+    ACTIVE_MOUNTS.delete(container);
   };
 }

@@ -39,7 +39,8 @@ self.addEventListener(
           profession,
           rotation: request.rotation,
           config: comparisonConfig(request.config, data.alliedPlayerCount),
-          collectChartData: false
+          // The comparison reduces damage observations to its curve without constructing editor reports.
+          output: 'observations'
         })
       );
       self.postMessage({ requestId: data.requestId, result });

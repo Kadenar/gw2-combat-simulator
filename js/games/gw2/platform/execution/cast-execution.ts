@@ -315,8 +315,7 @@ export function createCastExecution<T extends object>(
       sourceId: skill.id,
       actorType: ACTOR.PLAYER,
       skillId: skill.id,
-      skillName: skill.name,
-      activationId: cast.id
+      skillName: skill.name
     };
 
     if (!Number.isFinite(cast.rechargeWork) || cast.rechargeWork < 0)
@@ -330,6 +329,7 @@ export function createCastExecution<T extends object>(
       kind: 'packet',
       event: {
         ...attribution,
+        activationId: cast.id,
         type: 'action',
         at: start,
         name: skill.name,
@@ -356,10 +356,7 @@ export function createCastExecution<T extends object>(
   function acceptCastWork(
     cast: RuntimeCast,
     action: SimulationEvent,
-    attribution: Pick<
-      SimulationEventBase,
-      'source' | 'sourceId' | 'actorType' | 'skillId' | 'skillName' | 'activationId'
-    >,
+    attribution: Pick<SimulationEventBase, 'source' | 'sourceId' | 'actorType' | 'skillId' | 'skillName'>,
     interrupted: boolean
   ): void {
     const { skill, command, start, fullEnd, effectiveEnd } = cast;
@@ -395,6 +392,12 @@ export function createCastExecution<T extends object>(
         effects: [scaleCastBoundTiming(cast, skill, effect)],
         at: start,
         fullEnd,
+        // Delivery owns activation identity so authored child strikes can share a separate roll per source.
+        cast: {
+          activationId: cast.id,
+          skillId: skill.id,
+          independentSourceStrike: effect.type === 'strike' && effect.independentSourceStrike === true
+        },
         attribution: {
           ...attribution,
           source: effect.source || profession.id,

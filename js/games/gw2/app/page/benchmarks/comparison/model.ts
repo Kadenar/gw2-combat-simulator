@@ -45,7 +45,12 @@ export function comparisonKey(row: Pick<Benchmark, 'profession' | 'build' | 'rot
 }
 
 /** Project only damage packets in the observation window so workers do not transfer full simulation histories. */
-export function comparisonResult(result: Gw2ResolverResult): ComparisonResult {
+export function comparisonResult(
+  result: Pick<
+    Gw2ResolverResult,
+    'combatEndTime' | 'dpsStartTime' | 'resolvedEvents' | 'dps' | 'deathTime' | 'warnings'
+  >
+): ComparisonResult {
   const durationMs = Math.max(0, (result.combatEndTime - result.dpsStartTime) * 1000);
   const hits = result.resolvedEvents.flatMap((event) => {
     if (event.type !== 'damage' && event.type !== 'condition') return [];

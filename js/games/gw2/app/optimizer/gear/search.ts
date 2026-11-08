@@ -457,9 +457,6 @@ export function createOptimizerEvaluator(space: OptimizerSpace, adapter: Optimiz
     (key) =>
       !(key in OPTIMIZER_OVERCAP_REQUIREMENTS) && limits[key as keyof typeof OPTIMIZER_REQUIREMENTS] !== undefined
   );
-  const collectBoonCoverage = Object.keys(OPTIMIZER_OVERCAP_REQUIREMENTS).some(
-    (key) => limits[key as keyof typeof OPTIMIZER_OVERCAP_REQUIREMENTS] !== undefined
-  );
   function prepare(equipment: OptimizerEquipment): Gw2Config;
   function prepare(equipment: OptimizerEquipment, enforceRequirements: true): Gw2Config | null;
   function prepare(equipment: OptimizerEquipment, enforceRequirements = false): Gw2Config | null {
@@ -514,7 +511,7 @@ export function createOptimizerEvaluator(space: OptimizerSpace, adapter: Optimiz
       profession: adapter.profession,
       rotation: request.build.rotation,
       config: prepare(equipment),
-      collectBoonCoverage,
+      collectBoonCoverage: true,
       observationPolicy: { kind: 'rotation' }
     });
   const score = (equipment: OptimizerEquipment): OptimizerScore | null => {
@@ -526,7 +523,8 @@ export function createOptimizerEvaluator(space: OptimizerSpace, adapter: Optimiz
       profession: adapter.profession,
       rotation: request.build.rotation,
       config,
-      collectBoonCoverage,
+      // Result rows always show generation; score mode retains only compact quickness/alacrity accounting.
+      collectBoonCoverage: true,
       observationPolicy: { kind: 'rotation' },
       output: 'score'
     });

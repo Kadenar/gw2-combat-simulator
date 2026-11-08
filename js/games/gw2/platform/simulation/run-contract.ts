@@ -50,7 +50,7 @@ export interface RuntimeOptions<T extends object> {
   readonly config?: Gw2Config;
   readonly observation?: ObservationPolicy;
   readonly combatStartTime?: number;
-  readonly output?: 'detailed' | 'score';
+  readonly output?: 'detailed' | 'score' | 'observations';
   readonly collectChartData?: boolean;
   /** Collect quickness and alacrity supply for optional optimizer constraints. */
   readonly collectBoonCoverage?: boolean;

@@ -1,7 +1,6 @@
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { InputControlId } from '#gw2/platform/skills/input-controls.js';
 import { emitRangerPetSkill, restartRangerPetAutoattack } from '#gw2/professions/ranger/core/mechanics/pets.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetCommandBar } from '#gw2/professions/ranger/data/pet-commands.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { untamedBuffPolicies } from '#gw2/professions/ranger/specializations/untamed/effect-state.js';
@@ -14,18 +13,6 @@ export const untamedHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkill>
   untamedUnleashLifecycle,
   { buffPolicies: untamedBuffPolicies },
   {
-    // The hammer spore keeps its ambush attribution but owns a separate nonweapon strength roll.
-    prepareEvent(_runtime, event) {
-      if (
-        event.type === 'damage' &&
-        event.skillId === ID.RELENTLESS_WHIRL &&
-        event.sourceId === ID.EXPLODING_SPORE &&
-        event.activationId
-      )
-        return { ...event, activationId: `${event.activationId}:effect:${ID.EXPLODING_SPORE}` };
-
-      return event;
-    },
     /** Hold the selected preview state while evaluating detached damage queries. */
     prepareDamageState(runtime, _skill, inputs) {
       untamedState.from(runtime.profession).ferociousSymbiosisPlayer = {

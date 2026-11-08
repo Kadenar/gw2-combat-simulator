@@ -440,8 +440,9 @@ export function createGw2CombatQuery({
       }
 
       const stats = sampledStats ?? statsAt(time, event, runtime);
-      // Scoring needs the same critical facts and rolls, but no explanatory arrays or modifier labels.
-      let contributors: Gw2CriticalChanceContributor[] | undefined = runtime?.output === 'score' ? undefined : [];
+      // Scores and batch observations retain critical facts and rolls without presentation labels.
+      let contributors: Gw2CriticalChanceContributor[] | undefined =
+        runtime?.output === 'score' || runtime?.output === 'observations' ? undefined : [];
       const addContributor = (id: string, label: string, amount: number) => {
         if (!contributors || Math.abs(amount) <= Number.EPSILON) return;
 
@@ -757,7 +758,7 @@ export function createGw2CombatQuery({
 }
 
 export interface Gw2QueryRuntime extends Gw2RuntimeStateLike {
-  readonly output?: 'detailed' | 'score' | 'damage';
+  readonly output?: 'detailed' | 'score' | 'damage' | 'observations';
   readonly companions?: ReadonlyMap<string, CompanionEffects>;
   readonly retiredCompanions?: ReadonlyMap<string, number>;
   readonly boons?: Map<string, Gw2TimedBuffApplication[]>;

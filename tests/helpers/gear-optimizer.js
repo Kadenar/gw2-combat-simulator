@@ -24,9 +24,7 @@ export function runOrdinaryOptimizer(request, adapter) {
         profession: adapter.profession,
         rotation: request.build.rotation,
         config,
-        collectBoonCoverage:
-          request.selections.minQuicknessOvercapPercent !== undefined ||
-          request.selections.minAlacrityOvercapPercent !== undefined,
+        collectBoonCoverage: true,
         observationPolicy: { kind: 'rotation' }
       })
     );

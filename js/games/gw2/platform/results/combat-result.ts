@@ -7,9 +7,9 @@ import {
   generatedBoonCoverage,
   projectedPartyEffects
 } from '#gw2/platform/results/boon-generation.js';
+import { projectCombatObservations } from '#gw2/platform/results/combat-observations.js';
 import type { DamageReportProjection } from '#gw2/platform/results/damage-report.js';
 import { uniqueDiagnostics } from '#gw2/platform/results/diagnostics.js';
-import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import type { Gw2ResolverResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { cloneData } from '#kernel/core/clone.js';
 
@@ -95,15 +95,7 @@ export function buildCombatResult(
     boonGeneration: generation ? { boons: Object.fromEntries(generation.boons) } : null,
     ...damageReport,
     events: cloneData(effectiveEvents),
-    resolvedEvents: projectResolvedEvents(
-      ctx.resolved.filter((event) => event.at <= effectiveEnd),
-      effectiveEnd
-    ).sort((left, right) => left.at - right.at),
-    procSteps: cloneData(
-      (ctx.procRecorder?.steps ?? [])
-        .filter((step) => step.start <= Math.round(effectiveEnd * 1000 + 0.1))
-        .sort((left, right) => left.start - right.start)
-    ),
+    ...projectCombatObservations(ctx, effectiveEnd),
     randomness: {
       mode: ctx.random.mode,
       seed: ctx.random.seed

@@ -479,7 +479,7 @@ test('results expose every equipment choice without expanding rows', async ({ pa
     await expect(results.locator('tbody .optimizer-damage strong').first()).toBeInViewport();
   }
 
-  await expect(results.getByRole('button')).toHaveCount(0);
+  await expect(results.getByRole('button', { name: 'Apply', exact: true })).toHaveCount(0);
 });
 
 test('result groupings switch without rerunning and keep equipped gear pinned', async ({ page }) => {
@@ -502,7 +502,7 @@ test('result groupings switch without rerunning and keep equipped gear pinned', 
   }));
   const pinned = panel.locator('thead').getByRole('row', { name: 'Equipped setup', exact: true });
   await expect(pinned.getByRole('cell', { name: `Food: ${equipped.food}`, exact: true })).toBeVisible();
-  await expect(pinned.getByRole('button')).toHaveCount(0);
+  await expect(pinned.getByRole('button', { name: 'Apply', exact: true })).toHaveCount(0);
   // Only food and utility had alternatives in this search, so sigil, rune, and relic groupings are not offered.
   const groupings = panel.getByRole('group', { name: 'Group results', exact: true });
   await expect(groupings.getByRole('button')).toHaveText(['Top results', 'Per upgrade set', 'Per food', 'Per utility']);
@@ -559,7 +559,7 @@ test('result groupings switch without rerunning and keep equipped gear pinned', 
   const withoutFood = panel
     .locator('tbody tr')
     .filter({ has: page.getByRole('cell', { name: 'Food: None', exact: true }) });
-  await withoutFood.locator('.optimizer-damage').click();
+  await withoutFood.locator('.optimizer-damage strong').click();
   await withoutFood.getByRole('button', { name: 'Apply', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   expect(await page.evaluate(() => window.professionApp.build.food)).toBe('');
@@ -569,7 +569,7 @@ test('result groupings switch without rerunning and keep equipped gear pinned', 
   const nextResult = panel
     .locator('tbody tr')
     .filter({ has: page.getByRole('cell', { name: `Food: ${equipped.food}`, exact: true }) });
-  await nextResult.locator('.optimizer-damage').click();
+  await nextResult.locator('.optimizer-damage strong').click();
   await nextResult.getByRole('button', { name: 'Apply', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   expect(await page.evaluate(() => window.professionApp.build.food)).toBe(equipped.food);
@@ -587,7 +587,7 @@ test('result groupings switch without rerunning and keep equipped gear pinned', 
   });
   await expect(panel.locator('[data-role="optimizer-status"]')).toContainText('Results are stale');
   await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
-  await withoutFood.locator('.optimizer-damage').click();
+  await withoutFood.locator('.optimizer-damage strong').click();
   await expect(panel.getByRole('button', { name: 'Apply gear', exact: true })).toBeDisabled();
   await expect(withoutFood.getByRole('button', { name: 'Apply', exact: true })).toBeDisabled();
 });

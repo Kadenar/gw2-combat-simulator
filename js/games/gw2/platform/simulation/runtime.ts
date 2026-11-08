@@ -55,7 +55,11 @@ import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { captureRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
 import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
 import { projectRuntimeResult } from '#gw2/platform/results/project-runtime.js';
-import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
+import type {
+  Gw2SimulationObservations,
+  Gw2SimulationResult,
+  Gw2SimulationScore
+} from '#gw2/platform/results/types.js';
 import { createMechanicContext, createMechanicQueryContext } from '#gw2/platform/simulation/bind-mechanic-context.js';
 import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
 import type { Gw2RuntimeConfig } from '#gw2/platform/simulation/config.js';
@@ -92,12 +96,12 @@ export function runRuntime<T extends object>(
 
 export function runRuntime<T extends object>(
   options: RuntimeOptions<T> & { readonly execution: RuntimeExecution<T> }
-): Gw2SimulationResult | Gw2SimulationScore;
+): Gw2SimulationResult | Gw2SimulationScore | Gw2SimulationObservations;
 
 /** The shared scheduler can collect a finite occurrence without constructing combat reports. */
 export function runRuntime<T extends object>(
   options: (RuntimeOptions<T> | DamageRuntimeOptions<T>) & { readonly execution: RuntimeExecution<T> }
-): DamageRuntimeResult | Gw2SimulationResult | Gw2SimulationScore {
+): DamageRuntimeResult | Gw2SimulationResult | Gw2SimulationScore | Gw2SimulationObservations {
   // Phase 1: normalize and validate the invocation before constructing live owners.
   const {
     profession,
@@ -251,8 +255,8 @@ export function runRuntime<T extends object>(
         }))
       : null,
     damageRecorder: damageReport?.observer ?? null,
-    // Damage measurements retain packets, but only detailed reports consume proc rows and aggregate breakdowns.
-    procRecorder: output === 'detailed' ? new ProcStepRecorder(effectRecorder) : null,
+    // Batch explanations retain proc observations without enabling damage breakdowns or chart histories.
+    procRecorder: output === 'detailed' || output === 'observations' ? new ProcStepRecorder(effectRecorder) : null,
     damageDiagnostics: output === 'damage' || damageDiagnostics,
     horizon: policy.kind === 'absolute' ? canonicalTime(policy.endTimeMs / 1000) : null,
     query,

@@ -285,6 +285,13 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   // Validate explicit profiles before authored effects enter the runtime.
   if (candidate.weaponStrengthProfileId !== undefined) weaponStrengthProfile(candidate.weaponStrengthProfileId);
 
+  // Only strike effects can opt into separate child activations; reject ambiguous authoring values.
+  if (
+    candidate.independentSourceStrike !== undefined &&
+    (candidate.type !== 'strike' || typeof candidate.independentSourceStrike !== 'boolean')
+  )
+    throw new TypeError('independentSourceStrike requires a boolean on a strike effect.');
+
   // Validate aura identity and duration at the same boundary as other supported effects.
   if (
     normalizedEffect.type === 'aura' &&

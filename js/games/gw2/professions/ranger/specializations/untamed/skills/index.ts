@@ -302,6 +302,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
           {
             type: 'strike',
             sourceId: ID.EXPLODING_SPORE,
+            independentSourceStrike: true,
             name: 'Exploding Spore',
             // Keep spore damage in its own breakdown row while retaining the ambush's cast attribution.
             damageBreakdownName: 'Exploding Spore',
@@ -352,6 +353,7 @@ export const UNTAMED_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
           {
             type: 'strike',
             sourceId: ID.EXPLODING_SPORE,
+            independentSourceStrike: true,
             name: 'Exploding Spore',
             damageBreakdownName: 'Exploding Spore',
             coefficient: 0.583,

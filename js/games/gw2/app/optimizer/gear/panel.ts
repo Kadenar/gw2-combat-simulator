@@ -1,3 +1,4 @@
+import { openOptimizerBoonChart } from '#gw2/app/optimizer/gear/boon-chart.js';
 import {
   OPTIMIZER_RESULT_FILTERS,
   optimizerEquipmentIdentity,
@@ -250,23 +251,19 @@ function renderResultsTable(
         )
       )
     ].join('');
-    // Show measured coverage beneath DPS for each requested boon.
+    // Generated boons share one compact line, with each percentage opening the optional chart.
     const coverage = (['quickness', 'alacrity'] as const)
       .flatMap((kind) => {
-        const minimum =
-          kind === 'quickness'
-            ? request.selections.minQuicknessOvercapPercent
-            : request.selections.minAlacrityOvercapPercent;
-
-        if (minimum === undefined) return [];
-
         const measured = candidate.score.boonCoverage?.[kind].allyPercent;
+
+        if (measured === undefined || measured <= 0) return [];
+
         return [
-          `<small class="optimizer-boon-coverage">${kind === 'quickness' ? 'Quickness' : 'Alacrity'} coverage: ${measured === undefined ? 'unavailable' : `${measured.toFixed(2)}%`}</small>`
+          `<button type="button" class="optimizer-boon-link" data-boon-preview aria-haspopup="dialog" title="View chart: generated duration for one ally as a percentage of the benchmark window">${kind === 'quickness' ? 'Quickness' : 'Alacrity'} ${measured.toFixed(2)}%</button>`
         ];
       })
       .join('');
-    return `<tr tabindex="0" data-preview="${index}"${pinned ? ' class="optimizer-equipped" aria-label="Equipped setup"' : ''}><td class="optimizer-damage">${pinned ? '<span class="optimizer-equipped-label">Equipped</span>' : ''}<strong>${candidate.score.dps.toFixed(2)}</strong>${coverage}</td><td class="optimizer-gain-cell">${gain}</td>${cells}<td class="optimizer-apply">${pinned ? '' : '<button type="button" data-apply-row hidden>Apply</button>'}</td></tr>`;
+    return `<tr tabindex="0" data-preview="${index}"${pinned ? ' class="optimizer-equipped" aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><strong>${candidate.score.dps.toFixed(2)}</strong>${pinned ? '<span class="optimizer-equipped-label">Equipped</span>' : ''}${coverage ? `<div class="optimizer-boon-coverage">${coverage}</div>` : ''}</td><td class="optimizer-gain-cell">${gain}</td>${cells}<td class="optimizer-apply">${pinned ? '' : '<button type="button" data-apply-row hidden>Apply</button>'}</td></tr>`;
   };
 
   const group = (label: string, span: number): string =>
@@ -456,6 +453,14 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
           : displayedResults()[index];
 
       if (!candidate) return;
+
+      // Inspection uses the captured search and never selects or applies the row's equipment.
+      const boonButton = element.closest<HTMLElement>('[data-boon-preview]');
+
+      if (boonButton) {
+        openOptimizerBoonChart(request, candidate, boonButton);
+        return;
+      }
 
       // The row's Apply acts on that row's candidate, which is always the one being previewed.
       if (element.closest('[data-apply-row]')) {

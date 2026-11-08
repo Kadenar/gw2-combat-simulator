@@ -251,6 +251,93 @@ test('derived proc activations own their strength roll independently of the trig
   assert.equal(result.totalDamage, simulateGw2({ ...options, output: 'score' }).totalDamage);
 });
 
+// Authored child sources share one roll per source and cast only when explicitly enabled.
+for (const [independentSourceStrike, childProfile] of [
+  [false, 'weapon.dagger'],
+  [true, 'weapon.dagger'],
+  [true, 'nonweapon.unequipped']
+]) {
+  test(`authored child strikes use independent=${independentSourceStrike} with ${childProfile}`, () => {
+    const catalog = createCanonicalCatalog({
+      skills: [
+        {
+          id: 990004,
+          name: 'Parent strike',
+          type: 'Weapon',
+          weapon: 'Dagger',
+          castTimeMs: 300,
+          cooldown: 0,
+          effects: [
+            { type: 'strike', coefficient: 1, independentSourceStrike },
+            {
+              type: 'strike',
+              independentSourceStrike,
+              sourceId: 990005,
+              weaponStrengthProfileId: childProfile,
+              ticks: [
+                { atMs: 0, coefficient: 1 },
+                { atMs: 100, coefficient: 1 }
+              ],
+              timingAnchor: 'castEnd',
+              timingScale: 'fixed'
+            }
+          ]
+        }
+      ],
+      weapons: ['Dagger'],
+      weaponHands: { Dagger: 'mh+oh' }
+    });
+    const options = {
+      profession: defineTestProfession({ id: 'child-strength-fixture', name: 'Child strength fixture', catalog }),
+      rotation: ['Parent strike', 'Parent strike'],
+      config: { primaryWeapon: 'Dagger', randomness: { mode: 'stochastic', seed: 7 } },
+      observationPolicy: { kind: 'tail', durationMs: 1000 }
+    };
+    const result = simulateGw2(options);
+    assert.deepEqual(result.warnings, []);
+    const hits = result.resolvedEvents.filter((event) => event.type === 'damage');
+    const parents = hits.filter((event) => event.sourceId === 990004);
+    const children = hits.filter((event) => event.sourceId === 990005);
+    assert.equal(parents.length, 2);
+    assert.equal(children.length, 4);
+    const parentIds = new Set(parents.map((event) => event.activationId));
+    const childIds = new Set(children.map((event) => event.activationId));
+    assert.equal(parentIds.size, 2);
+    assert.equal(childIds.size, 2);
+    for (const child of children) {
+      assert.equal(child.skillId, 990004);
+      assert.equal(child.weaponStrengthProfileId, childProfile);
+      assert.equal(parentIds.has(child.activationId), !independentSourceStrike);
+    }
+
+    const groups = Map.groupBy(hits, (event) => event.activationId);
+    assert.equal(groups.size, independentSourceStrike ? 4 : 2);
+    for (const group of groups.values())
+      assert.equal(new Set(group.map((event) => event.resolvedWeaponStrength)).size, 1);
+    assert.equal(new Set(hits.map((event) => event.resolvedWeaponStrength)).size, groups.size);
+    assert.equal(simulateGw2(options).totalDamage, result.totalDamage);
+    assert.equal(simulateGw2({ ...options, output: 'score' }).totalDamage, result.totalDamage);
+  });
+}
+
+test('independent source strike policy requires an authored boolean strike declaration', () => {
+  assert.throws(
+    () => normalizeEffect({ type: 'strike', coefficient: 1, independentSourceStrike: 'true' }),
+    /independentSourceStrike/
+  );
+  assert.throws(
+    () =>
+      normalizeEffect({
+        type: 'condition',
+        condition: 'Poisoned',
+        stacks: 1,
+        duration: 1,
+        independentSourceStrike: true
+      }),
+    /independentSourceStrike/
+  );
+});
+
 function simulateFixture(mode, seed = 1, casts = 1, precision = 0, criticalDamageMode) {
   return simulateGw2({
     profession: fixtureProfession(),

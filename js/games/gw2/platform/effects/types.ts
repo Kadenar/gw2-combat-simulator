@@ -99,6 +99,8 @@ export interface SkillEffectBase {
 
 export interface StrikeEffect extends SkillEffectBase, StrikePacketFields {
   readonly type: 'strike';
+  /** Give each distinct child source its own activation and strength roll within the parent cast. */
+  readonly independentSourceStrike?: boolean;
   /** Intrinsic bonuses apply to every strike packet from this effect, excluding sibling effects. */
   readonly modifiers?: readonly Extract<
     SkillEffectModifier,

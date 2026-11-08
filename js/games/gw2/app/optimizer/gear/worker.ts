@@ -1,3 +1,4 @@
+import type { OptimizerBoonChartRequest, OptimizerBoonChartResponse } from '#gw2/app/optimizer/gear/boon-chart-data.js';
 import type { createFastOptimizer } from '#gw2/app/optimizer/gear/fast-search.js';
 import type { createGroupedOptimizer } from '#gw2/app/optimizer/gear/search-space.js';
 import type {
@@ -10,99 +11,122 @@ let activeId = -1;
 let job: ReturnType<typeof createGroupedOptimizer> | ReturnType<typeof createFastOptimizer> | null = null;
 
 /** Each worker validates and prepares once, then evaluates bounded ranges until its owner terminates it. */
-self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWorkerRequest>) => {
-  // Every success and error reply is checked against the same contract consumed by the runner.
-  const post = (payload: GearOptimizerWorkerPayload): void =>
-    self.postMessage({ requestId: data.requestId, ...payload } satisfies GearOptimizerWorkerResponse);
-  try {
-    // Keep shared code out of the entry chunk so WebKit cannot reimport it and install an uninitialized listener.
-    const { optimizerEquipment, optimizerScore, verifyOptimizerScore, meetsOptimizerOvercapRequirements } =
-      await import('#gw2/app/optimizer/gear/search.js');
+self.addEventListener(
+  'message',
+  async ({ data }: MessageEvent<GearOptimizerWorkerRequest | OptimizerBoonChartRequest>) => {
+    // An independent preview worker simulates only the clicked gear and returns compact chart data.
+    if (data.kind === 'boon-chart') {
+      const post = (response: OptimizerBoonChartResponse): void => self.postMessage(response);
+      try {
+        const [{ loadOptimizerContext }, { calculateOptimizerBoonChart }] = await Promise.all([
+          import('#gw2/app/optimizer/gear/context.js'),
+          import('#gw2/app/optimizer/gear/boon-chart-data.js')
+        ]);
+        const adapter = await loadOptimizerContext(data.request.contentId);
 
-    if (data.kind === 'init') {
-      activeId = data.requestId;
-      const [{ loadOptimizerContext }, { createGroupedOptimizer }, { createFastOptimizer }] = await Promise.all([
-        import('#gw2/app/optimizer/gear/context.js'),
-        import('#gw2/app/optimizer/gear/search-space.js'),
-        import('#gw2/app/optimizer/gear/fast-search.js')
-      ]);
-      const adapter = await loadOptimizerContext(data.request.contentId);
+        if (!adapter) throw new Error('Optimizer profession is unavailable.');
 
-      if (!adapter) throw new TypeError('Optimizer profession is unavailable.');
+        post({ requestId: data.requestId, chart: calculateOptimizerBoonChart(data.request, data.equipment, adapter) });
+      } catch (error) {
+        post({ requestId: data.requestId, error: error instanceof Error ? error.message : String(error) });
+      }
 
-      if (activeId !== data.requestId) return;
-
-      job =
-        data.request.search === 'fast'
-          ? createFastOptimizer(data.request, adapter)
-          : createGroupedOptimizer(data.request, adapter);
-      // Every worker owns its evaluator; only bootstrap pays for the shared detailed baseline and validates its score.
-      const baseline = data.bootstrap
-        ? optimizerScore(job.evaluator.evaluate(optimizerEquipment(data.request.build)))
-        : undefined;
-      post({
-        kind: 'ready',
-        count: job.space.count.toString(),
-        rawCount: job.space.ordinary.rawCount.toString(),
-        ...(baseline ? { baseline } : {})
-      });
       return;
     }
 
-    if (data.requestId !== activeId || !job) throw new TypeError('Optimizer worker is not initialized.');
+    // Every success and error reply is checked against the same contract consumed by the runner.
+    const post = (payload: GearOptimizerWorkerPayload): void =>
+      self.postMessage({ requestId: data.requestId, ...payload } satisfies GearOptimizerWorkerResponse);
+    try {
+      // Keep shared code out of the entry chunk so WebKit cannot reimport it and install an uninitialized listener.
+      const { optimizerEquipment, optimizerScore, verifyOptimizerScore, meetsOptimizerOvercapRequirements } =
+        await import('#gw2/app/optimizer/gear/search.js');
 
-    // Every worker derives the same bounded round from the merged winners before ranges are divided again.
-    if (data.kind === 'refine') {
-      if (!('refine' in job) || data.candidates.length > 20) throw new TypeError('Invalid optimizer refinement.');
+      if (data.kind === 'init') {
+        activeId = data.requestId;
+        const [{ loadOptimizerContext }, { createGroupedOptimizer }, { createFastOptimizer }] = await Promise.all([
+          import('#gw2/app/optimizer/gear/context.js'),
+          import('#gw2/app/optimizer/gear/search-space.js'),
+          import('#gw2/app/optimizer/gear/fast-search.js')
+        ]);
+        const adapter = await loadOptimizerContext(data.request.contentId);
 
-      job.refine(data.candidates);
-      post({ kind: 'ready', count: job.space.count.toString(), rawCount: job.space.ordinary.rawCount.toString() });
-      return;
+        if (!adapter) throw new TypeError('Optimizer profession is unavailable.');
+
+        if (activeId !== data.requestId) return;
+
+        job =
+          data.request.search === 'fast'
+            ? createFastOptimizer(data.request, adapter)
+            : createGroupedOptimizer(data.request, adapter);
+        // Every worker owns its evaluator; only bootstrap pays for the shared detailed baseline and validates its score.
+        const baseline = data.bootstrap
+          ? optimizerScore(job.evaluator.evaluate(optimizerEquipment(data.request.build)))
+          : undefined;
+        post({
+          kind: 'ready',
+          count: job.space.count.toString(),
+          rawCount: job.space.ordinary.rawCount.toString(),
+          ...(baseline ? { baseline } : {})
+        });
+        return;
+      }
+
+      if (data.requestId !== activeId || !job) throw new TypeError('Optimizer worker is not initialized.');
+
+      // Every worker derives the same bounded round from the merged winners before ranges are divided again.
+      if (data.kind === 'refine') {
+        if (!('refine' in job) || data.candidates.length > 20) throw new TypeError('Invalid optimizer refinement.');
+
+        job.refine(data.candidates);
+        post({ kind: 'ready', count: job.space.count.toString(), rawCount: job.space.ordinary.rawCount.toString() });
+        return;
+      }
+
+      if (data.kind === 'chunk') {
+        if (!Number.isSafeInteger(data.chunkId) || !/^\d+$/.test(data.start) || !/^\d+$/.test(data.end))
+          throw new TypeError('Invalid optimizer chunk identity.');
+
+        const started = performance.now();
+        let lastProgress = started;
+        // Rejections and simulations have very different costs; keep counts moving within adaptive batches.
+        const result = job.evaluateRange(
+          BigInt(data.start),
+          BigInt(data.end),
+          (completed, representedCombinationCount, simulations) => {
+            const now = performance.now();
+
+            if (now - lastProgress < 150) return;
+
+            lastProgress = now;
+            post({
+              kind: 'progress',
+              chunkId: data.chunkId,
+              completed: completed.toString(),
+              representedCombinationCount: representedCombinationCount.toString(),
+              simulations: simulations.toString()
+            });
+          }
+        );
+        post({ kind: 'chunk', chunkId: data.chunkId, ...result, elapsedMs: performance.now() - started });
+        return;
+      }
+
+      if (data.kind !== 'verify' || data.candidates.length > 20)
+        throw new TypeError('Invalid optimizer verification request.');
+
+      for (const candidate of data.candidates) {
+        const detailed = job.evaluator.evaluate(candidate.equipment);
+        verifyOptimizerScore(candidate.score, optimizerScore(detailed));
+
+        // Detailed verification must satisfy the same coverage requirements before results can be applied.
+        if (!meetsOptimizerOvercapRequirements(detailed, job.space.ordinary.request.selections))
+          throw new Error('Optimizer correctness failure: finalist does not meet boon overcap requirements.');
+      }
+
+      post({ kind: 'verified' });
+    } catch (error) {
+      post({ error: error instanceof Error ? error.message : String(error) });
     }
-
-    if (data.kind === 'chunk') {
-      if (!Number.isSafeInteger(data.chunkId) || !/^\d+$/.test(data.start) || !/^\d+$/.test(data.end))
-        throw new TypeError('Invalid optimizer chunk identity.');
-
-      const started = performance.now();
-      let lastProgress = started;
-      // Rejections and simulations have very different costs; keep counts moving within adaptive batches.
-      const result = job.evaluateRange(
-        BigInt(data.start),
-        BigInt(data.end),
-        (completed, representedCombinationCount, simulations) => {
-          const now = performance.now();
-
-          if (now - lastProgress < 150) return;
-
-          lastProgress = now;
-          post({
-            kind: 'progress',
-            chunkId: data.chunkId,
-            completed: completed.toString(),
-            representedCombinationCount: representedCombinationCount.toString(),
-            simulations: simulations.toString()
-          });
-        }
-      );
-      post({ kind: 'chunk', chunkId: data.chunkId, ...result, elapsedMs: performance.now() - started });
-      return;
-    }
-
-    if (data.kind !== 'verify' || data.candidates.length > 20)
-      throw new TypeError('Invalid optimizer verification request.');
-
-    for (const candidate of data.candidates) {
-      const detailed = job.evaluator.evaluate(candidate.equipment);
-      verifyOptimizerScore(candidate.score, optimizerScore(detailed));
-
-      // Detailed verification must satisfy the same coverage requirements before results can be applied.
-      if (!meetsOptimizerOvercapRequirements(detailed, job.space.ordinary.request.selections))
-        throw new Error('Optimizer correctness failure: finalist does not meet boon overcap requirements.');
-    }
-
-    post({ kind: 'verified' });
-  } catch (error) {
-    post({ error: error instanceof Error ? error.message : String(error) });
   }
-});
+);

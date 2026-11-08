@@ -944,6 +944,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   --optimizer-row-bg: color-mix(in srgb, var(--bg-panel-alt) 45%, var(--bg-panel));
 }
 .gear-optimizer td {
+  padding-block: 5px;
   background: var(--optimizer-row-bg);
 }
 .gear-optimizer thead .optimizer-column-groups th[scope='colgroup'] {
@@ -980,9 +981,10 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   font-weight: 600;
   color: var(--text-bright);
 }
-/* Coverage stays below the score without competing with the DPS value. */
+/* Both generated boons fit on one line beneath DPS and double as chart actions. */
 .optimizer-boon-coverage {
-  display: block;
+  display: flex;
+  gap: 10px;
   margin-top: 3px;
   color: var(--text-dim);
   font-size: 11px;
@@ -1000,7 +1002,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   border-right: 1px solid var(--border);
 }
 .optimizer-equipped-label {
-  display: block;
+  margin-left: 6px;
   font-size: 10px;
   line-height: 12px;
   color: var(--text-dim);
@@ -1126,6 +1128,36 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 .optimizer-table-scroll .optimizer-column-groups > :first-child,
 .optimizer-table-scroll td:first-child {
   padding-left: 12px;
+}
+/* Result inspection opens a chart without applying equipment or changing the selected preview. */
+.gear-optimizer .optimizer-boon-link {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 11px;
+  line-height: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.optimizer-boon-dialog {
+  --dialog-width: 960px;
+}
+.optimizer-boon-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.optimizer-boon-heading h3 {
+  margin: 0;
+}
+.optimizer-boon-dialog .chart-panels {
+  grid-template-columns: minmax(0, 1fr);
+}
+.optimizer-boon-dialog [data-boon-status]:empty {
+  display: none;
 }
 /* The equipped baseline closes the sticky header; results below scroll under it. */
 .gear-optimizer .optimizer-equipped {

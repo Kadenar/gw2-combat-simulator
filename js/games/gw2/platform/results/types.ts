@@ -111,6 +111,17 @@ export type Gw2SimulationScore = Pick<
   | 'boonCoverage'
 > & { readonly output: 'score' };
 
+/** Batch consumers retain damage and proc facts without editor projections or chart histories. */
+export type Gw2SimulationObservations = Omit<Gw2SimulationScore, 'output'> & {
+  readonly output: 'observations';
+  /** Logged proc events only; action, weapon-swap, and other execution events are omitted. */
+  readonly events: Gw2ResolverResult['events'];
+  /** Resolved damage and condition applications only; buff and other resolved rows are omitted. */
+  readonly resolvedEvents: Gw2ResolverResult['resolvedEvents'];
+  /** Proc timeline rows use the same clipping and ordering as detailed output. */
+  readonly procSteps: Gw2ResolverResult['procSteps'];
+};
+
 export interface Gw2ResolverResult {
   /** Null means chart collection was not requested, rather than an empty effect history. */
   readonly effectReport: import('#gw2/platform/results/effect-report.js').EffectReport | null;

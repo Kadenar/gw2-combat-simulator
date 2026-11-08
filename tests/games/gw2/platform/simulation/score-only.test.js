@@ -131,9 +131,9 @@ test('score skips end-state projection for a custom profession without feedback'
 });
 
 // Output selection changes retained observations, never critical reactions, condition settlement, or sampled damage.
-test('score and damage measurements omit unused report collections while preserving combat facts', () => {
+test('output modes omit unused report collections while preserving combat facts', () => {
   const runs = new Map();
-  for (const output of ['detailed', 'score', 'damage']) {
+  for (const output of ['detailed', 'score', 'damage', 'observations']) {
     const criticals = [];
     const traceRequests = [];
     const profession = defineTestProfession({
@@ -185,28 +185,32 @@ test('score and damage measurements omit unused report collections while preserv
     const runtime = observedRuntime(result);
     assert.ok(runtime.totals.strike > 0 && runtime.totals.condition > 0);
     assert.equal(criticals.length, 1);
-    assert.deepEqual(traceRequests, [output !== 'score']);
+    const tracesCriticalChance = output === 'detailed' || output === 'damage';
+    assert.deepEqual(traceRequests, [tracesCriticalChance]);
     assert.equal(criticals[0].furyActive, true);
 
     if (output === 'detailed') {
       assert.ok(runtime.damageRecorder);
       assert.ok(result.breakdown.length > 0);
       assert.ok(result.conditionBreakdown.length > 0);
-      assert.ok(runtime.procRecorder.steps.length > 0);
     } else {
       assert.equal(runtime.damageRecorder, null);
       assert.equal('breakdown' in runtime, false);
       assert.equal('conditions' in runtime, false);
-      assert.equal(runtime.procRecorder, null);
     }
 
-    if (output === 'score') {
+    // Batch explanations retain proc rows, but neither batch consumers nor scores need contribution labels.
+    if (output === 'detailed' || output === 'observations') assert.ok(runtime.procRecorder.steps.length > 0);
+    else assert.equal(runtime.procRecorder, null);
+
+    if (!tracesCriticalChance) {
       assert.equal(criticals[0].contributors, undefined);
-      assert.deepEqual(runtime.resolved, []);
     } else {
       assert.ok(criticals[0].contributors.some(({ id }) => id === 'fixture'));
       assert.ok(criticals[0].contributors.some(({ id }) => id === 'sigil-severance'));
     }
+
+    if (output === 'score') assert.deepEqual(runtime.resolved, []);
 
     if (output === 'damage') {
       assert.equal(result.complete, true);
@@ -220,6 +224,7 @@ test('score and damage measurements omit unused report collections while preserv
 
   assert.deepEqual(runs.get('score'), runs.get('detailed'));
   assert.deepEqual(runs.get('damage'), runs.get('detailed'));
+  assert.deepEqual(runs.get('observations'), runs.get('detailed'));
 });
 
 // Short casts exercise profession reporting writers; exact parity covers every numeric score field.

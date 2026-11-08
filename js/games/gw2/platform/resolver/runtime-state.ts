@@ -104,9 +104,14 @@ export function createGw2ResolverRuntimeState({
     weaponStrengthRolls: new Map(),
     weaponStrengthActivationOrder: 0,
 
-    // Detailed reports keep every resolved row, measurements keep only the packets they return, and scores keep none.
+    // Detailed retains all resolved rows, observations retains damage and conditions, damage retains owned packets,
+    // and score retains none. Gameplay history is independent of these reporting collections.
     retainsResolved(event: Gw2ResolverEvent): boolean {
-      return output === 'detailed' || (output === 'damage' && ownsEffect!(event));
+      return (
+        output === 'detailed' ||
+        (output === 'observations' && (event.type === 'damage' || event.type === 'condition')) ||
+        (output === 'damage' && ownsEffect!(event))
+      );
     },
 
     markDamageTime(at: number): void {
@@ -133,7 +138,7 @@ export interface Gw2ResolverRuntime {
   readonly damageRecorder: DamageReportObserver | null;
   readonly criticalDamageMode: Gw2CriticalDamageMode;
   readonly procs: ProcRegistry;
-  readonly output: 'detailed' | 'score' | 'damage';
+  readonly output: 'detailed' | 'score' | 'damage' | 'observations';
   readonly damageDiagnostics: boolean;
   config: Gw2Config;
   traits: ReadonlySet<string | number>;

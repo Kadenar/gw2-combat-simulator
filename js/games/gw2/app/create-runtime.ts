@@ -62,10 +62,10 @@ export function createProfessionRuntime({
     request: RandomDistributionRequest,
     options?: RandomDistributionOptions
   ): RandomDistributionSummary {
-    // Distribution explanations need events, but never boon or attribute chart histories.
+    // Distribution trials request the damage and proc facts used by their explanations.
     return calculateDistribution(
       request,
-      (rotation, config) => simulateGw2({ profession, rotation, config, collectChartData: false }),
+      (rotation, config) => simulateGw2({ profession, rotation, config, output: 'observations' }),
       options
     );
   }

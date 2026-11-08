@@ -81,6 +81,13 @@ export function createEffectDelivery<T extends object>(
   const { makeWork, enqueueWork, identify, reactionParent, withCause } = host;
   const targetHealth = Number(config.target?.health) > 0 ? Number(config.target?.health) : Infinity;
   const executed: Gw2ResolverEvent[] = [];
+  // Detailed and damage runs retain execution history; observations needs only procs, and score needs none.
+  function recordExecuted(event: Gw2ResolverEvent): void {
+    if (runtime.output === 'score' || (runtime.output === 'observations' && event.type !== 'proc')) return;
+
+    executed.push(event);
+  }
+
   const preparedCombos = new WeakSet<Gw2ResolverEvent>();
   const packetDelivery = new WeakMap<Gw2ResolverEvent, EffectDelivery>();
   const pendingPreparation = new WeakSet<Gw2ResolverEvent>();
@@ -293,7 +300,7 @@ export function createEffectDelivery<T extends object>(
     const info = request.announcement;
     runtime.procRecorder?.record(info, runtime.deathTime);
 
-    if (request.log && runtime.output !== 'score') executed.push(event);
+    if (request.log) recordExecuted(event);
   }
 
   function applyConditionNow(event: SimulationEventBase) {
@@ -387,7 +394,7 @@ export function createEffectDelivery<T extends object>(
 
     if (missesTarget(event) || (precombat && isPrecombatTargetEffect(event) && event.type !== 'condition_tick')) {
       // Preserve attempted packets for targeting edits; only resolved rows contribute damage.
-      if (runtime.output !== 'score') executed.push(event);
+      recordExecuted(event);
 
       // Relics may accept non-damaging preparation strikes without running damage or critical-hit reactions.
       if (precombat && event.type === 'damage' && !missesTarget(event) && runtime.encounter?.damageable !== false)
@@ -421,7 +428,7 @@ export function createEffectDelivery<T extends object>(
     // Invulnerability blocks target resolution, not attempted packets or their field/finisher self effects.
     // Existing condition clocks still age; accepted-hit and disable reactions remain behind this gate.
     if (runtime.encounter?.damageable === false && isHostileTargetEvent(event) && event.type !== 'condition_tick') {
-      if (runtime.output !== 'score') executed.push(event);
+      recordExecuted(event);
 
       if (!preparedCombos.has(event)) produceRuntimeCombos(runtime, profession.catalog, event);
 
@@ -464,8 +471,7 @@ export function createEffectDelivery<T extends object>(
 
     if (!preparedCombos.has(event)) produceRuntimeCombos(runtime, profession.catalog, event);
 
-    if (runtime.output !== 'score' && !['condition_buffer', 'condition_tick', 'action_update'].includes(event.type))
-      executed.push(event);
+    if (!['condition_buffer', 'condition_tick', 'action_update'].includes(event.type)) recordExecuted(event);
 
     if (
       runtime.deathTime == null &&

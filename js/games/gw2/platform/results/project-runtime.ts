@@ -2,6 +2,7 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeProfession } from '#gw2/platform/profession-definition/runtime-contract.js';
+import { projectBatchObservations } from '#gw2/platform/results/batch-observations.js';
 import { buildCombatResult, buildSimulationScore } from '#gw2/platform/results/combat-result.js';
 import type { DamageReportProjection } from '#gw2/platform/results/damage-report.js';
 import { locateDiagnostics } from '#gw2/platform/results/diagnostics.js';
@@ -10,7 +11,11 @@ import { observeRuntimeEffects } from '#gw2/platform/results/observe-effects.js'
 import { planningState } from '#gw2/platform/results/planning-state.js';
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
 import { rotationApm } from '#gw2/platform/results/rotation-apm.js';
-import type { Gw2SimulationResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
+import type {
+  Gw2SimulationObservations,
+  Gw2SimulationResult,
+  Gw2SimulationScore
+} from '#gw2/platform/results/types.js';
 import type { DamageRuntimeResult, RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 import { canonicalTime } from '#kernel/core/clock.js';
@@ -26,12 +31,12 @@ export function projectRuntimeResult<T extends object>(
     damageCompletionTime,
     projectDamageReport
   }: {
-    output: 'detailed' | 'score' | 'damage';
+    output: 'detailed' | 'score' | 'damage' | 'observations';
     executed: Gw2ResolverEvent[];
     damageCompletionTime?: () => number;
     projectDamageReport?: (dpsWindow: number) => DamageReportProjection;
   }
-): DamageRuntimeResult | Gw2SimulationResult | Gw2SimulationScore {
+): DamageRuntimeResult | Gw2SimulationResult | Gw2SimulationScore | Gw2SimulationObservations {
   if (runtime.rotationEndTime == null) throw new Error('Results require settled command execution.');
 
   // Resolution retained only the measurement's owned packets.
@@ -48,6 +53,12 @@ export function projectRuntimeResult<T extends object>(
 
   if (output === 'score') {
     return score;
+  }
+
+  // Include passive proc rows so observations and detailed output retain the same proc timeline.
+  if (output === 'observations') {
+    execution.report?.(runtime, score.combatEndTime);
+    return projectBatchObservations(runtime, score, executed);
   }
 
   if (!projectDamageReport) throw new Error('Detailed results require a damage report projector.');
