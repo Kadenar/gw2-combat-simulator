@@ -9,6 +9,7 @@ import {
   recordedActionSkill
 } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { referenceCastTimeMs, strikePacketOffsets } from '#gw2/integrations/logs/shared/rotation/timing.js';
+import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
@@ -100,6 +101,8 @@ export function createStrikePacketMatcher(
     // Used events count matched packets; explicit timing is checked only for those matches.
     let matchedTimingsExplicit = true;
     let observedCommittedDelayedPacket = false;
+    const observedDurationMs = Math.max(0, action.end - action.start);
+    const replayInterruptMs = quantizeGw2ActionTimingMs(action.replayInterruptMs ?? observedDurationMs);
     for (const packet of packets) {
       const expectedTime = action.start + packet.offsetMs;
       const match = directEvents
@@ -124,11 +127,17 @@ export function createStrikePacketMatcher(
       matchedTimingsExplicit &&= packet.timingExplicit;
       const observedAfterInterrupt =
         (action.status === 'interrupted' || action.status === 'reduced') &&
-        observedOffset >= Math.max(0, action.end - action.start) &&
+        observedOffset >= observedDurationMs &&
         packet.interruptMode !== 'per-packet';
 
-      // Retain positive packet evidence for reconstruction without producing metadata diagnostics for import users.
-      if (observedAfterInterrupt && packet.persistsAfterInterrupt && packet.interruptCommitMs != null)
+      // A committed projectile can land after a valid animation cancel. Only a hit whose commit threshold
+      // was not reached contradicts the recorded stop and warrants restoring the full cast.
+      if (
+        observedAfterInterrupt &&
+        packet.persistsAfterInterrupt &&
+        packet.interruptCommitMs != null &&
+        replayInterruptMs < packet.interruptCommitMs
+      )
         observedCommittedDelayedPacket = true;
     }
 

@@ -413,14 +413,23 @@ test('chart axes fit observed DPS and rescale when a zoom excludes the peak', ()
     { t: 6000, v: 12000 },
     { t: 8000, v: 8000 }
   ];
-  assert.equal(chartAxisMaximum(rolling.map((point) => point.v)), 100000);
+  assert.equal(chartAxisMaximum(rolling.map((point) => point.v)), 75000);
   const zoomed = buildPhaseEffectSeries(rolling, 6000, 8000);
-  assert.equal(chartAxisMaximum(zoomed.map((point) => point.v)), 20000);
-  assert.equal(chartAxisMaximum([...zoomed.map((point) => point.v), 42000]), 50000);
-  assert.equal(chartAxisMaximum([250000]), 500000);
+  assert.equal(chartAxisMaximum(zoomed.map((point) => point.v)), 15000);
+  assert.equal(chartAxisMaximum([...zoomed.map((point) => point.v), 42000]), 45000);
+  assert.equal(chartAxisMaximum([250000]), 250000);
   assert.equal(chartAxisMaximum([0]), 1);
   // A burst near 125k should occupy most of the chart instead of rounding up to a 200k ceiling.
   assert.equal(chartAxisMaximum([42000, 125000], true), 140000);
   assert.equal(chartAxisMaximum([42000, 12000], true), 45000);
   assert.equal(chartAxisMaximum([0], true), 1);
+});
+
+// Effect bounds fit common stack caps while still expanding for larger visible values.
+test('effect axes keep stack counts close to the top of the chart', () => {
+  assert.equal(chartAxisMaximum([0, 10, 25]), 25);
+  assert.equal(chartAxisMaximum([25, 26]), 30);
+  assert.equal(chartAxisMaximum([0, 1]), 1);
+  assert.equal(chartAxisMaximum([0, 0.5]), 0.5);
+  assert.equal(chartAxisMaximum([]), 1);
 });

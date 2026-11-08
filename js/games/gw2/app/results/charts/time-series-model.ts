@@ -49,9 +49,9 @@ export function chartAxisMaximum(values: readonly number[], tight = false): numb
     return Math.ceil((value * 1.05) / increment) * increment;
   }
 
-  const normalized = value / magnitude;
-  const rounded = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
-  return rounded * magnitude;
+  // Round effect bounds in smaller steps so 25 stacks fills the chart instead of leaving half empty.
+  const increment = magnitude / 2;
+  return Math.ceil(value / increment) * increment;
 }
 
 /** Presentation-only application markers, independent of subsequent condition payouts. */
