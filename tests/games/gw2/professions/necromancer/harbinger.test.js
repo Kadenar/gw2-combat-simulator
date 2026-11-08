@@ -51,7 +51,8 @@ test('Blight expiry runs before same-time spending and records no replay state',
       .coefficient
   );
   assert.equal(state(result).blightExpiries.length, 10);
-  assert.deepEqual(state(result).blightExpiries, Array(10).fill(50));
+  // New Blight lasts 25 seconds from impact, after launch has resolved the expiring stacks.
+  assert.deepEqual(state(result).blightExpiries, Array(10).fill(strike.at + 25));
   assert.equal(
     result.events.some((event) => event.type === 'necromancer.blight' || event.type === 'necromancer.state'),
     false

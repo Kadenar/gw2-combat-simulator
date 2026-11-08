@@ -1,6 +1,7 @@
 /**
  * Owns Harbinger elixir skill definitions.
  * Impact hooks read skill-owned Blight gain for both impact variants.
+ * Committed elixirs retain their full cast lockout so animation cancellation cannot skip the remaining recovery.
  */
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
@@ -18,15 +19,17 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Elixir',
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 20,
     // Empowerment spends this skill's Blight independently of its removable payload.
     blightCost: 5,
     blightGain: 10,
-    castTimeMs: 360,
-    // Unmeasured elixir packets currently share cast completion as their impact.
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.8, hits: 1 }
-    ]),
+    castTimeMs: 680,
+    interruptCommitMs: 400,
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [{ type: 'strike', coefficient: 0.8, hits: 1 }]
+    ),
     effectVariants: [{ when: () => true, transform: () => [] }],
     // The launch task samples live Blight before the separately timed impact.
     sideEffects: [
@@ -46,6 +49,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Elixir',
+    retainsCastLockoutAfterInterrupt: true,
     // Empowerment spends this skill's Blight independently of its removable payload.
     blightCost: 5,
     blightGain: 10,
@@ -118,20 +122,25 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Elixir',
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 20,
     // Empowerment spends this skill's Blight independently of its removable payload.
     blightCost: 5,
     blightGain: 10,
-    castTimeMs: 360,
-    effects: impactEffects({ atMs: 0, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
-      { type: 'strike', coefficient: 0.8, hits: 1 },
-      {
-        type: 'condition',
-        condition: CONDITION.BLINDNESS,
-        stacks: 1,
-        duration: 2
-      }
-    ]),
+    castTimeMs: 680,
+    interruptCommitMs: 400,
+    effects: impactEffects(
+      { atMs: 400, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
+      [
+        { type: 'strike', coefficient: 0.8, hits: 1 },
+        {
+          type: 'condition',
+          condition: CONDITION.BLINDNESS,
+          stacks: 1,
+          duration: 2
+        }
+      ]
+    ),
     effectVariants: [{ when: () => true, transform: () => [] }],
     // The launch task samples live Blight before the separately timed impact.
     sideEffects: [
@@ -151,6 +160,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     type: 'Elite',
     slot: 'Elite',
     skillFamily: 'Elixir',
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 60,
     // Empowerment spends this skill's Blight independently of its removable payload.
     blightCost: 10,
@@ -238,6 +248,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Elixir',
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 25,
     // Empowerment spends this skill's Blight independently of its removable payload.
     blightCost: 5,
@@ -295,6 +306,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     type: 'Heal',
     slot: 'Heal',
     skillFamily: 'Elixir',
+    retainsCastLockoutAfterInterrupt: true,
     cooldown: 25,
     // Empowerment spends this skill's Blight independently of its removable payload.
     blightCost: 5,

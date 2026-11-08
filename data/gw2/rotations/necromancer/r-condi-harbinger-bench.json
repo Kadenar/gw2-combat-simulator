@@ -2,6 +2,10 @@
   "rotation": [
     {
       "type": "cast",
+      "skillId": 62667
+    },
+    {
+      "type": "cast",
       "skillId": 62567
     },
     {
@@ -9,12 +13,8 @@
       "skillId": 62540
     },
     {
-      "type": "cast",
-      "skillId": 62667
-    },
-    {
       "type": "wait",
-      "durationMs": 640
+      "durationMs": 2600
     },
     {
       "type": "cast",
@@ -56,11 +56,8 @@
     },
     {
       "type": "cast",
-      "skillId": 62567
-    },
-    {
-      "type": "wait",
-      "durationMs": 280
+      "skillId": 62567,
+      "concurrentOffsetMs": 400
     },
     {
       "type": "cast",
@@ -171,10 +168,6 @@
       "type": "cast",
       "skillId": 62530,
       "interruptAfterMs": 480
-    },
-    {
-      "type": "wait",
-      "durationMs": 200
     },
     {
       "type": "cast",
@@ -692,10 +685,6 @@
       "skillId": 51647
     },
     {
-      "type": "wait",
-      "durationMs": 40
-    },
-    {
       "type": "cast",
       "skillId": 10532,
       "interruptAfterMs": 680
@@ -706,7 +695,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 80
+      "durationMs": 40
     },
     {
       "type": "cast",

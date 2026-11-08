@@ -291,7 +291,7 @@
         "build": "data/gw2/builds/necromancer/b-condi-harbinger.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/condition-harbinger-pistol-torch-scepter-dagger",
-        "benchmarkDps": 44712,
+        "benchmarkDps": 45029,
         "upToDate": true,
         "benchmarkApm": 68.9,
         "benchmarkDpsByHealth": {
@@ -299,17 +299,17 @@
           "80-60": { "cumulative": 44324, "phase": 46344 },
           "60-40": { "cumulative": 43580, "phase": 42170 },
           "40-20": { "cumulative": 44480, "phase": 47394 },
-          "20-0": { "cumulative": 44712, "phase": 44712 }
+          "20-0": { "cumulative": 45029, "phase": 45029 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42430,
+          "benchmarkDps": 42724,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 40699, "phase": 40699 },
             "80-60": { "cumulative": 42262, "phase": 44000 },
             "60-40": { "cumulative": 41435, "phase": 39824 },
             "40-20": { "cumulative": 42862, "phase": 47558 },
-            "20-0": { "cumulative": 42430, "phase": 42430 }
+            "20-0": { "cumulative": 42724, "phase": 42724 }
           }
         }
       },
@@ -317,25 +317,25 @@
         "label": "Condition (Dagger / Dagger + Pistol / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-harbinger-dagger-dagger-pistol-torch.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-dagger-dagger-pistol-torch-bench.json",
-        "benchmarkDps": 45373,
+        "benchmarkDps": 44727,
         "upToDate": true,
-        "benchmarkApm": 69.8,
+        "benchmarkApm": 69.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43266, "phase": 43266 },
-          "80-60": { "cumulative": 44729, "phase": 46408 },
-          "60-40": { "cumulative": 44433, "phase": 43863 },
-          "40-20": { "cumulative": 44336, "phase": 44040 },
-          "20-0": { "cumulative": 45373, "phase": 49955 }
+          "100-80": { "cumulative": 42596, "phase": 42596 },
+          "80-60": { "cumulative": 44442, "phase": 46506 },
+          "60-40": { "cumulative": 43439, "phase": 41538 },
+          "40-20": { "cumulative": 44185, "phase": 46463 },
+          "20-0": { "cumulative": 44727, "phase": 44727 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42856,
+          "benchmarkDps": 42398,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 41282, "phase": 41282 },
-            "80-60": { "cumulative": 43257, "phase": 45581 },
-            "60-40": { "cumulative": 41930, "phase": 39460 },
-            "40-20": { "cumulative": 42947, "phase": 46326 },
-            "20-0": { "cumulative": 42856, "phase": 42856 }
+            "100-80": { "cumulative": 40835, "phase": 40835 },
+            "80-60": { "cumulative": 42460, "phase": 44267 },
+            "60-40": { "cumulative": 41587, "phase": 39927 },
+            "40-20": { "cumulative": 42150, "phase": 44014 },
+            "20-0": { "cumulative": 42398, "phase": 42398 }
           }
         }
       }

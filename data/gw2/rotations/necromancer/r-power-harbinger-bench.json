@@ -43,10 +43,6 @@
       "skillId": -3
     },
     {
-      "type": "wait",
-      "durationMs": 240
-    },
-    {
       "type": "cast",
       "skillId": 73107
     },

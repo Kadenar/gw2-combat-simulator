@@ -1011,10 +1011,6 @@
       "skillId": 62567
     },
     {
-      "type": "wait",
-      "durationMs": 240
-    },
-    {
       "type": "cast",
       "skillId": 62621
     },
