@@ -210,25 +210,25 @@
         "build": "data/gw2/builds/necromancer/b-power-harbinger.json",
         "rotation": "data/gw2/rotations/necromancer/r-power-harbinger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/necromancer/power-harbinger-greatsword-spear",
-        "benchmarkDps": 43105,
+        "benchmarkDps": 42749,
         "upToDate": true,
-        "benchmarkApm": 74.6,
+        "benchmarkApm": 73.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40244, "phase": 40244 },
-          "80-60": { "cumulative": 39277, "phase": 38346 },
-          "60-40": { "cumulative": 39214, "phase": 39094 },
-          "40-20": { "cumulative": 41813, "phase": 52780 },
-          "20-0": { "cumulative": 43105, "phase": 43105 }
+          "100-80": { "cumulative": 39852, "phase": 39852 },
+          "80-60": { "cumulative": 38517, "phase": 37306 },
+          "60-40": { "cumulative": 38976, "phase": 39984 },
+          "40-20": { "cumulative": 41743, "phase": 52849 },
+          "20-0": { "cumulative": 42749, "phase": 42749 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42029,
+          "benchmarkDps": 41704,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 39882, "phase": 39882 },
-            "80-60": { "cumulative": 38775, "phase": 37721 },
-            "60-40": { "cumulative": 38678, "phase": 38488 },
-            "40-20": { "cumulative": 40672, "phase": 48287 },
-            "20-0": { "cumulative": 42029, "phase": 42029 }
+            "100-80": { "cumulative": 39456, "phase": 39456 },
+            "80-60": { "cumulative": 37323, "phase": 35336 },
+            "60-40": { "cumulative": 38373, "phase": 40597 },
+            "40-20": { "cumulative": 40638, "phase": 49890 },
+            "20-0": { "cumulative": 41704, "phase": 41704 }
           }
         }
       },
@@ -317,25 +317,25 @@
         "label": "Condition (Dagger / Dagger + Pistol / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-harbinger-dagger-dagger-pistol-torch.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-dagger-dagger-pistol-torch-bench.json",
-        "benchmarkDps": 44603,
+        "benchmarkDps": 44988,
         "upToDate": true,
         "benchmarkApm": 69.8,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 42923, "phase": 42923 },
           "80-60": { "cumulative": 45135, "phase": 47608 },
           "60-40": { "cumulative": 44246, "phase": 42467 },
-          "40-20": { "cumulative": 44449, "phase": 45060 },
-          "20-0": { "cumulative": 44603, "phase": 44603 }
+          "40-20": { "cumulative": 44633, "phase": 45793 },
+          "20-0": { "cumulative": 44988, "phase": 44988 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42408,
+          "benchmarkDps": 42638,
           "benchmarkDpsByHealth": {
             "100-80": { "cumulative": 40929, "phase": 40929 },
             "80-60": { "cumulative": 42971, "phase": 45373 },
             "60-40": { "cumulative": 42310, "phase": 41086 },
-            "40-20": { "cumulative": 42626, "phase": 43629 },
-            "20-0": { "cumulative": 42408, "phase": 42408 }
+            "40-20": { "cumulative": 42913, "phase": 44822 },
+            "20-0": { "cumulative": 42638, "phase": 42638 }
           }
         }
       }
