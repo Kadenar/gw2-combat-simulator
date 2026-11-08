@@ -776,6 +776,38 @@ test('Barbed Precision samples its secondary chance on guaranteed critical hits'
   assert.ok(applications.every((application) => Math.abs(application.effectiveDuration - 3.6) < 1e-12));
 });
 
+// Ownership admits the trait explosion, but a noncritical hit cannot trigger the bleed.
+test('player-owned Cascading Corruption critical hits can trigger Barbed Precision', () => {
+  for (const precision of [895, 4000]) {
+    const result = simulate(
+      'Harbinger',
+      ['Harbinger Shroud', 'Devouring Cut'],
+      {
+        initialResource: 100,
+        initialBlight: 20,
+        initialCascadingCorruptionStacks: 15,
+        attributeInputs: baseAttributeInputs({ precision }),
+        selectedTraitIds: [TRAIT.CASCADING_CORRUPTION, TRAIT.BARBED_PRECISION],
+        procRateOverrides: { 'necromancer.barbed-precision': 1 }
+      },
+      observationTail(1000)
+    );
+    const explosion = result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.skillId === ID.CASCADING_CORRUPTION
+    );
+    const bleed = result.resolvedEvents.find(
+      (event) => event.sourceId === TRAIT.BARBED_PRECISION && event.triggeredBy === 'Cascading Corruption'
+    );
+    assert.deepEqual(result.warnings, []);
+    assert.equal(explosion.actorType, 'effect');
+    assert.equal(explosion.ownerActorType, 'player');
+    assert.equal(explosion.didCrit, precision === 4000);
+    assert.equal(Boolean(bleed), explosion.didCrit);
+
+    if (bleed) assert.equal(bleed.parentEventOrder, explosion.eventOrder);
+  }
+});
+
 test('Barbed Precision excludes minion strikes but includes Ritualist spirit strikes', () => {
   const minion = simulate('Core', ['Summon Shadow Fiend', { type: 'wait', durationMs: 9000 }], {
     selectedSkillIds: [10589],

@@ -15,9 +15,11 @@ import {
   optimizerEquipment,
   optimizerSlots,
   optimizerWeaponSets,
+  type GearOptimizerRequest,
   type GearOptimizerSelections,
   type OptimizerCandidate,
-  type OptimizerEquipment
+  type OptimizerEquipment,
+  type OptimizerScore
 } from '#gw2/app/optimizer/gear/search.js';
 import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import {
@@ -42,7 +44,9 @@ import { escapeHtml } from '#ui/shared/html.js';
 
 const renderedControls = new WeakMap<HTMLElement, { build: ProfessionAppState['build']; key: string }>();
 
-const filterDismissalRoots = new WeakSet<Document>();
+const resultFilters = new WeakMap<GearOptimizerRequest, OptimizerResultFilter[]>();
+
+const ARMOR_SLOTS = ['Helm', 'Shoulders', 'Chest', 'Gloves', 'Leggins', 'Boots'];
 
 // Use compact infusion names in results while keeping the optimizer's underlying stat keys unchanged.
 const INFUSION_NAMES: Record<string, string> = {
@@ -60,14 +64,14 @@ const SLOT_LABELS: Record<string, string> = {
   Helm: 'Helm',
   Shoulders: 'Shld',
   Chest: 'Coat',
-  Gloves: 'Glov',
+  Gloves: 'Gloves',
   Leggins: 'Legs',
-  Boots: 'Boot',
-  Amulet: 'Amul',
-  Ring1: 'Rng1',
-  Ring2: 'Rng2',
-  Accessory1: 'Acc1',
-  Accessory2: 'Acc2',
+  Boots: 'Boots',
+  Amulet: 'Amulet',
+  Ring1: 'Ring 1',
+  Ring2: 'Ring 2',
+  Accessory1: 'Acc 1',
+  Accessory2: 'Acc 2',
   Back: 'Back',
   Weapon1: 'Main hand',
   Weapon2: 'Off hand',
@@ -75,10 +79,43 @@ const SLOT_LABELS: Record<string, string> = {
   AlternateWeapon2: 'Off hand'
 };
 
-/** Keep result cells free of wiki tooltips, with full equipment names in accessible labels. */
-function equipmentCell(label: string, value: string, compact = false, icon?: string): string {
-  const name = value || 'None';
-  return `<td class="optimizer-equipment" tabindex="0" aria-label="${escapeHtml(`${label}: ${name}`)}">${icon ? `<img src="${escapeHtml(icon)}" alt="${escapeHtml(name)}" width="24" height="24">` : `<span>${escapeHtml(compact ? name.slice(0, 4) : name)}</span>`}</td>`;
+/**
+ * Keep result cells free of wiki tooltips, with full equipment names in accessible labels. Cells that differ from the
+ * equipped setup are marked so each row reads as a set of changes; a group's first column draws the group divider.
+ */
+function equipmentCell(label: string, value: string, content: string, changed: boolean, groupStart = false): string {
+  return `<td class="optimizer-equipment${changed ? ' optimizer-changed' : ''}${groupStart ? ' optimizer-group-start' : ''}" tabindex="0" aria-label="${escapeHtml(`${label}: ${value || 'None'}`)}">${content}</td>`;
+}
+
+/**
+ * Offer a grouping only when the search compared more than one choice for it; grouping by the whole upgrade set adds
+ * nothing unless at least two upgrades vary. Requests are immutable, so each one's groupings are computed once.
+ */
+function availableResultFilters(request: GearOptimizerRequest, app: ProfessionAppState): OptimizerResultFilter[] {
+  let filters = resultFilters.get(request);
+
+  if (!filters) {
+    const varying = new Set(
+      createOptimizerSpace(request, app.adapter)
+        .dimensions.filter(({ choices }) => choices.length > 1)
+        .map(({ key }) => (key.startsWith('sigils') ? 'sigils' : key))
+    );
+    const upgrades = (['sigils', 'rune', 'relic', 'food', 'utility'] as const).filter((key) => varying.has(key));
+    filters = ['none', ...(upgrades.length > 1 ? (['all'] as const) : []), ...upgrades];
+    resultFilters.set(request, filters);
+  }
+
+  return filters;
+}
+
+/** A grouping chosen for an earlier search falls back to the top results when the new search cannot offer it. */
+function activeResultFilter(
+  panel: HTMLElement | null,
+  request: GearOptimizerRequest | null,
+  app: ProfessionAppState
+): OptimizerResultFilter {
+  const filter = panel?.dataset.resultFilter as OptimizerResultFilter | undefined;
+  return request && filter && availableResultFilters(request, app).includes(filter) ? filter : 'none';
 }
 
 function slotPrefix(equipment: OptimizerEquipment, slot: string): string {
@@ -94,10 +131,164 @@ function updatePreviewSelection(panel: HTMLElement, candidates: OptimizerCandida
     const key = index < 0 ? 'equipped' : candidates[index]?.key;
     const selected = panel.dataset.selectedKey !== undefined && panel.dataset.selectedKey === key;
     row.classList.toggle('optimizer-selected', selected);
+    // Apply belongs to the row being previewed, so only that row offers it.
+    row.querySelector('[data-apply-row]')?.toggleAttribute('hidden', !selected);
 
     if (selected) row.setAttribute('aria-current', 'true');
     else row.removeAttribute('aria-current');
   });
+}
+
+interface UpgradeColumn {
+  readonly label: string;
+  readonly header: string;
+  readonly names: (equipment: OptimizerEquipment) => readonly string[];
+  readonly icon: (name: string) => string | undefined;
+}
+
+/**
+ * Rank candidates against the equipped setup pinned under the header: matching cells recede and changed cells stand
+ * out, upgrades every row shares move to one strip above the table, and each gain bar scales to the largest gain in
+ * view so near-equal results look near-equal.
+ */
+function renderResultsTable(
+  app: ProfessionAppState,
+  request: GearOptimizerRequest,
+  candidates: readonly OptimizerCandidate[],
+  equipped: OptimizerEquipment,
+  equippedScore: OptimizerScore | null | undefined
+): string {
+  const slots = optimizerSlots(request.build, app.adapter);
+  const sets = optimizerWeaponSets(request.build, app.adapter);
+  const weaponNames = (set: number): readonly string[] =>
+    set === 0 ? request.build.weapons : request.build.alternateWeapons;
+  const armor = slots.filter((slot) => ARMOR_SLOTS.includes(slot));
+  const trinkets = slots.filter((slot) => !slot.includes('Weapon') && !ARMOR_SLOTS.includes(slot));
+  const weapons = sets.flatMap((set) =>
+    slots
+      .filter((slot) => slot.startsWith(set === 0 ? 'Weapon' : 'AlternateWeapon'))
+      .map((slot, hand) => ({ slot, set, hand }))
+  );
+  const infusionCount = (equipment: OptimizerEquipment, stat: string): number =>
+    equipment.infusions.reduce((sum, entry) => sum + (entry.stat === stat ? entry.count : 0), 0);
+  const infusionStats = INFUSION_STATS.filter((stat) =>
+    [equipped, ...candidates.map(({ equipment }) => equipment)].some((equipment) => infusionCount(equipment, stat))
+  );
+  const relicIcons = RELIC_DATA as Record<string, { icon?: string }>;
+  const upgrades: UpgradeColumn[] = [
+    ...sets.map((set) => ({
+      label: `${weaponNames(set).filter(Boolean).join(' / ')} sigils`,
+      header: `Set ${set + 1} sigils`,
+      names: (equipment: OptimizerEquipment) => equipment.weaponSigils[set],
+      icon: (name: string) => SIGIL_DATA[name]?.icon
+    })),
+    { label: 'Rune', header: 'Rune', names: ({ rune }) => [rune], icon: (name) => EQUIPMENT_ICONS[name] },
+    { label: 'Relic', header: 'Relic', names: ({ relic }) => [relic], icon: (name) => relicIcons[name]?.icon },
+    { label: 'Food', header: 'Food', names: ({ food }) => [food], icon: (name) => EQUIPMENT_ICONS[name] },
+    { label: 'Utility', header: 'Utility', names: ({ utility }) => [utility], icon: (name) => EQUIPMENT_ICONS[name] }
+  ];
+  const describe = (upgrade: UpgradeColumn, equipment: OptimizerEquipment): string =>
+    upgrade
+      .names(equipment)
+      .map((name) => name || 'None')
+      .join(' / ');
+  const changed = (upgrade: UpgradeColumn, equipment: OptimizerEquipment): boolean =>
+    describe(upgrade, equipment) !== describe(upgrade, equipped);
+  // An upgrade keeps a column only when some row in view changes it; otherwise the strip names it once.
+  const varying = upgrades.filter((upgrade) => candidates.some(({ equipment }) => changed(upgrade, equipment)));
+  const shared = upgrades.filter((upgrade) => !varying.includes(upgrade));
+  const icon = (upgrade: UpgradeColumn, name: string, size: number, alt: string): string => {
+    const source = upgrade.icon(name);
+    return source ? `<img src="${escapeHtml(source)}" alt="${escapeHtml(alt)}" width="${size}" height="${size}">` : '';
+  };
+
+  const baseline = equippedScore?.dps || 0;
+  const largestGain = Math.max(0, ...candidates.map(({ score }) => score.dps - baseline)) || 1;
+  const row = (candidate: OptimizerCandidate, index: number, pinned = false): string => {
+    const equipment = candidate.equipment;
+    const difference = candidate.score.dps - baseline;
+    const percent = baseline ? (candidate.score.dps / baseline - 1) * 100 : 0;
+    const gain = pinned
+      ? ''
+      : `<span class="optimizer-gain${difference < 0 ? ' optimizer-loss' : ''}" style="--optimizer-gain: ${((Math.max(0, difference) / largestGain) * 100).toFixed(1)}%"><strong>${difference >= 0 ? '+' : ''}${difference.toFixed(2)}</strong><small>${percent >= 0 ? '+' : ''}${percent.toFixed(1)}%</small></span>`;
+    const prefix = (slot: string, groupStart: boolean): string => {
+      const value = slotPrefix(equipment, slot);
+      return equipmentCell(
+        slot,
+        value,
+        `<span>${escapeHtml((value || 'None').slice(0, 4))}</span>`,
+        value !== slotPrefix(equipped, slot),
+        groupStart
+      );
+    };
+
+    const cells = [
+      ...armor.map((slot, index) => prefix(slot, index === 0)),
+      ...trinkets.map((slot, index) => prefix(slot, index === 0)),
+      ...weapons.map(({ slot }, index) => prefix(slot, index === 0)),
+      ...infusionStats.map((stat, index) => {
+        const count = infusionCount(equipment, stat);
+        return equipmentCell(
+          `${INFUSION_NAMES[stat] || stat} infusions`,
+          String(count),
+          `<span>${count}</span>`,
+          count !== infusionCount(equipped, stat),
+          index === 0
+        );
+      }),
+      ...varying.map((upgrade, index) =>
+        equipmentCell(
+          upgrade.header,
+          describe(upgrade, equipment),
+          upgrade
+            .names(equipment)
+            .map((name) => icon(upgrade, name, 22, name || 'None') || `<span>${escapeHtml(name || 'None')}</span>`)
+            .join(''),
+          changed(upgrade, equipment),
+          index === 0
+        )
+      )
+    ].join('');
+    return `<tr tabindex="0" data-preview="${index}"${pinned ? ' class="optimizer-equipped" aria-label="Equipped setup"' : ''}><td class="optimizer-damage">${pinned ? '<span class="optimizer-equipped-label">Equipped</span>' : ''}<strong>${candidate.score.dps.toFixed(2)}</strong></td><td class="optimizer-gain-cell">${gain}</td>${cells}<td class="optimizer-apply">${pinned ? '' : '<button type="button" data-apply-row hidden>Apply</button>'}</td></tr>`;
+  };
+
+  const group = (label: string, span: number): string =>
+    span ? `<th scope="colgroup" colspan="${span}" class="optimizer-group-start">${label}</th>` : '';
+  const column = (label: string, index: number): string =>
+    `<th scope="col"${index === 0 ? ' class="optimizer-group-start"' : ''}>${label}</th>`;
+  // Weapon names say which hand each prefix fills, so dual wielding reads differently from two-handed gear.
+  const weaponColumns = weapons.map(({ set, hand }, index) => {
+    const names = weaponNames(set);
+    const twoHanded = app.weaponData[names[0]]?.wielding === '2h';
+    return column(
+      `${escapeHtml(names[hand])} <span class="optimizer-weapon-hand">${twoHanded ? '2H' : hand === 0 ? 'MH' : 'OH'}</span>`,
+      index
+    );
+  });
+  const sharedStrip = shared.length
+    ? `<ul class="optimizer-shared" aria-label="Shared by every result">${shared
+        .map(
+          (upgrade) =>
+            `<li><span class="optimizer-shared-label">${escapeHtml(upgrade.label)}</span>${upgrade
+              .names(equipped)
+              .map(
+                (name) =>
+                  `<span class="optimizer-shared-value">${icon(upgrade, name, 20, '')}${escapeHtml(name || 'None')}</span>`
+              )
+              .join('')}</li>`
+        )
+        .join('')}</ul>`
+    : '';
+
+  // The equipped row lives in the sticky header so every result below reads as a change from it.
+  return `${sharedStrip}<div class="optimizer-table-scroll" tabindex="0" role="region" aria-label="Gear optimizer results"><table aria-label="Gear comparison"><thead><tr class="optimizer-column-groups"><th scope="col" rowspan="2" class="optimizer-damage">DPS</th><th scope="col" rowspan="2" class="optimizer-gain-cell">vs equipped</th>${group('Armor', armor.length)}${group('Trinkets', trinkets.length)}${group('Weapons', weapons.length)}${group('Infusions', infusionStats.length)}${varying
+    .map(
+      (upgrade, index) =>
+        `<th scope="col" rowspan="2"${index === 0 ? ' class="optimizer-group-start"' : ''}>${upgrade.header}</th>`
+    )
+    .join(
+      ''
+    )}<td rowspan="2" class="optimizer-apply"></td></tr><tr>${armor.map((slot, index) => column(SLOT_LABELS[slot], index)).join('')}${trinkets.map((slot, index) => column(SLOT_LABELS[slot], index)).join('')}${weaponColumns.join('')}${infusionStats.map((stat, index) => column(INFUSION_NAMES[stat] || stat, index)).join('')}</tr>${equippedScore ? row({ key: 'equipped', equipment: equipped, score: equippedScore, representedCombinationCount: '1' }, -1, true) : ''}</thead><tbody>${candidates.map((candidate, index) => row(candidate, index)).join('')}</tbody></table></div>`;
 }
 
 /** Identifies every input to the rendered equipment controls, so rotation-only edits can retain user search choices. */
@@ -128,8 +319,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   }
 
   const displayedResults = (): OptimizerCandidate[] => {
-    const filter = (panel?.querySelector<HTMLInputElement>('input[name="optimizer-filter"]:checked')?.value ||
-      'none') as OptimizerResultFilter;
+    const filter = activeResultFilter(panel, runner.request, app);
     const results = filter === 'none' ? runner.state.winners : runner.state.groups[filter];
     const equipped =
       runner.request &&
@@ -152,14 +342,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       <div class="optimizer-actions"><div class="optimizer-size"><p data-role="optimizer-total"></p><p id="optimizer-estimate" data-role="optimizer-estimate"></p></div><div class="optimizer-run-controls"><label class="optimizer-search-mode">Search<select name="search" aria-describedby="optimizer-estimate"><option value="fast">Fast</option><option value="exact">Exhaustive</option></select></label><label class="optimizer-worker-count">Workers<input name="workers" aria-label="Workers" type="number" min="1" max="${MAX_OPTIMIZER_WORKERS}" step="1" value="${runner.workerCount}"></label><button type="button" data-role="optimizer-cancel">Cancel</button><button type="submit">Run optimizer</button></div></div></form>
       <div class="optimizer-feedback">
       <div class="optimizer-status-row"><div class="optimizer-status-text"><p data-role="optimizer-status" role="status" aria-live="polite"></p><p data-role="optimizer-counts"></p></div>
-      <details class="optimizer-filter-settings"><summary aria-label="Filter results" title="Filter results">&#9881;</summary>
-      <fieldset><legend>Filter results</legend>${Object.entries(OPTIMIZER_RESULT_FILTERS)
-        .map(
-          ([value, label]) =>
-            `<label><input type="radio" name="optimizer-filter" value="${value}"${value === 'none' ? ' checked' : ''}>${label}</label>`
-        )
-        .join('')}
-      <p>Show the best result found for each option or combination, up to 100 results.</p></fieldset></details></div>
+      <div class="optimizer-view-controls" data-role="optimizer-view-controls" hidden><div class="optimizer-views" role="group" aria-label="Group results" data-role="optimizer-views"></div><label class="optimizer-changes-toggle"><input type="checkbox" data-role="optimizer-changes-only">Changes only</label></div></div>
       <progress data-role="optimizer-progress" max="100" value="0" aria-label="Optimizer coverage"></progress>
       </div>
       <div data-role="optimizer-results"></div>
@@ -203,27 +386,32 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       }
     });
     panel.querySelector('[data-role="optimizer-cancel"]')!.addEventListener('click', () => runner.cancel());
-    // Outside clicks close the optimizer filter even when no results view has been mounted.
-    const root = panel.ownerDocument;
+    // Groupings only change the displayed rows; the completed search and equipped build stay intact.
+    panel.querySelector('[data-role="optimizer-views"]')!.addEventListener('click', (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLElement>('[data-result-filter]');
 
-    if (!filterDismissalRoots.has(root)) {
-      filterDismissalRoots.add(root);
-      root.addEventListener('pointerdown', (event) => {
-        const settings = root.querySelector<HTMLDetailsElement>('.optimizer-filter-settings[open]');
+      if (!button) return;
 
-        if (settings && !settings.contains(event.target as Node)) settings.open = false;
-      });
-    }
-
-    // Result filters only change the displayed rows; the completed search and equipped build stay intact.
-    panel.querySelector('.optimizer-filter-settings')!.addEventListener('change', () => renderGearOptimizer(app));
-    panel.querySelector<HTMLDetailsElement>('.optimizer-filter-settings')!.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape') return;
-
-      const settings = event.currentTarget as HTMLDetailsElement;
-      settings.open = false;
-      settings.querySelector('summary')!.focus();
+      panel!.dataset.resultFilter = button.dataset.resultFilter;
+      renderGearOptimizer(app);
+      panel!.querySelector<HTMLElement>(`[data-result-filter="${button.dataset.resultFilter}"]`)?.focus();
     });
+    // Hiding unchanged cells is presentation only, so it survives result refreshes without re-rendering rows.
+    panel.querySelector('[data-role="optimizer-changes-only"]')!.addEventListener('change', (event) => {
+      panel!.classList.toggle('optimizer-changes-only', (event.target as HTMLInputElement).checked);
+    });
+    // Apply equips the chosen gear only while its search is finished and still matches the build.
+    const applyCandidate = (request: GearOptimizerRequest, candidate: OptimizerCandidate): void => {
+      if (runner.request !== request || !['complete', 'canceled'].includes(runner.state.status)) return;
+
+      try {
+        applyOptimizerCandidate(app, request, candidate);
+        renderGearOptimizer(app);
+      } catch (error) {
+        panel!.querySelector('[data-role="optimizer-status"]')!.textContent = String(error);
+      }
+    };
+
     const selectResult = (event: MouseEvent | KeyboardEvent): void => {
       const element = event.target as HTMLElement;
 
@@ -252,6 +440,12 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
 
       if (!candidate) return;
 
+      // The row's Apply acts on that row's candidate, which is always the one being previewed.
+      if (element.closest('[data-apply-row]')) {
+        applyCandidate(request, candidate);
+        return;
+      }
+
       try {
         panel!.dataset.selectedKey = candidate.key;
         updatePreviewSelection(panel!, displayedResults());
@@ -261,17 +455,8 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
           request,
           candidate,
           request.build.startingWeaponSet,
-          () => {
-            // Apply the gear actually being previewed, even if the visible result filter has changed.
-            if (runner.request !== request || !['complete', 'canceled'].includes(runner.state.status)) return;
-
-            try {
-              applyOptimizerCandidate(app, request, candidate);
-              renderGearOptimizer(app);
-            } catch (error) {
-              panel!.querySelector('[data-role="optimizer-status"]')!.textContent = String(error);
-            }
-          }
+          // Apply the gear actually being previewed, even if the visible grouping has changed.
+          () => applyCandidate(request, candidate)
         );
       } catch (error) {
         panel!.querySelector('[data-role="optimizer-status"]')!.textContent = String(error);
@@ -445,78 +630,48 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   // Keep optimizer feedback focused on search status and rankings; simulation warnings stay in result data.
   const list = panel.querySelector<HTMLElement>('[data-role="optimizer-results"]')!;
   const candidates = displayedResults();
+  const filter = activeResultFilter(panel, runner.request, app);
   const signature = JSON.stringify([
     state.status,
     runner.request?.revision,
     equippedScore?.dps,
     applied?.key,
     state.winners[0]?.key,
+    filter,
     candidates.map((winner) => [winner.key, winner.equipment, winner.score.dps])
   ]);
 
   if (list.dataset.signature !== signature) {
     list.dataset.signature = signature;
-    const baseline = equippedScore?.dps || 0;
-    const slots = runner.request ? optimizerSlots(runner.request.build, app.adapter) : [];
-    const sets = runner.request ? optimizerWeaponSets(runner.request.build, app.adapter) : [];
-    // Keep each set's weapon prefixes beside its sigils, with names that distinguish dual wielding from two-handed gear.
-    const armorSlots = slots.filter((slot) => !slot.includes('Weapon'));
-    const weaponGroups = sets.map((set) =>
-      slots.filter((slot) => slot.startsWith(set === 0 ? 'Weapon' : 'AlternateWeapon'))
-    );
-    const weaponHeaders = sets.map((set, index) => {
-      const weapons = set === 0 ? runner.request!.build.weapons : runner.request!.build.alternateWeapons;
-      return weaponGroups[index]
-        .map((slot, hand) => {
-          const twoHanded = app.weaponData[weapons[0]]?.wielding === '2h';
-          return `<th scope="col"${hand === 0 ? ' class="optimizer-set-start"' : ''} title="${twoHanded ? 'Two-handed' : SLOT_LABELS[slot]}">${escapeHtml(weapons[hand])} <span class="optimizer-weapon-hand">(${twoHanded ? '2H' : hand === 0 ? 'MH' : 'OH'})</span></th>`;
-        })
-        .join('');
-    });
+    const request = runner.request;
     const best = candidates[0] || state.winners[0];
-    // Rank against the equipped setup as well as search results, using unrounded DPS for labels and comparisons.
-    const bestDps = Math.max(baseline, best?.score.dps || 0, state.winners[0]?.score.dps || 0);
-    const infusions = (equipment: OptimizerEquipment): string =>
-      equipment.infusions
-        .filter((entry) => entry.count)
-        .map((entry) => `${entry.count} ${INFUSION_NAMES[entry.stat] || entry.stat}`)
-        .join('\n');
-    // Reuse the equipment columns for a sticky baseline row outside the filtered rankings.
-    const renderRow = (candidate: OptimizerCandidate, index: number, pinned = false): string => {
-      const equipment = candidate.equipment;
-      const difference = candidate.score.dps - baseline;
-      const percent = bestDps ? (candidate.score.dps / bestDps - 1) * 100 : 0;
-      const isBest = candidate.score.dps === bestDps;
-      // Keep equipped and preview status with DPS so the table needs no action column.
-      return `<tr tabindex="0" data-preview="${index}" class="${pinned ? 'optimizer-equipped ' : ''}${isBest ? 'optimizer-best' : ''}"${pinned ? ' aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><span class="optimizer-score"><strong>${candidate.score.dps.toFixed(2)}</strong></span><span class="optimizer-comparison">${isBest ? '<small>Best</small>' : `<small title="Difference vs best">${percent.toFixed(1)}%</small>`}<span class="optimizer-delta" title="DPS difference vs equipped" aria-label="${difference >= 0 ? '+' : ''}${difference.toFixed(2)} DPS vs equipped">${difference >= 0 ? '+' : ''}${difference.toFixed(2)} DPS</span></span><span class="optimizer-row-status">${pinned ? '<span class="optimizer-equipped-label">Equipped</span>' : ''}<span class="optimizer-preview-marker">Previewing</span></span></td>${armorSlots.map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('')}${sets
-        .map(
-          (set, group) =>
-            weaponGroups[group].map((slot) => equipmentCell(slot, slotPrefix(equipment, slot), true)).join('') +
-            [0, 1]
-              .map((slot) => {
-                const value = equipment.weaponSigils[set][slot];
-                return equipmentCell(`Set ${set + 1} sigil ${slot + 1}`, value, true, SIGIL_DATA[value]?.icon);
-              })
-              .join('')
-        )
-        .join(
-          ''
-        )}${equipmentCell('Rune', equipment.rune, true, EQUIPMENT_ICONS[equipment.rune])}${equipmentCell('Relic', equipment.relic, true, (RELIC_DATA as Record<string, { icon?: string }>)[equipment.relic]?.icon)}${equipmentCell('Food', equipment.food, false, EQUIPMENT_ICONS[equipment.food])}${equipmentCell('Utility', equipment.utility, false, EQUIPMENT_ICONS[equipment.utility])}${equipmentCell('Infusions', infusions(equipment))}</tr>`;
-    };
-
-    list.innerHTML = best
-      ? `<div class="optimizer-table-scroll" tabindex="0" role="region" aria-label="Gear optimizer results"><table aria-label="Gear comparison"><thead><tr><th scope="col" rowspan="2" class="optimizer-damage" title="DPS, percentage vs best, and DPS difference vs equipped">DPS</th>${armorSlots
-          .map((slot) => `<th scope="col" rowspan="2">${SLOT_LABELS[slot] || escapeHtml(slot)}</th>`)
-          .join(
-            ''
-          )}${weaponGroups.map((group, index) => `<th scope="colgroup" class="optimizer-set-start" colspan="${group.length + 2}">Weapon set ${sets[index] + 1}</th>`).join('')}<th scope="col" rowspan="2" class="optimizer-set-start">Rune</th><th scope="col" rowspan="2">Relic</th><th scope="col" rowspan="2">Food</th><th scope="col" rowspan="2">Utility</th><th scope="col" rowspan="2">Infusions</th></tr><tr>${weaponHeaders.map((headers) => `${headers}<th scope="colgroup" colspan="2">Sigils</th>`).join('')}</tr></thead><tbody>${candidates.map((candidate, index) => renderRow(candidate, index)).join('')}</tbody><tfoot>${equippedScore && runner.request ? renderRow({ key: 'equipped', equipment: applied?.equipment || optimizerEquipment(runner.request.build), score: equippedScore, representedCombinationCount: '1' }, -1, true) : ''}</tfoot></table></div>`
-      : state.status === 'complete'
-        ? '<p>No gear combinations met the requirements in this search.</p>'
-        : '';
+    const filters = request ? availableResultFilters(request, app) : [];
+    const views = panel.querySelector<HTMLElement>('[data-role="optimizer-views"]')!;
+    panel.querySelector<HTMLElement>('[data-role="optimizer-view-controls"]')!.hidden = !best;
+    views.hidden = filters.length < 2;
+    views.innerHTML = filters
+      .map(
+        (key) =>
+          `<button type="button" class="optimizer-view" data-result-filter="${key}" aria-pressed="${key === filter}">${OPTIMIZER_RESULT_FILTERS[key]}</button>`
+      )
+      .join('');
+    list.innerHTML =
+      best && request
+        ? renderResultsTable(
+            app,
+            request,
+            candidates,
+            applied?.equipment || optimizerEquipment(request.build),
+            equippedScore
+          )
+        : state.status === 'complete'
+          ? '<p>No gear combinations met the requirements in this search.</p>'
+          : '';
   }
 
   updatePreviewSelection(panel, candidates);
-  preview.querySelectorAll<HTMLButtonElement>('[data-apply]').forEach((button) => {
+  // The preview and the selected row share one Apply rule: finished, current searches only.
+  panel.querySelectorAll<HTMLButtonElement>('[data-apply], [data-apply-row]').forEach((button) => {
     button.disabled = stale || !['complete', 'canceled'].includes(state.status);
   });
   (panel.querySelector('[data-role="optimizer-cancel"]') as HTMLButtonElement).disabled = !runner.isRunning;

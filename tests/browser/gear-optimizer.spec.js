@@ -212,65 +212,37 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await expect(results.getByRole('columnheader', { name: 'Apply', exact: true })).toHaveCount(0);
   await expect(panel.locator('[data-apply]')).toHaveCount(0);
   await expect(results.locator('details')).toHaveCount(0);
-  await expect(results.locator('tbody').getByText('Best', { exact: true })).toHaveCount(0);
-  await expect(results.locator('tfoot .optimizer-best').getByText('Best', { exact: true })).toBeVisible();
-  const percentage = await page.evaluate(() => {
-    const state = window.professionApp.gearOptimizerRunner.state;
-    return `${((state.winners[0].score.dps / state.baseline.dps - 1) * 100).toFixed(1)}%`;
-  });
-  await expect(results.locator('tbody .optimizer-damage small')).toHaveText(percentage);
-  // Keep the equipped DPS difference directly below the percentage instead of consuming a column.
-  await expect(results.getByRole('columnheader', { name: 'Δ equipped', exact: true })).toHaveCount(0);
-  const comparison = results.locator('tbody .optimizer-comparison');
-  const difference = await page.evaluate(() => {
+  // Each result compares with the equipped setup in its own column: the DPS difference and the percentage.
+  const comparison = await page.evaluate(() => {
     const state = window.professionApp.gearOptimizerRunner.state;
     const delta = state.winners[0].score.dps - state.baseline.dps;
-    return `${delta >= 0 ? '+' : ''}${delta.toFixed(2)} DPS`;
+    const percent = (state.winners[0].score.dps / state.baseline.dps - 1) * 100;
+    return [`${delta >= 0 ? '+' : ''}${delta.toFixed(2)}`, `${percent >= 0 ? '+' : ''}${percent.toFixed(1)}%`];
   });
-  await expect(comparison.locator('.optimizer-delta')).toHaveText(difference);
-  // Measure each stack in one browser task so page movement cannot mix coordinates from different frames.
-  const damageStacks = await results
-    .locator('td.optimizer-damage')
-    .evaluateAll((cells) =>
-      cells.map((cell) =>
-        ['.optimizer-score', '.optimizer-comparison', 'small', '.optimizer-delta'].map((selector) =>
-          cell.querySelector(selector).getBoundingClientRect().toJSON()
-        )
-      )
-    );
-  for (const [score, comparison, percent, delta] of damageStacks) {
-    expect(comparison.top).toBeGreaterThanOrEqual(score.bottom);
-    expect(comparison.left).toBe(score.left);
-    expect(delta.top).toBeGreaterThanOrEqual(percent.bottom);
-    expect(delta.left).toBe(percent.left);
-  }
+  await expect(results.locator('tbody .optimizer-gain strong')).toHaveText(comparison[0]);
+  await expect(results.locator('tbody .optimizer-gain small')).toHaveText(comparison[1]);
+  await expect(results.getByRole('columnheader', { name: 'vs equipped', exact: true })).toBeVisible();
 
   await expect(results.getByRole('cell', { name: 'Food: None', exact: true })).toBeVisible();
   await expect(results.getByRole('columnheader', { name: 'Helm', exact: true })).toBeVisible();
-  // Set headers span the actual weapon slots and sigil pairs without repeating labels in each column.
-  await expect(results.locator('thead tr:first-child th[scope="colgroup"]')).toHaveText([
-    'Weapon set 1',
-    'Weapon set 2'
-  ]);
+  // Group headers span their columns; weapon names say which hand each prefix fills.
+  await expect(results.locator('thead th[scope="colgroup"]')).toHaveText(['Armor', 'Trinkets', 'Weapons', 'Infusions']);
   expect(
     await results
-      .locator('thead tr:first-child th[scope="colgroup"]')
-      .evaluateAll((headers) => headers.map((header) => header.colSpan))
-  ).toEqual([4, 3]);
-  await expect(results.locator('thead tr').nth(1).locator('th')).toHaveText([
-    'Dagger (MH)',
-    'Sword (OH)',
-    'Sigils',
-    'Spear (2H)',
-    'Sigils'
-  ]);
+      .locator('thead th[scope="colgroup"]')
+      .evaluateAll((headers) => headers.slice(0, 3).map(({ colSpan }) => colSpan))
+  ).toEqual([6, 6, 3]);
+  for (const name of ['Dagger MH', 'Sword OH', 'Spear 2H'])
+    await expect(results.getByRole('columnheader', { name, exact: true })).toBeVisible();
   // Two-line weapon names stay inside the same header row as the other column labels.
   const labelPositions = await results
     .locator('th[scope="col"]')
     .evaluateAll((headers) => headers.map((header) => header.getBoundingClientRect().bottom));
   expect(Math.max(...labelPositions) - Math.min(...labelPositions)).toBeLessThan(1);
 
-  await expect(results.locator('tbody').getByRole('cell', { name: /^Set 2 sigil 1:/ })).toBeVisible();
+  // Upgrades no result changes are named once above the table instead of filling columns.
+  await expect(panel.locator('.optimizer-shared li').filter({ hasText: 'Spear sigils' })).toBeVisible();
+  await expect(results.getByRole('columnheader', { name: 'Set 2 sigils', exact: true })).toHaveCount(0);
   // Row selection inspects an isolated candidate; changing preview sets must never save or equip it.
   const equippedBuild = await page.evaluate(() => JSON.stringify(window.professionApp.build));
   await results.locator('tbody tr').first().getByRole('cell', { name: 'Food: None', exact: true }).click();
@@ -280,7 +252,7 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await expect(preview.getByRole('heading', { name: 'Result character', exact: true })).toBeVisible();
   await expect(results.locator('tbody tr').first()).toHaveClass(/optimizer-selected/);
   await expect(results.locator('[aria-current="true"]')).toHaveCount(1);
-  await expect(results.locator('tbody tr').first().getByText('Previewing', { exact: true })).toBeVisible();
+  await expect(results.locator('tbody tr').first().getByRole('button', { name: 'Apply', exact: true })).toBeEnabled();
   const selectedBackground = await results
     .locator('tbody .optimizer-selected td')
     .first()
@@ -327,13 +299,13 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   expect(await page.evaluate(() => JSON.stringify(window.professionApp.build))).toBe(equippedBuild);
   await results.getByRole('row', { name: 'Equipped setup', exact: true }).focus();
   await page.keyboard.press('Enter');
-  // Selecting the best/equipped row uses the same preview highlight, overriding its ranking color.
+  // Selecting the pinned equipped row uses the same preview highlight and offers nothing to apply.
   await expect(results.locator('tbody .optimizer-selected')).toHaveCount(0);
-  await expect(results.locator('tfoot .optimizer-selected')).toHaveAttribute('aria-current', 'true');
-  await expect(results.locator('.optimizer-preview-marker:visible')).toHaveCount(1);
+  await expect(results.locator('thead .optimizer-selected')).toHaveAttribute('aria-current', 'true');
+  await expect(results.getByRole('button', { name: 'Apply', exact: true })).toHaveCount(0);
   expect(
     await results
-      .locator('tfoot .optimizer-selected td')
+      .locator('thead .optimizer-selected td')
       .first()
       .evaluate((cell) => getComputedStyle(cell).backgroundColor)
   ).toBe(selectedBackground);
@@ -351,12 +323,9 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
     food: window.professionApp.build.food
   }));
   expect(after).toEqual({ ...before, revision: before.revision + 1, food: '' });
-  await expect(panel.locator('[data-apply]')).toHaveCount(0);
-  await expect(
-    panel
-      .getByRole('row', { name: 'Equipped setup', exact: true })
-      .getByRole('cell', { name: 'Food: None', exact: true })
-  ).toBeVisible();
+  await expect(panel.locator('[data-apply], [data-apply-row]')).toHaveCount(0);
+  // With the only result applied, no row changes food, so the strip names the newly equipped choice.
+  await expect(panel.locator('.optimizer-shared li').filter({ hasText: 'Food' })).toContainText('None');
 });
 
 test('prepopulated choices enforce limits and stay usable on mobile', async ({ page }) => {
@@ -460,9 +429,10 @@ test('results expose every equipment choice without expanding rows', async ({ pa
   const results = panel.getByRole('table', { name: 'Gear comparison' });
   await expect(results.locator('tbody tr')).toHaveCount(3);
   await expect(results.locator('details')).toHaveCount(0);
-  await expect(results.getByRole('cell', { name: 'Infusions: 18 Malign', exact: true }).first()).toBeVisible();
+  await expect(results.getByRole('cell', { name: 'Malign infusions: 18', exact: true }).first()).toBeVisible();
   await expect(results.getByRole('cell', { name: 'Food: None', exact: true }).first()).toBeVisible();
-  for (const key of ['food', 'utility', 'rune']) {
+  // Upgrades that vary keep icon columns; unchanged ones move to the shared strip with their icons.
+  for (const key of ['food', 'utility']) {
     const icon = results
       .getByRole('cell', { name: `${key[0].toUpperCase() + key.slice(1)}: ${equipped[key]}`, exact: true })
       .first()
@@ -470,6 +440,11 @@ test('results expose every equipment choice without expanding rows', async ({ pa
     await expect(icon).toHaveAttribute('alt', equipped[key]);
     await expect(icon).toHaveAttribute('src', /^https:\/\/render\.guildwars2\.com\/file\//);
   }
+
+  const rune = panel.locator('.optimizer-shared li').filter({ hasText: 'Rune' });
+  await expect(rune).toContainText(equipped.rune);
+  await expect(rune.locator('img')).toHaveAttribute('src', /^https:\/\/render\.guildwars2\.com\/file\//);
+  await expect(results.getByRole('columnheader', { name: 'Rune', exact: true })).toHaveCount(0);
 
   await expect(panel.locator('[data-role="optimizer-counts"]')).not.toContainText('raw assignments');
   await panel
@@ -496,18 +471,18 @@ test('results expose every equipment choice without expanding rows', async ({ pa
   expect(
     await panel.locator('.optimizer-table-scroll').evaluate((element) => element.scrollWidth > element.clientWidth)
   ).toBe(true);
-  // Scores stay visible at both ends of the mobile equipment scroll; actions live in the preview.
+  // Scores stay visible at both ends of the mobile equipment scroll; Apply appears only on a previewed row.
   for (const end of [false, true]) {
     await panel.locator('.optimizer-table-scroll').evaluate((element, end) => {
       element.scrollLeft = end ? element.scrollWidth : 0;
     }, end);
-    await expect(results.locator('tbody .optimizer-score').first()).toBeInViewport();
+    await expect(results.locator('tbody .optimizer-damage strong').first()).toBeInViewport();
   }
 
   await expect(results.getByRole('button')).toHaveCount(0);
 });
 
-test('result filters group upgrades without rerunning and keep equipped gear pinned', async ({ page }) => {
+test('result groupings switch without rerunning and keep equipped gear pinned', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
@@ -525,35 +500,22 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
     simulations: String(window.professionApp.gearOptimizerRunner.state.simulations),
     revision: window.professionApp.analysis.state.buildRevision
   }));
-  const pinned = panel.getByRole('row', { name: 'Equipped setup', exact: true });
-  await expect(panel.locator('tbody .optimizer-best').getByText('Best', { exact: true })).toBeVisible();
-  await expect(pinned.getByText('Best', { exact: true })).toHaveCount(0);
+  const pinned = panel.locator('thead').getByRole('row', { name: 'Equipped setup', exact: true });
   await expect(pinned.getByRole('cell', { name: `Food: ${equipped.food}`, exact: true })).toBeVisible();
   await expect(pinned.getByRole('button')).toHaveCount(0);
-  await panel.locator('.optimizer-filter-settings > summary').click();
+  // Only food and utility had alternatives in this search, so sigil, rune, and relic groupings are not offered.
+  const groupings = panel.getByRole('group', { name: 'Group results', exact: true });
+  await expect(groupings.getByRole('button')).toHaveText(['Top results', 'Per upgrade set', 'Per food', 'Per utility']);
   for (const [label, count] of [
-    ['All combinations', 3],
-    ['Sigils', 1],
-    ['Runes', 1],
-    ['Relics', 1],
-    ['Food', 2],
-    ['Utility', 2],
-    ['No filtering', 3]
+    ['Per upgrade set', 3],
+    ['Per food', 2],
+    ['Per utility', 2],
+    ['Top results', 3]
   ]) {
-    await panel.getByRole('radio', { name: label, exact: true }).check();
+    await groupings.getByRole('button', { name: label, exact: true }).click();
+    await expect(groupings.getByRole('button', { name: label, exact: true })).toHaveAttribute('aria-pressed', 'true');
     await expect(panel.locator('tbody tr')).toHaveCount(count);
     await expect(pinned).toBeVisible();
-    // Even a single result must leave the bottom of the filter menu visible and clickable.
-    const menuNote = panel.locator('.optimizer-filter-settings fieldset p');
-    await panel.locator('.optimizer-filter-settings').evaluate((element) => {
-      window.scrollBy(0, element.getBoundingClientRect().top - 100);
-    });
-    expect(
-      await menuNote.evaluate((element) => {
-        const bounds = element.getBoundingClientRect();
-        return element.contains(document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2));
-      })
-    ).toBe(true);
     const equippedCells = await pinned
       .locator('.optimizer-equipment')
       .evaluateAll((cells) => cells.map((cell) => cell.getAttribute('aria-label')).join('|'));
@@ -573,38 +535,32 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
       revision: window.professionApp.analysis.state.buildRevision
     }))
   ).toEqual(before);
-  await panel.getByRole('radio', { name: 'No filtering', exact: true }).press('Escape');
+  // The equipped row closes the sticky header, directly under the column labels, at both scroll ends.
   const scroll = panel.locator('.optimizer-table-scroll');
-  await panel.locator('.optimizer-filter-settings > summary').click();
-  await panel.locator('[data-role="optimizer-status"]').click();
-  await expect(panel.locator('.optimizer-filter-settings')).not.toHaveAttribute('open');
+  await scroll.evaluate((element) => {
+    element.style.maxHeight = '160px';
+  });
   for (const bottom of [false, true]) {
     await scroll.evaluate((element, bottom) => {
       element.scrollTop = bottom ? element.scrollHeight : 0;
     }, bottom);
     const bounds = await scroll.boundingBox();
+    const labels = await panel.locator('thead tr').nth(1).boundingBox();
     const row = await pinned.locator('td').first().boundingBox();
-    expect(row.y).toBeGreaterThanOrEqual(bounds.y);
-    expect(row.y + row.height).toBeLessThanOrEqual(bounds.y + bounds.height + 1);
-    const viewportBottom = await scroll.evaluate(
-      (element) => element.getBoundingClientRect().top + element.clientTop + element.clientHeight
-    );
-    // clientHeight rounds to whole pixels while bounding boxes preserve fractional layout coordinates.
-    expect(Math.abs(row.y + row.height - viewportBottom)).toBeLessThan(0.5);
+    expect(Math.abs(row.y - (labels.y + labels.height))).toBeLessThan(0.5);
+    expect(row.y + row.height).toBeLessThanOrEqual(bounds.y + bounds.height);
   }
 
+  await scroll.evaluate((element) => element.style.removeProperty('max-height'));
+  // Groupings wrap inside a phone-width panel, and the previewed row's Apply stays reachable.
   await page.setViewportSize({ width: 390, height: 844 });
-  await panel.locator('.optimizer-filter-settings > summary').click();
-  await panel.getByRole('radio', { name: 'Food', exact: true }).check();
-  const menu = await panel.locator('.optimizer-filter-settings fieldset').boundingBox();
-  expect(menu.x).toBeGreaterThanOrEqual(0);
-  expect(menu.x + menu.width).toBeLessThanOrEqual(390);
-  await panel.getByRole('radio', { name: 'Food', exact: true }).press('Escape');
+  expect(await panel.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await groupings.getByRole('button', { name: 'Per food', exact: true }).click();
   const withoutFood = panel
     .locator('tbody tr')
     .filter({ has: page.getByRole('cell', { name: 'Food: None', exact: true }) });
   await withoutFood.locator('.optimizer-damage').click();
-  await panel.getByRole('button', { name: 'Apply gear', exact: true }).click();
+  await withoutFood.getByRole('button', { name: 'Apply', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   expect(await page.evaluate(() => window.professionApp.build.food)).toBe('');
   expect(await page.evaluate(() => window.professionApp.analysis.state.buildRevision)).toBe(before.revision + 1);
@@ -614,7 +570,7 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
     .locator('tbody tr')
     .filter({ has: page.getByRole('cell', { name: `Food: ${equipped.food}`, exact: true }) });
   await nextResult.locator('.optimizer-damage').click();
-  await panel.getByRole('button', { name: 'Apply gear', exact: true }).click();
+  await nextResult.getByRole('button', { name: 'Apply', exact: true }).click();
   await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   expect(await page.evaluate(() => window.professionApp.build.food)).toBe(equipped.food);
   expect(await page.evaluate(() => window.professionApp.analysis.state.buildRevision)).toBe(before.revision + 2);
@@ -633,6 +589,7 @@ test('result filters group upgrades without rerunning and keep equipped gear pin
   await page.waitForFunction(() => window.professionApp.analysis.state.simulationStatus === 'idle');
   await withoutFood.locator('.optimizer-damage').click();
   await expect(panel.getByRole('button', { name: 'Apply gear', exact: true })).toBeDisabled();
+  await expect(withoutFood.getByRole('button', { name: 'Apply', exact: true })).toBeDisabled();
 });
 
 // Component styles must keep hidden controls out of layout on narrow hosts.

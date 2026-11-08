@@ -766,12 +766,13 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   font-size: 12px;
   line-height: 1.5;
 }
-/* Keep display controls outside the search form so changing a filter never restarts optimization. */
+/* Keep display controls outside the search form so changing a grouping never restarts optimization. */
 .optimizer-status-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px 16px;
 }
 .optimizer-status-row p {
   margin: 0;
@@ -783,55 +784,104 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   flex-wrap: wrap;
   gap: 4px 12px;
 }
-.optimizer-filter-settings {
-  position: relative;
-}
-.optimizer-filter-settings > summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 4px 8px;
-  font-size: 24px;
-  color: var(--text);
-}
-.optimizer-filter-settings > summary::-webkit-details-marker {
-  display: none;
-}
-.optimizer-filter-settings > summary:focus-visible {
-  outline: 2px solid var(--accent);
-}
-.optimizer-filter-settings fieldset {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  z-index: 4;
-  width: 250px;
-  max-width: calc(100vw - 48px);
-  box-sizing: border-box;
-  margin: 0;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg-panel-alt);
-  box-shadow: 0 8px 24px #0006;
-}
-.optimizer-filter-settings legend {
-  padding: 0 4px;
-  color: var(--text);
-}
-.optimizer-filter-settings label {
+.optimizer-view-controls {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+/* Groupings use the same pressed pills as the skill damage filters. */
+.optimizer-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.gear-optimizer .optimizer-view {
+  min-height: 28px;
+  padding: 0 10px;
+  border-color: var(--border-light);
+  border-radius: 14px;
+  background: transparent;
+  font-size: 12px;
+}
+.gear-optimizer .optimizer-view[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+.optimizer-changes-toggle {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 0;
+  color: var(--text-dim);
   cursor: pointer;
 }
-.optimizer-filter-settings input {
-  accent-color: var(--accent);
+.optimizer-changes-toggle input {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 28px;
+  height: 16px;
+  margin: 0;
+  border-radius: 8px;
+  background: var(--border-light);
+  cursor: pointer;
 }
-.optimizer-filter-settings fieldset p {
-  margin-top: 12px;
-  font-size: 11px;
+.optimizer-changes-toggle input::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-bright);
+  transition: transform 0.15s;
+}
+.optimizer-changes-toggle input:checked {
+  background: var(--accent-dim);
+}
+.optimizer-changes-toggle input:checked::after {
+  transform: translateX(12px);
+}
+.optimizer-changes-toggle input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .optimizer-changes-toggle input::after {
+    transition: none;
+  }
+}
+/* Upgrades every result shares are named once here instead of repeating a column per row. */
+.optimizer-shared {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin: 0;
+  padding: 10px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-alt);
+  list-style: none;
+  font-size: 12px;
+}
+.optimizer-shared li {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.optimizer-shared-label {
   color: var(--text-dim);
+  font-size: 11px;
+}
+.optimizer-shared-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.optimizer-shared img {
+  border-radius: 2px;
 }
 .optimizer-feedback [data-role='optimizer-counts'] {
   color: var(--text-dim);
@@ -845,7 +895,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 .gear-optimizer table {
   width: 100%;
   text-align: left;
-  /* Separate cell borders stay with sticky cells, preventing underlying rows from showing at the footer edge. */
+  /* Separate cell borders stay with sticky cells, preventing underlying rows from showing at the header edge. */
   border-collapse: separate;
   border-spacing: 0;
   font-size: 12px;
@@ -854,7 +904,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 .gear-optimizer td,
 .gear-optimizer th {
   /* Leave room for wider platform fonts across the equipment columns at desktop widths. */
-  padding: 8px 4px;
+  padding: 7px 4px;
   vertical-align: middle;
   border-bottom: 1px solid var(--border);
 }
@@ -863,81 +913,42 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   font-weight: 500;
   font-size: 11px;
   line-height: 16px;
+  text-align: center;
   background: var(--bg-panel-alt);
 }
-/* Stick both header rows together so set labels stay above their columns while scrolling. */
+/* The header rows and the equipped baseline stick together while results scroll beneath them. */
 .gear-optimizer thead {
   position: sticky;
   top: 0;
   z-index: 4;
+  --optimizer-row-bg: var(--bg-panel-alt);
 }
 /* Opaque row colors keep pinned cells readable, with quieter selection and alternating scan lines. */
-.gear-optimizer tbody tr,
-.gear-optimizer tfoot tr {
+.gear-optimizer tbody tr {
   --optimizer-row-bg: var(--bg-panel);
 }
-.gear-optimizer tbody tr:nth-child(even),
-.gear-optimizer tfoot tr {
-  --optimizer-row-bg: var(--bg-panel-alt);
+.gear-optimizer tbody tr:nth-child(even) {
+  --optimizer-row-bg: color-mix(in srgb, var(--bg-panel-alt) 45%, var(--bg-panel));
 }
 .gear-optimizer td {
   background: var(--optimizer-row-bg);
 }
-.gear-optimizer .optimizer-best .optimizer-damage strong {
-  color: #62d4ca;
-}
-.optimizer-damage {
-  font-family: var(--mono);
-  width: 1%;
-  min-width: 100px;
-  font-variant-numeric: tabular-nums;
-  line-height: 14px;
-}
-.optimizer-damage strong {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-bright);
-}
-.optimizer-damage small,
-.gear-optimizer th small {
-  margin-left: 5px;
+.gear-optimizer thead .optimizer-column-groups th[scope='colgroup'] {
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--border);
   font-size: 10px;
-  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
-/* Stack comparisons below DPS so each result keeps its score and differences in one column. */
-.optimizer-score,
-.optimizer-comparison {
-  display: flex;
-  flex-direction: column;
-}
-.optimizer-score small,
-.optimizer-comparison small {
-  margin-left: 0;
-}
-.optimizer-delta {
-  font-size: 10px;
-  color: var(--text-dim);
-}
-.gear-optimizer thead tr:first-child th[scope='colgroup'] {
-  text-align: center;
-  padding-bottom: 4px;
-  border-bottom: 0;
-  font-size: 10px;
-  letter-spacing: 0.04em;
-}
-/* Frame the weapon sets across both header rows and end the group before Rune. */
-.gear-optimizer .optimizer-set-start,
-.optimizer-equipment[aria-label^='Weapon1:'],
-.optimizer-equipment[aria-label^='AlternateWeapon1:'],
-.optimizer-equipment[aria-label^='Rune:'] {
-  border-left: 1px solid var(--border);
-}
-/* Keep ungrouped column labels on the same baseline as the weapon and sigil labels. */
-.gear-optimizer th[rowspan] {
+.gear-optimizer .optimizer-column-groups > :is(th, td)[rowspan] {
   vertical-align: bottom;
 }
 .gear-optimizer thead tr + tr th {
   padding-top: 4px;
+}
+/* Each column group opens with a divider through the header, the equipped row, and every result. */
+.gear-optimizer .optimizer-group-start {
+  border-left: 1px solid var(--border);
 }
 .optimizer-weapon-hand {
   display: block;
@@ -945,53 +956,140 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   line-height: 12px;
   opacity: 0.7;
 }
-.optimizer-equipment {
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-dim);
+.optimizer-damage {
+  min-width: 92px;
+  line-height: 14px;
 }
-.gear-optimizer th {
-  text-align: center;
+.optimizer-damage strong {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
 }
-.gear-optimizer th.optimizer-damage {
+.gear-optimizer th.optimizer-damage,
+.gear-optimizer th.optimizer-gain-cell {
   text-align: left;
-  font-family: inherit;
 }
-.optimizer-equipment > span {
-  display: block;
-  max-width: 110px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-/* Keep each infusion count on its own line without truncating its stat name. */
-.optimizer-equipment[aria-label^='Infusions:'] > span {
-  max-width: none;
-  white-space: pre;
-  text-align: left;
-  line-height: 15px;
-}
-.optimizer-equipment img {
-  display: block;
-  border-radius: 2px;
-  margin: auto;
-  width: 22px;
-  height: 22px;
-}
-/* Keep the comparison anchored when equipment overflows a narrow viewport. */
+/* Keep the score anchored when equipment overflows a narrow viewport. */
 .gear-optimizer .optimizer-damage {
   position: sticky;
   z-index: 1;
   left: 0;
   border-right: 1px solid var(--border);
 }
-.optimizer-row-status {
+.optimizer-equipped-label {
+  display: block;
+  font-size: 10px;
+  line-height: 12px;
+  color: var(--text-dim);
+}
+/* The gain over equipped carries a bar scaled to the largest gain in view. */
+.optimizer-gain-cell {
+  min-width: 120px;
+  padding-inline: 8px;
+}
+.optimizer-gain {
+  position: relative;
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 8px;
+  padding-bottom: 5px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
 }
-.optimizer-equipped-label {
-  font-size: 10px;
+.optimizer-gain::before,
+.optimizer-gain::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  border-radius: 2px;
+}
+.optimizer-gain::before {
+  right: 0;
+  background: var(--border);
+}
+.optimizer-gain::after {
+  width: var(--optimizer-gain);
+  background: color-mix(in srgb, #62d4ca 70%, transparent);
+}
+.optimizer-gain strong {
+  color: #62d4ca;
+  font-weight: 600;
+}
+.optimizer-gain small {
   color: var(--text-dim);
+  font-size: 10px;
+}
+.optimizer-gain.optimizer-loss strong {
+  color: var(--condi);
+}
+/* Cells matching the equipped setup recede; changed cells stand out as accent chips. */
+.optimizer-equipment {
+  text-align: center;
+  font-size: 11px;
+  color: color-mix(in srgb, var(--text-dim) 60%, transparent);
+}
+.optimizer-equipment > span {
+  display: inline-block;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+.optimizer-equipment img {
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 2px;
+  width: 22px;
+  height: 22px;
+  opacity: 0.55;
+}
+.optimizer-equipment img + img {
+  margin-left: 4px;
+}
+.optimizer-changed > span {
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--text-bright);
+}
+.optimizer-changed img,
+.optimizer-equipped .optimizer-equipment img {
+  opacity: 1;
+}
+.optimizer-changed img {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+.optimizer-equipped .optimizer-equipment {
+  color: var(--text);
+}
+/* Changes only replaces unchanged cells with a dot so each row lists just its differences. */
+.optimizer-changes-only tbody .optimizer-equipment:not(.optimizer-changed) > * {
+  display: none;
+}
+.optimizer-changes-only tbody .optimizer-equipment:not(.optimizer-changed)::after {
+  content: '·';
+}
+/* Apply sits at the end of the previewed row and stays reachable when the table scrolls sideways. */
+.gear-optimizer .optimizer-apply {
+  width: 1%;
+  padding-inline: 6px 12px;
+}
+.gear-optimizer tbody tr.optimizer-selected .optimizer-apply {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+}
+.gear-optimizer .optimizer-apply button {
+  min-height: 26px;
+  padding: 2px 12px;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg-deep));
+  color: var(--text-bright);
+  font-weight: 600;
 }
 /* Keep all candidate equipment in view, with local scrolling for narrow screens and long result lists. */
 .optimizer-table-scroll {
@@ -1004,16 +1102,16 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
-.optimizer-table-scroll thead tr:first-child th:first-child,
+.optimizer-table-scroll .optimizer-column-groups > :first-child,
 .optimizer-table-scroll td:first-child {
   padding-left: 12px;
 }
-/* The equipped setup remains visible below the scrollable, filtered candidates. */
+/* The equipped baseline closes the sticky header; results below scroll under it. */
+.gear-optimizer .optimizer-equipped {
+  --optimizer-row-bg: color-mix(in srgb, var(--bg-panel-alt) 70%, var(--bg-panel));
+}
 .optimizer-equipped td {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  box-shadow: 0 -1px var(--border-light);
+  border-bottom-color: var(--border-light);
 }
 .optimizer-equipped .optimizer-damage {
   z-index: 3;
@@ -1021,22 +1119,12 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 .gear-optimizer tbody tr:hover:not(.optimizer-selected) {
   --optimizer-row-bg: color-mix(in srgb, var(--accent) 6%, var(--bg-panel));
 }
-/* Preview selection takes precedence over ranking and hover, with a text marker as well as color. */
+/* Preview selection takes precedence over hover and the equipped row's own background. */
 .gear-optimizer tr.optimizer-selected {
   --optimizer-row-bg: color-mix(in srgb, var(--accent) 10%, var(--bg-panel));
 }
 .gear-optimizer tr.optimizer-selected > td:first-child {
   box-shadow: inset 3px 0 var(--accent);
-}
-.optimizer-preview-marker {
-  display: none;
-  margin-top: 2px;
-  color: var(--accent);
-  font-size: 9px;
-  font-weight: 500;
-}
-.optimizer-selected .optimizer-preview-marker {
-  display: block;
 }
 /* Narrow panels move the chips under the row name and keep the multiplier on the name line. */
 @container gear-optimizer (max-width: 650px) {

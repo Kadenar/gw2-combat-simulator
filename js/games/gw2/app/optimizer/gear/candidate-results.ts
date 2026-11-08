@@ -5,14 +5,15 @@ import {
 } from '#gw2/app/optimizer/gear/search.js';
 import { INFUSION_STATS } from '#gw2/platform/equipment/gear/infusions.js';
 
+// Labels for the result groupings: the top results overall, or the best result for each upgrade choice.
 export const OPTIMIZER_RESULT_FILTERS = {
-  none: 'No filtering',
-  all: 'All combinations',
-  sigils: 'Sigils',
-  rune: 'Runes',
-  relic: 'Relics',
-  food: 'Food',
-  utility: 'Utility'
+  none: 'Top results',
+  all: 'Per upgrade set',
+  sigils: 'Per sigils',
+  rune: 'Per rune',
+  relic: 'Per relic',
+  food: 'Per food',
+  utility: 'Per utility'
 } as const;
 
 export type OptimizerResultFilter = keyof typeof OPTIMIZER_RESULT_FILTERS;
