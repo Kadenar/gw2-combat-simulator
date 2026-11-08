@@ -35,6 +35,7 @@ test('Cascading Corruption carries overflow in combat before emitting the consum
       }),
       time: 1,
       engagement: engagement.query,
+      combat: { buffApplications: () => [] },
       traits: new Set([TRAIT.CASCADING_CORRUPTION]),
       profession: { specialization: { kind: 'Harbinger', state } },
       effects: captureEffectEmissions({

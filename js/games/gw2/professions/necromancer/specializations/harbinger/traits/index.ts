@@ -37,6 +37,7 @@ import type {
   NecromancerRuntime,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Dark Disciple owns intrinsic Blight growth, capacity, and shroud life-force drain. */
 const darkDisciple = defineTrait({
@@ -360,11 +361,10 @@ const darkGunslinger = defineTrait({
 
 function activeBlight(context: Gw2ModifierContext): number {
   const event = context.event;
-  // Prefer the snapshotted blight from the event so that modifier rules see the value at the moment of impact,
-  // not the current (post-impact) blight count which may already be lower due to subsequent consumption.
+  // Strikes retain their impact snapshot; ongoing conditions use Blight at each damage sample.
   return Math.max(
     0,
-    event?.metadata?.necromancerBlight ??
+    (event?.type === 'damage' ? event.metadata?.necromancerBlight : undefined) ??
       necromancerRuntimeSpecializationState(context, 'Harbinger')?.blightExpiries?.length ??
       0
   );
@@ -446,6 +446,14 @@ function applyCascadingCorruption(
           }
         });
         const skill: Skill = { id: ID.CASCADING_CORRUPTION, name: 'Cascading Corruption', type: 'Trait' };
+        // A new Meltdown grant adds its duration after the remaining active grant.
+        const remainingMeltdown = Math.max(
+          0,
+          ...runtime.combat
+            .buffApplications('meltdown')
+            .filter((application) => application.resolvedAudience.includesSelf)
+            .map((application) => application.expiresAt - runtime.time)
+        );
         runtime.effects.emit({
           kind: 'profile',
           cause: proc,
@@ -454,6 +462,7 @@ function applyCascadingCorruption(
             .filter((effect) => effect != null)
             .map((effect) => ({
               ...effect,
+              ...(effect === meltdown ? { duration: canonicalTime(effect.duration + remainingMeltdown) } : {}),
               sourceId: TRAIT.CASCADING_CORRUPTION,
               atMs: quantizeGw2ActionTimingMs(effect.atMs ?? 0)
             })),

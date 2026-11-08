@@ -189,7 +189,11 @@ test('overlapping Meltdown procs retain one stack through the last accepted expi
   const [firstExpiry, lastExpiry] = grants.map((grant) => grant.at + grant.duration);
   assert.ok(grants[1].at < firstExpiry);
   assert.equal(planningBuffAt(active.planningState, 'meltdown').count, 1);
-  assert.equal(planningBuffAt(active.planningState, 'meltdown').remaining, lastExpiry - active.planningState.atSeconds);
+  assert.ok(
+    Math.abs(
+      planningBuffAt(active.planningState, 'meltdown').remaining - (lastExpiry - active.planningState.atSeconds)
+    ) < 1e-9
+  );
   const track = finished.effectReport.tracks.find((track) => track.kind === 'meltdown' && track.recipient === 'self');
   assert.equal(effectStateAt(finished.effectReport, track, grants[1].at).count, 1);
   assert.equal(effectStateAt(finished.effectReport, track, firstExpiry).count, 1);

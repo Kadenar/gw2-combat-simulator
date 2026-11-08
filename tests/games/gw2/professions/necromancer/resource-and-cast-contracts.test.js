@@ -151,6 +151,48 @@ test('Cascading Corruption inherits Claw without becoming a player attack', () =
   assert.ok(Math.abs(packet.damage - explosion(baseline).damage * 1.07) <= 1);
 });
 
+// Overlapping Meltdown grants preserve their unused duration without increasing the damage bonus.
+test('Meltdown adds overlapping grant durations and expires after the accumulated pool', () => {
+  const result = simulate(
+    'Harbinger',
+    ['Elixir of Ambition', 'Elixir of Risk', 'Elixir of Promise', 'Harbinger Shroud', 'Devouring Cut'],
+    {
+      initialResource: 100,
+      initialBlight: 25,
+      initialCascadingCorruptionStacks: 15,
+      selectedSkillIds: [ID.ELIXIR_OF_AMBITION, ID.ELIXIR_OF_RISK, ID.ELIXIR_OF_PROMISE],
+      selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
+    },
+    { kind: 'tail', durationMs: 14000 }
+  );
+  const runtime = observedRuntime(result);
+  const grants = runtime.combat.buffApplications('meltdown');
+  assert.deepEqual(result.warnings, []);
+  assert.equal(grants.length, 2);
+  const duration = necromancerCatalog.balanceProfilesById
+    .get(TRAIT.CASCADING_CORRUPTION)
+    .effects.find((effect) => effect.kind === 'meltdown').duration;
+  assert.equal(grants[1].expiresAt, grants[0].expiresAt + duration);
+  assert.equal(runtime.combat.activeBuffStacks('meltdown', result.combatEndTime, 1), 1);
+  assert.equal(runtime.combat.activeBuffStacks('meltdown', grants[1].expiresAt, 1), 0);
+  assert.equal(runtime.query.conditionMultiplier('Torment', result.combatEndTime, null, runtime), 1.1);
+});
+
+// A condition must follow later Blight consumption even when its cast carried an impact snapshot.
+test('Septic Corruption uses current Blight for existing conditions', () => {
+  const result = simulate('Harbinger', ['Elixir of Risk', wait(2000)], {
+    initialBlight: 20,
+    selectedSkillIds: [ID.ELIXIR_OF_RISK],
+    selectedTraitIds: [TRAIT.SEPTIC_CORRUPTION]
+  });
+  const application = result.resolvedEvents.find((event) => event.condition === 'Torment');
+  const runtime = observedRuntime(result);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(application.metadata.necromancerBlight, 25);
+  consumeBlight(runtime.profession.specialization.state, 10, result.combatEndTime, 25);
+  assert.equal(runtime.query.conditionMultiplier('Torment', result.combatEndTime, application, runtime), 1.0375);
+});
+
 // Elixir damage includes its own Blight gain, subject to the same cap as the live resource.
 test('Wicked Corruption includes uncapped and capped elixir Blight grants', () => {
   for (const [initialBlight, impactBlight] of [
