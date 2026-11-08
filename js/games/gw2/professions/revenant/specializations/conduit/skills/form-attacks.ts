@@ -1,15 +1,11 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { conduitState, revenantConduitFormIsActive } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
-
-export const UPKEEP_DAGGERS = 'revenant.conduit-upkeep-daggers';
 
 // A cast started in Dervish form keeps its scythe through form expiry or a concurrent legend swap.
 export const dervishCasts = new WeakSet<RuntimeCast<RevenantSkill>>();
@@ -83,14 +79,4 @@ export function dervishAttack(
     },
     transform: (event) => ({ ...event, name, skillWeapon: 'Unequipped', icon: attack.icon || '' })
   });
-}
-
-export function upkeepDaggers(runtime: RevenantRuntime, data: unknown): void {
-  const { skillId, startsAt } = data as { skillId: SkillId; startsAt: number };
-  const skill = runtime.helpers.skillsById.get(skillId);
-
-  if (!activeRevenantUpkeep(runtime, skillId, startsAt) || !skill) return;
-
-  lesserDaggers(runtime, skill);
-  runtime.schedule(UPKEEP_DAGGERS, canonicalTime(runtime.time + 1), data, undefined, -190);
 }

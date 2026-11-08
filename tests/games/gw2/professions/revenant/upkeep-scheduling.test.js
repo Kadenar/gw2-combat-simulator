@@ -2,9 +2,15 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { createCombatExecution } from '#gw2/platform/simulation/combat-execution.js';
+import { runRuntime } from '#gw2/platform/simulation/runtime.js';
+import { createDamageExecution } from '#gw2/platform/skill-damage/occurrence-driver.js';
+import { createRevenantUpkeepContribution } from '#gw2/professions/revenant/core/mechanics/upkeep-lifecycle.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
+import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
@@ -35,6 +41,23 @@ const alliedProcTimes = (result) => [
 ];
 // Affinity has no report event; probing the live owner at inclusive horizons locates each actual tick.
 const affinityAt = (prefix, untilMs, config = {}) => affinity(simulate('Conduit', [...prefix, wait(untilMs)], config));
+
+test('composed upkeep contributions each start their own cadence once', () => {
+  // Contributions share a runtime but must not replace or duplicate each other's scheduled work.
+  const scheduled = [];
+  const skill = revenantProfession.catalog.skills.find((entry) => entry.id === SKILL.IMPOSSIBLE_ODDS);
+  const runtime = {
+    time: 0,
+    profession: { core: { activeUpkeeps: [{ skillId: skill.id, startsAt: 0 }] } },
+    schedule: (name) => scheduled.push(name)
+  };
+  const names = ['test.first-upkeep', 'test.second-upkeep'];
+  const hooks = composeRuntimeHooks(
+    names.map((name) => createRevenantUpkeepContribution([{ name, accepts: () => true, interval: 1, pulse() {} }]))
+  );
+  hooks.onCastCommit(runtime, { skill });
+  assert.deepEqual(scheduled, names);
+});
 
 test('Conduit upkeep delivers due affinity ticks during idle waits', () => {
   // Idle time must deliver every due resource tick without relying on unrelated casts or reads.
@@ -202,4 +225,89 @@ test('Soulcleave dismissal and legend swap end allied procs, while recasting pre
       'a strike on the cooldown deadline is eligible'
     );
   }
+});
+
+// Observe real occurrence completion so retired work cannot silently prolong an otherwise finished measurement.
+function observeOccurrence(profession, config, execution) {
+  let runtime;
+  const result = runRuntime({
+    profession,
+    config,
+    output: 'damage',
+    ownsEffect: () => true,
+    execution: {
+      ...execution,
+      initialize(owner) {
+        runtime = owner;
+        execution.initialize?.(owner);
+      }
+    }
+  });
+  return { result, runtime };
+}
+
+test('released upkeep leaves no pending work extending the occurrence window', () => {
+  for (const specialization of ['Core', 'Conduit']) {
+    const config = { ...baseConfig, specialization };
+    const profession = revenantProfession.runtimeFor(config);
+    const { result, runtime } = observeOccurrence(
+      profession,
+      config,
+      createCombatExecution(profession, ['Impossible Odds', wait(100), 'Relinquish Power'])
+    );
+    assert.equal(result.complete, true);
+    assert.deepEqual(runtime.profession.core.activeUpkeeps, []);
+    assert.equal(runtime.time, runtime.rotationEndTime, 'retired upkeep tasks cannot extend observation');
+  }
+});
+
+test('isolated Conduit preparation registers damaging upkeep work through starvation', () => {
+  const config = { ...baseConfig, specialization: 'Conduit', initialEnergy: 8 };
+  const profession = revenantProfession.runtimeFor(config);
+  const { result, runtime } = observeOccurrence(
+    profession,
+    config,
+    createDamageExecution(profession, {
+      skillId: SKILL.IMPOSSIBLE_ODDS,
+      inputs: { cosmicWisdom: true },
+      accepts: () => true
+    })
+  );
+  assert.equal(result.complete, true);
+  assert.ok(
+    result.events.some(
+      (event) =>
+        event.type === 'damage' &&
+        event.skillId === SKILL.LESSER_ENCHANTED_DAGGERS &&
+        event.at > runtime.rotationEndTime
+    ),
+    'foreground upkeep work keeps the occurrence open after the activation'
+  );
+  assert.deepEqual(runtime.profession.core.activeUpkeeps, [], 'starvation retires the measured upkeep');
+});
+
+test('background affinity does not extend an occurrence but still accrues in combat', () => {
+  const config = {
+    ...baseConfig,
+    specialization: 'Conduit',
+    startingLegend: LEGEND.CENTAUR,
+    selectedLegends: [LEGEND.CENTAUR, LEGEND.ENTITY]
+  };
+  const native = revenantProfession.runtimeFor(config);
+  // Remove depletion from this scenario so the only future work belongs to background affinity.
+  const profession = { ...native, catalog: withSkill(native.catalog, SKILL.PROTECTIVE_SOLACE, { upkeepCost: 0 }) };
+  const preview = observeOccurrence(
+    profession,
+    config,
+    createDamageExecution(profession, { skillId: SKILL.PROTECTIVE_SOLACE, accepts: () => true })
+  );
+  assert.equal(preview.result.complete, true);
+  assert.equal(preview.runtime.time, preview.runtime.rotationEndTime);
+  assert.equal(preview.runtime.profession.core.activeUpkeeps.length, 1);
+
+  const combat = runRevenant(['Protective Solace', wait(3100)], config, {
+    catalog: () => profession.catalog
+  });
+  assert.deepEqual(combat.warnings, []);
+  assert.ok(affinity(combat) > preview.runtime.profession.specialization.state.affinity.value);
 });

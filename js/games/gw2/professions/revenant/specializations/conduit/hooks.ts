@@ -1,23 +1,17 @@
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
-import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import {
   REVENANT_CONDUIT_FORM_BY_LEGEND,
   REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND
 } from '#gw2/professions/revenant/data/legends.js';
-import { isRevenantUpkeep } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { conduitBuffPolicies } from '#gw2/professions/revenant/specializations/conduit/effect-state.js';
-import {
-  costAffinity,
-  UPKEEP_AFFINITY,
-  upkeepAffinity
-} from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-gains.js';
+import { costAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-gains.js';
 import {
   conduitAffinityPolicy,
   gainAffinity
@@ -32,6 +26,7 @@ import {
   entityBoonCompleted,
   entityCastCompleted
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/trigger-points.js';
+import { conduitUpkeepLifecycle } from '#gw2/professions/revenant/specializations/conduit/mechanics/upkeep.js';
 import {
   cleanseHexEater,
   completeBeguilingHaze
@@ -39,9 +34,7 @@ import {
 import {
   dervishAttack,
   dervishCasts,
-  lesserDaggers,
-  UPKEEP_DAGGERS,
-  upkeepDaggers
+  lesserDaggers
 } from '#gw2/professions/revenant/specializations/conduit/skills/form-attacks.js';
 import {
   MESMER_RELEASE,
@@ -54,11 +47,10 @@ import {
   kineticInsightRecharge
 } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 const RELEASE_POTENTIAL_IDS = new Set<SkillId>(Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND));
 
-export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   /** Hold the selected preview state while evaluating detached damage queries. */
   prepareDamageState(runtime, _skill, inputs) {
     const state = conduitState.from(runtime.profession);
@@ -69,8 +61,6 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   },
   resources: { affinity: conduitAffinityPolicy },
   buffPolicies: conduitBuffPolicies,
-  // Passive affinity accrual does not extend damage observation; damaging dagger upkeep remains bounded normally.
-  backgroundTasks: [UPKEEP_AFFINITY],
   // Control-triggered Burning shares Mistfire's profile, excluding its own Twin Moon chain.
 
   availability(runtime, skill) {
@@ -163,14 +153,6 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     if (skill.legendId === LEGEND.ENTITY) runtime.fireTrigger(entityCastCompleted, { cast });
 
     if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
-
-    if (isRevenantUpkeep(skill) && activeRevenantUpkeep(runtime, skill.id, runtime.time)) {
-      const data = { skillId: skill.id, startsAt: runtime.time };
-      runtime.schedule(UPKEEP_AFFINITY, canonicalTime(runtime.time + 3), data, undefined, -200);
-
-      if (skill.id === ID.IMPOSSIBLE_ODDS)
-        runtime.schedule(UPKEEP_DAGGERS, canonicalTime(runtime.time + 1), data, undefined, -190);
-    }
   },
   sideEffectHandlers: {
     'revenant.entity-boon-completed'(runtime, context) {
@@ -209,8 +191,12 @@ export const conduitHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   },
   tasks: {
     [FORM_EXPIRY]: formExpiry,
-    [UPKEEP_AFFINITY]: upkeepAffinity,
-    [UPKEEP_DAGGERS]: upkeepDaggers,
     [MESMER_RELEASE]: mesmerRelease
   }
 };
+
+/** Start upkeep contributions after Conduit's immediate completion rewards and form transitions. */
+export const conduitHooks = composeRuntimeHooks<RevenantRuntimeState, RevenantSkill>([
+  conduitLifecycle,
+  conduitUpkeepLifecycle
+]);

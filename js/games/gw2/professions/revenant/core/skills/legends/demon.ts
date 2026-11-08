@@ -189,7 +189,7 @@ export const REVENANT_DEMON_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     upkeepCost: 6,
     pulseInterval: 1,
     legendId: 'LegendaryDemon',
-    // Shared upkeep owns the drain; upkeep-pulses.ts schedules the legend-owned payload below.
+    // The upkeep lifecycle owns drain and scheduling; this legend owns the pulse payload below.
     castTimeMs: 440,
     interruptCommitMs: 400,
     effects: [

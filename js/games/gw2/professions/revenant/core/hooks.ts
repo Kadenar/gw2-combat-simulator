@@ -18,20 +18,7 @@ import {
   revenantStruck,
   revenantWeaponSwapped
 } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
-import {
-  REVENANT_UPKEEP_PULSE,
-  revenantUpkeepPulse,
-  scheduleRevenantUpkeepPulses
-} from '#gw2/professions/revenant/core/mechanics/upkeep-pulses.js';
-import {
-  activateRevenantUpkeep,
-  cancelRevenantUpkeep,
-  releaseRevenantUpkeep,
-  reserveRevenantUpkeep,
-  REVENANT_ENERGY_DEPLETED,
-  starveRevenantUpkeeps,
-  upkeepRelease
-} from '#gw2/professions/revenant/core/mechanics/upkeep.js';
+import { revenantUpkeepLifecycle } from '#gw2/professions/revenant/core/mechanics/upkeep-lifecycle.js';
 import {
   enchantedDaggers,
   enchantedDaggersLifecycle,
@@ -69,46 +56,23 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   ],
 
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
-  prepareDamageState(runtime, skill, inputs) {
+  prepareDamageState(runtime, skill) {
     const state = runtime.profession.core;
 
     if (skill?.legendId) {
       state.activeLegendId = skill.legendId;
     }
-
-    // Both the stat strip and occurrences consume the control's canonical serialized skill identity.
-    const upkeepId = JSON.parse(String(inputs.upkeep ?? 'null'));
-    const upkeep = runtime.helpers.skills.find((entry) => entry.id === upkeepId && entry.upkeepCost != null);
-
-    if (upkeep)
-      // Prepared upkeep needs the same activation identity as combat so depletion can retire its owner.
-      state.activeUpkeeps = [
-        { skillId: upkeep.id, upkeepCost: Number(upkeep.upkeepCost), startsAt: runtime.time, empoweredNextPulse: false }
-      ];
   },
 
   buffPolicies: revenantBuffPolicies,
   observeEffects: revenantEffectStates,
-  // Shared actions own legends and upkeep; skill lifecycles register their own actions below.
+  // Upkeep registers its own actions; these actions belong to legends and their opening payloads.
   sideEffectHandlers: {
     'revenant.embrace-opening'(runtime, context) {
       if (context.kind === 'cast') startRevenantEmbrace(runtime, context.cast);
     },
-    'revenant.release-upkeep'(runtime, context) {
-      if (context.kind === 'cast') releaseRevenantUpkeep(runtime, context.cast);
-    },
     'revenant.swap-legends'(runtime, context) {
       if (context.kind === 'cast') swapLegend(runtime, context.cast);
-    },
-    // Reserve before activation, then pay before the upkeep changes live cost queries.
-    'revenant.reserve-upkeep'(runtime, context) {
-      if (context.kind === 'cast') reserveRevenantUpkeep(runtime, context.cast);
-    },
-    'revenant.activate-upkeep'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      activateRevenantUpkeep(runtime, context.cast);
-      scheduleRevenantUpkeepPulses(runtime, context.cast);
     }
   },
   resources: { energy: revenantEnergy },
@@ -126,14 +90,6 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   availability: revenantAvailability,
   // Legend swaps stay free during setup until combat is established, like the runtime's weapon swaps.
   rechargeWork: (runtime, skill, work) => (skill.id === ID.SWAP_LEGENDS && !runtime.engagement.active ? 0 : work),
-  modifyEffects(runtime, cast, effects) {
-    // Upkeep owners emit their own activation and recurring payloads.
-    if (isRevenantUpkeep(cast.skill)) return [];
-
-    if (upkeepRelease(runtime, cast.skill)) return [];
-
-    return effects;
-  },
   onCastStart(runtime, cast) {
     const skill = cast.skill;
 
@@ -143,7 +99,6 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     if (!isRevenantUpkeep(skill) && skill.id !== ID.SWAP_LEGENDS)
       runtime.resourceController.spend('energy', revenantEnergyCost(runtime, skill));
   },
-  onCastCancel: cancelRevenantUpkeep,
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
 
@@ -172,10 +127,6 @@ const coreLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
       reactRevenantPlayerStrike(runtime, event);
     },
     'condition.applied': (runtime, cause) => runtime.fireTrigger(revenantConditionApplied, { cause })
-  },
-  tasks: {
-    [REVENANT_ENERGY_DEPLETED]: starveRevenantUpkeeps,
-    [REVENANT_UPKEEP_PULSE]: revenantUpkeepPulse
   }
 };
 
@@ -184,6 +135,7 @@ export const revenantCoreHooks = composeRuntimeHooks<RevenantRuntimeState, Reven
   scepterLifecycle,
   spearLifecycle,
   coreLifecycle,
+  revenantUpkeepLifecycle,
   greatswordLifecycle,
   enchantedDaggersLifecycle
 ]);

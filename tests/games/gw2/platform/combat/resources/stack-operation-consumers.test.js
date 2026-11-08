@@ -8,7 +8,7 @@ import { necromancerProfession } from '#gw2/professions/necromancer/profession.j
 import { triggerSharpeningStone } from '#gw2/professions/ranger/core/skills/slot-skills.js';
 import { rangerCatalog } from '#gw2/professions/ranger/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { landThiefAxe } from '#gw2/professions/thief/core/mechanics/axes.js';
+import { THIEF_SKILL_IDS } from '#gw2/professions/thief/data/ids.js';
 import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import { WARRIOR_SKILL_IDS, WARRIOR_TRAIT_IDS } from '#gw2/professions/warrior/data/ids.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
@@ -19,29 +19,30 @@ import { snapshotProfessionState } from '#tests/helpers/profession-state.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 test('axe materialization replaces the oldest grant without mutating earlier state or snapshots', () => {
-  const prior = Object.freeze([1, 30, 31, 32, 33, 34, 35].map((expiresAt) => ({ skillId: 71967, expiresAt })));
+  const skillId = THIEF_SKILL_IDS.SPINNING_AXE_ID_71967;
+  const prior = Object.freeze([0, 30, 31, 32, 33, 34, 35].map((expiresAt) => Object.freeze({ skillId, expiresAt })));
   let snapshot;
+  // A real throw exercises action registration and scheduled landing while preserving the earlier snapshot.
   const result = runThief(
-    [{ type: 'wait', durationMs: 1000 }],
+    [skillId, { type: 'wait', durationMs: 2000 }],
     { primaryWeapon: 'Axe' },
     {
       initialize(runtime) {
         runtime.profession.core.spinningAxes = prior;
-        runtime.profession.core.outboundAxes = [{ id: 'landing-axe', skillId: 71967 }];
         snapshot = snapshotProfessionState(runtime.profession);
-      },
-      // Exercise landing directly: pending flight cannot mutate the earlier grounded snapshot.
-      probes: [[1, (runtime) => landThiefAxe(runtime, { id: 'landing-axe' })]]
+      }
     }
   );
-  assert.deepEqual(
-    observedRuntime(result).profession.core.spinningAxes,
-    [31, 32, 33, 34, 35, 11].map((expiresAt) => ({ skillId: 71967, expiresAt }))
-  );
+  assert.deepEqual(result.warnings, []);
+  const core = observedRuntime(result).profession.core;
+  assert.equal(core.spinningAxes.length, 6);
+  assert.deepEqual(core.spinningAxes.slice(0, -1), prior.slice(2));
+  assert.equal(core.spinningAxes.at(-1).skillId, skillId);
+  assert.deepEqual(core.outboundAxes, []);
   assert.deepEqual(snapshot.spinningAxes, prior);
 
   // A cast cancelled before its commit point never lands a strike, so it cannot grant axes.
-  const cancelled = runThief([{ skillId: 71967, interruptMs: 1 }], { primaryWeapon: 'Axe' });
+  const cancelled = runThief([{ skillId, interruptMs: 1 }], { primaryWeapon: 'Axe' });
   assert.deepEqual(cancelled.warnings, []);
   assert.deepEqual(observedRuntime(cancelled).profession.core.spinningAxes, []);
 });

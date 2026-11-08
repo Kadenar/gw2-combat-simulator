@@ -11,14 +11,7 @@ import { thiefBuffPolicies, thiefEffectStates } from '#gw2/professions/thief/cor
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { thiefAvailability } from '#gw2/professions/thief/core/mechanics/availability.js';
-import {
-  grantThiefGroundAxe,
-  landThiefAxe,
-  recallThiefAxes,
-  scheduleThiefAxeRecall,
-  startThiefAxeExpiry,
-  THIEF_AXE_LAND
-} from '#gw2/professions/thief/core/mechanics/axes.js';
+import { thiefAxeLifecycle } from '#gw2/professions/thief/core/mechanics/axes.js';
 import { landedChannelRefundLifecycle } from '#gw2/professions/thief/core/mechanics/channel-refund.js';
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
 import { activateTrap, prepareTrap } from '#gw2/professions/thief/core/mechanics/preparations.js';
@@ -152,7 +145,6 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     },
     'thief.kneel': (runtime) => setThiefKneeling(runtime, true),
     'thief.stand': (runtime) => setThiefKneeling(runtime, false),
-    'thief.recall-axes': scheduleThiefAxeRecall,
     'thief.spear-chain': (runtime, context) => updateSpearChain(runtime, context.skill),
     'thief.consume-stolen': (runtime, context) => consumeThiefStolenSkill(runtime, context.skill),
     'thief.steal'(runtime, context) {
@@ -175,15 +167,11 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
       commitThiefStealth(runtime, context);
     },
 
-    'thief.ground-axe': grantThiefGroundAxe,
     'thief.unsuspecting-bleeding'(runtime, context) {
       if (context.kind === 'effect') unsuspectingStrikeBonus(runtime, context.trigger.event);
     }
   },
   resources: { initiative: thiefInitiative },
-  onCombatStart(runtime) {
-    startThiefAxeExpiry(runtime);
-  },
   endurance: thiefEndurance,
   availability: thiefAvailability,
   rechargeWork: thiefRechargeWork,
@@ -220,10 +208,6 @@ const coreLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     }
   },
   tasks: {
-    'thief.recall-axes'(runtime, data) {
-      recallThiefAxes(runtime, (data as { cast: RuntimeCast<ThiefSkill> }).cast);
-    },
-    [THIEF_AXE_LAND]: landThiefAxe,
     'thief.distracting-throw-window': grantDistractingThrowWindow,
     [THIEF_CORE_COMPLETE](runtime, data) {
       const { cast, initiativeCost } = data as { cast: RuntimeCast<ThiefSkill>; initiativeCost: number };
@@ -239,6 +223,7 @@ export const thiefCoreHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>
   infiltratorsSignetLifecycle,
   landedChannelRefundLifecycle(ID.ASHEN_ASSAULT),
   landedChannelRefundLifecycle(ID.UNLOAD),
+  thiefAxeLifecycle,
   coreLifecycle
 ]);
 

@@ -43,7 +43,7 @@ export function activeRevenantUpkeep(
   );
 }
 
-/** Removes one upkeep and its Core pulse owner; elite cadences validate the same activation lazily. */
+/** Removing an upkeep retires every Core and elite task attached to its activation. */
 export function removeRevenantUpkeep(runtime: RevenantRuntime, skillId: SkillId): RevenantUpkeepState | undefined {
   const core = runtime.profession.core;
   const active = activeRevenantUpkeep(runtime, skillId);

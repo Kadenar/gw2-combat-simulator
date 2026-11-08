@@ -1,18 +1,20 @@
+/** Own axe actions, landing, recall, and combat-entry expiry behind one lifecycle contribution. */
 import { ACTOR, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { buildThiefCondition } from '#gw2/professions/thief/core/events.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { MAXIMUM_SPINNING_AXES } from '#gw2/professions/thief/core/state.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
-import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-export const THIEF_AXE_LAND = 'thief.axe-land';
+const THIEF_AXE_LAND = 'thief.axe-land';
 
 /** Committed throws create axes even off target or before combat; damage eligibility does not own the projectile pool. */
-export function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContext<ThiefSkill>): void {
+function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContext<ThiefSkill>): void {
   if (context.kind !== 'cast') return;
 
   const { cast } = context;
@@ -35,7 +37,7 @@ export function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContex
 }
 
 /** Release the recalled generation before aftercast so it cannot absorb axes thrown by the following skill. */
-export function scheduleThiefAxeRecall(runtime: ThiefRuntime, context: ActionContext<ThiefSkill>): void {
+function scheduleThiefAxeRecall(runtime: ThiefRuntime, context: ActionContext<ThiefSkill>): void {
   if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
 
   const cast = context.cast;
@@ -51,7 +53,7 @@ function axePriority(skillId: SkillId): number {
 }
 
 /** Only landing claims one of six slots; a recalled flight makes its queued landing a no-op. */
-export function landThiefAxe(runtime: ThiefRuntime, data: unknown): void {
+function landThiefAxe(runtime: ThiefRuntime, data: unknown): void {
   const core = runtime.profession.core;
   const index = core.outboundAxes.findIndex((axe) => axe.id === (data as { id: string }).id);
 
@@ -77,14 +79,14 @@ export function landThiefAxe(runtime: ThiefRuntime, data: unknown): void {
 }
 
 /** Precombat axes remain available throughout the opener and begin aging only when combat starts. */
-export function startThiefAxeExpiry(runtime: ThiefRuntime): void {
+function startThiefAxeExpiry(runtime: ThiefRuntime): void {
   for (const axe of runtime.profession.core.spinningAxes) {
     if (axe.expiresAt === Infinity) axe.expiresAt = canonicalTime(runtime.time + 10);
   }
 }
 
 /** Recall repeats each live projectile's base effects, without creating new axes or scaling poison by malice again. */
-export function recallThiefAxes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+function recallThiefAxes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const axes = [
     ...runtime.profession.core.spinningAxes.filter((axe) => axe.expiresAt > runtime.time),
     ...runtime.profession.core.outboundAxes
@@ -159,3 +161,18 @@ export function recallThiefAxes(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSk
       });
   }
 }
+
+/** Register the whole axe lifecycle so callers cannot omit landing, recall, or combat-entry expiry. */
+export const thiefAxeLifecycle = {
+  sideEffectHandlers: {
+    'thief.ground-axe': grantThiefGroundAxe,
+    'thief.recall-axes': scheduleThiefAxeRecall
+  },
+  onCombatStart: startThiefAxeExpiry,
+  tasks: {
+    [THIEF_AXE_LAND]: landThiefAxe,
+    'thief.recall-axes'(runtime, data) {
+      recallThiefAxes(runtime, (data as { cast: RuntimeCast<ThiefSkill> }).cast);
+    }
+  }
+} satisfies RuntimeHooks<ThiefRuntimeState, ThiefSkill>;

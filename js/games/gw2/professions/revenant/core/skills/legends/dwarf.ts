@@ -19,7 +19,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     upkeepCost: 6,
     pulseInterval: 1 / 3,
     legendId: 'LegendaryDwarf',
-    // Shared upkeep owns the drain; upkeep-pulses.ts schedules the legend-owned payload below.
+    // The upkeep lifecycle owns drain and scheduling; this legend owns the pulse payload below.
     castTimeMs: 0,
     effects: [
       {
