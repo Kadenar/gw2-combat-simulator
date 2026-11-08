@@ -11,7 +11,8 @@ import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
-import { eventLogCsv, mountEventLog } from '#ui/results/event-log.js';
+import { eventLogCsv } from '#ui/results/event-log/model.js';
+import { mountEventLog } from '#ui/results/event-log/view.js';
 
 // Both row tuning and effect labels must receive the selected catalog even when the family remains on Live.
 test('event-log presenters use the selected preview catalog', () => {

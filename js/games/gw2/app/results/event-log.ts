@@ -22,8 +22,8 @@ import type { Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import type { UnvalidatedFields } from '#kernel/core/unvalidated.js';
-import { mountEventLog } from '#ui/results/event-log.js';
-import type { EventLogDescriptor, EventLogRow } from '#ui/results/event-log.js';
+import type { EventLogDescriptor, EventLogRow } from '#ui/results/event-log/model.js';
+import { mountEventLog } from '#ui/results/event-log/view.js';
 
 interface NormalizedEventLogDescriptor extends EventLogDescriptor {
   readonly className: string;

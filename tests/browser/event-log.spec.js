@@ -88,7 +88,7 @@ test('damage capture reruns the baseline and exports its calculations without pe
 test('damage calculation details open with the keyboard', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.evaluate(async () => {
-    const { mountEventLog } = await import('/js/ui/results/event-log.ts');
+    const { mountEventLog } = await import('/js/ui/results/event-log/view.ts');
     document.body.innerHTML = '<div id="log"></div>';
     mountEventLog(document.getElementById('log'), [
       {
@@ -113,7 +113,7 @@ test('event log preserves reading position and follows the end across updates', 
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
-    const { mountEventLog } = await import('/js/ui/results/event-log.ts');
+    const { mountEventLog } = await import('/js/ui/results/event-log/view.ts');
     document.body.innerHTML = '<div id="log" class="rotation-event-log"></div>';
     window.renderLog = (count) =>
       mountEventLog(
@@ -162,7 +162,7 @@ test('event log tree starts collapsed, traces causes, and reveals rows from the 
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ url: '/css/style.css' });
   await page.evaluate(async () => {
-    const { mountEventLog } = await import('/js/ui/results/event-log.ts');
+    const { mountEventLog } = await import('/js/ui/results/event-log/view.ts');
     document.body.innerHTML = '<div id="log" class="rotation-event-log"></div>';
     const partOf = { kind: 'recorded', label: 'part of' };
     mountEventLog(document.getElementById('log'), [

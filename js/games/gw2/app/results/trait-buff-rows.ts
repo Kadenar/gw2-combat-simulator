@@ -1,7 +1,7 @@
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { CatalogEntity } from '#gw2/platform/skills/types.js';
-import type { EventLogRow } from '#ui/results/event-log.js';
+import type { EventLogRow } from '#ui/results/event-log/model.js';
 
 /** Keep provenance until trait grants have been grouped; the shared renderer only receives display rows. */
 export type AttributedEventLogRow = EventLogRow & { readonly event?: SimulationEvent };

@@ -17,7 +17,7 @@ import { effectFields } from '#tests/helpers/effect-report.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { emptyTimelineSource } from '#tests/helpers/timeline-presentation.js';
-import { eventLogCsv } from '#ui/results/event-log.js';
+import { eventLogCsv } from '#ui/results/event-log/model.js';
 
 const PLAYER_RESOLVED_AUDIENCE = Object.freeze({
   includesSelf: true,

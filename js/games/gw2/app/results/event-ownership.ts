@@ -14,7 +14,7 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalTime } from '#kernel/core/clock.js';
-import type { EventLogParentLink, EventLogSource } from '#ui/results/event-log.js';
+import type { EventLogParentLink, EventLogSource } from '#ui/results/event-log/model.js';
 
 export interface EventLogOwnership {
   readonly id: string;

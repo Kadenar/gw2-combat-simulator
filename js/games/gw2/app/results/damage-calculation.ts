@@ -10,7 +10,7 @@ import {
 import type { Gw2DamageCalculation, SimulationEvent } from '#gw2/platform/events/events.js';
 import type { ProfessionEffectPresentation } from '#gw2/platform/profession-presentation/types.js';
 import { roundHalfToEven } from '#kernel/core/numeric.js';
-import type { EventLogCalculation, EventLogCalculationFactor } from '#ui/results/event-log.js';
+import type { EventLogCalculation, EventLogCalculationFactor } from '#ui/results/event-log/model.js';
 
 /** Boons that commonly change damage or rotation timing lead the list, ahead of profession effects and other boons. */
 const LEADING_BOONS = Object.freeze(['might', 'fury', 'quickness', 'alacrity']);
