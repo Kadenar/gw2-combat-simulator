@@ -3,31 +3,47 @@ import { clamp } from '#kernel/core/numeric.js';
 import { bindDropdownSearch } from '#ui/shared/dropdown-search.js';
 import { escapeHtml } from '#ui/shared/html.js';
 
+export interface CandidatePickerOptions {
+  /** Maximum number of chips; 0 leaves the picker uncapped. */
+  readonly limit?: number;
+  readonly describe?: (name: string) => string;
+  /** Explains what an empty selection means once every chip is removed. */
+  readonly emptyLabel?: string;
+  /** Visible label beside the chips; omit it when a surrounding row or section already names the picker. */
+  readonly heading?: string;
+  /** Equipped values keep a marker, including after removal and re-adding, so alternatives read as additions. */
+  readonly equipped?: readonly string[];
+}
+
+const ADD_CHOICE_LABEL = '+ Add';
+
 /** Searchable selects add visible removable choices without requiring Ctrl-click. */
 export function candidatePicker(
   key: string,
   label: string,
   names: readonly string[],
   current: readonly string[] = [],
-  limit = 0,
-  describe: (name: string) => string = (name) => name,
-  emptyLabel = 'Keep current equipment'
+  {
+    limit = 0,
+    describe = (name) => name,
+    emptyLabel = 'Keep current equipment',
+    heading = '',
+    equipped = []
+  }: CandidatePickerOptions = {}
 ): string {
-  // Section legends supply context visually; keep the full label on the select for accessible identification.
-  const displayLabel =
-    key === 'prefixes' || key === 'infusionStats' ? '' : key.startsWith('sigil') ? `Sigil ${key.at(-1)}` : label;
-  return `<div class="optimizer-picker" data-picker="${key}" data-limit="${limit}">
-    <div class="optimizer-picker-heading">${displayLabel ? `<label for="optimizer-add-${key}">${escapeHtml(displayLabel)}</label>` : ''}${limit ? `<span>Up to ${limit}</span>` : ''}</div>
-    <div class="optimizer-choices">${current.map((name) => candidateChip(key, name)).join('')}</div>
+  // The full label stays on the select and trigger for accessible identification when no heading is shown.
+  return `<div class="optimizer-picker" data-picker="${key}" data-limit="${limit}" data-equipped="${escapeHtml(JSON.stringify(equipped))}">
+    ${heading ? `<div class="optimizer-picker-heading"><label for="optimizer-add-${key}">${escapeHtml(heading)}</label></div>` : ''}
+    <div class="optimizer-choices">${current.map((name) => candidateChip(key, name, equipped.includes(name))).join('')}</div>
     <p class="optimizer-picker-empty" title="${escapeHtml(emptyLabel)}">${escapeHtml(emptyLabel)}</p>
     <div class="gear-select-display"><select class="gear-select" id="optimizer-add-${key}" data-add-choice aria-label="Add ${escapeHtml(label.toLowerCase())}">
-      <option value="" disabled selected>Add a choice…</option>${names.map((name, index) => `<option value="${index}" data-choice="${escapeHtml(name)}"${current.includes(name) ? ' disabled' : ''}>${escapeHtml(name ? describe(name) : 'None')}</option>`).join('')}
-    </select><button type="button" class="gear-select-trigger" aria-label="Add ${escapeHtml(label.toLowerCase())}">Add a choice…</button></div></div>`;
+      <option value="" disabled selected>${ADD_CHOICE_LABEL}</option>${names.map((name, index) => `<option value="${index}" data-choice="${escapeHtml(name)}"${current.includes(name) ? ' disabled' : ''}>${escapeHtml(name ? describe(name) : 'None')}</option>`).join('')}
+    </select><button type="button" class="gear-select-trigger" aria-label="Add ${escapeHtml(label.toLowerCase())}">${ADD_CHOICE_LABEL}</button></div></div>`;
 }
 
 // Selected chips stay tooltip-free; only their remove buttons need keyboard focus.
-function candidateChip(key: string, value: string): string {
-  return `<span class="optimizer-choice"><input type="hidden" name="${key}" value="${escapeHtml(value)}"><span>${escapeHtml(value || 'None')}</span><button type="button" data-remove-choice aria-label="Remove ${escapeHtml(value || 'None')} from ${key}">×</button></span>`;
+function candidateChip(key: string, value: string, equipped: boolean): string {
+  return `<span class="optimizer-choice${equipped ? ' optimizer-choice-equipped' : ''}"><input type="hidden" name="${key}" value="${escapeHtml(value)}"><span>${escapeHtml(value || 'None')}</span><button type="button" data-remove-choice aria-label="Remove ${escapeHtml(value || 'None')} from ${key}">×</button></span>`;
 }
 
 /** Filter descriptions and enforce caps using only selected chips, never the search field's text. */
@@ -43,12 +59,8 @@ export function updatePicker(picker: HTMLElement): void {
   }
 
   select.disabled = Boolean(limit && values.length >= limit);
-  // Explain the cap in the disabled control and restore its invitation when a chip is removed.
   const trigger = picker.querySelector<HTMLButtonElement>('.gear-select-trigger')!;
   trigger.disabled = select.disabled;
-
-  if (!trigger.classList.contains('gear-icon-trigger'))
-    trigger.textContent = select.disabled ? 'Selection limit reached' : 'Add a choice…';
 
   // Keep the visible popover consistent with the underlying equipment values.
   for (const choice of picker.querySelectorAll<HTMLButtonElement>('.gear-select-option')) {
@@ -71,9 +83,13 @@ export function bindCandidatePickers(root: HTMLElement): void {
 
       if (option?.dataset.choice === undefined || option.disabled || select.disabled) return;
 
+      const equipped = JSON.parse(picker.dataset.equipped!) as string[];
       picker
         .querySelector('.optimizer-choices')!
-        .insertAdjacentHTML('beforeend', candidateChip(picker.dataset.picker!, option.dataset.choice));
+        .insertAdjacentHTML(
+          'beforeend',
+          candidateChip(picker.dataset.picker!, option.dataset.choice, equipped.includes(option.dataset.choice))
+        );
       select.value = '';
       picker.querySelector<HTMLInputElement>('.dropdown-search')!.value = '';
       updatePicker(picker);
@@ -208,7 +224,7 @@ export function enhanceDetailedSelect(
       select.value = optionElement.value;
 
       if (!trigger.classList.contains('gear-icon-trigger'))
-        trigger.textContent = select.matches('[data-add-choice]') ? 'Add a choice…' : name;
+        trigger.textContent = select.matches('[data-add-choice]') ? ADD_CHOICE_LABEL : name;
 
       menu.querySelectorAll('[role="option"]').forEach((item) => {
         item.setAttribute('aria-selected', String(item === choice));

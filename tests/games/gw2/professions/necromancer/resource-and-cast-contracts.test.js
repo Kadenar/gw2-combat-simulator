@@ -130,6 +130,47 @@ test('Cascading Corruption delays its packets while Meltdown applies to the trig
   );
 });
 
+// Trait damage inherits player modifiers while keeping its effect actor and independent activation.
+test('Cascading Corruption inherits Claw without becoming a player attack', () => {
+  const config = {
+    initialResource: 100,
+    initialBlight: 20,
+    initialCascadingCorruptionStacks: 15,
+    selectedTraitIds: [TRAIT.CASCADING_CORRUPTION]
+  };
+  const rotation = ['Harbinger Shroud', 'Voracious Arc'];
+  const baseline = simulate('Harbinger', rotation, config, { kind: 'tail', durationMs: 1000 });
+  const withClaw = simulate('Harbinger', rotation, { ...config, relic: 'Claw' }, { kind: 'tail', durationMs: 1000 });
+  const explosion = (result) =>
+    result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.CASCADING_CORRUPTION);
+  const packet = explosion(withClaw);
+  assert.deepEqual(withClaw.warnings, []);
+  assert.equal(packet.actorType, 'effect');
+  assert.equal(packet.ownerActorType, 'player');
+  assert.notEqual(packet.activationId, withClaw.steps.find((step) => step.skillId === ID.VORACIOUS_ARC).activationId);
+  assert.ok(Math.abs(packet.damage - explosion(baseline).damage * 1.07) <= 1);
+});
+
+// Elixir damage includes its own Blight gain, subject to the same cap as the live resource.
+test('Wicked Corruption includes uncapped and capped elixir Blight grants', () => {
+  for (const [initialBlight, impactBlight] of [
+    [5, 10],
+    [20, 25]
+  ]) {
+    const config = { initialBlight, selectedSkillIds: [ID.ELIXIR_OF_RISK], criticalDamageMode: 'averaged' };
+    const baseline = simulate('Harbinger', ['Elixir of Risk'], config);
+    const wicked = simulate('Harbinger', ['Elixir of Risk'], {
+      ...config,
+      selectedTraitIds: [TRAIT.WICKED_CORRUPTION]
+    });
+    const strike = (result) =>
+      result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ELIXIR_OF_RISK);
+    assert.deepEqual(wicked.warnings, []);
+    assert.equal(strike(wicked).metadata.necromancerBlight, impactBlight);
+    assert.ok(Math.abs(strike(wicked).damage - strike(baseline).damage * (1 + impactBlight * 0.01)) <= 1);
+  }
+});
+
 // Acceptance and in-flight observations preserve the old spirit until actual summon completion.
 test('spirit replacement changes generation and busy state only at completion', () => {
   const config = {

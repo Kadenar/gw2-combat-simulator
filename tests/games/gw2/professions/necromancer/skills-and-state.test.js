@@ -841,7 +841,8 @@ test('shroud strikes use their fixed or equipped weapon strengths', () => {
   assert.equal(damage(ritualist, 'Summon Spirits').skillWeapon, 'Unequipped');
 });
 
-test('Blight skills pay their cost before Wicked Corruption and elixirs', () => {
+// Movement strikes use post-cost Blight; elixirs include their own grant when resolving damage.
+test('Wicked Corruption observes Blight spending and elixir impact grants', () => {
   const run = (skill, selectedTraitIds = []) =>
     simulate('Harbinger', ['Harbinger Shroud', skill, 'Exit Harbinger Shroud', 'Elixir of Risk'], {
       initialBlight: 25,
@@ -855,9 +856,9 @@ test('Blight skills pay their cost before Wicked Corruption and elixirs', () => 
       }
     });
 
-  for (const [skill, skillId, elixirConsumption] of [
-    ['Devouring Cut', ID.DEVOURING_CUT, 15],
-    ['Voracious Arc', ID.VORACIOUS_ARC, 15]
+  for (const [skill, skillId] of [
+    ['Devouring Cut', ID.DEVOURING_CUT],
+    ['Voracious Arc', ID.VORACIOUS_ARC]
   ]) {
     const baseline = run(skill);
     const wicked = run(skill, [TRAIT.WICKED_CORRUPTION]);
@@ -870,9 +871,13 @@ test('Blight skills pay their cost before Wicked Corruption and elixirs', () => 
     assert.equal(
       wicked.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ELIXIR_OF_RISK)?.metadata
         .necromancerBlight,
-      elixirConsumption,
+      25,
       skill
     );
+    const elixirDamage = (result) =>
+      result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ELIXIR_OF_RISK).damage;
+    // The movement skill also tormented the target, enabling Wicked Corruption's critical-damage bonus.
+    assertFlooredDamageMultiplier(elixirDamage(wicked), elixirDamage(baseline), 1.25 * 1.1);
     assert.equal(wicked.planningState.profession[STATE.BLIGHT], 25, skill);
   }
 });

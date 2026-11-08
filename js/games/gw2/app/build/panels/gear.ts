@@ -215,7 +215,7 @@ export function renderGear(app: ProfessionAppState): void {
             ${selectRow('Relic', 'sel-relic', b.relic, groupedOptionsHtml(RELIC_GROUPS, b.relic, relicOptionLabel), (RELIC_DATA as Record<string, { icon?: string }>)[b.relic]?.icon || '')}
             ${b.relic === 'Thorns' ? `<label class="relic-stacks-control" title="Thorns stacks at the start of the simulation. Leave blank to start at 0.">Starting Thorns stacks <input id="initial-thorns-stacks" type="number" min="0" max="${THORNS_MAX_STACKS}" step="1" placeholder="0" value="${boundedInteger(b.initialThornsStacks, 0, 0, THORNS_MAX_STACKS)}"></label>` : ''}
             <div id="precast-relics">
-              ${candidatePicker('precastRelics', 'Precast relics', PRECAST_RELIC_NAMES, b.precastRelics || [], 0, relicOptionLabel, 'No precast relics')}
+              ${candidatePicker('precastRelics', 'Precast relics', PRECAST_RELIC_NAMES, b.precastRelics || [], { describe: relicOptionLabel, emptyLabel: 'No precast relics', heading: 'Precast relics' })}
             </div>
             </section>`;
   requiredElement('infusion-info').innerHTML = `${sectionHeading('Infusions')}

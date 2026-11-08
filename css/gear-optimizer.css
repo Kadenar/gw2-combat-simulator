@@ -353,60 +353,179 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   /* Results handle their own scrolling; let the filter menu extend past short result lists. */
   overflow: visible;
 }
-.optimizer-columns {
+/* Each searched item is one row: its name, inline candidate chips, and the factor it adds to the search size. */
+.optimizer-row,
+.optimizer-constraints > summary {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr) minmax(56px, auto);
+  align-items: center;
+  gap: 8px 16px;
+  padding: 8px 20px;
+}
+.optimizer-row {
+  border-bottom: 1px solid var(--border);
+}
+.optimizer-row-label {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+.optimizer-row-label small {
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 400;
+}
+.optimizer-row-label [data-picker-count] {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.optimizer-row-label .optimizer-count-full {
+  color: var(--accent);
+}
+.optimizer-row-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  min-width: 0;
+}
+/* The infusion total stays beside the last line of stat chips, even when the chips wrap. */
+.optimizer-row-body:has(> .optimizer-infusion-count) {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) auto;
+  justify-content: start;
+  align-items: end;
+}
+.optimizer-multiplier {
+  justify-self: end;
+  color: var(--text-bright);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.optimizer-multiplier-one {
+  color: var(--text-dim);
+}
+/* Constraints stay one row; the summary lists every active limit so collapsing it never hides a filter. */
+.optimizer-constraints > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.optimizer-constraints > summary::-webkit-details-marker {
+  display: none;
+}
+.optimizer-constraints > summary > span:first-child {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+.optimizer-constraints > summary > span:first-child::after {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 5px;
+  margin-left: 8px;
+  vertical-align: middle;
+  background-color: var(--text-dim);
+  mask: var(--chevron) center / contain no-repeat;
+  rotate: -90deg;
+  transition: rotate 0.15s ease;
+}
+.optimizer-constraints[open] > summary > span:first-child::after {
+  rotate: 0deg;
+}
+.optimizer-constraint-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+.optimizer-constraint {
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--text-bright);
+  font-size: 11px;
+}
+.optimizer-constraint-body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
-  padding: 20px;
+  padding: 4px 20px 16px;
 }
-/* Grid spacing and legends separate optimizer groups without card-like section frames. */
-.optimizer-section {
+.optimizer-constraint-body fieldset {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 10px;
   min-width: 0;
-  padding: 14px;
   margin: 0;
+  padding: 0;
   border: 0;
 }
-.optimizer-section > legend {
-  padding: 0 6px;
-  color: var(--text);
+.optimizer-constraint-body legend {
+  margin-bottom: 10px;
+  padding: 0;
+  color: var(--text-dim);
   font-size: 11px;
   font-weight: 600;
 }
-.optimizer-section > legend span {
-  margin-left: 8px;
-  font-size: 10px;
-  font-weight: 400;
-  color: var(--text-dim);
+.optimizer-field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+  gap: 10px;
+  justify-self: stretch;
 }
-.optimizer-section p {
-  margin: 0 0 10px;
+.optimizer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
   color: var(--text-dim);
   font-size: 11px;
-  line-height: 1.5;
 }
-.optimizer-pair {
+/*
+ * Requirement labels vary widely in length; shared label columns keep each input on its label's line. The
+ * requirements column is its own container because its width depends on whether Forced slots sits beside it.
+ */
+.optimizer-requirements {
+  container: optimizer-requirements / inline-size;
+  justify-self: stretch;
+}
+.optimizer-requirement-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: minmax(0, max-content) minmax(80px, 120px);
+  gap: 8px 12px;
 }
-/* Native disclosures keep optional optimizer controls compact until needed. */
-.optimizer-disclosure {
-  grid-column: 1 / -1;
-}
-.optimizer-disclosure > summary {
-  cursor: pointer;
-  color: var(--text);
-  font-size: 11px;
-  font-weight: 600;
-}
-.optimizer-disclosure[open] > summary {
-  margin-bottom: 14px;
-}
-.optimizer-forced-grid {
+.optimizer-requirement-grid .optimizer-field {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
-  gap: 14px;
-  margin-bottom: 14px;
+  grid-column: span 2;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+/* Wide enough for two pairs per line: toughness bounds, then the duration minimums, then vitality. */
+@container optimizer-requirements (min-width: 540px) {
+  .optimizer-requirement-grid {
+    grid-template-columns: repeat(2, max-content minmax(80px, 120px));
+  }
+  .optimizer-requirement-grid .optimizer-field:nth-child(even) {
+    padding-left: 12px;
+  }
+}
+.gear-optimizer .optimizer-field :is(input, select) {
+  width: 100%;
+  height: 30px;
+  min-height: 30px;
+  padding: 4px 8px;
+}
+/* Forced prefixes show their stat list in the menu; the closed field clips it to one line. */
+.gear-optimizer .optimizer-field select {
+  overflow: hidden;
+  white-space: nowrap;
 }
 .optimizer-picker {
   min-width: 0;
@@ -418,12 +537,6 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   margin-bottom: 8px;
   color: var(--text);
   font-size: 11px;
-}
-.optimizer-picker-heading span {
-  margin-left: auto;
-  color: var(--text-dim);
-  font-size: 10px;
-  white-space: nowrap;
 }
 .optimizer-picker-empty {
   overflow: hidden;
@@ -451,6 +564,46 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   min-width: 0;
   overflow-wrap: anywhere;
 }
+/* A filled dot marks the equipped choice so added alternatives read as additions. */
+.optimizer-choice-equipped::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+/* Optimizer chips and the add button share one wrapping line; the choice list adds no box of its own. */
+.gear-optimizer .optimizer-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.gear-optimizer .optimizer-choices {
+  display: contents;
+}
+.gear-optimizer .optimizer-picker-heading {
+  margin: 0;
+  color: var(--text-dim);
+}
+.gear-optimizer .optimizer-picker + .optimizer-picker {
+  padding-left: 16px;
+  border-left: 1px solid var(--border);
+}
+.gear-optimizer .optimizer-choice {
+  min-height: 26px;
+  margin: 0;
+}
+.gear-optimizer .optimizer-picker-empty {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.gear-optimizer .optimizer-picker .gear-select-display {
+  width: auto;
+}
 /* Dropdown menu rows keep the shared menu styling, so optimizer button chrome skips them without raising specificity. */
 .gear-optimizer button:where(:not(.gear-select-option)),
 .gear-optimizer select,
@@ -475,9 +628,23 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 .optimizer-picker .gear-select-display {
   max-width: none;
 }
-.optimizer-picker .gear-select-trigger:not(.gear-icon-trigger) {
-  min-height: 34px;
-  padding: 6px 22px 6px 8px;
+/* The add control is a quiet dashed button rather than a full-width dropdown. */
+.gear-optimizer .optimizer-picker .gear-select-trigger:not(.gear-icon-trigger) {
+  height: 30px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px dashed var(--border-light);
+  background: transparent;
+  color: var(--text-dim);
+}
+.gear-optimizer .optimizer-picker .gear-select-trigger:not(.gear-icon-trigger)::after {
+  display: none;
+}
+.gear-optimizer .optimizer-picker .gear-select-trigger:not(.gear-icon-trigger):hover:not(:disabled),
+.gear-optimizer .optimizer-picker .gear-select-display.is-open > .gear-select-trigger {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--text-bright);
 }
 .gear-optimizer button:where(:not(.gear-select-option)) {
   min-height: 32px;
@@ -507,35 +674,17 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   opacity: 0.45;
   cursor: default;
 }
-/* Keep capped pickers readable without presenting an available dropdown action. */
-.optimizer-picker .gear-select-trigger:disabled {
-  opacity: 1;
-  color: var(--text-dim);
-  background: var(--bg-panel-alt);
-  border-color: var(--border);
-  cursor: default;
-}
-.optimizer-picker .gear-select-trigger:disabled::after {
-  display: none;
-}
-.optimizer-infusion-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 72px;
-  /* Align the editable controls even when infusion choices wrap onto multiple lines. */
-  align-items: end;
-  gap: 14px;
-}
 .optimizer-infusion-count {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--text-dim);
   font-size: 11px;
 }
 .optimizer-infusion-count input {
-  width: 100%;
-  height: 34px;
-  padding: 6px 8px;
+  width: 56px;
+  height: 30px;
+  padding: 4px 8px;
 }
 .optimizer-actions {
   display: flex;
@@ -547,14 +696,29 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   background: var(--bg-panel-alt);
   border-block: 1px solid var(--border);
 }
-.optimizer-actions p {
+/* The raw combination total leads the run bar; the search-mode note sits under it. */
+.optimizer-size {
+  display: grid;
   flex: 1 1 240px;
+  gap: 2px;
   min-width: 0;
+}
+.optimizer-size p {
   margin: 0;
   color: var(--text-dim);
   font-size: 11px;
 }
-.optimizer-actions > div {
+.optimizer-size [data-role='optimizer-total']:empty {
+  display: none;
+}
+.optimizer-size [data-role='optimizer-total'] strong {
+  color: var(--text-bright);
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.optimizer-run-controls {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -874,26 +1038,43 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 .optimizer-selected .optimizer-preview-marker {
   display: block;
 }
-@media (max-width: 800px) {
-  .optimizer-columns {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-    padding: 14px;
+/* Narrow panels move the chips under the row name and keep the multiplier on the name line. */
+@container gear-optimizer (max-width: 650px) {
+  .optimizer-row,
+  .optimizer-constraints > summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding-inline: 14px;
   }
+  .optimizer-row-body,
+  .optimizer-constraint-list {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .optimizer-row-label {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 8px;
+  }
+  .optimizer-constraint-body {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 14px;
+  }
+  .gear-optimizer .optimizer-picker + .optimizer-picker {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+@media (max-width: 800px) {
   .optimizer-actions {
     align-items: stretch;
     flex-direction: column;
     padding: 14px;
   }
-  .optimizer-actions p {
+  .optimizer-size {
     flex: initial;
   }
-  .optimizer-actions > div {
+  .optimizer-run-controls {
     justify-content: flex-end;
-  }
-}
-@media (max-width: 440px) {
-  .optimizer-pair {
-    grid-template-columns: minmax(0, 1fr);
   }
 }

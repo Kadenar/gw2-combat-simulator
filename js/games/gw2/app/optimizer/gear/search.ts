@@ -36,12 +36,13 @@ export interface GearOptimizerSelections {
   minQuicknessDurationPercent?: number;
 }
 
+// Display order: the form pairs the toughness bounds and the two duration minimums, then vitality.
 export const OPTIMIZER_REQUIREMENTS = {
   minToughness: 'Minimum toughness',
   maxToughness: 'Maximum toughness',
-  minVitality: 'Minimum vitality',
   minBoonDurationPercent: 'Minimum boon duration (%)',
-  minQuicknessDurationPercent: 'Minimum quickness duration (%)'
+  minQuicknessDurationPercent: 'Minimum quickness duration (%)',
+  minVitality: 'Minimum vitality'
 } as const;
 
 export interface GearOptimizerRequest {

@@ -8,6 +8,7 @@ import { MAX_OPTIMIZER_WORKERS } from '#gw2/app/optimizer/gear/runner.js';
 import {
   applyOptimizerCandidate,
   captureGearOptimizerRequest,
+  createOptimizerSpace,
   isOptimizerRequestCurrent,
   OPTIMIZER_REQUIREMENTS,
   optimizerAppliedCandidate,
@@ -148,7 +149,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     panel.id = 'gear-optimizer';
     panel.className = 'gear-optimizer';
     panel.innerHTML = `<form data-role="optimizer-form"><div data-role="optimizer-controls"></div>
-      <div class="optimizer-actions"><p id="optimizer-estimate" data-role="optimizer-estimate"></p><div><label class="optimizer-search-mode">Search<select name="search" aria-describedby="optimizer-estimate"><option value="fast">Fast</option><option value="exact">Exhaustive</option></select></label><label class="optimizer-worker-count">Workers<input name="workers" aria-label="Workers" type="number" min="1" max="${MAX_OPTIMIZER_WORKERS}" step="1" value="${runner.workerCount}"></label><button type="button" data-role="optimizer-cancel">Cancel</button><button type="submit">Run optimizer</button></div></div></form>
+      <div class="optimizer-actions"><div class="optimizer-size"><p data-role="optimizer-total"></p><p id="optimizer-estimate" data-role="optimizer-estimate"></p></div><div class="optimizer-run-controls"><label class="optimizer-search-mode">Search<select name="search" aria-describedby="optimizer-estimate"><option value="fast">Fast</option><option value="exact">Exhaustive</option></select></label><label class="optimizer-worker-count">Workers<input name="workers" aria-label="Workers" type="number" min="1" max="${MAX_OPTIMIZER_WORKERS}" step="1" value="${runner.workerCount}"></label><button type="button" data-role="optimizer-cancel">Cancel</button><button type="submit">Run optimizer</button></div></div></form>
       <div class="optimizer-feedback">
       <div class="optimizer-status-row"><div class="optimizer-status-text"><p data-role="optimizer-status" role="status" aria-live="polite"></p><p data-role="optimizer-counts"></p></div>
       <details class="optimizer-filter-settings"><summary aria-label="Filter results" title="Filter results">&#9881;</summary>
@@ -165,7 +166,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       <section data-role="optimizer-preview" class="optimizer-preview" aria-label="Result character" hidden></section>`;
     results.append(panel);
     const form = panel.querySelector('form')!;
-    const estimate = (): void => updateSearchEstimate(app, form);
+    const estimate = (): void => updateSearchSummary(app, form);
 
     bindCandidatePickers(form);
     // Clearing only slot overrides restores the shared prefix choices and invalidates an active search.
@@ -295,65 +296,92 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
     const slots = optimizerSlots(build, app.adapter);
     // Seed actual choices so adding alternatives preserves the equipped options in the search.
     const prefixes = [...new Set(slots.map((slot) => slotPrefix(build, slot) || build.gear[`Weapon${slot.at(-1)}`]))];
-    // Keep sections keyed by weapon set so Consumables can sit between the primary and optional alternate set.
-    const weaponSetSections = [build.weapons, build.alternateWeapons].map((weapons, set) =>
+    const infusionStats = [...new Set(build.infusions.filter((entry) => entry.count).map((entry) => entry.stat))];
+    // Each usable weapon set gets its own row so both sigil slots sit beside the weapons they upgrade.
+    const sigilRows = [build.weapons, build.alternateWeapons].map((weapons, set) =>
       !optimizerWeaponSets(build, app.adapter).includes(set)
         ? ''
-        : `<fieldset class="optimizer-section"><legend>Weapon set ${set + 1}<span>${weapons.filter(Boolean).map(escapeHtml).join(' / ')}</span></legend><div class="optimizer-pair">${[
-            0, 1
-          ]
-            .map((slot) => {
-              const key = `sigil${set + 1}-${slot + 1}`;
-              return candidatePicker(
-                key,
-                `Set ${set + 1} sigil ${slot + 1}`,
-                SIGIL_NAMES,
-                [build.weaponSigils[set][slot]],
-                0,
-                sigilOptionLabel
-              );
-            })
-            .join('')}</div></fieldset>`
-    );
-    panel.querySelector('[data-role="optimizer-controls"]')!.innerHTML = `<div class="optimizer-columns">
-      <fieldset class="optimizer-section optimizer-prefixes"><legend>Equipment stats</legend>
-        ${candidatePicker('prefixes', 'Prefixes', PREFIXES, prefixes, 3, prefixOptionLabel, 'Keep all current prefixes')}
-      </fieldset>
-      <fieldset class="optimizer-section"><legend>Runes &amp; relic</legend><div class="optimizer-pair">
-        ${candidatePicker('rune', 'Rune sets', ['', ...RUNE_NAMES], [build.rune || ''], 0, runeOptionLabel)}
-        ${candidatePicker('relic', 'Relics', ['', ...app.relicNames], [build.relic || ''], 0, relicOptionLabel)}
-      </div></fieldset>
-      ${weaponSetSections[0]}
-      <fieldset class="optimizer-section"><legend>Consumables</legend><div class="optimizer-pair">
-        ${candidatePicker('food', 'Food', ['', ...FOOD_NAMES], [build.food || ''], 3, foodOptionLabel)}
-        ${candidatePicker('utility', 'Utility', ['', ...UTILITY_NAMES], [build.utility || ''], 3, utilityOptionLabel)}
-      </div></fieldset>
-      ${weaponSetSections[1]}
-      <fieldset class="optimizer-section"><legend>Infusions</legend><div class="optimizer-infusion-row">
-        ${candidatePicker('infusionStats', 'Infusion stats', INFUSION_STATS, [...new Set(build.infusions.filter((entry) => entry.count).map((entry) => entry.stat))], 2, undefined, 'Choose stats to change the infusion total')}
-        <label class="optimizer-infusion-count">Total slots<input name="infusionCount" aria-label="Total infusions" type="number" min="0" max="18" step="1" value="${build.infusions.reduce((sum, entry) => sum + entry.count, 0)}"></label>
-      </div></fieldset>
-      <details class="optimizer-section optimizer-disclosure"><summary>Requirements (optional)</summary>
-        <div class="optimizer-pair">${Object.entries(OPTIMIZER_REQUIREMENTS)
-          .map(
-            ([key, label]) =>
-              `<label class="optimizer-infusion-count">${label}<input name="${key}" type="number" min="0" ${key.endsWith('Percent') ? 'max="100"' : ''} step="any" placeholder="No limit"></label>`
+        : searchRow(
+            `sigils${set + 1}`,
+            `Weapon set ${set + 1}`,
+            [0, 1]
+              .map((slot) => {
+                const current = build.weaponSigils[set][slot];
+                return candidatePicker(
+                  `sigil${set + 1}-${slot + 1}`,
+                  `Set ${set + 1} sigil ${slot + 1}`,
+                  SIGIL_NAMES,
+                  [current],
+                  { describe: sigilOptionLabel, heading: `Sigil ${slot + 1}`, equipped: [current] }
+                );
+              })
+              .join(''),
+            { detail: weapons.filter(Boolean).join(' / ') }
           )
-          .join('')}</div>
-      </details>
-      <details class="optimizer-section optimizer-disclosure optimizer-forced-slots"><summary>Force slots</summary>
-        <p>Choose a stat prefix to require it in that slot for every result.</p>
-        <div class="optimizer-forced-grid">${slots
-          .map((slot) => {
-            // Use only usable weapon slots, with set labels that distinguish alternate equipment.
-            const label = slot.includes('Weapon')
-              ? `Set ${slot.startsWith('Alternate') ? 2 : 1} ${SLOT_LABELS[slot].toLowerCase()}`
-              : ({ Chest: 'Coat', Leggins: 'Leggings', Back: 'Back item' } as Record<string, string>)[slot] ||
-                slot.replace(/(\d)$/, ' $1');
-            return `<label class="optimizer-infusion-count">${escapeHtml(label)}<select name="force-${slot}" data-forced-slot="${slot}"><option value="">Any prefix</option>${PREFIXES.map((prefix) => `<option value="${escapeHtml(prefix)}">${escapeHtml(prefixOptionLabel(prefix))}</option>`).join('')}</select></label>`;
-          })
-          .join('')}</div>
-        <button type="button" data-clear-forced-slots>Clear forced slots</button>
+    );
+    const upgradePicker = (key: 'rune' | 'relic' | 'food' | 'utility', label: string, names: readonly string[]) => {
+      const current = build[key] || '';
+      return candidatePicker(key, label, ['', ...names], [current], {
+        limit: key === 'food' || key === 'utility' ? 3 : 0,
+        describe: {
+          rune: runeOptionLabel,
+          relic: relicOptionLabel,
+          food: foodOptionLabel,
+          utility: utilityOptionLabel
+        }[key],
+        equipped: [current]
+      });
+    };
+
+    const requirementFields = Object.entries(OPTIMIZER_REQUIREMENTS)
+      .map(
+        ([key, label]) =>
+          `<label class="optimizer-field">${label}<input name="${key}" data-constraint-label="${label}" type="number" min="0" ${key.endsWith('Percent') ? 'max="100"' : ''} step="any" placeholder="No limit"></label>`
+      )
+      .join('');
+    const forcedFields = slots
+      .map((slot) => {
+        // Use only usable weapon slots, with set labels that distinguish alternate equipment.
+        const label = slot.includes('Weapon')
+          ? `Set ${slot.startsWith('Alternate') ? 2 : 1} ${SLOT_LABELS[slot].toLowerCase()}`
+          : ({ Chest: 'Coat', Leggins: 'Leggings', Back: 'Back item' } as Record<string, string>)[slot] ||
+            slot.replace(/(\d)$/, ' $1');
+        return `<label class="optimizer-field">${escapeHtml(label)}<select name="force-${slot}" data-forced-slot="${slot}" data-constraint-label="${escapeHtml(label)}"><option value="">Any prefix</option>${PREFIXES.map((prefix) => `<option value="${escapeHtml(prefix)}">${escapeHtml(prefixOptionLabel(prefix))}</option>`).join('')}</select></label>`;
+      })
+      .join('');
+    // Rows follow the character's equipment order; constraints close the list as one summarized disclosure.
+    panel.querySelector('[data-role="optimizer-controls"]')!.innerHTML = `<div class="optimizer-space">
+      ${searchRow(
+        'prefixes',
+        'Equipment stats',
+        candidatePicker('prefixes', 'Prefixes', PREFIXES, prefixes, {
+          limit: 3,
+          describe: prefixOptionLabel,
+          emptyLabel: 'Keep all current prefixes',
+          equipped: prefixes
+        }),
+        { counter: 'prefixes' }
+      )}
+      ${searchRow('rune', 'Rune', upgradePicker('rune', 'Rune sets', RUNE_NAMES))}
+      ${searchRow('relic', 'Relic', upgradePicker('relic', 'Relics', app.relicNames))}
+      ${sigilRows.join('')}
+      ${searchRow('food', 'Food', upgradePicker('food', 'Food', FOOD_NAMES), { counter: 'food' })}
+      ${searchRow('utility', 'Utility', upgradePicker('utility', 'Utility', UTILITY_NAMES), { counter: 'utility' })}
+      ${searchRow(
+        'infusions',
+        'Infusions',
+        `${candidatePicker('infusionStats', 'Infusion stats', INFUSION_STATS, infusionStats, {
+          limit: 2,
+          emptyLabel: 'Choose stats to change the infusion total',
+          equipped: infusionStats
+        })}<label class="optimizer-infusion-count">Total slots<input name="infusionCount" aria-label="Total infusions" type="number" min="0" max="18" step="1" value="${build.infusions.reduce((sum, entry) => sum + entry.count, 0)}"></label>`,
+        { counter: 'infusionStats' }
+      )}
+      <details class="optimizer-constraints"><summary><span>Constraints</span><span class="optimizer-constraint-list" data-role="optimizer-constraints"></span></summary>
+        <div class="optimizer-constraint-body">
+          <fieldset><legend>Requirements</legend><div class="optimizer-requirements"><div class="optimizer-requirement-grid">${requirementFields}</div></div></fieldset>
+          <fieldset><legend>Forced slots</legend><div class="optimizer-field-grid">${forcedFields}</div><button type="button" data-clear-forced-slots>Clear forced slots</button></fieldset>
+        </div>
       </details></div>`;
     panel.querySelectorAll<HTMLElement>('[data-picker]').forEach(updatePicker);
   }
@@ -361,7 +389,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   if (revisionChanged || controlsChanged) {
     panel.dataset.revision = String(app.analysis.state.buildRevision);
 
-    updateSearchEstimate(app, panel.querySelector('form')!);
+    updateSearchSummary(app, panel.querySelector('form')!);
   }
 
   const state = runner.state;
@@ -509,11 +537,59 @@ function readSearchMode(form: HTMLFormElement): 'fast' | 'exact' {
   return mode;
 }
 
-/** Describe coverage in terms of distinct candidates, matching the worker's progress instead of raw assignments. */
-function updateSearchEstimate(app: ProfessionAppState, form: HTMLFormElement): void {
+/** One searched item per row: its name, the candidate chips, and the factor it adds to the search size. */
+function searchRow(key: string, label: string, body: string, { detail = '', counter = '' } = {}): string {
+  return `<div class="optimizer-row" role="group" aria-labelledby="optimizer-row-${key}"><div class="optimizer-row-label"><span id="optimizer-row-${key}">${escapeHtml(label)}</span>${detail ? `<small>${escapeHtml(detail)}</small>` : ''}${counter ? `<small data-picker-count="${counter}"></small>` : ''}</div><div class="optimizer-row-body">${body}</div><span class="optimizer-multiplier" data-multiplier="${key}"></span></div>`;
+}
+
+/**
+ * Refresh everything derived from the current choices: capped-picker counts, active constraints, each row's
+ * multiplier, and the raw combination total. Multipliers come from the same search space the workers build, so
+ * forced slots and illegal sigil pairs are already reflected.
+ */
+function updateSearchSummary(app: ProfessionAppState, form: HTMLFormElement): void {
+  form.querySelectorAll<HTMLElement>('[data-picker-count]').forEach((counter) => {
+    const picker = form.querySelector<HTMLElement>(`[data-picker="${counter.dataset.pickerCount}"]`)!;
+    const count = picker.querySelectorAll('input[type="hidden"]').length;
+    counter.textContent = `${count}/${picker.dataset.limit}`;
+    counter.classList.toggle('optimizer-count-full', count >= Number(picker.dataset.limit));
+  });
+  // List every active requirement and forced slot in the summary, so a collapsed section never hides a filter.
+  form.querySelector('[data-role="optimizer-constraints"]')!.innerHTML = [
+    ...form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-constraint-label]')
+  ]
+    .filter((field) => field.value.trim())
+    .map(
+      (field) =>
+        `<span class="optimizer-constraint">${escapeHtml(`${field.dataset.constraintLabel}: ${field.value.trim()}`)}</span>`
+    )
+    .join('');
+
   const estimate = form.querySelector('[data-role="optimizer-estimate"]')!;
+  const total = form.querySelector<HTMLElement>('[data-role="optimizer-total"]')!;
+  const multipliers = form.querySelectorAll<HTMLElement>('[data-multiplier]');
+  multipliers.forEach((element) => {
+    element.textContent = '';
+  });
+  total.textContent = '';
   try {
     const request = captureGearOptimizerRequest(app, readSelections(form), readSearchMode(form));
+    const space = createOptimizerSpace(request, app.adapter);
+    // Every prefix slot is its own dimension; the stats row reports their product.
+    const prefixSlots = new Set(optimizerSlots(request.build, app.adapter));
+    const sizes = new Map<string, bigint>();
+    for (const { key, choices } of space.dimensions) {
+      const row = prefixSlots.has(key) ? 'prefixes' : key;
+      sizes.set(row, (sizes.get(row) ?? 1n) * BigInt(choices.length));
+    }
+
+    multipliers.forEach((element) => {
+      const size = sizes.get(element.dataset.multiplier!) ?? 1n;
+      element.textContent = `×${size.toLocaleString()}`;
+      element.classList.toggle('optimizer-multiplier-one', size === 1n);
+    });
+    // Counting distinct stat totals can exceed the preparation limit, so the summary states the merge instead.
+    total.innerHTML = `<strong>${space.rawCount.toLocaleString()}</strong> ${space.rawCount === 1n ? 'combination' : 'combinations'} before merging equal stats`;
     estimate.textContent =
       request.search === 'exact'
         ? 'Exhaustive evaluates every distinct combination of your selected gear.'

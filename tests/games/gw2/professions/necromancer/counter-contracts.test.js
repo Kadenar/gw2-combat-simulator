@@ -9,19 +9,18 @@ import { harbingerBlightConsumed } from '#gw2/professions/necromancer/specializa
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
-// A small patched threshold exposes one-claim semantics and the ordering of progress, Meltdown, and its emission.
-test('Cascading Corruption resets at the cap in combat before emitting the consuming cast reward', () => {
+// Excess consumed Blight advances the next cycle before Meltdown emits its reward.
+test('Cascading Corruption carries overflow in combat before emitting the consuming cast reward', () => {
   for (const removed of [false, true]) {
     const state = necromancerProfession.runtimeFor({ specialization: 'Harbinger' }).createState({})
       .specialization.state;
-    state.cascadingCorruptionStacks = 1;
+    state.cascadingCorruptionStacks = 15;
     const observations = [];
     const engagement = createCombatEngagement({ authoredMarkers: 1 });
     const runtime = {
       helpers: applyBalanceProfilePatch(necromancerCatalog, {
         balanceProfiles: {
           [TRAIT.CASCADING_CORRUPTION]: {
-            fields: { maximumStacks: { from: 20, to: 2.5 } },
             ...(removed
               ? {
                   removeEffects: [
@@ -48,13 +47,24 @@ test('Cascading Corruption resets at the cap in combat before emitting the consu
     };
     const cast = { id: 'consuming-cast', skill: { id: 'test.elixir', name: 'Elixir' }, command: {} };
     bindTriggerPoints(runtime, necromancerProfession, { specialization: 'Harbinger' });
-    runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed: 5, at: runtime.time, activationId: cast.id });
-    assert.equal(state.cascadingCorruptionStacks, 1);
+    runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed: 10, at: runtime.time, activationId: cast.id });
+    assert.equal(state.cascadingCorruptionStacks, 15);
     engagement.discoverBoundary(1);
     runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed: 0, at: runtime.time, activationId: cast.id });
-    assert.equal(state.cascadingCorruptionStacks, 1);
-    runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed: 5, at: runtime.time, activationId: cast.id });
-    assert.equal(state.cascadingCorruptionStacks, removed ? 1 : 0);
-    assert.deepEqual(observations, removed ? [] : [[0, 'consuming-cast']]);
+    assert.equal(state.cascadingCorruptionStacks, 15);
+    runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed: 10, at: runtime.time, activationId: cast.id });
+    assert.equal(state.cascadingCorruptionStacks, removed ? 15 : 5);
+    assert.deepEqual(observations, removed ? [] : [[5, 'consuming-cast']]);
+    runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed: 15, at: runtime.time, activationId: cast.id });
+    assert.equal(state.cascadingCorruptionStacks, removed ? 15 : 0);
+    assert.deepEqual(
+      observations,
+      removed
+        ? []
+        : [
+            [5, 'consuming-cast'],
+            [0, 'consuming-cast']
+          ]
+    );
   }
 });

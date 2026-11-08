@@ -28,11 +28,10 @@ const IMPACT = 'harbinger.elixir-impact';
 /** Elixir launch spends live Blight before queuing its independent local and hostile impact. */
 function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>, impactAt: number): void {
   const empowered = spendBlight(runtime, cast);
-  const blight = harbingerState.from(runtime.profession).blightExpiries.length;
   runtime.fireTrigger(harbingerElixirLaunched, { cast });
 
-  // Carry post-spend Blight and empowerment together; later gains cannot rewrite this launched elixir.
-  runtime.scheduleForCast(IMPACT, impactAt, cast, { empowered, blight });
+  // Launch selects empowerment; the impact samples damage modifiers after its own Blight grant.
+  runtime.scheduleForCast(IMPACT, impactAt, cast, { empowered });
 }
 
 /** Elixir acceptance queues its launch; only launch spends Blight and selects empowerment. */
@@ -57,10 +56,9 @@ const harbingerElixirTasks = {
     launchElixir(runtime, cast, impactAt);
   },
   [IMPACT](runtime, data) {
-    const { cast, empowered, blight } = data as {
+    const { cast, empowered } = data as {
       cast: RuntimeCast<NecromancerSkill>;
       empowered: boolean;
-      blight: number;
     };
     const action = requireSkillAction(cast.skill, 'empowered');
     addBlight(
@@ -69,7 +67,8 @@ const harbingerElixirTasks = {
       runtime.time,
       harbingerBlightMaximum(runtime.helpers)
     );
-    // Publish the new live stacks before emission while the packet policy below still carries the launch-time Blight.
+    // The elixir's Blight grant contributes to its own damage, including when the grant reaches the cap.
+    const blight = harbingerState.from(runtime.profession).blightExpiries.length;
     publishBlight(runtime);
     runtime.effects.emit({
       kind: 'profile',

@@ -20,6 +20,8 @@ export function harbingerCastEmissionPolicy(
       skillId: skill.id,
       skillName: skill.name,
       actorType: effect.actorType ?? (skill.type === 'Trait' ? ACTOR.EFFECT : ACTOR.PLAYER),
+      // Independent trait packets still inherit the player's outgoing damage modifiers.
+      ownerActorType: effect.ownerActorType ?? ACTOR.PLAYER,
       activationId: skill.id !== cast.skill.id ? cast.id + ':effect:' + skill.id : cast.id,
       metadata
     }),

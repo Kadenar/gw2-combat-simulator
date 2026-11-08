@@ -304,7 +304,7 @@ try {
     page.getByRole('link', { name: 'Gear Optimizer', exact: true }),
     '1. Load a build and rotation, then open Gear Optimizer.'
   );
-  await show('2. Choose the equipment options to compare for this rotation.', page.locator('.optimizer-columns'));
+  await show('2. Choose the equipment options to compare for this rotation.', page.locator('.optimizer-space'));
   // Keep the example small: fixed prefixes and infusions make two relic candidates quick to demonstrate.
   await click(
     page.getByRole('button', { name: "Remove Assassin's from prefixes", exact: true }),
@@ -326,7 +326,7 @@ try {
     '5. Add Thief as an alternative to the equipped Claw relic.'
   );
   await click(
-    page.locator('.optimizer-section summary').filter({ hasText: 'Requirements (optional)' }),
+    page.locator('.optimizer-constraints > summary'),
     '6. Optional requirements constrain toughness and boon duration.'
   );
   await click(

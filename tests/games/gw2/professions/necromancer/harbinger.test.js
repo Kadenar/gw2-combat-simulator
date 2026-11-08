@@ -67,7 +67,7 @@ test('elixir launch spends once and delayed hostile impact preserves the selecte
   assert.equal(pending.totalDamage, 0);
   const arrived = run([...rotation, wait(1200)], config);
   const strike = arrived.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.ELIXIR_OF_RISK);
-  assert.equal(strike.metadata.necromancerBlight, 0);
+  assert.equal(strike.metadata.necromancerBlight, 10);
   assert.deepEqual(arrived.warnings, []);
   const interrupted = run([{ ...cast(ID.ELIXIR_OF_RISK), interruptAfterMs: 100 }, wait(1000)], config);
   assert.equal(state(interrupted).blightExpiries.length, 5);
@@ -86,7 +86,7 @@ test('Cascading Corruption commits one delayed Meltdown and expires its live win
   };
   const rotation = [cast(ID.ELIXIR_OF_RISK)];
   const pending = run(rotation, config, { combatStartTime: 0 });
-  assert.equal(state(pending).cascadingCorruptionStacks, 0);
+  assert.equal(state(pending).cascadingCorruptionStacks, 4);
   assert.equal(
     pending.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.CASCADING_CORRUPTION),
     false
@@ -212,7 +212,7 @@ test('removing the Meltdown buff preserves the proc and delayed explosion withou
   };
   const result = run([cast(ID.ELIXIR_OF_RISK), wait(1000)], config, { profession, combatStartTime: 0 });
   assert.deepEqual(result.warnings, []);
-  assert.equal(state(result).cascadingCorruptionStacks, 0);
+  assert.equal(state(result).cascadingCorruptionStacks, 4);
   assert.ok(result.events.some((event) => event.type === 'proc' && event.sourceId === TRAIT.CASCADING_CORRUPTION));
   assert.ok(
     result.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.CASCADING_CORRUPTION)
