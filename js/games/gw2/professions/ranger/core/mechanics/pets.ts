@@ -1,16 +1,16 @@
 import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import { boonKey, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
-import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { emitCastEffects, type CastEffectDelivery } from '#gw2/platform/execution/cast-effect-delivery.js';
 import { cancelledBeforeEffectCommit } from '#gw2/platform/execution/cast-effects.js';
 import {
   castWasInterrupted,
   GW2_QUICKNESS_ACTION_RATE,
-  scaleCastBoundTiming,
   summonQuicknessCastTimeMs
 } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -298,10 +298,8 @@ export function emitRangerPetSkill(
   const entityName = rangerPetForState(context.profession.core).name;
   const timing = rangerPetSkillTiming(entityName, skill.id);
   const quickness = petBoonActive(context, boonKey(BOON.QUICKNESS));
-  for (const effect of skill.effects ?? []) {
-    // Pet-owned emission must retain the same acceptance checks as the standard cast pipeline.
-    if (cast && effect.when && !effect.when(context.queries, cast)) continue;
-
+  // Pet policy retains measured impacts and companion lifetimes; commanded effects share cast admission and targeting.
+  const deliveryForEffect = (effect: SkillEffect): Omit<CastEffectDelivery, 'cast'> | null => {
     if (
       cast &&
       castWasInterrupted(cast) &&
@@ -309,14 +307,12 @@ export function emitRangerPetSkill(
       skill.interruptMode !== 'per-packet' &&
       cancelledBeforeEffectCommit(skill, effect, cast.start, cast.fullEnd, cast.effectiveEnd)
     )
-      continue;
+      return null;
 
     // Ranger-stat damage is independent; all other pending skill effects require the casting pet.
     const rangerDamage = effect.actorType === ACTOR.PLAYER && (effect.type === 'strike' || effect.type === 'condition');
-    context.effects.emit({
-      kind: 'profile',
+    return {
       profile: skill,
-      effects: [cast ? scaleCastBoundTiming(cast, skill, effect) : effect],
       at: start,
       fullEnd,
       owner: rangerDamage
@@ -355,13 +351,22 @@ export function emitRangerPetSkill(
           ...prepareRangerPetEvent(context, event),
           entityName,
           summonOwner: companionId,
-          // Moving commanded effects onto the pet's owner must preserve rotation targeting options.
-          at: at + (isHostileTargetEvent(event) ? (cast?.command.impactDelayMs ?? 0) / 1000 : 0),
-          offTarget: cast?.command.offTarget,
+          at,
           icon: skill.icon
         };
       }
-    });
+    };
+  };
+
+  if (cast) {
+    emitCastEffects(context, cast, skill.effects ?? [], deliveryForEffect);
+  } else {
+    // Autonomous attacks have no accepted player cast and keep their independent activation identity.
+    for (const effect of skill.effects ?? []) {
+      const delivery = deliveryForEffect(effect);
+
+      if (delivery) context.effects.emit({ ...delivery, kind: 'profile', effects: [effect] });
+    }
   }
 }
 

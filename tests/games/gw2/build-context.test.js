@@ -97,10 +97,8 @@ test('a selected preview supplies both the attribute catalog and balance context
           }
         }
       })
-    ),
-    () => ({}),
-    { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
-  );
+    )
+  )(() => ({}), { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout });
   const context = factory(input(profession, build, 'context-preview'));
   context.simulationConfig();
   assert.equal(seen, undefined);
@@ -145,7 +143,7 @@ test('headless fixed loadouts retain both bars while attribute skills follow the
     selectedLegends: [LEGEND.ASSASSIN, LEGEND.DWARF],
     startingLegend: LEGEND.DWARF
   });
-  const factory = bindBuildContext(withoutPresentation(module.profession), () => ({}), {
+  const factory = bindBuildContext(withoutPresentation(module.profession))(() => ({}), {
     assumptionControls: REVENANT_ASSUMPTION_CONTROLS,
     resolveSkillLoadout: resolveRevenantSkillLoadout
   });
@@ -170,7 +168,7 @@ test('headless ordinary loadouts preserve empty slots and specialization-scoped 
   assert.ok(utility != null);
   build.selectedSkillIds = { Heal: null, Utility1: null, Utility2: utility, Utility3: null, Elite: null };
   delete build.assumptions.inDamagingField;
-  const factory = bindBuildContext(withoutPresentation(module.profession), () => ({}), {
+  const factory = bindBuildContext(withoutPresentation(module.profession))(() => ({}), {
     assumptionControls: ENGINEER_ASSUMPTION_CONTROLS,
     resolveSkillLoadout: resolveSelectedSkillLoadout
   });
@@ -240,17 +238,13 @@ test('optimizer requirements reuse cached sets, reject early, and keep each cand
   const module = await loadOptimizerContext('warrior');
   const build = module.toApplicationBuild(module.profession.createBuildDefaults());
   const calls = [];
-  const factory = bindBuildContext(
-    {
-      ...module.profession,
-      attributeContributions: (facts) => {
-        calls.push(facts.weaponSet);
-        return module.profession.attributeContributions(facts);
-      }
-    },
-    () => ({}),
-    { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
-  );
+  const factory = bindBuildContext({
+    ...module.profession,
+    attributeContributions: (facts) => {
+      calls.push(facts.weaponSet);
+      return module.profession.attributeContributions(facts);
+    }
+  })(() => ({}), { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout });
   const adapter = { ...module, createBuildContext: factory };
   const request = {
     gameId: 'gw2',

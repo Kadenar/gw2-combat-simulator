@@ -105,7 +105,7 @@ function selectionFixture() {
       }
     }
   });
-  const createBuildContext = bindBuildContext(profession, () => ({}), {
+  const createBuildContext = bindBuildContext(profession)(() => ({}), {
     assumptionControls: [],
     resolveSkillLoadout: () => ({ activeBarId: 'main', bars: [{ id: 'main', skillIds: [] }] })
   });

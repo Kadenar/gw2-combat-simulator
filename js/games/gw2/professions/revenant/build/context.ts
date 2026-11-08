@@ -4,15 +4,14 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { REVENANT_ASSUMPTION_CONTROLS } from '#gw2/professions/revenant/build/assumptions.js';
 import { resolveRevenantSkillLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
-import type { RevenantCanonicalBuild } from '#gw2/professions/revenant/types.js';
+import type { RevenantCanonicalBuild, RevenantConfig } from '#gw2/professions/revenant/types.js';
 
 export { toApplicationBuild } from '#gw2/professions/revenant/build/build.js';
 
 // Browser and headless consumers share this patch-bound profession and its starting-resource mapping.
 export const profession: BoundProfession = withActivePatchPreview(revenantProfession);
 
-export const createBuildContext = bindBuildContext<RevenantCanonicalBuild>(
-  profession,
+export const createBuildContext = bindBuildContext<RevenantCanonicalBuild, RevenantConfig>(profession)(
   (build) => ({
     initialEnergy: build.initialEnergy,
     selectedLegends: build.selectedLegends,

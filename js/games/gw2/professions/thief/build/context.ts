@@ -4,15 +4,14 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import { THIEF_CORE_ASSUMPTION_CONTROLS } from '#gw2/professions/thief/build/core-assumptions.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
-import type { ThiefCanonicalBuild } from '#gw2/professions/thief/types.js';
+import type { ThiefCanonicalBuild, ThiefConfig } from '#gw2/professions/thief/types.js';
 
 export { toApplicationBuild } from '#gw2/professions/thief/build/build.js';
 
 // Browser and headless consumers share this patch-bound profession and its starting-resource mapping.
 export const profession: BoundProfession = withActivePatchPreview(thiefProfession);
 
-export const createBuildContext = bindBuildContext<ThiefCanonicalBuild>(
-  profession,
+export const createBuildContext = bindBuildContext<ThiefCanonicalBuild, ThiefConfig>(profession)(
   (build) => ({
     initialInitiative: build.initialInitiative,
     initialSpinningAxes: build.initialSpinningAxes,

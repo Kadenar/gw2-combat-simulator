@@ -7,11 +7,14 @@ import { effectStateAt } from '#gw2/platform/results/effect-report.js';
 import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
+import { grantBlight } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';
+import { harbingerBlightMaximum } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { cast, wait } from '#tests/helpers/commands.js';
 import { lifeForcePercent } from '#tests/helpers/necromancer-resource.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
+import { createProfessionSimulator } from '#tests/helpers/profession-simulation.js';
 
 const base = {
   specialization: 'Harbinger',
@@ -22,6 +25,47 @@ const base = {
 const run = (rotation, config = base, extra = {}) =>
   observeGw2Runtime({ profession: necromancerProfession.runtimeFor(config), config, rotation, ...extra });
 const state = (result) => observedRuntime(result).profession.specialization.state;
+
+// Refreshing Blight at the cap must report the capped count and schedule the refreshed stacks' expiry.
+test('Blight grants publish capped counts and schedule refreshed expiry without caller bookkeeping', () => {
+  // Leave some initial stacks unrefreshed so the test covers both original and refreshed expiry.
+  const maximum = harbingerBlightMaximum(necromancerProfession.runtimeFor(base).catalog);
+  const grantTimes = [5, 10];
+  assert.ok(maximum > grantTimes.length);
+  const grantedCounts = [];
+  const simulate = createProfessionSimulator(necromancerProfession);
+  const result = simulate(
+    [wait(120000)],
+    { ...base, initialBlight: maximum },
+    {
+      timeline: grantTimes.map((at) => ({
+        at,
+        run(owner) {
+          grantedCounts.push(grantBlight(owner.mechanics, 1));
+        }
+      }))
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(
+    grantedCounts,
+    grantTimes.map(() => maximum)
+  );
+  const updates = result.events.filter((event) => event.kind === 'harbinger-blight');
+  for (const at of grantTimes) assert.equal(updates.find((event) => event.at === at)?.stacks, maximum);
+
+  // Unrefreshed stacks expire together. Refreshed stacks expire later by the time between grants.
+  const expiries = updates.filter((event) => event.at > grantTimes.at(-1));
+  assert.deepEqual(
+    expiries.map((event) => event.stacks),
+    [2, 1, 0]
+  );
+  assert.deepEqual(
+    expiries.map((event) => event.at - expiries[0].at),
+    [0, ...grantTimes]
+  );
+  assert.equal(result.planningState.profession[STATE.BLIGHT], 0);
+});
 
 // Real transition callbacks and owned deadlines keep passive Blight independent of observation partitioning.
 test('Harbinger entry grants precede depletion and its passive clock stops on every exit', () => {

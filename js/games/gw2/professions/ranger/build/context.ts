@@ -4,15 +4,14 @@ import { withActivePatchPreview } from '#gw2/integrations/patches/active-profess
 import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import { RANGER_ASSUMPTION_CONTROLS } from '#gw2/professions/ranger/build/assumptions.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
-import type { RangerCanonicalBuild } from '#gw2/professions/ranger/types.js';
+import type { RangerCanonicalBuild, RangerConfig } from '#gw2/professions/ranger/types.js';
 
 export { toApplicationBuild } from '#gw2/professions/ranger/build/build.js';
 
 // Browser and headless consumers share this patch-bound profession and its starting-resource mapping.
 export const profession: BoundProfession = withActivePatchPreview(rangerProfession);
 
-export const createBuildContext = bindBuildContext<RangerCanonicalBuild>(
-  profession,
+export const createBuildContext = bindBuildContext<RangerCanonicalBuild, RangerConfig>(profession)(
   (build) => ({
     initialAstralForce: build.initialAstralForce,
     initialArrows: build.initialArrows,

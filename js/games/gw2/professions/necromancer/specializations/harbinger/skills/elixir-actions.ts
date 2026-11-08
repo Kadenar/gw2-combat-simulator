@@ -5,14 +5,9 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { publishBlight, spendBlight } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';
+import { grantBlight, spendBlight } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';
 import { harbingerCastEmissionPolicy } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/cast-emission-policy.js';
 import { harbingerElixirLaunched } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/trigger-points.js';
-import {
-  addBlight,
-  harbingerBlightMaximum,
-  harbingerState
-} from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { twistedMedicineAudience } from '#gw2/professions/necromancer/specializations/harbinger/traits/behavior.js';
 import type {
   NecromancerRuntime,
@@ -27,7 +22,7 @@ const IMPACT = 'harbinger.elixir-impact';
 
 /** Elixir launch spends live Blight before queuing its independent local and hostile impact. */
 function launchElixir(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>, impactAt: number): void {
-  const empowered = spendBlight(runtime, cast);
+  const { empowered } = spendBlight(runtime, cast);
   runtime.fireTrigger(harbingerElixirLaunched, { cast });
 
   // Launch selects empowerment; the impact samples damage modifiers after its own Blight grant.
@@ -61,15 +56,8 @@ const harbingerElixirTasks = {
       empowered: boolean;
     };
     const action = requireSkillAction(cast.skill, 'empowered');
-    addBlight(
-      harbingerState.from(runtime.profession),
-      skillNumber(cast.skill, 'blightGain'),
-      runtime.time,
-      harbingerBlightMaximum(runtime.helpers)
-    );
     // The elixir's Blight grant contributes to its own damage, including when the grant reaches the cap.
-    const blight = harbingerState.from(runtime.profession).blightExpiries.length;
-    publishBlight(runtime);
+    const blight = grantBlight(runtime, skillNumber(cast.skill, 'blightGain'));
     runtime.effects.emit({
       kind: 'profile',
       profile: cast.skill,

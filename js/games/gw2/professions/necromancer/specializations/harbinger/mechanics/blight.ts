@@ -46,9 +46,10 @@ function refreshBlight(runtime: NecromancerRuntime): void {
   if (Number.isFinite(at)) runtime.schedule(BLIGHT, at, null, { id: BLIGHT, generation: state.blightGeneration }, -20);
 }
 
-/** Reports current Blight without replaying a state snapshot into the combat world. */
-export function publishBlight(runtime: NecromancerRuntime): void {
+/** Publish each resource change and rearm its expiry before returning the count to the skill owner. */
+function publishBlight(runtime: NecromancerRuntime): number {
   const state = harbingerState.from(runtime.profession);
+  const blight = state.blightExpiries.length;
   runtime.effects.emit({
     kind: 'packet',
     event: {
@@ -59,23 +60,32 @@ export function publishBlight(runtime: NecromancerRuntime): void {
       actorType: ACTOR.PLAYER,
       skillName: 'Blight',
       kind: 'harbinger-blight',
-      stacks: state.blightExpiries.length,
+      stacks: blight,
       duration: state.blightExpiries.length ? Math.max(...state.blightExpiries) - runtime.time : 0
     }
   });
   refreshBlight(runtime);
+  return blight;
 }
 
-/** Spending counts once at commitment; only the delayed explosion can damage the target. */
-export function spendBlight(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): boolean {
+/** Grants settle capacity and expiry, including refreshes at the cap, before skills sample their damage count. */
+export function grantBlight(runtime: NecromancerRuntime, stacks: number): number {
+  addBlight(harbingerState.from(runtime.profession), stacks, runtime.time, harbingerBlightMaximum(runtime.helpers));
+  return publishBlight(runtime);
+}
+
+/** Spending fires its trait trigger and settles resource observations before returning the launch result. */
+export function spendBlight(
+  runtime: NecromancerRuntime,
+  cast: RuntimeCast<NecromancerSkill>
+): { readonly empowered: boolean; readonly blight: number } {
   const state = harbingerState.from(runtime.profession);
   const cost = skillNumber(cast.skill, 'blightCost');
   const empowered = state.blightExpiries.length >= cost;
   const consumed = empowered ? consumeBlight(state, cost, runtime.time, harbingerBlightMaximum(runtime.helpers)) : 0;
   runtime.fireTrigger(harbingerBlightConsumed, { cast, consumed });
 
-  publishBlight(runtime);
-  return empowered;
+  return { empowered, blight: publishBlight(runtime) };
 }
 
 /** Every shroud exit stops Blight accrual, including automatic life-force depletion. */
@@ -103,16 +113,11 @@ const harbingerBlightTasks = {
     purgeHarbingerTimedState(state, runtime.time, harbingerBlightMaximum(runtime.helpers));
 
     if (runtime.profession.core.activeShroud === 'harbinger' && Number(state.nextBlightAt) <= runtime.time) {
-      addBlight(
-        state,
-        balanceNumber(runtime.helpers, doomApproachesBlightProfile(runtime), 'blightGain'),
-        runtime.time,
-        harbingerBlightMaximum(runtime.helpers)
-      );
       state.nextBlightAt = nextBlightAt(runtime);
+      grantBlight(runtime, balanceNumber(runtime.helpers, doomApproachesBlightProfile(runtime), 'blightGain'));
+    } else {
+      publishBlight(runtime);
     }
-
-    publishBlight(runtime);
   }
 } satisfies NonNullable<RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>['tasks']>;
 

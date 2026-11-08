@@ -2,7 +2,6 @@ import type { CastCommand } from '#gw2/platform/builds/rotation.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
-import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
 import { relicWeaponSwapRechargeReduction } from '#gw2/platform/equipment/relics/catalog.js';
@@ -11,6 +10,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { assertSimulationEvent, type SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { CastControl, RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { emitCastEffects } from '#gw2/platform/execution/cast-effect-delivery.js';
 import {
   cancelledBeforeEffectCommit,
   cancelledBeforeInterruptCommit,
@@ -20,7 +20,6 @@ import {
 import {
   castWasInterrupted,
   retainsInterruptedCastLockout,
-  scaleCastBoundTiming,
   skillTaskAt,
   summonQuicknessCastTimeMs
 } from '#gw2/platform/execution/cast-timing.js';
@@ -359,7 +358,7 @@ export function createCastExecution<T extends object>(
     attribution: Pick<SimulationEventBase, 'source' | 'sourceId' | 'actorType' | 'skillId' | 'skillName'>,
     interrupted: boolean
   ): void {
-    const { skill, command, start, fullEnd, effectiveEnd } = cast;
+    const { skill, start, fullEnd, effectiveEnd } = cast;
     host.enqueueWork(
       host.makeWork({
         type: 'runtime.complete',
@@ -378,24 +377,17 @@ export function createCastExecution<T extends object>(
     applySkillSideEffects(runtime.mechanics, cast, 'castStart', profession.sideEffectHandlers);
     // Custom skill owners select their packets once; scheduled effects still apply through the common live queue.
     const selectedEffects = selectSkillEffects(runtime.mechanics, cast);
-    for (const effect of profession.modifyEffects?.(runtime.mechanics, cast, selectedEffects) ?? selectedEffects) {
-      if (effect.when && !effect.when(runtime.mechanicQueries, cast)) continue;
-
+    const effects = profession.modifyEffects?.(runtime.mechanics, cast, selectedEffects) ?? selectedEffects;
+    emitCastEffects(runtime.mechanics, cast, effects, (effect) => {
       const perPacket = skill.interruptMode === 'per-packet';
 
       if (interrupted && !perPacket && cancelledBeforeEffectCommit(skill, effect, start, fullEnd, effectiveEnd))
-        continue;
+        return null;
 
-      runtime.effects.emit({
-        kind: 'profile',
+      return {
         profile: skill,
-        effects: [scaleCastBoundTiming(cast, skill, effect)],
-        at: start,
-        fullEnd,
         // Delivery owns activation identity so authored child strikes can share a separate roll per source.
         cast: {
-          activationId: cast.id,
-          skillId: skill.id,
           independentSourceStrike: effect.type === 'strike' && effect.independentSourceStrike === true
         },
         attribution: {
@@ -414,14 +406,12 @@ export function createCastExecution<T extends object>(
 
           return {
             ...event,
-            at: event.at + (isHostileTargetEvent(event) ? (command.impactDelayMs ?? 0) / 1000 : 0),
-            offTarget: command.offTarget,
             // Authored boons settle before sibling impacts, preserving the owning activation's queue position.
             ...(event.type === 'buff' ? { causalOrder: action.eventOrder } : {})
           };
         }
-      });
-    }
+      };
+    });
   }
 
   function evaluateReadiness(skill: Skill, command: CastCommand): AvailabilityResult {

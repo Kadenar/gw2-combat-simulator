@@ -5,7 +5,6 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { spendBlight } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/blight.js';
 import { harbingerCastEmissionPolicy } from '#gw2/professions/necromancer/specializations/harbinger/mechanics/cast-emission-policy.js';
-import { harbingerState } from '#gw2/professions/necromancer/specializations/harbinger/state.js';
 import { doomApproachesControl } from '#gw2/professions/necromancer/specializations/harbinger/traits/behavior.js';
 import type {
   NecromancerRuntime,
@@ -18,8 +17,7 @@ const MOVEMENT = 'harbinger.movement-impact';
 
 /** Movement launch carries the post-spend snapshot; its authored control receives the trait replacement. */
 function launchMovement(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>): void {
-  const empowered = spendBlight(runtime, cast);
-  const blight = harbingerState.from(runtime.profession).blightExpiries.length;
+  const { empowered, blight } = spendBlight(runtime, cast);
   const effects = empowered ? requireSkillAction(cast.skill, 'empowered').effects : (cast.skill.effects ?? []);
   runtime.effects.emit({
     kind: 'profile',

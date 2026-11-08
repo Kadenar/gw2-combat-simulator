@@ -71,19 +71,13 @@ test('flat writ attributes feed conversions while converted utility attributes d
 
 test('build contexts calculate each requested weapon set once and detach configuration seeds', () => {
   const calculatedSets = [];
-  const createBuildContext = bindBuildContext(
-    {
-      ...mesmerAppAdapter.profession,
-      attributeContributions: ({ weaponSet }) => {
-        calculatedSets.push(weaponSet);
-        return [
-          { attributeEffects: [{ kind: 'flat', to: 'Power', amount: weaponSet * 100, feedsConversions: 'all' }] }
-        ];
-      }
-    },
-    () => ({}),
-    { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout }
-  );
+  const createBuildContext = bindBuildContext({
+    ...mesmerAppAdapter.profession,
+    attributeContributions: ({ weaponSet }) => {
+      calculatedSets.push(weaponSet);
+      return [{ attributeEffects: [{ kind: 'flat', to: 'Power', amount: weaponSet * 100, feedsConversions: 'all' }] }];
+    }
+  })(() => ({}), { assumptionControls: [], resolveSkillLoadout: resolveSelectedSkillLoadout });
   const input = {
     analysis: { needsPatchComparison: () => false, state: { results: null } },
     build: createDefaultBuild(),
