@@ -1934,6 +1934,8 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     signal: 80215,
     kind: 'buff-gain',
     rule: 'HarbingerHelper.BuffGainCastFinder(Meltdown)',
+    // Meltdown is an automatic trait proc, so it must not become a rotation input or unsupported-skill warning.
+    origin: 'trait',
     minBuild: 203989
   },
   {

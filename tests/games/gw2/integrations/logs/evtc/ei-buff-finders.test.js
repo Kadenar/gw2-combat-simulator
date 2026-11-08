@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { eiInstantActions } from '#gw2/integrations/logs/evtc/rotation/ei-inference.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
+import { LOG_OPENER_WARNING } from '#gw2/integrations/logs/shared/rotation/model.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { necromancerCatalog } from '#gw2/professions/necromancer/profession.js';
 import { warriorCatalog } from '#gw2/professions/warrior/profession.js';
@@ -27,6 +28,37 @@ function find(profession, specialization, modern, events) {
 function apply(modern, skillId, value, overrides = {}) {
   return event({ time: 100, stateChange: modern ? 69 : 0, buff: 1, target: PLAYER, skillId, value, ...overrides });
 }
+
+test('Harbinger import excludes automatic Meltdown procs while still warning about unknown player skills', () => {
+  // Trait evidence stays available to reconstruction without appearing as a player input in the import preview.
+  for (const includeUnknownSkill of [false, true]) {
+    const fixture = log({
+      agents: [{ ...log().agents[0], profession: 8, elite: 64 }],
+      events: [
+        event({ time: 0, stateChange: 15, source: 210000n }),
+        event({ time: 0, stateChange: 1 }),
+        apply(true, 59964, 10000),
+        apply(true, 80215, 5000, { time: 200 }),
+        ...(includeUnknownSkill
+          ? [
+              event({ time: 300, stateChange: 67, skillId: 999999, value: 500 }),
+              event({ time: 800, stateChange: 68, skillId: 999999, value: 500, activation: 5 })
+            ]
+          : []),
+        event({ time: 1000, stateChange: 2 })
+      ]
+    });
+    const imported = reconstructEvtcRotation(fixture, necromancerCatalog);
+    assert.equal(imported.sourceActions.find((action) => action.rawSkillId === 80215)?.castOrigin, 'trait');
+    assert.ok(imported.actions.every((action) => action.rawSkillId !== 80215));
+    assert.ok(imported.rotation.every((command) => command.skillId !== 80215));
+    assert.ok(imported.rotation.some((command) => command.skillId === 62567));
+    assert.deepEqual(imported.warnings, [
+      LOG_OPENER_WARNING,
+      ...(includeUnknownSkill ? ['1 recorded action is not present in the supplied simulator catalog.'] : [])
+    ]);
+  }
+});
 
 test('Scourge F5 finders distinguish the shared buff by applied duration and reject incomplete evidence', () => {
   for (const modern of [false, true]) {
