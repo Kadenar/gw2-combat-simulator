@@ -13,28 +13,24 @@ import {
   optimizerScore,
   verifyOptimizerScore
 } from '#gw2/app/optimizer/gear/search.js';
-import { DEFAULT_FRACTAL_BUFFS, fractalAttributes, validateFractalBuffs } from '#gw2/platform/builds/fractal-buffs.js';
+import {
+  DEFAULT_FRACTAL_BUFFS,
+  FRACTAL_AUGMENTATIONS,
+  FRACTAL_POTION_DAMAGE_MULTIPLIER,
+  fractalPotionBonus,
+  validateFractalBuffs
+} from '#gw2/platform/builds/fractal-buffs.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 
 const enabled = { ...DEFAULT_FRACTAL_BUFFS, enabled: true };
+const potionBonus = fractalPotionBonus(enabled);
+const boonDurationBonus = potionBonus / 15;
+const damageFactor = (augmentation) =>
+  FRACTAL_POTION_DAMAGE_MULTIPLIER * (1 + FRACTAL_AUGMENTATIONS[augmentation].damage);
 const warrior = await loadOptimizerContext('warrior');
 const buildContext = (adapter, build) =>
   adapter.createBuildContext({ build, patch: adapter.profession.resolvePatch({ id: 'current' }) });
-
-// Maximum mastery and five potion stacks are fixed; AR already includes title bonuses.
-test('fractal potion conversions use total AR with full potions', () => {
-  assert.deepEqual(fractalAttributes(undefined), {});
-  assert.deepEqual(fractalAttributes(DEFAULT_FRACTAL_BUFFS), {});
-  for (const agonyResistance of [0, 150, 200]) {
-    const bonus = agonyResistance * 1.5;
-    assert.deepEqual(fractalAttributes({ ...enabled, agonyResistance, augmentation: 'god' }), {
-      Vitality: bonus,
-      Toughness: bonus,
-      Concentration: bonus
-    });
-  }
-});
 
 // Invalid saved assumptions fail loading, validation, and optimizer capture before workers start.
 test('saved fractal assumptions reject malformed fields', () => {
@@ -99,22 +95,22 @@ for (const name of [
     assert.deepEqual(loaded.assumptions.fractal, enabled);
     const context = buildContext(adapter, loaded);
     const config = context.simulationConfig();
-    assert.equal(config.modifiers.playerStrike, 1.15);
-    assert.equal(config.modifiers.playerCondition, 1.15);
+    assert.equal(config.modifiers.playerStrike, damageFactor(enabled.augmentation));
+    assert.equal(config.modifiers.playerCondition, damageFactor(enabled.augmentation));
     for (const set of [1, 2]) {
       const before = baseline.attributes(set).attributes;
       const after = context.attributes(set).attributes;
       for (const stat of ['Vitality', 'Toughness', 'Concentration']) {
-        assert.equal(after[stat].final - before[stat].final, 225, stat);
-        assert.equal(after[stat].fractalPotions, 225);
+        assert.equal(after[stat].final - before[stat].final, potionBonus, stat);
+        assert.equal(after[stat].fractalPotions, potionBonus);
         assert.equal(
           config.attributeInputs.weaponSets[set - 1].conversionPool[stat],
           baseline.simulationConfig().attributeInputs.weaponSets[set - 1].conversionPool[stat]
         );
       }
 
-      assert.equal(after['Boon Duration'].final - before['Boon Duration'].final, 15);
-      assert.equal(after['Boon Duration'].fractalPotions, 15);
+      assert.equal(after['Boon Duration'].final - before['Boon Duration'].final, boonDurationBonus);
+      assert.equal(after['Boon Duration'].fractalPotions, boonDurationBonus);
       const active = { ...config, startingWeaponSet: set };
       const query = createGw2CombatQuery({
         profession: adapter.profession.runtimeFor(active),
@@ -130,7 +126,8 @@ for (const name of [
         skillOnCooldown: () => false
       });
       const baseLive = baseQuery.statsAt(0);
-      for (const stat of ['concentration', 'toughness', 'vitality']) assert.equal(live[stat] - baseLive[stat], 225);
+      for (const stat of ['concentration', 'toughness', 'vitality'])
+        assert.equal(live[stat] - baseLive[stat], potionBonus);
     }
 
     const preview = createIsolatedPreview(
@@ -181,15 +178,18 @@ test('fractal damage affects player strikes and conditions without affecting sum
 
   const baseline = queryFor(undefined);
   const player = { type: 'strike', actorType: ACTOR.PLAYER, skillId: 0 };
-  for (const [augmentation, bonus] of [
-    ['none', 0],
-    ['savant', 0.01],
-    ['prodigy', 0.02],
-    ['champion', 0.04],
-    ['god', 0.07]
-  ]) {
+  for (const augmentation of Object.keys(FRACTAL_AUGMENTATIONS)) {
     const query = queryFor({ ...enabled, augmentation });
-    const factor = 1.15 * (1 + bonus);
+    const factor = damageFactor(augmentation);
+    // Diagnostic factors name the same buffs applied to both damage channels.
+    const strikeContributors = [];
+    const conditionContributors = [];
+    query.strikeMultiplier(player, 0, null, strikeContributors);
+    query.conditionMultiplier(CONDITION.BURNING, 0, player, null, undefined, conditionContributors);
+    for (const contributors of [strikeContributors, conditionContributors]) {
+      assert.ok(contributors.some((entry) => entry.label === 'Fractal buffs'));
+    }
+
     assert.ok(Math.abs(query.strikeMultiplier(player, 0) / baseline.strikeMultiplier(player, 0) - factor) < 1e-12);
     assert.ok(
       Math.abs(
@@ -246,9 +246,9 @@ test('optimizer checks potion attributes and verifies scores under the captured 
   };
   const before = buildContext(warrior, build).attributes(1).attributes;
   const limits = {
-    minToughness: before.Toughness.final + 225,
-    minVitality: before.Vitality.final + 225,
-    minBoonDurationPercent: before['Boon Duration'].final + 15
+    minToughness: before.Toughness.final + potionBonus,
+    minVitality: before.Vitality.final + potionBonus,
+    minBoonDurationPercent: before['Boon Duration'].final + boonDurationBonus
   };
   const unbuffed = captureGearOptimizerRequest(app, limits);
   assert.equal(
@@ -271,7 +271,7 @@ test('optimizer checks potion attributes and verifies scores under the captured 
     equipment
   ).totalDamage;
   // The two runs independently round damage to whole points after applying the multiplier.
-  assert.ok(Math.abs(score.totalDamage - unbuffedDamage * 1.15 * 1.07) < 2);
+  assert.ok(Math.abs(score.totalDamage - unbuffedDamage * damageFactor('god')) < 2);
   verifyOptimizerScore(optimizerScore(score), optimizerScore(evaluator.evaluate(equipment)));
   const tooMuchToughness = {
     ...request,
@@ -287,9 +287,44 @@ test('optimizer checks potion attributes and verifies scores under the captured 
   verifyOptimizerScore(result.winners[0].score, score);
   applyOptimizerCandidate(app, request, result.winners[0]);
   assert.deepEqual(build.assumptions, savedBuild.assumptions);
-  assert.equal(buildContext(warrior, build).simulationConfig().modifiers.playerStrike, 1.15 * 1.07);
+  assert.equal(buildContext(warrior, build).simulationConfig().modifiers.playerStrike, damageFactor('god'));
   assert.equal(
     buildContext(warrior, build).attributes(1).attributes.Concentration.final,
-    before.Concentration.final + 225
+    before.Concentration.final + potionBonus
   );
+});
+
+// The mech keeps its equipment inheritance while player-only potion stats remain on the player.
+test('fractal potion stats do not enter mech inheritance on either weapon set', async () => {
+  const adapter = await loadOptimizerContext('engineer');
+  const build = adapter.profession.createBuildDefaults();
+  build.specializations = [{ name: 'Mechanist', traits: '1-2-1' }];
+  const mech = { type: 'strike', actorType: ACTOR.SUMMON, summonKind: 'mech', metadata: { engineerMech: true } };
+  const queryFor = (buffs) => {
+    const config = buildContext(adapter, {
+      ...build,
+      assumptions: { ...build.assumptions, fractal: buffs }
+    }).simulationConfig();
+    return createGw2CombatQuery({
+      config,
+      profession: adapter.profession.runtimeFor(config),
+      skillOnCooldown: () => false
+    });
+  };
+
+  const before = queryFor(undefined);
+  const after = queryFor(enabled);
+  for (const activeWeaponSet of [1, 2]) {
+    const runtime = { activeWeaponSet };
+    const baseMech = before.statsAt(0, mech, runtime);
+    const buffedMech = after.statsAt(0, mech, runtime);
+    const basePlayer = before.statsAt(0, null, runtime);
+    const buffedPlayer = after.statsAt(0, null, runtime);
+    for (const stat of ['toughness', 'vitality', 'concentration']) {
+      assert.equal(buffedMech[stat], baseMech[stat], stat);
+      assert.equal(buffedPlayer[stat] - basePlayer[stat], potionBonus, stat);
+    }
+
+    assert.deepEqual(after.statsAt(0, mech, runtime), buffedMech);
+  }
 });

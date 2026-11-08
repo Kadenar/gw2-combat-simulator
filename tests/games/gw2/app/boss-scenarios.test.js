@@ -14,7 +14,9 @@ import { encounterExecutionPhases, encounterPhasePlan } from '#gw2/app/boss-scen
 import { scenarioSimulation, withScenarioConfig } from '#gw2/app/boss-scenarios/simulation.js';
 import { loadScenarioLibrary, saveScenarioLibrary } from '#gw2/app/boss-scenarios/storage.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
+import { normalizeSelectedSkillsAndAttributes } from '#gw2/app/build/state/skill-selection.js';
 import { encounterTimelineMarkers } from '#gw2/app/rotation/timeline/encounter.js';
+import { DEFAULT_FRACTAL_BUFFS } from '#gw2/platform/builds/fractal-buffs.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { createEncounter } from '#gw2/platform/combat/state/encounter.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
@@ -32,6 +34,31 @@ const makeDraft = () =>
     'current'
   );
 const parse = (value) => parseBossScenario(value, 'engineer', adapter.toApplicationBuild);
+
+// The boss editor removes imported fractal settings before calculating attributes, preserving the source build.
+test('boss editor discards imported fractal assumptions before calculating attributes', () => {
+  const build = createDefaultBuild(adapter);
+  build.assumptions.fractal = { ...DEFAULT_FRACTAL_BUFFS, enabled: true };
+  const original = structuredClone(build);
+  const draft = createBossScenario('020102', build, 'Fractal build', 'current');
+  const restored = parse(draft);
+
+  const state = {
+    build: restored.build,
+    workspace: { scenario: restored },
+    adapter,
+    profession: adapter.profession,
+    patch: adapter.profession.resolvePatch({ id: 'current' }),
+    analysis: { state: { results: null } },
+    attributeWeaponSet: 1,
+    attributeData: null
+  };
+  normalizeSelectedSkillsAndAttributes(state);
+  assert.equal(state.build.assumptions.fractal, undefined);
+  for (const stat of ['Toughness', 'Vitality', 'Concentration'])
+    assert.equal(state.attributeData.attributes[stat].fractalPotions, undefined);
+  assert.deepEqual(build, original);
+});
 
 // Boss data owns target size and defiance independently of the copied build's hidden Golem assumptions.
 test('scenario configs use per-target hitbox metadata and remove the Golem hitbox choice', () => {
@@ -644,6 +671,7 @@ test('baseline, RNG, and modifier requests share the encounter configuration', (
   draft.build.assumptions.might = 25;
   draft.build.assumptions.alliedPlayerCount = 0;
   draft.build.assumptions.sharePlayerBoonsWithSummons = true;
+  draft.build.assumptions.fractal = { ...DEFAULT_FRACTAL_BUFFS, enabled: true };
   draft.phases[0].groupDps = 200000;
   draft.phases[1].durationSeconds = 12;
   const app = {
@@ -663,6 +691,11 @@ test('baseline, RNG, and modifier requests share the encounter configuration', (
   assert.equal(modifier.baselineDps, 0);
   assert.ok(modifier.comparisons.length > 0);
   for (const config of [baseline, random, ...modifier.comparisons.map((entry) => entry.config)]) {
+    assert.equal(config.modifiers?.playerStrike, undefined);
+    assert.equal(config.modifiers?.playerCondition, undefined);
+    for (const seed of config.attributeInputs.weaponSets)
+      for (const stat of ['Toughness', 'Vitality', 'Concentration'])
+        assert.equal(seed.sources[stat]?.fractalPotions, undefined);
     assert.equal(config.allies.count, 4);
     assert.equal(config.sharePlayerBoonsWithSummons, false);
     assert.deepEqual(config.encounter, baseline.encounter);
@@ -673,7 +706,12 @@ test('baseline, RNG, and modifier requests share the encounter configuration', (
   assert.equal(draft.build.targetArmor, 5346);
   assert.equal(draft.build.assumptions.alliedPlayerCount, 0);
   assert.equal(draft.build.assumptions.sharePlayerBoonsWithSummons, true);
+  assert.equal(draft.build.assumptions.fractal.enabled, true);
   app.workspace = undefined;
+  assert.ok(
+    captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: false }).baseConfig.modifiers
+      .playerStrike > 1
+  );
   assert.equal(
     captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: false }).baseConfig.allies
       .count,

@@ -50,6 +50,10 @@ export function captureAnalysisRequestSnapshot(
 ): AnalysisRequestSnapshot {
   const owner = input.build;
   const build = structuredClone(input.build);
+
+  // Headless encounter requests enforce the same restriction as the boss editor.
+  if (input.scenario) delete build.assumptions.fractal;
+
   const values = { ...input.patch.values };
   const transitionDelays = normalizeTransitionDelays(input.simulationSettings?.transitionDelays);
   const environment = JSON.stringify({ transitionDelays });

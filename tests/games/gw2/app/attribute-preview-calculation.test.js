@@ -5,6 +5,7 @@ import { calculateAttributePreview } from '#gw2/app/build/attribute-preview-calc
 import { attributePreviewControls, normalizeAttributePreview } from '#gw2/app/build/attribute-preview-controls.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
+import { fractalPotionBonus } from '#gw2/platform/builds/fractal-buffs.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { catalystAttributePool } from '#gw2/professions/elementalist/specializations/catalyst/traits/empowerment.js';
@@ -82,12 +83,13 @@ test('saved fractal buffs update preview concentration and boon duration once', 
   app.build.assumptions.fractal = { enabled: true, agonyResistance: 150, augmentation: 'god' };
   app.attributeData = app.adapter.createBuildContext({ build: app.build, patch: app.patch }).attributes(1);
   const saved = structuredClone(app.build);
+  const potionBonus = fractalPotionBonus(app.build.assumptions.fractal);
 
   for (const input of [{}, { might: 25 }, {}]) {
     const after = stats(app, input);
-    close(after.Concentration.final - before.Concentration.final, 225);
-    close(after['Boon Duration'].final - before['Boon Duration'].final, 15);
-    assert.equal(after.Concentration.fractalPotions, 225);
+    close(after.Concentration.final - before.Concentration.final, potionBonus);
+    close(after['Boon Duration'].final - before['Boon Duration'].final, potionBonus / 15);
+    assert.equal(after.Concentration.fractalPotions, potionBonus);
   }
 
   assert.deepEqual(app.build, saved);

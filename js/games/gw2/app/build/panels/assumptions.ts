@@ -351,7 +351,7 @@ export function renderAssumptions(app: ProfessionAppState): void {
             ${conditionGroups}
           </div>
           <div id="simulation-options" class="simulation-settings-column">
-            ${section('fractal', 'Fractal buffs', fractalControls)}
+            ${isBoss ? '' : section('fractal', 'Fractal buffs', fractalControls)}
             ${section(
               'simulation',
               'Simulation',
@@ -372,24 +372,27 @@ export function renderAssumptions(app: ProfessionAppState): void {
             )}
           </div>`;
 
-  // Save valid fractal settings through the same persistence and invalidation path as other assumptions.
-  const enabled = container.querySelector<HTMLInputElement>('[data-fractal="enabled"]')!;
-  const agonyResistance = container.querySelector<HTMLInputElement>('[data-fractal="agonyResistance"]')!;
-  const augmentation = container.querySelector<HTMLSelectElement>('[data-fractal="augmentation"]')!;
-  const updateFractal = (): void => {
-    if (!agonyResistance.reportValidity()) return;
+  // Boss encounters exclude fractal settings; each other edit commits a bounded integer AR value.
+  if (!isBoss) {
+    const enabled = container.querySelector<HTMLInputElement>('[data-fractal="enabled"]')!;
+    const agonyResistance = container.querySelector<HTMLInputElement>('[data-fractal="agonyResistance"]')!;
+    const augmentation = container.querySelector<HTMLSelectElement>('[data-fractal="augmentation"]')!;
+    const updateFractal = (): void => {
+      const ar = clamp(Math.trunc(Number(agonyResistance.value) || 0), 0, Number.MAX_SAFE_INTEGER);
+      agonyResistance.value = String(ar);
 
-    const buffs = {
-      enabled: enabled.checked,
-      agonyResistance: Number(agonyResistance.value),
-      augmentation: augmentation.value
+      const buffs = {
+        enabled: enabled.checked,
+        agonyResistance: ar,
+        augmentation: augmentation.value
+      };
+      validateFractalBuffs(buffs);
+      app.build.assumptions.fractal = buffs;
+      app.changed();
     };
-    validateFractalBuffs(buffs);
-    app.build.assumptions.fractal = buffs;
-    app.changed();
-  };
 
-  for (const control of [enabled, agonyResistance, augmentation]) control.addEventListener('change', updateFractal);
+    for (const control of [enabled, agonyResistance, augmentation]) control.addEventListener('change', updateFractal);
+  }
 
   // Hover and keyboard focus preview the explanation; clicking keeps it open for reading.
   const criticalDetails = container.querySelector<HTMLDetailsElement>('#critical-damage-details');

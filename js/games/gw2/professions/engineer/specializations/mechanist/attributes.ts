@@ -72,7 +72,14 @@ function inheritedMechAttributes(context: Gw2AttributeContext) {
   const seed = attributeSeed(context.config ?? {}, context.weaponSet);
   const contributions = [];
   for (const trait of sourceTraits) if (hasTrait(facts, trait.id)) contributions.push(trait.attributes!(facts));
-  const inheritedSource = applyAttributeContributions(seed, seed.commonTotals, contributions);
+  // Potions belong to the player and must not enter the mech's inherited attributes.
+  const inheritedTotals = {
+    ...seed.commonTotals,
+    toughness: (seed.commonTotals.toughness ?? 0) - (seed.sources.Toughness?.fractalPotions ?? 0),
+    vitality: (seed.commonTotals.vitality ?? 0) - (seed.sources.Vitality?.fractalPotions ?? 0),
+    concentration: (seed.commonTotals.concentration ?? 0) - (seed.sources.Concentration?.fractalPotions ?? 0)
+  };
+  const inheritedSource = applyAttributeContributions(seed, inheritedTotals, contributions);
   const mech = engineerMechAttributes(context.config ?? {}, inheritedSource, context.catalog);
 
   // The independent mech receives only the Firearms durations assigned to its actor.

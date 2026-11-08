@@ -197,7 +197,7 @@ export function mountBuildTabs(app: ProfessionAppState): void {
   strip.innerHTML = `
     <button type="button" id="build-switcher" class="build-switcher" popovertarget="build-switcher-menu">
       <span class="build-switcher-text">
-        <span class="build-switcher-title"><span class="build-switcher-name"></span><span class="build-mode-status" role="status" aria-live="polite"></span>${CHEVRON_ICON}</span>
+        <span class="build-switcher-title"><span class="build-switcher-name"></span><span class="build-mode-status"></span>${CHEVRON_ICON}</span>
         <span class="build-switcher-count"></span>
       </span>
     </button>
@@ -383,7 +383,7 @@ export function renderBuildTabs(app: ProfessionAppState): void {
   mode.title = fractal?.enabled
     ? `Fractal mode: ${fractal.agonyResistance} AR. ${fractal.augmentation === 'none' ? 'No account augmentation' : FRACTAL_AUGMENTATIONS[fractal.augmentation].label}.`
     : 'Raid mode: fractal buffs disabled.';
-  mode.setAttribute('aria-label', mode.title);
+  mode.hidden = Boolean(workspace.scenario);
   strip.querySelector('.build-switcher-count')!.textContent = `${count} open build${count === 1 ? '' : 's'}`;
   const list = strip.querySelector<HTMLElement>('.build-tab-list')!;
   const scrollTop = list.scrollTop;

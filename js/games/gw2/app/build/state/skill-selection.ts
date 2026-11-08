@@ -163,7 +163,7 @@ export function normalizeSelectedSkills(app: SlotSelectionState): void {
   }
 }
 
-/** Repairs slot selections before deriving attributes so edits and restored tabs use the same build inputs. */
+/** Repairs build inputs before deriving attributes so edits and restored tabs use the same assumptions. */
 export function normalizeSelectedSkillsAndAttributes(
   state: Pick<
     ProfessionAppState,
@@ -175,8 +175,12 @@ export function normalizeSelectedSkillsAndAttributes(
     | 'simulationSettings'
     | 'attributeWeaponSet'
     | 'attributeData'
+    | 'workspace'
   >
 ): void {
+  // Imported builds and restored encounter tabs cannot apply fractal bonuses to boss previews or simulations.
+  if (state.workspace?.scenario) delete state.build.assumptions.fractal;
+
   normalizeSelectedSkills({
     build: state.build,
     activeCatalog: state.patch.catalog,

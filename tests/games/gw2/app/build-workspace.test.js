@@ -139,7 +139,7 @@ function stubGlobal(t, name, value) {
 }
 
 function build(marker = 'default') {
-  return { profession: 'mesmer', gear: { Helm: marker }, selectedSkillIds: {}, rotation: [] };
+  return { profession: 'mesmer', gear: { Helm: marker }, selectedSkillIds: {}, assumptions: {}, rotation: [] };
 }
 
 const catalog = { skills: [], skillsById: new Map() };

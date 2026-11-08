@@ -3,8 +3,8 @@ import type { BuildAttributes } from '#gw2/build-context/types.js';
 import type { Gw2AttributeMap, Gw2AttributeSeed } from '#gw2/platform/attributes/types.js';
 import {
   FRACTAL_AUGMENTATIONS,
-  fractalAttributes,
-  validateFractalBuffs,
+  FRACTAL_POTION_DAMAGE_MULTIPLIER,
+  fractalPotionBonus,
   type FractalBuffs
 } from '#gw2/platform/builds/fractal-buffs.js';
 
@@ -29,11 +29,9 @@ function potionAttributes(attributes: Gw2AttributeMap, bonus: number): Gw2Attrib
 
 /** Add potion stats to final totals while preserving trait and utility conversion sources. */
 export function fractalAttributeSeed(seed: Gw2AttributeSeed, buffs?: FractalBuffs): Gw2AttributeSeed {
-  validateFractalBuffs(buffs);
-
   if (!buffs?.enabled) return seed;
 
-  const bonus = fractalAttributes(buffs).Concentration;
+  const bonus = fractalPotionBonus(buffs);
   return {
     ...seed,
     commonTotals: {
@@ -48,13 +46,11 @@ export function fractalAttributeSeed(seed: Gw2AttributeSeed, buffs?: FractalBuff
 
 /** Finalized previews include the same potion contribution as runtime seeds. */
 export function applyFractalAttributes(base: BuildAttributes, buffs?: FractalBuffs): BuildAttributes {
-  validateFractalBuffs(buffs);
-
   if (!buffs?.enabled) return base;
 
   return {
     ...base,
-    attributes: potionAttributes(base.attributes, fractalAttributes(buffs).Concentration),
+    attributes: potionAttributes(base.attributes, fractalPotionBonus(buffs)),
     attributeSeed: fractalAttributeSeed(base.attributeSeed, buffs)
   };
 }
@@ -63,10 +59,8 @@ export function applyFractalAttributes(base: BuildAttributes, buffs?: FractalBuf
 export function fractalDamageModifiers(
   buffs?: FractalBuffs
 ): { playerStrike: number; playerCondition: number } | undefined {
-  validateFractalBuffs(buffs);
-
   if (!buffs?.enabled) return undefined;
 
-  const damage = 1.15 * (1 + FRACTAL_AUGMENTATIONS[buffs.augmentation].damage);
+  const damage = FRACTAL_POTION_DAMAGE_MULTIPLIER * (1 + FRACTAL_AUGMENTATIONS[buffs.augmentation].damage);
   return { playerStrike: damage, playerCondition: damage };
 }

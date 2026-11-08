@@ -39,17 +39,13 @@ export function validateFractalBuffs(value: unknown): asserts value is FractalBu
     throw new TypeError('Invalid fractal buffs: use nonnegative integer AR and a known account augmentation.');
 }
 
-/** Potion conversions add final stats without feeding another attribute conversion. */
-export function fractalAttributes(buffs: FractalBuffs | undefined): Record<string, number> {
-  validateFractalBuffs(buffs);
+/** Full potion stacks at maximum mastery grant this much Vitality, Toughness, and Concentration per AR. */
+const FRACTAL_POTION_STATS_PER_AR = 1.5;
 
-  if (!buffs?.enabled) return {};
+/** Five offensive potion stacks multiply player damage before account augmentation. */
+export const FRACTAL_POTION_DAMAGE_MULTIPLIER = 1.15;
 
-  // Fractal buffs assume maximum mastery and five stacks of all three potions.
-  const bonus = buffs.agonyResistance * 1.5;
-  return {
-    Vitality: bonus,
-    Toughness: bonus,
-    Concentration: bonus
-  };
+/** Full potion stacks with maximum mastery add final stats without feeding other conversions. */
+export function fractalPotionBonus(buffs?: FractalBuffs): number {
+  return buffs?.enabled ? buffs.agonyResistance * FRACTAL_POTION_STATS_PER_AR : 0;
 }

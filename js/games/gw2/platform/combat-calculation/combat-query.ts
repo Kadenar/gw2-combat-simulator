@@ -621,7 +621,8 @@ export function createGw2CombatQuery({
         traceFactor(contributors, 'equipment.night', 'Night sigil', timeOfDayMultiplier);
         traceFactor(contributors, 'equipment.sigil-multiplier', 'Sigils', sigils.strikeMultiplier || 1);
         traceFactor(contributors, 'equipment.utility', 'Utility', utilityMultiplier);
-        traceFactor(contributors, 'config.player-strike', 'Configured player modifier', playerMultiplier);
+        // Fractal buffs are currently the only source of playerStrike; revise this label if another source is added.
+        traceFactor(contributors, 'config.player-strike', 'Fractal buffs', playerMultiplier);
         traceFactor(contributors, 'config.strike', 'Configured modifier', config.modifiers?.strike || 1);
         closeContributions(contributors, total);
       }
@@ -673,7 +674,8 @@ export function createGw2CombatQuery({
       if (contributors) {
         traceFactor(contributors, 'target.vulnerability', CONDITION.VULNERABILITY, vulnerability);
         traceFactor(contributors, 'config.condition', 'Configured modifier', config.modifiers?.condition || 1);
-        traceFactor(contributors, 'config.player-condition', 'Configured player modifier', playerMultiplier);
+        // Fractal buffs are currently the only source of playerCondition; revise this label if another source is added.
+        traceFactor(contributors, 'config.player-condition', 'Fractal buffs', playerMultiplier);
         closeContributions(contributors, total);
       }
 
