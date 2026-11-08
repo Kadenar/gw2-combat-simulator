@@ -229,7 +229,7 @@ export const weakeningShroud = defineTrait({
   id: TRAIT.WEAKENING_SHROUD,
   balance: {
     effects: [
-      { name: 'Strike', type: 'strike', coefficient: 1.5, hits: 1 },
+      { name: 'Strike', type: 'strike', coefficient: 1.5, hits: 1, canCrit: false },
       { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 10 },
       { name: CONDITION.WEAKNESS, type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 6 }
     ]

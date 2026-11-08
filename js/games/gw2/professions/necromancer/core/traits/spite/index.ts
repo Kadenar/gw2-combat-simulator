@@ -242,6 +242,7 @@ export const spitefulSpirit = defineTrait({
         type: 'strike',
         coefficient: 1,
         hits: 1,
+        canCrit: false,
         actorType: ACTOR.EFFECT
       }
     ]
