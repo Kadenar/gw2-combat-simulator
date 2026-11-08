@@ -1,4 +1,4 @@
-import { updateHeaderDps } from '#browser/shell/header-dps.js';
+import { updateDpsStatus } from '#browser/shell/dps-status.js';
 import { mountSimulationSection, type SimulationViewModel } from '#ui/results/simulation-view.js';
 
 export interface SimulationRenderState {
@@ -34,7 +34,7 @@ export function renderSimulationViewModel(viewModel: SimulationViewModel, state:
     summary.setAttribute('aria-busy', String(stale));
   }
 
-  updateHeaderDps(viewModel.headerDps);
+  updateDpsStatus(viewModel.headerDps);
   mountSimulationSection(summary, viewModel.summary);
 
   const element = document.getElementById('rotation-results');

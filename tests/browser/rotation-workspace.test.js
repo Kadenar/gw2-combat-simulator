@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { mountHeaderDps, updateHeaderDps } from '#browser/shell/header-dps.js';
+import { mountHeaderDps, updateDpsStatus } from '#browser/shell/dps-status.js';
 import {
   DEFAULT_ROTATION_WORKSPACE_STATE,
   mountRotationDpsSummary,
@@ -94,16 +94,16 @@ test('header DPS mounts once and tracks the latest result', () => {
   mountHeaderDps(root);
   const indicator = root.getElementById('header-dps');
   mountHeaderDps(root);
-  updateHeaderDps('12,345', root);
+  updateDpsStatus('12,345', root);
 
   assert.equal(elements.size, 2);
   assert.equal(indicator.querySelector('.header-dps-label').textContent, 'DPS');
   assert.equal(indicator.querySelector('.header-dps-value').textContent, '12,345');
   assert.equal(indicator.attributes.get('aria-label'), 'Current rotation DPS: 12,345');
-  updateHeaderDps('12,345', root);
+  updateDpsStatus('12,345', root);
   assert.deepEqual(announcements, ['DPS: 12,345']);
 
-  updateHeaderDps(null, root);
+  updateDpsStatus(null, root);
   assert.equal(indicator.querySelector('.header-dps-value').textContent, '-');
   assert.equal(indicator.attributes.get('aria-label'), 'Current rotation DPS unavailable');
   assert.deepEqual(announcements, ['DPS: 12,345', 'DPS unavailable']);

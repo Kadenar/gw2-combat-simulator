@@ -1,4 +1,4 @@
-/** Owns the live DPS status shared by standalone and embedded simulator headers. */
+/** Publishes each result to both the visual header DPS value and the focus-mode announcement. */
 const HEADER_DPS_PLACEHOLDER = '-';
 
 /** Keep DPS beside the active build so the sticky toolbar associates the result with its build. */
@@ -29,8 +29,8 @@ export function mountHeaderDps(root: Document = document): void {
   host.after(indicator);
 }
 
-/** Keeps the header status synchronized with the latest formatted simulation result. */
-export function updateHeaderDps(value: string | null | undefined, root: Document = document): void {
+/** Updates both DPS statuses from one formatted result, announcing only changed values in focus mode. */
+export function updateDpsStatus(value: string | null | undefined, root: Document = document): void {
   const indicator = root.getElementById('header-dps');
   const valueElement = indicator?.querySelector<HTMLElement>('.header-dps-value');
   const displayValue = value?.trim() || HEADER_DPS_PLACEHOLDER;

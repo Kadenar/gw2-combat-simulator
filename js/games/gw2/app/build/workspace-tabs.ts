@@ -1,6 +1,6 @@
 /** Keep build selection and actions reachable in desktop toolbars and compact mobile menus. */
 import { bindDialog, showDialog } from '#browser/page/dialog.js';
-import { mountHeaderDps } from '#browser/shell/header-dps.js';
+import { mountHeaderDps } from '#browser/shell/dps-status.js';
 import { mountMobileMenu } from '#browser/shell/mobile-menu.js';
 import { addBuildTab, closeBuildTab, saveBuildWorkspace } from '#gw2/app/build/state/workspace.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
