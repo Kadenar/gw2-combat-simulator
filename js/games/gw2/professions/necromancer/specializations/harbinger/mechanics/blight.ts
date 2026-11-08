@@ -46,7 +46,7 @@ function refreshBlight(runtime: NecromancerRuntime): void {
   if (Number.isFinite(at)) runtime.schedule(BLIGHT, at, null, { id: BLIGHT, generation: state.blightGeneration }, -20);
 }
 
-/** Publish each resource change and rearm its expiry before returning the count to the skill owner. */
+/** Report the current Blight count and reschedule its next update before returning the count. */
 function publishBlight(runtime: NecromancerRuntime): number {
   const state = harbingerState.from(runtime.profession);
   const blight = state.blightExpiries.length;
@@ -68,13 +68,13 @@ function publishBlight(runtime: NecromancerRuntime): number {
   return blight;
 }
 
-/** Grants settle capacity and expiry, including refreshes at the cap, before skills sample their damage count. */
+/** Apply the cap and refresh stack expiry before returning the Blight count used for skill damage. */
 export function grantBlight(runtime: NecromancerRuntime, stacks: number): number {
   addBlight(harbingerState.from(runtime.profession), stacks, runtime.time, harbingerBlightMaximum(runtime.helpers));
   return publishBlight(runtime);
 }
 
-/** Spending fires its trait trigger and settles resource observations before returning the launch result. */
+/** Spend Blight and run its trait trigger before reporting the remaining stacks and skill empowerment. */
 export function spendBlight(
   runtime: NecromancerRuntime,
   cast: RuntimeCast<NecromancerSkill>

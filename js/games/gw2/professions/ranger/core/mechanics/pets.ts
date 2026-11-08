@@ -298,7 +298,7 @@ export function emitRangerPetSkill(
   const entityName = rangerPetForState(context.profession.core).name;
   const timing = rangerPetSkillTiming(entityName, skill.id);
   const quickness = petBoonActive(context, boonKey(BOON.QUICKNESS));
-  // Pet policy retains measured impacts and companion lifetimes; commanded effects share cast admission and targeting.
+  // Keep pet impact timing and cancellation here. Commanded effects use shared cast targeting.
   const deliveryForEffect = (effect: SkillEffect): Omit<CastEffectDelivery, 'cast'> | null => {
     if (
       cast &&
@@ -361,7 +361,7 @@ export function emitRangerPetSkill(
   if (cast) {
     emitCastEffects(context, cast, skill.effects ?? [], deliveryForEffect);
   } else {
-    // Autonomous attacks have no accepted player cast and keep their independent activation identity.
+    // Autonomous attacks use their own activation ID because they have no player cast.
     for (const effect of skill.effects ?? []) {
       const delivery = deliveryForEffect(effect);
 

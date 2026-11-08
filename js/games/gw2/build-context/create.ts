@@ -23,16 +23,16 @@ import {
 } from '#gw2/professions/shared/build-attributes.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 
-// Families own their additional fields and primary resource; shared configuration remains protected.
+// Profession mappings may set their own config fields and initialResource, but no other shared fields.
 type ProfessionConfig<TConfig extends Gw2Config> = Partial<Omit<TConfig, keyof Gw2Config>> &
   Pick<Gw2Config, 'initialResource'> & {
     readonly [Key in Exclude<keyof Gw2Config, 'initialResource'>]?: never;
   };
 
-// Inspect every branch of an inferred result so conditional mappings cannot hide foreign or misspelled fields.
+// Check each union member for extra keys, including fields returned in only one conditional branch.
 type ExtraConfigKeys<TConfig, TResult> = TResult extends unknown ? Exclude<keyof TResult, keyof TConfig> : never;
 
-/** Bind the family types first, then infer the complete mapping result to reject extra keys in returned objects. */
+/** Bind the profession types first so TypeScript can infer the mapper's return type and reject extra keys. */
 export function bindBuildContext<TBuild extends Gw2CanonicalBuild, TConfig extends Gw2Config>(
   profession: BuildContextProfession
 ) {

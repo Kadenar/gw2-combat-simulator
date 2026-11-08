@@ -1,4 +1,4 @@
-/** Share cast eligibility, timing projection and targeting while each producer owns its delivery policy. */
+/** Player casts and pet commands share effect checks, cast timing, and targeting. */
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -6,12 +6,12 @@ import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 
-/** Cast identity and targeting come from the accepted command; producers supply only their delivery differences. */
+/** Callers supply delivery options. The cast supplies activation IDs and targeting. */
 export type CastEffectDelivery = Omit<ProfileEmission, 'kind' | 'effects' | 'cast'> & {
   readonly cast?: Pick<NonNullable<ProfileEmission['cast']>, 'independentSourceStrike'>;
 };
 
-/** Producers choose ownership and cancellation before shared delivery applies the command's targeting once. */
+/** Callers choose effect ownership and cancellation. Each emitted effect uses the cast's timing and targeting. */
 export function emitCastEffects<TState extends object, TSkill extends Skill>(
   context: Pick<MechanicContext<TState, TSkill>, 'queries' | 'effects'>,
   cast: RuntimeCast<TSkill>,
@@ -31,7 +31,7 @@ export function emitCastEffects<TState extends object, TSkill extends Skill>(
       effects: [scaleCastBoundTiming(cast, cast.skill, effect)],
       at: delivery.at ?? cast.start,
       fullEnd: delivery.fullEnd ?? cast.fullEnd,
-      // Admission stamps targeting and travel onto every packet; producer transforms never author either field.
+      // Pass targeting to packet admission so it applies the impact delay once, after caller transforms.
       cast: {
         ...delivery.cast,
         activationId: cast.id,
