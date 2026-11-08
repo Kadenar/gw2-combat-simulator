@@ -11,7 +11,7 @@ import {
   paletteSkillResourceView,
   type PaletteResourceView
 } from '#gw2/app/rotation/palette/resource-view.js';
-import type { PaletteSkill } from '#gw2/app/rotation/skill-views.js';
+import type { PaletteSkill } from '#gw2/app/rotation/skill-types.js';
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import { ACTION_ICONS, COMBAT_START_ICON, COOLDOWN_RESET_ICON, WAIT_ICON } from '#gw2/app/shared/icons.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';

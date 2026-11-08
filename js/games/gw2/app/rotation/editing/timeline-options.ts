@@ -15,7 +15,7 @@ import {
 } from '#gw2/app/rotation/editing/double-edge-editor.js';
 import { updateRotationEntry } from '#gw2/app/rotation/editing/operations.js';
 import { dispatchPaletteDrop } from '#gw2/app/rotation/palette/interactions.js';
-import type { RotationSkill } from '#gw2/app/rotation/skill-views.js';
+import type { RotationSkill } from '#gw2/app/rotation/skill-types.js';
 import type { TimelineInteractionOptions } from '#gw2/app/rotation/timeline/interactions.js';
 import {
   currentTimelineResults,

@@ -11,7 +11,7 @@ import {
 import type { ProfessionRotationDragState, RotationActionOptions } from '#gw2/app/rotation/editing/state.js';
 import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { paletteSkillIsInstant, queryPaletteContext, type PaletteContext } from '#gw2/app/rotation/palette/model.js';
-import type { RotationSkill } from '#gw2/app/rotation/skill-views.js';
+import type { RotationSkill } from '#gw2/app/rotation/skill-types.js';
 import { clearTimelineDropIndicators } from '#gw2/app/rotation/timeline/interactions.js';
 import { rotationEntryName } from '#gw2/app/rotation/timeline/model.js';
 import { WAIT_ICON } from '#gw2/app/shared/icons.js';
