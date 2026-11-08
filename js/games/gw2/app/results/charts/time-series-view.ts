@@ -1,3 +1,4 @@
+/** Present generated supply separately from uptime for the player and one projected ally. */
 import { layoutChartMarkerLabels } from '#gw2/app/results/charts/marker-layout.js';
 import { bindTimeSeriesInteractions } from '#gw2/app/results/charts/time-series-interactions.js';
 import {
@@ -13,7 +14,6 @@ import {
 } from '#gw2/app/results/charts/time-series-model.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
-import { PRESENTATION_ALLIED_PLAYER_COUNT } from '#gw2/platform/results/boon-generation.js';
 import { escapeHtml } from '#ui/shared/html.js';
 
 // Mounts chart data as interactive DOM and canvas output without owning simulation transforms.
@@ -467,7 +467,7 @@ function effectSummaryHtml(series: ChartSeries): string {
     if (name !== BOON.QUICKNESS && name !== BOON.ALACRITY) return true;
 
     const boon = generation[name];
-    return boon && boon.self.generatedStackSeconds + boon.allies.generatedStackSeconds > 0;
+    return boon && boon.self.generatedStackSeconds + boon.ally.generatedStackSeconds > 0;
   });
   const names = [...new Set([...Object.keys(summaries), ...Object.keys(generation)])];
 
@@ -488,10 +488,9 @@ function effectSummaryHtml(series: ChartSeries): string {
         const intensity = Boolean(boon?.intensityStacking || name === BOON.MIGHT);
         const maximum = summary?.maximumStacks ?? boon?.maximumStacks ?? (name === BOON.MIGHT ? 25 : undefined);
         const own = boon?.self;
-        const alliedGenerated = boon?.allies.generatedStackSeconds || 0;
-        const alliedPerPlayer = alliedGenerated / PRESENTATION_ALLIED_PLAYER_COUNT;
+        const alliedGenerated = boon?.ally.generatedStackSeconds || 0;
         const generatedAverage = duration > 0 ? (own?.generatedStackSeconds || 0) / duration : 0;
-        const alliedAverage = duration > 0 ? alliedGenerated / (duration * PRESENTATION_ALLIED_PLAYER_COUNT) : 0;
+        const alliedAverage = duration > 0 ? alliedGenerated / duration : 0;
         const target = intensity ? maximum : 1;
         const isBoon = Boolean(boon) || priority.includes(name);
         const selfState = intensity
@@ -503,9 +502,9 @@ function effectSummaryHtml(series: ChartSeries): string {
             : '';
         const selfGeneration = own?.generatedStackSeconds || 0;
         // Identical per-player values add no self-specific information, so only differences stay visible.
-        const selfDiffersFromAllies = Math.abs(selfGeneration - alliedPerPlayer) > 1e-9;
+        const selfDiffersFromAlly = Math.abs(selfGeneration - alliedGenerated) > 1e-9;
         const selfCoverage =
-          selfGeneration && selfDiffersFromAllies
+          selfGeneration && selfDiffersFromAlly
             ? `<small>Self: ${coverage(generatedAverage, intensity, maximum)}</small>`
             : '';
         const coverageDetails = isBoon
@@ -513,7 +512,7 @@ function effectSummaryHtml(series: ChartSeries): string {
           : selfState;
         return `<tr>
       <th scope="row">${escapeHtml(name)}</th>
-      <td>Ally: ${(series.alliedAverageStacks?.[name] || 0).toFixed(2)}<small>Self: ${(summary?.averageStacks || 0).toFixed(2)}</small></td>
+      <td>Allies: ${(series.alliedAverageStacks?.[name] || 0).toFixed(2)}<small>Self: ${(summary?.averageStacks || 0).toFixed(2)}</small></td>
       <td>${coverageDetails}</td>
     </tr>`;
       })
@@ -521,7 +520,7 @@ function effectSummaryHtml(series: ChartSeries): string {
   const table = (effects: readonly string[], label: string, showCaption = true): string => `
     <div class="effect-summary-scroll" tabindex="0" role="region" aria-label="${label}">
       <table>
-        ${showCaption ? `<caption>${label} · ${PRESENTATION_ALLIED_PLAYER_COUNT} allies · full benchmark (${duration.toFixed(3)}s)</caption>` : ''}
+        ${showCaption ? `<caption>${label} · Allies · full benchmark (${duration.toFixed(3)}s)</caption>` : ''}
         <thead><tr><th scope="col">Effect</th><th scope="col">Average stacks</th><th scope="col">Coverage</th></tr></thead>
         <tbody>${rows(effects)}</tbody>
       </table>
@@ -656,7 +655,7 @@ function chartHtml(
         <div class="chart-phase-toggles" data-role="boon-audience" role="group" aria-label="Boon audience">
           <span class="chart-toggle-label">Boons</span>
           <button type="button" data-boon-audience="self" aria-pressed="true">Self</button>
-          <button type="button" data-boon-audience="allies" aria-pressed="false">Allies</button>
+          <button type="button" data-boon-audience="ally" aria-pressed="false">Allies</button>
           <button type="button" data-boon-audience="both" aria-pressed="false">Both</button>
           <span>Self: solid · Allies: dashed</span>
         </div>
@@ -710,7 +709,6 @@ export function mountTimeSeriesCharts(
     effectUnits: series?.effectUnits || {},
     effectSummaries: series?.effectSummaries || {},
     boonGeneration: series?.boonGeneration || {},
-    alliedPlayerCount: series?.alliedPlayerCount || 0,
     // The model owns cumulative damage; mounting a chart never reconstructs it from sampled DPS.
     cumulativeDamage: series.cumulativeDamage
   };
@@ -918,14 +916,14 @@ export function mountTimeSeriesCharts(
             const lines: ChartLine[] = [];
             const own = effectsView.effects[name];
 
-            if (own && (!boon || boonAudience !== 'allies'))
+            if (own && (!boon || boonAudience !== 'ally'))
               lines.push({ name: boon ? `${name} (Self)` : name, effectName: name, points: own, color, unit, stepped });
 
             const allied = alliedView.effects[name];
 
             if (boon && allied && boonAudience !== RECIPIENT.SELF)
               lines.push({
-                name: `${name} (Allies avg)`,
+                name: `${name} (Allies)`,
                 effectName: name,
                 points: allied,
                 color,

@@ -101,10 +101,10 @@ export const mechanistTooltips = {
       improvedMechInheritanceFacts
     ),
     [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]: traitTooltip(
-      'Select Crisis Zone as the second mech command. Player and mech barrier applications grant alacrity to their recipients. Improve mech concentration and healing-power inheritance.',
+      'Select Crisis Zone as the second mech command. Player and mech barrier applications grant party alacrity through one shared internal cooldown. Improve mech concentration and healing-power inheritance.',
       (balanceContext, id) => [
         ...improvedMechInheritanceFacts(balanceContext, id),
-        profileFact(balanceContext, id, 'internalCooldown', 'Alacrity cooldown per recipient', tooltipSeconds)
+        profileFact(balanceContext, id, 'internalCooldown', 'Alacrity cooldown', tooltipSeconds)
       ]
     ),
     [TRAIT.MECH_FRAME_VARIABLE_MASS_DISTRIBUTOR]: traitTooltip(

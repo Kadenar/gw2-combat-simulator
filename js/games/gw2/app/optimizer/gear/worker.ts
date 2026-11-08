@@ -16,7 +16,7 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
     self.postMessage({ requestId: data.requestId, ...payload } satisfies GearOptimizerWorkerResponse);
   try {
     // Keep shared code out of the entry chunk so WebKit cannot reimport it and install an uninitialized listener.
-    const { optimizerEquipment, optimizerScore, verifyOptimizerScore } =
+    const { optimizerEquipment, optimizerScore, verifyOptimizerScore, meetsOptimizerOvercapRequirements } =
       await import('#gw2/app/optimizer/gear/search.js');
 
     if (data.kind === 'init') {
@@ -95,6 +95,10 @@ self.addEventListener('message', async ({ data }: MessageEvent<GearOptimizerWork
     for (const candidate of data.candidates) {
       const detailed = job.evaluator.evaluate(candidate.equipment);
       verifyOptimizerScore(candidate.score, optimizerScore(detailed));
+
+      // Detailed verification must satisfy the same coverage requirements before results can be applied.
+      if (!meetsOptimizerOvercapRequirements(detailed, job.space.ordinary.request.selections))
+        throw new Error('Optimizer correctness failure: finalist does not meet boon overcap requirements.');
     }
 
     post({ kind: 'verified' });

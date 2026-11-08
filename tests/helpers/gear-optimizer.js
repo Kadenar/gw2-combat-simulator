@@ -1,6 +1,7 @@
 import {
   createOptimizerEvaluator,
   createOptimizerSpace,
+  meetsOptimizerOvercapRequirements,
   optimizerScore,
   ordinaryEquipmentAt,
   retainOptimizerCandidate
@@ -18,19 +19,26 @@ export function runOrdinaryOptimizer(request, adapter) {
 
     if (!config) continue;
 
+    const score = optimizerScore(
+      simulateGw2({
+        profession: adapter.profession,
+        rotation: request.build.rotation,
+        config,
+        collectBoonCoverage:
+          request.selections.minQuicknessOvercapPercent !== undefined ||
+          request.selections.minAlacrityOvercapPercent !== undefined,
+        observationPolicy: { kind: 'rotation' }
+      })
+    );
+
+    if (!meetsOptimizerOvercapRequirements(score, request.selections)) continue;
+
     retainOptimizerCandidate(
       winners,
       {
         key: JSON.stringify(equipment),
         equipment,
-        score: optimizerScore(
-          simulateGw2({
-            profession: adapter.profession,
-            rotation: request.build.rotation,
-            config,
-            observationPolicy: { kind: 'rotation' }
-          })
-        ),
+        score,
         representedCombinationCount: '1'
       },
       request.limit

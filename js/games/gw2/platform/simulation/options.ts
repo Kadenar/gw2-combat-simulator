@@ -7,6 +7,8 @@ import type { ObservationPolicy } from '#kernel/execution/observation.js';
 export interface Gw2SimulationOptions {
   /** Detailed editor results can omit chart histories while retaining events, APM, and planning snapshots. */
   readonly collectChartData?: boolean;
+  /** Collect quickness and alacrity supply for optional optimizer constraints. */
+  readonly collectBoonCoverage?: boolean;
   /** Capture formula facts during detailed execution; never persisted as build configuration. */
   readonly damageDiagnostics?: boolean;
   /** Optional profiler receives phase durations; normal simulations avoid clock reads. */

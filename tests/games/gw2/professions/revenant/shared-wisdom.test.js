@@ -49,7 +49,7 @@ for (const [skillId, boon] of [
       for (const kind of ['swiftness', boon]) {
         const reported = generation.boons.get(kind);
         assert.ok(reported.self.generatedStackSeconds > 0);
-        assert.equal(reported.allies.generatedStackSeconds, reported.self.generatedStackSeconds * 4);
+        assert.equal(reported.ally.generatedStackSeconds, reported.self.generatedStackSeconds);
       }
 
       const unselected = runRevenant(rotation, { ...config, selectedTraitIds: [], allies: { count } });

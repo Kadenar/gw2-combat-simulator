@@ -21,6 +21,7 @@ import {
   createOptimizerEvaluator,
   createOptimizerSpace,
   isOptimizerRequestCurrent,
+  meetsOptimizerOvercapRequirements,
   optimizerCardinality,
   optimizerEquipment,
   optimizerScore,
@@ -923,7 +924,9 @@ test('optimizer requirements validate numeric bounds and reject inverted toughne
     'maxToughness',
     'minVitality',
     'minBoonDurationPercent',
-    'minQuicknessDurationPercent'
+    'minQuicknessDurationPercent',
+    'minQuicknessOvercapPercent',
+    'minAlacrityOvercapPercent'
   ]) {
     for (const value of [null, '', '10', NaN, Infinity, -1]) assert.throws(() => request({ [key]: value }), /Invalid/);
     assert.doesNotThrow(() => request({ [key]: 0 }));
@@ -933,6 +936,95 @@ test('optimizer requirements validate numeric bounds and reject inverted toughne
     assert.throws(() => request({ [key]: 100.1 }), /Invalid/);
   assert.throws(() => request({ minToughness: 1200, maxToughness: 1100 }), /must not exceed/);
 });
+
+// Supply constraints run after combat; blank and zero have deliberately different meanings.
+test('overcap requirements use inclusive ally coverage without limiting overcap to 100 percent', () => {
+  for (const key of ['minQuicknessOvercapPercent', 'minAlacrityOvercapPercent'])
+    assert.doesNotThrow(() => request({ [key]: 250 }));
+  const score = {
+    boonCoverage: { quickness: { selfPercent: 900, allyPercent: 120 }, alacrity: { selfPercent: 0, allyPercent: 100 } }
+  };
+  assert.equal(meetsOptimizerOvercapRequirements({}, {}), true);
+  assert.equal(meetsOptimizerOvercapRequirements({}, { minQuicknessOvercapPercent: 0 }), false);
+  assert.equal(
+    meetsOptimizerOvercapRequirements(score, { minQuicknessOvercapPercent: 20, minAlacrityOvercapPercent: 0 }),
+    true
+  );
+  assert.equal(meetsOptimizerOvercapRequirements(score, { minQuicknessOvercapPercent: 20.01 }), false);
+  assert.equal(meetsOptimizerOvercapRequirements(score, { minAlacrityOvercapPercent: 0.01 }), false);
+  assert.throws(
+    () =>
+      verifyOptimizerScore(score, {
+        ...score,
+        boonCoverage: { ...score.boonCoverage, quickness: { selfPercent: 900, allyPercent: 119 } }
+      }),
+    /boonCoverage/
+  );
+});
+
+// A higher-DPS candidate that misses coverage cannot displace a qualifying candidate at the result limit.
+test('overcap filters before winner cutoffs and detailed finalist verification', async () => {
+  const guardian = await loadProfessionAppAdapter('guardian');
+  const defaults = guardian.profession.createBuildDefaults();
+  const build = guardian.toApplicationBuild({
+    ...defaults,
+    weapons: ['Greatsword', ''],
+    rune: 'Fireworks',
+    selectedSkillIds: { ...defaults.selectedSkillIds, Elite: 29965 },
+    rotation: [{ type: 'combat-start' }, '"Feel My Wrath!"', 'Strike', { type: 'wait', durationMs: 1500 }]
+  });
+  const captured = captureGearOptimizerRequest(
+    {
+      build,
+      adapter: guardian,
+      contentId: guardian.id,
+      analysis: { state: { buildRevision: 0 } },
+      patch: guardian.profession.resolvePatch({ id: 'current' })
+    },
+    { rune: ['Firebrand', 'Fireworks'], minQuicknessOvercapPercent: 160 }
+  );
+  for (const create of [createGroupedOptimizer, createFastOptimizer]) {
+    const job = create({ ...captured, limit: 1 }, guardian);
+    const baseline = job.evaluator.evaluate(build);
+    assert.equal(meetsOptimizerOvercapRequirements(baseline, captured.selections), false);
+    const result = job.evaluateRange(0n, job.space.count);
+    assert.equal(result.winners.length, 1);
+    const winner = result.winners[0];
+    assert.equal(winner.equipment.rune, 'Firebrand');
+    assert.ok(baseline.dps > winner.score.dps);
+    assert.ok(
+      Object.values(result.groups)
+        .flat()
+        .every((candidate) => candidate.equipment.rune === 'Firebrand')
+    );
+    verifyOptimizerScore(winner.score, optimizerScore(job.evaluator.evaluate(winner.equipment)));
+    assert.equal(runOrdinaryOptimizer({ ...captured, limit: 1 }, guardian)[0].equipment.rune, winner.equipment.rune);
+  }
+});
+
+// Rejected combat runs still report progress and warnings, but cannot consume winner or group slots.
+for (const create of [createGroupedOptimizer, createFastOptimizer]) {
+  test(`${create.name} excludes failed coverage from results while retaining completed simulations`, () => {
+    const captured = request(
+      { rune: ['Firebrand', 'Fireworks'], minQuicknessOvercapPercent: 0 },
+      {
+        rotation: adapter.toApplicationBuild({ rotation: ['Chop', 'Chop'] }).rotation,
+        weapons: ['Greatsword', '']
+      }
+    );
+    const job = create(captured, adapter);
+    const progress = [];
+    const result = job.evaluateRange(0n, job.space.count, (...counts) => progress.push(counts));
+    assert.equal(result.simulations, job.space.count.toString());
+    assert.equal(progress.at(-1)[2], job.space.count);
+    assert.ok(result.warnings.length > 0);
+    assert.deepEqual(result.winners, []);
+    assert.ok(Object.values(result.groups).every((group) => group.length === 0));
+    const baseline = optimizerScore(job.evaluator.evaluate(captured.build));
+    assert.equal(meetsOptimizerOvercapRequirements(baseline, captured.selections), false);
+    verifyOptimizerScore(optimizerScore(job.evaluator.score(captured.build)), baseline);
+  });
+}
 
 test('requirements use inclusive finalized stats and reject before simulation config preparation', () => {
   const overrides = {

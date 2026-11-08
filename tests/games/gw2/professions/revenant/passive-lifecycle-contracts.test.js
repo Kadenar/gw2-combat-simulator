@@ -103,15 +103,12 @@ test('Found Purpose shares Cosmic Wisdom boons with allies, including outside co
           assert.equal(grant.resolvedAudience.alliedPlayerCount, selected ? count : 0);
         }
 
-        // Party reporting projects four allies even when the simulated player is alone.
+        // Party reporting projects one hypothetical ally even when the simulated player is alone.
         const generation = buildBoonGeneration(grants, 0, result.rotationEndTime);
         const quickness = grants.find((event) => event.kind === 'quickness');
 
         assert.equal(generation.boons.get('quickness').self.generatedStackSeconds, quickness.duration);
-        assert.equal(
-          generation.boons.get('quickness').allies.generatedStackSeconds,
-          selected ? quickness.duration * 4 : 0
-        );
+        assert.equal(generation.boons.get('quickness').ally.generatedStackSeconds, selected ? quickness.duration : 0);
       }
     }
   }

@@ -41,7 +41,7 @@ test("skill details group proc counts by trigger and disclose only that skill's 
             conditionDamage: 425,
             // Damage-only fixtures still provide the canonical reports consumed by analysis charts.
             effectReport: { start: 0, end: 10, tracks: [] },
-            boonGeneration: { alliedPlayerCount: 4, boons: {} },
+            boonGeneration: { boons: {} },
             breakdown: [
               { name: 'Strength of Stone', conditionDamage: 425, actorType: 'effect' },
               { name: 'Earthen Rush', strikeDamage: 10, actorType: 'player' },

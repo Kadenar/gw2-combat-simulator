@@ -120,7 +120,7 @@ test('condition inspectors filter views and restore keyboard focus', async ({ pa
       combatEndTime: 6.36,
       // Damage-only fixtures still provide the canonical reports consumed by analysis charts.
       effectReport: { start: 0, end: 6.36, tracks: [] },
-      boonGeneration: { alliedPlayerCount: 4, boons: {} },
+      boonGeneration: { boons: {} },
       resolvedEvents: [
         {
           type: 'condition',

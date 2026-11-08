@@ -1,3 +1,4 @@
+/** Completed simulations retain progress and warnings even when generated coverage rejects their gear. */
 import {
   createOptimizerResultGroups,
   optimizerEquipmentIdentity,
@@ -9,6 +10,7 @@ import {
   assignOptimizerChoice,
   createOptimizerEvaluator,
   createOptimizerSpace,
+  meetsOptimizerOvercapRequirements,
   optimizerCardinality,
   optimizerEquipment,
   optimizerScore,
@@ -281,6 +283,11 @@ export function createOptimizerRangeScorer(
         const category =
           warnings.has(warning) || warnings.size < 32 ? warning : 'Additional warnings (see retained candidates)';
         warnings.set(category, (warnings.get(category) || 0) + 1);
+      }
+
+      if (!meetsOptimizerOvercapRequirements(score, ordinary.request.selections)) {
+        onProgress?.(ordinal - start + 1n, representedCombinationCount, simulations);
+        continue;
       }
 
       retainOptimizerCandidate(

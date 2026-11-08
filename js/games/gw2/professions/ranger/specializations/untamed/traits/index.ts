@@ -484,6 +484,8 @@ function triggerLetLoose(context: RangerResolverContext, event: Gw2ResolverEvent
   if (
     // Every supported weapon ambush can grant Let Loose on its first landed strike.
     !AMBUSH_SKILL_IDS.has(Number(event.skillId)) ||
+    // Delayed spores own their strength rolls but do not count as additional ambushes.
+    event.sourceId === ID.EXPLODING_SPORE ||
     // activationId is absent on synthetic events; guard prevents double-counting.
     !event.activationId
   ) {

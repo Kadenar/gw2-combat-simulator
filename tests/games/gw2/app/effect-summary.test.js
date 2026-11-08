@@ -188,8 +188,8 @@ test('Harbinger state uptime uses recorded transitions and clips to the observat
   );
 });
 
-// Recipient caps apply before averaging, and personal grants/extensions cannot leak into allied state.
-test('allied boon state preserves recipient caps, extensions, expiry, and observation origin', () => {
+// The hypothetical ally receives party grants once; personal grants and extensions stay on the player.
+test('hypothetical ally state preserves extensions, expiry, and observation origin', () => {
   const series = buildChartSeries(
     {
       rotationEndTime: 10,
@@ -214,17 +214,17 @@ test('allied boon state preserves recipient caps, extensions, expiry, and observ
     },
     500
   );
-  assert.equal(chartValueAt(series.alliedEffects.Might, 0), 12.5);
-  assert.equal(chartValueAt(series.alliedEffects.Might, 1500), 12.5);
+  assert.equal(chartValueAt(series.alliedEffects.Might, 0), 25);
+  assert.equal(chartValueAt(series.alliedEffects.Might, 1500), 25);
   assert.equal(chartValueAt(series.alliedEffects.Might, 2000), 0);
-  assert.equal(chartValueAt(series.alliedEffects.Fury, 0), 0.5);
-  assert.equal(chartValueAt(series.alliedEffects.Fury, 1500), 0.25);
+  assert.equal(chartValueAt(series.alliedEffects.Fury, 0), 1);
+  assert.equal(chartValueAt(series.alliedEffects.Fury, 1500), 0.5);
   assert.equal(chartValueAt(series.alliedEffects.Fury, 2000), 0);
   assert.ok(chartValueAt(series.effects.Fury, 2000) > 0);
   assert.ok(series.alliedEffects.Protection.every((point) => point.v === 0));
   assert.equal(series.effects.Stability, undefined);
   assert.equal(series.effectTypes.Stability, 'boon');
-  assert.equal(chartValueAt(series.alliedEffects.Stability, 3000), 0.75);
+  assert.equal(chartValueAt(series.alliedEffects.Stability, 3000), 3);
   assert.equal(chartValueAt(series.alliedEffects.Stability, 5000), 0);
 });
 
@@ -251,8 +251,8 @@ test('allied averages integrate capped stacks and duration pools inside the obse
   };
   for (const sampleStep of [50, 1000]) {
     const averages = buildChartSeries(result, sampleStep).alliedAverageStacks;
-    close(averages.Might, 1.125);
-    close(averages.Fury, 0.05);
+    close(averages.Might, 1.75);
+    close(averages.Fury, 0.1);
     assert.equal(averages.Protection, 0);
   }
 });
@@ -449,7 +449,7 @@ test('preparation-only party boons remain visible on both chart audiences', () =
     ...effectFields([buff('alacrity', 0, 4, 1, { audience: { recipients: 'party' } })], 6, { start: 2 })
   });
   assert.equal(series.boonGeneration.Alacrity.self.generatedStackSeconds, 0);
-  assert.equal(series.boonGeneration.Alacrity.allies.generatedStackSeconds, 0);
+  assert.equal(series.boonGeneration.Alacrity.ally.generatedStackSeconds, 0);
   for (const at of [0, 1000, 2000, 3000]) {
     assert.equal(chartValueAt(series.alliedEffects.Alacrity, at), chartValueAt(series.effects.Alacrity, at));
   }
@@ -488,10 +488,10 @@ test('charts retain accepted preparation state while generation uses the combat 
   assert.equal(series.effectSummaries.Alacrity.uptime, 1);
   // The preparation grant earns no combat credit, but the later extension reaches its existing party pools.
   assert.equal(series.boonGeneration.Alacrity.self.generatedStackSeconds, 10);
-  assert.equal(series.boonGeneration.Alacrity.allies.generatedStackSeconds, 40);
+  assert.equal(series.boonGeneration.Alacrity.ally.generatedStackSeconds, 10);
   assert.equal(series.effectSummaries.Quickness.uptime, 1);
   assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds, 35);
-  assert.equal(series.boonGeneration.Quickness.allies.generatedStackSeconds, 140);
+  assert.equal(series.boonGeneration.Quickness.ally.generatedStackSeconds, 35);
   assert.equal(series.effectSummaries.Fury.uptime, 1 / 6);
   assert.equal(series.boonGeneration.Fury.self.generatedStackSeconds, 2);
   assert.equal(series.effectSummaries['Relic of Fireworks'].uptime, 4 / 6);
@@ -502,7 +502,6 @@ test('personal boons and extensions cannot inflate shared generation, including 
     rotationEndTime: 10,
     observationEndTime: 10,
     combatEndTime: 10,
-    alliedPlayerCount: 4,
     ...effectFields(
       [
         buff('quickness', 0, 5),
@@ -515,11 +514,10 @@ test('personal boons and extensions cannot inflate shared generation, including 
     )
   });
   const quickness = series.boonGeneration.Quickness;
-  assert.equal(series.alliedPlayerCount, 4);
   assert.equal(quickness.self.generatedStackSeconds, 11);
-  assert.equal(quickness.allies.generatedStackSeconds, 4);
-  assert.equal(quickness.allies.generatedStackSeconds / (10 * series.alliedPlayerCount), 0.1);
-  assert.equal(series.boonGeneration.Alacrity.allies.generatedStackSeconds, 0);
+  assert.equal(quickness.ally.generatedStackSeconds, 2);
+  assert.equal(quickness.ally.generatedStackSeconds / 10, 0.2);
+  assert.equal(series.boonGeneration.Alacrity.ally.generatedStackSeconds, 0);
 });
 
 test('allied-only intensity grants extend each reached recipient once and exclude summons', () => {
@@ -527,7 +525,6 @@ test('allied-only intensity grants extend each reached recipient once and exclud
     rotationEndTime: 10,
     observationEndTime: 10,
     combatEndTime: 10,
-    alliedPlayerCount: 4,
     ...effectFields(
       [
         buff('might', 0, 2, 2, {
@@ -548,7 +545,7 @@ test('allied-only intensity grants extend each reached recipient once and exclud
   });
   assert.equal(series.effectSummaries.Might, undefined);
   assert.equal(series.boonGeneration.Might.self.generatedStackSeconds, 0);
-  assert.equal(series.boonGeneration.Might.allies.generatedStackSeconds, 24);
+  assert.equal(series.boonGeneration.Might.ally.generatedStackSeconds, 12);
 });
 
 test('Firebrand tome Quickness remains self-only without configuring allies', async () => {
@@ -567,10 +564,10 @@ test('Firebrand tome Quickness remains self-only without configuring allies', as
   assert.deepEqual(result.warnings, []);
   const generation = buildChartSeries(result).boonGeneration.Quickness;
   assert.ok(generation.self.generatedStackSeconds > 0);
-  assert.equal(generation.allies.generatedStackSeconds, 0);
+  assert.equal(generation.ally.generatedStackSeconds, 0);
 });
 
-test('presentation projects authored audiences onto four allies without mutating resolved combat recipients', () => {
+test('presentation projects authored audiences onto one hypothetical ally without mutating resolved combat recipients', () => {
   const events = Object.freeze([
     Object.freeze(buff('quickness', 0, 2, 1, { audience: { recipients: 'party', maximumRecipients: 3 } })),
     Object.freeze(buff('quickness', 1, 1, 1, { audience: { recipients: 'self' } })),
@@ -579,9 +576,8 @@ test('presentation projects authored audiences onto four allies without mutating
   ]);
   const before = structuredClone(events);
   const generation = buildBoonGeneration(events, 0, 10);
-  assert.equal(generation.alliedPlayerCount, 4);
   assert.equal(generation.boons.get('quickness').self.generatedStackSeconds, 4);
-  assert.equal(generation.boons.get('quickness').allies.generatedStackSeconds, 6);
+  assert.equal(generation.boons.get('quickness').ally.generatedStackSeconds, 3);
   assert.equal(generation.boons.has('alacrity'), false);
   assert.deepEqual(events, before);
 });
@@ -605,7 +601,7 @@ test('shared Firebrand generation uses metadata independently of the configured 
   assert.deepEqual(solo.warnings, []);
   assert.deepEqual(party.warnings, []);
   const soloGeneration = buildChartSeries(solo).boonGeneration.Quickness;
-  assert.ok(soloGeneration.allies.generatedStackSeconds > 0);
+  assert.ok(soloGeneration.ally.generatedStackSeconds > 0);
   assert.deepEqual(soloGeneration, buildChartSeries(party).boonGeneration.Quickness);
   assert.ok(
     solo.resolvedEvents

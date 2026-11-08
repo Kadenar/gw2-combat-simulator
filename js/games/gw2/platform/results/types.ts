@@ -108,13 +108,15 @@ export type Gw2SimulationScore = Pick<
   | 'environmentDamage'
   | 'environmentDps'
   | 'warnings'
+  | 'boonCoverage'
 > & { readonly output: 'score' };
 
 export interface Gw2ResolverResult {
   /** Null means chart collection was not requested, rather than an empty effect history. */
   readonly effectReport: import('#gw2/platform/results/effect-report.js').EffectReport | null;
+  /** Optional generated coverage is independent of chart-history collection. */
+  readonly boonCoverage?: import('#gw2/platform/results/boon-generation.js').BoonCoverage;
   readonly boonGeneration: {
-    readonly alliedPlayerCount: number;
     readonly boons: Readonly<
       Record<string, import('#gw2/platform/results/boon-generation.js').BoonGenerationByAudience>
     >;

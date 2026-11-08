@@ -25,8 +25,8 @@ test('party projection retains preparation boons while generation counts only th
   const report = projectedPartyEffects(generation, 10);
   const completeHistory = reportFor(events, 10);
   assert.equal(generation.boons.get('alacrity').self.generatedStackSeconds, 4);
-  assert.equal(generation.boons.get('alacrity').allies.generatedStackSeconds, 16);
-  for (const recipient of ['ally:1', 'ally:2', 'ally:3', 'ally:4']) {
+  assert.equal(generation.boons.get('alacrity').ally.generatedStackSeconds, 4);
+  for (const recipient of ['ally:1']) {
     for (const at of [0, 2, 3, 7, 8]) {
       assert.deepEqual(valueAt(report, 'alacrity', at, recipient), valueAt(completeHistory, 'alacrity', at, recipient));
     }
@@ -46,16 +46,16 @@ test('party generation credits in-combat extensions of preparation boons for the
     10
   );
   assert.equal(generation.boons.get('alacrity').self.generatedStackSeconds, 2);
-  assert.equal(generation.boons.get('alacrity').allies.generatedStackSeconds, 8);
+  assert.equal(generation.boons.get('alacrity').ally.generatedStackSeconds, 2);
   assert.equal(generation.boons.get('fury').self.generatedStackSeconds, 2);
-  assert.equal(generation.boons.get('fury').allies.generatedStackSeconds, 0);
+  assert.equal(generation.boons.get('fury').ally.generatedStackSeconds, 0);
   const report = projectedPartyEffects(generation, 10);
   assert.equal(valueAt(report, 'alacrity', 3).expiresAt, 7);
   assert.equal(trackFor(report, 'fury'), undefined);
 });
 
-// Independent capture scopes must retain other allies and boons while the current track changes.
-test('party projection preserves unrelated tracks and partial recipient audiences', () => {
+// Independent capture scopes must retain other boons while the current track changes.
+test('party projection preserves unrelated tracks and projects partial recipient audiences', () => {
   const report = reportFor(
     [
       grant('might', 0, 10, 3),
@@ -64,7 +64,7 @@ test('party projection preserves unrelated tracks and partial recipient audience
     ],
     8
   );
-  for (const recipient of ['ally:1', 'ally:2', 'ally:3', 'ally:4']) {
+  for (const recipient of ['ally:1']) {
     assert.equal(valueAt(report, 'might', 7, recipient).count, 3);
     assert.equal(valueAt(report, 'might', 8, recipient).expiresAt, 10);
     assert.equal(valueAt(report, 'quickness', 4, recipient).count, 1);
@@ -72,7 +72,7 @@ test('party projection preserves unrelated tracks and partial recipient audience
   }
 
   assert.equal(valueAt(report, 'fury', 3, 'ally:1').count, 1);
-  assert.equal(valueAt(report, 'fury', 3, 'ally:2').count, 1);
+  assert.equal(trackFor(report, 'fury', 'ally:2'), undefined);
   assert.equal(trackFor(report, 'fury', 'ally:3'), undefined);
   assert.equal(trackFor(report, 'fury', 'ally:4'), undefined);
   assert.ok(report.tracks.every((track) => track.origin === 'party-projection'));

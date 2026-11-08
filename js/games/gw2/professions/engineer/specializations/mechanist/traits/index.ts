@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { barrierBoonRecipients } from '#gw2/platform/combat/barrier.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -186,16 +185,25 @@ const conductiveAlloys = defineTrait({
   balance: { inheritanceRatio: 1, secondaryAttributeCap: 1500 }
 });
 
-/** Accepted player and mech barriers grant alacrity with one shared cooldown per recipient. */
+/** Accepted player and mech barriers grant party alacrity through one shared internal cooldown. */
 const channelingConduits = defineTrait({
   id: TRAIT.MECH_FRAME_CHANNELING_CONDUITS,
   balance: {
     inheritanceRatio: 1,
     secondaryAttributeCap: 1500,
     internalCooldown: 1,
-    effects: [{ type: 'boon', name: boonKey(BOON.ALACRITY), boon: BOON.ALACRITY, stacks: 1, duration: 1 }]
+    effects: [
+      {
+        type: 'boon',
+        name: boonKey(BOON.ALACRITY),
+        boon: BOON.ALACRITY,
+        stacks: 1,
+        duration: 1,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      }
+    ]
   },
-  // Only new barrier rewards are isolated; recipient-specific claims remain with the selected listener.
+  // Trigger isolation suppresses both the party reward and its cooldown claim.
   triggers: [{ on: 'buff.applied', run: channelBarrierAlacrity }]
 });
 
@@ -433,47 +441,37 @@ function pulseBarrierEngine(runtime: EngineerRuntime): void {
   });
 }
 
-/** Barrier sources share a per-recipient cooldown; only recipients of the accepted barrier gain alacrity. */
+/** An accepted owned barrier can trigger one party grant, regardless of which recipients received the barrier. */
 function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolverEvent): void {
   if (
-    event.actorType !== ACTOR.PLAYER &&
-    event.ownerActorType !== ACTOR.PLAYER &&
-    event.summonOwner !== 'engineer.mech'
+    event.kind !== 'barrier' ||
+    !(Number(event.duration) > 0) ||
+    !((event.stacks ?? 1) > 0) ||
+    !(event.resolvedAudience && event.resolvedAudience.recipientCount > 0) ||
+    (event.actorType !== ACTOR.PLAYER && event.ownerActorType !== ACTOR.PLAYER && event.summonOwner !== 'engineer.mech')
   )
     return;
 
-  const recipients = barrierBoonRecipients(event, runtime.config);
-
-  if (!recipients.length) return;
-
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.MECH_FRAME_CHANNELING_CONDUITS);
 
-  if (!profile.effects?.some((effect) => effect.type === 'boon' && effect.boon === BOON.ALACRITY)) return;
+  // Barrier pulses can land exactly at the shared deadline; reserve the next interval before emitting the boon.
+  if (
+    !requireEffect(profile, 'boon', boonKey(BOON.ALACRITY)) ||
+    canonicalTime(event.at) < canonicalTime(runtime.procs.deadline(profile.id))
+  )
+    return;
 
-  const interval = balanceProfileNumber(profile, 'internalCooldown');
-  const claim = (recipient: string): boolean => {
-    const key = `${TRAIT.MECH_FRAME_CHANNELING_CONDUITS}:${recipient}`;
+  runtime.procs.setDeadline(profile.id, event.at + balanceProfileNumber(profile, 'internalCooldown'));
 
-    // A one-second barrier pulse is eligible as soon as this recipient's one-second ICD expires.
-    if (canonicalTime(event.at) < canonicalTime(runtime.procs.deadline(key))) return false;
-
-    runtime.procs.setDeadline(key, event.at + interval);
-    return true;
-  };
-
-  for (const recipient of recipients) {
-    if (!claim(recipient.key)) continue;
-
-    emitTraitProfile(runtime, profile.id, profile.id, event, {
-      attribution: {
-        source: 'Trait',
-        sourceId: profile.id,
-        skillName: profile.name,
-        skillId: undefined,
-        actorType: ACTOR.PLAYER
-      },
-      transform: (packet) => ({ ...packet, audience: recipient.audience }),
-      preserveName: true
-    });
-  }
+  emitTraitProfile(runtime, profile.id, profile.id, event, {
+    effect: { type: 'boon', name: boonKey(BOON.ALACRITY) },
+    attribution: {
+      source: 'Trait',
+      sourceId: profile.id,
+      skillName: profile.name,
+      skillId: undefined,
+      actorType: ACTOR.PLAYER
+    },
+    preserveName: true
+  });
 }

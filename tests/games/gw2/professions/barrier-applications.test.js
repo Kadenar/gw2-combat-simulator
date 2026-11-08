@@ -63,7 +63,7 @@ for (const entry of cases) {
   }));
 
   for (const sharePlayerBoonsWithSummons of [true, false])
-    test(`${entry.specialization}: external barrier rewards respect recipients with summon boon sharing ${sharePlayerBoonsWithSummons}`, () => {
+    test(`${entry.specialization}: external barrier rewards respect their audience with summon boon sharing ${sharePlayerBoonsWithSummons}`, () => {
       for (const audience of [
         { recipients: 'self' },
         { recipients: 'party', affectsSelf: false, alliedPlayerIndex: 2, maximumRecipients: 1 },
@@ -82,11 +82,21 @@ for (const entry of cases) {
         if (audience.eligibleCompanionIds)
           assert.deepEqual(accepted.resolvedAudience.companionIds, audience.eligibleCompanionIds);
 
-        const expected = recipients(accepted).filter(
-          (key) =>
-            (entry.specialization !== 'Specter' || key.startsWith('ally:')) &&
-            (sharePlayerBoonsWithSummons || !key.startsWith('companion:'))
-        );
+        // Mechanist grants a standard party boon; Scourge and Specter retain the barrier's recipients.
+        const expected =
+          entry.specialization === 'Mechanist'
+            ? [
+                'self',
+                'ally:1',
+                'ally:2',
+                'ally:3',
+                ...(sharePlayerBoonsWithSummons ? ['companion:engineer.mech'] : [])
+              ]
+            : recipients(accepted).filter(
+                (key) =>
+                  (entry.specialization !== 'Specter' || key.startsWith('ally:')) &&
+                  (sharePlayerBoonsWithSummons || !key.startsWith('companion:'))
+              );
         for (const kind of entry.kinds) {
           const rewards = result.resolvedEvents.filter((event) => event.kind === kind);
           assert.deepEqual(rewards.flatMap(recipients).sort(), expected.toSorted());

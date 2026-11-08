@@ -158,7 +158,7 @@ for (const scenario of cases) {
 
         const generated = buildBoonGeneration(boons, 0, result.rotationEndTime).boons.get(kind);
         assert.ok(generated.self.generatedStackSeconds > 0);
-        assert.equal(generated.allies.generatedStackSeconds, generated.self.generatedStackSeconds * (cap - 1));
+        assert.equal(generated.ally.generatedStackSeconds, generated.self.generatedStackSeconds);
       }
     }
   });

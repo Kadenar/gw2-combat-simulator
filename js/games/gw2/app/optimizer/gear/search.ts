@@ -34,7 +34,15 @@ export interface GearOptimizerSelections {
   minVitality?: number;
   minBoonDurationPercent?: number;
   minQuicknessDurationPercent?: number;
+  minQuicknessOvercapPercent?: number;
+  minAlacrityOvercapPercent?: number;
 }
+
+// Overcap constrains generated supply to one hypothetical ally after combat has completed.
+export const OPTIMIZER_OVERCAP_REQUIREMENTS = {
+  minQuicknessOvercapPercent: 'Minimum quickness overcap (%)',
+  minAlacrityOvercapPercent: 'Minimum alacrity overcap (%)'
+} as const;
 
 // Display order: the form pairs the toughness bounds and the two duration minimums, then vitality.
 export const OPTIMIZER_REQUIREMENTS = {
@@ -42,7 +50,8 @@ export const OPTIMIZER_REQUIREMENTS = {
   maxToughness: 'Maximum toughness',
   minBoonDurationPercent: 'Minimum boon duration (%)',
   minQuicknessDurationPercent: 'Minimum quickness duration (%)',
-  minVitality: 'Minimum vitality'
+  minVitality: 'Minimum vitality',
+  ...OPTIMIZER_OVERCAP_REQUIREMENTS
 } as const;
 
 export interface GearOptimizerRequest {
@@ -89,6 +98,7 @@ export type OptimizerScore = Pick<
   | 'deathTime'
   | 'lastHitTime'
   | 'warnings'
+  | 'boonCoverage'
 >;
 
 export interface OptimizerCandidate {
@@ -241,7 +251,10 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
 
     if (
       value !== undefined &&
-      (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || (key.endsWith('Percent') && value > 100))
+      (typeof value !== 'number' ||
+        !Number.isFinite(value) ||
+        value < 0 ||
+        (key.endsWith('DurationPercent') && value > 100))
     )
       throw new RangeError(`Invalid ${OPTIMIZER_REQUIREMENTS[key].toLowerCase()}.`);
   }
@@ -441,7 +454,11 @@ export function createOptimizerEvaluator(space: OptimizerSpace, adapter: Optimiz
   const transitionDelays = normalizeTransitionDelays(request.simulationSettings?.transitionDelays);
   const limits = request.selections;
   const hasRequirements = Object.keys(OPTIMIZER_REQUIREMENTS).some(
-    (key) => limits[key as keyof typeof OPTIMIZER_REQUIREMENTS] !== undefined
+    (key) =>
+      !(key in OPTIMIZER_OVERCAP_REQUIREMENTS) && limits[key as keyof typeof OPTIMIZER_REQUIREMENTS] !== undefined
+  );
+  const collectBoonCoverage = Object.keys(OPTIMIZER_OVERCAP_REQUIREMENTS).some(
+    (key) => limits[key as keyof typeof OPTIMIZER_OVERCAP_REQUIREMENTS] !== undefined
   );
   function prepare(equipment: OptimizerEquipment): Gw2Config;
   function prepare(equipment: OptimizerEquipment, enforceRequirements: true): Gw2Config | null;
@@ -497,6 +514,7 @@ export function createOptimizerEvaluator(space: OptimizerSpace, adapter: Optimiz
       profession: adapter.profession,
       rotation: request.build.rotation,
       config: prepare(equipment),
+      collectBoonCoverage,
       observationPolicy: { kind: 'rotation' }
     });
   const score = (equipment: OptimizerEquipment): OptimizerScore | null => {
@@ -508,12 +526,21 @@ export function createOptimizerEvaluator(space: OptimizerSpace, adapter: Optimiz
       profession: adapter.profession,
       rotation: request.build.rotation,
       config,
+      collectBoonCoverage,
       observationPolicy: { kind: 'rotation' },
       output: 'score'
     });
   };
 
   return { prepare, evaluate, score };
+}
+
+/** An unset minimum disables its check; zero still requires full generated coverage. */
+export function meetsOptimizerOvercapRequirements(score: OptimizerScore, limits: GearOptimizerSelections): boolean {
+  return (['quickness', 'alacrity'] as const).every((kind) => {
+    const minimum = kind === 'quickness' ? limits.minQuicknessOvercapPercent : limits.minAlacrityOvercapPercent;
+    return minimum === undefined || (score.boonCoverage?.[kind].allyPercent ?? -Infinity) >= 100 + minimum;
+  });
 }
 
 /** Retain just ranking fields and reject invalid arithmetic instead of treating errors as zero damage. */
@@ -531,7 +558,8 @@ export function optimizerScore(result: OptimizerScore): OptimizerScore {
     dpsWindow,
     deathTime,
     lastHitTime,
-    warnings
+    warnings,
+    boonCoverage
   } = result;
 
   if (
@@ -551,7 +579,16 @@ export function optimizerScore(result: OptimizerScore): OptimizerScore {
   )
     throw new TypeError('Optimizer simulation produced a non-finite score.');
 
+  if (
+    boonCoverage &&
+    Object.values(boonCoverage).some((coverage) =>
+      Object.values(coverage).some((value) => typeof value !== 'number' || !Number.isFinite(value) || value < 0)
+    )
+  )
+    throw new TypeError('Optimizer simulation produced invalid boon coverage.');
+
   return {
+    ...(boonCoverage ? { boonCoverage: structuredClone(boonCoverage) } : {}),
     dps,
     totalDamage,
     strikeDamage,

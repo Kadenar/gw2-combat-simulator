@@ -10,6 +10,7 @@ import {
   captureGearOptimizerRequest,
   createOptimizerSpace,
   isOptimizerRequestCurrent,
+  OPTIMIZER_OVERCAP_REQUIREMENTS,
   OPTIMIZER_REQUIREMENTS,
   optimizerAppliedCandidate,
   optimizerEquipment,
@@ -249,7 +250,23 @@ function renderResultsTable(
         )
       )
     ].join('');
-    return `<tr tabindex="0" data-preview="${index}"${pinned ? ' class="optimizer-equipped" aria-label="Equipped setup"' : ''}><td class="optimizer-damage">${pinned ? '<span class="optimizer-equipped-label">Equipped</span>' : ''}<strong>${candidate.score.dps.toFixed(2)}</strong></td><td class="optimizer-gain-cell">${gain}</td>${cells}<td class="optimizer-apply">${pinned ? '' : '<button type="button" data-apply-row hidden>Apply</button>'}</td></tr>`;
+    // Show measured coverage beneath DPS for each requested boon.
+    const coverage = (['quickness', 'alacrity'] as const)
+      .flatMap((kind) => {
+        const minimum =
+          kind === 'quickness'
+            ? request.selections.minQuicknessOvercapPercent
+            : request.selections.minAlacrityOvercapPercent;
+
+        if (minimum === undefined) return [];
+
+        const measured = candidate.score.boonCoverage?.[kind].allyPercent;
+        return [
+          `<small class="optimizer-boon-coverage">${kind === 'quickness' ? 'Quickness' : 'Alacrity'} coverage: ${measured === undefined ? 'unavailable' : `${measured.toFixed(2)}%`}</small>`
+        ];
+      })
+      .join('');
+    return `<tr tabindex="0" data-preview="${index}"${pinned ? ' class="optimizer-equipped" aria-label="Equipped setup"' : ''}><td class="optimizer-damage">${pinned ? '<span class="optimizer-equipped-label">Equipped</span>' : ''}<strong>${candidate.score.dps.toFixed(2)}</strong>${coverage}</td><td class="optimizer-gain-cell">${gain}</td>${cells}<td class="optimizer-apply">${pinned ? '' : '<button type="button" data-apply-row hidden>Apply</button>'}</td></tr>`;
   };
 
   const group = (label: string, span: number): string =>
@@ -518,12 +535,15 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       });
     };
 
-    const requirementFields = Object.entries(OPTIMIZER_REQUIREMENTS)
-      .map(
-        ([key, label]) =>
-          `<label class="optimizer-field">${label}<input name="${key}" data-constraint-label="${label}" type="number" min="0" ${key.endsWith('Percent') ? 'max="100"' : ''} step="any" placeholder="No limit"></label>`
-      )
-      .join('');
+    // Keep the two coverage inputs together, separated from attributes checked before simulation.
+    const requirementFields = (overcap: boolean): string =>
+      Object.entries(OPTIMIZER_REQUIREMENTS)
+        .filter(([key]) => key in OPTIMIZER_OVERCAP_REQUIREMENTS === overcap)
+        .map(
+          ([key, label]) =>
+            `<label class="optimizer-field">${label}<input name="${key}" data-constraint-label="${label}" type="number" min="0" ${key.endsWith('DurationPercent') ? 'max="100"' : ''} step="any" placeholder="No limit"></label>`
+        )
+        .join('');
     const forcedFields = slots
       .map((slot) => {
         // Use only usable weapon slots, with set labels that distinguish alternate equipment.
@@ -564,7 +584,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
       )}
       <details class="optimizer-constraints"><summary><span>Constraints</span><span class="optimizer-constraint-list" data-role="optimizer-constraints"></span></summary>
         <div class="optimizer-constraint-body">
-          <fieldset><legend>Requirements</legend><div class="optimizer-requirements"><div class="optimizer-requirement-grid">${requirementFields}</div></div></fieldset>
+          <fieldset><legend>Requirements</legend><div class="optimizer-requirements"><div class="optimizer-requirement-grid">${requirementFields(false)}</div><div class="optimizer-requirement-grid optimizer-overcap-requirements">${requirementFields(true)}</div><p class="optimizer-overcap-help">generated seconds / benchmark seconds &gt;= 1 + minimum overcap / 100</p></div></fieldset>
           <fieldset><legend>Forced slots</legend><div class="optimizer-field-grid">${forcedFields}</div><button type="button" data-clear-forced-slots>Clear forced slots</button></fieldset>
         </div>
       </details></div>`;
@@ -665,7 +685,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
             equippedScore
           )
         : state.status === 'complete'
-          ? '<p>No gear combinations met the requirements in this search.</p>'
+          ? '<p>No evaluated candidate met the requirements. A fast search may miss qualifying combinations.</p>'
           : '';
   }
 

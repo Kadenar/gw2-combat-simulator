@@ -245,19 +245,22 @@ test('Leader of the Pack shares half the extended stance window with independent
   }
 });
 
-test('shared Vulture might stays on each triggering ally through boon reporting', () => {
-  // Separate recipients must retain their own stacks rather than overflowing the first ally's cap.
-  const result = simulate('Soulbeast', [ID.VULTURE_STANCE, wait(8000)], {
-    selectedTraitIds: [TRAIT.LEADER_OF_THE_PACK],
-    allies: { count: 4, strikesPerSecond: 4 }
-  });
-  const might = result.resolvedEvents.filter((event) => event.kind === 'might' && event.metadata?.triggeredByAlly);
-  assert.ok(might.every((event) => event.resolvedAudience.alliedPlayerIndex === event.metadata.triggeredByAlly));
-  const generation = buildBoonGeneration(result.resolvedEvents, 0, 8);
-  assert.deepEqual(
-    generation.alliedApplications.map((history) => buffApplicationStacks(history.get('might') || [], 'might', 3.5, 25)),
-    [7, 7, 7, 7]
-  );
+test('shared Vulture might preserves live recipients while reporting one hypothetical ally', () => {
+  // Extra live allies must not multiply the representative ally's generated supply or projected stacks.
+  const totals = [];
+  for (const count of [1, 4]) {
+    const result = simulate('Soulbeast', [ID.VULTURE_STANCE, wait(8000)], {
+      selectedTraitIds: [TRAIT.LEADER_OF_THE_PACK],
+      allies: { count, strikesPerSecond: 4 }
+    });
+    const might = result.resolvedEvents.filter((event) => event.kind === 'might' && event.metadata?.triggeredByAlly);
+    assert.ok(might.every((event) => event.resolvedAudience.alliedPlayerIndex === event.metadata.triggeredByAlly));
+    const generation = buildBoonGeneration(result.resolvedEvents, 0, 8);
+    assert.equal(buffApplicationStacks(generation.allyApplications.get('might') || [], 'might', 3.5, 25), 7);
+    totals.push(generation.boons.get('might').ally.generatedStackSeconds);
+  }
+
+  assert.equal(totals[0], totals[1]);
 });
 
 test('precast shared stances start allied attacks in combat without extending expiry', () => {

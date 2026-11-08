@@ -12,7 +12,7 @@ import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/d
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 
-// Each familiar must author a party grant so solo simulations still report the boon provided to a full subgroup.
+// Each familiar must author a party grant so solo simulations still report the boon provided to one hypothetical ally.
 for (const [element, skills, boon] of [
   ['Earth', ['Calcify', 'Seismic Impact'], 'alacrity'],
   ['Water', ['Splash', 'Buoyant Deluge'], 'alacrity'],
@@ -50,9 +50,9 @@ for (const [element, skills, boon] of [
 
         const generation = buildBoonGeneration(grants, 0, result.rotationEndTime);
         assert.equal(generation.boons.get(boon).self.generatedStackSeconds, grant.duration);
-        assert.equal(generation.boons.get(boon).allies.generatedStackSeconds, grant.duration * 4);
+        assert.equal(generation.boons.get(boon).ally.generatedStackSeconds, grant.duration);
         const report = projectedPartyEffects(generation, result.rotationEndTime);
-        for (const recipient of ['ally:1', 'ally:2', 'ally:3', 'ally:4']) {
+        for (const recipient of ['ally:1']) {
           const track = report.tracks.find((entry) => entry.kind === boon && entry.recipient === recipient);
           assert.ok(track);
           assert.equal(effectStateAt(report, track, grant.at).count, 1);
@@ -98,7 +98,7 @@ for (const [name, boon] of [
     const after = generation(selected);
     const duration = effect.duration * effect.stacks;
     assert.equal(after.self.generatedStackSeconds - (before?.self.generatedStackSeconds ?? 0), duration);
-    assert.equal(after.allies.generatedStackSeconds - (before?.allies.generatedStackSeconds ?? 0), duration * 4);
+    assert.equal(after.ally.generatedStackSeconds - (before?.ally.generatedStackSeconds ?? 0), duration);
   });
 }
 
@@ -163,7 +163,7 @@ test('Calcify Protection stays personal and requires an accepted disable', () =>
     assert.equal(grants[0].resolvedAudience.includesSelf, true);
     assert.equal(grants[0].resolvedAudience.alliedPlayerCount, 0);
     assert.equal(
-      buildBoonGeneration(grants, 0, result.rotationEndTime).boons.get('protection').allies.generatedStackSeconds,
+      buildBoonGeneration(grants, 0, result.rotationEndTime).boons.get('protection').ally.generatedStackSeconds,
       0
     );
   }

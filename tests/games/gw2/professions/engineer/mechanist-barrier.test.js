@@ -72,7 +72,7 @@ test('Barrier Burst grants its barrier and boons to the party and retains a 30-s
   }
 });
 
-// Burst exempts its mech from the cap; derived alacrity must follow the actual barrier recipients.
+// Burst exempts its mech from the barrier cap; trait alacrity uses ordinary party priority and spare slots.
 test('Barrier Burst exempts its mech while passive barrier retains ordinary player priority', () => {
   for (const count of [0, 2, 4]) {
     const result = simulate('Mechanist', ['Barrier Burst', { type: 'wait', durationMs: 4000 }], { allies: { count } });
@@ -89,7 +89,7 @@ test('Barrier Burst exempts its mech while passive barrier retains ordinary play
     assert.ok(alacrity.some((event) => event.resolvedAudience.includesSelf));
     assert.equal(
       alacrity.some((event) => event.resolvedAudience.companionIds.includes('engineer.mech')),
-      true
+      count < 4
     );
   }
 });
@@ -110,20 +110,21 @@ function barrier(at, actorType, audience, extras = {}) {
   };
 }
 
-// Minimal competing grants protect recipient ownership, the shared ICD, and reopening at its expiry.
-test('Channeling Conduits shares the one-second ICD between player and mech for each barrier recipient', () => {
+// The shared ICD admits the next barrier at its deadline, but blocks competing grants in the same interval.
+test('Channeling Conduits shares one ICD across player and mech and reopens at its deadline', () => {
   const events = [
     barrier(0, 'player', { recipients: 'self' }),
-    barrier(0.5, 'summon', { recipients: 'party', maximumRecipients: 6 }, { summonOwner: 'engineer.mech' }),
+    barrier(0.5, 'summon', { recipients: 'party', maximumRecipients: 5 }, { summonOwner: 'engineer.mech' }),
     barrier(1, 'player', { recipients: 'party', maximumRecipients: 5, eligibleCompanionIds: [] }),
-    barrier(1.5, 'player', {
+    barrier(1, 'player', {
       recipients: 'party',
       affectsSelf: false,
       alliedPlayerIndex: 2,
       maximumRecipients: 1,
       eligibleCompanionIds: []
     }),
-    barrier(2, 'summon', { recipients: 'party', maximumRecipients: 6 }, { summonOwner: 'unrelated.summon' })
+    barrier(2, 'summon', { recipients: 'party' }, { summonOwner: 'unrelated.summon' }),
+    barrier(2, 'summon', { recipients: 'party' }, { summonOwner: 'engineer.mech' })
   ];
   const config = {
     specialization: 'Mechanist',
@@ -133,31 +134,33 @@ test('Channeling Conduits shares the one-second ICD between player and mech for 
     attributeInputs: baseAttributeInputs({ concentration: 0 }),
     boons: {}
   };
-  const result = resolveTestGw2Events({ profession: engineerProfession, config, events, endTime: 2 });
+  const result = resolveTestGw2Events({ profession: engineerProfession, config, events, endTime: 3 });
   const alacrity = result.events.filter((event) => event.kind === 'alacrity');
   assert.ok(alacrity.every((event) => event.duration === 1 && event.sourceId === TRAIT.MECH_FRAME_CHANNELING_CONDUITS));
-  const self = alacrity.filter((event) => event.resolvedAudience.includesSelf);
   assert.deepEqual(
-    self.map((event) => event.at),
-    [0, 1]
+    alacrity.map((event) => event.at),
+    [0, 1, 2]
   );
-  const allyTwo = alacrity.filter((event) => event.resolvedAudience.alliedPlayerIndex === 2);
-  assert.deepEqual(
-    allyTwo.map((event) => event.at),
-    [0.5, 1.5]
-  );
-  assert.ok(
-    alacrity.some((event) => event.at === 0.5 && event.resolvedAudience.companionIds.includes('engineer.mech'))
-  );
+  for (const event of alacrity) {
+    assert.equal(event.actorType, 'player');
+    assert.equal(event.audience.recipients, 'party');
+    assert.equal(event.audience.maximumRecipients, 5);
+    assert.equal(event.resolvedAudience.includesSelf, true);
+    assert.equal(event.resolvedAudience.alliedPlayerCount, 4);
+    assert.equal(event.resolvedAudience.alliedPlayerIndex, undefined);
+    assert.equal(event.resolvedAudience.recipientCount, 5);
+    assert.deepEqual(event.resolvedAudience.companionIds, []);
+  }
+
   assert.equal(
-    alacrity.some((event) => event.at === 2),
-    false
+    alacrity.at(-1).parentEventOrder,
+    result.events.findLast((event) => event.kind === 'barrier').eventOrder
   );
   const unselected = resolveTestGw2Events({
     profession: engineerProfession,
     config: { ...config, selectedTraitIds: [] },
     events,
-    endTime: 2
+    endTime: 3
   });
   assert.equal(
     unselected.events.some((event) => event.kind === 'alacrity'),

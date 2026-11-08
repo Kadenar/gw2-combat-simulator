@@ -49,6 +49,7 @@ import type {
   Gw2ResolverReactionRegistry,
   Gw2ResolverStageDetails
 } from '#gw2/platform/resolver/types.js';
+import { createBoonGenerationCollector } from '#gw2/platform/results/boon-generation.js';
 import { createDamageReportRecorder } from '#gw2/platform/results/damage-report.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
 import { captureRuntimeEffects } from '#gw2/platform/results/observe-effects.js';
@@ -105,6 +106,7 @@ export function runRuntime<T extends object>(
     combatStartTime,
     output = 'detailed',
     collectChartData = true,
+    collectBoonCoverage = false,
     damageDiagnostics = false,
     execution,
     onPhase
@@ -242,6 +244,12 @@ export function runRuntime<T extends object>(
     output,
     ownsEffect,
     effectRecorder,
+    boonGeneration: collectBoonCoverage
+      ? createBoonGenerationCollector(false, () => ({
+          start: runtime.engagement.explicit ? runtime.engagement.startTime : runtime.firstHitTime,
+          end: runtime.deathTime ?? runtime.horizon ?? Infinity
+        }))
+      : null,
     damageRecorder: damageReport?.observer ?? null,
     // Damage measurements retain packets, but only detailed reports consume proc rows and aggregate breakdowns.
     procRecorder: output === 'detailed' ? new ProcStepRecorder(effectRecorder) : null,

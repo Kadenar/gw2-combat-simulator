@@ -496,6 +496,19 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   container: optimizer-requirements / inline-size;
   justify-self: stretch;
 }
+/* Coverage requirements start a separate row so both boon inputs share the same divider. */
+.optimizer-overcap-requirements {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.optimizer-overcap-help {
+  margin: 8px 0 0;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+}
 .optimizer-requirement-grid {
   display: grid;
   grid-template-columns: minmax(0, max-content) minmax(80px, 120px);
@@ -966,6 +979,14 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-bright);
+}
+/* Coverage stays below the score without competing with the DPS value. */
+.optimizer-boon-coverage {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 14px;
 }
 .gear-optimizer th.optimizer-damage,
 .gear-optimizer th.optimizer-gain-cell {

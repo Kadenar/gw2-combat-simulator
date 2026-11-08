@@ -1,3 +1,4 @@
+/** Accepted grants feed optional generation accounting before their reactions can extend the new boon. */
 import { applyBoonExtension, isStandardBoon, recordBuffApplication } from '#gw2/platform/combat/boons.js';
 import {
   gw2BoonApplicationRecipients,
@@ -49,6 +50,8 @@ function handleBuff(ctx: Gw2ResolverRuntime, event: Gw2ResolverEvent, reactions:
   // Retain actual applications, including trait-generated boons, for effects charts.
   if (ctx.retainsResolved(event)) ctx.resolved.push(event);
 
+  ctx.boonGeneration?.record(event);
+
   // Record before reactions so their boon queries include this application at its timestamp.
   // Accepted standard boons and ordinary buffs have exclusive stores, shared recipients and causal ordering.
   recordBuffApplication(isStandardBoon(kind) ? ctx.boons : ctx.buffs, event);
@@ -89,6 +92,7 @@ export function createGw2ResolverEventHandlers({
       handleBuff(ctx, event, reactions);
     },
     boon_extension(ctx, event) {
+      ctx.boonGeneration?.record(event);
       applyBoonExtension(ctx.boons, event);
       for (const effects of ctx.companions.values()) applyBoonExtension(effects.boons, event);
 

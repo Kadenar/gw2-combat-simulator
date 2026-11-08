@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
@@ -263,7 +264,8 @@ test('An admitted barrier task runs under isolation without Channeling Conduits 
   assert.deepEqual(rewards(result, TRAIT.MECH_FRAME_CHANNELING_CONDUITS), []);
 });
 
-test('Channeling Conduits isolates recipient cooldown claims while explicit barrier still applies', () => {
+// Isolated reactions must not reserve the shared cooldown or prevent explicit barrier delivery.
+test('Channeling Conduits isolates its shared cooldown while explicit barrier still applies', () => {
   for (const selected of [false, true])
     for (const traitTriggers of [false, true]) {
       const { result, runtime } = run(
@@ -282,11 +284,35 @@ test('Channeling Conduits isolates recipient cooldown claims while explicit barr
         rewards(result, TRAIT.MECH_FRAME_CHANNELING_CONDUITS).map((event) => event.at),
         selected && traitTriggers ? [1, 2] : []
       );
-      assert.equal(
-        runtime.procs.deadline(`${TRAIT.MECH_FRAME_CHANNELING_CONDUITS}:self`),
-        selected && traitTriggers ? 3 : 0
-      );
+      assert.equal(runtime.procs.deadline(TRAIT.MECH_FRAME_CHANNELING_CONDUITS), selected && traitTriggers ? 3 : 0);
     }
+});
+
+// Live profile tuning owns the shared deadline; a removed alacrity payload must not consume it.
+test('Channeling Conduits honors its patched cooldown and does not claim a removed reward', () => {
+  for (const removed of [false, true]) {
+    const { result, runtime } = run(
+      'Mechanist',
+      { selectedTraitIds: [TRAIT.MECH_FRAME_CHANNELING_CONDUITS] },
+      {
+        catalog: (catalog) =>
+          applyBalanceProfilePatch(catalog, {
+            balanceProfiles: {
+              [TRAIT.MECH_FRAME_CHANNELING_CONDUITS]: {
+                fields: { internalCooldown: 2 },
+                ...(removed ? { removeEffects: [{ type: 'boon', name: 'alacrity' }] } : {})
+              }
+            }
+          }),
+        timeline: [1, 2.5, 3, 3.125].map((at) => emitAt(buff(at, 'barrier')))
+      }
+    );
+    assert.deepEqual(
+      rewards(result, TRAIT.MECH_FRAME_CHANNELING_CONDUITS).map((event) => event.at),
+      removed ? [] : [1, 3]
+    );
+    assert.equal(runtime.procs.deadline(TRAIT.MECH_FRAME_CHANNELING_CONDUITS), removed ? 0 : 5);
+  }
 });
 
 test('Holosmith dodge admits Vigor and vent together while PBM preserves heat independently', () => {

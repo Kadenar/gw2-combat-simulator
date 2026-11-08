@@ -35,6 +35,16 @@ export interface RuntimeExecution<T extends object> {
   readonly admitsTriggers?: () => boolean;
 }
 
+/**
+ * Internal execution options for an already compiled profession, preserving its state type through T.
+ * Gw2SimulationOptions describes the public request. simulateGw2 compiles its profession source with
+ * runtimeFor(config) and forwards observationPolicy as observation, with the same meaning.
+ *
+ * Rotation belongs to the entry point: runGw2Runtime accepts an optional rotation and defaults to [],
+ * while runRuntime takes a RuntimeExecution so isolated executions can run without a rotation.
+ * Output is declared here; simulateGw2 adds it through overloads that select the public return type.
+ * The remaining settings share their types and purposes with Gw2SimulationOptions.
+ */
 export interface RuntimeOptions<T extends object> {
   readonly profession: RuntimeProfession<T>;
   readonly config?: Gw2Config;
@@ -42,6 +52,8 @@ export interface RuntimeOptions<T extends object> {
   readonly combatStartTime?: number;
   readonly output?: 'detailed' | 'score';
   readonly collectChartData?: boolean;
+  /** Collect quickness and alacrity supply for optional optimizer constraints. */
+  readonly collectBoonCoverage?: boolean;
   readonly damageDiagnostics?: boolean;
   readonly onPhase?: Gw2SimulationOptions['onPhase'];
 }

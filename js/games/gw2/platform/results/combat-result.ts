@@ -2,7 +2,11 @@
 import { playerDamageTotal } from '#gw2/platform/combat/state/target-health.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
-import { buildBoonGeneration, projectedPartyEffects } from '#gw2/platform/results/boon-generation.js';
+import {
+  buildBoonGeneration,
+  generatedBoonCoverage,
+  projectedPartyEffects
+} from '#gw2/platform/results/boon-generation.js';
 import type { DamageReportProjection } from '#gw2/platform/results/damage-report.js';
 import { uniqueDiagnostics } from '#gw2/platform/results/diagnostics.js';
 import { projectResolvedEvents } from '#gw2/platform/results/resolved-events.js';
@@ -50,7 +54,18 @@ export function buildSimulationScore(ctx: Gw2ResolverRuntime, rotationEndTime: n
     conditionDamage: ctx.totals.condition,
     environmentDamage: ctx.environmentDamage,
     environmentDps: environmentDamagePerSecond(ctx.environmentDamage),
-    warnings: uniqueDiagnostics(ctx.warnings)
+    warnings: uniqueDiagnostics(ctx.warnings),
+    ...(ctx.boonGeneration
+      ? {
+          boonCoverage: generatedBoonCoverage(
+            ctx.boonGeneration.finish(
+              hasExplicitCombatStart ? explicitCombatStart : (ctx.firstHitTime ?? dpsStart),
+              effectiveEnd
+            ).boons,
+            dpsWindow
+          )
+        }
+      : {})
   };
   return score;
 }
@@ -77,9 +92,7 @@ export function buildCombatResult(
     warnings: numeric.warnings.map((diagnostic) => ({ ...diagnostic })),
     effectReport:
       effectReport && partyReport ? { ...effectReport, tracks: [...effectReport.tracks, ...partyReport.tracks] } : null,
-    boonGeneration: generation
-      ? { alliedPlayerCount: generation.alliedPlayerCount, boons: Object.fromEntries(generation.boons) }
-      : null,
+    boonGeneration: generation ? { boons: Object.fromEntries(generation.boons) } : null,
     ...damageReport,
     events: cloneData(effectiveEvents),
     resolvedEvents: projectResolvedEvents(

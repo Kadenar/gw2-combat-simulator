@@ -1,4 +1,7 @@
-/** Builds chart data with shared damage sampling, effect labels and skill attribution. */
+/**
+ * Builds chart data with shared damage sampling, effect labels and skill attribution. Boon tracks describe the player
+ * and one hypothetical ally independently of live party size.
+ */
 import type { ConditionTickContribution, SkillHit } from '#gw2/app/results/charts/hit-timeline-model.js';
 import { effectName } from '#gw2/app/results/effect-labels.js';
 import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/skill-breakdown.js';
@@ -89,7 +92,6 @@ export interface ChartSeries extends DamageSeries {
       }
     >
   >;
-  readonly alliedPlayerCount?: number;
   // Individual hits/ticks per skill breakdown row key (`group|name`), each
   // timestamped relative to the DPS window. Backs the per-skill damage-events
   // timeline in the expanded table row.
@@ -534,13 +536,12 @@ function buildEffectSeries(
     ].sort((a, b) => a - b);
     alliedEffects[name] = alliedTimes.map((t) => ({
       t,
-      v:
-        tracks.reduce((sum, track) => sum + valueAt(track, (dpsStartMs + t) / 1000), 0) /
-        boonGeneration.alliedPlayerCount
+      v: tracks.reduce((sum, track) => sum + valueAt(track, (dpsStartMs + t) / 1000), 0)
     }));
-    alliedAverageStacks[name] =
-      tracks.reduce((sum, track) => sum + effectSummary(track, dpsStartMs / 1000, endMs / 1000).averageStacks, 0) /
-      boonGeneration.alliedPlayerCount;
+    alliedAverageStacks[name] = tracks.reduce(
+      (sum, track) => sum + effectSummary(track, dpsStartMs / 1000, endMs / 1000).averageStacks,
+      0
+    );
   }
 
   return {
@@ -558,7 +559,6 @@ function buildEffectSeries(
         }
       ])
     ),
-    alliedPlayerCount: boonGeneration.alliedPlayerCount,
     effectUnits
   };
 }

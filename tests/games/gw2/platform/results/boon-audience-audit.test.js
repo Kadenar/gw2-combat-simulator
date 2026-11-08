@@ -139,7 +139,7 @@ const cases = [
 ];
 
 for (const [family, name, kinds, config, setup = []] of cases) {
-  test(`${family} ${name} delivers its shared boons and projects four allied players`, () => {
+  test(`${family} ${name} delivers its shared boons and projects one hypothetical ally`, () => {
     for (const count of [0, 4]) {
       const result = run(
         family,
@@ -159,7 +159,7 @@ for (const [family, name, kinds, config, setup = []] of cases) {
         );
         const generated = buildBoonGeneration(events, 0, result.rotationEndTime).boons.get(kind);
         assert.ok(generated.self.generatedStackSeconds > 0);
-        assert.equal(generated.allies.generatedStackSeconds, 4 * generated.self.generatedStackSeconds);
+        assert.equal(generated.ally.generatedStackSeconds, generated.self.generatedStackSeconds);
       }
     }
   });
@@ -211,7 +211,7 @@ test('Chaos Vortex clones fill spare slots after players and retain their caster
     }
 
     const generated = buildBoonGeneration(events, 0, result.rotationEndTime).boons.get('might');
-    assert.equal(generated.allies.generatedStackSeconds, 4 * generated.self.generatedStackSeconds);
+    assert.equal(generated.ally.generatedStackSeconds, generated.self.generatedStackSeconds);
   }
 });
 
