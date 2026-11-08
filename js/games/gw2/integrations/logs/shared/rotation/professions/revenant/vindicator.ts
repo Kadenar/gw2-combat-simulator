@@ -14,9 +14,7 @@ function deathDrop(action: RecordedLogAction): boolean {
 }
 
 /** Recover takeoff from the landing animation so airborne time occupies the jump rather than a wait. */
-export function reconstructVindicatorDpsReportActions(
-  context: LogActionNormalizationContext
-): readonly RecordedLogAction[] {
+export function normalizeVindicatorLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   const landings = context.recordedActions.filter(deathDrop);
   const inputs = new Set<RecordedLogAction>();
   const jumps = new Map(

@@ -8,9 +8,7 @@ const EFFULGENT_DAMAGE_SIGNAL_ID = 76730;
 const FORGE_BAR_CHANGES = new Set([77073, 76616, 77339, 76708, 76924, 77197]);
 
 /** Filters the simulator-owned Effulgent proc while preserving represented Forge inputs. */
-export function reconstructLuminaryDpsReportActions(
-  context: LogActionNormalizationContext
-): readonly RecordedLogAction[] {
+export function normalizeLuminaryLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   return context.recordedActions.filter((action) => {
     if (action.rawSkillId === EFFULGENT_DAMAGE_SIGNAL_ID || normalized(action.rawName) === 'effulgent stance (damage)')
       return false;

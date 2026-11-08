@@ -221,7 +221,7 @@ test('event-log mounting renders calculations with escaped fields and their copy
           { label: 'Base', explanation: '<base>', value: '1', exact: '1.0"' },
           { label: 'Damage', explanation: '<result>', value: '2', exact: '2' }
         ],
-        factors: [{ label: '<factor>', value: '×1.1', impact: '−1', exact: '1.1' }],
+        factors: [{ label: '<factor>', value: '×1.1', impact: '-1', exact: '1.1' }],
         effects: ['<effect>', 'Aegis'],
         trace: 'sim <trace>',
         raw: ['Power: <1000>']
@@ -376,9 +376,9 @@ test('event log calculation reads as an equation with ranked modifiers and every
     calculation.factors.map(({ label, value, impact }) => [label, value, impact]),
     [
       ['Penalty', '×0.8', '+630'],
-      ['Large', '×1.25', '−504'],
-      ['Small', '×1.05', '−120'],
-      ['Share', '+5% add.', '−120']
+      ['Large', '×1.25', '-504'],
+      ['Small', '×1.05', '-120'],
+      ['Share', '+5% add.', '-120']
     ]
   );
   assert.deepEqual(calculation.effects, ['Might 25', 'Fury', 'Test Charge 5', 'Aegis']);

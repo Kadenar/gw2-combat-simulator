@@ -107,7 +107,7 @@ body[data-simulator-view='modifiers'] .simulator-header-chrome {
   color: var(--text-dim);
 }
 .modifier-reference-entry[open] summary::after {
-  content: '−';
+  content: '-';
 }
 .modifier-reference-entry summary:hover {
   background: var(--bg-panel-alt);

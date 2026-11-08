@@ -8,9 +8,7 @@ import { resolveSelectedAmalgamMorphId } from '#gw2/professions/engineer/build/m
 const COMPOSITE_SIGNAL_WINDOW_MS = 150;
 
 /** Merges split animations and binds recorded protocols to the build's selected slots without altering source evidence. */
-export function reconstructAmalgamDpsReportActions(
-  context: LogActionNormalizationContext
-): readonly RecordedLogAction[] {
+export function normalizeAmalgamLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   const merged = mergeCompositeActions(
     context.recordedActions,
     [

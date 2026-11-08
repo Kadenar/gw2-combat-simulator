@@ -1,6 +1,7 @@
 /** Composes pending and completed Analysis sections in the same order to limit layout changes during loading. */
-import { analysisViewIsActive, renderSimulationViewModel } from '#browser/shell/result-view.js';
+import { renderSimulationViewModel } from '#browser/shell/result-view.js';
 import { mountInputActivity } from '#gw2/app/input-profile/results.js';
+import { analysisViewIsActive } from '#gw2/app/page/navigation-state.js';
 import { mountPreviewAssumptionNotice } from '#gw2/app/patch-preview/assumptions.js';
 import { createWorkspacePresentation } from '#gw2/app/presentation/workspace.js';
 import { SKILL_COLS, type DamageBreakdownModel } from '#gw2/app/results/breakdown/model.js';
@@ -256,6 +257,7 @@ export const gw2SimulationPresentation = Object.freeze({
     if (title) title.textContent = createWorkspacePresentation(app).analysisTitle;
 
     renderSimulationViewModel(viewModel, {
+      analysisVisible: analysisViewIsActive(),
       inputRevision: app.analysis.state.buildRevision,
       outputRevision: app.analysis.state.resultRevision
     });

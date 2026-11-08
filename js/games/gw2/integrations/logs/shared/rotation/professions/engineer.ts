@@ -3,14 +3,14 @@ import type {
   LogActionNormalizer,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
-import { reconstructAmalgamDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/engineer/amalgam.js';
+import { normalizeAmalgamLogActions } from '#gw2/integrations/logs/shared/rotation/professions/engineer/amalgam.js';
 import { reconstructEngineerDependencies } from '#gw2/integrations/logs/shared/rotation/professions/engineer/shared.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
-const specializationReconstructors: ReadonlyMap<string, LogActionNormalizer> = new Map([
-  ['amalgam', reconstructAmalgamDpsReportActions]
+const specializationNormalizers: ReadonlyMap<string, LogActionNormalizer> = new Map([
+  ['amalgam', normalizeAmalgamLogActions]
 ]);
 
 /** Prefer Overcharged Shot's animation over EI's damage-derived instant marker, including its trailing tick. */
@@ -66,10 +66,8 @@ function restoreEiMissingSunEdge(
 }
 
 /** Removes corroborating rifle markers, normalizes Engineer actions, and restores EI's omitted sword-chain opener. */
-export function reconstructEngineerDpsReportActions(
-  context: LogActionNormalizationContext
-): readonly RecordedLogAction[] {
-  const specialized = specializationReconstructors.get(context.profile.specializationId)?.(context) || [
+export function normalizeEngineerLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
+  const specialized = specializationNormalizers.get(context.profile.specializationId)?.(context) || [
     ...context.recordedActions
   ];
   return restoreEiMissingSunEdge(

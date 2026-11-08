@@ -1,5 +1,4 @@
 /** Composes browser rendering and persistence around the headless analysis lifecycle. */
-import { analysisViewIsActive } from '#browser/shell/result-view.js';
 import { enterRotationFocus, ROTATION_FOCUS_EXIT_EVENT } from '#browser/shell/rotation-workspace.js';
 import { ENCOUNTER_RESULT_EVENT } from '#gw2/app/boss-scenarios/simulation.js';
 import { mountBossScenarios } from '#gw2/app/boss-scenarios/view.js';
@@ -20,7 +19,7 @@ import { GearOptimizerRunner } from '#gw2/app/optimizer/gear/runner.js';
 import { renderRelicComparison } from '#gw2/app/optimizer/relic-comparison/panel.js';
 import { RelicComparisonRunner } from '#gw2/app/optimizer/relic-comparison/runner.js';
 import { renderGearOptimizerView } from '#gw2/app/optimizer/view.js';
-import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
+import { analysisViewIsActive, SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation-state.js';
 import { mountPatchPreviewControls } from '#gw2/app/patch-preview/view.js';
 import { renderEventLog } from '#gw2/app/results/event-log.js';
 import { renderModifierContributions } from '#gw2/app/results/view.js';

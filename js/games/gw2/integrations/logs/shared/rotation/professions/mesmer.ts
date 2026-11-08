@@ -12,9 +12,7 @@ const BLINK_ID = 10200;
 export const BLINK_OR_PHASE_RETREAT_ID = -27;
 
 /** Resolves represented Mesmer inputs and avoids replaying cloak gains as additional dodges. */
-export function reconstructMesmerDpsReportActions(
-  context: LogActionNormalizationContext
-): readonly RecordedLogAction[] {
+export function normalizeMesmerLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   const config = context.professionConfig;
   const selectedSkills = config?.selectedSkillIds as Gw2SelectedSkillLoadout | undefined;
   // EI combines these teleports. A staff build without Blink makes the represented input unambiguous.

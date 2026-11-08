@@ -4,7 +4,7 @@ import test from 'node:test';
 
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
-import { reconstructAmalgamDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/engineer/amalgam.js';
+import { normalizeAmalgamLogActions } from '#gw2/integrations/logs/shared/rotation/professions/engineer/amalgam.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
@@ -25,7 +25,7 @@ test('Amalgam selects protocol identities by kind without rewriting raw evidence
     metadataAccurate: true
   });
   const normalize = (ids, catalog = engineerCatalog) =>
-    reconstructAmalgamDpsReportActions({
+    normalizeAmalgamLogActions({
       profile,
       catalog,
       recordedActions: [action],

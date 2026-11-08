@@ -112,9 +112,7 @@ function reconstructDragonTriggerActions(
 }
 
 /** Collapses composite animations and removes EI bar-change artifacts while preserving their modeled timing. */
-export function reconstructWarriorDpsReportActions(
-  context: LogActionNormalizationContext
-): readonly RecordedLogAction[] {
+export function normalizeWarriorLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   const composites = mergeCompositeActions(
     // Trait-owned lesser signets are simulated from their trigger, never replayed as manual utility inputs.
     removeSignetOfFuryMarkers(context.recordedActions).filter(

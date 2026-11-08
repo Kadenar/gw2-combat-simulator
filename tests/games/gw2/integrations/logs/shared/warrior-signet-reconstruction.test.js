@@ -4,7 +4,7 @@ import test from 'node:test';
 import { parseDpsReport } from '#gw2/integrations/logs/dps-report/parser.js';
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
-import { reconstructWarriorDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
+import { normalizeWarriorLogActions } from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -34,7 +34,7 @@ test('Warrior normalization removes only Signet of Fury instant evidence covered
       [animation, marker, otherSignet],
       [otherSignet, marker, animation]
     ]) {
-      const result = reconstructWarriorDpsReportActions({ profile, catalog: warriorCatalog, recordedActions: actions });
+      const result = normalizeWarriorLogActions({ profile, catalog: warriorCatalog, recordedActions: actions });
       assert.deepEqual(
         new Set(result),
         new Set(
@@ -43,10 +43,9 @@ test('Warrior normalization removes only Signet of Fury instant evidence covered
       );
     }
 
-    assert.deepEqual(
-      reconstructWarriorDpsReportActions({ profile, catalog: warriorCatalog, recordedActions: [marker] }),
-      [marker]
-    );
+    assert.deepEqual(normalizeWarriorLogActions({ profile, catalog: warriorCatalog, recordedActions: [marker] }), [
+      marker
+    ]);
   }
 });
 

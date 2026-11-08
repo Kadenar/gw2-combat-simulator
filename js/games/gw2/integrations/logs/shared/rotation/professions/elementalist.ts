@@ -159,8 +159,6 @@ function normalizeRecordedActions(context: LogActionNormalizationContext): Recor
 }
 
 /** Maps represented attunements while leaving recorded chain IDs and flip validation to the simulator. */
-export function reconstructElementalistDpsReportActions(
-  context: LogActionNormalizationContext
-): readonly RecordedLogAction[] {
+export function normalizeElementalistLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   return normalizeRecordedActions(context);
 }

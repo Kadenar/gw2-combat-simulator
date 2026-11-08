@@ -4,11 +4,11 @@ import type {
   LogActionNormalizer,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
-import { reconstructLuminaryDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/guardian/luminary.js';
+import { normalizeLuminaryLogActions } from '#gw2/integrations/logs/shared/rotation/professions/guardian/luminary.js';
 import { reconstructGuardianCompositeActions } from '#gw2/integrations/logs/shared/rotation/professions/guardian/willbender.js';
 
-const specializationReconstructors: ReadonlyMap<string, LogActionNormalizer> = new Map([
-  ['luminary', reconstructLuminaryDpsReportActions]
+const specializationNormalizers: ReadonlyMap<string, LogActionNormalizer> = new Map([
+  ['luminary', normalizeLuminaryLogActions]
 ]);
 
 /** Resolves combined mantra IDs from burst timing and the bounds on possible ammo recovery. */
@@ -144,9 +144,7 @@ function reconstructMantraCharges(
 }
 
 /** Normalizes represented Guardian variants; recorded chain IDs stay intact so the simulator owns chain state. */
-export function reconstructGuardianDpsReportActions(
-  context: LogActionNormalizationContext
-): readonly RecordedLogAction[] {
+export function normalizeGuardianLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   // Weaponmaster Training makes the sword composite available to every Guardian specialization.
   const composites = reconstructGuardianCompositeActions(context);
   // EI emits a bundle swap 1 ms after tome entry/stow; neither transition swaps weapons or cancels an animation.
@@ -172,5 +170,5 @@ export function reconstructGuardianDpsReportActions(
           )
         : recordedActions
   };
-  return specializationReconstructors.get(context.profile.specializationId)?.(normalized) || normalized.recordedActions;
+  return specializationNormalizers.get(context.profile.specializationId)?.(normalized) || normalized.recordedActions;
 }

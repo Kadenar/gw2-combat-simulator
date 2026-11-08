@@ -17,9 +17,7 @@ const SHROUD_TRANSITION_IDS: ReadonlySet<number> = new Set([
 const DUPLICATE_SWAP_WINDOW_MS = 5;
 
 /** Removes duplicate shroud bar signals and cancelled exit autoattacks while preserving the source timing gaps. */
-export function reconstructNecromancerDpsReportActions(
-  context: LogActionNormalizationContext
-): readonly RecordedLogAction[] {
+export function normalizeNecromancerLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   const shroudTransitions = context.recordedActions.filter((action) => SHROUD_TRANSITION_IDS.has(action.rawSkillId));
   return context.recordedActions.filter((action) => {
     // EI can start a cancelled Life Rend beside the exit signal after its shroud bar has already closed.

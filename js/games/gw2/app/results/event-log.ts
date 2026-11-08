@@ -1,6 +1,6 @@
 /** Maps simulation events to display rows and mounts the rotation event-log view. */
 import { downloadJson } from '#gw2/app/import-export/files.js';
-import { damageCalculationPresentation } from '#gw2/app/results/damage-calculation.js';
+import { damageCalculationPresentation } from '#gw2/app/results/damage-calculation-presentation.js';
 import { damageDebugPayload } from '#gw2/app/results/damage-debug.js';
 import { effectName } from '#gw2/app/results/effect-labels.js';
 import {

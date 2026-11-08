@@ -516,7 +516,7 @@
   }
 
   .rotation-options[open] > summary::after {
-    content: '−';
+    content: '-';
   }
 
   .rotation-options > summary:focus-visible {

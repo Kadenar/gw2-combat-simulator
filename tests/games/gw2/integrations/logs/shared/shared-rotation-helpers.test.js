@@ -7,8 +7,8 @@ import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/re
 import { EVTC_STATE_CHANGE } from '#gw2/integrations/logs/evtc/types.js';
 import { resolvedActionIdentity } from '#gw2/integrations/logs/shared/rotation/catalog.js';
 import { replayActionCommand } from '#gw2/integrations/logs/shared/rotation/commands.js';
+import { normalizeConduitHazeActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/conduit.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { normalizeConduitHazeActions } from '#gw2/integrations/logs/shared/rotation/rules/conduit.js';
 import { ENGINEER_SKILL_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { RANGER_SKILL_IDS } from '#gw2/professions/ranger/data/ids.js';
 import { event, EVTC_FIXTURE_PLAYER, log } from '#tests/helpers/evtc-fixture.js';

@@ -107,8 +107,6 @@ function normalizeRangerSignals(
 }
 
 /** Maps represented Ranger actions and filters simulator-owned signals. */
-export function reconstructRangerDpsReportActions(
-  context: LogActionNormalizationContext
-): readonly RecordedLogAction[] {
+export function normalizeRangerLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   return normalizeRangerSignals(context, context.recordedActions);
 }

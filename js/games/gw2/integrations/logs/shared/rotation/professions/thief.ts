@@ -43,7 +43,7 @@ function mergeThiefCompositeActions(actions: readonly RecordedLogAction[]): Reco
 }
 
 /** Combines represented Thief animations and removes swap signals caused by Shadow Shroud bar changes. */
-export function reconstructThiefDpsReportActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
+export function normalizeThiefLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   const shroudTransitions = context.recordedActions.filter((action) =>
     SHADOW_SHROUD_TRANSITION_IDS.has(action.rawSkillId)
   );

@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { reconstructDpsReportRotation } from '#gw2/integrations/logs/dps-report/rotation/index.js';
 import { reconstructEvtcRotation } from '#gw2/integrations/logs/evtc/rotation/index.js';
-import { reconstructEngineerDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/engineer.js';
+import { normalizeEngineerLogActions } from '#gw2/integrations/logs/shared/rotation/professions/engineer.js';
 import { ROTATION_PROFILES } from '#gw2/integrations/logs/shared/rotation/profiles.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog } from '#gw2/professions/engineer/profession.js';
@@ -23,7 +23,7 @@ test('Engineer removes only inaccurate Overcharged Shot markers covered by an an
   };
   for (const profile of ROTATION_PROFILES.filter((entry) => entry.professionId === 'engineer')) {
     const normalize = (recordedActions) =>
-      reconstructEngineerDpsReportActions({ profile, catalog: engineerCatalog, recordedActions });
+      normalizeEngineerLogActions({ profile, catalog: engineerCatalog, recordedActions });
     for (const start of [999, 1000, 1400, 1700, 1740, 1750, 1751]) {
       const marker = { ...animation, start, end: start, status: 'instant', eventIndex: 2 };
       const accurate = { ...marker, metadataAccurate: true, eventIndex: 3 };

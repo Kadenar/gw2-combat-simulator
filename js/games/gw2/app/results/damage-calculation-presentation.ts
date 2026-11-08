@@ -23,7 +23,7 @@ const trimmed = (value: number): string => String(Number(value.toFixed(4)));
 
 const percent = (fraction: number): string => `${Number((fraction * 100).toFixed(1))}%`;
 
-const signed = (value: number, text: string): string => `${value < 0 ? '−' : '+'}${text}`;
+const signed = (value: number, text: string): string => `${value < 0 ? '-' : '+'}${text}`;
 
 /** Spells out base damage so its result can be checked by hand, using the formula this packet actually took. */
 function baseExplanation(event: SimulationEvent, calculation: Gw2DamageCalculation): string {
@@ -52,7 +52,7 @@ function criticalDamageFormula(event: SimulationEvent, calculation: Gw2DamageCal
     if (id === CRITICAL_DAMAGE_FEROCITY_CONTRIBUTOR) {
       formula += ` + ${grouped(calculation.ferocity ?? 0)} Fero/${FEROCITY_PER_CRITICAL_DAMAGE_MULTIPLIER}`;
     } else if (bucket === 'additive') {
-      formula += ` ${value < 0 ? '−' : '+'} ${Math.abs(value).toFixed(3)} ${label}`;
+      formula += ` ${value < 0 ? '-' : '+'} ${Math.abs(value).toFixed(3)} ${label}`;
     } else {
       formula = `(${formula}) × ${trimmed(value)} ${label}`;
     }

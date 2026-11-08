@@ -16,7 +16,7 @@ import {
 import { ENCOUNTER_RESULT_EVENT, scenarioSimulation } from '#gw2/app/boss-scenarios/simulation.js';
 import { loadScenarioLibrary, saveScenarioLibrary } from '#gw2/app/boss-scenarios/storage.js';
 import { downloadJson } from '#gw2/app/import-export/files.js';
-import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation.js';
+import { SIMULATOR_VIEW_CHANGE_EVENT } from '#gw2/app/page/navigation-state.js';
 import { mountResultSummary } from '#gw2/app/results/summary-view.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { createEncounter, type EncounterResult } from '#gw2/platform/combat/state/encounter.js';

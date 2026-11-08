@@ -12,9 +12,7 @@ const BREAKRAZOR = Object.freeze({ name: "Breakrazor's Bastion", skillId: 45686 
 const WARBAND_ACTIONS = Object.freeze([ICERAZOR, RAZORCLAW, DARKRAZOR, BREAKRAZOR]);
 
 /** Maps represented enhanced warband IDs to base inputs with their instant replay duration. */
-export function reconstructRenegadeDpsReportActions(
-  context: LogActionNormalizationContext
-): readonly RecordedLogAction[] {
+export function normalizeRenegadeLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   return (
     [...context.recordedActions]
       // Band Together reports the enhanced summon signal, but rotations must

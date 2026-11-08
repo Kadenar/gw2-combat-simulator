@@ -3,58 +3,25 @@
  *
  * The profession selector switches directly between simulator pages. Tools
  * remain single-page views driven by the URL hash and remember their scroll
- * positions when switching. `mountSimulatorNavigation` is the entry point;
- * the rest are its DOM helpers.
+ * positions when switching. Mounting applies shared navigation state to the
+ * controls and loads tool views when selected.
  */
 
 import { navigationRoute } from '#browser/page/embed.js';
 import { mountMobileMenu } from '#browser/shell/mobile-menu.js';
 import { resetRotationWorkspace } from '#browser/shell/rotation-workspace.js';
+import {
+  SIMULATOR_VIEW_CHANGE_EVENT,
+  simulatorViewFromHash,
+  simulatorViewHref,
+  VIEW_HASHES,
+  workspaceSimulatorView,
+  type SimulatorView
+} from '#gw2/app/page/navigation-state.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { clamp } from '#kernel/core/numeric.js';
 
-export type SimulatorView = 'workspace' | 'bosses' | 'analysis' | 'gear-optimizer' | 'benchmarks' | 'modifiers';
-
 type ScrollPosition = Readonly<{ left: number; top: number }>;
-
-const VIEW_HASHES: Readonly<Record<SimulatorView, string>> = {
-  workspace: '#workspace',
-  bosses: '#bosses',
-  analysis: '#analysis',
-  'gear-optimizer': '#gear-optimizer',
-  benchmarks: '#benchmarks',
-  modifiers: '#modifiers'
-};
-
-/** Maps a URL hash to a view, defaulting to `workspace` when unrecognized. */
-export function simulatorViewFromHash(hash: string): SimulatorView {
-  const normalized = hash.toLowerCase();
-
-  if (normalized === VIEW_HASHES.bosses) return 'bosses';
-
-  if (normalized === VIEW_HASHES.analysis) return 'analysis';
-
-  if (normalized === VIEW_HASHES['gear-optimizer']) return 'gear-optimizer';
-
-  if (normalized === VIEW_HASHES.benchmarks) return 'benchmarks';
-
-  if (normalized === VIEW_HASHES.modifiers) return 'modifiers';
-
-  return 'workspace';
-}
-
-/** Gear search belongs to Golem; direct links and history cannot open it against an encounter workspace. */
-export function workspaceSimulatorView(view: SimulatorView, workspace: string | undefined): SimulatorView {
-  return view === 'gear-optimizer' && workspace === 'bosses' ? 'bosses' : view;
-}
-
-/** Keeps simulator tools on the given profession page. */
-export function simulatorViewHref(pathname: string, view: SimulatorView): string {
-  const route = pathname.split('/').pop() || pathname || 'index.html';
-  return `${route}${VIEW_HASHES[view]}`;
-}
-
-export const SIMULATOR_VIEW_CHANGE_EVENT = 'simulator-viewchange';
 
 /** Creates a tool link that supports normal browser navigation as well as in-page switching. */
 function createNavigationLink(root: Document, view: SimulatorView, label: string, href: string): HTMLAnchorElement {

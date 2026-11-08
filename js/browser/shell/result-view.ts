@@ -4,22 +4,7 @@ import { mountSimulationSection, type SimulationViewModel } from '#ui/results/si
 export interface SimulationRenderState {
   readonly inputRevision: number;
   readonly outputRevision: number;
-}
-
-// Before navigation mounts, the URL hash still identifies whether detailed Analysis is visible.
-export function analysisViewIsActive(): boolean {
-  if (typeof document === 'undefined') return true;
-
-  const body = document.body;
-
-  if (!body) return true;
-
-  const mountedView = body.dataset.simulatorView;
-
-  // The active workspace owns the result; both Golem and Bosses use the same analysis shell.
-  if (mountedView) return mountedView === 'analysis';
-
-  return document.defaultView?.location.hash === '#analysis';
+  readonly analysisVisible: boolean;
 }
 
 /** Renders only shell-facing models; game resolver output never crosses this boundary. */
@@ -41,7 +26,8 @@ export function renderSimulationViewModel(viewModel: SimulationViewModel, state:
 
   if (!element) return;
 
-  if (!analysisViewIsActive()) {
+  // Navigation supplies visibility so the shell does not interpret game-owned routes.
+  if (!state.analysisVisible) {
     if (element.dataset) element.dataset.analysisStale = 'true';
 
     if (viewModel.workspace) {

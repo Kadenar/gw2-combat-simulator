@@ -29,6 +29,7 @@ import type { RotationActionStatus } from '#gw2/integrations/logs/shared/rotatio
 import type { RecordedLogAction, ResolvedLogAction } from '#gw2/integrations/logs/shared/rotation/normalization.js';
 import { normalizeLogProfessionActions } from '#gw2/integrations/logs/shared/rotation/professions/index.js';
 import { BLINK_OR_PHASE_RETREAT_ID } from '#gw2/integrations/logs/shared/rotation/professions/mesmer.js';
+import { alignConduitHazeCombatOffset } from '#gw2/integrations/logs/shared/rotation/professions/revenant/conduit.js';
 import {
   SIGNET_OF_MIGHT_PASSIVE_ID,
   signetOfMightProcAt
@@ -38,7 +39,6 @@ import {
   ROTATION_PROFILES,
   type RotationProfessionProfile
 } from '#gw2/integrations/logs/shared/rotation/profiles.js';
-import { alignConduitHazeCombatOffset } from '#gw2/integrations/logs/shared/rotation/rules/conduit.js';
 import { selectRotationPlayer } from '#gw2/integrations/logs/shared/rotation/selection.js';
 import { rotationActionSummary } from '#gw2/integrations/logs/shared/rotation/summary.js';
 import { buildReplayTimeline } from '#gw2/integrations/logs/shared/rotation/timeline.js';

@@ -110,7 +110,7 @@ export function patchBenchmarks(
 function patchPercent(value: number): string {
   if (!value) return '0.00%';
 
-  return `${value > 0 ? '+' : '−'}${Math.abs(value) < 0.01 ? '<0.01' : Math.abs(value).toFixed(2)}%`;
+  return `${value > 0 ? '+' : '-'}${Math.abs(value) < 0.01 ? '<0.01' : Math.abs(value).toFixed(2)}%`;
 }
 
 /** Describe measured changes among the matching builds, without inferring which patch edits caused them. */
@@ -211,7 +211,7 @@ export function mountBenchmarkPatchPreview(
   function professionSummaryMarkup(builds: readonly PatchBenchmark[], id: string): string {
     const summary = patchProfessionSummary(builds);
     const highlight = (row: MeasuredPatchBenchmark | undefined, label: string): string =>
-      `<span class="benchmark-patch-highlight"><span class="benchmark-patch-summary-label">${label}</span>${row ? `<span class="benchmark-patch-highlight-value"><strong class="patch-${row.outcome}">${html(patchPercent(row.percent))}</strong></span><span>${html(row.build.specialization)} · ${html(row.build.label)}</span><span class="patch-${row.outcome}">${row.difference > 0 ? '+' : '−'}${number.format(Math.abs(row.difference))} DPS</span>` : '<span class="benchmark-patch-no-change">None</span>'}</span>`;
+      `<span class="benchmark-patch-highlight"><span class="benchmark-patch-summary-label">${label}</span>${row ? `<span class="benchmark-patch-highlight-value"><strong class="patch-${row.outcome}">${html(patchPercent(row.percent))}</strong></span><span>${html(row.build.specialization)} · ${html(row.build.label)}</span><span class="patch-${row.outcome}">${row.difference > 0 ? '+' : '-'}${number.format(Math.abs(row.difference))} DPS</span>` : '<span class="benchmark-patch-no-change">None</span>'}</span>`;
     const counts = [
       { count: summary.winners, outcome: 'up', label: 'higher' },
       { count: summary.losers, outcome: 'down', label: 'lower' },
@@ -254,7 +254,7 @@ export function mountBenchmarkPatchPreview(
               .map(([specialization, entries], index) => {
                 const headingId = `patch-${id}-${index}`;
                 const sectionKey = html(JSON.stringify(['specialization', id, specialization]));
-                return `<tbody><tr class="benchmark-patch-specialization" data-patch-section-key="${sectionKey}"><th colspan="6" id="${headingId}"><button type="button" class="benchmark-patch-toggle" data-patch-toggle="${sectionKey}" aria-expanded="true">${disclosureIcon}<span>${html(specialization)}</span></button></th></tr>${entries.map((row) => `<tr data-patch-row data-patch-section-key="${sectionKey}"><th scope="row" headers="${headingId}">${html(row.build.label)}${row.outcome === 'tbd' ? `<span class="benchmark-patch-pending-reason patch-tbd">${html(row.reason)}</span>` : ''}${workspaceLink(row.build)}</th><td>${number.format(row.build.benchmarkDps)}</td>${row.outcome === 'tbd' ? '<td class="patch-tbd">TBD</td><td class="patch-tbd">-</td><td class="patch-tbd">-</td><td class="patch-tbd">Pending</td>' : `<td>${number.format(row.previewDps)}</td><td class="patch-${row.outcome}">${row.difference > 0 ? '+' : row.difference < 0 ? '−' : ''}${number.format(Math.abs(row.difference))}</td><td class="patch-${row.outcome}">${html(patchPercent(row.percent))}</td><td class="patch-${row.outcome}">${row.outcome === 'up' ? 'Higher DPS' : row.outcome === 'down' ? 'Lower DPS' : 'Unchanged'}</td>`}</tr>`).join('')}</tbody>`;
+                return `<tbody><tr class="benchmark-patch-specialization" data-patch-section-key="${sectionKey}"><th colspan="6" id="${headingId}"><button type="button" class="benchmark-patch-toggle" data-patch-toggle="${sectionKey}" aria-expanded="true">${disclosureIcon}<span>${html(specialization)}</span></button></th></tr>${entries.map((row) => `<tr data-patch-row data-patch-section-key="${sectionKey}"><th scope="row" headers="${headingId}">${html(row.build.label)}${row.outcome === 'tbd' ? `<span class="benchmark-patch-pending-reason patch-tbd">${html(row.reason)}</span>` : ''}${workspaceLink(row.build)}</th><td>${number.format(row.build.benchmarkDps)}</td>${row.outcome === 'tbd' ? '<td class="patch-tbd">TBD</td><td class="patch-tbd">-</td><td class="patch-tbd">-</td><td class="patch-tbd">Pending</td>' : `<td>${number.format(row.previewDps)}</td><td class="patch-${row.outcome}">${row.difference > 0 ? '+' : row.difference < 0 ? '-' : ''}${number.format(Math.abs(row.difference))}</td><td class="patch-${row.outcome}">${html(patchPercent(row.percent))}</td><td class="patch-${row.outcome}">${row.outcome === 'up' ? 'Higher DPS' : row.outcome === 'down' ? 'Lower DPS' : 'Unchanged'}</td>`}</tr>`).join('')}</tbody>`;
               })
               .join('')}</table></div></section>`;
           })

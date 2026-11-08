@@ -3,31 +3,31 @@ import type {
   LogActionNormalizer,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
-import { reconstructElementalistDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/elementalist.js';
-import { reconstructEngineerDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/engineer.js';
-import { reconstructGuardianDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/guardian.js';
-import { reconstructMesmerDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/mesmer.js';
-import { reconstructNecromancerDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/necromancer.js';
-import { reconstructRangerDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/ranger.js';
-import { reconstructRevenantDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant.js';
-import { reconstructThiefDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/thief.js';
-import { reconstructWarriorDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
+import { normalizeElementalistLogActions } from '#gw2/integrations/logs/shared/rotation/professions/elementalist.js';
+import { normalizeEngineerLogActions } from '#gw2/integrations/logs/shared/rotation/professions/engineer.js';
+import { normalizeGuardianLogActions } from '#gw2/integrations/logs/shared/rotation/professions/guardian.js';
+import { normalizeMesmerLogActions } from '#gw2/integrations/logs/shared/rotation/professions/mesmer.js';
+import { normalizeNecromancerLogActions } from '#gw2/integrations/logs/shared/rotation/professions/necromancer.js';
+import { normalizeRangerLogActions } from '#gw2/integrations/logs/shared/rotation/professions/ranger.js';
+import { normalizeRevenantLogActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant.js';
+import { normalizeThiefLogActions } from '#gw2/integrations/logs/shared/rotation/professions/thief.js';
+import { normalizeWarriorLogActions } from '#gw2/integrations/logs/shared/rotation/professions/warrior.js';
 
-const reconstructors: ReadonlyMap<string, LogActionNormalizer> = new Map([
-  ['elementalist', reconstructElementalistDpsReportActions],
-  ['engineer', reconstructEngineerDpsReportActions],
-  ['guardian', reconstructGuardianDpsReportActions],
-  ['mesmer', reconstructMesmerDpsReportActions],
-  ['necromancer', reconstructNecromancerDpsReportActions],
-  ['ranger', reconstructRangerDpsReportActions],
-  ['revenant', reconstructRevenantDpsReportActions],
-  ['thief', reconstructThiefDpsReportActions],
-  ['warrior', reconstructWarriorDpsReportActions]
+const normalizers: ReadonlyMap<string, LogActionNormalizer> = new Map([
+  ['elementalist', normalizeElementalistLogActions],
+  ['engineer', normalizeEngineerLogActions],
+  ['guardian', normalizeGuardianLogActions],
+  ['mesmer', normalizeMesmerLogActions],
+  ['necromancer', normalizeNecromancerLogActions],
+  ['ranger', normalizeRangerLogActions],
+  ['revenant', normalizeRevenantLogActions],
+  ['thief', normalizeThiefLogActions],
+  ['warrior', normalizeWarriorLogActions]
 ]);
 
 /** Dispatches shared normalization of represented inputs without coupling the timeline to one profession. */
 export function normalizeLogProfessionActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
-  const reconstruct = reconstructors.get(context.profile.professionId);
+  const normalize = normalizers.get(context.profile.professionId);
   // Profession normalizers receive the recorded inputs directly; unsupported combat modes have no separate filter.
-  return reconstruct ? reconstruct(context) : context.recordedActions;
+  return normalize ? normalize(context) : context.recordedActions;
 }

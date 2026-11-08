@@ -4,17 +4,17 @@ import type {
   LogActionNormalizer,
   RecordedLogAction
 } from '#gw2/integrations/logs/shared/rotation/normalization.js';
-import { reconstructConduitDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/conduit.js';
-import { reconstructRenegadeDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/renegade.js';
-import { reconstructVindicatorDpsReportActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/vindicator.js';
+import { normalizeConduitLogActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/conduit.js';
+import { normalizeRenegadeLogActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/renegade.js';
+import { normalizeVindicatorLogActions } from '#gw2/integrations/logs/shared/rotation/professions/revenant/vindicator.js';
 import { mergeCompositeActions, mergedActionStatus } from '#gw2/integrations/logs/shared/rotation/rules/composites.js';
 import { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';
 import { isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
 
-const specializationReconstructors: ReadonlyMap<string, LogActionNormalizer> = new Map([
-  ['conduit', reconstructConduitDpsReportActions],
-  ['renegade', reconstructRenegadeDpsReportActions],
-  ['vindicator', reconstructVindicatorDpsReportActions]
+const specializationNormalizers: ReadonlyMap<string, LogActionNormalizer> = new Map([
+  ['conduit', normalizeConduitLogActions],
+  ['renegade', normalizeRenegadeLogActions],
+  ['vindicator', normalizeVindicatorLogActions]
 ]);
 const LEGEND_STANCE_NAME = /^legendary .+(?: stance)?$/;
 const SONG_OF_THE_MISTS_SIGNAL = /^call of the (alliance|assassin|centaur|demon|dragon|dwarf|renegade)$/;
@@ -103,9 +103,7 @@ function normalizeGeneratedRevenantActions(
 }
 
 /** Normalizes report legend changes before mapping represented specialization actions. */
-export function reconstructRevenantDpsReportActions(
-  context: LogActionNormalizationContext
-): readonly RecordedLogAction[] {
+export function normalizeRevenantLogActions(context: LogActionNormalizationContext): readonly RecordedLogAction[] {
   // EI exposes Song of the Mists and Abyssal Blitz's child mines as inaccurate
   // casts; the simulator generates both from their parent actions, so importing
   // these signals would apply their damage and conditions twice.
@@ -114,7 +112,7 @@ export function reconstructRevenantDpsReportActions(
     return !SONG_OF_THE_MISTS_SIGNAL.test(name) && !ABYSSAL_BLITZ_CHILD_SIGNAL.test(name);
   });
   const common = normalizeLegendSwaps(context, withoutAutomaticCalls);
-  const specialized = specializationReconstructors.get(context.profile.specializationId)?.({
+  const specialized = specializationNormalizers.get(context.profile.specializationId)?.({
     ...context,
     recordedActions: common
   }) || [...common];

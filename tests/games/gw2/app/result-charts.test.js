@@ -96,11 +96,14 @@ test('Analysis projections are prepared only when the Analysis view is active', 
     assert.match(workspace.innerHTML, /Randomized DPS range/);
   }
 
-  // A direct #analysis load also prepares projections before navigation sets the body dataset.
+  // Direct Analysis links use navigation's case-insensitive parsing before the body dataset exists.
   delete document.body.dataset.simulatorView;
-  analysisReads.clear();
-  assert.ok(createGw2SimulationViewModel(app).analysis);
-  assertAnalysisPrepared();
+  for (const hash of ['#analysis', '#ANALYSIS']) {
+    document.defaultView.location.hash = hash;
+    analysisReads.clear();
+    assert.ok(createGw2SimulationViewModel(app).analysis);
+    assertAnalysisPrepared();
+  }
 });
 
 test('shared chart markup escapes effect names and uses scoped roles without ids', () => {
