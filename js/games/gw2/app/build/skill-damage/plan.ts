@@ -1,6 +1,6 @@
 /** Prepares isolated damage occurrences and their table descriptions from captured calculation inputs. */
 import type { GameContentAddress } from '#browser/game/contracts.js';
-import { attributePreviewContext, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
+import { attributePreviewContext, normalizeAttributePreview } from '#gw2/app/build/attribute-preview-controls.js';
 import { buildContextInput } from '#gw2/app/build/isolated-preview.js';
 import type { SkillDamageInput } from '#gw2/app/build/skill-damage/input.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';

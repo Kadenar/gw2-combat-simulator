@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { attributeEffectControls, attributePreviewContext } from '#gw2/app/build/attribute-effects.js';
-import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
+import { calculateAttributePreview } from '#gw2/app/build/attribute-preview-calculation.js';
+import { attributePreviewContext, attributePreviewControls } from '#gw2/app/build/attribute-preview-controls.js';
 import { calculateSkillDamageAttributes } from '#gw2/app/build/skill-damage/attributes.js';
 import { clearedValues, createSkillDamagePlan, skillDamageControls } from '#gw2/app/build/skill-damage/plan.js';
 import { createSkillDamagePreview } from '#gw2/app/build/skill-damage/preview.js';
@@ -105,7 +105,7 @@ test('shipped presets compose preview controls for both equipped weapon sets', a
       assert.doesNotThrow(() => {
         for (const weaponSet of [1, 2]) {
           app.attributeWeaponSet = weaponSet;
-          attributeEffectControls(app);
+          attributePreviewControls(app);
         }
 
         skillDamageControls(app);
@@ -129,7 +129,7 @@ test('Ranger shares one target-health input for Spear and Oppressive Superiority
         const controls = app.profession.ui.previewControls(attributePreviewContext(app, 1));
         assert.equal(controls.filter((control) => control.key === 'targetHealth').length, Number(expected));
         assert.equal(
-          attributeEffectControls(app).some((control) => control.key === 'targetHealth'),
+          attributePreviewControls(app).some((control) => control.key === 'targetHealth'),
           false
         );
         const damageControls = skillDamageControls(app);
@@ -179,7 +179,7 @@ test('Spellbreaker previews share capped Insight stacks independently of Signet 
   const saved = structuredClone(app.build);
   const controls = skillDamageControls(app);
   for (const calculate of [
-    (values) => calculateBuffedAttributes(app, values).attributes,
+    (values) => calculateAttributePreview(app, values).attributes,
     (values) => calculateSkillDamageAttributes(app, values, controls).attributes
   ]) {
     const values = { ...clearedValues(controls), signetMastery: 5 };
@@ -231,7 +231,7 @@ test('Signet of Fury replaces passive Precision with active Precision and Feroci
     ]) {
       const values = { ...clearedValues(controls), signetOfFury };
       for (const attributes of [
-        calculateBuffedAttributes(app, values).attributes,
+        calculateAttributePreview(app, values).attributes,
         calculateSkillDamageAttributes(app, values, controls).attributes
       ]) {
         assert.equal(attributes.Precision.final, base.Precision.final + precision, specialization);
@@ -364,7 +364,7 @@ test("Assassin's Signet previews Off, Passive and Active as mutually exclusive P
     false
   );
   assert.equal(clearedValues(controls).assassinsSignet, 'off');
-  assert.equal(calculateBuffedAttributes(app).attributes.Power.final, unequipped + 180);
+  assert.equal(calculateAttributePreview(app).attributes.Power.final, unequipped + 180);
   assert.equal(calculateSkillDamageAttributes(app, {}, controls).attributes.Power.final, unequipped + 180);
   for (const [assassinsSignet, bonus] of [
     ['off', 0],
@@ -373,7 +373,7 @@ test("Assassin's Signet previews Off, Passive and Active as mutually exclusive P
     ['off', 0]
   ]) {
     const values = { ...clearedValues(controls), assassinsSignet };
-    assert.equal(calculateBuffedAttributes(app, values).attributes.Power.final, unequipped + bonus);
+    assert.equal(calculateAttributePreview(app, values).attributes.Power.final, unequipped + bonus);
     assert.equal(calculateSkillDamageAttributes(app, values, controls).attributes.Power.final, unequipped + bonus);
     const { request } = createSkillDamagePlan(app, controls, values);
     assert.ok(request.config.selectedSkillIds.includes(signet.id));
@@ -393,7 +393,7 @@ test("Assassin's Signet previews Off, Passive and Active as mutually exclusive P
       patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-  for (const available of [skillDamageControls(app), attributeEffectControls(app)])
+  for (const available of [skillDamageControls(app), attributePreviewControls(app)])
     assert.equal(
       available.some((entry) => entry.key === 'assassinsSignet'),
       false
@@ -558,8 +558,8 @@ for (const [profession, trait, key, value, attribute] of [
     assert.ok(delta > 0, `${key} has no effect`);
     close(
       delta,
-      calculateBuffedAttributes(app, { [key]: value }).attributes[attribute].final -
-        calculateBuffedAttributes(app).attributes[attribute].final
+      calculateAttributePreview(app, { [key]: value }).attributes[attribute].final -
+        calculateAttributePreview(app).attributes[attribute].final
     );
   });
 }
@@ -709,7 +709,7 @@ test('Life Siphon previews its Bleeding-target bonus without applying actual Ble
 test('Hidden Killer exposes Stealth without an ineffective Revealed control', () => {
   const hidden = previewApp('thief', ['Hidden Killer']);
   const revealed = previewApp('thief', ['Revealed Training']);
-  for (const controls of [skillDamageControls, attributeEffectControls]) {
+  for (const controls of [skillDamageControls, attributePreviewControls]) {
     assert.equal(
       controls(hidden).some((control) => control.key === 'revealed'),
       false

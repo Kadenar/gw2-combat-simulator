@@ -1,6 +1,6 @@
 /** Renders attribute values and isolated preview controls with panel-owned display ordering and formatting. */
-import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
-import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
+import { calculateAttributePreview } from '#gw2/app/build/attribute-preview-calculation.js';
+import { attributePreviewControls, normalizeAttributePreview } from '#gw2/app/build/attribute-preview-controls.js';
 import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import { CONDITION_DURATION_ATTRIBUTES, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
@@ -71,10 +71,10 @@ export function renderAttributeStats(
   input = readAttributePreviewValues(container),
   previewContainer = container
 ): void {
-  const controls = attributeEffectControls(app);
+  const controls = attributePreviewControls(app);
   const values = normalizeAttributePreview(controls, input);
   let durationDetails = container.querySelector('.attr-duration-details')?.getAttribute('aria-expanded') === 'true';
-  const baseline = calculateBuffedAttributes(app);
+  const baseline = calculateAttributePreview(app);
   // Start collapsed, retaining the user's disclosure choice when attributes refresh.
   const previewOpen = previewContainer.querySelector('.attribute-effects')?.hasAttribute('open');
   container.innerHTML = '<div class="attribute-values"></div>';
@@ -110,7 +110,7 @@ export function renderAttributeStats(
 
   const update = (): void => {
     container.querySelector('.attribute-values')!.innerHTML = attributesHtml(
-      calculateBuffedAttributes(app, readAttributePreviewValues(previewContainer)),
+      calculateAttributePreview(app, readAttributePreviewValues(previewContainer)),
       baseline,
       durationDetails
     );

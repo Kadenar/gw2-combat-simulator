@@ -1,3 +1,4 @@
+/** Selects and normalizes controls for isolated conditional attribute previews using the active catalog and weapon set. */
 import type { AttributePreviewInput, AttributePreviewState } from '#gw2/app/build/types.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
@@ -24,7 +25,7 @@ export function attributePreviewContext(
 }
 
 /** Combine common boon and equipment inputs with the active profession's conditional controls. */
-export function attributeEffectControls(app: AttributePreviewState): PreviewControl[] {
+export function attributePreviewControls(app: AttributePreviewState): PreviewControl[] {
   const controls: PreviewControl[] = [
     {
       key: boonKey(BOON.MIGHT),

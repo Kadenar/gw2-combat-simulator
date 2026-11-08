@@ -1,5 +1,5 @@
 /** Prepares isolated damage inputs and accepts matching results without reading browser state. */
-import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
+import { normalizeAttributePreview } from '#gw2/app/build/attribute-preview-controls.js';
 import { calculateSkillDamageAttributes } from '#gw2/app/build/skill-damage/attributes.js';
 import type { SkillDamageInput } from '#gw2/app/build/skill-damage/input.js';
 import {

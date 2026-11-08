@@ -1,4 +1,4 @@
-import { normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
+import { normalizeAttributePreview } from '#gw2/app/build/attribute-preview-controls.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import type { AttributePreviewInput } from '#gw2/app/build/types.js';
 import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { attributeEffectControls, attributePreviewContext } from '#gw2/app/build/attribute-effects.js';
+import { attributePreviewContext, attributePreviewControls } from '#gw2/app/build/attribute-preview-controls.js';
 import { calculateSkillDamageAttributes } from '#gw2/app/build/skill-damage/attributes.js';
 import {
   clearedValues,
@@ -107,7 +107,7 @@ test('target-health visibility follows selected damage traits without leaking da
       }));
       assert.equal(healthPlan(app).usesTargetHealth, true, name);
       assert.equal(
-        attributeEffectControls(app).some((control) => control.key === 'targetHealth'),
+        attributePreviewControls(app).some((control) => control.key === 'targetHealth'),
         attributeNames.includes(name),
         name
       );
@@ -160,7 +160,7 @@ test('Guardian spear illumination is damage-only, works in either set, and reset
     const saved = structuredClone(app.build);
     const controls = skillDamageControls(app);
     assert.equal(controls.filter((control) => control.key === 'illuminated').length, 1);
-    assert.ok(!attributeEffectControls(app).some((control) => control.key === 'illuminated'));
+    assert.ok(!attributePreviewControls(app).some((control) => control.key === 'illuminated'));
     assert.equal(simulationConfigValues(app, controls).illuminated, 0);
     const cache = new Map();
     const measurements = [0, 1, 0].map((illuminated) => {
@@ -203,7 +203,7 @@ test('Amalgam damage previews apply Willing Host, Evolve and Titanic Strain inde
   const controls = skillDamageControls(app);
   for (const key of ['willingHost', 'evolved', 'titanic'])
     assert.equal(controls.filter((control) => control.key === key).length, 1);
-  assert.ok(!attributeEffectControls(app).some((control) => control.key === 'willingHost'));
+  assert.ok(!attributePreviewControls(app).some((control) => control.key === 'willingHost'));
   const baseValues = { ...clearedValues(controls), might: 25 };
   const base = calculateSkillDamageAttributes(app, baseValues, controls).attributes;
   const cache = new Map();
@@ -332,12 +332,12 @@ test('control scope keeps damage-only inputs out of the Attribute Preview', asyn
   const harbinger = await headlessApp('necromancer', HARBINGER);
   const keys = (controls) => controls.map((control) => control.key);
   assert.ok(keys(skillDamageControls(bladesworn)).includes('fierceAsFire'));
-  assert.ok(!keys(attributeEffectControls(bladesworn)).includes('fierceAsFire'));
+  assert.ok(!keys(attributePreviewControls(bladesworn)).includes('fierceAsFire'));
   // Guns and Glory changes Ferocity, so it remains in both panels.
   assert.ok(keys(skillDamageControls(bladesworn)).includes('gunsAndGlory'));
-  assert.ok(keys(attributeEffectControls(bladesworn)).includes('gunsAndGlory'));
+  assert.ok(keys(attributePreviewControls(bladesworn)).includes('gunsAndGlory'));
   assert.ok(keys(skillDamageControls(harbinger)).includes('blight'));
-  assert.ok(!keys(attributeEffectControls(harbinger)).includes('blight'));
+  assert.ok(!keys(attributePreviewControls(harbinger)).includes('blight'));
 });
 
 test('preview values become occurrence boons, target conditions, held buffs, and profession fields', async () => {
@@ -498,7 +498,7 @@ test('trait proc preview toggles Dhuumfire and Sadistic Searing on their qualify
   const controls = skillDamageControls(app);
   assert.equal(simulationConfigValues(app, controls).includeTraitProcs, 0);
   assert.equal(clearedValues(controls).includeTraitProcs, 0);
-  assert.ok(!attributeEffectControls(app).some((control) => control.key === 'includeTraitProcs'));
+  assert.ok(!attributePreviewControls(app).some((control) => control.key === 'includeTraitProcs'));
   const cache = new Map();
   const measurements = [];
   for (const includeTraitProcs of [0, 1, 0]) {

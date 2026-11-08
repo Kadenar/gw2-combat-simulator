@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
-import { calculateBuffedAttributes } from '#gw2/app/build/buffed-attributes.js';
+import { calculateAttributePreview } from '#gw2/app/build/attribute-preview-calculation.js';
+import { attributePreviewControls, normalizeAttributePreview } from '#gw2/app/build/attribute-preview-controls.js';
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { attributeSourcePool } from '#gw2/platform/attributes/inputs.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -72,14 +72,14 @@ function previewApp(name, traitNames = [], specialization = null) {
   return app;
 }
 
-const stats = (app, input = {}) => calculateBuffedAttributes(app, input).attributes;
+const stats = (app, input = {}) => calculateAttributePreview(app, input).attributes;
 const close = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8, actual + ' != ' + expected);
 
 // Preparation owns the final assumptions; repeated grants replace rather than accumulate in either effect store.
 test('preview grants use the final prepared stacks, audience and expiry without leaking into later queries', () => {
   const app = previewApp('mesmer', ["Fencer's Finesse"]);
   const profession = app.profession;
-  const kind = attributeEffectControls(app).find((control) => control.key === 'fencer').field;
+  const kind = attributePreviewControls(app).find((control) => control.key === 'fencer').field;
   const base = stats(app);
   const saved = structuredClone({ build: app.build, attributes: app.attributeData });
   for (const visibility of ['active', 'other-recipient', 'expired']) {
@@ -220,11 +220,11 @@ test('attribute controls require selected trait stack caps from the active catal
   const profiles = new Map(app.activeCatalog.balanceProfilesById);
   app.activeCatalog = { ...app.activeCatalog, balanceProfilesById: profiles };
   profiles.set(traitId, { ...profiles.get(traitId), maximumStacks: 7 });
-  assert.equal(attributeEffectControls(app).find((control) => control.key === 'fencer').max, 7);
+  assert.equal(attributePreviewControls(app).find((control) => control.key === 'fencer').max, 7);
   profiles.delete(traitId);
-  assert.throws(() => attributeEffectControls(app), /missing required profile/);
+  assert.throws(() => attributePreviewControls(app), /missing required profile/);
   assert.equal(
-    attributeEffectControls(previewApp('guardian')).some((control) => control.key === 'fencer'),
+    attributePreviewControls(previewApp('guardian')).some((control) => control.key === 'fencer'),
     false
   );
 });
@@ -242,7 +242,7 @@ test('Aristocracy previews bounded condition duration stacks for every professio
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
     const original = structuredClone({ build: app.build, attributes: app.attributeData });
-    const control = attributeEffectControls(app).find((control) => control.key === 'aristocracy');
+    const control = attributePreviewControls(app).find((control) => control.key === 'aristocracy');
     assert.equal(control.max, 5);
     const base = stats(app);
     for (const [input, stacks] of [
@@ -266,7 +266,7 @@ test('Aristocracy previews bounded condition duration stacks for every professio
         patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
       })
       .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-    assert.ok(!attributeEffectControls(app).some((control) => control.key === 'aristocracy'));
+    assert.ok(!attributePreviewControls(app).some((control) => control.key === 'aristocracy'));
     close(stats(app, { aristocracy: 5 })['Condition Duration'].final, stats(app)['Condition Duration'].final);
   }
 });
@@ -294,7 +294,7 @@ test('boons are independent, bounded, reversible and isolated from the displayed
   close(stats(app, { fury: 1 })['Critical Chance'].final, base['Critical Chance'].final + 25);
   for (const name of ['Precision', 'Toughness', 'Vitality', 'Healing Power'])
     assert.equal(base[name].final, app.attributeData.attributes[name].final);
-  const controls = attributeEffectControls(app);
+  const controls = attributePreviewControls(app);
   assert.deepEqual(normalizeAttributePreview(controls, { might: 999, fury: 1, elementalEmpowerment: 10 }), {
     might: 25,
     fury: 1
@@ -358,7 +358,7 @@ test('Elementalist attunement, Fresh Air and hammer orbs are independent and wea
       patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
     })
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-  assert.ok(!attributeEffectControls(app).some((control) => control.key === 'crescentWind'));
+  assert.ok(!attributePreviewControls(app).some((control) => control.key === 'crescentWind'));
   close(stats(app, { crescentWind: 1 })['Critical Chance'].final, stats(app)['Critical Chance'].final);
 });
 
@@ -415,7 +415,7 @@ test('Mesmer previews timed and boon-dependent attributes separately', () => {
 
 // Shroud is useful only with a selected attribute source; Scourge never enters shroud.
 test('Shroud preview appears only for relevant traits or Signet of Spite', () => {
-  const shroud = (app) => attributeEffectControls(app).find((control) => control.key === 'shroud');
+  const shroud = (app) => attributePreviewControls(app).find((control) => control.key === 'shroud');
   for (const specialization of [null, 'Reaper', 'Harbinger', 'Ritualist', 'Scourge'])
     assert.equal(shroud(previewApp('necromancer', [], specialization)), undefined);
   for (const trait of ['Death Perception', "Reaper's Onslaught"])
@@ -467,7 +467,7 @@ test('Target the Weak counts condition types without activating other condition-
   const app = previewApp('necromancer', ['Target the Weak', 'Decimate Defenses']);
   const original = structuredClone(app.build);
   const base = stats(app)['Critical Chance'].final;
-  const controls = attributeEffectControls(app);
+  const controls = attributePreviewControls(app);
   assert.deepEqual(
     controls.filter((control) => control.kind === 'condition').map((control) => control.field),
     ['Vulnerability']
@@ -488,7 +488,7 @@ test('Target the Weak counts condition types without activating other condition-
 
 test('Ranger previews Fury-dependent Ferocity and flanking critical chance', () => {
   const opening = previewApp('ranger', ['Precise Strike']);
-  assert.ok(!attributeEffectControls(opening).some((control) => control.key === 'openingStrike'));
+  assert.ok(!attributePreviewControls(opening).some((control) => control.key === 'openingStrike'));
   close(
     stats(opening, { openingStrike: 1 })['Critical Chance'].final,
     stats(previewApp('ranger'))['Critical Chance'].final
@@ -518,7 +518,7 @@ test('Death Perception changes critical damage only in shroud and composes with 
     base['Critical Damage'].final * 1.21
   );
   const scourge = previewApp('necromancer', ['Death Perception'], 'Scourge');
-  assert.ok(!attributeEffectControls(scourge).some((control) => control.key === 'shroud'));
+  assert.ok(!attributePreviewControls(scourge).some((control) => control.key === 'shroud'));
 });
 
 test('Roiling Mists adds its critical chance only while the Fury preview is enabled', () => {
@@ -537,7 +537,7 @@ test('player health changes only the isolated stat preview', () => {
     ['revenant', ['Empire Divided']]
   ]) {
     const app = previewApp(profession, traits);
-    assert.ok(attributeEffectControls(app).some((control) => control.key === 'playerHealth'));
+    assert.ok(attributePreviewControls(app).some((control) => control.key === 'playerHealth'));
     const original = structuredClone({ build: app.build, attributes: app.attributeData });
     const config = app.adapter
       .createBuildContext({
@@ -642,7 +642,7 @@ test('all professions and specializations accept their available controls and re
             patch: app.adapter.profession.resolvePatch({ id: app.patch.id ?? 'current' })
           })
           .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
-        const controls = attributeEffectControls(app);
+        const controls = attributePreviewControls(app);
         assert.equal(new Set(controls.map((control) => control.key)).size, controls.length);
         const inputs = Object.fromEntries(
           controls.map((control) => [control.key, control.options?.at(-1) ?? control.max ?? 1])

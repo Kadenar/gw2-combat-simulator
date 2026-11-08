@@ -1,4 +1,5 @@
-import { attributeEffectControls, normalizeAttributePreview } from '#gw2/app/build/attribute-effects.js';
+/** Calculates isolated conditional attributes from preview inputs without changing the saved build. */
+import { attributePreviewControls, normalizeAttributePreview } from '#gw2/app/build/attribute-preview-controls.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import type { AttributePreviewState } from '#gw2/app/build/types.js';
 import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
@@ -24,11 +25,11 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Query isolated conditional attributes; no preview inputs enter the saved build or simulation results. */
-export function calculateBuffedAttributes(
+export function calculateAttributePreview(
   app: AttributePreviewState,
   input: Readonly<Record<string, unknown>> = {}
 ): NonNullable<AttributePreviewState['attributeData']> {
-  return calculatePreview(app, input, attributeEffectControls(app));
+  return calculatePreview(app, input, attributePreviewControls(app));
 }
 
 function calculatePreview(
