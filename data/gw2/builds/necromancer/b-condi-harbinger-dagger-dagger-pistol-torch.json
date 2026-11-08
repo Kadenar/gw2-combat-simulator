@@ -86,7 +86,7 @@
     "targetSkillActivationsPerSecond": 0
   },
   "initialResource": 100,
-  "initialBlight": 14,
+  "initialBlight": 2,
   "startingWeaponSet": 2,
   "targetHealth": 4000000,
   "targetArmor": 2597

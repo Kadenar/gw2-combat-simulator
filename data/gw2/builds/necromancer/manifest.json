@@ -317,25 +317,25 @@
         "label": "Condition (Dagger / Dagger + Pistol / Torch)",
         "build": "data/gw2/builds/necromancer/b-condi-harbinger-dagger-dagger-pistol-torch.json",
         "rotation": "data/gw2/rotations/necromancer/r-condi-harbinger-dagger-dagger-pistol-torch-bench.json",
-        "benchmarkDps": 45243,
+        "benchmarkDps": 45295,
         "upToDate": true,
         "benchmarkApm": 69.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43109, "phase": 43109 },
-          "80-60": { "cumulative": 45275, "phase": 47695 },
-          "60-40": { "cumulative": 44351, "phase": 42502 },
-          "40-20": { "cumulative": 44748, "phase": 45939 },
-          "20-0": { "cumulative": 45243, "phase": 47474 }
+          "100-80": { "cumulative": 43241, "phase": 43241 },
+          "80-60": { "cumulative": 44387, "phase": 45680 },
+          "60-40": { "cumulative": 44403, "phase": 44434 },
+          "40-20": { "cumulative": 44778, "phase": 45905 },
+          "20-0": { "cumulative": 45295, "phase": 47622 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42752,
+          "benchmarkDps": 42793,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 41120, "phase": 41120 },
-            "80-60": { "cumulative": 43108, "phase": 45446 },
-            "60-40": { "cumulative": 42411, "phase": 41122 },
-            "40-20": { "cumulative": 42671, "phase": 43521 },
-            "20-0": { "cumulative": 42752, "phase": 42752 }
+            "100-80": { "cumulative": 41248, "phase": 41248 },
+            "80-60": { "cumulative": 43217, "phase": 45533 },
+            "60-40": { "cumulative": 42462, "phase": 41066 },
+            "40-20": { "cumulative": 42695, "phase": 43455 },
+            "20-0": { "cumulative": 42793, "phase": 42793 }
           }
         }
       }

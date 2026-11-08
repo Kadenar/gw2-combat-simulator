@@ -70,8 +70,6 @@ export const barbedPrecision = defineTrait({
   }),
   triggers: [
     onTriggerPoint(necromancerStrike, {
-      when: (_runtime: unknown, input: TriggerPointInput<typeof necromancerStrike>) =>
-        input.event.actorType !== ACTOR.EFFECT && Number(input.event.coefficient) > 0,
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrike>) =>
         necromancerBarbedPrecisionReaction(runtime, input.event, input.details)
     })
@@ -337,19 +335,21 @@ export const terror = defineTrait({
   }
 });
 
-/** Lets player and Ritualist spirit critical hits advance Barbed Precision, while excluding minions. */
+/** Player-owned effects can trigger Barbed Precision alongside player and Ritualist spirit strikes. */
 const necromancerBarbedPrecisionReaction = criticalProcHandler<
   NecromancerResolverContext,
   NecromancerResolverEvent,
   NativeResolvedDamageDetails
 >({
   id: 'necromancer.barbed-precision',
-  actorTypes: [ACTOR.PLAYER, ACTOR.SUMMON, ACTOR.UNKNOWN],
+  actorTypes: [ACTOR.PLAYER, ACTOR.SUMMON, ACTOR.UNKNOWN, ACTOR.EFFECT],
   chanceOnCriticalHit: (context) =>
     procChance(context.helpers, TRAIT.BARBED_PRECISION, context.config.procRateOverrides),
   randomStream: 'necromancer.barbed-precision',
   when: (_context, event) =>
-    Number(event.coefficient) > 0 && (event.actorType !== ACTOR.SUMMON || event.summonKind === 'spirit'),
+    Number(event.coefficient) > 0 &&
+    (event.actorType !== ACTOR.EFFECT || event.ownerActorType === ACTOR.PLAYER) &&
+    (event.actorType !== ACTOR.SUMMON || event.summonKind === 'spirit'),
   handler: (context, event, _details, application) => {
     // Barbed Precision emits one condition application per threshold proc.
     for (let proc = 0; proc < application.quantity; proc += 1) {
