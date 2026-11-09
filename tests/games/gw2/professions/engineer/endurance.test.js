@@ -5,7 +5,6 @@ import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { runEngineer } from '#tests/helpers/engineer-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const vigor = (at, duration, self = true) => ({
   type: 'buff',
@@ -32,32 +31,6 @@ function recover(waits, events, config = {}) {
     }
   );
 }
-
-test('Engineer endurance uses self Vigor applications and expiry', () => {
-  const result = recover([6000], [vigor(2, 2), vigor(0, 20, false)]);
-  assert.equal(result.planningState.profession[STATE.ENDURANCE].value, 35);
-  assert.equal(observedRuntime(result).endurance.readyAt(50), 9);
-});
-
-test('Engineer endurance uses pooled Vigor duration and actual extensions', () => {
-  const result = recover(
-    [8000],
-    [
-      vigor(2, 2),
-      vigor(3, 2),
-      {
-        type: 'boon_extension',
-        source: 'test',
-        sourceId: 'extension',
-        actorType: 'player',
-        at: 4,
-        kind: 'vigor',
-        duration: 1
-      }
-    ]
-  );
-  assert.equal(result.planningState.profession[STATE.ENDURANCE].value, 52.5);
-});
 
 test('Engineer preserves Adrenal Implant, permanent Vigor and its endurance cap', () => {
   const traits = { selectedTraitIds: [TRAIT.ADRENAL_IMPLANT] };

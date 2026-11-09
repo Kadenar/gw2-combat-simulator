@@ -91,7 +91,15 @@ test('canceled Berserk retains spending while removed mode keeps independent ent
   assert.deepEqual(result.warnings, []);
   assert.equal(state(result).berserkUntil, null);
   assert.equal(result.planningState.profession[STATE.ADRENALINE].maximum, 30);
-  assert.ok(result.resolvedEvents.some((event) => event.sourceId === TRAIT.BURST_OF_AGGRESSION));
+  // Removing the mode cannot refund its spend or suppress the independent entry boon.
+  assert.ok(result.planningState.profession[STATE.ADRENALINE].value < 30);
+  assert.equal(
+    result.events.some((event) => event.kind === 'berserk'),
+    false
+  );
+  assert.ok(
+    result.resolvedEvents.some((event) => event.sourceId === TRAIT.BURST_OF_AGGRESSION && event.kind === 'quickness')
+  );
 });
 
 test('completed Blood Reckoning clears primal recharge and canceled healing leaves it intact', () => {

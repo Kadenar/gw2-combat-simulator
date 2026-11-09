@@ -718,47 +718,46 @@ test('Desert Shroud pulses do not retrigger shroud skill-one traits', () => {
   assert.equal(applications.length, 1);
 });
 
-test('requested Harbinger damage traits apply at their per-hit triggers', () => {
-  const result = simulate(
-    'Harbinger',
-    [
-      'Harbinger Shroud',
-      'Tainted Bolts',
-      'Dark Barrage',
-      'Vital Draw',
-      'Exit Harbinger Shroud',
-      { type: 'wait', durationMs: 3100 }
-    ],
-    {
-      initialResource: 100,
-      initialBlight: 10,
-      selectedTraitIds: [TRAIT.DHUUMFIRE, TRAIT.UNYIELDING_BLAST, TRAIT.SEPTIC_CORRUPTION, TRAIT.INSIDIOUS_DISRUPTION]
-    }
-  );
+// Isolated native triggers tie trait applications to accepted events instead of packet-count calibration.
+for (const [trait, skillId, condition, triggerType, firstOnly] of [
+  [TRAIT.DHUUMFIRE, ID.TAINTED_BOLTS, 'Burning', 'damage', false],
+  [TRAIT.UNYIELDING_BLAST, ID.TAINTED_BOLTS, 'Vulnerability', 'damage', true],
+  [TRAIT.SEPTIC_CORRUPTION, ID.DARK_BARRAGE, 'Poisoned', 'damage', false],
+  [TRAIT.INSIDIOUS_DISRUPTION, ID.VITAL_DRAW, 'Torment', 'control', false]
+]) {
+  test('Harbinger trait ' + trait + ' follows its accepted ' + triggerType + ' trigger', () => {
+    const result = simulate(
+      'Harbinger',
+      ['Harbinger Shroud', skillId],
+      {
+        initialResource: 100,
+        initialBlight: 10,
+        selectedTraitIds: [trait]
+      },
+      observationTail(1000)
+    );
+    assert.deepEqual(result.warnings, []);
+    const triggers = (triggerType === 'control' ? result.events : result.resolvedEvents).filter(
+      (event) => event.skillId === skillId && event.type === triggerType
+    );
+    const applications = result.resolvedEvents.filter(
+      (event) => event.sourceId === trait && event.condition === condition
+    );
+    assert.ok(triggers.length > 0);
+    assert.ok(applications.length > 0);
 
-  assert.deepEqual(result.warnings, []);
-  assert.equal(
-    result.resolvedEvents.filter((event) => event.sourceId === TRAIT.DHUUMFIRE && event.condition === 'Burning').length,
-    2
-  );
-  assert.equal(
-    result.resolvedEvents.filter((event) => event.skillId === ID.TAINTED_BOLTS && event.condition === 'Torment').length,
-    2
-  );
-  assert.equal(result.procSteps.filter((step) => step.skill === 'Unyielding Blast').length, 1);
-  assert.equal(
-    result.resolvedEvents.filter(
-      (event) => event.sourceId === TRAIT.SEPTIC_CORRUPTION && event.condition === 'Poisoned'
-    ).length,
-    6
-  );
-  const insidiousDisruption = result.resolvedEvents.filter(
-    (event) => event.sourceId === TRAIT.INSIDIOUS_DISRUPTION && event.condition === 'Torment'
-  );
+    if (firstOnly) {
+      assert.equal(result.procSteps.filter((step) => step.skill === 'Unyielding Blast').length, 1);
+      assert.ok(applications.every((event) => event.at === triggers[0].at));
+    } else
+      assert.deepEqual(
+        applications.map((event) => event.at),
+        triggers.map((event) => event.at)
+      );
 
-  assert.equal(insidiousDisruption.length, 3);
-  assert.ok(insidiousDisruption.every((event) => event.duration === 5));
-});
+    if (trait === TRAIT.INSIDIOUS_DISRUPTION) assert.ok(applications.every((event) => event.duration === 5));
+  });
+}
 
 test('Barbed Precision samples its secondary chance on guaranteed critical hits', () => {
   const result = simulate('Harbinger', ['Weeping Shots', { type: 'wait', durationMs: 4100 }], {

@@ -229,3 +229,38 @@ test('same-named contributions retain their own parent, actor, display label, an
     if (entry.icon) assert.equal(resultSkillIcon({}, row), entry.icon);
   }
 });
+
+// Unequal payouts must aggregate by their trigger, never by multiplying a proc count by an average.
+test('proc damage summaries use actual payouts and the observation denominator', () => {
+  const result = {
+    dpsWindow: 8.5,
+    breakdown: [{ name: 'Strength of Stone', conditionDamage: 425, actorType: 'effect' }],
+    resolvedEvents: [
+      ...[
+        {
+          at: 2,
+          triggeredBy: 'Earthen Rush',
+          damage: 120,
+          damageTicks: [
+            { at: 3, damage: 50 },
+            { at: 4, damage: 70 }
+          ]
+        },
+        { at: 5.5, triggeredBy: 'Signet <of Earth>', damage: 255, damageTicks: [{ at: 6.5, damage: 255 }] },
+        { at: 9, triggeredBy: 'Earthen Rush', damage: 50, damageTicks: [{ at: 10, damage: 50 }] }
+      ].map((event) => ({ type: 'condition', name: 'Strength of Stone', actorType: 'effect', ...event })),
+      {
+        type: 'condition',
+        name: 'Relic of the Fractal',
+        actorType: 'effect',
+        at: 2,
+        triggeredBy: 'Strength of Stone',
+        damage: 999
+      }
+    ]
+  };
+  assert.deepEqual(skillBreakdownRows(result)[0].procDamage, [
+    { sourceSkill: 'Earthen Rush', total: 170, dps: 20 },
+    { sourceSkill: 'Signet <of Earth>', total: 255, dps: 30 }
+  ]);
+});

@@ -5,6 +5,15 @@ import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
+// Command variants only read these shared per-pet baseline results.
+const baselines = new Map();
+function baselineFor(selectedPet) {
+  if (!baselines.has(selectedPet))
+    baselines.set(selectedPet, runRanger(['__combat_start', wait(5000)], { ...config, selectedPet }));
+
+  return baselines.get(selectedPet);
+}
+
 const config = { specialization: 'Untamed', initialUntamedState: 'Pet' };
 const petActions = (result) =>
   result.events.filter((event) => event.type === 'action' && event.source === 'ranger-pet');
@@ -28,7 +37,7 @@ for (const skillId of [ID.VENOMOUS_OUTBURST, ID.RENDING_VINES, ID.ENVELOPING_HAZ
     for (const requestedAt of [320, 600, 1200]) {
       test(`Unleashed command ${skillId} restarts ${selectedPet}'s autonomous attack at ${requestedAt} ms`, () => {
         const settings = { ...config, selectedPet };
-        const baseline = runRanger(['__combat_start', wait(5000)], settings);
+        const baseline = baselineFor(selectedPet);
         const result = runRanger(['__combat_start', wait(requestedAt), skillId, wait(5000)], settings);
         assert.deepEqual(result.warnings, []);
         const command = result.events.find((event) => event.type === 'action' && event.skillId === skillId);

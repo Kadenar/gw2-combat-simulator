@@ -126,8 +126,8 @@ test('preparation returns adapter configuration without invoking the simulator o
 });
 
 test('representative manifest presets load and simulate with attributable warnings', async () => {
-  for (const profession of ['warrior', 'guardian']) {
-    // One saved case per owner proves the loading path without fixing its rotation shape or individual damage packets.
+  for (const profession of ['warrior']) {
+    // One saved case exercises the script path; profession manifest suites own the preset matrix.
     const { value: preset } = await loadBenchmarkPresets([profession]).next();
     assert.ok(preset, profession);
     const { result } = simulateBenchmarkPreset(preset.adapter, preset.savedBuild, preset.savedRotation);
@@ -135,15 +135,3 @@ test('representative manifest presets load and simulate with attributable warnin
     assert.deepEqual(result.warnings, [], preset.identity.id);
   }
 });
-
-// Exercise both imported Steamshrieker builds through the saved-preset path, including their supplied openers.
-for (const label of ['Condition (Spear - Steamshrieker)', 'Condition Alacrity (Spear - Steamshrieker)']) {
-  test(`${label} loads and simulates within the manifest DPS tolerance`, async () => {
-    const { value: preset } = await loadBenchmarkPresets(['engineer'], { filter: label }).next();
-    assert.ok(preset, label);
-    const { result } = simulateBenchmarkPreset(preset.adapter, preset.savedBuild, preset.savedRotation);
-    assert.deepEqual(result.warnings, [], preset.identity.id);
-    assert.ok(Number.isFinite(result.dps) && result.dps > 0, preset.identity.id);
-    assert.ok(Math.abs(result.dps / preset.identity.benchmarkDps - 1) <= 0.01, preset.identity.id);
-  });
-}

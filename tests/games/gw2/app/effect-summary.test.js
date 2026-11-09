@@ -285,6 +285,7 @@ test('intensity averages apply caps and include downtime while generation retain
   assert.equal(summary.uptime, 0.5);
   assert.equal(summary.averageStacks, 11.5);
   assert.equal(summary.maximumStacks, 25);
+  assert.equal(Math.max(...series.effects.Might.map((point) => point.v)), 25);
   assert.equal(summary.maximumStackUptime, 0.3);
   assert.equal(series.boonGeneration.Might.self.generatedStackSeconds, 130);
 });
@@ -608,4 +609,15 @@ test('shared Firebrand generation uses metadata independently of the configured 
       .filter((event) => event.kind === 'quickness')
       .every((event) => event.resolvedAudience.alliedPlayerCount === 0)
   );
+});
+
+// Condition stacks use the shared cap independently of the boon pool.
+test('Vulnerability chart values retain the shared condition cap', () => {
+  const series = buildChartSeries({
+    rotationEndTime: 10,
+    observationEndTime: 10,
+    combatEndTime: 10,
+    ...effectFields([{ type: 'condition', at: 0, condition: 'Vulnerability', duration: 8, stacks: 30 }], 10)
+  });
+  assert.equal(Math.max(...series.effects.Vulnerability.map((point) => point.v)), 25);
 });

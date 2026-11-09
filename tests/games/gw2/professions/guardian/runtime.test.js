@@ -1678,24 +1678,12 @@ test('Dragonhunter tether expiry and replacement invalidate old burns and flip w
   assert.ok(observedRuntime(replaced).flips[ID.HUNTERS_VERDICT]);
 });
 
-test('Dragonhunter Furious Focus lands before tether amplification and preserves one activation through later pulses', () => {
+test('canceled Dragonhunter Justice cannot grant Furious Focus or attach a tether', () => {
   const config = {
     ...dragonhunter,
     selectedTraitIds: [TRAIT.FURIOUS_FOCUS, TRAIT.BIG_GAME_HUNTER, TRAIT.INSPIRED_VIRTUE]
   };
-  const result = run([ID.SPEAR_OF_JUSTICE, wait(2000)], config);
-  assert.deepEqual(result.warnings, []);
-  const pulses = result.resolvedEvents.filter(
-    (event) => event.type === 'damage' && event.skillId === ID.LESSER_SYMBOL_OF_BLADES
-  );
-  const spear = result.resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.SPEAR_OF_JUSTICE);
-  assert.ok(pulses[0].at < spear.at);
-  assert.equal(new Set(pulses.map((event) => event.activationId)).size, 1);
-  assert.ok(pulses[1].damage > pulses[0].damage);
-  assert.equal(
-    result.events.filter((event) => event.type === 'buff' && event.sourceId === TRAIT.INSPIRED_VIRTUE).length,
-    1
-  );
+  // Cancellation is separate from completed ordering and damage modifier coverage.
   const canceled = run([{ skillId: ID.SPEAR_OF_JUSTICE, interruptAfterMs: 1 }, wait(2000)], config);
   assert.equal(
     canceled.events.some((event) => event.skillId === ID.LESSER_SYMBOL_OF_BLADES),

@@ -12,14 +12,8 @@ import { SOULBEAST_STANCE_SKILL_MECHANICS } from '#gw2/professions/ranger/specia
 
 const professionRoot = new URL('../../../../../js/games/gw2/professions/ranger/', import.meta.url);
 
-function familySlug(value) {
-  return value.replace(/[^a-z0-9]+/g, '-');
-}
-
 function familiesUsing(skillId, field) {
-  return [
-    ...new Set(RANGER_PETS.filter((pet) => pet[field].includes(Number(skillId))).map((pet) => familySlug(pet.family)))
-  ];
+  return [...new Set(RANGER_PETS.filter((pet) => pet[field].includes(Number(skillId))).map((pet) => pet.family))];
 }
 
 function archetypesUsing(skillId) {
@@ -28,21 +22,26 @@ function archetypesUsing(skillId) {
   ];
 }
 
-// Discovers family sources and loads their compiled fragments through package aliases so every pet is checked.
+// Discover skill maps by their numeric IDs; filenames and export names do not define pet ownership.
 async function familyFragments(relativeDirectory) {
   const directory = new URL(relativeDirectory, professionRoot);
-  return Promise.all(
+  const fragments = await Promise.all(
     readdirSync(directory)
       .filter((filename) => filename.endsWith('.ts') && !['index.ts', 'pet-skill.ts'].includes(filename))
-      .sort()
       .map(async (filename) => {
-        const module = await import(`#gw2/professions/ranger/${relativeDirectory}${filename.replace(/\.ts$/, '.js')}`);
-        const exports = Object.entries(module).filter(([name]) => name.endsWith('_SKILL_MECHANICS'));
-
-        assert.equal(exports.length, 1, filename);
-        return [filename.replace(/\.ts$/, ''), exports[0][1]];
+        const module = await import('#gw2/professions/ranger/' + relativeDirectory + filename.replace(/\.ts$/, '.js'));
+        return Object.values(module)
+          .filter(
+            (value) =>
+              value &&
+              typeof value === 'object' &&
+              Object.keys(value).length > 0 &&
+              Object.keys(value).every((id) => /^\d+$/.test(id))
+          )
+          .map((mechanics) => [filename, mechanics]);
       })
   );
+  return fragments.flat();
 }
 
 function assertDisjointComposition(aggregate, fragments) {
@@ -58,17 +57,12 @@ function assertDisjointComposition(aggregate, fragments) {
 
 test('Core Ranger pet catalogs follow maintained pet-family ownership', async () => {
   const fragments = await familyFragments('core/skills/pets/');
-  const expectedFamilies = [
-    ...new Set(RANGER_PETS.flatMap((pet) => (pet.skillIds.length ? [familySlug(pet.family)] : [])))
-  ].sort();
+  for (const [, mechanics] of fragments) {
+    for (const skillId of Object.keys(mechanics)) assert.equal(familiesUsing(skillId, 'skillIds').length, 1, skillId);
+  }
 
-  assert.deepEqual(
-    fragments.map(([filename]) => filename),
-    expectedFamilies
-  );
-  for (const [filename, mechanics] of fragments) {
-    for (const skillId of Object.keys(mechanics))
-      assert.deepEqual(familiesUsing(skillId, 'skillIds'), [filename], skillId);
+  for (const pet of RANGER_PETS) {
+    for (const id of pet.skillIds) assert.ok(RANGER_CORE_PET_SKILL_MECHANICS[id], pet.name + ':' + id);
   }
 
   assertDisjointComposition(RANGER_CORE_PET_SKILL_MECHANICS, fragments);
@@ -85,17 +79,18 @@ test('Core Ranger pet catalogs follow maintained pet-family ownership', async ()
 test('Soulbeast Beast catalogs follow family and archetype ownership', async () => {
   const fragments = await familyFragments('specializations/soulbeast/skills/beast-skills/');
 
-  for (const [filename, mechanics] of fragments) {
+  for (const [, mechanics] of fragments) {
     for (const skillId of Object.keys(mechanics)) {
       const owners = familiesUsing(skillId, 'beastmodeSkillIds');
+      assert.ok(owners.length > 0, skillId);
 
-      if (filename === 'archetype') {
-        assert.ok(owners.length > 1, skillId);
-        assert.equal(archetypesUsing(skillId).length, 1, skillId);
-      } else if (filename === 'winged') {
+      if (owners.length > 1 && archetypesUsing(skillId).length > 1)
         assert.deepEqual(new Set(owners), new Set(['phoenix', 'wyvern']), skillId);
-      } else assert.deepEqual(owners, [filename], skillId);
     }
+  }
+
+  for (const pet of RANGER_PETS) {
+    for (const id of pet.beastmodeSkillIds) assert.ok(SOULBEAST_BEAST_SKILL_MECHANICS[id], pet.name + ':' + id);
   }
 
   assertDisjointComposition(SOULBEAST_BEAST_SKILL_MECHANICS, fragments);

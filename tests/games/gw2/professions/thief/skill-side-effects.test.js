@@ -102,6 +102,8 @@ test('Uncatchable honors independent authored pulse timing and component removal
       );
       assert.deepEqual(result.warnings, []);
       const pulses = result.resolvedEvents.filter((event) => event.sourceId === TRAIT.UNCATCHABLE);
+      // Removing a condition component must not refund the triggering dodge.
+      assert.ok(observedRuntime(result).profession.core.endurance.value < 100);
       assert.deepEqual(
         pulses.map((event) => event.at),
         endTimeMs === 1319 ? [0.8] : [0.8, 1.32]

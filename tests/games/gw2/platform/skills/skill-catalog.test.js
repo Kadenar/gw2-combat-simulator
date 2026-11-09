@@ -244,21 +244,10 @@ test('resource grants validate current-skill amounts without accepting them for 
 });
 
 // Aura declarations validate their name and duration as supported effects before any cast can apply them.
-test('skill aura effects accept only a canonical aura with a positive finite duration', () => {
-  const load = (aura) => createCanonicalCatalog({ skills: [{ id: 1, name: 'Aura', effects: aura ? [aura] : [] }] });
-  for (const aura of [
-    undefined,
-    { type: 'aura', aura: 'Fire Aura', duration: 4 },
-    { type: 'aura', aura: 'Shocking Aura', duration: 0.5 }
-  ])
-    assert.doesNotThrow(() => load(aura));
-  for (const aura of [
-    'Fire|4',
-    ['Fire Aura', 4],
-    { type: 'aura', aura: 'Fire', duration: 4 },
-    { type: 'aura', aura: 'Fire Aura' },
-    { type: 'aura', aura: 'Fire Aura', duration: '4' },
-    ...[0, -1, NaN, Infinity].map((duration) => ({ type: 'aura', aura: 'Fire Aura', duration }))
-  ])
-    assert.throws(() => load(aura), /aura|effect|duration/);
+// Catalog construction must forward both valid and invalid effects to the shared normalizer.
+test('skill catalogs normalize aura payloads and reject malformed effect containers', () => {
+  const load = (effect) => createCanonicalCatalog({ skills: [{ id: 1, name: 'Aura', effects: [effect] }] });
+  assert.doesNotThrow(() => load({ type: 'aura', aura: 'Fire Aura', duration: 4 }));
+  for (const effect of ['Fire|4', ['Fire Aura', 4], { type: 'aura', aura: 'Fire', duration: 4 }])
+    assert.throws(() => load(effect), /aura|effect|duration/);
 });

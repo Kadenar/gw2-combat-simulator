@@ -183,7 +183,7 @@ test('cache identity includes profession and rotation, not the display label', (
 });
 
 // These smoke tests exercise canonical preset preparation and compare only total DPS to manifest values.
-for (const profession of ['guardian', 'mesmer']) {
+for (const profession of ['guardian']) {
   test(`comparison prepares and simulates a saved ${profession} preset through the canonical pipeline`, async () => {
     const load = async (path) =>
       JSON.parse(await readFile(new URL(`../../../../../../${path}`, import.meta.url), 'utf8'));

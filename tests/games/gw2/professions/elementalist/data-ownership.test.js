@@ -116,36 +116,6 @@ test('Elementalist declaration order follows its module contributions', () => {
   }
 });
 
-test('Elementalist accepts complete declarations and shared assembly rejects duplicate owners', () => {
-  const declared = { name: 'Fixture', icon: 'fixture.png', effects: [] };
-  assert.equal(
-    createNativeModuleData({
-      id: 'Tempest',
-      traitLines: TRAIT_LINES,
-      skills: materializeSkillDefinitions({ 999999: declared })
-    }).skills[0].id,
-    999999
-  );
-  const skillMechanics = { [ELEMENTALIST_SKILL_IDS.FIREBALL]: { ...declared, name: 'Duplicate fixture' } };
-  assert.throws(
-    () =>
-      assembleNativeApplicationCatalog([
-        catalogModule('Core'),
-        ...['Tempest', 'Weaver'].map((id) =>
-          catalogModule(
-            id,
-            createNativeModuleData({
-              id: id,
-              traitLines: TRAIT_LINES,
-              skills: materializeSkillDefinitions(skillMechanics)
-            })
-          )
-        )
-      ]),
-    /Duplicate skill id 5491 in Tempest and Weaver/
-  );
-});
-
 test('Specialized Elements models percentage recharge changes as multipliers', () => {
   const catalog = assembleNativeApplicationCatalog([elementalistCoreModule, evokerModule]);
   const trait = catalog.balanceProfilesById.get(ELEMENTALIST_TRAIT_IDS.SPECIALIZED_ELEMENTS);

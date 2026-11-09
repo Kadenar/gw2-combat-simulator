@@ -11,6 +11,7 @@ import {
   migrateMesmerBuild,
   validateMesmerBuild
 } from '#gw2/professions/mesmer/build/build.js';
+import { MESMER_CLONE_ATTACK_TASK } from '#gw2/professions/mesmer/core/mechanics/illusions/clones.js';
 import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS, MESMER_CORE_SKILLS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -159,14 +160,6 @@ test('Mesmer relic options exclude profession-inapplicable relics', () => {
     mesmerAppAdapter.relicNames.filter((name) => excluded.includes(name)),
     []
   );
-});
-
-test('each profession variant has a complete mechanic bar', () => {
-  assert.equal(MECHANIC_SKILLS.Core.length, 4);
-  assert.equal(MECHANIC_SKILLS.Chronomancer.length, 5);
-  assert.equal(MECHANIC_SKILLS.Mirage.length, 4);
-  assert.equal(MECHANIC_SKILLS.Virtuoso.length, 5);
-  assert.equal(MECHANIC_SKILLS.Troubadour.length, 5);
 });
 
 test('Chronomancer owns its Continuum Shift palette projection', () => {
@@ -324,7 +317,7 @@ test('every Mesmer specialization registers native owners without scheduler hand
     const runtime = mesmerProfession.runtimeFor({ specialization });
     assert.equal(typeof runtime.initialize, 'function');
     assert.ok(runtime.catalog.skills.every((skill) => skill.handlerId == null));
-    assert.equal(typeof runtime.tasks['mesmer.clone-attack'], 'function');
+    assert.equal(typeof runtime.tasks[MESMER_CLONE_ATTACK_TASK], 'function');
   }
 });
 

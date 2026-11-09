@@ -5,37 +5,6 @@ import ts from 'typescript';
 
 const root = new URL('../../js/games/gw2/', import.meta.url);
 
-// Import checks follow parsed declarations so formatting and comments cannot evade ownership boundaries.
-function imports(relativePath) {
-  const source = ts.createSourceFile(
-    relativePath,
-    readFileSync(new URL(relativePath, root), 'utf8'),
-    ts.ScriptTarget.Latest,
-    true
-  );
-  return source.statements.filter(ts.isImportDeclaration).map((statement) => statement.moduleSpecifier.text);
-}
-
-test('shared execution owners have no profession or browser implementation dependencies', () => {
-  for (const file of [
-    'platform/execution/cast-execution.ts',
-    'platform/resolver/effect-delivery.ts',
-    'platform/simulation/coordinator.ts',
-    'platform/results/project-runtime.ts'
-  ]) {
-    for (const dependency of imports(file))
-      assert.doesNotMatch(dependency, /#gw2\/(professions|app)\/|#browser\/|#ui\//, file);
-  }
-});
-
-test('the author-facing ownership capability cannot import the aggregate runtime', () => {
-  assert.ok(
-    imports('platform/profession-definition/runtime-context.ts').every(
-      (dependency) => !dependency.includes('/simulation/runtime')
-    )
-  );
-});
-
 // Every profession now uses capabilities; importing cast facts does not grant access to the execution owner.
 test('profession implementations cannot import aggregate runtimes or capability constructors', () => {
   const directory = new URL('professions/', root);

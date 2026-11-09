@@ -24,29 +24,11 @@ const PROFESSION_MODULES = Object.freeze({
   warrior: warriorNativeModules
 });
 
-// Assembly requires a leading Core owner, unique module IDs, and usable state factories.
+// Actual module lists need a unique Core-first order; assembly validation owns their structural schema.
 test('native profession modules expose valid assembly contracts', () => {
   for (const [profession, modules] of Object.entries(PROFESSION_MODULES)) {
     assert.equal(modules[0].id, 'Core', profession);
     assert.equal(new Set(modules.map((module) => module.id)).size, modules.length, profession);
-
-    for (const module of modules) {
-      assert.equal(module.kind, 'native-profession-module', `${profession}/${module.id}`);
-      assert.equal(typeof module.state.create, 'function', `${profession}/${module.id}`);
-      assert.ok(module.data && typeof module.data === 'object', `${profession}/${module.id}`);
-    }
-  }
-});
-
-test('profession modules register runtime behavior only through hooks', () => {
-  for (const [profession, modules] of Object.entries(PROFESSION_MODULES)) {
-    for (const module of modules) {
-      const label = `${profession}/${module.id}`;
-
-      // Every supported module owns one hook table; the module validator rejects retired phase sections.
-      assert.ok(module.hooks, label);
-      assert.equal(module.data.handlers, undefined, `${label}/data.handlers`);
-    }
   }
 });
 

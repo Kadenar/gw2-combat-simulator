@@ -9,7 +9,13 @@ const root = new URL('../../js/games/gw2/platform/', import.meta.url);
 const simulationImplementation = new RegExp(simulationImplementationPattern);
 
 // Inspect type imports and dynamic imports as well as ordinary imports, so boundary checks cannot be bypassed by syntax.
-async function platformGraph() {
+// Both ownership and cycle checks consume one immutable source snapshot.
+let graphSnapshot;
+function platformGraph() {
+  return (graphSnapshot ??= readPlatformGraph());
+}
+
+async function readPlatformGraph() {
   const files = (await readdir(root, { recursive: true }))
     .map((file) => file.replaceAll('\\', '/'))
     .filter((file) => file.endsWith('.ts'));
@@ -18,7 +24,7 @@ async function platformGraph() {
     const source = await readFile(new URL(file, root), 'utf8');
     const syntax = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
     function record(specifier, typeOnly) {
-      if (specifier.startsWith('#gw2/')) edges.push({ file, specifier, typeOnly });
+      edges.push({ file, specifier, typeOnly });
     }
 
     function visit(node) {
@@ -54,7 +60,10 @@ test('platform imports preserve declaration, composition, history, and presentat
   const { edges } = await platformGraph();
   for (const { file, specifier } of edges) {
     const label = `${file} -> ${specifier}`;
-    assert.doesNotMatch(specifier, /^#gw2\/(professions|app|integrations|input)\//, label);
+    assert.doesNotMatch(specifier, /^#gw2\/(professions|app|integrations|input)\/|^#(?:browser|ui)\//, label);
+
+    if (file === 'profession-definition/runtime-context.ts')
+      assert.ok(!specifier.includes('/simulation/runtime'), label);
 
     if (!/^(simulation|skill-damage)\//.test(file)) {
       assert.doesNotMatch(specifier, simulationImplementation, label);

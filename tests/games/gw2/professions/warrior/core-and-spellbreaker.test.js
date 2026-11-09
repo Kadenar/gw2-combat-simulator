@@ -59,14 +59,16 @@ test('Bladetrail schedules immobilize with both impacts, including its delayed r
   const immobilizes = result.events.filter(
     (event) => event.skillId === ID.BLADETRAIL && event.type === 'condition' && event.condition === 'Immobilized'
   );
+  const impacts = result.events.filter((event) => event.skillId === ID.BLADETRAIL && event.type === 'damage');
+  assert.ok(impacts.length > 1);
+  assert.ok(impacts.at(-1).at > impacts[0].at);
   assert.deepEqual(
-    immobilizes.map(({ at, duration, stacks }) => [at, duration, stacks]),
-    [
-      [0.52, 1, 1],
-      [1.52, 1, 1]
-    ]
+    immobilizes.map(({ at }) => at),
+    impacts.map(({ at }) => at)
   );
   for (const application of immobilizes) {
+    assert.equal(application.duration, 1);
+    assert.equal(application.stacks, 1);
     assert.ok(
       result.events.some(
         (event) => event.skillId === ID.BLADETRAIL && event.type === 'damage' && event.at === application.at
@@ -512,18 +514,8 @@ test('Core bursts require and consume adrenaline', () => {
 });
 
 test('Core Warrior weapon swap toggles the active set', () => {
-  // Equip both sets so the test covers preparation and combat swap behavior.
+  // Warrior owns the combat swap cooldown and its relic adjustment.
   const equipped = { primaryWeapon: 'Axe', weaponSet2Primary: 'Sword' };
-  const precombat = simulate('Core', ['Swap Weapons', 'Swap Weapons'], equipped);
-
-  assert.deepEqual(precombat.warnings, []);
-  assert.deepEqual(
-    precombat.steps.map((step) => step.start),
-    [0, 0]
-  );
-  assert.equal(precombat.planningState.activeWeaponSet, 1);
-  assert.equal(precombat.planningState.cooldownsBySkillId[-3], undefined);
-
   const result = simulate('Core', ['__combat_start', 'Swap Weapons'], equipped);
 
   assert.deepEqual(result.warnings, []);

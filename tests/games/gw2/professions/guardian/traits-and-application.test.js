@@ -324,6 +324,7 @@ test("Spear's Furious Focus symbol precedes the tether and only later pulses gai
         boons: { fury: true, quickness },
         selectedTraitIds: [
           GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS,
+          GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
           ...(bigGameHunter ? [GUARDIAN_TRAIT_IDS.BIG_GAME_HUNTER] : [])
         ]
       })(undefined, ['Spear of Justice', { type: 'wait', durationMs: 5000 }]);
@@ -345,6 +346,13 @@ test("Spear's Furious Focus symbol precedes the tether and only later pulses gai
       (event) => event.type === 'combo_field' && event.skillId === GUARDIAN_SKILL_IDS.LESSER_SYMBOL_OF_BLADES
     );
     assert.equal(field.at, boosted[0].at);
+    assert.deepEqual(enhanced.warnings, []);
+    assert.equal(new Set(boosted.map((event) => event.activationId)).size, 1);
+    assert.equal(
+      enhanced.events.filter((event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE)
+        .length,
+      1
+    );
   }
 });
 

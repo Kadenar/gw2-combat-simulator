@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/shared/simulation-tooltip.js';
-import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -187,26 +186,6 @@ test('core steal removals preserve sibling conditions, boons, and initiative', (
   assert.equal(packet(result, 'damage', TRAIT.MUG).length, 0);
   assert.equal(packet(result, 'control', TRAIT.SLEIGHT_OF_HAND).length, 0);
   assert.ok(result.planningState.profession[STATE.INITIATIVE].value >= 2);
-});
-
-test('Uncatchable conditions own independent pulses and dodge still spends endurance', () => {
-  const result = runThief(
-    ['Dodge'],
-    { selectedTraitIds: [TRAIT.UNCATCHABLE] },
-    {
-      observation: { kind: 'tail', durationMs: 1500 },
-      catalog: (catalog) =>
-        applySkillPatch(catalog, { skills: { [ID.LESSER_CALTROPS]: remove('condition', 'Bleeding') } })
-    }
-  );
-  assert.deepEqual(result.warnings, []);
-  const conditions = packet(result, 'condition', TRAIT.UNCATCHABLE);
-  assert.equal(
-    conditions.some((event) => event.condition === 'Bleeding'),
-    false
-  );
-  assert.ok(conditions.some((event) => event.condition === 'Crippled'));
-  assert.ok(result.planningState.profession[STATE.ENDURANCE].value < 100);
 });
 
 test('removed Weakening Strikes does not arm its grant or expiry', () => {

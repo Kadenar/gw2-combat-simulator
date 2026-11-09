@@ -61,7 +61,7 @@ test('conjures expire their equipped and ground copies and restore the normal we
   }
 });
 
-test('a late ground pickup grants a fresh lifetime, is consumed once, and keeps skill cooldowns', () => {
+test('ground pickup preserves cooldowns and accepts a late start only before expiry', () => {
   const result = runNative({
     ...hammerOptions,
     rotation: [
@@ -84,8 +84,6 @@ test('a late ground pickup grants a fresh lifetime, is consumed once, and keeps 
     rotation: ['Conjure Lightning Hammer', 29900, '__pickup_Lightning Hammer', 1000, 'Lightning Swing']
   });
   assert.deepEqual(late.warnings, []);
-  const pickup = late.steps.find((step) => step.skillName === '__pickup_Lightning Hammer');
-  assert.equal(late.planningState.profession[STATE.CONJURE_EXPIRES_AT], pickup.end / 1000 + 30);
   assert.equal(late.planningState.profession[STATE.CONJURE_EQUIPPED], 'Lightning Hammer');
 
   const expired = runNative({

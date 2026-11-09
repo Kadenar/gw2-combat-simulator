@@ -788,41 +788,16 @@ test('Guardian modules contribute disjoint runtime slices', () => {
   assert.equal(modifierRuleOwners.get('guardian.radiant-power-critical-chance'), 'Core');
 });
 
-test('Guardian runtimes exclude inactive elite catalogs, registries, and state', () => {
-  assert.equal(guardianProfession.catalog, guardianCatalog);
-  const skillOwners = nativeSkillOwnerMap([
-    ['core', guardianCoreModule],
-    ['dragonhunter', dragonhunterModule],
-    ['firebrand', firebrandModule],
-    ['willbender', willbenderModule],
-    ['luminary', luminaryModule]
-  ]);
-
+// Shared conformance covers catalogs and caching; this case checks inactive fields and native tasks.
+test('Guardian runtimes exclude inactive elite state and native tasks', () => {
   for (const active of ['Core', ...eliteSpecializationNames(guardianCatalog)]) {
     const config = { specialization: active };
     const runtime = guardianProfession.resolveProfession(config);
     const state = runtime.createState(config);
-    const activeElite = active === 'Core' ? null : active;
-
-    assert.deepEqual(
-      runtime.catalog.specializations
-        .filter((specialization) => specialization.elite)
-        .map((specialization) => specialization.name),
-      activeElite ? [activeElite] : [],
-      active
-    );
-    assert.equal(state.specialization.kind, active, `${active}:state-kind`);
     for (const key of Object.values(guardianInactiveStateKeys).flat()) {
       assert.equal(Object.hasOwn(state.core, key), false, `${active}:core:${key}`);
     }
 
-    assert.equal(
-      runtime.catalog.skills.some(
-        (skill) => skillOwners.get(skill.id) !== 'Core' && skillOwners.get(skill.id) !== activeElite
-      ),
-      false,
-      active
-    );
     for (const [owner, keys] of Object.entries(guardianInactiveStateKeys)) {
       for (const key of keys) {
         assert.equal(Object.hasOwn(state.specialization.state, key), owner === active, `${active}:slice:${key}`);
@@ -905,36 +880,16 @@ test('Mesmer modules contribute disjoint runtime slices', () => {
   }
 });
 
-test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', () => {
-  const skillOwner = nativeSkillOwnerMap(mesmerSlices);
-
-  assert.equal(mesmerProfession.catalog, mesmerCatalog);
+// Shared conformance covers catalogs and caching; this case checks inactive fields and native tasks.
+test('Mesmer runtimes exclude inactive elite state and native tasks', () => {
   for (const active of ['Core', ...eliteSpecializationNames(mesmerCatalog)]) {
     const config = { specialization: active };
     const runtime = mesmerProfession.runtimeFor(config);
     const state = runtime.createState(config);
-    const activeElite = active === 'Core' ? null : active;
-
-    assert.equal(runtime, mesmerProfession.runtimeFor(config), active);
-    assert.deepEqual(
-      runtime.catalog.specializations
-        .filter((specialization) => specialization.elite)
-        .map((specialization) => specialization.name),
-      activeElite ? [activeElite] : [],
-      active
-    );
-    assert.equal(state.specialization.kind, active, `${active}:state-kind`);
     for (const key of Object.values(mesmerSpecializationStateKeys).flat()) {
       assert.equal(Object.hasOwn(state.core, key), false, `${active}:core:${key}`);
     }
 
-    assert.equal(
-      runtime.catalog.skills.some(
-        (skill) => skillOwner.get(skill.id) !== 'Core' && skillOwner.get(skill.id) !== activeElite
-      ),
-      false,
-      `${active}:skills`
-    );
     for (const [owner, keys] of Object.entries(mesmerSpecializationStateKeys)) {
       for (const key of keys) {
         const expected = owner === active;
@@ -1020,7 +975,8 @@ test('Revenant modules contribute disjoint runtime slices', () => {
   assert.equal(modifierRuleOwners.get('revenant.release-warrior-affinity'), 'Conduit');
 });
 
-test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () => {
+// Shared conformance covers catalogs and caching; this case checks inactive fields and native tasks.
+test('Revenant runtimes exclude inactive elite state and native tasks', () => {
   const skillOwner = nativeSkillOwnerMap(revenantSlices);
 
   for (const [owner, skillIds] of [
@@ -1032,32 +988,14 @@ test('Revenant runtimes exclude inactive elite catalogs, hooks, and state', () =
     for (const skillId of skillIds) assert.equal(skillOwner.get(skillId), owner, String(skillId));
   }
 
-  assert.equal(revenantProfession.catalog, revenantCatalog);
   for (const active of ['Core', ...eliteSpecializationNames(revenantCatalog)]) {
     const config = { specialization: active };
     const runtime = revenantProfession.resolveProfession(config);
     const state = runtime.createState(config);
-    const activeElite = active === 'Core' ? null : active;
-
-    assert.deepEqual(
-      runtime.catalog.specializations
-        .filter((specialization) => specialization.elite)
-        .map((specialization) => specialization.name),
-      activeElite ? [activeElite] : [],
-      active
-    );
-    assert.equal(state.specialization.kind, active, `${active}:state-kind`);
     for (const key of Object.values(revenantSpecializationStateKeys).flat()) {
       assert.equal(Object.hasOwn(state.core, key), false, `${active}:core:${key}`);
     }
 
-    assert.equal(
-      runtime.catalog.skills.some(
-        (skill) => skillOwner.get(skill.id) !== 'Core' && skillOwner.get(skill.id) !== activeElite
-      ),
-      false,
-      `${active}:skills`
-    );
     for (const [owner, keys] of Object.entries(revenantSpecializationStateKeys)) {
       for (const key of keys) {
         assert.equal(Object.hasOwn(state.specialization.state, key), owner === active, `${active}:slice:${key}`);
@@ -1138,7 +1076,8 @@ test('Engineer modules contribute disjoint runtime slices', () => {
   assert.equal(modifierRuleOwners.get('engineer.willing-host'), 'Amalgam');
 });
 
-test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () => {
+// Shared conformance covers catalogs and caching; this case checks inactive fields and native tasks.
+test('Engineer runtimes exclude inactive elite state and native tasks', () => {
   const skillOwner = nativeSkillOwnerMap(engineerSlices);
   const holosmithSwordIds = [
     ENGINEER_ID.RADIANT_ARC,
@@ -1158,33 +1097,14 @@ test('Engineer runtimes exclude inactive elite catalogs, hooks, and state', () =
 
   assert.ok(holosmithSwordIds.every((skillId) => skillOwner.get(skillId) === 'Holosmith'));
   assert.ok(sharedSwordIds.every((skillId) => skillOwner.get(skillId) === 'Core'));
-
-  assert.equal(engineerProfession.catalog, engineerCatalog);
   for (const active of ['Core', ...eliteSpecializationNames(engineerCatalog)]) {
     const config = { specialization: active };
     const runtime = engineerProfession.runtimeFor(config);
     const state = runtime.createState(config);
-    const activeElite = active === 'Core' ? null : active;
-
-    assert.deepEqual(
-      runtime.catalog.specializations
-        .filter((specialization) => specialization.elite)
-        .map((specialization) => specialization.name),
-      activeElite ? [activeElite] : [],
-      active
-    );
-    assert.equal(state.specialization.kind, active, `${active}:state-kind`);
     for (const key of Object.values(engineerSpecializationStateKeys).flat()) {
       assert.equal(Object.hasOwn(state.core, key), false, `${active}:core:${key}`);
     }
 
-    assert.equal(
-      runtime.catalog.skills.some(
-        (skill) => skillOwner.get(skill.id) !== 'Core' && skillOwner.get(skill.id) !== activeElite
-      ),
-      false,
-      `${active}:skills`
-    );
     for (const [owner, keys] of Object.entries(engineerSpecializationStateKeys)) {
       for (const key of keys) {
         assert.equal(Object.hasOwn(state.specialization.state, key), owner === active, `${active}:slice:${key}`);

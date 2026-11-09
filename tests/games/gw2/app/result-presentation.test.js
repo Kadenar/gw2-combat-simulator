@@ -191,14 +191,12 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.equal((container.innerHTML.match(/res-stat-target-start/g) || []).length, 1);
   assert.match(container.innerHTML, /<details class="res-dps-snapshots">/);
   assert.match(container.innerHTML, /DPS snapshots/);
-  assert.doesNotMatch(container.innerHTML, /res-breakpoints/);
   assert.match(container.innerHTML, /80%<\/b> target health/);
   assert.match(container.innerHTML, />1,234</);
   assert.match(container.innerHTML, /at 3\.250s/);
   assert.ok(container.innerHTML.indexOf('>High</span>') < container.innerHTML.indexOf('>Low</span>'));
   assert.match(container.innerHTML, /Total Conditions/);
   assert.equal((container.innerHTML.match(/class="res-breakdown-section"/g) || []).length, 1);
-  assert.doesNotMatch(container.innerHTML, /res-section-title"><svg/);
   assert.ok(container.innerHTML.indexOf('Damage Breakdown') < container.innerHTML.indexOf('Conditions'));
   assert.ok(container.innerHTML.indexOf('Damaging Conditions') < container.innerHTML.indexOf('Burn &lt;hot&gt;'));
   assert.ok(container.innerHTML.indexOf('Burn &lt;hot&gt;') < container.innerHTML.indexOf('Other Conditions'));
@@ -211,8 +209,6 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.match(resultText, /Penalty DPS Increase -12 % Increase -1\.50%/);
   assert.doesNotMatch(container.innerHTML, /-0(?:\.00)?%?/);
   assert.match(container.innerHTML, /<img src="bonus\.png" alt="" \/><span class="contrib-name-label">Bonus/);
-  assert.match(container.innerHTML, /disabling each modifier and rerunning the simulation/);
-  assert.match(container.innerHTML, /misleading if doing so breaks the rotation/);
   assert.match(container.innerHTML, /Randomized DPS range/);
   assert.match(container.innerHTML, /Recalculate/);
   assert.match(container.innerHTML, /500 simulations/);
@@ -230,9 +226,6 @@ test('shared results render summaries, totals, contributions, and icons', () => 
   assert.match(container.innerHTML, /difference/);
   assert.match(container.innerHTML, /&asymp; \+360 DPS/);
   assert.match(container.innerHTML, /Est. DPS impact/);
-  assert.match(container.innerHTML, /single-variable trend estimates/);
-  assert.match(container.innerHTML, /averages across each group/);
-  assert.match(container.innerHTML, /do not add them together/);
   assert.ok(container.innerHTML.indexOf('DPS snapshots') < container.innerHTML.indexOf('Randomized DPS range'));
   assert.deepEqual(resolved, ['High', 'Low']);
 

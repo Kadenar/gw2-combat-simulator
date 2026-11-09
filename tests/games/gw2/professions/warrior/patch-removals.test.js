@@ -6,7 +6,6 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { warriorTooltips } from '#gw2/professions/warrior/app/tooltips.js';
-import { WARRIOR_MAXIMUM_ADRENALINE } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import {
@@ -130,26 +129,6 @@ for (const [type, name, absent, present] of [
         false
       );
   });
-
-test('removed Berserk window retains resource spending and entry boons without activating mode', () => {
-  const result = runSkills(
-    { [ID.BERSERK]: { sideEffects: { berserk: remove('buff', 'berserk') } } },
-    'Berserker',
-    [ID.BERSERK],
-    {
-      initialResource: 30,
-      selectedTraitIds: [TRAIT.BURST_OF_AGGRESSION]
-    }
-  );
-  assert.equal(result.planningState.profession[STATE.BERSERK_UNTIL], null);
-  assert.equal(result.planningState.profession[STATE.ADRENALINE].maximum, WARRIOR_MAXIMUM_ADRENALINE);
-  assert.ok(result.planningState.profession[STATE.ADRENALINE].value < 30);
-  assert.ok(result.events.some((e) => e.kind === 'quickness'));
-  assert.equal(
-    result.events.some((e) => e.kind === 'berserk'),
-    false
-  );
-});
 
 test('removed Heat the Soul Decapitate Quickness preserves Fury and Might', () => {
   // Remove the selected variant without touching the ordinary primal-burst packet.
@@ -304,23 +283,6 @@ test('Artillery Slash keeps ammo variant identity after first-strike removal and
   }
 });
 
-test('removed Spellbreaker buffs cannot retain Insight stacks or a tether window', () => {
-  const result = run(
-    { [TRAIT.ATTACKERS_INSIGHT]: remove('buff', 'attackers-insight') },
-    'Spellbreaker',
-    ['Kick', ID.BREACHING_STRIKE],
-    {
-      initialResource: 20,
-      primaryWeapon: 'Dagger',
-      selectedTraitIds: [TRAIT.ATTACKERS_INSIGHT, TRAIT.MAGEBANE_TETHER]
-    },
-    { [ID.MAGEBANE_TETHER]: remove('buff', 'magebane-tether') }
-  );
-  const state = observedRuntime(result).profession.specialization.state;
-  assert.deepEqual(state.attackerInsightExpiries, []);
-  assert.equal(state.magebaneTetherUntil, 0);
-});
-
 test('Paragon opening Might removal preserves Fury, Motivation, and tooltip identity', () => {
   const skills = { [ID.CHANT_OF_ACTION]: { sideEffects: { chant: remove('boon', 'Entry Might') } } };
   const result = runSkills(skills, 'Paragon', [ID.CHANT_OF_ACTION], { initialResource: 30 });
@@ -362,34 +324,4 @@ test('Warrior live owners reject missing profiles and invalid required scalars c
     observedRuntime(result).procs.deadline('warrior.core.soldierFocus'),
     result.events.find((event) => event.type === 'damage').at
   );
-});
-
-// Later resource mutations cannot change a burst's captured tier or discard its separate Might packet.
-test('Eviscerate variants use captured adrenaline after the live pool changes', () => {
-  const config = {
-    specialization: 'Core',
-    primaryWeapon: 'Axe',
-    initialResource: 20,
-    selectedTraitIds: [],
-    attributeInputs: baseAttributeInputs({ power: 2000, precision: 1000 }),
-    target: { armor: 2597 }
-  };
-  const native = warriorProfession.runtimeFor(config);
-  const result = observeGw2Runtime({
-    profession: {
-      ...native,
-      onCastStart(runtime, cast) {
-        native.onCastStart(runtime, cast);
-        runtime.resourceController.replace('adrenaline', 30);
-      }
-    },
-    config,
-    rotation: [ID.EVISCERATE]
-  });
-  assert.deepEqual(result.warnings, []);
-  const strike = result.events.find((event) => event.type === 'damage' && event.skillId === ID.EVISCERATE);
-  assert.equal(strike.coefficient, 2.5);
-  assert.equal(strike.metadata.warriorAdrenalineSpent, 20);
-  assert.equal(strike.metadata.warriorBurstTier, 2);
-  assert.ok(result.events.some((event) => event.kind === 'might' && event.skillId === ID.EVISCERATE));
 });

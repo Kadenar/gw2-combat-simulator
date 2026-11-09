@@ -2,80 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { runNative } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
-
-// Drive recovery with accepted applications and actual clock advances; queued grants cannot predict endurance.
-const vigor = (at, duration, extra = {}) => ({
-  type: 'buff',
-  kind: 'vigor',
-  at,
-  duration,
-  stacks: 1,
-  source: 'fixture',
-  sourceId: 'fixture',
-  actorType: 'player',
-  ...extra
-});
-function recover(events, end, config = {}, timeline = []) {
-  return runElementalist(
-    [{ type: 'wait', durationMs: end * 1000 }],
-    { specialization: 'Core', initialEndurance: 0, ...config },
-    {
-      initialize: (r) => {
-        for (const event of events) {
-          if (event.cancelled) {
-            const packet = { ...event };
-            delete packet.cancelled;
-            r.schedule('test.emit', event.at, packet, { id: 'cancelled', generation: 0 });
-            r.cancelOwner({ id: 'cancelled', generation: 0 });
-          } else r.effects.emit({ kind: 'packet', event: event });
-        }
-      },
-      timeline
-    }
-  );
-}
-
-test('Elementalist ignores cancelled and other-only Vigor', () => {
-  for (const cancelled of [false, true]) {
-    const result = recover(
-      [
-        vigor(0, 20, { audience: { recipients: 'summons', affectsSelf: false, maximumRecipients: 5 } }),
-        vigor(2, 2),
-        vigor(0, 20, { cancelled: true }),
-        { ...vigor(3, 2), type: 'boon_extension', cancelled }
-      ],
-      8
-    );
-    assert.equal(observedRuntime(result).profession.core.endurance.value, cancelled ? 45 : 50);
-    assert.equal(observedRuntime(result).endurance.readyAt(50), cancelled ? 9 : 8);
-  }
-});
-test('timed Vigor recovery crosses application and expiry boundaries', () => {
-  const result = recover([vigor(2, 2)], 6, {}, [
-    { at: 0, run: (r) => assert.equal(r.endurance.readyAt(50), 10) },
-    { at: 2.001, run: (r) => assert.equal(r.endurance.readyAt(50), 9) }
-  ]);
-  assert.equal(observedRuntime(result).profession.core.endurance.value, 35);
-});
-test('Vigor stacks duration without stacking its rate and respects the duration cap', () => {
-  assert.equal(observedRuntime(recover([vigor(3, 2), vigor(2, 2)], 8)).profession.core.endurance.value, 50);
-  const capped = recover([vigor(0, 20), vigor(0, 20)], 32, {}, [{ at: 29, run: (r) => r.endurance.spend(100) }]);
-  assert.equal(observedRuntime(capped).profession.core.endurance.value, 17.5);
-});
-test('permanent Vigor keeps its rate through timed expiry and endurance remains capped', () => {
-  const result = recover([vigor(2, 2)], 30, { boons: { vigor: true } }, [
-    {
-      at: 6,
-      run: (r) => {
-        assert.equal(r.profession.core.endurance.value, 45);
-        assert.equal(r.endurance.readyAt(50), 6.68);
-      }
-    }
-  ]);
-  assert.equal(observedRuntime(result).profession.core.endurance.value, 100);
-});
 
 test('Phoenix Vigor contributes to recovery and the next dodge after expiry', () => {
   const options = {

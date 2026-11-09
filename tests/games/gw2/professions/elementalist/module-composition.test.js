@@ -27,7 +27,6 @@ test('Elementalist runtimes keep elite state in the active specialization slice'
   for (const active of ['Core', ...Object.keys(SPECIALIZATION_STATE_KEYS)]) {
     const config = { specialization: active, startAttunement: 'Fire', secondaryAttunement: 'Water' };
     const state = elementalistProfession.runtimeFor(config).createState(config);
-    assert.equal(state.specialization.kind, active);
     for (const [owner, keys] of Object.entries(SPECIALIZATION_STATE_KEYS)) {
       for (const key of keys) {
         assert.equal(Object.hasOwn(state.core, key), false, `${active}:core:${key}`);

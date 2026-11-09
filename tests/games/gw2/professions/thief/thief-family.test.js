@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { getNativeCatalogAssembly } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { thiefCatalog, thiefNativeModules, thiefProfession } from '#gw2/professions/thief/profession.js';
+import { thiefCatalog, thiefProfession } from '#gw2/professions/thief/profession.js';
 import {
   createAntiquaryState,
   projectAntiquaryPlanningState
@@ -51,12 +50,6 @@ function eliteSpecializationNames(catalog) {
   return catalog.specializations.filter((specialization) => specialization.elite).map(({ name }) => name);
 }
 
-const thiefSkillOwners = new Map(
-  [...getNativeCatalogAssembly(thiefNativeModules, undefined).fragments].flatMap(([owner, fragment]) =>
-    fragment.skills.map((skill) => [skill.id, owner])
-  )
-);
-
 const specializationStateKeys = Object.freeze({
   Daredevil: ['selectedDodge', 'weakeningStrikeReady'],
   Deadeye: ['markedTargetId', 'malice', 'maleficentSevenTriggered'],
@@ -64,32 +57,12 @@ const specializationStateKeys = Object.freeze({
   Antiquary: ['artifactSlots', 'artifactUsesRemaining', 'mistburn', 'holoUtilityCooldownReductionExpirations']
 });
 
-test('Thief runtimes exclude inactive elite state, catalogs, and registries', () => {
-  assert.equal(thiefProfession.catalog, thiefCatalog);
+// Shared conformance covers catalogs and caching; this case checks inactive fields and native tasks.
+test('Thief runtimes exclude inactive elite state and native tasks', () => {
   for (const active of ['Core', ...eliteSpecializationNames(thiefCatalog)]) {
     const config = { specialization: active };
     const runtime = thiefProfession.runtimeFor(config);
     const state = runtime.createState(config);
-    const activeElite = active === 'Core' ? null : active;
-
-    assert.equal(runtime, thiefProfession.runtimeFor(config), active);
-    assert.equal(state.specialization.kind, active, active);
-    assert.deepEqual(
-      runtime.catalog.specializations
-        .filter((specialization) => specialization.elite)
-        .map((specialization) => specialization.name),
-      activeElite ? [activeElite] : [],
-      active
-    );
-    assert.equal(
-      runtime.catalog.skills.some((skill) => {
-        const owner = thiefSkillOwners.get(skill.id);
-
-        return owner !== 'Core' && owner !== activeElite;
-      }),
-      false,
-      `${active}:skills`
-    );
     // Live owners select behavior from canonical skill identity; no skill names a scheduler handler.
     assert.equal(
       runtime.catalog.skills.some((skill) => skill.handlerId != null),

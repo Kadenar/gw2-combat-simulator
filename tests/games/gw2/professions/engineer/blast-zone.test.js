@@ -41,7 +41,12 @@ test('Blast Zone grants fire-field Might from healing toolbelts and first mech c
     assert.equal(attempts[0].actorType, 'player', skill);
     assert.equal(attempts[0].finisherType, 'Blast', skill);
     const might = result.resolvedEvents.filter(
-      (event) => event.type === 'buff' && event.sourceId === TRAIT.BLAST_ZONE && event.kind === 'might'
+      // The trait owns the finisher; the resulting boon supply belongs to the combo.
+      (event) => event.type === 'buff' && event.attemptId === attempts[0].attemptId && event.kind === 'might'
+    );
+    assert.ok(
+      might.every((event) => event.sourceId === 'combo:Fire:Blast'),
+      skill
     );
     assert.deepEqual(
       might.map((event) => [event.stacks, event.duration]),

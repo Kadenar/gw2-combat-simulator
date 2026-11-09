@@ -15,6 +15,7 @@ test('tier variants use the captured spend after the live adrenaline pool change
     [ID.ARCING_SLICE, 'Greatsword'],
     [ID.KILL_SHOT, 'Rifle'],
     [ID.BLOODTHIRSTER, 'Sword'],
+    [ID.EVISCERATE, 'Axe'],
     [ID.COMBUSTIVE_SHOT, 'Longbow']
   ]) {
     for (const initialResource of [10, 20, 30]) {
@@ -39,6 +40,17 @@ test('tier variants use the captured spend after the live adrenaline pool change
           rotation: [id]
         });
         assert.deepEqual(result.warnings, []);
+
+        if (id === ID.EVISCERATE) {
+          // Variant selection and its separate boon use the reservation, never the later live pool.
+          const strike = result.events.find((event) => event.type === 'damage' && event.skillId === id);
+          assert.equal(strike.metadata.warriorAdrenalineSpent, initialResource);
+          assert.equal(strike.metadata.warriorBurstTier, initialResource / 10);
+
+          if (initialResource === 20) assert.equal(strike.coefficient, 2.5);
+
+          assert.ok(result.events.some((event) => event.kind === 'might' && event.skillId === id));
+        }
       }
 
       assert.ok(payloads[0].length > 0);

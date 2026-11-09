@@ -43,22 +43,6 @@ test('relic and trait activations are exposed as proc timeline steps', () => {
   assert.ok(result.procSteps.some((proc) => proc.type === 'relic_proc' && proc.skill === 'Relic of the Thief'));
 });
 
-test('result summary uses the expected metric order', () => {
-  const result = simulateMesmer(
-    ['Blurred Frenzy'],
-    defaultSimulationConfig({
-      specialization: 'Core',
-      primaryWeapon: 'Sword',
-      initialResource: 0
-    })
-  );
-
-  assert.deepEqual(
-    resultSummaryMetrics(result, emptyTimelineSource).map((metric) => metric.label),
-    ['Duration', 'Actions / min', 'Total Idle Time', 'Player Damage', 'Player DPS', 'Strike', 'Condition']
-  );
-});
-
 test('result summary totals gaps after profession-supplied occupied intervals', () => {
   const metrics = resultSummaryMetrics(
     {
@@ -323,7 +307,8 @@ test('result summary includes kill time when target health is exhausted', () => 
   assert.equal(buildChartSeries(result).durationMs, Math.max(1, result.dpsWindow * 1000));
 });
 
-test('skill breakdown combines strike and condition damage by source skill', () => {
+// One native result exercises the breakdown and chart projections together.
+test('native strike and condition damage agree across result projections', () => {
   const result = simulateMesmer(
     ['Confusing Images', { name: '__wait', waitMs: 3000 }],
     defaultSimulationConfig({
@@ -341,91 +326,17 @@ test('skill breakdown combines strike and condition damage by source skill', () 
   assert.equal(row.casts, 1);
   assert.ok(row.average > 0);
   assert.ok(row.dct > 0);
-});
-
-test('condition breakdown reports damage, DPS, and average stacks', () => {
-  const result = simulateMesmer(
-    ['Confusing Images', { name: '__wait', waitMs: 3000 }],
-    defaultSimulationConfig({
-      specialization: 'Core',
-      primaryWeapon: 'Scepter',
-      secondaryWeapon: 'Sword',
-      initialResource: 0
-    })
-  );
   const confusion = result.conditionBreakdown.find((entry) => entry.name === 'Confusion');
 
   assert.ok(confusion.damage > 0);
   assert.equal(confusion.dps, confusion.damage / result.dpsWindow);
   assert.ok(confusion.averageStacks > 0);
-});
 
-test('chart series expose first-hit-anchored average DPS and condition stacks', () => {
-  const result = simulateMesmer(
-    ['Confusing Images', { name: '__wait', waitMs: 3000 }],
-    defaultSimulationConfig({
-      specialization: 'Core',
-      primaryWeapon: 'Scepter',
-      secondaryWeapon: 'Sword',
-      initialResource: 0
-    })
-  );
   const series = buildChartSeries(result);
 
   assert.ok(series.dps.length > 2);
   assert.ok(series.effects.Confusion.some((point) => point.v > 0));
   assert.ok(Math.abs(series.dps.at(-1).v - result.dps) < 0.001);
-});
-
-test('Vulnerability chart series caps at 25 stacks', () => {
-  const series = buildChartSeries(
-    {
-      rotationEndTime: 10,
-      observationEndTime: 10,
-      combatEndTime: 10,
-      ...effectFields(
-        Array.from({ length: 30 }, (_, index) => ({
-          type: 'condition',
-          at: index * 0.01,
-          condition: 'Vulnerability',
-          duration: 8,
-          stacks: 1
-        })),
-        10,
-        { policies: mesmerBuffPolicies(mesmerProfession.catalog) }
-      ),
-      events: []
-    },
-    100
-  );
-
-  assert.equal(Math.max(...series.effects.Vulnerability.map((point) => point.v)), 25);
-});
-
-test('Might chart series caps at 25 stacks', () => {
-  const series = buildChartSeries(
-    {
-      rotationEndTime: 10,
-      observationEndTime: 10,
-      combatEndTime: 10,
-
-      ...effectFields(
-        Array.from({ length: 30 }, (_, index) => ({
-          type: 'buff',
-          at: index * 0.01,
-          kind: 'might',
-          duration: 8,
-          stacks: 1,
-          resolvedAudience: PLAYER_RESOLVED_AUDIENCE
-        })),
-        10,
-        { policies: mesmerBuffPolicies(mesmerProfession.catalog) }
-      )
-    },
-    100
-  );
-
-  assert.equal(Math.max(...series.effects.Might.map((point) => point.v)), 25);
 });
 
 for (const [specialization, kind, name, maximumStacks] of [
