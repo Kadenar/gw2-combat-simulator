@@ -6,8 +6,8 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { consumeDeadeyeMalice } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
 import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
-import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Cantrips own their utility effects, flip windows, and commitment actions. */
@@ -222,10 +222,7 @@ const deadeyeSlotActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill
   },
   'thief.mercy'(runtime) {
     // Consume live commitment-time malice before refunding the selected skill's amount.
-    const state = deadeyeState.from(runtime.profession);
-    const malice = runtime.resourceController.value('malice');
-    runtime.resourceController.replace('malice', 0);
-    state.maleficentSevenTriggered = false;
+    const malice = consumeDeadeyeMalice(runtime);
     const mercy = requireSkill(runtime.helpers, ID.MERCY);
     const initiativeGain = skillNumber(mercy, 'initiativeRefund') + malice * skillNumber(mercy, 'initiativePerMalice');
 

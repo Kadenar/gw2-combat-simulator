@@ -2,14 +2,12 @@ import type { ActivationClaims } from '#gw2/platform/combat/procs/activation-cla
 import { grantCharges, type ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
 } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export interface DeadeyeState {
   bonusStealthAttack: ChargeGrant;
@@ -39,13 +37,6 @@ function createDeadeyeState(): DeadeyeState {
 }
 
 export const deadeyeState = defineProfessionSpecializationState('Deadeye', createDeadeyeState);
-
-/** Accepted marked malice remains available until the skill's commitment actions finish. */
-interface DeadeyeCastFacts {
-  readonly markedMalice: number;
-}
-
-export const deadeyeCastFacts = new WeakMap<RuntimeCast<ThiefSkill>, DeadeyeCastFacts>();
 
 /** Select public fields without mutating their owner; the planning observer detaches the result. */
 export function projectDeadeyePlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {

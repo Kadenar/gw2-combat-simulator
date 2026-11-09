@@ -23,6 +23,10 @@ import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechan
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { DEADEYE_STOLEN_SKILL_ID_SET, isThiefStolenSkill } from '#gw2/professions/thief/data/stolen-skills.js';
 import {
+  claimDeadeyeMaliceCycle,
+  grantDeadeyeMalice
+} from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
+import {
   deadeyeCastCompleted,
   maliceGained,
   maliceSpent,
@@ -265,11 +269,9 @@ function grantFireForEffect(runtime: ThiefRuntime, { cast }: DeadeyeCast): void 
 }
 
 function applyMaleficentSeven(runtime: ThiefRuntime, { cast }: DeadeyeMalice): void {
-  const state = deadeyeState.from(runtime.profession);
+  // Claim the full-pool cycle before its rewards can cause another resource change.
+  if (!claimDeadeyeMaliceCycle(runtime)) return;
 
-  if (state.malice.value !== state.malice.maximum || state.maleficentSevenTriggered) return;
-
-  state.maleficentSevenTriggered = true;
   const initiativeGain = balanceNumber(runtime.helpers, TRAIT.MALEFICENT_SEVEN, 'resourceGain');
 
   if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
@@ -278,8 +280,7 @@ function applyMaleficentSeven(runtime: ThiefRuntime, { cast }: DeadeyeMalice): v
 }
 
 function restoreMaliciousIntent(runtime: ThiefRuntime): void {
-  runtime.resourceController.grant('malice', balanceNumber(runtime.helpers, TRAIT.MALICIOUS_INTENT, 'resourceGain'));
-  runtime.fireTrigger(maliceGained, { cast: null });
+  grantDeadeyeMalice(runtime, balanceNumber(runtime.helpers, TRAIT.MALICIOUS_INTENT, 'resourceGain'));
 }
 
 function grantOneInTheChamber(runtime: ThiefRuntime): void {

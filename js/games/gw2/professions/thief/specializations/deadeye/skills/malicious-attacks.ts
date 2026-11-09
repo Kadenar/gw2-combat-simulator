@@ -14,8 +14,8 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { buildThiefCondition } from '#gw2/professions/thief/core/events.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
+import { acceptedDeadeyeMarkedMalice } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
 import { markedTarget } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
-import { deadeyeCastFacts } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import type { ThiefRuntimeState, ThiefSimulationEvent, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** Accepted malice travels with condition packets; only outgoing Poison consumes this captured duration factor. */
@@ -167,7 +167,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
     sideEffects: [
       {
         on: 'castCommit',
-        when: (_runtime, cast) => !castWasInterrupted(cast) && (deadeyeCastFacts.get(cast)?.markedMalice ?? 0) > 0,
+        when: (_runtime, cast) => !castWasInterrupted(cast) && acceptedDeadeyeMarkedMalice(cast) > 0,
         do: {
           type: 'thief.sneak-torment' as const,
           id: 'malice',
@@ -318,7 +318,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
       {
         when: () => true,
         transform: (_runtime, cast, effects) => {
-          const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
+          const malice = acceptedDeadeyeMarkedMalice(cast);
           return capturePoisonDuration(effects, 1 + 0.2 * malice);
         }
       }
@@ -362,7 +362,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
       {
         when: () => true,
         transform: (_runtime, cast, effects) => {
-          const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
+          const malice = acceptedDeadeyeMarkedMalice(cast);
           return effects.flatMap((effect): SkillEffect[] => {
             const quickness =
               (effect.type === 'boon' && String(effect.boon).toLowerCase() === boonKey(BOON.QUICKNESS)) ||
@@ -461,7 +461,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
       {
         when: () => true,
         transform: (_runtime, cast, effects) => {
-          const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
+          const malice = acceptedDeadeyeMarkedMalice(cast);
 
           // Without consumed malice the outgoing axe has no poison application; recall uses the base packet.
           if (malice === 0)
@@ -568,7 +568,7 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
         when: () => true,
         transform: (_runtime, cast, effects) => {
           const profile = cast.skill;
-          const malice = deadeyeCastFacts.get(cast)?.markedMalice ?? 0;
+          const malice = acceptedDeadeyeMarkedMalice(cast);
           const factor =
             1 +
             // An unmarked or missed attack cannot receive a bonus from malice it does not consume.
@@ -632,8 +632,7 @@ function maliceTorment(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>, mal
 const maliciousAttackActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> = {
   'thief.sneak-torment'(runtime, context) {
     // Earlier channel hits may already have spent malice; completion uses the facts captured for this exact cast.
-    if (context.kind === 'cast')
-      maliceTorment(runtime, context.cast, deadeyeCastFacts.get(context.cast)?.markedMalice ?? 0);
+    if (context.kind === 'cast') maliceTorment(runtime, context.cast, acceptedDeadeyeMarkedMalice(context.cast));
   }
 };
 

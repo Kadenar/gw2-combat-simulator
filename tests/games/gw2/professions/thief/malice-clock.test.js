@@ -86,6 +86,28 @@ test('marks replace or add malice and ignore stale expiry generations', () => {
   ]);
 });
 
+// Mercy clears an earned cycle without Malicious Intent reseeding it through maliceSpent.
+test('Mercy clears malice and rearms the cycle without Malicious Intent reseeding', () => {
+  const result = runThief(
+    [ID.MERCY],
+    {
+      specialization: 'Deadeye',
+      selectedSkillIds: [ID.MERCY],
+      selectedTraitIds: [TRAIT.MALEFICENT_SEVEN, TRAIT.MALICIOUS_INTENT]
+    },
+    {
+      initialize(runtime) {
+        runtime.resourceController.replace('malice', 4);
+        runtime.profession.specialization.state.maleficentSevenTriggered = true;
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const runtime = observedRuntime(result);
+  assert.equal(runtime.resourceController.value('malice'), 0);
+  assert.equal(runtime.profession.specialization.state.maleficentSevenTriggered, false);
+});
+
 // Misses cannot claim either grant, and repeated hits or critical hits cannot duplicate their activation's rewards.
 for (const [precision, expected] of [
   [0, 1],

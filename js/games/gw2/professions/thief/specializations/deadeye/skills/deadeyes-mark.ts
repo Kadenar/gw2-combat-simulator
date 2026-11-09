@@ -9,11 +9,13 @@ import { stealAccepted } from '#gw2/professions/thief/core/mechanics/trigger-poi
 import { thiefRuntimeSpecializationState } from '#gw2/professions/thief/core/state-queries.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import {
-  maliceGained,
-  markCompleted
-} from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
+  refreshDeadeyeMarkMalice,
+  resetDeadeyeMalice,
+  startDeadeyeMarkMalice
+} from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
+import { markCompleted } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
 import { deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
-import { initialMalice, stolenSkillGrant } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
+import { stolenSkillGrant } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -52,12 +54,10 @@ function completeDeadeyesMark(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
   // A refresh is a new mark lifetime even on the same target; older expiry tasks must not clear its malice.
   state.markGeneration += 1;
 
-  if (remarking) runtime.resourceController.grant('malice', initialMalice(runtime));
-  else runtime.resourceController.replace('malice', initialMalice(runtime));
+  // Malice cycle rewards precede stolen-skill acquisition and the mark's own completion rewards.
+  if (remarking) refreshDeadeyeMarkMalice(runtime, cast);
+  else startDeadeyeMarkMalice(runtime, cast);
 
-  if (!remarking) state.maleficentSevenTriggered = false;
-
-  runtime.fireTrigger(maliceGained, { cast });
   completeThiefSteal(runtime, stolenSkillGrant(runtime));
   runtime.fireTrigger(markCompleted, { cast });
 
@@ -73,21 +73,13 @@ function expireDeadeyesMark(runtime: ThiefRuntime, data: unknown): void {
 
   state.markedTargetId = null;
   state.markExpiresAt = 0;
-  runtime.resourceController.replace('malice', 0);
-  state.maleficentSevenTriggered = false;
+  resetDeadeyeMalice(runtime);
 }
 
 /** Modifier eligibility reads the active specialization mark, including detached previews. */
 export function markedTarget(context: Gw2ModifierContext): boolean {
   const state = thiefRuntimeSpecializationState(context.runtime?.profession, 'Deadeye');
   return Boolean(state.markedTargetId) && (state.markExpiresAt || Infinity) > context.time;
-}
-
-/** Malice rewards and cast snapshots require a mark still active at the live combat clock. */
-export function deadeyeMarked(runtime: ThiefRuntime): boolean {
-  const at = runtime.time;
-  const state = deadeyeState.from(runtime.profession);
-  return Boolean(state.markedTargetId) && state.markExpiresAt > at;
 }
 
 /** Register actions beside the skills whose accepted casts select them. */

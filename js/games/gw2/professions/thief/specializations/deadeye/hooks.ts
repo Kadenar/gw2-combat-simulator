@@ -3,17 +3,11 @@ import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
 import { storeThiefStolenSkillChoices } from '#gw2/professions/thief/core/mechanics/steal.js';
 import { deadeyeCastAvailability } from '#gw2/professions/thief/specializations/deadeye/mechanics/availability.js';
-import {
-  captureDeadeyeMalice,
-  deadeyeMalice,
-  deadeyeMaliceSnapshot,
-  reactDeadeyeMalice
-} from '#gw2/professions/thief/specializations/deadeye/mechanics/malice.js';
+import { deadeyeMaliceLifecycle } from '#gw2/professions/thief/specializations/deadeye/mechanics/malice-lifecycle.js';
 import { deadeyeCastCompleted } from '#gw2/professions/thief/specializations/deadeye/mechanics/trigger-points.js';
 import { deadeyesMarkLifecycle } from '#gw2/professions/thief/specializations/deadeye/skills/deadeyes-mark.js';
 import { maliciousAttackLifecycle } from '#gw2/professions/thief/specializations/deadeye/skills/malicious-attacks.js';
 import { deadeyeSlotLifecycle } from '#gw2/professions/thief/specializations/deadeye/skills/slot-skills.js';
-import { deadeyeCastFacts, deadeyeState } from '#gw2/professions/thief/specializations/deadeye/state.js';
 import { stolenSkillGrant } from '#gw2/professions/thief/specializations/deadeye/traits/behavior.js';
 import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
@@ -31,33 +25,10 @@ export const deadeyeHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
 
       storeThiefStolenSkillChoices(runtime, stolenSkillGrant(runtime));
     },
-    // Malice has no passive recovery; only accepted mark and hit transactions earn its cycle rewards.
-    resources: { malice: deadeyeMalice },
-    /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
-    prepareDamageState(runtime, _skill, inputs) {
-      const state = deadeyeState.from(runtime.profession);
-      const malice = Number(inputs.malice ?? 0);
-
-      if (!Number.isInteger(malice) || malice < 0 || malice > state.malice.maximum)
-        throw new RangeError('Malice exceeds the selected build maximum.');
-
-      runtime.resourceController.replace('malice', malice);
-      state.markedTargetId = 'target';
-      state.markExpiresAt = Infinity;
-    },
-
     availability: (runtime, skill) => deadeyeCastAvailability(runtime.flips, skill, runtime.time),
-    onCastStart: captureDeadeyeMalice,
     onCastCommit(runtime, cast) {
-      // Completion carries the accepted malice and stealth facts across the detached cast-task boundary.
+      // Finishing hits precede the deferred stolen-skill, dodge, and cantrip trait rewards.
       deferThiefCompletion(runtime, DEADEYE_COMPLETE, cast);
-      deadeyeCastFacts.delete(cast);
-    },
-    reactions: {
-      'damage.resolving': deadeyeMaliceSnapshot,
-      'damage.resolved'(runtime, event, details) {
-        reactDeadeyeMalice(runtime, event, details.hitContext);
-      }
     },
     tasks: {
       [DEADEYE_COMPLETE](runtime, data) {
@@ -65,5 +36,6 @@ export const deadeyeHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>([
         runtime.fireTrigger(deadeyeCastCompleted, { cast });
       }
     }
-  }
+  },
+  deadeyeMaliceLifecycle
 ]);
