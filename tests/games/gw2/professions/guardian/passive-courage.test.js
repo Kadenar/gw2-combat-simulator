@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
+import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { wait } from '#tests/helpers/commands.js';
 import { runGuardian as run } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -49,11 +51,18 @@ function passiveEvents(result, owner) {
   return result.resolvedEvents.filter((event) => event.name === `${skillName} - Passive Aegis`);
 }
 
+// Firebrand publishes dormancy; ordinary virtues retain their authoritative recharge deadline.
+function courageReadyAt(result, owner) {
+  return owner.specialization === 'Firebrand'
+    ? result.planningState.profession[STATE.VIRTUE_READY_AT].courage
+    : gw2CooldownReadyAt(observedRuntime(result).cooldownController.readyAt(owner.skillId) ?? 0);
+}
+
 for (const owner of owners) {
   test(`${owner.specialization} Courage skips dormancy and resumes on its original cadence with self attribution`, () => {
     const result = fixture(owner)([wait(100), owner.skillId, wait(8500)]);
     assert.deepEqual(result.warnings, []);
-    const readyAt = observedRuntime(result).profession.core.virtueReadyAt.courage;
+    const readyAt = courageReadyAt(result, owner);
     const events = passiveEvents(result, owner);
     assert.ok(readyAt > 2, 'the scenario must suppress a scheduled wake');
     assert.ok(
@@ -86,7 +95,7 @@ for (const owner of owners) {
       wait(2500)
     ];
     const dormant = simulate(prefix);
-    const oldReadyAt = observedRuntime(dormant).profession.core.virtueReadyAt.courage;
+    const oldReadyAt = courageReadyAt(dormant, owner);
     const result = simulate([...prefix, ID.RENEWED_FOCUS, wait(3000)]);
     assert.deepEqual(dormant.warnings, []);
     assert.deepEqual(result.warnings, []);
@@ -127,7 +136,7 @@ test('Indomitable Courage selects the trait cadence when Dragonhunter recharge e
     wait(8500)
   ]);
   assert.deepEqual(result.warnings, []);
-  const readyAt = observedRuntime(result).profession.core.virtueReadyAt.courage;
+  const readyAt = courageReadyAt(result, owner);
   const events = passiveEvents(result, owner);
   assert.ok(readyAt > 4 && readyAt < 6);
   assert.equal(
@@ -146,7 +155,7 @@ test('Stoic Demeanor keeps Firebrand Courage eligible while the tome remains dor
       wait(2500)
     ]);
     assert.deepEqual(result.warnings, []);
-    assert.ok(observedRuntime(result).profession.core.virtueReadyAt.courage > observedRuntime(result).time);
+    assert.ok(courageReadyAt(result, owner) > observedRuntime(result).time);
     assert.equal(
       passiveEvents(result, owner).some((event) => event.at === 2),
       retained

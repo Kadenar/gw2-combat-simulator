@@ -27,7 +27,6 @@ import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
-import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { patchTraitProfession } from '#tests/helpers/trait-patch.js';
 
 const patchId = profession.preview.id;
@@ -416,7 +415,7 @@ test('Stoic Demeanor reduces only Unbroken Lines on eligible controls using sele
   assert.ok(Math.abs(reductions[2] - 3) < 1e-9);
   // A proc claim prevents duplicate controls at the same timestamp from rewarding twice.
   assert.equal(reductions[3], 0);
-  assert.ok(observedRuntime(result).profession.core.virtueReadyAt.courage > 0);
+  assert.ok(result.planningState.profession[STATE.VIRTUE_READY_AT].courage > 0);
 });
 
 test('module reworks reject unknown or duplicate choices and validate edits against the selected definitions', () => {

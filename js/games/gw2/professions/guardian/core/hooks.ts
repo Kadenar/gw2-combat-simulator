@@ -1,8 +1,6 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
-import { ACTOR, BOON } from '#gw2/platform/constants.js';
-import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -19,9 +17,7 @@ import {
   admitVirtueActivation,
   applyJusticeBurn,
   completeVirtueActivation,
-  CORE_VIRTUES,
-  reactToJusticeHitWithOptions,
-  refreshGuardianVirtues
+  reactToJusticeHitWithOptions
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianJusticeLifecycle } from '#gw2/professions/guardian/core/skills/profession-skills.js';
 import {
@@ -35,6 +31,7 @@ import { writOfPersistenceFields } from '#gw2/professions/guardian/core/traits/h
 import { masterOfConsecrationsFields } from '#gw2/professions/guardian/core/traits/virtues/index.js';
 import { GUARDIAN_TRAIT_IDS, GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
+import { CORE_VIRTUES, guardianVirtueActions } from '#gw2/professions/guardian/virtue-readiness.js';
 
 /** Registers virtue, symbol, and follow-up callbacks with the actions from each Core skill. */
 export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianSkill>([
@@ -69,15 +66,7 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
     },
     buffPolicies: (runtime) => guardianBuffPolicies(runtime.helpers),
     observeEffects: guardianEffectStates,
-    sideEffectHandlers: {
-      // Elite virtue IDs are absent from other catalogs; select live IDs before using the shared reset action.
-      'guardian.refresh-virtues'(runtime, context) {
-        const virtues = runtime.helpers.skills.filter((skill) => skill.virtue);
-        applySideEffect(runtime, context, { type: 'rechargeReset', skillIds: virtues.map((skill) => skill.id) });
-        for (const skill of virtues) runtime.cooldownController.restoreAmmo(skill, Infinity, runtime.time);
-        runtime.profession.core.virtueReadyAt = { justice: runtime.time, resolve: runtime.time, courage: runtime.time };
-      }
-    },
+    sideEffectHandlers: guardianVirtueActions,
     endurance: {
       state: (runtime) => runtime.profession.core.endurance,
       maximum: () => ENDURANCE.maximum,
@@ -113,7 +102,6 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
 
       if (virtue) completeVirtueActivation(runtime, cast, virtue);
     },
-    onCooldownReset: refreshGuardianVirtues,
     reactions: {
       'damage.resolved'(runtime, event, details) {
         const hit = details.hitContext;
@@ -131,12 +119,9 @@ export const guardianCoreHooks = composeRuntimeHooks<GuardianRuntimeState, Guard
 
         if (runtime.profession.specialization.kind !== 'Core') return;
 
-        refreshGuardianVirtues(runtime);
         reactToJusticeHitWithOptions(runtime, event);
       },
       'buff.applied'(runtime, event) {
-        if (event.kind === boonKey(BOON.ALACRITY)) refreshGuardianVirtues(runtime);
-
         runtime.fireTrigger(guardianBuffApplied, { cause: event });
       },
       'condition.applied'(runtime, event) {

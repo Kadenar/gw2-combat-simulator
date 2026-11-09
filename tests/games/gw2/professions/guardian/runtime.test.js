@@ -558,7 +558,7 @@ test('Firebrand page refunds survive concurrent stow while canceled pages spend 
 test('Firebrand dormant reopening preserves its deadline and grants activation benefits only once', () => {
   const result = run([ID.TOME_OF_JUSTICE, ID.STOW_TOME, wait(1000), ID.TOME_OF_JUSTICE], firebrand);
   assert.deepEqual(result.warnings, []);
-  assert.equal(core(result).virtueReadyAt.justice, 20);
+  assert.equal(result.planningState.profession[STATE.VIRTUE_READY_AT].justice, 20);
   assert.equal(result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'quickness').length, 1);
 });
 
@@ -794,23 +794,6 @@ test('Firebrand axe and disable traits react to accepted player outcomes only', 
   );
 });
 
-test('Firebrand Renewed Focus restores the current page pool and dormancy only on full completion', () => {
-  for (const interrupted of [false, true]) {
-    const result = run(
-      [
-        ID.TOME_OF_JUSTICE,
-        ID.SEARING_SPELL,
-        ID.STOW_TOME,
-        { type: 'cast', skillId: ID.RENEWED_FOCUS, ...(interrupted ? { interruptAfterMs: 1 } : {}) }
-      ],
-      firebrand
-    );
-    assert.deepEqual(result.warnings, []);
-    assert.equal(fb(result).tomePages.value, interrupted ? 4 : 5);
-    assert.equal(core(result).virtueReadyAt.justice, interrupted ? 20 : result.rotationEndTime);
-  }
-});
-
 test('removed Firebrand components preserve independent page grants and Might without claiming disabled procs', () => {
   const patched = withPatchPreview(guardianProfession, {
     id: 'firebrand-components',
@@ -973,7 +956,7 @@ test('permanent Alacrity readies the Core passive on the same action tick as its
   assert.deepEqual(result.warnings, []);
   assert.equal(justiceApplications(result, 'active').length, 1);
   assert.equal(core(result).justiceHitCount, 1);
-  assert.equal(core(result).virtueReadyAt.justice, 9.6);
+  assert.equal(result.planningState.cooldownsBySkillId[ID.JUSTICE].readyAtMs, 9600);
 });
 
 test('removed Justice packets cannot arm an active charge or advance the passive counter', () => {
@@ -1640,7 +1623,7 @@ test('Dragonhunter misses cannot attach a tether or arm Verdict, while commitmen
   assert.deepEqual(result.warnings, []);
   assert.equal(dh(result).tetherUntil, 0);
   assert.equal(observedRuntime(result).flips[ID.HUNTERS_VERDICT], undefined);
-  assert.ok(core(result).virtueReadyAt.justice > observedRuntime(result).time);
+  assert.ok(result.planningState.cooldownsBySkillId[ID.SPEAR_OF_JUSTICE].remainingMs > 0);
   assert.equal(
     result.resolvedEvents.some((event) => event.name === 'Spear of Justice - Active Burning'),
     false

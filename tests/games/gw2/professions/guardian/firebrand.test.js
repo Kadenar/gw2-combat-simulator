@@ -849,7 +849,7 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
       specialization: 'Firebrand',
       selectedTraitIds: [GUARDIAN_TRAIT_IDS.FURIOUS_FOCUS, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE]
     })(undefined, rotation);
-  const readyAt = observedRuntime(simulate(['Tome of Justice'])).profession.core.virtueReadyAt.justice;
+  const readyAt = simulate(['Tome of Justice']).planningState.profession[STATE.VIRTUE_READY_AT].justice;
   const result = simulate([
     'Tome of Justice',
     'Stow Tome',
@@ -866,7 +866,7 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
     { type: 'wait', durationMs: readyAt * 500 },
     'Tome of Justice'
   ]);
-  assert.equal(observedRuntime(dormant).profession.core.virtueReadyAt.justice, readyAt);
+  assert.equal(dormant.planningState.profession[STATE.VIRTUE_READY_AT].justice, readyAt);
   assert.deepEqual(
     result.procSteps.filter((step) => step.skill === 'Lesser Symbol of Blades').map((step) => step.start),
     [0, readyAt * 1000]
@@ -882,7 +882,7 @@ test('dormant Tome equips preserve recharge and do not trigger virtue traits', (
       .length,
     2
   );
-  assert.equal(observedRuntime(result).profession.core.virtueReadyAt.justice, readyAt * 2);
+  assert.equal(result.planningState.profession[STATE.VIRTUE_READY_AT].justice, readyAt * 2);
   assert.deepEqual(result.warnings, []);
 });
 

@@ -36,7 +36,7 @@ test('planning projections omit private mechanic state while retaining visible o
       guardianProfession,
       'Core',
       'core',
-      ['justiceHitCount', 'virtueReadyAt'],
+      ['justiceHitCount'],
       'symbolicAvengerExpirations',
       STATE.SYMBOLIC_AVENGER_EXPIRATIONS
     ],

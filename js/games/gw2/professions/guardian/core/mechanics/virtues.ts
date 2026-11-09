@@ -1,8 +1,7 @@
 /**
  * @fileoverview Implements shared Guardian virtue validation, activation and
- * refresh events, plus the reusable resolver-time Justice burning contract.
+ * readiness checks, plus the reusable resolver-time Justice burning contract.
  */
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
@@ -21,8 +20,10 @@ import type {
   GuardianResolverEvent,
   GuardianRuntime,
   GuardianSkill,
-  GuardianVirtue
+  GuardianVirtue,
+  GuardianVirtueContext
 } from '#gw2/professions/guardian/types.js';
+import { guardianVirtueReadyAt } from '#gw2/professions/guardian/virtue-readiness.js';
 
 /** An accepted virtue activation; each owner has already admitted its own readiness and replacement rules. */
 export interface VirtueActivation {
@@ -123,7 +124,7 @@ export function applyJusticeBurn(
 
 /** Count accepted Guardian hits and report only the Justice burn emitted by this hit. */
 export function reactToJusticeHitWithOptions(
-  context: GuardianResolverContext,
+  context: GuardianVirtueContext,
   event: GuardianResolverEvent,
   {
     retainsPassive = false,
@@ -156,7 +157,7 @@ export function reactToJusticeHitWithOptions(
     });
   }
 
-  if (!retainsPassive && event.at < (state.virtueReadyAt.justice || 0)) return null;
+  if (!retainsPassive && event.at < guardianVirtueReadyAt(context, 'justice')) return null;
 
   const justiceSkill = requireSkill(context.helpers, GUARDIAN_SKILL_IDS.JUSTICE);
 
@@ -178,28 +179,6 @@ export function reactToJusticeHitWithOptions(
   });
 }
 
-/** Core virtue skills and the virtue each one activates; hooks resolve completed casts through the same table. */
-export const CORE_VIRTUES = [
-  [GUARDIAN_SKILL_IDS.JUSTICE, 'justice'],
-  [GUARDIAN_SKILL_IDS.RESOLVE, 'resolve'],
-  [GUARDIAN_SKILL_IDS.COURAGE, 'courage']
-] as const;
-const DRAGONHUNTER_VIRTUES = [
-  [GUARDIAN_SKILL_IDS.SPEAR_OF_JUSTICE, 'justice'],
-  [GUARDIAN_SKILL_IDS.WINGS_OF_RESOLVE, 'resolve'],
-  [GUARDIAN_SKILL_IDS.SHIELD_OF_COURAGE, 'courage']
-] as const;
-const WILLBENDER_VIRTUES = [
-  [GUARDIAN_SKILL_IDS.RUSHING_JUSTICE, 'justice'],
-  [GUARDIAN_SKILL_IDS.FLOWING_RESOLVE, 'resolve'],
-  [GUARDIAN_SKILL_IDS.CRASHING_COURAGE, 'courage']
-] as const;
-const LUMINARY_VIRTUES = [
-  [GUARDIAN_SKILL_IDS.RADIANT_JUSTICE, 'justice'],
-  [GUARDIAN_SKILL_IDS.RADIANT_RESOLVE, 'resolve'],
-  [GUARDIAN_SKILL_IDS.RADIANT_COURAGE, 'courage']
-] as const;
-
 const readyVirtueActivations = new WeakSet<RuntimeCast<GuardianSkill>>();
 
 /**
@@ -211,9 +190,7 @@ export function admitVirtueActivation(
   cast: RuntimeCast<GuardianSkill>,
   virtue: GuardianVirtue
 ): boolean {
-  refreshGuardianVirtues(runtime);
-
-  if (runtime.profession.core.virtueReadyAt[virtue] > runtime.time) return false;
+  if (guardianVirtueReadyAt(runtime, virtue) > runtime.time) return false;
 
   readyVirtueActivations.add(cast);
   return true;
@@ -226,8 +203,6 @@ export function completeVirtueActivation(
   virtue: GuardianVirtue,
   { deferJustice = false }: { readonly deferJustice?: boolean } = {}
 ): void {
-  refreshGuardianVirtues(runtime);
-
   if (!readyVirtueActivations.has(cast)) return;
 
   grantVirtueActivationRewards(runtime, cast, virtue);
@@ -252,25 +227,4 @@ export function grantVirtueActivationRewards(
     });
 
   runtime.fireTrigger(virtueActivated, { cast, virtue });
-}
-
-/** Recharge-backed virtue projections follow the shared cast controller, including Alacrity and explicit resets. */
-export function refreshGuardianVirtues(runtime: GuardianRuntime): void {
-  const kind = runtime.profession.specialization.kind;
-  const virtues =
-    kind === 'Core'
-      ? CORE_VIRTUES
-      : kind === 'Dragonhunter'
-        ? DRAGONHUNTER_VIRTUES
-        : kind === 'Willbender'
-          ? WILLBENDER_VIRTUES
-          : kind === 'Luminary'
-            ? LUMINARY_VIRTUES
-            : null;
-
-  if (!virtues) return;
-
-  runtime.cooldownController.refresh(runtime.time);
-  for (const [id, virtue] of virtues)
-    runtime.profession.core.virtueReadyAt[virtue] = gw2CooldownReadyAt(runtime.cooldownController.readyAt(id) ?? 0);
 }

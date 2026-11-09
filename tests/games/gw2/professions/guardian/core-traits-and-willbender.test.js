@@ -792,11 +792,6 @@ test('Renewed Focus recharges all three core virtues', () => {
   assert.equal(Object.hasOwn(result.planningState.cooldownsBySkillId, GUARDIAN_SKILL_IDS.JUSTICE), false);
   assert.equal(Object.hasOwn(result.planningState.cooldownsBySkillId, GUARDIAN_SKILL_IDS.RESOLVE), false);
   assert.equal(Object.hasOwn(result.planningState.cooldownsBySkillId, GUARDIAN_SKILL_IDS.COURAGE), false);
-  assert.deepEqual(observedRuntime(result).profession.core.virtueReadyAt, {
-    justice: result.steps.at(-1).end / 1000,
-    resolve: result.steps.at(-1).end / 1000,
-    courage: result.steps.at(-1).end / 1000
-  });
 });
 
 test('a supported Guardian weapon skill executes without warnings', () => {

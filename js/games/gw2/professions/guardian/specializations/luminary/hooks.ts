@@ -4,8 +4,7 @@ import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import {
   admitVirtueActivation,
   completeVirtueActivation,
-  reactToJusticeHitWithOptions,
-  refreshGuardianVirtues
+  reactToJusticeHitWithOptions
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 import {
@@ -103,7 +102,6 @@ export const luminaryHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianS
     reactions: {
       'damage.resolved'(runtime, event, details) {
         countEffulgentHit(runtime, event, details.hitContext.damage);
-        refreshGuardianVirtues(runtime);
         reactToJusticeHitWithOptions(runtime, event, {
           skillId: ID.RADIANT_JUSTICE,
           skillName: 'Radiant Justice',

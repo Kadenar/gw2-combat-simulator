@@ -7,6 +7,7 @@ import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/prof
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
+import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
 import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
@@ -55,7 +56,7 @@ test('Swift Scholar isolates implicit minor rewards while pages, dormancy, and s
     assert.equal(current.tomePages.maximum, 8);
     assert.equal(current.tomePages.value, 8 - 3 + Number(traitTriggers));
     assert.equal(current.activeTome, '');
-    assert.ok(runtime.profession.core.virtueReadyAt.justice > 0);
+    assert.ok(result.planningState.profession[STATE.VIRTUE_READY_AT].justice > 0);
     assert.ok(current.tomePages.nextAt > 0);
     assert.equal(
       result.procSteps.some((step) => step.skill === 'Swift Scholar'),

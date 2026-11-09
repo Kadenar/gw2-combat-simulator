@@ -11,7 +11,6 @@ export interface GuardianCoreState {
   endurance: ResourceClock;
   justiceActiveArmed: boolean;
   justiceHitCount: number;
-  virtueReadyAt: Record<'justice' | 'resolve' | 'courage', number>;
   symbolicAvengerExpirations: number[];
   symbolIgnitionStartsAt: number;
   symbolIgnitionUntil: number;
@@ -31,11 +30,6 @@ export function createGuardianCoreState(): GuardianCoreState {
     endurance: createResourceClock(ENDURANCE.maximum),
     justiceActiveArmed: false,
     justiceHitCount: 0,
-    virtueReadyAt: {
-      justice: 0,
-      resolve: 0,
-      courage: 0
-    },
     symbolicAvengerExpirations: [],
     symbolIgnitionStartsAt: -1,
     symbolIgnitionUntil: -1,

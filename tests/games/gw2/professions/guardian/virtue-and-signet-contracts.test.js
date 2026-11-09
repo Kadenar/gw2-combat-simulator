@@ -59,25 +59,27 @@ test('Renewed Focus restores core activation traits and Flowing Resolve charges 
   }
 });
 
-test('Firebrand dormancy has one Core owner and a detached public observation', () => {
-  // Both mechanics and presentation read Core deadlines; the elite owns no duplicate map or legacy alias.
+test('Firebrand owns dormancy and publishes a detached observation', () => {
+  // Independent Firebrand instances and detached observations cannot change one another's dormancy.
   const config = { specialization: 'Firebrand' };
   const native = guardianProfession.runtimeFor(config);
   const profession = native.createState(config);
   const independent = native.createState(config);
-  assert.deepEqual(profession.core.virtueReadyAt, { justice: 0, resolve: 0, courage: 0 });
-  assert.notEqual(profession.core.virtueReadyAt, independent.core.virtueReadyAt);
-  profession.core.virtueReadyAt.justice = 20;
+  assert.deepEqual(profession.specialization.state.tomeDormantReadyAt, { justice: 0, resolve: 0, courage: 0 });
+  assert.notEqual(
+    profession.specialization.state.tomeDormantReadyAt,
+    independent.specialization.state.tomeDormantReadyAt
+  );
+  profession.specialization.state.tomeDormantReadyAt.justice = 20;
   const projected = projectObservedState(guardianProfession, { profession, config, time: 5 });
   assert.deepEqual(projected[STATE.VIRTUE_READY_AT], { justice: 20, resolve: 0, courage: 0 });
   assert.equal(Object.hasOwn(profession.specialization.state, 'virtueReadyAt'), false);
-  for (const state of [profession.core, profession.specialization.state, projected]) {
-    assert.equal(Object.hasOwn(state, 'tomeDormantReadyAt'), false);
-  }
+  assert.equal(Object.hasOwn(profession.core, 'virtueReadyAt'), false);
+  assert.equal(Object.hasOwn(profession.core, 'tomeDormantReadyAt'), false);
 
   projected[STATE.VIRTUE_READY_AT].justice = 0;
-  assert.equal(profession.core.virtueReadyAt.justice, 20);
-  assert.equal(independent.core.virtueReadyAt.justice, 0);
+  assert.equal(profession.specialization.state.tomeDormantReadyAt.justice, 20);
+  assert.equal(independent.specialization.state.tomeDormantReadyAt.justice, 0);
 });
 
 test('Renewed Focus restores Firebrand pages and dormancy only on completion', () => {

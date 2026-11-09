@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { guardianCatalog } from '#gw2/professions/guardian/catalog.js';
 import { reactToJusticeHitWithOptions } from '#gw2/professions/guardian/core/mechanics/virtues.js';
@@ -25,14 +26,15 @@ test('passive Justice resets before Burning while active entitlement and cooldow
   const core = createGuardianCoreState();
   core.justiceHitCount = 2;
   core.justiceActiveArmed = true;
-  core.virtueReadyAt.justice = 2;
   const observations = [];
   const context = {
     helpers: applySkillPatch(guardianCatalog, {
       skills: { [ID.JUSTICE]: { fields: { threshold: { from: 5, to: 2.5 } } } }
     }),
     traits: new Set(),
-    profession: { core },
+    profession: { core, specialization: { kind: 'Core', state: {} } },
+    time: 1,
+    cooldownController: createCooldownController({ clock: { time: 1 }, rechargeDuration: () => 0 }),
     effects: captureEffectEmissions({
       submit(event) {
         observations.push([event.sourceId, core.justiceHitCount]);
@@ -40,6 +42,7 @@ test('passive Justice resets before Burning while active entitlement and cooldow
       }
     }).effects
   };
+  context.cooldownController.setReadyAt(ID.JUSTICE, 2);
   assert.equal(reactToJusticeHitWithOptions(context, hit), 'active');
   assert.equal(core.justiceActiveArmed, false);
   assert.equal(core.justiceHitCount, 2);
@@ -85,7 +88,9 @@ test('removed Justice effects cannot grant an outcome or consume passive progres
         }
       }),
       traits: new Set(),
-      profession: { core },
+      profession: { core, specialization: { kind: 'Core', state: {} } },
+      time: 1,
+      cooldownController: createCooldownController({ clock: { time: 1 }, rechargeDuration: () => 0 }),
       effects: emissions.effects
     };
     assert.equal(reactToJusticeHitWithOptions(context, hit), null);

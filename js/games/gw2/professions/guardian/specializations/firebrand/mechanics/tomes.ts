@@ -28,17 +28,18 @@ import {
 } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
 import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
 import type {
-  GuardianResolverContext,
   GuardianResolverEvent,
   GuardianRuntime,
   GuardianRuntimeState,
   GuardianSkill,
-  GuardianVirtue
+  GuardianVirtue,
+  GuardianVirtueContext
 } from '#gw2/professions/guardian/types.js';
+import { guardianVirtueReadyAt } from '#gw2/professions/guardian/virtue-readiness.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** The tome passive tracks the shared Justice hit counter; Quickfire keeps it through dormancy. */
-export function reactToTomeJusticeHit(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+export function reactToTomeJusticeHit(context: GuardianVirtueContext, event: GuardianResolverEvent): void {
   reactToJusticeHitWithOptions(context, event, {
     retainsPassive: quickfireRetainsTomePassive(context),
     skillId: ID.TOME_OF_JUSTICE,
@@ -55,14 +56,12 @@ const TOMES = { justice: ID.TOME_OF_JUSTICE, resolve: ID.TOME_OF_RESOLVE, courag
 /** Tome reopening changes only the current bar; it cannot restart a dormant passive or duplicate its activation traits. */
 function openTome(runtime: GuardianRuntime, cast: RuntimeCast<GuardianSkill>, virtue: GuardianVirtue): void {
   const state = firebrandState.from(runtime.profession);
-  // Tome activation and passive eligibility share Core's deadline, independently of skill cooldowns.
-  const readyAt = runtime.profession.core.virtueReadyAt;
-  const ready = readyAt[virtue] <= runtime.time;
+  const ready = guardianVirtueReadyAt(runtime, virtue) <= runtime.time;
   state.activeTome = virtue;
 
   if (ready) {
     const multiplier = powerOfTheVirtuousRechargeMultiplier(runtime);
-    readyAt[virtue] = canonicalTime(
+    state.tomeDormantReadyAt[virtue] = canonicalTime(
       runtime.time + skillNumber(requireSkill(runtime.helpers, TOMES[virtue]), 'dormantCooldown') * multiplier
     );
     // Ready tomes receive the same unconditional Resolve regeneration as the other virtue owners.
@@ -88,8 +87,7 @@ const courage = createPassiveCourageTask({
   taskId: COURAGE,
   skillId: ID.TOME_OF_COURAGE,
   interval: (_runtime, skill) => skillNumber(skill, 'passiveInterval'),
-  ready: (runtime) =>
-    runtime.profession.core.virtueReadyAt.courage <= runtime.time || stoicDemeanorRetainsCourage(runtime),
+  ready: (runtime) => guardianVirtueReadyAt(runtime, 'courage') <= runtime.time || stoicDemeanorRetainsCourage(runtime),
   deliver(runtime, skill, effect) {
     const boonCause: Gw2ResolverEvent = {
       type: 'buff',

@@ -11,7 +11,6 @@ import {
   completeVirtueActivation,
   justiceActivated,
   reactToJusticeHitWithOptions,
-  refreshGuardianVirtues,
   type JusticeActivation
 } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { indomitableCourageInterval } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
@@ -20,16 +19,17 @@ import { dragonhunterCastCompleted } from '#gw2/professions/guardian/specializat
 import { dragonhunterState } from '#gw2/professions/guardian/specializations/dragonhunter/state.js';
 import { bigGameHunterTetherDuration } from '#gw2/professions/guardian/specializations/dragonhunter/traits/behavior.js';
 import type {
-  GuardianResolverContext,
   GuardianResolverEvent,
   GuardianRuntime,
   GuardianRuntimeState,
-  GuardianSkill
+  GuardianSkill,
+  GuardianVirtueContext
 } from '#gw2/professions/guardian/types.js';
+import { guardianVirtueReadyAt } from '#gw2/professions/guardian/virtue-readiness.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Reuse Justice's hit counter and passive suppression, adding Dragonhunter's Crippled only when that hit procs Burning. */
-function reactToDragonhunterJusticeHit(context: GuardianResolverContext, event: GuardianResolverEvent): void {
+function reactToDragonhunterJusticeHit(context: GuardianVirtueContext, event: GuardianResolverEvent): void {
   const outcome = reactToJusticeHitWithOptions(context, event, {
     retainsPassive: false,
     skillId: ID.SPEAR_OF_JUSTICE,
@@ -79,8 +79,7 @@ const couragePulse = createPassiveCourageTask({
   skillId: ID.SHIELD_OF_COURAGE,
   interval: indomitableCourageInterval,
   ready(runtime) {
-    refreshGuardianVirtues(runtime);
-    return runtime.profession.core.virtueReadyAt.courage <= runtime.time;
+    return guardianVirtueReadyAt(runtime, 'courage') <= runtime.time;
   },
   deliver(runtime, owner, effect) {
     const skill = runtime.helpers.skillsById.get(ID.SHIELD_OF_COURAGE)!;
@@ -225,8 +224,6 @@ export const dragonhunterVirtueLifecycle: RuntimeHooks<GuardianRuntimeState, Gua
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {
-      refreshGuardianVirtues(runtime);
-
       if (!(Number(event.coefficient) > 0) || !(details.hitContext.damage > 0)) return;
 
       reactToDragonhunterJusticeHit(runtime, event);

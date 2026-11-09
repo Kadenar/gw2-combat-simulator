@@ -147,8 +147,6 @@ guardianProjection[STATE.RESOLUTION_UNTIL].toFixed();
 guardianProjection[STATE.SYMBOLIC_AVENGER_EXPIRATIONS].map((expiresAt) => expiresAt.toFixed());
 // @ts-expect-error Justice's private hit counter is absent from the public projection.
 guardianProjection.justiceHitCount.toFixed();
-// @ts-expect-error Core's private virtue readiness is not part of its public projection.
-guardianProjection.virtueReadyAt.justice;
 
 // Every family's presentation vocabulary is inferred from projectors and contains only registered IDs.
 type PlanningStateId = (typeof STATE)[keyof typeof STATE];

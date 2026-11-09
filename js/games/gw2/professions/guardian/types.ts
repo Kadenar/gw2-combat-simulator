@@ -70,6 +70,9 @@ export type GuardianResolverContext = MechanicCombatContext & {
   profession: GuardianRuntimeState;
 };
 
+/** Virtue reactions inspect live recharge without broadening every damage resolver's capabilities. */
+export type GuardianVirtueContext = GuardianResolverContext & Pick<GuardianRuntime, 'time' | 'cooldownController'>;
+
 export type GuardianVirtue = 'justice' | 'resolve' | 'courage';
 
 /** Guardian-specific annotations on executed combat and weapon-bar facts. */

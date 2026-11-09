@@ -18,7 +18,6 @@ import {
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
 import { latestRadiantArmaments } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
-import { refreshGuardianVirtues } from '#gw2/professions/guardian/core/mechanics/virtues.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
@@ -346,7 +345,6 @@ function reduceVirtueRecharge(runtime: GuardianRuntime, { cast }: LuminaryCast):
   const reduction = balanceNumber(runtime.helpers, TRAIT.ILLUMINATING_INSPIRATION, 'rechargeReduction');
   for (const id of VIRTUES)
     runtime.cooldownController.reduceSkillRecharge(runtime.helpers.skillsById.get(id)!, reduction, runtime.time);
-  refreshGuardianVirtues(runtime);
   runtime.effects.emit({
     kind: 'announcement',
     announcement: {
