@@ -14,6 +14,7 @@ import type {
 import { type BoonGenerationByAudience } from '#gw2/platform/results/boon-generation.js';
 import { eventDamagePackets, recordedDamageTicks } from '#gw2/platform/results/damage-packets.js';
 import { effectStateAt, effectSummary, type EffectSource } from '#gw2/platform/results/effect-report.js';
+import type { SustainedBoonByAudience } from '#gw2/platform/results/sustained-boon-generation.js';
 import type { Gw2ResolverResult, Gw2SimulationResult } from '#gw2/platform/results/types.js';
 import { clamp } from '#kernel/core/numeric.js';
 
@@ -84,6 +85,7 @@ export interface ChartSeries extends DamageSeries {
   readonly effectUnits?: Readonly<Record<string, string>>;
   // Exact full-DPS-window summaries are independent of graph sampling and chart zoom.
   readonly effectSummaries?: Readonly<Record<string, ChartEffectSummary>>;
+  readonly sustainedBoonGeneration?: Readonly<Record<string, SustainedBoonByAudience>>;
   readonly boonGeneration?: Readonly<
     Record<
       string,
@@ -550,6 +552,9 @@ function buildEffectSeries(
     alliedAverageStacks,
     effectTypes,
     effectSummaries,
+    sustainedBoonGeneration: Object.fromEntries(
+      Object.entries(boonGeneration.sustained).map(([kind, value]) => [label(kind), value])
+    ),
     boonGeneration: Object.fromEntries(
       [...generation].map(([name, value]) => [
         name,

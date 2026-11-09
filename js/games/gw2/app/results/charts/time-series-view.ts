@@ -14,6 +14,10 @@ import {
 } from '#gw2/app/results/charts/time-series-model.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
+import type {
+  SustainedBoonByAudience,
+  SustainedBoonEstimate
+} from '#gw2/platform/results/sustained-boon-generation.js';
 import { escapeHtml } from '#ui/shared/html.js';
 
 // Mounts chart data as interactive DOM and canvas output without owning simulation transforms.
@@ -461,6 +465,112 @@ function drawLineChart(
   };
 }
 
+// The column header's info disclosure explains the projection once instead of a note below every table.
+const SUSTAINED_COLUMN_HEADER = `<th scope="col" class="sustained-generation-column">
+  <span class="sustained-generation-heading">Sustained<span class="res-metric-info">
+    <button type="button" class="sustained-info-trigger" aria-label="About sustained generation" title="About sustained generation">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" x2="12" y1="11" y2="17"/><line x1="12" x2="12.01" y1="7" y2="7"/></svg>
+    </button>
+    <div class="res-metric-info-panel" popover="auto">
+      <strong>Sustained generation</strong>
+      <p>Projected coverage if the observed casting pattern keeps repeating. Each source contributes its average generation over the complete intervals between its repeated uses.</p>
+    </div>
+  </span></span>
+</th>`;
+
+/** Top-layer popovers escape the table's scroll clipping and remain anchored within the viewport. */
+function mountSustainedInfo(container: HTMLElement): () => void {
+  const lifecycle = new AbortController();
+  const panels: HTMLElement[] = [];
+  for (const trigger of container.querySelectorAll<HTMLButtonElement>('.sustained-info-trigger')) {
+    const panel = trigger.nextElementSibling as HTMLElement;
+    trigger.popoverTargetElement = panel;
+    panels.push(panel);
+    const position = (): void => {
+      if (!panel.matches(':popover-open')) return;
+
+      const anchor = trigger.getBoundingClientRect();
+      const view = container.ownerDocument.defaultView!;
+      const width = panel.offsetWidth;
+      const height = panel.offsetHeight;
+      panel.style.left = `${Math.max(8, Math.min(anchor.right - width, view.innerWidth - width - 8))}px`;
+      const below = anchor.bottom + 7;
+      panel.style.top = `${Math.max(8, below + height <= view.innerHeight - 8 ? below : anchor.top - height - 7)}px`;
+    };
+
+    // Open and position synchronously so the first painted frame is anchored.
+    trigger.addEventListener(
+      'click',
+      (event) => {
+        event.preventDefault();
+        panel.togglePopover();
+        position();
+      },
+      { signal: lifecycle.signal }
+    );
+    container.ownerDocument.addEventListener('scroll', position, { capture: true, signal: lifecycle.signal });
+    container.ownerDocument.defaultView?.addEventListener('resize', position, { signal: lifecycle.signal });
+  }
+
+  return () => {
+    lifecycle.abort();
+    for (const panel of panels) if (panel.matches(':popover-open')) panel.hidePopover();
+  };
+}
+
+/** A boon has a sustained estimate once either audience completed at least one interval between repeated uses. */
+function hasSustainedSample(estimate: SustainedBoonByAudience | undefined): estimate is SustainedBoonByAudience {
+  return Boolean(estimate && estimate.self.intervals + estimate.ally.intervals > 0);
+}
+
+/**
+ * Projects repeated supply in the same layout as the Coverage column: the allied value leads, a differing personal
+ * value follows as "Self", and a collapsed list attributes the total to each source with its sample size.
+ */
+function sustainedGenerationCell(estimate: SustainedBoonByAudience | undefined): string {
+  if (!hasSustainedSample(estimate)) return '<td class="sustained-generation-empty">-</td>';
+
+  const percent = (value: number): string => `${value.toFixed(1)}%`;
+  const value = (sample: SustainedBoonEstimate): string =>
+    sample.percent == null
+      ? `<span class="sustained-generation-status">${sample.status === 'incomplete' ? 'Incomplete' : 'Unavailable'}</span>`
+      : percent(sample.percent);
+  const { ally, self } = estimate;
+  // Identical audiences add no self-specific information, so they share one value and one source list.
+  const shared = JSON.stringify(self) === JSON.stringify(ally);
+  const selfValue = !shared && self.sources.length ? `<small>Self: ${value(self)}</small>` : '';
+  const overTarget =
+    ally.percent != null && ally.percent > 100 ? `<small>+${percent(ally.percent - 100)} over target</small>` : '';
+  const sourceList = (sample: SustainedBoonEstimate): string =>
+    `<ul class="sustained-generation-sources">${sample.sources
+      .map(
+        (source) => `<li>
+          <span class="sustained-generation-source">${escapeHtml(source.name)}</span>
+          <span class="sustained-generation-samples">${source.intervals} interval${source.intervals === 1 ? '' : 's'}</span>
+          <span class="sustained-generation-value">${source.percent == null ? '-' : percent(source.percent)}</span>
+          ${source.reasons.length ? `<span class="sustained-generation-reason">${escapeHtml(source.reasons.join('. '))}.</span>` : ''}
+        </li>`
+      )
+      .join('')}</ul>`;
+  const audiences: readonly (readonly [string, SustainedBoonEstimate])[] = shared
+    ? [['', ally]]
+    : [
+        ['Allies', ally],
+        ['Self', self]
+      ];
+  const groups = audiences
+    .filter(([, sample]) => sample.sources.length)
+    .map(
+      ([label, sample]) =>
+        `${label ? `<p class="sustained-generation-audience">${label}</p>` : ''}${sourceList(sample)}`
+    )
+    .join('');
+  const sourceCount = new Set([...ally.sources, ...self.sources].map((source) => source.sourceId)).size;
+  return `<td data-role="sustained-generation">${value(ally)}${overTarget}${selfValue}
+    <details class="sustained-generation"><summary>${sourceCount} source${sourceCount === 1 ? '' : 's'}</summary><div class="sustained-generation-body">${groups}</div></details>
+  </td>`;
+}
+
 /** Shows time-averaged stacks for each audience alongside boon supply coverage and personal uptime. */
 function effectSummaryHtml(series: ChartSeries): string {
   const priority: readonly string[] = [BOON.MIGHT, BOON.FURY, BOON.PROTECTION, BOON.QUICKNESS, BOON.ALACRITY];
@@ -483,7 +593,8 @@ function effectSummaryHtml(series: ChartSeries): string {
   // Normalize intensity supply against its cap so excess generation is not mistaken for obtainable stacks.
   const coverage = (average: number, intensity: boolean, maximum?: number): string =>
     intensity && maximum != null ? `${percent(average / maximum)} of cap` : percent(average);
-  const rows = (effects: readonly string[]): string =>
+  const sustained = series.sustainedBoonGeneration || {};
+  const rows = (effects: readonly string[], showSustained: boolean): string =>
     effects
       .map((name) => {
         const summary = summaries[name];
@@ -517,17 +628,24 @@ function effectSummaryHtml(series: ChartSeries): string {
       <th scope="row">${escapeHtml(name)}</th>
       <td>Allies: ${(series.alliedAverageStacks?.[name] || 0).toFixed(2)}<small>Self: ${(summary?.averageStacks || 0).toFixed(2)}</small></td>
       <td>${coverageDetails}</td>
+      ${showSustained ? sustainedGenerationCell(sustained[name]) : ''}
     </tr>`;
       })
       .join('');
-  const table = (effects: readonly string[], label: string, showCaption = true): string => `
+  // The Sustained column appears only in tables where at least one boon has a sampled estimate.
+  const table = (effects: readonly string[], label: string, showCaption = true): string => {
+    const showSustained = effects.some((name) => hasSustainedSample(sustained[name]));
+
+    return `
     <div class="effect-summary-scroll" tabindex="0" role="region" aria-label="${label}">
       <table>
         ${showCaption ? `<caption>${label} · Allies · full benchmark (${duration.toFixed(3)}s)</caption>` : ''}
-        <thead><tr><th scope="col">Effect</th><th scope="col">Average stacks</th><th scope="col">Coverage</th></tr></thead>
-        <tbody>${rows(effects)}</tbody>
+        <thead><tr><th scope="col">Effect</th><th scope="col">Average stacks</th><th scope="col">Coverage</th>${showSustained ? SUSTAINED_COLUMN_HEADER : ''}</tr></thead>
+        <tbody>${rows(effects, showSustained)}</tbody>
       </table>
     </div>`;
+  };
+
   const buffTable = (effects: readonly string[]): string => `
     <div class="effect-summary-scroll" tabindex="0" role="region" aria-label="Other buffs">
       <table>
@@ -730,6 +848,7 @@ export function mountTimeSeriesCharts(
     effectUnits: series?.effectUnits || {},
     effectSummaries: series?.effectSummaries || {},
     boonGeneration: series?.boonGeneration || {},
+    sustainedBoonGeneration: series.sustainedBoonGeneration,
     // The model owns cumulative damage; mounting a chart never reconstructs it from sampled DPS.
     cumulativeDamage: series.cumulativeDamage
   };
@@ -759,6 +878,7 @@ export function mountTimeSeriesCharts(
     ...new Set([...Object.keys(resolvedSeries.effects), ...Object.keys(resolvedSeries.alliedEffects!)])
   ];
   container.innerHTML = chartHtml(resolvedSeries, resolvedOptions, healthMarkers, phases);
+  const disposeSustainedInfo = mountSustainedInfo(container);
 
   const chartPhaseTogglesEl = container.querySelector<HTMLElement>('[data-role="chart-phase-toggles"]');
   const resetButton = container.querySelector<HTMLButtonElement>('[data-role="chart-reset-zoom"]');
@@ -1192,6 +1312,7 @@ export function mountTimeSeriesCharts(
   }
 
   activeMount.dispose = () => {
+    disposeSustainedInfo();
     finishReveal();
     revealObserver?.disconnect();
 

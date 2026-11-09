@@ -55,7 +55,8 @@
   letter-spacing: normal;
 }
 
-.res-metric-info > summary {
+.res-metric-info > summary,
+.sustained-info-trigger {
   display: grid;
   width: 13px;
   height: 13px;
@@ -72,17 +73,21 @@
 
 .res-metric-info > summary:hover,
 .res-metric-info > summary:focus-visible,
-.res-metric-info[open] > summary {
+.res-metric-info[open] > summary,
+.sustained-info-trigger:hover,
+.sustained-info-trigger:focus-visible {
   color: var(--accent);
 }
 
-.res-metric-info > summary:focus-visible {
+.res-metric-info > summary:focus-visible,
+.sustained-info-trigger:focus-visible {
   border-radius: 50%;
   outline: 1px solid currentColor;
   outline-offset: 2px;
 }
 
-.res-metric-info > summary svg {
+.res-metric-info > summary svg,
+.sustained-info-trigger svg {
   width: 13px;
   height: 13px;
   fill: none;
@@ -2119,6 +2124,8 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
 
 .effect-summary-scroll {
   overflow-x: auto;
+  /* Column widths respond to the table's own space, which side panels can narrow independently of the viewport. */
+  container-type: inline-size;
 }
 
 .effect-summary table {
@@ -2156,6 +2163,133 @@ body:not([data-rotation-focus]) .rotation-panel:has(.rotation-event-log .res-log
 
 .effect-summary summary {
   cursor: pointer;
+}
+
+/* Sustained cells read like Coverage cells; the source disclosure stays one dim line until opened. */
+.effect-summary .sustained-generation-empty,
+.sustained-generation-status {
+  color: var(--text-dim);
+}
+
+.effect-summary .sustained-generation {
+  margin: 2px 0 0;
+}
+
+.effect-summary .sustained-generation > summary {
+  font-size: 11px;
+}
+
+.effect-summary .sustained-generation > summary:hover,
+.effect-summary .sustained-generation[open] > summary {
+  color: var(--text);
+}
+
+/*
+ * A fixed column width keeps every column in place when a source list opens. Below the table's minimum width the
+ * scroll region scrolls instead of squeezing the other columns.
+ */
+.effect-summary .sustained-generation-column {
+  width: 16rem;
+}
+
+.effect-summary table:has(.sustained-generation-column) {
+  min-width: 40rem;
+}
+
+/* Wide tables split spare width evenly between the data columns so Coverage does not crowd Sustained. */
+@container (min-width: 72rem) {
+  .effect-summary table:has(.sustained-generation-column) thead th:not(:first-child) {
+    width: 22%;
+  }
+}
+
+.sustained-generation-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* The native popover stays above short and horizontally scrolling tables. */
+.effect-summary .sustained-generation-heading .res-metric-info {
+  margin: 0;
+  font-weight: 400;
+}
+
+.sustained-info-trigger {
+  background: none;
+  border: 0;
+}
+
+.effect-summary .sustained-generation-heading .res-metric-info-panel {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  transform: none;
+}
+
+.effect-summary .sustained-generation-heading .res-metric-info-panel p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: normal;
+}
+
+/*
+ * One grid aligns every source's sample count and share, across audiences, so the shares visibly sum to the total.
+ * Inline-size containment stops the open list from widening its column; long source names wrap instead.
+ */
+.sustained-generation-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 2px 12px;
+  max-width: 18rem;
+  margin: 6px 0 0 auto;
+  contain: inline-size;
+  text-align: left;
+}
+
+.sustained-generation-sources,
+.sustained-generation-sources li {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  row-gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sustained-generation-samples {
+  color: var(--text-dim);
+  font-size: 11px;
+  text-align: right;
+}
+
+.sustained-generation-value {
+  color: var(--text);
+  text-align: right;
+}
+
+.sustained-generation-reason {
+  grid-column: 1 / -1;
+  margin-bottom: 4px;
+  color: var(--text-dim);
+  font-size: 11px;
+  white-space: normal;
+}
+
+.sustained-generation-audience {
+  grid-column: 1 / -1;
+  margin: 6px 0 0;
+  color: var(--text-dim);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.sustained-generation-audience:first-child {
+  margin-top: 0;
 }
 
 [data-role='dps-canvas'],

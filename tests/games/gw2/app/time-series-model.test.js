@@ -11,7 +11,9 @@ import {
   chartAxisMaximum,
   chartValueAt
 } from '#gw2/app/results/charts/time-series-model.js';
+import { mountTimeSeriesCharts } from '#gw2/app/results/charts/time-series-view.js';
 import { baseResultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
+import { inertContainer } from '#tests/helpers/dom.js';
 import { effectFields } from '#tests/helpers/effect-report.js';
 
 // GW2 results preserve chart projections, result controls, and escaped event-log rendering.
@@ -432,4 +434,87 @@ test('effect axes keep stack counts close to the top of the chart', () => {
   assert.equal(chartAxisMaximum([0, 1]), 1);
   assert.equal(chartAxisMaximum([0, 0.5]), 0.5);
   assert.equal(chartAxisMaximum([]), 1);
+});
+
+// Rendering consumes a finished estimate, independent of combat scheduling and concentration.
+test('sustained generation renders shared, self-only, and incomplete estimates', () => {
+  const estimate = {
+    percent: 40,
+    status: 'available',
+    intervals: 2,
+    sources: [{ sourceId: 'trait', name: 'trait', percent: 40, intervals: 2, excludedIntervals: 0, reasons: [] }]
+  };
+  const report = effectFields(
+    [
+      {
+        type: 'buff',
+        kind: 'quickness',
+        at: 0,
+        duration: 5,
+        stacks: 1,
+        audience: { recipients: 'party' },
+        resolvedAudience: {
+          includesSelf: true,
+          includesSummons: false,
+          alliedPlayerCount: 0,
+          companionIds: [],
+          recipientCount: 1
+        }
+      }
+    ],
+    45
+  );
+  const series = buildTimeSeries({
+    rotationEndTime: 45,
+    observationEndTime: 45,
+    combatEndTime: 45,
+    ...report,
+    boonGeneration: { ...report.boonGeneration, sustained: { quickness: { self: estimate, ally: estimate } } }
+  });
+  const container = inertContainer();
+  mountTimeSeriesCharts(container, series);
+  // The inert container has no DOM, so read the Sustained cell's visible text from its markup.
+  const cell = () =>
+    container.innerHTML
+      .match(/<td data-role="sustained-generation">([\s\S]*?)<\/td>/)[1]
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  assert.match(container.innerHTML, /sustained-generation-column/);
+  // Identical audiences share one value and one source list, so no Self line or audience label appears.
+  assert.equal(cell(), '40.0% 1 source trait 2 intervals 40.0%');
+
+  // A personal-only estimate keeps the allied value first and lists sources under a Self label only.
+  const selfOnly = structuredClone(series);
+  const audiences = Object.values(selfOnly.sustainedBoonGeneration)[0];
+  audiences.ally = { percent: 0, status: 'available', intervals: 0, sources: [] };
+  mountTimeSeriesCharts(container, selfOnly);
+  assert.equal(cell(), '0.0% Self: 40.0% 1 source Self trait 2 intervals 40.0%');
+  audiences.self = {
+    ...audiences.self,
+    percent: null,
+    status: 'incomplete'
+  };
+  mountTimeSeriesCharts(container, selfOnly);
+  assert.match(cell(), /Self: Incomplete/);
+
+  // Missing lineage hides the column instead of presenting an unsupported rate.
+  const unavailable = {
+    percent: null,
+    status: 'unavailable',
+    intervals: 0,
+    sources: [
+      {
+        sourceId: 'trait',
+        name: 'trait',
+        percent: null,
+        intervals: 0,
+        excludedIntervals: 0,
+        reasons: ['Missing activation lineage']
+      }
+    ]
+  };
+  selfOnly.sustainedBoonGeneration.quickness = { self: unavailable, ally: unavailable };
+  mountTimeSeriesCharts(container, selfOnly);
+  assert.doesNotMatch(container.innerHTML, /sustained-generation-column|data-role="sustained-generation"/);
 });

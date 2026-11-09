@@ -179,15 +179,15 @@ test('effect summaries show average stacks and stay readable on narrow screens',
   await expect(summary).toContainText('Ashes Of The Just');
   const other = summary.locator('[data-role="supplementary-boons"]');
   await expect(other).not.toHaveAttribute('open');
-  await expect(other.locator('summary')).toHaveText('Other boons (1)');
+  await expect(other.locator(':scope > summary')).toHaveText('Other boons (1)');
   await expect(other.locator('caption')).toHaveCount(0);
-  await other.locator('summary').click();
+  await other.locator(':scope > summary').click();
   const resolution = other
     .getByRole('row')
     .filter({ has: page.getByRole('rowheader', { name: 'Resolution', exact: true }) });
   await expect(resolution.getByRole('cell').first()).toHaveText('Allies: 0.00Self: 0.25');
   await expect(resolution.getByRole('cell').last()).toHaveText(/^0\.0%/);
-  await other.locator('summary').click();
+  await other.locator(':scope > summary').click();
   const buffs = summary.locator('[data-role="supplementary-buffs"]');
   await expect(buffs.locator('summary')).toHaveText('Other buffs (3)');
   await buffs.locator('summary').click();
