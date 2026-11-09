@@ -2,27 +2,23 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
-import { createHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { openElementalistEtching } from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
+import { commitHammerOrbFixture } from '#tests/helpers/elementalist-hammer-orbs.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 
-// An aura expiry must not retire an orb before the orb's own priority, including a refresh between those tasks.
+// Aura expiry leaves orb cleanup to its owner; a new grant cannot refresh an orb already at its deadline.
 test('coincident aura expiry preserves hammer orb ownership until its own task', () => {
   for (const refresh of [false, true]) {
-    const grant = (runtime, element, id) => {
-      const skill = runtime.helpers.skillsById.get(ID.FLAME_WHEEL);
-      createHammerOrbs(runtime.mechanics, { id, effectiveEnd: runtime.time, skill, command: {} }, skill, [element]);
-    };
-
     const result = runElementalist(
       [{ type: 'wait', durationMs: 4000 }],
       { specialization: 'Core', primaryWeapon: 'Hammer', selectedTraitIds: [] },
       {
-        catalog: (catalog) => withSkill(catalog, ID.FLAME_WHEEL, { orbDuration: 2 }),
+        catalog: (catalog) =>
+          withSkill(withSkill(catalog, ID.FLAME_WHEEL, { orbDuration: 2 }), ID.ICY_COIL, { orbDuration: 2 }),
         initialize(runtime) {
-          grant(runtime, 'Fire', 'first-orb');
+          commitHammerOrbFixture(runtime, ID.FLAME_WHEEL, 'first-orb');
           applyElementalistAura(runtime.mechanics, {
             at: 0,
             duration: 2,
@@ -41,7 +37,7 @@ test('coincident aura expiry preserves hammer orb ownership until its own task',
               assert.equal(state.hammerOrbs.Fire, runtime.time);
               assert.equal(state.hammerOrbActivationIds.Fire, 'first-orb');
 
-              if (refresh) grant(runtime, 'Water', 'second-orb');
+              if (refresh) commitHammerOrbFixture(runtime, ID.ICY_COIL, 'second-orb');
             }
           }
         ],
@@ -50,8 +46,8 @@ test('coincident aura expiry preserves hammer orb ownership until its own task',
             2,
             (runtime) => {
               const state = runtime.profession.core;
-              assert.equal(state.hammerOrbs.Fire, refresh ? 4 : null);
-              assert.equal(state.hammerOrbActivationIds.Fire, refresh ? 'first-orb' : null);
+              assert.equal(state.hammerOrbs.Fire, null);
+              assert.equal(state.hammerOrbActivationIds.Fire, null);
               assert.equal(state.hammerOrbActivationIds.Water, refresh ? 'second-orb' : null);
             }
           ],

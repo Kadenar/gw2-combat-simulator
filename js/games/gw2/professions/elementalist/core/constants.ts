@@ -7,16 +7,7 @@
  * This module holds data only; it must not import mechanics.
  */
 import { AURA } from '#gw2/platform/constants.js';
-import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-
-/** Hammer skills that create an orb, mapped to the element whose orb slot they occupy. */
-export const HAMMER_ORB_SKILLS: Readonly<Record<number, ElementalistAttunement>> = Object.freeze({
-  [ID.FLAME_WHEEL]: 'Fire',
-  [ID.ICY_COIL]: 'Water',
-  [ID.CRESCENT_WIND]: 'Air',
-  [ID.ROCKY_LOOP]: 'Earth'
-});
 
 /** Conjure utility skills, mapped to the bundle weapon they equip. */
 export const CONJURE_SKILLS: Readonly<Record<number, string>> = Object.freeze({

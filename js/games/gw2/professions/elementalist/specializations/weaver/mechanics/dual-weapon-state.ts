@@ -1,18 +1,10 @@
 /**
- * Owns shared Weaver hand availability and hammer orb restrictions.
+ * Owns Weaver hand availability and dual-attunement metadata.
  * The cataloged weapon definitions live in
  * `skills/weapons/hammer.ts`.
  */
-import { WEAPON } from '#gw2/platform/constants.js';
-import { denyCast, retryCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { HAMMER_ORB_REUSE_DELAY } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { isElementalistAttunement, type ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
-import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Parses canonical skill metadata for a valid pair of distinct Weaver attunements. */
 export function weaverDualAttunements(
@@ -48,41 +40,4 @@ export function weaverWeaponAttunementAvailable(
         : slot >= 4
           ? required[0] === secondary
           : primary === secondary && required[0] === primary;
-}
-
-/** Checks the shared orb lockout and duplicate-orb restriction for Weaver dual skills. */
-export function weaverHammerAvailability(
-  context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill
-): AvailabilityResult | null {
-  if (skillWeapon(skill) !== WEAPON.HAMMER) return null;
-
-  const elements = weaverDualAttunements(skill);
-
-  if (!elements) return null;
-
-  const state = professionCoreState(context.profession);
-  // Every dual hammer skill shares one short lockout after the last orb cast.
-  // The unarmed negative-infinity sentinel stays ready; armed deadlines use the canonical clock.
-  const retryAt = Number.isFinite(state.hammerOrbLastCastAt)
-    ? canonicalTime(state.hammerOrbLastCastAt + HAMMER_ORB_REUSE_DELAY)
-    : state.hammerOrbLastCastAt;
-
-  if (retryAt > context.time) {
-    return retryCast(
-      retryAt,
-      'elementalist.hammer-orb-lockout',
-      `${skill.name} is unavailable - the shared orb lockout ends at ${retryAt.toFixed(3)}.`
-    );
-  }
-
-  if (elements.some((element) => state.hammerOrbs[element] != null && state.hammerOrbs[element] >= context.time)) {
-    return denyCast(
-      'elementalist.hammer-orb-active',
-      `${skill.name} is unavailable - Grand Finale must consume the active orb first.`
-    );
-  }
-
-  // The shared Weaver availability ladder validates the hands and Unravel after these resource checks.
-  return { ready: true };
 }

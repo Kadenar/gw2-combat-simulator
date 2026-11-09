@@ -1,3 +1,4 @@
+/** Describe orb bonuses from the selected creation declaration so patches and dual attacks agree with runtime. */
 import {
   fromSkill,
   modifierFact,
@@ -11,7 +12,7 @@ import {
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { skillActionEffects } from '#gw2/platform/effects/actions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { elementalistAirTooltips } from '#gw2/professions/elementalist/app/tooltips/air.js';
@@ -23,14 +24,14 @@ import {
   AURA_TRANSMUTE_SKILLS,
   CONJURE_PICKUP_WEAPONS,
   CONJURE_SKILLS,
-  ETCHING_CHAINS,
-  HAMMER_ORB_SKILLS
+  ETCHING_CHAINS
 } from '#gw2/professions/elementalist/core/constants.js';
 import { ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import {
   EARTH_ELEMENTAL_EVTC_PROFILE as EARTH_ELEMENTAL,
   FIRE_ELEMENTAL_EVTC_PROFILE as FIRE_ELEMENTAL
 } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
+import { hammerOrbElements } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID
@@ -40,14 +41,14 @@ import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const elementalistCoreTooltips = {
   skillFacts: (balanceContext, entity) => [
+    ...(hammerOrbElements(entity)
+      ? [skillFact(balanceContext, entity.id, 'orbDuration', 'Refreshed orb duration', tooltipSeconds)]
+      : []),
     ...(entity.resourceGain == null
       ? []
       : [{ name: 'Endurance gained', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) }]),
     // Orb and conjure bonuses belong to their equipped state, including when created by a dual attack or pickup.
-    ...(HAMMER_ORB_SKILLS[Number(entity.id)] === 'Fire' ||
-    (String(entity.skillWeapon || entity.weapon) === WEAPON.HAMMER &&
-      String(entity.attunement).includes('+') &&
-      String(entity.attunement).includes('Fire'))
+    ...(hammerOrbElements(entity)?.includes('Fire')
       ? [
           modifierFact(
             balanceContext,
@@ -63,10 +64,7 @@ export const elementalistCoreTooltips = {
           )
         ]
       : []),
-    ...(HAMMER_ORB_SKILLS[Number(entity.id)] === 'Air' ||
-    (String(entity.skillWeapon || entity.weapon) === WEAPON.HAMMER &&
-      String(entity.attunement).includes('+') &&
-      String(entity.attunement).includes('Air'))
+    ...(hammerOrbElements(entity)?.includes('Air')
       ? [
           modifierFact(
             balanceContext,
@@ -137,11 +135,10 @@ export const elementalistCoreTooltips = {
       ])
     ),
     ...Object.fromEntries(
-      Object.keys(HAMMER_ORB_SKILLS).map((id) => [
+      [ID.FLAME_WHEEL, ID.ICY_COIL, ID.CRESCENT_WIND, ID.ROCKY_LOOP].map((id) => [
         id,
         skillTooltip(
-          "Create this attunement's hammer orb and refresh all active orb durations. Grand Finale consumes the active orbs and replaces their pending attacks with elemental projectiles.",
-          [fromSkill(Number(id), 'orbDuration', 'Refreshed orb duration', tooltipSeconds)]
+          "Create this attunement's hammer orb and refresh all active orb durations. Grand Finale consumes the active orbs and replaces their pending attacks with elemental projectiles."
         )
       ])
     ),

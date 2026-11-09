@@ -1,8 +1,6 @@
-import { WEAPON } from '#gw2/platform/constants.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { weaverBuffPolicies } from '#gw2/professions/elementalist/specializations/weaver/effect-state.js';
 import { weaverAttunementLifecycle } from '#gw2/professions/elementalist/specializations/weaver/mechanics/attunements.js';
@@ -43,20 +41,6 @@ export const weaverHooks = composeRuntimeHooks<ElementalistRuntimeState, Element
         multiplier: { skillField: 'airBulletRechargeMultiplier' }
       }
     ],
-    // Dual orbs share their cast lifetime so Grand Finale retires both hands' pending contacts.
-    effectOwner(context, event) {
-      const skill = context.skillFor(event.skillId ?? event.sourceId);
-
-      if (
-        skill &&
-        skillWeapon(skill) === WEAPON.HAMMER &&
-        weaverDualAttunements(skill) &&
-        (event.type === 'damage' || event.type === 'condition')
-      )
-        return { id: String(event.activationId), generation: 0 };
-
-      return undefined;
-    },
     sideEffectHandlers: {
       'elementalist.weaver.start-weave-self'(runtime, context) {
         if (context.kind !== 'cast') throw new TypeError('Weave Self requires a cast trigger.');

@@ -9,7 +9,6 @@ import {
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
-import { createHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import {
@@ -43,56 +42,31 @@ test('Elements of Rage requires attuning to a double element rather than startin
   }
 });
 
-// Switching orb creators must refresh the original buff and transfer only the recast elements' ownership.
-test('Core and Weaver orb creation refresh existing buffs without duplicating them', () => {
-  const single = elementalistCatalog.skillsById.get(62758);
-  const dual = elementalistCatalog.skillsById.get(69341);
-  let originalExpiry;
-  runElementalist(
-    [{ type: 'wait', durationMs: 3000 }],
-    { specialization: 'Weaver', primaryWeapon: 'Hammer', startAttunement: 'Fire' },
-    {
-      timeline: [
-        {
-          at: 1,
-          run(runtime) {
-            createHammerOrbs(
-              runtime,
-              { id: 'single', effectiveEnd: runtime.time, skill: single, command: {} },
-              single,
-              ['Fire']
-            );
-            originalExpiry = runtime.profession.core.hammerOrbs.Fire;
-          }
-        },
-        {
-          at: 2,
-          run(runtime) {
-            createHammerOrbs(runtime, { id: 'dual', effectiveEnd: runtime.time, skill: dual, command: {} }, dual, [
-              'Fire',
-              'Air'
-            ]);
-            const state = runtime.profession.core;
-            assert.equal(state.hammerOrbs.Fire, originalExpiry + 1);
-            assert.equal(state.hammerOrbs.Air, state.hammerOrbs.Fire);
-            assert.equal(state.hammerOrbActivationIds.Fire, 'dual');
-            assert.equal(state.hammerOrbActivationIds.Air, 'dual');
-            assert.equal(state.hammerOrbLastCastAt, 2);
-          }
-        },
-        {
-          at: 2.1,
-          run(runtime) {
-            const fire = runtime.buffs.get('hammer fire orb');
-            assert.equal(fire.length, 1);
-            assert.equal(fire[0].at, 1);
-            assert.equal(fire[0].expiresAt, originalExpiry + 1);
-            assert.equal(runtime.buffs.get('hammer air orb').length, 1);
-          }
-        }
-      ]
-    }
+// A later, disjoint dual grant refreshes the existing single orb without replacing its activation or duplicating its buff.
+test('Core and Weaver orb casts refresh existing buffs without duplicating them', () => {
+  const result = runElementalist(
+    [
+      { type: 'cast', skillId: ID.FLAME_WHEEL },
+      { type: 'cast', skillId: ID.AIR_ATTUNEMENT },
+      { type: 'cast', skillId: ID.EARTH_ATTUNEMENT },
+      { type: 'cast', skillId: ID.DUAL_ORBITS_AIR_AND_EARTH }
+    ],
+    { specialization: 'Weaver', primaryWeapon: 'Hammer', startAttunement: 'Fire', secondaryAttunement: 'Fire' }
   );
+  assert.deepEqual(result.warnings, []);
+  const single = result.steps.find((step) => step.skillId === ID.FLAME_WHEEL);
+  const dual = result.steps.find((step) => step.skillId === ID.DUAL_ORBITS_AIR_AND_EARTH);
+  const runtime = observedRuntime(result);
+  const state = runtime.profession.core;
+  assert.equal(state.hammerOrbs.Fire, state.hammerOrbs.Air);
+  assert.equal(state.hammerOrbs.Earth, state.hammerOrbs.Air);
+  assert.equal(state.hammerOrbActivationIds.Fire, single.activationId);
+  assert.equal(state.hammerOrbActivationIds.Air, dual.activationId);
+  assert.equal(state.hammerOrbActivationIds.Earth, dual.activationId);
+  const fire = runtime.buffs.get('hammer fire orb');
+  assert.equal(fire.length, 1);
+  assert.equal(fire[0].expiresAt, state.hammerOrbs.Fire);
+  assert.equal(runtime.buffs.get('hammer air orb').length, 1);
 });
 
 test('Weaver hammer orbs require both distinct hands and respect Unravel replacement skills', () => {

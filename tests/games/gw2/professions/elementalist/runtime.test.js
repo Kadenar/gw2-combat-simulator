@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
 import { evokerFamiliarLifecycle } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
-import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
+import { canonicalTime } from '#kernel/core/clock.js';
+import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 // Queuing a hostile packet cannot fund a sphere; only the accepted impact earns energy.
@@ -40,24 +42,160 @@ test('Catalyst energy ignores missed packets and arrives at the accepted impact'
   assert.equal(result.events.find((event) => event.kind === 'catalyst-energy').at, 1);
 });
 
-// Grand Finale retires the shared activation of both dual orbs, including their condition packets.
-test('Grand Finale cancels pending Weaver dual-orb contacts', () => {
-  const result = runNative({
-    lines: [['Fire'], ['Air'], ['Weaver']],
-    weapons: ['Hammer', ''],
-    startAttunement: 'Fire',
-    secondaryAttunement: 'Air',
-    rotation: ['Dual Orbits: Fire and Air', 2000, 'Grand Finale', 6000]
+// Finale must cancel pending contacts, including both conditions of a shared dual activation.
+for (const [specialization, skillId] of [
+  ['Core', ID.FLAME_WHEEL],
+  ['Weaver', ID.DUAL_ORBITS_FIRE_AND_AIR]
+]) {
+  test(`Grand Finale cancels pending ${specialization} orb damage and conditions`, () => {
+    const config = {
+      specialization,
+      primaryWeapon: 'Hammer',
+      startAttunement: 'Fire',
+      secondaryAttunement: 'Air',
+      selectedTraitIds: []
+    };
+    const opening = { type: 'cast', skillId, impactDelayMs: 3000 };
+    const baseline = runElementalist([opening, { type: 'wait', durationMs: 6000 }], config);
+    const result = runElementalist(
+      [
+        opening,
+        { type: 'wait', durationMs: 500 },
+        { type: 'cast', skillId: ID.GRAND_FINALE },
+        { type: 'wait', durationMs: 6000 }
+      ],
+      config
+    );
+    assert.deepEqual(baseline.warnings, []);
+    assert.deepEqual(result.warnings, []);
+    for (const type of ['damage', 'condition']) {
+      const contacts = (run) => run.events.filter((event) => event.skillId === skillId && event.type === type);
+      assert.ok(contacts(baseline).length > 0);
+      assert.deepEqual(contacts(result), []);
+    }
   });
-  assert.deepEqual(result.warnings, []);
-  const orb = result.events.find((event) => event.type === 'action' && event.skillName === 'Dual Orbits: Fire and Air');
-  const finale = result.events.find((event) => event.type === 'action' && event.skillName === 'Grand Finale');
-  const contacts = result.events.filter(
-    (event) => ['damage', 'condition'].includes(event.type) && event.activationId === orb.activationId
-  );
-  assert.ok(contacts.length > 0);
-  assert.ok(contacts.every((event) => event.at <= finale.at));
-});
+}
+
+// Finale retains accepted buffs across their original expiry, then retires them at its own deadline.
+for (const expiryPhase of ['during cast', 'after commit']) {
+  test(`Grand Finale refreshes orb buffs expiring ${expiryPhase}`, () => {
+    const rotation = [
+      { type: 'cast', skillId: ID.DUAL_ORBITS_FIRE_AND_AIR },
+      { type: 'cast', skillId: ID.GRAND_FINALE },
+      { type: 'wait', durationMs: 2000 }
+    ];
+    const config = {
+      specialization: 'Weaver',
+      primaryWeapon: 'Hammer',
+      startAttunement: 'Fire',
+      secondaryAttunement: 'Air',
+      selectedTraitIds: []
+    };
+    const baseline = runElementalist(rotation, config);
+    assert.deepEqual(baseline.warnings, []);
+    const finale = baseline.steps.find((step) => step.skillId === ID.GRAND_FINALE);
+    const opening = baseline.steps.find((step) => step.skillId === ID.DUAL_ORBITS_FIRE_AND_AIR);
+    const impact = baseline.events.find((event) => event.type === 'damage' && event.skillId === ID.GRAND_FINALE);
+    assert.ok(impact);
+    const committedAt = finale.end / 1000;
+    const originalExpiry = canonicalTime(
+      expiryPhase === 'during cast' ? (finale.start / 1000 + committedAt) / 2 : (committedAt + impact.at) / 2
+    );
+    const expiresAt = canonicalTime(committedAt + 1);
+    assert.ok(originalExpiry < impact.at);
+    const sampledAt = canonicalTime((originalExpiry + (expiryPhase === 'during cast' ? committedAt : impact.at)) / 2);
+    const timeline = [
+      {
+        at: sampledAt,
+        run(runtime) {
+          runtime.effects.emit(
+            elementalistStrikeRequest(runtime.mechanics, {
+              at: runtime.time,
+              sourceId: ID.SINGEING_STRIKE,
+              skillId: ID.SINGEING_STRIKE,
+              skillName: 'Buff probe',
+              actorType: 'player',
+              coefficient: 1,
+              canCrit: false,
+              skillWeapon: 'Hammer',
+              activationId: 'buff-probe'
+            })
+          );
+        }
+      }
+    ];
+    const control = runElementalist(rotation, config, { timeline });
+    const seen = [];
+    const result = runElementalist(rotation, config, {
+      timeline,
+      catalog: (catalog) =>
+        applySkillPatch(catalog, {
+          skills: {
+            [ID.DUAL_ORBITS_FIRE_AND_AIR]: { fields: { orbDuration: originalExpiry - opening.end / 1000 } }
+          }
+        }),
+      probes: [
+        [
+          canonicalTime((finale.start / 1000 + committedAt) / 2),
+          (runtime) => {
+            seen.push('prepared');
+            for (const element of ['Fire', 'Air'])
+              assert.ok(
+                runtime.buffs.get(`hammer ${element.toLowerCase()} orb`).some((buff) => buff.expiresAt === expiresAt)
+              );
+          }
+        ],
+        [
+          sampledAt,
+          (runtime) => {
+            seen.push('reserved');
+            for (const element of ['Fire', 'Air'])
+              assert.ok(
+                runtime.buffs
+                  .get(`hammer ${element.toLowerCase()} orb`)
+                  .some((buff) => buff.at <= runtime.time && buff.expiresAt > runtime.time)
+              );
+          }
+        ],
+        [
+          impact.at,
+          (runtime) => {
+            seen.push('impact');
+            for (const element of ['Fire', 'Air']) {
+              assert.equal(runtime.profession.core.hammerOrbs[element], null);
+              const buffs = runtime.buffs.get(`hammer ${element.toLowerCase()} orb`);
+              assert.ok(buffs.some((buff) => buff.at <= runtime.time && buff.expiresAt === expiresAt));
+            }
+          }
+        ],
+        [
+          canonicalTime(expiresAt + 0.001),
+          (runtime) => {
+            seen.push('expired');
+            for (const element of ['Fire', 'Air'])
+              assert.equal(
+                runtime.buffs
+                  .get(`hammer ${element.toLowerCase()} orb`)
+                  .some((buff) => buff.at <= runtime.time && buff.expiresAt > runtime.time),
+                false
+              );
+          }
+        ]
+      ]
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.deepEqual(seen, ['prepared', 'reserved', 'impact', 'expired']);
+    const projectiles = result.events.filter((event) => event.type === 'damage' && event.skillId === ID.GRAND_FINALE);
+    assert.deepEqual(
+      projectiles.map((event) => event.name),
+      ['Fire', 'Air']
+    );
+    const sampleDamage = (run) =>
+      run.resolvedEvents.find((event) => event.type === 'damage' && event.activationId === 'buff-probe')?.damage;
+    assert.ok(sampleDamage(control) > 0);
+    assert.equal(sampleDamage(result), sampleDamage(control));
+  });
+}
 
 // Eligibility is captured before orb consumption, while later orb changes cannot add projectiles to the cast.
 test('Grand Finale snapshots active orbs and resolves each condition stack separately', () => {

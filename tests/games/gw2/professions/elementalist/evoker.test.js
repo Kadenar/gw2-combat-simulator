@@ -5,7 +5,10 @@ import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/pat
 import { GW2_ALACRITY_RECHARGE_RATE, gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { activeChargeGrants } from '#gw2/platform/combat/resources/charges.js';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
-import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
+import {
+  ELEMENTALIST_SKILL_IDS as ID,
+  ELEMENTALIST_TRAIT_IDS as TRAIT
+} from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import {
@@ -164,6 +167,17 @@ function enchantments({ hits, grants, timeline = [] }) {
 
 const enchantedHits = (result) =>
   result.resolvedEvents.filter((e) => e.type === 'damage' && e.skillName === 'Electric Enchantment');
+
+// Triggered enchantments can copy an orb skill identity without inheriting its activation or cancellation owner.
+test('Electric Enchantment accepts an orb-attributed hit without an activation ID', () => {
+  const result = enchantments({
+    hits: [[3, { sourceId: ID.FLAME_WHEEL, skillId: ID.FLAME_WHEEL }]],
+    grants: [[2.5, 1, 6]]
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.ok(enchantedHits(result).length > 0);
+  assert.ok(result.events.some((event) => event.type === 'condition' && event.skillName === 'Electric Enchantment'));
+});
 
 test('Electric Enchantment consumes accepted post-grant hits chronologically and only once', () => {
   const result = enchantments({

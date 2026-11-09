@@ -10,10 +10,10 @@ import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON, COMBO_FINISHER, CONDITION, CONTROL, STATUS, WEAPON } from '#gw2/platform/constants.js';
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import { hammerFinaleHasOrb } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 // Hurricane of Pain uses canonical parallel timelines so every landed strike applies its matching Vulnerability.
 const HURRICANE_OF_PAIN_TICKS = [200, 360, 600, 840, 1080, 1320, 1560, 1800, 2040] as const;
@@ -753,20 +753,19 @@ export const ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, S
       ]).map<SkillEffect>((effect) => ({
         ...effect,
         name: element,
-        when: (runtime: MechanicQueriesOf<ElementalistRuntime>, cast) => {
-          const expiresAt = runtime.profession.core.hammerOrbs[element];
-          return expiresAt != null && expiresAt >= cast.start;
-        }
+        when: (_runtime, cast) => hammerFinaleHasOrb(cast, element)
       }))
     ),
     // Retire old orbit contacts before packet selection; consume the captured orbs only on commitment.
     sideEffects: [
       {
         on: 'castStart',
-        when: (_runtime, cast) => !cast.cancelledBeforeCommit,
-        do: { type: 'elementalist.cancel-hammer-orbits' }
+        do: { type: 'elementalist.prepare-hammer-finale' }
       },
-      { on: 'castCommit', do: { type: 'elementalist.consume-hammer-orbs' } }
+      {
+        on: 'castCommit',
+        do: { type: 'elementalist.consume-hammer-orbs' }
+      }
     ]
   }
 };

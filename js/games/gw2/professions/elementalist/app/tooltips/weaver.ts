@@ -73,8 +73,7 @@ export const weaverTooltips = {
       ].map((id) => [
         id,
         skillTooltip(
-          'Create hammer orbs for both attunements and refresh all active orb durations. Grand Finale consumes those orbs. An existing matching orb must be consumed before this dual attack can create it again.',
-          [fromSkill(id, 'orbDuration', 'Refreshed orb duration', tooltipSeconds)]
+          'Create hammer orbs for both attunements and refresh all active orb durations. Grand Finale consumes those orbs. An existing matching orb must be consumed before this dual attack can create it again.'
         )
       ])
     ),

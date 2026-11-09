@@ -12,17 +12,12 @@ import type { Skill } from '#gw2/platform/skills/types.js';
 import {
   AURA_TRANSMUTE_SKILLS,
   CONJURE_PICKUP_WEAPONS,
-  CONJURED_WEAPONS,
-  HAMMER_ORB_SKILLS
+  CONJURED_WEAPONS
 } from '#gw2/professions/elementalist/core/constants.js';
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import { activeAura, etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalistElementalAvailability } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
-import {
-  activeHammerOrbElements,
-  HAMMER_ORB_REUSE_DELAY,
-  hammerOrbMatchesAttunement
-} from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
+import { coreHammerOrbAvailability } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { elementalExplosionAvailability } from '#gw2/professions/elementalist/core/mechanics/pistol.js';
 import { elementalistSlotSelectionPolicy } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
 import { weaponAttunementAvailable } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
@@ -33,7 +28,6 @@ import {
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistAttunementPolicy } from '#gw2/professions/elementalist/family-state.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 function ready(): AvailabilityResult {
   return { ready: true };
@@ -175,61 +169,6 @@ function etchingAvailability(context: MechanicQueriesOf<ElementalistRuntime>, sk
   return null;
 }
 
-/** Hammer commands respect shared lockout, active orbs, and compatible attunements. */
-function hammerAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
-  const state = professionCoreState(context.profession);
-  // Hammer orbs: a short shared lockout after any orb cast (retryable) plus a flat
-  // denial while that element's orb is still floating and unconsumed.
-  const skillId = Number(skill.id);
-  const hammerElements = HAMMER_ORB_SKILLS[skillId] ? [HAMMER_ORB_SKILLS[skillId]] : null;
-
-  if (hammerElements) {
-    // The unarmed negative-infinity sentinel stays ready; armed deadlines use the canonical clock.
-    const retryAt = Number.isFinite(state.hammerOrbLastCastAt)
-      ? canonicalTime(state.hammerOrbLastCastAt + HAMMER_ORB_REUSE_DELAY)
-      : state.hammerOrbLastCastAt;
-
-    if (retryAt > context.time) {
-      return unavailable(
-        skill,
-        'elementalist.hammer-orb-lockout',
-        `the shared orb lockout ends at ${retryAt.toFixed(3)}.`,
-        retryAt
-      );
-    }
-
-    if (
-      hammerElements.some((element) => {
-        const expiresAt = state.hammerOrbs[element];
-        return expiresAt != null && expiresAt >= context.time;
-      })
-    ) {
-      return unavailable(
-        skill,
-        'elementalist.hammer-orb-active',
-        'Grand Finale must consume the active orb before it can be created again.'
-      );
-    }
-  }
-
-  // Grand Finale needs at least one floating orb matching the current attunement.
-  if (Number(skill.id) === ID.GRAND_FINALE) {
-    const compatible = activeHammerOrbElements(state, context.time).some((element) =>
-      hammerOrbMatchesAttunement(state, element)
-    );
-
-    if (!compatible) {
-      return unavailable(
-        skill,
-        'elementalist.hammer-orbs',
-        'requires an active orb compatible with the current attunement.'
-      );
-    }
-  }
-
-  return null;
-}
-
 /** Conjures replace the weapon bar before ordinary weapon attunement checks. */
 function weaponAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
   const state = professionCoreState(context.profession);
@@ -288,7 +227,7 @@ export function elementalistCoreAvailability(
     auraAvailability(context, skill) ??
     rockBarrierAvailability(context, skill) ??
     etchingAvailability(context, skill) ??
-    hammerAvailability(context, skill) ??
+    coreHammerOrbAvailability(context, skill) ??
     weaponAvailability(context, skill) ??
     utilityAttunementAvailability(context, skill) ??
     ready()

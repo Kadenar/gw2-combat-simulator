@@ -17,12 +17,10 @@ import {
   onAttunementComplete,
   targetAttunement
 } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
+import { dualHammerOrbAvailability } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
-import {
-  weaverHammerAvailability,
-  weaverWeaponAttunementAvailable
-} from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
+import { weaverWeaponAttunementAvailable } from '#gw2/professions/elementalist/specializations/weaver/mechanics/dual-weapon-state.js';
 import {
   weaverAttunementCompleted,
   weaverHandsChanged,
@@ -53,7 +51,7 @@ function weaverAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,
   skill: ElementalistSkill
 ): AvailabilityResult {
-  const hammerAvailability = weaverHammerAvailability(context, skill);
+  const hammerAvailability = dualHammerOrbAvailability(context, skill);
 
   // Eligible orbs still pass through the shared hand and Unravel replacement gates below.
   if (hammerAvailability && !hammerAvailability.ready) return hammerAvailability;

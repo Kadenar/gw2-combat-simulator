@@ -6,7 +6,6 @@ import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/pat
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { createProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
-import { createHammerOrbs } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
@@ -19,6 +18,7 @@ import {
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
 import { applyCalcifyProtection } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 
@@ -29,30 +29,32 @@ test('Core and Weaver orb skills own refresh duration and expiry', () => {
     [ID.DUAL_ORBITS_FIRE_AND_WATER, 'Weaver', ['Fire', 'Water']]
   ]) {
     const catalog = applySkillPatch(elementalistCatalog, { skills: { [id]: { fields: { orbDuration: 2.5 } } } });
+    const config = { specialization, primaryWeapon: 'Hammer', startAttunement: 'Fire', secondaryAttunement: 'Water' };
+    const accepted = runElementalist([{ type: 'cast', skillId: id }], config, { catalog: () => catalog });
+    assert.deepEqual(accepted.warnings, []);
+    const effectiveEnd = accepted.steps.find((step) => step.skillId === id).end / 1000;
+    const expiresAt = canonicalTime(effectiveEnd + 2.5);
     const result = runElementalist(
-      [{ type: 'wait', durationMs: 3000 }],
-      { specialization, primaryWeapon: 'Hammer' },
+      [
+        { type: 'cast', skillId: id },
+        { type: 'wait', durationMs: 3000 }
+      ],
+      config,
       {
         catalog: () => catalog,
         initialize(runtime) {
           runtime.profession.core.hammerOrbs.Air = 10;
-          createHammerOrbs(
-            runtime,
-            { id: 'orb-grant', effectiveEnd: 0, command: {}, skill: catalog.skillsById.get(id) },
-            catalog.skillsById.get(id),
-            elements
-          );
         },
         probes: [
           [
-            1,
+            canonicalTime(effectiveEnd + 0.5),
             (runtime) => {
               for (const element of ['Air', ...elements])
-                assert.equal(runtime.profession.core.hammerOrbs[element], 2.5);
+                assert.equal(runtime.profession.core.hammerOrbs[element], expiresAt);
             }
           ],
           [
-            3,
+            canonicalTime(expiresAt + 0.1),
             (runtime) => {
               for (const element of ['Air', ...elements])
                 assert.equal(runtime.profession.core.hammerOrbs[element], null);
