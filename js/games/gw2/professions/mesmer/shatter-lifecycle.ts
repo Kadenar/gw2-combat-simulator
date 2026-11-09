@@ -2,6 +2,7 @@
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
+import { consumeMesmerClones } from '#gw2/professions/mesmer/core/mechanics/illusions/clones.js';
 import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import {
   mesmerProfessionActionCommitted,
@@ -14,7 +15,6 @@ import type { MesmerShatterResolution } from '#gw2/professions/mesmer/core/mecha
 import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
-import { destroyClone } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import { resolveBladesong } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesongs.js';
 import type { MesmerRuntime, MesmerRuntimeState, MesmerShatterResolver } from '#gw2/professions/mesmer/types.js';
@@ -67,12 +67,13 @@ export function consumeMesmerResources(
   details: MesmerResourceSpendDetails = {}
 ): number {
   const kind = mesmerResourceKind(runtime.profession.specialization.kind);
-  const spent = currentResource(runtime);
+  let spent: number;
 
-  if (kind === 'clones') {
-    for (const clone of runtime.profession.core.clones) destroyClone(runtime, clone);
-    runtime.profession.core.clones = [];
-  } else runtime.resourceController.spend(kind, spent);
+  if (kind === 'clones') spent = consumeMesmerClones(runtime);
+  else {
+    spent = runtime.resourceController.value(kind);
+    runtime.resourceController.spend(kind, spent);
+  }
 
   return recordSpend(runtime, at, spent, details);
 }

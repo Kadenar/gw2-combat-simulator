@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { consumeMesmerClones, createMesmerClones } from '#gw2/professions/mesmer/core/mechanics/illusions/clones.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { destroyClone } from '#gw2/professions/mesmer/family-resources.js';
 import { runMesmer } from '#tests/helpers/mesmer-simulation.js';
 
 test('retired clone packets cannot grant accepted critical conditions', () => {
@@ -113,9 +113,10 @@ test('accepted clone finishers retain delayed combo conditions after clone retir
   // A retired clone loses its pending attacks while a finisher already accepted by the combo system keeps its outcome.
   const result = runMesmer(
     [{ type: 'wait', durationMs: 1500 }],
-    { specialization: 'Core' },
+    { specialization: 'Core', initialResource: 0 },
     {
       initialize(runtime) {
+        createMesmerClones(runtime.mechanics, { at: 0, count: 1, weapon: 'Sword', maximum: 3 });
         const strike = {
           type: 'damage',
           source: 'Clone',
@@ -138,7 +139,7 @@ test('accepted clone finishers retain delayed combo conditions after clone retir
         });
         runtime.effects.emit({ kind: 'packet', event: { ...strike, at: 1 } });
       },
-      timeline: [{ at: 0.5, run: (runtime) => destroyClone(runtime.mechanics, { id: 1 }) }]
+      timeline: [{ at: 0.5, run: (runtime) => consumeMesmerClones(runtime.mechanics) }]
     }
   );
   assert.deepEqual(result.warnings, []);

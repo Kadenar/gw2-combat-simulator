@@ -4,16 +4,15 @@ import {
   scheduleMesmerPhantasmEffects,
   startMesmerCast
 } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
+import {
+  dispatchMesmerCloneAttack,
+  MESMER_CLONE_ATTACK_TASK
+} from '#gw2/professions/mesmer/core/mechanics/illusions/clones.js';
 import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerPendingResource } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
-import {
-  createMesmerCloneScheduler,
-  createMesmerIllusionRewards,
-  mesmerActivePrimaryWeapon
-} from '#gw2/professions/mesmer/family-resources.js';
+import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
@@ -73,14 +72,10 @@ export const mesmerIllusionHooks = {
     const skill = cast.skill;
     startMesmerCast(runtime, cast, skill);
   },
-  backgroundTasks: ['mesmer.clone-attack'],
+  backgroundTasks: [MESMER_CLONE_ATTACK_TASK],
   tasks: {
-    'mesmer.clone-attack'(runtime, data) {
-      const id = Number(data);
-      const next = createMesmerCloneScheduler(runtime).handleTask(id, runtime.time);
-
-      if (next != null)
-        runtime.schedule('mesmer.clone-attack', next, id, { id: mesmerCloneOwnerId(id), generation: 0 }, -50);
+    [MESMER_CLONE_ATTACK_TASK](runtime, data) {
+      dispatchMesmerCloneAttack(runtime, Number(data));
     },
     'mesmer.resource-gain'(runtime, data) {
       const { count, weapon, reason, cause } = data as MesmerPendingResource;

@@ -33,8 +33,6 @@ export interface MesmerPhantasmPolicy {
   readonly conversionTiming: 'spawn' | 'blade-tick';
 }
 
-export type MesmerDestroyClone = (clone: MesmerClone) => void;
-
 export type MesmerQueueResources = (
   at: number,
   count: number,
@@ -48,11 +46,6 @@ export interface MesmerResourceGain {
   readonly at: number;
   readonly cause: MesmerResourceCause;
   readonly createdClones: readonly MesmerClone[];
-}
-
-export interface MesmerCloneAttackScheduler {
-  handleTask(cloneId: number, at: number): number | null;
-  initializeClone(clone: Omit<MesmerClone, 'attackSequenceIndex'>): MesmerClone;
 }
 
 export interface MesmerIllusionRewards {

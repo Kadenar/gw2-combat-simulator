@@ -3,10 +3,9 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { createMesmerClones } from '#gw2/professions/mesmer/core/mechanics/illusions/clones.js';
 import type {
   MesmerClone,
-  MesmerCloneAttackScheduler,
-  MesmerDestroyClone,
   MesmerIllusionRewards,
   MesmerResourceGain
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
@@ -26,8 +25,6 @@ interface IllusionRewardOptions {
   readonly onGain: (gain: MesmerResourceGain) => void;
   readonly resourceDefinition: MesmerResourceDefinition;
   readonly activePrimaryWeapon: MesmerActivePrimaryWeapon;
-  readonly cloneAttackScheduler: MesmerCloneAttackScheduler;
-  readonly destroyClone: MesmerDestroyClone;
   readonly scheduleResourceTask: (candidate: MesmerPendingResource, delivery?: EffectDelivery) => unknown;
 }
 
@@ -36,8 +33,6 @@ export function createIllusionRewardController({
   state,
   resourceDefinition,
   activePrimaryWeapon,
-  cloneAttackScheduler,
-  destroyClone,
   scheduleResourceTask,
   onGain
 }: IllusionRewardOptions): MesmerIllusionRewards {
@@ -55,29 +50,16 @@ export function createIllusionRewardController({
     if (!amount || resourceDefinition.maximum <= 0) return;
 
     let gained = 0;
-    const created: Array<{ id: number; weapon: string }> = [];
-    const createdClones: MesmerClone[] = [];
+    let createdClones: MesmerClone[] = [];
 
     if (kind === 'clones') {
-      for (let index = 0; index < amount; index += 1) {
-        if (professionCoreState(state.profession).clones.length >= resourceDefinition.maximum) {
-          const replaced = professionCoreState(state.profession).clones.shift();
-
-          if (replaced) destroyClone(replaced);
-        }
-
-        const clone = {
-          id: ++professionCoreState(state.profession).cloneSequence,
-          // Clone IDs provide stable identity; simultaneous gains share the resource task's timestamp.
-          createdAt: at,
-          weapon: weapon || activePrimaryWeapon()
-        };
-        const initialized = cloneAttackScheduler.initializeClone(clone);
-        professionCoreState(state.profession).clones.push(initialized);
-        createdClones.push(initialized);
-        created.push({ id: clone.id, weapon: clone.weapon });
-        gained += 1;
-      }
+      createdClones = createMesmerClones(state, {
+        at,
+        count: amount,
+        weapon: weapon || activePrimaryWeapon(),
+        maximum: resourceDefinition.maximum
+      });
+      gained = createdClones.length;
     } else {
       // Only the actual capped gain earns Compounding Power and specialization rewards.
       const before = state.resourceController.value(kind);
@@ -99,7 +81,7 @@ export function createIllusionRewardController({
         resource: resourceDefinition.plural,
         ...(kind !== 'clones' ? { maximum: resourceDefinition.maximum } : {}),
         reason,
-        created
+        created: createdClones.map(({ id, weapon }) => ({ id, weapon }))
       });
       state.effects.emit({
         kind: 'packet',

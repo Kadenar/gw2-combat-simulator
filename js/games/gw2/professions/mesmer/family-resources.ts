@@ -1,9 +1,5 @@
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
-import { createCloneAttackScheduler } from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
-import { mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
-import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { createIllusionRewardController } from '#gw2/professions/mesmer/core/mechanics/resources.js';
-import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/skills/weapons/clone-attacks.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import { mirageResourcesGained } from '#gw2/professions/mesmer/specializations/mirage/mechanics/trigger-points.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -13,28 +9,12 @@ export function mesmerActivePrimaryWeapon(context: MesmerRuntime): string {
   return gw2ActivePrimaryWeapon(context.config, context.activeWeaponSet === 1 ? 1 : 2) || '';
 }
 
-export function destroyClone(context: MesmerRuntime, clone: MesmerClone): void {
-  context.cancelOwner({ id: mesmerCloneOwnerId(clone.id), generation: 0 });
-}
-
-/** These short-lived operations retain no private run state; clone identity and progress belong to profession state. */
-export function createMesmerCloneScheduler(context: MesmerRuntime) {
-  return createCloneAttackScheduler({
-    state: context,
-    cloneAttacks: MESMER_CORE_CLONE_ATTACKS,
-    scheduleTask: (clone, at) =>
-      context.schedule('mesmer.clone-attack', at, clone.id, { id: mesmerCloneOwnerId(clone.id), generation: 0 }, -50)
-  });
-}
-
 /** Resource reactions are selected explicitly rather than registered into a live service container. */
 export function createMesmerIllusionRewards(context: MesmerRuntime) {
   return createIllusionRewardController({
     state: context,
     resourceDefinition: mesmerResourceDefinition(context.profession.specialization.kind, context.helpers),
     activePrimaryWeapon: () => mesmerActivePrimaryWeapon(context),
-    cloneAttackScheduler: createMesmerCloneScheduler(context),
-    destroyClone: (clone) => destroyClone(context, clone),
     onGain: (gain) => {
       if (context.profession.specialization.kind === 'Mirage')
         context.fireTrigger(mirageResourcesGained, {

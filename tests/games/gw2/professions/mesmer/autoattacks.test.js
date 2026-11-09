@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createCloneAttackScheduler } from '#gw2/professions/mesmer/core/mechanics/illusions/clone-attacks.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 
@@ -478,58 +476,4 @@ test('sword, scepter, axe, and spear auto chains cast as separate attacks', () =
     result.steps.map((step) => step.skillName),
     chain
   );
-});
-
-test('clone attack selection returns the next cadence and ignores destroyed clones', () => {
-  // Capture the production scheduling callback so only dispatched tasks emit attacks and advance cadence.
-  const state = {
-    config: { primaryWeapon: 'Sword' },
-    activeWeaponSet: 1,
-    helpers: { skillsById: new Map(), skills: [] },
-    profession: { core: { clones: [] } }
-  };
-  const damage = [];
-  const conditions = [];
-  const tasks = [];
-  state.effects = captureEffectEmissions({
-    submit: (event) => {
-      (event.type === 'damage' ? damage : conditions).push(event);
-      return event;
-    }
-  }).effects;
-  const scheduler = createCloneAttackScheduler({
-    state,
-    cloneAttacks: {
-      Sword: {
-        id: 123,
-        coefficient: 1,
-        hits: 1,
-        interval: 2,
-        weaponStrength: 20,
-        conditions: [{ type: 'condition', condition: 'Bleeding', duration: 1, stacks: 1 }]
-      }
-    },
-    scheduleTask: (clone, at) => tasks.push({ cloneId: clone.id, at })
-  });
-
-  state.profession.core.clones.push(
-    scheduler.initializeClone({
-      id: 1,
-      createdAt: 1,
-      weapon: 'Sword'
-    })
-  );
-
-  assert.deepEqual(tasks, [{ cloneId: 1, at: 3 }]);
-  assert.equal(damage.length, 0);
-  const first = tasks.shift();
-  const nextAt = scheduler.handleTask(first.cloneId, first.at);
-  assert.equal(damage.length, 1);
-  assert.equal(conditions.length, 1);
-  assert.equal(nextAt, 5);
-  state.profession.core.clones.length = 0;
-  assert.equal(scheduler.handleTask(first.cloneId, nextAt), null);
-  assert.equal(damage.length, 1);
-  assert.equal(conditions.length, 1);
-  assert.deepEqual(tasks, []);
 });
