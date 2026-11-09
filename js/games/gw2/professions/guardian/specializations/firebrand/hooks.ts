@@ -1,5 +1,4 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { damageInputEvent } from '#gw2/platform/skill-damage/input-event.js';
 import {
@@ -13,10 +12,8 @@ import {
   startFirebrandAshes
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import {
-  FIREBRAND_MANTRA_WAKE,
   firebrandMantraAvailability,
-  firebrandMantraLifecycle,
-  initializeFirebrandMantras
+  firebrandMantraLifecycle
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/mantras.js';
 import {
   firebrandTomeAvailability,
@@ -34,6 +31,7 @@ import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guard
 
 /** Pages, tome sessions, and mantra charges mutate one live state; report events never restore a snapshot. */
 export const firebrandHooks = composeRuntimeHooks<GuardianRuntimeState, GuardianSkill>([
+  // Prepare mantras before tomes and queue their Alacrity refresh before buff-triggered traits.
   firebrandMantraLifecycle,
   firebrandTomeLifecycle,
   firebrandAshesLifecycle,
@@ -63,9 +61,9 @@ export const firebrandHooks = composeRuntimeHooks<GuardianRuntimeState, Guardian
       }
     },
     initialize(runtime) {
-      initializeFirebrandMantras(runtime);
       initializeFirebrandTomes(runtime);
     },
+    // Tome decisions take precedence over mantra readiness.
     availability: (runtime, skill) =>
       firebrandTomeAvailability(runtime, skill) ?? firebrandMantraAvailability(runtime, skill),
     reactions: {
@@ -78,9 +76,6 @@ export const firebrandHooks = composeRuntimeHooks<GuardianRuntimeState, Guardian
         reactToTomeJusticeHit(runtime, event);
       },
       'buff.applied'(runtime, event) {
-        // Executed history is appended after dispatch; reproject once the applied Alacrity window is queryable.
-        if (event.kind === boonKey(BOON.ALACRITY)) runtime.schedule(FIREBRAND_MANTRA_WAKE, runtime.time);
-
         runtime.fireTrigger(firebrandBuffApplied, { cause: event });
       },
       'control.resolved'(runtime, event) {

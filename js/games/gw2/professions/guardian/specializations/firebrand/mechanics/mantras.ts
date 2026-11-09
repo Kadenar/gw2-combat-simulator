@@ -1,5 +1,7 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
+import { boonKey } from '#gw2/platform/combat/boons.js';
+import { BOON } from '#gw2/platform/constants.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import {
@@ -19,11 +21,29 @@ import {
   MANTRAS,
   type MantraDefinition
 } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
-import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import {
+  firebrandState,
+  type GuardianFirebrandState
+} from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianRuntime, GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-export const FIREBRAND_MANTRA_WAKE = 'guardian.firebrand.mantra';
+const FIREBRAND_MANTRA_WAKE = 'guardian.firebrand.mantra';
 const owner = (definition: MantraDefinition, generation: number) => ({ id: `mantra:${definition.rootId}`, generation });
+
+// Preparation membership and wake cancellation belong to each run, even when no recharge is pending.
+const generationsByState = new WeakMap<GuardianFirebrandState, Map<number, number>>();
+
+function wakeGenerations(runtime: GuardianRuntime): Map<number, number> {
+  const state = firebrandState.from(runtime.profession);
+  let generations = generationsByState.get(state);
+
+  if (!generations) {
+    generations = new Map();
+    generationsByState.set(state, generations);
+  }
+
+  return generations;
+}
 
 /** The normal and final faces spend one pool kept on the normal skill. */
 const faces = (definition: MantraDefinition) => ({ faceIds: [definition.normalId, definition.finalId] });
@@ -34,7 +54,7 @@ function magazine(runtime: GuardianRuntime, definition: MantraDefinition): Prepa
 
 /** Preparation seeds a lifetime generation even when the full magazine has no pending wake. */
 function mantraInitialized(runtime: GuardianRuntime, definition: MantraDefinition): boolean {
-  return Object.hasOwn(firebrandState.from(runtime.profession).mantraWakeGenerations, definition.rootId);
+  return wakeGenerations(runtime).has(definition.rootId);
 }
 
 /** Preparation replaces the charge pool once; subsequent recovery uses the shared ammo controller. */
@@ -48,17 +68,16 @@ function arm(runtime: GuardianRuntime, definition: MantraDefinition): void {
   );
   runtime.cooldownController.clear(definition.rootId);
 
-  if (!mantraInitialized(runtime, definition))
-    firebrandState.from(runtime.profession).mantraWakeGenerations[definition.rootId] = 0;
+  if (!mantraInitialized(runtime, definition)) wakeGenerations(runtime).set(definition.rootId, 0);
 }
 
 /** Callers select prepared mantras; one replaceable wake owns each next charge or full rearm. */
 function sync(runtime: GuardianRuntime, definition: MantraDefinition): void {
-  const state = firebrandState.from(runtime.profession);
-  const previous = state.mantraWakeGenerations[definition.rootId] ?? 0;
+  const generations = wakeGenerations(runtime);
+  const previous = generations.get(definition.rootId) ?? 0;
   runtime.cancelOwner(owner(definition, previous));
   const generation = previous + 1;
-  state.mantraWakeGenerations[definition.rootId] = generation;
+  generations.set(definition.rootId, generation);
   const normal = runtime.helpers.skillsById.get(definition.normalId)!;
   let next = Infinity;
 
@@ -87,7 +106,7 @@ function sync(runtime: GuardianRuntime, definition: MantraDefinition): void {
 }
 
 /** Only equipped PvE mantras start prepared; an omitted selection retains the catalog's all-skills sandbox. */
-export function initializeFirebrandMantras(runtime: GuardianRuntime): void {
+function initializeFirebrandMantras(runtime: GuardianRuntime): void {
   const selected = selectedSkillIdSet(runtime.config.selectedSkillIds);
   for (const definition of MANTRAS) {
     if (runtime.config.selectedSkillIds !== undefined && !selected.has(definition.rootId)) continue;
@@ -183,10 +202,17 @@ function firebrandMantraMaximumAmmo(
   return definition ? preparedMagazineMaximum(context.flips, faces(definition), maximum) : maximum;
 }
 
-/** Mantra actions, the charge wake that reprojects them, and cooldown-reset refreshes share one owner. */
+/** Own preparation and recharge refreshes so callers need no mantra scheduling or bookkeeping. */
 export const firebrandMantraLifecycle = {
+  initialize: initializeFirebrandMantras,
   maximumAmmo: firebrandMantraMaximumAmmo,
   sideEffectHandlers: firebrandMantraActions,
   tasks: { [FIREBRAND_MANTRA_WAKE]: firebrandMantraWake },
-  onCooldownReset: refreshFirebrandMantras
+  onCooldownReset: refreshFirebrandMantras,
+  reactions: {
+    'buff.applied'(runtime, event) {
+      // Executed history is appended after dispatch; refresh once the applied Alacrity window is queryable.
+      if (event.kind === boonKey(BOON.ALACRITY)) runtime.schedule(FIREBRAND_MANTRA_WAKE, runtime.time);
+    }
+  }
 } satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;

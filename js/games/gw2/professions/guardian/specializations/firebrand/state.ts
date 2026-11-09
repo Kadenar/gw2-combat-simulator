@@ -20,9 +20,6 @@ export interface GuardianFirebrandState {
   alliedAshes: Record<number, ChargeGrant>;
   swiftScholarTome: string;
   swiftScholarCount: number;
-
-  /** Preparation seeds membership; generations invalidate wakes while the cooldown controller owns deadlines. */
-  mantraWakeGenerations: Record<string, number>;
 }
 
 /** Initializes independent resource storage from the profiles supplied by module composition. */
@@ -43,9 +40,7 @@ function createFirebrandState(profileContext: {
     ashes: grantCharges(0, 0),
     alliedAshes: {},
     swiftScholarTome: '',
-    swiftScholarCount: 0,
-
-    mantraWakeGenerations: {}
+    swiftScholarCount: 0
   };
 }
 

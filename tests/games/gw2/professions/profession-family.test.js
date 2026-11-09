@@ -740,7 +740,7 @@ test('Necromancer public projection omits inactive specialization resources', ()
 
 const guardianInactiveStateKeys = Object.freeze({
   Dragonhunter: ['tetherUntil'],
-  Firebrand: ['activeTome', 'tomePages', 'ashes', 'swiftScholarTome', 'swiftScholarCount', 'mantraWakeGenerations'],
+  Firebrand: ['activeTome', 'tomePages', 'ashes', 'swiftScholarTome', 'swiftScholarCount'],
   Willbender: [
     'flameVirtue',
     'pendingWeaponCooldownReduction',

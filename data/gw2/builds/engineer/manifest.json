@@ -197,25 +197,25 @@
         "label": "Condition Alacrity (Pistol / Pistol - 3 Kits)",
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-pistol-pistol-3kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-pistol-pistol-3kit-bench.json",
-        "benchmarkDps": 36534,
+        "benchmarkDps": 36850,
         "upToDate": true,
-        "benchmarkApm": 122.5,
+        "benchmarkApm": 121.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38283, "phase": 38283 },
-          "80-60": { "cumulative": 36912, "phase": 35604 },
-          "60-40": { "cumulative": 36788, "phase": 36547 },
-          "40-20": { "cumulative": 36395, "phase": 35257 },
-          "20-0": { "cumulative": 36534, "phase": 37100 }
+          "100-80": { "cumulative": 38286, "phase": 38286 },
+          "80-60": { "cumulative": 37107, "phase": 35982 },
+          "60-40": { "cumulative": 36935, "phase": 36597 },
+          "40-20": { "cumulative": 36667, "phase": 35878 },
+          "20-0": { "cumulative": 36850, "phase": 36850 }
         },
         "patchPreview": {
           "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 36470,
+          "benchmarkDps": 36782,
           "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 38214, "phase": 38214 },
-            "80-60": { "cumulative": 36921, "phase": 35691 },
-            "60-40": { "cumulative": 36720, "phase": 36326 },
-            "40-20": { "cumulative": 36329, "phase": 35197 },
-            "20-0": { "cumulative": 36470, "phase": 37045 }
+            "100-80": { "cumulative": 38216, "phase": 38216 },
+            "80-60": { "cumulative": 37043, "phase": 35924 },
+            "60-40": { "cumulative": 36865, "phase": 36517 },
+            "40-20": { "cumulative": 36601, "phase": 35819 },
+            "20-0": { "cumulative": 36782, "phase": 36782 }
           }
         }
       },

@@ -582,7 +582,7 @@ test('Firebrand page exhaustion waits on the selected recovery policy and disabl
 });
 
 test('Firebrand mantra selection survives Alacrity refreshes and explicit resets', () => {
-  // Refreshes preserve initialized membership, including an empty loadout and the omitted-selection sandbox.
+  // Refreshes preserve prepared pools and leave unequipped mantras closed, including an empty loadout.
   for (const selectedSkillIds of [undefined, [], [ID.MANTRA_OF_FLAME]]) {
     for (const rotation of [[], [wait(1000), { type: 'cooldown-reset' }]]) {
       const result = run(
@@ -596,7 +596,6 @@ test('Firebrand mantra selection survives Alacrity refreshes and explicit resets
       assert.deepEqual(result.warnings, []);
       for (const { rootId, normalId, finalId } of MANTRAS) {
         const initialized = selectedSkillIds === undefined || selectedSkillIds.includes(rootId);
-        assert.equal(Object.hasOwn(fb(result).mantraWakeGenerations, rootId), initialized);
         assert.equal(runtime.cooldownController.hasAmmo(normalId), initialized);
         assert.equal(runtime.cooldownController.hasAmmo(finalId), initialized);
         assert.equal(Boolean(runtime.flips[normalId]), initialized);
@@ -623,7 +622,16 @@ test('Firebrand manual preparation registers the mantra for explicit recharge re
   });
   const runtime = observedRuntime(result);
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(Object.keys(fb(result).mantraWakeGenerations), [String(ID.MANTRA_OF_FLAME)]);
+  // Reset restores the manually prepared mantra without opening any other charge pool.
+  for (const { rootId, normalId, finalId } of MANTRAS) {
+    if (rootId === ID.MANTRA_OF_FLAME) continue;
+
+    assert.equal(runtime.cooldownController.hasAmmo(normalId), false);
+    assert.equal(runtime.cooldownController.hasAmmo(finalId), false);
+    assert.equal(runtime.flips[normalId], undefined);
+    assert.equal(runtime.flips[finalId], undefined);
+  }
+
   for (const id of [ID.FLAME_RUSH, ID.FLAME_SURGE]) {
     const ammo = runtime.cooldownController.readAmmo(id);
     assert.equal(ammo.charges, ammo.maximum);
