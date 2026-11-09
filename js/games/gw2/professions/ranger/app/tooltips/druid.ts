@@ -58,9 +58,9 @@ export const druidTooltips = {
     [TRAIT.BLOOD_MOON]: traitTooltip('Qualifying control and immobilize effects inflict bleeding.'),
     [TRAIT.CELESTIAL_SHADOW]: outsideScopeTooltip,
     [TRAIT.GRACE_OF_THE_LAND]: traitTooltip(
-      'Celestial Avatar skills grant alacrity to yourself. Natural Convergence grants it once per completed pulse.',
+      'Celestial Avatar skills grant alacrity to nearby allies, including yourself. Rejuvenating Tides and Natural Convergence grant it with each boon pulse. Tides continues after leaving Avatar.',
       () => [],
-      'per skill / completed Convergence pulse'
+      'per skill / boon pulse'
     ),
     [TRAIT.NATURAL_BALANCE]: traitTooltip(
       'Entering or leaving Celestial Avatar temporarily increases your condition damage and condition duration.',

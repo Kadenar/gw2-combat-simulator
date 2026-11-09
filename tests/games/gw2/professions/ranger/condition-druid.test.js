@@ -428,6 +428,34 @@ test('Sharpened Edges observes patched critical chance and packets through its s
   assert.deepEqual(chances, [0.33, 0.75, 0.25, 0.75]);
 });
 
+// Grace follows the native boon applications across Avatar exit and uses the player's boon duration.
+for (const skillId of [ID.REJUVENATING_TIDES, ID.NATURAL_CONVERGENCE]) {
+  test(`Grace of the Land follows ${rangerCatalog.skillsById.get(skillId).name} boons across Avatar exit`, () => {
+    for (const selectedTraitIds of [[], [TRAIT.GRACE_OF_THE_LAND]]) {
+      const result = simulate(
+        ['Celestial Avatar', { type: 'cast', skillId }, 'Release Celestial Avatar', { type: 'wait', durationMs: 5000 }],
+        { selectedTraitIds }
+      );
+      assert.deepEqual(result.warnings, []);
+      const might = result.events.filter(
+        (event) => event.type === 'buff' && event.kind === 'might' && event.skillId === skillId
+      );
+      const alacrity = result.events.filter((event) => event.type === 'buff' && event.kind === 'alacrity');
+      assert.ok(might.length > 0);
+      assert.deepEqual(
+        alacrity.map(({ at, resolvedAudience }) => ({ at, resolvedAudience })),
+        selectedTraitIds.length ? might.map(({ at, resolvedAudience }) => ({ at, resolvedAudience })) : []
+      );
+      assert.ok(alacrity.every(({ duration, sourceId }) => duration === 1.5 && sourceId === TRAIT.GRACE_OF_THE_LAND));
+
+      if (skillId === ID.REJUVENATING_TIDES && selectedTraitIds.length) {
+        const release = result.steps.find(({ skillName }) => skillName === 'Release Celestial Avatar');
+        assert.ok(alacrity.some(({ at }) => at > release.end / 1000));
+      }
+    }
+  });
+}
+
 test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', () => {
   const selectedTraitIds = [
     TRAIT.CELESTIAL_BEING,

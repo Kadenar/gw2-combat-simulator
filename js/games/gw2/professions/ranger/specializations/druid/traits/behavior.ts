@@ -24,20 +24,23 @@ export function avatarEffects(
   if (hasTrait(runtime, TRAIT.GRACE_OF_THE_LAND)) {
     const profile = requireBalanceProfile(runtime.helpers, TRAIT.GRACE_OF_THE_LAND);
     const effect = requireEffect(profile, 'boon', BOON.ALACRITY);
+    // Pulsing Avatar skills grant alacrity with their native boons, including Tides after Avatar ends.
+    const grants =
+      cast.skill.id === ID.REJUVENATING_TIDES || cast.skill.id === ID.NATURAL_CONVERGENCE
+        ? effects.filter((effect) => effect.type === 'boon' && effect.boon === BOON.MIGHT)
+        : [{ atMs: 0, timingAnchor: 'castStart' as const, interruptCommitMs: 0 }];
 
     if (effect)
-      for (const atMs of pulses)
+      for (const grant of grants)
         result.push({
+          ...grant,
           ...effect,
           source: 'Trait',
           sourceId: TRAIT.GRACE_OF_THE_LAND,
           skillName: 'Grace of the Land',
           actorType: ACTOR.EFFECT,
           // Grace of the Land is an allied area boon, so the active pet receives it and its Beast recharges speed up.
-          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-          timingAnchor: 'castStart',
-          interruptCommitMs: 0,
-          atMs
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
         });
   }
 

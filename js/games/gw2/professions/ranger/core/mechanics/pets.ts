@@ -193,7 +193,7 @@ function interruptPetAutoattack(context: RangerRuntime): void {
 }
 
 /** Instant pet commands restart autonomous attacks across families without interrupting a manual pet command. */
-export function restartRangerPetAutoattack(context: RangerRuntime): void {
+function restartRangerPetAutoattack(context: RangerRuntime): void {
   const state = context.profession.core;
 
   if (!state.pet) return;
@@ -291,7 +291,7 @@ function autonomousSkill(context: RangerRuntime, profile: PetAutoProfile): PetAu
 }
 
 /** Materialize each pet activation once, keeping original stats and attribution across swaps. */
-export function emitRangerPetSkill(
+function emitRangerPetSkill(
   context: RangerRuntime,
   skill: RangerSkill,
   start: number,
@@ -538,7 +538,18 @@ const rangerPetTasks = {
   }
 };
 
-/** Own pet registration, commands, and packet lifetime so retired companions cannot create new pet effects. */
+/** Instant commands preempt autonomous attacks without reserving or interrupting the manual pet lane. */
+export function runInstantRangerPetCommand(
+  runtime: RangerRuntime,
+  cast: RuntimeCast<RangerSkill>,
+  effects: readonly SkillEffect[]
+): void {
+  restartRangerPetAutoattack(runtime);
+  // Selected effects belong to the accepting pet, even if a swap precedes impact.
+  emitRangerPetSkill(runtime, { ...cast.skill, effects }, cast.start, cast.fullEnd, cast.id, cast);
+}
+
+/** Own Core pet registration, queued commands, and packet lifetime so retired companions cannot create new pet effects. */
 export const rangerPetLifecycle = {
   initialize(runtime) {
     const pet = runtime.profession.core.pet;
