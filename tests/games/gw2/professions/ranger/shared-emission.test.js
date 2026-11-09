@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { comboDefinition } from '#gw2/platform/combos/definitions.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { weaponSwapped } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
@@ -88,6 +89,56 @@ test('shared emission chooses boon duration from the granting Ranger actor', () 
   assert.equal(durations.get('pet'), 4.64);
   assert.equal(durations.get('player'), 8);
   assert.equal(durations.get('copy'), 4);
+});
+
+// Combo coverage must use the pet's resolved duration while retaining its separate reporting identity.
+test('pet blast boons retain companion scaling and sustained coverage', () => {
+  for (const fieldType of ['Fire', 'Lightning']) {
+    for (const lingeringMagic of [false, true]) {
+      const result = runRanger(
+        [
+          '__combat_start',
+          ID.RENDING_VINES,
+          { type: 'wait', durationMs: 21000 },
+          ID.RENDING_VINES,
+          { type: 'wait', durationMs: 1000 }
+        ],
+        {
+          specialization: 'Untamed',
+          initialUntamedState: 'Pet',
+          selectedPet: 'Carrion Devourer',
+          selectedTraitIds: lingeringMagic ? [TRAIT.LINGERING_MAGIC] : [],
+          professionAssumptions: { permanentComboField: fieldType },
+          attributeInputs: baseAttributeInputs({ concentration: 1500 })
+        }
+      );
+      assert.deepEqual(result.warnings, []);
+      const outcome = comboDefinition(fieldType, 'Blast').outcome;
+      const grants = result.resolvedEvents.filter((event) => event.type === 'buff' && event.comboId);
+      assert.ok(grants.length >= 2);
+      const duration = outcome.duration * (lingeringMagic ? 1.16 : 1);
+      for (const grant of grants) {
+        assert.equal(grant.source, 'ranger-pet');
+        assert.equal(grant.actorType, 'summon');
+        assert.equal(grant.entityName, 'Carrion Devourer');
+        assert.ok(grant.summonOwner);
+        assert.equal(grant.skillId, ID.RENDING_VINES);
+        assert.equal(grant.sourceId, `combo:${fieldType}:Blast`);
+        assert.equal(grant.duration, duration);
+      }
+
+      // Duration-stacking boons expose sustained coverage; Might uses generated stack-seconds instead.
+      if (fieldType === 'Lightning') {
+        for (const audience of ['self', 'ally']) {
+          const coverage = result.boonGeneration.sustained.swiftness[audience];
+          assert.equal(coverage.status, 'available');
+          assert.equal(coverage.sources.length, 1);
+          assert.equal(coverage.sources[0].name, outcome.name);
+          assert.equal(coverage.percent, (duration / (grants[1].at - grants[0].at)) * 100);
+        }
+      }
+    }
+  }
 });
 
 // A beast-skill reward at commitment arms the subsequent pet hit even when both share the same clock instant.

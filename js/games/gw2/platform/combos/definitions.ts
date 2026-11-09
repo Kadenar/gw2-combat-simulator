@@ -13,6 +13,7 @@ import {
   type ComboFieldType,
   type ComboFinisherType
 } from '#gw2/platform/constants.js';
+import type { PacketEmission, ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
@@ -386,92 +387,88 @@ function inheritedComboFields(combo: ComboEvent): ComboOutcomeEventBase {
   };
 }
 
-/** Converts one successful semantic combo into supported common events. */
-export function materializeComboOutcome(combo: ComboEvent): readonly SimulationEventBase[] {
+/** Each outcome keeps the finisher's attribution; profiles group repeated boon applications into one yield. */
+export function comboOutcomeRequests(combo: ComboEvent): readonly (PacketEmission | ProfileEmission)[] {
   const outcome = comboDefinition(combo.fieldType, combo.finisherType).outcome;
-  const base = inheritedComboFields(combo);
-  const one = (): SimulationEventBase | null => {
-    switch (outcome.kind) {
-      case 'aura':
-        return {
-          ...base,
-          type: 'aura',
-          name: outcome.name,
-          aura: outcome.aura,
-          duration: outcome.duration
-        };
-      case 'boon':
-        return {
-          ...base,
-          type: 'buff',
-          name: outcome.name,
-          kind: outcome.boon.toLowerCase(),
-          stacks: outcome.stacks,
-          duration: outcome.duration,
-          // Area combo boons use normal party targeting so an active companion
-          // can claim an open target slot after players.
-          ...(outcome.name.startsWith('Area ')
-            ? {
-                audience: {
-                  recipients: RECIPIENT.PARTY,
-                  maximumRecipients: 5,
-                  eligibleCompanionIds: combo.companionCandidates
-                }
-              }
-            : { audience: { recipients: RECIPIENT.PARTY } })
-        };
-      case 'condition':
-        return {
-          ...base,
-          type: 'condition',
-          name: outcome.name,
-          condition: outcome.condition,
-          stacks: outcome.stacks,
-          duration: outcome.duration
-        };
-      case 'control':
-        return {
-          ...base,
-          type: 'control',
-          name: outcome.name,
-          controlKind: outcome.control
-        };
-      case 'life-steal':
-        return {
-          ...base,
-          type: 'damage',
-          name: outcome.name,
-          // Explicit outcome artwork prevents result rows from inheriting the triggering finisher's icon.
-          icon: outcome.icon,
-          // Siphon packets own their hits; keep the triggering finisher only as their parent.
-          skillName: outcome.name,
-          damageBreakdownName: outcome.name,
-          parentSkillName: combo.skillName || combo.parentSkillName,
-          coefficient: 0,
-          flatStrikeBase: outcome.flatStrikeBase,
-          flatStrikePowerCoeff: outcome.flatStrikePowerCoeff,
-          canCrit: false,
-          damageKind: 'life-steal'
-        };
-      case STATUS.STEALTH:
-        return {
-          ...base,
-          type: 'buff',
-          name: outcome.name,
-          kind: STATUS.STEALTH,
-          stacks: 1,
-          duration: outcome.duration,
-          audience: { recipients: RECIPIENT.PARTY },
-          fixedDuration: true
-        };
-      case 'cleanse':
-      case 'healing':
-        return null;
-    }
-  };
-
+  const base = { ...inheritedComboFields(combo), name: outcome.name };
   const applications = Math.max(1, combo.applicationCount);
-  return Object.freeze(
-    Array.from({ length: applications }, () => one()).filter((event): event is SimulationEventBase => event != null)
-  );
+
+  function packets(event: SimulationEventBase): readonly PacketEmission[] {
+    return Array.from({ length: applications }, () => ({
+      kind: 'packet',
+      durationContext: combo,
+      event: { ...event }
+    }));
+  }
+
+  switch (outcome.kind) {
+    case 'boon':
+      return [
+        {
+          kind: 'profile',
+          profile: { id: `combo:${combo.fieldType}:${combo.finisherType}`, name: outcome.name },
+          at: combo.at,
+          // Keep the finisher's source for actor-specific scaling; a distinct sourceId separates combo coverage.
+          attribution: {
+            ...base,
+            sourceId: `combo:${combo.fieldType}:${combo.finisherType}`,
+            skillName: outcome.name
+          },
+          durationContext: combo,
+          effects: [
+            {
+              type: 'boon',
+              parentSkillName: combo.skillName,
+              boon: outcome.boon,
+              stacks: outcome.stacks,
+              duration: outcome.duration,
+              applications,
+              audience: outcome.name.startsWith('Area ')
+                ? { recipients: RECIPIENT.PARTY, maximumRecipients: 5, eligibleCompanionIds: combo.companionCandidates }
+                : { recipients: RECIPIENT.PARTY }
+            }
+          ]
+        }
+      ];
+    case STATUS.STEALTH:
+      return packets({
+        ...base,
+        type: 'buff',
+        kind: STATUS.STEALTH,
+        stacks: 1,
+        duration: outcome.duration,
+        audience: { recipients: RECIPIENT.PARTY },
+        fixedDuration: true
+      });
+    case 'aura':
+      return packets({ ...base, type: 'aura', aura: outcome.aura, duration: outcome.duration });
+    case 'condition':
+      return packets({
+        ...base,
+        type: 'condition',
+        condition: outcome.condition,
+        stacks: outcome.stacks,
+        duration: outcome.duration
+      });
+    case 'control':
+      return packets({ ...base, type: 'control', controlKind: outcome.control });
+    case 'life-steal':
+      return packets({
+        ...base,
+        type: 'damage',
+        // Siphons own their damage row and artwork; the finisher remains their parent.
+        icon: outcome.icon,
+        skillName: outcome.name,
+        damageBreakdownName: outcome.name,
+        parentSkillName: combo.skillName || combo.parentSkillName,
+        coefficient: 0,
+        flatStrikeBase: outcome.flatStrikeBase,
+        flatStrikePowerCoeff: outcome.flatStrikePowerCoeff,
+        canCrit: false,
+        damageKind: 'life-steal'
+      });
+    case 'cleanse':
+    case 'healing':
+      return [];
+  }
 }

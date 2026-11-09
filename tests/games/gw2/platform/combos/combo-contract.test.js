@@ -5,7 +5,7 @@ import { normalizeGw2ComboCatalogSkill } from '#gw2/platform/combos/catalog.js';
 import {
   COMBO_DEFINITIONS,
   comboDefinition,
-  materializeComboOutcome,
+  comboOutcomeRequests,
   validateComboDefinitions
 } from '#gw2/platform/combos/definitions.js';
 import {
@@ -18,6 +18,8 @@ import {
 import { bindRuntimeCombo, produceRuntimeCombos } from '#gw2/platform/combos/runtime.js';
 import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/types.js';
 import { normalizeEffect } from '#gw2/platform/effects/validation.js';
+import { createGw2ComboResolution } from '#gw2/platform/resolver/combo-resolution.js';
+import { buildBoonGeneration } from '#gw2/platform/results/boon-generation.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -115,7 +117,9 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
     roll: () => true,
     warn: () => {}
   });
-  const [poison] = materializeComboOutcome(combo);
+  const [request] = comboOutcomeRequests(combo);
+  assert.equal(request.kind, 'packet');
+  const poison = request.event;
   for (const event of [finisher, combo, poison]) {
     assert.equal(event.independentConditionOwner, true);
     assert.equal(event.summonOwner, 'ranger-pet:1:0');
@@ -127,6 +131,70 @@ test('combo outcomes retain summon condition scaling from the finisher', () => {
     ['summon', true, 1000, 375]
   );
 });
+
+for (const [fieldType, finisherType] of [
+  ['Lightning', 'Blast'],
+  ['Water', 'Whirl'],
+  ['Water', 'Projectile']
+]) {
+  test(`${fieldType} ${finisherType} grants retain one complete yield per combo`, () => {
+    // Repeated applications belong to their finisher; a later finisher establishes the repeat interval.
+    const combo = createGw2ComboRuntimeState();
+    const { effects, events } = captureEffectEmissions();
+    const context = { combo, effects, random: { roll: () => true }, warnings: [] };
+    const handlers = createGw2ComboResolution({ reactions: { dispatch() {} } });
+    const base = { source: 'Fixture', sourceId: 'finisher', actorType: 'player', skillName: 'Finisher' };
+    handlers.combo_field(context, {
+      ...base,
+      type: 'combo_field',
+      at: 0,
+      fieldId: 'field',
+      fieldType,
+      expiresAt: 100,
+      ownerId: 'fixture',
+      ownerActorType: 'player'
+    });
+    for (const at of [0, 20, 40])
+      handlers.combo_finisher(context, {
+        ...base,
+        type: 'combo_finisher',
+        at,
+        effectAt: at,
+        fieldId: 'field',
+        attemptId: `finisher:${at}`,
+        finisherType,
+        chance: 1,
+        applications: 2,
+        successfulCombos: 1
+      });
+    assert.deepEqual(context.warnings, []);
+    const outcome = comboDefinition(fieldType, finisherType).outcome;
+    const grants = events.filter((event) => event.type === 'buff');
+    assert.ok(grants.every((event) => event.name === outcome.name && event.sourceId !== base.sourceId));
+    assert.ok(grants.every((event) => event.source === base.source));
+    assert.ok(grants.every((event) => event.actorType === base.actorType && event.parentSkillName === base.skillName));
+    // Skill grants between combos must not split the combo's repeat intervals or share its source row.
+    for (const at of [5, 25, 45])
+      effects.emit({
+        kind: 'profile',
+        at,
+        profile: { id: base.sourceId, name: base.skillName },
+        attribution: base,
+        effects: [{ type: 'boon', boon: outcome.boon, duration: 1, audience: { recipients: 'party' } }]
+      });
+    const generation = buildBoonGeneration(events, 0, 50);
+    const estimate = generation.sustained[outcome.boon.toLowerCase()];
+    for (const audience of ['self', 'ally']) {
+      assert.equal(estimate[audience].status, 'available');
+      assert.equal(estimate[audience].intervals, 4);
+      assert.equal(estimate[audience].sources.length, 2);
+      const comboSource = estimate[audience].sources.find((source) => source.name === outcome.name);
+      assert.equal(comboSource.intervals, 2);
+      assert.equal(comboSource.percent, ((2 * outcome.duration * outcome.stacks) / 20) * 100);
+      assert.equal(estimate[audience].sources.find((source) => source.name === base.skillName).percent, 5);
+    }
+  });
+}
 
 test('combo descriptors require canonical field and finisher type names', () => {
   // Obsolete generic type keys must not silently supply the required combo vocabulary.

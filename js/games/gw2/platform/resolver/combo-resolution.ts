@@ -1,4 +1,4 @@
-import { materializeComboOutcome } from '#gw2/platform/combos/definitions.js';
+import { comboOutcomeRequests } from '#gw2/platform/combos/definitions.js';
 import { registerComboField, resolveComboAttempt } from '#gw2/platform/combos/resolution.js';
 import type { ComboFieldEvent, ComboFinisherEvent } from '#gw2/platform/combos/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -25,9 +25,8 @@ export function createGw2ComboResolution({
       });
       for (const combo of combos) {
         context.effects.emit({ kind: 'packet', event: combo });
-        for (const outcome of materializeComboOutcome(combo)) {
-          context.effects.emit({ kind: 'packet', durationContext: combo, event: outcome });
-        }
+        // Outcome requests keep boon lineage with profile expansion and retain the finisher's duration context.
+        for (const request of comboOutcomeRequests(combo)) context.effects.emit(request);
       }
     },
 
