@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -73,7 +72,7 @@ const TETHER = 'guardian.dragonhunter.tether';
 
 const BURN = 'guardian.dragonhunter.tether-burn';
 
-/** Dragonhunter gates its attributed Aegis packet on actual recharge and retains Indomitable Courage tuning. */
+/** Ready passive occurrences emit skill-owned Aegis with Indomitable Courage tuning. */
 const couragePulse = createPassiveCourageTask({
   taskId: COURAGE,
   skillId: ID.SHIELD_OF_COURAGE,
@@ -84,20 +83,25 @@ const couragePulse = createPassiveCourageTask({
   deliver(runtime, owner, effect) {
     const skill = runtime.helpers.skillsById.get(ID.SHIELD_OF_COURAGE)!;
     runtime.effects.emit({
-      kind: 'packet',
-      event: {
-        type: 'buff',
-        at: runtime.time,
+      kind: 'profile',
+      profile: skill,
+      at: runtime.time,
+      attribution: {
         source: 'guardian',
         sourceId: skill.id,
         actorType: ACTOR.PLAYER,
         skillId: skill.id,
-        skillName: skill.name,
-        name: 'Shield of Courage - Passive Aegis',
-        kind: boonKey(BOON.AEGIS),
-        duration: effectNumber(owner, effect, 'duration'),
-        stacks: effectNumber(owner, effect, 'stacks')
-      }
+        skillName: skill.name
+      },
+      effects: [
+        {
+          type: 'boon',
+          boon: BOON.AEGIS,
+          duration: effectNumber(owner, effect, 'duration'),
+          stacks: effectNumber(owner, effect, 'stacks')
+        }
+      ],
+      transform: (event) => ({ ...event, name: 'Shield of Courage - Passive Aegis' })
     });
   }
 });

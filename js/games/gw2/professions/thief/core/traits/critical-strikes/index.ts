@@ -10,7 +10,6 @@ import { playerHealthFraction, skillForEvent, targetHealthFraction } from '#gw2/
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
-import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -310,6 +309,7 @@ function criticalBoonDefinition(source: BalanceProfileSource, traitId: SkillId) 
   if (!effect) return null;
 
   return {
+    profile: selectedProfile,
     boon: String(effect.boon),
     duration: effectNumber(selectedProfile, effect, 'duration'),
     stacks: effectNumber(selectedProfile, effect, 'stacks')
@@ -343,29 +343,27 @@ const unrelentingStrikesCriticalReaction = Object.freeze({
     key: TRAIT.UNRELENTING_STRIKES
   },
   handler: (context, event, _details, application) => {
-    // One invocation shares authored effects; each queued boon still samples live duration scaling.
+    // Each critical proc emits its selected profile; queued boons still sample live duration scaling.
     const definition = criticalBoonDefinition(context.helpers, TRAIT.UNRELENTING_STRIKES);
 
     if (!definition) return;
 
-    const { boon, duration, stacks } = definition;
+    const { profile, boon, duration, stacks } = definition;
     for (let proc = 0; proc < application.quantity; proc += 1) {
       context.effects.emit({
-        kind: 'packet',
-        event: buildResolverBuff({
-          at: event.at,
+        kind: 'profile',
+        profile,
+        at: event.at,
+        attribution: {
           source: 'Trait',
           sourceId: TRAIT.UNRELENTING_STRIKES,
           actorType: ACTOR.EFFECT,
           skillId: TRAIT.UNRELENTING_STRIKES,
           skillName: 'Unrelenting Strikes',
-          name: `Unrelenting Strikes - ${boon}`,
-          kind: boon.toLowerCase(),
-          duration,
-          stacks,
-          audience: { recipients: RECIPIENT.PARTY },
           triggeredBy: event.skillName
-        }),
+        },
+        effects: [{ type: 'boon', boon, duration, stacks, audience: { recipients: RECIPIENT.PARTY } }],
+        transform: (packet) => ({ ...packet, name: `Unrelenting Strikes - ${boon}` }),
         durationContext: event
       });
     }
@@ -385,19 +383,23 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
   )
     return;
 
-  const extension: ThiefResolverEvent = {
-    type: 'boon_extension',
-    at: event.at,
+  const attribution = {
     source: 'Trait',
     sourceId: TRAIT.NO_QUARTER,
     actorType: ACTOR.EFFECT,
     skillId: TRAIT.NO_QUARTER,
-    skillName: 'No Quarter',
-    kind: boonKey(BOON.FURY),
-    duration
+    skillName: 'No Quarter'
   };
-  // Extension settles in the hit transaction before subsequent critical reactions inspect Fury.
-  context.effects.emit({ kind: 'packet', event: extension, cause: event, settlement: 'reaction' });
+  // Each extension is a complete critical proc and settles before subsequent reactions inspect Fury.
+  context.effects.emit({
+    kind: 'profile',
+    profile: requireBalanceProfile(context.helpers, TRAIT.NO_QUARTER),
+    at: event.at,
+    attribution,
+    effects: [{ type: 'custom', eventType: 'boon_extension', event: { kind: boonKey(BOON.FURY), duration } }],
+    cause: event,
+    settlement: 'reaction'
+  });
   context.effects.emit({
     kind: 'announcement',
     cause: event,

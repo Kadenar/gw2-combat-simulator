@@ -232,6 +232,7 @@ test('Evolve grants each selected protocol strain without leaking it to casts', 
   );
 
   assert.equal(berserker.stacks, 5);
+  assert.equal(berserker.name, berserker.skillName);
   assert.equal(berserker.duration, 8);
   assert.equal(
     result.planningState.profession[STATE.BERSERKER_UNTIL],
@@ -291,6 +292,39 @@ test('Hardened Chrome and New Genes grant the requested morph boons', () => {
   const protection = evolve.events.find((event) => event.type === 'buff' && event.sourceId === TRAIT.HARDENED_CHROME);
 
   assert.equal(protection.duration, 4);
+});
+
+// Morph and Evolve contribute different yields to the same recurring protection source.
+test('Hardened Chrome estimates its mixed trigger yields without losing the final grant', () => {
+  const result = simulate(
+    'Amalgam',
+    [
+      { type: 'combat-start' },
+      77103,
+      { type: 'wait', durationMs: 10000 },
+      'Evolve',
+      { type: 'wait', durationMs: 30000 },
+      77103,
+      { type: 'wait', durationMs: 1000 }
+    ],
+    { selectedTraitIds: [TRAIT.HARDENED_CHROME] }
+  );
+  assert.deepEqual(result.warnings, []);
+  const grants = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.sourceId === TRAIT.HARDENED_CHROME
+  );
+  const sample = result.boonGeneration.sustained.protection.self;
+  assert.ok(grants.every((event) => event.name === 'Hardened Chrome'));
+  assert.equal(sample.status, 'available');
+  assert.equal(sample.intervals, 2);
+  assert.equal(sample.sources.length, 1);
+  const duration = grants.slice(0, -1).reduce((sum, event) => sum + event.duration, 0);
+  const elapsed = grants.at(-1).boonGeneration.at - grants[0].boonGeneration.at;
+  assert.ok(Math.abs(sample.percent - (duration / elapsed) * 100) < 1e-9);
+  assert.equal(
+    result.boonGeneration.boons.protection.self.generatedStackSeconds,
+    grants.reduce((sum, event) => sum + event.duration, 0)
+  );
 });
 
 test('Carbolic Composition poisons only Amalgam skill hits', () => {
@@ -429,6 +463,47 @@ test('Silver Lining moves strain activation from Evolve to each morph', () => {
     false
   );
 });
+
+// Both strain triggers must retain distinct occurrences while the final grant still contributes normal supply.
+for (const silver of [false, true]) {
+  test(`Predator Strain estimates repeated ${silver ? 'Silver Lining morphs' : 'Evolve grants'}`, () => {
+    const action = silver ? ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103 : ID.EVOLVE_BASE;
+    const result = simulate(
+      'Amalgam',
+      [
+        { type: 'combat-start' },
+        action,
+        { type: 'wait', durationMs: 50000 },
+        action,
+        { type: 'wait', durationMs: 50000 },
+        action,
+        { type: 'wait', durationMs: 1000 }
+      ],
+      {
+        selectedTraitIds: silver ? [TRAIT.SILVER_LINING] : []
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const grants = result.resolvedEvents.filter(
+      (event) => event.type === 'buff' && event.kind === 'quickness' && event.sourceId === 'engineer.predator-strain'
+    );
+    assert.ok(grants.every((event) => event.boonGeneration));
+    assert.equal(new Set(grants.map((event) => event.boonGeneration.activationId)).size, grants.length);
+    const estimate = result.boonGeneration.sustained.quickness;
+    assert.equal(estimate.self.status, 'available');
+    assert.equal(estimate.self.intervals, 2);
+    assert.deepEqual(estimate.self.sources[0].reasons, []);
+    const completedDuration = grants.slice(0, -1).reduce((sum, event) => sum + event.duration, 0);
+    const elapsed = grants.at(-1).boonGeneration.at - grants[0].boonGeneration.at;
+    assert.ok(Math.abs(estimate.self.percent - (completedDuration / elapsed) * 100) < 1e-9);
+    assert.equal(
+      result.boonGeneration.boons.quickness.self.generatedStackSeconds,
+      grants.reduce((sum, event) => sum + event.duration, 0)
+    );
+    assert.equal(estimate.ally.percent, 0);
+    assert.deepEqual(estimate.ally.sources, []);
+  });
+}
 
 test('Mercurial Tendencies reduces Evolve recharge after control', () => {
   const selectedMorphSkillIds = [76815, 76866, 76954];

@@ -1,9 +1,5 @@
 import { ACTOR, type ComboFinisherType, type SimulationActorType } from '#gw2/platform/constants.js';
-import {
-  buildResolverBuff,
-  buildResolverCondition,
-  buildResolverStrike
-} from '#gw2/platform/effects/packet-builders.js';
+import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { EngineerResolverContext, EngineerResolverEvent, EngineerSkill } from '#gw2/professions/engineer/types.js';
@@ -25,13 +21,6 @@ interface QueueDamageOptions {
     readonly applications?: number;
     readonly successfulCombos?: number;
   };
-}
-
-interface QueueBuffOptions {
-  readonly name: string;
-  readonly kind: string;
-  readonly stacks: number;
-  readonly duration: number;
 }
 
 interface ApplyConditionOptions {
@@ -102,24 +91,6 @@ export function buildEngineerStrike(
           ]
         }
       : {}),
-    triggeredBy: event.skillName
-  });
-}
-
-/** Builds a player-owned buff from the triggering skill; shared delivery samples duration when the grant executes. */
-export function buildEngineerBuff(
-  event: EngineerResolverEvent,
-  { name, kind, stacks, duration }: QueueBuffOptions
-): SimulationEventBase {
-  return buildResolverBuff({
-    at: event.at,
-    skillName: name,
-    kind,
-    stacks,
-    duration,
-    source: 'engineer',
-    sourceId: event.skillId ?? event.sourceId,
-    actorType: ACTOR.PLAYER,
     triggeredBy: event.skillName
   });
 }

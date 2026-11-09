@@ -1,7 +1,7 @@
 /** Resolves Inspiring Imagery's mutually exclusive boon expiry and offensive detonation. */
 import { ACTOR, COMBO_FINISHER } from '#gw2/platform/constants.js';
+import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -38,28 +38,32 @@ export function detonateInspiringImagery(context: MesmerRuntime, cast: RuntimeCa
   });
 }
 
-/** Only the matching live image can resolve its natural boon explosion. */
+/** Only the matching live image emits its boon profile, attributed to the original cast. */
 export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
   if (!context.expireFlip(ID.ABSTRACTION, cast.id)) return;
 
-  for (const effect of cast.skill.effects ?? [])
-    if (effect.type === 'boon') {
-      const packet = buildMesmerPacket({
-        type: 'buff',
-        at: context.time,
-        activationId: cast.id,
-        source: 'mesmer',
-        sourceId: cast.skill.id,
-        skillId: cast.skill.id,
-        skillName: cast.skill.name,
-        kind: String(effect.boon).toLowerCase(),
+  context.effects.emit({
+    kind: 'profile',
+    profile: cast.skill,
+    at: context.time,
+    cast: { activationId: cast.id, skillId: cast.skill.id },
+    attribution: {
+      activationId: cast.id,
+      source: 'mesmer',
+      sourceId: cast.skill.id,
+      actorType: ACTOR.PLAYER,
+      skillId: cast.skill.id,
+      skillName: cast.skill.name
+    },
+    // Expiry owns delivery time; the skill's cast-relative delay has already elapsed.
+    effects: (cast.skill.effects ?? [])
+      .filter((effect): effect is StatusEffect => effect.type === 'boon')
+      .map<StatusEffect>((effect) => ({
+        type: 'boon',
+        boon: effect.boon,
         stacks: effect.stacks ?? 1,
         duration: effect.duration,
         audience: effect.audience
-      });
-      context.effects.emit({
-        kind: 'packet',
-        event: packet
-      });
-    }
+      }))
+  });
 }

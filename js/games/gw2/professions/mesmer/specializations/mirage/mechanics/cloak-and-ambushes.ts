@@ -20,7 +20,7 @@ import {
 import { NON_MIRAGE_AXE_SKILL_IDS } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { buildMirageCloneBoon } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
+import { mirageCloneBoonRequest } from '#gw2/professions/mesmer/specializations/mirage/mechanics/boons.js';
 import {
   mirageAmbushAccepted,
   mirageCloakGranted,
@@ -393,12 +393,11 @@ export function executeMirageCloneAmbushPackets(
       });
     }
 
-    for (const boon of ambush.clone.boons || []) {
-      const packet = buildMirageCloneBoon(impactAt, boon, ambush, clone.id);
+    if (ambush.clone.boons?.length) {
+      // Emit the clone's complete boon yield together under its delivery owner.
       state.effects.emit({
         ...delivery,
-        kind: 'packet',
-        event: packet
+        ...mirageCloneBoonRequest(impactAt, ambush.clone.boons, ambush, clone.id)
       });
     }
   }

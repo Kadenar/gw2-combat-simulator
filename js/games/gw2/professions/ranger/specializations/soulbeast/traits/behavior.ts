@@ -1,8 +1,9 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
+import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
-import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime } from '#gw2/professions/ranger/types.js';
 
@@ -20,12 +21,11 @@ export function leaderOfThePackStance(
   };
 }
 
-// Essence of Speed reacts to each quickness application and extends all other boons by 2 s, with a 5 s ICD.
-// Quickness itself is excluded from the extension to prevent runaway stacking.
+/** Each eligible Quickness grant emits a trait-owned extension profile that excludes Quickness itself. */
 export function essenceOfSpeedExtension(
   context: RangerResolverContext,
   event: Gw2ResolverEvent
-): Gw2ResolverEvent | null {
+): ProfileEmission | null {
   if (
     event.kind !== boonKey(BOON.QUICKNESS) ||
     !event.resolvedAudience?.includesSelf ||
@@ -36,14 +36,25 @@ export function essenceOfSpeedExtension(
   }
 
   return {
-    type: 'boon_extension',
+    kind: 'profile',
+    profile: requireBalanceProfile(context.helpers, TRAIT.ESSENCE_OF_SPEED),
     at: event.at,
-    source: 'Trait',
-    sourceId: TRAIT.ESSENCE_OF_SPEED,
-    actorType: ACTOR.EFFECT,
-    skillId: TRAIT.ESSENCE_OF_SPEED,
-    skillName: 'Essence of Speed',
-    duration: balanceNumber(context.helpers, TRAIT.ESSENCE_OF_SPEED, 'duration'),
-    excludedKind: boonKey(BOON.QUICKNESS)
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.ESSENCE_OF_SPEED,
+      actorType: ACTOR.EFFECT,
+      skillId: TRAIT.ESSENCE_OF_SPEED,
+      skillName: 'Essence of Speed'
+    },
+    effects: [
+      {
+        type: 'custom',
+        eventType: 'boon_extension',
+        event: {
+          duration: balanceNumber(context.helpers, TRAIT.ESSENCE_OF_SPEED, 'duration'),
+          excludedKind: boonKey(BOON.QUICKNESS)
+        }
+      }
+    ]
   };
 }

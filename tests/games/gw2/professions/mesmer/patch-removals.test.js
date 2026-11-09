@@ -57,6 +57,14 @@ test('Chaos Storm profile edits and removal reach combat and tooltip consumers',
   );
   assert.ok(applications.length > 0);
   assert.ok(applications.every((event) => event.duration === 9));
+  // Poison selection keeps the accepted cast's ownership through shared profile expansion.
+  const cast = result.steps.find((step) => step.skillId === ID.CHAOS_STORM);
+  assert.ok(
+    applications.every(
+      (event) =>
+        event.activationId === cast.activationId && event.sourceId === ID.CHAOS_STORM && event.actorType === 'player'
+    )
+  );
 
   const removed = {
     [ID.CHAOS_STORM]: { sideEffects: { poison: { removeEffects: [{ type: 'condition', name: 'Poison' }] } } }

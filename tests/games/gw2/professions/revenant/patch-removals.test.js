@@ -385,3 +385,47 @@ test('Core Value adds its patched extension to Dragon True Nature', () => {
   assert.deepEqual(result.warnings, []);
   assert.equal(result.events.find((event) => event.type === 'boon_extension').duration, 6);
 });
+
+// Extension supply uses its own repeated casts and only extends boons present on each recipient.
+test('True Nature extensions retain cast attribution for sustained generation', () => {
+  const result = runRevenant(
+    [
+      { type: 'combat-start' },
+      ...[30000, 30000, 1000].flatMap((durationMs) => [
+        'Facet of Nature',
+        ID.TRUE_NATURE_DRAGON,
+        { type: 'wait', durationMs }
+      ])
+    ],
+    {
+      specialization: 'Herald',
+      selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
+      startingLegend: LEGEND.DRAGON,
+      selectedTraitIds: [TRAIT.CORE_VALUE]
+    },
+    {
+      initialize(runtime) {
+        for (const at of [0, 30, 60])
+          runtime.effects.emit({
+            kind: 'profile',
+            at,
+            profile: { id: 'fixture', name: 'Fixture' },
+            effects: [{ type: 'boon', boon: 'quickness', duration: 30, audience: { recipients: 'party' } }],
+            attribution: { source: 'fixture', sourceId: 'fixture', actorType: 'player' }
+          });
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  const extensions = result.resolvedEvents.filter((event) => event.type === 'boon_extension');
+  assert.ok(extensions.every((event) => event.boonGeneration.activationId === event.activationId));
+  const duration = extensions.slice(0, -1).reduce((sum, event) => sum + event.duration, 0);
+  const elapsed = extensions.at(-1).boonGeneration.at - extensions[0].boonGeneration.at;
+  for (const audience of ['self', 'ally']) {
+    const estimate = result.boonGeneration.sustained.quickness[audience];
+    assert.equal(estimate.status, 'available');
+    const source = estimate.sources.find((source) => source.name === extensions[0].name);
+    assert.equal(source.intervals, 2);
+    assert.ok(Math.abs(source.percent - (duration / elapsed) * 100) < 1e-9);
+  }
+});

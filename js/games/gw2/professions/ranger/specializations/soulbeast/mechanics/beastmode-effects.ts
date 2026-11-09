@@ -212,11 +212,11 @@ export function reactToSoulbeastDamage(context: RangerResolverContext, event: Gw
   context.fireTrigger(mergedBeastHit, { event });
 }
 
-/** Quickness extends existing boons once; shared attacks wait for an actual combat boundary. */
+/** Each eligible Quickness grant owns one extension proc; shared attacks wait for combat. */
 export function reactToSoulbeastBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const extension = essenceOfSpeedExtension(context, event);
 
-  if (extension) context.effects.emit({ kind: 'packet', event: extension });
+  if (extension) context.effects.emit(extension);
 
   scheduleSharedStance(context, event);
 }

@@ -2,7 +2,6 @@
  * Owns Holosmith sword skill definitions and heat-aware sword variants.
  * Sword cast behavior shared with Core lives in `core/hooks.ts`.
  */
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -13,7 +12,6 @@ import { cancelledBeforeInterruptCommit } from '#gw2/platform/execution/cast-eff
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
-import { buildEngineerBuff } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import type { HolosmithResolverEvent } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import {
@@ -284,16 +282,28 @@ export const HOLOSMITH_SWORD_SKILL_MECHANICS: Readonly<Record<string, HolosmithS
   }
 };
 
-/** Resolves the heat-scaled Quickness packet emitted by Holosmith's Radiant Arc variant. */
+/** Radiant Arc emits its computed heat-scaled boon through the skill's profile. */
 function handleRadiantArcQuickness(context: EngineerResolverContext, event: HolosmithResolverEvent): void {
   context.effects.emit({
-    kind: 'packet',
-    event: buildEngineerBuff(event, {
-      name: 'Radiant Arc - quickness',
-      kind: boonKey(BOON.QUICKNESS),
-      stacks: 1,
-      duration: requireBalanceNumber(event.duration, 'Radiant Arc field=duration')
-    }),
+    kind: 'profile',
+    profile: requireSkill(context.helpers, ID.RADIANT_ARC),
+    at: event.at,
+    attribution: {
+      source: 'engineer',
+      sourceId: event.skillId ?? event.sourceId,
+      actorType: ACTOR.PLAYER,
+      skillName: 'Radiant Arc - quickness',
+      triggeredBy: event.skillName
+    },
+    effects: [
+      {
+        type: 'boon',
+        boon: BOON.QUICKNESS,
+        stacks: 1,
+        duration: requireBalanceNumber(event.duration, 'Radiant Arc field=duration')
+      }
+    ],
+    transform: (packet) => ({ ...packet, name: 'Radiant Arc - quickness' }),
     durationContext: event
   });
 }

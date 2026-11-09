@@ -145,6 +145,7 @@ test('Resounding Timbre copies live boon pools and rejects other recipients and 
   assert.equal(boons[1].duration, 5);
   assert.equal(boons[2].duration, 27);
   for (const event of boons) {
+    assert.ok(event.boonGeneration, 'Copied boons retain their granting activation');
     assert.equal(event.resolvedAudience.includesSelf, false);
     assert.deepEqual(event.resolvedAudience.companionIds, [petId]);
   }
@@ -299,6 +300,7 @@ test('merged Lesser Sic Em extends player boons through Resounding Timbre', () =
   const effects = result.events.filter((event) => event.sourceId === TRAIT.RESOUNDING_TIMBRE);
   assert.equal(effects.length, 1);
   assert.equal(effects[0].type, 'boon_extension');
+  assert.ok(effects[0].boonGeneration, 'Merged extensions retain their granting activation');
   assert.equal(effects[0].duration, 2);
   assert.equal(remainingDurationStackSeconds(observedRuntime(result).boons.get('vigor'), 3), 9);
 });
@@ -500,6 +502,10 @@ test('We Heal As One snapshots distinct audiences, intensity stacks, and boon li
   });
   const applications = copied(result);
   const self = applications.filter((event) => event.resolvedAudience.includesSelf);
+  assert.ok(
+    applications.every((event) => event.boonGeneration),
+    'Both copied audiences retain activation lineage'
+  );
   const pet = applications.filter((event) => event.resolvedAudience.includesSummons);
   assert.deepEqual(self.map((event) => [event.kind, event.stacks]).sort(), [
     ['alacrity', 1],

@@ -18,8 +18,8 @@ import {
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { MECHANIST_ATTACK_TIMING } from '#gw2/professions/engineer/specializations/mechanist/mechanics/constants.js';
 import { isEngineerMechCommand } from '#gw2/professions/engineer/specializations/mechanist/mechanics/mech-queries.js';
@@ -181,7 +181,7 @@ function emitMechAttack(context: EngineerRuntime, skillId: SkillId, at: number):
   });
 }
 
-/** Shift Signet copies only actual player applications, retaining their already-scaled duration. */
+/** Shift Signet emits copied boons through its profile, retaining their already-scaled duration. */
 export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerResolverEvent): void {
   // Copy applications, not live player state: already-copied boons survive Shift going on cooldown.
   if (
@@ -190,23 +190,31 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
     event.resolvedAudience?.includesSelf &&
     shiftSignetPassive(context, event.at)
   ) {
-    buildEngineerPackets('buff', {
+    context.effects.emit({
+      kind: 'profile',
+      profile: requireSkill(context.helpers, ID.SHIFT_SIGNET),
       at: event.at,
-      source: 'engineer',
-      sourceId: ID.SHIFT_SIGNET,
-      actorType: ACTOR.PLAYER,
-      name: `Shift Signet - ${event.kind}`,
-      kind: String(event.kind),
-      stacks: event.stacks || 1,
-      duration: event.duration || 0,
-      fixedDuration: true,
-      audience: {
-        recipients: RECIPIENT.SUMMONS,
-        affectsSelf: false,
-        maximumRecipients: 1,
-        eligibleCompanionIds: ['engineer.mech']
-      }
-    }).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
+      attribution: {
+        source: 'engineer',
+        sourceId: ID.SHIFT_SIGNET,
+        actorType: ACTOR.PLAYER
+      },
+      effects: [
+        {
+          type: 'boon',
+          boon: String(event.kind),
+          stacks: event.stacks || 1,
+          duration: event.duration || 0,
+          audience: {
+            recipients: RECIPIENT.SUMMONS,
+            affectsSelf: false,
+            maximumRecipients: 1,
+            eligibleCompanionIds: ['engineer.mech']
+          }
+        }
+      ],
+      transform: (packet) => ({ ...packet, name: `Shift Signet - ${event.kind}`, fixedDuration: true })
+    });
   }
 }
 

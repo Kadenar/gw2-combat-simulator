@@ -201,6 +201,12 @@ test('Leader of the Pack shares half the extended stance window with independent
     const applications = result.events.filter((event) => event.type === 'buff' && event.skillId === skillId);
     const personal = applications.find((event) => event.resolvedAudience.includesSelf);
     const shared = applications.find((event) => !event.resolvedAudience.includesSelf);
+    // Shared and personal windows belong to one occurrence despite their independent recipients and durations.
+    assert.ok(personal.boonGeneration);
+    assert.equal(personal.name, rangerCatalog.skillsById.get(skillId).name);
+    assert.equal(shared.name, personal.name);
+    assert.equal(shared.boonGeneration.activationId, personal.boonGeneration.activationId);
+    assert.equal(shared.sourceId, personal.sourceId);
     assert.ok(Math.abs(personal.duration - 7.2) < 1e-9);
     assert.equal(shared.duration, personal.duration * 0.5);
     assert.equal(shared.resolvedAudience.alliedPlayerCount, 2);

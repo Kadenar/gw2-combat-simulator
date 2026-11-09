@@ -15,6 +15,41 @@ import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js'
 import { runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { paletteInputFixture } from '#tests/helpers/palette.js';
 
+// Tale grants retain the named skill and cast occurrence instead of sharing an anonymous buff source.
+test('repeated Soulkeeper Tales expose attributed sustained Quickness for self and allies', () => {
+  const result = simulateMesmer(
+    [
+      { type: 'combat-start' },
+      ...[0, 1, 2].flatMap(() => ['Tale of the Soulkeeper', { type: 'wait', durationMs: 20000 }])
+    ],
+    { specialization: 'Troubadour', selectedTraitIds: [], boons: {} }
+  );
+  assert.deepEqual(result.warnings, []);
+  const grants = result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'quickness');
+  assert.ok(grants.length >= 2);
+  // Measure the observed yield and cadence so changes to Tale balance do not invalidate attribution checks.
+  const generated = grants.reduce((sum, event) => sum + event.duration, 0);
+  const repeatSeconds = grants.at(-1).boonGeneration.at - grants[0].boonGeneration.at;
+  const sustained = ((generated - grants.at(-1).duration) / repeatSeconds) * 100;
+  for (const audience of ['self', 'ally']) {
+    const estimate = result.boonGeneration.sustained.quickness[audience];
+    assert.ok(Math.abs(estimate.percent - sustained) < 1e-9);
+    assert.equal(estimate.intervals, 2);
+    assert.deepEqual(
+      estimate.sources.map((source) => source.name),
+      ['Tale of the Soulkeeper']
+    );
+    assert.equal(result.boonGeneration.boons.quickness[audience].generatedStackSeconds, generated);
+  }
+
+  assert.ok(
+    grants.every(
+      (event) =>
+        event.sourceId === ID.TALE_OF_THE_SOULKEEPER && event.boonGeneration.activationId === event.activationId
+    )
+  );
+});
+
 // Trait-owned scheduling must keep honoring balance edits for both the disable proc and delayed wave.
 test('Syncopate reads patched damage from its trait profile', () => {
   const result = runMesmer(

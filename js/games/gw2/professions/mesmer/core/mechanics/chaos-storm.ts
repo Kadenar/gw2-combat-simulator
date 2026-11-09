@@ -1,6 +1,6 @@
+/** Emit the rolled poison sequence as one cast-attributed profile without changing its random draws. */
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
-import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
@@ -22,16 +22,20 @@ export function scheduleChaosStormPoison(context: MesmerRuntime, cast: RuntimeCa
 
   if (!ticks.length) return;
 
-  for (const application of materializeSkillEffectApplications({
-    skill,
-    effect: {
-      ...effect,
-      name: undefined,
-      ticks
-    },
-    start: castStart,
+  context.effects.emit({
+    ...mesmerCastDelivery(cast, skill, Infinity),
+    kind: 'profile',
+    profile: skill,
+    effects: [
+      {
+        ...effect,
+        name: undefined,
+        ticks
+      }
+    ],
+    at: castStart,
     fullEnd: castEnd,
-    baseEvent: {
+    attribution: {
       activationId,
       source: 'Player',
       sourceId: skill.id,
@@ -39,7 +43,5 @@ export function scheduleChaosStormPoison(context: MesmerRuntime, cast: RuntimeCa
       skillId: skill.id,
       skillName: skill.name
     }
-  })) {
-    context.effects.emit({ ...mesmerCastDelivery(cast, skill, Infinity), kind: 'packet', event: application.event });
-  }
+  });
 }

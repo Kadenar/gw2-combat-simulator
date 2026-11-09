@@ -1,3 +1,4 @@
+/** Trait grants retain finite profile occurrences alongside their existing source and duration rules. */
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -17,7 +18,6 @@ import {
   requireEffect,
   requireSkill
 } from '#gw2/platform/skills/balance-profiles.js';
-import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import {
   amalgamStruck,
@@ -245,21 +245,29 @@ function grantHardenedChrome(context: EngineerRuntime, durationField: 'minimumSt
     id: TRAIT.HARDENED_CHROME,
     name: 'Hardened Chrome'
   };
-  buildEngineerPackets(
-    'buff',
-    {
-      at: context.time,
+  context.effects.emit({
+    kind: 'profile',
+    profile: sourceSkill,
+    at: context.time,
+    effects: [
+      {
+        type: 'boon',
+        boon: BOON.PROTECTION,
+        name: 'Hardened Chrome',
+        duration: balanceNumber(context.helpers, TRAIT.HARDENED_CHROME, durationField),
+        stacks: 1
+      }
+    ],
+    attribution: {
       source: 'engineer',
       sourceId: TRAIT.HARDENED_CHROME,
       actorType: ACTOR.PLAYER,
-      skillName: 'Hardened Chrome',
-      name: 'Hardened Chrome',
-      kind: boonKey(BOON.PROTECTION),
-      duration: balanceNumber(context.helpers, TRAIT.HARDENED_CHROME, durationField),
-      stacks: 1
+      skillId: sourceSkill.id,
+      skillName: 'Hardened Chrome'
     },
-    sourceSkill
-  ).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
+    // Buff packets retain the granting trait's display name.
+    transform: (event) => ({ ...event, name: 'Hardened Chrome' })
+  });
 }
 
 /** Silver Lining applies the committed protocol's strain at Morph time. */

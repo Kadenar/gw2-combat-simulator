@@ -36,7 +36,7 @@ export function heraldFacetPassiveActive(
   );
 }
 
-/** Only the current active or retained facet emits its boon pulse and schedules the next eligible pulse. */
+/** Each recurring passive emits its computed boon profile and schedules the next eligible pulse. */
 export function facetPulse(runtime: RevenantRuntime, data: unknown): void {
   const { skillId } = data as { skillId: SkillId };
   const state = heraldState.from(runtime.profession);
@@ -51,21 +51,26 @@ export function facetPulse(runtime: RevenantRuntime, data: unknown): void {
   if (!skill || !pulse) return;
 
   runtime.effects.emit({
-    kind: 'packet',
-    event: {
-      type: 'buff',
-      at: runtime.time,
+    kind: 'profile',
+    profile: skill,
+    at: runtime.time,
+    attribution: {
       source: 'revenant',
       sourceId: skill.id,
       actorType: ACTOR.PLAYER,
       skillId: skill.id,
-      skillName: skill.name,
-      name: `${skill.name} - ${pulse.kind}`,
-      kind: pulse.kind,
-      duration: pulse.duration,
-      stacks: pulse.stacks,
-      audience: { recipients: RECIPIENT.PARTY }
-    }
+      skillName: skill.name
+    },
+    effects: [
+      {
+        type: 'boon',
+        boon: pulse.kind,
+        duration: pulse.duration,
+        stacks: pulse.stacks,
+        audience: { recipients: RECIPIENT.PARTY }
+      }
+    ],
+    transform: (event) => ({ ...event, name: `${skill.name} - ${pulse.kind}` })
   });
   const next = canonicalTime(runtime.time + canonicalInterval(skill.pulseInterval ?? 3));
 

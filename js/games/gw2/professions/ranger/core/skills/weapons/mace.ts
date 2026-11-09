@@ -9,6 +9,7 @@ import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -271,22 +272,22 @@ export const maceLifecycle = {
         [boonKey(BOON.STABILITY), 'Force of Nature', runtime.time, 5, 5],
         [TAPPED_OUT, 'Tapped Out', runtime.time + 5, 10, 1]
       ] as const) {
+        // State windows and their Stability grant share the skill's profile emission path.
         runtime.effects.emit({
-          kind: 'packet',
-          event: buildResolverBuff({
-            at,
+          kind: 'profile',
+          profile: requireSkill(runtime.helpers, event.skillId!),
+          at,
+          attribution: {
             source: 'ranger',
             sourceId: event.skillId!,
             actorType: ACTOR.PLAYER,
             skillId: event.skillId,
             skillName: name,
             triggeredBy: event.triggeredBy,
-            activationId: event.activationId,
-            kind,
-            duration,
-            stacks,
-            audience: { recipients: RECIPIENT.SELF }
-          })
+            activationId: event.activationId
+          },
+          effects: [{ type: 'buff', kind, duration, stacks, audience: { recipients: RECIPIENT.SELF } }],
+          transform: (packet) => ({ ...packet, name })
         });
       }
     }

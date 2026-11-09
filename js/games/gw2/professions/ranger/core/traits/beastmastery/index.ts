@@ -19,7 +19,6 @@ import {
   requireEffect,
   requireSkill
 } from '#gw2/platform/skills/balance-profiles.js';
-import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { rangerProfileEffectRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import {
@@ -324,32 +323,34 @@ function applyRangerCommandTraits(
 
     if (!stacks) continue;
 
-    // Copied durations already include the original caster's boon duration.
+    // The trait profile owns the copied yield; its duration already includes the original caster's bonus.
     context.effects.emit({
-      kind: 'packet',
-      event: buildRangerPacket(
+      kind: 'profile',
+      profile: requireBalanceProfile(context.helpers, TRAIT.RESOUNDING_TIMBRE),
+      at,
+      attribution: {
+        source: 'Trait',
+        sourceId: TRAIT.RESOUNDING_TIMBRE,
+        actorType: ACTOR.EFFECT,
+        skillId: TRAIT.RESOUNDING_TIMBRE,
+        skillName: 'Resounding Timbre',
+        triggeredBy: skill.name
+      },
+      effects: [
         {
-          at,
-          source: 'Trait',
-          sourceId: TRAIT.RESOUNDING_TIMBRE,
-          actorType: ACTOR.EFFECT,
-          skillId: TRAIT.RESOUNDING_TIMBRE,
-          skillName: 'Resounding Timbre',
-          name: `Resounding Timbre - ${kind}`,
-          kind,
+          type: 'boon',
+          boon: kind,
           duration,
-          fixedDuration: true,
           stacks,
           audience: {
             recipients: RECIPIENT.SUMMONS,
             affectsSelf: false,
             maximumRecipients: 1,
             eligibleCompanionIds: [rangerPetCompanionId(context)]
-          },
-          triggeredBy: skill.name
-        },
-        'buff'
-      )
+          }
+        }
+      ],
+      transform: (event) => ({ ...event, name: `Resounding Timbre - ${kind}`, fixedDuration: true })
     });
   }
 }
@@ -465,7 +466,7 @@ function triggerMergedWiltingStrike(context: RangerResolverContext, event: Gw2Re
     context.effects.emit(rangerProfileEffectRequest(event, profile, weakness, TRAIT.WILTING_STRIKE, 'Wilting Strike'));
 }
 
-/** Extends player boons for a completed command only at the merged Soulbeast boundary. */
+/** Completed merged commands emit a trait-owned extension profile with the command's modifier context. */
 function applyMergedResoundingTimbre(
   runtime: RangerRuntime | RangerResolverContext,
   skill: Pick<RangerSkill, 'id' | 'skillFamily'>,
@@ -473,16 +474,25 @@ function applyMergedResoundingTimbre(
 ): void {
   if (skill.skillFamily === 'Command')
     runtime.effects.emit({
-      kind: 'packet',
-      event: buildRangerPacket(
+      kind: 'profile',
+      profile: requireBalanceProfile(runtime.helpers, TRAIT.RESOUNDING_TIMBRE),
+      at,
+      attribution: {
+        source: 'ranger',
+        actorType: ACTOR.PLAYER,
+        sourceId: TRAIT.RESOUNDING_TIMBRE,
+        skillId: skill.id,
+        skillName: 'Resounding Timbre'
+      },
+      effects: [
         {
-          at,
-          sourceId: TRAIT.RESOUNDING_TIMBRE,
-          skillId: skill.id,
-          skillName: 'Resounding Timbre',
-          duration: balanceNumber(runtime.helpers, TRAIT.RESOUNDING_TIMBRE, 'duration')
-        },
-        'boon_extension'
-      )
+          type: 'custom',
+          eventType: 'boon_extension',
+          event: {
+            name: 'Resounding Timbre',
+            duration: balanceNumber(runtime.helpers, TRAIT.RESOUNDING_TIMBRE, 'duration')
+          }
+        }
+      ]
     });
 }

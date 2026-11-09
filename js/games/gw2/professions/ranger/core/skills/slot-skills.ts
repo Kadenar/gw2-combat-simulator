@@ -709,33 +709,43 @@ function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>
           : player
       };
     });
+  const effects: StatusEffect[] = [];
   for (const { kind, duration, player, pet } of copies) {
-    const event = buildRangerPacket(
-      { at: runtime.time, skillId: cast.skill.id, skillName: cast.skill.name, activationId: cast.id, kind, duration },
-      'buff'
-    );
-
     if (pet > 0)
-      runtime.effects.emit({
-        kind: 'packet',
-        event: { ...event, stacks: pet, audience: { recipients: RECIPIENT.SELF } }
-      });
+      effects.push({ type: 'boon', boon: kind, duration, stacks: pet, audience: { recipients: RECIPIENT.SELF } });
 
     if (activePet && player > 0)
-      runtime.effects.emit({
-        kind: 'packet',
-        event: {
-          ...event,
-          stacks: player,
-          audience: {
-            recipients: RECIPIENT.SUMMONS,
-            affectsSelf: false,
-            maximumRecipients: 1,
-            eligibleCompanionIds: [activePet.id]
-          }
+      effects.push({
+        type: 'boon',
+        boon: kind,
+        duration,
+        stacks: player,
+        audience: {
+          recipients: RECIPIENT.SUMMONS,
+          affectsSelf: false,
+          maximumRecipients: 1,
+          eligibleCompanionIds: [activePet.id]
         }
       });
   }
+
+  // Both copied audiences belong to the completed heal's one observed activation.
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: cast.skill,
+    at: runtime.time,
+    cast: { activationId: cast.id, skillId: cast.skill.id },
+    attribution: {
+      source: 'ranger',
+      sourceId: cast.skill.id,
+      actorType: ACTOR.PLAYER,
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    },
+    effects,
+    transform: (event) => ({ ...event, name: cast.skill.name })
+  });
 }
 
 /** Solar Flare is the summon's child skill; each initial or repeated slam delivers its authored Burning. */

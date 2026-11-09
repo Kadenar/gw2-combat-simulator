@@ -331,22 +331,22 @@ export function applyAmalgamStrain(context: EngineerRuntime, skill: EngineerSkil
         state.berserkerUntil = Math.max(state.berserkerUntil || 0, at + effect.duration);
     }
 
-    // Resolve each strain's catalog identity before direct canonical status emission.
+    // Each strain grant is a finite occurrence; profile emission retains its yield lineage for sustained generation.
     const sourceSkill = context.helpers.skillsById.get(effect.sourceId) || { id: effect.sourceId, name: effect.name };
-    buildEngineerPackets(
-      'buff',
-      {
-        at,
+    context.effects.emit({
+      kind: 'profile',
+      profile: sourceSkill,
+      effects: [effect],
+      at,
+      attribution: {
         source: 'engineer',
         sourceId: effect.sourceId,
         actorType: ACTOR.PLAYER,
-        skillName: effect.name,
-        name: effect.name,
-        kind: String(effect.boon || effect.kind).toLowerCase(),
-        duration: effect.duration,
-        stacks: effect.stacks
+        skillId: sourceSkill.id,
+        skillName: effect.name
       },
-      sourceSkill
-    ).forEach((packet) => context.effects.emit({ kind: 'packet', event: packet }));
+      // Preserve the strain label for consumers that read the packet rather than its buff kind.
+      transform: (event) => ({ ...event, name: effect.name })
+    });
   }
 }

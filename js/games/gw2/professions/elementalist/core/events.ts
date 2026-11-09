@@ -1,7 +1,6 @@
 import { ACTOR, type ControlKind } from '#gw2/platform/constants.js';
 import type { EffectDelivery, PacketEmission, ProfileEmission } from '#gw2/platform/effects/emission.js';
 import {
-  buildResolverBuff,
   buildResolverCondition,
   proceduralSkillWeapon,
   splitStrikeHits
@@ -15,6 +14,7 @@ import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js
 /** Procedural packets retain explicit source identities and the owning cast's targeting policy. */
 type Packet = Partial<SimulationEventBase> & {
   fixedDuration?: boolean;
+  maximumDuration?: number;
   coefficient?: number;
   hits?: number;
   hitIndex?: number;
@@ -117,24 +117,34 @@ export function elementalistConditionRequest(
   };
 }
 
-/** Boon duration is sampled once when the shared service dispatches the application. */
+/** Computed grants use profile expansion for attribution; shared delivery samples their duration. */
 export function elementalistBuffRequest(
   packet: Packet & {
     kind: string;
     duration: number;
   },
   emissionCast?: EffectDelivery['cast']
-): PacketEmission {
+): ProfileEmission {
+  const attribution = fields(packet);
   return {
-    kind: 'packet',
+    kind: 'profile',
+    profile: packet.skill ?? { id: attribution.skillId ?? attribution.sourceId, name: attribution.skillName },
+    at: packet.at,
     cause: packet.cause,
     cast: emissionCast,
-    event: buildResolverBuff({
-      ...fields(packet),
-      kind: packet.kind,
-      duration: packet.duration,
-      stacks: packet.stacks ?? 1
-    })
+    attribution,
+    effects: [
+      {
+        type: 'buff',
+        kind: packet.kind,
+        duration: packet.duration,
+        stacks: packet.stacks ?? 1,
+        audience: packet.audience,
+        maximumDuration: packet.maximumDuration
+      }
+    ],
+    // Status updates may publish zero stacks; preserve that value and the existing packet label.
+    transform: (event) => ({ ...event, name: packet.name ?? attribution.skillName, stacks: packet.stacks ?? 1 })
   };
 }
 

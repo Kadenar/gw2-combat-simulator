@@ -25,9 +25,10 @@ import {
   WEAPON
 } from '#gw2/platform/constants.js';
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
-import { buildResolverBuff } from '#gw2/platform/effects/packet-builders.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
@@ -376,9 +377,10 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
     if (!(stacks > 0 && copy.duration > 0)) continue;
 
     remainingStacks -= stacks;
-    runtime.effects.emit({
-      kind: 'packet',
-      event: buildResolverBuff({
+    // Computed copies use the same profile path while preserving their remaining duration.
+    runtime.effects.emit(
+      elementalistBuffRequest({
+        skill: requireSkill(runtime.helpers, ID.HEAT_SYNC),
         at: event.at,
         source: event.source,
         sourceId: ID.HEAT_SYNC,
@@ -394,6 +396,6 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
         // The player received the original grant and must not receive the copied boons too.
         audience: { recipients: RECIPIENT.PARTY, affectsSelf: false, maximumRecipients: 5 }
       })
-    });
+    );
   }
 }

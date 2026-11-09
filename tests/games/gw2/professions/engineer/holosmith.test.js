@@ -35,6 +35,35 @@ const baseConfig = Object.freeze({
 
 const simulate = createObservedProfessionSimulator(engineerProfession, baseConfig);
 
+// Heat-scaled Quickness must retain a repeatable source without changing ordinary generation totals.
+test('Radiant Arc supplies attributed sustained Quickness from repeated impacts', () => {
+  const result = simulate(
+    'Holosmith',
+    [
+      { type: 'combat-start' },
+      ...[0, 1, 2].flatMap(() => [
+        { type: 'cast', skillId: ID.RADIANT_ARC },
+        { type: 'wait', durationMs: 20000 }
+      ])
+    ],
+    { primaryWeapon: 'Sword', selectedTraitIds: [], boons: {} }
+  );
+  assert.deepEqual(result.warnings, []);
+  const grants = result.resolvedEvents.filter(
+    (event) => event.type === 'buff' && event.sourceId === ID.RADIANT_ARC && event.kind === 'quickness'
+  );
+  const estimate = result.boonGeneration.sustained.quickness.self;
+  const priorYield = grants.slice(0, -1).reduce((sum, event) => sum + event.duration, 0);
+  assert.equal(estimate.status, 'available');
+  assert.ok(Math.abs(estimate.percent - (priorYield / (grants.at(-1).at - grants[0].at)) * 100) < 1e-9);
+  assert.ok(grants.every((event) => event.boonGeneration));
+  assert.equal(
+    result.boonGeneration.boons.quickness.self.generatedStackSeconds,
+    grants.reduce((sum, event) => sum + event.duration, 0)
+  );
+  assert.equal(result.boonGeneration.sustained.quickness.ally.percent, 0);
+});
+
 // Photon Projector owns intrinsic heat scaling even when an isolated run supplies no selected trait IDs.
 test('Photon Projector scales condition base duration independently of ordinary duration bonuses', () => {
   const native = engineerProfession.runtimeFor({ specialization: 'Holosmith', selectedTraitIds: [] });

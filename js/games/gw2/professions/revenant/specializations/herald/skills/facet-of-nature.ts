@@ -1,3 +1,4 @@
+/** Nature emissions preserve their source, with Dragon extensions grouped under their accepted cast. */
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
@@ -235,22 +236,31 @@ export function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast<Rev
   if (extension <= 0) return;
 
   runtime.effects.emit({
-    kind: 'packet',
-    event: {
-      type: 'boon_extension',
-      at: runtime.time,
+    kind: 'profile',
+    profile: cast.skill,
+    at: runtime.time,
+    cast: { activationId: cast.id, skillId: cast.skill.id },
+    attribution: {
       source: 'revenant',
       sourceId: cast.skill.id,
       actorType: ACTOR.PLAYER,
       skillId: cast.skill.id,
       skillName: cast.skill.name,
-      activationId: cast.id,
-      procType: 'boon-extension',
-      name: authored.name,
-      duration: extension,
-      ...(authored.audience ? { audience: authored.audience } : {}),
-      extensionAudience: 'all'
-    }
+      activationId: cast.id
+    },
+    effects: [
+      {
+        type: 'custom',
+        eventType: 'boon_extension',
+        event: {
+          procType: 'boon-extension',
+          name: authored.name,
+          duration: extension,
+          ...(authored.audience ? { audience: authored.audience } : {}),
+          extensionAudience: 'all'
+        }
+      }
+    ]
   });
 }
 

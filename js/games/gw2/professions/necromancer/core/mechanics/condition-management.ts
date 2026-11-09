@@ -159,24 +159,32 @@ function corruption(runtime: NecromancerRuntime, data: unknown): void {
         effectNumber(skill, effect, 'duration')
       );
     else if (effect.type === 'boon') {
-      const event = {
-        type: 'buff' as const,
+      // Profile expansion attributes the friendly grant while preserving self-condition ordering.
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: skill,
         at: runtime.time,
-        source: 'necromancer',
-        sourceId: skill.id,
-        actorType: ACTOR.PLAYER,
-        skillId: skill.id,
-        skillName: skill.name,
-        activationId: work.activationId,
-        kind: String(effect.boon).toLowerCase(),
-        duration: effectNumber(skill, effect, 'duration'),
-        stacks: effectNumber(skill, effect, 'stacks'),
-        audience:
-          effect.audience?.recipients === RECIPIENT.PARTY
-            ? { ...effect.audience, eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime) }
-            : effect.audience
-      };
-      runtime.effects.emit({ kind: 'packet', event: event, durationContext: event });
+        attribution: {
+          source: 'necromancer',
+          sourceId: skill.id,
+          actorType: ACTOR.PLAYER,
+          skillId: skill.id,
+          skillName: skill.name,
+          activationId: work.activationId
+        },
+        effects: [
+          {
+            type: 'boon',
+            boon: String(effect.boon),
+            duration: effectNumber(skill, effect, 'duration'),
+            stacks: effectNumber(skill, effect, 'stacks'),
+            audience:
+              effect.audience?.recipients === RECIPIENT.PARTY
+                ? { ...effect.audience, eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime) }
+                : effect.audience
+          }
+        ]
+      });
     }
   }
 }

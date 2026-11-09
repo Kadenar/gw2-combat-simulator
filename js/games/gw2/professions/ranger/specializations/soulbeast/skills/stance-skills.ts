@@ -1,8 +1,8 @@
+/** Stance profiles keep personal and shared applications under one occurrence with separate audiences. */
 import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
-import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { leaderOfThePackStance } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -82,29 +82,37 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
 /** Activate the ordinary personal stance, then deliver the trait-owned sharing policy. */
 export function activateSoulbeastStance(runtime: RangerRuntime, skill: Skill, kind: string, at: number): void {
   const { duration, sharedDuration } = leaderOfThePackStance(runtime, skillNumber(skill, 'duration'));
-  const application = {
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: skill,
     at,
-    source: 'ranger',
-    sourceId: skill.id,
-    actorType: ACTOR.PLAYER,
-    skillId: skill.id,
-    skillName: skill.name,
-    kind,
-    duration,
-    stacks: 1
-  };
-  runtime.effects.emit({ kind: 'packet', event: buildRangerPacket(application, 'buff') });
-
-  if (sharedDuration != null)
-    runtime.effects.emit({
-      kind: 'packet',
-      event: buildRangerPacket(
-        {
-          ...application,
-          duration: sharedDuration,
-          audience: { recipients: RECIPIENT.PARTY, affectsSelf: false, maximumRecipients: 4, eligibleCompanionIds: [] }
-        },
-        'buff'
-      )
-    });
+    attribution: {
+      source: 'ranger',
+      sourceId: skill.id,
+      actorType: ACTOR.PLAYER,
+      skillId: skill.id,
+      skillName: skill.name
+    },
+    effects: [
+      { type: 'buff', kind, duration, stacks: 1 },
+      ...(sharedDuration == null
+        ? []
+        : [
+            {
+              type: 'buff' as const,
+              kind,
+              duration: sharedDuration,
+              stacks: 1,
+              audience: {
+                recipients: RECIPIENT.PARTY,
+                affectsSelf: false,
+                maximumRecipients: 4,
+                eligibleCompanionIds: []
+              }
+            }
+          ])
+    ],
+    // Personal and shared stance packets retain the skill's display name.
+    transform: (event) => ({ ...event, name: skill.name })
+  });
 }

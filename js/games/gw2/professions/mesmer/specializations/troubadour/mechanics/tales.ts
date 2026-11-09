@@ -1,10 +1,10 @@
-import { RECIPIENT } from '#gw2/platform/constants.js';
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import { startTroubadourInstrument } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
@@ -19,29 +19,32 @@ interface TroubadourTaleInvocation {
   readonly skill: MesmerSkill;
   readonly at: number;
   readonly eligible: boolean;
+  readonly delivery: EffectDelivery;
 }
 
 /** Resolves a Tale's profile boons, eligible performance notes, and Troubadour trait effects together. */
-function resolveTroubadourTale({ context, skill, at, eligible }: TroubadourTaleInvocation): void {
+function resolveTroubadourTale({ context, skill, at, eligible, delivery }: TroubadourTaleInvocation): void {
   const action = requireSkillAction(skill, 'tale');
   const partyRecipients = { audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } };
 
-  for (const boon of action.effects.filter((effect): effect is StatusEffect => effect.type === 'boon')) {
-    const packet = buildMesmerPacket({
-      type: 'buff',
-      at,
-      kind: (boon.boon || '').toLowerCase(),
-      stacks: Number(boon.stacks),
-      duration: boon.duration,
-      skillName: skill.name,
-      sourceSkill: skill.name,
-      ...partyRecipients
-    });
-    context.effects.emit({
-      kind: 'packet',
-      event: packet
-    });
-  }
+  // A Tale owns all its grants, so unrelated Tales cannot collapse into an anonymous buff source.
+  context.effects.emit({
+    ...delivery,
+    kind: 'profile',
+    profile: skill,
+    at,
+    effects: action.effects
+      .filter((effect): effect is StatusEffect => effect.type === 'boon')
+      .map((boon) => ({ ...boon, ...partyRecipients })),
+    attribution: {
+      source: 'mesmer',
+      sourceId: skill.id,
+      skillId: skill.id,
+      actorType: ACTOR.PLAYER,
+      skillName: skill.name
+    },
+    transform: (event) => ({ ...event, name: skill.name, sourceSkill: skill.name })
+  });
 
   // Instrument eligibility gates only the note reward; the Tale still grants its boons and notifies traits without it.
   if (eligible && skill.tale) {
@@ -102,6 +105,7 @@ const troubadourTaleActions: NonNullable<RuntimeHooks<MesmerRuntimeState, Mesmer
       context: runtime,
       skill: context.skill,
       at: runtime.time,
+      delivery: mesmerCastDelivery(context.cast),
       eligible: Boolean(runtime.profession.core.castDetails.get(context.cast.id)?.taleEligible)
     });
   }

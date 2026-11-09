@@ -1,34 +1,37 @@
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
+import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import { mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
-import { buildMesmerPacket } from '#gw2/professions/mesmer/core/mechanics/packets.js';
 
-/** Clone ambush boons retain their caster identity and share spare recipient slots with living clones. */
-export function buildMirageCloneBoon(
+/** One clone ambush profile owns its boon yield and shares spare recipient slots with living clones. */
+export function mirageCloneBoonRequest(
   at: number,
-  boon: StatusEffect,
+  boons: readonly StatusEffect[],
   skill: { id: number; name: string },
   cloneId: number
-) {
+): ProfileEmission {
   const sourceSkill = `${skill.name} - Clone`;
-  return buildMesmerPacket({
-    type: 'buff',
+  return {
+    kind: 'profile',
+    profile: skill,
     at,
-    source: 'Clone',
-    actorType: ACTOR.SUMMON,
-    summonKind: 'clone',
-    summonOwner: mesmerCloneOwnerId(cloneId),
-    metadata: { cloneId },
-    skillId: skill.id,
-    sourceId: skill.id,
-    kind: (boon.boon || '').toLowerCase(),
-    stacks: Number(boon.stacks),
-    duration: boon.duration,
-    skillName: sourceSkill,
-    sourceSkill,
-    audience: {
-      recipients: RECIPIENT.PARTY,
-      maximumRecipients: 5
-    }
-  });
+    attribution: {
+      source: 'Clone',
+      actorType: ACTOR.SUMMON,
+      summonKind: 'clone',
+      metadata: { cloneId },
+      skillId: skill.id,
+      sourceId: skill.id,
+      skillName: sourceSkill
+    },
+    effects: boons.map((boon) => ({
+      type: 'boon',
+      boon: boon.boon,
+      stacks: Number(boon.stacks),
+      duration: boon.duration,
+      summonOwner: mesmerCloneOwnerId(cloneId),
+      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+    })),
+    transform: (event) => ({ ...event, sourceSkill })
+  };
 }
