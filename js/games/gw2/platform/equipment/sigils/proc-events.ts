@@ -49,8 +49,7 @@ export function createCriticalSigilRequest(
           stacks: proc.stacks,
           duration: requireBalanceNumber(proc.duration, `sigil.${id} boon duration`)
         }
-      ],
-      transform: (packet) => ({ ...packet, name: `Sigil of ${SIGIL_BY_ID[id].name}` })
+      ]
     };
 
   if (proc.effect === 'strike' || proc.effect === 'condition')

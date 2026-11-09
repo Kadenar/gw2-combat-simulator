@@ -1,5 +1,4 @@
 /** Completed shouts and commands grant personal Superspeed and party boons through normal effect resolution. */
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { BOON, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
@@ -33,14 +32,14 @@ export const tyrianHero = defineRelic({
         { type: 'buff', kind: STATUS.SUPERSPEED, duration: 3, stacks: 1, audience: { recipients: RECIPIENT.SELF } },
         {
           type: 'boon',
-          kind: boonKey(BOON.MIGHT),
+          boon: BOON.MIGHT,
           duration: 10,
           stacks: 2,
           audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
         },
         {
           type: 'boon',
-          kind: boonKey(BOON.SWIFTNESS),
+          boon: BOON.SWIFTNESS,
           duration: 10,
           stacks: 1,
           audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
