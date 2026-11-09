@@ -15,6 +15,7 @@ import { professionCoreState } from '#gw2/platform/profession-definition/state.j
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
+import { RECORD_OBSERVATION_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import {
   attributeBonusNumber,
   balanceNumber,
@@ -24,8 +25,8 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
+import { queueElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/attunement-transition.js';
 import { combatStarted, elementalistAnnouncement } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { observeElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { primaryAttunement } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import {
   attunementChanged,
@@ -106,8 +107,9 @@ export const freshAir = defineTrait({
         observeFreshAirCandidate(runtime, event)
     })
   ],
-  // Record the accepted proc once before the active elite observes its transition.
-  lifetime: { eventHandlers: { 'elementalist.fresh-air': observeElementalistTransition } }
+  // The family coordinator owns deferred consequences; this packet only records the accepted proc.
+  // Fresh Air remains observable after its consequences move to the transition task.
+  lifetime: { eventHandlers: { 'elementalist.fresh-air': RECORD_OBSERVATION_EVENT_HANDLER } }
 });
 
 export const zephyrsBoon = defineTrait({
@@ -476,19 +478,7 @@ function applyFreshAirCritical(
   if ((context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS.Air) ?? 0) > event.at)
     setElementalistAttunementReadyAt(context, 'Air', event.at);
 
-  context.effects.emit({
-    kind: 'packet',
-    cause: event,
-    event: {
-      type: 'elementalist.fresh-air',
-      at: event.at,
-      source: 'Fresh Air',
-      sourceId: 'Fresh Air',
-      actorType: ACTOR.EFFECT,
-      skillName: 'Fresh Air',
-      sourceSkill: event.skillName
-    }
-  });
+  queueElementalistTransition(context, { kind: 'fresh-air', at: event.at, sourceSkill: event.skillName }, event);
 }
 
 /** Only Fresh Air records future player strike wakes; this never predicts their critical result. */

@@ -1,5 +1,9 @@
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import type {
+  ElementalistEntryTransition,
+  ElementalistTransitionDelivery
+} from '#gw2/professions/elementalist/core/mechanics/attunement-transition.js';
 import type { ElementalistCastCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
@@ -12,16 +16,16 @@ export const evokerInitialized = defineTriggerPoint<Record<string, never>>('elem
   TRAIT.SPECIALIZED_ELEMENTS
 ]);
 
-/** Burning's passive reward follows actual attunement recharge handling and precedes enchantment consumption. */
+/** Burning's passive reward precedes enchantment consumption on accepted impacts. */
 export const evokerEventAccepted = defineTriggerPoint<EvokerEvent>('elementalist.evoker-event-accepted', [
   TRAIT.EVOCATION
 ]);
 
-/** After impact mechanics settle, entry progression arms the recharge reward before Dynamo adds charges. */
-export const evokerEntryObserved = defineTriggerPoint<EvokerEvent>('elementalist.evoker-entry-observed', [
-  TRAIT.ELEMENTAL_BALANCE,
-  TRAIT.ELEMENTAL_DYNAMO
-]);
+/** Deferred entry progression arms the recharge reward before Dynamo adds charges. */
+export const evokerEntryObserved = defineTriggerPoint<ElementalistTransitionDelivery<ElementalistEntryTransition>>(
+  'elementalist.evoker-entry-observed',
+  [TRAIT.ELEMENTAL_BALANCE, TRAIT.ELEMENTAL_DYNAMO]
+);
 
 /** Completion bookkeeping and weapon charge grants precede Prowess, Blessing, then enchantment grants. */
 export const evokerCastCompleted = defineTriggerPoint<ElementalistCastCompleted>('elementalist.evoker-cast-completed', [

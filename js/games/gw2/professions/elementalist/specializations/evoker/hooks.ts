@@ -1,8 +1,5 @@
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { registerElementalistAttunementTransition } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { evokerBuffPolicies } from '#gw2/professions/elementalist/specializations/evoker/effect-state.js';
-import { completeEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { electricEnchantmentDamageEffect } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import {
   applyCalcifyProtection,
@@ -21,10 +18,6 @@ export const evokerHooks = composeRuntimeHooks<ElementalistRuntimeState, Element
 
     initialize(runtime) {
       runtime.fireTrigger(evokerInitialized);
-      registerElementalistEliteEvents(runtime, onAcceptedEvent);
-      registerElementalistAttunementTransition(runtime, (context, cast) => {
-        completeEvokerAttunement(context, cast, cast.skill);
-      });
     },
     reactions: {
       'damage.resolved': onAcceptedEvent,

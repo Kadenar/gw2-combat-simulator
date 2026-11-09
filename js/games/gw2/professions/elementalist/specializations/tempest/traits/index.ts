@@ -2,10 +2,8 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, AURA, BOON, RECIPIENT } from '#gw2/platform/constants.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
@@ -91,8 +89,7 @@ const latentStamina = defineTrait({
   },
   triggers: [
     onTriggerPoint(tempestTransitionObserved, {
-      run: (runtime: ElementalistRuntime, { event, emissionCast }: TempestTransition) =>
-        applyLatentStamina(runtime, event, emissionCast)
+      run: (runtime: ElementalistRuntime, input: TempestTransition) => applyLatentStamina(runtime, input)
     })
   ]
 });
@@ -497,23 +494,18 @@ function applyGaleSong(context: ElementalistRuntime, cast: RuntimeCast<Elemental
 }
 
 /** Water entry claims the ICD even when a preview removes the optional Vigor effect. */
-function applyLatentStamina(
-  context: ElementalistRuntime,
-  event: SimulationEvent,
-  emissionCast?: EffectDelivery['cast']
-): void {
-  if (event.type === 'elementalist.attunement' && event.to === 'Water') {
-    if (context.procs.claim(TRAIT.LATENT_STAMINA, 'elementalist.tempest.latentStamina', event.at)) {
+function applyLatentStamina(context: ElementalistRuntime, { transition, cause }: TempestTransition): void {
+  if (transition.to === 'Water') {
+    if (context.procs.claim(TRAIT.LATENT_STAMINA, 'elementalist.tempest.latentStamina', transition.at)) {
       const latentStaminaProfile = requireBalanceProfile(context.helpers, TRAIT.LATENT_STAMINA);
       const vigor = requireEffect(latentStaminaProfile, 'boon', BOON.VIGOR);
-      const sourceId = event.skillId ?? event.sourceId;
+      const sourceId = transition.sourceId;
 
       if (vigor) {
-        emitTraitProfile(context, TRAIT.LATENT_STAMINA, TRAIT.LATENT_STAMINA, undefined, {
-          at: event.at,
-          fullEnd: event.at,
+        emitTraitProfile(context, TRAIT.LATENT_STAMINA, TRAIT.LATENT_STAMINA, cause, {
+          at: transition.at,
+          fullEnd: transition.at,
           effect: { type: 'boon', name: BOON.VIGOR },
-          cast: emissionCast,
           attribution: {
             source: 'Latent Stamina',
             sourceId: sourceId,

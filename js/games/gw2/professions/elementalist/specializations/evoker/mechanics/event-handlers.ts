@@ -1,16 +1,12 @@
-/** Evoker trait and enchantment reactions consume actual transitions and accepted impacts. */
+/** Evoker impact reactions grant passive rewards before consuming enchantments. */
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { elementalistBuffEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import { applyEvokerAttunementRechargePolicy } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
 import { consumeElectricEnchantment } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
-import {
-  evokerEntryObserved,
-  evokerEventAccepted
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
+import { evokerEventAccepted } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
@@ -38,16 +34,12 @@ export function applyCalcifyProtection(context: ElementalistRuntime, event: Simu
   );
 }
 
-/** Applies familiar, enchantment, and attunement-entry rewards at their actual event boundary. */
+/** Accepted impacts grant passive rewards before spending the triggering hit's enchantment. */
 export function onAcceptedEvent(context: ElementalistRuntime, event: SimulationEvent): void {
-  const state = evokerState.from(context.profession);
-  applyEvokerAttunementRechargePolicy(context, event, state);
   context.fireTrigger(evokerEventAccepted, { event });
 
   // Spend an enchantment only after the shared runtime accepts this player hit.
   if (event.type === 'damage' && event.actorType === ACTOR.PLAYER && Number(event.coefficient) > 0) {
     consumeElectricEnchantment(context, event);
   }
-
-  context.fireTrigger(evokerEntryObserved, { event });
 }

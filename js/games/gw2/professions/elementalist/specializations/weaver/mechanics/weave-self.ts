@@ -1,6 +1,7 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
+import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -81,7 +82,8 @@ export function applyWeaveSelfAttunement(
   at: number,
   target: ElementalistAttunement,
   source: string,
-  sourceId: Skill['id']
+  sourceId: Skill['id'],
+  cause: SimulationEvent
 ): void {
   const state = weaverState.from(context.profession);
 
@@ -97,6 +99,7 @@ export function applyWeaveSelfAttunement(
   if (target === 'Fire' || target === 'Air') {
     context.effects.emit(
       elementalistBuffRequest({
+        cause,
         skill: elementalistEventSkill(context, source, sourceId),
         at,
         source,
@@ -120,6 +123,7 @@ export function applyWeaveSelfAttunement(
   for (const kind of ['perfect weave', 'weave self fire', 'weave self air']) {
     context.effects.emit(
       elementalistBuffRequest({
+        cause,
         skill: elementalistEventSkill(context, source, sourceId),
         at,
         source,

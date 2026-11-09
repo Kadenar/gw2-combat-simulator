@@ -1,5 +1,4 @@
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { tempestBuffPolicies } from '#gw2/professions/elementalist/specializations/tempest/effect-state.js';
 import {
   registerTempestLightningJolt,
@@ -7,7 +6,6 @@ import {
 } from '#gw2/professions/elementalist/specializations/tempest/mechanics/lightning-jolt.js';
 import {
   completeTempestOverload,
-  observeTempestAttunement,
   startTempestOverload,
   tempestOverloadLifecycle
 } from '#gw2/professions/elementalist/specializations/tempest/mechanics/overloads.js';
@@ -25,7 +23,6 @@ export const tempestHooks = composeRuntimeHooks<ElementalistRuntimeState, Elemen
   {
     buffPolicies: (runtime) => tempestBuffPolicies(runtime.helpers),
     initialize(runtime) {
-      registerElementalistEliteEvents(runtime, observeTempestAttunement);
       registerTempestLightningJolt(runtime);
     },
     onCastStart(runtime, cast) {

@@ -9,6 +9,12 @@ type EventHandler<TContext, TEvent extends { type: string }> = (context: TContex
 /** Explicit shared marker for observable events that require no resolver mutation. */
 export const OBSERVABLE_EVENT_HANDLER: EventHandler<unknown, { type: string }> = () => undefined;
 
+/** Retain executed observations without replaying the mechanic that published them. */
+export const RECORD_OBSERVATION_EVENT_HANDLER = <TEvent extends { type: string }>(
+  context: { readonly observations: { record(event: TEvent): void } },
+  event: TEvent
+): void => context.observations.record(event);
+
 /**
  * Registry for resolver event handlers. It keeps event-type ownership explicit
  * and rejects duplicate registrations so common GW2 handlers and profession

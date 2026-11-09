@@ -1,7 +1,7 @@
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
+import { OBSERVABLE_EVENT_HANDLER, RECORD_OBSERVATION_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { resolveSkillSelector } from '#gw2/platform/skills/selectors.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
@@ -21,7 +21,6 @@ import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core
 import { elementalistConjureLifecycle } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { elementalistElementalCompanionId } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import { elementalistElementalLifecycle } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
-import { observeElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 import { elementalistHammerOrbLifecycle } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/hitbox.js';
@@ -110,8 +109,9 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
     onCooldownReset: resetElementalistAttunementCooldowns,
     eventHandlers: {
       'elementalist.conjure': OBSERVABLE_EVENT_HANDLER,
-      'elementalist.attunement': observeElementalistTransition,
-      'elementalist.attunement-enter': observeElementalistTransition
+      // Transition observations remain in executed history without replaying their mechanics.
+      'elementalist.attunement': RECORD_OBSERVATION_EVENT_HANDLER,
+      'elementalist.attunement-enter': RECORD_OBSERVATION_EVENT_HANDLER
     },
     reactions: {
       'damage.resolved'(runtime, event, details) {

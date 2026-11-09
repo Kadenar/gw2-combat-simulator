@@ -15,7 +15,7 @@ import {
   consumeElectricEnchantment,
   grantElectricEnchantments
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
-import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
+import { evokerEntryObserved } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 import { commitRechargeDuration } from '#gw2/professions/elementalist/specializations/evoker/traits/attunement-policy.js';
 import { weaverHooks } from '#gw2/professions/elementalist/specializations/weaver/hooks.js';
 import { applyWeaveSelfAttunement } from '#gw2/professions/elementalist/specializations/weaver/mechanics/weave-self.js';
@@ -145,7 +145,12 @@ test('Perfect Weave grant and Tailored Victory gate share the emitted buff expir
   const state = context.profession.specialization.state;
   state.weaveSelfUntil = 10;
   state.weaveSelfVisited = ['Fire', 'Air', 'Water'];
-  applyWeaveSelfAttunement(context, 0.001, 'Earth', 'Earth Attunement', E.EARTH_ATTUNEMENT);
+  applyWeaveSelfAttunement(context, 0.001, 'Earth', 'Earth Attunement', E.EARTH_ATTUNEMENT, {
+    type: 'elementalist.attunement',
+    at: 0.001,
+    sourceId: E.EARTH_ATTUNEMENT,
+    actorType: 'player'
+  });
   assert.equal(state.perfectWeaveUntil, 10.04);
   for (const at of [10.039999, 10.04, 10.040001]) {
     context.time = at;
@@ -161,7 +166,10 @@ test('Elemental Balance is consumable through its final microsecond and only onc
     const context = elementalistContext('Evoker', [ET.ELEMENTAL_BALANCE]);
     const state = context.profession.specialization.state;
     state.elementalBalanceProgress = 1;
-    onAcceptedEvent(context, { type: 'elementalist.attunement-enter', to: state.element, at: 0.001 });
+    context.fireTrigger(evokerEntryObserved, {
+      transition: { kind: 'reentry', at: 0.001, to: state.element, source: 'Test entry', sourceId: 'test-entry' },
+      cause: { type: 'elementalist.attunement-enter', at: 0.001, sourceId: 'test-entry', actorType: 'player' }
+    });
     assert.equal(state.elementalBalanceUntil, 5.04);
     context.time = at;
     context.skill = { type: 'Weapon', slot: 'Weapon_2' };

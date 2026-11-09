@@ -1,10 +1,10 @@
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type { SimulationEvent, SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import { denySkillCast, retryCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
+import type { ElementalistTransitionDelivery } from '#gw2/professions/elementalist/core/mechanics/attunement-transition.js';
 import { attunementInvoked, attunementReleased } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import {
@@ -103,21 +103,17 @@ function prepareTempestOverloadEvent(_context: ElementalistRuntime, event: Simul
     : event;
 }
 
-// React to normalized attunement and aura events so Tempest traits share the
-// same timestamps as core state changes and resolver-generated auras.
+/** Fresh Air resets the overload before ordinary Water-entry rewards are considered. */
 export function observeTempestAttunement(
   context: ElementalistRuntime,
-  event: SimulationEvent,
-  emissionCast?: EffectDelivery['cast']
+  { transition, cause }: ElementalistTransitionDelivery
 ): void {
-  // Fresh Air re-attunes to Air off cooldown; clear Overload Air's recorded recharge with it.
-  if (event.type === 'elementalist.fresh-air') {
+  if (transition.kind === 'fresh-air') {
     context.cooldownController.clear(ELEMENTALIST_OVERLOAD_SKILL_IDS.Air);
     return;
   }
 
-  // Attuning to Water claims Latent Stamina's interval even when its optional vigor packet is removed.
-  context.fireTrigger(tempestTransitionObserved, { event, emissionCast });
+  if (transition.kind === 'swap') context.fireTrigger(tempestTransitionObserved, { transition, cause });
 }
 
 /** Overload completion owns attunement lockouts and the additional etching credits. */

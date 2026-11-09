@@ -264,7 +264,7 @@ export const bountifulPower = defineTrait({
     }),
     onTriggerPoint(attunementsCounted, {
       run: (runtime: ElementalistRuntime, input: ElementalistAttunementCount) =>
-        triggerBountifulPower(runtime, input.at, input.stacks, input.sourceId, input.emissionCast)
+        triggerBountifulPower(runtime, input.at, input.stacks, input.sourceId, input.emissionCast, input.cause)
     })
   ]
 });
@@ -592,7 +592,8 @@ function triggerBountifulPower(
   at: number,
   stacks: number,
   sourceId: Skill['id'],
-  emissionCast?: EffectDelivery['cast']
+  emissionCast?: EffectDelivery['cast'],
+  cause?: EffectDelivery['cause']
 ): void {
   const bountifulPowerProfile = requireBalanceProfile(context.helpers, TRAIT.BOUNTIFUL_POWER);
   const threshold = balanceProfileNumber(bountifulPowerProfile, 'threshold');
@@ -607,7 +608,7 @@ function triggerBountifulPower(
 
   if (!progress.reached) return;
 
-  emitTraitProfile(context, TRAIT.BOUNTIFUL_POWER, TRAIT.BOUNTIFUL_POWER, undefined, {
+  emitTraitProfile(context, TRAIT.BOUNTIFUL_POWER, TRAIT.BOUNTIFUL_POWER, cause, {
     at: at,
     fullEnd: at,
     effect: { type: 'boon', name: BOON.QUICKNESS },
@@ -626,7 +627,7 @@ function triggerBountifulPower(
   const active = requireEffect(bountifulPowerProfile, 'buff', 'Damage Window');
 
   if (active) {
-    emitTraitProfile(context, TRAIT.BOUNTIFUL_POWER, TRAIT.BOUNTIFUL_POWER, undefined, {
+    emitTraitProfile(context, TRAIT.BOUNTIFUL_POWER, TRAIT.BOUNTIFUL_POWER, cause, {
       at: at,
       fullEnd: at,
       effect: { type: 'buff', name: 'Damage Window' },

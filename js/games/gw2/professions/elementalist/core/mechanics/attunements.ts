@@ -3,6 +3,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { setElementalistAttunementReadyAt } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
+import { queueElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/attunement-transition.js';
 import { combatStarted } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { attunementChanged } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import {
@@ -73,7 +74,7 @@ export function onAttunementComplete(
       element,
       context.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[element]) ?? 0
     ])
-  );
+  ) as Record<ElementalistAttunement, number>;
   // Preserve chain progress for the attunement being left; a cast still in flight
   // is only held as pending until it commits.
   state.autoattackCarryover = progressedAutoattackCarryover(context, previous);
@@ -112,22 +113,15 @@ export function onAttunementComplete(
 
   // Publish the swap for the resolver and presentation, then trigger weapon sigils.
   state.attunementEnteredAt = at;
-  context.effects.emit({
-    kind: 'packet',
-    event: {
-      type: 'elementalist.attunement',
-      at,
-      priority: -20,
-      source: skill.name,
-      sourceId: skill.id,
-      actorType: ACTOR.PLAYER,
-      skillId: skill.id,
-      skillName: skill.name,
-      from: previous,
-      to: target,
-      secondaryAttunement: transition.secondaryAttunement ?? null,
-      attunementReadyAtBefore
-    }
+  queueElementalistTransition(context, {
+    kind: 'swap',
+    at,
+    source: skill.name,
+    sourceId: skill.id,
+    from: previous,
+    to: target,
+    secondaryAttunement: transition.secondaryAttunement ?? null,
+    readyAtBefore: attunementReadyAtBefore
   });
   context.effects.emit({
     kind: 'packet',
@@ -158,32 +152,4 @@ export function onAttunementComplete(
     claimTrait,
     emissionCast: { activationId: cast.id, skillId: cast.skill.id, offTarget: cast.command.offTarget }
   });
-}
-
-const transitions = new WeakMap<
-  ElementalistRuntime,
-  (runtime: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>) => void
->();
-
-/** Weaver and Evoker install their attunement transition before any commands execute. */
-export function registerElementalistAttunementTransition(
-  runtime: ElementalistRuntime,
-  transition: (runtime: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>) => void
-): void {
-  transitions.set(runtime, transition);
-}
-
-/** Core commits exactly one transition, including an elite's dual-attunement policy. */
-export function completeElementalistAttunement(
-  runtime: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>
-): void {
-  const transition = transitions.get(runtime);
-
-  if (transition) transition(runtime, cast);
-  else {
-    const target = targetAttunement(cast.skill);
-
-    if (target) onAttunementComplete(runtime, cast, cast.skill, target);
-  }
 }

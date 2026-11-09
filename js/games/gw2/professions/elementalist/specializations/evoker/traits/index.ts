@@ -24,6 +24,10 @@ import {
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { type ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
+import type {
+  ElementalistEntryTransition,
+  ElementalistTransitionDelivery
+} from '#gw2/professions/elementalist/core/mechanics/attunement-transition.js';
 import {
   elementalistAnnouncement,
   elementalistEventSkill
@@ -106,7 +110,8 @@ const elementalBalance = defineTrait({
   },
   triggers: [
     onTriggerPoint(evokerEntryObserved, {
-      run: (runtime: ElementalistRuntime, { event }: EvokerEvent) => applyElementalBalanceEntry(runtime, event)
+      run: (runtime: ElementalistRuntime, input: ElementalistTransitionDelivery<ElementalistEntryTransition>) =>
+        applyElementalBalanceEntry(runtime, input)
     })
   ],
   lifetime: { reserveRecharge: commitRechargeDuration }
@@ -120,7 +125,8 @@ const elementalDynamo = defineTrait({
   },
   triggers: [
     onTriggerPoint(evokerEntryObserved, {
-      run: (runtime: ElementalistRuntime, { event }: EvokerEvent) => applyElementalDynamoEntry(runtime, event)
+      run: (runtime: ElementalistRuntime, input: ElementalistTransitionDelivery<ElementalistEntryTransition>) =>
+        applyElementalDynamoEntry(runtime, input)
     })
   ]
 });
@@ -390,16 +396,14 @@ function applyEvocationBurning(context: ElementalistRuntime, event: SimulationEv
 }
 
 /** Entry cycles arm Elemental Balance before Dynamo grants the resulting familiar charge. */
-function applyElementalBalanceEntry(context: ElementalistRuntime, event: SimulationEvent): void {
+function applyElementalBalanceEntry(
+  context: ElementalistRuntime,
+  { transition, cause }: ElementalistTransitionDelivery<ElementalistEntryTransition>
+): void {
   const state = evokerState.from(context.profession);
 
-  // everything past this point is an attunement-entry trait
-  if (event.type !== 'elementalist.attunement' && event.type !== 'elementalist.attunement-enter') {
-    return;
-  }
-
   // only counts entering YOUR current element (Elemental Dynamo or Specialized Elements entry)
-  if (event.to !== state.element) return;
+  if (transition.to !== state.element) return;
 
   {
     const elementalBalanceProfile = requireBalanceProfile(context.helpers, TRAIT.ELEMENTAL_BALANCE);
@@ -411,33 +415,32 @@ function applyElementalBalanceEntry(context: ElementalistRuntime, event: Simulat
     if (progress.reached) {
       // Temporary-effect expiry uses the absolute combat tick, including patched durations.
       const duration = balanceProfileNumber(elementalBalanceProfile, 'duration');
-      state.elementalBalanceUntil = gw2EffectExpiresAt(event.at, duration);
-      context.effects.emit(
-        elementalistAnnouncement({
-          at: event.at,
+      state.elementalBalanceUntil = gw2EffectExpiresAt(transition.at, duration);
+      context.effects.emit({
+        cause,
+        ...elementalistAnnouncement({
+          at: transition.at,
           name: 'Elemental Balance',
           procType: 'skill',
-          sourceId: event.skillId ?? event.sourceId,
-          sourceSkill: event.skillName || event.source || '',
+          sourceId: transition.sourceId,
+          sourceSkill: transition.source,
           detail: `CDR armed (${duration}s)`,
           icon: new URL('@images/wiki/elemental-balance.png', import.meta.url).href
         })
-      );
+      });
     }
   }
 }
 
 /** Accepted entries into the familiar element grant one profiled Dynamo charge. */
-function applyElementalDynamoEntry(context: ElementalistRuntime, event: SimulationEvent): void {
+function applyElementalDynamoEntry(
+  context: ElementalistRuntime,
+  { transition, cause }: ElementalistTransitionDelivery<ElementalistEntryTransition>
+): void {
   const state = evokerState.from(context.profession);
 
-  // everything past this point is an attunement-entry trait
-  if (event.type !== 'elementalist.attunement' && event.type !== 'elementalist.attunement-enter') {
-    return;
-  }
-
   // only counts entering YOUR current element (Elemental Dynamo or Specialized Elements entry)
-  if (event.to !== state.element) return;
+  if (transition.to !== state.element) return;
   // Elemental Dynamo turns each entry into familiar charges and reports the new total
 
   context.resourceController.grant(
@@ -446,12 +449,12 @@ function applyElementalDynamoEntry(context: ElementalistRuntime, event: Simulati
   );
   context.effects.emit({
     kind: 'packet',
-    cause: event,
+    cause,
     event: {
       type: 'resource',
-      at: event.at,
+      at: transition.at,
       source: 'Elemental Dynamo',
-      sourceId: event.sourceId,
+      sourceId: transition.sourceId,
       actorType: ACTOR.PLAYER,
       skillName: 'Elemental Dynamo',
       kind: 'evoker-charges',

@@ -8,11 +8,11 @@ import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/ev
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
-import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import {
   acceptIgniteEffects,
   evokerFamiliarLifecycle
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
+import { evokerEntryObserved } from '#gw2/professions/elementalist/specializations/evoker/mechanics/trigger-points.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -305,7 +305,10 @@ test('Elemental Balance reports the same patched duration used for its active wi
   };
   bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
   for (const at of [1, 2]) {
-    onAcceptedEvent(context, { type: 'elementalist.attunement-enter', at, to: 'Fire' });
+    context.fireTrigger(evokerEntryObserved, {
+      transition: { kind: 'reentry', at, to: 'Fire', source: 'Test entry', sourceId: 'test-entry' },
+      cause: { type: 'elementalist.attunement-enter', at, sourceId: 'test-entry', actorType: 'player' }
+    });
   }
 
   assert.equal(state.elementalBalanceUntil, 10);

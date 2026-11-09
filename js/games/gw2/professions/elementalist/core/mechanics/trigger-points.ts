@@ -97,6 +97,7 @@ export interface ElementalistAttunementChanged extends ElementalistEntry {
 }
 
 export interface ElementalistAttunementCount {
+  readonly cause?: EffectDelivery['cause'];
   readonly at: number;
   readonly sourceId: Skill['id'];
   readonly stacks: number;

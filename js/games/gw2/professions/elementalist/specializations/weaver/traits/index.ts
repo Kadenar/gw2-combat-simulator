@@ -3,7 +3,6 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -17,6 +16,10 @@ import {
 } from '#gw2/platform/skills/balance-profiles.js';
 import { type ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
+import type {
+  ElementalistAttunementSwap,
+  ElementalistTransitionDelivery
+} from '#gw2/professions/elementalist/core/mechanics/attunement-transition.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { primaryAttunement } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
@@ -153,7 +156,7 @@ const weaversProwess = defineTrait({
   },
   triggers: [
     onTriggerPoint(weaverAttunementCompleted, {
-      run: (runtime: ElementalistRuntime, { event }: WeaverTransition) => applyWeaversProwess(runtime, event)
+      run: (runtime: ElementalistRuntime, input: WeaverTransition) => applyWeaversProwess(runtime, input)
     })
   ]
 });
@@ -203,7 +206,7 @@ const elementsOfRage = defineTrait({
   ],
   triggers: [
     onTriggerPoint(weaverHandsChanged, {
-      run: (runtime: ElementalistRuntime, { event }: WeaverTransition) => applyElementsOfRageAttunement(runtime, event)
+      run: (runtime: ElementalistRuntime, input: WeaverTransition) => applyElementsOfRageAttunement(runtime, input)
     }),
     onTriggerPoint(weaverUnraveled, {
       run: (runtime: ElementalistRuntime, { cast, previousPrimary, previousSecondary }: WeaverUnraveled) =>
@@ -241,17 +244,21 @@ export const weaverTraits = [
 ];
 
 /** Fully attuned setup swaps may carry Rage into combat before Weave Self observes the transition. */
-function applyElementsOfRageAttunement(context: ElementalistRuntime, event: SimulationEvent): void {
-  const at = event.at,
-    target = event.to,
-    previous = event.from,
-    sourceId = event.skillId ?? event.sourceId,
-    source = event.skillName || event.source || 'Attunement',
+function applyElementsOfRageAttunement(
+  context: ElementalistRuntime,
+  { transition, cause }: ElementalistTransitionDelivery<ElementalistAttunementSwap>
+): void {
+  const at = transition.at,
+    target = transition.to,
+    previous = transition.from,
+    sourceId = transition.sourceId,
+    source = transition.source,
     unravelActive = weaverState.from(context.profession).unravelUntil > at;
 
   if (target === previous || unravelActive) {
     context.effects.emit(
       elementalistBuffRequest({
+        cause,
         skill: elementalistEventSkill(context, source, sourceId),
         at,
         source,
@@ -267,11 +274,14 @@ function applyElementsOfRageAttunement(context: ElementalistRuntime, event: Simu
 }
 
 /** Resistance follows the in-combat transition and precedes Core's Bountiful Power accounting. */
-function applyWeaversProwess(context: ElementalistRuntime, event: SimulationEvent): void {
-  const at = event.at,
-    target = event.to,
-    previous = event.from,
-    sourceId = event.skillId ?? event.sourceId,
+function applyWeaversProwess(
+  context: ElementalistRuntime,
+  { transition, cause }: ElementalistTransitionDelivery<ElementalistAttunementSwap>
+): void {
+  const at = transition.at,
+    target = transition.to,
+    previous = transition.from,
+    sourceId = transition.sourceId,
     unravelActive = weaverState.from(context.profession).unravelUntil > at;
 
   if (unravelActive || target === previous) {
@@ -279,7 +289,7 @@ function applyWeaversProwess(context: ElementalistRuntime, event: SimulationEven
     const resistance = requireEffect(weaversProwessProfile, 'boon', BOON.RESISTANCE);
 
     if (resistance) {
-      emitTraitProfile(context, TRAIT.WEAVERS_PROWESS, TRAIT.WEAVERS_PROWESS, undefined, {
+      emitTraitProfile(context, TRAIT.WEAVERS_PROWESS, TRAIT.WEAVERS_PROWESS, cause, {
         at: at,
         fullEnd: at,
         effect: { type: 'boon', name: BOON.RESISTANCE },

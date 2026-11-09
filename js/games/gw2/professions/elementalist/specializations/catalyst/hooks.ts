@@ -1,5 +1,4 @@
 import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { registerElementalistEliteEvents } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import {
   catalystBuffPolicies,
   catalystEffectStates
@@ -12,27 +11,13 @@ import {
   catalystEnergyPolicy,
   gainCatalystEnergy
 } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/resources.js';
-import {
-  catalystCombatStarted,
-  catalystTransitionObserved
-} from '#gw2/professions/elementalist/specializations/catalyst/mechanics/trigger-points.js';
+import { catalystCombatStarted } from '#gw2/professions/elementalist/specializations/catalyst/mechanics/trigger-points.js';
 import { catalystAugmentLifecycle } from '#gw2/professions/elementalist/specializations/catalyst/skills/augment-skills.js';
 import {
   catalystSphereLifecycle,
   modifyJadeSphereEffects
 } from '#gw2/professions/elementalist/specializations/catalyst/skills/jade-sphere.js';
-import type {
-  ElementalistRuntime,
-  ElementalistRuntimeState,
-  ElementalistSkill
-} from '#gw2/professions/elementalist/types.js';
-
-// Resource policies initialize energy first; retain the actual attunement notification for trait rewards.
-function initialize(context: ElementalistRuntime): void {
-  registerElementalistEliteEvents(context, (runtime, event) => {
-    runtime.fireTrigger(catalystTransitionObserved, { event });
-  });
-}
+import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Compose resource and skill owners; accepted-hit energy gains precede Catalyst trait reactions. */
 export const catalystHooks = composeRuntimeHooks<ElementalistRuntimeState, ElementalistSkill>([
@@ -42,7 +27,6 @@ export const catalystHooks = composeRuntimeHooks<ElementalistRuntimeState, Eleme
     buffPolicies: (runtime) => catalystBuffPolicies(runtime.helpers),
     observeEffects: catalystEffectStates,
     resources: { catalystEnergy: catalystEnergyPolicy },
-    initialize,
     // Publish combat entry so selection and isolation govern admission of trait renewal loops.
     onCombatStart(runtime) {
       runtime.fireTrigger(catalystCombatStarted);

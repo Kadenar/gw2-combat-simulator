@@ -8,6 +8,7 @@ import { migrateElementalistStanceRotation } from '#gw2/professions/elementalist
 import { elementalistWeaponSkillMatchesSet } from '#gw2/professions/elementalist/build/weapon-matching.js';
 import { elementalistNativeModules } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import { elementalistAttunementHooks } from '#gw2/professions/elementalist/family-attunements.js';
 import { bindElementalistFamilyUi } from '#gw2/professions/elementalist/family-presentation.js';
 
 export { elementalistCatalog, elementalistNativeModules } from '#gw2/professions/elementalist/catalog.js';
@@ -27,6 +28,7 @@ export const elementalistProfession = defineNativeProfession({
     validateBuild: validateElementalistBuild
   },
   modules: elementalistNativeModules,
+  runtimeHooks: elementalistAttunementHooks,
   weaponSkillMatchesSet: elementalistWeaponSkillMatchesSet,
   autoattackChains: {
     // Elementalist's explicit exceptions run before the shared damage-timing rule.

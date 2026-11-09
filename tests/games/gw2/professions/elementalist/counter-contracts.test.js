@@ -20,6 +20,14 @@ import { commitRechargeDuration } from '#gw2/professions/elementalist/specializa
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
+/** Counter tests supply entry facts without invoking unrelated cast or packet handling. */
+function entry(at, to) {
+  return {
+    transition: { kind: 'reentry', at, to, sourceId: ID.FIRE_ATTUNEMENT, source: 'Fire Attunement' },
+    cause: { type: 'elementalist.attunement-enter', at, sourceId: ID.FIRE_ATTUNEMENT, actorType: 'player' }
+  };
+}
+
 test('Bountiful Power resets at the cap and preserves progress earned by nested reward reactions', () => {
   // An oversized grant earns one reward; progress from a nested application belongs to the new cycle.
   const core = createElementalistCoreState();
@@ -79,15 +87,11 @@ test('Elemental Balance resets its entry cycle and arms before Dynamo grants', (
     }).effects
   };
   bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
-  for (const event of [
-    { type: 'damage', to: 'Fire' },
-    { type: 'elementalist.attunement', to: 'Water' }
-  ])
-    context.fireTrigger(evokerEntryObserved, { event: { at: 2, ...event } });
+  context.fireTrigger(evokerEntryObserved, entry(2, 'Water'));
   assert.deepEqual(observations, []);
   assert.equal(state.elementalBalanceProgress, 0);
 
-  context.fireTrigger(evokerEntryObserved, { event: { type: 'elementalist.attunement-enter', to: 'Fire', at: 2 } });
+  context.fireTrigger(evokerEntryObserved, entry(2, 'Fire'));
   assert.deepEqual(observations, [
     ['Elemental Balance', 0, 7],
     ['familiarCharges', 1, 0, 7]
@@ -99,7 +103,7 @@ test('Elemental Balance resets its entry cycle and arms before Dynamo grants', (
   assert.equal(state.elementalBalanceProgress, 0);
 
   observations.length = 0;
-  context.fireTrigger(evokerEntryObserved, { event: { type: 'elementalist.attunement', to: 'Fire', at: 3 } });
+  context.fireTrigger(evokerEntryObserved, entry(3, 'Fire'));
   assert.deepEqual(observations, [
     ['Elemental Balance', 0, 8],
     ['familiarCharges', 1, 0, 8]
@@ -121,12 +125,8 @@ test('Elemental Balance arms on every second selected-attunement entry and resta
   };
   bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
   for (const [index, expected] of [1, 0, 1, 0].entries()) {
-    context.fireTrigger(evokerEntryObserved, {
-      event: { type: 'elementalist.attunement-enter', to: 'Water', at: index }
-    });
-    context.fireTrigger(evokerEntryObserved, {
-      event: { type: 'elementalist.attunement-enter', to: 'Fire', at: index }
-    });
+    context.fireTrigger(evokerEntryObserved, entry(index, 'Water'));
+    context.fireTrigger(evokerEntryObserved, entry(index, 'Fire'));
     assert.equal(state.elementalBalanceProgress, expected);
     assert.equal(announcements.length, Math.floor((index + 1) / 2));
   }
@@ -146,7 +146,7 @@ test('Elemental Balance resets after one reward for nonpositive patched threshol
       effects
     };
     bindTriggerPoints(context, elementalistProfession, { specialization: 'Evoker' });
-    context.fireTrigger(evokerEntryObserved, { event: { type: 'elementalist.attunement-enter', to: 'Fire', at: 1 } });
+    context.fireTrigger(evokerEntryObserved, entry(1, 'Fire'));
     assert.equal(state.elementalBalanceProgress, 0);
     assert.equal(state.elementalBalanceUntil, 6);
     assert.equal(announcements.length, 1);

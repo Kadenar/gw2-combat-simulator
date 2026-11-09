@@ -7,7 +7,6 @@ import { ACTOR, AURA, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants
 import type { AuraName } from '#gw2/platform/constants.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -23,6 +22,10 @@ import {
   requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import type {
+  ElementalistAttunementSwap,
+  ElementalistTransitionDelivery
+} from '#gw2/professions/elementalist/core/mechanics/attunement-transition.js';
 import { applyElementalistAura } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { elementalistEventSkill } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import type { ElementalistCastCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
@@ -209,8 +212,8 @@ const energizedElements = defineTrait({
   },
   triggers: [
     onTriggerPoint(catalystTransitionObserved, {
-      run: (runtime: ElementalistRuntime, { event }: { readonly event: SimulationEvent }) => {
-        applyEnergizedElements(runtime, event);
+      run: (runtime: ElementalistRuntime, input: ElementalistTransitionDelivery<ElementalistAttunementSwap>) => {
+        applyEnergizedElements(runtime, input);
       }
     })
   ]
@@ -311,57 +314,54 @@ function applySphereStartTraits(
   }
 }
 
-function applyEnergizedElements(context: ElementalistRuntime, event: SimulationEvent): boolean {
+function applyEnergizedElements(
+  context: ElementalistRuntime,
+  { transition, cause }: ElementalistTransitionDelivery<ElementalistAttunementSwap>
+): void {
   // Energized Elements refunds energy and grants fury on every attunement swap.
-  if (event.type === 'elementalist.attunement') {
-    const state = catalystState.from(context.profession);
-    const before = context.resourceController.value('catalystEnergy');
-    const energizedElementsProfile = requireBalanceProfile(context.helpers, TRAIT.ENERGIZED_ELEMENTS);
-    const energyGain = balanceProfileNumber(energizedElementsProfile, 'resourceGain');
-    // Report only the capped gain while preserving energy, Fury, then resource-observation ordering.
-    context.resourceController.grant('catalystEnergy', energyGain);
-    const after = context.resourceController.value('catalystEnergy');
-    const fury = requireEffect(energizedElementsProfile, 'boon', BOON.FURY);
+  const state = catalystState.from(context.profession);
+  const before = context.resourceController.value('catalystEnergy');
+  const energizedElementsProfile = requireBalanceProfile(context.helpers, TRAIT.ENERGIZED_ELEMENTS);
+  const energyGain = balanceProfileNumber(energizedElementsProfile, 'resourceGain');
+  // Report only the capped gain while preserving energy, Fury, then resource-observation ordering.
+  context.resourceController.grant('catalystEnergy', energyGain);
+  const after = context.resourceController.value('catalystEnergy');
+  const fury = requireEffect(energizedElementsProfile, 'boon', BOON.FURY);
 
-    if (fury) {
-      emitTraitProfile(context, TRAIT.ENERGIZED_ELEMENTS, TRAIT.ENERGIZED_ELEMENTS, undefined, {
-        at: event.at,
-        fullEnd: event.at,
-        effect: { type: 'boon', name: BOON.FURY },
-        attribution: {
-          source: 'Energized Elements',
-          sourceId: event.sourceId,
-          actorType: ACTOR.PLAYER,
-          skillName: 'Energized Elements',
-          skillId: elementalistEventSkill(context, 'Energized Elements', event.sourceId).id,
-          name: 'Energized Elements'
-        }
-      });
-    }
-
-    if (after !== before) {
-      context.effects.emit({
-        kind: 'packet',
-        cause: event,
-        event: {
-          type: 'resource',
-          at: event.at,
-          source: 'Energized Elements',
-          sourceId: event.sourceId,
-          actorType: ACTOR.PLAYER,
-          skillName: 'Energized Elements',
-          kind: 'catalyst-energy',
-          value: after,
-          maximum: state.catalystEnergy.maximum,
-          change: after - before
-        }
-      });
-    }
-
-    return true;
+  if (fury) {
+    emitTraitProfile(context, TRAIT.ENERGIZED_ELEMENTS, TRAIT.ENERGIZED_ELEMENTS, cause, {
+      at: transition.at,
+      fullEnd: transition.at,
+      effect: { type: 'boon', name: BOON.FURY },
+      attribution: {
+        source: 'Energized Elements',
+        sourceId: transition.sourceId,
+        actorType: ACTOR.PLAYER,
+        skillName: 'Energized Elements',
+        skillId: elementalistEventSkill(context, 'Energized Elements', transition.sourceId).id,
+        name: 'Energized Elements'
+      }
+    });
   }
 
-  return false;
+  if (after !== before) {
+    context.effects.emit({
+      kind: 'packet',
+      cause,
+      event: {
+        type: 'resource',
+        at: transition.at,
+        source: 'Energized Elements',
+        sourceId: transition.sourceId,
+        actorType: ACTOR.PLAYER,
+        skillName: 'Energized Elements',
+        kind: 'catalyst-energy',
+        value: after,
+        maximum: state.catalystEnergy.maximum,
+        change: after - before
+      }
+    });
+  }
 }
 
 /** Refresh Empowering Auras before Epitome grants an empowerment stack from the same aura. */

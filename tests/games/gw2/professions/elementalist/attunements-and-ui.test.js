@@ -420,6 +420,11 @@ test('Core mechanics execute through native hooks', () => {
   const proc = result.events.find((event) => event.type === 'elementalist.fresh-air');
 
   assert.ok(proc);
+  assert.ok(
+    observedRuntime(result)
+      .facts.ofType('elementalist.fresh-air')
+      .some((event) => event.eventOrder === proc.eventOrder)
+  );
   assert.equal(
     observedRuntime(result).cooldownController.readyAt(elementalistCatalog.skillsById.get(5494).id),
     undefined
@@ -461,15 +466,17 @@ test('Fresh Air consumes sampled criticals after scheduled strikes in RNG mode',
   assert.equal(result.randomness.mode, 'stochastic');
   assert.ok(procs.length > 0);
   for (const proc of procs) {
-    assert.ok(
-      result.resolvedEvents.some(
-        (event) =>
-          event.type === 'damage' &&
-          event.at === proc.at &&
-          event.skillName === proc.sourceSkill &&
-          event.didCrit === true
-      )
+    // Fresh Air retains the accepted critical hit's activation and causal identity.
+    const hit = result.resolvedEvents.find(
+      (event) => event.type === 'damage' && event.eventOrder === proc.parentEventOrder
     );
+    assert.ok(hit);
+    assert.equal(hit.didCrit, true);
+    assert.equal(hit.at, proc.at);
+    assert.equal(hit.skillName, proc.sourceSkill);
+    assert.ok(hit.activationId);
+    assert.equal(proc.activationId, hit.activationId);
+    assert.equal(proc.causalOrder, hit.causalOrder);
   }
 
   assert.equal(

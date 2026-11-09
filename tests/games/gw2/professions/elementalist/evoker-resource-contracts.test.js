@@ -195,6 +195,9 @@ test('Elemental Dynamo grants at attunement and caps the reported pool without a
   const reading = result.events.find((event) => event.kind === 'evoker-charges');
   assert.equal(reading.value, 5.5);
   assert.equal(reading.maximum, 5.5);
+  const observation = result.events.find((event) => event.type === 'elementalist.attunement');
+  assert.equal(reading.parentEventOrder, observation.eventOrder);
+  assert.equal(reading.causalOrder, observation.causalOrder);
   assert.equal(reading.source, 'Elemental Dynamo');
   assert.equal(reading.at, result.events.find((event) => event.type === 'elementalist.attunement').at);
 });

@@ -3,10 +3,7 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
-import {
-  completeElementalistAttunement,
-  targetAttunement
-} from '#gw2/professions/elementalist/core/mechanics/attunements.js';
+import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import {
   completeElementalistElementalCommand,
   completeElementalistGlyphCast,
@@ -49,11 +46,10 @@ export function elementalistOnCastCommit(
   cast: RuntimeCast<ElementalistSkill>,
   skill: Skill
 ): void {
-  // Core commits exactly one registered attunement transition for the active specialization.
+  // The family hook settles the selected transition before Core advances weapon progression.
   const target = targetAttunement(skill);
 
   if (target) {
-    completeElementalistAttunement(context, cast);
     // Elementalist spear etchings count attunement swaps among the three
     // completed casts required to upgrade their release skill.
     completeElementalistSpearProgression(context, skill);
