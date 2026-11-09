@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/mechanics/pistol.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
-import { applyShatteringStoneBuff } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';

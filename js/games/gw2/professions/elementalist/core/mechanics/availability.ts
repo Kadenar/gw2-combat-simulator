@@ -23,9 +23,9 @@ import {
   HAMMER_ORB_REUSE_DELAY,
   hammerOrbMatchesAttunement
 } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
+import { elementalExplosionAvailability } from '#gw2/professions/elementalist/core/mechanics/pistol.js';
 import { elementalistSlotSelectionPolicy } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
 import { weaponAttunementAvailable } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
-import { elementalExplosionAvailability } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID,

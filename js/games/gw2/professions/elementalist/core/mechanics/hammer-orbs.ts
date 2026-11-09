@@ -8,9 +8,11 @@
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { HAMMER_ORB_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { refreshElementalistBuffs } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 import {
@@ -18,7 +20,12 @@ import {
   type ElementalistAttunement,
   type ElementalistCoreState
 } from '#gw2/professions/elementalist/core/state.js';
-import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type {
+  ElementalistRuntime,
+  ElementalistRuntimeState,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 
 /** Orb skills share a fixed admission delay independently of their authored lifetimes. */
 export const HAMMER_ORB_REUSE_DELAY = 0.48;
@@ -82,12 +89,61 @@ export function createHammerOrbs(
     }
   }
 
-  context.schedule('elementalist.expire-state', at + duration, null, undefined, 50);
+  context.schedule('elementalist.hammer-orb-expire', at + duration, null, undefined, 50);
   state.hammerOrbLastCastAt = at;
 }
 
+/** Orb actions, packet ownership, and expiry share one owner so Finale retires the correct activations. */
+export const elementalistHammerOrbLifecycle = {
+  sideEffectHandlers: {
+    'elementalist.create-hammer-orbs'(context, trigger) {
+      if (trigger.kind !== 'cast') throw new TypeError('Hammer orbs require a cast trigger.');
+
+      createHammerOrbs(
+        context,
+        trigger.cast,
+        trigger.skill,
+        String(trigger.skill.attunement).split('+') as ElementalistAttunement[]
+      );
+    },
+    'elementalist.cancel-hammer-orbits'(context) {
+      for (const activation of Object.values(professionCoreState(context.profession).hammerOrbActivationIds))
+        if (activation) context.cancelOwner({ id: activation, generation: 0 });
+    },
+    'elementalist.consume-hammer-orbs'(context, trigger) {
+      if (trigger.kind !== 'cast') throw new TypeError('Grand Finale requires a cast trigger.');
+
+      consumeHammerOrbs(context, trigger.cast);
+    }
+  },
+  // Grand Finale previews consume the selected assumed orbs without creating live orb attacks.
+  prepareDamageState(runtime, skill, inputs) {
+    if (skill?.id === ID.GRAND_FINALE)
+      for (const element of ELEMENTALIST_ATTUNEMENTS)
+        runtime.profession.core.hammerOrbs[element] = inputs[`orb:${element}`] ? 3600 : null;
+  },
+  // Orb contact ownership is admission data; preparation waits until the surviving packet executes.
+  effectOwner(_runtime, event) {
+    if (HAMMER_ORB_SKILLS[Number(event.skillId)] && (event.type === 'damage' || event.type === 'condition'))
+      return { id: String(event.activationId), generation: 0 };
+
+    return undefined;
+  },
+  tasks: {
+    'elementalist.hammer-orb-expire'(runtime) {
+      const state = runtime.profession.core;
+      for (const element of ELEMENTALIST_ATTUNEMENTS) {
+        if (state.hammerOrbs[element] != null && state.hammerOrbs[element] <= runtime.time) {
+          state.hammerOrbs[element] = null;
+          state.hammerOrbActivationIds[element] = null;
+        }
+      }
+    }
+  }
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;
+
 /** Finale consumes stored orbs while keeping their buffs alive through its last packet. */
-export function consumeHammerOrbs(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
+function consumeHammerOrbs(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = professionCoreState(context.profession);
   const at = cast.effectiveEnd;
   const active = ELEMENTALIST_ATTUNEMENTS.filter((element) => {

@@ -9,31 +9,34 @@ import {
   elementalistOnCastCommit,
   elementalistOnCastStart
 } from '#gw2/professions/elementalist/core/cast-lifecycle.js';
-import { CONJURED_WEAPONS, HAMMER_ORB_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
+import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistBuffPolicies, elementalistEffectStates } from '#gw2/professions/elementalist/core/effect-state.js';
 import { resetElementalistAttunementCooldowns } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import {
   acceptElementalistAuraReaction,
+  elementalistAuraLifecycle,
   prepareElementalistAura
 } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
+import { elementalistConjureLifecycle } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { elementalistElementalCompanionId } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import { elementalistElementalLifecycle } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import { observeElementalistTransition } from '#gw2/professions/elementalist/core/mechanics/elite-events.js';
 import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
-import { expireElementalistState } from '#gw2/professions/elementalist/core/mechanics/expiry.js';
-import { fulgorPulse } from '#gw2/professions/elementalist/core/mechanics/fulgor.js';
+import { elementalistHammerOrbLifecycle } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/hitbox.js';
 import {
-  elementalistRechargeWork,
-  reserveElementalistRecharge
-} from '#gw2/professions/elementalist/core/mechanics/recharge.js';
+  applyShatteringStoneBuff,
+  elementalistPistolLifecycle,
+  triggerShatteringStone
+} from '#gw2/professions/elementalist/core/mechanics/pistol.js';
+import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import { elementalistRockBarrierLifecycle } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
 import {
-  completeElementalistSpearProgression,
-  elementalistSpearEmpowermentLifecycle,
-  empowerElementalistSpearPacket
-} from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
+  elementalistSpearLifecycle,
+  finishElementalistSpearCast,
+  prepareElementalistSpearEvent
+} from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import {
   auraAccepted,
   controlAccepted,
@@ -42,40 +45,22 @@ import {
   elementalistEventPreparing
 } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { elementalistWeaponStateLifecycle } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
-import {
-  applyShatteringStoneBuff,
-  elementalistPistolLifecycle,
-  triggerShatteringStone
-} from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { shareHeatSyncBoon } from '#gw2/professions/elementalist/core/skills/weapons/warhorn.js';
-import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
 import { validateElementalistGlyphs } from '#gw2/professions/elementalist/data/glyphs.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import type {
-  ElementalistRuntimeState,
-  ElementalistSimulationEvent,
-  ElementalistSkill
-} from '#gw2/professions/elementalist/types.js';
+import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Registers cast, resource, and reaction callbacks with the callbacks from each Core mechanic. */
 export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeState, ElementalistSkill>([
   elementalistElementalLifecycle,
   elementalistWeaponStateLifecycle,
   elementalistRockBarrierLifecycle,
-  elementalistSpearEmpowermentLifecycle,
+  elementalistAuraLifecycle,
+  elementalistConjureLifecycle,
+  elementalistHammerOrbLifecycle,
+  elementalistSpearLifecycle,
   elementalistPistolLifecycle,
   {
-    /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
-    prepareDamageState(runtime, skill, inputs) {
-      const state = runtime.profession.core;
-
-      if (skill?.weapon && CONJURED_WEAPONS.has(skill.weapon)) state.conjureEquipped = skill.weapon;
-
-      if (skill?.id === ID.GRAND_FINALE)
-        for (const element of ELEMENTALIST_ATTUNEMENTS)
-          state.hammerOrbs[element] = inputs[`orb:${element}`] ? 3600 : null;
-    },
-
     // Validate the selected runtime catalog, including patches, before any glyph can be cast.
     initialize(context) {
       validateElementalistGlyphs(context.helpers);
@@ -97,14 +82,6 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
       return drop;
     },
     rechargeWork: elementalistRechargeWork,
-    reserveRecharge: reserveElementalistRecharge,
-    // Orb contact ownership is admission data; preparation waits until the surviving packet executes.
-    effectOwner(_runtime, event) {
-      if (HAMMER_ORB_SKILLS[Number(event.skillId)] && (event.type === 'damage' || event.type === 'condition'))
-        return { id: String(event.activationId), generation: 0 };
-
-      return undefined;
-    },
     prepareEvent(runtime, event) {
       // Native and combo aura grants share the same one-time preparation before acceptance.
       event = prepareElementalistAura(runtime.helpers, runtime, event);
@@ -121,33 +98,16 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
           : []
       );
       prepared = prepareElementalistHitboxEvent(runtime, prepared);
-      return empowerElementalistSpearPacket(
-        runtime,
-        prepared as ElementalistSimulationEvent,
-        runtime.profession.core.spearFollowups[String(prepared.activationId)],
-        undefined
-      );
+      return prepareElementalistSpearEvent(runtime, prepared);
     },
     onCastStart(runtime, cast) {
       if (!cast.cancelledBeforeCommit) elementalistOnCastStart(runtime, cast, cast.skill);
     },
     onCastCommit(runtime, cast) {
       elementalistOnCastCommit(runtime, cast, cast.skill);
-      // Authored strikes are prepared, and delayed sequences now own their snapshots.
-      delete runtime.profession.core.spearFollowups[cast.id];
-    },
-    onCastCancel(runtime, cast) {
-      // An activated skill still charges an etching when cancelled before its damage commits.
-      // Zero-length cancellations never progress a cast; rejected skills never reach this hook.
-      if (cast.effectiveEnd > cast.start) completeElementalistSpearProgression(runtime, cast.skill);
-
-      delete runtime.profession.core.spearFollowups[cast.id];
+      finishElementalistSpearCast(runtime, cast);
     },
     onCooldownReset: resetElementalistAttunementCooldowns,
-    tasks: {
-      'elementalist.expire-state': expireElementalistState,
-      'elementalist.fulgor-pulse': fulgorPulse
-    },
     eventHandlers: {
       'elementalist.conjure': OBSERVABLE_EVENT_HANDLER,
       'elementalist.attunement': observeElementalistTransition,

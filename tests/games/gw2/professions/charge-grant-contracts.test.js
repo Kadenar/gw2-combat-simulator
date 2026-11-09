@@ -9,7 +9,7 @@ import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-se
 import {
   applyShatteringStoneBuff,
   triggerShatteringStone
-} from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
+} from '#gw2/professions/elementalist/core/mechanics/pistol.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { ENGINEER_TRAIT_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';

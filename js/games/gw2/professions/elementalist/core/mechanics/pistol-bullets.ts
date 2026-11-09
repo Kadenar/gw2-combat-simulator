@@ -3,7 +3,7 @@
  *
  * Each elemental pistol skill either loads its element's bullet or spends an
  * already loaded one for an enhanced payload; this module owns that flip at
- * cast completion. Skill-specific payloads live beside their declarations in `skills/weapons/pistol.ts`.
+ * cast completion. Enhanced payload execution lives in `core/mechanics/pistol.ts`.
  */
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicContext, MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';

@@ -4,11 +4,17 @@ import { ACTOR, type AuraName } from '#gw2/platform/constants.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { AURA_TRANSMUTE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
-import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
+import type {
+  ElementalistRuntime,
+  ElementalistRuntimeState,
+  ElementalistSkill
+} from '#gw2/professions/elementalist/types.js';
 
 export interface ElementalistAuraApplication {
   readonly at: number;
@@ -41,7 +47,7 @@ function insertAura(context: ElementalistRuntime, event: Gw2ResolverEvent): void
     type: String(event.aura || ''),
     expiresAt
   });
-  context.schedule('elementalist.expire-state', expiresAt, null);
+  context.schedule('elementalist.aura-expire', expiresAt, null);
 }
 
 /** Standard aura acceptance records profession state once without republishing the shared reaction. */
@@ -51,6 +57,28 @@ export function acceptElementalistAuraReaction(context: ElementalistRuntime, eve
 
   return context.engagement.startTime == null || event.at >= context.engagement.startTime;
 }
+
+/** Aura transmutation and expiry retire applications through the same mechanic owner. */
+export const elementalistAuraLifecycle = {
+  sideEffectHandlers: {
+    'elementalist.transmute-aura'(context, trigger) {
+      if (trigger.kind !== 'cast') throw new TypeError('Aura transmutation requires a cast trigger.');
+
+      const aura = AURA_TRANSMUTE_SKILLS[Number(trigger.skill.id)];
+      const state = context.profession.core;
+      state.activeAuras = state.activeAuras.filter(
+        (candidate) => candidate.type !== aura || candidate.expiresAt <= trigger.cast.effectiveEnd
+      );
+    }
+  },
+  tasks: {
+    'elementalist.aura-expire'(runtime) {
+      runtime.profession.core.activeAuras = runtime.profession.core.activeAuras.filter(
+        (aura) => aura.expiresAt > runtime.time
+      );
+    }
+  }
+} satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;
 
 /** Event preparation runs once per grant, so all aura sources share the trait's duration adjustment. */
 export function prepareElementalistAura(

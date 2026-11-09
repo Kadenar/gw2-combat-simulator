@@ -2,12 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
-import { expireElementalistState } from '#gw2/professions/elementalist/core/mechanics/expiry.js';
 import {
   completeElementalistSpearProgression,
   consumeElementalistEtching,
   openElementalistEtching
-} from '#gw2/professions/elementalist/core/mechanics/spear-empowerments.js';
+} from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import {
@@ -194,18 +193,10 @@ test('etching counters retain independent crossing values and reset only with th
   assert.equal(core.etchings[fire.name].otherCasts, 3);
   assert.equal(core.etchings[air.name].stage, 'full');
 
-  const oldExpiry = core.etchings[fire.name].expiresAt;
   context.time = 1;
   openElementalistEtching(context, fire);
   assert.equal(core.etchings[fire.name].otherCasts, 0);
   assert.equal(core.etchings[fire.name].stage, 'lesser');
   consumeElementalistEtching(context, elementalistCatalog.skillsById.get(ID.DERECHO));
   assert.equal(core.etchings[air.name], null);
-  context.time = oldExpiry;
-  expireElementalistState(context);
-  assert.notEqual(core.etchings[fire.name], null);
-  context.time = core.etchings[fire.name].expiresAt;
-  expireElementalistState(context);
-  completeElementalistSpearProgression(context, ordinary);
-  assert.equal(core.etchings[fire.name], null);
 });

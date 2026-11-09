@@ -1,11 +1,6 @@
-import { WEAPON } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { elementalForGlyphId } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
-import { reservePistolRecharge } from '#gw2/professions/elementalist/core/skills/weapons/pistol.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntime, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
@@ -36,18 +31,4 @@ export function elementalistRechargeWork(
 
   // Skill-owned scaling stays here; the compiled trait declarations own training multipliers.
   return skill.rechargeMultiplier === undefined ? duration : duration * skillNumber(skill, 'rechargeMultiplier');
-}
-
-/** Spends the eligible empowerment when a cast is accepted; its reservation retains the selected duration. */
-export function reserveElementalistRecharge(context: ElementalistRuntime, skill: Skill, duration: number): number {
-  if (skill.type !== 'Weapon' || String(skill.slot || '') === 'Weapon_1') return duration;
-
-  const state = professionCoreState(context.profession);
-
-  if (state.spearNextRechargeReduction && skillWeapon(skill) === WEAPON.SPEAR) {
-    state.spearNextRechargeReduction = false;
-    return duration * skillNumber(requireSkill(context.helpers, ID.RIPPLE), 'nextSkillRechargeMultiplier');
-  }
-
-  return reservePistolRecharge(context, skill, duration);
 }
