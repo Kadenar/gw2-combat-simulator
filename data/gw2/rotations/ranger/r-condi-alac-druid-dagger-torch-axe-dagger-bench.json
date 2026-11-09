@@ -13,7 +13,7 @@
       "The log may omit opening casts or pre-combat setup. Review and complete the opener before simulating.",
       "30 instant casts were inferred using explicit Elite Insights rules."
     ],
-    "notes": "Production importer output for this log with player-only waits, so gaps beside pet commands are waits and no cast-time skill carries a concurrent offset. Preparation is explicit: Sharpening Stone, cooldown reset, Celestial Avatar, and Viper's Nest before the opening Natural Convergence. Combat begins 520 ms into that Natural Convergence and the opening Poisonous Cloud keeps its inferred command 600 ms into it. Manual timing edits: the second Avatar's first Seed of Life is concurrent with Natural Convergence, and the Viper's Nest before the fifth dodge pair is interrupted at 480 ms with adjusted waits. The final Sharpening Stone is at 101.436 seconds after combat start in the log; the final Winter's Bite animation extends beyond target death.",
+    "notes": "Production importer output for this log with player-only waits, so gaps beside pet commands are waits and no cast-time skill carries a concurrent offset. Preparation is explicit: Sharpening Stone, cooldown reset, Celestial Avatar, Viper's Nest, and Seed of Life 400 ms into Viper's Nest before the opening Natural Convergence. Combat begins 520 ms into that Natural Convergence and the opening Poisonous Cloud keeps its inferred command 600 ms into it. Manual timing edits: the second Avatar's first Seed of Life is concurrent with Natural Convergence, and the Viper's Nest before the fifth dodge pair is interrupted at 480 ms with adjusted waits. The final Sharpening Stone is at 101.436 seconds after combat start in the log; the final Winter's Bite animation extends beyond target death.",
     "preparation": [
       {
         "type": "cast",
@@ -29,6 +29,11 @@
       {
         "type": "cast",
         "skillId": 12496
+      },
+      {
+        "type": "cast",
+        "skillId": 31406,
+        "concurrentOffsetMs": 400
       }
     ]
   },
@@ -47,6 +52,11 @@
     {
       "type": "cast",
       "skillId": 12496
+    },
+    {
+      "type": "cast",
+      "skillId": 31406,
+      "concurrentOffsetMs": 400
     },
     {
       "type": "cast",
