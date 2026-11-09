@@ -1,18 +1,20 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
-import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
+import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { emitTraitProfile, invokeTraitSkill } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { definePeriodicTask } from '#gw2/platform/simulation/periodic-task.js';
 import { balanceNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerInitialized } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { avatarExited } from '#gw2/professions/ranger/specializations/druid/mechanics/celestial-avatar.js';
+import { SEED_OF_LIFE_DETONATION_MS } from '#gw2/professions/ranger/specializations/druid/skills/index.js';
 import { druidState } from '#gw2/professions/ranger/specializations/druid/state.js';
 import type { RangerRuntime } from '#gw2/professions/ranger/types.js';
 
@@ -107,6 +109,40 @@ const graceOfTheLand = defineTrait({
   }
 });
 
+/** Each successful player-owned water blast plants a seed; its bloom survives leaving Avatar. */
+const cultivatedSynergy = defineTrait({
+  id: TRAIT.CULTIVATED_SYNERGY,
+  balance: { duration: SEED_OF_LIFE_DETONATION_MS / 1000 },
+  triggers: [
+    {
+      on: 'combo.resolved',
+      when: (_runtime, event) =>
+        event.type === 'combo' &&
+        event.fieldType === COMBO_FIELD.WATER &&
+        event.finisherType === COMBO_FINISHER.BLAST &&
+        isGw2PlayerModifierOwnedEvent(event),
+      run(runtime, event) {
+        const at = event.at + balanceNumber(runtime.helpers, TRAIT.CULTIVATED_SYNERGY, 'duration');
+        invokeTraitSkill(runtime, TRAIT.CULTIVATED_SYNERGY, ID.LESSER_SEED_OF_LIFE, event, { at });
+
+        // Alacrity belongs to the bloom even when no enemy receives its blind.
+        if (hasTrait(runtime, TRAIT.GRACE_OF_THE_LAND))
+          emitTraitProfile(runtime, TRAIT.GRACE_OF_THE_LAND, TRAIT.GRACE_OF_THE_LAND, event, {
+            at,
+            effect: { type: 'boon', name: BOON.ALACRITY },
+            attribution: {
+              ownerActorType: ACTOR.PLAYER,
+              skillId: ID.LESSER_SEED_OF_LIFE,
+              skillName: 'Lesser Seed of Life',
+              triggeredBy: event.skillName,
+              audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+            }
+          });
+      }
+    }
+  ]
+});
+
 /** Owns Eclipse's live tuning and trait behavior. */
 const eclipse = defineTrait({
   id: TRAIT.ECLIPSE,
@@ -187,7 +223,15 @@ const intrinsicPolicy = defineTrait({
   balance: { maximumStacks: 100, astralForceRetentionMultiplier: 0.5, resourceGain: 0.75 }
 });
 
-export const druidTraits = [intrinsicPolicy, naturalMender, naturalBalance, graceOfTheLand, eclipse, bloodMoon];
+export const druidTraits = [
+  intrinsicPolicy,
+  naturalMender,
+  naturalBalance,
+  graceOfTheLand,
+  cultivatedSynergy,
+  eclipse,
+  bloodMoon
+];
 
 /** Fires at the Avatar transition before chain reset and swap reactions. */
 function applyNaturalBalance(runtime: RangerRuntime): void {

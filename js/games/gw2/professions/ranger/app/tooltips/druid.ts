@@ -17,6 +17,9 @@ import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professi
 /** Compose druid descriptions using the selected catalog's balance data. */
 export const druidTooltips = {
   skills: {
+    [ID.LESSER_SEED_OF_LIFE]: skillTooltip(
+      'Cultivated Synergy triggers this skill after a water blast. Blind the target and grant nearby allies alacrity if Grace of the Land is selected. Healing and cleansing are outside combat simulation scope.'
+    ),
     [ID.CELESTIAL_AVATAR]: skillTooltip(
       'Enter Celestial Avatar and replace your weapon bar. Astral force drains until you leave or it is depleted. Entry triggers applicable Avatar and weapon-swap effects.',
       [
@@ -69,7 +72,10 @@ export const druidTooltips = {
         ['conditionDurationBonus', 'Condition duration', tooltipPercent]
       ]
     ),
-    [TRAIT.CULTIVATED_SYNERGY]: outsideScopeTooltip,
+    [TRAIT.CULTIVATED_SYNERGY]: traitTooltip(
+      'Blasting a water field sprouts Lesser Seed of Life. Its bloom blinds the target and grants nearby allies alacrity if Grace of the Land is selected. Pet finishers do not trigger it.',
+      [['duration', 'Seed bloom delay', tooltipSeconds]]
+    ),
     [TRAIT.LINGERING_LIGHT]: outsideScopeTooltip,
     [TRAIT.ECLIPSE]: (balanceContext, entity) => ({
       description:

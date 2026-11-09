@@ -11,6 +11,18 @@ export const SEED_OF_LIFE_DETONATION_MS = 720;
 export const LUNAR_IMPACT_HIT_MS = 560;
 
 export const DRUID_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RangerSkill>>> = {
+  // Cultivated Synergy invokes this bloom without consuming a player action or requiring Avatar.
+  [ID.LESSER_SEED_OF_LIFE]: {
+    name: 'Lesser Seed of Life',
+    icon: 'https://render.guildwars2.com/file/761706674AF9092C98D059AB03BD747BFC7DF506/1128623.png',
+    type: 'Proc',
+    slot: 'Action',
+    rotationInputExcluded: true,
+    slotSelectable: false,
+    cooldown: 0,
+    castTimeMs: 0,
+    effects: [{ type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 4 }]
+  },
   [ID.GLYPH_OF_REJUVENATION]: {
     name: 'Glyph of Rejuvenation',
     icon: 'https://render.guildwars2.com/file/0A3119FC4F62C31A0646B0FF901E701D74BD3EEA/1128605.png',
