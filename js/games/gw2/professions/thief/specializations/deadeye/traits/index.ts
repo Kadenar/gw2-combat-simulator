@@ -1,10 +1,10 @@
-import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, countActiveBoons, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
-import type { StatusEffect } from '#gw2/platform/effects/types.js';
+import { ACTOR, BOON, BOON_NAMES, RECIPIENT } from '#gw2/platform/constants.js';
+import type { BoonEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -57,14 +57,14 @@ const beQuickOrBeKilled = defineTrait({
           to: 'Power',
           amount: ownerAttributeBonusNumber(profile, 'power'),
           feedsConversions: 'none',
-          enabled: boonActive(context, boonKey(BOON.QUICKNESS))
+          enabled: boonActive(context, BOON.QUICKNESS)
         },
         {
           kind: 'flat',
           to: 'Precision',
           amount: ownerAttributeBonusNumber(profile, 'precision'),
           feedsConversions: 'none',
-          enabled: boonActive(context, boonKey(BOON.QUICKNESS))
+          enabled: boonActive(context, BOON.QUICKNESS)
         }
       ]
     };
@@ -254,8 +254,8 @@ function traitBoons(
     },
     transform: (event, effect) => ({
       ...event,
-      name: `${source} - ${(effect as StatusEffect).boon}`,
-      boon: String((effect as StatusEffect).boon),
+      name: `${source} - ${BOON_NAMES[(effect as BoonEffect).boon]}`,
+      boon: (effect as BoonEffect).boon,
       audience: party ? { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } : undefined
     })
   });

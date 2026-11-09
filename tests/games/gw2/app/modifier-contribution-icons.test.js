@@ -26,16 +26,16 @@ const app = {
 };
 
 const SIMULATION_EFFECTS = [
-  'Might',
-  'Fury',
-  'Quickness',
-  'Alacrity',
-  'Protection',
-  'Resolution',
-  'Regeneration',
-  'Swiftness',
-  'Vigor',
-  'Aegis',
+  'might',
+  'fury',
+  'quickness',
+  'alacrity',
+  'protection',
+  'resolution',
+  'regeneration',
+  'swiftness',
+  'vigor',
+  'aegis',
   'Burning',
   'Bleeding',
   'Torment',
@@ -68,8 +68,14 @@ test('every configurable boon and condition has a canonical icon', () => {
 });
 
 test('common modifier contributions use their canonical icons', () => {
-  assert.equal(resultSkillIcon(app, { id: 'Boon:Might', name: 'Might' }), MODIFIER_EFFECT_ICONS.Might);
-  assert.equal(resultSkillIcon(app, { id: 'Boon:Fury', name: 'Fury' }), MODIFIER_EFFECT_ICONS.Fury);
+  assert.equal(
+    resultSkillIcon(app, { id: 'opaque-might-row', boonId: 'might', name: 'Might contribution' }),
+    MODIFIER_EFFECT_ICONS.might
+  );
+  assert.equal(
+    resultSkillIcon(app, { id: 'opaque-fury-row', boonId: 'fury', name: 'Fury contribution' }),
+    MODIFIER_EFFECT_ICONS.fury
+  );
   assert.equal(
     resultSkillIcon(app, {
       id: 'Target:Vulnerability',

@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -76,7 +76,7 @@ const empoweringSpirits = defineTrait({
   balance: {
     effects: [
       {
-        name: boonKey(BOON.QUICKNESS),
+        name: BOON.QUICKNESS,
         type: 'boon',
         boon: BOON.QUICKNESS,
         stacks: 1,
@@ -85,7 +85,7 @@ const empoweringSpirits = defineTrait({
         audience: { recipients: RECIPIENT.PARTY }
       },
       {
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         type: 'boon',
         boon: BOON.MIGHT,
         stacks: 8,
@@ -94,7 +94,7 @@ const empoweringSpirits = defineTrait({
         audience: { recipients: RECIPIENT.PARTY }
       },
       {
-        name: boonKey(BOON.FURY),
+        name: BOON.FURY,
         type: 'boon',
         boon: BOON.FURY,
         stacks: 1,
@@ -103,7 +103,7 @@ const empoweringSpirits = defineTrait({
         audience: { recipients: RECIPIENT.PARTY }
       },
       {
-        name: boonKey(BOON.RESOLUTION),
+        name: BOON.RESOLUTION,
         type: 'boon',
         boon: BOON.RESOLUTION,
         stacks: 1,
@@ -209,8 +209,8 @@ function summonExplosiveGrowth(
 function applyEmpoweringSpirits(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerSkill>, key: string): void {
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.EMPOWERING_SPIRITS);
   for (const kind of [
-    boonKey(BOON.QUICKNESS),
-    key === 'anguish' ? boonKey(BOON.MIGHT) : key === 'wanderlust' ? boonKey(BOON.FURY) : boonKey(BOON.RESOLUTION)
+    BOON.QUICKNESS,
+    key === 'anguish' ? BOON.MIGHT : key === 'wanderlust' ? BOON.FURY : BOON.RESOLUTION
   ]) {
     const effect = requireEffect(profile, 'boon', kind);
 

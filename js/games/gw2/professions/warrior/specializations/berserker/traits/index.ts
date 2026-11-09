@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, AURA, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -29,8 +29,8 @@ const burstOfAggression = defineTrait({
   id: TRAIT.BURST_OF_AGGRESSION,
   balance: {
     effects: [
-      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3 },
-      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 8 }
+      { name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3 },
+      { name: BOON.FURY, type: 'boon', boon: BOON.FURY, stacks: 1, duration: 8 }
     ]
   },
   triggers: [
@@ -47,7 +47,7 @@ const bloodyRoar = defineTrait({
   id: TRAIT.BLOODY_ROAR,
   balance: {
     damageMultiplier: 1.1,
-    effects: [{ name: boonKey(BOON.RESISTANCE), type: 'boon', boon: BOON.RESISTANCE, stacks: 1, duration: 3.5 }]
+    effects: [{ name: BOON.RESISTANCE, type: 'boon', boon: BOON.RESISTANCE, stacks: 1, duration: 3.5 }]
   },
   modifierRules: [
     {
@@ -118,10 +118,10 @@ const heatTheSoul = defineTrait({
   id: TRAIT.HEAT_THE_SOUL,
   balance: {
     effects: [
-      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 },
+      { name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 },
       { name: 'Decapitate quickness', type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 2 },
-      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 5 },
-      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 5 }
+      { name: BOON.FURY, type: 'boon', boon: BOON.FURY, stacks: 1, duration: 5 },
+      { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 5 }
     ]
   },
   triggers: [
@@ -332,7 +332,7 @@ function heatTheSoulCompletion(runtime: WarriorRuntime, cast: RuntimeCast<Warrio
       effects: (effect) =>
         effect.type === 'boon' &&
         (effect.boon !== BOON.QUICKNESS ||
-          effect.name === (cast.skill.id === ID.DECAPITATE ? 'Decapitate quickness' : boonKey(BOON.QUICKNESS)))
+          effect.name === (cast.skill.id === ID.DECAPITATE ? 'Decapitate quickness' : BOON.QUICKNESS))
     });
   }
 }

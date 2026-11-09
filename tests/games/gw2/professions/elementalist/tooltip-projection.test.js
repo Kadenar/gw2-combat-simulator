@@ -304,12 +304,12 @@ test('Familiar blessing previews preserve the runtime element choice after remov
     const profession = preview({
       balanceProfiles: {
         [TRAIT.FAMILIARS_BLESSING]: {
-          removeEffects: reordered ? [{ type: 'boon', all: true }] : [{ type: 'boon', name: 'Quickness' }],
+          removeEffects: reordered ? [{ type: 'boon', all: true }] : [{ type: 'boon', name: 'quickness' }],
           ...(reordered
             ? {
                 addEffects: [
-                  { type: 'boon', name: 'Alacrity', boon: 'alacrity', stacks: 1, duration: 7 },
-                  { type: 'boon', name: 'Quickness', boon: 'quickness', stacks: 1, duration: 3 }
+                  { type: 'boon', name: 'alacrity', boon: 'alacrity', stacks: 1, duration: 7 },
+                  { type: 'boon', name: 'quickness', boon: 'quickness', stacks: 1, duration: 3 }
                 ]
               }
             : {})

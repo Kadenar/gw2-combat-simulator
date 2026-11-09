@@ -1,7 +1,6 @@
 /** Selects and normalizes controls for isolated conditional attribute previews using the active catalog and weapon set. */
 import type { AttributePreviewInput, AttributePreviewState } from '#gw2/app/build/types.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { BOON } from '#gw2/platform/constants.js';
+import { BOON, BOON_NAMES } from '#gw2/platform/constants.js';
 import {
   previewControlScopes,
   type AttributePreviewValues,
@@ -28,16 +27,16 @@ export function attributePreviewContext(
 export function attributePreviewControls(app: AttributePreviewState): PreviewControl[] {
   const controls: PreviewControl[] = [
     {
-      key: boonKey(BOON.MIGHT),
-      label: BOON.MIGHT,
+      key: BOON.MIGHT,
+      label: BOON_NAMES[BOON.MIGHT],
       group: 'Boons',
       kind: 'boon',
       max: 25,
       description: 'stacks; Power / Condition Damage'
     },
     {
-      key: boonKey(BOON.FURY),
-      label: BOON.FURY,
+      key: BOON.FURY,
+      label: BOON_NAMES[BOON.FURY],
       group: 'Boons',
       kind: 'boon',
       description: '+25% Critical Chance; selected Fury traits'

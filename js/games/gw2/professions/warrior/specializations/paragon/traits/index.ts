@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
@@ -81,7 +80,7 @@ const feverishPulse = defineTrait({
   id: TRAIT.FEVERISH_PULSE,
   balance: {
     rechargeReduction: 2,
-    effects: [{ name: boonKey(BOON.ALACRITY), type: 'boon', boon: BOON.ALACRITY, stacks: 1, duration: 6 }]
+    effects: [{ name: BOON.ALACRITY, type: 'boon', boon: BOON.ALACRITY, stacks: 1, duration: 6 }]
   },
   triggers: [
     onTriggerPoint(chantActivated, {

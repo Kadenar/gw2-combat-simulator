@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, boonActive, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -250,8 +250,7 @@ export const ragingStorm = defineTrait({
           amount: attributeBonusNumber(context.balanceContext.catalog, TRAIT.RAGING_STORM, 'ferocity'),
           feedsConversions: 'none',
           enabled:
-            context.query?.furyActiveAt(context.time, context.runtime, context.event) ??
-            boonActive(context, boonKey(BOON.FURY))
+            context.query?.furyActiveAt(context.time, context.runtime, context.event) ?? boonActive(context, BOON.FURY)
         }
       ]
     };

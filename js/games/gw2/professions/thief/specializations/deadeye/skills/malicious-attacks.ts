@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, WEAPON } from '#gw2/platform/constants.js';
@@ -365,8 +364,8 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
           const malice = acceptedDeadeyeMarkedMalice(cast);
           return effects.flatMap((effect): SkillEffect[] => {
             const quickness =
-              (effect.type === 'boon' && String(effect.boon).toLowerCase() === boonKey(BOON.QUICKNESS)) ||
-              (effect.type === 'buff' && effect.kind === boonKey(BOON.QUICKNESS));
+              (effect.type === 'boon' && effect.boon === BOON.QUICKNESS) ||
+              (effect.type === 'buff' && effect.kind === BOON.QUICKNESS);
             return !quickness ? [effect] : malice > 0 ? [{ ...effect, duration: (effect.duration || 0) * malice }] : [];
           });
         }

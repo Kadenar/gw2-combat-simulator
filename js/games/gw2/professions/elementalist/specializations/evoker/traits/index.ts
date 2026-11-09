@@ -1,11 +1,11 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks, boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
+import type { BoonId } from '#gw2/platform/constants.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -69,7 +69,7 @@ import type {
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
-const boon = (name: string, boonName: string, stacks: number, duration: number): SkillEffect => ({
+const boon = (name: string, boonName: BoonId, stacks: number, duration: number): SkillEffect => ({
   type: 'boon',
   name,
   boon: boonName,
@@ -90,7 +90,7 @@ const evocation = defineTrait({
     internalCooldown: 5,
     // Fire-familiar Might has its own interval, separate from the entry cooldown.
     pulseInterval: 1,
-    effects: [boon('Fire Familiar', boonKey(BOON.MIGHT), 1, 6)]
+    effects: [boon('Fire Familiar', BOON.MIGHT, 1, 6)]
   },
   triggers: [
     onTriggerPoint(evokerEventAccepted, {
@@ -213,7 +213,7 @@ const enhancedPotency = defineTrait({
           enabled:
             config?.evokerElement === 'Air' &&
             (context.query?.furyActiveAt(context.time, context.runtime, context.event) ??
-              boonActive(context, boonKey(BOON.FURY)))
+              boonActive(context, BOON.FURY))
         },
         {
           kind: 'flat',
@@ -293,10 +293,10 @@ const altruisticAspect = defineTrait({
   id: TRAIT.ALTRUISTIC_ASPECT,
   balance: {
     effects: [
-      boon("Fox's Fury", boonKey(BOON.MIGHT), 3, 10),
-      boon("Hare's Agility", boonKey(BOON.FURY), 1, 5),
-      boon("Toad's Fortitude", boonKey(BOON.STABILITY), 1, 5),
-      boon('Elemental Procession', boonKey(BOON.RESISTANCE), 1, 5)
+      boon("Fox's Fury", BOON.MIGHT, 3, 10),
+      boon("Hare's Agility", BOON.FURY, 1, 5),
+      boon("Toad's Fortitude", BOON.STABILITY, 1, 5),
+      boon('Elemental Procession', BOON.RESISTANCE, 1, 5)
     ]
   },
   triggers: [
@@ -320,7 +320,7 @@ const familiarsFocus = defineTrait({
 const familiarsBlessing = defineTrait({
   id: TRAIT.FAMILIARS_BLESSING,
   balance: {
-    effects: [boon(BOON.QUICKNESS, boonKey(BOON.QUICKNESS), 1, 1.75), boon(BOON.ALACRITY, boonKey(BOON.ALACRITY), 1, 4)]
+    effects: [boon(BOON.QUICKNESS, BOON.QUICKNESS, 1, 1.75), boon(BOON.ALACRITY, BOON.ALACRITY, 1, 4)]
   },
   triggers: [
     onTriggerPoint(evokerCastCompleted, {

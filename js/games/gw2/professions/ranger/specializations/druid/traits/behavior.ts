@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -24,7 +23,7 @@ export function avatarEffects(
 
   if (hasTrait(runtime, TRAIT.GRACE_OF_THE_LAND)) {
     const profile = requireBalanceProfile(runtime.helpers, TRAIT.GRACE_OF_THE_LAND);
-    const effect = requireEffect(profile, 'boon', boonKey(BOON.ALACRITY));
+    const effect = requireEffect(profile, 'boon', BOON.ALACRITY);
 
     if (effect)
       for (const atMs of pulses)

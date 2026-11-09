@@ -1,5 +1,4 @@
 import {
-  boonKey,
   buffApplicationStacks,
   buffMatchesAudience,
   isDurationStackingBoon,
@@ -88,7 +87,7 @@ export function createGw2TimelineIndex({
     if (cached) return cached;
 
     const retiredAt = retiredCompanions.get(companionId) ?? Infinity;
-    const windows = prepareBoonWindows(events, boonKey(BOON.ALACRITY), RECIPIENT.SUMMONS, companionId, resolved)
+    const windows = prepareBoonWindows(events, BOON.ALACRITY, RECIPIENT.SUMMONS, companionId, resolved)
       .filter((window) => window.start < retiredAt)
       .map((window) => ({ ...window, end: Math.min(window.end, retiredAt) }));
 
@@ -168,7 +167,7 @@ export function createGw2TimelineIndex({
       }
 
       if (event.type === 'buff') {
-        if (event.kind === boonKey(BOON.ALACRITY)) alacrityWindows.clear();
+        if (event.kind === BOON.ALACRITY) alacrityWindows.clear();
 
         indexBuff(event);
       }
@@ -274,8 +273,7 @@ export function createGw2TimelineIndex({
     return buffStacksAt(kind, time, 0, 1) > 0;
   };
 
-  const vigorActiveAt = (time: number): boolean =>
-    Boolean(config.boons?.vigor) || timedActive(boonKey(BOON.VIGOR), time);
+  const vigorActiveAt = (time: number): boolean => Boolean(config.boons?.vigor) || timedActive(BOON.VIGOR, time);
 
   const activeWeaponSetAt = (time: number): number => {
     time = canonicalTime(time);

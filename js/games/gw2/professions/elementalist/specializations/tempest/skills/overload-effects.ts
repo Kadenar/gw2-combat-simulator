@@ -4,6 +4,7 @@
  * Each overload is expanded into per-pulse strike/condition/boon packets anchored to cast start and
  * scaled with the cast, so a slower unquickened channel stretches the same pulses proportionally.
  */
+import type { BoonId } from '#gw2/platform/constants.js';
 import { BOON, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -27,7 +28,7 @@ function condition(name: string, stacks: number, duration: number): SkillEffect 
   };
 }
 
-function boon(name: string, stacks: number, duration: number): SkillEffect {
+function boon(name: BoonId, stacks: number, duration: number): SkillEffect {
   return {
     type: 'boon',
     boon: name,

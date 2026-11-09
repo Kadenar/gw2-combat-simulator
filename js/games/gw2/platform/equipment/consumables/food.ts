@@ -72,7 +72,7 @@ const FOOD_CATALOG = {
         name: 'Ghost Pepper Popper',
         dayEffect: {
           type: 'boon',
-          name: BOON.MIGHT,
+          boon: BOON.MIGHT,
           stacks: 1,
           duration: 5
         },

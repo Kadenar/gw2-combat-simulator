@@ -139,9 +139,9 @@ export function buildEngineerCondition(
   return application;
 }
 
-/** Adapts resolver time and lowercase boon names to the shared permanent-plus-timed stack query. */
+/** Adapts resolver time and boon IDs to the shared permanent-plus-timed stack query. */
 export function activeBoonStacks(context: EngineerResolverContext, kind: string, maximum = 25, at = 0): number {
-  return context.combat.activeBoonStacks((kind || '').toLowerCase(), at, maximum);
+  return context.combat.activeBoonStacks(kind, at, maximum);
 }
 
 /** Damage modifiers and on-hit traits read the accepted packet's explicit explosion classification. */

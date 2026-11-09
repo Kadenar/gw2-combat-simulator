@@ -1,7 +1,6 @@
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { BOON } from '#gw2/platform/constants.js';
@@ -186,9 +185,9 @@ export function bindEngineerCoreUi(catalog: Readonly<CanonicalCatalog<EngineerSk
       // Expose held combat bonuses to isolated damage calculations.
       preview.damageBuff('Thermal Vision', 'thermalVision', 'thermal-vision');
       preview.damageBuff('Kinetic Battery', 'kineticBattery', 'kinetic-battery');
-      preview.boon(boonKey(BOON.VIGOR), 'Excessive Energy');
+      preview.boon(BOON.VIGOR, 'Excessive Energy');
 
-      preview.boon(boonKey(BOON.REGENERATION), 'Energy Amplifier');
+      preview.boon(BOON.REGENERATION, 'Energy Amplifier');
       preview.buff('Explosive Temper', 'explosiveTemper', 'explosive-temper', 'Ferocity', true);
       preview.buff('Grand Entrance', 'grandEntrance', 'grand-entrance', 'Critical Chance');
       preview.trait('High Caliber', {

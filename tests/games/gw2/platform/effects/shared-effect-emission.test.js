@@ -97,7 +97,7 @@ test('profile and computed grants use one submission contract', () => {
             receipt: true,
             kind: 'profile',
             at: 1,
-            profile: { id: 42, name: 'Fixture', effects: [{ type: 'boon', boon: 'Fury', duration: 4, stacks: 1 }] },
+            profile: { id: 42, name: 'Fixture', effects: [{ type: 'boon', boon: 'fury', duration: 4, stacks: 1 }] },
             attribution
           })
         );
@@ -318,8 +318,8 @@ test('trait profile selection validates named effects and preserves cast attribu
     id: 42,
     name: 'Fixture trait',
     effects: [
-      { type: 'boon', name: 'Selected boon', boon: 'Fury', duration: 2, stacks: 1, actorType: 'player' },
-      { type: 'boon', name: 'Other boon', boon: 'Might', duration: 2, stacks: 1, actorType: 'effect' }
+      { type: 'boon', name: 'Selected boon', boon: 'fury', duration: 2, stacks: 1, actorType: 'player' },
+      { type: 'boon', name: 'Other boon', boon: 'might', duration: 2, stacks: 1, actorType: 'effect' }
     ]
   };
   const runtime = {
@@ -369,7 +369,7 @@ test('trait profiles retain mechanic cancellation ownership independently of cas
       {
         id: 42,
         name: 'Owned trait',
-        effects: [{ type: 'boon', boon: 'Might', duration: 2, stacks: 1 }]
+        effects: [{ type: 'boon', boon: 'might', duration: 2, stacks: 1 }]
       }
     ]
   });

@@ -1,9 +1,9 @@
 import type { ModifierDescriptions } from '#gw2/app/modifier-reference/presentation.js';
 import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
-import { ACTOR, BOON, COMBO_FINISHER, RECIPIENT } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, BOON_NAMES, COMBO_FINISHER, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import {
@@ -152,7 +152,9 @@ function resolveFacts(
   });
 }
 
-const effectNames = new Map(Object.keys(MODIFIER_EFFECT_ICONS).map((name) => [name.toLowerCase(), name]));
+const effectNames = new Map(
+  Object.keys(MODIFIER_EFFECT_ICONS).map((name) => [name.toLowerCase(), isStandardBoon(name) ? BOON_NAMES[name] : name])
+);
 // Resolve authored buff IDs to display names so their facts receive the matching effect icons.
 effectNames.set('kallas-fervor', "Kalla's Fervor");
 // Resolve Vindicator's internal buff names to the named CDN icons used in trait tooltips.
@@ -415,7 +417,10 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
   const facts = new Map<string, TooltipFact>();
   let incomplete = false;
   const add = (effect: SkillEffect, name: string, detail: string, stacks?: number) => {
-    name = tooltipEffectName(name);
+    const rawName = name;
+    name = tooltipEffectName(rawName);
+    // Exact ID or display-name icons take precedence over the declaration's generic icon.
+    const icon = MODIFIER_EFFECT_ICONS[rawName] || MODIFIER_EFFECT_ICONS[name] || effect.icon;
     const qualifier = [context, effectContext(effect, name)].filter(Boolean).join(' · ');
     const fullDetail = [detail, qualifier].filter(Boolean).join(' - ');
     const key = JSON.stringify([name, fullDetail, stacks, effect.sourceId, effect.actorType, effect.audience]);
@@ -424,7 +429,7 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
     facts.set(key, {
       name,
       detail: fullDetail,
-      icon: MODIFIER_EFFECT_ICONS[name] || effect.icon,
+      icon,
       stacks,
       applications: (previous?.applications ?? 0) + applications
     });
@@ -485,9 +490,7 @@ export function simulationEffectFacts(effects: readonly SkillEffect[] = [], cont
 
       const stacks = effect.stacks ?? 1;
       // Only intensity-stacking boons need stack counts; other boons show their duration and recipients.
-      const showStacks =
-        !isStandardBoon(name) ||
-        [boonKey(BOON.MIGHT), boonKey(BOON.STABILITY)].some((boon) => boon === name.toLowerCase());
+      const showStacks = !isStandardBoon(name) || [BOON.MIGHT, BOON.STABILITY].some((boon) => boon === name);
       // Attribute buffs store their point bonus in stacks; presenting those points as stack counts is misleading.
       const attribute =
         effect.type === 'buff' &&

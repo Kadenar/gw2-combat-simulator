@@ -1,5 +1,4 @@
 /** Mistburn relic rules. */
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { BOON } from '#gw2/platform/constants.js';
@@ -13,7 +12,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 function mistburnGrant(state: Gw2RelicState, event: SimulationEvent): ProfileEmission | null {
   if (
     event.type !== 'buff' ||
-    (event.kind || '').toLowerCase() !== boonKey(BOON.MIGHT) ||
+    event.kind !== BOON.MIGHT ||
     !isGw2PlayerActorEvent(event) ||
     !event.resolvedAudience?.includesSelf ||
     !(Number(event.duration) > 0) ||

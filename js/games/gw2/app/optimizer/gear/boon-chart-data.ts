@@ -74,10 +74,9 @@ export function calculateOptimizerBoonChart(
             )
           }
         },
-        250,
-        { effectName: (kind) => (kind === 'quickness' ? 'Quickness' : 'Alacrity') }
+        250
       ),
-      effectUnits: { Quickness: 's', Alacrity: 's' }
+      effectUnits: { quickness: 's', alacrity: 's' }
     }
   };
 }

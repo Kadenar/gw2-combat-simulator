@@ -1,5 +1,5 @@
 import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
-import { boonKey, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
+import { gw2BoonDurationMultiplier, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
@@ -118,7 +118,7 @@ function rangerPetCastDurationMs(
       ? rangerPetSkillTiming(petName, skill.id)
       : undefined;
   return quantizeGw2ActionDurationUp(
-    petBoonActive(context, boonKey(BOON.QUICKNESS))
+    petBoonActive(context, BOON.QUICKNESS)
       ? (timing?.quicknessCastTimeMs ?? summonQuicknessCastTimeMs(skill))
       : (timing?.castTimeMs ?? skill.castTimeMs ?? 0)
   );
@@ -146,7 +146,7 @@ function petCommandRecovery(context: RangerRuntime, cast: RuntimeCast<RangerSkil
   const special = profile?.specials.find((entry) => entry.id === skillId);
 
   if (rangerPetSkillTiming(petName, skillId) || special)
-    return petRecovery(petName, skillId, special?.recovery ?? 0, petBoonActive(context, boonKey(BOON.QUICKNESS)));
+    return petRecovery(petName, skillId, special?.recovery ?? 0, petBoonActive(context, BOON.QUICKNESS));
 
   return (
     quantizeGw2ActionDurationUp((profile?.commandRecovery[String(skillId)] ?? cast.effectiveEnd - cast.start) * 1000) /
@@ -302,7 +302,7 @@ export function emitRangerPetSkill(
   const companionId = rangerPetCompanionId(context);
   const entityName = rangerPetForState(context.profession.core).name;
   const timing = rangerPetSkillTiming(entityName, skill.id);
-  const quickness = petBoonActive(context, boonKey(BOON.QUICKNESS));
+  const quickness = petBoonActive(context, BOON.QUICKNESS);
   // Keep pet impact timing and cancellation here. Commanded effects use shared cast targeting.
   const deliveryForEffect = (effect: SkillEffect): Omit<CastEffectDelivery, 'cast'> | null => {
     if (
@@ -422,7 +422,7 @@ const rangerPetTasks = {
     if (!profile) return;
 
     const opening = state.pet.openingBasic;
-    const quickness = petBoonActive(context, boonKey(BOON.QUICKNESS));
+    const quickness = petBoonActive(context, BOON.QUICKNESS);
     const selected = autonomousSkill(context, profile);
     const skill = context.helpers.skillsById.get(selected.id);
     const recovery = petRecovery(petName, selected.id, selected.recovery, quickness);
@@ -594,8 +594,8 @@ function rangerBoonDuration(
   baseDuration: number,
   scaledDuration: number
 ): number {
-  if (!isPetActorEvent(event)) return scaledDuration;
+  if (!isPetActorEvent(event) || !isStandardBoon(event.kind)) return scaledDuration;
 
   const concentration = lingeringMagicConcentration(context);
-  return baseDuration * gw2BoonDurationMultiplier(String(event.kind), { concentration });
+  return baseDuration * gw2BoonDurationMultiplier(event.kind, { concentration });
 }

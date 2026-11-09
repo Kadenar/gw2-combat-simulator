@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -79,7 +78,7 @@ const highImpactDrivers = defineTrait({
     internalCooldown: 1,
     effects: [
       {
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         type: 'boon',
         boon: BOON.MIGHT,
         stacks: 1,
@@ -116,7 +115,7 @@ const jadeDynamo = defineTrait({
   id: TRAIT.MECH_CORE_JADE_DYNAMO,
   balance: {
     rechargeMultiplier: 0.8,
-    effects: [{ name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 2.5 }]
+    effects: [{ name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 2.5 }]
   },
   rechargeRules: [
     {
@@ -129,7 +128,7 @@ const jadeDynamo = defineTrait({
       on: 'castCommit',
       when: (_runtime, cast) => isEngineerMechCommand(cast.skill),
       emit: TRAIT.MECH_CORE_JADE_DYNAMO,
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.QUICKNESS),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.QUICKNESS,
       attribution: { actorType: ACTOR.PLAYER, name: 'Jade Dynamo - quickness' }
     }
   ]
@@ -195,7 +194,7 @@ const channelingConduits = defineTrait({
     effects: [
       {
         type: 'boon',
-        name: boonKey(BOON.ALACRITY),
+        name: BOON.ALACRITY,
         boon: BOON.ALACRITY,
         stacks: 1,
         duration: 1,
@@ -295,13 +294,13 @@ function applySingleEdgeCutters(context: EngineerRuntime, { cause: event }: Mech
 /** High-Impact Drivers grants Might on its own independent interval. */
 function applyHighImpactDrivers(context: EngineerRuntime, { cause: event }: MechStrike): void {
   const profile = requireBalanceProfile(context.helpers, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS);
-  const packet = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
+  const packet = requireEffect(profile, 'boon', BOON.MIGHT);
 
   if (!packet || !context.procs.claim(TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, 'highImpactDrivers', event.at)) return;
 
   emitTraitProfile(context, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, TRAIT.MECH_ARMS_HIGH_IMPACT_DRIVERS, undefined, {
     at: event.at,
-    effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
+    effect: { type: 'boon', name: BOON.MIGHT },
     durationContext: event,
     attribution: {
       source: 'Trait',
@@ -456,7 +455,7 @@ function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolve
 
   // Barrier pulses can land exactly at the shared deadline; reserve the next interval before emitting the boon.
   if (
-    !requireEffect(profile, 'boon', boonKey(BOON.ALACRITY)) ||
+    !requireEffect(profile, 'boon', BOON.ALACRITY) ||
     canonicalTime(event.at) < canonicalTime(runtime.procs.deadline(profile.id))
   )
     return;
@@ -464,7 +463,7 @@ function channelBarrierAlacrity(runtime: EngineerRuntime, event: EngineerResolve
   runtime.procs.setDeadline(profile.id, event.at + balanceProfileNumber(profile, 'internalCooldown'));
 
   emitTraitProfile(runtime, profile.id, profile.id, event, {
-    effect: { type: 'boon', name: boonKey(BOON.ALACRITY) },
+    effect: { type: 'boon', name: BOON.ALACRITY },
     attribution: {
       source: 'Trait',
       sourceId: profile.id,

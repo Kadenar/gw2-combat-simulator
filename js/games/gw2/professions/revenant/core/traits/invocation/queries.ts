@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { isFlatLifeStealPacket } from '#gw2/platform/effects/packet-builders.js';
@@ -13,7 +12,7 @@ export function revenantLifeSiphonBonus(context: RevenantResolverContext, event:
   if (!isFlatLifeStealPacket(event)) return null;
 
   return hasTrait(context.traits, TRAIT.FEROCIOUS_AGGRESSION) &&
-    boonActive({ config: context.config, runtime: context, time: event.at, event }, boonKey(BOON.FURY))
+    boonActive({ config: context.config, runtime: context, time: event.at, event }, BOON.FURY)
     ? balanceNumber(context.helpers, TRAIT.FEROCIOUS_AGGRESSION, 'damageIncrease')
     : 0;
 }

@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import {
@@ -147,7 +146,7 @@ const stretchedTime = defineTrait<MesmerSkill>({
     durationPerTier: 1,
     effects: [
       {
-        name: boonKey(BOON.ALACRITY),
+        name: BOON.ALACRITY,
         type: 'boon',
         boon: BOON.ALACRITY,
         duration: 3,
@@ -159,7 +158,7 @@ const stretchedTime = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
-        triggerShatterBoon(runtime, input.resolution, TRAIT.STRETCHED_TIME, boonKey(BOON.ALACRITY))
+        triggerShatterBoon(runtime, input.resolution, TRAIT.STRETCHED_TIME, BOON.ALACRITY)
     })
   ]
 });
@@ -171,7 +170,7 @@ const seizeTheMoment = defineTrait<MesmerSkill>({
     durationPerTier: 1,
     effects: [
       {
-        name: boonKey(BOON.QUICKNESS),
+        name: BOON.QUICKNESS,
         type: 'boon',
         boon: BOON.QUICKNESS,
         duration: 3,
@@ -183,7 +182,7 @@ const seizeTheMoment = defineTrait<MesmerSkill>({
   triggers: [
     onTriggerPoint(mesmerShatterCompleted, {
       run: (runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerShatterCompleted>) =>
-        triggerShatterBoon(runtime, input.resolution, TRAIT.SEIZE_THE_MOMENT, boonKey(BOON.QUICKNESS))
+        triggerShatterBoon(runtime, input.resolution, TRAIT.SEIZE_THE_MOMENT, BOON.QUICKNESS)
     })
   ]
 });

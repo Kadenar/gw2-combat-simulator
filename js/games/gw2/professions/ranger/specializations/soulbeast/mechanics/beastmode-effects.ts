@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
@@ -145,7 +144,7 @@ function queueStanceProc(
     CONDITION.POISONED,
     requireSkillAction(profile, 'triggered-effects')
   );
-  const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT), requireSkillAction(profile, 'triggered-effects'));
+  const might = requireEffect(profile, 'boon', BOON.MIGHT, requireSkillAction(profile, 'triggered-effects'));
 
   if (!poison && !might) return;
 

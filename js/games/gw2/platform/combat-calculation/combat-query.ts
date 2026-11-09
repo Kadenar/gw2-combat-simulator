@@ -5,7 +5,7 @@ import { normalizeSelectedTraitIds } from '#gw2/platform/builds/selected-traits.
 import type { Gw2QueryProfession } from '#gw2/platform/combat-calculation/profession-contract.js';
 import type { Gw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
 import { createGw2TimelineIndex } from '#gw2/platform/combat-calculation/timeline-index.js';
-import { boonKey, MIGHT_ATTRIBUTE_BONUS_PER_STACK, type Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
+import { MIGHT_ATTRIBUTE_BONUS_PER_STACK, type Gw2TimedBuffApplication } from '#gw2/platform/combat/boons.js';
 import { roundEffectDuration } from '#gw2/platform/combat/effect-timing.js';
 import {
   BASE_CRITICAL_DAMAGE_MULTIPLIER,
@@ -32,7 +32,7 @@ import {
   targetConditionStacks,
   targetHasCondition
 } from '#gw2/platform/combat/state/targets.js';
-import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, BOON_NAMES, CONDITION } from '#gw2/platform/constants.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
 import {
   relicConcentrationBonus,
@@ -229,7 +229,7 @@ export function createGw2CombatQuery({
     runtime: Gw2QueryRuntime | null | undefined,
     event: SimulationEvent | null | undefined
   ): number => {
-    const kind = boonKey(BOON.MIGHT);
+    const kind = BOON.MIGHT;
     const maximum = 25;
     const isolatedSummon = isBoonIsolatedSummonEvent(event);
     // Isolated summons don't inherit the player's configured permanent boons -
@@ -271,14 +271,14 @@ export function createGw2CombatQuery({
 
     if (illusionEvent || (isolatedSummon && !inheritsOwnerCriticalState)) {
       return (
-        appliedEffectStacks({ runtime, timeline, time }, boonKey(BOON.FURY), 1, {
+        appliedEffectStacks({ runtime, timeline, time }, BOON.FURY, 1, {
           actor: 'companion',
           companionId: summonCompanionId(event)
         }) > 0
       );
     }
 
-    return appliedEffectStacks({ runtime, timeline, time }, boonKey(BOON.FURY), 1) > 0;
+    return appliedEffectStacks({ runtime, timeline, time }, BOON.FURY, 1) > 0;
   };
 
   /**
@@ -291,7 +291,7 @@ export function createGw2CombatQuery({
   ): number => {
     if (event?.summonIgnoresBoons === true) return 0;
 
-    return appliedEffectStacks({ runtime, timeline, time }, boonKey(BOON.MIGHT), 25, {
+    return appliedEffectStacks({ runtime, timeline, time }, BOON.MIGHT, 25, {
       actor: 'companion',
       companionId: summonCompanionId(event)
     });
@@ -471,7 +471,7 @@ export function createGw2CombatQuery({
 
       if (furyActive) {
         chance += 0.25;
-        addContributor(boonKey(BOON.FURY), BOON.FURY, 0.25);
+        addContributor(BOON.FURY, BOON_NAMES[BOON.FURY], 0.25);
       }
 
       const professionContributors: Gw2CriticalChanceContributor[] | undefined = contributors ? [] : undefined;

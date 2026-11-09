@@ -53,13 +53,13 @@ test('boon previews use the selected equipment and captured rotation without app
   assert.ok(chart.coverage.quickness.allyPercent > 0);
   assert.ok(chart.coverage.quickness.selfPercent > chart.coverage.quickness.allyPercent);
   assert.equal(chart.coverage.alacrity.allyPercent, 0);
-  assert.deepEqual(Object.keys(chart.series.alliedEffects).sort(), ['Alacrity', 'Quickness']);
+  assert.deepEqual(Object.keys(chart.series.alliedEffects).sort(), ['alacrity', 'quickness']);
   assert.deepEqual(chart.series.effects, {});
   // Feel My Wrath also grants Fury; it must not masquerade as Alacrity in the worker's summary payload.
-  assert.deepEqual(Object.keys(chart.series.sustainedBoonGeneration), ['Quickness']);
-  assert.deepEqual(chart.series.effectUnits, { Quickness: 's', Alacrity: 's' });
-  assert.ok(chart.series.alliedEffects.Quickness.some((point) => point.v > 0));
-  assert.ok(chart.series.alliedEffects.Alacrity.every((point) => point.v === 0));
+  assert.deepEqual(Object.keys(chart.series.sustainedBoonGeneration), ['quickness']);
+  assert.deepEqual(chart.series.effectUnits, { quickness: 's', alacrity: 's' });
+  assert.ok(chart.series.alliedEffects.quickness.some((point) => point.v > 0));
+  assert.ok(chart.series.alliedEffects.alacrity.every((point) => point.v === 0));
 
   // Unconstrained searches supply row percentages without collecting a detailed timeline for each candidate.
   const evaluator = createOptimizerEvaluator(createOptimizerSpace(request, adapter), adapter);

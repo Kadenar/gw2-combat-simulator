@@ -16,6 +16,7 @@ import {
 import { mountBenchmarkPatchPreview, patchBenchmarks } from '#gw2/app/page/benchmarks/patch-preview.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
+import { BOON_NAMES } from '#gw2/platform/constants.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { escapeHtml as html } from '#ui/shared/html.js';
 
@@ -140,7 +141,7 @@ export function mountBenchmarks(root: HTMLElement): void {
   pageWindow?.addEventListener('resize', fitHealthViewport);
   const boonLabel = (row: Benchmark): string => {
     const boon = templateBoon(row);
-    return boon === 'none' ? 'DPS' : boon[0]!.toUpperCase() + boon.slice(1);
+    return boon === 'none' ? 'DPS' : BOON_NAMES[boon];
   };
 
   /** Overview links open the exact saved build and rotation, sharing the inspector's workspace route. */

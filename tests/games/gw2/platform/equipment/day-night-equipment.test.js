@@ -105,7 +105,7 @@ test('Ghost Pepper Popper grants Might by day and inflicts Chilled by night', ()
   assert.equal(proc.icdMs, 1000);
   assert.deepEqual(proc.dayEffect, {
     type: 'boon',
-    name: 'Might',
+    boon: 'might',
     stacks: 1,
     duration: 5
   });

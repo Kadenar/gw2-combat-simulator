@@ -2,7 +2,7 @@ import { applyAttributeContributions, attributeContext } from '#gw2/platform/att
 import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
 import type { Gw2AttributeContext, Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
+import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { selectedFirearmsDurationBonuses } from '#gw2/professions/engineer/core/traits/firearms/index.js';
 import { engineerCoreTraits } from '#gw2/professions/engineer/core/traits/index.js';
@@ -33,7 +33,7 @@ export const mechanistAttributes: Gw2AttributeContributionCalculator = (context)
 
   // Inheritance excludes player boons; copied Might remains live and never mutates the cached base.
   const might = selectedSignet(context, ID.SHIFT_SIGNET)
-    ? activeBoonStacks(context, boonKey(BOON.MIGHT)) * MIGHT_ATTRIBUTE_BONUS_PER_STACK
+    ? activeBoonStacks(context, BOON.MIGHT) * MIGHT_ATTRIBUTE_BONUS_PER_STACK
     : 0;
   return [
     {

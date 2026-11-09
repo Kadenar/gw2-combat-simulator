@@ -1,4 +1,5 @@
 import { attributeSeed } from '#gw2/platform/attributes/inputs.js';
+import type { BoonId } from '#gw2/platform/constants.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 /** Combat attributes: configured stats, their resolved form, and the static per-weapon-set view stat queries start from. */
@@ -16,7 +17,7 @@ export interface Gw2Stats {
   readonly boonDurationBonus?: number;
   /** Flat percentage points added after applying the normal boon-duration cap. */
   readonly uncappedBoonDurationBonus?: number;
-  readonly boonDurationBonuses?: Readonly<Record<string, number>>;
+  readonly boonDurationBonuses?: Readonly<Partial<Record<BoonId, number>>>;
   readonly conditionDurationBonus?: number;
   readonly conditionDurationBonuses?: Readonly<Record<string, number>>;
   readonly criticalChanceBonus?: number;
@@ -45,7 +46,7 @@ export interface Gw2ResolvedStats {
   readonly concentration: number;
   readonly healingPower: number;
   readonly boonDurationBonus: number;
-  readonly boonDurationBonuses: Readonly<Record<string, number>>;
+  readonly boonDurationBonuses: Readonly<Partial<Record<BoonId, number>>>;
   readonly conditionDurationBonus: number;
   readonly conditionDurationBonuses: Readonly<Record<string, number>>;
 }

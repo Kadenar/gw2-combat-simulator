@@ -1,6 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
-import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -233,8 +233,8 @@ export const bestialRage = defineTrait({
   balance: {
     internalCooldown: 0.25,
     effects: [
-      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 8, stacks: 5 },
-      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, duration: 3, stacks: 1 }
+      { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, duration: 8, stacks: 5 },
+      { name: BOON.FURY, type: 'boon', boon: BOON.FURY, duration: 3, stacks: 1 }
     ]
   }
 });
@@ -282,12 +282,11 @@ export const bestialRageControl = {
   cooldown: 'profile',
   // Only the surviving boon effects can activate this trait's control proc.
   when: (runtime) =>
-    [boonKey(BOON.MIGHT), boonKey(BOON.FURY)].some((effectName) =>
+    [BOON.MIGHT, BOON.FURY].some((effectName) =>
       Boolean(requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.BESTIAL_RAGE), 'boon', effectName))
     ),
   effects: (effect) =>
-    (effect.type === 'boon' || effect.type === 'buff') &&
-    (effect.name === boonKey(BOON.MIGHT) || effect.name === boonKey(BOON.FURY)),
+    (effect.type === 'boon' || effect.type === 'buff') && (effect.name === BOON.MIGHT || effect.name === BOON.FURY),
   attribution: (_runtime, event) => ({
     skillId: TRAIT.BESTIAL_RAGE,
     skillName: 'Bestial Rage',

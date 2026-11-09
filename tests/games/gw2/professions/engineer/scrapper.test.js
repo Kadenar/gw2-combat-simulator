@@ -238,9 +238,9 @@ test('Kinetic Accelerators emits party quickness and might from successful combo
   assert.equal(might.stacks, 3);
   const chart = buildChartSeries(result, 40);
 
-  assert.equal(chart.effectUnits.Quickness, 's');
-  assert.equal(chart.effects.Quickness[0].v, 3.52);
-  assert.ok(chart.effects.Quickness.some((point) => point.v > 0));
+  assert.equal(chart.effectUnits.quickness, 's');
+  assert.equal(chart.effects.quickness[0].v, 3.52);
+  assert.ok(chart.effects.quickness.some((point) => point.v > 0));
 
   const acceleratedHit = result.resolvedEvents.find(
     (event) => event.type === 'damage' && event.name === 'Positive Strike'

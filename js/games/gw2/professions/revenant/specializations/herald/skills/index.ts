@@ -2,7 +2,7 @@
  * Owns Herald facet, consume, stance, and legend-call skill definitions.
  * Facet runtime state remains under sibling `mechanics/` modules.
  */
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, CONTROL, STATUS } from '#gw2/platform/constants.js';
@@ -27,7 +27,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
         legendId: 'LegendaryDragon',
         facet: true,
         pulseInterval: 3,
-        upkeepPulse: { kind: boonKey(BOON.MIGHT), duration: 12, stacks: 1 },
+        upkeepPulse: { kind: BOON.MIGHT, duration: 12, stacks: 1 },
         // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
         castTimeMs: 0,
         effects: [],
@@ -49,7 +49,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
         legendId: 'LegendaryDragon',
         facet: true,
         pulseInterval: 3,
-        upkeepPulse: { kind: boonKey(BOON.SWIFTNESS), duration: 3, stacks: 1 },
+        upkeepPulse: { kind: BOON.SWIFTNESS, duration: 3, stacks: 1 },
         // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
         castTimeMs: 0,
         effects: [],
@@ -189,7 +189,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
         legendId: 'LegendaryDragon',
         facet: true,
         pulseInterval: 3,
-        upkeepPulse: { kind: boonKey(BOON.REGENERATION), duration: 4, stacks: 1 },
+        upkeepPulse: { kind: BOON.REGENERATION, duration: 4, stacks: 1 },
         // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
         castTimeMs: 200,
         effects: [],
@@ -233,7 +233,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
         legendId: 'LegendaryDragon',
         facet: true,
         pulseInterval: 3,
-        upkeepPulse: { kind: boonKey(BOON.PROTECTION), duration: 3, stacks: 1 },
+        upkeepPulse: { kind: BOON.PROTECTION, duration: 3, stacks: 1 },
         // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
         castTimeMs: 0,
         effects: [],
@@ -358,7 +358,7 @@ export const HERALD_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinitio
         legendId: 'LegendaryDragon',
         facet: true,
         pulseInterval: 3,
-        upkeepPulse: { kind: boonKey(BOON.FURY), duration: 3, stacks: 1 },
+        upkeepPulse: { kind: BOON.FURY, duration: 3, stacks: 1 },
         // Core upkeep owns Energy drain; Herald mechanics/facets.ts owns the passive lifecycle and boon pulses.
         castTimeMs: 0,
         effects: [],

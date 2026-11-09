@@ -22,7 +22,7 @@ test('cooldowns and sequential ammo assume permanent Alacrity before checking th
           id: 990002,
           name: 'Alacrity',
           castTimeMs: 0,
-          effects: [{ type: 'boon', boon: 'Alacrity', duration: 4, stacks: 1 }]
+          effects: [{ type: 'boon', boon: 'alacrity', duration: 4, stacks: 1 }]
         },
         { id: 990003, name: 'Ammo', castTimeMs: 0, ammo: 2, cooldown: 10, effects: [] }
       ]

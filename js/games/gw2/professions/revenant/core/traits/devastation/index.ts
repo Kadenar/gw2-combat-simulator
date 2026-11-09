@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import {
@@ -62,7 +62,7 @@ export const assassinsPresence = defineTrait({
     cooldown: 10,
     effects: [
       {
-        name: boonKey(BOON.FURY),
+        name: BOON.FURY,
         type: 'boon',
         boon: BOON.FURY,
         duration: 3,
@@ -98,7 +98,7 @@ export const brutality = defineTrait({
     cooldown: 9,
     effects: [
       {
-        name: boonKey(BOON.QUICKNESS),
+        name: BOON.QUICKNESS,
         type: 'boon',
         boon: BOON.QUICKNESS,
         duration: 3,
@@ -177,7 +177,7 @@ export const notoriety = defineTrait({
     attributePerStack: 10,
     effects: [
       {
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         type: 'boon',
         boon: BOON.MIGHT,
         duration: 10,
@@ -271,7 +271,7 @@ function revenantAssassinsPresencePulse(runtime: RevenantRuntime): void {
 
   if (!runtime.engagement.combatMechanicsAllowed()) return;
 
-  const boon = requireEffect(profile, 'boon', boonKey(BOON.FURY));
+  const boon = requireEffect(profile, 'boon', BOON.FURY);
 
   // The pulse cadence is trait-owned and continues; only the removed Fury packet is skipped.
   if (!boon) return;
@@ -483,7 +483,7 @@ function grantBattleScars(
 /** A committed weapon swap grants Brutality's Quickness once per its internal cooldown. */
 function completeRevenantBrutality(runtime: RevenantRuntime, { cast }: RevenantCastCompletion): void {
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.BRUTALITY);
-  const boon = requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS));
+  const boon = requireEffect(profile, 'boon', BOON.QUICKNESS);
 
   // The cooldown gates only quickness, so a removed boon leaves it ready.
   if (!boon) return;
@@ -518,7 +518,7 @@ function completeNotoriety(runtime: RevenantRuntime, { cast }: RevenantCastCompl
 
   if (runtime.engagement.combatMechanicsAllowed() && isLegendaryStanceSkill(skill)) {
     const profile = requireBalanceProfile(runtime.helpers, TRAIT.NOTORIETY);
-    const boon = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
+    const boon = requireEffect(profile, 'boon', BOON.MIGHT);
 
     if (boon)
       emitTraitProfile(runtime, TRAIT.NOTORIETY, profile.id, undefined, {

@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
@@ -50,7 +49,7 @@ export const streamlinedKits = defineTrait({
   balance: {
     internalCooldown: 20,
     effects: [
-      { name: boonKey(BOON.SWIFTNESS), type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 20 },
+      { name: BOON.SWIFTNESS, type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 20 },
       { name: 'Streamlined Kits', type: 'strike', coefficient: 1.75, hits: 1 }
     ]
   },
@@ -66,7 +65,7 @@ export const streamlinedKits = defineTrait({
 export const optimizedActivation = defineTrait({
   id: TRAIT.OPTIMIZED_ACTIVATION,
   balance: {
-    effects: [{ name: boonKey(BOON.VIGOR), type: 'boon', boon: BOON.VIGOR, stacks: 1, duration: 4 }]
+    effects: [{ name: BOON.VIGOR, type: 'boon', boon: BOON.VIGOR, stacks: 1, duration: 4 }]
   },
   // Vigor follows every accepted toolbelt activation, including independent mech commands.
   triggers: [
@@ -98,7 +97,7 @@ export const kineticBattery = defineTrait({
     maximumStacks: 5,
     effects: [
       { name: 'kinetic-battery', type: 'buff', kind: 'kinetic-battery', stacks: 1, duration: 5 },
-      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 },
+      { name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 },
       // Superspeed accompanies the fifth charge without boon-duration scaling.
       { name: STATUS.SUPERSPEED, type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 5 }
     ]
@@ -165,8 +164,7 @@ export const excessiveEnergy = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: (context) => balanceNumber(context.catalog, TRAIT.EXCESSIVE_ENERGY, 'damageIncrease'),
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, boonKey(BOON.VIGOR), 1) > 0
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, BOON.VIGOR, 1) > 0
     }
   ]
 });

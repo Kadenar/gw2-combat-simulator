@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { GW2_ALACRITY_RECHARGE_RATE } from '#gw2/platform/combat/recharge.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
@@ -47,12 +46,12 @@ const ELEMENTAL_IMPACT_TASK = 'elementalist.elemental-impact';
 
 // Only Alacrity received by this elemental accelerates its autonomous recharge.
 function rechargeRate(context: ElementalistRuntime, at: number): number {
-  return elementalBoonActive(context, boonKey(BOON.ALACRITY), at) ? GW2_ALACRITY_RECHARGE_RATE : 1;
+  return elementalBoonActive(context, BOON.ALACRITY, at) ? GW2_ALACRITY_RECHARGE_RATE : 1;
 }
 
 // Quickness speeds up the elemental's animations 50% (divides all timing offsets).
 function actionRate(context: ElementalistRuntime, at: number): number {
-  return elementalBoonActive(context, boonKey(BOON.QUICKNESS), at) ? 1.5 : 1;
+  return elementalBoonActive(context, BOON.QUICKNESS, at) ? 1.5 : 1;
 }
 
 /** Summons read only applications addressed to their current companion identity. */
@@ -312,7 +311,7 @@ function emitFlameBurstMight(context: ElementalistRuntime, payload: ElementalImp
       skillId: profile.skillId,
       skillName: 'Flame Burst',
       name: 'Flame Burst - Might',
-      kind: boonKey(BOON.MIGHT),
+      kind: BOON.MIGHT,
       stacks: profile.mightStacks,
       duration: profile.mightDuration,
       audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
@@ -337,7 +336,7 @@ function emitStompProtection(context: ElementalistRuntime, payload: ElementalImp
       skillId: profile.skillId,
       skillName: 'Stomp',
       name: 'Stomp - Protection',
-      kind: boonKey(BOON.PROTECTION),
+      kind: BOON.PROTECTION,
       stacks: 1,
       duration: profile.protectionDuration,
       audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }

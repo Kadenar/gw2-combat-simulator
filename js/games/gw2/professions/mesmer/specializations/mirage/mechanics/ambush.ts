@@ -1,5 +1,5 @@
 import { CONDITION } from '#gw2/platform/constants.js';
-import type { ConditionEffect, StatusEffect } from '#gw2/platform/effects/types.js';
+import type { BoonEffect, ConditionEffect } from '#gw2/platform/effects/types.js';
 import { requireCanonicalSkillEffects } from '#gw2/platform/effects/validation.js';
 import type { SkillSource } from '#gw2/platform/skills/balance-profiles.js';
 import { requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
@@ -12,11 +12,11 @@ function ambushStatuses<T extends 'condition' | 'boon'>(
   profile: MesmerAmbushAttack,
   type: T,
   source: 'Player' | 'Clone'
-): (T extends 'condition' ? ConditionEffect : StatusEffect)[] {
+): (T extends 'condition' ? ConditionEffect : BoonEffect)[] {
   // Keep selected effects canonical so runtime expansion retains patched payloads and metadata.
   return requireCanonicalSkillEffects(profile).filter(
     (effect) => effect.type === type && effect.source === source
-  ) as (T extends 'condition' ? ConditionEffect : StatusEffect)[];
+  ) as (T extends 'condition' ? ConditionEffect : BoonEffect)[];
 }
 
 /** Applies the active Mirage ambush skill to its runtime attack definition. */

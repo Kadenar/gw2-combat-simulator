@@ -2,8 +2,8 @@
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount, grantTimedStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
-import type { StatusEffect } from '#gw2/platform/effects/types.js';
+import { ACTOR, BOON, BOON_NAMES, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
+import type { BoonEffect } from '#gw2/platform/effects/types.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
@@ -202,9 +202,9 @@ function applyBountifulTheft(runtime: ThiefRuntime, { cast }: StealAcceptance): 
       attribution: { source: 'Trait', sourceId: TRAIT.BOUNTIFUL_THEFT, actorType: ACTOR.PLAYER },
       transform: (event, effect) => ({
         ...event,
-        name: 'Steal - ' + String((effect as StatusEffect).boon),
-        kind: String((effect as StatusEffect).boon).toLowerCase(),
-        boon: String((effect as StatusEffect).boon),
+        name: 'Steal - ' + BOON_NAMES[(effect as BoonEffect).boon],
+        kind: (effect as BoonEffect).boon,
+        boon: (effect as BoonEffect).boon,
         fixedDuration: false,
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
       })
@@ -270,9 +270,9 @@ function applyThrillOfTheCrime(runtime: ThiefRuntime, { cast }: StealAcceptance)
     attribution: { source: 'Trait', sourceId: TRAIT.THRILL_OF_THE_CRIME, actorType: ACTOR.PLAYER },
     transform: (event, effect) => ({
       ...event,
-      name: 'Steal - ' + String((effect as StatusEffect).boon),
-      kind: String((effect as StatusEffect).boon).toLowerCase(),
-      boon: String((effect as StatusEffect).boon),
+      name: 'Steal - ' + BOON_NAMES[(effect as BoonEffect).boon],
+      kind: (effect as BoonEffect).boon,
+      boon: (effect as BoonEffect).boon,
       fixedDuration: false,
       audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
     })

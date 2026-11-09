@@ -12,7 +12,6 @@ import { attributeSeedFromCommon } from '#gw2/platform/attributes/inputs.js';
 import type { Gw2AttributeSeed, Gw2CommonAttributeResult } from '#gw2/platform/attributes/types.js';
 import { validateFractalBuffs } from '#gw2/platform/builds/fractal-buffs.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
@@ -53,8 +52,8 @@ export function bindBuildContext<TBuild extends Gw2CanonicalBuild, TConfig exten
       let build: Readonly<TBuild> = inputBuild;
 
       if (disabled?.type === 'Boon') {
-        const key = disabled.name.toLowerCase();
-        build = { ...build, assumptions: { ...build.assumptions, [key]: key === boonKey(BOON.MIGHT) ? 0 : false } };
+        const key = disabled.boonId;
+        build = { ...build, assumptions: { ...build.assumptions, [key]: key === BOON.MIGHT ? 0 : false } };
       } else if (disabled?.type === 'Food') build = { ...build, food: '' };
       else if (disabled?.type === 'Utility') build = { ...build, utility: '' };
 

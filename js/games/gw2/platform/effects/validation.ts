@@ -1,7 +1,7 @@
 /** Validates authored numeric inputs across every effect variant using the canonical strike field policy. */
 import { GW2_ACTION_TICK_MS } from '#gw2/platform/combat/action-tick.js';
 import { validateComboOwnership } from '#gw2/platform/combos/ownership.js';
-import { ACTOR, ACTOR_TYPES, AURA } from '#gw2/platform/constants.js';
+import { ACTOR, ACTOR_TYPES, AURA, BOON_NAMES } from '#gw2/platform/constants.js';
 import { snapshotEffectReactions } from '#gw2/platform/effects/action-declarations.js';
 import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import {
@@ -561,6 +561,10 @@ function normalizeEffectFields(effect: unknown, label: string): SkillEffect {
   }
 
   if (normalizedEffect.type === 'boon' || normalizedEffect.type === 'buff') {
+    // Catalogs and patches must identify standard boons by ID, independently of effect labels.
+    if (normalizedEffect.type === 'boon' && !Object.hasOwn(BOON_NAMES, normalizedEffect.boon ?? ''))
+      throw new TypeError(`field=boon expected=canonical boon ID received=${String(normalizedEffect.boon)}`);
+
     requireBalanceNumber(normalizedEffect.duration, 'field=duration');
 
     if (normalizedEffect.maximumDuration != null) {

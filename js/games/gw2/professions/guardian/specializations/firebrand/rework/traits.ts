@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
@@ -56,7 +55,7 @@ const imbuedHaste = defineTrait({
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'multiply',
       factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.IMBUED_HASTE, 'conditionDamageIncrease'),
-      when: (context) => guardianBoonActive(context, boonKey(BOON.QUICKNESS))
+      when: (context) => guardianBoonActive(context, BOON.QUICKNESS)
     }
   ]
 });
@@ -143,7 +142,7 @@ const stalwartSpeed = defineTrait({
     effects: [
       {
         type: 'boon',
-        name: boonKey(BOON.QUICKNESS),
+        name: BOON.QUICKNESS,
         boon: BOON.QUICKNESS,
         stacks: 1,
         duration: 2,

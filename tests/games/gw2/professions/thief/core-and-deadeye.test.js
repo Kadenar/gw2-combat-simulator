@@ -1232,7 +1232,7 @@ test('Deadeye cantrips, malice, stolen skills, and traits are stateful', () => {
 
   assert.equal(stolen.warnings.length, 0);
   assert.ok(stolen.planningState.profession[STATE.STEALTH_UNTIL] > stolen.rotationEndTime);
-  assert.ok(stolen.events.some((event) => event.name?.includes('Fire for Effect') && event.boon === 'Might'));
+  assert.ok(stolen.events.some((event) => event.name?.includes('Fire for Effect') && event.boon === 'might'));
 
   const improvised = simulate('Deadeye', ["Deadeye's Mark", 'Steal Time', 'Steal Time'], {
     selectedTraitIds: [TRAIT.IMPROVISATION]

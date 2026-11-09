@@ -1,6 +1,5 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
@@ -212,7 +211,7 @@ export const firebrandMantraLifecycle = {
   reactions: {
     'buff.applied'(runtime, event) {
       // Executed history is appended after dispatch; refresh once the applied Alacrity window is queryable.
-      if (event.kind === boonKey(BOON.ALACRITY)) runtime.schedule(FIREBRAND_MANTRA_WAKE, runtime.time);
+      if (event.kind === BOON.ALACRITY) runtime.schedule(FIREBRAND_MANTRA_WAKE, runtime.time);
     }
   }
 } satisfies RuntimeHooks<GuardianRuntimeState, GuardianSkill>;

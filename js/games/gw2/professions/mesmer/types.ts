@@ -86,7 +86,7 @@ export interface MesmerAmbushStrike extends Partial<StrikeEffect> {
   /** Repeated statuses retain their cadence when their sibling strike is removed. */
   readonly statusAtMs?: readonly number[];
   readonly conditions?: readonly ConditionEffect[];
-  readonly boons?: readonly import('#gw2/platform/effects/types.js').StatusEffect[];
+  readonly boons?: readonly import('#gw2/platform/effects/types.js').BoonEffect[];
 }
 
 /** A catalog skill also supplies the player and clone variants used by the Mirage controller. */

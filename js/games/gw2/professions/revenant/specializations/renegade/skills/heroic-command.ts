@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { balanceProfileNumber, effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
@@ -32,7 +31,7 @@ export function heroicCommand(runtime: RevenantRuntime, cast: RuntimeCast<Revena
   const might = requireEffect(
     source,
     'boon',
-    hasTrait(runtime, TRAIT.LASTING_LEGACY) ? 'lasting-legacy-might' : boonKey(BOON.MIGHT)
+    hasTrait(runtime, TRAIT.LASTING_LEGACY) ? 'lasting-legacy-might' : BOON.MIGHT
   );
 
   if (!might) return;

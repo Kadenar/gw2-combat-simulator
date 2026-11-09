@@ -115,7 +115,7 @@ test('Brawler precasts carry their remaining buff into combat without reactivati
           name: `Grant ${boon}`,
           type: 'Utility',
           castTimeMs: 0,
-          effects: [{ type: 'boon', boon, duration: 2, stacks: 1 }]
+          effects: [{ type: 'boon', boon: boon.toLowerCase(), duration: 2, stacks: 1 }]
         })),
         {
           id: 930102,

@@ -3,7 +3,7 @@ import type { ModifierContributionRequest } from '#gw2/app/simulation/modifier-c
 import type { BuildAttributes, BuildContextProfession, ProfessionModifier } from '#gw2/build-context/types.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import type { Gw2CanonicalBuild, ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
-import { BOON, CONDITION } from '#gw2/platform/constants.js';
+import { BOON, BOON_NAMES, CONDITION } from '#gw2/platform/constants.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import { UTILITY_STRIKE_DAMAGE_BONUSES } from '#gw2/platform/equipment/consumables/utilities.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
@@ -15,28 +15,28 @@ function modifierCandidates(build: Gw2CanonicalBuild, attributes: BuildAttribute
 
   if (Number(assumptions.might) > 0) {
     candidates.push({
-      id: 'Boon:Might',
+      id: 'Boon:might',
       type: 'Boon',
-      name: BOON.MIGHT,
-      label: BOON.MIGHT
+      boonId: BOON.MIGHT,
+      label: BOON_NAMES[BOON.MIGHT]
     });
   }
 
   if (assumptions.fury) {
     candidates.push({
-      id: 'Boon:Fury',
+      id: 'Boon:fury',
       type: 'Boon',
-      name: BOON.FURY,
-      label: BOON.FURY
+      boonId: BOON.FURY,
+      label: BOON_NAMES[BOON.FURY]
     });
   }
 
   if (assumptions.resolution) {
     candidates.push({
-      id: 'Boon:Resolution',
+      id: 'Boon:resolution',
       type: 'Boon',
-      name: BOON.RESOLUTION,
-      label: BOON.RESOLUTION
+      boonId: BOON.RESOLUTION,
+      label: BOON_NAMES[BOON.RESOLUTION]
     });
   }
 

@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
@@ -104,7 +104,7 @@ const huntersDetermination = defineTrait({
 const huntersPremonition = defineTrait({
   id: TRAIT.HUNTERS_PREMONITION,
   balance: {
-    effects: [{ type: 'boon', name: boonKey(BOON.AEGIS), boon: BOON.AEGIS, stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: BOON.AEGIS, boon: BOON.AEGIS, stacks: 1, duration: 3 }]
   },
   triggers: [
     {
@@ -112,7 +112,7 @@ const huntersPremonition = defineTrait({
       emit: TRAIT.HUNTERS_PREMONITION,
       on: 'castCommit',
       when: (_runtime, cast) => cast.skill.skillFamily === 'Trap',
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.AEGIS),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.AEGIS,
       attribution: (_runtime, cast) => ({
         source: 'guardian',
         sourceId: cast.skill.id,
@@ -153,7 +153,7 @@ const heavyLight = defineTrait({
   balance: {
     damageMultiplier: 1.15,
     internalCooldown: 1,
-    effects: [{ type: 'boon', name: boonKey(BOON.STABILITY), boon: BOON.STABILITY, stacks: 1, duration: 6 }]
+    effects: [{ type: 'boon', name: BOON.STABILITY, boon: BOON.STABILITY, stacks: 1, duration: 6 }]
   },
   modifierRules: [
     {
@@ -258,7 +258,7 @@ function applyDulledSenses(runtime: GuardianRuntime, { cause: event }: Dragonhun
 /** Heavy Light's Stability keeps a 1-second internal cooldown that the game tooltip does not expose. */
 function grantHeavyLight(runtime: GuardianRuntime, { cause: event }: DragonhunterControl): void {
   const heavyLightProfile = requireBalanceProfile(runtime.helpers, TRAIT.HEAVY_LIGHT);
-  const stability = requireEffect(heavyLightProfile, 'boon', boonKey(BOON.STABILITY));
+  const stability = requireEffect(heavyLightProfile, 'boon', BOON.STABILITY);
 
   // Removing Stability leaves Heavy Light's interval unclaimed.
   if (!stability || !runtime.procs.claim(TRAIT.HEAVY_LIGHT, 'guardian.dragonhunter.heavyLight', event.at)) return;
@@ -266,7 +266,7 @@ function grantHeavyLight(runtime: GuardianRuntime, { cause: event }: Dragonhunte
   emitTraitProfile(runtime, TRAIT.HEAVY_LIGHT, TRAIT.HEAVY_LIGHT, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'boon', name: boonKey(BOON.STABILITY) },
+    effect: { type: 'boon', name: BOON.STABILITY },
     durationContext: event,
     attribution: {
       priority: 5,

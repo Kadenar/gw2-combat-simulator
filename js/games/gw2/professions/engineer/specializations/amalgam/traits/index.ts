@@ -1,6 +1,5 @@
 /** Trait grants retain finite profile occurrences alongside their existing source and duration rules. */
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -166,8 +165,8 @@ const newGenes = defineTrait({
   id: TRAIT.NEW_GENES,
   balance: {
     effects: [
-      { name: boonKey(BOON.ALACRITY), type: 'boon', boon: BOON.ALACRITY, stacks: 1, duration: 5 },
-      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 4, duration: 12 },
+      { name: BOON.ALACRITY, type: 'boon', boon: BOON.ALACRITY, stacks: 1, duration: 5 },
+      { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 4, duration: 12 },
       { name: 'cleanse', type: 'boon', boon: BOON.AEGIS, stacks: 1, duration: 4, metadata: { trigger: 'cleanse' } },
       {
         name: 'protect',
@@ -277,7 +276,7 @@ function grantMorphStrain(context: EngineerRuntime, { skill, at }: AmalgamMorph)
 
 /** New Genes combines universal boons with one protocol-specific boon; each survives patches independently. */
 function grantNewGenes(context: EngineerRuntime, { morphKind, at }: AmalgamMorph): void {
-  for (const name of [boonKey(BOON.ALACRITY), boonKey(BOON.MIGHT), ...(morphKind ? [morphKind] : [])]) {
+  for (const name of [BOON.ALACRITY, BOON.MIGHT, ...(morphKind ? [morphKind] : [])]) {
     const newGenesProfile = requireBalanceProfile(context.helpers, TRAIT.NEW_GENES);
     const boon = requireEffect(newGenesProfile, 'boon', name);
 

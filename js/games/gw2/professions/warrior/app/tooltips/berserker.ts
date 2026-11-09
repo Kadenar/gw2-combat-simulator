@@ -14,7 +14,6 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
@@ -123,7 +122,7 @@ export const berserkerTooltips = {
             [effect],
             effect.name === 'Decapitate quickness'
               ? 'Decapitate'
-              : effect.name === boonKey(BOON.QUICKNESS)
+              : effect.name === BOON.QUICKNESS
                 ? 'other primal bursts'
                 : ''
           ).facts

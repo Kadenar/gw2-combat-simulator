@@ -1,18 +1,34 @@
 /** Shared vocabularies keep effect declarations, domain validation, and presentation aligned. */
 export const BOON = Object.freeze({
-  AEGIS: 'Aegis',
-  ALACRITY: 'Alacrity',
-  FURY: 'Fury',
-  MIGHT: 'Might',
-  PROTECTION: 'Protection',
-  QUICKNESS: 'Quickness',
-  REGENERATION: 'Regeneration',
-  RESISTANCE: 'Resistance',
-  RESOLUTION: 'Resolution',
-  STABILITY: 'Stability',
-  SWIFTNESS: 'Swiftness',
-  VIGOR: 'Vigor'
+  AEGIS: 'aegis',
+  ALACRITY: 'alacrity',
+  FURY: 'fury',
+  MIGHT: 'might',
+  PROTECTION: 'protection',
+  QUICKNESS: 'quickness',
+  REGENERATION: 'regeneration',
+  RESISTANCE: 'resistance',
+  RESOLUTION: 'resolution',
+  STABILITY: 'stability',
+  SWIFTNESS: 'swiftness',
+  VIGOR: 'vigor'
 });
+
+/** Boon IDs remain stable across declarations and runtime state; presentation alone uses these labels. */
+export const BOON_NAMES = Object.freeze({
+  [BOON.AEGIS]: 'Aegis',
+  [BOON.ALACRITY]: 'Alacrity',
+  [BOON.FURY]: 'Fury',
+  [BOON.MIGHT]: 'Might',
+  [BOON.PROTECTION]: 'Protection',
+  [BOON.QUICKNESS]: 'Quickness',
+  [BOON.REGENERATION]: 'Regeneration',
+  [BOON.RESISTANCE]: 'Resistance',
+  [BOON.RESOLUTION]: 'Resolution',
+  [BOON.STABILITY]: 'Stability',
+  [BOON.SWIFTNESS]: 'Swiftness',
+  [BOON.VIGOR]: 'Vigor'
+} satisfies Record<BoonId, string>);
 
 export const CONDITION = Object.freeze({
   BLEEDING: 'Bleeding',
@@ -120,7 +136,7 @@ export const STATUS = Object.freeze({
 
 type ValueOf<T> = T[keyof T];
 
-export type BoonName = ValueOf<typeof BOON>;
+export type BoonId = ValueOf<typeof BOON>;
 
 export type AuraName = ValueOf<typeof AURA>;
 

@@ -1,12 +1,12 @@
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
-import type { StatusEffect } from '#gw2/platform/effects/types.js';
+import type { BoonEffect } from '#gw2/platform/effects/types.js';
 import { mesmerCloneOwnerId } from '#gw2/professions/mesmer/core/mechanics/illusions/identity.js';
 
 /** One clone ambush profile owns its boon yield and shares spare recipient slots with living clones. */
 export function mirageCloneBoonRequest(
   at: number,
-  boons: readonly StatusEffect[],
+  boons: readonly BoonEffect[],
   skill: { id: number; name: string },
   cloneId: number
 ): ProfileEmission {

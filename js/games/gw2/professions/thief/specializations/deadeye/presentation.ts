@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
@@ -51,7 +50,7 @@ export const deadeyeUi = Object.freeze({
       ),
       description: 'Malice consumed by a malicious attack'
     });
-    preview.boon(boonKey(BOON.QUICKNESS), 'Be Quick or Be Killed');
+    preview.boon(BOON.QUICKNESS, 'Be Quick or Be Killed');
     return preview.controls;
   },
 

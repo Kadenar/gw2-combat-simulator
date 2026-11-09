@@ -183,8 +183,8 @@ test('Fervent Stance owns its expiry and later dual-attack reward independently 
         fields: { duration: 1 },
         sideEffects: {
           'dual-attack-might': removed
-            ? { removeEffects: [{ type: 'boon', name: 'Might' }] }
-            : { effects: [{ type: 'boon', name: 'Might', stacks: 7, duration: 11 }] }
+            ? { removeEffects: [{ type: 'boon', name: 'might' }] }
+            : { effects: [{ type: 'boon', name: 'might', stacks: 7, duration: 11 }] }
         }
       }
     });
@@ -650,7 +650,7 @@ test('inline action payload validation and patch removal retain canonical owners
 
 // Shared boon emission must preserve trait ownership separately from the triggering skill's attribution.
 test('Elementalist boon emission distinguishes trait rewards from skill-action rewards', () => {
-  const boon = { type: 'boon', name: 'Reward', boon: 'Might', duration: 1, stacks: 1 };
+  const boon = { type: 'boon', name: 'Reward', boon: 'might', duration: 1, stacks: 1 };
   const catalog = createCanonicalCatalog({
     skills: [
       {

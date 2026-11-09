@@ -1,4 +1,5 @@
 import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
+import type { BoonId } from '#gw2/platform/constants.js';
 import type { MechanicCombatContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
@@ -34,7 +35,7 @@ export interface RevenantSkill
   /** Consume skill selected by the active legend. */
   readonly upkeepConsumeByLegendId?: Readonly<Record<string, SkillId>>;
   readonly upkeepPulse?: {
-    readonly kind: string;
+    readonly kind: BoonId;
     readonly duration: number;
     readonly stacks: number;
   };

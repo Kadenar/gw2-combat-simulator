@@ -1,5 +1,4 @@
 import { quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
@@ -248,7 +247,7 @@ function attack(runtime: NecromancerRuntime, data: unknown): void {
   // Query this creature's accepted grants without reconstructing boon state from event history.
   const quickness =
     runtime.config.sharePlayerBoonsWithSummons !== false &&
-    runtime.combat.activeBoonStacks(boonKey(BOON.QUICKNESS), runtime.time, 1, {
+    runtime.combat.activeBoonStacks(BOON.QUICKNESS, runtime.time, 1, {
       actor: 'companion',
       companionId: companion(work.key, work.index)
     }) > 0;

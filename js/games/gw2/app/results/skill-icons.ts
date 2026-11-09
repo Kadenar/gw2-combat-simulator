@@ -10,11 +10,13 @@ import {
 } from '#gw2/app/shared/icons.js';
 import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import type { BoonId } from '#gw2/platform/constants.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import { SIGIL_DATA } from '#gw2/platform/equipment/sigils/data.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
 export interface ResultIconRow {
+  readonly boonId?: BoonId;
   readonly name: string;
   readonly id?: unknown;
   readonly sourceSkill?: string;
@@ -24,7 +26,10 @@ export interface ResultIconRow {
   readonly sourceId?: SkillId | null;
 }
 
+/** Boon icons use explicit identity; result IDs and displayed labels do not encode the icon key. */
 function resolveModifierIcon(row: ResultIconRow): string {
+  if (row.boonId) return MODIFIER_EFFECT_ICONS[row.boonId];
+
   const id = String(row.id || '');
   const label = String(row.name || '');
   const effectIcon = MODIFIER_EFFECT_ICONS[label];

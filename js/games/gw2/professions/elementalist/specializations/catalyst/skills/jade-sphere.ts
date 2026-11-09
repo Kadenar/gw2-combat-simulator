@@ -1,3 +1,4 @@
+import type { BoonId } from '#gw2/platform/constants.js';
 import { ACTOR, BOON, COMBO_FIELD, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -26,7 +27,7 @@ const JADE_SPHERE_TICKS = Object.freeze([0, 1000, 2000, 3000, 4000, 5000]);
 
 // One multi-tick strike plus one party boon effect per tick, all anchored to cast
 // start and scaled with cast time so the pulses stay aligned; keep their separate packet indices.
-function jadeSphereEffects(boon: string, duration: number): readonly SkillEffect[] {
+function jadeSphereEffects(boon: BoonId, duration: number): readonly SkillEffect[] {
   return impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
     {
       type: 'strike',

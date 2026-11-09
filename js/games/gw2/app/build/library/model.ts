@@ -1,7 +1,6 @@
 import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/types.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
-import { BOON } from '#gw2/platform/constants.js';
+import { BOON, BOON_NAMES } from '#gw2/platform/constants.js';
 
 /** Derives catalog labels and filters without loading assets or depending on the library DOM. */
 type TemplateCategory = 'power' | 'condi' | 'other';
@@ -13,11 +12,7 @@ export type TemplateBoonFilter = 'all' | Exclude<TemplateBoon, 'none'>;
 
 export const TEMPLATE_FILTERS: readonly TemplateFilter[] = ['all', 'power', 'condi'];
 
-export const TEMPLATE_BOON_FILTERS: readonly TemplateBoonFilter[] = [
-  'all',
-  boonKey(BOON.ALACRITY),
-  boonKey(BOON.QUICKNESS)
-];
+export const TEMPLATE_BOON_FILTERS: readonly TemplateBoonFilter[] = ['all', BOON.ALACRITY, BOON.QUICKNESS];
 
 export function templateSpecializations(manifest: readonly BuildTemplateSection[]): string[] {
   // Manifest sections represent active specializations, so they can drive the filter without loading every build file.
@@ -40,7 +35,7 @@ export function templateTileContent(preset: BuildTemplatePreset): {
           .slice(0, detailsStart)
           .replace(/\s*-\s*$/, '')
           .trim()
-      : `${category === 'condi' ? 'Condition' : 'Power'}${boon === 'none' ? '' : ` ${boon[0].toUpperCase()}${boon.slice(1)}`}`;
+      : `${category === 'condi' ? 'Condition' : 'Power'}${boon === 'none' ? '' : ` ${BOON_NAMES[boon]}`}`;
   const roleSuffix = preset.label
     .slice(name.length, detailsStart)
     .replace(/\s*-\s*$/, '')
@@ -83,9 +78,9 @@ export function templateBoon(preset: Pick<BuildTemplatePreset, 'label' | 'build'
   // Template names encode support roles, so the selector can filter them without loading every build asset.
   const description = `${preset.label} ${preset.build}`.toLowerCase();
 
-  if (/\balacrity\b|[-/]alac-/.test(description)) return boonKey(BOON.ALACRITY);
+  if (/\balacrity\b|[-/]alac-/.test(description)) return BOON.ALACRITY;
 
-  if (/\bquickness\b|[-/]quick-/.test(description)) return boonKey(BOON.QUICKNESS);
+  if (/\bquickness\b|[-/]quick-/.test(description)) return BOON.QUICKNESS;
 
   return 'none';
 }

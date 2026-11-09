@@ -117,17 +117,21 @@ test('shared chart markup escapes effect names and uses scoped roles without ids
       dps: [{ t: 0, v: 0 }],
       effects: {
         'Bad"><img src=x>': [{ t: 0, v: 1 }],
-        Quickness: [{ t: 0, v: 2.5 }],
-        Alacrity: [{ t: 0, v: 1.5 }],
+        quickness: [{ t: 0, v: 2.5 }],
+        'duplicate-track': [{ t: 0, v: 2 }],
+        alacrity: [{ t: 0, v: 1.5 }],
         Torment: [{ t: 0, v: 3 }]
       },
       effectTypes: {
-        Quickness: 'boon',
-        Alacrity: 'boon',
+        quickness: 'boon',
+        'duplicate-track': 'boon',
+        alacrity: 'boon',
         Torment: 'condition',
         'Bad"><img src=x>': 'buff'
       },
-      effectUnits: { Quickness: 's' },
+      effectUnits: { quickness: 's' },
+      effectLabels: { 'duplicate-track': 'Might <variant>' },
+      effectSummaries: { 'duplicate-track': { uptime: 1, averageStacks: 2 } },
       cumulativeDamage: [
         { t: 0, v: 0 },
         { t: 1000, v: 1000 }
@@ -146,6 +150,8 @@ test('shared chart markup escapes effect names and uses scoped roles without ids
   assert.match(container.innerHTML, /data-role="dps-canvas"/);
   assert.match(container.innerHTML, /Bad&quot;&gt;&lt;img src=x&gt;/);
   assert.match(container.innerHTML, /Quickness \(s\)/);
+  assert.match(container.innerHTML, /<th scope="row">Might &lt;variant&gt;<\/th>/);
+  assert.equal(container.innerHTML.match(/Might &lt;variant&gt;/g).length, 2);
   assert.deepEqual(
     [...container.innerHTML.matchAll(/data-role="chart-toggle-group" data-effect-type="([^"]+)"/g)].map(
       (match) => match[1]
@@ -316,7 +322,7 @@ test('effect counts render as steps for both audiences while duration and DPS cu
       { getContext: () => context, parentElement: { clientWidth: 760 }, style: {} }
     ])
   );
-  const colors = { Might: '#112233', Buff: '#223344', Burning: '#334455', Duration: '#445566' };
+  const colors = { might: '#112233', Buff: '#223344', Burning: '#334455', Duration: '#445566' };
   const both = { dataset: { boonAudience: 'both' }, setAttribute() {} };
   const container = {
     innerHTML: '',
@@ -345,8 +351,8 @@ test('effect counts render as steps for both audiences while duration and DPS cu
         { t: 1000, v: 0 }
       ],
       effects: Object.fromEntries(Object.keys(colors).map((name) => [name, points])),
-      alliedEffects: { Might: points },
-      effectTypes: { Might: 'boon', Buff: 'buff', Burning: 'condition', Duration: 'buff' },
+      alliedEffects: { might: points },
+      effectTypes: { might: 'boon', Buff: 'buff', Burning: 'condition', Duration: 'buff' },
       effectUnits: { Duration: 's' }
     },
     { colors, dpsColor: '#556677' }
@@ -357,9 +363,9 @@ test('effect counts render as steps for both audiences while duration and DPS cu
     stroke.path.some(
       ([x, y], index) => index > 0 && x !== stroke.path[index - 1][0] && y !== stroke.path[index - 1][1]
     );
-  for (const name of ['Might', 'Buff', 'Burning']) {
+  for (const name of ['might', 'Buff', 'Burning']) {
     const curves = strokes.filter((stroke) => stroke.color === colors[name]);
-    assert.equal(curves.length, name === 'Might' ? 2 : 1);
+    assert.equal(curves.length, name === 'might' ? 2 : 1);
     for (const curve of curves) {
       assert.equal(hasDiagonal(curve), false, `${name} must hold its previous count until the change`);
       assert.ok(
@@ -370,7 +376,7 @@ test('effect counts render as steps for both audiences while duration and DPS cu
     }
   }
 
-  assert.ok(strokes.some((stroke) => stroke.color === colors.Might && stroke.dashed));
+  assert.ok(strokes.some((stroke) => stroke.color === colors.might && stroke.dashed));
   assert.ok(hasDiagonal(strokes.find((stroke) => stroke.color === colors.Duration)));
   assert.ok(hasDiagonal(strokes.find((stroke) => stroke.color === '#556677')));
 });

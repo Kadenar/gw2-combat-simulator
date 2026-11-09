@@ -7,6 +7,8 @@ import type {
   ProfessionPatchPreview,
   SkillPatchEdit
 } from '#gw2/integrations/patches/authoring/patches.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { BOON_NAMES } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { FieldSpecs, NumericFieldSpec } from '#gw2/platform/skills/field-specs.js';
 import { SHARED_SKILL_FIELDS } from '#gw2/platform/skills/shared-fields.js';
@@ -75,13 +77,15 @@ function effectTarget(patch: EffectPatch): string {
     patch.effectIndex != null
       ? `effect ${patch.effectIndex}`
       : patch.name || patch.condition || patch.boon || patch.type || 'effect';
-  return patch.tickIndex == null ? selector : `${selector} tick ${String(patch.tickIndex)}`;
+  const label = isStandardBoon(selector) ? BOON_NAMES[selector] : selector;
+  return patch.tickIndex == null ? label : `${label} tick ${String(patch.tickIndex)}`;
 }
 
 /** Builds a short identity for effects added as complete authored payloads. */
 function effectIdentity(effect: Readonly<SkillEffect>): string {
   const fields = effect as unknown as Readonly<Record<string, unknown>>;
-  const detail = effect.name || fields.condition || fields.boon || fields.kind;
+  const id = effect.name || fields.condition || fields.boon || fields.kind;
+  const detail = isStandardBoon(id) ? BOON_NAMES[id] : id;
   return `${effect.type}${detail ? ` ${String(detail)}` : ''}`;
 }
 
@@ -134,7 +138,7 @@ function skillPatchSummary(
   for (const [boon, fields] of Object.entries(edit.boons || {})) {
     for (const [field, numericEdit] of Object.entries(fields)) {
       if (numericEdit != null) {
-        changes.add(`${boon} ${describeNumEdit(field, numericEdit)}`);
+        changes.add(`${isStandardBoon(boon) ? BOON_NAMES[boon] : boon} ${describeNumEdit(field, numericEdit)}`);
       }
     }
   }

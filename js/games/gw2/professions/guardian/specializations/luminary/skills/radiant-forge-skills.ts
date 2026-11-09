@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import {
   ACTOR,
@@ -68,7 +67,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'boon',
-        name: boonKey(BOON.REGENERATION),
+        name: BOON.REGENERATION,
         boon: BOON.REGENERATION,
         duration: 2,
         audience: { recipients: RECIPIENT.PARTY },
@@ -84,7 +83,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'boon',
-        name: boonKey(BOON.RESOLUTION),
+        name: BOON.RESOLUTION,
         boon: BOON.RESOLUTION,
         duration: 1.5,
         audience: { recipients: RECIPIENT.PARTY },
@@ -290,7 +289,7 @@ export const LUMINARY_RADIANT_FORGE_SKILL_MECHANICS: Readonly<Record<number, Ski
       // Resolve's one-use grant stays patchable on the staff and is selected only by the empowered cast.
       {
         type: 'boon',
-        name: boonKey(BOON.REGENERATION),
+        name: BOON.REGENERATION,
         boon: BOON.REGENERATION,
         duration: 4,
         audience: { recipients: RECIPIENT.PARTY },

@@ -3,6 +3,7 @@ import type { Gw2SelectedSkillLoadout } from '#gw2/platform/builds/selected-skil
 import type { ProfessionBuildAssumptions } from '#gw2/platform/builds/types.js';
 import type { Gw2CriticalDamageMode } from '#gw2/platform/combat/critical-damage-mode.js';
 import type { Gw2TargetConfig } from '#gw2/platform/combat/state/targets.js';
+import type { BoonId } from '#gw2/platform/constants.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { SimulationRandomnessConfig } from '#kernel/core/simulation-random.js';
@@ -22,7 +23,7 @@ export interface Gw2Config {
   readonly transitionDelays?: Partial<TransitionDelays>;
   /** Both weapon sets contain common sources before any profession or temporary contribution. */
   readonly attributeInputs?: Gw2AttributeInputs;
-  readonly boons?: Readonly<Record<string, boolean | number>>;
+  readonly boons?: Readonly<Partial<Record<BoonId, boolean | number>>>;
   /** Detached damage preview's total for per-boon bonuses; grants no boons and is never saved to a build. */
   readonly fixedBoonCount?: number;
   readonly sharePlayerBoonsWithSummons?: boolean;

@@ -1,5 +1,4 @@
 import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, AURA, BOON, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
@@ -36,7 +35,7 @@ export const illusionaryDefense = defineTrait<MesmerSkill>({
     effects: [
       {
         type: 'boon',
-        name: boonKey(BOON.PROTECTION),
+        name: BOON.PROTECTION,
         boon: BOON.PROTECTION,
         duration: 4,
         stacks: 1,
@@ -67,7 +66,7 @@ function grantIllusionaryDefense(
     at,
     skillId: skill.id,
     skillName: skill.name,
-    effect: { type: 'boon', name: boonKey(BOON.PROTECTION) },
+    effect: { type: 'boon', name: BOON.PROTECTION },
     attribution: { actorType: ACTOR.PLAYER },
     transform: (event) => ({
       ...event,
@@ -86,7 +85,7 @@ export const bountifulDisillusionment = defineTrait<MesmerSkill>({
     effects: [
       {
         type: 'boon',
-        name: boonKey(BOON.STABILITY),
+        name: BOON.STABILITY,
         boon: BOON.STABILITY,
         duration: 1,
         stacks: 1,
@@ -94,7 +93,7 @@ export const bountifulDisillusionment = defineTrait<MesmerSkill>({
       },
       {
         type: 'boon',
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         boon: BOON.MIGHT,
         duration: 6,
         stacks: 3,
@@ -102,7 +101,7 @@ export const bountifulDisillusionment = defineTrait<MesmerSkill>({
       },
       {
         type: 'boon',
-        name: boonKey(BOON.VIGOR),
+        name: BOON.VIGOR,
         boon: BOON.VIGOR,
         duration: 5,
         stacks: 1,
@@ -110,7 +109,7 @@ export const bountifulDisillusionment = defineTrait<MesmerSkill>({
       },
       {
         type: 'boon',
-        name: boonKey(BOON.FURY),
+        name: BOON.FURY,
         boon: BOON.FURY,
         duration: 6,
         stacks: 1,
@@ -118,7 +117,7 @@ export const bountifulDisillusionment = defineTrait<MesmerSkill>({
       },
       {
         type: 'boon',
-        name: boonKey(BOON.REGENERATION),
+        name: BOON.REGENERATION,
         boon: BOON.REGENERATION,
         duration: 10,
         stacks: 1,
@@ -171,7 +170,7 @@ export const chaoticTransference = defineTrait<MesmerSkill>({
     effects: [
       {
         type: 'boon',
-        name: boonKey(BOON.REGENERATION),
+        name: BOON.REGENERATION,
         boon: BOON.REGENERATION,
         duration: 4,
         stacks: 1,

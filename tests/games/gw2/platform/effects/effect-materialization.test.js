@@ -382,3 +382,30 @@ test('canonical condition timelines reject invalid or ambiguous applications', (
     /cannot use aggregate/
   );
 });
+
+// Labels may describe the grant, but only a canonical boon ID determines its runtime kind.
+test('boon profiles preserve IDs independently of display names and reject named IDs', () => {
+  const catalog = (effect) =>
+    createCanonicalCatalog({ skills: [{ id: 930054, name: 'Boon fixture', effects: [effect] }] });
+  const effect = { type: 'boon', boon: 'might', name: 'Opening reward', duration: 5, stacks: 2 };
+  const skill = catalog(effect).skillsById.get(930054);
+  const [application] = materializeSkillEffectApplications({
+    skill,
+    effect: skill.effects[0],
+    baseEvent: {},
+    start: 0,
+    fullEnd: 0
+  });
+  assert.equal(application.event.kind, 'might');
+  assert.equal(skill.effects[0].boon, 'might');
+  for (const boon of ['Might', 'MIGHT', 'unknown', undefined])
+    assert.throws(
+      () => catalog({ ...effect, boon }),
+      (error) => {
+        assert.match(error.message, /skill=930054 effect=boon\/Opening reward/);
+        assert.ok(error.message.includes(`field=boon expected=canonical boon ID received=${String(boon)}`));
+        return true;
+      }
+    );
+  assert.throws(() => catalog({ type: 'boon', kind: 'might', duration: 5 }), /canonical boon ID/);
+});

@@ -306,7 +306,7 @@ test('Grenadier edits percentage bonuses using the same fractional units as Fire
 
 test('session effect edits preserve other fields and authored assumptions without duplicating selectors', () => {
   const parameter = preview.professions.guardian.provisional.find(({ id }) => id === 'fervidCharges');
-  const unrelated = { type: 'boon', boon: 'Quickness', duration: 9 };
+  const unrelated = { type: 'boon', boon: 'quickness', duration: 9 };
   const edits = [{ ...parameter.effect, stacks: 1, duration: 7 }, unrelated];
   assert.deepEqual(replaceProvisionalEffect(edits, parameter, 3), [
     unrelated,

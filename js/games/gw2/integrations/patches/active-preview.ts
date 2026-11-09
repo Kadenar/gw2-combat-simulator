@@ -1,5 +1,4 @@
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 
@@ -748,7 +747,7 @@ export const activePatchPreview: PatchPreview = {
           specialization: 'Firebrand',
           profileId: '2076',
           field: 'duration',
-          effect: { type: 'boon', name: boonKey(BOON.QUICKNESS) },
+          effect: { type: 'boon', name: BOON.QUICKNESS },
           minimum: 0,
           maximum: 30,
           step: 0.5,
@@ -795,7 +794,7 @@ export const activePatchPreview: PatchPreview = {
         '2076': {
           assumption:
             'Provisional: 2 seconds of Quickness per Swift Scholar refund, up to 5 recipients including self, with no additional internal cooldown. Final duration unknown.',
-          effects: [{ type: 'boon', name: boonKey(BOON.QUICKNESS), duration: 2 }]
+          effects: [{ type: 'boon', name: BOON.QUICKNESS, duration: 2 }]
         },
         '2105': {
           assumption:
@@ -826,7 +825,7 @@ export const activePatchPreview: PatchPreview = {
           removeEffects: [
             {
               type: 'boon',
-              name: boonKey(BOON.ALACRITY)
+              name: BOON.ALACRITY
             },
             {
               type: 'boon',
@@ -836,7 +835,7 @@ export const activePatchPreview: PatchPreview = {
           addEffects: [
             {
               type: 'boon',
-              name: boonKey(BOON.ALACRITY),
+              name: BOON.ALACRITY,
               boon: BOON.ALACRITY,
               stacks: 1,
               duration: 5,

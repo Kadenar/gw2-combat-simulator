@@ -7,7 +7,6 @@
  * skill catalog by `core/skills/index.ts`.
  */
 import {
-  boonKey,
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
   remainingDurationStackSeconds
@@ -340,7 +339,7 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
     event.skillId !== ID.HEAT_SYNC ||
     event.actorType !== ACTOR.PLAYER ||
     !event.resolvedAudience?.includesSelf ||
-    (event.kind !== boonKey(BOON.MIGHT) && event.kind !== boonKey(BOON.FURY))
+    (event.kind !== BOON.MIGHT && event.kind !== BOON.FURY)
   )
     return;
 
@@ -354,7 +353,7 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
 
   // Fury adds durations into one capped pool; Might stacks retain their individual remaining lifetimes.
   const copies =
-    kind === boonKey(BOON.FURY)
+    kind === BOON.FURY
       ? [
           {
             stacks: 1,
@@ -370,7 +369,7 @@ export function shareHeatSyncBoon(runtime: ElementalistRuntime, event: Gw2Resolv
           .sort((left, right) => right.duration - left.duration);
 
   // At the Might cap, copy the longest-lived stacks rather than extending shorter stacks to match them.
-  let remainingStacks = kind === boonKey(BOON.MIGHT) ? 25 : 1;
+  let remainingStacks = kind === BOON.MIGHT ? 25 : 1;
   for (const copy of copies) {
     const stacks = Math.min(remainingStacks, copy.stacks);
 

@@ -1,5 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -82,7 +82,7 @@ export const marchingOrders = defineTrait({
   id: TRAIT.MARCHING_ORDERS,
   balance: {
     internalCooldown: 10,
-    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 15 }]
+    effects: [{ name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 15 }]
   },
   triggers: [
     onTriggerPoint(burstFirstHit, {
@@ -95,7 +95,7 @@ export const marchingOrders = defineTrait({
 export const soldiersComfort = defineTrait({
   id: TRAIT.SOLDIERS_COMFORT,
   balance: {
-    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 4 }]
+    effects: [{ name: BOON.PROTECTION, type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 4 }]
   },
   triggers: [
     onTriggerPoint(soldierFocusApplied, {
@@ -109,7 +109,7 @@ export const soldiersComfort = defineTrait({
 export const martialCadence = defineTrait({
   id: TRAIT.MARTIAL_CADENCE,
   balance: {
-    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
+    effects: [{ name: BOON.STABILITY, type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
   },
   triggers: [
     onTriggerPoint(soldierFocusApplied, {
@@ -136,7 +136,7 @@ export const empowerAllies = defineTrait({
   id: TRAIT.EMPOWER_ALLIES,
   balance: {
     pulseInterval: 10,
-    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 10 }]
+    effects: [{ name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 10 }]
   },
   triggers: [onTriggerPoint(coreInitialized, { run: (runtime) => initializeEmpowerAllies(runtime) })],
   lifetime: empowerAlliesPassive.hooks
@@ -205,7 +205,7 @@ export const warriorsCunning = defineTrait({
 function empowerPulse(runtime: WarriorRuntime): void {
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.EMPOWER_ALLIES);
   const interval = balanceProfileNumber(profile, 'pulseInterval');
-  const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
+  const might = requireEffect(profile, 'boon', BOON.MIGHT);
 
   if (!hasTrait(runtime, TRAIT.EMPOWER_ALLIES) || interval <= 0 || !might) {
     empowerAlliesPassive.stop(runtime);

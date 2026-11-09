@@ -16,7 +16,6 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
@@ -266,9 +265,9 @@ export const antiquaryTooltips = {
         'Using an artifact grants alacrity to you and nearby allies, up to five targets. Offensive artifacts also grant might; defensive artifacts grant protection instead.',
       // Artifact categories follow the same named boons selected by combat.
       facts: [
-        [boonKey(BOON.MIGHT), 'offensive artifact'],
-        [boonKey(BOON.PROTECTION), 'defensive artifact'],
-        [boonKey(BOON.ALACRITY), 'any artifact']
+        [BOON.MIGHT, 'offensive artifact'],
+        [BOON.PROTECTION, 'defensive artifact'],
+        [BOON.ALACRITY, 'any artifact']
       ].flatMap(([name, label]) => {
         const effect = requireEffect(tooltipProfile(balanceContext, entity.id), 'boon', name);
         return effect ? simulationEffectFacts([effect], label).facts : [];

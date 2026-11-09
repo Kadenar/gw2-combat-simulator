@@ -2,7 +2,8 @@ import type { NativePatchAuthoringSkill } from '#gw2/integrations/patches/author
 import { numericFieldSpec, patchFieldLabel } from '#gw2/integrations/patches/authoring/overview-generation.js';
 import { type NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
 import type { PatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
-import { AURA, BOON, CONDITION } from '#gw2/platform/constants.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { AURA, BOON, BOON_NAMES, CONDITION } from '#gw2/platform/constants.js';
 import { effectTicks, type SkillEffect } from '#gw2/platform/effects/types.js';
 import type { NumericFieldSpec } from '#gw2/platform/skills/field-specs.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -195,7 +196,7 @@ export function effectDetail(effect: Readonly<SkillEffect>): string {
   const details = [effect.name, fields.condition, fields.boon, fields.aura, fields.kind, tickCondition].filter(
     (detail): detail is string => typeof detail === 'string' && detail.length > 0
   );
-  return [...new Set(details)].join(' · ');
+  return [...new Set(details.map((detail) => (isStandardBoon(detail) ? BOON_NAMES[detail] : detail)))].join(' · ');
 }
 
 /**

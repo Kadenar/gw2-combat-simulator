@@ -12,16 +12,16 @@ const cases = {
     'Frost Aura',
     { primaryWeapon: 'Dagger', secondaryWeapon: 'Dagger', startAttunement: 'Water' },
     ["Zephyr's Boon"],
-    ['Fury', 'Swiftness']
+    ['fury', 'swiftness']
   ],
-  mesmer: ['Mind Slash', { primaryWeapon: 'Sword' }, ['Master Fencer'], ['Fury']],
-  necromancer: ['Extirpate', { primaryWeapon: 'Spear' }, [], ['Might']],
-  ranger: ['Ricochet', { primaryWeapon: 'Axe' }, [], ['Might']],
-  thief: ['Steal', {}, ['Thrill of the Crime'], ['Fury', 'Might', 'Swiftness']],
-  engineer: ['Puncturing Jab', { primaryWeapon: 'Spear' }, ['No Scope'], ['Fury']],
-  guardian: ['Symbol of Resolution', { primaryWeapon: 'Greatsword' }, ['Righteous Instincts'], ['Resolution', 'Might']],
-  warrior: ['Signet of Rage', {}, [], ['Fury', 'Might', 'Swiftness']],
-  revenant: ['Unrelenting Assault', { primaryWeapon: 'Sword' }, [], ['Might']]
+  mesmer: ['Mind Slash', { primaryWeapon: 'Sword' }, ['Master Fencer'], ['fury']],
+  necromancer: ['Extirpate', { primaryWeapon: 'Spear' }, [], ['might']],
+  ranger: ['Ricochet', { primaryWeapon: 'Axe' }, [], ['might']],
+  thief: ['Steal', {}, ['Thrill of the Crime'], ['fury', 'might', 'swiftness']],
+  engineer: ['Puncturing Jab', { primaryWeapon: 'Spear' }, ['No Scope'], ['fury']],
+  guardian: ['Symbol of Resolution', { primaryWeapon: 'Greatsword' }, ['Righteous Instincts'], ['resolution', 'might']],
+  warrior: ['Signet of Rage', {}, [], ['fury', 'might', 'swiftness']],
+  revenant: ['Unrelenting Assault', { primaryWeapon: 'Sword' }, [], ['might']]
 };
 
 for (const entry of professionRegistry) {

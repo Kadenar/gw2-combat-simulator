@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { boonActive, buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -122,7 +122,7 @@ const flockTogether = defineTrait({
   balance: {
     damageMultiplier: 1.25,
     internalCooldown: 20,
-    effects: [{ name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 5, stacks: 1 }]
+    effects: [{ name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, duration: 5, stacks: 1 }]
   },
   modifierRules: [
     {
@@ -147,8 +147,8 @@ const cloudburst = defineTrait({
   id: TRAIT.CLOUDBURST,
   balance: {
     effects: [
-      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 4, stacks: 1 },
-      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 10, stacks: 4 },
+      { name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, duration: 4, stacks: 1 },
+      { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, duration: 10, stacks: 4 },
       { name: 'Hawkeye quickness', type: 'boon', boon: BOON.QUICKNESS, duration: 8, stacks: 1 },
       { name: 'Hawkeye might', type: 'boon', boon: BOON.MIGHT, duration: 10, stacks: 8 }
     ]
@@ -206,7 +206,7 @@ const birdOfPrey = defineTrait({
       // Either movement buff activates the player bonus, including generated buffs until they expire.
       when: (context) =>
         isGw2PlayerModifierOwnedEvent(context.event) &&
-        (boonActive(context, boonKey(BOON.SWIFTNESS)) || buffActive(context, STATUS.SUPERSPEED))
+        (boonActive(context, BOON.SWIFTNESS) || buffActive(context, STATUS.SUPERSPEED))
     }
   ]
 });
@@ -370,7 +370,7 @@ function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill): void
   }
 
   const profile = requireBalanceProfile(context.helpers, TRAIT.FLOCK_TOGETHER);
-  const quickness = requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS));
+  const quickness = requireEffect(profile, 'boon', BOON.QUICKNESS);
 
   // The cooldown gates only quickness, so a removed boon leaves it ready.
   if (!quickness || !context.procs.claim(TRAIT.FLOCK_TOGETHER, 'ranger.galeshot.flockTogether', context.time)) return;
@@ -378,7 +378,7 @@ function completeGaleshotSkill(context: RangerRuntime, skill: RangerSkill): void
   emitTraitProfile(context, TRAIT.FLOCK_TOGETHER, TRAIT.FLOCK_TOGETHER, undefined, {
     at: context.time,
     fullEnd: context.time,
-    effect: { type: 'boon', name: boonKey(BOON.QUICKNESS) },
+    effect: { type: 'boon', name: BOON.QUICKNESS },
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.FLOCK_TOGETHER,
@@ -438,9 +438,7 @@ function primeWutheringWind(context: RangerRuntime): void {
 
 function emitCloudburstBoons(context: RangerRuntime, skill: RangerSkill): void {
   const hawkeye = skill.id === ID.HAWKEYE;
-  for (const name of hawkeye
-    ? ['Hawkeye quickness', 'Hawkeye might']
-    : [boonKey(BOON.QUICKNESS), boonKey(BOON.MIGHT)]) {
+  for (const name of hawkeye ? ['Hawkeye quickness', 'Hawkeye might'] : [BOON.QUICKNESS, BOON.MIGHT]) {
     emitTraitProfile(context, TRAIT.CLOUDBURST, TRAIT.CLOUDBURST, undefined, {
       effect: { type: 'boon', name },
       at: context.time,

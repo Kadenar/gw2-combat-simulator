@@ -63,7 +63,7 @@ const shred: Partial<SkillDefinition<AmalgamSkill>> = {
         effects: [
           {
             type: 'boon',
-            boon: 'Quickness',
+            boon: 'quickness',
             duration: 8,
             sourceId: 'engineer.predator-strain',
             name: 'Predator Strain'
@@ -168,7 +168,7 @@ const demolish: Partial<SkillDefinition<AmalgamSkill>> = {
         effects: [
           {
             type: 'boon',
-            boon: 'Stability',
+            boon: 'stability',
             duration: 8,
             stacks: 5,
             sourceId: 'engineer.berserker-strain',
@@ -214,7 +214,7 @@ const obliterate: Partial<SkillDefinition<AmalgamSkill>> = {
         effects: [
           {
             type: 'boon',
-            boon: 'Might',
+            boon: 'might',
             duration: 8,
             stacks: 10,
             sourceId: 'engineer.titanic-strain',
@@ -248,7 +248,7 @@ const cleanse: Partial<SkillDefinition<AmalgamSkill>> = {
         effects: [
           {
             type: 'boon',
-            boon: 'Alacrity',
+            boon: 'alacrity',
             duration: 8,
             sourceId: 'engineer.replicating-strain',
             name: 'Replicating Strain'
@@ -314,7 +314,7 @@ const protect: Partial<SkillDefinition<AmalgamSkill>> = {
         effects: [
           {
             type: 'boon',
-            boon: 'Resistance',
+            boon: 'resistance',
             duration: 8,
             sourceId: 'engineer.resiliant-strain',
             name: 'Resiliant Strain'

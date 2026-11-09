@@ -1,12 +1,12 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { boonActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { activeChargeCount, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { ACTOR, BOON, CONDITION, WEAPON, type BoonName } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, CONDITION, WEAPON, type BoonId } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
@@ -136,7 +136,7 @@ export const tailWind = defineTrait({
   id: TRAIT.TAIL_WIND,
   balance: {
     internalCooldown: 9,
-    effects: [{ name: boonKey(BOON.SWIFTNESS), type: 'boon', boon: BOON.SWIFTNESS, duration: 9, stacks: 1 }]
+    effects: [{ name: BOON.SWIFTNESS, type: 'boon', boon: BOON.SWIFTNESS, duration: 9, stacks: 1 }]
   },
   triggers: [
     onTriggerPoint(weaponSwapped, {
@@ -153,7 +153,7 @@ export const quickDraw = defineTrait({
     internalCooldown: 9,
     duration: 5,
     rechargeMultiplier: 0.34,
-    effects: [{ name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 3, stacks: 1 }]
+    effects: [{ name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, duration: 3, stacks: 1 }]
   },
   rechargeRules: [
     {
@@ -186,7 +186,7 @@ export const furiousGrip = defineTrait({
   id: TRAIT.FURIOUS_GRIP,
   balance: {
     internalCooldown: 9,
-    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, duration: 5, stacks: 1 }]
+    effects: [{ name: BOON.FURY, type: 'boon', boon: BOON.FURY, duration: 5, stacks: 1 }]
   },
   triggers: [
     onTriggerPoint(weaponSwapped, {
@@ -323,7 +323,7 @@ export const viciousQuarry = defineTrait({
       operation: 'add',
       amount: (context) => balanceNumber(context.catalog, TRAIT.VICIOUS_QUARRY, 'criticalChance'),
       // Vicious Quarry improves the ranger's Fury; the pet retains its own independent critical chance.
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, boonKey(BOON.FURY))
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, BOON.FURY)
     }
   ]
 });
@@ -453,13 +453,13 @@ function weaponSwapBoon(
   context: RangerRuntime,
   { skill, at }: TriggerPointInput<typeof weaponSwapped>,
   trait: SkillId,
-  boon: BoonName,
+  boon: BoonId,
   cooldownKey: string,
   name: string
 ): void {
   if (context.engagement.startTime == null || at < context.engagement.startTime) return;
 
-  const effectName = boonKey(boon);
+  const effectName = boon;
   const profile = requireBalanceProfile(context.helpers, trait);
 
   if (!requireEffect(profile, 'boon', effectName) || !context.procs.claim(trait, cooldownKey, at)) return;
@@ -479,7 +479,7 @@ function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): 
 
   if (inCombat && context.procs.claim(TRAIT.QUICK_DRAW, 'ranger.core.quickDraw', at)) {
     const profile = requireBalanceProfile(context.helpers, TRAIT.QUICK_DRAW);
-    const effect = requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS));
+    const effect = requireEffect(profile, 'boon', BOON.QUICKNESS);
     // The recharge window is trait-owned, so it and its cooldown survive a removed quickness packet.
     state.quickDraw = grantCharges(1, at + balanceProfileNumber(profile, 'duration'));
 
@@ -487,7 +487,7 @@ function quickDrawSwap(context: RangerRuntime, skill: RangerSkill, at: number): 
       emitTraitProfile(context, TRAIT.QUICK_DRAW, TRAIT.QUICK_DRAW, undefined, {
         at: at,
         fullEnd: at,
-        effect: { type: 'boon', name: boonKey(BOON.QUICKNESS) },
+        effect: { type: 'boon', name: BOON.QUICKNESS },
         attribution: {
           source: 'Trait',
           sourceId: TRAIT.QUICK_DRAW,

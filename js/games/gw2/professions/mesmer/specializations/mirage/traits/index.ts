@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
@@ -40,7 +39,7 @@ const nomadsEndurance = defineTrait<MesmerSkill>({
   balance: {
     damageIncrease: 0.1,
     conditionDamageIncrease: 0.05,
-    effects: [{ name: boonKey(BOON.VIGOR), type: 'boon', boon: BOON.VIGOR, duration: 3, stacks: 1 }]
+    effects: [{ name: BOON.VIGOR, type: 'boon', boon: BOON.VIGOR, duration: 3, stacks: 1 }]
   },
   modifierRules: [
     {
@@ -70,7 +69,7 @@ const nomadsEndurance = defineTrait<MesmerSkill>({
 const renewingOasis = defineTrait<MesmerSkill>({
   id: TRAIT.RENEWING_OASIS,
   balance: {
-    effects: [{ name: boonKey(BOON.REGENERATION), type: 'boon', boon: BOON.REGENERATION, duration: 4, stacks: 1 }]
+    effects: [{ name: BOON.REGENERATION, type: 'boon', boon: BOON.REGENERATION, duration: 4, stacks: 1 }]
   },
   triggers: [
     onTriggerPoint(mirageCloakGranted, {
@@ -117,7 +116,7 @@ const desertDistortion = defineTrait<MesmerSkill>({
 const mirageMantle = defineTrait<MesmerSkill>({
   id: TRAIT.MIRAGE_MANTLE,
   balance: {
-    effects: [{ name: boonKey(BOON.ALACRITY), type: 'boon', boon: BOON.ALACRITY, duration: 4, stacks: 1 }]
+    effects: [{ name: BOON.ALACRITY, type: 'boon', boon: BOON.ALACRITY, duration: 4, stacks: 1 }]
   },
   triggers: [
     onTriggerPoint(mirageAmbushAccepted, {
@@ -242,7 +241,7 @@ function renewingOasisCloak(
 ): void {
   const profile = requireBalanceProfile(state.helpers, TRAIT.RENEWING_OASIS);
 
-  if (!requireEffect(profile, 'boon', boonKey(BOON.REGENERATION))) return;
+  if (!requireEffect(profile, 'boon', BOON.REGENERATION)) return;
 
   const proc = state.effects.emit({
     receipt: true,
@@ -262,7 +261,7 @@ function renewingOasisCloak(
   emitTraitProfile(state, TRAIT.RENEWING_OASIS, TRAIT.RENEWING_OASIS, proc, {
     ...delivery,
     at: at,
-    effect: { type: 'boon', name: boonKey(BOON.REGENERATION) },
+    effect: { type: 'boon', name: BOON.REGENERATION },
     skillId: TRAIT.RENEWING_OASIS,
     skillName: profile.name,
     attribution: { actorType: ACTOR.PLAYER },
@@ -357,7 +356,7 @@ function mantleAmbush(
 ): void {
   const profile = requireBalanceProfile(state.helpers, TRAIT.MIRAGE_MANTLE);
 
-  if (!requireEffect(profile, 'boon', boonKey(BOON.ALACRITY))) return;
+  if (!requireEffect(profile, 'boon', BOON.ALACRITY)) return;
 
   const proc = state.effects.emit({
     receipt: true,
@@ -377,7 +376,7 @@ function mantleAmbush(
   emitTraitProfile(state, TRAIT.MIRAGE_MANTLE, TRAIT.MIRAGE_MANTLE, proc, {
     ...delivery,
     at: impactAt,
-    effect: { type: 'boon', name: boonKey(BOON.ALACRITY) },
+    effect: { type: 'boon', name: BOON.ALACRITY },
     skillId: TRAIT.MIRAGE_MANTLE,
     skillName: profile.name,
     attribution: { actorType: ACTOR.PLAYER, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } },
@@ -485,7 +484,7 @@ function grantNomadsEndurance(
   const { skill, at, delivery } = resolution;
   const profile = requireBalanceProfile(state.helpers, TRAIT.NOMADS_ENDURANCE);
 
-  if (!requireEffect(profile, 'boon', boonKey(BOON.VIGOR))) return;
+  if (!requireEffect(profile, 'boon', BOON.VIGOR)) return;
 
   const proc = state.effects.emit({
     receipt: true,
@@ -505,7 +504,7 @@ function grantNomadsEndurance(
   emitTraitProfile(state, TRAIT.NOMADS_ENDURANCE, TRAIT.NOMADS_ENDURANCE, proc, {
     ...delivery,
     at: at,
-    effect: { type: 'boon', name: boonKey(BOON.VIGOR) },
+    effect: { type: 'boon', name: BOON.VIGOR },
     skillId: TRAIT.NOMADS_ENDURANCE,
     skillName: profile.name,
     attribution: { actorType: ACTOR.PLAYER },

@@ -2,7 +2,6 @@
 import {
   advanceDurationStack,
   applyBoonExtension,
-  boonKey,
   durationStackingBoonCapSeconds,
   isDurationStackingBoon,
   isStandardBoon,
@@ -54,7 +53,7 @@ export function createBoonGenerationCollector(retainHistory: boolean, window: ()
   let pendingAt = -Infinity;
   let knownStart: number | null = null;
   const empty = (kind: string): BoonGenerationByAudience => ({
-    intensityStacking: kind === boonKey(BOON.MIGHT) || kind === boonKey(BOON.STABILITY),
+    intensityStacking: kind === BOON.MIGHT || kind === BOON.STABILITY,
     self: { generatedStackSeconds: 0 },
     ally: { generatedStackSeconds: 0 }
   });
@@ -112,7 +111,7 @@ export function createBoonGenerationCollector(retainHistory: boolean, window: ()
       };
 
       if (event.type === 'buff') {
-        const kind = String(event.kind).toLowerCase();
+        const kind = event.kind;
 
         if (!isStandardBoon(kind) || (!retainHistory && kind !== 'quickness' && kind !== 'alacrity')) continue;
 

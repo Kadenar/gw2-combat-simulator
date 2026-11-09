@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import {
   activeChargeCount,
@@ -259,7 +258,7 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
   };
   const owner = requireSkill(runtime.helpers, ID.ASHES_OF_THE_JUST);
   const action = requireSkillAction(owner, 'grant');
-  const might = requireEffect(owner, 'boon', boonKey(BOON.MIGHT), action);
+  const might = requireEffect(owner, 'boon', BOON.MIGHT, action);
 
   // Keep the authored Might grant in profile expansion so reports retain its generation lineage.
   if (might)

@@ -1,6 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -104,7 +103,7 @@ const naturalBalance = defineTrait({
 const graceOfTheLand = defineTrait({
   id: TRAIT.GRACE_OF_THE_LAND,
   balance: {
-    effects: [{ name: boonKey(BOON.ALACRITY), type: 'boon', boon: BOON.ALACRITY, duration: 1, stacks: 1 }]
+    effects: [{ name: BOON.ALACRITY, type: 'boon', boon: BOON.ALACRITY, duration: 1, stacks: 1 }]
   }
 });
 

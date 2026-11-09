@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
@@ -43,7 +42,7 @@ export const ferociousAggression = defineTrait({
       operation: 'damage-additive',
       amount: (context) => balanceNumber(context.catalog, TRAIT.FEROCIOUS_AGGRESSION, 'damageIncrease'),
       // Grant the bonus only while permanent or simulated Fury affects the player.
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, boonKey(BOON.FURY))
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, BOON.FURY)
     }
   ]
 });
@@ -51,18 +50,18 @@ export const ferociousAggression = defineTrait({
 export const incensedResponse = defineTrait({
   id: TRAIT.INCENSED_RESPONSE,
   balance: {
-    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 8, stacks: 5 }]
+    effects: [{ name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, duration: 8, stacks: 5 }]
   },
   triggers: [
     {
       on: 'buff.applied',
       when: (runtime, event) =>
-        event.kind === boonKey(BOON.FURY) &&
+        event.kind === BOON.FURY &&
         runtime.engagement.combatMechanicsAllowed() &&
         isGw2PlayerModifierOwnedEvent(event) &&
         gw2BoonApplicationRecipients(runtime.config, event).includesSelf,
       emit: TRAIT.INCENSED_RESPONSE,
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.MIGHT),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.MIGHT,
       attribution: {
         source: 'revenant',
         sourceId: TRAIT.INCENSED_RESPONSE,
@@ -111,7 +110,7 @@ export const roilingMists = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumber(context.catalog, TRAIT.ROILING_MISTS, 'criticalChance'),
-      when: (context) => boonActive(context, boonKey(BOON.FURY))
+      when: (context) => boonActive(context, BOON.FURY)
     }
   ]
 });

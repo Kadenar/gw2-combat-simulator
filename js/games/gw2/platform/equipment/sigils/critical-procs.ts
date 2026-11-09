@@ -3,10 +3,7 @@ import type { ProcRegistry } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
-import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
-
-const PROCS = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;
 
 interface CriticalSigilIntent {
   readonly id: number;
@@ -19,7 +16,7 @@ export interface CriticalSigilDecision {
 
 /** Authored trigger membership also determines resolver ownership, including Blight. */
 function isCriticalSigil(id: number): boolean {
-  return PROCS[id]?.trigger === 'crit';
+  return SIGIL_PROCS[id]?.trigger === 'crit';
 }
 
 /** Decide from phase-local facts without mutating state or drawing another critical outcome. */
@@ -52,7 +49,7 @@ export function decideCriticalSigils(
 
   for (const id of active) {
     if (isInternalCooldownReady(event.at, procs.deadline(`sigil.${id}`))) {
-      next.procs.push({ id, readyAt: event.at + PROCS[id].cooldown });
+      next.procs.push({ id, readyAt: event.at + SIGIL_PROCS[id].cooldown });
     }
   }
 

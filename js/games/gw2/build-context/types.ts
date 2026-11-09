@@ -7,6 +7,7 @@ import type {
 } from '#gw2/platform/attributes/types.js';
 import type { ResolvedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import type { Gw2CanonicalBuild, ProfessionAssumptionControl } from '#gw2/platform/builds/types.js';
+import type { BoonId } from '#gw2/platform/constants.js';
 import type { TransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import type { Gw2ProfessionSource } from '#gw2/platform/profession-definition/family-contract.js';
 import type { AnyNativeModule } from '#gw2/platform/profession-definition/module-types.js';
@@ -19,10 +20,11 @@ export type ProfessionModifierType = 'Boon' | 'Target' | 'Sigil' | 'Relic' | 'Fo
 
 export type ProfessionModifier = {
   readonly id: string;
-  readonly name: string;
   readonly label: string;
 } & (
-  { readonly type: 'Skill'; readonly skillId: SkillId } | { readonly type: Exclude<ProfessionModifierType, 'Skill'> }
+  | { readonly type: 'Boon'; readonly boonId: BoonId }
+  | { readonly type: 'Skill'; readonly name: string; readonly skillId: SkillId }
+  | { readonly type: Exclude<ProfessionModifierType, 'Skill' | 'Boon'>; readonly name: string }
 );
 
 export interface BuildAttributes extends Readonly<Gw2FinalizedAttributeResult> {

@@ -1,6 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeStackCount, purgeExpiredStacks } from '#gw2/platform/combat/resources/timed-stacks.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -207,9 +206,9 @@ const possessiveHoarder = defineTrait({
   id: TRAIT.POSSESSIVE_HOARDER,
   balance: {
     effects: [
-      { type: 'boon', name: boonKey(BOON.MIGHT), boon: BOON.MIGHT, stacks: 10, duration: 12 },
-      { type: 'boon', name: boonKey(BOON.PROTECTION), boon: BOON.PROTECTION, stacks: 1, duration: 5 },
-      { type: 'boon', name: boonKey(BOON.ALACRITY), boon: BOON.ALACRITY, stacks: 1, duration: 5 }
+      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 10, duration: 12 },
+      { type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 5 },
+      { type: 'boon', name: BOON.ALACRITY, boon: BOON.ALACRITY, stacks: 1, duration: 5 }
     ]
   },
   triggers: [onTriggerPoint(artifactActivated, { run: applyPossessiveHoarder })]
@@ -313,9 +312,9 @@ function applyExhilaratingEphemera(runtime: ThiefRuntime): void {
 function applyPossessiveHoarder(runtime: ThiefRuntime, { cast, slot }: ArtifactActivation): void {
   // Artifact family chooses its boon, then Alacrity; each selected component remains independently removable.
   const names = [
-    ...(slot?.kind === 'offensive' ? [boonKey(BOON.MIGHT)] : []),
-    ...(slot?.kind === 'defensive' ? [boonKey(BOON.PROTECTION)] : []),
-    boonKey(BOON.ALACRITY)
+    ...(slot?.kind === 'offensive' ? [BOON.MIGHT] : []),
+    ...(slot?.kind === 'defensive' ? [BOON.PROTECTION] : []),
+    BOON.ALACRITY
   ];
   for (const name of names)
     emitTraitProfile(runtime, TRAIT.POSSESSIVE_HOARDER, TRAIT.POSSESSIVE_HOARDER, undefined, {

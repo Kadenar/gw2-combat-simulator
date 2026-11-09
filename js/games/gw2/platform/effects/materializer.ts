@@ -242,7 +242,7 @@ export function materializeSkillEffectApplications({
           // Boons and generic positive statuses share the timed-buff runtime
           // event; the authored type still controls GW2 boon-duration scaling.
           type: 'buff',
-          kind: (effect.boon || effect.kind || effect.name || '').toLowerCase(),
+          kind: effect.type === 'boon' ? effect.boon : (effect.kind || effect.name || '').toLowerCase(),
           stacks: Math.max(1, effect.stacks || 1),
           duration: Math.max(0, effect.duration),
           ...(effect.maximumDuration == null ? {} : { maximumDuration: effect.maximumDuration }),

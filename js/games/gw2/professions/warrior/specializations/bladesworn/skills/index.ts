@@ -1,5 +1,5 @@
 /** Explicit PvE skill mechanics owned by the Bladesworn Warrior module. */
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
@@ -943,7 +943,7 @@ const bladeswornSkillActions: RuntimeHooks<WarriorRuntimeState, WarriorSkill>['s
     const cast = context.cast;
 
     // Sample configured or executed self Fury before the cast emits its own application.
-    if (runtime.combat.activeBoonStacks(boonKey(BOON.FURY), runtime.time, 1) > 0) furyBeforeCast.add(cast);
+    if (runtime.combat.activeBoonStacks(BOON.FURY, runtime.time, 1) > 0) furyBeforeCast.add(cast);
   },
   'warrior.flow-stabilize'(runtime, context) {
     if (context.kind !== 'cast') return;

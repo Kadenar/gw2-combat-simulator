@@ -1,6 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { barrierRecipients } from '#gw2/platform/combat/barrier.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeChargeCount, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { gw2AlliedPlayerAssumptions } from '#gw2/platform/combat/state/allied-players.js';
@@ -129,9 +128,9 @@ const shadestep = defineTrait<ThiefSkill>({
   id: TRAIT.SHADESTEP,
   balance: {
     effects: [
-      { type: 'boon', name: boonKey(BOON.ALACRITY), boon: BOON.ALACRITY, stacks: 1, duration: 5 },
-      { type: 'boon', name: boonKey(BOON.PROTECTION), boon: BOON.PROTECTION, stacks: 1, duration: 5 },
-      { type: 'boon', name: boonKey(BOON.AEGIS), boon: BOON.AEGIS, stacks: 1, duration: 4 }
+      { type: 'boon', name: BOON.ALACRITY, boon: BOON.ALACRITY, stacks: 1, duration: 5 },
+      { type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 5 },
+      { type: 'boon', name: BOON.AEGIS, boon: BOON.AEGIS, stacks: 1, duration: 4 }
     ]
   },
   triggers: [
@@ -140,7 +139,7 @@ const shadestep = defineTrait<ThiefSkill>({
       on: 'castCommit',
       when: (_runtime, cast) =>
         cast.skill.id === ID.GRASPING_SHADOWS && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.ALACRITY),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.ALACRITY,
       attribution: {
         actorType: ACTOR.PLAYER,
         name: 'Shade Step - alacrity',
@@ -152,7 +151,7 @@ const shadestep = defineTrait<ThiefSkill>({
       on: 'castCommit',
       when: (_runtime, cast) =>
         cast.skill.id === ID.DAWNS_REPOSE && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.PROTECTION),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.PROTECTION,
       attribution: {
         actorType: ACTOR.PLAYER,
         name: 'Shade Step - protection',
@@ -164,7 +163,7 @@ const shadestep = defineTrait<ThiefSkill>({
       on: 'castCommit',
       when: (_runtime, cast) =>
         cast.skill.id === ID.MIND_SHOCK && Boolean(cast.skill.shadowShroudSkill) && !castWasInterrupted(cast),
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.AEGIS),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.AEGIS,
       attribution: {
         actorType: ACTOR.PLAYER,
         name: 'Shade Step - aegis',

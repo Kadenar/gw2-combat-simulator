@@ -29,7 +29,7 @@ type SkillEffectByType<TType extends SkillEffect['type']> = TType extends Strike
     : TType extends ControlEffect['type']
       ? ControlEffect
       : TType extends StatusEffect['type']
-        ? StatusEffect
+        ? Extract<StatusEffect, { type: TType }>
         : TType extends AuraEffect['type']
           ? AuraEffect
           : TType extends CustomEffect['type']

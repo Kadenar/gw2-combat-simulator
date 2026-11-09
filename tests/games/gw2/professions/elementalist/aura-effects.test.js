@@ -91,15 +91,15 @@ test('real and synthetic Air entry honor trait gates and patched buff versus boo
 // Every aura enters one reaction pipeline, including patched boon payloads and duration scaling.
 test('Core and Tempest aura boons submit patched authored effects', () => {
   for (const [trait, traitId, profileId, names] of [
-    ["Zephyr's Boon", TRAIT.ZEPHYRS_BOON, TRAIT.ZEPHYRS_BOON, ['Fury', 'Swiftness']],
-    ['Elemental Shielding', TRAIT.ELEMENTAL_SHIELDING, TRAIT.ELEMENTAL_SHIELDING, ['Protection']],
-    ['Invigorating Torrents', TRAIT.INVIGORATING_TORRENTS, TRAIT.INVIGORATING_TORRENTS, ['Vigor', 'Regeneration']],
-    ['Elemental Bastion', TRAIT.ELEMENTAL_BASTION, TRAIT.ELEMENTAL_BASTION, ['Alacrity']]
+    ["Zephyr's Boon", TRAIT.ZEPHYRS_BOON, TRAIT.ZEPHYRS_BOON, ['fury', 'swiftness']],
+    ['Elemental Shielding', TRAIT.ELEMENTAL_SHIELDING, TRAIT.ELEMENTAL_SHIELDING, ['protection']],
+    ['Invigorating Torrents', TRAIT.INVIGORATING_TORRENTS, TRAIT.INVIGORATING_TORRENTS, ['vigor', 'regeneration']],
+    ['Elemental Bastion', TRAIT.ELEMENTAL_BASTION, TRAIT.ELEMENTAL_BASTION, ['alacrity']]
   ]) {
     const effects = names.map((name, index) => ({
       type: 'boon',
       name,
-      boon: index ? 'Resistance' : 'Might',
+      boon: index ? 'resistance' : 'might',
       stacks: index + 2,
       duration: index + 7
     }));
@@ -117,7 +117,7 @@ test('Core and Tempest aura boons submit patched authored effects', () => {
     assert.deepEqual(
       events.map(({ kind, stacks, duration }) => ({ kind, stacks, duration })),
       effects.map((effect) => ({
-        kind: effect.boon.toLowerCase(),
+        kind: effect.boon,
         stacks: effect.stacks,
         duration: effect.duration
       })),

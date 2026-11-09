@@ -1,6 +1,6 @@
 /** Turns a hit's captured formula facts into the event log's calculation: the equation first, raw facts on request. */
 import { effectName } from '#gw2/app/results/effect-labels.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import {
   BASE_CRITICAL_DAMAGE_MULTIPLIER,
   CRITICAL_DAMAGE_FEROCITY_CONTRIBUTOR,
@@ -181,9 +181,8 @@ export function damageCalculationPresentation(
   const { activeBuffs, targetHealthFractionBefore: targetHealth } = calculation;
   const effectLabel = ({ kind, stacks, name }: Gw2DamageCalculation['activeBuffs'][number]): string =>
     `${name ?? effectName(kind, {}, presentations)}${stacks > 1 ? ` ${stacks}` : ''}`;
-  const isStandardBoon = ({ kind }: { readonly kind: string }): boolean => GW2_STANDARD_BOONS.includes(kind);
   const isOtherBoon = (buff: { readonly kind: string }): boolean =>
-    isStandardBoon(buff) && !LEADING_BOONS.includes(buff.kind);
+    isStandardBoon(buff.kind) && !LEADING_BOONS.includes(buff.kind);
   return {
     heading,
     meta: `${atSeconds.toFixed(3)}s${targetHealth == null ? '' : ` · target ${percent(targetHealth)} HP`}`,
@@ -216,7 +215,7 @@ export function damageCalculationPresentation(
     factors: modifierFactors(calculation),
     effects: [
       ...LEADING_BOONS.flatMap((kind) => activeBuffs.filter((buff) => buff.kind === kind)),
-      ...activeBuffs.filter((buff) => !isStandardBoon(buff)),
+      ...activeBuffs.filter((buff) => !isStandardBoon(buff.kind)),
       ...activeBuffs.filter(isOtherBoon)
     ].map(effectLabel),
     trace: `sim ${event.at.toFixed(3)}s${event.activationId == null ? '' : ` · ${event.activationId}`} · ${calculation.phase}`,

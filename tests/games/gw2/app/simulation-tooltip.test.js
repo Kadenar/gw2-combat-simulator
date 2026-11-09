@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { defineProfessionApp } from '#gw2/app/define-profession-app.js';
-import { tooltipFactIcon } from '#gw2/app/shared/icons.js';
+import { MODIFIER_EFFECT_ICONS, tooltipFactIcon } from '#gw2/app/shared/icons.js';
 import {
   describeSimulationSkill,
   describeSimulationTrait,
@@ -14,6 +14,7 @@ import {
 import { skillTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
+import { BOON_NAMES } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { necromancerAppAdapter } from '#gw2/professions/necromancer/app/app-definition.js';
@@ -669,8 +670,8 @@ test('effect facts preserve repeated packets, semantic icons and recipient conte
   assert.equal(model.facts.filter((fact) => fact.name === 'Might').length, 2);
   assert.ok(model.facts.filter((fact) => fact.name === 'Might').every((fact) => fact.icon));
   const recipients = simulationEffectFacts([
-    { type: 'boon', boon: 'Fury', duration: 3, audience: { recipients: 'summons' } },
-    { type: 'boon', boon: 'Fury', duration: 3, actorType: 'summon', audience: { recipients: 'self' } },
+    { type: 'boon', boon: 'fury', duration: 3, audience: { recipients: 'summons' } },
+    { type: 'boon', boon: 'fury', duration: 3, actorType: 'summon', audience: { recipients: 'self' } },
     { type: 'buff', kind: 'toughness', stacks: 300, duration: 5 }
   ]);
   assert.match(recipients.facts[0].detail, /you and your companions/);
@@ -691,10 +692,10 @@ test('effect facts preserve repeated packets, semantic icons and recipient conte
 test('boon tooltip stack counts appear only for Might and Stability', () => {
   for (const type of ['boon', 'buff']) {
     for (const [boon, stacks, badge] of [
-      ['Quickness', 1, undefined],
+      ['quickness', 1, undefined],
       ['fury', 1, undefined],
-      ['Aegis', 1, undefined],
-      ['Might', 3, 3],
+      ['aegis', 1, undefined],
+      ['might', 3, 3],
       ['stability', 1, 1]
     ]) {
       const model = simulationEffectFacts([
@@ -1118,7 +1119,9 @@ test('New Genes tooltip lists shared boons and each Morph bonus once', async () 
     const qualifier = effect.metadata?.trigger
       ? `${effect.metadata.trigger.replace(/^\w/, (letter) => letter.toUpperCase())} only`
       : 'All Morph skills';
-    const matching = model.facts.filter((fact) => fact.name === effect.boon && fact.detail.endsWith(`- ${qualifier}`));
+    const matching = model.facts.filter(
+      (fact) => fact.name === BOON_NAMES[effect.boon] && fact.detail.endsWith(`- ${qualifier}`)
+    );
     assert.equal(matching.length, 1, `${effect.name} appears once with its granting skill`);
   }
 
@@ -1178,4 +1181,23 @@ test('handler-owned tooltips distinguish conditional values and recipients', asy
   ]);
   assert.match(variants.facts.at(-1).detail, /5 on yourself · 3 on each ally/);
   assert.equal(variants.facts.at(-1).stacks, 5);
+});
+
+// Exact status icons survive ID-to-label conversion and outrank generic authored icons.
+test('raw tooltip facts retain exact boon and renamed buff icons', () => {
+  for (const [kind, name] of [
+    ['might', 'Might'],
+    ['kallas-fervor', "Kalla's Fervor"],
+    ['fresh-air', 'Fresh Air'],
+    ['cosmic-wisdom', 'Cosmic Wisdom']
+  ]) {
+    const { facts } = simulationEffectFacts([{ type: 'buff', kind, duration: 5, icon: 'generic.png' }]);
+    assert.equal(facts[0].name, name);
+    assert.equal(facts[0].icon, MODIFIER_EFFECT_ICONS[kind] || MODIFIER_EFFECT_ICONS[name]);
+  }
+
+  const { facts } = simulationEffectFacts([
+    { type: 'buff', kind: 'unknown-effect', duration: 5, icon: 'authored.png' }
+  ]);
+  assert.equal(facts[0].icon, 'authored.png');
 });

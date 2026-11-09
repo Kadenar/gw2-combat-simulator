@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
@@ -50,7 +49,7 @@ export const stalwartStrength = defineTrait({
   balance: {
     damageMultiplier: 1.1,
     internalCooldown: 0.32,
-    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5 }]
+    effects: [{ name: BOON.STABILITY, type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5 }]
   },
   modifierRules: [
     {
@@ -59,7 +58,7 @@ export const stalwartStrength = defineTrait({
       operation: 'multiply',
       factor: (context) => balanceNumber(context.catalog, TRAIT.STALWART_STRENGTH, 'damageMultiplier'),
       order: 95,
-      when: (context) => warriorBoonActive(context, boonKey(BOON.STABILITY))
+      when: (context) => warriorBoonActive(context, BOON.STABILITY)
     }
   ],
   triggers: [
@@ -104,7 +103,7 @@ export const cullTheWeak = defineTrait({
 export const thickSkin = defineTrait({
   id: TRAIT.THICK_SKIN,
   balance: {
-    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
+    effects: [{ name: BOON.PROTECTION, type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
   },
   triggers: [
     {

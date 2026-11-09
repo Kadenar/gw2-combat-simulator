@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
@@ -120,13 +119,13 @@ const restorativeVirtues = defineTrait({
   balance: {
     // Each virtue trigger advances active weapon recharge by 280ms before recharge-speed conversion.
     rechargeReduction: 0.28,
-    effects: [{ type: 'boon', name: boonKey(BOON.VIGOR), boon: BOON.VIGOR, stacks: 1, duration: 3 }]
+    effects: [{ type: 'boon', name: BOON.VIGOR, boon: BOON.VIGOR, stacks: 1, duration: 3 }]
   },
   triggers: [
     onTriggerPoint(willbenderVirtueOpened, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.RESTORATIVE_VIRTUES, boonKey(BOON.VIGOR), cause, () => ({
+        grantVirtueBoon(runtime, TRAIT.RESTORATIVE_VIRTUES, BOON.VIGOR, cause, () => ({
           recipients: RECIPIENT.SELF
         }))
     }),
@@ -163,7 +162,7 @@ const holyReckoning = defineTrait({
     effects: [
       {
         type: 'boon',
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         boon: BOON.MIGHT,
         stacks: 1,
         duration: 15,
@@ -171,7 +170,7 @@ const holyReckoning = defineTrait({
       },
       {
         type: 'boon',
-        name: boonKey(BOON.FURY),
+        name: BOON.FURY,
         boon: BOON.FURY,
         stacks: 1,
         duration: 3,
@@ -183,13 +182,13 @@ const holyReckoning = defineTrait({
     onTriggerPoint(willbenderVirtueOpened, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'justice',
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, boonKey(BOON.FURY), cause, () => ({
+        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, BOON.FURY, cause, () => ({
           recipients: RECIPIENT.SELF
         }))
     }),
     onTriggerPoint(willbenderVirtueTriggered, {
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, boonKey(BOON.MIGHT), cause, () => ({
+        grantVirtueBoon(runtime, TRAIT.HOLY_RECKONING, BOON.MIGHT, cause, () => ({
           recipients: RECIPIENT.PARTY
         }))
     })
@@ -203,7 +202,7 @@ const phoenixProtocol = defineTrait({
     effects: [
       {
         type: 'boon',
-        name: boonKey(BOON.ALACRITY),
+        name: BOON.ALACRITY,
         boon: BOON.ALACRITY,
         stacks: 1,
         duration: 5,
@@ -225,7 +224,7 @@ const phoenixProtocol = defineTrait({
     onTriggerPoint(willbenderVirtueOpened, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.PHOENIX_PROTOCOL, boonKey(BOON.ALACRITY), cause, phoenixAudience(runtime))
+        grantVirtueBoon(runtime, TRAIT.PHOENIX_PROTOCOL, BOON.ALACRITY, cause, phoenixAudience(runtime))
     }),
     onTriggerPoint(willbenderVirtueTriggered, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',

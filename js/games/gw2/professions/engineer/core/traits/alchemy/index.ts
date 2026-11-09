@@ -1,8 +1,7 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import { ACTOR, BOON, COMBO_FINISHER, CONTROL } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, BOON_NAMES, COMBO_FINISHER, CONTROL } from '#gw2/platform/constants.js';
 import { type SimulationEventBase } from '#gw2/platform/events/events.js';
 import { type RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
@@ -36,8 +35,8 @@ export const hgh = defineTrait({
   balance: {
     durationMultiplier: 1.2,
     effects: [
-      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 2, duration: 12 },
-      { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 },
+      { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 2, duration: 12 },
+      { name: BOON.FURY, type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 },
       {
         name: 'HGH',
         type: 'strike',
@@ -50,14 +49,14 @@ export const hgh = defineTrait({
   },
   // Boons and the extra Acid Bomb strike are producers; elixir duration is a retained value policy.
   triggers: [
-    ...[boonKey(BOON.MIGHT), boonKey(BOON.FURY)].map<
+    ...[BOON.MIGHT, BOON.FURY].map<
       Extract<NonNullable<TraitDefinition<EngineerSkill>['triggers']>[number], { on: 'castCommit' }>
     >((boon) => ({
       on: 'castCommit',
       when: (_runtime, cast) => isElixirSkill(cast.skill),
       emit: TRAIT.HGH,
       effects: (effect) => effect.type === 'boon' && effect.name === boon,
-      attribution: { source: 'Trait', sourceId: TRAIT.HGH, actorType: ACTOR.PLAYER, name: `HGH - ${boon}` }
+      attribution: { source: 'Trait', sourceId: TRAIT.HGH, actorType: ACTOR.PLAYER, name: `HGH - ${BOON_NAMES[boon]}` }
     })),
     { on: 'castCommit', when: (_runtime, cast) => cast.skill.id === ID.ACID_BOMB, run: applyHghAcidBomb }
   ],
@@ -78,7 +77,7 @@ export const boilingPoint = defineTrait({
   balance: {
     threshold: 5,
     internalCooldown: 1,
-    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 3 }]
+    effects: [{ name: BOON.FURY, type: 'boon', boon: BOON.FURY, stacks: 1, duration: 3 }]
   },
   triggers: [
     {
@@ -87,9 +86,9 @@ export const boilingPoint = defineTrait({
       cooldown: 'profile',
       // The resolver records the application before reactions, so the threshold counts the Might just gained.
       when: (runtime, event) =>
-        (event.kind || '').toLowerCase() === boonKey(BOON.MIGHT) &&
+        (event.kind || '').toLowerCase() === BOON.MIGHT &&
         Boolean(event.resolvedAudience?.includesSelf) &&
-        runtime.combat.activeBoonStacks(boonKey(BOON.MIGHT), event.at) >=
+        runtime.combat.activeBoonStacks(BOON.MIGHT, event.at) >=
           balanceNumber(runtime.helpers, TRAIT.BOILING_POINT, 'threshold'),
       attribution: { name: 'Boiling Point - fury' }
     }
@@ -134,8 +133,8 @@ export const equalAndOppositeReaction = defineTrait({
   balance: {
     internalCooldown: 1,
     effects: [
-      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 },
-      { name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5 }
+      { name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 },
+      { name: BOON.STABILITY, type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5 }
     ]
   },
   triggers: [

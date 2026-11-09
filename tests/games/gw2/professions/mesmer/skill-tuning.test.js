@@ -76,7 +76,7 @@ test('Mirage player ambush retains ordinary added effects without an explicit so
     label: 'Ambush owner',
     professions: {
       mesmer: {
-        skills: { [ID.SPLIT_SURGE]: { addEffects: [{ type: 'boon', boon: 'Protection', duration: 4, stacks: 1 }] } }
+        skills: { [ID.SPLIT_SURGE]: { addEffects: [{ type: 'boon', boon: 'protection', duration: 4, stacks: 1 }] } }
       }
     }
   });

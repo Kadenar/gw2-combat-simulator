@@ -1,6 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import {
-  boonKey,
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
   remainingDurationStackSeconds
@@ -9,7 +8,7 @@ import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { playerHealthFraction, skillForEvent, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
-import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, BOON_NAMES, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { ResolvedCriticalHitOptions } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -50,7 +49,7 @@ export const assassinsFury = defineTrait({
       emit: TRAIT.ASSASSINS_FURY,
       cooldown: 'profile',
       when: (runtime, event) =>
-        (event.kind || '').toLowerCase() === boonKey(BOON.FURY) &&
+        (event.kind || '').toLowerCase() === BOON.FURY &&
         Boolean(event.resolvedAudience?.includesSelf) &&
         Boolean(requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.ASSASSINS_FURY), 'boon', BOON.MIGHT)),
       effects: (effect) => effect.type === 'boon' && effect.name === BOON.MIGHT,
@@ -310,7 +309,7 @@ function criticalBoonDefinition(source: BalanceProfileSource, traitId: SkillId) 
 
   return {
     profile: selectedProfile,
-    boon: String(effect.boon),
+    boon: effect.boon,
     duration: effectNumber(selectedProfile, effect, 'duration'),
     stacks: effectNumber(selectedProfile, effect, 'stacks')
   };
@@ -363,7 +362,7 @@ const unrelentingStrikesCriticalReaction = Object.freeze({
           triggeredBy: event.skillName
         },
         effects: [{ type: 'boon', boon, duration, stacks, audience: { recipients: RECIPIENT.PARTY } }],
-        transform: (packet) => ({ ...packet, name: `Unrelenting Strikes - ${boon}` }),
+        transform: (packet) => ({ ...packet, name: `Unrelenting Strikes - ${BOON_NAMES[boon]}` }),
         durationContext: event
       });
     }
@@ -376,9 +375,9 @@ const applyUnrelentingStrikes = criticalProcHandler(unrelentingStrikesCriticalRe
 function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEvent, duration: number): void {
   // Extend Fury only while its canonical half-open window is active at the hit time.
   if (
-    remainingDurationStackSeconds(context.combat.boonApplications(boonKey(BOON.FURY)), event.at, {
+    remainingDurationStackSeconds(context.combat.boonApplications(BOON.FURY), event.at, {
       includes: (application) => buffMatchesAudience(application, RECIPIENT.SELF),
-      maximum: durationStackingBoonCapSeconds(boonKey(BOON.FURY))
+      maximum: durationStackingBoonCapSeconds(BOON.FURY)
     }) <= 0
   )
     return;
@@ -396,7 +395,7 @@ function extendActiveFury(context: ThiefResolverContext, event: ThiefResolverEve
     profile: requireBalanceProfile(context.helpers, TRAIT.NO_QUARTER),
     at: event.at,
     attribution,
-    effects: [{ type: 'custom', eventType: 'boon_extension', event: { kind: boonKey(BOON.FURY), duration } }],
+    effects: [{ type: 'custom', eventType: 'boon_extension', event: { kind: BOON.FURY, duration } }],
     cause: event,
     settlement: 'reaction'
   });

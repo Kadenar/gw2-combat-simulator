@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
@@ -17,7 +16,7 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = [
     castTimeMs: 0,
     effects: [
       {
-        name: boonKey(BOON.FURY),
+        name: BOON.FURY,
         type: 'boon',
         boon: BOON.FURY,
         duration: 5,
@@ -28,7 +27,7 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = [
         }
       },
       {
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         type: 'boon',
         boon: BOON.MIGHT,
         duration: 5,
@@ -39,7 +38,7 @@ export const RANGER_CORE_TRAIT_SKILLS: readonly Skill[] = [
         }
       },
       {
-        name: boonKey(BOON.SWIFTNESS),
+        name: BOON.SWIFTNESS,
         type: 'boon',
         boon: BOON.SWIFTNESS,
         duration: 5,

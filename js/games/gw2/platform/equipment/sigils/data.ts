@@ -1,6 +1,6 @@
 /** Owns the static sigil tables: passive stat entries and active proc declarations. */
 import { BOON, CONDITION } from '#gw2/platform/constants.js';
-import type { Gw2SigilDataEntry } from '#gw2/platform/equipment/sigils/types.js';
+import type { Gw2SigilDataEntry, Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 
 /** Canonical exotic item IDs verified against the public GW2 items API. */
 export const SIGIL_IDS = Object.freeze({
@@ -198,7 +198,7 @@ export const SIGIL_BY_ID: Readonly<Record<number, Gw2SigilDataEntry & { readonly
   Object.fromEntries(Object.entries(SIGIL_DATA).map(([name, data]) => [data.id, { ...data, name }]))
 );
 
-export const SIGIL_PROCS = Object.freeze({
+export const SIGIL_PROCS: Readonly<Record<number, Gw2SigilProc>> = Object.freeze({
   // Strength grants ordinary Might so live boon duration and attribute queries apply to each earned stack.
   [SIGIL_IDS.STRENGTH]: {
     trigger: 'crit',

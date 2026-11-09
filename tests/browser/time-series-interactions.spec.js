@@ -30,7 +30,7 @@ async function mountCharts(page) {
         },
         dps: cumulativeDamage.map(({ t, v }) => ({ t, v: t ? v / (t / 1000) : 0 })),
         effects: {
-          Might: [
+          might: [
             { t: 0, v: 25 },
             { t: 20000, v: 25 }
           ],
@@ -43,7 +43,7 @@ async function mountCharts(page) {
             { t: 20000, v: 1 }
           ]
         },
-        effectTypes: { Might: 'boon', Burning: 'condition', Empowered: 'buff' }
+        effectTypes: { might: 'boon', Burning: 'condition', Empowered: 'buff' }
       },
       { healthBreakpoints: [{ healthPercent: 80, elapsed: 10, damage: 160000 }] }
     );
@@ -344,7 +344,7 @@ test('effect legends highlight on hover and keyboard focus and restore on leavin
   const conditions = page.locator('[data-role="conditions-canvas"]');
   const dps = page.locator('[data-role="dps-canvas"]');
   const pixels = (canvas) => canvas.evaluate((element) => element.toDataURL());
-  const might = page.locator('[data-series="Might"]');
+  const might = page.locator('[data-series="might"]');
   const label = might.locator('..');
   const neutral = page.locator('[data-role="effects-panel-title"]');
   await neutral.hover();
@@ -384,7 +384,7 @@ test('effect legends highlight on hover and keyboard focus and restore on leavin
 test('legend highlights clear after clicking and leaving a focused checkbox', async ({ page }) => {
   const effects = page.locator('[data-role="effects-canvas"]');
   const pixels = () => effects.evaluate((element) => element.toDataURL());
-  const might = page.locator('[data-series="Might"]');
+  const might = page.locator('[data-series="might"]');
   const label = might.locator('..');
   const neutral = page.locator('[data-role="effects-panel-title"]');
   await neutral.hover();

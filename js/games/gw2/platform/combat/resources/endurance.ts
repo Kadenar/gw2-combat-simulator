@@ -1,5 +1,5 @@
 import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { boonIntervalsFromWindows, boonKey, prepareBoonWindows, type BoonWindow } from '#gw2/platform/combat/boons.js';
+import { boonIntervalsFromWindows, prepareBoonWindows, type BoonWindow } from '#gw2/platform/combat/boons.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { RateInterval } from '#gw2/platform/combat/resources/pool.js';
 import { cappedResource, grantCapped, resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
@@ -9,7 +9,7 @@ import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 /** Cache one runtime's append-only executed history; unrelated facts cannot change its prepared self-Vigor windows. */
 export function createVigorWindowReader(events: readonly SimulationEvent[]): () => readonly BoonWindow[] {
-  const kind = boonKey(BOON.VIGOR);
+  const kind = BOON.VIGOR;
   const relevant: SimulationEvent[] = [];
   let cursor = 0;
   let windows: readonly BoonWindow[] | undefined;

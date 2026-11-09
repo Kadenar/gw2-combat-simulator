@@ -1,5 +1,4 @@
 import {
-  boonKey,
   buffApplicationStacks,
   buffMatchesAudience,
   durationStackingBoonCapSeconds,
@@ -61,7 +60,7 @@ export function liveBoonSnapshot(
   const audience = recipient.actor === ACTOR.PLAYER ? RECIPIENT.SELF : RECIPIENT.SUMMONS;
   const companionId = recipient.actor === 'companion' ? recipient.companionId : undefined;
   const configured = recipient.actor === ACTOR.PLAYER ? Number(config.boons?.[kind] || 0) : 0;
-  const maximum = kind === boonKey(BOON.MIGHT) || kind === boonKey(BOON.STABILITY) ? 25 : 1;
+  const maximum = kind === BOON.MIGHT || kind === BOON.STABILITY ? 25 : 1;
   const permanent = Math.max(0, Math.min(maximum, configured));
   const stacks = Math.min(
     maximum,

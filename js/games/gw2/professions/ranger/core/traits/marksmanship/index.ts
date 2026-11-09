@@ -1,6 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -141,7 +140,7 @@ export const huntersGaze = defineTrait({
     upperThreshold: 0.75,
     internalCooldown: 1,
     maximumStacks: 3,
-    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 5, stacks: 1 }]
+    effects: [{ name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, duration: 5, stacks: 1 }]
   },
   triggers: [
     onTriggerPoint(strike, {
@@ -156,8 +155,8 @@ export const leadTheWind = defineTrait({
   balance: {
     rechargeMultiplier: 0.8,
     effects: [
-      { name: boonKey(BOON.SWIFTNESS), type: 'boon', boon: BOON.SWIFTNESS, duration: 10, stacks: 1 },
-      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 5, stacks: 1 }
+      { name: BOON.SWIFTNESS, type: 'boon', boon: BOON.SWIFTNESS, duration: 10, stacks: 1 },
+      { name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, duration: 5, stacks: 1 }
     ]
   },
   rechargeRules: [
@@ -174,7 +173,7 @@ export const leadTheWind = defineTrait({
       on: 'castCommit' as const,
       when: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) =>
         cast.skill.id === ID.POINT_BLANK_SHOT,
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.SWIFTNESS),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.SWIFTNESS,
       attribution: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.LEAD_THE_WIND,
         skillName: 'Lead the Wind',
@@ -188,7 +187,7 @@ export const leadTheWind = defineTrait({
       on: 'castCommit' as const,
       when: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) =>
         cast.skill.id === ID.POINT_BLANK_SHOT,
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.QUICKNESS),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.QUICKNESS,
       attribution: (_runtime: MechanicQueriesOf<RangerRuntime>, cast: RuntimeCast<RangerSkill>) => ({
         skillId: TRAIT.LEAD_THE_WIND,
         skillName: 'Lead the Wind',
@@ -358,7 +357,7 @@ function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEv
 
   const health = targetHealthFraction(context);
   const profile = requireBalanceProfile(context.helpers, TRAIT.HUNTERS_GAZE);
-  const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
+  const might = requireEffect(profile, 'boon', BOON.MIGHT);
 
   // The cooldown and proc record exist only for the might packet.
   if (!might) return;
@@ -391,7 +390,7 @@ function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEv
   emitTraitProfile(context, TRAIT.HUNTERS_GAZE, TRAIT.HUNTERS_GAZE, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
+    effect: { type: 'boon', name: BOON.MIGHT },
     durationContext: event,
     attribution: {
       source: 'Trait',
@@ -409,7 +408,7 @@ function triggerHuntersGaze(context: RangerResolverContext, event: Gw2ResolverEv
 function reactToRangerCoreBuff(context: RangerResolverContext, event: Gw2ResolverEvent): void {
   const kind = (event.kind || '').toLowerCase();
 
-  if (kind === boonKey(BOON.FURY) && event.resolvedAudience?.includesSelf) {
+  if (kind === BOON.FURY && event.resolvedAudience?.includesSelf) {
     const state = professionCoreState(context.profession);
     state.player.openingStrikeReady = true;
 

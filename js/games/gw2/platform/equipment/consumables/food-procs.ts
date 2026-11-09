@@ -1,4 +1,4 @@
-import { ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, BOON_NAMES, type BoonId } from '#gw2/platform/constants.js';
 import type { PacketEmission, ProfileEmission } from '#gw2/platform/effects/emission.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -6,12 +6,12 @@ import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js
 
 /** Critical-strike food procs: the selected food's proc data and the packets a successful proc emits. */
 
-interface CriticalFoodEffect {
-  readonly type: 'boon' | 'condition';
-  readonly name: string;
+type CriticalFoodEffect = (
+  { readonly type: 'boon'; readonly boon: BoonId } | { readonly type: 'condition'; readonly name: string }
+) & {
   readonly stacks: number;
   readonly duration: number;
-}
+};
 
 interface CriticalFoodProc {
   readonly type: string;
@@ -48,14 +48,21 @@ export function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2Reso
   let request: PacketEmission | ProfileEmission;
 
   if (conditionalEffect?.type === 'boon') {
-    const name = conditionalEffect.name;
+    const name = BOON_NAMES[conditionalEffect.boon];
     // A food boon owns a separate yield even when several procs share the triggering skill.
     request = {
       kind: 'profile',
       profile: { id: commonEvent.sourceId, name: proc.name },
       at: event.at,
       attribution: commonEvent,
-      effects: [{ type: 'boon', boon: name, stacks: conditionalEffect.stacks, duration: conditionalEffect.duration }],
+      effects: [
+        {
+          type: 'boon',
+          boon: conditionalEffect.boon,
+          stacks: conditionalEffect.stacks,
+          duration: conditionalEffect.duration
+        }
+      ],
       transform: (packet) => ({ ...packet, name: `${proc.name} - ${name}` })
     };
   } else if (conditionalEffect?.type === 'condition') {

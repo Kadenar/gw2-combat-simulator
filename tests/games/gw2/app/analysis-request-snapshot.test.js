@@ -50,7 +50,7 @@ test('capture is lazy and detached from nested edits, replaced rotations, settin
   assert.equal(snapshot.identity.values, '{}');
   assert.deepEqual(snapshot.baseline(editorIntent), expected);
   const modifiers = snapshot.modifiers(100);
-  assert.ok(modifiers.comparisons.some(({ modifier }) => modifier.id === 'Boon:Might'));
+  assert.ok(modifiers.comparisons.some(({ modifier }) => modifier.id === 'Boon:might'));
   assert.deepEqual(modifiers.rotation, expected.rotation);
   assert.equal(snapshot.distribution().baseConfig.transitionDelays.weaponSwapMs, 100);
   assert.deepEqual(snapshot.distribution().rotation, expected.rotation);
@@ -138,7 +138,7 @@ test('lifecycle enrichment and restored sampling prepare against their baseline 
   charts.complete({ result: { effectReport: {}, boonGeneration: {} } });
   const modifier = lifecycle.work.modifiers.at(-1);
   assert.equal(modifier.request.rotation[0].durationMs, 1000);
-  assert.ok(modifier.request.comparisons.some(({ modifier }) => modifier.id === 'Boon:Might'));
+  assert.ok(modifier.request.comparisons.some(({ modifier }) => modifier.id === 'Boon:might'));
   lifecycle.lifecycle.restore(saved);
   lifecycle.lifecycle.runDistribution();
   assert.equal(lifecycle.lifecycle.state.results, result);

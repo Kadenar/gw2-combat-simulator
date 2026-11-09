@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBoonStacks, buffActive, targetHealthBelow } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -34,7 +34,7 @@ export const reapersMight = defineTrait({
   balance: {
     effects: [
       {
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         type: 'boon',
         boon: BOON.MIGHT,
         stacks: 1,
@@ -61,7 +61,7 @@ export const siphonedPower = defineTrait({
     cooldown: 1,
     effects: [
       {
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         type: 'boon',
         boon: BOON.MIGHT,
         stacks: 3,
@@ -105,7 +105,7 @@ export const awakenThePain = defineTrait({
     attributePerStack: 10,
     effects: [
       {
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         type: 'boon',
         boon: BOON.MIGHT,
         stacks: 5,
@@ -118,7 +118,7 @@ export const awakenThePain = defineTrait({
   attributes(context) {
     const might =
       context.query?.mightStacksAt(context.time, context.runtime, context.event) ??
-      activeBoonStacks(context, boonKey(BOON.MIGHT));
+      activeBoonStacks(context, BOON.MIGHT);
     return {
       attributeEffects: [
         {
@@ -325,7 +325,7 @@ function applyReapersMight(
   if (!firstHit || !shroudSkillOne) return;
 
   const profile = requireBalanceProfile(context.helpers, TRAIT.REAPERS_MIGHT);
-  const effect = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
+  const effect = requireEffect(profile, 'boon', BOON.MIGHT);
 
   // The proc record reports only a delivered boon.
   if (!effect) return;
@@ -333,7 +333,7 @@ function applyReapersMight(
   emitTraitProfile(context, TRAIT.REAPERS_MIGHT, TRAIT.REAPERS_MIGHT, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
+    effect: { type: 'boon', name: BOON.MIGHT },
     durationContext: event,
     attribution: {
       skillName: "Reaper's Might",
@@ -355,7 +355,7 @@ function applySiphonedPower(context: NecromancerResolverContext, event: Necroman
 
   if (!context.combat.targetHealthBelow(balanceProfileNumber(profile, 'threshold'))) return;
 
-  const effect = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
+  const effect = requireEffect(profile, 'boon', BOON.MIGHT);
 
   // Claim only after local eligibility, before conditions, resources or queued strikes; the cooldown gates only
   // might, so a removed boon leaves it ready.
@@ -365,7 +365,7 @@ function applySiphonedPower(context: NecromancerResolverContext, event: Necroman
   emitTraitProfile(context, TRAIT.SIPHONED_POWER, TRAIT.SIPHONED_POWER, undefined, {
     at: event.at,
     fullEnd: event.at,
-    effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
+    effect: { type: 'boon', name: BOON.MIGHT },
     durationContext: event,
     attribution: {
       skillName: 'Siphoned Power',

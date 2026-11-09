@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -46,7 +46,7 @@ const shimmeringStances = defineTrait({
     effects: [
       {
         type: 'boon',
-        name: boonKey(BOON.PROTECTION),
+        name: BOON.PROTECTION,
         boon: BOON.PROTECTION,
         duration: 3,
         audience: { recipients: RECIPIENT.PARTY }
@@ -175,9 +175,9 @@ const resplendentWeaponry = defineTrait({
   id: TRAIT.RESPLENDENT_WEAPONRY,
   balance: {
     effects: [
-      { type: 'boon', name: boonKey(BOON.ALACRITY), boon: BOON.ALACRITY, duration: 4 },
-      { type: 'boon', name: boonKey(BOON.MIGHT), boon: BOON.MIGHT, duration: 8, stacks: 1 },
-      { type: 'boon', name: boonKey(BOON.FURY), boon: BOON.FURY, duration: 5 }
+      { type: 'boon', name: BOON.ALACRITY, boon: BOON.ALACRITY, duration: 4 },
+      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, duration: 8, stacks: 1 },
+      { type: 'boon', name: BOON.FURY, boon: BOON.FURY, duration: 5 }
     ]
   },
   triggers: [onTriggerPoint(radiantWeaponEquipped, { run: grantResplendentWeaponry })]

@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -146,8 +145,8 @@ export const kineticAccelerators = defineTrait<EngineerSkill>({
     attributeConversion: 0.13,
     internalCooldown: 3,
     effects: [
-      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3 },
-      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 10 }
+      { name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3 },
+      { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 3, duration: 10 }
     ]
   },
   attributes: traitAttributeEffects(TRAIT.KINETIC_ACCELERATORS, [
@@ -177,9 +176,9 @@ const massMomentum = defineTrait<EngineerSkill>({
   balance: {
     pulseInterval: 1,
     effects: [
-      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 5 },
+      { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 5 },
       {
-        name: boonKey(BOON.STABILITY),
+        name: BOON.STABILITY,
         type: 'boon',
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.STABILITY,
@@ -193,14 +192,14 @@ const massMomentum = defineTrait<EngineerSkill>({
     { on: 'damage.resolved', when: (_runtime, event) => Number(event.coefficient) > 0, run: triggerMassMomentum },
     {
       on: 'buff.applied',
-      when: (_runtime, event) => (event.kind || '').toLowerCase() === boonKey(BOON.STABILITY),
+      when: (_runtime, event) => (event.kind || '').toLowerCase() === BOON.STABILITY,
       run: triggerMassMomentum
     },
     {
       on: 'castCommit',
       when: (_runtime, cast) => cast.skill.id === ID.FUNCTION_GYRO,
       emit: TRAIT.MASS_MOMENTUM,
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.STABILITY),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.STABILITY,
       attribution: {
         source: 'Trait',
         sourceId: TRAIT.MASS_MOMENTUM,
@@ -231,7 +230,7 @@ export const appliedForce = defineTrait<EngineerSkill>({
     threshold: 10,
     internalCooldown: 10,
     attributePerStack: 30,
-    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
+    effects: [{ name: BOON.STABILITY, type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
   },
   // Apply the trait portion of Might once for both build assumptions and live boons.
   attributes(context) {
@@ -243,7 +242,7 @@ export const appliedForce = defineTrait<EngineerSkill>({
           kind: 'flat',
           to: 'Power',
           amount:
-            modifierBoonStacks(context, boonKey(BOON.MIGHT), balanceProfileNumber(profile, 'maximumStacks')) *
+            modifierBoonStacks(context, BOON.MIGHT, balanceProfileNumber(profile, 'maximumStacks')) *
             balanceProfileNumber(profile, 'attributePerStack'),
           feedsConversions: 'none',
           enabled: true
@@ -269,7 +268,7 @@ const objectInMotion = defineTrait<EngineerSkill>({
       operation: 'multiply',
 
       factor: (context) => {
-        const count = [boonKey(BOON.STABILITY), boonKey(BOON.SWIFTNESS), STATUS.SUPERSPEED].filter(
+        const count = [BOON.STABILITY, BOON.SWIFTNESS, STATUS.SUPERSPEED].filter(
           (kind) =>
             (kind === STATUS.SUPERSPEED ? activeBuffStacks(context, kind, 1) : modifierBoonStacks(context, kind, 1)) > 0
         ).length;
@@ -294,7 +293,7 @@ export const scrapperTraits = [
 
 /** Keeps one pending Stability pulse and rechecks selection and live Stability before each grant. */
 function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEvent): void | false {
-  if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, boonKey(BOON.STABILITY), 1, event.at) === 0)
+  if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, BOON.STABILITY, 1, event.at) === 0)
     return false;
 
   const state = context.procs;
@@ -302,12 +301,12 @@ function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEv
 
   if ((state.deadline('massMomentum') || 0) <= event.at) {
     state.setDeadline('massMomentum', event.at + balanceProfileNumber(massMomentumProfile, 'pulseInterval'));
-    const massMomentumMight = requireEffect(massMomentumProfile, 'boon', boonKey(BOON.MIGHT));
+    const massMomentumMight = requireEffect(massMomentumProfile, 'boon', BOON.MIGHT);
 
     if (massMomentumMight) {
       emitTraitProfile(context, TRAIT.MASS_MOMENTUM, TRAIT.MASS_MOMENTUM, undefined, {
         at: event.at,
-        effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
+        effect: { type: 'boon', name: BOON.MIGHT },
         durationContext: event,
         attribution: {
           source: 'Trait',
@@ -352,10 +351,10 @@ function reactToAppliedForceBuff(context: EngineerRuntime, event: EngineerResolv
 
   // Applied Force (GM trait): reaching 10+ might stacks triggers 3s stability on a 10s ICD.
   if (
-    kind === boonKey(BOON.MIGHT) &&
+    kind === BOON.MIGHT &&
     activeBoonStacks(
       context,
-      boonKey(BOON.MIGHT),
+      BOON.MIGHT,
       balanceNumber(context.helpers, TRAIT.APPLIED_FORCE, 'maximumStacks'),
       event.at
     ) >= balanceNumber(context.helpers, TRAIT.APPLIED_FORCE, 'threshold')
@@ -363,12 +362,12 @@ function reactToAppliedForceBuff(context: EngineerRuntime, event: EngineerResolv
     // Reaching the threshold consumes the interval even if Stability is removed.
     if (context.procs.claim(TRAIT.APPLIED_FORCE, 'appliedForce', event.at)) {
       const appliedForceProfile = requireBalanceProfile(context.helpers, TRAIT.APPLIED_FORCE);
-      const appliedForceStability = requireEffect(appliedForceProfile, 'boon', boonKey(BOON.STABILITY));
+      const appliedForceStability = requireEffect(appliedForceProfile, 'boon', BOON.STABILITY);
 
       if (appliedForceStability) {
         emitTraitProfile(context, TRAIT.APPLIED_FORCE, TRAIT.APPLIED_FORCE, undefined, {
           at: event.at,
-          effect: { type: 'boon', name: boonKey(BOON.STABILITY) },
+          effect: { type: 'boon', name: BOON.STABILITY },
           durationContext: event,
           attribution: {
             source: 'Trait',
@@ -454,7 +453,7 @@ function grantKineticAcceleratorBoons(context: EngineerResolverContext, event: S
   }
 
   let emitted = false;
-  for (const kind of [boonKey(BOON.QUICKNESS), boonKey(BOON.MIGHT)]) {
+  for (const kind of [BOON.QUICKNESS, BOON.MIGHT]) {
     const receipts = emitTraitProfile(context, TRAIT.KINETIC_ACCELERATORS, TRAIT.KINETIC_ACCELERATORS, undefined, {
       at: event.at,
       effect: { type: 'boon', name: kind },

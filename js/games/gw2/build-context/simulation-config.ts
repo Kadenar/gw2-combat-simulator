@@ -124,14 +124,14 @@ export function createGw2SimulationConfig({
     utility: disabled?.type === 'Utility' ? '' : build.utility,
     timeOfDay: assumptions.timeOfDay === 'night' ? 'night' : 'day',
     boons: {
-      might: disabled?.type === 'Boon' && disabled.name === BOON.MIGHT ? 0 : Number(assumptions.might || 0),
-      fury: disabled?.type === 'Boon' && disabled.name === BOON.FURY ? false : Boolean(assumptions.fury),
+      might: disabled?.type === 'Boon' && disabled.boonId === BOON.MIGHT ? 0 : Number(assumptions.might || 0),
+      fury: disabled?.type === 'Boon' && disabled.boonId === BOON.FURY ? false : Boolean(assumptions.fury),
       // Console timing boons are permanent, even when a build bypasses application loading.
       quickness: true,
       alacrity: true,
       protection: Boolean(assumptions.protection),
       resolution:
-        disabled?.type === 'Boon' && disabled.name === BOON.RESOLUTION ? false : Boolean(assumptions.resolution),
+        disabled?.type === 'Boon' && disabled.boonId === BOON.RESOLUTION ? false : Boolean(assumptions.resolution),
       regeneration: Boolean(assumptions.regeneration),
       swiftness: Boolean(assumptions.swiftness),
       vigor: Boolean(assumptions.vigor),

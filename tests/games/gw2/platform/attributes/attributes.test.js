@@ -140,7 +140,7 @@ test('modifier requests preserve workspace target settings for baseline and remo
         }
       }
     ).modifiers(100);
-    assert.deepEqual(disabledEffects, [null, null, 'Boon:Might', ...(relic ? [`Relic:${relic}`] : [])]);
+    assert.deepEqual(disabledEffects, [null, null, 'Boon:might', ...(relic ? [`Relic:${relic}`] : [])]);
     assert.equal(request.contentId, 'mesmer');
     assert.equal(request.baselineDps, 100);
     for (const config of request.comparisons.map(({ config }) => config)) {
@@ -787,4 +787,17 @@ test('saved builds fall back when their relic is no longer available', () => {
   assert.equal(replaceBuild({ relic: 'Krait' }).relic, 'Thief');
   assert.equal(replaceBuild({ relic: 'Brawler' }).relic, 'Brawler');
   assert.equal(replaceBuild({ relic: 'Claw' }).relic, 'Claw');
+});
+
+// Worker scoring and merging retain boon identity even when row IDs and labels cannot identify the boon.
+test('modifier comparisons preserve explicit boon identity through scoring and merging', () => {
+  const request = {
+    rotation: [],
+    baselineDps: 100,
+    comparisons: [{ modifier: { id: 'opaque-row', type: 'Boon', boonId: 'might', label: 'Custom label' }, config: {} }]
+  };
+  const batch = calculateContributionBatch(request, () => ({ dps: 80 }));
+  assert.deepEqual(mergeModifierContributions(100, [structuredClone(batch)]), [
+    { id: 'opaque-row', name: 'Custom label', boonId: 'might', dpsIncrease: 20, pctIncrease: 25 }
+  ]);
 });

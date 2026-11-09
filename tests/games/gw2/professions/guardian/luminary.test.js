@@ -189,15 +189,15 @@ test('Luminary skill boons reach the effects chart with boon-duration scaling', 
   for (const [rotation, expected] of [
     [
       ['Enter Radiant Forge', 'Dazzling Hammer'],
-      ['Might', 'Fury']
+      ['might', 'fury']
     ],
-    [['Enter Radiant Forge', 'Luminous Staff'], ['Protection']],
-    [['Radiant Courage'], ['Aegis', 'Resistance']],
-    [['Enter Radiant Forge', 'Radiant Bulwark'], ['Aegis']],
-    [['Radiant Resolve', 'Enter Radiant Forge', 'Luminous Staff'], ['Regeneration']],
-    [['Enter Radiant Forge', 'Luminous Staff', 'Glaring Burst'], ['Regeneration']],
-    [['Enter Radiant Forge', 'Radiant Bulwark', 'Glaring Burst'], ['Resolution']],
-    [['Valorous Stance'], ['Stability', 'Protection']]
+    [['Enter Radiant Forge', 'Luminous Staff'], ['protection']],
+    [['Radiant Courage'], ['aegis', 'resistance']],
+    [['Enter Radiant Forge', 'Radiant Bulwark'], ['aegis']],
+    [['Radiant Resolve', 'Enter Radiant Forge', 'Luminous Staff'], ['regeneration']],
+    [['Enter Radiant Forge', 'Luminous Staff', 'Glaring Burst'], ['regeneration']],
+    [['Enter Radiant Forge', 'Radiant Bulwark', 'Glaring Burst'], ['resolution']],
+    [['Valorous Stance'], ['stability', 'protection']]
   ]) {
     const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
@@ -278,10 +278,10 @@ test('Righteous Instincts Might continues across Resolution pulses without dupli
     righteousMight.map((event) => event.at),
     [0.2, 1.2, 2.2]
   );
-  assert.equal(series.effectTypes.Might, 'boon');
-  assert.equal(series.effects.Might[0].v, 1);
-  assert.equal(series.effects.Might[1].v, 1);
-  assert.equal(series.effects.Resolution[0].v, 1);
+  assert.equal(series.effectTypes.might, 'boon');
+  assert.equal(series.effects.might[0].v, 1);
+  assert.equal(series.effects.might[1].v, 1);
+  assert.equal(series.effects.resolution[0].v, 1);
 });
 
 test('Resplendent Weaponry grants scaled party boons only on traited, completed weapon equips', () => {
@@ -323,11 +323,11 @@ test('Resplendent Weaponry grants scaled party boons only on traited, completed 
         weapon
       );
       const series = buildChartSeries(result);
-      assert.equal(series.effectTypes.Alacrity, traited ? 'boon' : undefined, weapon);
+      assert.equal(series.effectTypes.alacrity, traited ? 'boon' : undefined, weapon);
 
       if (traited)
         assert.ok(
-          series.effects.Alacrity.some((point) => point.v > 0),
+          series.effects.alacrity.some((point) => point.v > 0),
           weapon
         );
     }

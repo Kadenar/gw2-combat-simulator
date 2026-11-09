@@ -25,7 +25,7 @@ test('boon grants round durations to milliseconds and expirations up to action t
           name: 'Grant',
           castTimeMs: 0,
           effects: [
-            { type: 'boon', boon: 'Might', duration: 0.3335, stacks: 1 },
+            { type: 'boon', boon: 'might', duration: 0.3335, stacks: 1 },
             { type: 'buff', kind: 'custom', duration: 1.01, stacks: 1 }
           ]
         }
@@ -143,7 +143,7 @@ test('the shared boon multiplier combines concentration, global, named, and sigi
   const stats = {
     concentration: 300,
     boonDurationBonus: 10,
-    boonDurationBonuses: { Might: 15 }
+    boonDurationBonuses: { might: 15 }
   };
 
   assert.equal(gw2BoonDurationMultiplier('might', stats, { boonDurationBonus: 5 }), 1.5);
@@ -156,12 +156,12 @@ test('static attribute snapshots preserve global and named boon-duration bonuses
     attributeInputs: baseAttributeInputs({
       concentration: 300,
       boonDurationBonus: 10,
-      boonDurationBonuses: { Might: 15 }
+      boonDurationBonuses: { might: 15 }
     })
   });
 
   assert.equal(stats.boonDurationBonus, 10);
-  assert.deepEqual(stats.boonDurationBonuses, { Might: 15 });
+  assert.deepEqual(stats.boonDurationBonuses, { might: 15 });
   assert.ok(Math.abs(gw2BoonDurationMultiplier('might', stats) - 1.45) < 1e-12);
 });
 
@@ -178,7 +178,7 @@ test('resolver-owned boons sample timestamp stats and the currently active sigil
         return {
           concentration: 300,
           boonDurationBonus: 10,
-          boonDurationBonuses: { Might: 15 }
+          boonDurationBonuses: { might: 15 }
         };
       }
     }
@@ -363,7 +363,7 @@ test('repeated Alacrity grants do not change permanent recharge', () => {
         id: 930025,
         name: 'Grant Alacrity',
         castTimeMs: 0,
-        effects: [{ type: 'boon', boon: 'Alacrity', duration: 2, stacks: 1 }]
+        effects: [{ type: 'boon', boon: 'alacrity', duration: 2, stacks: 1 }]
       },
       {
         id: 930027,

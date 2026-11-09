@@ -1,7 +1,7 @@
 /** Player disables grant party Might and Fury through normal boon duration and recipient resolution. */
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { BOON, BOON_NAMES, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
@@ -32,7 +32,7 @@ function grantBoons(ctx: Gw2RelicContext, state: Gw2RelicState, event: Simulatio
       { boon: BOON.FURY, duration: 5, stacks: 1 }
     ].map((effect) => ({
       ...effect,
-      name: `${name} - ${effect.boon}`,
+      name: `${name} - ${BOON_NAMES[effect.boon]}`,
       type: 'boon' as const,
       audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
     })),

@@ -7,7 +7,7 @@ import { skillForEvent, targetConditionCount, targetHealthBelow } from '#gw2/pla
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
-import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, BOON_NAMES, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -446,7 +446,7 @@ function applyLotusPoison(context: ThiefResolverContext, { cause: event }: Thief
   const might = requireEffect(lotusPoisonProfile, 'boon', BOON.MIGHT);
 
   if (might) {
-    const boon = String(might.boon);
+    const boon = might.boon;
     emitTraitProfile(context, TRAIT.LOTUS_POISON, TRAIT.LOTUS_POISON, undefined, {
       at: event.at,
       fullEnd: event.at,
@@ -458,7 +458,7 @@ function applyLotusPoison(context: ThiefResolverContext, { cause: event }: Thief
         actorType: ACTOR.EFFECT,
         skillId: TRAIT.LOTUS_POISON,
         skillName: 'Lotus Poison',
-        name: `Lotus Poison - ${boon}`,
+        name: `Lotus Poison - ${BOON_NAMES[boon]}`,
         audience: { recipients: RECIPIENT.SELF },
         triggeredBy: event.skillName
       }

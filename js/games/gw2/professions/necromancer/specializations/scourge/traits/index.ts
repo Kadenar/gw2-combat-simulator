@@ -1,6 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { barrierBoonAudience } from '#gw2/platform/combat/barrier.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -112,7 +111,7 @@ const abrasiveGrit = defineTrait({
   balance: {
     effects: [
       {
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         type: 'boon',
         boon: BOON.MIGHT,
         stacks: 2,
@@ -126,7 +125,7 @@ const abrasiveGrit = defineTrait({
     {
       on: 'buff.applied',
       order: 0,
-      run: (runtime, event) => grantBarrierBoon(runtime, event, TRAIT.ABRASIVE_GRIT, boonKey(BOON.MIGHT))
+      run: (runtime, event) => grantBarrierBoon(runtime, event, TRAIT.ABRASIVE_GRIT, BOON.MIGHT)
     }
   ]
 });
@@ -146,7 +145,7 @@ const desertEmpowerment = defineTrait({
         audience: { recipients: RECIPIENT.PARTY }
       },
       {
-        name: boonKey(BOON.ALACRITY),
+        name: BOON.ALACRITY,
         type: 'boon',
         boon: BOON.ALACRITY,
         stacks: 1,
@@ -177,7 +176,7 @@ const desertEmpowerment = defineTrait({
     {
       on: 'buff.applied',
       order: 1,
-      run: (runtime, event) => grantBarrierBoon(runtime, event, TRAIT.DESERT_EMPOWERMENT, boonKey(BOON.ALACRITY))
+      run: (runtime, event) => grantBarrierBoon(runtime, event, TRAIT.DESERT_EMPOWERMENT, BOON.ALACRITY)
     }
   ]
 });

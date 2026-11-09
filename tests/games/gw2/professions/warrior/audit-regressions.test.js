@@ -354,8 +354,8 @@ test('Keen Strike critical Might is patchable and removable', () => {
         [ID.KEEN_STRIKE]: {
           sideEffects: {
             'critical-might': removed
-              ? { removeEffects: [{ type: 'boon', name: 'Might' }] }
-              : { effects: [{ type: 'boon', name: 'Might', duration: 9 }] }
+              ? { removeEffects: [{ type: 'boon', name: 'might' }] }
+              : { effects: [{ type: 'boon', name: 'might', duration: 9 }] }
           }
         }
       }

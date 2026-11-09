@@ -117,7 +117,7 @@ test('cast-stage profile emissions retain explicit cast attribution without a sy
   // Profile delivery keeps the granting activation, unlike skill invocations with an independent proc identity.
   for (const stage of ['castStart', 'castCommit']) {
     const requests = [];
-    const profile = { id: 101, name: 'Trait profile', effects: [{ type: 'boon', boon: 'Might', duration: 1 }] };
+    const profile = { id: 101, name: 'Trait profile', effects: [{ type: 'boon', boon: 'might', duration: 1 }] };
     const cast = { id: 'accepted:cast', skill: strike, command: {} };
     const runtime = {
       config: { selectedTraitIds: [101] },

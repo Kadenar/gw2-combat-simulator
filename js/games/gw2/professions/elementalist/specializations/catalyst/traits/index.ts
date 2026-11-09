@@ -1,10 +1,9 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { activeRefreshedStacks, grantRefreshedStacks } from '#gw2/platform/combat/resources/refreshed-stacks.js';
+import type { AuraName, BoonId } from '#gw2/platform/constants.js';
 import { ACTOR, AURA, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
-import type { AuraName } from '#gw2/platform/constants.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -117,7 +116,7 @@ const elementalSynergy = defineTrait({
   balance: {
     internalCooldown: 10,
     resourceGain: 50,
-    effects: [boon('Fire', boonKey(BOON.MIGHT), 6, 10), boon('Earth', boonKey(BOON.STABILITY), 2, 6)]
+    effects: [boon('Fire', BOON.MIGHT, 6, 10), boon('Earth', BOON.STABILITY, 2, 6)]
   },
   // Per-element combo rewards are admitted only while trait producers are enabled.
   triggers: [{ on: 'combo.resolved', run: applySynergyCombo }]
@@ -189,7 +188,7 @@ export const viciousEmpowerment = defineTrait({
         stacks: 2,
         duration: 15
       },
-      boon(BOON.MIGHT, boonKey(BOON.MIGHT), 2, 10)
+      boon(BOON.MIGHT, BOON.MIGHT, 2, 10)
     ]
   },
   // Both qualifying inputs use the same selected producer and cooldown claim.
@@ -208,7 +207,7 @@ const energizedElements = defineTrait({
   id: TRAIT.ENERGIZED_ELEMENTS,
   balance: {
     resourceGain: 2,
-    effects: [boon(BOON.FURY, boonKey(BOON.FURY), 1, 2)]
+    effects: [boon(BOON.FURY, BOON.FURY, 1, 2)]
   },
   triggers: [
     onTriggerPoint(catalystTransitionObserved, {
@@ -223,11 +222,11 @@ const spectacularSphere = defineTrait({
   id: TRAIT.SPECTACULAR_SPHERE,
   balance: {
     effects: [
-      boon(BOON.QUICKNESS, boonKey(BOON.QUICKNESS), 1, 2),
-      boon('Fire', boonKey(BOON.MIGHT), 5, 10),
-      boon('Water', boonKey(BOON.VIGOR), 1, 5),
-      boon('Air', boonKey(BOON.FURY), 1, 5),
-      boon('Earth', boonKey(BOON.AEGIS), 1, 3)
+      boon(BOON.QUICKNESS, BOON.QUICKNESS, 1, 2),
+      boon('Fire', BOON.MIGHT, 5, 10),
+      boon('Water', BOON.VIGOR, 1, 5),
+      boon('Air', BOON.FURY, 1, 5),
+      boon('Earth', BOON.AEGIS, 1, 3)
     ]
   },
   triggers: [
@@ -601,7 +600,7 @@ function empoweringAurasParameters(source: BalanceProfileSource) {
 }
 
 /** Builds a named boon packet for the trait's selected balance profile. */
-function boon(name: string, boonName: string, stacks: number, duration: number): SkillEffect {
+function boon(name: string, boonName: BoonId, stacks: number, duration: number): SkillEffect {
   return { type: 'boon', name, boon: boonName, stacks, duration };
 }
 

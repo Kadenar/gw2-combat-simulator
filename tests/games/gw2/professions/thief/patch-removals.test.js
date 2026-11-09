@@ -155,7 +155,7 @@ test('core steal removals preserve sibling conditions, boons, and initiative', (
   const result = run(
     {
       [TRAIT.HIDDEN_THIEF]: remove('condition', 'Blindness'),
-      [TRAIT.BOUNTIFUL_THEFT]: remove('boon', 'Vigor'),
+      [TRAIT.BOUNTIFUL_THEFT]: remove('boon', 'vigor'),
       [TRAIT.MUG]: remove('strike', 'Mug'),
       [TRAIT.SLEIGHT_OF_HAND]: remove('control', 'daze')
     },
@@ -197,7 +197,7 @@ test('removed Weakening Strikes does not arm its grant or expiry', () => {
 });
 
 test('removed critical Fury leaves its cooldown unclaimed', () => {
-  const result = run({ [TRAIT.UNRELENTING_STRIKES]: remove('boon', 'Fury') }, 'Core', ['Double Strike'], {
+  const result = run({ [TRAIT.UNRELENTING_STRIKES]: remove('boon', 'fury') }, 'Core', ['Double Strike'], {
     selectedTraitIds: [TRAIT.UNRELENTING_STRIKES]
   });
   assert.equal(packet(result, 'buff', TRAIT.UNRELENTING_STRIKES).length, 0);

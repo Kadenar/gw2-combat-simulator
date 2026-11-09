@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
 import { requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
@@ -20,7 +19,7 @@ export function createPassiveCourageTask(policy: PassiveCouragePolicy): (runtime
   return (runtime) => {
     const skill = requireSkill(runtime.helpers, policy.skillId);
     const interval = policy.interval(runtime, skill);
-    const effect = requireEffect(skill, 'boon', boonKey(BOON.AEGIS));
+    const effect = requireEffect(skill, 'boon', BOON.AEGIS);
 
     if (!(interval > 0) || !effect) return;
 

@@ -5,7 +5,7 @@
  * definitions. Weapon skills remain Core-owned because Weaponmaster Training
  * makes elite weapon families profession-wide.
  */
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { ACTOR, BOON, COMBO_FIELD, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -371,7 +371,7 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
               audience: { recipients: RECIPIENT.PARTY }
             },
             {
-              name: boonKey(BOON.PROTECTION),
+              name: BOON.PROTECTION,
               type: 'boon',
               boon: BOON.PROTECTION,
               stacks: 1,

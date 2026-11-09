@@ -21,6 +21,7 @@ test('equipment dropdown labels expose their effects without hover text', () => 
   assert.equal(prefixOptionLabel("Berserker's", 'Helm'), "Berserker's - +63 Power, +45 Precision, +45 Ferocity");
   assert.equal(runeOptionLabel('Scholar'), 'Scholar - +175 Power, +225 Ferocity');
   assert.equal(sigilOptionLabel('Force'), 'Force - +5% strike damage');
+  assert.equal(sigilOptionLabel('Strength'), 'Strength - Might for 10s on critical hit (1s CD)');
   assert.equal(sigilOptionLabel('Air'), 'Air - 1.1 coefficient strike on critical hit (3s CD)');
   assert.equal(
     foodOptionLabel('Bowl of Sweet and Spicy Butternut Squash Soup'),

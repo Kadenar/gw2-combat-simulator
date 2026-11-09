@@ -182,7 +182,7 @@ test('buff recording requires an audience and retains normalized application his
   const boons = new Map();
   const event = {
     type: 'buff',
-    kind: 'Might',
+    kind: 'might',
     at: 1,
     duration: 2,
     stacks: 3,

@@ -1,16 +1,11 @@
 import type { Gw2Stats } from '#gw2/platform/attributes/stats.js';
 import { gw2EffectExpiresAt, roundEffectDuration } from '#gw2/platform/combat/effect-timing.js';
-import { BOON, RECIPIENT, type BoonName } from '#gw2/platform/constants.js';
+import { BOON, BOON_NAMES, RECIPIENT, type BoonId } from '#gw2/platform/constants.js';
 import type { Gw2SigilSet } from '#gw2/platform/equipment/sigils/types.js';
 import type { ResolvedEffectAudience, SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
-
-/** Runtime boon storage uses lowercase keys while effect declarations and labels use canonical names. */
-export function boonKey<T extends BoonName>(name: T): Lowercase<T> {
-  return name.toLowerCase() as Lowercase<T>;
-}
 
 interface BuffAudienceMetadata {
   readonly resolvedAudience?: ResolvedEffectAudience;
@@ -35,27 +30,36 @@ const GW2_BOON_DURATION_CAP_SECONDS = 30;
 const GW2_SWIFTNESS_DURATION_CAP_SECONDS = 60;
 // Standard metadata is shared by combat queries and effect reporting.
 const STANDARD_BOON_DEFINITIONS: Readonly<Record<string, StandardBoonPresentation>> = Object.freeze({
-  [boonKey(BOON.AEGIS)]: Object.freeze({ name: BOON.AEGIS, maximumStacks: 1 }),
-  [boonKey(BOON.ALACRITY)]: Object.freeze({ name: BOON.ALACRITY, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  [boonKey(BOON.FURY)]: Object.freeze({ name: BOON.FURY, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  [boonKey(BOON.MIGHT)]: Object.freeze({ name: BOON.MIGHT, maximumStacks: 25 }),
-  [boonKey(BOON.PROTECTION)]: Object.freeze({ name: BOON.PROTECTION, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  [boonKey(BOON.QUICKNESS)]: Object.freeze({ name: BOON.QUICKNESS, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  [boonKey(BOON.REGENERATION)]: Object.freeze({
-    name: BOON.REGENERATION,
+  [BOON.AEGIS]: Object.freeze({ name: BOON_NAMES[BOON.AEGIS], maximumStacks: 1 }),
+  [BOON.ALACRITY]: Object.freeze({ name: BOON_NAMES[BOON.ALACRITY], maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
+  [BOON.FURY]: Object.freeze({ name: BOON_NAMES[BOON.FURY], maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
+  [BOON.MIGHT]: Object.freeze({ name: BOON_NAMES[BOON.MIGHT], maximumStacks: 25 }),
+  [BOON.PROTECTION]: Object.freeze({
+    name: BOON_NAMES[BOON.PROTECTION],
     maximumDuration: GW2_BOON_DURATION_CAP_SECONDS
   }),
-  [boonKey(BOON.RESISTANCE)]: Object.freeze({ name: BOON.RESISTANCE, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  [boonKey(BOON.RESOLUTION)]: Object.freeze({ name: BOON.RESOLUTION, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
-  [boonKey(BOON.STABILITY)]: Object.freeze({ name: BOON.STABILITY }),
-  [boonKey(BOON.SWIFTNESS)]: Object.freeze({
-    name: BOON.SWIFTNESS,
+  [BOON.QUICKNESS]: Object.freeze({ name: BOON_NAMES[BOON.QUICKNESS], maximumDuration: GW2_BOON_DURATION_CAP_SECONDS }),
+  [BOON.REGENERATION]: Object.freeze({
+    name: BOON_NAMES[BOON.REGENERATION],
+    maximumDuration: GW2_BOON_DURATION_CAP_SECONDS
+  }),
+  [BOON.RESISTANCE]: Object.freeze({
+    name: BOON_NAMES[BOON.RESISTANCE],
+    maximumDuration: GW2_BOON_DURATION_CAP_SECONDS
+  }),
+  [BOON.RESOLUTION]: Object.freeze({
+    name: BOON_NAMES[BOON.RESOLUTION],
+    maximumDuration: GW2_BOON_DURATION_CAP_SECONDS
+  }),
+  [BOON.STABILITY]: Object.freeze({ name: BOON_NAMES[BOON.STABILITY] }),
+  [BOON.SWIFTNESS]: Object.freeze({
+    name: BOON_NAMES[BOON.SWIFTNESS],
     maximumDuration: GW2_SWIFTNESS_DURATION_CAP_SECONDS
   }),
-  [boonKey(BOON.VIGOR)]: Object.freeze({ name: BOON.VIGOR, maximumDuration: GW2_BOON_DURATION_CAP_SECONDS })
+  [BOON.VIGOR]: Object.freeze({ name: BOON_NAMES[BOON.VIGOR], maximumDuration: GW2_BOON_DURATION_CAP_SECONDS })
 });
 
-export const GW2_STANDARD_BOONS = Object.freeze(Object.values(BOON).map((name) => name.toLowerCase()));
+export const GW2_STANDARD_BOONS = Object.freeze(Object.values(BOON));
 const STANDARD_BOON_SET = new Set(GW2_STANDARD_BOONS);
 const DURATION_STACKING_BOON_CAPS = new Map(
   Object.entries(STANDARD_BOON_DEFINITIONS).flatMap(([kind, definition]) =>
@@ -275,27 +279,25 @@ export function recordBuffApplication(
 }
 
 /** Restricts boon-only rules to GW2's standard boon set. */
-export function isStandardBoon(kind: unknown): boolean {
-  return STANDARD_BOON_SET.has(String(kind || '').toLowerCase());
+export function isStandardBoon(kind: unknown): kind is BoonId {
+  return typeof kind === 'string' && STANDARD_BOON_SET.has(kind as BoonId);
 }
 
 /** Returns whether repeated applications add duration instead of intensity. */
 export function isDurationStackingBoon(kind: unknown): boolean {
-  return DURATION_STACKING_BOON_CAPS.has(String(kind || '').toLowerCase());
+  return isStandardBoon(kind) && DURATION_STACKING_BOON_CAPS.has(kind);
 }
 
 /** Returns the in-game duration cap for a duration-stacking boon. */
 export function durationStackingBoonCapSeconds(kind: unknown): number {
-  return DURATION_STACKING_BOON_CAPS.get(String(kind || '').toLowerCase()) ?? GW2_BOON_DURATION_CAP_SECONDS;
+  return (isStandardBoon(kind) ? DURATION_STACKING_BOON_CAPS.get(kind) : undefined) ?? GW2_BOON_DURATION_CAP_SECONDS;
 }
 
 /** Supplies shared labels and caps for standard boons so result views do not redeclare GW2 rules. */
 export function standardBoonPresentation(kind: unknown): StandardBoonPresentation | null {
-  const normalized = String(kind || '').toLowerCase();
+  if (!isStandardBoon(kind)) return null;
 
-  if (!STANDARD_BOON_SET.has(normalized)) return null;
-
-  return { ...STANDARD_BOON_DEFINITIONS[normalized] };
+  return { ...STANDARD_BOON_DEFINITIONS[kind] };
 }
 
 const normalizeDurationPool = (value: number): number => (value === Infinity ? Infinity : canonicalTime(value));
@@ -587,12 +589,11 @@ export interface Gw2TimedBuffApplication {
 export const MIGHT_ATTRIBUTE_BONUS_PER_STACK = 30;
 
 /** Cap ordinary bonuses before adding effects that explicitly exceed the boon-duration cap. */
-export function gw2BoonDurationMultiplier(boon: string, stats: Gw2Stats, sigils: Gw2SigilSet = {}): number {
-  const canonicalBoon = boon.charAt(0).toUpperCase() + boon.slice(1).toLowerCase();
+export function gw2BoonDurationMultiplier(boon: BoonId, stats: Gw2Stats, sigils: Gw2SigilSet = {}): number {
   const bonus =
     (stats.concentration || 0) / 1500 +
     (stats.boonDurationBonus || 0) / 100 +
-    (stats.boonDurationBonuses?.[boon] || stats.boonDurationBonuses?.[canonicalBoon] || 0) / 100 +
+    (stats.boonDurationBonuses?.[boon] || 0) / 100 +
     (sigils.boonDurationBonus || 0) / 100;
   return clamp(1 + bonus, 1, 2) + Math.max(0, stats.uncappedBoonDurationBonus || 0) / 100;
 }

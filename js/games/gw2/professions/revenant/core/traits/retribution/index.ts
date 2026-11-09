@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -92,7 +91,7 @@ export const viciousReprisalTrait = defineTrait({
     cooldown: 1,
     effects: [
       {
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         type: 'boon',
         boon: BOON.MIGHT,
         duration: 10,
@@ -111,7 +110,7 @@ export const viciousReprisalTrait = defineTrait({
         target === MODIFIER_TARGET.CONDITION_DAMAGE
           ? balanceNumber(context.catalog, TRAIT.VICIOUS_REPRISAL, 'conditionDamageIncrease')
           : balanceNumber(context.catalog, TRAIT.VICIOUS_REPRISAL, 'damageIncrease'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, boonKey(BOON.RESOLUTION))
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && boonActive(context, BOON.RESOLUTION)
     }
   ],
   triggers: [onTriggerPoint(battleScarConsumed, { run: viciousReprisal })]
@@ -120,10 +119,10 @@ export const viciousReprisalTrait = defineTrait({
 /** Vicious Reprisal grants Might from landed strikes while Resolution is active, once per its cooldown. */
 function viciousReprisal(runtime: RevenantRuntime, { cause: event }: RevenantStrike): void {
   // Permanent configured Resolution and executed self applications count; pending packets never do.
-  if (runtime.combat.activeBoonStacks(boonKey(BOON.RESOLUTION), runtime.time, 1) === 0) return;
+  if (runtime.combat.activeBoonStacks(BOON.RESOLUTION, runtime.time, 1) === 0) return;
 
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.VICIOUS_REPRISAL);
-  const boon = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
+  const boon = requireEffect(profile, 'boon', BOON.MIGHT);
 
   // The cooldown gates only might, so a removed boon leaves it ready.
   if (!boon) return;

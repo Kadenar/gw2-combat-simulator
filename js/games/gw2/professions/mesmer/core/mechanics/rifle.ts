@@ -57,7 +57,7 @@ export function expireInspiringImagery(context: MesmerRuntime, cast: RuntimeCast
     },
     // Expiry owns delivery time; the skill's cast-relative delay has already elapsed.
     effects: (cast.skill.effects ?? [])
-      .filter((effect): effect is StatusEffect => effect.type === 'boon')
+      .filter((effect): effect is Extract<StatusEffect, { type: 'boon' }> => effect.type === 'boon')
       .map<StatusEffect>((effect) => ({
         type: 'boon',
         boon: effect.boon,

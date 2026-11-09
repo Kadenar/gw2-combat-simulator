@@ -528,7 +528,7 @@ test('Thief critical proc batches reread patched effects and leave duration samp
       // Replace the canonical owner between batches without changing the shared declaration in place.
       context.helpers = withProfile(thiefCatalog, id, {
         internalCooldown: 0,
-        effects: [{ type: 'boon', name: 'Fury', boon: 'Fury', duration, stacks: 1 }]
+        effects: [{ type: 'boon', name: 'fury', boon: 'fury', duration, stacks: 1 }]
       });
       context.boons.set('fury', [{ at: 0, expiresAt: 5, resolvedAudience: { includesSelf: true } }]);
       let statReads = 0;
@@ -786,7 +786,7 @@ test("Assassin's Fury preserves recipient gating, removed effects, and patched I
           balanceProfiles: {
             [TRAIT.ASSASSINS_FURY]: {
               fields: { internalCooldown: duration },
-              ...(removed ? { removeEffects: [{ type: 'boon', name: 'Might' }] } : {})
+              ...(removed ? { removeEffects: [{ type: 'boon', name: 'might' }] } : {})
             }
           }
         });

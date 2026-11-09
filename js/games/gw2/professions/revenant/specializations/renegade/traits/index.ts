@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
@@ -122,7 +121,7 @@ const bloodFury = defineTrait({
       operation: 'add',
       amount: (context) => balanceNumber(context.catalog, TRAIT.BLOOD_FURY, 'conditionDurationBonus'),
       // Blood Fury shares the chronological player-Fury query used by Core Revenant modifiers.
-      when: (context) => context.condition === CONDITION.BLEEDING && boonActive(context, boonKey(BOON.FURY))
+      when: (context) => context.condition === CONDITION.BLEEDING && boonActive(context, BOON.FURY)
     }
   ],
   triggers: [
@@ -159,7 +158,7 @@ const brutalMomentum = defineTrait({
     criticalChance: 0.1,
     fullEnduranceCriticalChance: 0.33,
     internalCooldown: 8,
-    effects: [{ name: boonKey(BOON.VIGOR), type: 'boon', boon: BOON.VIGOR, duration: 6, stacks: 1 }]
+    effects: [{ name: BOON.VIGOR, type: 'boon', boon: BOON.VIGOR, duration: 6, stacks: 1 }]
   },
   attributes: traitAttributeBonuses(TRAIT.BRUTAL_MOMENTUM, (profile) => ({
     traitCriticalChance: 100 * balanceProfileNumber(profile, 'criticalChance')
@@ -185,12 +184,10 @@ const brutalMomentum = defineTrait({
       on: 'buff.applied',
       cooldown: 'profile',
       when: (runtime, event) =>
-        (event.kind || '').toLowerCase() === boonKey(BOON.FURY) &&
+        (event.kind || '').toLowerCase() === BOON.FURY &&
         gw2BoonApplicationRecipients(runtime.config, event).includesSelf &&
-        Boolean(
-          requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.BRUTAL_MOMENTUM), 'boon', boonKey(BOON.VIGOR))
-        ),
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.VIGOR),
+        Boolean(requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.BRUTAL_MOMENTUM), 'boon', BOON.VIGOR)),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.VIGOR,
       attribution: {
         source: 'revenant',
         actorType: ACTOR.PLAYER,
@@ -209,7 +206,7 @@ const endlessEnmity = defineTrait({
     internalCooldown: 8,
     effects: [
       {
-        name: boonKey(BOON.FURY),
+        name: BOON.FURY,
         type: 'boon',
         boon: BOON.FURY,
         duration: 4,
@@ -228,10 +225,8 @@ const endlessEnmity = defineTrait({
         event.actorType === ACTOR.PLAYER &&
         Number(event.coefficient) > 0 &&
         Boolean(details.hitContext.critEligible && details.hitContext.critical.didCrit) &&
-        Boolean(
-          requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.ENDLESS_ENMITY), 'boon', boonKey(BOON.FURY))
-        ),
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.FURY),
+        Boolean(requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.ENDLESS_ENMITY), 'boon', BOON.FURY)),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.FURY,
       attribution: {
         source: 'revenant',
         actorType: ACTOR.PLAYER,
@@ -415,7 +410,7 @@ function ashenDemeanor(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill
 
 /** Received Fury advances Blood Fury's Fervor on its own cooldown. */
 function furyTraits(runtime: RevenantRuntime, event: Gw2ResolverEvent): void {
-  if ((event.kind || '').toLowerCase() !== boonKey(BOON.FURY)) return;
+  if ((event.kind || '').toLowerCase() !== BOON.FURY) return;
 
   // The Fury trigger claims its interval even if Fervor is already capped.
   if (

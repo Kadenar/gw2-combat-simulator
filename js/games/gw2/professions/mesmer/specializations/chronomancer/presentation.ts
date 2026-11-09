@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
@@ -100,7 +99,7 @@ export const chronomancerUi: MesmerUiSlice = Object.freeze({
     preview.damageBuff('Time Bomb', 'timeBomb', 'time-bomb');
     preview.condition(CONDITION.SLOW, 'Time Catches Up');
 
-    preview.boon(boonKey(BOON.ALACRITY), 'Flow of Time');
+    preview.boon(BOON.ALACRITY, 'Flow of Time');
     preview.buff('Danger Time', 'dangerTime', 'danger-time', 'Critical Damage');
     return preview.controls;
   },

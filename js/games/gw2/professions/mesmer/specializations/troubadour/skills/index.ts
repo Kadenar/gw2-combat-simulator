@@ -2,7 +2,7 @@
  * Owns Troubadour instrument, Tale, and simulator-action catalog data.
  * Instrument and Tale runtime behavior lives under `mechanics/`.
  */
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -148,7 +148,7 @@ const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
         do: {
           id: 'tale',
           type: 'mesmer.troubadour.resolve-tale',
-          effects: [{ name: boonKey(BOON.AEGIS), type: 'boon', boon: BOON.AEGIS, duration: 4, stacks: 1 }]
+          effects: [{ name: BOON.AEGIS, type: 'boon', boon: BOON.AEGIS, duration: 4, stacks: 1 }]
         }
       },
       { on: 'castCommit', do: { type: 'resourceGrant', resource: 'endurance', amount: { skillField: 'resourceGain' } } }
@@ -224,9 +224,9 @@ const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
           id: 'tale',
           type: 'mesmer.troubadour.resolve-tale',
           effects: [
-            { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 15, stacks: 10 },
-            { name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, duration: 10, stacks: 1 },
-            { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 4, stacks: 1 }
+            { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, duration: 15, stacks: 10 },
+            { name: BOON.FURY, type: 'boon', boon: BOON.FURY, duration: 10, stacks: 1 },
+            { name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, duration: 4, stacks: 1 }
           ]
         }
       }
@@ -457,8 +457,8 @@ const MESMER_TROUBADOUR_SKILL_MECHANICS: Readonly<
           id: 'tale',
           type: 'mesmer.troubadour.resolve-tale',
           effects: [
-            { name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, duration: 4, stacks: 5 },
-            { name: boonKey(BOON.RESISTANCE), type: 'boon', boon: BOON.RESISTANCE, duration: 3, stacks: 1 }
+            { name: BOON.STABILITY, type: 'boon', boon: BOON.STABILITY, duration: 4, stacks: 5 },
+            { name: BOON.RESISTANCE, type: 'boon', boon: BOON.RESISTANCE, duration: 3, stacks: 1 }
           ]
         }
       }

@@ -29,17 +29,17 @@ test('graph tooltips stay inside the chart at desktop and mobile widths', async 
           { t: 10000, v: 30000 }
         ],
         effects: {
-          Might: [
+          might: [
             { t: 0, v: 25 },
             { t: 10000, v: 25 }
           ],
-          Swiftness: [
+          swiftness: [
             { t: 0, v: 12 },
             { t: 10000, v: 12 }
           ]
         },
-        effectTypes: { Swiftness: 'boon' },
-        effectUnits: { Swiftness: 's' }
+        effectTypes: { swiftness: 'boon' },
+        effectUnits: { swiftness: 's' }
       },
       { dpsLabel: 'Average DPS' }
     );

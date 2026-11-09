@@ -1,5 +1,4 @@
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { BOON } from '#gw2/platform/constants.js';
 import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
@@ -179,7 +178,7 @@ export const mesmerCoreUi: MesmerUiSlice = Object.freeze({
       description: `${resource.plural} before setup; resource gains and spending follow the runtime`
     });
 
-    preview.boon(boonKey(BOON.REGENERATION), 'Chaotic Persistence');
+    preview.boon(BOON.REGENERATION, 'Chaotic Persistence');
     preview.buff("Fencer's Finesse", 'fencer', 'fencer', 'Ferocity', true);
     preview.targetHealth(TRAIT.SUPERIORITY_COMPLEX);
     preview.damageTargetHealth(preview.hasId(TRAIT.EGOTISM));

@@ -4,12 +4,14 @@ import { COMBO_FIELD_TYPES, COMBO_FINISHER_TYPES } from '#gw2/platform/combos/ty
 import {
   AURA,
   BOON,
+  BOON_NAMES,
   COMBO_FIELD,
   COMBO_FINISHER,
   CONDITION,
   CONTROL,
   RECIPIENT,
   STATUS,
+  type BoonId,
   type ComboFieldType,
   type ComboFinisherType
 } from '#gw2/platform/constants.js';
@@ -44,7 +46,7 @@ type ComboOutcome =
   | {
       readonly kind: 'boon';
       readonly name: string;
-      readonly boon: string;
+      readonly boon: BoonId;
       readonly stacks: number;
       readonly duration: number;
     }
@@ -89,7 +91,7 @@ interface ComboDefinition {
 
 const aura = (name: string, duration: number): ComboOutcome =>
   Object.freeze({ kind: 'aura', name, aura: name, duration });
-const boon = (name: string, boonName: string, stacks: number, duration: number): ComboOutcome =>
+const boon = (name: string, boonName: BoonId, stacks: number, duration: number): ComboOutcome =>
   Object.freeze({ kind: 'boon', name, boon: boonName, stacks, duration });
 const condition = (name: string, conditionName: string, stacks: number, duration: number): ComboOutcome =>
   Object.freeze({
@@ -280,7 +282,7 @@ const definitions: readonly ComboDefinition[] = [
   {
     fieldType: COMBO_FIELD.WATER,
     finisherType: COMBO_FINISHER.PROJECTILE,
-    outcome: boon(BOON.REGENERATION, BOON.REGENERATION, 1, 2)
+    outcome: boon(BOON_NAMES[BOON.REGENERATION], BOON.REGENERATION, 1, 2)
   },
   {
     fieldType: COMBO_FIELD.WATER,

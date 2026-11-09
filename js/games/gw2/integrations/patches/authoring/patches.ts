@@ -4,7 +4,9 @@ import {
 } from '#gw2/integrations/patches/authoring/fields.js';
 import { cloneCatalogData, deepFreeze } from '#gw2/integrations/patches/authoring/immutable.js';
 import type { NumEdit } from '#gw2/integrations/patches/authoring/patch-types.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
+import type { BoonId } from '#gw2/platform/constants.js';
 import { snapshotActionDeclaration } from '#gw2/platform/effects/action-declarations.js';
 import { validateActionIds } from '#gw2/platform/effects/action-validation.js';
 import { hasActionEffects, skillActions } from '#gw2/platform/effects/actions.js';
@@ -38,7 +40,7 @@ export interface EffectSelector {
   readonly type?: SkillEffect['type'];
   readonly name?: string;
   readonly condition?: string;
-  readonly boon?: string;
+  readonly boon?: BoonId;
   /** Required when a selector targets multiple effects. */
   readonly all?: boolean;
 }
@@ -91,7 +93,7 @@ export interface SkillPatchEdit {
   /** Convenience shorthands for the common patch-note cases. */
   readonly coefficient?: NumEdit;
   readonly conditions?: Readonly<Record<string, { readonly stacks?: NumEdit; readonly duration?: NumEdit }>>;
-  readonly boons?: Readonly<Record<string, { readonly stacks?: NumEdit; readonly duration?: NumEdit }>>;
+  readonly boons?: Readonly<Partial<Record<BoonId, { readonly stacks?: NumEdit; readonly duration?: NumEdit }>>>;
   readonly cooldown?: NumEdit;
 }
 
@@ -633,6 +635,8 @@ function shorthandEffects(edit: SkillPatchEdit): EffectPatch[] {
   }
 
   for (const [boon, fields] of Object.entries(edit.boons || {})) {
+    if (!isStandardBoon(boon)) throw new TypeError(`Unknown boon ID: ${boon}`);
+
     effects.push({ type: 'boon', boon, ...fields, all: true });
   }
 

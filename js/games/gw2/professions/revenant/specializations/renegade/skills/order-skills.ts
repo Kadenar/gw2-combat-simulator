@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
@@ -87,7 +86,7 @@ export const RENEGADE_ORDER_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
         actorType: ACTOR.PLAYER
       },
       {
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         type: 'boon',
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
         boon: BOON.MIGHT,

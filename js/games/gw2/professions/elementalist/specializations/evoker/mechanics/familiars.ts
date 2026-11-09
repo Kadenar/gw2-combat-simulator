@@ -239,7 +239,7 @@ const evokerSkillCommitTasks: NonNullable<RuntimeHooks<ElementalistRuntimeState,
             source: skill.name,
             sourceId: skill.id,
             actorType: ACTOR.PLAYER,
-            kind: String(resistance.boon).toLowerCase(),
+            kind: resistance.boon,
             stacks: Number(resistance.stacks),
             duration: resistance.duration,
             audience: resistance.audience,
@@ -267,7 +267,7 @@ const evokerSkillCommitTasks: NonNullable<RuntimeHooks<ElementalistRuntimeState,
       if (!effect) continue;
 
       const boon = {
-        kind: String(effect.boon).toLowerCase(),
+        kind: effect.boon,
         stacks: Number(effect.stacks),
         duration: effect.duration
       };

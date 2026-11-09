@@ -1,7 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -223,7 +222,7 @@ export const eternalLife = defineTrait({
     pulseInterval: 1,
     effects: [
       {
-        name: boonKey(BOON.PROTECTION),
+        name: BOON.PROTECTION,
         type: 'boon',
         boon: BOON.PROTECTION,
         stacks: 1,
@@ -260,7 +259,7 @@ export const speedOfShadows = defineTrait({
   balance: {
     effects: [
       {
-        name: boonKey(BOON.SWIFTNESS),
+        name: BOON.SWIFTNESS,
         type: 'boon',
         boon: BOON.SWIFTNESS,
         stacks: 1,

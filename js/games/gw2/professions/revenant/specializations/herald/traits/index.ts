@@ -1,6 +1,6 @@
 // Trait IDs own balance lookup and emission so patches and runtime share the same trait definition.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey, GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -100,7 +100,7 @@ const elevatedCompassion = defineTrait({
     threshold: 6,
     effects: [
       {
-        name: boonKey(BOON.QUICKNESS),
+        name: BOON.QUICKNESS,
         type: 'boon',
         boon: BOON.QUICKNESS,
         duration: 1.25,
@@ -185,7 +185,7 @@ const sharedEmpowerment = defineTrait({
     internalCooldown: 1,
     effects: [
       {
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         type: 'boon',
         boon: BOON.MIGHT,
         duration: 8,
@@ -204,10 +204,8 @@ const sharedEmpowerment = defineTrait({
         event.sourceId !== TRAIT.SHARED_EMPOWERMENT &&
         isStandardBoon(String(event.kind)) &&
         Number(event.resolvedAudience?.recipientCount) > 0 &&
-        Boolean(
-          requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.SHARED_EMPOWERMENT), 'boon', boonKey(BOON.MIGHT))
-        ),
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.MIGHT),
+        Boolean(requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.SHARED_EMPOWERMENT), 'boon', BOON.MIGHT)),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.MIGHT,
       attribution: {
         source: 'revenant',
         skillId: TRAIT.SHARED_EMPOWERMENT,
@@ -262,14 +260,14 @@ function elevatedCompassionActive(runtime: RevenantRuntime): boolean {
   return (
     hasTrait(runtime, TRAIT.ELEVATED_COMPASSION) &&
     upkeep >= threshold &&
-    Boolean(requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS)))
+    Boolean(requireEffect(profile, 'boon', BOON.QUICKNESS))
   );
 }
 
 /** Grants one Quickness pulse and reserves the next legal pulse so threshold re-entry cannot bypass the ICD. */
 function grantCompassion(runtime: RevenantRuntime): void {
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.ELEVATED_COMPASSION);
-  const effect = requireEffect(profile, 'boon', boonKey(BOON.QUICKNESS));
+  const effect = requireEffect(profile, 'boon', BOON.QUICKNESS);
 
   // The cooldown gates only quickness, so a removed boon leaves the pulse ready.
   if (!effect) return;
@@ -277,7 +275,7 @@ function grantCompassion(runtime: RevenantRuntime): void {
   emitTraitProfile(runtime, TRAIT.ELEVATED_COMPASSION, TRAIT.ELEVATED_COMPASSION, undefined, {
     at: runtime.time,
     fullEnd: runtime.time,
-    effect: { type: 'boon', name: boonKey(BOON.QUICKNESS) },
+    effect: { type: 'boon', name: BOON.QUICKNESS },
     attribution: {
       source: 'revenant',
       sourceId: TRAIT.ELEVATED_COMPASSION,

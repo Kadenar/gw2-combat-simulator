@@ -1,5 +1,4 @@
 import type { Gw2AttributeContributionCalculator } from '#gw2/platform/attributes/types.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
@@ -26,7 +25,7 @@ export const amalgamAttributes: Gw2AttributeContributionCalculator = (context) =
   const evolved = activeAmalgamState(context, 'evolvedUntil');
   const factor = evolved ? evolveAttributeFactor(context) - 1 : 0;
   const titanic = activeAmalgamState(context, 'titanicUntil')
-    ? activeBoonStacks(context, boonKey(BOON.MIGHT)) *
+    ? activeBoonStacks(context, BOON.MIGHT) *
       skillNumber(
         requireSkill(context.balanceContext.catalog, ID.OFFENSIVE_PROTOCOL_OBLITERATE),
         'titanicAttributePerStack'

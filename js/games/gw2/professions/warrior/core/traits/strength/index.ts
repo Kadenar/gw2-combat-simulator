@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { activeBoonStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -37,8 +36,8 @@ export const restorativeStrength = defineTrait({
   id: TRAIT.RESTORATIVE_STRENGTH,
   balance: {
     effects: [
-      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 6 },
-      { name: boonKey(BOON.RESISTANCE), type: 'boon', boon: BOON.RESISTANCE, stacks: 1, duration: 6 }
+      { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 6 },
+      { name: BOON.RESISTANCE, type: 'boon', boon: BOON.RESISTANCE, stacks: 1, duration: 6 }
     ]
   },
   triggers: [
@@ -95,7 +94,7 @@ export const recklessDodge = defineTrait({
   balance: {
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 1.5, hits: 1 },
-      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 2, duration: 5 }
+      { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 2, duration: 5 }
     ]
   },
   triggers: [
@@ -114,7 +113,7 @@ export const recklessDodge = defineTrait({
       on: 'castCommit',
       when: (_runtime, cast) => cast.skill.id === SHARED_SKILL_IDS.DODGE,
       emit: TRAIT.RECKLESS_DODGE,
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.MIGHT),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.MIGHT,
       attribution: { name: 'Reckless Dodge - Might', priority: 0 }
     }
   ]
@@ -125,7 +124,7 @@ export const braveStride = defineTrait({
   id: TRAIT.BRAVE_STRIDE,
   balance: {
     resourceGain: 5,
-    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5 }]
+    effects: [{ name: BOON.STABILITY, type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 5 }]
   },
   triggers: [
     onTriggerPoint(burstCompleted, {
@@ -194,7 +193,7 @@ export const aggressiveOnslaught = defineTrait({
   id: TRAIT.AGGRESSIVE_ONSLAUGHT,
   balance: {
     internalCooldown: 0.32,
-    effects: [{ name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3 }]
+    effects: [{ name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 3 }]
   },
   triggers: [
     {
@@ -229,7 +228,7 @@ export const pinnacleOfStrength = defineTrait({
   attributes(context) {
     const might =
       context.query?.mightStacksAt(context.time, context.runtime, context.event) ??
-      activeBoonStacks(context, boonKey(BOON.MIGHT));
+      activeBoonStacks(context, BOON.MIGHT);
     return {
       attributeEffects: [
         {
@@ -264,7 +263,7 @@ export const forcefulGreatsword = defineTrait({
     // Critical Might has twice the proc chance while wielding a greatsword.
     procChance: 0.5,
     weaponProcChanceMultiplier: 2,
-    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 5 }]
+    effects: [{ name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 5 }]
   },
   attributes(context) {
     const weapons = context.weaponSet === 2 ? context.loadout.alternateWeapons : context.loadout.weapons;
@@ -398,7 +397,7 @@ function braveStrideCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSki
     grantWarriorResource(runtime, balanceNumber(runtime.helpers, TRAIT.BRAVE_STRIDE, 'resourceGain'));
     {
       const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.BRAVE_STRIDE);
-      const selectedEffect = requireEffect(traitProfile, 'boon', boonKey(BOON.STABILITY));
+      const selectedEffect = requireEffect(traitProfile, 'boon', BOON.STABILITY);
 
       if (selectedEffect)
         emitTraitProfile(runtime, TRAIT.BRAVE_STRIDE, TRAIT.BRAVE_STRIDE, undefined, {

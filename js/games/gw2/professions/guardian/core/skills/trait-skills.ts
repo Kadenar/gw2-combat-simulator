@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, COMBO_FIELD, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
@@ -62,7 +61,7 @@ export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = [
       {
         type: 'boon',
         audience: { recipients: RECIPIENT.PARTY },
-        name: boonKey(BOON.PROTECTION),
+        name: BOON.PROTECTION,
         boon: BOON.PROTECTION,
         duration: 1,
         stacks: 1,
@@ -97,7 +96,7 @@ export const GUARDIAN_CORE_TRAIT_SKILLS: readonly Skill[] = [
       {
         type: 'boon',
         audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        name: boonKey(BOON.RESOLUTION),
+        name: BOON.RESOLUTION,
         boon: BOON.RESOLUTION,
         stacks: 1,
         duration: 2,

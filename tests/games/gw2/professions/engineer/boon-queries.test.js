@@ -17,7 +17,7 @@ test('Engineer No Scope survives overlapping Fury packet expiries', () => {
   assert.equal(
     activeBoonStacks(
       { combat: createMechanicCombatServices({ config: {}, boons }, createTestConditionResolution()) },
-      'Fury',
+      'fury',
       1,
       7
     ),
@@ -41,7 +41,7 @@ test('Engineer No Scope survives overlapping Fury packet expiries', () => {
 });
 
 // Resolver queries use the requested event time and count only player applications.
-test('Engineer boon stacks preserve normalization, permanent stacks, caps, and live visibility', () => {
+test('Engineer boon stacks preserve permanent stacks, caps, and live visibility', () => {
   const applications = [
     { at: 0, expiresAt: 5, stacks: 20, resolvedAudience: { includesSelf: true } },
     { at: 5, expiresAt: 10, stacks: 3, resolvedAudience: { includesSelf: true } },
@@ -53,9 +53,9 @@ test('Engineer boon stacks preserve normalization, permanent stacks, caps, and l
     buffs: new Map([])
   };
   context.combat = createMechanicCombatServices(context, createTestConditionResolution());
-  assert.equal(activeBoonStacks(context, 'Might', 25, 5), 7);
+  assert.equal(activeBoonStacks(context, 'might', 25, 5), 7);
   assert.equal(activeBoonStacks(context, 'might', 6, 5), 6);
-  assert.equal(activeBoonStacks(context, 'Stability', 1, 5), 1);
+  assert.equal(activeBoonStacks(context, 'stability', 1, 5), 1);
 
   // An application becomes visible only after insertion, even when it shares the queried timestamp.
   applications.push({ at: 5, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } });

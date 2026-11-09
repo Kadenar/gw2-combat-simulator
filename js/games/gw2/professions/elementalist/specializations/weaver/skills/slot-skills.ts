@@ -258,7 +258,7 @@ export function applyFerventStance(
             source: 'Fervent Stance',
             sourceId: skill.id,
             actorType: ACTOR.PLAYER,
-            kind: String(might.boon).toLowerCase(),
+            kind: might.boon,
             stacks: Number(might.stacks),
             duration: might.duration,
             skillName: 'Fervent Stance'

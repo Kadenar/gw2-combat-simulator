@@ -1,7 +1,7 @@
 // Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { appendChargeGrant, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import type { BoonId } from '#gw2/platform/constants.js';
 import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import { type SkillEffect, type StatusEffect } from '#gw2/platform/effects/types.js';
@@ -40,7 +40,7 @@ function spiritSlam(effects: readonly SkillEffect[]): SkillEffect[] {
 }
 
 /** Every spirit starts four one-second boon shakes alongside its initial slam. */
-function spiritShakes(boon: string, duration: number, stacks = 1): SkillEffect {
+function spiritShakes(boon: BoonId, duration: number, stacks = 1): SkillEffect {
   return {
     type: 'boon',
     boon,
@@ -187,7 +187,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
         stacks: 10,
         duration: 10
       },
-      spiritShakes(boonKey(BOON.FURY), 2)
+      spiritShakes(BOON.FURY, 2)
     ],
     // A committed summon invokes Call Lightning; the parent owns only its summon reward and boon shakes.
     sideEffects: [{ on: 'castCommit', do: { type: 'ranger.storm-spirit' } }]
@@ -218,7 +218,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
         },
         { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 6 }
       ]),
-      spiritShakes(boonKey(BOON.PROTECTION), 2)
+      spiritShakes(BOON.PROTECTION, 2)
     ]
   },
   [ID.VIPERS_NEST]: {
@@ -285,7 +285,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
           comboFinishers: [{ ownerId: 'ranger', finisherType: COMBO_FINISHER.BLAST }]
         }
       ]),
-      spiritShakes(boonKey(BOON.RESOLUTION), 2)
+      spiritShakes(BOON.RESOLUTION, 2)
     ]
   },
   [ID.SUN_SPIRIT]: {
@@ -298,7 +298,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     // Use the measured Quickness animation so later casts begin at the logged time.
     castTimeMs: 360,
     effects: [
-      spiritShakes(boonKey(BOON.MIGHT), 15, 2),
+      spiritShakes(BOON.MIGHT, 15, 2),
       {
         type: 'condition',
         condition: CONDITION.BLINDNESS,
@@ -382,7 +382,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
         do: {
           type: 'ranger.strength-of-the-pack',
           id: 'triggered-might',
-          effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 8, stacks: 1 }]
+          effects: [{ name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, duration: 8, stacks: 1 }]
         }
       }
     ],
@@ -450,7 +450,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     // Revival has no combat payload while all players remain alive at full health.
     effects: [
       ...spiritSlam([{ type: 'custom', eventType: 'marker', event: { name: "Nature's Renewal" } }]),
-      spiritShakes(boonKey(BOON.REGENERATION), 3)
+      spiritShakes(BOON.REGENERATION, 3)
     ]
   },
   [ID.ENTANGLE]: {
@@ -651,7 +651,7 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     // Healing has no combat payload under the fixed-full-health simulation assumption.
     effects: [
       ...spiritSlam([{ type: 'custom', eventType: 'marker', event: { name: 'Aqua Surge' } }]),
-      spiritShakes(boonKey(BOON.VIGOR), 2)
+      spiritShakes(BOON.VIGOR, 2)
     ]
   },
   [ID.AQUA_SURGE]: {
@@ -696,9 +696,9 @@ function copyHealingBoons(runtime: RangerRuntime, cast: RuntimeCast<RangerSkill>
   const activePet = runtime.profession.core.pet;
   const companionId = activePet?.id ?? null;
   const copies = (cast.skill.effects ?? [])
-    .filter((effect): effect is StatusEffect => effect.type === 'boon')
+    .filter((effect): effect is Extract<StatusEffect, { type: 'boon' }> => effect.type === 'boon')
     .map((effect) => {
-      const kind = String(effect.boon).toLowerCase();
+      const kind = effect.boon;
       const player = runtime.combat.boonSnapshot(kind, runtime.time, { actor: ACTOR.PLAYER }).stacks;
       return {
         kind,

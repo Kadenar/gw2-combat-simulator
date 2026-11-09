@@ -1,5 +1,5 @@
 /** Canonical Core ranger skill definitions grouped by their GW2 owner. */
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { MODIFIER_TARGET, type Gw2ModifierRule } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
@@ -269,7 +269,7 @@ export const maceLifecycle = {
       // Queue Tapped Out at Force of Nature expiry, keeping stack gains blocked through both phases of the cycle.
       for (const [kind, name, at, duration, stacks] of [
         [FORCE_OF_NATURE, 'Force of Nature', runtime.time, 5, 1],
-        [boonKey(BOON.STABILITY), 'Force of Nature', runtime.time, 5, 5],
+        [BOON.STABILITY, 'Force of Nature', runtime.time, 5, 5],
         [TAPPED_OUT, 'Tapped Out', runtime.time + 5, 10, 1]
       ] as const) {
         // State windows and their Stability grant share the skill's profile emission path.

@@ -1,4 +1,6 @@
 /** Doom remains armed until an eligible hit consumes it, independently of its swap cooldown. */
+import type { BoonId } from '#gw2/platform/constants.js';
+
 export interface Gw2SigilRuntimeState {
   doomPending: boolean;
 }
@@ -17,22 +19,28 @@ export interface Gw2SigilSet {
   readonly conditionDurationBonuses?: Readonly<Record<string, number>>;
 }
 
-export interface Gw2SigilProc {
+interface Gw2SigilProcFields {
   readonly trigger: string;
   readonly cooldown: number;
-  readonly effect: string;
   readonly icon?: string;
   readonly coefficient?: number;
   readonly weaponStrength?: number;
   readonly canCrit?: boolean;
   readonly projectile?: boolean;
   readonly condition?: string;
-  /** Boon procs use the same live duration and stack handling as other player boon grants. */
-  readonly boon?: string;
   readonly stacks?: number;
   readonly duration?: number;
   readonly amount?: number;
 }
+
+/** Boon proc declarations must identify their boon before they can enter the static data table. */
+export type Gw2SigilProc = Gw2SigilProcFields &
+  (
+    | { readonly effect: 'boon'; readonly boon: BoonId }
+    | {
+        readonly effect: 'strike' | 'condition' | 'next-hit-condition' | 'strike-condition' | 'endurance' | 'severance';
+      }
+  );
 
 export interface Gw2SigilDataEntry {
   readonly id: number;

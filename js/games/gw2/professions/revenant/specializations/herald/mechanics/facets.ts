@@ -1,4 +1,4 @@
-import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
+import { ACTOR, BOON_NAMES, RECIPIENT } from '#gw2/platform/constants.js';
 import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -70,7 +70,7 @@ export function facetPulse(runtime: RevenantRuntime, data: unknown): void {
         audience: { recipients: RECIPIENT.PARTY }
       }
     ],
-    transform: (event) => ({ ...event, name: `${skill.name} - ${pulse.kind}` })
+    transform: (event) => ({ ...event, name: `${skill.name} - ${BOON_NAMES[pulse.kind]}` })
   });
   const next = canonicalTime(runtime.time + canonicalInterval(skill.pulseInterval ?? 3));
 

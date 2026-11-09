@@ -33,15 +33,15 @@ const STANDARD_EFFECT_COLORS: Readonly<Record<string, string>> = {
   Confusion: '#b874e8',
   Poisoned: '#62b565',
   Torment: '#a96bd3',
-  Alacrity: '#9069d8',
-  Protection: '#4f9ec2',
-  Resolution: '#d48f45',
-  Vigor: '#78bd45',
-  Might: '#d9a441',
-  Fury: '#d65e5e',
-  Regeneration: '#5ebc72',
-  Swiftness: '#62a7cb',
-  Aegis: '#d9b85f'
+  alacrity: '#9069d8',
+  protection: '#4f9ec2',
+  resolution: '#d48f45',
+  vigor: '#78bd45',
+  might: '#d9a441',
+  fury: '#d65e5e',
+  regeneration: '#5ebc72',
+  swiftness: '#62a7cb',
+  aegis: '#d9b85f'
 };
 
 /** Merges active profession colors into the shared GW2 effect palette. */

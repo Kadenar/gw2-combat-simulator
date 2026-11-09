@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
 import { skillForEvent, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -210,7 +209,7 @@ export const opportunist = defineTrait({
   balance: {
     internalCooldown: 1,
     resourceGain: 5,
-    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 3 }]
+    effects: [{ name: BOON.FURY, type: 'boon', boon: BOON.FURY, stacks: 1, duration: 3 }]
   },
   triggers: [
     onTriggerPoint(immobilized, {
@@ -228,7 +227,7 @@ export const furiousBurst = defineTrait({
   balance: {
     criticalChance: 0.05,
     internalCooldown: 4,
-    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 2.5 }]
+    effects: [{ name: BOON.FURY, type: 'boon', boon: BOON.FURY, stacks: 1, duration: 2.5 }]
   },
   modifierRules: [
     {
@@ -237,7 +236,7 @@ export const furiousBurst = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumber(context.catalog, TRAIT.FURIOUS_BURST, 'criticalChance'),
-      when: (context) => warriorBoonActive(context, boonKey(BOON.FURY))
+      when: (context) => warriorBoonActive(context, BOON.FURY)
     }
   ],
   triggers: [
@@ -248,7 +247,7 @@ export const furiousBurst = defineTrait({
       when: (_runtime, cast) => cast.skill.inputCategory === 'weapon-swap',
       emit: TRAIT.FURIOUS_BURST,
       cooldown: 'profile',
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.FURY),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.FURY,
       attribution: { name: 'Furious Burst' }
     }
   ]
@@ -393,7 +392,7 @@ function signetMasteryDamage(context: WarriorRuntime, event: Gw2ResolverEvent): 
   context.cooldownController.startRecharge(skill, context.time);
   invokeTraitSkill(context, TRAIT.SIGNET_MASTERY, skill.id, event, {
     announce: true,
-    detail: `${requireEffect(skill, 'boon', boonKey(BOON.MIGHT))?.stacks ?? 0} might; Signet Mastery stack`,
+    detail: `${requireEffect(skill, 'boon', BOON.MIGHT)?.stacks ?? 0} might; Signet Mastery stack`,
     attribution: { priority: 5 }
   });
   emitTraitProfile(context, TRAIT.SIGNET_MASTERY, TRAIT.SIGNET_MASTERY, event, {

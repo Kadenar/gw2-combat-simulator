@@ -214,18 +214,18 @@ test('hypothetical ally state preserves extensions, expiry, and observation orig
     },
     500
   );
-  assert.equal(chartValueAt(series.alliedEffects.Might, 0), 25);
-  assert.equal(chartValueAt(series.alliedEffects.Might, 1500), 25);
-  assert.equal(chartValueAt(series.alliedEffects.Might, 2000), 0);
-  assert.equal(chartValueAt(series.alliedEffects.Fury, 0), 1);
-  assert.equal(chartValueAt(series.alliedEffects.Fury, 1500), 0.5);
-  assert.equal(chartValueAt(series.alliedEffects.Fury, 2000), 0);
-  assert.ok(chartValueAt(series.effects.Fury, 2000) > 0);
-  assert.ok(series.alliedEffects.Protection.every((point) => point.v === 0));
-  assert.equal(series.effects.Stability, undefined);
-  assert.equal(series.effectTypes.Stability, 'boon');
-  assert.equal(chartValueAt(series.alliedEffects.Stability, 3000), 3);
-  assert.equal(chartValueAt(series.alliedEffects.Stability, 5000), 0);
+  assert.equal(chartValueAt(series.alliedEffects.might, 0), 25);
+  assert.equal(chartValueAt(series.alliedEffects.might, 1500), 25);
+  assert.equal(chartValueAt(series.alliedEffects.might, 2000), 0);
+  assert.equal(chartValueAt(series.alliedEffects.fury, 0), 1);
+  assert.equal(chartValueAt(series.alliedEffects.fury, 1500), 0.5);
+  assert.equal(chartValueAt(series.alliedEffects.fury, 2000), 0);
+  assert.ok(chartValueAt(series.effects.fury, 2000) > 0);
+  assert.ok(series.alliedEffects.protection.every((point) => point.v === 0));
+  assert.equal(series.effects.stability, undefined);
+  assert.equal(series.effectTypes.stability, 'boon');
+  assert.equal(chartValueAt(series.alliedEffects.stability, 3000), 3);
+  assert.equal(chartValueAt(series.alliedEffects.stability, 5000), 0);
 });
 
 // Small synthetic windows exercise integration and supply contracts independently of any benchmark rotation.
@@ -251,9 +251,9 @@ test('allied averages integrate capped stacks and duration pools inside the obse
   };
   for (const sampleStep of [50, 1000]) {
     const averages = buildChartSeries(result, sampleStep).alliedAverageStacks;
-    close(averages.Might, 1.75);
-    close(averages.Fury, 0.1);
-    assert.equal(averages.Protection, 0);
+    close(averages.might, 1.75);
+    close(averages.fury, 0.1);
+    assert.equal(averages.protection, 0);
   }
 });
 
@@ -266,11 +266,11 @@ test('duration supply can exceed a full window while caps and gaps reduce actual
   };
   for (const sampleStep of [50, 1000]) {
     const series = buildChartSeries(result, sampleStep);
-    const summary = series.effectSummaries.Quickness;
+    const summary = series.effectSummaries.quickness;
     assert.equal(summary.uptime, 0.75);
     assert.equal(summary.averageStacks, 0.75);
-    assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds, 75);
-    assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds / result.rotationEndTime, 1.25);
+    assert.equal(series.boonGeneration.quickness.self.generatedStackSeconds, 75);
+    assert.equal(series.boonGeneration.quickness.self.generatedStackSeconds / result.rotationEndTime, 1.25);
   }
 });
 
@@ -281,13 +281,13 @@ test('intensity averages apply caps and include downtime while generation retain
     combatEndTime: 10,
     ...effectFields([buff('might', 0, 5, 20), buff('might', 1, 3, 10)], 10)
   });
-  const summary = series.effectSummaries.Might;
+  const summary = series.effectSummaries.might;
   assert.equal(summary.uptime, 0.5);
   assert.equal(summary.averageStacks, 11.5);
   assert.equal(summary.maximumStacks, 25);
-  assert.equal(Math.max(...series.effects.Might.map((point) => point.v)), 25);
+  assert.equal(Math.max(...series.effects.might.map((point) => point.v)), 25);
   assert.equal(summary.maximumStackUptime, 0.3);
-  assert.equal(series.boonGeneration.Might.self.generatedStackSeconds, 130);
+  assert.equal(series.boonGeneration.might.self.generatedStackSeconds, 130);
 });
 
 test('engine-granted preparation boons persist and the death boundary excludes later grants', () => {
@@ -311,9 +311,9 @@ test('engine-granted preparation boons persist and the death boundary excludes l
       { start: 2 }
     )
   });
-  const summary = series.effectSummaries.Quickness;
+  const summary = series.effectSummaries.quickness;
   assert.equal(summary.uptime, 0.5);
-  assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds, 2);
+  assert.equal(series.boonGeneration.quickness.self.generatedStackSeconds, 2);
 });
 
 test('extensions count only existing boons and retain independent intensity lifetimes', () => {
@@ -332,10 +332,10 @@ test('extensions count only existing boons and retain independent intensity life
     ...effectFields(events, 6)
   });
   const summaries = series.effectSummaries;
-  close(summaries.Fury.uptime, 5 / 6);
-  assert.equal(series.boonGeneration.Fury.self.generatedStackSeconds, 5);
-  close(summaries.Might.averageStacks, 10 / 6);
-  assert.equal(series.boonGeneration.Might.self.generatedStackSeconds, 10);
+  close(summaries.fury.uptime, 5 / 6);
+  assert.equal(series.boonGeneration.fury.self.generatedStackSeconds, 5);
+  close(summaries.might.averageStacks, 10 / 6);
+  assert.equal(series.boonGeneration.might.self.generatedStackSeconds, 10);
 });
 
 test('same-time extension accounting follows causal order and excludes the right window boundary', () => {
@@ -433,10 +433,10 @@ test('empty observation windows do not accrue uptime or generated duration', () 
     dpsStartTime: 2,
     ...effectFields([buff('might', 2, 10, 25)], 2)
   });
-  const summary = series.effectSummaries.Might;
+  const summary = series.effectSummaries.might;
   assert.equal(summary.uptime, 0);
   assert.equal(summary.averageStacks, 0);
-  assert.equal(series.boonGeneration.Might, undefined);
+  assert.equal(series.boonGeneration.might, undefined);
 });
 
 // A boon supplied only before combat still has an allied duration curve, with zero combat generation.
@@ -449,10 +449,10 @@ test('preparation-only party boons remain visible on both chart audiences', () =
     dpsStartTime: 2,
     ...effectFields([buff('alacrity', 0, 4, 1, { audience: { recipients: 'party' } })], 6, { start: 2 })
   });
-  assert.equal(series.boonGeneration.Alacrity.self.generatedStackSeconds, 0);
-  assert.equal(series.boonGeneration.Alacrity.ally.generatedStackSeconds, 0);
+  assert.equal(series.boonGeneration.alacrity.self.generatedStackSeconds, 0);
+  assert.equal(series.boonGeneration.alacrity.ally.generatedStackSeconds, 0);
   for (const at of [0, 1000, 2000, 3000]) {
-    assert.equal(chartValueAt(series.alliedEffects.Alacrity, at), chartValueAt(series.effects.Alacrity, at));
+    assert.equal(chartValueAt(series.alliedEffects.alacrity, at), chartValueAt(series.effects.alacrity, at));
   }
 });
 
@@ -486,15 +486,15 @@ test('charts retain accepted preparation state while generation uses the combat 
       }
     )
   });
-  assert.equal(series.effectSummaries.Alacrity.uptime, 1);
+  assert.equal(series.effectSummaries.alacrity.uptime, 1);
   // The preparation grant earns no combat credit, but the later extension reaches its existing party pools.
-  assert.equal(series.boonGeneration.Alacrity.self.generatedStackSeconds, 10);
-  assert.equal(series.boonGeneration.Alacrity.ally.generatedStackSeconds, 10);
-  assert.equal(series.effectSummaries.Quickness.uptime, 1);
-  assert.equal(series.boonGeneration.Quickness.self.generatedStackSeconds, 35);
-  assert.equal(series.boonGeneration.Quickness.ally.generatedStackSeconds, 35);
-  assert.equal(series.effectSummaries.Fury.uptime, 1 / 6);
-  assert.equal(series.boonGeneration.Fury.self.generatedStackSeconds, 2);
+  assert.equal(series.boonGeneration.alacrity.self.generatedStackSeconds, 10);
+  assert.equal(series.boonGeneration.alacrity.ally.generatedStackSeconds, 10);
+  assert.equal(series.effectSummaries.quickness.uptime, 1);
+  assert.equal(series.boonGeneration.quickness.self.generatedStackSeconds, 35);
+  assert.equal(series.boonGeneration.quickness.ally.generatedStackSeconds, 35);
+  assert.equal(series.effectSummaries.fury.uptime, 1 / 6);
+  assert.equal(series.boonGeneration.fury.self.generatedStackSeconds, 2);
   assert.equal(series.effectSummaries['Relic of Fireworks'].uptime, 4 / 6);
 });
 
@@ -514,11 +514,11 @@ test('personal boons and extensions cannot inflate shared generation, including 
       10
     )
   });
-  const quickness = series.boonGeneration.Quickness;
+  const quickness = series.boonGeneration.quickness;
   assert.equal(quickness.self.generatedStackSeconds, 11);
   assert.equal(quickness.ally.generatedStackSeconds, 2);
   assert.equal(quickness.ally.generatedStackSeconds / 10, 0.2);
-  assert.equal(series.boonGeneration.Alacrity.ally.generatedStackSeconds, 0);
+  assert.equal(series.boonGeneration.alacrity.ally.generatedStackSeconds, 0);
 });
 
 test('allied-only intensity grants extend each reached recipient once and exclude summons', () => {
@@ -544,9 +544,9 @@ test('allied-only intensity grants extend each reached recipient once and exclud
       10
     )
   });
-  assert.equal(series.effectSummaries.Might, undefined);
-  assert.equal(series.boonGeneration.Might.self.generatedStackSeconds, 0);
-  assert.equal(series.boonGeneration.Might.ally.generatedStackSeconds, 12);
+  assert.equal(series.effectSummaries.might, undefined);
+  assert.equal(series.boonGeneration.might.self.generatedStackSeconds, 0);
+  assert.equal(series.boonGeneration.might.ally.generatedStackSeconds, 12);
 });
 
 test('Firebrand tome Quickness remains self-only without configuring allies', async () => {
@@ -563,7 +563,7 @@ test('Firebrand tome Quickness remains self-only without configuring allies', as
     config
   });
   assert.deepEqual(result.warnings, []);
-  const generation = buildChartSeries(result).boonGeneration.Quickness;
+  const generation = buildChartSeries(result).boonGeneration.quickness;
   assert.ok(generation.self.generatedStackSeconds > 0);
   assert.equal(generation.ally.generatedStackSeconds, 0);
 });
@@ -601,9 +601,9 @@ test('shared Firebrand generation uses metadata independently of the configured 
   const party = simulate(4);
   assert.deepEqual(solo.warnings, []);
   assert.deepEqual(party.warnings, []);
-  const soloGeneration = buildChartSeries(solo).boonGeneration.Quickness;
+  const soloGeneration = buildChartSeries(solo).boonGeneration.quickness;
   assert.ok(soloGeneration.ally.generatedStackSeconds > 0);
-  assert.deepEqual(soloGeneration, buildChartSeries(party).boonGeneration.Quickness);
+  assert.deepEqual(soloGeneration, buildChartSeries(party).boonGeneration.quickness);
   assert.ok(
     solo.resolvedEvents
       .filter((event) => event.kind === 'quickness')

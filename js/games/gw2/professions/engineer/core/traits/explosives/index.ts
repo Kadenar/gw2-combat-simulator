@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { activeBuffStacks, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
@@ -87,7 +87,7 @@ export const shortFuse = defineTrait({
   id: TRAIT.SHORT_FUSE,
   balance: {
     internalCooldown: 3,
-    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 }]
+    effects: [{ name: BOON.FURY, type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 }]
   },
   triggers: [{ on: 'damage.resolved', run: applyShortFuse }]
 });
@@ -294,13 +294,13 @@ function applyShortFuse(context: EngineerResolverContext, event: EngineerResolve
   if (!explosion || !context.procs.claim(TRAIT.SHORT_FUSE, 'shortFuse', event.at)) return;
 
   const shortFuseProfile = requireBalanceProfile(context.helpers, TRAIT.SHORT_FUSE);
-  const shortFuseFury = requireEffect(shortFuseProfile, 'boon', boonKey(BOON.FURY));
+  const shortFuseFury = requireEffect(shortFuseProfile, 'boon', BOON.FURY);
 
   if (shortFuseFury) {
     emitTraitProfile(context, TRAIT.SHORT_FUSE, TRAIT.SHORT_FUSE, undefined, {
       at: event.at,
       fullEnd: event.at,
-      effect: { type: 'boon', name: boonKey(BOON.FURY) },
+      effect: { type: 'boon', name: BOON.FURY },
       durationContext: event,
       attribution: {
         name: 'Short Fuse',

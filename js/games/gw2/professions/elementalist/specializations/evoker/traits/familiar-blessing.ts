@@ -1,17 +1,17 @@
-import { BOON } from '#gw2/platform/constants.js';
+import { BOON, type BoonId } from '#gw2/platform/constants.js';
 import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import { requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 
 /** Element groups own named boon choices, independent of the selected profile's effect order or removals. */
-const BLESSINGS: readonly { readonly elements: readonly ElementalistAttunement[]; readonly name: string }[] = [
+const BLESSINGS: readonly { readonly elements: readonly ElementalistAttunement[]; readonly name: BoonId }[] = [
   { elements: ['Fire', 'Air'], name: BOON.QUICKNESS },
   { elements: ['Water', 'Earth'], name: BOON.ALACRITY }
 ];
 
 /** Completion selects its boon from the same element grouping displayed by trait tooltips. */
-export function familiarBlessingName(element: ElementalistAttunement): string {
+export function familiarBlessingName(element: ElementalistAttunement): BoonId {
   return BLESSINGS.find(({ elements }) => elements.includes(element))!.name;
 }
 

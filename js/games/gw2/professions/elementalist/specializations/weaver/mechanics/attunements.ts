@@ -195,7 +195,7 @@ const weaverAttunementTasks = {
       const boon = requireEffect(skill, 'boon', previousPrimary, action);
 
       if (boon) {
-        const boonKind = String(boon.boon).toLowerCase();
+        const boonKind = boon.boon;
         context.effects.emit(
           elementalistBuffRequest(
             {

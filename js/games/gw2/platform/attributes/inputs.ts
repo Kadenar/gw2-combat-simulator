@@ -6,7 +6,7 @@ import type {
   Gw2NumericAttributes,
   Gw2SeedAttributeConversion
 } from '#gw2/platform/attributes/types.js';
-import { BOON, CONDITION } from '#gw2/platform/constants.js';
+import { BOON, BOON_NAMES, CONDITION } from '#gw2/platform/constants.js';
 import { UTILITY_DATA } from '#gw2/platform/equipment/consumables/utilities.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
@@ -159,7 +159,7 @@ export function attributeSeedFromCommon(common: Gw2CommonAttributeResult): Gw2At
       ])
     ),
     boonDurationBonuses: Object.fromEntries(
-      [BOON.QUICKNESS, BOON.MIGHT, BOON.FURY].map((name) => [name.toLowerCase(), duration(name + ' Duration')])
+      [BOON.QUICKNESS, BOON.MIGHT, BOON.FURY].map((name) => [name, duration(BOON_NAMES[name] + ' Duration')])
     )
   };
   return {

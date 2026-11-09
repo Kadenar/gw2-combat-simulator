@@ -155,7 +155,7 @@ test('Grand Entrance windows are independently removable and keep their triggeri
       G.GRAND_ENTRANCE,
       {
         removeEffects: [
-          { type: 'boon', name: 'Resistance' },
+          { type: 'boon', name: 'resistance' },
           ...(removed ? [{ type: 'buff', name: 'Grand Entrance' }] : [])
         ],
         ...(removed ? {} : { effects: [{ type: 'buff', name: 'Grand Entrance', duration: 7 }] })

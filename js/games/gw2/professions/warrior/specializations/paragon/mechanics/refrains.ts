@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
@@ -106,7 +105,7 @@ function pulseRefrain(runtime: WarriorRuntime): void {
     kind: 'profile',
     profile: skill,
     effects: refrain.effects.filter(
-      (effect) => effect.type === 'boon' && effect.name?.startsWith('Refrain ') && kinds.includes(String(effect.boon))
+      (effect) => effect.type === 'boon' && effect.name?.startsWith('Refrain ') && kinds.includes(effect.boon)
     ),
     attribution: {
       source: 'Paragon',
@@ -120,9 +119,7 @@ function pulseRefrain(runtime: WarriorRuntime): void {
       name: `${skill.name} - ${event.kind}`,
       audience: { recipients: RECIPIENT.PARTY },
       stacks:
-        event.kind === boonKey(BOON.MIGHT)
-          ? Number(event.stacks) * level * enduringRefrainMultiplier(runtime)
-          : event.stacks
+        event.kind === BOON.MIGHT ? Number(event.stacks) * level * enduringRefrainMultiplier(runtime) : event.stacks
     })
   });
 
@@ -161,7 +158,7 @@ function activateChant(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSkill>)
     profile: cast.skill,
     // Entry and refrain components are independently removable on the same owning skill.
     effects: action.effects.filter(
-      (effect) => effect.type === 'boon' && effect.name?.startsWith('Entry ') && kinds.includes(String(effect.boon))
+      (effect) => effect.type === 'boon' && effect.name?.startsWith('Entry ') && kinds.includes(effect.boon)
     ),
     attribution: {
       source: 'Paragon',

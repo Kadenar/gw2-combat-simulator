@@ -34,7 +34,7 @@ function resolveTroubadourTale({ context, skill, at, eligible, delivery }: Troub
     profile: skill,
     at,
     effects: action.effects
-      .filter((effect): effect is StatusEffect => effect.type === 'boon')
+      .filter((effect): effect is Extract<StatusEffect, { type: 'boon' }> => effect.type === 'boon')
       .map((boon) => ({ ...boon, ...partyRecipients })),
     attribution: {
       source: 'mesmer',

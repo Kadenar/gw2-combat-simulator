@@ -3,7 +3,7 @@
  * Impact hooks read skill-owned Blight gain for both impact variants.
  * Committed elixirs retain their full cast lockout so animation cancellation cannot skip the remaining recovery.
  */
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { GW2_DAMAGING_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, BOON, CONDITION } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -96,7 +96,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
               actorType: ACTOR.PLAYER
             },
             {
-              name: boonKey(BOON.MIGHT),
+              name: BOON.MIGHT,
               type: 'boon',
               boon: BOON.MIGHT,
               stacks: 10,
@@ -104,7 +104,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
               actorType: ACTOR.PLAYER
             },
             {
-              name: boonKey(BOON.FURY),
+              name: BOON.FURY,
               type: 'boon',
               boon: BOON.FURY,
               stacks: 1,
@@ -206,7 +206,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
               actorType: ACTOR.PLAYER
             })),
             {
-              name: boonKey(BOON.MIGHT),
+              name: BOON.MIGHT,
               type: 'boon',
               boon: BOON.MIGHT,
               stacks: 25,
@@ -214,7 +214,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
               actorType: ACTOR.PLAYER
             },
             {
-              name: boonKey(BOON.FURY),
+              name: BOON.FURY,
               type: 'boon',
               boon: BOON.FURY,
               stacks: 1,
@@ -222,7 +222,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
               actorType: ACTOR.PLAYER
             },
             {
-              name: boonKey(BOON.QUICKNESS),
+              name: BOON.QUICKNESS,
               type: 'boon',
               boon: BOON.QUICKNESS,
               stacks: 1,
@@ -230,7 +230,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
               actorType: ACTOR.PLAYER
             },
             {
-              name: boonKey(BOON.ALACRITY),
+              name: BOON.ALACRITY,
               type: 'boon',
               boon: BOON.ALACRITY,
               stacks: 1,
@@ -280,7 +280,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
               actorType: ACTOR.PLAYER
             },
             {
-              name: boonKey(BOON.QUICKNESS),
+              name: BOON.QUICKNESS,
               type: 'boon',
               boon: BOON.QUICKNESS,
               stacks: 1,
@@ -288,7 +288,7 @@ export const HARBINGER_ELIXIR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
               actorType: ACTOR.PLAYER
             },
             {
-              name: boonKey(BOON.SWIFTNESS),
+              name: BOON.SWIFTNESS,
               type: 'boon',
               boon: BOON.SWIFTNESS,
               stacks: 1,

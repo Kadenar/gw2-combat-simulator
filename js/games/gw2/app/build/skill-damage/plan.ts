@@ -13,8 +13,8 @@ import {
   type PaletteQueryInput
 } from '#gw2/app/rotation/palette/model.js';
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
-import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
-import { BOON, CONDITION } from '#gw2/platform/constants.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { BOON, BOON_NAMES, CONDITION } from '#gw2/platform/constants.js';
 import { THORNS_MAX_STACKS } from '#gw2/platform/equipment/relics/rules/thorns.js';
 import { isGw2WeaponSkillEquipped } from '#gw2/platform/equipment/weapons/skill-matcher.js';
 import {
@@ -71,14 +71,14 @@ function sharedDamageControls(): PreviewControl[] {
       description: 'Adds trait procs that always trigger; chance and critical-hit procs are excluded'
     },
     {
-      key: boonKey(BOON.MIGHT),
-      label: BOON.MIGHT,
+      key: BOON.MIGHT,
+      label: BOON_NAMES[BOON.MIGHT],
       group: 'Boons',
       kind: 'boon',
       max: 25,
       description: 'stacks; +30 Power and Condition Damage each'
     },
-    { key: boonKey(BOON.FURY), label: BOON.FURY, group: 'Boons', kind: 'boon', description: '+25% Critical Chance' },
+    { key: BOON.FURY, label: BOON_NAMES[BOON.FURY], group: 'Boons', kind: 'boon', description: '+25% Critical Chance' },
     // Count-based bonuses need a total, not arbitrary extra boons with their own combat effects.
     {
       key: 'boonCount',

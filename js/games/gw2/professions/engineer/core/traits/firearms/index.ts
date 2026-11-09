@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -76,7 +75,7 @@ export const noScope = defineTrait({
   balance: {
     internalCooldown: 8,
     attributeBonuses: { ferocity: 150 },
-    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 }]
+    effects: [{ name: BOON.FURY, type: 'boon', boon: BOON.FURY, stacks: 1, duration: 4 }]
   },
   attributes: ({ balanceContext: profileContext, loadout }) => {
     const engineerBuild = loadout;
@@ -172,7 +171,7 @@ export const thermalVision = defineTrait({
 export const sanguineArray = defineTrait({
   id: TRAIT.SANGUINE_ARRAY,
   balance: {
-    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 4 }]
+    effects: [{ name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 1, duration: 4 }]
   },
   // Selection and isolation gate the accepted-condition reward before any proc claim.
   triggers: [{ on: 'condition.applied', run: applySanguineArray }]
@@ -183,7 +182,7 @@ export const hematicFocus = defineTrait({
   balance: {
     criticalChance: 0.15,
     internalCooldown: 8,
-    effects: [{ name: boonKey(BOON.FURY), type: 'boon', boon: BOON.FURY, stacks: 1, duration: 8 }]
+    effects: [{ name: BOON.FURY, type: 'boon', boon: BOON.FURY, stacks: 1, duration: 8 }]
   },
   modifierRules: [
     {
@@ -192,8 +191,7 @@ export const hematicFocus = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumber(context.catalog, TRAIT.HEMATIC_FOCUS, 'criticalChance'),
-      when: (context) =>
-        isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, boonKey(BOON.FURY), 1) > 0
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBoonStacks(context, BOON.FURY, 1) > 0
     }
   ],
   // Selection and isolation gate the accepted-condition reward before any proc claim.
@@ -367,12 +365,12 @@ function applySanguineArray(context: EngineerResolverContext, event: EngineerRes
   }
 
   const sanguineArrayProfile = requireBalanceProfile(context.helpers, TRAIT.SANGUINE_ARRAY);
-  const sanguineArrayMight = requireEffect(sanguineArrayProfile, 'boon', boonKey(BOON.MIGHT));
+  const sanguineArrayMight = requireEffect(sanguineArrayProfile, 'boon', BOON.MIGHT);
 
   if (sanguineArrayMight) {
     emitTraitProfile(context, TRAIT.SANGUINE_ARRAY, TRAIT.SANGUINE_ARRAY, undefined, {
       at: event.at,
-      effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
+      effect: { type: 'boon', name: BOON.MIGHT },
       durationContext: event,
       attribution: {
         source: 'Trait',
@@ -409,13 +407,13 @@ function applyHematicFocus(context: EngineerResolverContext, event: EngineerReso
   }
 
   const hematicFocusProfile = requireBalanceProfile(context.helpers, TRAIT.HEMATIC_FOCUS);
-  const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', boonKey(BOON.FURY));
+  const hematicFocusFury = requireEffect(hematicFocusProfile, 'boon', BOON.FURY);
 
   // Removed Fury cannot consume recharge; reserve it before delivering a surviving packet.
   if (hematicFocusFury && context.procs.claim(TRAIT.HEMATIC_FOCUS, 'hematicFocus', event.at)) {
     emitTraitProfile(context, TRAIT.HEMATIC_FOCUS, TRAIT.HEMATIC_FOCUS, undefined, {
       at: event.at,
-      effect: { type: 'boon', name: boonKey(BOON.FURY) },
+      effect: { type: 'boon', name: BOON.FURY },
       durationContext: event,
       attribution: {
         source: 'Trait',
@@ -448,12 +446,12 @@ function applyHematicFocus(context: EngineerResolverContext, event: EngineerReso
 /** Grant and report No Scope Fury only after the shared critical handler accepts the proc. */
 function grantNoScope(context: EngineerResolverContext, event: EngineerResolverEvent): void {
   const noScopeProfile = requireBalanceProfile(context.helpers, TRAIT.NO_SCOPE);
-  const noScopeFury = requireEffect(noScopeProfile, 'boon', boonKey(BOON.FURY));
+  const noScopeFury = requireEffect(noScopeProfile, 'boon', BOON.FURY);
 
   if (noScopeFury) {
     emitTraitProfile(context, TRAIT.NO_SCOPE, TRAIT.NO_SCOPE, undefined, {
       at: event.at,
-      effect: { type: 'boon', name: boonKey(BOON.FURY) },
+      effect: { type: 'boon', name: BOON.FURY },
       durationContext: event,
       attribution: {
         source: 'Trait',

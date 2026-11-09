@@ -1,5 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
-import { boonKey, durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
+import { durationStackingBoonCapSeconds, remainingDurationStackSeconds } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, AURA, BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
@@ -41,7 +41,7 @@ export const healersResolution = defineTrait({
   id: TRAIT.HEALERS_RESOLUTION,
   balance: {
     internalCooldown: 20,
-    effects: [{ type: 'boon', name: boonKey(BOON.RESOLUTION), boon: BOON.RESOLUTION, duration: 8, stacks: 1 }]
+    effects: [{ type: 'boon', name: BOON.RESOLUTION, boon: BOON.RESOLUTION, duration: 8, stacks: 1 }]
   },
   triggers: [
     onTriggerPoint(guardianCastCompleted, {
@@ -57,7 +57,7 @@ export const righteousInstincts = defineTrait({
   balance: {
     criticalChance: 0.25,
     pulseInterval: 1,
-    effects: [{ type: 'boon', name: boonKey(BOON.MIGHT), boon: BOON.MIGHT, stacks: 1, duration: 6 }]
+    effects: [{ type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 1, duration: 6 }]
   },
   modifierRules: [
     {
@@ -66,14 +66,14 @@ export const righteousInstincts = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumber(context.catalog, TRAIT.RIGHTEOUS_INSTINCTS, 'criticalChance'),
-      when: (context) => guardianBoonActive(context, boonKey(BOON.RESOLUTION))
+      when: (context) => guardianBoonActive(context, BOON.RESOLUTION)
     }
   ],
   // Hoisted handlers keep trait declarations first without changing task priorities or initialization order.
   triggers: [
     onTriggerPoint(guardianBuffApplied, {
       when: (_runtime, { cause }: GuardianBuffApplication) =>
-        cause.kind === boonKey(BOON.RESOLUTION) && cause.resolvedAudience?.includesSelf === true,
+        cause.kind === BOON.RESOLUTION && cause.resolvedAudience?.includesSelf === true,
       run: (runtime: GuardianRuntime, { cause }: GuardianBuffApplication) => startRighteousInstincts(runtime, cause)
     })
   ],
@@ -244,7 +244,7 @@ export const retribution = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: (context) => balanceNumber(context.catalog, TRAIT.RETRIBUTION, 'damageIncrease'),
-      when: (context) => guardianBoonActive(context, boonKey(BOON.RESOLUTION))
+      when: (context) => guardianBoonActive(context, BOON.RESOLUTION)
     }
   ]
 });
@@ -255,7 +255,7 @@ export const innerFire = defineTrait({
   balance: {
     threshold: 3,
     internalCooldown: 10,
-    effects: [{ type: 'boon', name: boonKey(BOON.FURY), boon: BOON.FURY, duration: 8, stacks: 1 }]
+    effects: [{ type: 'boon', name: BOON.FURY, boon: BOON.FURY, duration: 8, stacks: 1 }]
   },
   triggers: [
     {
@@ -273,29 +273,25 @@ export const innerFire = defineTrait({
 
 /** Resolution readiness follows the accepted self-boon pool, including its cap and extension records. */
 function resolutionDeadline(runtime: GuardianRuntime): number {
-  const remaining = remainingDurationStackSeconds(
-    runtime.combat.boonApplications(boonKey(BOON.RESOLUTION)),
-    runtime.time,
-    {
-      includes: (application) => application.resolvedAudience.includesSelf,
-      maximum: durationStackingBoonCapSeconds(boonKey(BOON.RESOLUTION)),
-      ordered: true
-    }
-  );
+  const remaining = remainingDurationStackSeconds(runtime.combat.boonApplications(BOON.RESOLUTION), runtime.time, {
+    includes: (application) => application.resolvedAudience.includesSelf,
+    maximum: durationStackingBoonCapSeconds(BOON.RESOLUTION),
+    ordered: true
+  });
   return remaining > 0 ? canonicalTime(runtime.time + remaining) : 0;
 }
 
 /** Grant the selected Might component without moving its emission outside the Resolution cadence. */
 function righteousMight(runtime: GuardianRuntime, event: Gw2ResolverEvent): boolean {
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.RIGHTEOUS_INSTINCTS);
-  const effect = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
+  const effect = requireEffect(profile, 'boon', BOON.MIGHT);
 
   if (!effect) return false;
 
   emitTraitProfile(runtime, TRAIT.RIGHTEOUS_INSTINCTS, TRAIT.RIGHTEOUS_INSTINCTS, event, {
     at: runtime.time,
     fullEnd: runtime.time,
-    effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
+    effect: { type: 'boon', name: BOON.MIGHT },
     attribution: {
       source: 'Trait',
       sourceId: TRAIT.RIGHTEOUS_INSTINCTS,
@@ -393,7 +389,7 @@ function grantHealersResolution(runtime: GuardianRuntime, { cast }: GuardianCast
 
   // A removed boon leaves this heal's claim ready.
   if (
-    !requireEffect(profile, 'boon', boonKey(BOON.RESOLUTION)) ||
+    !requireEffect(profile, 'boon', BOON.RESOLUTION) ||
     !runtime.procs.claim(TRAIT.HEALERS_RESOLUTION, 'guardian.core.healersResolution', runtime.time)
   )
     return;
@@ -401,7 +397,7 @@ function grantHealersResolution(runtime: GuardianRuntime, { cast }: GuardianCast
   const cause = guardianCastCause(runtime, cast);
   emitTraitProfile(runtime, TRAIT.HEALERS_RESOLUTION, TRAIT.HEALERS_RESOLUTION, cause, {
     at: runtime.time,
-    effect: { type: 'boon', name: boonKey(BOON.RESOLUTION) },
+    effect: { type: 'boon', name: BOON.RESOLUTION },
     attribution: { source: cause.source, actorType: cause.actorType }
   });
 }

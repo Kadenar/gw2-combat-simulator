@@ -13,7 +13,8 @@ import {
   type ChartSeries
 } from '#gw2/app/results/charts/time-series-model.js';
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
-import { BOON, RECIPIENT } from '#gw2/platform/constants.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { BOON, BOON_NAMES, RECIPIENT } from '#gw2/platform/constants.js';
 import type {
   SustainedBoonByAudience,
   SustainedBoonEstimate
@@ -571,6 +572,10 @@ function sustainedGenerationCell(estimate: SustainedBoonByAudience | undefined):
   </td>`;
 }
 
+/** Boon series use IDs for selection and names only when rendered. */
+const effectLabel = (series: ChartSeries, id: string): string =>
+  series.effectLabels?.[id] ?? (isStandardBoon(id) ? BOON_NAMES[id] : id);
+
 /** Shows time-averaged stacks for each audience alongside boon supply coverage and personal uptime. */
 function effectSummaryHtml(series: ChartSeries): string {
   const priority: readonly string[] = [BOON.MIGHT, BOON.FURY, BOON.PROTECTION, BOON.QUICKNESS, BOON.ALACRITY];
@@ -625,7 +630,7 @@ function effectSummaryHtml(series: ChartSeries): string {
           ? `${coverage(alliedAverage, intensity, maximum)}${overTarget}${selfCoverage}<small>${selfState}</small>`
           : selfState;
         return `<tr>
-      <th scope="row">${escapeHtml(name)}</th>
+      <th scope="row">${escapeHtml(effectLabel(series, name))}</th>
       <td>Allies: ${(series.alliedAverageStacks?.[name] || 0).toFixed(2)}<small>Self: ${(summary?.averageStacks || 0).toFixed(2)}</small></td>
       <td>${coverageDetails}</td>
       ${showSustained ? sustainedGenerationCell(sustained[name]) : ''}
@@ -653,7 +658,7 @@ function effectSummaryHtml(series: ChartSeries): string {
         <tbody>${effects
           .map(
             (name) => `<tr>
-      <th scope="row">${escapeHtml(name)}</th>
+      <th scope="row">${escapeHtml(effectLabel(series, name))}</th>
       <td>${(summaries[name]?.averageStacks || 0).toFixed(2)}</td>
       <td>${percent(summaries[name]?.uptime || 0)}</td>
     </tr>`
@@ -717,7 +722,7 @@ function chartHtml(
               return `<label>
             <input type="checkbox" data-series="${escapeHtml(name)}" ${visibleEffects.has(name) ? 'checked' : ''} />
             <span class="swatch" style="background:${escapeHtml(options.colors[name] || fallbackColor(index))}"></span>
-            ${escapeHtml(`${name}${series.effectUnits?.[name] ? ` (${series.effectUnits[name]})` : ''}`)}
+            ${escapeHtml(`${effectLabel(series, name)}${series.effectUnits?.[name] ? ` (${series.effectUnits[name]})` : ''}`)}
           </label>`;
             })
             .join('')}
@@ -846,6 +851,7 @@ export function mountTimeSeriesCharts(
     alliedAverageStacks: series?.alliedAverageStacks || {},
     effectTypes: series?.effectTypes || {},
     effectUnits: series?.effectUnits || {},
+    effectLabels: series.effectLabels,
     effectSummaries: series?.effectSummaries || {},
     boonGeneration: series?.boonGeneration || {},
     sustainedBoonGeneration: series.sustainedBoonGeneration,
@@ -1064,13 +1070,20 @@ export function mountTimeSeriesCharts(
             const own = effectsView.effects[name];
 
             if (own && (!boon || boonAudience !== 'ally'))
-              lines.push({ name: boon ? `${name} (Self)` : name, effectName: name, points: own, color, unit, stepped });
+              lines.push({
+                name: boon ? `${effectLabel(resolvedSeries, name)} (Self)` : effectLabel(resolvedSeries, name),
+                effectName: name,
+                points: own,
+                color,
+                unit,
+                stepped
+              });
 
             const allied = alliedView.effects[name];
 
             if (boon && allied && boonAudience !== RECIPIENT.SELF)
               lines.push({
-                name: `${name} (Allies)`,
+                name: `${effectLabel(resolvedSeries, name)} (Allies)`,
                 effectName: name,
                 points: allied,
                 color,

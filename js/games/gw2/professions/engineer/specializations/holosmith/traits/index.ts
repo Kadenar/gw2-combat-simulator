@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -41,7 +40,7 @@ const thermalReleaseValve = defineTrait({
   id: TRAIT.THERMAL_RELEASE_VALVE,
   balance: {
     // The trait owns the dodge boon; the invoked Vent Exhaust skill owns its damage and heat loss.
-    effects: [{ name: boonKey(BOON.VIGOR), type: 'boon', boon: BOON.VIGOR, stacks: 1, duration: 3 }]
+    effects: [{ name: BOON.VIGOR, type: 'boon', boon: BOON.VIGOR, stacks: 1, duration: 3 }]
   },
   // Dodge admission controls both the boon and vent; existing heat and charge lifetimes remain independent.
   triggers: [
@@ -72,7 +71,7 @@ const enhancedCapacityStorageUnit = defineTrait({
     maximumStacks: 150,
     threshold: 100,
     pulseInterval: 1,
-    effects: [{ name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 2, duration: 6 }]
+    effects: [{ name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 2, duration: 6 }]
   },
   triggers: [
     onTriggerPoint(heatInitialized, { run: seedEnhancedCapacityMight }),
@@ -238,7 +237,7 @@ function triggerThermalReleaseValve(context: EngineerRuntime<HolosmithSkill>, sk
   const state = holosmithState.from(context.profession);
   emitTraitProfile(context, TRAIT.THERMAL_RELEASE_VALVE, TRAIT.THERMAL_RELEASE_VALVE, undefined, {
     at: at,
-    effect: { type: 'boon', name: boonKey(BOON.VIGOR) },
+    effect: { type: 'boon', name: BOON.VIGOR },
     attribution: {
       actorType: ACTOR.PLAYER,
       skillId: skill.id,
@@ -257,7 +256,7 @@ function triggerThermalReleaseValve(context: EngineerRuntime<HolosmithSkill>, sk
 function emitEnhancedCapacityMight(context: EngineerRuntime<HolosmithSkill>, at: number): void {
   emitTraitProfile(context, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT, undefined, {
     at: at,
-    effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
+    effect: { type: 'boon', name: BOON.MIGHT },
     attribution: { actorType: ACTOR.PLAYER, name: 'Enhanced Capacity Storage Unit - might' },
     transform: (event) => ({ ...event, applicationIndex: undefined, totalApplications: undefined })
   });

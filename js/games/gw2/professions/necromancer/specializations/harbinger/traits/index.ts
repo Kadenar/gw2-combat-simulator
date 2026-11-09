@@ -1,7 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { quantizeGw2ActionTimingMs } from '#gw2/platform/combat/action-tick.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
@@ -169,7 +168,7 @@ const deathlyHaste = defineTrait({
   balance: {
     effects: [
       {
-        name: boonKey(BOON.QUICKNESS),
+        name: BOON.QUICKNESS,
         type: 'boon',
         boon: BOON.QUICKNESS,
         stacks: 1,
@@ -178,7 +177,7 @@ const deathlyHaste = defineTrait({
         audience: { recipients: RECIPIENT.PARTY }
       },
       {
-        name: boonKey(BOON.FURY),
+        name: BOON.FURY,
         type: 'boon',
         boon: BOON.FURY,
         stacks: 1,
@@ -219,7 +218,7 @@ const implacableFoe = defineTrait({
     attributeConversion: 0.13,
     effects: [
       {
-        name: boonKey(BOON.STABILITY),
+        name: BOON.STABILITY,
         type: 'boon',
         boon: BOON.STABILITY,
         stacks: 3,
@@ -260,7 +259,7 @@ const bolsteringBrew = defineTrait({
   balance: {
     effects: [
       {
-        name: boonKey(BOON.PROTECTION),
+        name: BOON.PROTECTION,
         type: 'boon',
         boon: BOON.PROTECTION,
         stacks: 1,

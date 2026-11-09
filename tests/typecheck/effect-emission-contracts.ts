@@ -1,5 +1,7 @@
 /** The shared service is the only public packet/application/reporting capability. */
 import type { AnnouncementEmission, PacketEmission, ProfileEmission } from '#gw2/platform/effects/emission.js';
+import type { BoonEffect } from '#gw2/platform/effects/types.js';
+import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
 
@@ -36,3 +38,19 @@ runtime.emitProcedural(packet.event);
 runtime.applyCondition(packet.event);
 // @ts-expect-error Reporting uses announcements on the shared service.
 runtime.recordProc('trait', 'Fixture', 0);
+
+// Boon payload identity is required and cannot use a display label or generic buff kind.
+declare function retainBoon(effect: BoonEffect): void;
+retainBoon({ type: 'boon', boon: 'might', name: 'Opening reward', duration: 5 });
+// @ts-expect-error Display names are not boon IDs.
+retainBoon({ type: 'boon', boon: 'Might', duration: 5 });
+// @ts-expect-error A kind cannot replace the required boon ID.
+retainBoon({ type: 'boon', kind: 'might', duration: 5 });
+
+// Static sigil tables cannot defer missing or invalid boon identity until a combat proc fires.
+declare function retainSigil(proc: Gw2SigilProc): void;
+retainSigil({ trigger: 'crit', cooldown: 1, effect: 'boon', boon: 'might' });
+// @ts-expect-error Boon procs require their boon ID in the declaration.
+retainSigil({ trigger: 'crit', cooldown: 1, effect: 'boon' });
+// @ts-expect-error Sigils use canonical IDs, not displayed boon names.
+retainSigil({ trigger: 'crit', cooldown: 1, effect: 'boon', boon: 'Might' });

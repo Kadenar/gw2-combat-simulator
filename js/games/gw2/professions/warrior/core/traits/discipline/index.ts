@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
@@ -60,7 +59,7 @@ export const burstMastery = defineTrait<WarriorSkill>({
     damageMultiplier: 1.15,
     resourceGain: 0.33,
     bladeswornResourceGain: 0.2,
-    effects: [{ name: boonKey(BOON.SWIFTNESS), type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 3 }]
+    effects: [{ name: BOON.SWIFTNESS, type: 'boon', boon: BOON.SWIFTNESS, stacks: 1, duration: 3 }]
   },
   modifierRules: [
     {
@@ -153,7 +152,7 @@ export const heightenedFocus = defineTrait({
   balance: {
     threshold: 0.5,
     internalCooldown: 12,
-    effects: [{ name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 }]
+    effects: [{ name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, stacks: 1, duration: 5 }]
   },
   triggers: [{ on: 'damage.resolved', run: triggerHeightenedFocus }],
   lifetime: {
@@ -173,7 +172,7 @@ export const warriorsSprint = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: (context) => balanceNumber(context.catalog, TRAIT.WARRIORS_SPRINT, 'damageIncrease'),
-      when: (context) => warriorBoonActive(context, boonKey(BOON.SWIFTNESS))
+      when: (context) => warriorBoonActive(context, BOON.SWIFTNESS)
     }
   ]
 });
@@ -265,7 +264,7 @@ function burstMasteryCommit(runtime: WarriorRuntime, cast: RuntimeCast<WarriorSk
     // The refund is live now; Swiftness resolves after same-time burst damage, preserving reward ordering.
     {
       const traitProfile = requireBalanceProfile(runtime.helpers, TRAIT.BURST_MASTERY);
-      const selectedEffect = requireEffect(traitProfile, 'boon', boonKey(BOON.SWIFTNESS));
+      const selectedEffect = requireEffect(traitProfile, 'boon', BOON.SWIFTNESS);
 
       if (selectedEffect)
         emitTraitProfile(runtime, TRAIT.BURST_MASTERY, TRAIT.BURST_MASTERY, undefined, {

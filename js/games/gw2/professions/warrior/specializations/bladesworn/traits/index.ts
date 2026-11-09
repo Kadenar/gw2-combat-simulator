@@ -1,7 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
@@ -80,7 +79,7 @@ const riversFlow = defineTrait({
   balance: {
     internalCooldown: 4,
     effects: [
-      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, stacks: 2, duration: 8 },
+      { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, stacks: 2, duration: 8 },
       { name: 'positive-flow', type: 'buff', kind: 'positive-flow', stacks: 2, duration: 5 }
     ]
   },
@@ -96,7 +95,7 @@ const riversFlow = defineTrait({
 const dragonscaleDefense = defineTrait({
   id: TRAIT.DRAGONSCALE_DEFENSE,
   balance: {
-    effects: [{ name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
+    effects: [{ name: BOON.STABILITY, type: 'boon', boon: BOON.STABILITY, stacks: 1, duration: 3 }]
   },
   triggers: [
     {
@@ -169,7 +168,7 @@ const daringDragon = defineTrait({
     coefficientMultiplier: 0.65,
     effects: [
       {
-        name: boonKey(BOON.ALACRITY),
+        name: BOON.ALACRITY,
         type: 'boon',
         boon: BOON.ALACRITY,
         stacks: 1,
@@ -334,13 +333,13 @@ function gunsaberEntryReward(runtime: WarriorRuntime, cast: RuntimeCast<WarriorS
         }
       });
   } else {
-    const might = requireEffect(profile, 'boon', boonKey(BOON.MIGHT));
+    const might = requireEffect(profile, 'boon', BOON.MIGHT);
 
     if (might)
       emitTraitProfile(runtime, trait, trait, undefined, {
         at: runtime.time,
         fullEnd: runtime.time,
-        effect: { type: 'boon', name: boonKey(BOON.MIGHT) },
+        effect: { type: 'boon', name: BOON.MIGHT },
         attribution: {
           source: 'Trait',
           sourceId: trait,

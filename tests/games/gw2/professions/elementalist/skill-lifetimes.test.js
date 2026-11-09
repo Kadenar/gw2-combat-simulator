@@ -173,8 +173,8 @@ test('Calcify owns its passive Protection without requiring a cast, and removal 
         fields: { internalCooldown: 2 },
         sideEffects: {
           protection: removed
-            ? { removeEffects: [{ type: 'boon', name: 'Protection' }] }
-            : { effects: [{ type: 'boon', name: 'Protection', duration: 7 }] }
+            ? { removeEffects: [{ type: 'boon', name: 'protection' }] }
+            : { effects: [{ type: 'boon', name: 'protection', duration: 7 }] }
         }
       },
       'Evoker',

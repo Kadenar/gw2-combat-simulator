@@ -9,7 +9,7 @@ import type {
   Gw2AttributeLoadout,
   Gw2NumericAttributes
 } from '#gw2/platform/attributes/types.js';
-import { boonKey, MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
+import { MIGHT_ATTRIBUTE_BONUS_PER_STACK } from '#gw2/platform/combat/boons.js';
 import type { Gw2CombatObservationContext } from '#gw2/platform/combat/modifiers.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -26,31 +26,31 @@ class AttributeAssumptions {
   readonly [key: string]: unknown;
   constructor(private readonly context: Gw2CombatObservationContext) {}
   get fury() {
-    return boonActive(this.context, boonKey(BOON.FURY));
+    return boonActive(this.context, BOON.FURY);
   }
   get quickness() {
-    return boonActive(this.context, boonKey(BOON.QUICKNESS));
+    return boonActive(this.context, BOON.QUICKNESS);
   }
   get alacrity() {
-    return boonActive(this.context, boonKey(BOON.ALACRITY));
+    return boonActive(this.context, BOON.ALACRITY);
   }
   get regeneration() {
-    return boonActive(this.context, boonKey(BOON.REGENERATION));
+    return boonActive(this.context, BOON.REGENERATION);
   }
   get protection() {
-    return boonActive(this.context, boonKey(BOON.PROTECTION));
+    return boonActive(this.context, BOON.PROTECTION);
   }
   get resolution() {
-    return boonActive(this.context, boonKey(BOON.RESOLUTION));
+    return boonActive(this.context, BOON.RESOLUTION);
   }
   get swiftness() {
-    return boonActive(this.context, boonKey(BOON.SWIFTNESS));
+    return boonActive(this.context, BOON.SWIFTNESS);
   }
   get vigor() {
-    return boonActive(this.context, boonKey(BOON.VIGOR));
+    return boonActive(this.context, BOON.VIGOR);
   }
   get aegis() {
-    return boonActive(this.context, boonKey(BOON.AEGIS));
+    return boonActive(this.context, BOON.AEGIS);
   }
 }
 

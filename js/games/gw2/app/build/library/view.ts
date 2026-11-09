@@ -12,6 +12,7 @@ import {
 import type { MyBuild } from '#gw2/app/build/library/storage.js';
 import type { BuildTemplatePreset, BuildTemplateSection } from '#gw2/app/build/types.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
+import { BOON_NAMES } from '#gw2/platform/constants.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
 
 /** Lock destination controls during downloads while leaving the library and ordinary build edits available. */
@@ -65,7 +66,7 @@ function templateButtonHtml(app: ProfessionAppState, preset: BuildTemplatePreset
           : '';
   // Keep support roles on the same line as weapons so the catalog reads as a compact list.
   const name = content.weapons ? qualifier + content.weapons : content.name.replace(/\s+(Quickness|Alacrity)$/, '');
-  const rowName = boon === 'none' ? name : `${boon[0].toUpperCase()}${boon.slice(1)} · ${name}`;
+  const rowName = boon === 'none' ? name : `${BOON_NAMES[boon]} · ${name}`;
   const rotationAction = preset.rotation
     ? `<button type="button" role="menuitem" data-template-action="rotation" data-template-index="${index}">Load rotation only</button>`
     : '';
@@ -118,8 +119,7 @@ export function applyTemplateFilter(
 
   if (roleValue) roleValue.textContent = filter === 'all' ? 'Any' : filter === 'condi' ? 'Condition' : 'Power';
 
-  if (boonValue)
-    boonValue.textContent = boonFilter === 'all' ? 'Any' : boonFilter[0].toUpperCase() + boonFilter.slice(1);
+  if (boonValue) boonValue.textContent = boonFilter === 'all' ? 'Any' : BOON_NAMES[boonFilter];
 
   if (specializationValue) specializationValue.textContent = specialization || 'Any';
 
@@ -370,7 +370,7 @@ export function createBuildLibraryView(
             <div class="template-filter-menu" role="group" aria-label="Filter build templates by boon">
               ${TEMPLATE_BOON_FILTERS.map(
                 (boon) =>
-                  `<button type="button" data-template-boon-filter="${boon}" aria-pressed="${boon === 'all'}">${boon === 'all' ? 'Any' : boon[0].toUpperCase() + boon.slice(1)}</button>`
+                  `<button type="button" data-template-boon-filter="${boon}" aria-pressed="${boon === 'all'}">${boon === 'all' ? 'Any' : BOON_NAMES[boon]}</button>`
               ).join('')}
             </div>
           </details>

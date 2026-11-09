@@ -1,6 +1,5 @@
 import type { CastCommand } from '#gw2/platform/builds/rotation.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import { applySkillSideEffects } from '#gw2/platform/effects/action-dispatch.js';
@@ -162,7 +161,7 @@ export function createCastExecution<T extends object>(
     if (
       Number(cast.skill.selfStunMs) > 0 &&
       !config.boons?.stability &&
-      query.timeline.buffStacksAt(boonKey(BOON.STABILITY), runtime.time, 0, 25) === 0
+      query.timeline.buffStacksAt(BOON.STABILITY, runtime.time, 0, 25) === 0
     )
       cursor.selfStunUntil = Math.max(cursor.selfStunUntil, runtime.time + Number(cast.skill.selfStunMs) / 1000);
 
@@ -219,8 +218,7 @@ export function createCastExecution<T extends object>(
         ? resolveInputControl(profession.catalog, skill, command, config.skillInputBars)
         : professionInput;
     const baseDurationMs =
-      skill.independentCast &&
-      (config.boons?.quickness || query.timeline.buffStacksAt(boonKey(BOON.QUICKNESS), start, 0, 1) > 0)
+      skill.independentCast && (config.boons?.quickness || query.timeline.buffStacksAt(BOON.QUICKNESS, start, 0, 1) > 0)
         ? summonQuicknessCastTimeMs(skill)
         : (skill.castTimeMs ?? 0);
     // Capture profession timing once so completion, interruption, and cast-relative packets share the reservation.

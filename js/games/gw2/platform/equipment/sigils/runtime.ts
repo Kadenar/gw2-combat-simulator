@@ -6,12 +6,10 @@ import { SIGIL_BY_ID, SIGIL_IDS, SIGIL_PROCS } from '#gw2/platform/equipment/sig
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
 import { createSigilConditionEvent, createSigilDamagePayload } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { SEVERANCE_BUFF_POLICY } from '#gw2/platform/equipment/sigils/severance.js';
-import type { Gw2SigilProc, Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
+import type { Gw2SigilRuntimeState } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-
-const procs = SIGIL_PROCS as Readonly<Record<number, Gw2SigilProc>>;
 
 /** Sigils own their armed state and use shared combat facts, seeded rolls, cooldowns and effect grants. */
 export interface SigilRuntimeContext extends Pick<
@@ -38,7 +36,7 @@ function consumeRuntimeDoom(runtime: SigilRuntimeContext, event: Gw2ResolverEven
     kind: 'packet',
     cause: event,
     event: {
-      ...createSigilConditionEvent(SIGIL_IDS.DOOM, procs[SIGIL_IDS.DOOM], event.skillName || ''),
+      ...createSigilConditionEvent(SIGIL_IDS.DOOM, SIGIL_PROCS[SIGIL_IDS.DOOM], event.skillName || ''),
       at: event.at
     }
   });
@@ -51,7 +49,7 @@ function consumeRuntimeDoom(runtime: SigilRuntimeContext, event: Gw2ResolverEven
       at: event.at,
       sourceSkill: event.skillName,
       detail: '',
-      icon: procs[SIGIL_IDS.DOOM].icon
+      icon: SIGIL_PROCS[SIGIL_IDS.DOOM].icon
     }
   });
 }
@@ -77,7 +75,7 @@ export function applyRuntimeSigils(
   const destination = Number(event.weaponSet);
   const set = trigger === 'swap' && (destination === 1 || destination === 2) ? destination : runtime.activeWeaponSet;
   for (const id of new Set(gw2SigilIds(runtime.config, set))) {
-    const proc = procs[id];
+    const proc = SIGIL_PROCS[id];
 
     if (proc?.trigger !== trigger) continue;
 

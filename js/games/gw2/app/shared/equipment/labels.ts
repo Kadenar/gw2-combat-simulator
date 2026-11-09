@@ -1,5 +1,6 @@
 import { EQUIPMENT_ICONS } from '#gw2/app/shared/equipment/icons.js';
 import { wikiTooltipAttributes } from '#gw2/app/shared/tooltip-overlay.js';
+import { BOON_NAMES } from '#gw2/platform/constants.js';
 import { FOOD_DATA } from '#gw2/platform/equipment/consumables/food.js';
 import {
   UTILITY_DATA,
@@ -10,6 +11,7 @@ import { GEAR_STATS } from '#gw2/platform/equipment/gear/prefixes/data.js';
 import { RUNE_DATA } from '#gw2/platform/equipment/gear/runes.js';
 import { RELIC_DATA } from '#gw2/platform/equipment/relics/data.js';
 import { SIGIL_DATA, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
+import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
 import type { TooltipFact } from '#gw2/platform/skills/types.js';
 import { escapeHtml } from '#ui/shared/html.js';
@@ -174,7 +176,6 @@ const gearStats = GEAR_STATS as Readonly<Record<string, Readonly<Record<string, 
 const foodData = FOOD_DATA as Readonly<Record<string, UnknownValues>>;
 const relicData = RELIC_DATA as Readonly<Record<string, UnknownValues>>;
 const runeData = RUNE_DATA as Readonly<Record<string, { stats: NumericValues; durations: NumericValues }>>;
-const sigilProcs = SIGIL_PROCS as Readonly<Record<string, UnknownValues>>;
 const utilityData = UTILITY_DATA as Readonly<
   Record<string, readonly { readonly from: string; readonly to: string; readonly percent: number }[]>
 >;
@@ -271,21 +272,23 @@ const SIGIL_PERCENT_FIELDS: Readonly<Record<string, string>> = {
   boonDuration: 'boon duration'
 };
 
-function sigilProcDetail(name: string, proc: UnknownValues | undefined): string {
+/** Describe timed boon and condition grants using display names in equipment choices. */
+function sigilProcDetail(name: string, proc: Gw2SigilProc | undefined): string {
   if (!proc) return '';
 
-  const condition = `${Number(proc.stacks || 1) > 1 ? `${proc.stacks} ` : ''}${String(proc.condition || '')}${
+  const statusName = proc.effect === 'boon' ? BOON_NAMES[proc.boon] : String(proc.condition || '');
+  const status = `${Number(proc.stacks || 1) > 1 ? `${proc.stacks} ` : ''}${statusName}${
     proc.duration ? ` for ${proc.duration}s` : ''
   }`;
   const effect =
     proc.effect === 'strike'
       ? `${proc.coefficient} coefficient strike`
-      : proc.effect === 'condition'
-        ? condition
+      : proc.effect === 'condition' || proc.effect === 'boon'
+        ? status
         : proc.effect === 'next-hit-condition'
-          ? `next hit applies ${condition}`
+          ? `next hit applies ${status}`
           : proc.effect === 'strike-condition'
-            ? `${proc.coefficient} coefficient strike + ${condition}`
+            ? `${proc.coefficient} coefficient strike + ${status}`
             : proc.effect === 'endurance'
               ? `+${proc.amount} endurance`
               : proc.effect === 'severance'
@@ -313,7 +316,7 @@ export function sigilOptionLabel(name: string): string {
   const passiveDetails = Object.entries(SIGIL_PERCENT_FIELDS).flatMap(([field, label]) =>
     sigil?.[field] ? [`+${sigil[field]}% ${label}`] : []
   );
-  const proc = sigilProcDetail(name, sigilProcs[sigil?.id]);
+  const proc = sigilProcDetail(name, SIGIL_PROCS[sigil?.id]);
   return optionLabel(name, [...passiveDetails, ...(proc ? [proc] : [])]);
 }
 

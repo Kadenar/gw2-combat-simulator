@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { advanceCriticalProc, criticalOpportunity } from '#gw2/platform/combat/procs/critical.js';
@@ -222,7 +221,7 @@ export const criticalInfusion = defineTrait<MesmerSkill>({
   id: TRAIT.CRITICAL_INFUSION,
   balance: {
     internalCooldown: 10,
-    effects: [{ type: 'boon', name: boonKey(BOON.VIGOR), boon: BOON.VIGOR, duration: 5, stacks: 1 }]
+    effects: [{ type: 'boon', name: BOON.VIGOR, boon: BOON.VIGOR, duration: 5, stacks: 1 }]
   },
   triggers: [
     {
@@ -399,7 +398,7 @@ function triggerMasterFencer(context: MesmerRuntime, event: SimulationEvent, cha
       skillId: TRAIT.MASTER_FENCER,
       skillName: 'Master Fencer',
       name: `Master Fencer - ${effect.audience?.recipients ?? RECIPIENT.SELF} fury`,
-      kind: boonKey(BOON.FURY),
+      kind: BOON.FURY,
       duration: payload.duration,
       stacks: Number(payload.stacks),
       audience: effect.audience

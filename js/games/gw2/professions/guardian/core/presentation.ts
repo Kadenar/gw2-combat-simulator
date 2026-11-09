@@ -1,6 +1,5 @@
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
@@ -148,7 +147,7 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
       const preview = createPreviewControls(context);
       // Expose held combat bonuses to isolated damage calculations.
       preview.damageBuff('Inspiring Virtue', 'inspiringVirtue', 'guardian-inspiring-virtue');
-      preview.boon(boonKey(BOON.AEGIS), 'Unscathed Contender');
+      preview.boon(BOON.AEGIS, 'Unscathed Contender');
 
       // Illumination changes spear payloads only in this isolated damage preview.
       if (context.weapons.includes(WEAPON.SPEAR))
@@ -172,7 +171,7 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
           description: 'Starting symbol-earned damage stacks'
         });
 
-      preview.boon(boonKey(BOON.RESOLUTION), 'Righteous Instincts', 'Retribution');
+      preview.boon(BOON.RESOLUTION, 'Righteous Instincts', 'Retribution');
       preview.condition(CONDITION.BURNING, 'Radiant Power', 'Fiery Wrath');
       preview.passives(ID.BANE_SIGNET, ID.SIGNET_OF_WRATH);
       return preview.controls;

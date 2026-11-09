@@ -74,7 +74,7 @@ test('pet Screech scales only with Lingering Magic while merged Screech uses pla
       attributeInputs: baseAttributeInputs({
         concentration: 1500,
         boonDurationBonus: 50,
-        boonDurationBonuses: { Swiftness: 50 }
+        boonDurationBonuses: { swiftness: 50 }
       }),
       selectedTraitIds: trait ? [TRAIT.LINGERING_MAGIC] : [],
       allies: { count: 4 }

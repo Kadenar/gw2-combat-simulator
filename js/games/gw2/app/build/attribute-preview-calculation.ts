@@ -6,7 +6,6 @@ import { derivedAttribute, PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/c
 import type { Gw2NumericStatKey } from '#gw2/platform/attributes/stats.js';
 import { createGw2CombatQuery } from '#gw2/platform/combat-calculation/combat-query.js';
 import {
-  boonKey,
   GW2_STANDARD_BOONS,
   isStandardBoon,
   recordBuffApplication,
@@ -40,10 +39,7 @@ function calculatePreview(
   const values = normalizeAttributePreview(controls, input);
   const playerHealth = Number(values.playerHealth ?? 100) / 100;
   const boons = Object.fromEntries(
-    GW2_STANDARD_BOONS.map((key) => [
-      key,
-      key === boonKey(BOON.MIGHT) ? Number(values[key] || 0) : Boolean(values[key])
-    ])
+    GW2_STANDARD_BOONS.map((key) => [key, key === BOON.MIGHT ? Number(values[key] || 0) : Boolean(values[key])])
   );
   const weaponSet = app.attributeWeaponSet === 2 ? 2 : 1;
   const { preview, context, config } = createIsolatedPreview(app, controls, values, boons, weaponSet);

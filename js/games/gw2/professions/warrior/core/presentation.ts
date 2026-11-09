@@ -1,5 +1,4 @@
 import { SIMULATION_RANDOMNESS_ASSUMPTION_CONTROLS } from '#gw2/platform/builds/randomness-assumptions.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { BOON, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { gw2PrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
@@ -228,8 +227,8 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
         (context.weapons.includes(WEAPON.RIFLE) && !['Berserker', 'Bladesworn'].includes(context.specialization))
     );
     // Expose held combat bonuses to isolated damage calculations.
-    preview.boon(boonKey(BOON.SWIFTNESS), "Warrior's Sprint");
-    preview.boon(boonKey(BOON.STABILITY), 'Stalwart Strength');
+    preview.boon(BOON.SWIFTNESS, "Warrior's Sprint");
+    preview.boon(BOON.STABILITY, 'Stalwart Strength');
     preview.condition(CONDITION.WEAKNESS, 'Cull the Weak');
     preview.condition(CONDITION.CRIPPLED, 'Leg Specialist');
 

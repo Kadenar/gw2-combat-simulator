@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { BOON, CONDITION } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -82,7 +81,7 @@ export const darkDefense = defineTrait({
     resourceGain: 10,
     duration: 10,
     internalCooldown: 5,
-    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
+    effects: [{ name: BOON.PROTECTION, type: 'boon', boon: BOON.PROTECTION, stacks: 1, duration: 3 }]
   },
   triggers: [{ on: 'castCommit', run: applyDarkDefense }]
 });
@@ -162,7 +161,7 @@ function applyDarkDefense(runtime: NecromancerRuntime, cast: RuntimeCast<Necroma
   // Carapace has already been granted; removal affects only this ordinary Protection payload.
   emitTraitProfile(runtime, TRAIT.DARK_DEFENSE, TRAIT.DARK_DEFENSE, undefined, {
     at: runtime.time,
-    effect: { type: 'boon', name: boonKey(BOON.PROTECTION) },
+    effect: { type: 'boon', name: BOON.PROTECTION },
     activationId: cast.id,
     attribution: { skillName: profile.name, triggeredBy: cast.skill.name, offTarget: cast.command.offTarget }
   });

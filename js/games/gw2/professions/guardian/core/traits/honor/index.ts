@@ -1,5 +1,5 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
@@ -23,7 +23,7 @@ export const empoweringMight = defineTrait({
     effects: [
       {
         type: 'boon',
-        name: boonKey(BOON.MIGHT),
+        name: BOON.MIGHT,
         boon: BOON.MIGHT,
         stacks: 1,
         duration: 8,

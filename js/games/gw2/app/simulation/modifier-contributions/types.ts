@@ -2,6 +2,7 @@
 import type { GameContentAddress } from '#browser/game/contracts.js';
 import type { ProfessionModifier } from '#gw2/build-context/types.js';
 import type { RotationCommand } from '#gw2/platform/builds/rotation.js';
+import type { BoonId } from '#gw2/platform/constants.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 
 export interface ProfessionModifierComparison {
@@ -22,10 +23,17 @@ export interface ModifierContributionRequest extends ModifierContributionBatchRe
 
 /** Each score omits its named modifier so contribution calculations can compare it with the full-build baseline. */
 export interface ModifierContributionBatchResult {
-  readonly scores: readonly { readonly id: string; readonly name: string; readonly dpsWithoutModifier: number }[];
+  readonly scores: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly boonId?: BoonId;
+    readonly dpsWithoutModifier: number;
+  }[];
 }
 
+/** Boon identity survives worker scoring independently of the displayed modifier label. */
 export interface ModifierContribution {
+  readonly boonId?: BoonId;
   readonly id: string;
   readonly name: string;
   readonly dpsIncrease: number;

@@ -119,14 +119,14 @@ export const WILLBENDER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition
             {
               type: 'boon',
               name: 'aegis',
-              boon: 'Aegis',
+              boon: 'aegis',
               stacks: 1,
               duration: 4
             },
             {
               type: 'boon',
               name: 'stability',
-              boon: 'Stability',
+              boon: 'stability',
               stacks: 1,
               duration: 4
             }

@@ -5,6 +5,7 @@
 import type { ConditionTickContribution, SkillHit } from '#gw2/app/results/charts/hit-timeline-model.js';
 import { effectName } from '#gw2/app/results/effect-labels.js';
 import { skillDamageIdentityKey, skillDamageKeyByIdentity } from '#gw2/app/results/skill-breakdown.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type {
@@ -83,6 +84,8 @@ export interface ChartSeries extends DamageSeries {
   readonly alliedAverageStacks?: Readonly<Record<string, number>>;
   readonly effectTypes?: Readonly<Record<string, ChartEffectType>>;
   readonly effectUnits?: Readonly<Record<string, string>>;
+  /** Display labels are independent of canonical boon IDs and disambiguated track keys. */
+  readonly effectLabels?: Readonly<Record<string, string>>;
   // Exact full-DPS-window summaries are independent of graph sampling and chart zoom.
   readonly effectSummaries?: Readonly<Record<string, ChartEffectSummary>>;
   readonly sustainedBoonGeneration?: Readonly<Record<string, SustainedBoonByAudience>>;
@@ -456,10 +459,8 @@ function buildEffectSeries(
   const alliedAverageStacks: Record<string, number> = {};
   const effectTypes: Record<string, ChartEffectType> = {};
   const effectUnits: Record<string, string> = {};
+  const effectLabels: Record<string, string> = {};
   const effectSummaries: Record<string, ChartEffectSummary> = {};
-  // Explicit track names take precedence; unnamed tracks use the shared effect label.
-  const label = (kind: string, name?: string): string =>
-    name ?? effectName(kind, { type: 'buff', kind, at: 0, source: 'effect' });
   const valueAt = (track: (typeof report.tracks)[number], at: number): number => {
     const state = effectStateAt(report, track, at);
     return track.measure === 'remaining-duration'
@@ -500,7 +501,13 @@ function buildEffectSeries(
       )
         continue;
 
-      const name = Object.hasOwn(effects, display) ? `${display} (${track.id})` : display;
+      // Boon series share their runtime ID across uptime, generation, and allied projections.
+      const key = isStandardBoon(track.kind) ? track.kind : display;
+      // Multiple tracks and metadata variants retain separate curves without encoding their labels in the key.
+      let name = key;
+      for (let duplicate = 1; Object.hasOwn(effects, name); duplicate++)
+        name = JSON.stringify([key, track.id, duplicate]);
+      effectLabels[name] = name === key ? display : `${display} (${track.id})`;
       const points = [
         ...new Set([
           ...times,
@@ -518,10 +525,10 @@ function buildEffectSeries(
     }
   }
 
-  const generation = new Map(Object.entries(boonGeneration.boons).map(([kind, value]) => [label(kind), value]));
+  const generation = new Map(Object.entries(boonGeneration.boons));
   for (const kind of Object.keys(boonGeneration.boons)) {
     const tracks = report.tracks.filter((track) => track.kind === kind && track.origin === 'party-projection');
-    const name = label(kind);
+    const name = kind;
     effectTypes[name] = 'boon';
 
     if (tracks.some((track) => track.measure === 'remaining-duration')) effectUnits[name] = 's';
@@ -551,16 +558,15 @@ function buildEffectSeries(
     alliedEffects,
     alliedAverageStacks,
     effectTypes,
+    effectLabels,
     effectSummaries,
-    sustainedBoonGeneration: Object.fromEntries(
-      Object.entries(boonGeneration.sustained).map(([kind, value]) => [label(kind), value])
-    ),
+    sustainedBoonGeneration: boonGeneration.sustained,
     boonGeneration: Object.fromEntries(
       [...generation].map(([name, value]) => [
         name,
         {
           ...value,
-          maximumStacks: report.tracks.find((track) => label(track.kind, track.name) === name)?.countLimit ?? undefined
+          maximumStacks: report.tracks.find((track) => track.kind === name)?.countLimit ?? undefined
         }
       ])
     ),

@@ -1,5 +1,5 @@
 /** Explicit PvE skill mechanics owned by the Paragon Warrior module. */
-import { BOON, CONDITION } from '#gw2/platform/constants.js';
+import { BOON, BOON_NAMES, CONDITION } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
@@ -56,8 +56,14 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Wa
           type: 'warrior.chant-activate',
           id: 'chant',
           effects: [
-            { type: 'boon', name: `Entry ${BOON.VIGOR}`, boon: BOON.VIGOR, stacks: 1, duration: 5 },
-            { type: 'boon', name: `Refrain ${BOON.REGENERATION}`, boon: BOON.REGENERATION, stacks: 1, duration: 3 }
+            { type: 'boon', name: `Entry ${BOON_NAMES[BOON.VIGOR]}`, boon: BOON.VIGOR, stacks: 1, duration: 5 },
+            {
+              type: 'boon',
+              name: `Refrain ${BOON_NAMES[BOON.REGENERATION]}`,
+              boon: BOON.REGENERATION,
+              stacks: 1,
+              duration: 3
+            }
           ]
         }
       }
@@ -183,10 +189,28 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Wa
           type: 'warrior.chant-activate',
           id: 'chant',
           effects: [
-            { type: 'boon', name: `Entry ${BOON.STABILITY}`, boon: BOON.STABILITY, stacks: 1, duration: 3 },
-            { type: 'boon', name: `Refrain ${BOON.SWIFTNESS}`, boon: BOON.SWIFTNESS, stacks: 1, duration: 3 },
-            { type: 'boon', name: `Refrain ${BOON.RESOLUTION}`, boon: BOON.RESOLUTION, stacks: 1, duration: 3 },
-            { type: 'boon', name: `Refrain ${BOON.PROTECTION}`, boon: BOON.PROTECTION, stacks: 1, duration: 3 }
+            { type: 'boon', name: `Entry ${BOON_NAMES[BOON.STABILITY]}`, boon: BOON.STABILITY, stacks: 1, duration: 3 },
+            {
+              type: 'boon',
+              name: `Refrain ${BOON_NAMES[BOON.SWIFTNESS]}`,
+              boon: BOON.SWIFTNESS,
+              stacks: 1,
+              duration: 3
+            },
+            {
+              type: 'boon',
+              name: `Refrain ${BOON_NAMES[BOON.RESOLUTION]}`,
+              boon: BOON.RESOLUTION,
+              stacks: 1,
+              duration: 3
+            },
+            {
+              type: 'boon',
+              name: `Refrain ${BOON_NAMES[BOON.PROTECTION]}`,
+              boon: BOON.PROTECTION,
+              stacks: 1,
+              duration: 3
+            }
           ]
         }
       }
@@ -213,10 +237,10 @@ export const PARAGON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Wa
           type: 'warrior.chant-activate',
           id: 'chant',
           effects: [
-            { type: 'boon', name: `Entry ${BOON.MIGHT}`, boon: BOON.MIGHT, stacks: 5, duration: 8 },
-            { type: 'boon', name: `Entry ${BOON.FURY}`, boon: BOON.FURY, stacks: 1, duration: 5 },
-            { type: 'boon', name: `Refrain ${BOON.MIGHT}`, boon: BOON.MIGHT, stacks: 1, duration: 8 },
-            { type: 'boon', name: `Refrain ${BOON.FURY}`, boon: BOON.FURY, stacks: 1, duration: 5 }
+            { type: 'boon', name: `Entry ${BOON_NAMES[BOON.MIGHT]}`, boon: BOON.MIGHT, stacks: 5, duration: 8 },
+            { type: 'boon', name: `Entry ${BOON_NAMES[BOON.FURY]}`, boon: BOON.FURY, stacks: 1, duration: 5 },
+            { type: 'boon', name: `Refrain ${BOON_NAMES[BOON.MIGHT]}`, boon: BOON.MIGHT, stacks: 1, duration: 8 },
+            { type: 'boon', name: `Refrain ${BOON_NAMES[BOON.FURY]}`, boon: BOON.FURY, stacks: 1, duration: 5 }
           ]
         }
       }

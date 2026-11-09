@@ -1,4 +1,4 @@
-import { ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, BOON_NAMES } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, SkillId } from '#gw2/platform/skills/types.js';
@@ -66,7 +66,7 @@ export function queueDodgePackets(runtime: ThiefRuntime, cast: RuntimeCast<Thief
         effect.type === 'condition'
           ? `${name} - ${effect.condition}`
           : effect.type === 'boon'
-            ? `${name} - ${effect.boon}`
+            ? `${name} - ${BOON_NAMES[effect.boon]}`
             : name
     })
   });

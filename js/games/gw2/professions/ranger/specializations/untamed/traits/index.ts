@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
@@ -100,8 +99,8 @@ const letLoose = defineTrait({
   balance: {
     internalCooldown: 9,
     effects: [
-      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 5, stacks: 1 },
-      { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 10, stacks: 5 }
+      { name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, duration: 5, stacks: 1 },
+      { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, duration: 10, stacks: 5 }
     ]
   },
   triggers: [
@@ -278,8 +277,8 @@ const enhancingImpact = defineTrait({
   balance: {
     internalCooldown: 1,
     effects: [
-      { name: boonKey(BOON.QUICKNESS), type: 'boon', boon: BOON.QUICKNESS, duration: 3, stacks: 1 },
-      { name: boonKey(BOON.STABILITY), type: 'boon', boon: BOON.STABILITY, duration: 3, stacks: 1 }
+      { name: BOON.QUICKNESS, type: 'boon', boon: BOON.QUICKNESS, duration: 3, stacks: 1 },
+      { name: BOON.STABILITY, type: 'boon', boon: BOON.STABILITY, duration: 3, stacks: 1 }
     ]
   },
   triggers: [
@@ -290,10 +289,8 @@ const enhancingImpact = defineTrait({
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
         untamedState.from(runtime.profession).rangerUnleashed &&
-        Boolean(
-          requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.ENHANCING_IMPACT), 'boon', boonKey(BOON.QUICKNESS))
-        ),
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.QUICKNESS),
+        Boolean(requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.ENHANCING_IMPACT), 'boon', BOON.QUICKNESS)),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.QUICKNESS,
       attribution: (_runtime, event) => ({
         skillId: TRAIT.ENHANCING_IMPACT,
         skillName: 'Enhancing Impact',
@@ -309,10 +306,8 @@ const enhancingImpact = defineTrait({
       when: (runtime, event) =>
         (isPlayerStrike(event) || isPetStrike(event)) &&
         !untamedState.from(runtime.profession).rangerUnleashed &&
-        Boolean(
-          requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.ENHANCING_IMPACT), 'boon', boonKey(BOON.STABILITY))
-        ),
-      effects: (effect) => effect.type === 'boon' && effect.name === boonKey(BOON.STABILITY),
+        Boolean(requireEffect(requireBalanceProfile(runtime.helpers, TRAIT.ENHANCING_IMPACT), 'boon', BOON.STABILITY)),
+      effects: (effect) => effect.type === 'boon' && effect.name === BOON.STABILITY,
       attribution: (_runtime, event) => ({
         skillId: TRAIT.ENHANCING_IMPACT,
         skillName: 'Enhancing Impact',

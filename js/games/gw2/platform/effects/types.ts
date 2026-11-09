@@ -1,6 +1,6 @@
 /** Authored effects combine strike inputs with timing, reactions, and per-application overrides. */
 import type { OwnedComboDescriptor } from '#gw2/platform/combos/types.js';
-import type { AuraName, SimulationActorType } from '#gw2/platform/constants.js';
+import type { AuraName, BoonId, SimulationActorType } from '#gw2/platform/constants.js';
 import type { EffectReaction } from '#gw2/platform/effects/reactions.js';
 import type { StrikePayloadFields } from '#gw2/platform/effects/strike-payload.js';
 import type { EffectAudience, EffectMetadata } from '#gw2/platform/events/events.js';
@@ -157,15 +157,26 @@ export interface AuraEffect extends SkillEffectBase {
 
 export type SkillEffect = StrikeEffect | ConditionEffect | ControlEffect | StatusEffect | AuraEffect | CustomEffect;
 
-export interface StatusEffect extends SkillEffectBase {
-  readonly type: 'boon' | 'buff';
+interface StatusEffectBase extends SkillEffectBase {
   /** Limits each grant after duration bonuses, independently of the buff pool's stacking cap. */
   readonly maximumDuration?: number;
-  readonly boon?: string;
   readonly kind?: string;
   readonly duration: number;
   readonly stacks?: number;
 }
+
+/** Standard boons require an ID; unique buffs retain their own status kind. */
+export interface BoonEffect extends StatusEffectBase {
+  readonly type: 'boon';
+  readonly boon: BoonId;
+}
+
+export interface BuffEffect extends StatusEffectBase {
+  readonly type: 'buff';
+  readonly boon?: never;
+}
+
+export type StatusEffect = BoonEffect | BuffEffect;
 
 /** Explicit packet timelines belong only to strike and condition effects; other effects keep aggregate timing. */
 export function effectTicks(effect: SkillEffect): readonly (StrikeTick | ConditionTick)[] | undefined {

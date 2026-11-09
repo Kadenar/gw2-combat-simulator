@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -159,7 +158,7 @@ const dontStop = defineTrait({
     {
       on: 'buff.applied',
       when: (runtime, event) =>
-        (event.kind || '').toLowerCase() === boonKey(BOON.SWIFTNESS) &&
+        (event.kind || '').toLowerCase() === BOON.SWIFTNESS &&
         Boolean(event.resolvedAudience?.includesSelf) &&
         balanceNumber(runtime.helpers, TRAIT.DONT_STOP, 'resourceGain') > 0,
       run(runtime: ThiefRuntime) {

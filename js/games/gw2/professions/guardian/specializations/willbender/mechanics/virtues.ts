@@ -1,4 +1,3 @@
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
@@ -171,7 +170,7 @@ function reactToWillbenderHit(
     }
 
     if (virtue === 'courage')
-      for (const name of [boonKey(BOON.AEGIS), boonKey(BOON.STABILITY)]) {
+      for (const name of [BOON.AEGIS, BOON.STABILITY]) {
         const profile = requireSkill(runtime.helpers, ID.CRASHING_COURAGE);
         const effect = requireEffect(profile, 'boon', name, requireSkillAction(profile, 'virtue'));
 

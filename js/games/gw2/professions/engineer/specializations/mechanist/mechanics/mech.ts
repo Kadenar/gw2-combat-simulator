@@ -1,4 +1,4 @@
-import { boonKey, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -145,7 +145,7 @@ interface MechImpactPayload {
 /** Commands and basic attacks share the mech's direct or copied Quickness, evaluated at execution time. */
 export function engineerMechHasQuickness(context: MechanicQueriesOf<EngineerRuntime>, at: number): boolean {
   return (
-    context.combat.activeBoonStacks(boonKey(BOON.QUICKNESS), at, 1, {
+    context.combat.activeBoonStacks(BOON.QUICKNESS, at, 1, {
       actor: 'companion',
       companionId: 'engineer.mech'
     }) > 0 ||
@@ -202,7 +202,7 @@ export function copyEngineerMechBoon(context: EngineerRuntime, event: EngineerRe
       effects: [
         {
           type: 'boon',
-          boon: String(event.kind),
+          boon: event.kind,
           stacks: event.stacks || 1,
           duration: event.duration || 0,
           audience: {

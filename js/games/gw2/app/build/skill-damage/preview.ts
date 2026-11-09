@@ -1,7 +1,7 @@
 import { normalizeAttributePreview } from '#gw2/app/build/attribute-preview-controls.js';
 import { createIsolatedPreview } from '#gw2/app/build/isolated-preview.js';
 import type { AttributePreviewInput } from '#gw2/app/build/types.js';
-import { boonKey, GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
+import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { BOON } from '#gw2/platform/constants.js';
 import type { PreviewControl } from '#gw2/platform/profession-presentation/attribute-preview.js';
@@ -20,10 +20,7 @@ export function createSkillDamagePreview(
 ) {
   const values = normalizeAttributePreview(controls, rawValues);
   const boons = Object.fromEntries(
-    GW2_STANDARD_BOONS.map((kind) => [
-      kind,
-      kind === boonKey(BOON.MIGHT) ? Number(values[kind] || 0) : Boolean(values[kind])
-    ])
+    GW2_STANDARD_BOONS.map((kind) => [kind, kind === BOON.MIGHT ? Number(values[kind] || 0) : Boolean(values[kind])])
   );
   const isolated = createIsolatedPreview(
     input,

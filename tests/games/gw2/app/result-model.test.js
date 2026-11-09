@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { buildChartSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
+import { buildChartSeries, buildTimeSeries, chartValueAt } from '#gw2/app/results/charts/time-series-model.js';
 import { skillDamageIdentityKey } from '#gw2/app/results/skill-breakdown.js';
 import { resultSummaryMetrics } from '#gw2/app/results/summary-metrics.js';
 import { formatResultTimelineTime, formatTimelineTime, resultCombatReferenceMs } from '#gw2/app/shared/result-clock.js';
@@ -190,9 +190,9 @@ test('resolved buffs supply final audiences and stack caps without counting sche
     1000,
     [{ id: 'derived-effect', kind: 'derived-effect', name: 'Derived Effect' }]
   );
-  assert.equal(series.effects.Might[0].v, 3);
+  assert.equal(series.effects.might[0].v, 3);
   assert.equal(series.effects['Derived Effect'][0].v, 1);
-  assert.equal(series.effects.Fury, undefined);
+  assert.equal(series.effects.fury, undefined);
 });
 
 test('timed relic proc chart series shows binary uptime across refreshes', () => {
@@ -265,7 +265,7 @@ test('chart series classify boons, conditions, and profession buffs', () => {
 
   assert.deepEqual(series.effectTypes, {
     Burning: 'condition',
-    Might: 'boon',
+    might: 'boon',
     'Custom Effect': 'buff'
   });
 });
@@ -304,14 +304,14 @@ test('duration-stacking boon charts show remaining stacked seconds', () => {
   );
 
   assert.deepEqual(
-    series.effects.Quickness.map((point) => point.v),
+    series.effects.quickness.map((point) => point.v),
     [3, 5, 4, 3, 2, 1, 0, 0]
   );
   assert.deepEqual(
-    series.effects.Alacrity.map((point) => point.v),
+    series.effects.alacrity.map((point) => point.v),
     [2, 1, 0, 2, 1, 0, 0, 0]
   );
-  for (const name of ['Fury', 'Protection', 'Regeneration', 'Resistance', 'Resolution', 'Vigor', 'Swiftness']) {
+  for (const name of ['fury', 'protection', 'regeneration', 'resistance', 'resolution', 'vigor', 'swiftness']) {
     assert.deepEqual(
       series.effects[name].map((point) => point.v),
       [3, 5, 4, 3, 2, 1, 0, 0],
@@ -320,15 +320,15 @@ test('duration-stacking boon charts show remaining stacked seconds', () => {
   }
 
   assert.deepEqual(series.effectUnits, {
-    Quickness: 's',
-    Alacrity: 's',
-    Fury: 's',
-    Protection: 's',
-    Regeneration: 's',
-    Resistance: 's',
-    Resolution: 's',
-    Vigor: 's',
-    Swiftness: 's'
+    quickness: 's',
+    alacrity: 's',
+    fury: 's',
+    protection: 's',
+    regeneration: 's',
+    resistance: 's',
+    resolution: 's',
+    vigor: 's',
+    swiftness: 's'
   });
 });
 
@@ -346,9 +346,9 @@ test('duration-stacking boon charts discard grants above the 30-second cap', () 
     1000
   );
 
-  assert.equal(series.effects.Quickness[1].v, 30);
-  assert.equal(series.effects.Quickness[30].v, 1);
-  assert.equal(series.effects.Quickness[31].v, 0);
+  assert.equal(series.effects.quickness[1].v, 30);
+  assert.equal(series.effects.quickness[30].v, 1);
+  assert.equal(series.effects.quickness[31].v, 0);
 });
 
 test('Swiftness duration stacking caps at 60 seconds', () => {
@@ -365,9 +365,9 @@ test('Swiftness duration stacking caps at 60 seconds', () => {
     1000
   );
 
-  assert.equal(series.effects.Swiftness[1].v, 60);
-  assert.equal(series.effects.Swiftness[60].v, 1);
-  assert.equal(series.effects.Swiftness[61].v, 0);
+  assert.equal(series.effects.swiftness[1].v, 60);
+  assert.equal(series.effects.swiftness[60].v, 1);
+  assert.equal(series.effects.swiftness[61].v, 0);
 });
 
 test('chart series excludes buffs that do not affect the simulated player', () => {
@@ -408,4 +408,53 @@ test('summon subtype remains part of damage identity', () => {
   });
 
   assert.notEqual(cloneKey, phantasmKey);
+});
+
+// Metadata variants and independent tracks of one boon must retain every curve and its display label.
+test('boon chart keys distinguish duplicate tracks and metadata variants', () => {
+  const track = {
+    id: 'first',
+    kind: 'might',
+    category: 'boon',
+    recipient: 'self',
+    origin: 'simulated',
+    countLimit: 25,
+    durationLimit: null,
+    measure: 'count',
+    segments: ['Sword', 'Hammer', 'Staff'].map((radiantWeapon, index) => ({
+      start: index,
+      end: index + 1,
+      count: index + 1,
+      countLimit: 25,
+      expiresAt: index + 1,
+      source: { type: 'buff', kind: 'might', at: index, source: 'fixture', metadata: { radiantWeapon } }
+    })),
+    terminal: { count: 0, expiresAt: null }
+  };
+  const second = { ...track, id: 'second', segments: [{ start: 0, end: 3, count: 8, countLimit: 25, expiresAt: 3 }] };
+  for (const variants of [false, true]) {
+    const series = buildTimeSeries(
+      {
+        dpsStartTime: 0,
+        combatEndTime: 3,
+        resolvedEvents: [],
+        effectReport: { start: 0, end: 3, tracks: [track, second] },
+        boonGeneration: { boons: {}, sustained: {} }
+      },
+      500,
+      {
+        effectName: (_kind, source) =>
+          variants && source.metadata?.radiantWeapon ? 'Might ' + source.metadata.radiantWeapon : 'Might'
+      }
+    );
+    const byLabel = new Map(Object.entries(series.effects).map(([key, points]) => [series.effectLabels[key], points]));
+    assert.equal(Object.keys(series.effects).length, variants ? 4 : 2);
+    assert.ok(series.effects.might);
+    assert.equal(chartValueAt(byLabel.get('Might (second)'), 1500), 8);
+
+    if (variants) {
+      for (const [index, label] of ['Might Sword', 'Might Hammer (first)', 'Might Staff (first)'].entries())
+        assert.equal(chartValueAt(byLabel.get(label), index * 1000 + 500), index + 1);
+    } else assert.equal(chartValueAt(byLabel.get('Might'), 1500), 2);
+  }
 });

@@ -13,9 +13,8 @@ import type {
   ProfessionAssumptionOption,
   ProfessionBuildAssumptions
 } from '#gw2/platform/builds/types.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { STANDARD_TARGET_ARMOR } from '#gw2/platform/combat/formulas.js';
-import { BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { BOON, BOON_NAMES, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { clamp } from '#kernel/core/numeric.js';
 import { requiredInput, requiredSelect } from '#ui/shared/dom.js';
 import { escapeHtml as esc } from '#ui/shared/html.js';
@@ -72,13 +71,13 @@ export function normalizeTargetArmor(value: number | string): number {
 }
 
 const PERMANENT_BOONS: readonly (readonly [string, string])[] = [
-  [boonKey(BOON.FURY), BOON.FURY],
-  [boonKey(BOON.PROTECTION), BOON.PROTECTION],
-  [boonKey(BOON.RESOLUTION), BOON.RESOLUTION],
-  [boonKey(BOON.REGENERATION), BOON.REGENERATION],
-  [boonKey(BOON.SWIFTNESS), BOON.SWIFTNESS],
-  [boonKey(BOON.VIGOR), BOON.VIGOR],
-  [boonKey(BOON.AEGIS), BOON.AEGIS]
+  [BOON.FURY, BOON_NAMES[BOON.FURY]],
+  [BOON.PROTECTION, BOON_NAMES[BOON.PROTECTION]],
+  [BOON.RESOLUTION, BOON_NAMES[BOON.RESOLUTION]],
+  [BOON.REGENERATION, BOON_NAMES[BOON.REGENERATION]],
+  [BOON.SWIFTNESS, BOON_NAMES[BOON.SWIFTNESS]],
+  [BOON.VIGOR, BOON_NAMES[BOON.VIGOR]],
+  [BOON.AEGIS, BOON_NAMES[BOON.AEGIS]]
 ];
 
 interface EffectItemOptions {
@@ -138,16 +137,16 @@ export function renderAssumptions(app: ProfessionAppState): void {
   const item = ({ name, checked, type, key = name, stacks = null }: EffectItemOptions): string =>
     `<label class="perma-item">
             <input type="checkbox" aria-label="${esc(name)}" data-effect-type="${type}" data-effect-key="${esc(key)}"${checked ? ' checked' : ''}>
-            <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS[name])}" alt="">
+            <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS[key])}" alt="">
             <span class="perma-name">${esc(name)}</span>
             ${stacks == null ? '' : `<input type="number" class="perma-stacks" aria-label="${esc(`${name} stacks`)}" data-effect-type="${type}" data-effect-key="${esc(key)}" min="0" max="25" value="${stacks}"${checked ? '' : ' disabled'}>`}
         </label>`;
   const boonItems = [
     item({
-      name: BOON.MIGHT,
+      name: BOON_NAMES[BOON.MIGHT],
       checked: Number(a.might) > 0,
       type: 'boon',
-      key: boonKey(BOON.MIGHT),
+      key: BOON.MIGHT,
       stacks: clamp(Number(a.might) || 0, 0, 25)
     }),
     ...PERMANENT_BOONS.map(([key, name]) =>
@@ -163,12 +162,12 @@ export function renderAssumptions(app: ProfessionAppState): void {
   const fixedBoonItems = `<div class="perma-fixed-boons">
     <label class="perma-item">
       <input type="checkbox" aria-label="Quickness" checked disabled>
-      <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS.Quickness)}" alt="">
+      <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS.quickness)}" alt="">
       <span>Quickness<small>Always active</small></span>
     </label>
     <label class="perma-item">
       <input type="checkbox" aria-label="Alacrity" checked disabled>
-      <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS.Alacrity)}" alt="">
+      <img class="perma-icon" src="${esc(MODIFIER_EFFECT_ICONS.alacrity)}" alt="">
       <span>Alacrity<small>Always active</small></span>
     </label>
   </div>`;

@@ -62,7 +62,7 @@ test('boon charts switch between self, allies, and comparison without losing eff
     await canvas.hover({ position: { x: box.width / 2, y: box.height / 2 } });
   };
 
-  await page.locator('input[data-series="Stability"]').uncheck();
+  await page.locator('input[data-series="stability"]').uncheck();
   await hover();
   await expect(tooltip).toContainText('Might (Self): 20');
   await expect(tooltip).not.toContainText('Allies');
@@ -78,7 +78,7 @@ test('boon charts switch between self, allies, and comparison without losing eff
   await hover();
   await expect(tooltip).toContainText('Might (Allies): 3');
   await expect(audience.getByRole('button', { name: 'Both', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('input[data-series="Stability"]')).not.toBeChecked();
+  await expect(page.locator('input[data-series="stability"]')).not.toBeChecked();
   await page.locator('[data-effect-type="boon"]').getByRole('button', { name: 'All', exact: true }).click();
   await hover();
   await expect(tooltip).toContainText('Stability (Allies): 2');

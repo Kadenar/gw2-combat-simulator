@@ -86,8 +86,6 @@ export function activeBoonStacks(
   maximum = 25,
   recipient: EffectRecipient = { actor: ACTOR.PLAYER }
 ): number {
-  boon = boon.toLowerCase();
-
   if (!isStandardBoon(boon)) return 0;
 
   const base = recipient.actor === ACTOR.PLAYER ? Number(context.config?.boons?.[boon] || 0) : 0;

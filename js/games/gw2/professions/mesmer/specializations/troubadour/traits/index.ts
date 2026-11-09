@@ -1,6 +1,5 @@
 import { PRIMARY_ATTRIBUTES } from '#gw2/platform/attributes/calculation.js';
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
@@ -107,7 +106,7 @@ const mayhem = defineTrait<MesmerSkill>({
 const raconteur = defineTrait<MesmerSkill>({
   id: TRAIT.RACONTEUR,
   balance: {
-    effects: [{ name: boonKey(BOON.PROTECTION), type: 'boon', boon: BOON.PROTECTION, duration: 3, stacks: 1 }]
+    effects: [{ name: BOON.PROTECTION, type: 'boon', boon: BOON.PROTECTION, duration: 3, stacks: 1 }]
   },
   triggers: [
     onTriggerPoint(troubadourTaleResolved, {
@@ -459,7 +458,7 @@ function reduceAlteredChordRecharge(context: MesmerRuntime, spent: number, at: n
 function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at: number): void {
   const profile = requireBalanceProfile(context.helpers, TRAIT.RACONTEUR);
 
-  if (!requireEffect(profile, 'boon', boonKey(BOON.PROTECTION))) return;
+  if (!requireEffect(profile, 'boon', BOON.PROTECTION)) return;
 
   const proc = context.effects.emit({
     receipt: true,
@@ -476,7 +475,7 @@ function triggerRaconteur(context: MesmerRuntime, skill: MesmerSkill, at: number
   });
   emitTraitProfile(context, TRAIT.RACONTEUR, TRAIT.RACONTEUR, proc, {
     at,
-    effect: { type: 'boon', name: boonKey(BOON.PROTECTION) },
+    effect: { type: 'boon', name: BOON.PROTECTION },
     skillId: TRAIT.RACONTEUR,
     skillName: profile.name,
     attribution: { actorType: ACTOR.PLAYER, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } },

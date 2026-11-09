@@ -2,7 +2,7 @@
  * Owns Evoker meditation heal, utility, and elite skill definitions.
  * Meditation trait reactions are registered by the Evoker module.
  */
-import { boonKey, buffApplicationStacks } from '#gw2/platform/combat/boons.js';
+import { buffApplicationStacks } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -48,15 +48,9 @@ export const EVOKER_MEDITATION_SKILL_MECHANICS: Readonly<Record<number, SkillDef
 
           const might = runtime.config.boons?.might
             ? Number(runtime.config.boons.might)
-            : buffApplicationStacks(
-                runtime.combat.boonApplications(boonKey(BOON.MIGHT)),
-                boonKey(BOON.MIGHT),
-                cast.start,
-                25,
-                {
-                  includes: (application) => application.resolvedAudience.includesSelf
-                }
-              );
+            : buffApplicationStacks(runtime.combat.boonApplications(BOON.MIGHT), BOON.MIGHT, cast.start, 25, {
+                includes: (application) => application.resolvedAudience.includesSelf
+              });
           const threshold = skillNumber(cast.skill, 'mightTierThreshold');
           const tier = might >= threshold * 2 ? 3 : might >= threshold ? 2 : 1;
           return effects

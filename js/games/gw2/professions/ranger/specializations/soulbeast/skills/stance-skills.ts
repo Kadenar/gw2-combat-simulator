@@ -1,5 +1,5 @@
 /** Stance profiles keep personal and shared applications under one occurrence with separate audiences. */
-import { boonKey } from '#gw2/platform/combat/boons.js';
+
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -34,7 +34,7 @@ export const SOULBEAST_STANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
           id: 'triggered-effects',
           effects: [
             { name: CONDITION.POISONED, type: 'condition', condition: CONDITION.POISONED, duration: 4, stacks: 1 },
-            { name: boonKey(BOON.MIGHT), type: 'boon', boon: BOON.MIGHT, duration: 4, stacks: 1 }
+            { name: BOON.MIGHT, type: 'boon', boon: BOON.MIGHT, duration: 4, stacks: 1 }
           ]
         }
       }
