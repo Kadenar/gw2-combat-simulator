@@ -3,7 +3,7 @@ import test from 'node:test';
 
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
-import { activeBoonStacks } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { resolverBoonStacks } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { createTestConditionResolution } from '#tests/helpers/condition-resolution.js';
@@ -15,7 +15,7 @@ test('Engineer No Scope survives overlapping Fury packet expiries', () => {
   ]);
   const context = { config: {}, traits: new Set([TRAIT.NO_SCOPE]), runtime: { boons }, time: 7 };
   assert.equal(
-    activeBoonStacks(
+    resolverBoonStacks(
       { combat: createMechanicCombatServices({ config: {}, boons }, createTestConditionResolution()) },
       'fury',
       1,
@@ -53,20 +53,20 @@ test('Engineer boon stacks preserve permanent stacks, caps, and live visibility'
     buffs: new Map([])
   };
   context.combat = createMechanicCombatServices(context, createTestConditionResolution());
-  assert.equal(activeBoonStacks(context, 'might', 25, 5), 7);
-  assert.equal(activeBoonStacks(context, 'might', 6, 5), 6);
-  assert.equal(activeBoonStacks(context, 'stability', 1, 5), 1);
+  assert.equal(resolverBoonStacks(context, 'might', 25, 5), 7);
+  assert.equal(resolverBoonStacks(context, 'might', 6, 5), 6);
+  assert.equal(resolverBoonStacks(context, 'stability', 1, 5), 1);
 
   // An application becomes visible only after insertion, even when it shares the queried timestamp.
   applications.push({ at: 5, expiresAt: 10, stacks: 1, resolvedAudience: { includesSelf: true } });
-  assert.equal(activeBoonStacks(context, 'might', 25, 5), 8);
+  assert.equal(resolverBoonStacks(context, 'might', 25, 5), 8);
   // Accepted runtime grants arrive chronologically; later grants must not change historical queries.
   applications.push({ at: 6, expiresAt: 10, stacks: 10, resolvedAudience: { includesSelf: true } });
-  assert.equal(activeBoonStacks(context, 'might', 25, 5), 8);
-  assert.equal(activeBoonStacks(context, 'might', 25, 6), 18);
-  assert.equal(activeBoonStacks(context, 'might', 25, 10), 4);
+  assert.equal(resolverBoonStacks(context, 'might', 25, 5), 8);
+  assert.equal(resolverBoonStacks(context, 'might', 25, 6), 18);
+  assert.equal(resolverBoonStacks(context, 'might', 25, 10), 4);
   assert.equal(
-    activeBoonStacks(
+    resolverBoonStacks(
       {
         combat: createMechanicCombatServices(
           { config: {}, boons: new Map(), buffs: new Map() },

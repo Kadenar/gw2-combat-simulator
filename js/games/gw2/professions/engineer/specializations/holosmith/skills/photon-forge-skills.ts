@@ -1,6 +1,6 @@
 /**
  * Owns Photon Forge skill definitions, heat variants, and forge-only actions.
- * Persistent heat and forge state live under `mechanics/photon-forge.ts`.
+ * Forge transitions, Overheat, and heat cadence share their owner in `mechanics/photon-forge.ts`.
  */
 import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -14,7 +14,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     icon: 'https://render.guildwars2.com/file/2B65387C32A4AE09D67AF9D438BA4B4C09A24EE4/1770389.png',
     type: 'Profession',
     slot: 'Profession_5',
-    // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
+    // Custom: Leaves Photon Forge while preserving any Overheat cooling already in progress; see `holosmith/mechanics/photon-forge.ts`.
     inputCategory: 'bar-swap',
     // Count the explicit bar-changing input in effort summaries.
     cooldown: 6,
@@ -331,7 +331,7 @@ export const HOLOSMITH_PHOTON_FORGE_SKILL_MECHANICS: Readonly<Record<string, Hol
     type: 'Profession',
     slot: 'Profession_5',
 
-    // Custom: Leaves Photon Forge and starts passive heat decay; see `holosmith/mechanics/photon-forge.ts`.
+    // Custom: Leaves Photon Forge while preserving any Overheat cooling already in progress; see `holosmith/mechanics/photon-forge.ts`.
     inputCategory: 'bar-swap',
     // Count the explicit bar-changing input in effort summaries.
     cooldown: 6,

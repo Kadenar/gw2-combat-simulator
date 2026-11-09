@@ -17,7 +17,7 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { activeBoonStacks } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
+import { resolverBoonStacks } from '#gw2/professions/engineer/core/mechanics/resolution-helpers.js';
 import { activeBoonStacks as modifierBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { scrapperState } from '#gw2/professions/engineer/specializations/scrapper/state.js';
@@ -293,7 +293,7 @@ export const scrapperTraits = [
 
 /** Keeps one pending Stability pulse and rechecks selection and live Stability before each grant. */
 function triggerMassMomentum(context: EngineerRuntime, event: EngineerResolverEvent): void | false {
-  if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || activeBoonStacks(context, BOON.STABILITY, 1, event.at) === 0)
+  if (!hasTrait(context, TRAIT.MASS_MOMENTUM) || resolverBoonStacks(context, BOON.STABILITY, 1, event.at) === 0)
     return false;
 
   const state = context.procs;
@@ -352,7 +352,7 @@ function reactToAppliedForceBuff(context: EngineerRuntime, event: EngineerResolv
   // Applied Force (GM trait): reaching 10+ might stacks triggers 3s stability on a 10s ICD.
   if (
     kind === BOON.MIGHT &&
-    activeBoonStacks(
+    resolverBoonStacks(
       context,
       BOON.MIGHT,
       balanceNumber(context.helpers, TRAIT.APPLIED_FORCE, 'maximumStacks'),

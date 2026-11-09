@@ -1,4 +1,4 @@
-import { ACTOR, type ComboFinisherType, type SimulationActorType } from '#gw2/platform/constants.js';
+import { ACTOR, type BoonId, type ComboFinisherType, type SimulationActorType } from '#gw2/platform/constants.js';
 import { buildResolverCondition, buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
@@ -139,8 +139,13 @@ export function buildEngineerCondition(
   return application;
 }
 
-/** Adapts resolver time and boon IDs to the shared permanent-plus-timed stack query. */
-export function activeBoonStacks(context: EngineerResolverContext, kind: string, maximum = 25, at = 0): number {
+/** Read player boon stacks at the explicit event time, including permanent and accepted timed grants. */
+export function resolverBoonStacks(
+  context: EngineerResolverContext,
+  kind: BoonId,
+  maximum: number,
+  at: number
+): number {
   return context.combat.activeBoonStacks(kind, at, maximum);
 }
 

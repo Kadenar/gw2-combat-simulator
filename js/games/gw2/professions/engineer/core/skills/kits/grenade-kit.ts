@@ -15,7 +15,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     icon: 'https://render.guildwars2.com/file/C2A603094B5709BE213D391AFD4D33293C19EA38/103396.png',
     type: 'Utility',
     slot: 'Utility',
-    // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
+    // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
     inputCategory: 'bar-swap',
     // Count the explicit bar-changing input in effort summaries.
     kitTransition: 'equip',
@@ -216,7 +216,7 @@ export const ENGINEER_GRENADE_KIT_SKILL_MECHANICS: Readonly<Record<string, Skill
     icon: 'https://render.guildwars2.com/file/7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png',
     type: 'Utility',
     slot: 'Utility',
-    // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
+    // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
     inputCategory: 'bar-swap',
     // Count the explicit bar-changing input in effort summaries.
     kitTransition: 'stow',

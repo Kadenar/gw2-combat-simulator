@@ -13,7 +13,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
     icon: 'https://render.guildwars2.com/file/5D6E07C3D17AD7C701B199684C641F0E024961C8/103437.png',
     type: 'Utility',
     slot: 'Utility',
-    // Custom: Equips the kit and updates bundle/weapon state; see `core/hooks.ts`.
+    // Custom: Equips the kit and updates bundle/weapon state; see `core/mechanics/kits.ts`.
     inputCategory: 'bar-swap',
     // Count the explicit bar-changing input in effort summaries.
     kitTransition: 'equip',
@@ -244,7 +244,7 @@ export const ENGINEER_ELIXIR_GUN_SKILL_MECHANICS: Readonly<Record<string, SkillD
     icon: 'https://render.guildwars2.com/file/7342BF326738A4C5132F42CE0915D3A2184E52FB/60975.png',
     type: 'Utility',
     slot: 'Utility',
-    // Custom: Stows the active kit and restores weapon state; see `core/hooks.ts`.
+    // Custom: Stows the active kit and restores weapon state; see `core/mechanics/kits.ts`.
     inputCategory: 'bar-swap',
     // Count the explicit bar-changing input in effort summaries.
     kitTransition: 'stow',
