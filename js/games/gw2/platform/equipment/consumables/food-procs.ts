@@ -1,4 +1,5 @@
 import { ACTOR } from '#gw2/platform/constants.js';
+import type { PacketEmission, ProfileEmission } from '#gw2/platform/effects/emission.js';
 import { FOOD_DATA, NOURISHMENT_ICON } from '#gw2/platform/equipment/consumables/food.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { Gw2ResolverRuntime } from '#gw2/platform/resolver/runtime-state.js';
@@ -44,44 +45,51 @@ export function createCriticalFoodEffect(ctx: Gw2ResolverRuntime, event: Gw2Reso
     ownerActorType: ACTOR.PLAYER,
     triggeredBy: event.skillName
   } as const;
-  let foodEvent: Gw2ResolverEvent;
+  let request: PacketEmission | ProfileEmission;
 
   if (conditionalEffect?.type === 'boon') {
     const name = conditionalEffect.name;
-    foodEvent = {
-      ...commonEvent,
-      type: 'buff',
-      name: `${proc.name} - ${name}`,
-      kind: name.toLowerCase(),
-      stacks: conditionalEffect.stacks,
-      duration: conditionalEffect.duration
+    // A food boon owns a separate yield even when several procs share the triggering skill.
+    request = {
+      kind: 'profile',
+      profile: { id: commonEvent.sourceId, name: proc.name },
+      at: event.at,
+      attribution: commonEvent,
+      effects: [{ type: 'boon', boon: name, stacks: conditionalEffect.stacks, duration: conditionalEffect.duration }],
+      transform: (packet) => ({ ...packet, name: `${proc.name} - ${name}` })
     };
   } else if (conditionalEffect?.type === 'condition') {
-    foodEvent = {
-      ...commonEvent,
-      type: 'condition',
-      name: `${proc.name} - ${conditionalEffect.name}`,
-      condition: conditionalEffect.name,
-      stacks: conditionalEffect.stacks,
-      duration: conditionalEffect.duration
+    request = {
+      kind: 'packet',
+      event: {
+        ...commonEvent,
+        type: 'condition',
+        name: `${proc.name} - ${conditionalEffect.name}`,
+        condition: conditionalEffect.name,
+        stacks: conditionalEffect.stacks,
+        duration: conditionalEffect.duration
+      }
     };
   } else {
     // Nourishment is a flat life-siphon strike, so it bypasses coefficient and critical scaling but stays strike damage.
-    foodEvent = {
-      ...commonEvent,
-      type: 'damage',
-      name: proc.name,
-      coefficient: 0,
-      flatDamage: proc.flatDamage,
-      damageKind: 'life-steal',
-      hits: 1,
-      hitIndex: 1,
-      totalHits: 1,
-      canCrit: false
+    request = {
+      kind: 'packet',
+      event: {
+        ...commonEvent,
+        type: 'damage',
+        name: proc.name,
+        coefficient: 0,
+        flatDamage: proc.flatDamage,
+        damageKind: 'life-steal',
+        hits: 1,
+        hitIndex: 1,
+        totalHits: 1,
+        canCrit: false
+      }
     };
   }
 
-  ctx.effects.emit({ kind: 'packet', durationContext: event, event: foodEvent });
+  ctx.effects.emit({ ...request, durationContext: event });
   ctx.effects.emit({
     kind: 'announcement',
     announcement: {

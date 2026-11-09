@@ -99,6 +99,9 @@ test('Strength Might scales with boon duration, increases live attributes, and e
       assert.equal(might.kind, 'might');
       assert.equal(might.stacks, 1);
       assert.equal(might.duration, 15);
+      // The critical-hit proc retains its own yield after live duration scaling.
+      assert.ok(might.boonGeneration?.activationId);
+      assert.equal(might.boonGeneration.at, might.at);
     }
   }
 });

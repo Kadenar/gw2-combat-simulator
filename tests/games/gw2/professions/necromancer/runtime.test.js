@@ -494,7 +494,12 @@ test('Oppressive Collapse observes conditions when its impact arrives and misses
     false
   );
   const landed = simulate([command, wait(1100)], config);
-  assert.equal(landed.resolvedEvents.find((event) => event.kind === 'might').stacks, 4);
+  const might = landed.resolvedEvents.find((event) => event.kind === 'might');
+  assert.equal(might.stacks, 4);
+  // Live condition-derived stacks belong to the impact's skill-owned boon yield.
+  assert.ok(might.boonGeneration?.activationId);
+  assert.equal(might.boonGeneration.at, might.at);
+  assert.equal(might.sourceId, ID.OPPRESSIVE_COLLAPSE);
   assert.equal(
     simulate([{ ...cast(ID.OPPRESSIVE_COLLAPSE), offTarget: true }], config).resolvedEvents.some(
       (event) => event.kind === 'might'

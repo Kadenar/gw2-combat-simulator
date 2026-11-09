@@ -1,7 +1,10 @@
 import { ACTOR } from '#gw2/platform/constants.js';
+import type { PacketEmission, ProfileEmission } from '#gw2/platform/effects/emission.js';
+import { requireBalanceNumber } from '#gw2/platform/effects/validation.js';
 import { SIGIL_BY_ID } from '#gw2/platform/equipment/sigils/data.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
 /** Selects the eventual damage payload; live callers still own eligibility, cooldowns, and next-hit arming. */
 export function createSigilDamagePayload(
@@ -24,21 +27,42 @@ export function createSigilDamagePayload(
   return events;
 }
 
-/** Both adapters use the same supported packet kinds; unsupported authored effects cannot silently become conditions. */
-export function createCriticalSigilEvent(id: number, proc: Gw2SigilProc, sourceSkill: string): SimulationEventBase {
-  if (proc.effect === 'strike') return createSigilStrikeEvent(id, proc, sourceSkill);
+/** Critical boon procs retain yield lineage; every proc samples modifiers from its triggering hit. */
+export function createCriticalSigilRequest(
+  id: number,
+  proc: Gw2SigilProc,
+  event: Gw2ResolverEvent
+): PacketEmission | ProfileEmission {
+  const sourceSkill = event.skillName || '';
 
-  if (proc.effect === 'condition') return createSigilConditionEvent(id, proc, sourceSkill);
-
-  // Critical boon procs enter ordinary buff resolution, retaining the sigil's player ownership.
   if (proc.effect === 'boon')
     return {
-      ...commonSigilEvent(id, sourceSkill),
-      type: 'buff',
-      at: 0,
-      kind: proc.boon?.toLowerCase(),
-      stacks: proc.stacks,
-      duration: proc.duration
+      kind: 'profile',
+      profile: { id: `sigil.${id}`, name: `Sigil of ${SIGIL_BY_ID[id].name}` },
+      at: event.at,
+      durationContext: event,
+      attribution: commonSigilEvent(id, sourceSkill),
+      effects: [
+        {
+          type: 'boon',
+          boon: proc.boon,
+          stacks: proc.stacks,
+          duration: requireBalanceNumber(proc.duration, `sigil.${id} boon duration`)
+        }
+      ],
+      transform: (packet) => ({ ...packet, name: `Sigil of ${SIGIL_BY_ID[id].name}` })
+    };
+
+  if (proc.effect === 'strike' || proc.effect === 'condition')
+    return {
+      kind: 'packet',
+      durationContext: event,
+      event: {
+        ...(proc.effect === 'strike'
+          ? createSigilStrikeEvent(id, proc, sourceSkill)
+          : createSigilConditionEvent(id, proc, sourceSkill)),
+        at: event.at
+      }
     };
 
   throw new TypeError(`Unsupported critical sigil effect: ${SIGIL_BY_ID[id]?.name ?? id} (${proc.effect}).`);

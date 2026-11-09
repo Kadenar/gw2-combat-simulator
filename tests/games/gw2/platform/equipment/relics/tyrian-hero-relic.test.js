@@ -70,6 +70,9 @@ test('Tyrian Hero grants personal Superspeed and five-player boons on either sup
       ]
     );
     for (const event of grants(result)) {
+      // Personal status and party boons belong to the same completed relic proc.
+      assert.ok(event.boonGeneration?.activationId);
+      assert.equal(event.boonGeneration.activationId, grants(result)[0].boonGeneration.activationId);
       assert.equal(event.resolvedAudience.includesSelf, true);
       assert.equal(event.resolvedAudience.alliedPlayerCount, event.kind === 'superspeed' ? 0 : 4);
       assert.equal(event.resolvedAudience.recipientCount, event.kind === 'superspeed' ? 1 : 5);
@@ -107,6 +110,7 @@ test('Tyrian Hero ignores interrupted and unrelated casts and has no internal co
   assert.equal(might.length, 2);
   assert.equal(might[0].at, might[1].at);
   assert.notEqual(might[0].activationId, might[1].activationId);
+  assert.notEqual(might[0].boonGeneration.activationId, might[1].boonGeneration.activationId);
   assert.ok(grants(result).every((event) => event.triggeredBy === 'Instant Shout'));
 });
 

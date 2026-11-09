@@ -6,7 +6,7 @@ import type { Gw2ConditionHelpers } from '#gw2/platform/equipment/relics/types.j
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { SIGIL_BY_ID, SIGIL_PROCS } from '#gw2/platform/equipment/sigils/data.js';
 import { gw2SigilIds } from '#gw2/platform/equipment/sigils/loadout.js';
-import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
+import { createCriticalSigilRequest } from '#gw2/platform/equipment/sigils/proc-events.js';
 import type { Gw2SigilProc } from '#gw2/platform/equipment/sigils/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
@@ -47,15 +47,7 @@ function createResolvedCriticalSigilEffects(
     const proc = SIGIL_PROC_LOOKUP[id];
     // Decisions are synchronous; commit their deadlines before queueing any derived effects.
     ctx.procs.setDeadline(`sigil.${id}`, readyAt);
-    ctx.effects.emit({
-      kind: 'packet',
-      // Boon procs sample the triggering actor's duration modifiers at application time.
-      durationContext: event,
-      event: {
-        ...createCriticalSigilEvent(id, proc, sourceSkill),
-        at: event.at
-      }
-    });
+    ctx.effects.emit(createCriticalSigilRequest(id, proc, event));
     ctx.effects.emit({
       kind: 'announcement',
       announcement: {

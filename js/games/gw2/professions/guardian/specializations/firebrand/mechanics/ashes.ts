@@ -261,17 +261,14 @@ function grantFirebrandAshes(runtime: GuardianRuntime, cast: RuntimeCast<Guardia
   const action = requireSkillAction(owner, 'grant');
   const might = requireEffect(owner, 'boon', boonKey(BOON.MIGHT), action);
 
+  // Keep the authored Might grant in profile expansion so reports retain its generation lineage.
   if (might)
     runtime.effects.emit({
-      kind: 'packet',
-      event: {
-        ...event,
-        at: runtime.time,
-        kind: boonKey(BOON.MIGHT),
-        stacks: effectNumber(owner, might, 'stacks'),
-        duration: effectNumber(owner, might, 'duration'),
-        audience: { recipients: RECIPIENT.PARTY }
-      }
+      kind: 'profile',
+      profile: owner,
+      at: runtime.time,
+      attribution: event,
+      effects: [{ ...might, audience: { recipients: RECIPIENT.PARTY } }]
     });
 
   const admission = resolveAshesGrantData({ catalog: runtime.helpers, traits: runtime.traits }, owner, action);

@@ -53,6 +53,18 @@ const strike = (runtime, at) =>
     }
   });
 
+// The Might grant is a skill yield, independent of the separately consumed Ashes charges.
+test('Ashes Might retains its granting skill and boon-generation ownership', () => {
+  const result = runGuardian([ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST, wait(1000)], { specialization: 'Firebrand' });
+  assert.deepEqual(result.warnings, []);
+  const might = result.resolvedEvents.find(
+    (event) => event.kind === 'might' && event.sourceId === ID.ASHES_OF_THE_JUST
+  );
+  assert.ok(might?.boonGeneration?.activationId);
+  assert.equal(might.boonGeneration.at, might.at);
+  assert.equal(might.skillId, ID.ASHES_OF_THE_JUST);
+});
+
 // Grants mutate one charge owner; emitted history and public snapshots remain detached.
 test('Ashes spending cannot mutate its delivered buff or public snapshot', () => {
   const result = runGuardian(

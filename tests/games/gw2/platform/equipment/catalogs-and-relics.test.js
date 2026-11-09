@@ -629,6 +629,9 @@ test('Mistburn also grants once per eligible resolver-created player Might appli
   const grants = result.resolvedEvents.filter(
     (event) => event.type === 'buff' && event.sourceId === `relic.${RELIC_IDS.MISTBURN}`
   );
+  // Each accepted Might trigger owns a new relic yield, even without lineage on the incoming grant.
+  assert.ok(grants.every((event) => event.boonGeneration?.activationId));
+  assert.equal(new Set(grants.map((event) => event.boonGeneration.activationId)).size, grants.length);
   assert.deepEqual(
     grants.map((event) => event.at),
     [1, 2.001]

@@ -1,9 +1,9 @@
 /** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
 import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
@@ -79,26 +79,35 @@ function resolveOppressiveCollapse(runtime: NecromancerRuntime, event: Gw2Resolv
 
   if (!stacks) return;
 
-  const boon = {
-    type: 'buff' as const,
+  // Computed stacks still form one skill-owned boon yield at the accepted impact.
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: requireSkill(runtime.helpers, ID.OPPRESSIVE_COLLAPSE),
+    durationContext: event,
     at: runtime.time,
-    source: 'necromancer',
-    sourceId: ID.OPPRESSIVE_COLLAPSE,
-    actorType: ACTOR.PLAYER,
-    skillId: ID.OPPRESSIVE_COLLAPSE,
-    skillName: event.skillName,
-    activationId: event.activationId,
-    kind: boonKey(BOON.MIGHT),
-    stacks,
-    duration: 8,
-    audience: {
-      recipients: RECIPIENT.PARTY,
-      maximumRecipients: 5,
-      // Capture the companions present at this impact; later summons are not recipients of this Might grant.
-      eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
-    }
-  };
-  runtime.effects.emit({ kind: 'packet', event: boon, durationContext: event });
+    attribution: {
+      source: 'necromancer',
+      sourceId: ID.OPPRESSIVE_COLLAPSE,
+      actorType: ACTOR.PLAYER,
+      skillId: ID.OPPRESSIVE_COLLAPSE,
+      skillName: event.skillName,
+      activationId: event.activationId
+    },
+    effects: [
+      {
+        type: 'boon',
+        boon: BOON.MIGHT,
+        stacks,
+        duration: 8,
+        audience: {
+          recipients: RECIPIENT.PARTY,
+          maximumRecipients: 5,
+          // Capture the companions present at this impact; later summons are not recipients of this Might grant.
+          eligibleCompanionIds: necromancerActiveBoonCompanionIds(runtime)
+        }
+      }
+    ]
+  });
 }
 
 /** The torch's accepted-impact declaration selects the one application that grants party Might. */

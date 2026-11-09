@@ -50,6 +50,9 @@ test('Midnight King is selectable and grants its PvE boons to self and up to fou
     ]
   );
   for (const event of grants(result)) {
+    // Sibling boons share the accepted relic proc's generation ownership.
+    assert.ok(event.boonGeneration?.activationId);
+    assert.equal(event.boonGeneration.activationId, grants(result)[0].boonGeneration.activationId);
     assert.equal(event.resolvedAudience.includesSelf, true);
     assert.equal(event.resolvedAudience.alliedPlayerCount, 4);
     assert.equal(event.resolvedAudience.recipientCount, 5);

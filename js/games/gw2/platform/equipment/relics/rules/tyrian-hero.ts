@@ -18,37 +18,35 @@ export const tyrianHero = defineRelic({
     announceRelic(ctx, event, name);
     // PvE values: https://wiki.guildwars2.com/wiki/Relic_of_the_Tyrian_Hero
     // Superspeed is a status, so only Might and Swiftness receive boon-duration scaling.
-    for (const { kind, duration, stacks, audience } of [
-      { kind: STATUS.SUPERSPEED, duration: 3, stacks: 1, audience: { recipients: RECIPIENT.SELF } },
-      {
-        kind: boonKey(BOON.MIGHT),
-        duration: 10,
-        stacks: 2,
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+    // A completed skill grants one relic profile, retaining each status's audience and duration policy.
+    ctx.effects.emit({
+      kind: 'profile',
+      profile: { id: `relic.${RELIC_IDS.TYRIAN_HERO}`, name },
+      at: event.at,
+      attribution: {
+        ...playerOwnedRelicSource(RELIC_IDS.TYRIAN_HERO),
+        skillName: name,
+        triggeredBy: event.skillName,
+        activationId: event.activationId
       },
-      {
-        kind: boonKey(BOON.SWIFTNESS),
-        duration: 10,
-        stacks: 1,
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
-      }
-    ]) {
-      ctx.effects.emit({
-        kind: 'packet',
-        event: {
-          type: 'buff',
-          at: event.at,
-          kind,
-          duration,
-          stacks,
-          ...playerOwnedRelicSource(RELIC_IDS.TYRIAN_HERO),
-          name: `${name} - ${kind}`,
-          skillName: name,
-          triggeredBy: event.skillName,
-          activationId: event.activationId,
-          audience
+      effects: [
+        { type: 'buff', kind: STATUS.SUPERSPEED, duration: 3, stacks: 1, audience: { recipients: RECIPIENT.SELF } },
+        {
+          type: 'boon',
+          kind: boonKey(BOON.MIGHT),
+          duration: 10,
+          stacks: 2,
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+        },
+        {
+          type: 'boon',
+          kind: boonKey(BOON.SWIFTNESS),
+          duration: 10,
+          stacks: 1,
+          audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
         }
-      });
-    }
+      ],
+      transform: (packet) => ({ ...packet, name: `${name} - ${packet.kind}` })
+    });
   }
 });

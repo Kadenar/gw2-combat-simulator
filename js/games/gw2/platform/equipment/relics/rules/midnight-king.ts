@@ -1,5 +1,4 @@
 /** Player disables grant party Might and Fury through normal boon duration and recipient resolution. */
-import { boonKey } from '#gw2/platform/combat/boons.js';
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -17,27 +16,28 @@ function grantBoons(ctx: Gw2RelicContext, state: Gw2RelicState, event: Simulatio
   state.readyAt = event.at + 1;
   const name = 'Relic of the Midnight King';
   announceRelic(ctx, event, name);
-  for (const { boon, duration, stacks } of [
-    { boon: BOON.MIGHT, duration: 9, stacks: 3 },
-    { boon: BOON.FURY, duration: 5, stacks: 1 }
-  ]) {
-    ctx.effects.emit({
-      kind: 'packet',
-      event: {
-        type: 'buff',
-        at: event.at,
-        kind: boonKey(boon),
-        duration,
-        stacks,
-        ...playerOwnedRelicSource(RELIC_IDS.MIDNIGHT_KING),
-        name: `${name} - ${boon}`,
-        skillName: name,
-        triggeredBy: event.skillName,
-        activationId: event.activationId,
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
-      }
-    });
-  }
+  // One proc owns both boon yields; shared expansion records their applications for reports.
+  ctx.effects.emit({
+    kind: 'profile',
+    profile: { id: `relic.${RELIC_IDS.MIDNIGHT_KING}`, name },
+    at: event.at,
+    attribution: {
+      ...playerOwnedRelicSource(RELIC_IDS.MIDNIGHT_KING),
+      skillName: name,
+      triggeredBy: event.skillName,
+      activationId: event.activationId
+    },
+    effects: [
+      { boon: BOON.MIGHT, duration: 9, stacks: 3 },
+      { boon: BOON.FURY, duration: 5, stacks: 1 }
+    ].map((effect) => ({
+      ...effect,
+      name: `${name} - ${effect.boon}`,
+      type: 'boon' as const,
+      audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+    })),
+    transform: (packet, effect) => ({ ...packet, name: effect.name })
+  });
 }
 
 export const midnightKing = defineRelic({

@@ -117,6 +117,11 @@ test('Ghost Pepper Popper grants Might by day and inflicts Chilled by night', ()
   });
 
   const day = pepperSimulation('day');
+  // Food procs own independent boon yields rather than inheriting the triggering attack's activation.
+  const foodBoons = day.resolvedEvents.filter((event) => event.type === 'buff' && event.source === 'Food');
+  assert.ok(foodBoons.length > 0);
+  assert.ok(foodBoons.every((event) => event.boonGeneration?.activationId));
+  assert.equal(new Set(foodBoons.map((event) => event.boonGeneration.activationId)).size, foodBoons.length);
   const dayHits = day.resolvedEvents.filter((event) => event.type === 'damage' && event.skillName === 'Flying Cutter');
 
   assert.equal(day.procSteps.filter((event) => event.type === 'food_proc').length, 2);

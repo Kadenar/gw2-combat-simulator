@@ -6,7 +6,7 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js'
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { decideCriticalSigils } from '#gw2/platform/equipment/sigils/critical-procs.js';
 import { SIGIL_IDS } from '#gw2/platform/equipment/sigils/data.js';
-import { createCriticalSigilEvent } from '#gw2/platform/equipment/sigils/proc-events.js';
+import { createCriticalSigilRequest } from '#gw2/platform/equipment/sigils/proc-events.js';
 import { createGw2ResolverRuntimeState } from '#gw2/platform/resolver/runtime-state.js';
 import { simulateGw2 } from '#gw2/platform/simulation/simulate.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
@@ -55,7 +55,7 @@ test('critical sigil decisions use sampled outcomes and strict deadlines without
     ]
   );
   assert.throws(
-    () => createCriticalSigilEvent(999999, { effect: 'unsupported' }, ''),
+    () => createCriticalSigilRequest(999999, { effect: 'unsupported' }, { at: 0 }),
     /Unsupported critical sigil effect/
   );
 });
