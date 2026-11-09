@@ -1,10 +1,8 @@
-import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
-import { beguilingHazeCastDuration } from '#gw2/professions/revenant/data/beguiling-haze-timing.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
 import {
   REVENANT_CONDUIT_FORM_BY_LEGEND,
@@ -16,6 +14,7 @@ import {
   conduitAffinityPolicy,
   gainAffinity
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
+import { beguilingHazeLifecycle } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
 import { FORM_EXPIRY } from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
 import {
   cosmicWisdom,
@@ -27,10 +26,7 @@ import {
   entityCastCompleted
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/trigger-points.js';
 import { conduitUpkeepLifecycle } from '#gw2/professions/revenant/specializations/conduit/mechanics/upkeep.js';
-import {
-  cleanseHexEater,
-  completeBeguilingHaze
-} from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
+import { cleanseHexEater } from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
 import {
   dervishAttack,
   dervishCasts,
@@ -64,18 +60,6 @@ const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   // Control-triggered Burning shares Mistfire's profile, excluding its own Twin Moon chain.
 
   availability(runtime, skill) {
-    const state = conduitState.from(runtime.profession);
-
-    if (skill.id === ID.BEGUILING_HAZE) {
-      // Project the shared recharge without mutating state during an availability query.
-      const readyAt = state.beguilingHazeRecharge
-        ? gw2CooldownReadyAt(runtime.cooldownController.project(skill, state.beguilingHazeRecharge))
-        : state.beguilingHazeReadyAt;
-
-      if ((state.beguilingHazeCharges || 0) <= 0 && runtime.time < (readyAt || 0))
-        return denySkillCast(skill, 'revenant.beguiling-haze-cooldown', 'Beguiling Haze is recharging.', readyAt);
-    }
-
     // All five variants share one bar slot; block the variant the active legend does not supply.
     if (
       RELEASE_POTENTIAL_IDS.has(skill.id) &&
@@ -88,30 +72,6 @@ const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
       );
 
     return { ready: true };
-  },
-  resolveCastSkill(runtime, skill) {
-    // Select the follow-up cutoff before cancellation checks and charge consumption.
-    if (skill.id !== ID.BEGUILING_HAZE || conduitState.from(runtime.profession).beguilingHazeCharges <= 0) return skill;
-
-    return {
-      ...skill,
-      interruptCommitMs: skillNumber(requireSkill(runtime.helpers, ID.BEGUILING_HAZE_FOLLOW_UP), 'interruptCommitMs')
-    };
-  },
-  castDurationMs(runtime, skill, durationMs) {
-    if (skill.id !== ID.BEGUILING_HAZE) return durationMs;
-
-    const specialization = runtime.profession.specialization;
-
-    if (specialization.kind !== 'Conduit') throw new TypeError('Beguiling Haze requires Conduit state.');
-
-    return (
-      beguilingHazeCastDuration(
-        durationMs / 1000,
-        (specialization.state.beguilingHazeCharges || 0) > 0,
-        requireSkill(runtime.helpers, ID.BEGUILING_HAZE_FOLLOW_UP)
-      ) * 1000
-    );
   },
   rechargeWork(runtime, skill, work) {
     if (skill.id === ID.SWAP_LEGENDS) return enhancedLegendRecharge(runtime, skill, work);
@@ -158,13 +118,6 @@ const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     'revenant.entity-boon-completed'(runtime, context) {
       if (context.kind === 'cast') runtime.fireTrigger(entityBoonCompleted, { cast: context.cast });
     },
-    'revenant.complete-haze'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      // Shared Wisdom is already published; Core traits precede the shared-ammo transition.
-      completeRevenantCast(runtime, context.cast);
-      completeBeguilingHaze(runtime, context.cast);
-    },
     'revenant.hex-eater-cleanse'(runtime, context) {
       if (context.kind !== 'cast') throw new TypeError('Hex-Eater cleanse requires a cast.');
 
@@ -184,11 +137,6 @@ const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
       if (context.kind === 'effect') gainAffinity(runtime, (context.skill.energyCost || 0) >= 25 ? 2 : 1);
     }
   },
-  onCooldownReset(runtime) {
-    // A full cooldown reset makes Beguiling Haze immediately available.
-    conduitState.from(runtime.profession).beguilingHazeReadyAt = runtime.time;
-    conduitState.from(runtime.profession).beguilingHazeRecharge = null;
-  },
   tasks: {
     [FORM_EXPIRY]: formExpiry,
     [MESMER_RELEASE]: mesmerRelease
@@ -197,6 +145,7 @@ const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
 
 /** Start upkeep contributions after Conduit's immediate completion rewards and form transitions. */
 export const conduitHooks = composeRuntimeHooks<RevenantRuntimeState, RevenantSkill>([
+  beguilingHazeLifecycle,
   conduitLifecycle,
   conduitUpkeepLifecycle
 ]);

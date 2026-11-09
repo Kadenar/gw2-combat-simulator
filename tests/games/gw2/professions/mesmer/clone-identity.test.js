@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { consumeMesmerResources } from '#gw2/professions/mesmer/shatter-lifecycle.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
@@ -45,7 +45,7 @@ test('explicit Mesmer operations preserve clone identity across replacement, sha
     [1]
   );
   assert.deepEqual(first.cancelled, ['mesmer.clone:1']);
-  assert.equal(createMesmerActions({ ...first.context }).consumeResources(0), 3);
+  assert.equal(consumeMesmerResources({ ...first.context }, 0), 3);
   gain({ ...first.context }, 1);
   assert.deepEqual(
     first.context.profession.core.clones.map((clone) => clone.id),

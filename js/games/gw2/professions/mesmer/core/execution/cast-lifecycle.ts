@@ -5,12 +5,7 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { scheduleDirectSkillResources } from '#gw2/professions/mesmer/core/mechanics/illusions/resources.js';
 import { mesmerHealCompleted } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import {
-  completeMesmerShatter,
-  createMesmerActions,
-  createMesmerSkillEffects,
-  mesmerShatterDefinition
-} from '#gw2/professions/mesmer/family-mechanics.js';
+import { createMesmerSkillEffects, mesmerShatterDefinition } from '#gw2/professions/mesmer/family-mechanics.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -62,37 +57,7 @@ export function scheduleMesmerPhantasmEffects(
   });
 }
 
-/** A declared shatter commits exactly one resource transaction while its projectiles retain their own timeline. */
-export function commitMesmerShatter(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>): void {
-  const skill = cast.skill;
-  const details = context.profession.core.castDetails.get(cast.id)!;
-
-  if (details.reservedShatterResources && !details.shatterSpendCommitted) {
-    details.shatterSpent = createMesmerActions(context).commitReservedResources(
-      context.time,
-      details.shatterSpent ?? 0,
-      {
-        activationId: cast.id
-      }
-    );
-    details.shatterSpendCommitted = true;
-  }
-
-  const delivery = mesmerCastDelivery(cast, skill, Infinity);
-  const resolution = createMesmerActions(context).handleShatter(
-    context,
-    skill,
-    context.time,
-    details.shatterSpent ?? null,
-    cast.start,
-    details.reservedShatterResources ? cast.fullEnd : context.time,
-    delivery
-  );
-
-  if (resolution) completeMesmerShatter(context, resolution);
-}
-
-/** Commits skill effects and resources, restoring interrupted reservations and clearing cast-local state. */
+/** Complete ordinary resource grants and healing reactions, then retire shared cast bookkeeping. */
 export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>, skill: MesmerSkill): void {
   const details = context.profession.core.castDetails.get(cast.id) || {};
   const at = context.time;
@@ -103,20 +68,13 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
   }
 
   const completedInterruptedPhantasm = isCommittedInterruptedPhantasm(cast, skill);
-  // A committed bladesong keeps its projectile train and completion reactions on their authored timeline.
-  const committedBladesong = details.reservedShatterResources && details.shatterSpendCommitted;
   const delivery = mesmerCastDelivery(
     cast,
     skill,
-    interrupted && !completedInterruptedPhantasm && !committedBladesong ? cast.effectiveEnd : Infinity
+    interrupted && !completedInterruptedPhantasm ? cast.effectiveEnd : Infinity
   );
   try {
-    if (cast.cancelledBeforeCommit && details.reservedShatterResources && !details.shatterSpendCommitted) {
-      createMesmerActions(context).restoreReservedResources(details.shatterSpent || 0);
-      return;
-    }
-
-    // Cancelled attempts still refund reservations and clear cast-local state, but grant no completion effects.
+    // Cancelled attempts clear cast-local state without granting completion effects.
     if (cast.cancelledBeforeCommit) return;
 
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) return;
@@ -149,18 +107,8 @@ export function completeMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mes
   }
 }
 
-/**
- * Reserves or consumes shatter resources at the correct cast progress and
- * stores cast-local details for completion or interruption handling.
- */
+/** Schedule ordinary cast-start resource grants and retain their ownership until completion. */
 export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<MesmerSkill>, skill: MesmerSkill): void {
-  const shatter = mesmerShatterDefinition(context, skill.id);
-  let shatterSpent = null;
-  const spendProgress = Number(shatter?.resourceSpendProgress);
-  const delayedResourceSpend =
-    shatter?.consumesResources !== false &&
-    Number.isFinite(spendProgress) &&
-    canonicalTime(cast.fullEnd) > canonicalTime(cast.start);
   // Resource eligibility and queued payloads must agree on the scheduler's exact instant.
   const earlyResourceAt =
     skill.resource?.mode === 'add' && skill.resource.timingAnchor === 'castStart'
@@ -185,30 +133,9 @@ export function startMesmerCast(context: MesmerRuntime, cast: RuntimeCast<Mesmer
     );
   }
 
-  if (delayedResourceSpend) {
-    shatterSpent = createMesmerActions(context).reserveResources();
-  } else if (shatter && shatter.consumesResources !== false) {
-    shatterSpent = createMesmerActions(context).consumeResources(cast.start, {
-      activationId: cast.id
-    });
-  }
-
   context.profession.core.castDetails.set(cast.id, {
     earlyResourceAt,
     earlyResourceOwnerId,
-    resourceScheduledDuringCast,
-    reservedShatterResources: delayedResourceSpend,
-    shatterSpendCommitted: !delayedResourceSpend,
-    shatterSpent
+    resourceScheduledDuringCast
   });
-
-  if (delayedResourceSpend && !cast.cancelledBeforeCommit) {
-    context.schedule(
-      'mesmer.blade-spend',
-      canonicalTime(Math.min(cast.effectiveEnd, cast.start + (cast.fullEnd - cast.start) * spendProgress)),
-      cast.id,
-      undefined,
-      -110
-    );
-  }
 }

@@ -14,6 +14,7 @@ export interface ConduitState {
   conduitForm: string;
   beguilingHazeCharges: number;
   beguilingHazeReadyAt: number;
+  /** Main recharge saved while follow-ups occupy the button; null means no recharge remains. */
   beguilingHazeRecharge: RechargeProgress | null;
 }
 

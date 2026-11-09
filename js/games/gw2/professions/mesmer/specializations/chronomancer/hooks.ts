@@ -2,10 +2,11 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
+import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
 import { masterOfFragmentationDuration } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { completeMesmerShatter, createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
+import { consumeMesmerResources } from '#gw2/professions/mesmer/shatter-lifecycle.js';
 import { chronomancerBuffPolicies } from '#gw2/professions/mesmer/specializations/chronomancer/effect-state.js';
 import {
   chronomancerAvailability,
@@ -35,7 +36,7 @@ export const chronomancerHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = 
       const resolution = createChronomancerMechanics(runtime).beginContinuumSplit(context.skill, runtime.time, {
         activationId: context.cast.id
       });
-      completeMesmerShatter(runtime, resolution);
+      runtime.fireTrigger(mesmerShatterCompleted, { resolution });
     }
   },
   tasks: {
@@ -53,12 +54,11 @@ export const chronomancerHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = 
 
 /** Bind Continuum to its explicit checkpoint state and the recharge owner for this operation. */
 function createChronomancerMechanics(context: MesmerRuntime) {
-  const actions = createMesmerActions(context);
   return createContinuumController({
     state: context,
     cooldownController: context.cooldownController,
     unaffectedCooldownIds: CONTINUUM_UNAFFECTED_COOLDOWN_IDS,
-    consumeResources: actions.consumeResources,
+    consumeResources: (at, details) => consumeMesmerResources(context, at, details),
     durationPerSource: skillNumber(requireSkill(context.helpers, ID.CONTINUUM_SPLIT), 'durationPerTier'),
     bonusDuration: masterOfFragmentationDuration(context),
     scheduleExpiry: (at) => context.schedule('mesmer.continuum-expire', at, at, undefined, -30)

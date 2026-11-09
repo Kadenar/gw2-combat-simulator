@@ -1,7 +1,6 @@
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import {
-  commitMesmerShatter,
   scheduleMesmerPhantasmEffects,
   startMesmerCast
 } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
@@ -19,7 +18,7 @@ import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/m
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { boundedNumber } from '#kernel/core/numeric.js';
 
-/** Illusions share one resource transaction owner; tasks and cast selection travel with that lifecycle. */
+/** Own illusion creation, ordinary resource gains, and cast preparation independently of shatter spending. */
 export const mesmerIllusionHooks = {
   initialize(runtime) {
     const resourceDefinition = mesmerResourceDefinition(runtime.profession.specialization.kind, runtime.helpers);
@@ -89,9 +88,6 @@ export const mesmerIllusionHooks = {
     }
   },
   sideEffectHandlers: {
-    'mesmer.shatter'(runtime, context) {
-      if (context.kind === 'cast') commitMesmerShatter(runtime, context.cast);
-    },
     'mesmer.summon-phantasm'(runtime, context) {
       if (context.kind === 'cast') scheduleMesmerPhantasmEffects(runtime, context.cast, context.skill);
     },

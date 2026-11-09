@@ -1,6 +1,5 @@
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import { virtuosoBuffPolicies } from '#gw2/professions/mesmer/specializations/virtuoso/effect-state.js';
 import { virtuosoAvailability } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesongs.js';
@@ -27,22 +26,6 @@ export const virtuosoHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
   },
   initialize: (runtime) => runtime.fireTrigger(virtuosoInitialized),
   availability: virtuosoAvailability,
-  tasks: {
-    'mesmer.blade-spend'(runtime, data) {
-      const details = runtime.profession.core.castDetails.get(String(data));
-
-      if (!details || details.shatterSpendCommitted) return;
-
-      details.shatterSpent = createMesmerActions(runtime).commitReservedResources(
-        runtime.time,
-        details.shatterSpent ?? 0,
-        {
-          activationId: String(data)
-        }
-      );
-      details.shatterSpendCommitted = true;
-    }
-  },
   reactions: {
     'damage.resolved': (runtime, event, details) => runtime.fireTrigger(virtuosoBladeCritical, { event, details })
   }

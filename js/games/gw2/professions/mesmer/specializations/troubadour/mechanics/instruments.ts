@@ -19,7 +19,7 @@ import {
 } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
 import { MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
+import { consumeMesmerResources } from '#gw2/professions/mesmer/shatter-lifecycle.js';
 import { mesmerSelectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-projection.js';
 import {
   troubadourCrescendoResolved,
@@ -192,7 +192,7 @@ function commitInstrument(
   delivery: EffectDelivery = {}
 ): void {
   at = canonicalTime(at);
-  const spent = createMesmerActions(context).consumeResources(at, {
+  const spent = consumeMesmerResources(context, at, {
     activationId: cast.id
   });
   const instrumentsProfile = requireBalanceProfile(context.helpers, TRAIT.WANDERING_MINSTREL);

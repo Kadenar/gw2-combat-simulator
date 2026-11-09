@@ -4,23 +4,12 @@ import type {
   MesmerPhantasmAttackTiming,
   MesmerPhantasmPolicy
 } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
-import {
-  createProfessionActionController,
-  mesmerShatterCompleted
-} from '#gw2/professions/mesmer/core/mechanics/profession-actions.js';
-import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
-import type {
-  MesmerShatterDefinition,
-  MesmerShatterResolution
-} from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
-import { resolveCloneShatter } from '#gw2/professions/mesmer/core/mechanics/shatters.js';
+import type { MesmerShatterDefinition } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { bountifulBladesSpawnModifiers } from '#gw2/professions/mesmer/core/traits/domination/index.js';
-import { createMesmerIllusionRewards, destroyClone } from '#gw2/professions/mesmer/family-resources.js';
-import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
+import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/definitions.js';
 import { MESMER_CHRONOMANCER_SHATTERS } from '#gw2/professions/mesmer/specializations/chronomancer/skills/index.js';
-import { resolveBladesong } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesongs.js';
 import { MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/definitions.js';
 import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
@@ -35,30 +24,6 @@ export function mesmerShatterDefinition(context: MesmerRuntime, id: SkillId): Me
         ? MESMER_VIRTUOSO_SHATTERS[Number(id)]
         : undefined) ?? MESMER_CORE_SHATTERS[Number(id)]
   );
-}
-
-/** Bind only shatter operations; their reservations and refunds mutate the caller's owned state. */
-export function createMesmerActions(context: MesmerRuntime) {
-  return createProfessionActionController({
-    state: context,
-    resourceDefinition: mesmerResourceDefinition(context.profession.specialization.kind, context.helpers),
-    destroyClone: (clone) => destroyClone(context, clone),
-    // Resolve only the requested shatter against the current catalog; no cross-run cache can retain another patch.
-    shatterFor: (id) => {
-      const definition = mesmerShatterDefinition(context, id);
-      return definition ? mesmerSelectedShatter(context.helpers, id) : undefined;
-    },
-    shatterResolvers: {
-      'mesmer.core.clone-shatter': resolveCloneShatter,
-      'mesmer.virtuoso.bladesong': resolveBladesong
-    },
-    warn: context.combat.warn
-  });
-}
-
-/** Preserve specialization reaction order after the core resource transaction has committed. */
-export function completeMesmerShatter(context: MesmerRuntime, resolution: MesmerShatterResolution): void {
-  context.fireTrigger(mesmerShatterCompleted, { resolution });
 }
 
 /** Select phantasm content and policies for this call without storing controllers or tables on a run registry. */

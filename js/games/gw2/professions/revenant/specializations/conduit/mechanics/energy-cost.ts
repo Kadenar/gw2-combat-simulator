@@ -1,7 +1,7 @@
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { ConduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import { beguilingHazeEnergyCost } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
 import { revenantConduitFormIsActive } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import type { RevenantEnergyCostInput, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
@@ -22,11 +22,6 @@ export function validateConduitMesmerEnergyCosts(catalog: CanonicalCatalog): voi
   }
 }
 
-/** Identifies Beguiling Haze follow-ups so only their temporary charges waive the skill's Energy cost. */
-function isBeguilingHazeFollowUp(state: Partial<ConduitState>, skill: RevenantSkill): boolean {
-  return skill.id === ID.BEGUILING_HAZE && (state.beguilingHazeCharges || 0) > 0;
-}
-
 /** Resolve active form costs from the selected catalog, after free upkeep and follow-up rules. */
 export function applyConduitEnergyCostRules(
   { state, time, catalog }: RevenantEnergyCostInput,
@@ -36,8 +31,9 @@ export function applyConduitEnergyCostRules(
   if (baseCost <= 0) return 0;
 
   // Temporary charges select the follow-up's own cost before any form-specific pricing.
-  if (isBeguilingHazeFollowUp(state, skill))
-    return Math.max(0, skillNumber(requireSkill(catalog, ID.BEGUILING_HAZE_FOLLOW_UP), 'energyCost'));
+  const hazeCost = beguilingHazeEnergyCost({ state, catalog }, skill);
+
+  if (hazeCost != null) return hazeCost;
 
   // The exclusive deadline also governs queries before queued form-expiry work runs.
   if (!revenantConduitFormIsActive(state, 'Mesmer', time)) return baseCost;

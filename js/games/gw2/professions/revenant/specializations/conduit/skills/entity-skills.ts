@@ -8,7 +8,6 @@ import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
@@ -17,7 +16,7 @@ import {
   REVENANT_LEGEND_IDS as LEGEND,
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
-import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
+import { beguilingHazeVariants } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Preserves Shared Wisdom's position among this skill's accepted actions. */
@@ -41,43 +40,6 @@ const twinMoonSharedWisdom: NonNullable<Skill['effectVariants']>[number] = {
     ];
   }
 };
-
-// The accepted main/follow-up identity survives charge consumption and variant selection.
-const hazeMainCasts = new WeakSet<RuntimeCast<RevenantSkill>>();
-
-/** A completed main cast arms the follow-up charges on the shared ammo pool, retaining its main recharge. */
-export function completeBeguilingHaze(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
-  const skill = cast.skill;
-  const state = conduitState.from(runtime.profession);
-
-  if (hazeMainCasts.has(cast)) {
-    hazeMainCasts.delete(cast);
-    state.beguilingHazeCharges = Math.max(
-      0,
-      skillNumber(requireSkill(runtime.helpers, ID.BEGUILING_HAZE_FOLLOW_UP), 'maximumStacks')
-    );
-    state.beguilingHazeRecharge = runtime.cooldownController.readAmmo(skill.id)?.recharges[0] ?? null;
-    state.beguilingHazeReadyAt =
-      runtime.cooldownController.readyAt(skill.id) ??
-      runtime.cooldownController.readAmmo(skill.id)?.nextRechargeAt ??
-      runtime.time;
-  }
-
-  const ammo = runtime.cooldownController.readAmmo(skill.id);
-
-  if (!ammo) return;
-
-  if (state.beguilingHazeCharges > 0) {
-    runtime.cooldownController.replaceAmmoCharges(skill, state.beguilingHazeCharges, state.beguilingHazeCharges, []);
-  } else {
-    if (!state.beguilingHazeRecharge) throw new Error('Beguiling Haze follow-ups require a main-cast recharge.');
-
-    // Follow-up charges are temporary; exhausting them resumes only the saved main-cast timer.
-    runtime.cooldownController.replaceAmmoCharges(skill, 1, 0, [state.beguilingHazeRecharge]);
-    state.beguilingHazeReadyAt = runtime.cooldownController.readAmmo(skill.id)!.nextRechargeAt!;
-    runtime.cooldownController.refreshAmmo(skill, runtime.time);
-  }
-}
 
 const hexEaterCleanses = new WeakMap<
   RuntimeCast<RevenantSkill>,
@@ -126,22 +88,6 @@ function hexEaterEffects(
 
     return [effect];
   });
-}
-
-/** Selection precedes charge spending, so the final follow-up keeps its selected payload and shared recharge. */
-function selectBeguilingHaze(
-  runtime: RevenantRuntime,
-  cast: RuntimeCast<RevenantSkill>,
-  effects: readonly SkillEffect[]
-): readonly SkillEffect[] {
-  if (cast.cancelledBeforeCommit) return [];
-
-  const state = conduitState.from(runtime.profession);
-
-  if (state.beguilingHazeCharges > 0) state.beguilingHazeCharges -= 1;
-  else hazeMainCasts.add(cast);
-
-  return effects;
 }
 
 /** Cleanse only the condition objects reserved when this skill was accepted. */
@@ -331,16 +277,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
         timingScale: 'fixed'
       }
     ],
-    // Select the follow-up skill before its transform spends the final charge.
-    effectVariants: [
-      {
-        when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
-          conduitState.from(runtime.profession).beguilingHazeCharges > 0,
-        transform: (runtime, cast) =>
-          selectBeguilingHaze(runtime, cast, requireSkill(runtime.helpers, ID.BEGUILING_HAZE_FOLLOW_UP).effects ?? [])
-      },
-      { when: () => true, transform: selectBeguilingHaze }
-    ],
+    effectVariants: beguilingHazeVariants,
     sideEffects: [
       { on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } },
       { on: 'castCommit', do: { type: 'revenant.complete-haze' } }

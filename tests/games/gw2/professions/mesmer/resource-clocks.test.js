@@ -8,9 +8,9 @@ import { createResourceDepletionWake } from '#gw2/platform/simulation/task-sched
 import { completeMesmerCast, startMesmerCast } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import { mesmerIllusionHooks } from '#gw2/professions/mesmer/core/mechanics/illusions/lifecycle.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { createMesmerActions } from '#gw2/professions/mesmer/family-mechanics.js';
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
+import { consumeMesmerResources, mesmerShatterLifecycle } from '#gw2/professions/mesmer/shatter-lifecycle.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -143,7 +143,7 @@ test('cast-start resources before completion are available to concurrent actions
   mesmerIllusionHooks.tasks[task.type](context, task.data);
   assert.equal(context.resourceController.value('blades'), 1);
   // A concurrent shatter can spend the grant, and completion must not grant it again.
-  assert.equal(createMesmerActions(context).consumeResources(context.time), 1);
+  assert.equal(consumeMesmerResources(context, context.time), 1);
   context.time = cast.fullEnd;
   completeMesmerCast(context, cast, skill);
   assert.equal(scheduled.length, 1);
@@ -310,34 +310,115 @@ for (const [specialization, key, id, maximum] of [
   });
 }
 
-test('blade commitment combines reservations with later gains once, retaining excess blades', () => {
-  const { context, events } = fixture('Virtuoso', 3);
-  const actions = createMesmerActions(context);
-  const reserved = actions.reserveResources();
-  assert.equal(reserved, 3);
-  assert.equal(context.resourceController.value('blades'), 0);
-  createMesmerIllusionRewards(context).gainResources(0, 4, 'Sword', 'during cast');
-  assert.equal(actions.commitReservedResources(0, reserved, { activationId: 'song' }), 5);
-  assert.equal(context.resourceController.value('blades'), 2);
-  const spends = events.filter((event) => event.amount < 0);
-  assert.equal(spends.length, 1);
-  assert.equal(spends[0].amount, -5);
-  assert.equal(spends[0].activationId, 'song');
-});
+// Exercise acceptance, scheduled work, declared actions, and retirement through the mechanic's hook interface.
+function shatterCast(context, id = 'song', cancelledBeforeCommit = false) {
+  const skill = context.helpers.skillsById.get(ID.BLADESONG_HARMONY);
+  return { id, start: 0, fullEnd: 1, effectiveEnd: 1, skill, command: {}, cancelledBeforeCommit };
+}
 
-test('cancelled blade reservations refund up to capacity without earning rewards or recording spend', () => {
-  const { context, events, announcements } = fixture('Virtuoso', 4);
-  const actions = createMesmerActions(context);
-  const reserved = actions.reserveResources();
+function resolveShatter(context, cast) {
+  mesmerShatterLifecycle.sideEffectHandlers['mesmer.shatter'](context, { kind: 'cast', cast, skill: cast.skill });
+}
+
+// Missing lifecycle setup or authored metadata must fail before a shatter silently loses its effects.
+for (const missing of ['start hook', 'definition']) {
+  test(`shatter resolution rejects a missing ${missing}`, () => {
+    const { context, events, scheduled } = fixture('Virtuoso', 3);
+    const cast = shatterCast(context);
+
+    if (missing === 'definition') {
+      cast.skill = { ...cast.skill, id: 'missing-shatter-definition' };
+      mesmerShatterLifecycle.onCastStart(context, cast);
+    }
+
+    assert.throws(() => resolveShatter(context, cast), /Missing Mesmer shatter data/);
+    assert.equal(context.resourceController.value('blades'), 3);
+    assert.deepEqual(events, []);
+    assert.deepEqual(scheduled, []);
+  });
+}
+
+for (const first of ['task', 'action']) {
+  test(`shatter ${first} commitment settles later gains once and retires its pending work`, () => {
+    const { context, events, scheduled } = fixture('Virtuoso', 3);
+    const cast = shatterCast(context);
+    mesmerShatterLifecycle.onCastStart(context, cast);
+    assert.equal(context.resourceController.value('blades'), 0);
+    assert.equal(
+      events.some((event) => event.amount < 0),
+      false
+    );
+    createMesmerIllusionRewards(context).gainResources(0, 4, 'Sword', 'during cast');
+    const task = scheduled.find((entry) => Object.hasOwn(mesmerShatterLifecycle.tasks, entry.type));
+    assert.ok(task);
+    context.time = cast.fullEnd;
+    const spendTask = () => mesmerShatterLifecycle.tasks[task.type]({ ...context }, task.data);
+
+    if (first === 'task') spendTask();
+    else resolveShatter(context, cast);
+
+    assert.equal(context.resourceController.value('blades'), 2);
+    createMesmerIllusionRewards(context).gainResources(context.time, 1, 'Sword', 'after spend');
+    spendTask();
+    resolveShatter(context, cast);
+    resolveShatter(context, cast);
+    assert.equal(context.resourceController.value('blades'), 3);
+    const spends = events.filter((event) => event.amount < 0);
+    assert.equal(spends.length, 1);
+    assert.equal(spends[0].amount, -5);
+    assert.equal(spends[0].activationId, cast.id);
+    assert.equal(events.filter((event) => event.type === 'marker' && event.name === cast.skill.name).length, 1);
+
+    mesmerShatterLifecycle.onCastCommit(context, cast);
+    createMesmerIllusionRewards(context).gainResources(context.time, 1, 'Sword', 'after retirement');
+    const eventCount = events.length;
+    spendTask();
+    assert.equal(context.resourceController.value('blades'), 4);
+    assert.equal(events.length, eventCount);
+  });
+}
+
+test('cancelled shatters schedule no spending and refund up to capacity without rewards', () => {
+  const { context, events, announcements, scheduled } = fixture('Virtuoso', 4);
+  const cast = shatterCast(context, 'song', true);
+  mesmerShatterLifecycle.onCastStart(context, cast);
+  assert.deepEqual(scheduled, []);
   createMesmerIllusionRewards(context).gainResources(0, 3, 'Sword', 'during cast');
   const eventCount = events.length;
   const announcementCount = announcements.length;
-  actions.restoreReservedResources(reserved);
+  mesmerShatterLifecycle.onCastCancel(context, cast);
   assert.equal(context.resourceController.value('blades'), 5);
   assert.equal(events.length, eventCount);
   assert.equal(announcements.length, announcementCount);
   assert.equal(
     events.some((event) => event.amount < 0),
+    false
+  );
+
+  // A retired reservation cannot refund twice.
+  consumeMesmerResources(context, context.time);
+  const afterSpend = events.length;
+  mesmerShatterLifecycle.onCastCancel(context, cast);
+  assert.equal(context.resourceController.value('blades'), 0);
+  assert.equal(events.length, afterSpend);
+});
+
+test('interleaved runs keep identical shatter activation IDs independent', () => {
+  const first = fixture('Virtuoso', 2);
+  const second = fixture('Virtuoso', 4);
+  const firstCast = shatterCast(first.context);
+  const secondCast = shatterCast(second.context, 'song', true);
+  mesmerShatterLifecycle.onCastStart(first.context, firstCast);
+  mesmerShatterLifecycle.onCastStart(second.context, secondCast);
+  first.context.time = firstCast.fullEnd;
+  resolveShatter({ ...first.context }, firstCast);
+  mesmerShatterLifecycle.onCastCommit(first.context, firstCast);
+  mesmerShatterLifecycle.onCastCancel({ ...second.context }, secondCast);
+  assert.equal(first.context.resourceController.value('blades'), 0);
+  assert.equal(second.context.resourceController.value('blades'), 4);
+  assert.equal(first.events.filter((event) => event.amount < 0).length, 1);
+  assert.equal(
+    second.events.some((event) => event.amount < 0),
     false
   );
 });

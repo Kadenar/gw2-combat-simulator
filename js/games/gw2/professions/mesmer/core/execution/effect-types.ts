@@ -11,9 +11,6 @@ export interface MesmerCastDetails {
   earlyResourceAt?: number | null;
   earlyResourceOwnerId?: string;
   resourceScheduledDuringCast?: boolean;
-  reservedShatterResources?: boolean;
-  shatterSpendCommitted?: boolean;
-  shatterSpent?: number | null;
 }
 
 export interface MesmerExceptionalProfileOptions {

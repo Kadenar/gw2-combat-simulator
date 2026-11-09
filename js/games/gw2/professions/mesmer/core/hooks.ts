@@ -40,6 +40,7 @@ import {
 } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
 import { completeAxesConfusion, scheduleAxesClones } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+import { mesmerShatterLifecycle } from '#gw2/professions/mesmer/shatter-lifecycle.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
 /** Completion tasks apply state at the authored boundary, including committed shortened animations. */
@@ -53,6 +54,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
   MesmerSkill
 >([
   mesmerIllusionHooks,
+  mesmerShatterLifecycle,
   mesmerScepterChainLifecycle,
   {
     buffPolicies: (runtime) => mesmerBuffPolicies(runtime.helpers),
@@ -149,7 +151,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
     availability: mesmerAvailability,
     rechargeWork: mesmerRechargeWork,
     maximumAmmo: mesmerMaximumAmmo,
-    // Cancellation refunds reserved shatter resources and clears the same cast-local bookkeeping.
+    // The shatter lifecycle settles refunds before shared cast bookkeeping is cleared.
     onCastCancel: complete,
     // Successful non-channel completion is commitment; animation tails carry only their authored packets.
     onCastCommit: complete,

@@ -1,14 +1,11 @@
 import type { Gw2Build, Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
-import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { ConditionEffect, StrikeEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
-import type { MesmerResourceSpendDetails } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type {
-  MesmerShatterResolution,
   MesmerShatterResolverRequest,
   MesmerShatterTraitHit
 } from '#gw2/professions/mesmer/core/mechanics/shatter-types.js';
@@ -123,19 +120,3 @@ export type MesmerShatterResolver = (
 ) => readonly MesmerShatterTraitHit[];
 
 export type MesmerActivePrimaryWeapon = () => string;
-
-export interface MesmerProfessionActionController {
-  commitReservedResources(at: number, reserved: number, details?: MesmerResourceSpendDetails): number;
-  consumeResources(at: number, details?: MesmerResourceSpendDetails): number;
-  handleShatter(
-    context: MesmerRuntime,
-    skill: MesmerSkill,
-    at: number,
-    resourcesSpent?: number | null,
-    castStart?: number,
-    packetAt?: number,
-    delivery?: EffectDelivery
-  ): MesmerShatterResolution | null;
-  reserveResources(): number;
-  restoreReservedResources(spent: number): void;
-}

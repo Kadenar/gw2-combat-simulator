@@ -948,7 +948,6 @@ test('Mesmer runtimes exclude inactive elite catalogs, registries, and state', (
       active === 'Chronomancer',
       `${active}:continuum-task`
     );
-    assert.equal(Object.hasOwn(runtime.tasks, 'mesmer.blade-spend'), active === 'Virtuoso', `${active}:blade-task`);
     assert.equal(
       Object.hasOwn(runtime.eventHandlers, 'mesmer.instrument'),
       active === 'Troubadour',
