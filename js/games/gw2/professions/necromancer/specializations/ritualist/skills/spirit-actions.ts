@@ -1,5 +1,4 @@
 /** Apply skill-specific effects while the spirit lifecycle admits and owns pending attacks. */
-import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import { gw2ActivePrimaryWeapon } from '#gw2/platform/equipment/weapons/loadout.js';
 import { weaponStrengthProfileForName } from '#gw2/platform/equipment/weapons/strength.js';
@@ -14,11 +13,11 @@ import {
 import { ritualistPartyBoonPolicy } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/party-boons.js';
 import {
   commandRitualistSpirits,
-  startRitualistSpiritOpening,
   summonRitualistSpirit
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirit-lifecycle.js';
 import { spiritDefinition } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import { painfulBondSkill } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-attacks.js';
+import { spiritImpactAt } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-packets.js';
 import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -46,7 +45,7 @@ export const ritualistSpiritActions: NonNullable<
       event: buildResolverStrike({
         ...attribution(cast),
         source: 'necromancer',
-        at: canonicalTime(cast.start + swing.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000),
+        at: spiritImpactAt(cast.start, cast, swing.atMs),
         coefficient: swing.coefficient,
         skillWeapon,
         weaponStrengthProfileId: weaponStrengthProfileForName(skillWeapon)?.id
@@ -59,26 +58,11 @@ export const ritualistSpiritActions: NonNullable<
     const cast = context.cast;
     const spirit = spiritDefinition(runtime, cast.skill.id)!;
     summonRitualistSpirit(runtime, cast, spirit);
-    const opening = cast.skill;
-    runtime.effects.emit({
-      kind: 'profile',
-      profile: opening,
-      effects: requireSkillAction(opening, 'opening').effects.filter((effect) => effect.type === 'condition'),
-      attribution: attribution(cast),
-      transform: (event) => ({
-        ...event,
-        name: `${cast.skill.name} - ${event.condition}`,
-        offTarget: cast.command.offTarget
-      })
-    });
-    startRitualistSpiritOpening(runtime, cast, spirit);
     const profile = requireSkill(runtime.helpers, painfulBondSkill.id);
     const effect = requireEffect(profile, 'buff', 'necromancer-painful-bond');
 
     if (effect && spirit.summonTicks.length) {
-      const at = canonicalTime(
-        runtime.time + spirit.summonTicks[0].atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000
-      );
+      const at = spiritImpactAt(runtime.time, cast, spirit.summonTicks[0].atMs);
       const duration = effectNumber(profile, effect, 'duration');
       // The summon grants Bond independently of whether its subsequent attack is interrupted.
       runtime.effects.emit({
@@ -100,7 +84,6 @@ export const ritualistSpiritActions: NonNullable<
     const cast = context.cast;
     const spirit = spiritDefinition(runtime, cast.skill.id)!;
     summonRitualistSpirit(runtime, cast, spirit);
-    startRitualistSpiritOpening(runtime, cast, spirit);
   },
   'ritualist.summon-preservation'(runtime, context) {
     if (context.kind !== 'cast') return;

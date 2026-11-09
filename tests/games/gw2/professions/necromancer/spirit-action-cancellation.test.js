@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import { necromancerProfession } from '#gw2/professions/necromancer/profession.js';
@@ -107,4 +108,30 @@ test('a replacement spirit command cancels the prior command damage and control'
     assert.equal(delivered(replaced, commands[0].activationId), false);
     assert.equal(delivered(replaced, commands[1].activationId), true);
   }
+});
+
+// Removing the field must not reclassify Wanderlust's independent player swing as a spirit opening.
+test('removing the Wanderlust field preserves its player swing without creating spirit opening packets', () => {
+  const result = run(
+    [...opening, wait(12000)],
+    {},
+    {
+      catalog: (catalog) =>
+        applySkillPatch(catalog, {
+          skills: {
+            [ID.WANDERLUST]: {
+              sideEffects: { opening: { removeEffects: [{ type: 'strike', name: 'Wanderlust Initial Field' }] } }
+            }
+          }
+        })
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(firstField(result), []);
+  assert.ok(result.planningState.profession[STATE.ACTIVE_SPIRITS].wanderlust);
+  assert.ok(
+    result.resolvedEvents.some(
+      (event) => event.type === 'damage' && event.skillId === ID.WANDERLUST && event.source === 'necromancer'
+    )
+  );
 });

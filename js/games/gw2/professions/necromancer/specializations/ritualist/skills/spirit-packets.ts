@@ -14,8 +14,36 @@ import type { SpiritDefinition } from '#gw2/professions/necromancer/specializati
 import type { NecromancerRuntime, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
+/** Apply the authored attack offset and optional travel delay on the canonical clock. */
+export function spiritImpactAt(at: number, cast: RuntimeCast<NecromancerSkill>, offsetMs: number): number {
+  return canonicalTime(at + offsetMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000);
+}
+
+/** Anguish applies independent conditions before its owned barrage; Wanderlust's swing belongs to the player. */
+export function prepareRitualistSpiritOpening(
+  runtime: NecromancerRuntime,
+  cast: RuntimeCast<NecromancerSkill>,
+  spirit: SpiritDefinition
+): SimulationEventBase[] {
+  if (spirit.key !== 'anguish') return [];
+
+  const opening = cast.skill;
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: opening,
+    effects: requireSkillAction(opening, 'opening').effects.filter((effect) => effect.type === 'condition'),
+    attribution: attribution(cast),
+    transform: (event) => ({
+      ...event,
+      name: `${cast.skill.name} - ${event.condition}`,
+      offTarget: cast.command.offTarget
+    })
+  });
+  return strikePackets(runtime, cast, spirit, spirit.summonTicks, 'initial');
+}
+
 /** Finite spirit attacks retain one activation and ordered secondary conditions while sharing common damage resolution. */
-export function ritualistSpiritStrikePackets(
+function strikePackets(
   runtime: NecromancerRuntime,
   cast: RuntimeCast<NecromancerSkill>,
   spirit: SpiritDefinition,
@@ -23,7 +51,7 @@ export function ritualistSpiritStrikePackets(
   attackType: string
 ): SimulationEventBase[] {
   return ticks.map((tick, index) => {
-    const at = canonicalTime(runtime.time + tick.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000);
+    const at = spiritImpactAt(runtime.time, cast, tick.atMs);
     return buildResolverStrike({
       ...attribution(cast),
       ...spiritFields(spirit.key, attackType),
@@ -52,7 +80,7 @@ export function ritualistSpiritCommandPackets(
   cast: RuntimeCast<NecromancerSkill>,
   spirit: SpiritDefinition
 ): SimulationEventBase[] {
-  const events = ritualistSpiritStrikePackets(runtime, cast, spirit, spirit.activeTicks, 'summon-spirits');
+  const events = strikePackets(runtime, cast, spirit, spirit.activeTicks, 'summon-spirits');
 
   if (spirit.key === 'wanderlust')
     events.push({
@@ -61,9 +89,7 @@ export function ritualistSpiritCommandPackets(
       type: 'control',
       controlKind: CONTROL.DAZE,
       sourceId: `ritualist.${spirit.key}.summon-spirits`,
-      at: canonicalTime(
-        runtime.time + (spirit.activeTicks[0]?.atMs ?? 0) / 1000 + (cast.command.impactDelayMs ?? 0) / 1000
-      )
+      at: spiritImpactAt(runtime.time, cast, spirit.activeTicks[0]?.atMs ?? 0)
     });
 
   return events;
@@ -88,9 +114,9 @@ export function ritualistSpiritField(
   if (!first) return null;
 
   return {
-    events: ritualistSpiritStrikePackets(runtime, cast, spirit, spirit.lingeringTicks, 'initial'),
+    events: strikePackets(runtime, cast, spirit, spirit.lingeringTicks, 'initial'),
     skillId: cast.skill.id,
-    at: canonicalTime(runtime.time + first.atMs / 1000 + (cast.command.impactDelayMs ?? 0) / 1000),
+    at: spiritImpactAt(runtime.time, cast, first.atMs),
     attribution: attribution(cast)
   };
 }

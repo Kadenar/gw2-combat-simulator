@@ -19,9 +19,9 @@ import {
 } from '#gw2/professions/necromancer/specializations/ritualist/mechanics/spirits.js';
 import {
   emitRitualistSpiritField,
+  prepareRitualistSpiritOpening,
   ritualistSpiritCommandPackets,
   ritualistSpiritField,
-  ritualistSpiritStrikePackets,
   type RitualistSpiritField
 } from '#gw2/professions/necromancer/specializations/ritualist/skills/spirit-packets.js';
 import { ritualistState } from '#gw2/professions/necromancer/specializations/ritualist/state.js';
@@ -91,23 +91,17 @@ export function commandRitualistSpirits(runtime: NecromancerRuntime, cast: Runti
 }
 
 /** Opening strikes remain replaceable; a field becomes independent only when its owned creation task executes. */
-export function startRitualistSpiritOpening(
+function startSpiritOpening(
   runtime: NecromancerRuntime,
   cast: RuntimeCast<NecromancerSkill>,
   spirit: SpiritDefinition
 ): void {
-  if (spirit.key !== 'wanderlust') {
-    emitActionPackets(
-      runtime,
-      spirit.key,
-      ritualistSpiritStrikePackets(runtime, cast, spirit, spirit.summonTicks, 'initial')
-    );
-    return;
-  }
-
   const field = ritualistSpiritField(runtime, cast, spirit);
 
-  if (!field) return;
+  if (!field) {
+    emitActionPackets(runtime, spirit.key, prepareRitualistSpiritOpening(runtime, cast, spirit));
+    return;
+  }
 
   const actor = ritualistState.from(runtime.profession).activeSpirits[spirit.key];
   // Creation precedes a same-time auto opportunity, which would otherwise replace the opening action.
@@ -163,7 +157,7 @@ function auto(runtime: NecromancerRuntime, data: unknown): void {
     runtime.schedule(AUTO, at, { ...work, pulse: work.pulse + 1 }, owner(work.key, work.generation));
 }
 
-/** Replacing one creature preserves the shared cadence and refunds Soul Twisting only after its summon has committed. */
+/** Commit the creature and its opening together, preserving summon rewards and the shared attack cadence. */
 export function summonRitualistSpirit(
   runtime: NecromancerRuntime,
   cast: RuntimeCast<NecromancerSkill>,
@@ -194,6 +188,7 @@ export function summonRitualistSpirit(
   runtime.fireTrigger(ritualistSpiritSummoned, { cast, key });
 
   startRitualistSpirits(runtime);
+  startSpiritOpening(runtime, cast, spirit);
 }
 
 /** Newly engaged or replaced spirits join the existing clock after the current boundary. */
