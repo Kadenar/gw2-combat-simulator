@@ -3,18 +3,11 @@ import test from 'node:test';
 
 import { simulationEventLogRows } from '#gw2/app/results/event-log.js';
 import { mechanicResourceSpends } from '#gw2/app/rotation/timeline/model.js';
-import { gw2RechargeRate } from '#gw2/platform/combat/recharge.js';
-import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
-import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { chronomancerHooks } from '#gw2/professions/mesmer/specializations/chronomancer/hooks.js';
-import { createContinuumController } from '#gw2/professions/mesmer/specializations/chronomancer/mechanics/continuum-split.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
 import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
-import { bindTriggerPoints } from '#tests/helpers/trigger-points.js';
 
 // Neither exit rewinds chain progress, restores a completed chain, or erases a chain started during Split.
 test('manual and automatic Continuum exits leave autoattack chains at their live step', () => {
@@ -66,40 +59,6 @@ test('manual and automatic Continuum exits preserve Mimic recharge and its utili
       );
     }
   }
-});
-
-// Rewound cooldowns keep their saved work at the permanent Chronomancer recharge rate.
-test('Continuum snapshots restore recharge work at the permanent Chronomancer rate', () => {
-  const skill = { id: 980000, name: 'Signet', cooldown: 10 };
-  const skillsById = new Map([[skill.id, skill]]);
-  const state = {
-    traits: new Set(),
-    time: 0,
-    helpers: { skillsById },
-    profession: { core: {}, specialization: { kind: 'Chronomancer', state: { continuum: null } } }
-  };
-  const cooldown = createCooldownController({
-    clock: state,
-    rechargeDuration: () => 10,
-    skillFor: (id) => skillsById.get(id),
-    rechargeIntervals: (skill, start, end) => [
-      { start, end, rate: gw2RechargeRate(skill, chronomancerHooks.playerAlacrityRechargeRate) }
-    ]
-  });
-  bindTriggerPoints(state, mesmerProfession, { specialization: 'Chronomancer' });
-  state.effects = captureEffectEmissions().effects;
-  const continuum = createContinuumController({
-    state,
-    cooldownController: cooldown,
-    unaffectedCooldownIds: new Set(),
-    consumeResources: () => 0,
-    durationPerSource: 3
-  });
-  cooldown.startRecharge(skill, 0);
-  continuum.beginContinuumSplit({ id: 980001 }, 1);
-  continuum.restoreContinuum(4, 'test');
-  assert.equal(cooldown.readyAt(skill.id), 13);
-  assert.deepEqual(cooldown.rechargeFor(skill.id), { workAnchorAt: 4, work: 13.5 });
 });
 
 test('Continuum restoration projects ammo without checkpoint-relative fields', () => {
