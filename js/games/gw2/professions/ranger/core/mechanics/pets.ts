@@ -1,6 +1,7 @@
 import { gw2CooldownReadyAt, quantizeGw2ActionDurationUp } from '#gw2/platform/combat/action-tick.js';
 import { boonKey, gw2BoonDurationMultiplier } from '#gw2/platform/combat/boons.js';
 import { autonomousActionsAllowed } from '#gw2/platform/combat/engagement.js';
+import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR, BOON } from '#gw2/platform/constants.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
@@ -29,7 +30,11 @@ import {
   RANGER_PET_SKILL_TIMINGS,
   rangerPetSkillTiming
 } from '#gw2/professions/ranger/core/mechanics/pet-skill-timings.js';
-import { createRangerPetState, rangerPetInstanceId } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
+import {
+  createRangerPetState,
+  isRangerPetInstanceId,
+  rangerPetInstanceId
+} from '#gw2/professions/ranger/core/mechanics/pet-state.js';
 import { isPetActorEvent } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { ibogaAutonomousRecharge } from '#gw2/professions/ranger/core/skills/pets/fanged-iboga.js';
 import {
@@ -54,7 +59,7 @@ const PET_AUTO_OWNER = 'ranger.active-pet';
 const PET_AI_ATTACK_OWNER = 'ranger.pet-ai-attack';
 
 /** Stamps pet-owned packets before shared consumers such as combo finishers derive child events. */
-export function prepareRangerPetEvent(context: RangerRuntime, event: SimulationEventBase): SimulationEventBase {
+function stampRangerPetEvent(context: RangerRuntime, event: SimulationEventBase): SimulationEventBase {
   if (!isPetActorEvent(event)) return event;
 
   // Packets retain their launching identity so entity retirement cannot retarget them to a replacement.
@@ -348,7 +353,7 @@ export function emitRangerPetSkill(
         // Ranger-stat exceptions retain caster provenance too, so their pet-owned trait children cannot migrate on swap.
         // Capture the name with the caster so delayed packets cannot borrow a replacement pet's label.
         return {
-          ...prepareRangerPetEvent(context, event),
+          ...stampRangerPetEvent(context, event),
           entityName,
           summonOwner: companionId,
           at,
@@ -384,7 +389,7 @@ function petCommandStart(context: RangerRuntime, skill: RangerSkill): number {
 }
 
 /** Reserve a command slot now, then start it on the current pet's lifetime once earlier manual work permits. */
-export function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
+function beginRangerPetCommand(context: RangerRuntime, cast: RuntimeCast<RangerSkill>): void {
   const skill = cast.skill;
 
   if (!rangerPetSkillCommandable(skill, context.config.specialization || 'Core') || !context.profession.core.pet)
@@ -533,8 +538,49 @@ const rangerPetTasks = {
   }
 };
 
-/** Autonomous pet attacks, pet cast timing, and boon sharing durations share one owner; pet attacks cannot prolong an isolated damage preview. */
+/** Own pet registration, commands, and packet lifetime so retired companions cannot create new pet effects. */
 export const rangerPetLifecycle = {
+  initialize(runtime) {
+    const pet = runtime.profession.core.pet;
+
+    if (pet) runtime.combat.registerCompanion(pet.id, pet.effects);
+  },
+  onCombatStart: startRangerPet,
+  onCastStart: beginRangerPetCommand,
+  // Pet recharge belongs to the incarnation accepting the command, not whichever pet is active later.
+  rechargeCompanionId: (runtime, skill) => (skill.petSkill ? rangerPetCompanionId(runtime) : undefined),
+  // Pet packets and delayed field creation end with their caster; existing fields and ranger-stat packets survive.
+  effectOwner(_context, event) {
+    if (event.actorType === ACTOR.SUMMON && isRangerPetInstanceId(event.summonOwner))
+      return { id: event.summonOwner, generation: 0 };
+
+    return undefined;
+  },
+  prepareEvent(runtime, event) {
+    // A surviving ranger-stat effect cannot create new pet-owned children after that pet is removed.
+    if (
+      event.actorType === ACTOR.SUMMON &&
+      typeof event.summonOwner === 'string' &&
+      runtime.time >= (runtime.combat.companionRetiredAt(event.summonOwner) ?? Infinity)
+    )
+      return null;
+
+    const skill = runtime.helpers.skillsById.get(event.skillId!);
+
+    // The pet lane publishes its action only when the command actually starts in the current generation.
+    if (event.type === 'action' && skill?.petSkill && event.actorType !== ACTOR.SUMMON) return null;
+
+    // Resolve recipients and caster identity together before shared consumers derive child events.
+    return stampRangerPetEvent(
+      runtime,
+      prepareGw2BuffCompanionCandidates(event, runtime.profession.core.pet ? [rangerPetCompanionId(runtime)] : [])
+    );
+  },
+  modifyEffects(_runtime, cast, effects) {
+    // The pet lane emits command effects when the reserved command starts.
+    return cast.skill.petSkill ? [] : effects;
+  },
+  // Autonomous attacks cannot prolong an isolated damage preview.
   backgroundTasks: Object.keys(rangerPetTasks),
   tasks: rangerPetTasks,
   boonDuration: rangerBoonDuration,

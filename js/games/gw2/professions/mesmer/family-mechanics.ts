@@ -1,5 +1,5 @@
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { createSkillEffectController } from '#gw2/professions/mesmer/core/execution/effect-controller.js';
+import { createPhantasmCastScheduler } from '#gw2/professions/mesmer/core/mechanics/illusions/phantasms.js';
 import type {
   MesmerPhantasmAttackTiming,
   MesmerPhantasmPolicy
@@ -39,7 +39,7 @@ export function createMesmerSkillEffects(context: MesmerRuntime) {
       : specialization === 'Virtuoso'
         ? MESMER_VIRTUOSO_PHANTASM_ATTACK_TIMINGS
         : undefined;
-  return createSkillEffectController({
+  return createPhantasmCastScheduler({
     state: context,
     // Resolve only the requested summon from this run's catalog; elite overrides retain their field precedence.
     phantasmTimingFor: (skillId) => {

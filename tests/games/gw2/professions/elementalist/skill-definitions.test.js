@@ -9,6 +9,7 @@ import {
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
+import { evokerFamiliarLifecycle } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { runElementalist } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
@@ -886,13 +887,19 @@ test('familiar declarations reset their pools before deferred grants and the nex
         {
           profession: patchedProfession(
             [[id, removed ? { sideEffects: skill.sideEffects.map((entry) => ({ ...entry, when: () => false })) } : {}]],
-            (runtime) => runtime.schedule('test.timeline', runtime.time, 0, undefined, -100)
+            (runtime) => {
+              // A completed weapon enters through the lifecycle before the familiar's queued reset.
+              evokerFamiliarLifecycle.onCastCommit(runtime, {
+                id: 'weapon',
+                skill: { ...elementalistCatalog.skillsById.get(ID.BLAZING_BARRAGE), attunement: skill.attunement },
+                start: runtime.time,
+                fullEnd: runtime.time,
+                effectiveEnd: runtime.time,
+                command: {}
+              });
+              runtime.schedule('test.timeline', runtime.time, 0, undefined, -100);
+            }
           ),
-          initialize(runtime) {
-            runtime.profession.specialization.state.pendingWeaponChargeGains = [
-              { activationId: 'weapon', source: 'Weapon', sourceId: 42, gain: 2 }
-            ];
-          },
           timeline: [
             {
               at: 100,
@@ -901,8 +908,6 @@ test('familiar declarations reset their pools before deferred grants and the nex
                 const state = runtime.profession.specialization.state;
                 assert.equal(state.familiarCharges.value, !removed && basic ? 2 : 6);
                 assert.equal(state.empoweredCharges.value, removed ? (basic ? 1 : 3) : basic ? 2 : 0);
-                assert.equal(state.activeFamiliarCast, null);
-                assert.equal(state.pendingWeaponChargeGains.length, removed ? 1 : 0);
               }
             }
           ]

@@ -11,9 +11,8 @@ import { grantElectricEnchantments } from '#gw2/professions/elementalist/special
 import { onAcceptedEvent } from '#gw2/professions/elementalist/specializations/evoker/mechanics/event-handlers.js';
 import {
   acceptIgniteEffects,
-  beginFamiliarCast,
-  modifyFamiliarEffects
-} from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
+  evokerFamiliarLifecycle
+} from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
@@ -48,13 +47,21 @@ test('familiar replacement honors patched cancellation windows and preserves the
           profession: { specialization: { kind: 'Evoker', state } },
           cancelOwner: (owner) => cancelled.push(owner)
         };
-        beginFamiliarCast(context, { id: 'empowered', start: 0, effectiveEnd: 0 }, empowered);
+        evokerFamiliarLifecycle.sideEffectHandlers['elementalist.evoker.begin-familiar'](context, {
+          kind: 'cast',
+          skill: empowered,
+          cast: { id: 'empowered', start: 0, effectiveEnd: 0, skill: empowered }
+        });
         const cast = { id: 'basic', start: elapsed, effectiveEnd: elapsed, skill: basic };
-        beginFamiliarCast(context, cast, basic);
+        evokerFamiliarLifecycle.sideEffectHandlers['elementalist.evoker.begin-familiar'](context, {
+          kind: 'cast',
+          cast,
+          skill: basic
+        });
         const effects = [{ type: 'strike', coefficient: 1 }];
         const withinWindow = elapsed < window;
         assert.deepEqual(cancelled, withinWindow ? [{ id: 'empowered', generation: 0 }] : []);
-        assert.deepEqual(modifyFamiliarEffects(context, cast, effects), withinWindow ? [] : effects);
+        assert.deepEqual(evokerFamiliarLifecycle.modifyEffects(context, cast, effects), withinWindow ? [] : effects);
 
         if (basicName === 'Ignite') {
           acceptIgniteEffects(context, cast, basic.effects ?? []);

@@ -1,39 +1,22 @@
 /**
  * Owns Evoker familiar basic and empowered skill definitions.
- * Owns their patchable timing, replacement cancellation, tier selection, and basic-to-empowered conversion.
+ * Declares patchable effects and the familiar lifecycle actions that own acceptance and settlement.
  */
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { activeBuffStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill, SkillDefinition, SkillId } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import {
-  BASIC_FAMILIARS,
-  FAMILIAR_ELEMENTS
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import {
-  IGNITE_TIERS,
-  igniteTierEffect,
-  projectIgniteEffects
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
-import { emitResource } from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
-import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
-import type {
-  ElementalistModifierContext,
-  ElementalistRuntime,
-  ElementalistSkill
-} from '#gw2/professions/elementalist/types.js';
+import { acceptIgniteEffects } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
+import type { ElementalistModifierContext, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /**
  * Complete Evoker familiar definitions with explicit activation behavior.
  *
  * The eight familiar skills form four basic/empowered pairs declared in
  * `skill-flips.ts`. Definitions declare their start and commit behavior; gating uses
- * charge/empowered state in `mechanics/availability.ts`, not the `cooldown: 0`
+ * charge/empowered state in the familiar lifecycle, not the `cooldown: 0`
  * declared here.
  */
 // Shared impact timing keeps companion payloads independent and in their authored order.
@@ -354,112 +337,3 @@ export const EVOKER_FAMILIAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefin
     ]
   }
 };
-
-/** Basic-to-empowered identity; delays and replacement windows belong to the basic skills. */
-const FAMILIAR_EMPOWERED_BY_BASIC: ReadonlyMap<SkillId, SkillId> = new Map([
-  [ID.IGNITE, ID.CONFLAGRATION],
-  [ID.ZAP, ID.LIGHTNING_BLITZ],
-  [ID.SPLASH, ID.BUOYANT_DELUGE],
-  [ID.CALCIFY, ID.SEISMIC_IMPACT]
-]);
-
-/** Reverse index of the flip pairing: empowered familiar ID back to its basic form. */
-const FAMILIAR_BASIC_BY_EMPOWERED: ReadonlyMap<SkillId, SkillId> = new Map(
-  [...FAMILIAR_EMPOWERED_BY_BASIC].map(([basic, empowered]) => [empowered, basic])
-);
-
-/** A skill-declared start owns its reservation and the basic/empowered replacement window. */
-export function beginFamiliarCast(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill
-): void {
-  const state = evokerState.from(context.profession);
-  const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
-
-  // familiar casts block every other action until they finish (enforced in availability.ts)
-  if (familiarElement) {
-    state.activeFamiliarCast = {
-      reservationId: cast.id,
-      endsAt: cast.effectiveEnd,
-      resetsCharges: BASIC_FAMILIARS.has(skill.id)
-    };
-  }
-
-  // if the empowered familiar was recently cast and the basic fires within the window, the empowered effects are retroactively cancelled
-  const empoweredSkill = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
-
-  if (empoweredSkill) {
-    const window = skillNumber(skill, 'duration');
-    const basicKey = String(skill.id);
-    const recent = state.lastEmpoweredFamiliarByBasic[basicKey];
-
-    if (recent?.skillId === empoweredSkill && cast.start - recent.start < window) {
-      context.cancelOwner({ id: recent.activationId, generation: 0 });
-      state.cancelledFamiliarActivations[cast.id] = true;
-      state.lastEmpoweredFamiliarByBasic[basicKey] = null;
-    }
-  }
-
-  const basic = FAMILIAR_BASIC_BY_EMPOWERED.get(skill.id);
-
-  if (basic) {
-    state.lastEmpoweredFamiliarByBasic[String(basic)] = {
-      skillId: skill.id,
-      activationId: cast.id,
-      start: cast.start
-    };
-  }
-}
-
-/**
- * Advance Ignite's Burning tier once per accepted cast and select that tier's packet. A replaced Ignite keeps the
- * current tier; `modifyFamiliarEffects` removes its packets.
- */
-export function acceptIgniteEffects(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  effects: readonly SkillEffect[]
-): readonly SkillEffect[] {
-  const state = evokerState.from(context.profession);
-
-  if (state.cancelledFamiliarActivations[cast.id]) return effects;
-
-  if (cast.start - state.igniteLastUsedAt >= skillNumber(cast.skill, 'tierResetDuration')) state.igniteTier = 0;
-
-  const burning = igniteTierEffect(context.helpers, state.igniteTier);
-  state.igniteTier = Math.min(state.igniteTier + 1, IGNITE_TIERS.length - 1);
-  state.igniteLastUsedAt = cast.start;
-  return projectIgniteEffects(effects, burning);
-}
-
-/** Replacement cancellation remains shared across familiar packets, independent of their selected payload. */
-export function modifyFamiliarEffects(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  effects: readonly SkillEffect[]
-): readonly SkillEffect[] {
-  return evokerState.from(context.profession).cancelledFamiliarActivations[cast.id] ? [] : effects;
-}
-
-/** Convert basic charges and gate the empowered flip using the selected patch's familiar delay. */
-export function settleBasicFamiliar(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
-  const skill = cast.skill;
-  const state = evokerState.from(context.profession);
-  const at = cast.effectiveEnd;
-  context.resourceController.replace('familiarCharges', 0);
-  // Complete the conversion before publishing its combined reading or flushing deferred rewards.
-  context.resourceController.grant('empoweredCharges', 1);
-  const flip = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
-  const empowered = flip ? context.helpers.skillsById.get(flip) : undefined;
-
-  if (flip && empowered) {
-    const delay = skillNumber(skill, 'empoweredUnlockDelay');
-    context.cooldownController.setReadyAt(
-      empowered.id,
-      Math.max(context.cooldownController.readyAt(empowered.id) || 0, at + delay)
-    );
-  }
-
-  emitResource(context, cast, skill, state);
-}

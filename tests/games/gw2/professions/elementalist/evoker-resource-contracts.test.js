@@ -7,9 +7,8 @@ import {
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
-import { availability } from '#gw2/professions/elementalist/specializations/evoker/mechanics/availability.js';
+import { evokerFamiliarLifecycle } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import { evokerUi } from '#gw2/professions/elementalist/specializations/evoker/presentation.js';
-import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
@@ -27,16 +26,26 @@ function run(rotation = [], overrides = {}, profiles = {}, skills = {}) {
 
 // Pending grants remain retryable until their actual instant; querying readiness cannot spend or grant charges.
 test('Evoker waits for a future charge grant even one microsecond before delivery', () => {
-  const state = evokerState.create();
-  state.familiarCharges.value = 2;
-  state.familiarCharges.maximum = 3;
-  state.empoweredCharges.maximum = 3;
-  state.pendingWeaponCompletions = [{ activationId: 'pending', at: 1.000001, gain: 1 }];
-  const context = { time: 1, profession: { core: {}, specialization: { kind: 'Evoker', state } } };
-  const result = availability(context, { id: ID.IGNITE, name: 'Ignite' });
+  const { runtime, catalog } = run(
+    [],
+    { initialEvokerCharges: 2 },
+    {
+      [TRAIT.EVOCATION]: { maximumStacks: 3, playerStacks: 1 }
+    }
+  );
+  const pendingAt = runtime.time + 0.000001;
+  evokerFamiliarLifecycle.onCastStart(runtime.mechanics, {
+    id: 'pending',
+    skill: catalog.skillsById.get(ID.BLAZING_BARRAGE),
+    command: {},
+    start: runtime.time,
+    fullEnd: pendingAt,
+    effectiveEnd: pendingAt
+  });
+  const result = evokerFamiliarLifecycle.availability(runtime.mechanics.queries, catalog.skillsById.get(ID.IGNITE));
   assert.equal(result.ready, false);
-  assert.equal(result.retryAt, 1.000001);
-  assert.equal(state.familiarCharges.value, 2);
+  assert.equal(result.retryAt, pendingAt);
+  assert.equal(runtime.mechanics.resourceController.value('familiarCharges'), 2);
 });
 
 test('Evoker policies seed both clocks from isolated caps and project detached values', () => {
@@ -158,8 +167,13 @@ test('overlapping weapon completion flushes its fractional reward after the fami
   assert.equal(readings[1].sourceId, ID.SAND_SQUALL);
   assert.equal(readings[1].change, 2.75);
   assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, 2.75);
-  assert.deepEqual(runtime.profession.specialization.state.pendingWeaponChargeGains, []);
-  assert.deepEqual(runtime.profession.specialization.state.pendingWeaponCompletions, []);
+  assert.equal(
+    evokerFamiliarLifecycle.availability(
+      runtime.mechanics.queries,
+      runtime.mechanics.helpers.skillsById.get(ID.CALCIFY)
+    ).retryAt,
+    null
+  );
 });
 
 test('Elemental Dynamo grants at attunement and caps the reported pool without a cast reward', () => {
@@ -187,9 +201,19 @@ test('Elemental Dynamo grants at attunement and caps the reported pool without a
 
 // A pending provider is a retry opportunity, while its charges remain absent until successful completion.
 test('pending familiar readiness never credits a speculative grant and cancellation removes its retry', () => {
-  const { runtime, catalog } = run([], { initialEvokerCharges: 4 }, { [TRAIT.EVOCATION]: { maximumStacks: 7.5 } });
-  const state = runtime.profession.specialization.state;
-  state.pendingWeaponCompletions = [{ activationId: 'weapon', at: 2, gain: 3.5 }];
+  const { runtime, catalog } = run(
+    [],
+    { initialEvokerCharges: 4 },
+    { [TRAIT.EVOCATION]: { maximumStacks: 7.5, playerStacks: 3.5 } }
+  );
+  evokerFamiliarLifecycle.onCastStart(runtime.mechanics, {
+    id: 'weapon',
+    skill: catalog.skillsById.get(ID.BLAZING_BARRAGE),
+    command: {},
+    start: 0,
+    fullEnd: 2,
+    effectiveEnd: 2
+  });
   const skill = catalog.skillsById.get(ID.IGNITE);
   assert.equal(evokerHooks.availability(runtime.mechanics.queries, skill).retryAt, 2);
   assert.equal(runtime.mechanics.resourceController.value('familiarCharges'), 4);
@@ -212,4 +236,34 @@ test('Rejuvenate refills the patched familiar capacity without changing empowere
     assert.equal(result.planningState.profession[STATE.FAMILIAR_CHARGES].value, canceled ? 0.25 : 7.5);
     assert.equal(result.planningState.profession[STATE.EMPOWERED_CHARGES].value, 1.5);
   }
+});
+
+// Identical activation IDs in separate runs must not share pending providers or cancellation.
+test('interleaved Evoker runs keep familiar readiness and cancellation independent', () => {
+  const profiles = { [TRAIT.EVOCATION]: { maximumStacks: 7.5, playerStacks: 3.5 } };
+  const first = run([], { initialEvokerCharges: 4 }, profiles);
+  const second = run([], { initialEvokerCharges: 4 }, profiles);
+  for (const [entry, end] of [
+    [first, 2],
+    [second, 3]
+  ]) {
+    evokerFamiliarLifecycle.onCastStart(entry.runtime.mechanics, {
+      id: 'shared-activation',
+      skill: entry.catalog.skillsById.get(ID.BLAZING_BARRAGE),
+      command: {},
+      start: 0,
+      fullEnd: end,
+      effectiveEnd: end
+    });
+  }
+
+  const readiness = (entry) =>
+    evokerFamiliarLifecycle.availability(entry.runtime.mechanics.queries, entry.catalog.skillsById.get(ID.IGNITE));
+  assert.equal(readiness(first).retryAt, 2);
+  assert.equal(readiness(second).retryAt, 3);
+  evokerFamiliarLifecycle.onCastCancel(first.runtime.mechanics, { id: 'shared-activation' });
+  assert.equal(readiness(first).retryAt, null);
+  assert.equal(readiness(second).retryAt, 3);
+  assert.equal(first.runtime.mechanics.resourceController.value('familiarCharges'), 4);
+  assert.equal(second.runtime.mechanics.resourceController.value('familiarCharges'), 4);
 });

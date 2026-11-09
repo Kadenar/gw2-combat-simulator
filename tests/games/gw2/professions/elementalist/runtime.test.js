@@ -4,11 +4,7 @@ import test from 'node:test';
 import { elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/profession.js';
-import { evokerHooks } from '#gw2/professions/elementalist/specializations/evoker/hooks.js';
-import {
-  flushPendingWeaponChargeGains,
-  grantWeaponSkillCharges
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/resources.js';
+import { evokerFamiliarLifecycle } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
@@ -129,61 +125,73 @@ test('cancelled Grand Finale preserves the active orb and its attacks', () => {
   );
 });
 
-// A cancelled familiar cannot strand completed weapon grants behind its abandoned charge reset.
+// Real lifecycle admission and weapon completion create the deferred grant before cancellation.
 test('interrupting a familiar releases deferred weapon charges once', () => {
   const result = runElementalist(
     [],
-    { specialization: 'Evoker', initialEvokerCharges: 0 },
+    { specialization: 'Evoker', initialEvokerCharges: 0, evokerElement: 'Fire', selectedTraitIds: [] },
     {
       initialize(runtime) {
-        const state = runtime.profession.specialization.state;
-        state.activeFamiliarCast = { reservationId: 'familiar', endsAt: 1, resetsCharges: true };
-        state.pendingWeaponChargeGains = [{ activationId: 'weapon', source: 'Weapon', sourceId: 42, gain: 2 }];
-        const cast = {
-          id: 'familiar',
-          skill: elementalistCatalog.skillsById.get(76643),
+        const skill = elementalistCatalog.skillsById.get(ID.IGNITE);
+        const cast = { id: 'familiar', skill, start: 0, fullEnd: 1, effectiveEnd: 1, command: {} };
+        evokerFamiliarLifecycle.sideEffectHandlers['elementalist.evoker.begin-familiar'](runtime, {
+          kind: 'cast',
+          cast,
+          skill
+        });
+        evokerFamiliarLifecycle.onCastCommit(runtime, {
+          id: 'weapon',
+          skill: elementalistCatalog.skillsById.get(ID.BLAZING_BARRAGE),
           start: 0,
-          fullEnd: 1,
+          fullEnd: 0,
           effectiveEnd: 0,
-          cancelledBeforeCommit: true,
           command: {}
-        };
-        evokerHooks.onCastCancel(runtime, cast);
-        evokerHooks.onCastCancel(runtime, cast);
-        assert.equal(state.activeFamiliarCast, null);
-        assert.deepEqual(state.pendingWeaponChargeGains, []);
+        });
+        assert.equal(runtime.resourceController.value('familiarCharges'), 0);
+        evokerFamiliarLifecycle.onCastCancel(runtime, cast);
+        evokerFamiliarLifecycle.onCastCancel(runtime, cast);
+        assert.equal(evokerFamiliarLifecycle.availability(runtime, skill).retryAt, null);
       }
     }
   );
   assert.equal(observedRuntime(result).profession.specialization.state.familiarCharges.value, 2);
+  assert.equal(
+    result.events.filter((event) => event.kind === 'evoker-charges' && event.activationId === 'weapon').length,
+    1
+  );
 });
 
+// The declared reset precedes the grant, whose event retains its original weapon attribution.
 test('deferred weapon charges report the actual flush time once', () => {
-  // A grant queued before the familiar reset must retain attribution and land only after that reset.
+  const skill = elementalistCatalog.skillsById.get(ID.IGNITE);
+  const cast = { id: 'familiar', skill, start: 0, fullEnd: 2, effectiveEnd: 2, command: {} };
   const result = runElementalist(
     [{ type: 'wait', durationMs: 3000 }],
     { specialization: 'Evoker', initialEvokerCharges: 0, evokerElement: 'Fire', selectedTraitIds: [] },
     {
       initialize(runtime) {
-        const state = runtime.profession.specialization.state;
-        state.activeFamiliarCast = { reservationId: 'familiar', endsAt: 2, resetsCharges: true };
-        grantWeaponSkillCharges(
-          runtime,
-          { id: 'weapon', effectiveEnd: 0 },
-          elementalistCatalog.skillsById.get(ID.BLAZING_BARRAGE),
-          state
-        );
-        assert.equal(state.familiarCharges.value, 0);
+        evokerFamiliarLifecycle.sideEffectHandlers['elementalist.evoker.begin-familiar'](runtime, {
+          kind: 'cast',
+          cast,
+          skill
+        });
+        evokerFamiliarLifecycle.onCastCommit(runtime, {
+          id: 'weapon',
+          skill: elementalistCatalog.skillsById.get(ID.BLAZING_BARRAGE),
+          start: 0,
+          fullEnd: 0,
+          effectiveEnd: 0,
+          command: {}
+        });
+        assert.equal(runtime.resourceController.value('familiarCharges'), 0);
       },
       timeline: [
         {
           at: 2,
           run(runtime) {
-            const state = runtime.profession.specialization.state;
-            runtime.resourceController.replace('familiarCharges', 0);
-            flushPendingWeaponChargeGains(runtime, state);
-            flushPendingWeaponChargeGains(runtime, state);
-            assert.deepEqual(state.pendingWeaponChargeGains, []);
+            const type = 'elementalist.evoker.settle-basic-familiar';
+            evokerFamiliarLifecycle.sideEffectHandlers[type](runtime, { kind: 'cast', cast, skill }, { type });
+            evokerFamiliarLifecycle.onCastCommit(runtime, cast);
           }
         }
       ]

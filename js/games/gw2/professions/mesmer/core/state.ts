@@ -1,11 +1,19 @@
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
 import { createPeriodicTaskState, type PeriodicTaskState } from '#gw2/platform/simulation/periodic-task.js';
-import type { MesmerCastDetails } from '#gw2/professions/mesmer/core/execution/effect-types.js';
 import type { MesmerClone } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import { mesmerResourceDefinition, mesmerResourceKind } from '#gw2/professions/mesmer/family-state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+
+/** Keep accepted cast facts with Core state for later settlement and trait queries. */
+interface MesmerCastDetails {
+  clarityConsumed?: boolean;
+  taleEligible?: boolean;
+  earlyResourceAt?: number | null;
+  earlyResourceOwnerId?: string;
+  resourceScheduledDuringCast?: boolean;
+}
 
 /** Core owns state present for every specialization runtime. */
 export interface MesmerCoreState {

@@ -1,9 +1,5 @@
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
-import type {
-  MesmerPhantasmEffectController,
-  MesmerPhantasmExecution,
-  MesmerQueueResources
-} from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
+import type { MesmerQueueResources } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
 import type { MesmerResourceDefinition } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/types.js';
@@ -54,23 +50,5 @@ export function scheduleDirectSkillResources(
       },
       delivery
     );
-  }
-}
-
-/** Keep simultaneous phantasm conversions atomic, including specialization-specific conversion instants. */
-export function schedulePhantasmConversions(
-  phantasmExecutions: readonly MesmerPhantasmExecution[],
-  queueConversion: MesmerPhantasmEffectController['queueConversion']
-): void {
-  const conversionGroups = new Map<number, MesmerPhantasmExecution[]>();
-  for (const phantasm of phantasmExecutions) {
-    const conversionAt = phantasm.conversionAt;
-    const group = conversionGroups.get(conversionAt) || [];
-    group.push(phantasm);
-    conversionGroups.set(conversionAt, group);
-  }
-
-  for (const group of conversionGroups.values()) {
-    queueConversion(group[0], group.length);
   }
 }

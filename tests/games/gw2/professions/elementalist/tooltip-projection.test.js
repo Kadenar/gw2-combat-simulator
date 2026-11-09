@@ -11,7 +11,7 @@ import {
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
-import { acceptIgniteEffects } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
+import { acceptIgniteEffects } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiars.js';
 import { evokerState } from '#gw2/professions/elementalist/specializations/evoker/state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';

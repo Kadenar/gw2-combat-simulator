@@ -1,11 +1,4 @@
-/**
- * The Evoker familiar-charge economy.
- *
- * Owns charge capacity setup, how much each weapon skill contributes, the
- * deferral queue that protects grants from a charge-resetting familiar cast, and
- * the resource events the charge dial renders. Spending charges belongs to the
- * familiar handlers; this module only accrues and reports them.
- */
+/** Define public charge clocks, weapon charge amounts, and resource readings for the familiar lifecycle. */
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR, WEAPON } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
@@ -118,80 +111,4 @@ export function weaponSkillChargeGain(
   return (skill.attunement || '').split('+').includes(state.element)
     ? balanceProfileNumber(evokerChargeProfile(source, context), 'playerStacks')
     : balanceNumber(source, EVOKER_TRAIT.EVOCATION, 'allyStacks');
-}
-
-// Commit at the live flush time, clamped to capacity, so deferred grants follow the familiar's reset.
-function applyWeaponSkillChargeGain(
-  context: ElementalistRuntime,
-  state: EvokerState,
-  chargeGain: EvokerState['pendingWeaponChargeGains'][number]
-): void {
-  const before = state.familiarCharges.value;
-  context.resourceController.grant('familiarCharges', chargeGain.gain);
-
-  if (state.familiarCharges.value === before) return;
-
-  context.effects.emit({
-    kind: 'packet',
-    event: {
-      type: 'resource',
-      activationId: chargeGain.activationId,
-      at: context.time,
-      source: chargeGain.source,
-      sourceId: chargeGain.sourceId,
-      actorType: ACTOR.PLAYER,
-      skillName: chargeGain.source,
-      kind: 'evoker-charges',
-      value: state.familiarCharges.value,
-      maximum: state.familiarCharges.maximum,
-      empowered: state.empoweredCharges.value,
-      change: state.familiarCharges.value - before
-    }
-  });
-}
-
-/**
- * Awards a completing weapon skill's charges, queueing the grant instead when a
- * charge-resetting basic familiar is still casting so the charges land after the
- * reset rather than being wiped by it.
- */
-export function grantWeaponSkillCharges(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill,
-  state: EvokerState
-): void {
-  const gain = weaponSkillChargeGain(context.helpers, context, skill, state);
-
-  if (gain <= 0) return;
-
-  const chargeGain = {
-    activationId: cast.id,
-    source: skill.name,
-    sourceId: skill.id,
-    gain
-  };
-
-  // Defer grants while a basic familiar is casting. Its charge reset would otherwise erase them.
-  // reservationId check excludes the familiar itself from deferring its own grant
-  if (
-    state.activeFamiliarCast &&
-    state.activeFamiliarCast.resetsCharges &&
-    cast.id !== state.activeFamiliarCast.reservationId &&
-    cast.effectiveEnd <= state.activeFamiliarCast.endsAt
-  ) {
-    state.pendingWeaponChargeGains.push(chargeGain);
-    return;
-  }
-
-  applyWeaponSkillChargeGain(context, state, chargeGain);
-}
-
-/** Replays every deferred grant once the familiar cast that blocked them has settled. */
-export function flushPendingWeaponChargeGains(context: ElementalistRuntime, state: EvokerState): void {
-  for (const chargeGain of state.pendingWeaponChargeGains) {
-    applyWeaponSkillChargeGain(context, state, chargeGain);
-  }
-
-  state.pendingWeaponChargeGains = [];
 }

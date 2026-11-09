@@ -1,4 +1,3 @@
-import { prepareGw2BuffCompanionCandidates } from '#gw2/platform/combat/state/allied-players.js';
 import { createStealthLifecycle, endStealth, stealthActive } from '#gw2/platform/combat/stealth.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -8,14 +7,7 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { rangerBuffPolicies } from '#gw2/professions/ranger/core/effect-state.js';
 import { buildRangerPacket } from '#gw2/professions/ranger/core/events.js';
 import { rangerCoreCastAvailability } from '#gw2/professions/ranger/core/mechanics/availability.js';
-import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
-import { isRangerPetInstanceId } from '#gw2/professions/ranger/core/mechanics/pet-state.js';
-import {
-  beginRangerPetCommand,
-  prepareRangerPetEvent,
-  rangerPetLifecycle,
-  startRangerPet
-} from '#gw2/professions/ranger/core/mechanics/pets.js';
+import { rangerPetLifecycle, startRangerPet } from '#gw2/professions/ranger/core/mechanics/pets.js';
 import { reactToRangerCoreDamage } from '#gw2/professions/ranger/core/mechanics/reactions.js';
 import { isBeastSkill } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { rangerEndurance } from '#gw2/professions/ranger/core/mechanics/resources.js';
@@ -84,58 +76,16 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   },
   endurance: rangerEndurance,
   availability: rangerCoreCastAvailability,
-  // Pet recharge belongs to the incarnation accepting the command, not whichever pet is active later.
-  rechargeCompanionId: (runtime, skill) => (skill.petSkill ? rangerPetCompanionId(runtime) : undefined),
-  // Pet packets and delayed field creation end with their caster; existing fields and ranger-stat packets survive.
-  effectOwner(_context, event) {
-    if (event.actorType === ACTOR.SUMMON && isRangerPetInstanceId(event.summonOwner))
-      return { id: event.summonOwner, generation: 0 };
-
-    return undefined;
-  },
-  prepareEvent(runtime, event) {
-    const state = runtime.profession.core;
-
-    // A surviving ranger-stat effect cannot create new pet-owned children after that pet is removed.
-    if (
-      event.actorType === ACTOR.SUMMON &&
-      typeof event.summonOwner === 'string' &&
-      runtime.time >= (runtime.combat.companionRetiredAt(event.summonOwner) ?? Infinity)
-    )
-      return null;
-
-    const skill = runtime.helpers.skillsById.get(event.skillId!);
-
-    // The pet lane publishes its action only when the command actually starts in the current generation.
-    if (event.type === 'action' && skill?.petSkill && event.actorType !== ACTOR.SUMMON) return null;
-
-    if (!prepareFrostTrapEvent(runtime, event)) return null;
-
-    return prepareRangerPetEvent(
-      runtime,
-      prepareGw2BuffCompanionCandidates(event, state.pet ? [rangerPetCompanionId(runtime)] : [])
-    );
-  },
+  prepareEvent: prepareFrostTrapEvent,
   initialize(runtime) {
-    const pet = runtime.profession.core.pet;
-
-    if (pet) runtime.combat.registerCompanion(pet.id, pet.effects);
-
+    // The pet lifecycle registers the companion before traits grant rewards; cadence starts afterward.
     runtime.fireTrigger(rangerInitialized);
     startRangerPet(runtime);
   },
   onCombatStart(runtime) {
-    startRangerPet(runtime);
     releaseFrostTrap(runtime);
   },
-  modifyEffects(_runtime, cast, effects) {
-    if (cast.skill.petSkill) return [];
-
-    return effects;
-  },
   onCastStart(runtime, cast) {
-    beginRangerPetCommand(runtime, cast);
-
     if (cast.skill.evades) runtime.fireTrigger(dodged, { at: runtime.time });
   },
   onCastCommit(runtime, cast) {
@@ -189,8 +139,9 @@ export const rangerCoreHooks = composeRuntimeHooks<RangerRuntimeState, RangerSki
   maceLifecycle,
   spearLifecycle,
   axeLifecycle,
-  coreLifecycle,
+  // Pet admission precedes Frost Trap preparation; combat cadence precedes trap release.
   rangerPetLifecycle,
+  coreLifecycle,
   petSwapLifecycle,
   maulLifecycle,
   stalkersStrikeLifecycle,

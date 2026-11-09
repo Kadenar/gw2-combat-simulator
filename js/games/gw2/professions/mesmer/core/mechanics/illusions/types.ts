@@ -2,7 +2,7 @@ import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { ConditionEffect, StrikeEffect, StrikeTick } from '#gw2/platform/effects/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { MesmerResourceCause } from '#gw2/professions/mesmer/core/mechanics/resource-types.js';
-import type { MesmerConditionEffect, MesmerSkill, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
+import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 
 export interface MesmerClone {
   id: number;
@@ -139,18 +139,4 @@ export interface MesmerPhantasmExecution {
   // Converts a raw post-cast millisecond offset from timing metadata into a simulation
   // timestamp, accounting for cast duration and Phantasmal Haste speed scaling.
   readonly endpoint: (atMs: number | undefined) => number;
-}
-
-export interface MesmerPhantasmEffectController {
-  prepare(
-    skill: MesmerSkill,
-    castStart: number,
-    summonAt: number,
-    clarityConsumed: boolean,
-    delivery?: EffectDelivery
-  ): readonly MesmerPhantasmExecution[];
-  scheduleLifecycle(executions: readonly MesmerPhantasmExecution[]): void;
-  scheduleStrike(execution: MesmerPhantasmExecution, group: MesmerStrikeEffect, castStart: number): void;
-  scheduleStatuses(execution: MesmerPhantasmExecution, conditions: readonly MesmerConditionEffect[]): void;
-  queueConversion(execution: MesmerPhantasmExecution, amount?: number): void;
 }

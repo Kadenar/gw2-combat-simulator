@@ -1,7 +1,7 @@
 /**
  * Stores mutable Evoker state for one run. Includes the selected familiar element, charges, empowered stacks,
- * and timers for Evocation, Ignite tiers, and Elemental Balance. Tracks accepted casts, completion grants,
- * and impact reactions so familiar casts can interrupt, defer, and reapply scheduled work.
+ * and timers for Evocation, Ignite tiers, and Elemental Balance.
+ * Familiar execution bookkeeping belongs to the familiar lifecycle.
  */
 import type { ChargeGrant } from '#gw2/platform/combat/resources/charges.js';
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
@@ -33,28 +33,6 @@ export interface EvokerState {
   // Ignite reaches and retains its final burning tier until inactivity resets it; passive Might has its own ICD.
   igniteTier: number;
   igniteLastUsedAt: number;
-  // most recent empowered familiar cast per basic familiar, used to detect flip-interrupt windows
-  lastEmpoweredFamiliarByBasic: Record<
-    string,
-    { skillId: string | number; activationId: string; start: number } | null
-  >;
-  // reservations whose own effects must be cancelled once their scheduling finishes
-  cancelledFamiliarActivations: Record<string, boolean>;
-  // the familiar cast currently in flight; blocks other casts and defers charge grants that its reset would wipe
-  activeFamiliarCast: {
-    reservationId: string;
-    endsAt: number;
-    resetsCharges: boolean;
-  } | null;
-  // Pending parent grants let an early familiar input wait until its charges become available.
-  pendingWeaponCompletions: Array<{ activationId: string; at: number; gain: number }>;
-  // charge grants deferred past a charge-resetting familiar cast, replayed once it completes
-  pendingWeaponChargeGains: Array<{
-    activationId: string;
-    source: string;
-    sourceId: string | number;
-    gain: number;
-  }>;
 }
 
 /**
@@ -76,12 +54,7 @@ export const evokerState = defineProfessionSpecializationState(
       elementalBalanceUntil: 0,
 
       igniteTier: 0,
-      igniteLastUsedAt: Number.NEGATIVE_INFINITY, // guarantees first use always starts at tier 0 without a special-case check
-      lastEmpoweredFamiliarByBasic: {},
-      cancelledFamiliarActivations: {},
-      activeFamiliarCast: null,
-      pendingWeaponCompletions: [],
-      pendingWeaponChargeGains: []
+      igniteLastUsedAt: Number.NEGATIVE_INFINITY // guarantees first use always starts at tier 0 without a special-case check
     };
   }
 );
