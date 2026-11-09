@@ -128,6 +128,9 @@ export interface Gw2ResolverResult {
   /** Optional generated coverage is independent of chart-history collection. */
   readonly boonCoverage?: import('#gw2/platform/results/boon-generation.js').BoonCoverage;
   readonly boonGeneration: {
+    readonly sustained: Readonly<
+      Record<string, import('#gw2/platform/results/sustained-boon-generation.js').SustainedBoonByAudience>
+    >;
     readonly boons: Readonly<
       Record<string, import('#gw2/platform/results/boon-generation.js').BoonGenerationByAudience>
     >;

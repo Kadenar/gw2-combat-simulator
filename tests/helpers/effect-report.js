@@ -57,7 +57,7 @@ export function effectFields(applications = [], end = 120, { policies = [], fram
     events: applications,
     resolvedEvents: applications,
     effectReport: { ...report, tracks: [...report.tracks, ...projectedPartyEffects(generation, end).tracks] },
-    boonGeneration: { boons: Object.fromEntries(generation.boons) }
+    boonGeneration: { boons: Object.fromEntries(generation.boons), sustained: generation.sustained }
   };
 }
 

@@ -10,6 +10,7 @@ import {
 import { projectCombatObservations } from '#gw2/platform/results/combat-observations.js';
 import type { DamageReportProjection } from '#gw2/platform/results/damage-report.js';
 import { uniqueDiagnostics } from '#gw2/platform/results/diagnostics.js';
+import type { ScheduledBoonApplication } from '#gw2/platform/results/sustained-boon-generation.js';
 import type { Gw2ResolverResult, Gw2SimulationScore } from '#gw2/platform/results/types.js';
 import { cloneData } from '#kernel/core/clone.js';
 
@@ -75,14 +76,15 @@ export function buildCombatResult(
   ctx: Gw2ResolverRuntime,
   score: Gw2SimulationScore,
   events: readonly Gw2ResolverEvent[],
-  damageReport: DamageReportProjection
+  damageReport: DamageReportProjection,
+  scheduledBoons: readonly ScheduledBoonApplication[]
 ): Gw2ResolverResult {
   const effectiveEnd = score.combatEndTime;
   const { output, ...numeric } = score;
   const effectiveEvents = events.filter((event) => event.at <= effectiveEnd);
   // Editor-only runs retain combat facts but skip both live histories and expensive hypothetical party projection.
   const generation = ctx.effectRecorder
-    ? buildBoonGeneration(ctx.resolved, score.combatStartTime ?? score.dpsStartTime, effectiveEnd)
+    ? buildBoonGeneration(ctx.resolved, score.combatStartTime ?? score.dpsStartTime, effectiveEnd, scheduledBoons)
     : null;
   const effectReport = ctx.effectRecorder?.finish(effectiveEnd);
   const partyReport = generation ? projectedPartyEffects(generation, effectiveEnd) : null;
@@ -92,7 +94,9 @@ export function buildCombatResult(
     warnings: numeric.warnings.map((diagnostic) => ({ ...diagnostic })),
     effectReport:
       effectReport && partyReport ? { ...effectReport, tracks: [...effectReport.tracks, ...partyReport.tracks] } : null,
-    boonGeneration: generation ? { boons: Object.fromEntries(generation.boons) } : null,
+    boonGeneration: generation
+      ? { boons: Object.fromEntries(generation.boons), sustained: generation.sustained }
+      : null,
     ...damageReport,
     events: cloneData(effectiveEvents),
     ...projectCombatObservations(ctx, effectiveEnd),

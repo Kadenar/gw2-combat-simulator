@@ -13,10 +13,14 @@ import {
   type Gw2TimedBuffApplication
 } from '#gw2/platform/combat/boons.js';
 import { observeBuffState } from '#gw2/platform/combat/effect-state.js';
-import { gw2BoonApplicationRecipients } from '#gw2/platform/combat/state/allied-players.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { EffectRecorder } from '#gw2/platform/results/effect-report.js';
+import {
+  createSustainedBoonCollector,
+  generationApplies,
+  type ScheduledBoonApplication
+} from '#gw2/platform/results/sustained-boon-generation.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { canonicalEvent, eventCausalOrder } from '#kernel/events/queue.js';
 
@@ -43,6 +47,7 @@ interface GenerationWindow {
 
 /** Share audience and extension accounting while score collection keeps only two bounded duration pools. */
 export function createBoonGenerationCollector(retainHistory: boolean, window: () => GenerationWindow) {
+  const sustained = retainHistory ? createSustainedBoonCollector() : null;
   const recipients = [new Map<string, Gw2TimedBuffApplication[]>(), new Map<string, Gw2TimedBuffApplication[]>()];
   const totals = new Map<string, BoonGenerationByAudience>();
   const pending = new Map<string, [number, number]>();
@@ -88,6 +93,8 @@ export function createBoonGenerationCollector(retainHistory: boolean, window: ()
 
     if (event.at >= bounds.end) return;
 
+    sustained?.observe(event);
+
     if (event.at !== pendingAt) {
       flush(bounds);
       pendingAt = event.at;
@@ -95,6 +102,8 @@ export function createBoonGenerationCollector(retainHistory: boolean, window: ()
 
     for (const [index, boons] of recipients.entries()) {
       const credit = (kind: string, amount: number): void => {
+        sustained?.credit(event, kind, index, amount);
+
         if (!totals.has(kind)) totals.set(kind, empty(kind));
 
         const values = pending.get(kind) ?? [0, 0];
@@ -109,14 +118,7 @@ export function createBoonGenerationCollector(retainHistory: boolean, window: ()
 
         // Party grants contribute once even when live allies are absent or the native recipient cap is small.
         // Named grants count only for ally 1 so per-player procs cannot multiply the hypothetical ally's supply.
-        const applies =
-          index === 0
-            ? gw2BoonApplicationRecipients({}, event.audience ? { ...event, resolvedAudience: undefined } : event)
-                .includesSelf
-            : event.audience
-              ? event.audience.recipients === RECIPIENT.PARTY && (event.audience.alliedPlayerIndex ?? 1) === 1
-              : (event.resolvedAudience?.alliedPlayerCount ?? 0) > 0 &&
-                (event.resolvedAudience?.alliedPlayerIndex ?? 1) === 1;
+        const applies = generationApplies(event, index);
 
         if (!applies) continue;
 
@@ -180,10 +182,12 @@ export function createBoonGenerationCollector(retainHistory: boolean, window: ()
 
   return {
     record,
+    expect: (event: SimulationEvent, rejected: boolean) => sustained?.expect(event, rejected),
     finish(start: number, end: number) {
       flush({ start, end });
       return {
         boons: totals as ReadonlyMap<string, BoonGenerationByAudience>,
+        sustained: sustained?.finish(start, end) ?? {},
         allyApplications: recipients[1]! as ReadonlyMap<string, readonly Gw2TimedBuffApplication[]>
       };
     }
@@ -191,8 +195,14 @@ export function createBoonGenerationCollector(retainHistory: boolean, window: ()
 }
 
 /** Replay resolved events through the same collector used during score execution. */
-export function buildBoonGeneration(events: readonly SimulationEvent[], start: number, end: number) {
+export function buildBoonGeneration(
+  events: readonly SimulationEvent[],
+  start: number,
+  end: number,
+  scheduled: readonly ScheduledBoonApplication[] = []
+) {
   const collector = createBoonGenerationCollector(true, () => ({ start, end }));
+  for (const { event, rejected } of scheduled) collector.expect(event, rejected);
   const ordered = [...events].sort(
     (left, right) => left.at - right.at || (eventCausalOrder(left) ?? 0) - (eventCausalOrder(right) ?? 0)
   );

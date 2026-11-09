@@ -151,11 +151,19 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
     }
   }
 
-  /** Exact lifetime generations cancel both internal work and delivery-owned packets on the single queue. */
-  function cancelOwner(owner: WorkOwner, packetOwner: (packet: Gw2ResolverEvent) => WorkOwner | undefined): void {
+  /** Exact lifetime generations retire queued work and settle cancelled packet yields as rejected. */
+  function cancelOwner(
+    owner: WorkOwner,
+    packetOwner: (packet: Gw2ResolverEvent) => WorkOwner | undefined,
+    rejectPacket: (packet: Gw2ResolverEvent) => void
+  ): void {
     queue.cancelWhere((event) => {
       const candidate = isRuntimeWork(event) ? event.owner : packetOwner(event);
-      return candidate?.id === owner.id && candidate.generation === owner.generation;
+      const matches = candidate?.id === owner.id && candidate.generation === owner.generation;
+
+      if (matches && !isRuntimeWork(event)) rejectPacket(event);
+
+      return matches;
     });
   }
 

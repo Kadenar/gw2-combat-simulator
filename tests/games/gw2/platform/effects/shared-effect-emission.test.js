@@ -280,6 +280,8 @@ test('application-ordered profiles submit each sibling before the next applicati
     const trace = [];
     const cause = { ...attribution, type: 'action', at: 0, activationId: 'paired-cast', eventOrder: 17 };
     const service = createEffectEmissionService({
+      collectBoonLineage: false,
+      castStartedAt: () => undefined,
       expansionBudget: createEffectExpansionBudget(),
       now: () => 0,
       registerReaction: () => undefined,
@@ -323,6 +325,8 @@ test('trait profile selection validates named effects and preserves cast attribu
   const runtime = {
     helpers: createCanonicalCatalog({ balanceProfiles: [profile] }),
     effects: createEffectEmissionService({
+      collectBoonLineage: false,
+      castStartedAt: () => undefined,
       expansionBudget: createEffectExpansionBudget(),
       now: () => 2,
       registerReaction: () => undefined,

@@ -8,6 +8,8 @@ export function captureEffectEmissions({ now = () => 0, submit, announce } = {})
   const events = [];
   const announcements = [];
   const effects = createEffectEmissionService({
+    collectBoonLineage: true,
+    castStartedAt: () => undefined,
     expansionBudget: createEffectExpansionBudget(),
     now,
     registerReaction: () => undefined,

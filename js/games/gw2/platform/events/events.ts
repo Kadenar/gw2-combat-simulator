@@ -257,6 +257,14 @@ type CommonSimulationEventType = Exclude<(typeof COMMON_EVENT_TYPES)[number], 'd
 type CustomSimulationEventType = `${string}.${string}`;
 
 export interface SimulationEventBase<TType extends string = string> {
+  /** Reporting lineage groups a finite yield without changing combat activation ownership. */
+  readonly boonGeneration?: {
+    readonly activationId: string;
+    readonly at: number;
+    readonly batchId: string;
+    readonly applicationIndex: number;
+    readonly expectedApplications: number;
+  };
   /** Internal authored-effect provenance; never inferred from display skill attribution. */
   readonly effectReaction?: EffectReactionRef;
   readonly type: TType;

@@ -109,6 +109,8 @@ test('authored numeric validation still visits every variant and tick while proc
 test('profile emissions detach nested caller metadata, authored declarations, and sibling packets', () => {
   const submitted = [];
   const service = createEffectEmissionService({
+    collectBoonLineage: false,
+    castStartedAt: () => undefined,
     expansionBudget: createEffectExpansionBudget(),
     now: () => 0,
     registerReaction: () => undefined,

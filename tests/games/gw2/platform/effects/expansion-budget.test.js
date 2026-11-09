@@ -148,6 +148,8 @@ test('profile budget rejection precedes attribution, registration, transforms an
   const budget = createEffectExpansionBudget();
   budget.reserve(MAX_EFFECT_EXPANSION - 3, 'earlier accepted work');
   const effects = createEffectEmissionService({
+    collectBoonLineage: false,
+    castStartedAt: () => undefined,
     expansionBudget: budget,
     now: () => 0,
     registerReaction() {
@@ -182,6 +184,8 @@ test('emission counts each packet once and preserves coefficient splitting and a
   const budget = createEffectExpansionBudget();
   budget.reserve(MAX_EFFECT_EXPANSION - 5, 'earlier accepted work');
   const effects = createEffectEmissionService({
+    collectBoonLineage: false,
+    castStartedAt: () => undefined,
     expansionBudget: budget,
     now: () => 0,
     registerReaction: () => undefined,
@@ -235,6 +239,8 @@ test('conditions share the packet budget and reject a whole stack batch without 
     query: createGw2CombatQuery({ profession: testProfession })
   });
   const effects = createEffectEmissionService({
+    collectBoonLineage: false,
+    castStartedAt: () => undefined,
     expansionBudget: budget,
     now: () => 0,
     registerReaction: () => undefined,

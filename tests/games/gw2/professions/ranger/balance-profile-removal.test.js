@@ -116,6 +116,8 @@ function resolverContext(balanceProfiles, selectedTraitIds, specialization, skil
     query: { statsAt: () => ({}) },
     queued,
     effects: createEffectEmissionService({
+      collectBoonLineage: false,
+      castStartedAt: () => undefined,
       expansionBudget: createEffectExpansionBudget(),
       now: () => 0,
       registerReaction: () => undefined,

@@ -1334,7 +1334,12 @@ test('task dispatch restores its outer causal scope when a cast handler throws',
     context: () => context,
     makeWork,
     enqueueWork: coordinator.enqueueWork,
-    cancelOwned: (owner) => coordinator.cancelOwner(owner, () => undefined),
+    cancelOwned: (owner) =>
+      coordinator.cancelOwner(
+        owner,
+        () => undefined,
+        () => {}
+      ),
     castAction: coordinator.castAction,
     withCause: coordinator.withCause,
     tasks: {

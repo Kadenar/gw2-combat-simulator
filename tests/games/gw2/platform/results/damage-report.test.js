@@ -104,7 +104,7 @@ test('detailed projection requires its recorder while numeric output never proje
   const profession = defineTestProfession({ id: 'report-invariant', name: 'Report invariant' }).runtimeFor({});
   const runtime = observedRuntime(observeGw2Runtime({ profession, config: {}, rotation: [] }));
   assert.throws(
-    () => projectRuntimeResult(runtime, profession, {}, { output: 'detailed', executed: [] }),
+    () => projectRuntimeResult(runtime, profession, {}, { output: 'detailed', executed: [], scheduledBoons: [] }),
     /damage report projector/
   );
   const projectDamageReport = () => {
@@ -112,7 +112,12 @@ test('detailed projection requires its recorder while numeric output never proje
   };
 
   assert.equal(
-    projectRuntimeResult(runtime, profession, {}, { output: 'score', executed: [], projectDamageReport }).output,
+    projectRuntimeResult(
+      runtime,
+      profession,
+      {},
+      { output: 'score', executed: [], scheduledBoons: [], projectDamageReport }
+    ).output,
     'score'
   );
   assert.equal(
@@ -123,6 +128,7 @@ test('detailed projection requires its recorder while numeric output never proje
       {
         output: 'damage',
         executed: [],
+        scheduledBoons: [],
         projectDamageReport,
         damageCompletionTime: () => runtime.time
       }

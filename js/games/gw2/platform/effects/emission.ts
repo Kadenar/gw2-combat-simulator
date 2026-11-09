@@ -1,3 +1,4 @@
+/** Detailed reports retain finite boon yields without adding lineage to other simulation output. */
 import {
   effectApplicationCount,
   MAX_EFFECT_EXPANSION,
@@ -139,8 +140,18 @@ function deliverySnapshot(
   };
 }
 
+/** Copied events cannot transfer another emission's yield; ordinary packets need no extra copy. */
+function withoutBoonLineage(event: SimulationEventBase): SimulationEventBase {
+  if (!('boonGeneration' in event)) return event;
+
+  const { boonGeneration: _lineage, ...packet } = event;
+  return packet;
+}
+
 /** Expand authored effects once and submit computed and materialized packets to the same runtime boundary. */
 export function createEffectEmissionService(host: {
+  readonly collectBoonLineage: boolean;
+  readonly castStartedAt: (activationId: string) => number | undefined;
   readonly expansionBudget: EffectExpansionBudget;
   readonly now: () => number;
   readonly registerReaction: (profile: Skill | BalanceProfile, effect: SkillEffect) => number | undefined;
@@ -150,6 +161,7 @@ export function createEffectEmissionService(host: {
   ) => SimulationEvent;
   readonly announce: (request: AnnouncementEmission) => SimulationEvent;
 }): EffectEmissionService {
+  let generationSequence = 0;
   function emit(request: PacketEmission & { readonly receipt: true }): SimulationEvent;
   function emit(request: ProfileEmission & { readonly receipt: true }): readonly SimulationEvent[];
   function emit(request: AnnouncementEmission & { readonly receipt: true }): SimulationEvent;
@@ -186,7 +198,8 @@ export function createEffectEmissionService(host: {
 
     if (request.kind === 'packet') {
       host.expansionBudget.reserve(1, `packet=${request.event.type} source=${request.event.sourceId}`);
-      const event = host.submit(cloneData(request.event), delivery);
+      // Only profile expansion establishes yield lineage; copied packets cannot inherit another emission's yield.
+      const event = host.submit(cloneData(withoutBoonLineage(request.event)), delivery);
       return request.receipt ? immutableReceipt(event) : undefined;
     }
 
@@ -207,9 +220,11 @@ export function createEffectEmissionService(host: {
 
     host.expansionBudget.reserve(count, label);
     const at = request.at ?? host.now();
+    const occurrenceId = host.collectBoonLineage ? `generation:${++generationSequence}` : '';
     const events: SimulationEvent[] | undefined = request.receipt ? [] : undefined;
-    const materialize = (effect: SkillEffect) =>
-      materializeSkillEffectApplications({
+    const materialize = (effect: SkillEffect) => {
+      const batchId = host.collectBoonLineage ? `generation:${++generationSequence}` : '';
+      const applications = materializeSkillEffectApplications({
         skill: request.profile,
         effect,
         reactionGroup: effect.reactions === undefined ? undefined : host.registerReaction(request.profile, effect),
@@ -218,11 +233,37 @@ export function createEffectEmissionService(host: {
         baseEvent: typeof request.attribution === 'function' ? request.attribution(effect) : request.attribution,
         skillWeaponFallback: request.skillWeaponFallback
       });
-    const submit = (event: SimulationEventBase, effect: SkillEffect) => {
+      return { batchId, applications };
+    };
+
+    // Keep the planned batch size even when a transform omits applications, so incomplete yields stay detectable.
+    const submit = (
+      event: SimulationEventBase,
+      effect: SkillEffect,
+      batchId: string,
+      applicationIndex: number,
+      expectedApplications: number
+    ) => {
       const packet = request.transform ? request.transform(event, effect) : event;
 
       if (packet) {
-        const submitted = host.submit(cloneData(packet), delivery);
+        let payload = withoutBoonLineage(packet);
+
+        if (host.collectBoonLineage && (payload.type === 'buff' || payload.type === 'boon_extension')) {
+          const ownCast = request.cast && payload.traitId == null && payload.sourceId === request.cast.skillId;
+          payload = {
+            ...payload,
+            boonGeneration: {
+              activationId: ownCast ? request.cast.activationId : occurrenceId,
+              at: ownCast ? (host.castStartedAt(request.cast.activationId) ?? at) : at,
+              batchId,
+              applicationIndex,
+              expectedApplications
+            }
+          };
+        }
+
+        const submitted = host.submit(cloneData(payload), delivery);
 
         if (events) events.push(immutableReceipt(submitted));
       }
@@ -231,16 +272,21 @@ export function createEffectEmissionService(host: {
     // Interleave before submission so sibling conditions precede the next simultaneous strike's reactions.
     if (request.order === 'application') {
       const batches = effects.map(materialize);
-      const maximum = Math.max(0, ...batches.map((batch) => batch.length));
+      const maximum = Math.max(0, ...batches.map((batch) => batch.applications.length));
       for (let index = 0; index < maximum; index += 1)
         for (let effectIndex = 0; effectIndex < effects.length; effectIndex += 1) {
-          const application = batches[effectIndex][index];
+          const { batchId, applications } = batches[effectIndex];
+          const application = applications[index];
 
-          if (application) submit(application.event, effects[effectIndex]);
+          if (application) submit(application.event, effects[effectIndex], batchId, index + 1, applications.length);
         }
     } else {
       // Ordinary profiles retain declaration-order settlement and attribution reads between effects.
-      for (const effect of effects) for (const { event } of materialize(effect)) submit(event, effect);
+      for (const effect of effects) {
+        const { batchId, applications } = materialize(effect);
+        for (let index = 0; index < applications.length; index++)
+          submit(applications[index].event, effect, batchId, index + 1, applications.length);
+      }
     }
 
     return events ? Object.freeze(events) : undefined;

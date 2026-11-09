@@ -60,7 +60,13 @@ export function calculateOptimizerBoonChart(
           firstHitTime: result.firstHitTime,
           combatEndTime: result.combatEndTime,
           resolvedEvents: [],
-          boonGeneration: { boons },
+          // The worker preview owns only these two boons, including its summary data.
+          boonGeneration: {
+            boons,
+            sustained: Object.fromEntries(
+              Object.entries(result.boonGeneration.sustained).filter(([kind]) => kinds.includes(kind))
+            )
+          },
           effectReport: {
             ...result.effectReport,
             tracks: result.effectReport.tracks.filter(

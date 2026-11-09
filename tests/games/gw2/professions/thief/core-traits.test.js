@@ -158,6 +158,8 @@ function traitContext(selectedTraitIds = []) {
       return event;
     },
     effects: createEffectEmissionService({
+      collectBoonLineage: false,
+      castStartedAt: () => undefined,
       expansionBudget: createEffectExpansionBudget(),
       now: () => context.time,
       registerReaction: () => undefined,

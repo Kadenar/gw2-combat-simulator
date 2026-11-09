@@ -230,6 +230,10 @@ export function runRuntime<T extends object>(
   const conditions = createGw2ConditionResolution({ config, reactions, expansionBudget });
   // Emission owns transport; profession hooks select payloads and keep their gameplay rules.
   const effects = createEffectEmissionService({
+    // Sustained reports need lineage; ordinary score coverage uses only resolved boon durations.
+    collectBoonLineage: output === 'detailed' && collectChartData,
+    // The retained action supplies one anchor for start, completion, and delayed cast grants.
+    castStartedAt: (activationId) => coordinator.castAction(activationId)?.at,
     expansionBudget,
     now: () => runtime.time,
     registerReaction: (profile, effect) => effectReactions.register(profile, effect),
@@ -303,7 +307,7 @@ export function runRuntime<T extends object>(
     context: () => runtime.mechanics,
     makeWork,
     enqueueWork,
-    cancelOwned: (owner) => coordinator.cancelOwner(owner, (packet) => deliveryOwner.owner(packet)),
+    cancelOwned: (owner) => coordinator.cancelOwner(owner, deliveryOwner.owner, deliveryOwner.rejectPacket),
     castAction: coordinator.castAction,
     withCause
   });
@@ -548,6 +552,7 @@ export function runRuntime<T extends object>(
   const result = projectRuntimeResult(runtime, profession, execution, {
     output,
     executed,
+    scheduledBoons: deliveryOwner.scheduledBoons,
     projectDamageReport: damageReport?.project,
     damageCompletionTime
   });
