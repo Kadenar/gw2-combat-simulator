@@ -4,25 +4,12 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { coreAdrenalinePolicy } from '#gw2/professions/warrior/core/mechanics/adrenaline.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
-import { dragonSlashCompleted, dragonSlashReleased } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
-import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import {
   bladeswornBuffPolicies,
   bladeswornEffectStates
 } from '#gw2/professions/warrior/specializations/bladesworn/effect-state.js';
-import {
-  dragonChargesToAdrenalineSpent,
-  dragonSlashRelease,
-  dragonTriggerAvailability,
-  dragonTriggerHooks,
-  exitDragonTrigger
-} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
+import { gunsaberDragonTriggerLifecycle } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import { bladeswornFlowLifecycle } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/flow.js';
-import {
-  gunsaberAttackAvailability,
-  gunsaberBarAvailability,
-  swapGunsaber
-} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import {
   ammunitionCommitted,
   explosionAccepted
@@ -31,7 +18,6 @@ import {
   bladeswornSkillLifecycle,
   cartridgeExplosion
 } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
-import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 /** Capture the magazine before the cast spends its ammunition so completion sees the accepted balance. */
@@ -61,7 +47,9 @@ function reactToBladeswornExplosion(runtime: WarriorRuntime, event: Gw2ResolverE
 
 /** Native declarations own actual resources, bar transitions, completed ammunition rewards, and accepted explosions. */
 export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = composeRuntimeHooks([
-  dragonTriggerHooks,
+  // Capture ammunition before mode exit; publish its rewards before Slash release observers and chain cleanup.
+  { onCastStart: prepareBladeswornAmmunition, onCastCommit: completeBladeswornAmmunition },
+  gunsaberDragonTriggerLifecycle,
   bladeswornSkillLifecycle,
   bladeswornFlowLifecycle,
   {
@@ -69,59 +57,6 @@ export const bladeswornHooks: RuntimeHooks<WarriorRuntimeState, WarriorSkill> = 
     resources: { adrenaline: { ...coreAdrenalinePolicy, maximum: () => 0 } },
     buffPolicies: (runtime) => bladeswornBuffPolicies(runtime.helpers),
     observeEffects: bladeswornEffectStates,
-    prepareDamageState(runtime, skill) {
-      bladeswornState.from(runtime.profession).gunsaberActive = Boolean(skill?.gunsaberSkill);
-    },
-
-    sideEffectHandlers: {
-      // Bar declarations invoke the shared transition, including recharge and entry trait observers.
-      'warrior.gunsaber-enter'(runtime, context) {
-        if (context.kind === 'cast') swapGunsaber(runtime, context.cast, true);
-      },
-      'warrior.gunsaber-exit'(runtime, context) {
-        if (context.kind === 'cast') {
-          exitDragonTrigger(runtime);
-          swapGunsaber(runtime, context.cast, false);
-        }
-      }
-    },
-    // Like weapon swaps, Gunsaber transitions recharge instantly until combat begins.
-    rechargeWork: (runtime, skill, work) =>
-      (skill.id === ID.UNSHEATHE_GUNSABER || skill.id === ID.SHEATHE_GUNSABER) && !runtime.engagement.active ? 0 : work,
-
-    availability(runtime, skill, command) {
-      const bar = gunsaberBarAvailability(runtime, skill);
-
-      if (!bar.ready) return bar;
-
-      const trigger = dragonTriggerAvailability(runtime, skill, command);
-
-      if (!trigger.ready) return trigger;
-
-      return gunsaberAttackAvailability(runtime, skill);
-    },
-    onCastStart(runtime, cast) {
-      prepareBladeswornAmmunition(runtime, cast);
-
-      if (!cast.skill.dragonSlash && cast.fullEnd > cast.start) exitDragonTrigger(runtime);
-    },
-    onCastCommit(runtime, cast) {
-      completeBladeswornAmmunition(runtime, cast);
-
-      const release = dragonSlashRelease(cast);
-
-      if (release) {
-        runtime.fireTrigger(dragonSlashReleased, { cast, flowSpent: release.flowSpent });
-
-        runtime.fireTrigger(dragonSlashCompleted, {
-          cast,
-          adrenalineSpent: dragonChargesToAdrenalineSpent(release.charges)
-        });
-      }
-
-      if (cast.skill.gunsaberSkill && !runtime.helpers.autoattackChainPositions.has(Number(cast.skill.id)))
-        runtime.autoattackController.reset();
-    },
     reactions: { 'damage.resolved': reactToBladeswornExplosion }
   }
 ]);

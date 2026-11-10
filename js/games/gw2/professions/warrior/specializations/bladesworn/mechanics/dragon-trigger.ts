@@ -1,3 +1,4 @@
+/** Own Gunsaber and Dragon Trigger admission, transitions, charge lifetimes, and cast-owned release notifications. */
 import { hasTrait, type Gw2TraitLookupContext } from '#gw2/platform/builds/selected-traits.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
@@ -7,9 +8,14 @@ import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availab
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber, requireSkill, skillNumber, type BalanceSource } from '#gw2/platform/skills/balance-profiles.js';
+import { dragonSlashCompleted, dragonSlashReleased } from '#gw2/professions/warrior/core/mechanics/trigger-points.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
-import { swapGunsaber } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
+import {
+  gunsaberAttackAvailability,
+  gunsaberBarAvailability,
+  swapGunsaber
+} from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
@@ -69,7 +75,7 @@ function requestedDragonCharges(configured: number | undefined, maximumCharges: 
 export const ENTER_DRAGON_TRIGGER_REASON = 'Enter Dragon Trigger before using this skill.';
 
 /** Charge windows own their next actual tick; release or replacement invalidates all remaining wakes by activation ID. */
-export function exitDragonTrigger(runtime: WarriorRuntime, at = runtime.time): void {
+function exitDragonTrigger(runtime: WarriorRuntime, at = runtime.time): void {
   const state = bladeswornState.from(runtime.profession);
 
   if (!state.dragonTriggerActive) return;
@@ -333,8 +339,8 @@ const dragonChargePolicy: ResourcePolicy<WarriorRuntime> = {
   recovery: () => 0
 };
 
-/** The lifecycle supplies its own tasks and actions; module composition only states cross-mechanic order. */
-export const dragonTriggerHooks = {
+/** Keep joint mode rules behind one hook interface; composition supplies earlier ammunition capture and rewards. */
+export const gunsaberDragonTriggerLifecycle = {
   resources: { dragonCharges: dragonChargePolicy },
   /** Initialize only damage-relevant form and scaling state for one assumed occurrence. */
   prepareDamageState(runtime, skill, inputs) {
@@ -351,16 +357,59 @@ export const dragonTriggerHooks = {
       state.dragonChargeReachedAt = Array.from({ length: charges + 1 }, () => 0);
       state.dragonTriggerChargeDeadline = Infinity;
     }
+
+    state.gunsaberActive = Boolean(skill?.gunsaberSkill);
   },
 
   reserveRecharge: (_runtime, skill, work) => (skill.id === ID.DRAGON_TRIGGER ? 0 : work),
+  // Like weapon swaps, Gunsaber transitions recharge instantly until combat begins.
+  rechargeWork: (runtime, skill, work) =>
+    (skill.id === ID.UNSHEATHE_GUNSABER || skill.id === ID.SHEATHE_GUNSABER) && !runtime.engagement.active ? 0 : work,
+  availability(runtime, skill, command) {
+    const bar = gunsaberBarAvailability(runtime, skill);
+
+    if (!bar.ready) return bar;
+
+    const trigger = dragonTriggerAvailability(runtime, skill, command);
+
+    if (!trigger.ready) return trigger;
+
+    return gunsaberAttackAvailability(runtime, skill);
+  },
   sideEffectHandlers: {
+    'warrior.gunsaber-enter'(runtime, context) {
+      if (context.kind === 'cast') swapGunsaber(runtime, context.cast, true);
+    },
+    'warrior.gunsaber-exit'(runtime, context) {
+      if (context.kind === 'cast') {
+        exitDragonTrigger(runtime);
+        swapGunsaber(runtime, context.cast, false);
+      }
+    },
     'warrior.dragon-trigger-enter'(runtime, context) {
       if (context.kind === 'cast') enterDragonTrigger(runtime, context.cast);
     },
     'warrior.slash-release'(runtime, context) {
       if (context.kind === 'cast') captureSlash(runtime, context.cast);
     }
+  },
+  onCastStart(runtime, cast) {
+    if (!cast.skill.dragonSlash && cast.fullEnd > cast.start) exitDragonTrigger(runtime);
+  },
+  onCastCommit(runtime, cast) {
+    const release = dragonSlashRelease(cast);
+
+    if (release) {
+      runtime.fireTrigger(dragonSlashReleased, { cast, flowSpent: release.flowSpent });
+
+      runtime.fireTrigger(dragonSlashCompleted, {
+        cast,
+        adrenalineSpent: dragonChargesToAdrenalineSpent(release.charges)
+      });
+    }
+
+    if (cast.skill.gunsaberSkill && !runtime.helpers.autoattackChainPositions.has(Number(cast.skill.id)))
+      runtime.autoattackController.reset();
   },
   tasks: {
     [CHARGE_TICK]: chargeTick,
@@ -374,7 +423,7 @@ export const dragonTriggerHooks = {
 } satisfies RuntimeHooks<WarriorRuntimeState, WarriorSkill>;
 
 /** Entry and release readiness use observed charge thresholds and the current Flow pool. */
-export const dragonTriggerAvailability: NonNullable<RuntimeHooks<WarriorRuntimeState, WarriorSkill>['availability']> = (
+const dragonTriggerAvailability: NonNullable<RuntimeHooks<WarriorRuntimeState, WarriorSkill>['availability']> = (
   runtime,
   skill,
   command
