@@ -7,7 +7,6 @@ import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait, traitAttributeEffects } from '#gw2/platform/profession-definition/traits.js';
-import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceNumber,
@@ -15,11 +14,10 @@ import {
   requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { scheduleFacetPulse } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
+import { retainHeraldFacet } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import {
   facetConsumed,
   heraldUpkeepSettled
@@ -31,7 +29,6 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalInterval, canonicalTime } from '#kernel/core/clock.js';
 
 const COMPASSION = 'revenant.herald-elevated-compassion';
-const ECHO_EXPIRY = 'revenant.herald-echo-expiry';
 
 const coreValue = defineTrait({
   id: TRAIT.CORE_VALUE,
@@ -85,11 +82,11 @@ export const draconicEcho = defineTrait({
   ],
   triggers: [
     onTriggerPoint(facetConsumed, {
-      run: (runtime, input: TriggerPointInput<typeof facetConsumed>) =>
-        retainDraconicEcho(runtime, input.facet, input.wasActive)
+      when: (_runtime, input) => input.wasActive,
+      run: (runtime, input) =>
+        retainHeraldFacet(runtime, input.facet, balanceNumber(runtime.helpers, TRAIT.DRACONIC_ECHO, 'duration'))
     })
-  ],
-  lifetime: { tasks: { [ECHO_EXPIRY]: echoExpiry } }
+  ]
 });
 
 const elevatedCompassion = defineTrait({
@@ -224,30 +221,6 @@ export const traitDefinitions = [
   reinforcedPotency,
   forcefulPersistence
 ];
-
-/** Applies the trait at the mechanic's existing execution boundary. */
-function retainDraconicEcho(runtime: RevenantRuntime, facet: RevenantSkill, wasActive: boolean): void {
-  const core = runtime.profession.core;
-
-  if (!wasActive) return;
-
-  const state = heraldState.from(runtime.profession);
-  const expiresAt = canonicalTime(runtime.time + balanceNumber(runtime.helpers, TRAIT.DRACONIC_ECHO, 'duration'));
-  // Retention preserves the pulse phase, but never keeps an Energy-draining upkeep alive.
-  state.lingeringFacets[facet.id] = { startsAt: runtime.time, expiresAt, legendId: core.activeLegendId };
-  const nextAt = state.facetPulseReadyAt[facet.id];
-
-  if (facet.upkeepPulse && nextAt >= runtime.time && nextAt < expiresAt) scheduleFacetPulse(runtime, facet.id, nextAt);
-
-  runtime.schedule(ECHO_EXPIRY, expiresAt, { skillId: facet.id, expiresAt });
-}
-
-function echoExpiry(runtime: RevenantRuntime, data: unknown): void {
-  const { skillId, expiresAt } = data as { skillId: SkillId; expiresAt: number };
-  const state = heraldState.from(runtime.profession);
-
-  if (state.lingeringFacets[skillId]?.expiresAt === expiresAt) delete state.lingeringFacets[skillId];
-}
 
 function elevatedCompassionActive(runtime: RevenantRuntime): boolean {
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.ELEVATED_COMPASSION);

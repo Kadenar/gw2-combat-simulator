@@ -1,15 +1,6 @@
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
-import { revenantFacetParents } from '#gw2/professions/revenant/data/upkeep-skills.js';
+import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { heraldBuffPolicies } from '#gw2/professions/revenant/specializations/herald/effect-state.js';
-import {
-  completeConsume,
-  FACET_PULSE,
-  facetPulse,
-  heraldFacetAvailability,
-  startConsume,
-  startFacet
-} from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
+import { heraldFacetLifecycle } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import { heraldUpkeepSettled } from '#gw2/professions/revenant/specializations/herald/mechanics/trigger-points.js';
 import {
   natureSiphon,
@@ -18,48 +9,24 @@ import {
 import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 /** Register facet and Nature owners while preserving Core rewards before elite completion and upkeep observers. */
-export const heraldHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
-  buffPolicies: heraldBuffPolicies,
-  initialize(runtime) {
-    // Reject invalid selected relationships before any facet can spend Energy or arm a flip.
-    revenantFacetParents(runtime.helpers.skillsById);
-  },
-  availability: heraldFacetAvailability,
-  // Facet actions finish before the observer evaluates the resulting aggregate upkeep.
-  onCastCancel(runtime) {
-    runtime.fireTrigger(heraldUpkeepSettled);
-  },
-  onCastCommit(runtime) {
-    runtime.fireTrigger(heraldUpkeepSettled);
-  },
-  sideEffectHandlers: {
-    'revenant.start-facet'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      // Keep Core rewards ahead of elite completion state and packets.
-      completeRevenantCast(runtime, context.cast);
-      startFacet(runtime, context.skill);
+export const heraldHooks = composeRuntimeHooks<RevenantRuntimeState, RevenantSkill>([
+  heraldFacetLifecycle,
+  {
+    buffPolicies: heraldBuffPolicies,
+    // Facet actions finish before the observer evaluates the resulting aggregate upkeep.
+    onCastCancel(runtime) {
+      runtime.fireTrigger(heraldUpkeepSettled);
     },
-    'revenant.start-consume'(runtime, context) {
-      if (context.kind === 'cast') startConsume(runtime, context.cast);
+    onCastCommit(runtime) {
+      runtime.fireTrigger(heraldUpkeepSettled);
     },
-    'revenant.complete-consume'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      // Keep Core rewards ahead of elite completion state and packets.
-      completeRevenantCast(runtime, context.cast);
-      completeConsume(runtime, context.cast);
+    sideEffectHandlers: {
+      'revenant.true-nature-dragon'(runtime, context) {
+        if (context.kind === 'cast') trueNatureDragon(runtime, context.cast);
+      }
     },
-    'revenant.true-nature-dragon'(runtime, context) {
-      if (context.kind === 'cast') trueNatureDragon(runtime, context.cast);
+    reactions: {
+      'damage.resolved': natureSiphon
     }
-  },
-  reactions: {
-    'damage.resolved': natureSiphon
-  },
-  // Sustained boon pulses are ambient; facet consumption and its damage keep their own queued effects.
-  backgroundTasks: [FACET_PULSE],
-  tasks: {
-    [FACET_PULSE]: facetPulse
   }
-};
+]);

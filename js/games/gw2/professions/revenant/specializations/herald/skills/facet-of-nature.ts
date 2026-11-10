@@ -8,9 +8,8 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { activeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
-import { heraldFacetPassiveActive } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
+import { heraldFacetPassive } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { coreValueExtension } from '#gw2/professions/revenant/specializations/herald/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -270,10 +269,9 @@ export function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent):
 
   const core = runtime.profession.core;
   const state = heraldState.from(runtime.profession);
-  const active = activeRevenantUpkeep(runtime, ID.FACET_OF_NATURE);
-  const legend = active ? core.activeLegendId : state.lingeringFacets[ID.FACET_OF_NATURE]?.legendId;
+  const passive = heraldFacetPassive(core, state, ID.FACET_OF_NATURE, runtime.time);
 
-  if (legend !== LEGEND.ASSASSIN || !heraldFacetPassiveActive(core, state, ID.FACET_OF_NATURE, runtime.time)) return;
+  if (passive?.legendId !== LEGEND.ASSASSIN) return;
 
   const profile = requireSkill(runtime.helpers, ID.FACET_OF_NATURE);
   const action = requireSkillAction(profile, 'assassin-siphon');

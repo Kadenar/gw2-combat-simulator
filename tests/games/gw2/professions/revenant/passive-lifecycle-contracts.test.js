@@ -204,6 +204,65 @@ test('Draconic Echo retains bounded facet pulses without upkeep drain, including
   assert.equal(pulses(absent).length, 0);
 });
 
+// Reactivation replaces old pulse work; its pending retention expiry cannot end the replacement passive.
+test('facet reactivation isolates active and newly retained passives from the old lifetime', () => {
+  const run = (rotation) =>
+    runRevenant(
+      rotation,
+      {
+        specialization: 'Herald',
+        selectedLegends: [LEGEND.DRAGON, LEGEND.ASSASSIN],
+        startingLegend: LEGEND.DRAGON,
+        selectedTraitIds: [TRAIT.DRACONIC_ECHO]
+      },
+      {
+        // Allow a second lifetime before Echo expires without changing the production declarations.
+        catalog: (catalog) => withSkill(catalog, SKILL.BURST_OF_STRENGTH, { cooldown: 0 })
+      }
+    );
+  const duration = revenantCatalog.balanceProfilesById.get(TRAIT.DRACONIC_ECHO).duration;
+  const first = ['__combat_start', 'Facet of Strength', 'Burst of Strength'];
+  const oldExpiry = run(first).rotationEndTime + duration;
+  const reactivation = [...first, wait(1500), 'Facet of Strength'];
+  const reactivatedAt = run(reactivation).rotationEndTime;
+  const pulseInterval = revenantCatalog.skillsById.get(SKILL.FACET_OF_STRENGTH).pulseInterval;
+
+  for (const consumeAgain of [false, true]) {
+    const rotation = [...reactivation, ...(consumeAgain ? ['Burst of Strength'] : [])];
+    const newExpiry = run(rotation).rotationEndTime + duration;
+    const result = run([...rotation, wait(10000)]);
+    const pulses = result.events.filter((event) => event.type === 'buff' && event.skillId === SKILL.FACET_OF_STRENGTH);
+
+    assert.deepEqual(result.warnings, []);
+    assert.ok(
+      pulses.some((event) => event.at > oldExpiry),
+      'old expiry must preserve the replacement passive'
+    );
+    assert.ok(
+      pulses.every((event) => event.at >= reactivatedAt + pulseInterval),
+      'reactivation must invalidate pulse work queued by the previous lifetime'
+    );
+
+    if (consumeAgain) {
+      assert.ok(
+        pulses.every((event) => event.at < newExpiry),
+        'the replacement retains its own exclusive expiry'
+      );
+      assert.deepEqual(result.planningState.profession[STATE.ACTIVE_UPKEEPS], []);
+    } else {
+      assert.ok(
+        pulses.some((event) => event.at > newExpiry),
+        'active upkeep must outlive the old retained window'
+      );
+      assert.ok(
+        result.planningState.profession[STATE.ACTIVE_UPKEEPS].some(
+          (upkeep) => upkeep.skillId === SKILL.FACET_OF_STRENGTH
+        )
+      );
+    }
+  }
+});
+
 test('Draconic Echo bonuses apply to active and retained facets only while selected', () => {
   const core = createRevenantCoreState(base);
   const state = createHeraldState();

@@ -8,7 +8,7 @@ import {
   revenantRuntimeSpecializationState
 } from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { heraldFacetPassiveActive } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
+import { heraldFacetPassive } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 
 /** Adds Core Value after the skill-authored boon extension. */
 export function coreValueExtension(runtime: RevenantRuntime): number {
@@ -17,10 +17,12 @@ export function coreValueExtension(runtime: RevenantRuntime): number {
 
 /** Selected Draconic Echo attribute and modifier callbacks share the active or retained facet window. */
 export function draconicEchoActive(context: Gw2ModifierContext, skillId: SkillId): boolean {
-  return heraldFacetPassiveActive(
-    revenantRuntimeCoreState(context),
-    revenantRuntimeSpecializationState(context, 'Herald'),
-    skillId,
-    context.time
+  return Boolean(
+    heraldFacetPassive(
+      revenantRuntimeCoreState(context),
+      revenantRuntimeSpecializationState(context, 'Herald'),
+      skillId,
+      context.time
+    )
   );
 }
