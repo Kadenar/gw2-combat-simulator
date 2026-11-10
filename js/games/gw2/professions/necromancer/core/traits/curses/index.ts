@@ -22,7 +22,10 @@ import {
   requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
-import { transfer } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
+import {
+  hasNecromancerSelfConditions,
+  transfer
+} from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
 import { shroudEntered, shroudEntering, shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import {
   necromancerConditionApplied,
@@ -306,7 +309,7 @@ export const plagueSending = defineTrait({
   triggers: [
     onTriggerPoint(shroudInvoked, { run: armScourgePlagueSending }),
     onTriggerPoint(shroudEntering, {
-      run: (runtime: NecromancerRuntime) => armPlagueSending(runtime, runtime.profession.core.selfConditions.length > 0)
+      run: (runtime: NecromancerRuntime) => armPlagueSending(runtime, hasNecromancerSelfConditions(runtime))
     }),
     onTriggerPoint(necromancerStrikePreparing, {
       run: (runtime: NecromancerRuntime, input: TriggerPointInput<typeof necromancerStrikePreparing>) =>

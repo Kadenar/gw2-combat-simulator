@@ -6,7 +6,7 @@ import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import { removeNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
+import { cleanseNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerRuntime,
@@ -53,7 +53,7 @@ function emitShroudEffects(
 /** Shroud commands own their cleanse, control, and delayed barrier effects. */
 const scourgeShroudActions = {
   'scourge.cleanse'(runtime) {
-    removeNecromancerSelfCondition(runtime.profession.core, runtime.time);
+    cleanseNecromancerSelfCondition(runtime);
   },
   'scourge.garish-pillar'(runtime, context) {
     if (context.kind !== 'cast') return;

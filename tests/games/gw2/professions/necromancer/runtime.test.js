@@ -550,6 +550,64 @@ function withSelfConditions(config, applications, armed = false) {
   };
 }
 
+// Reset and empty-hit processing must not consume the trait's pending transfer grant.
+test('cooldown reset clears self-conditions while an empty strike preserves Plague Sending arming', () => {
+  const config = { ...base, selectedTraitIds: [TRAIT.PLAGUE_SENDING] };
+  const result = simulate([{ type: 'cooldown-reset' }, cast(ID.RENDING_CLAWS)], config, {
+    profession: withSelfConditions(config, [{ condition: 'Bleeding' }], true)
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.planningState.profession[STATE.SELF_CONDITIONS], []);
+  assert.equal(observedRuntime(result).profession.core.plagueSendingArmed, true);
+  assert.equal(
+    result.resolvedEvents.some((event) => event.type === 'condition' && event.fixedDuration === true),
+    false
+  );
+});
+
+// The trait's entry reward counts removed applications; another application of the same type can still arm a transfer.
+test('Shrouded Removal rewards one application before Plague Sending checks what remains', () => {
+  const config = {
+    ...base,
+    initialResource: 100,
+    selectedTraitIds: [TRAIT.SHROUDED_REMOVAL, TRAIT.PLAGUE_SENDING]
+  };
+  for (const count of [1, 2]) {
+    const result = simulate([cast(ID.REAPERS_SHROUD)], config, {
+      profession: withSelfConditions(
+        config,
+        Array.from({ length: count }, () => ({ condition: 'Bleeding' })),
+        true
+      )
+    });
+    assert.deepEqual(result.warnings, []);
+    assert.equal(result.planningState.profession[STATE.SELF_CONDITIONS].length, count - 1);
+    assert.equal(result.planningState.profession[STATE.CARAPACE_EXPIRIES].length, 3);
+    assert.equal(observedRuntime(result).profession.core.plagueSendingArmed, count > 1);
+  }
+});
+
+// Native transfer effects settle before the armed trait selects its newest remaining applications on the same hit.
+test('ordinary transfer precedes Plague Sending selection on the same accepted hit', () => {
+  const config = { ...base, selectedTraitIds: [TRAIT.PLAGUE_SENDING] };
+  const result = simulate([cast(ID.DEATHLY_SWARM)], config, {
+    profession: withSelfConditions(
+      config,
+      [{ condition: 'Bleeding' }, { condition: 'Poisoned' }, { condition: 'Torment' }],
+      true
+    )
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.planningState.profession[STATE.SELF_CONDITIONS], []);
+  assert.equal(observedRuntime(result).profession.core.plagueSendingArmed, false);
+  assert.deepEqual(
+    result.resolvedEvents
+      .filter((event) => event.type === 'condition' && event.fixedDuration === true)
+      .map((event) => event.condition),
+    ['Bleeding', 'Poisoned', 'Torment']
+  );
+});
+
 test('live corruption excludes Expertise from self durations and expires the actual applications', () => {
   const config = {
     ...base,

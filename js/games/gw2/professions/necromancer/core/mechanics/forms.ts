@@ -3,6 +3,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { lockTransitionInput } from '#gw2/platform/execution/transition-lockouts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
+import { purgeNecromancerSelfConditions } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { DEPLETION } from '#gw2/professions/necromancer/core/mechanics/resources.js';
 import {
@@ -16,7 +17,7 @@ import type {
   NecromancerRuntimeState,
   NecromancerSkill
 } from '#gw2/professions/necromancer/types.js';
-import { canonicalTime, isTimeInWindow } from '#kernel/core/clock.js';
+import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Owns shroud and Lich transitions, their trait effects, and automatic exits on the live runtime. */
 
@@ -99,9 +100,7 @@ export function enterNecromancerShroud(runtime: NecromancerRuntime, cast: Runtim
   const skill = cast.skill;
   const state = runtime.profession.core;
   // Neither pre-entry resource grant reads conditions; prune before the ordered removals and arming.
-  state.selfConditions = state.selfConditions.filter((application) =>
-    isTimeInWindow(runtime.time, application.appliedAt, application.expiresAt)
-  );
+  purgeNecromancerSelfConditions(runtime);
   state.plagueSendingArmed = false;
   runtime.fireTrigger(shroudEntering);
   state.activeShroud = skill.shroudEntry!;

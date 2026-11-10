@@ -11,6 +11,7 @@ import { necromancerBuffPolicies, necromancerEffectStates } from '#gw2/professio
 import { necromancerAvailability } from '#gw2/professions/necromancer/core/mechanics/availability.js';
 import { reactToNecromancerAxeHealth } from '#gw2/professions/necromancer/core/mechanics/axe.js';
 import {
+  clearNecromancerSelfConditions,
   completeNecromancerCorruption,
   necromancerConditionLifecycle,
   resolveNecromancerSkillConditions,
@@ -254,7 +255,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
 
   onCooldownReset(runtime) {
     runtime.resourceController.grant('lifeForce', runtime.profession.core.lifeForce.maximum);
-    runtime.profession.core.selfConditions = [];
+    clearNecromancerSelfConditions(runtime);
   },
   reactions: {
     'damage.resolved'(runtime, event, details) {

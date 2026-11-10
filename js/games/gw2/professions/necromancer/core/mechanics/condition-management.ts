@@ -1,3 +1,4 @@
+/** Own self-condition storage and selection so forms, traits, and skills retain only their delivery and reward rules. */
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { effectFirstAtMs } from '#gw2/platform/effects/authoring.js';
@@ -6,11 +7,11 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { scaleCastBoundTiming } from '#gw2/platform/execution/cast-timing.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { necromancerActiveBoonCompanionIds } from '#gw2/professions/necromancer/core/mechanics/state-helpers.js';
-import type { NecromancerCoreState, NecromancerSelfCondition } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
 import type {
   NecromancerRuntime,
@@ -29,10 +30,36 @@ interface ConditionWork {
 }
 
 /** Prune the live self-condition ledger before applying or transferring conditions, including expiry-time callbacks. */
-function purge(runtime: NecromancerRuntime): void {
+export function purgeNecromancerSelfConditions(runtime: NecromancerRuntime): void {
   runtime.profession.core.selfConditions = runtime.profession.core.selfConditions.filter((application) =>
     isTimeInWindow(runtime.time, application.appliedAt, application.expiresAt)
   );
+}
+
+/** Queries ignore inactive applications without changing the ledger or Plague Sending's armed grant. */
+export function hasNecromancerSelfConditions(runtime: MechanicQueriesOf<NecromancerRuntime>): boolean {
+  return runtime.profession.core.selfConditions.some((application) =>
+    isTimeInWindow(runtime.time, application.appliedAt, application.expiresAt)
+  );
+}
+
+/** Shrouded Removal counts oldest active applications, including repeated applications of the same condition type. */
+export function removeOldestNecromancerSelfConditions(runtime: NecromancerRuntime, maximum: number): number {
+  purgeNecromancerSelfConditions(runtime);
+  return runtime.profession.core.selfConditions.splice(0, maximum).length;
+}
+
+/** A cleanse removes the first active condition type and all its applications, independently of transfer arming. */
+export function cleanseNecromancerSelfCondition(runtime: NecromancerRuntime): void {
+  purgeNecromancerSelfConditions(runtime);
+  const state = runtime.profession.core;
+  const condition = state.selfConditions[0]?.condition;
+  state.selfConditions = state.selfConditions.filter((application) => application.condition !== condition);
+}
+
+/** Cooldown resets clear the ledger while preserving the trait-owned pending transfer. */
+export function clearNecromancerSelfConditions(runtime: NecromancerRuntime): void {
+  runtime.profession.core.selfConditions = [];
 }
 
 /** Self-inflicted durations use actual trait/relic state while excluding Expertise, without constructing another query world. */
@@ -60,7 +87,7 @@ function applySelfCondition(
 
   if (!(effectiveDuration > 0) || !(stacks > 0)) return;
 
-  purge(runtime);
+  purgeNecromancerSelfConditions(runtime);
   const expiresAt = canonicalTime(runtime.time + effectiveDuration);
   runtime.profession.core.selfConditions.push({
     condition,
@@ -91,7 +118,7 @@ export function transfer(
   )
     return 0;
 
-  purge(runtime);
+  purgeNecromancerSelfConditions(runtime);
   const state = runtime.profession.core;
   const types = new Set<string>();
 
@@ -316,25 +343,10 @@ function devouring(runtime: NecromancerRuntime, data: unknown): void {
 const necromancerConditionTasks = {
   [CORRUPTION]: corruption,
   [DEVOURING]: devouring,
-  [EXPIRY]: purge
+  [EXPIRY]: purgeNecromancerSelfConditions
 };
 
 /** Registers self-condition tasks with the Core hook assembly. */
 export const necromancerConditionLifecycle = {
   tasks: necromancerConditionTasks
 } satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;
-
-/** Removes expired or not-yet-active self-condition applications and returns the remaining active set. */
-function purgeNecromancerSelfConditions(state: NecromancerCoreState, at: number): NecromancerSelfCondition[] {
-  state.selfConditions = state.selfConditions.filter((application) =>
-    isTimeInWindow(at, application.appliedAt, application.expiresAt)
-  );
-  return state.selfConditions;
-}
-
-/** Cleanse every application of the first active condition type after discarding inactive applications. */
-export function removeNecromancerSelfCondition(state: NecromancerCoreState, at: number): void {
-  const active = purgeNecromancerSelfConditions(state, at);
-  const condition = active[0]?.condition;
-  state.selfConditions = active.filter((application) => application.condition !== condition);
-}

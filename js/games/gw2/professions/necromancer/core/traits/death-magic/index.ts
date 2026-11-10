@@ -6,6 +6,7 @@ import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { balanceNumber, balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
+import { removeOldestNecromancerSelfConditions } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
 import { shroudEntering, shroudInvoked } from '#gw2/professions/necromancer/core/mechanics/forms.js';
 import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { necromancerRuntimeCoreState } from '#gw2/professions/necromancer/core/mechanics/modifier-queries.js';
@@ -203,14 +204,13 @@ function applyArmoredShroud(runtime: NecromancerRuntime): void {
 
 /** Applies shrouded removal before shroud entry mutates the form. */
 function prepareShroudedRemoval(runtime: NecromancerRuntime): void {
-  const state = runtime.profession.core;
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.SHROUDED_REMOVAL);
-  const removed = state.selfConditions.splice(0, balanceProfileNumber(profile, 'maximumConditions'));
+  const removed = removeOldestNecromancerSelfConditions(runtime, balanceProfileNumber(profile, 'maximumConditions'));
 
-  if (removed.length)
+  if (removed)
     addCarapace(
       runtime,
-      removed.length * balanceProfileNumber(profile, 'resourceGain'),
+      removed * balanceProfileNumber(profile, 'resourceGain'),
       runtime.time,
       balanceProfileNumber(profile, 'duration')
     );
