@@ -455,7 +455,7 @@ test('signet readiness rechecks successive actual pulses and recharge suppressio
     selectedSkillIds: [14355]
   });
   assert.deepEqual(suppressed.warnings, []);
-  assert.equal(suppressed.planningState.profession[STATE.ADRENALINE].value, 0);
+  assert.equal(suppressed.planningState.profession[STATE.ADRENALINE].value, 10);
   assert.equal(observedRuntime(suppressed).profession.core.signetOfRagePassive.nextAt, 9);
 });
 
@@ -599,4 +599,14 @@ test("Dragon's Roar consumes its captured rounds on accepted uses", () => {
     cancelled.resolvedEvents.some((event) => event.type === 'damage'),
     false
   );
+});
+
+// A landed Pin Down resets Fan of Fire; a miss must preserve its existing recharge.
+test('Pin Down resets Fan of Fire only after a landed strike', () => {
+  for (const offTarget of [false, true]) {
+    const result = run([ID.FAN_OF_FIRE, { skillId: ID.PIN_DOWN, offTarget }], { primaryWeapon: 'Longbow' });
+    assert.deepEqual(result.warnings, []);
+    const runtime = observedRuntime(result);
+    assert.equal((runtime.cooldownController.readyAt(ID.FAN_OF_FIRE) ?? 0) > runtime.time, offTarget);
+  }
 });

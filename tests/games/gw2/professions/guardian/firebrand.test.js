@@ -42,14 +42,14 @@ test('Firebrand public projections preserve configured pages and detach the cano
     profession: { core: createGuardianCoreState(), specialization: { kind: 'Firebrand', state } }
   });
   assert.equal(projected[STATE.TOME_PAGES].value, 2);
-  assert.equal(projected[STATE.TOME_PAGES].maximum, 5);
+  assert.equal(projected[STATE.TOME_PAGES].maximum, 8);
   assert.deepEqual(projected[STATE.ASHES], state.ashes);
   assert.notEqual(projected[STATE.ASHES], state.ashes);
 });
 
-test('Archivist increases page capacity without replacing explicit starting pages', () => {
+test('Baseline page capacity preserves explicit starting pages', () => {
   // An omitted value starts full, while every editable starting value survives initialization.
-  const selectedTraitIds = [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS];
+  const selectedTraitIds = [GUARDIAN_TRAIT_IDS.BASTION];
   assert.equal(
     firebrandState.create({
       config: { selectedTraitIds },
@@ -219,11 +219,11 @@ test('stowing during the third tome skill preserves its earned Swift Scholar ref
 
 test('Scorched Aftermath pays on completion after an overlapping mantra refund is capped', () => {
   // A refund during the cast sees the full pool; only successful completion spends the chapter's page.
-  for (const selectedTraitIds of [[], [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]]) {
+  for (const selectedTraitIds of [[], [GUARDIAN_TRAIT_IDS.REVELATION]]) {
     const simulate = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Firebrand',
-      initialTomePages: 5,
+      initialTomePages: 8,
       selectedTraitIds
     });
     const prefix = ['Flame Rush', 'Flame Rush', { type: 'wait', durationMs: 1000 }, 'Tome of Justice'];
@@ -235,10 +235,10 @@ test('Scorched Aftermath pays on completion after an overlapping mantra refund i
     ]);
     assert.deepEqual(before.warnings, []);
     assert.deepEqual(after.warnings, []);
-    assert.equal(before.planningState.profession[STATE.TOME_PAGES].value, 4);
-    assert.equal(after.planningState.profession[STATE.TOME_PAGES].value, 4);
+    assert.equal(before.planningState.profession[STATE.TOME_PAGES].value, 7);
+    assert.equal(after.planningState.profession[STATE.TOME_PAGES].value, 7);
     const cancelled = simulate(undefined, [...prefix, { name: 'Chapter 4: Scorched Aftermath', interruptAfterMs: 1 }]);
-    assert.equal(cancelled.planningState.profession[STATE.TOME_PAGES].value, 5);
+    assert.equal(cancelled.planningState.profession[STATE.TOME_PAGES].value, 8);
   }
 });
 
@@ -249,7 +249,7 @@ for (const initialTomePages of [1, 5]) {
       ...config,
       specialization: 'Firebrand',
       initialTomePages,
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.REVELATION]
     })(undefined, [
       'Flame Rush',
       'Flame Rush',
@@ -262,12 +262,12 @@ for (const initialTomePages of [1, 5]) {
     const cast = result.events.find(
       (event) => event.type === 'action' && event.skillId === GUARDIAN_SKILL_IDS.IGNITING_BURST
     );
-    const refund = result.procSteps.find((step) => step.skill === 'Weighty Terms');
+    const refund = result.procSteps.find((step) => step.skill === 'Revelation');
     const resourceCost = guardianCatalog.skillsById.get(cast.skillId).cost.amount;
     assert.ok(refund.start / 1000 > cast.at && refund.start / 1000 < cast.endsAt);
     assert.equal(
       result.planningState.profession[STATE.TOME_PAGES].value,
-      Math.min(5, initialTomePages + 2) - resourceCost
+      Math.min(8, initialTomePages + 2) - resourceCost
     );
     assert.equal(result.planningState.profession[STATE.ACTIVE_TOME], 'justice');
     assert.equal(
@@ -311,7 +311,7 @@ test('Firebrand page exhaustion keeps the tome open while pages regenerate', () 
   const traited = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS, GUARDIAN_TRAIT_IDS.LOREMASTER]
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.BASTION, GUARDIAN_TRAIT_IDS.DELIVERANCE]
   })(undefined, []);
 
   assert.deepEqual(exhausted.warnings, []);
@@ -325,7 +325,7 @@ test('Firebrand page exhaustion keeps the tome open while pages regenerate', () 
   assert.equal(exhausted.planningState.profession[STATE.TOME_PAGES].value, 1);
   assert.equal(traited.planningState.profession[STATE.TOME_PAGES].maximum, 8);
   assert.equal(traited.planningState.profession[STATE.TOME_PAGES].value, 8);
-  assert.equal(traited.planningState.profession[STATE.TOME_PAGES].interval, 5);
+  assert.equal(traited.planningState.profession[STATE.TOME_PAGES].interval, 6);
 });
 
 test('Firebrand page regeneration keeps ticking at capacity after natural recovery or a mantra refund', () => {
@@ -333,7 +333,7 @@ test('Firebrand page regeneration keeps ticking at capacity after natural recove
     const result = createObservedProfessionSimulator(guardianProfession, {
       ...config,
       specialization: 'Firebrand',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.REVELATION]
     })(undefined, [
       'Tome of Justice',
       'Chapter 1: Searing Spell',
@@ -353,7 +353,12 @@ test('Firebrand page regeneration keeps ticking at capacity after natural recove
       state[STATE.TOME_PAGES].value,
       state[STATE.TOME_PAGES].maximum - guardianCatalog.skillsById.get(first.skillId).cost.amount
     );
-    assert.equal(state[STATE.TOME_PAGES].nextAt, first.endsAt + 3 * state[STATE.TOME_PAGES].interval);
+    assert.equal(
+      state[STATE.TOME_PAGES].nextAt,
+      first.endsAt +
+        (Math.floor((result.planningState.atSeconds - first.endsAt) / state[STATE.TOME_PAGES].interval) + 1) *
+          state[STATE.TOME_PAGES].interval
+    );
   }
 });
 
@@ -413,32 +418,6 @@ test('Firebrand tome page cost waits for a regenerating page', () => {
   // A missing page delays the cast until the resource's next regeneration tick.
   assert.equal(epilogue.start, result.planningState.profession[STATE.TOME_PAGES].interval * 1000);
   assert.equal(result.planningState.profession[STATE.ACTIVE_TOME], 'resolve');
-});
-
-test('Unrelenting Criticism adds Bleeding to each axe hit only while traited', () => {
-  const simulate = (selectedTraitIds, primaryWeapon, skill) =>
-    createObservedProfessionSimulator(guardianProfession, {
-      ...config,
-      specialization: 'Firebrand',
-      primaryWeapon,
-      selectedTraitIds
-    })(undefined, [skill]);
-  const trait = [GUARDIAN_TRAIT_IDS.UNRELENTING_CRITICISM];
-  const axe = simulate(trait, 'Axe', 'Core Cleave');
-  const procs = (result) =>
-    result.resolvedEvents.filter(
-      (event) => event.type === 'condition' && event.triggeredBy === 'Unrelenting Criticism'
-    );
-  const hits = axe.events.filter((event) => event.type === 'damage' && event.skillName === 'Core Cleave');
-
-  // The trait follows qualifying hits; it must not proc for an untraited or non-axe attack.
-  assert.ok(hits.length > 0);
-  assert.deepEqual(
-    procs(axe).map((event) => [event.at, event.condition]),
-    hits.map((event) => [event.at, 'Bleeding'])
-  );
-  assert.deepEqual(procs(simulate([], 'Axe', 'Core Cleave')), []);
-  assert.deepEqual(procs(simulate(trait, 'Mace', 'True Strike')), []);
 });
 
 test('Cleansing Flame applies Burning on its final strike', () => {
@@ -801,12 +780,12 @@ test('Firebrand tome swaps share sigil cooldowns and require combat', () => {
   }
 });
 
-test('Feel My Wrath splits party and self quickness and triggers Quickfire', () => {
+test('Feel My Wrath splits party and self Quickness without granting Ashes', () => {
   const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Firebrand',
     selectedSkillIds: [29965],
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE],
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.RIGHTEOUS_FLAMES],
     boons: { quickness: true },
     allies: { count: 1, strikesPerSecond: 1 }
   })(undefined, ['"Feel My Wrath!"', '"Feel My Wrath!"', { type: 'wait', durationMs: 2000 }]);
@@ -819,27 +798,7 @@ test('Feel My Wrath splits party and self quickness and triggers Quickfire', () 
     [1, 0, 1, 0]
   );
 
-  assert.equal(
-    result.resolvedEvents.filter((event) => event.skillName === 'Quickfire' && event.metadata?.triggeredByAlly === 1)
-      .length,
-    2
-  );
-});
-
-test('Quickfire grants one Ashes charge to a self-only quickness recipient', () => {
-  const result = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    specialization: 'Firebrand',
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.QUICKFIRE],
-    allies: { count: 0, strikesPerSecond: 0 }
-  })(undefined, ['Tome of Justice', 'Chapter 2: Igniting Burst', { type: 'wait', durationMs: 3000 }]);
-  const quickfireBurns = result.resolvedEvents.filter(
-    (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just'
-  );
-
-  assert.equal(result.procSteps.filter((step) => step.skill === 'Quickfire').length, 1);
-  assert.equal(quickfireBurns.length, 1);
-  assert.equal(quickfireBurns[0].metadata?.triggeredByAlly, undefined);
+  assert.equal(result.resolvedEvents.filter((event) => event.sourceId === 'guardian.ashes-of-the-just').length, 0);
 });
 
 test('dormant Tome equips preserve recharge and do not trigger virtue traits', () => {
@@ -940,69 +899,16 @@ test('Firebrand specialization traits drive pages, quickness, and tome bonuses',
     specialization: 'Firebrand',
     selectedSkillIds: [40915],
     initialTomePages: 1,
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS]
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.REVELATION]
   })(undefined, ['Potent Haste', 'Potent Haste', 'Overwhelming Celerity']);
 
   assert.deepEqual(weighted.warnings, []);
   assert.equal(weighted.planningState.profession[STATE.TOME_PAGES].value, 3);
   assert.deepEqual(
     weighted.resolvedEvents
-      .filter((event) => event.type === 'condition' && event.sourceId === GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS)
+      .filter((event) => event.type === 'condition' && event.sourceId === GUARDIAN_TRAIT_IDS.REVELATION)
       .map((event) => [event.condition, event.duration]),
-    [['Slow', 1.5]]
-  );
-
-  const liberated = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    specialization: 'Firebrand',
-    selectedSkillIds: [9102],
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.LIBERATORS_VOW]
-  })(undefined, ['Shelter']);
-
-  assert.equal(
-    liberated.events.some(
-      (event) =>
-        event.type === 'buff' &&
-        event.kind === 'quickness' &&
-        event.sourceId === GUARDIAN_SKILL_IDS.SHELTER &&
-        event.duration === 2
-    ),
-    true
-  );
-});
-
-test('Firebrand grandmaster support traits react to boons and control', () => {
-  const quickfire = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    specialization: 'Firebrand',
-    initialTomePages: 8,
-    allies: { count: 1, strikesPerSecond: 1 },
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.STALWART_SPEED, GUARDIAN_TRAIT_IDS.QUICKFIRE]
-  })(undefined, [42259, 'Epilogue: Unbroken Lines', { type: 'wait', durationMs: 2000 }]);
-
-  assert.equal(
-    quickfire.procSteps.some((step) => step.skill === 'Stalwart Speed'),
-    true
-  );
-  assert.equal(
-    quickfire.procSteps.some((step) => step.skill === 'Quickfire'),
-    true
-  );
-  const stoic = createObservedProfessionSimulator(guardianProfession, {
-    ...config,
-    specialization: 'Firebrand',
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR]
-  })(undefined, [42259, 'Chapter 2: Daring Challenge']);
-  const stoicBuffs = stoic.events.filter(
-    (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.STOIC_DEMEANOR
-  );
-
-  assert.deepEqual(
-    stoicBuffs.map((event) => [event.kind, event.stacks, event.duration]),
-    [
-      ['resistance', 1, 2],
-      ['might', 3, 10]
-    ]
+    []
   );
 });
 
@@ -1022,22 +928,11 @@ test('Firebrand Justice attribution and Imbued Haste use timeline state', () => 
       .every((event) => event.skillId === GUARDIAN_SKILL_IDS.TOME_OF_JUSTICE && event.skillName === 'Tome of Justice'),
     true
   );
-
-  const tome = (selectedTraitIds) =>
-    createObservedProfessionSimulator(guardianProfession, {
-      ...config,
-      specialization: 'Firebrand',
-      selectedTraitIds
-    })(undefined, ['Tome of Justice', 'Chapter 1: Searing Spell', { type: 'wait', durationMs: 3000 }]);
-  const normal = tome([]);
-  const imbued = tome([GUARDIAN_TRAIT_IDS.IMBUED_HASTE]);
-
-  assert.ok(imbued.conditionDamage > normal.conditionDamage);
 });
 
 // Default factories and profile initialization share normalization but never mutable state.
 test('Firebrand page initialization preserves explicit pages, caps, trait defaults, and patched cadence', () => {
-  // Capacity bonuses change the omitted default, never an explicit starting-page choice.
+  // The shared capacity bounds explicit starting pages independently of selected defensive traits.
   for (const [initial, expected] of [
     [undefined, 8],
     [5, 5],
@@ -1047,7 +942,7 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
   ]) {
     const config = {
       specialization: 'Firebrand',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS, GUARDIAN_TRAIT_IDS.LOREMASTER],
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.BASTION, GUARDIAN_TRAIT_IDS.DELIVERANCE],
       initialTomePages: initial
     };
     const first = firebrandState.create({
@@ -1057,7 +952,7 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
     const second = observedRuntime(runGuardian([], config)).profession.specialization.state;
     assert.equal(second.tomePages.value, expected);
     assert.equal(second.tomePages.maximum, 8);
-    assert.equal(second.tomePages.nextAt, expected < 8 ? 5 : Infinity);
+    assert.equal(second.tomePages.nextAt, expected < 8 ? 6 : Infinity);
     assert.deepEqual(first.tomePages, second.tomePages);
     assert.notEqual(first.tomePages, second.tomePages);
   }
@@ -1068,16 +963,15 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
     professions: {
       guardian: {
         balanceProfiles: {
-          [GUARDIAN_TRAIT_IDS.PURITY_OF_WORD]: { fields: { maximumStacks: 6, pulseInterval: 2 } },
-          [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS]: { fields: { maximumStacks: 10 } }
+          [GUARDIAN_TRAIT_IDS.PURITY_OF_WORD]: { fields: { maximumStacks: 6, pulseInterval: 2 } }
         }
       }
     }
   });
   // Module creation must use the selected catalog before runtime resource initialization can adjust state.
   const balanceContext = patched.resolvePatch({ id: 'pages' }).balanceContext;
-  for (const selectedTraitIds of [[], [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS]]) {
-    const maximum = selectedTraitIds.length ? 10 : 6;
+  for (const selectedTraitIds of [[], [GUARDIAN_TRAIT_IDS.BASTION]]) {
+    const maximum = 6;
     for (const initialTomePages of [undefined, 0]) {
       const state = firebrandModule.state.create({ selectedTraitIds, initialTomePages }, { balanceContext });
       assert.equal(state.tomePages.maximum, maximum);
@@ -1092,23 +986,23 @@ test('Firebrand page initialization preserves explicit pages, caps, trait defaul
     {
       specialization: 'Firebrand',
       patchId: 'pages',
-      selectedTraitIds: [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS],
+      selectedTraitIds: [GUARDIAN_TRAIT_IDS.BASTION],
       initialTomePages: 6
     },
     { initialize: () => {}, profession: patched }
   );
   const pages = observedRuntime(result).profession.specialization.state.tomePages;
   assert.equal(pages.value, 6);
-  assert.equal(pages.maximum, 10);
-  assert.equal(pages.nextAt, 2);
+  assert.equal(pages.maximum, 6);
+  assert.equal(pages.nextAt, Infinity);
   assert.equal(pages.interval, 2);
 });
 
 // Normal charges never become final charges based on ammo count or display names.
-test('Weighty Terms follows canonical mantra IDs and ignores names', () => {
+test('Revelation follows canonical mantra IDs and ignores names', () => {
   const config = {
     specialization: 'Firebrand',
-    selectedTraitIds: [GUARDIAN_TRAIT_IDS.WEIGHTY_TERMS],
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.REVELATION],
     initialTomePages: 0
   };
   const native = guardianProfession.runtimeFor(config);

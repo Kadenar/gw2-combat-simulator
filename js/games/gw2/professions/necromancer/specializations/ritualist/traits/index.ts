@@ -30,7 +30,7 @@ const spawningPower = defineTrait({
 /** Owns Spirit's Strength tuning and behavior at its existing execution boundaries. */
 const spiritsStrength = defineTrait({
   id: TRAIT.SPIRITS_STRENGTH,
-  balance: { damageMultiplier: 1.5 },
+  balance: { damageMultiplier: 1.33 },
   modifierRules: [
     {
       order: 123,

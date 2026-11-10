@@ -3,13 +3,12 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { FIREBRAND_REWORK_TRAIT_IDS } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
 import type { GuardianSkill, GuardianVirtue } from '#gw2/professions/guardian/types.js';
 
-/** Rework extension point (firebrand-rework): refund rewards have no live listener and fire only on page grants. */
+/** Only earned Swift Scholar refunds trigger these trait rewards. */
 export const swiftScholarPagesGranted = defineTriggerPoint<{ readonly cast: RuntimeCast<GuardianSkill> }>(
   'guardian.swift-scholar-pages-granted',
-  [FIREBRAND_REWORK_TRAIT_IDS.FERVID_CONVICTION, TRAIT.STALWART_SPEED]
+  [TRAIT.FERVID_CONVICTION, TRAIT.STALWART_SPEED]
 );
 
 /** An opened tome; `ready` reports whether its dormancy allowed a fresh virtue activation. */
@@ -25,28 +24,7 @@ export const tomeOpened = defineTriggerPoint<TomeOpening>('guardian.tome-opened'
 /** Stowing ends the page session without revoking refunds earned by accepted pages. */
 export const tomeStowed = defineTriggerPoint<Record<string, never>>('guardian.tome-stowed', [TRAIT.SWIFT_SCHOLAR]);
 
-/** An accepted player hit that dealt damage, after Ashes consumption. */
-export interface FirebrandStrike {
-  readonly cause: Gw2ResolverEvent;
-}
-
-/** Axe Bleeding follows Ashes consumption on the same accepted hit. */
-export const firebrandStruck = defineTriggerPoint<FirebrandStrike>('guardian.firebrand-strike', [
-  TRAIT.UNRELENTING_CRITICISM
-]);
-
-/** A delivered buff or boon, after Alacrity has queued the mantra wake. */
-export interface FirebrandBuffApplication {
-  readonly cause: Gw2ResolverEvent;
-}
-
-/** Stalwart Speed's shared Quickness settles before Quickfire inspects delivered Quickness. */
-export const firebrandBuffApplied = defineTriggerPoint<FirebrandBuffApplication>('guardian.firebrand-buff-applied', [
-  TRAIT.STALWART_SPEED,
-  TRAIT.QUICKFIRE
-]);
-
-/** An accepted control, or an Immobilized or Slow application. */
+/** An accepted control, or an Immobilized application. */
 export interface FirebrandControl {
   readonly cause: Gw2ResolverEvent;
 }
@@ -61,7 +39,7 @@ export interface FinalMantraCharge {
   readonly context: ActionContext;
 }
 
-/** Weighty Terms rewards precede final-charge retirement. */
+/** Revelation adds its refund before final-charge retirement. */
 export const finalMantraChargeUsed = defineTriggerPoint<FinalMantraCharge>('guardian.final-mantra-charge-used', [
-  TRAIT.WEIGHTY_TERMS
+  TRAIT.REVELATION
 ]);

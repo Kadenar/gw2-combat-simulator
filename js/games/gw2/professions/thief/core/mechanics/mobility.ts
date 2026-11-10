@@ -1,23 +1,20 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { deferThiefCompletion } from '#gw2/professions/thief/core/events.js';
-import { thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
 import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
 import { thiefMobilityUsed } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
-import { THIEF_CORE_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/thief/core/rework/ids.js';
-import { reworkCoreState } from '#gw2/professions/thief/core/rework/state.js';
-import { THIEF_SKILL_IDS as SKILL } from '#gw2/professions/thief/data/ids.js';
+import { THIEF_SKILL_IDS as SKILL, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
-const MOBILITY_COMPLETE = 'thief.rework-mobility-complete';
+const MOBILITY_COMPLETE = 'thief.mobility-complete';
 
-/** Preview-only lifecycle owns its buff and contextual mobility without rewriting elite or Live catalogs. */
-const reworkHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+/** Combat entry arms Deft Initiation; contextual mobility refreshes it after completion. */
+export const thiefMobilityLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
   buffPolicies: () => [{ kind: 'twin-fangs', maximumStacks: 1 }],
   onCombatStart(runtime) {
-    if (hasTrait(runtime, REWORK.DEFT_INITIATION)) reworkCoreState(runtime).deftInitiationArmed = true;
+    if (hasTrait(runtime, TRAIT.DEFT_INITIATION)) runtime.profession.core.deftInitiationArmed = true;
   },
   onCastCommit(runtime, cast) {
     // Execution admits only committed casts here; ordinary flagged mobility already dispatches from Core.
@@ -44,5 +41,3 @@ const reworkHooks: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
     }
   }
 };
-
-export const thiefCoreReworkHooks = composeRuntimeHooks([thiefCoreHooks, reworkHooks]);

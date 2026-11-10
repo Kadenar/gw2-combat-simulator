@@ -71,7 +71,7 @@ export const heraldTooltips = {
     [TRAIT.CRYSTAL_HARBINGER]: traitTooltip('Unlock the Legendary Dragon stance, facets, and Facet of Nature.'),
     [TRAIT.DRACONIC_FORTITUDE]: outsideScopeTooltip,
     [TRAIT.REINFORCED_POTENCY]: traitTooltip(
-      'Gain concentration. Each different boon on you increases player strike damage.',
+      'Gain concentration. Different boons increase player strike damage, up to the boon cap.',
       (balanceContext, id) => [
         profileFact(
           balanceContext,
@@ -80,7 +80,8 @@ export const heraldTooltips = {
           'Concentration',
           (value) => '+' + tooltipDecimal(value)
         ),
-        { name: 'Strike damage per unique boon', detail: tooltipPercent(0.01) }
+        profileFact(balanceContext, id, 'damagePerBoon', 'Strike damage per unique boon', tooltipPercent),
+        profileFact(balanceContext, id, 'maximumBoons', 'Maximum boons')
       ]
     ),
     [TRAIT.ELDERS_RESPITE]: outsideScopeTooltip,

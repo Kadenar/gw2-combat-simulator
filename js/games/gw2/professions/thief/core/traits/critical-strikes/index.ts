@@ -5,7 +5,12 @@ import {
   remainingDurationStackSeconds
 } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { playerHealthFraction, skillForEvent, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
+import {
+  buffActive,
+  playerHealthFraction,
+  skillForEvent,
+  targetHealthFraction
+} from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { missesTarget } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, BOON, BOON_NAMES, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
@@ -14,7 +19,6 @@ import { criticalProcHandler } from '#gw2/platform/profession-definition/critica
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import {
   attributeBonusNumber,
   balanceNumber,
@@ -23,11 +27,15 @@ import {
   requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
+import { replaceThiefBuff } from '#gw2/professions/thief/core/mechanics/buffs.js';
+import { initiatingStrike } from '#gw2/professions/thief/core/mechanics/deft-initiation.js';
 import {
   signetCompleted,
   stealthAttackCompleted,
+  thiefPostVenomStruck,
   thiefStruck,
   type ThiefStrike
 } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
@@ -261,12 +269,7 @@ export const sunderingShade = defineTrait({
 /** Owns Twin Fangs tuning and behavior at the existing execution boundaries. */
 export const twinFangs = defineTrait({
   id: TRAIT.TWIN_FANGS,
-  balance: {
-    threshold: 0.5,
-    criticalDamage: 1.07,
-    lowHealthCriticalDamage: 1.05,
-    criticalChance: 0.07
-  },
+  balance: { duration: 0, threshold: 0.5, criticalDamage: 1.07, lowHealthCriticalDamage: 1.05, criticalChance: 0.07 },
   modifierRules: [
     {
       order: 4,
@@ -290,8 +293,21 @@ export const twinFangs = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumber(context.catalog, TRAIT.TWIN_FANGS, 'criticalChance'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && Boolean(context.config?.target?.defiant)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'twin-fangs')
     }
+  ],
+  triggers: [
+    onTriggerPoint(thiefPostVenomStruck, {
+      run(runtime: ThiefRuntime, { cause }: ThiefStrike) {
+        if (!runtime.config.target?.defiant || !initiatingStrike(runtime, cause)) return;
+
+        const duration = balanceNumber(runtime.helpers, TRAIT.TWIN_FANGS, 'duration');
+
+        if (duration <= 0) return;
+
+        replaceThiefBuff(runtime, 'twin-fangs', duration, TRAIT.TWIN_FANGS, 'Twin Fangs', 'Trait');
+      }
+    })
   ]
 });
 

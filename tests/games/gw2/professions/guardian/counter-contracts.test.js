@@ -12,7 +12,7 @@ import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { dragonhunterVirtueLifecycle } from '#gw2/professions/guardian/specializations/dragonhunter/mechanics/virtue-effects.js';
 import { tomeStowed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
-import { swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
+import { swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/pages.js';
 import { willbenderHooks } from '#gw2/professions/guardian/specializations/willbender/hooks.js';
 import { willbenderState } from '#gw2/professions/guardian/specializations/willbender/state.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';

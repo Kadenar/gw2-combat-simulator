@@ -2,7 +2,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { skillForEvent, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
-import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
@@ -165,8 +164,8 @@ export const furiousDemise = defineTrait({
 export const targetTheWeak = defineTrait({
   id: TRAIT.TARGET_THE_WEAK,
   balance: {
-    criticalChancePerCondition: 0.02,
-    maximumConditions: CANONICAL_TARGET_CONDITIONS.length,
+    criticalChancePerCondition: 0.04,
+    maximumConditions: 5,
     attributeConversion: 0.13
   },
   attributes: traitAttributeEffects(TRAIT.TARGET_THE_WEAK, [

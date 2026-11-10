@@ -4,9 +4,8 @@ import test from 'node:test';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { timedBuffApplicationsAt } from '#gw2/platform/combat/boons.js';
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
-import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
 import { grantAshes } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import { swiftScholarPagesGranted } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
@@ -16,27 +15,12 @@ import { wait } from '#tests/helpers/commands.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
-const config = { specialization: 'Firebrand', selectedTraitIds: [TRAIT.QUICKFIRE] };
 const state = (result) => observedRuntime(result).profession.specialization.state;
 const burns = (result) =>
   result.resolvedEvents.filter(
     (event) => event.type === 'condition' && event.sourceId === 'guardian.ashes-of-the-just'
   );
-const quickness = (runtime, at, audience = { recipients: 'self' }) =>
-  runtime.effects.emit({
-    kind: 'packet',
-    event: {
-      type: 'buff',
-      source: 'fixture',
-      sourceId: 'quickness',
-      actorType: 'player',
-      at,
-      kind: 'quickness',
-      duration: 1,
-      stacks: 1,
-      audience
-    }
-  });
+
 const strike = (runtime, at) =>
   runtime.effects.emit({
     kind: 'packet',
@@ -93,72 +77,6 @@ test('Ashes buff history, expiry cleanup, and planning state share the effect-cl
   assert.equal(state(result).ashes.charges, 0);
 });
 
-test('Quickfire refresh preserves live charges and readiness but cannot revive an expired grant', () => {
-  for (const at of [10.599999, 10.6]) {
-    const result = runGuardian([wait(10700)], config, {
-      initialize: (runtime) => {
-        runtime.profession.specialization.state.ashes = { charges: 2, expiresAt: 10.6, readyAt: 11 };
-        runtime.schedule('guardian.firebrand.ashes-expiry', 10.6, undefined, undefined, 10);
-        quickness(runtime, at);
-      }
-    });
-    assert.equal(state(result).ashes.charges, at < 10.6 ? 3 : 1);
-    assert.equal(state(result).ashes.readyAt, at < 10.6 ? 11 : 0);
-    assert.equal(state(result).ashes.expiresAt, 20.6);
-  }
-});
-
-test('Quickfire allies can consume their tick-aligned grant exactly at expiry', () => {
-  for (const at of [0, 0.001]) {
-    const result = runGuardian(
-      [wait(11000)],
-      { ...config, allies: { count: 1, strikesPerSecond: 0.1 } },
-      {
-        initialize: (runtime) => {
-          quickness(runtime, at, { recipients: 'party', affectsSelf: false });
-        }
-      }
-    );
-    assert.equal(burns(result).length, 1);
-    assert.equal(burns(result)[0].metadata.triggeredByAlly, 1);
-  }
-});
-
-test('tome and Quickfire grants allow an expiry-time hit before cleanup in either insertion order', () => {
-  for (const tome of [false, true]) {
-    const rotation = tome ? [ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST, wait(11000)] : [wait(11000)];
-    const expiry = tome
-      ? state(runGuardian([ID.TOME_OF_JUSTICE, ID.ASHES_OF_THE_JUST], { specialization: 'Firebrand' })).ashes.expiresAt
-      : 10;
-    for (const offset of [-0.000001, 0, 0.000001]) {
-      for (const hitFirst of [false, true]) {
-        const result = runGuardian(
-          rotation,
-          { ...config, selectedTraitIds: tome ? [] : config.selectedTraitIds },
-          {
-            initialize: (runtime) => {
-              const hit = () => strike(runtime, expiry + offset);
-              const grant = () => {
-                if (!tome) quickness(runtime, 0);
-              };
-
-              if (hitFirst) {
-                hit();
-                grant();
-              } else {
-                grant();
-                hit();
-              }
-            }
-          }
-        );
-        assert.equal(burns(result).length, Number(offset <= 0), `tome=${tome} offset=${offset} hitFirst=${hitFirst}`);
-        assert.equal(state(result).ashes.charges, 0);
-      }
-    }
-  }
-});
-
 // The application boundary owns the grant; cancellation before commitment never installs party charges.
 test('Ashes charges require an accepted grant and canceled casts grant nothing', () => {
   for (const interruptAfterMs of [undefined, 1, 700]) {
@@ -187,7 +105,7 @@ test('Ashes charges require an accepted grant and canceled casts grant nothing',
 
 // Requests preserve source overlap policy while the existing ChargeGrant remains the only personal store.
 test('Ashes replacement resets readiness while trait refresh can shorten the live deadline', () => {
-  for (const source of ['epilogue', 'quickfire', 'fervid-conviction']) {
+  for (const source of ['epilogue', 'fervid-conviction']) {
     let installed;
     const result = runGuardian(
       [wait(3000)],
@@ -265,25 +183,15 @@ test('Fervid gives allies and the player the same aligned inclusive expiry', () 
   }
 });
 
-test('Quickfire announces and claims admitted allied grants at zero strike rate without granting self charges', () => {
-  const result = runGuardian(
-    [wait(1000)],
-    { ...config, allies: { count: 1, strikesPerSecond: 0 } },
-    {
-      timeline: [{ at: 0.01, run: (runtime) => quickness(runtime, runtime.time, { recipients: 'party' }) }]
-    }
-  );
-  assert.ok(observedRuntime(result).procs.deadline('guardian.firebrand.quickfire') > 0.01);
-  assert.ok(result.procSteps.some((step) => step.skill === 'Quickfire'));
-  assert.equal(state(result).ashes.charges, 0);
-  assert.deepEqual(burns(result), []);
-});
-
 test('Fervid removes components before claiming but rejects nonpositive grant numbers after claiming', () => {
   for (const mode of ['buff', 'burning', 'recipients', 'valid']) {
     const grant = {
       fields: { internalCooldown: 3 },
-      ...(mode === 'buff' ? { removeEffects: [{ type: 'buff', name: 'ashes-of-the-just' }] } : {})
+      ...(mode === 'buff'
+        ? { removeEffects: [{ type: 'buff', name: 'ashes-of-the-just' }] }
+        : {
+            effects: [{ type: 'buff', name: 'ashes-of-the-just', kind: 'ashes-of-the-just', stacks: 1, duration: 10 }]
+          })
     };
 
     if (mode === 'recipients') grant.fields.maximumTargets = 0;
@@ -293,7 +201,6 @@ test('Fervid removes components before claiming but rejects nonpositive grant nu
       label: 'Fervid admission',
       professions: {
         guardian: {
-          reworks: ['firebrand-rework'],
           balanceProfiles: {
             [REWORK.FERVID_CONVICTION]: grant
           },

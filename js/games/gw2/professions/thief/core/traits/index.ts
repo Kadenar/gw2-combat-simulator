@@ -1,7 +1,6 @@
 import {
   fluidStrikes,
-  hardToCatch,
-  pumpingUp,
+  newAcrobaticsTraits,
   swindlersEquilibrium,
   upperHand
 } from '#gw2/professions/thief/core/traits/acrobatics/index.js';
@@ -70,8 +69,7 @@ export const coreTraits = Object.freeze([
   kleptomaniac,
   leadAttacks,
   fluidStrikes,
-  hardToCatch,
-  pumpingUp,
+  ...newAcrobaticsTraits,
   deadlyAmbition,
   lotusPoison,
   noQuarter,

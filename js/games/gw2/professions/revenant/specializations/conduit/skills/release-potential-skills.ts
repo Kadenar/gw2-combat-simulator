@@ -171,7 +171,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
       {
         type: 'strike',
         // Use the live Dervish coefficient as the baseline for preview balance edits.
-        coefficient: 1.8,
+        coefficient: 2.4,
         hits: 1,
         name: 'Release Potential: Dervish',
         weaponStrengthProfileId: 'nonweapon.profession-mechanic',
@@ -249,7 +249,7 @@ export const CONDUIT_RELEASE_POTENTIAL_SKILL_MECHANICS: Readonly<Record<number, 
         weaponStrengthProfileId: 'nonweapon.profession-mechanic',
         ticks: [160, 480, 800].map((atMs) => ({
           atMs,
-          coefficient: 0.6
+          coefficient: 0.9
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed'

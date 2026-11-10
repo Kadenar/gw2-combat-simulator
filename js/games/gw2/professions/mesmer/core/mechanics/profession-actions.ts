@@ -18,7 +18,7 @@ export const mesmerProfessionActionCommitted = defineTriggerPoint<{
   readonly at: number;
   readonly spent: number;
   readonly delivery: EffectDelivery;
-}>('mesmer.profession-action-committed', [TRAIT.ILLUSIONARY_DEFENSE]);
+}>('mesmer.profession-action-committed', [TRAIT.ILLUSIONARY_DEFENSE, TRAIT.SHAPER_OF_CHAOS]);
 
 /** Specialization rewards follow Core shatter materialization and its marker, using the captured committed spend. */
 export const mesmerShatterCompleted = defineTriggerPoint<{

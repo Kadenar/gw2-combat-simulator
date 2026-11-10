@@ -488,20 +488,20 @@ export const TRAIT_LINES: readonly Gw2SpecializationData[] = [
           icon: 'https://render.guildwars2.com/file/367971C6121BCC00A453525834FD673D0CABF398/1769939.png'
         },
         {
-          id: 2101,
-          name: "Liberator's Vow",
+          id: 2063,
+          name: 'Revelation',
           icon: 'https://render.guildwars2.com/file/2EF42105F7B45367AB72AD737250E014597708A5/1769940.png'
         },
         {
           id: 2086,
-          name: 'Archivist of Whispers',
+          name: 'Bastion',
           icon: 'https://render.guildwars2.com/file/0F76350307E3B8A894F529C8110CA8FB977E63F8/1769941.png'
         }
       ],
       [
         {
-          id: 2063,
-          name: 'Weighty Terms',
+          id: 'guardian.firebrand.fervid-conviction',
+          name: 'Fervid Conviction',
           icon: 'https://render.guildwars2.com/file/3D80FCC2D64D10B566185CFA94CE681FE73BD237/1769942.png'
         },
         {
@@ -517,18 +517,18 @@ export const TRAIT_LINES: readonly Gw2SpecializationData[] = [
       ],
       [
         {
+          id: 2179,
+          name: 'Righteous Flames',
+          icon: 'https://render.guildwars2.com/file/BC32643101E9CEC1D3B4B9709E4969637C283B7A/1769946.png'
+        },
+        {
           id: 2105,
           name: 'Stoic Demeanor',
           icon: 'https://render.guildwars2.com/file/FC3E5E76E418B620C2B5D3BF9851913553E46E21/1769945.png'
         },
         {
-          id: 2179,
-          name: 'Quickfire',
-          icon: 'https://render.guildwars2.com/file/BC32643101E9CEC1D3B4B9709E4969637C283B7A/1769946.png'
-        },
-        {
           id: 2159,
-          name: 'Loremaster',
+          name: 'Deliverance',
           icon: 'https://render.guildwars2.com/file/1496F706100F1E16C5E3F76466C51D1DEF29C4FA/1769947.png'
         }
       ]

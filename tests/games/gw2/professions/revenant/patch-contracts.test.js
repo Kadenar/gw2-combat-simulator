@@ -300,23 +300,6 @@ test('removed Enhanced Embodiment extension leaves the form deadline and expiry 
   assert.equal(form(expired).conduitForm, '');
 });
 
-// Ordinary declarations consume the patched profile once per query.
-test('Empire Divided shared declaration reads its attribute profile', () => {
-  const catalog = applyBalanceProfilePatch(revenantCatalog, {
-    balanceProfiles: { [TRAIT.EMPIRE_DIVIDED]: { fields: { 'attributeBonuses.power': 321 } } }
-  });
-  {
-    const config = {
-      specialization: 'Vindicator',
-      selectedTraitIds: [TRAIT.EMPIRE_DIVIDED]
-    };
-    const stats = revenantProfession
-      .resolveProfession(config)
-      .calculations.modifyAttributes({ catalog, config, time: 0 }, { power: 1000 });
-    assert.equal(stats.power, 1321);
-  }
-});
-
 // Patching the catalog call must change ordinary invocation, retaining Song of the Mists as its source.
 test('Core and Entity invocation consume the patched call skill', () => {
   for (const specialization of ['Core', 'Conduit']) {

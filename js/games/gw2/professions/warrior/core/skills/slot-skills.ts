@@ -81,28 +81,28 @@ export const WARRIOR_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillD
     type: 'Elite',
     slot: 'Elite',
     skillFamily: 'Signet',
-    cooldown: 40,
+    cooldown: 30,
     // The selected active reward enables adrenaline and weapon-burst recovery on successful activation.
-    resourceGain: 0,
+    resourceGain: 10,
     castTimeMs: 200,
     dualWieldCastTimeMs: 160,
     effects: [
       {
         type: 'boon',
         boon: BOON.FURY,
-        duration: 25,
+        duration: 10,
         stacks: 1
       },
       {
         type: 'boon',
         boon: BOON.MIGHT,
-        duration: 25,
-        stacks: 5
+        duration: 10,
+        stacks: 20
       },
       {
         type: 'boon',
         boon: BOON.SWIFTNESS,
-        duration: 25,
+        duration: 10,
         stacks: 1
       }
     ],

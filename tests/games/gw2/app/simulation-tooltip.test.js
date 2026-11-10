@@ -412,9 +412,9 @@ test('Revenant trait tooltips show bonuses, resource icons, and excluded traits'
     [traits.DESTRUCTIVE_IMPULSES, 'Condition damage with an off-hand weapon', '+7.5%'],
     [traits.TARGETED_DESTRUCTION, 'Strike damage per vulnerability stack', '+0.5%'],
     [traits.REINFORCED_POTENCY, 'Concentration', '+240'],
-    [traits.REINFORCED_POTENCY, 'Strike damage per unique boon', '+1%'],
+    [traits.REINFORCED_POTENCY, 'Strike damage per unique boon', '+2%'],
     [traits.CORE_VALUE, 'Additional boon extension', '1s'],
-    [traits.EMPIRE_DIVIDED, 'Power', '+240'],
+    [traits.RISE_TO_THE_OCCASION, 'Strike damage below full endurance, pending', '0%'],
     [traits.FORCEFUL_PERSISTENCE, 'Strike damage per active facet', '+10%'],
     [traits.FORCEFUL_PERSISTENCE, 'Strike damage per other active upkeep skill', '+25%']
   ]) {

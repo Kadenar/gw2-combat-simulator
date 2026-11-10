@@ -37,8 +37,3 @@ export function powerOfTheVirtuousRechargeMultiplier(runtime: MechanicQueriesOf<
     ? balanceNumber(runtime.helpers, GUARDIAN_TRAIT_IDS.POWER_OF_THE_VIRTUOUS, 'rechargeMultiplier')
     : 1;
 }
-
-/** Battle Presence shares Phoenix Protocol's boons without adding other simulated healing behavior. */
-export function battlePresenceSharesBoons(context: unknown): boolean {
-  return hasTrait(context, GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE);
-}

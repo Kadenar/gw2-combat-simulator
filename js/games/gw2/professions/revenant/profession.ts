@@ -7,7 +7,6 @@ import {
 } from '#gw2/professions/revenant/build/build.js';
 import { revenantNativeModules } from '#gw2/professions/revenant/catalog.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import { vindicatorReworkModule } from '#gw2/professions/revenant/specializations/vindicator/rework/module.js';
 
 export { revenantCatalog, revenantNativeModules } from '#gw2/professions/revenant/catalog.js';
 
@@ -20,7 +19,6 @@ export const revenantProfession = defineNativeProfession({
     validateBuild: validateRevenantBuild
   },
   modules: revenantNativeModules,
-  moduleVariants: { 'vindicator-rework': vindicatorReworkModule },
   autoattackChains: {
     overrides: [
       {

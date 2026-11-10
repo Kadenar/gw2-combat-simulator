@@ -58,13 +58,13 @@ test('Ghastly Claws multiplies its Vulnerability bonus with normal target Vulner
 });
 
 // One interrupted claw isolates the health gate without hard-coding a full attack's hit timeline.
-test('Rending Claws doubles each hit vulnerability only below half health', () => {
+test('Rending Claws keeps baseline Vulnerability below half health', () => {
   const ticks = necromancerCatalog.skillsById.get(ID.RENDING_CLAWS).effects[0].ticks;
   const interruptMs = (ticks[0].atMs + ticks[1].atMs) / 2;
   for (const [healthFraction, stacks] of [
     // The gate reads live health after the hit lands, so the non-qualifying start stays clear of half.
     [0.51, 1],
-    [0.49, 2]
+    [0.49, 1]
   ]) {
     const result = simulate('Core', [{ name: 'Rending Claws', interruptMs }, wait(1000)], {
       target: { startingHealthFraction: healthFraction }

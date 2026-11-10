@@ -143,7 +143,11 @@ for (const skillId of [ID.MALICIOUS_DEATHS_JUDGMENT, ID.MALICIOUS_BACKSTAB]) {
 
     const unmarked = maliciousAttack(5, { marked: false, skillId });
     assert.equal(observedRuntime(unmarked).resourceController.value('malice'), 5);
-    assert.equal(damage(unmarked), damage(maliciousAttack(0, { marked: false, skillId })));
+    const comparison =
+      skillId === ID.MALICIOUS_DEATHS_JUDGMENT
+        ? maliciousAttack(5, { skillId })
+        : maliciousAttack(0, { marked: false, skillId });
+    assert.equal(damage(unmarked), damage(comparison));
   });
 }
 

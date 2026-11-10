@@ -11,8 +11,8 @@ import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
-// Base positional bonuses and trait extensions are separate contracts; neither creates extra bleed stacks.
-test('shortbow conditions distinguish frontal and defiant targets with and without Light on Your Feet', () => {
+// Crossfire is unconditional; Poison Volley retains only its impairment extension.
+test('shortbow conditions use live base durations without retired trait extensions', () => {
   for (const defiant of [false, true]) {
     for (const trait of [false, true]) {
       const result = runRanger(
@@ -32,14 +32,12 @@ test('shortbow conditions distinguish frontal and defiant targets with and witho
         bleeding.reduce((sum, e) => sum + e.stacks, 0),
         1
       );
-      assert.equal(bleeding[0].effectiveDuration, defiant ? (trait ? 5 : 3) : 2);
-      assert.ok(
-        conditions(ID.POISON_VOLLEY, 'Poisoned').every((e) => e.effectiveDuration === (defiant ? (trait ? 9 : 7) : 5))
-      );
+      assert.equal(bleeding[0].effectiveDuration, 5);
+      assert.ok(conditions(ID.POISON_VOLLEY, 'Poisoned').every((e) => e.effectiveDuration === (defiant ? 9 : 7)));
       const immobilized = conditions(ID.CRIPPLING_SHOT, 'Immobilized');
       assert.equal(immobilized.length, defiant ? 1 : 0);
 
-      if (defiant) assert.equal(immobilized[0].effectiveDuration, trait ? 2.5 : 1.5);
+      if (defiant) assert.equal(immobilized[0].effectiveDuration, 2);
 
       assert.equal(conditions(ID.CRIPPLING_SHOT, 'Crippled')[0].effectiveDuration, 4);
       assert.equal(
@@ -81,8 +79,8 @@ test('Blood Thirst spends only eligible pet or merged-player charges and expires
     assert.equal(core.bloodThirst.charges, 0);
     assert.equal(emitted.length, 3);
     for (const event of emitted) {
-      assert.equal(event.duration, 15);
-      assert.equal(event.stacks, 1);
+      assert.equal(event.duration, 7.5);
+      assert.equal(event.stacks, 2);
       assert.equal(event.ownerActorType, 'player');
       assert.equal(event.actorType, 'effect');
       assert.equal(event.source, 'ranger');
@@ -109,11 +107,11 @@ test('Crippling Shot grants pet bleeding with player condition duration', () => 
     (e) => e.type === 'condition' && e.sourceId === ID.CRIPPLING_SHOT && e.condition === 'Bleeding'
   );
   assert.ok(bleeds.length > 0);
-  assert.ok(bleeds.every((e) => e.skillName === 'Blood Thirst' && e.effectiveDuration === 30));
+  assert.ok(bleeds.every((e) => e.skillName === 'Blood Thirst' && e.effectiveDuration === 15));
 });
 
-// Skill-owned tuning and the trait contribute seconds before the ordinary duration bonus reaches its cap.
-test('shortbow intrinsic duration edits preserve additive trait extensions and the duration cap', () => {
+// Poison Volley applies its intrinsic extension before the ordinary duration cap.
+test('Poison Volley intrinsic duration edits preserve the duration cap', () => {
   for (const durationExtension of [0, 4]) {
     const profession = withPatchPreview(rangerProfession, {
       id: 'shortbow-duration',
@@ -121,7 +119,6 @@ test('shortbow intrinsic duration edits preserve additive trait extensions and t
       professions: {
         ranger: {
           skills: {
-            [ID.CROSSFIRE]: { fields: { durationExtension } },
             [ID.POISON_VOLLEY]: { fields: { durationExtension } }
           }
         }
@@ -140,15 +137,15 @@ test('shortbow intrinsic duration edits preserve additive trait extensions and t
     );
     assert.deepEqual(result.warnings, []);
     for (const [id, condition, base] of [
-      [ID.CROSSFIRE, 'Bleeding', 2],
-      [ID.POISON_VOLLEY, 'Poisoned', 5]
+      [ID.CROSSFIRE, 'Bleeding', 5],
+      [ID.POISON_VOLLEY, 'Poisoned', 7]
     ]) {
       const applications = result.resolvedEvents.filter(
         (event) => event.type === 'condition' && event.sourceId === id && event.condition === condition
       );
       assert.ok(applications.length > 0);
       for (const application of applications)
-        assert.equal(application.effectiveDuration, (base + durationExtension + 2) * 2);
+        assert.equal(application.effectiveDuration, (base + (id === ID.POISON_VOLLEY ? durationExtension : 0)) * 2);
     }
   }
 });

@@ -7,52 +7,60 @@
         "build": "data/gw2/builds/ranger/b-condi-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-druid-dagger-torch-axe-dagger-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-druid-dagger-torch-axe-dagger",
-        "benchmarkDps": 43582,
+        "benchmarkDps": 42445,
         "benchmarkApm": 103.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40549, "phase": 40549 },
-          "80-60": { "cumulative": 42329, "phase": 44306 },
-          "60-40": { "cumulative": 42285, "phase": 42199 },
-          "40-20": { "cumulative": 43386, "phase": 47075 },
-          "20-0": { "cumulative": 43582, "phase": 44390 }
-        },
-        "upToDate": true,
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 44864,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 42402, "phase": 42402 },
-            "80-60": { "cumulative": 43650, "phase": 44968 },
-            "60-40": { "cumulative": 43719, "phase": 43860 },
-            "40-20": { "cumulative": 44451, "phase": 46822 },
-            "20-0": { "cumulative": 44864, "phase": 46610 }
+          "100-80": {
+            "cumulative": 40433,
+            "phase": 40433
+          },
+          "80-60": {
+            "cumulative": 41891,
+            "phase": 43511
+          },
+          "60-40": {
+            "cumulative": 41510,
+            "phase": 40785
+          },
+          "40-20": {
+            "cumulative": 42482,
+            "phase": 45802
+          },
+          "20-0": {
+            "cumulative": 42445,
+            "phase": 42445
           }
-        }
+        },
+        "upToDate": true
       },
       {
         "label": "Condition Alacrity (Dagger-Torch / Axe-Dagger)",
         "build": "data/gw2/builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-alacrity-druid-dagger-torch-axe-dagger",
-        "benchmarkDps": 39129,
+        "benchmarkDps": 35398,
         "upToDate": true,
         "benchmarkApm": 106.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 36217, "phase": 36217 },
-          "80-60": { "cumulative": 38036, "phase": 40036 },
-          "60-40": { "cumulative": 38022, "phase": 37994 },
-          "40-20": { "cumulative": 39286, "phase": 43713 },
-          "20-0": { "cumulative": 39129, "phase": 38522 }
-        },
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 37083,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 34163, "phase": 34163 },
-            "80-60": { "cumulative": 36399, "phase": 39082 },
-            "60-40": { "cumulative": 36432, "phase": 36497 },
-            "40-20": { "cumulative": 36972, "phase": 38755 },
-            "20-0": { "cumulative": 37083, "phase": 37083 }
+          "100-80": {
+            "cumulative": 33508,
+            "phase": 33508
+          },
+          "80-60": {
+            "cumulative": 35051,
+            "phase": 36735
+          },
+          "60-40": {
+            "cumulative": 35310,
+            "phase": 35850
+          },
+          "40-20": {
+            "cumulative": 35422,
+            "phase": 35770
+          },
+          "20-0": {
+            "cumulative": 35398,
+            "phase": 35398
           }
         }
       }
@@ -65,52 +73,60 @@
         "label": "Condition (Shortbow / Dagger-Dagger)",
         "build": "data/gw2/builds/ranger/b-condi-soulbeast-shortbow-dagger-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-soulbeast-shortbow-dagger-dagger.json",
-        "benchmarkDps": 37109,
-        "benchmarkApm": 63.9,
+        "benchmarkDps": 35580,
+        "benchmarkApm": 63.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35190, "phase": 35190 },
-          "80-60": { "cumulative": 37149, "phase": 39401 },
-          "60-40": { "cumulative": 37132, "phase": 37100 },
-          "40-20": { "cumulative": 37160, "phase": 37246 },
-          "20-0": { "cumulative": 37109, "phase": 37109 }
-        },
-        "upToDate": true,
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 37335,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 35190, "phase": 35190 },
-            "80-60": { "cumulative": 37431, "phase": 40008 },
-            "60-40": { "cumulative": 37447, "phase": 37481 },
-            "40-20": { "cumulative": 37339, "phase": 37012 },
-            "20-0": { "cumulative": 37335, "phase": 37335 }
+          "100-80": {
+            "cumulative": 34885,
+            "phase": 34885
+          },
+          "80-60": {
+            "cumulative": 36018,
+            "phase": 37255
+          },
+          "60-40": {
+            "cumulative": 35662,
+            "phase": 34971
+          },
+          "40-20": {
+            "cumulative": 35832,
+            "phase": 36347
+          },
+          "20-0": {
+            "cumulative": 35580,
+            "phase": 35580
           }
-        }
+        },
+        "upToDate": false
       },
       {
         "label": "Power (Hammer / Axe-Axe)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-hammer-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-axe-axe",
-        "benchmarkDps": 42691,
-        "upToDate": true,
+        "benchmarkDps": 38835,
+        "upToDate": false,
         "benchmarkApm": 55.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 53195, "phase": 53195 },
-          "80-60": { "cumulative": 46413, "phase": 41147 },
-          "60-40": { "cumulative": 43612, "phase": 38891 },
-          "40-20": { "cumulative": 41384, "phase": 36023 },
-          "20-0": { "cumulative": 42691, "phase": 42691 }
-        },
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42691,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 53195, "phase": 53195 },
-            "80-60": { "cumulative": 46413, "phase": 41147 },
-            "60-40": { "cumulative": 43612, "phase": 38891 },
-            "40-20": { "cumulative": 41384, "phase": 36023 },
-            "20-0": { "cumulative": 42691, "phase": 42691 }
+          "100-80": {
+            "cumulative": 45364,
+            "phase": 45364
+          },
+          "80-60": {
+            "cumulative": 40990,
+            "phase": 37459
+          },
+          "60-40": {
+            "cumulative": 40162,
+            "phase": 38547
+          },
+          "40-20": {
+            "cumulative": 39209,
+            "phase": 36559
+          },
+          "20-0": {
+            "cumulative": 38835,
+            "phase": 38835
           }
         }
       },
@@ -119,25 +135,29 @@
         "build": "data/gw2/builds/ranger/b-power-soulbeast-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-sword-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-sword-axe",
-        "benchmarkDps": 42954,
-        "upToDate": true,
+        "benchmarkDps": 39047,
+        "upToDate": false,
         "benchmarkApm": 54.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 53059, "phase": 53059 },
-          "80-60": { "cumulative": 46852, "phase": 42064 },
-          "60-40": { "cumulative": 43858, "phase": 38723 },
-          "40-20": { "cumulative": 41602, "phase": 36081 },
-          "20-0": { "cumulative": 42954, "phase": 42954 }
-        },
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42954,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 53059, "phase": 53059 },
-            "80-60": { "cumulative": 46852, "phase": 42064 },
-            "60-40": { "cumulative": 43858, "phase": 38723 },
-            "40-20": { "cumulative": 41602, "phase": 36081 },
-            "20-0": { "cumulative": 42954, "phase": 42954 }
+          "100-80": {
+            "cumulative": 45316,
+            "phase": 45316
+          },
+          "80-60": {
+            "cumulative": 41621,
+            "phase": 38442
+          },
+          "60-40": {
+            "cumulative": 40676,
+            "phase": 38886
+          },
+          "40-20": {
+            "cumulative": 39542,
+            "phase": 36489
+          },
+          "20-0": {
+            "cumulative": 39047,
+            "phase": 39047
           }
         }
       },
@@ -145,26 +165,30 @@
         "label": "Power (Spear / Axe-Axe)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-spear-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-spear-axe-evtc.json",
-        "benchmarkDps": 41134,
-        "upToDate": true,
+        "benchmarkDps": 37350,
+        "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-spear-axe-axe",
         "benchmarkApm": 63.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 49365, "phase": 49365 },
-          "80-60": { "cumulative": 44933, "phase": 41223 },
-          "60-40": { "cumulative": 41790, "phase": 36662 },
-          "40-20": { "cumulative": 40279, "phase": 36280 },
-          "20-0": { "cumulative": 41134, "phase": 41134 }
-        },
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 41134,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 49365, "phase": 49365 },
-            "80-60": { "cumulative": 44933, "phase": 41223 },
-            "60-40": { "cumulative": 41790, "phase": 36662 },
-            "40-20": { "cumulative": 40279, "phase": 36280 },
-            "20-0": { "cumulative": 41134, "phase": 41134 }
+          "100-80": {
+            "cumulative": 42492,
+            "phase": 42492
+          },
+          "80-60": {
+            "cumulative": 38786,
+            "phase": 35622
+          },
+          "60-40": {
+            "cumulative": 38858,
+            "phase": 39004
+          },
+          "40-20": {
+            "cumulative": 37795,
+            "phase": 34917
+          },
+          "20-0": {
+            "cumulative": 37350,
+            "phase": 37350
           }
         }
       },
@@ -173,53 +197,61 @@
         "build": "data/gw2/builds/ranger/b-power-soulbeast-axe-axe-sword-mace.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-axe-axe-sword-mace-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-sword-mace-axe-axe",
-        "benchmarkDps": 41829,
+        "benchmarkDps": 38050,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 48070, "phase": 48070 },
-          "80-60": { "cumulative": 45515, "phase": 43193 },
-          "60-40": { "cumulative": 43536, "phase": 39997 },
-          "40-20": { "cumulative": 42268, "phase": 38944 },
-          "20-0": { "cumulative": 41829, "phase": 41829 }
+          "100-80": {
+            "cumulative": 42809,
+            "phase": 42809
+          },
+          "80-60": {
+            "cumulative": 39517,
+            "phase": 36589
+          },
+          "60-40": {
+            "cumulative": 38913,
+            "phase": 37767
+          },
+          "40-20": {
+            "cumulative": 38225,
+            "phase": 36273
+          },
+          "20-0": {
+            "cumulative": 38050,
+            "phase": 38050
+          }
         },
         "benchmarkApm": 60.2,
-        "upToDate": true,
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 41829,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 48070, "phase": 48070 },
-            "80-60": { "cumulative": 45515, "phase": 43193 },
-            "60-40": { "cumulative": 43536, "phase": 39997 },
-            "40-20": { "cumulative": 42268, "phase": 38944 },
-            "20-0": { "cumulative": 41829, "phase": 41829 }
-          }
-        }
+        "upToDate": false
       },
       {
         "label": "Power (Mace-Mace / Axe-Axe)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-mace-mace-axe-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-mace-mace-axe-axe-evtc.json",
-        "benchmarkDps": 41385,
+        "benchmarkDps": 37579,
         "benchmarkApm": 64.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 47205, "phase": 47205 },
-          "80-60": { "cumulative": 44154, "phase": 41489 },
-          "60-40": { "cumulative": 42892, "phase": 40606 },
-          "40-20": { "cumulative": 42335, "phase": 40696 },
-          "20-0": { "cumulative": 41385, "phase": 38019 }
-        },
-        "upToDate": true,
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 41385,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 47205, "phase": 47205 },
-            "80-60": { "cumulative": 44154, "phase": 41489 },
-            "60-40": { "cumulative": 42892, "phase": 40606 },
-            "40-20": { "cumulative": 42335, "phase": 40696 },
-            "20-0": { "cumulative": 41385, "phase": 38019 }
+          "100-80": {
+            "cumulative": 43005,
+            "phase": 43005
+          },
+          "80-60": {
+            "cumulative": 39213,
+            "phase": 36060
+          },
+          "60-40": {
+            "cumulative": 37979,
+            "phase": 35720
+          },
+          "40-20": {
+            "cumulative": 37769,
+            "phase": 37144
+          },
+          "20-0": {
+            "cumulative": 37579,
+            "phase": 37579
           }
-        }
+        },
+        "upToDate": false
       }
     ]
   },
@@ -230,25 +262,29 @@
         "label": "Power (Hammer / Sword-Axe) (Beastmastery, Hawk)",
         "build": "data/gw2/builds/ranger/b-power-untamed-hawk-beastmastery-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-untamed-hawk-beastmastery-hammer-sword-axe.json",
-        "benchmarkDps": 45467,
-        "upToDate": true,
-        "benchmarkApm": 96.3,
+        "benchmarkDps": 33651,
+        "upToDate": false,
+        "benchmarkApm": 77.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 51468, "phase": 51468 },
-          "80-60": { "cumulative": 47125, "phase": 43500 },
-          "60-40": { "cumulative": 46777, "phase": 46074 },
-          "40-20": { "cumulative": 46100, "phase": 44160 },
-          "20-0": { "cumulative": 45467, "phase": 43111 }
-        },
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 44062,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 49734, "phase": 49734 },
-            "80-60": { "cumulative": 45925, "phase": 42662 },
-            "60-40": { "cumulative": 45018, "phase": 43300 },
-            "40-20": { "cumulative": 44229, "phase": 42018 },
-            "20-0": { "cumulative": 44062, "phase": 44062 }
+          "100-80": {
+            "cumulative": 44299,
+            "phase": 44299
+          },
+          "80-60": {
+            "cumulative": 35264,
+            "phase": 29245
+          },
+          "60-40": {
+            "cumulative": 34949,
+            "phase": 34336
+          },
+          "40-20": {
+            "cumulative": 33336,
+            "phase": 29311
+          },
+          "20-0": {
+            "cumulative": 33651,
+            "phase": 33651
           }
         }
       },
@@ -257,25 +293,29 @@
         "build": "data/gw2/builds/ranger/b-power-untamed-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-untamed-beastmastery-hammer-sword-axe",
-        "benchmarkDps": 43713,
+        "benchmarkDps": 35551,
         "upToDate": true,
-        "benchmarkApm": 103.9,
+        "benchmarkApm": 85.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 48046, "phase": 48046 },
-          "80-60": { "cumulative": 46621, "phase": 45265 },
-          "60-40": { "cumulative": 44786, "phase": 41552 },
-          "40-20": { "cumulative": 43660, "phase": 40587 },
-          "20-0": { "cumulative": 43713, "phase": 43713 }
-        },
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42313,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 47203, "phase": 47203 },
-            "80-60": { "cumulative": 44672, "phase": 42337 },
-            "60-40": { "cumulative": 43847, "phase": 42325 },
-            "40-20": { "cumulative": 42206, "phase": 37876 },
-            "20-0": { "cumulative": 42313, "phase": 42313 }
+          "100-80": {
+            "cumulative": 37864,
+            "phase": 37864
+          },
+          "80-60": {
+            "cumulative": 36943,
+            "phase": 36063
+          },
+          "60-40": {
+            "cumulative": 35751,
+            "phase": 33595
+          },
+          "40-20": {
+            "cumulative": 35486,
+            "phase": 34714
+          },
+          "20-0": {
+            "cumulative": 35551,
+            "phase": 35551
           }
         }
       },
@@ -283,27 +323,31 @@
         "label": "Power Quickness (Hammer / Mace-Mace) (Beastmastery)",
         "build": "data/gw2/builds/ranger/b-power-quick-untamed-beastmastery-hammer-mace-mace.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-beastmastery-hammer-mace-mace-bench.json",
-        "benchmarkDps": 34240,
+        "benchmarkDps": 34234,
         "benchmarkApm": 87.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37768, "phase": 37768 },
-          "80-60": { "cumulative": 35119, "phase": 32802 },
-          "60-40": { "cumulative": 34448, "phase": 33148 },
-          "40-20": { "cumulative": 34357, "phase": 34093 },
-          "20-0": { "cumulative": 34240, "phase": 34240 }
-        },
-        "upToDate": true,
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 34240,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 37768, "phase": 37768 },
-            "80-60": { "cumulative": 35119, "phase": 32802 },
-            "60-40": { "cumulative": 34448, "phase": 33148 },
-            "40-20": { "cumulative": 34357, "phase": 34093 },
-            "20-0": { "cumulative": 34240, "phase": 34240 }
+          "100-80": {
+            "cumulative": 37754,
+            "phase": 37754
+          },
+          "80-60": {
+            "cumulative": 35109,
+            "phase": 32796
+          },
+          "60-40": {
+            "cumulative": 34440,
+            "phase": 33141
+          },
+          "40-20": {
+            "cumulative": 34349,
+            "phase": 34087
+          },
+          "20-0": {
+            "cumulative": 34234,
+            "phase": 34234
           }
-        }
+        },
+        "upToDate": true
       },
       {
         "label": "Power Quickness (Sword-Axe / Hammer) (Beastmastery)",
@@ -314,21 +358,25 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-untamed-hammer-sword-axe",
         "benchmarkApm": 79.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40251, "phase": 40251 },
-          "80-60": { "cumulative": 36178, "phase": 32742 },
-          "60-40": { "cumulative": 35256, "phase": 33569 },
-          "40-20": { "cumulative": 34809, "phase": 33511 },
-          "20-0": { "cumulative": 34520, "phase": 34520 }
-        },
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 34520,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 40251, "phase": 40251 },
-            "80-60": { "cumulative": 36178, "phase": 32742 },
-            "60-40": { "cumulative": 35256, "phase": 33569 },
-            "40-20": { "cumulative": 34809, "phase": 33511 },
-            "20-0": { "cumulative": 34520, "phase": 34520 }
+          "100-80": {
+            "cumulative": 40251,
+            "phase": 40251
+          },
+          "80-60": {
+            "cumulative": 36178,
+            "phase": 32742
+          },
+          "60-40": {
+            "cumulative": 35256,
+            "phase": 33569
+          },
+          "40-20": {
+            "cumulative": 34809,
+            "phase": 33511
+          },
+          "20-0": {
+            "cumulative": 34520,
+            "phase": 34520
           }
         }
       },
@@ -336,26 +384,30 @@
         "label": "Power Quickness (Sword-Axe / Hammer) (Nature Magic)",
         "build": "data/gw2/builds/ranger/b-power-quick-untamed-nature-magic-sword-axe-hammer.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-nature-magic-sword-axe-hammer-bench.json",
-        "benchmarkDps": 34047,
+        "benchmarkDps": 33883,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-untamed-nature-magic-hammer-sword-axe",
         "benchmarkApm": 84,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37339, "phase": 37339 },
-          "80-60": { "cumulative": 34578, "phase": 32142 },
-          "60-40": { "cumulative": 34328, "phase": 33839 },
-          "40-20": { "cumulative": 34041, "phase": 33210 },
-          "20-0": { "cumulative": 34047, "phase": 34047 }
-        },
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 33890,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 37048, "phase": 37048 },
-            "80-60": { "cumulative": 34310, "phase": 31939 },
-            "60-40": { "cumulative": 34004, "phase": 33404 },
-            "40-20": { "cumulative": 33774, "phase": 33103 },
-            "20-0": { "cumulative": 33890, "phase": 33890 }
+          "100-80": {
+            "cumulative": 37040,
+            "phase": 37040
+          },
+          "80-60": {
+            "cumulative": 34303,
+            "phase": 31932
+          },
+          "60-40": {
+            "cumulative": 33997,
+            "phase": 33397
+          },
+          "40-20": {
+            "cumulative": 33768,
+            "phase": 33096
+          },
+          "20-0": {
+            "cumulative": 33883,
+            "phase": 33883
           }
         }
       },
@@ -363,27 +415,31 @@
         "label": "Condition Quickness (Axe-Dagger / Dagger-Torch)",
         "build": "data/gw2/builds/ranger/b-condi-quick-untamed-axe-dagger-dagger-torch.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-quick-untamed-axe-dagger-dagger-torch-bench.json",
-        "benchmarkDps": 34989,
-        "benchmarkApm": 112.7,
+        "benchmarkDps": 28909,
+        "benchmarkApm": 90.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 34830, "phase": 34830 },
-          "80-60": { "cumulative": 35672, "phase": 36553 },
-          "60-40": { "cumulative": 35189, "phase": 34244 },
-          "40-20": { "cumulative": 34948, "phase": 34236 },
-          "20-0": { "cumulative": 34989, "phase": 35153 }
-        },
-        "upToDate": true,
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 34989,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 34830, "phase": 34830 },
-            "80-60": { "cumulative": 35672, "phase": 36553 },
-            "60-40": { "cumulative": 35189, "phase": 34244 },
-            "40-20": { "cumulative": 34948, "phase": 34236 },
-            "20-0": { "cumulative": 34989, "phase": 35153 }
+          "100-80": {
+            "cumulative": 31185,
+            "phase": 31185
+          },
+          "80-60": {
+            "cumulative": 30267,
+            "phase": 29383
+          },
+          "60-40": {
+            "cumulative": 29510,
+            "phase": 28077
+          },
+          "40-20": {
+            "cumulative": 28954,
+            "phase": 27399
+          },
+          "20-0": {
+            "cumulative": 28909,
+            "phase": 28730
           }
-        }
+        },
+        "upToDate": false
       }
     ]
   },
@@ -399,21 +455,25 @@
         "upToDate": true,
         "benchmarkApm": 84.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 45935, "phase": 45935 },
-          "80-60": { "cumulative": 41310, "phase": 37403 },
-          "60-40": { "cumulative": 43821, "phase": 49866 },
-          "40-20": { "cumulative": 43013, "phase": 40763 },
-          "20-0": { "cumulative": 42565, "phase": 42565 }
-        },
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 42565,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 45935, "phase": 45935 },
-            "80-60": { "cumulative": 41310, "phase": 37403 },
-            "60-40": { "cumulative": 43821, "phase": 49866 },
-            "40-20": { "cumulative": 43013, "phase": 40763 },
-            "20-0": { "cumulative": 42565, "phase": 42565 }
+          "100-80": {
+            "cumulative": 45935,
+            "phase": 45935
+          },
+          "80-60": {
+            "cumulative": 41310,
+            "phase": 37403
+          },
+          "60-40": {
+            "cumulative": 43821,
+            "phase": 49866
+          },
+          "40-20": {
+            "cumulative": 43013,
+            "phase": 40763
+          },
+          "20-0": {
+            "cumulative": 42565,
+            "phase": 42565
           }
         }
       },
@@ -426,21 +486,25 @@
         "upToDate": true,
         "benchmarkApm": 88.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35265, "phase": 35265 },
-          "80-60": { "cumulative": 35050, "phase": 34838 },
-          "60-40": { "cumulative": 35191, "phase": 35475 },
-          "40-20": { "cumulative": 35202, "phase": 35236 },
-          "20-0": { "cumulative": 35230, "phase": 35230 }
-        },
-        "patchPreview": {
-          "patchId": "nov-10-balance-preview",
-          "benchmarkDps": 35230,
-          "benchmarkDpsByHealth": {
-            "100-80": { "cumulative": 35265, "phase": 35265 },
-            "80-60": { "cumulative": 35050, "phase": 34838 },
-            "60-40": { "cumulative": 35191, "phase": 35475 },
-            "40-20": { "cumulative": 35202, "phase": 35236 },
-            "20-0": { "cumulative": 35230, "phase": 35230 }
+          "100-80": {
+            "cumulative": 35265,
+            "phase": 35265
+          },
+          "80-60": {
+            "cumulative": 35050,
+            "phase": 34838
+          },
+          "60-40": {
+            "cumulative": 35191,
+            "phase": 35475
+          },
+          "40-20": {
+            "cumulative": 35202,
+            "phase": 35236
+          },
+          "20-0": {
+            "cumulative": 35230,
+            "phase": 35230
           }
         }
       }

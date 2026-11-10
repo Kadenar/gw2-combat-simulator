@@ -84,12 +84,8 @@ export const soulbeastTooltips = {
         )
       ]
     ),
-    [TRAIT.OPPRESSIVE_SUPERIORITY]: traitTooltip(
-      'Gain strike damage and condition duration when the target has a lower health percentage than you. Player health remains full in combat.',
-      [
-        fromProfile(TRAIT.OPPRESSIVE_SUPERIORITY, 'damageMultiplier', 'Strike damage', tooltipFactorChange),
-        ['conditionDurationBonus', 'Condition duration', tooltipPercent]
-      ]
+    [TRAIT.APEX_PREDATOR]: traitTooltip(
+      'Merged abilities trigger a frenzy, with stronger attacks from Beast skills. Attack coefficients, count, timing, and trigger limits are pending. The retired health-based bonuses no longer apply.'
     )
   }
 } satisfies ProfessionTooltips;

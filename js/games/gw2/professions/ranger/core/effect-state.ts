@@ -10,7 +10,6 @@ export function rangerBuffPolicies(): BuffStatePolicy[] {
     { kind: 'strength-of-the-pack', maximumStacks: 1 },
     { kind: 'paralyzing-venom', maximumStacks: 1 },
     { kind: 'pet-sharpen-spines', maximumStacks: 5 },
-    { kind: 'light-on-your-feet', maximumStacks: 1 },
     { kind: 'lesser-sic-em-pet', maximumStacks: 1 },
     { kind: 'lesser-sic-em', maximumStacks: 1 }
   ];

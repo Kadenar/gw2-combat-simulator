@@ -148,13 +148,13 @@ test('Ranger condition-count bonuses use canonical active conditions and query p
     const pet = { ...context, event: { skillId: ID.CONSUMING_BITE, coefficient: 0.45 } };
     assert.equal(bonus.when(strike), true);
     assert.equal(bite.when(pet), true);
-    assert.equal(bonus.factor(strike, bonus.target, bonus.parameters), 1 + count * 0.02);
+    assert.equal(bonus.factor(strike, bonus.target, bonus.parameters), 1 + count * 0.04);
     assert.equal(bite.factor(pet, bite.target, bite.parameters), (0.45 + count * 0.025) / 0.45);
   }
 });
 
 test('Ranger condition bonuses retain the Consuming Bite cap and coefficient guard', () => {
-  // Only Consuming Bite caps condition variety; its coefficient conversion must remain safe for nonpositive inputs.
+  // Both skills cap condition variety; Consuming Bite also guards nonpositive coefficients.
   const config = {
     target: { conditions: { Burning: true, Bleeding: true, Poisoned: true, Chilled: true, Slow: true, Weakness: true } }
   };
@@ -167,7 +167,7 @@ test('Ranger condition bonuses retain the Consuming Bite cap and coefficient gua
   const context = { config, time: 5, event: { skillId: ID.CONSUMING_BITE, coefficient: 0.45 } };
   // Exercise the same selected point listeners as the live profession.
   bindTriggerPoints(context, rangerProfession, config);
-  assert.equal(bonus.factor(context, bonus.target, bonus.parameters), 1.12);
+  assert.equal(bonus.factor(context, bonus.target, bonus.parameters), 1.2);
   assert.equal(bite.factor(context, bite.target, bite.parameters), (0.45 + 0.125) / 0.45);
   for (const coefficient of [undefined, 0, -1]) {
     assert.equal(bite.factor({ ...context, event: { coefficient } }, bite.target, bite.parameters), 1);

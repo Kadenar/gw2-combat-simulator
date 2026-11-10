@@ -9,6 +9,7 @@ import {
 import { TARGET_HEALTH_BANDS } from '#gw2/app/results/summary-metrics.js';
 import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { validatePatchPreview } from '#gw2/integrations/patches/authoring/patches.js';
+import { testPatchPreview } from '#tests/helpers/patch-preview.js';
 
 import {
   serializeActivePatchPreview,
@@ -26,7 +27,7 @@ function build(profession, specialization, label = 'Condition', previewDps = 110
     rotation: 'fixture.json',
     benchmarkDps: 1000,
     patchPreview: {
-      patchId: activePatchPreview.id,
+      patchId: testPatchPreview.id,
       benchmarkDps: previewDps,
       benchmarkDpsByHealth: Object.fromEntries(
         TARGET_HEALTH_BANDS.map(({ id }) => [id, { cumulative: 1000, phase: 1000 }])
@@ -40,7 +41,7 @@ const longbowBerserker = () => ({
   build: 'data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json'
 });
 
-test('active reworks cover Vindicator and only the longbow Berserker build', () => {
+test('released professions no longer carry active preview blockers', () => {
   const rows = [
     build('revenant', 'Vindicator', 'Power'),
     build('revenant', 'Vindicator'),
@@ -49,34 +50,45 @@ test('active reworks cover Vindicator and only the longbow Berserker build', () 
     longbowBerserker(),
     build('warrior', 'Berserker', 'Power'),
     build('warrior', 'Berserker', 'Condition without longbow'),
-    build('guardian', 'Willbender')
+    build('guardian', 'Willbender'),
+    build('engineer', 'Amalgam')
   ];
-  const results = patchBenchmarks(rows, activePatchPreview);
+  assert.equal(activePatchPreview, null);
+  assert.deepEqual(patchBenchmarks(rows, activePatchPreview), []);
+  const results = patchBenchmarks(rows, testPatchPreview);
   assert.deepEqual(
     results.map(({ outcome }) => outcome),
-    ['tbd', 'tbd', 'up', 'up', 'tbd', 'up', 'up', 'up']
+    ['up', 'up', 'up', 'up', 'up', 'up', 'up', 'up', 'up']
   );
-  for (const row of results.filter(({ outcome }) => outcome === 'tbd')) {
-    assert.equal('previewDps' in row, false);
-    // Benchmarks stay pending whether the blocker is an unimplemented rework or unpublished tuning.
-    assert.match(row.reason, /pending/);
-  }
-
   assert.equal(patchBenchmarks(rows, null).length, 0);
-  assert.ok(patchBenchmarks(rows, { id: activePatchPreview.id }).every(({ outcome }) => outcome === 'up'));
+  assert.ok(patchBenchmarks(rows, { id: testPatchPreview.id }).every(({ outcome }) => outcome === 'up'));
 });
 
 test('pending builds remain visible without captured results and never count as unchanged or extreme changes', () => {
-  const pending = longbowBerserker();
+  const pendingPreview = {
+    id: testPatchPreview.id,
+    pendingBenchmarks: [
+      {
+        profession: 'engineer',
+        specialization: 'Amalgam',
+        build: 'data/gw2/builds/engineer/b-power-amalgam-rifle-double-helix.json',
+        reason: 'Fixture pending.'
+      }
+    ]
+  };
+  const pending = {
+    ...build('engineer', 'Amalgam', 'Power (Rifle)'),
+    build: 'data/gw2/builds/engineer/b-power-amalgam-rifle-double-helix.json'
+  };
   delete pending.patchPreview;
   const rows = patchBenchmarks(
     [
       pending,
-      build('warrior', 'Berserker', 'Power', 1200),
-      build('warrior', 'Berserker', 'Power loss', 900),
-      build('warrior', 'Berserker', 'Power same', 1000)
+      build('engineer', 'Amalgam', 'Power', 1200),
+      build('engineer', 'Amalgam', 'Power loss', 900),
+      build('engineer', 'Amalgam', 'Power same', 1000)
     ],
-    activePatchPreview
+    pendingPreview
   );
   const summary = patchProfessionSummary(rows);
   assert.deepEqual([summary.winners, summary.losers, summary.unchanged, summary.pending], [1, 1, 1, 1]);
@@ -88,42 +100,17 @@ test('pending builds remain visible without captured results and never count as 
   assert.equal(onlyPending.unchanged, 0);
   assert.equal(onlyPending.largestGain, undefined);
   assert.equal(onlyPending.largestLoss, undefined);
-  assert.equal(patchBenchmarks([{ ...pending, rotation: undefined }], activePatchPreview).length, 0);
-});
-
-// Pending trait and weapon changes should not hide unaffected specializations, damage types, or weapons.
-test('rework warnings cover affected Mesmer presets, rifle Amalgam, and Soulbeast without widening their scope', () => {
-  const rifle = {
-    ...build('engineer', 'Amalgam', 'Power (Rifle)'),
-    build: 'data/gw2/builds/engineer/b-power-amalgam-rifle-double-helix.json'
-  };
-  const rows = [
-    build('mesmer', 'Chronomancer'),
-    build('mesmer', 'Chronomancer', 'Power'),
-    build('mesmer', 'Virtuoso', 'Power'),
-    build('mesmer', 'Virtuoso'),
-    build('mesmer', 'Mirage'),
-    rifle,
-    { ...rifle, build: 'data/gw2/builds/engineer/b-power-amalgam-hammer-double-helix.json' },
-    build('ranger', 'Soulbeast', 'Power'),
-    build('ranger', 'Soulbeast'),
-    build('ranger', 'Druid')
-  ];
-  const results = patchBenchmarks(rows, activePatchPreview);
-  assert.deepEqual(
-    results.map(({ outcome }) => outcome),
-    ['tbd', 'tbd', 'tbd', 'up', 'up', 'tbd', 'up', 'tbd', 'tbd', 'up']
-  );
-  // Preserve the separate condition-Chrono warning while identifying the power builds' role-swap rework.
-  assert.match(results[0].reason, /Chronophantasma/);
-  for (const row of results.filter(({ build }) => build.profession === 'mesmer' && build.label === 'Power')) {
-    assert.match(row.reason, /Disenchanter\/Warden rework/);
-    assert.equal('previewDps' in row, false);
-  }
+  assert.equal(patchBenchmarks([{ ...pending, rotation: undefined }], pendingPreview).length, 0);
 });
 
 test('authoring validates and preserves patch-scoped pending selectors when saving', () => {
-  const preview = { id: 'fixture', label: 'Fixture', pendingBenchmarks: activePatchPreview.pendingBenchmarks };
+  const preview = {
+    id: 'fixture',
+    label: 'Fixture',
+    pendingBenchmarks: [
+      { profession: 'mesmer', specialization: 'Chronomancer', damage: 'condi', reason: 'Fixture pending.' }
+    ]
+  };
   const saved = validateAuthoringPreview(preview, { professions: [], validatePatchPreview });
   assert.deepEqual(saved.pendingBenchmarks, preview.pendingBenchmarks);
   assert.match(serializeActivePatchPreview(saved), /"pendingBenchmarks"/);

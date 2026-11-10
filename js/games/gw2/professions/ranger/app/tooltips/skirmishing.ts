@@ -18,7 +18,7 @@ export const rangerSkirmishingTooltips = {
     ['internalCooldown', 'Internal cooldown', tooltipSeconds]
   ]),
   [TRAIT.HUNTERS_TACTICS]: traitTooltip(
-    'Gain personal strike damage and critical-strike chance when flanking. The simulator treats defiant targets as flanked.',
+    'The new post-flanking bonus window is pending its duration. The simulation retains the earlier continuous flanking check, treating defiant targets as flanked.',
     [
       fromProfile(TRAIT.HUNTERS_TACTICS, 'damageMultiplier', 'Strike damage', tooltipFactorChange),
       ['criticalChance', 'Critical chance', tooltipPercent]
@@ -43,9 +43,10 @@ export const rangerSkirmishingTooltips = {
     ['attributeBonuses.power', 'Base power'],
     ['conditionalAttributeBonuses.power', 'Power while wielding a sword']
   ]),
-  [TRAIT.HIDDEN_BARBS]: traitTooltip('Bleeding deals increased damage.', [
-    fromProfile(TRAIT.HIDDEN_BARBS, 'conditionDamageMultiplier', 'Bleeding damage', tooltipFactorChange)
-  ]),
+  [TRAIT.HIDDEN_BARBS]: traitTooltip(
+    'Bleeding deals increased damage and shortbow attacks pierce. Piercing additional targets is outside the single-target simulation.',
+    [fromProfile(TRAIT.HIDDEN_BARBS, 'conditionDamageMultiplier', 'Bleeding damage', tooltipFactorChange)]
+  ),
   [TRAIT.QUICK_DRAW]: traitTooltip(
     'Swapping weapons in combat grants quickness and opens a brief window. The next non-autoattack weapon skill used in that window has reduced recharge.',
     [
@@ -55,14 +56,7 @@ export const rangerSkirmishingTooltips = {
     ]
   ),
   [TRAIT.LIGHT_ON_YOUR_FEET]: traitTooltip(
-    'Dodging or using an evade skill adds a temporary strike-damage and condition-duration bonus. Shortbow recharges faster; flanking extends selected shortbow conditions and Concussion Shot applies vulnerability.',
-    [
-      fromProfile(TRAIT.LIGHT_ON_YOUR_FEET, 'damageMultiplier', 'Strike damage during bonus', tooltipFactorChange),
-      ['conditionDurationBonus', 'Condition duration during bonus', tooltipPercent],
-      ['rechargeMultiplier', 'Shortbow recharge', tooltipFactorChange],
-      ['durationExtension', 'Crossfire bleeding / Poison Volley poison extension', tooltipSeconds],
-      ['immobilizeDurationExtension', 'Crippling Shot immobilize extension', tooltipSeconds]
-    ]
+    'Dodging or using an evading ranger skill briefly increases movement speed. The amount and duration are unspecified; movement speed is outside combat simulation scope.'
   ),
   [TRAIT.VICIOUS_QUARRY]: traitTooltip('Gain ferocity and additional critical-strike chance while fury is active.', [
     ['attributeBonuses.ferocity', 'Ferocity'],

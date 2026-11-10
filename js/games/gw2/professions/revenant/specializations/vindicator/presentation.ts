@@ -125,7 +125,6 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
     const preview = createPreviewControls(context);
     // Expose held combat bonuses to isolated damage calculations.
     preview.damageBuff('Forerunner of Death', 'forerunnerOfDeath', 'forerunner-of-death');
-    preview.playerHealth(['Empire Divided']);
     return preview.controls;
   },
 

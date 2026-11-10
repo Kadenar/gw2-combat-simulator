@@ -479,8 +479,7 @@ test('reviewed trait grants feed oil conversions only for their eligible attribu
     ['guardian', 'Core', 'Zealous Blade', 'Sword', 'power', 120, 0],
     ['guardian', 'Core', 'Zealous Blade', 'Greatsword', 'power', 240, 120],
     ['ranger', 'Core', "Strider's Strength", 'Longbow', 'power', 120, 120],
-    ['ranger', 'Core', "Strider's Strength", 'Sword', 'power', 240, 240],
-    ['revenant', 'Vindicator', 'Empire Divided', 'Greatsword', 'power', 240, 240]
+    ['ranger', 'Core', "Strider's Strength", 'Sword', 'power', 240, 240]
   ];
   for (const [profession, specialization, trait, weapon, stat, bonus, converted] of cases) {
     const inputs = baseAttributeInputs();

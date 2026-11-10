@@ -12,7 +12,6 @@ import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rule
 import { balanceNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
-import { battlePresenceSharesBoons } from '#gw2/professions/guardian/core/traits/virtues/behavior.js';
 import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
   willbenderVirtueOpened,
@@ -195,7 +194,7 @@ const holyReckoning = defineTrait({
   ]
 });
 
-/** Resolve grants distinct Alacrity packets whose authored recipients can be widened by Battle Presence. */
+/** Resolve shares both Alacrity grants with nearby allies without requiring Battle Presence. */
 const phoenixProtocol = defineTrait({
   id: TRAIT.PHOENIX_PROTOCOL,
   balance: {
@@ -206,7 +205,7 @@ const phoenixProtocol = defineTrait({
         boon: BOON.ALACRITY,
         stacks: 1,
         duration: 5,
-        audience: { recipients: RECIPIENT.SELF }
+        audience: { recipients: RECIPIENT.PARTY }
       },
       {
         type: 'boon',
@@ -215,7 +214,7 @@ const phoenixProtocol = defineTrait({
         stacks: 1,
         duration: 1,
         packetLabel: 'triggered',
-        audience: { recipients: RECIPIENT.SELF }
+        audience: { recipients: RECIPIENT.PARTY }
       }
     ]
   },
@@ -224,12 +223,12 @@ const phoenixProtocol = defineTrait({
     onTriggerPoint(willbenderVirtueOpened, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.PHOENIX_PROTOCOL, BOON.ALACRITY, cause, phoenixAudience(runtime))
+        grantVirtueBoon(runtime, TRAIT.PHOENIX_PROTOCOL, BOON.ALACRITY, cause, (authored) => authored)
     }),
     onTriggerPoint(willbenderVirtueTriggered, {
       when: (_runtime, { virtue }: WillbenderVirtueBoundary) => virtue === 'resolve',
       run: (runtime: GuardianRuntime, { cause }: WillbenderVirtueBoundary) =>
-        grantVirtueBoon(runtime, TRAIT.PHOENIX_PROTOCOL, 'alacrity (triggered)', cause, phoenixAudience(runtime))
+        grantVirtueBoon(runtime, TRAIT.PHOENIX_PROTOCOL, 'alacrity (triggered)', cause, (authored) => authored)
     })
   ]
 });
@@ -348,11 +347,6 @@ function grantVirtueBoon(
       audience: audience(packet.audience) as typeof packet.audience
     })
   });
-}
-
-/** Authored sharing survives without Battle Presence; the trait can still share self-only live effects. */
-function phoenixAudience(runtime: GuardianRuntime): (authored: BoonAudience) => BoonAudience {
-  return (authored) => (battlePresenceSharesBoons(runtime) ? { ...authored, recipients: RECIPIENT.PARTY } : authored);
 }
 
 function gainLethalTempo(

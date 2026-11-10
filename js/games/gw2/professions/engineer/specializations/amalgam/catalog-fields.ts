@@ -1,5 +1,10 @@
 import { defineFields, numberField } from '#gw2/platform/skills/field-specs.js';
 
+/** Double Helix stores its fractional attribute bonus directly to preserve conversion rounding. */
+export const AMALGAM_PROFILE_FIELDS = defineFields({
+  attributeIncrease: numberField({ patch: 'primary', unit: 'fraction' })
+});
+
 /** Amalgam owns Evolve's attribute scaling, protocol retaliation cadence, and persistent strain tuning. */
 export const AMALGAM_SKILL_FIELDS = defineFields(
   {

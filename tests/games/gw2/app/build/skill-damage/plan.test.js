@@ -66,7 +66,6 @@ test('target-health visibility follows selected damage traits without leaking da
     ['engineer', ['Rifle', ''], ['Big Boomer', 'Heavy Metal'], ['Heavy Metal']],
     ['mesmer', ['Greatsword', ''], ['Egotism', 'Superiority Complex'], ['Superiority Complex']],
     ['necromancer', ['Dagger', 'Focus'], ['Close to Death']],
-    ['ranger', ['Longbow', ''], ['Oppressive Superiority']],
     ['revenant', ['Staff', ''], ['Swift Termination', 'Unsuspecting Strikes']],
     ['thief', ['Pistol', 'Pistol'], ['Executioner', 'Ferocious Strikes'], ['Ferocious Strikes']],
     ['warrior', ['Sword', 'Sword'], ["Warrior's Cunning"]]

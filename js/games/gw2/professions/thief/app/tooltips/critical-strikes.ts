@@ -35,10 +35,11 @@ export const thiefCriticalStrikesTooltips = {
     ['resourceGain', 'Initiative restored']
   ]),
   [TRAIT.TWIN_FANGS]: traitTooltip(
-    'Gain critical-strike damage, with the full-health bonus active in combat. Gain critical-strike chance against defiant targets.',
+    'A direct hit against a defiant target grants critical chance to later hits. Refresh replaces the window; its duration is unknown, so no critical-chance window is granted yet. Full-health critical damage is unchanged.',
     [
       ['criticalDamage', 'Critical damage at full health', tooltipFactorChange],
-      ['criticalChance', 'Critical chance against defiant targets', tooltipPercent]
+      ['criticalChance', 'Critical chance while active', tooltipPercent],
+      ['duration', 'Bonus duration, pending', tooltipSeconds]
     ]
   ),
   [TRAIT.SUNDERING_SHADE]: traitTooltip('Completing a stealth attack inflicts vulnerability.'),
@@ -63,16 +64,4 @@ export const thiefCriticalStrikesTooltips = {
     ['duration', 'Bonus duration after leaving stealth', tooltipSeconds]
   ]),
   [TRAIT.INVIGORATING_PRECISION]: outsideScopeTooltip
-} satisfies NonNullable<ProfessionTooltips['traits']>;
-
-/** Only the preview turns positional eligibility into an earned, expiring critical-chance window. */
-export const thiefCriticalStrikesReworkTooltips = {
-  [TRAIT.TWIN_FANGS]: traitTooltip(
-    'A direct hit against a defiant target grants critical chance to later hits. Refresh replaces the window; its duration is provisional. Full-health critical damage is unchanged.',
-    [
-      ['criticalDamage', 'Critical damage at full health', tooltipFactorChange],
-      ['criticalChance', 'Critical chance while active', tooltipPercent],
-      ['duration', 'Provisional bonus duration', tooltipSeconds]
-    ]
-  )
 } satisfies NonNullable<ProfessionTooltips['traits']>;

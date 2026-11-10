@@ -36,9 +36,10 @@ import { SIGIL_NAMES } from '#gw2/platform/equipment/sigils/catalog.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { NECROMANCER_SKILL_IDS } from '#gw2/professions/necromancer/data/ids.js';
 import { runOrdinaryOptimizer } from '#tests/helpers/gear-optimizer.js';
+import { withTestPreviewAdapter } from '#tests/helpers/patch-preview.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
-const adapter = await loadProfessionAppAdapter('warrior');
+const adapter = withTestPreviewAdapter(await loadProfessionAppAdapter('warrior'));
 
 // A scenario cannot launch Golem searches or apply cached results from another workspace.
 test('boss workspaces reject gear optimization and cached equipment application', () => {

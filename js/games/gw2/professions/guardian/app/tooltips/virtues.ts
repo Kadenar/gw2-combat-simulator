@@ -38,10 +38,10 @@ export const guardianVirtuesTooltips = {
     ]
   ),
   [TRAIT.UNSCATHED_CONTENDER]: traitTooltip(
-    'Deal increased strike damage at full health, as assumed by the combat simulation. Aegis grants an additional strike-damage bonus.',
+    'Deal increased strike damage at full health, as assumed by the combat simulation. The same bonus also applies with Aegis below the 75% health threshold.',
     [
-      fromProfile(TRAIT.UNSCATHED_CONTENDER, 'damageMultiplier', 'Full-health strike damage', tooltipFactorChange),
-      fromProfile(TRAIT.UNSCATHED_CONTENDER, 'damageIncrease', 'Additional strike damage with aegis', tooltipPercent)
+      fromProfile(TRAIT.UNSCATHED_CONTENDER, 'damageIncrease', 'Strike damage', tooltipPercent),
+      fromProfile(TRAIT.UNSCATHED_CONTENDER, 'threshold', 'Health threshold', tooltipPercent)
     ]
   ),
   [TRAIT.RESOLUTE_SUBCONSCIOUS]: outsideScopeTooltip,
@@ -59,7 +59,9 @@ export const guardianVirtuesTooltips = {
   [TRAIT.PERMEATING_WRATH]: traitTooltip('Justice triggers burning after fewer qualifying hits.', [
     ['threshold', 'Hits per trigger']
   ]),
-  [TRAIT.BATTLE_PRESENCE]: traitTooltip("Willbender's Phoenix Protocol alacrity also affects the party."),
+  [TRAIT.BATTLE_PRESENCE]: traitTooltip(
+    'Share Resolve passive healing with nearby allies. Healing is outside simulation scope.'
+  ),
   [TRAIT.INDOMITABLE_COURAGE]: traitTooltip(
     "Activating Courage grants stability. Dragonhunter's Courage passive triggers more frequently.",
     [['pulseInterval', 'Dragonhunter Courage passive interval', tooltipSeconds]]

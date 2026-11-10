@@ -329,19 +329,12 @@ test('mech support grants five players and the mech distinct entitlements', () =
   }
 });
 
-test('Indomitable Courage and Stoic Demeanor share their triggered boons', () => {
-  for (const [specialization, skill, trait] of [
-    ['Core', 'Virtue of Courage', GT.INDOMITABLE_COURAGE],
-    ['Firebrand', 'Chapter 2: Daring Challenge', GT.STOIC_DEMEANOR]
-  ]) {
-    const result = run(
-      'guardian',
-      [...(specialization === 'Firebrand' ? [{ type: 'cast', skillId: 42259 }] : []), skill],
-      {
-        specialization,
-        selectedTraitIds: [trait]
-      }
-    );
+test('Indomitable Courage shares its triggered boons', () => {
+  for (const [specialization, skill, trait] of [['Core', 'Virtue of Courage', GT.INDOMITABLE_COURAGE]]) {
+    const result = run('guardian', [skill], {
+      specialization,
+      selectedTraitIds: [trait]
+    });
     assert.deepEqual(result.warnings, []);
     const events = result.resolvedEvents.filter((event) => event.type === 'buff' && event.sourceId === trait);
     assert.ok(events.length);
@@ -439,9 +432,8 @@ test('No Scope and New Genes share trait boons while Mass Momentum keeps its per
   }
 });
 
-test('Stalwart Speed and Luminous Staff grant their boons to allies', () => {
+test('Luminous Staff grants its boons to allies', () => {
   for (const [specialization, rotation, trait, name, kind] of [
-    ['Firebrand', [42259, 'Epilogue: Unbroken Lines'], GT.STALWART_SPEED, 'Stalwart Speed', 'quickness'],
     ['Luminary', ['Enter Radiant Forge', 'Luminous Staff'], undefined, 'Luminous Staff', 'resolution']
   ]) {
     const result = run('guardian', rotation, { specialization, selectedTraitIds: trait ? [trait] : [] });

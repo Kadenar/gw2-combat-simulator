@@ -54,7 +54,7 @@ test('Guardian boons prefer live self applications over later same-time timeline
   }
 });
 
-test('Firebrand Imbued Haste follows the live duration pool and its expiry', () => {
+test('Imbued Haste no longer adds attributes while Quickness is active', () => {
   const event = buff('quickness');
   const context = {
     time: 4,
@@ -75,7 +75,7 @@ test('Firebrand Imbued Haste follows the live duration pool and its expiry', () 
   recordBuffApplication(context.runtime.boons, event);
   recordBuffApplication(context.runtime.boons, event);
   // Two overlapping two-second applications last four seconds, beyond either individual expiry.
-  assert.equal(attributes(6), 250);
+  assert.equal(attributes(6), 0);
   assert.equal(attributes(8), 0);
 });
 

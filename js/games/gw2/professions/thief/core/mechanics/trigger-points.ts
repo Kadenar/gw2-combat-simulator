@@ -2,7 +2,6 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
-import { THIEF_CORE_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/thief/core/rework/ids.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
@@ -61,7 +60,7 @@ export const thiefCastCompleted = defineTriggerPoint<ThiefCastCompletion>('thief
 
 /** Rework extension point (thief-core-rework): mobility refresh precedes swiftness, with no Live listeners. */
 export const thiefMobilityUsed = defineTriggerPoint<ThiefCastCompletion>('thief.mobility-used', [
-  REWORK.DEFT_INITIATION,
+  TRAIT.DEFT_INITIATION,
   TRAIT.FELINE_GRACE
 ]);
 
@@ -110,10 +109,10 @@ export const thiefStruck = defineTriggerPoint<ThiefStrike>('thief.strike', [
   TRAIT.DEADLY_AMBITION
 ]);
 
-/** Rework extension point (thief-core-rework): post-venom rewards, with no Live listeners. */
-export const thiefReworkStruck = defineTriggerPoint<ThiefStrike>('thief.rework-strike', [
+/** Post-venom strikes grant earned Critical Strikes and Acrobatics rewards. */
+export const thiefPostVenomStruck = defineTriggerPoint<ThiefStrike>('thief.post-venom-strike', [
   TRAIT.TWIN_FANGS,
-  REWORK.DEFT_INITIATION
+  TRAIT.DEFT_INITIATION
 ]);
 
 /** The aggregate venom consumption of one strike. */

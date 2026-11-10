@@ -31,7 +31,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     slot: 'Profession_2',
 
     // The artifact owns the number of stealth attacks granted by its identity window.
-    maximumStacks: 3,
+    maximumStacks: 2,
     // The artifact owns the lifetime of its stealth attack grant.
     duration: 10,
     cooldown: 0,
@@ -118,13 +118,13 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
             { type: 'strike' as const, name: 'Dash', coefficient: 2.4, hits: 1 },
             { type: 'condition' as const, name: 'Dash', condition: CONDITION.BURNING, stacks: 1, duration: 6 },
             { type: 'strike' as const, name: 'Bomb', coefficient: 1.2, hits: 1 },
-            { type: 'condition' as const, name: 'Bomb', condition: CONDITION.BURNING, stacks: 1, duration: 3.5 },
+            { type: 'condition' as const, name: 'Bomb', condition: CONDITION.BURNING, stacks: 1, duration: 1 },
             ...[
               { type: 'strike' as const, name: 'Dash', coefficient: 2.8, hits: 1 },
               // Meticulous replaces the dash burn with one eight-second stack before expertise.
               { type: 'condition' as const, name: 'Dash', condition: CONDITION.BURNING, stacks: 1, duration: 8 },
               { type: 'strike' as const, name: 'Bomb', coefficient: 1.4, hits: 1 },
-              { type: 'condition' as const, name: 'Bomb', condition: CONDITION.BURNING, stacks: 1, duration: 4.5 }
+              { type: 'condition' as const, name: 'Bomb', condition: CONDITION.BURNING, stacks: 1, duration: 2 }
             ].map((effect) => ({ ...effect, name: 'Meticulous ' + effect.name }))
           ]
         }
@@ -299,7 +299,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
     // The artifact owns its identity window; Meticulous Custodian replaces the duration when selected.
     duration: 10,
     // Intrinsic tuning follows this selected skill at its existing lifecycle boundary.
-    refundCharges: 3,
+    refundCharges: 2,
     maximumStacks: 4,
     cooldown: 0,
     artifactKind: 'defensive',
@@ -375,7 +375,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
         {
           type: 'condition' as const,
           name: CONDITION.BURNING,
-          ticks: [{ atMs: 400, condition: CONDITION.BURNING, stacks: 2, duration: 4 }],
+          ticks: [{ atMs: 400, condition: CONDITION.BURNING, stacks: 1, duration: 4 }],
           actorType: ACTOR.PLAYER,
           timingAnchor: 'castStart' as const,
           timingScale: 'fixed' as const
@@ -492,7 +492,7 @@ const ANTIQUARY_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSk
           atMs: 760 + index * 400,
           condition: CONDITION.TORMENT,
           stacks: 1,
-          duration: 4
+          duration: 2
         })),
         actorType: ACTOR.PLAYER
       }

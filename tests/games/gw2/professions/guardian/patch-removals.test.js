@@ -197,22 +197,10 @@ for (const [type, name] of [
     );
     assert.equal(has(result, 'buff', 'kind', 'ashes-of-the-just'), false);
     assert.equal(result.planningState.profession[STATE.ASHES].charges, 0);
-    assert.equal(result.planningState.profession[STATE.TOME_PAGES].value, 4);
+    assert.equal(result.planningState.profession[STATE.TOME_PAGES].value, 7);
     assert.ok(has(result, 'buff', 'kind', 'might'));
   });
 }
-
-test('Weighty Terms keeps its page refund when Slow is removed', () => {
-  const result = run(
-    { [TRAIT.WEIGHTY_TERMS]: remove('condition', 'Slow') },
-    'Firebrand',
-    ['Flame Rush', 'Flame Rush', 'Flame Surge'],
-    [TRAIT.WEIGHTY_TERMS],
-    { initialTomePages: 1, selectedSkillIds: [46148] }
-  );
-  assert.equal(has(result, 'condition', 'condition', 'Slow'), false);
-  assert.equal(result.planningState.profession[STATE.TOME_PAGES].value, 3);
-});
 
 test('Radiant Forge removal leaves no active form, expiry, or exit flip', () => {
   const result = run(
@@ -295,7 +283,7 @@ test('required profile fields fail contextually and selected catalogs cannot fal
 test('patched resource caps and zero recurrence survive initialization and presentation', () => {
   const edits = {
     [TRAIT.PURITY_OF_WORD]: {
-      fields: { maximumStacks: { from: 5, to: 2 }, pulseInterval: { from: 8, to: 0 } }
+      fields: { maximumStacks: { from: 8, to: 2 }, pulseInterval: { from: 6, to: 0 } }
     }
   };
   const result = run(edits, 'Firebrand', [
@@ -470,18 +458,6 @@ test('Dragonhunter passive Crippled depends on emitted Burning and each survivin
     assert.ok(applications.every((event) => event.activationId === 'passive-hit'));
     assert.equal(observedRuntime(result).profession.core.justiceHitCount, removed === 'burning' ? 4 : 0);
   }
-});
-
-test('Quickfire window removal leaves its cooldown and charge reactions inactive', () => {
-  const result = run(
-    { [TRAIT.QUICKFIRE]: remove('buff', 'ashes-of-the-just') },
-    'Firebrand',
-    ['Tome of Justice'],
-    [TRAIT.QUICKFIRE]
-  );
-  assert.equal(observedRuntime(result).procs.deadline('guardian.firebrand.quickfire'), 0);
-  assert.equal(result.planningState.profession[STATE.ASHES].charges, 0);
-  assert.equal(has(result, 'proc', 'name', 'Quickfire'), false);
 });
 
 test('Light Aura removal prevents its window and Sovereign detonation', () => {

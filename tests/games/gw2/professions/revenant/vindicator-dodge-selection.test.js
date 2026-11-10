@@ -12,7 +12,7 @@ import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 const profession = adapter.profession;
 const command = { type: 'cast', skillId: 23275 };
 
-// Restoring a saved Jump retains its ID while both rulesets resolve the current trait-selected dodge behavior.
+// Restoring a saved Jump retains its ID while live rules resolve the current trait-selected dodge behavior.
 test('stored Vindicator Jump resolves in display and execution without rewriting the saved rotation', (t) => {
   const saved = profession.createBuildDefaults();
   saved.specializations = [{ name: 'Vindicator', traits: '1-1-1' }];
@@ -41,7 +41,7 @@ test('stored Vindicator Jump resolves in display and execution without rewriting
   assert.deepEqual(profession.validateBuild(build), { valid: true, errors: [] });
   const app = { adapter, profession, build };
 
-  for (const patchId of ['current', profession.preview.id]) {
+  for (const patchId of ['current']) {
     const patch = profession.resolvePatch({ id: patchId });
     Object.assign(app, { patch, activeCatalog: patch.catalog });
     for (const [choice, landing] of [
@@ -53,8 +53,7 @@ test('stored Vindicator Jump resolves in display and execution without rewriting
       build.specializations = [
         {
           name: 'Vindicator',
-          traits: `0-0-${choice}`,
-          patchTraits: { [profession.preview.id]: `0-${choice}-0` }
+          traits: `0-${choice}-0`
         }
       ];
       const skill = resolveEntrySkill(app, command);

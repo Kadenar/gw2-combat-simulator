@@ -23,7 +23,7 @@ import {
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import {
-  quickfireRetainsTomePassive,
+  righteousFlamesRetainsTomePassive,
   stoicDemeanorRetainsCourage
 } from '#gw2/professions/guardian/specializations/firebrand/traits/behavior.js';
 import { firebrandPageTuning } from '#gw2/professions/guardian/specializations/firebrand/traits/page-tuning.js';
@@ -38,10 +38,10 @@ import type {
 import { guardianVirtueReadyAt } from '#gw2/professions/guardian/virtue-readiness.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-/** The tome passive tracks the shared Justice hit counter; Quickfire keeps it through dormancy. */
+/** The tome passive tracks the shared Justice hit counter; Righteous Flames keeps it through dormancy. */
 export function reactToTomeJusticeHit(context: GuardianVirtueContext, event: GuardianResolverEvent): void {
   reactToJusticeHitWithOptions(context, event, {
-    retainsPassive: quickfireRetainsTomePassive(context),
+    retainsPassive: righteousFlamesRetainsTomePassive(context),
     skillId: ID.TOME_OF_JUSTICE,
     skillName: 'Tome of Justice',
     // Tome passive Burning starts at one second; Amplified Wrath applies separately.
@@ -166,7 +166,7 @@ export function firebrandTomeAvailability(
 
 /** Share the selected source and trait inputs across the page resource policies. */
 function pageTuning(runtime: Pick<GuardianRuntime, 'config' | 'traits' | 'helpers'>) {
-  return firebrandPageTuning({ config: runtime.config, traits: runtime.traits, catalog: runtime.helpers });
+  return firebrandPageTuning({ config: runtime.config, catalog: runtime.helpers });
 }
 
 /** Pages recover from their first spend; opening or stowing a tome does not restart their clock. */

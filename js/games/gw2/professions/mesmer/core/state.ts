@@ -23,6 +23,8 @@ export interface MesmerCoreState {
   cloneSequence: number;
   trackedSkillHits: Record<string, number[]>;
 
+  /** Shaper of Chaos consumes one active self aura when F1 is committed. */
+  chaosAuraUntil: number;
   mimic: ChargeGrant;
   scepterChainExpiresAt: number | null;
   clarity: ChargeGrant;
@@ -37,6 +39,7 @@ export function createMesmerCoreState(): MesmerCoreState {
     cloneSequence: 0,
     trackedSkillHits: {},
 
+    chaosAuraUntil: 0,
     mimic: { charges: 0, expiresAt: 0 },
     scepterChainExpiresAt: null,
     clarity: { charges: 0, expiresAt: 0 },

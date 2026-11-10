@@ -440,9 +440,9 @@ test('Fluid Strikes snapshots its movement-skill duration', () => {
   assert.equal(observedRuntime(result).buffs.get('fluid-strikes').at(-1).expiresAt, 6);
 });
 
-test('Hard to Catch restores endurance on movement skills', () => {
+test('Hard to Catch no longer restores endurance on movement skills', () => {
   for (const [selectedTraitIds, expected] of [
-    [[TRAIT.HARD_TO_CATCH], 8],
+    [[TRAIT.HARD_TO_CATCH], 0],
     [[], 0]
   ]) {
     const result = runThief(["Infiltrator's Strike"], {
@@ -768,7 +768,7 @@ test('cast completion grants Lead stacks before movement traits and leaves poiso
   assert.equal(lead[0].duration, 10);
   assert.equal(lead[0].stacks, 3);
   assert.equal(observedRuntime(result).buffs.get('fluid-strikes').at(-1).expiresAt, 5);
-  assert.equal(result.planningState.profession[STATE.ENDURANCE].value, 8);
+  assert.equal(result.planningState.profession[STATE.ENDURANCE].value, 0);
   // Deadly Ambition's poison follows the activation's first landed strike, never the cast itself.
   const strikes = result.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.skillId === ID.INFILTRATORS_STRIKE && event.actorType === 'player'

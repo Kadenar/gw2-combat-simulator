@@ -516,22 +516,18 @@ test('Phoenix Protocol activation grants remain distinct from hit-cycle rewards'
       event.audience?.recipients,
       event.resolvedAudience.alliedPlayerCount
     ]),
-    [['alacrity', 5, 'self', 0]]
+    [['alacrity', 5, 'party', 0]]
   );
 });
 
-test('Battle Presence shares Phoenix Protocol alacrity and Inspired Virtue boons reach allies', () => {
+test('Phoenix Protocol and Inspired Virtue boons reach allies without Battle Presence', () => {
   const result = createObservedProfessionSimulator(guardianProfession, {
     ...config,
     specialization: 'Willbender',
     primaryWeapon: 'Greatsword',
     boons: { quickness: true },
     allies: { count: 4 },
-    selectedTraitIds: [
-      GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL,
-      GUARDIAN_TRAIT_IDS.BATTLE_PRESENCE,
-      GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE
-    ]
+    selectedTraitIds: [GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL, GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE]
   })(undefined, ['Flowing Resolve', 'Whirling Wrath', { type: 'wait', durationMs: 6000 }]);
   const alacrity = result.resolvedEvents.filter(
     (event) => event.type === 'buff' && event.sourceId === GUARDIAN_TRAIT_IDS.PHOENIX_PROTOCOL

@@ -1,7 +1,6 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { buffActive, countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
+import { buffActive, countActiveBoons, playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { extendPeriodicEffects } from '#gw2/platform/effects/periodic.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -32,8 +31,8 @@ export const permeatingWrath = defineTrait({
 export const inspiredVirtue = defineTrait({
   id: GUARDIAN_TRAIT_IDS.INSPIRED_VIRTUE,
   balance: {
-    damagePerBoon: 0.005,
-    maximumBoons: GW2_STANDARD_BOONS.length,
+    damagePerBoon: 0.015,
+    maximumBoons: 5,
     effects: [
       { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 3, duration: 5 },
       { type: 'boon', name: BOON.REGENERATION, boon: BOON.REGENERATION, stacks: 1, duration: 5 },
@@ -47,8 +46,7 @@ export const inspiredVirtue = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       // Boon bonuses sum within this trait, then multiply the outgoing additive bucket.
       operation: 'multiply',
-      // Live counts every standard boon; previews can lower the cap independently of the per-boon bonus.
-
+      // Only the first five distinct boons contribute damage.
       factor: (context) =>
         1 +
         Math.min(
@@ -183,24 +181,19 @@ export const powerOfTheVirtuous = defineTrait<GuardianSkill>({
 /** Owns Unscathed Contender tuning and behavior at its existing mechanic boundaries. */
 export const unscathedContender = defineTrait({
   id: GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER,
-  // Trait balance is the single tuning source for modifiers and presentation.
-  balance: { damageMultiplier: 1.05, damageIncrease: 0.05 },
+  // Full simulated health or Aegis enables one bonus; satisfying both never doubles it.
+  balance: { damageIncrease: 0.12, threshold: 0.75 },
   modifierRules: [
     {
       order: -12,
-      id: 'guardian.unscathed-contender-health',
+      id: 'guardian.unscathed-contender',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      // The assumed above-90% health bonus multiplies damage; the Aegis bonus stays additive.
       operation: 'multiply',
-      factor: (context) => balanceNumber(context.catalog, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'damageMultiplier')
-    },
-    {
-      order: -11,
-      id: 'guardian.unscathed-contender-aegis',
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: 'damage-additive',
-      amount: (context) => balanceNumber(context.catalog, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'damageIncrease'),
-      when: (context) => guardianBoonActive(context, BOON.AEGIS)
+      factor: (context) => 1 + balanceNumber(context.catalog, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'damageIncrease'),
+      when: (context) =>
+        playerHealthFraction(context) >
+          balanceNumber(context.catalog, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'threshold') ||
+        guardianBoonActive(context, BOON.AEGIS)
     }
   ]
 });

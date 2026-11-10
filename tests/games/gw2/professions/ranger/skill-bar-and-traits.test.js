@@ -582,7 +582,6 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     'ranger.wolfsong',
     'ranger.farsighted',
     'ranger.hunters-tactics-damage',
-    'ranger.light-on-your-feet',
     'ranger.bountiful-hunter-player',
     'ranger.bountiful-hunter-pet',
     // Core owns these trait rules; their predicates restrict the merged player bonuses to Soulbeast.
@@ -593,9 +592,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     assert.equal(coreOperations.get(id), 'multiply', id);
   }
 
-  for (const id of ['ranger.oppressive-superiority']) {
-    assert.equal(soulbeastOperations.get(id), 'multiply', id);
-  }
+  assert.equal(soulbeastOperations.has('ranger.oppressive-superiority'), false);
 
   const baseAttributes = { power: 0, precision: 0, conditionDamage: 0, toughness: 0, vitality: 1000, ferocity: 0 };
   const untamedContext = { config: {}, traits: new Set([TRAIT.NATURAL_FORTITUDE]) };
@@ -662,7 +659,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
 
   const rapidFireHit = (result) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Rapid Fire').damage;
-  assertFlooredDamageMultiplier(rapidFireHit(lightOnYourFeet), rapidFireHit(dodgeBaseline), 1.1);
+  assertFlooredDamageMultiplier(rapidFireHit(lightOnYourFeet), rapidFireHit(dodgeBaseline), 1);
 
   const cycloneRotation = ['Summon Cyclone Bow', 'Bluster', 'Fleeting Zephyr', "Quarry's Peril", 'Pelt'];
   const cyclone = simulate('Galeshot', cycloneRotation);
@@ -682,7 +679,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
     selectedTraitIds: [TRAIT.BOUNTIFUL_HUNTER]
   });
 
-  assertFlooredDamageMultiplier(rapidFireHit(bountiful), rapidFireHit(boonBaseline), 1.03);
+  assertFlooredDamageMultiplier(rapidFireHit(bountiful), rapidFireHit(boonBaseline), 1.06);
 
   const survival = simulate('Core', ['Rapid Fire'], {
     primaryWeapon: 'Longbow',
@@ -803,9 +800,9 @@ test('Ranger Nature Magic traits grant support and scale with boons', () => {
   const petHit = (result) => result.resolvedEvents.find((event) => event.skillId === ID.INTIMIDATING_HOWL).damage;
   // Only received boons boost the pet; allied players take priority under the party target cap.
   for (const [skill, allies, expectedFactor] of [
-    ['Call of the Wild', 2, 1.03],
+    ['Call of the Wild', 2, 1.06],
     ['Call of the Wild', 4, 1],
-    ['Sun Spirit', 2, 1.01],
+    ['Sun Spirit', 2, 1.02],
     ['Sun Spirit', 4, 1]
   ]) {
     const rotation = [skill, { type: 'wait', durationMs: 6000 }, 'Intimidating Howl'];

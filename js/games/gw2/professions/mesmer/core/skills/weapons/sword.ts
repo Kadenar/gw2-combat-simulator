@@ -158,8 +158,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         fieldSelectionAnchor: 'castStart'
       }
     ],
-    // Swapping applies immobilize when the instant follow-up completes (wiki: Swap).
-    effects: [{ type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }],
+    // Swap no longer immobilizes; its Disenchant follow-up awaits confirmed tuning.
+    effects: [],
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SWAP } }]
   },
   [ID.BLADE_LEAP]: {

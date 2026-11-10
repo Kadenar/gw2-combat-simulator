@@ -1356,14 +1356,18 @@ test('Nature survives swaps into every legend and switches its consume without r
       active.planningState.profession[STATE.ACTIVE_UPKEEPS].map((upkeep) => upkeep.skillId),
       [SKILL.FACET_OF_NATURE]
     );
-    assert.deepEqual(Object.keys(active.planningState.profession[STATE.AVAILABLE_FLIPS]), [String(consumeId)]);
+    const tabletControl = legend === LEGEND.CENTAUR ? [String(SKILL.VENTARIS_WILL)] : [];
+    assert.deepEqual(
+      Object.keys(active.planningState.profession[STATE.AVAILABLE_FLIPS]).sort(),
+      [...tabletControl, String(consumeId)].sort()
+    );
     assert.equal(active.planningState.profession[STATE.AVAILABLE_FLIPS][consumeId].expiresAt, null);
     assert.equal(active.planningState.profession[STATE.ENERGY].value, 56);
 
     const consumed = simulate('Herald', [...rotation, { skillId: consumeId }], config);
     assert.deepEqual(consumed.warnings, [], legend);
     assert.deepEqual(consumed.planningState.profession[STATE.ACTIVE_UPKEEPS], []);
-    assert.deepEqual(consumed.planningState.profession[STATE.AVAILABLE_FLIPS], {});
+    assert.deepEqual(Object.keys(consumed.planningState.profession[STATE.AVAILABLE_FLIPS]), tabletControl);
     const effects = consumed.events.filter((event) => event.skillId === consumeId && event.type === 'buff');
     assert.deepEqual(
       effects.map((event) => [event.kind, event.stacks, event.duration]),

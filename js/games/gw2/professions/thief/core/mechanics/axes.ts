@@ -25,7 +25,10 @@ function grantThiefGroundAxe(runtime: ThiefRuntime, context: ActionContext<Thief
   const impact = (strike.timingAnchor === 'castStart' ? cast.start : cast.fullEnd) + (strike.atMs ?? 0) / 1000;
   // The scheduled landing owns flight timing; retained axes need only identity for landing and recall.
   // Melee EVTC missile lifetimes: ordinary axes continue ~560ms after hitting; Salvo ~720ms.
-  const landsAt = canonicalTime(Math.max(runtime.time, impact + (context.skill.stealthAttack ? 0.72 : 0.56)));
+  // These flight measurements used 1,500 units/s. Scale travel after release for the new 1,800 units/s velocity.
+  const release = cast.start + (cast.skill.interruptCommitMs ?? 0) / 1000;
+  const flight = Math.max(0, impact + (context.skill.stealthAttack ? 0.72 : 0.56) - release);
+  const landsAt = canonicalTime(Math.max(runtime.time, release + flight * (1500 / 1800)));
   for (let index = 0; index < (strike.hits ?? 1); index++) {
     const axe = {
       id: `${cast.id}:${index}`,

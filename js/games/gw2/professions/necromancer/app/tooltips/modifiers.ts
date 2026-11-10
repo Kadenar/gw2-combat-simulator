@@ -39,7 +39,7 @@ export const necromancerModifierDescriptions: ModifierDescriptions = {
   ),
   'necromancer.anguish-conditional-damage': modifierDescription({
     description:
-      "Anguish's attacks gain strike damage for each distinct condition on the target. The bonus also applies to its Summon Spirits attack, but not Innervate Anguish.",
+      "Anguish's attacks gain strike damage for up to five distinct target conditions. Defiant targets receive the maximum bonus. This also applies to Summon Spirits, but not Innervate Anguish. Temporary disables are not modeled.",
     facts: [['damagePerCondition', 'Strike damage per target condition']]
   })
 };

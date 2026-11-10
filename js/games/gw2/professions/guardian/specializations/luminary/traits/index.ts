@@ -152,7 +152,7 @@ const radiantArmaments = defineTrait({
 const empoweredArmaments = defineTrait({
   id: TRAIT.EMPOWERED_ARMAMENTS,
   balance: {
-    damageIncrease: 0.1,
+    damageIncrease: 0.13,
     maximumStacks: 20,
     resourceGain: 6
   },

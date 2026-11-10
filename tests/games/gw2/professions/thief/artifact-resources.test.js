@@ -7,7 +7,7 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Exercise the real shield grant, then isolate spending from regeneration to check finite refund entitlement.
-test('Chak Shield refunds three paid weapon uses and preserves charges for free or nonweapon inputs', () => {
+test('Chak Shield refunds two paid weapon uses and preserves charges for free or nonweapon inputs', () => {
   const result = runThief(['Skritt Swipe', 'Chak Shield'], { specialization: 'Antiquary' });
   assert.deepEqual(result.warnings, []);
   const owner = observedRuntime(result);
@@ -21,14 +21,14 @@ test('Chak Shield refunds three paid weapon uses and preserves charges for free 
     resourceController: { grant: (resource, amount) => refunds.push([resource, amount]) }
   };
   const state = runtime.profession.specialization.state;
-  assert.equal(state.chakInitiativeRefunds[0].charges, 3);
+  assert.equal(state.chakInitiativeRefunds[0].charges, 2);
   antiquaryArtifactLifecycle.onCastStart(runtime, {
     skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 0 } }
   });
   antiquaryArtifactLifecycle.onCastStart(runtime, {
     skill: { type: 'Profession', cost: { resource: 'initiative', amount: 2 } }
   });
-  assert.equal(state.chakInitiativeRefunds[0].charges, 3);
+  assert.equal(state.chakInitiativeRefunds[0].charges, 2);
   for (let use = 0; use < 4; use++) {
     antiquaryArtifactLifecycle.onCastStart(runtime, {
       skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 4 } }
@@ -36,7 +36,6 @@ test('Chak Shield refunds three paid weapon uses and preserves charges for free 
   }
 
   assert.deepEqual(refunds, [
-    ['initiative', 4],
     ['initiative', 4],
     ['initiative', 4]
   ]);

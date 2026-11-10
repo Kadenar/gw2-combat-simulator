@@ -8,6 +8,7 @@ import { balanceProfileNumber, requireBalanceProfile } from '#gw2/platform/skill
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { legendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
 import { clearRevenantLegendFlips, removeRevenantUpkeep } from '#gw2/professions/revenant/core/mechanics/upkeep.js';
+import { invokeCentaur } from '#gw2/professions/revenant/core/skills/legends/centaur.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { isLegalRevenantLegendId } from '#gw2/professions/revenant/data/legends.js';
 import { revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
@@ -43,6 +44,7 @@ export function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
   // Legend invocation replaces the balance after Charged Mists reads pre-swap energy, preserving recovery timing.
   runtime.resourceController.replace('energy', energy);
   clearRevenantLegendFlips(runtime);
+  invokeCentaur(runtime);
   for (const active of [...core.activeUpkeeps]) {
     const upkeep: RevenantSkill | undefined = runtime.helpers.skillsById.get(active.skillId);
     // Only a declared cross-legend relationship retains an upkeep after a swap.

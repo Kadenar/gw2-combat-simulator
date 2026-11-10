@@ -183,7 +183,6 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
     previewControls(context: ProfessionAttributePreviewContext) {
       const preview = createPreviewControls(context);
       // Expose held combat bonuses to isolated damage calculations.
-      preview.damageBuff('Light on your Feet', 'lightOnYourFeet', 'light-on-your-feet');
 
       if (preview.has("Hunter's Tactics"))
         preview.add({

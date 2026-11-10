@@ -265,16 +265,16 @@ export const TRAIT_LINES: readonly Gw2SpecializationData[] = [
           icon: 'https://render.guildwars2.com/file/2636BEBF0E35923BC4407739D0DC7DC223932F0C/1012523.png'
         },
         {
-          id: 744,
-          name: 'Sympathetic Visage',
-          icon: 'https://render.guildwars2.com/file/FA0AE3A437419F325D682180687C5C7FF014602D/1012524.png'
+          id: 751,
+          name: 'Focal Feedback',
+          icon: 'https://render.guildwars2.com/file/D4A345BC1A72A50B7C7449B7759BAB15664064F7/1012525.png'
         }
       ],
       [
         {
-          id: 751,
-          name: "Warden's Feedback",
-          icon: 'https://render.guildwars2.com/file/D4A345BC1A72A50B7C7449B7759BAB15664064F7/1012525.png'
+          id: 744,
+          name: 'Sympathetic Visage',
+          icon: 'https://render.guildwars2.com/file/FA0AE3A437419F325D682180687C5C7FF014602D/1012524.png'
         },
         {
           id: 740,

@@ -1,4 +1,3 @@
-// Name packets independently for patch deletion while preserving their shared attribution.
 /** Canonical Core revenant skill definitions grouped by their GW2 owner. */
 import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -54,24 +53,13 @@ export const REVENANT_WEAPONS_HAMMER_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: [
       {
         type: 'strike',
-        // Each cascade region uses the same 2.3 PvE coefficient, including repeat hits on large targets.
+        // A target can take damage from only one cascade, regardless of hitbox size.
         ticks: [{ atMs: 560, coefficient: 2.3 }],
         name: 'Coalescence of Ruin - First Cascade',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         persistsAfterInterrupt: true
-      },
-      {
-        // Large targets intersect a second cascade region about 0.96 seconds after the first impact.
-        type: 'strike',
-        ticks: [{ atMs: 1520, coefficient: 2.3 }],
-        name: 'Coalescence of Ruin - Second Cascade',
-        actorType: ACTOR.PLAYER,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed',
-        persistsAfterInterrupt: true,
-        when: (runtime) => runtime.combat.targetHitboxSize() === 'large'
       }
     ]
   },

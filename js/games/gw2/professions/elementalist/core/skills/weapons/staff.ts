@@ -23,32 +23,32 @@ import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hi
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
-// Meteor Shower's canonical timeline retains the observed coefficient decay and packet timestamps.
+// Each cast owns its falloff, starting at 2.0 and dropping 10% per hit to a 20% floor.
 const METEOR_SHOWER_STRIKE_TICKS = [
-  { atMs: 2320, coefficient: 1.6 },
-  { atMs: 2600, coefficient: 1.44 },
-  { atMs: 2920, coefficient: 1.28 },
-  { atMs: 3240, coefficient: 1.12 },
-  { atMs: 3400, coefficient: 0.96 },
-  { atMs: 3880, coefficient: 0.8 },
-  { atMs: 4480, coefficient: 0.64 },
-  { atMs: 4760, coefficient: 0.48 },
-  { atMs: 5080, coefficient: 0.32 },
-  { atMs: 5400, coefficient: 0.32 },
-  { atMs: 5560, coefficient: 0.32 },
-  { atMs: 6040, coefficient: 0.32 },
-  { atMs: 6640, coefficient: 0.32 },
-  { atMs: 6920, coefficient: 0.32 },
-  { atMs: 7240, coefficient: 0.32 },
-  { atMs: 7560, coefficient: 0.32 },
-  { atMs: 7720, coefficient: 0.32 },
-  { atMs: 8200, coefficient: 0.32 },
-  { atMs: 8800, coefficient: 0.32 },
-  { atMs: 9080, coefficient: 0.32 },
-  { atMs: 9400, coefficient: 0.32 },
-  { atMs: 9720, coefficient: 0.32 },
-  { atMs: 9880, coefficient: 0.32 },
-  { atMs: 10360, coefficient: 0.32 }
+  { atMs: 2320, coefficient: 2.0 },
+  { atMs: 2600, coefficient: 1.8 },
+  { atMs: 2920, coefficient: 1.6 },
+  { atMs: 3240, coefficient: 1.4 },
+  { atMs: 3400, coefficient: 1.2 },
+  { atMs: 3880, coefficient: 1.0 },
+  { atMs: 4480, coefficient: 0.8 },
+  { atMs: 4760, coefficient: 0.6 },
+  { atMs: 5080, coefficient: 0.4 },
+  { atMs: 5400, coefficient: 0.4 },
+  { atMs: 5560, coefficient: 0.4 },
+  { atMs: 6040, coefficient: 0.4 },
+  { atMs: 6640, coefficient: 0.4 },
+  { atMs: 6920, coefficient: 0.4 },
+  { atMs: 7240, coefficient: 0.4 },
+  { atMs: 7560, coefficient: 0.4 },
+  { atMs: 7720, coefficient: 0.4 },
+  { atMs: 8200, coefficient: 0.4 },
+  { atMs: 8800, coefficient: 0.4 },
+  { atMs: 9080, coefficient: 0.4 },
+  { atMs: 9400, coefficient: 0.4 },
+  { atMs: 9720, coefficient: 0.4 },
+  { atMs: 9880, coefficient: 0.4 },
+  { atMs: 10360, coefficient: 0.4 }
 ] as const;
 
 /**
@@ -68,8 +68,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
 
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    castTimeMs: 960,
-    effects: impactEffects({ atMs: 720, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    // The shorter windup advances both the projectile release and the next cast.
+    castTimeMs: 710,
+    effects: impactEffects({ atMs: 470, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.4 },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 1 }
     ])
@@ -194,7 +195,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     ]
   },
   // Twenty-four meteors over roughly ten seconds; the shared tick table decays the coefficient
-  // from 1.6 down to a 0.32 floor.
+  // from 2.0 down to a 0.4 floor.
   [ID.METEOR_SHOWER]: withSmallHitboxCap(
     {
       name: 'Meteor Shower',
@@ -494,7 +495,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
 
     cooldown: 0,
     skillFamily: 'Weapon skill',
-    castTimeMs: 880,
+    // Only recovery shortens; projectile release keeps its existing timing.
+    castTimeMs: 680,
     effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',

@@ -134,7 +134,7 @@ export const executioner = defineTrait({
 export const exposedWeakness = defineTrait({
   id: TRAIT.EXPOSED_WEAKNESS,
   // Trait balance is the single tuning source for modifiers and presentation.
-  balance: { damagePerCondition: 0.02, maximumConditions: CANONICAL_TARGET_CONDITIONS.length },
+  balance: { damagePerCondition: 0.04, maximumConditions: 5 },
   modifierRules: [
     {
       order: 1,

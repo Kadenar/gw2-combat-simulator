@@ -920,9 +920,6 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
   const pet = context.profession.core.pet;
   const merged = rangerMerged(context.profession);
 
-  // Beastmode receives the pet's on-hit Might itself; an absent, unmerged pet has no recipient.
-  if (!merged && !pet) return;
-
   // Only the Ranger's own live Strength of the Pack window arms the proc.
   if (context.combat.activeBuffStacks('strength-of-the-pack', event.at, 1) === 0) return;
 
@@ -937,14 +934,16 @@ export function triggerStrengthOfThePack(context: RangerResolverContext, event: 
     },
     name: '"Strength of the Pack!" - Might',
     fields: {
-      audience: merged
-        ? { recipients: RECIPIENT.SELF }
-        : {
-            recipients: RECIPIENT.SUMMONS,
-            affectsSelf: false,
-            maximumRecipients: 5,
-            eligibleCompanionIds: [pet!.id]
-          }
+      // Player strikes grant Might to the player and active pet; Beastmode receives one grant.
+      audience:
+        merged || !pet
+          ? { recipients: RECIPIENT.SELF }
+          : {
+              recipients: RECIPIENT.SUMMONS,
+              affectsSelf: true,
+              maximumRecipients: 2,
+              eligibleCompanionIds: [pet.id]
+            }
     },
     durationContext: event
   });

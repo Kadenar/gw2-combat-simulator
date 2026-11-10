@@ -115,7 +115,7 @@ const abrasiveGrit = defineTrait({
         type: 'boon',
         boon: BOON.MIGHT,
         stacks: 2,
-        duration: 6,
+        duration: 8,
         actorType: ACTOR.PLAYER,
         audience: { recipients: RECIPIENT.PARTY }
       }
@@ -149,7 +149,7 @@ const desertEmpowerment = defineTrait({
         type: 'boon',
         boon: BOON.ALACRITY,
         stacks: 1,
-        duration: 1.5,
+        duration: 2,
         actorType: ACTOR.PLAYER,
         audience: { recipients: RECIPIENT.PARTY }
       }

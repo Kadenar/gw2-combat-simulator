@@ -24,6 +24,7 @@ import {
   enchantedDaggersLifecycle,
   reactRevenantImpossibleOdds
 } from '#gw2/professions/revenant/core/skills/legends/assassin.js';
+import { centaurLifecycle } from '#gw2/professions/revenant/core/skills/legends/centaur.js';
 import { empowerRevenantEmbrace, startRevenantEmbrace } from '#gw2/professions/revenant/core/skills/legends/demon.js';
 import { greatswordLifecycle } from '#gw2/professions/revenant/core/skills/weapons/greatsword.js';
 import { scepterLifecycle } from '#gw2/professions/revenant/core/skills/weapons/scepter.js';
@@ -135,6 +136,7 @@ export const revenantCoreHooks = composeRuntimeHooks<RevenantRuntimeState, Reven
   scepterLifecycle,
   spearLifecycle,
   coreLifecycle,
+  centaurLifecycle,
   revenantUpkeepLifecycle,
   greatswordLifecycle,
   enchantedDaggersLifecycle

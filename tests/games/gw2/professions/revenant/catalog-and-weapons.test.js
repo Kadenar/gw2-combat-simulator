@@ -408,7 +408,7 @@ test('Renegade mechanics use authorable skills and trait balances', () => {
   assert.equal(
     renegade.balanceProfiles.find((entry) => entry.id === REVENANT_TRAIT_IDS.LASTING_LEGACY).patchableFields
       .damageIncreasePerStack,
-    0.05
+    0.04
   );
   assert.equal(
     renegade.balanceProfiles.find((entry) => entry.id === REVENANT_TRAIT_IDS.BLOOD_FURY).patchableFields

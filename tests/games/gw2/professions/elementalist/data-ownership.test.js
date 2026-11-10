@@ -122,5 +122,5 @@ test('Specialized Elements models percentage recharge changes as multipliers', (
 
   assert.equal(Object.hasOwn(trait, 'rechargeReduction'), false);
   assert.equal(trait.rechargeMultiplier, 0.9);
-  assert.equal(trait.empoweredRechargeMultiplier, 0.67);
+  assert.equal(trait.empoweredRechargeMultiplier, 0.8);
 });

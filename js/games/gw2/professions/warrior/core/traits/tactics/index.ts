@@ -1,5 +1,4 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { targetConditionActive, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
@@ -167,7 +166,7 @@ export const roaringReveille = defineTrait({
 export const empowered = defineTrait({
   id: TRAIT.EMPOWERED,
   // Trait balance is the single tuning source for modifiers and presentation.
-  balance: { damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
+  balance: { damagePerBoon: 0.02, maximumBoons: 5 },
   modifierRules: [
     {
       id: 'warrior.empowered',

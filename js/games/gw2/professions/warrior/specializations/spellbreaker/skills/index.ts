@@ -137,18 +137,18 @@ const SPELLBREAKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Warr
   [ID.BREAK_ENCHANTMENTS]: {
     name: 'Break Enchantments',
     icon: 'https://render.guildwars2.com/file/ECC1B92208E4B7E2B5C41351DF09DBC04894A10C/1770663.png',
-    // The selected preview may enable charges and edit their between-use interval.
-    ammo: 0,
+    // Two charges share the existing recharge; the boonless target takes the base PvE strike.
+    ammo: 2,
     ammoCastLockout: 0,
     type: 'Utility',
     slot: 'Utility',
 
     cooldown: 15,
-    castTimeMs: 167,
+    castTimeMs: 600,
     effects: [
       {
         type: 'strike',
-        coefficient: 1.5,
+        coefficient: 3,
         hits: 1
       }
     ]

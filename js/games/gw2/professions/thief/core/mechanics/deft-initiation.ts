@@ -7,8 +7,6 @@ import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import type { ThiefStrike } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
-import { THIEF_CORE_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/thief/core/rework/ids.js';
-import { reworkCoreState } from '#gw2/professions/thief/core/rework/state.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 
 /** Direct landed player attacks qualify without requiring a critical hit; proc and summon damage cannot consume. */
@@ -35,8 +33,8 @@ export function initiatingStrike(runtime: ThiefRuntime, event: Gw2ResolverEvent)
 
 /** The proc keeps its causal parent but rolls its own strength, independently of the triggering weapon. */
 function emitSharpInitiation(runtime: ThiefRuntime, cause: Gw2ResolverEvent): void {
-  emitTraitProfile(runtime, REWORK.SHARP_INITIATION, REWORK.SHARP_INITIATION, cause, {
-    skillId: REWORK.SHARP_INITIATION,
+  emitTraitProfile(runtime, TRAIT.SHARP_INITIATION, TRAIT.SHARP_INITIATION, cause, {
+    skillId: TRAIT.SHARP_INITIATION,
     skillName: 'Sharp Initiation',
     activationId: runtime.combat.allocateEffectActivation('thief.sharp-initiation:'),
     attribution: { actorType: ACTOR.EFFECT, ownerActorType: ACTOR.PLAYER, skillWeapon: '' }
@@ -54,19 +52,19 @@ function emitInitiationReward(runtime: ThiefRuntime, trait: number, skillName: s
 
 /** Consume before children are queued; a positive ICD preserves the armed reward while it is blocked. */
 export function consumeDeftInitiation(runtime: ThiefRuntime, { cause }: ThiefStrike): void {
-  const state = reworkCoreState(runtime);
+  const state = runtime.profession.core;
 
   if (!state.deftInitiationArmed || !initiatingStrike(runtime, cause)) return;
 
-  const cooldown = balanceNumber(runtime.helpers, REWORK.DEFT_INITIATION, 'internalCooldown');
+  const cooldown = balanceNumber(runtime.helpers, TRAIT.DEFT_INITIATION, 'internalCooldown');
 
-  if (cooldown > 0 && !runtime.procs.claimCooldown(REWORK.DEFT_INITIATION, runtime.time, cooldown)) return;
+  if (cooldown > 0 && !runtime.procs.claimCooldown(TRAIT.DEFT_INITIATION, runtime.time, cooldown)) return;
 
   state.deftInitiationArmed = false;
-  emitInitiationReward(runtime, REWORK.DEFT_INITIATION, 'Deft Initiation', cause);
+  emitInitiationReward(runtime, TRAIT.DEFT_INITIATION, 'Deft Initiation', cause);
 
-  if (hasTrait(runtime, REWORK.OPPORTUNE_OPENING))
-    emitInitiationReward(runtime, REWORK.OPPORTUNE_OPENING, 'Opportune Opening', cause);
+  if (hasTrait(runtime, TRAIT.OPPORTUNE_OPENING))
+    emitInitiationReward(runtime, TRAIT.OPPORTUNE_OPENING, 'Opportune Opening', cause);
 
-  if (hasTrait(runtime, REWORK.SHARP_INITIATION)) emitSharpInitiation(runtime, cause);
+  if (hasTrait(runtime, TRAIT.SHARP_INITIATION)) emitSharpInitiation(runtime, cause);
 }

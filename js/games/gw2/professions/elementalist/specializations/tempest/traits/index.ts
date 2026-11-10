@@ -97,8 +97,9 @@ const latentStamina = defineTrait({
 const tempestuousAria = defineTrait({
   id: TRAIT.TEMPESTUOUS_ARIA,
   balance: {
+    // Aura damage bonuses use the live November balance values.
     damageIncrease: 0.1,
-    conditionDamageIncrease: 0.05,
+    conditionDamageIncrease: 0.07,
     // Each aura extends the damage buff by `durationExtension` seconds, capped `maximumStacks`
     // seconds past the triggering aura; `Shout Might` is the separate shout-completion payload.
     maximumStacks: 10,
@@ -277,7 +278,7 @@ const transcendentTempest = defineTrait<ElementalistSkill>({
     // Shortened singularity dwell, separate from the damage buff's seven-second lifetime.
     duration: 4,
     damageIncrease: 0.25,
-    conditionDamageIncrease: 0.2,
+    conditionDamageIncrease: 0.25,
     // Completion grants the timed damage-bonus status from this profile.
     effects: [{ type: 'buff', name: 'Transcendent Tempest', kind: 'transcendent-tempest', duration: 7, stacks: 1 }]
   },

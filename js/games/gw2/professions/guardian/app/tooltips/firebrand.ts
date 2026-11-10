@@ -3,6 +3,7 @@ import {
   simulationEffectFacts,
   skillTooltip,
   tooltipDecimal,
+  tooltipFactorChange,
   tooltipPercent,
   tooltipProfile,
   tooltipSeconds,
@@ -16,7 +17,6 @@ import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles
 import { virtueBoons } from '#gw2/professions/guardian/app/tooltips/shared.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { resolveAshes, type ResolvedAshes } from '#gw2/professions/guardian/specializations/firebrand/ashes-tuning.js';
-import { FIREBRAND_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
 import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
@@ -115,7 +115,7 @@ export const firebrandTooltips = {
         [
           mantra.finalId,
           skillTooltip(
-            'Spend the final mantra charge and apply these effects. The mantra becomes unavailable until its full recharge finishes, then automatically prepares again.'
+            'Spend the final mantra charge, restore one page, and apply these effects. The mantra becomes unavailable until its full recharge finishes, then automatically prepares again.'
           )
         ]
       ])
@@ -144,7 +144,7 @@ export const firebrandTooltips = {
           ? [
               {
                 name: 'Selected adjustment',
-                detail: `${tooltipProfile(context, ashes.overrideTraitId).name} - provisional`
+                detail: tooltipProfile(context, ashes.overrideTraitId).name
               },
               ...ashesBurningFacts(ashes.baseline, 'baseline per charge')
             ]
@@ -157,7 +157,6 @@ export const firebrandTooltips = {
     }
   },
   traits: {
-    [TRAIT.PURITY_OF_WORD]: traitTooltip('Unlock tomes and their shared page resource.'),
     [TRAIT.SWIFT_SCHOLAR]: traitTooltip(
       'Opening a tome with a ready passive grants quickness. Consecutive page skills in the same tome refund a page.',
       [
@@ -165,85 +164,52 @@ export const firebrandTooltips = {
         ['resourceGain', 'Pages refunded']
       ]
     ),
-    [TRAIT.IMBUED_HASTE]: traitTooltip('Quickness grants condition damage, healing power, and vitality.', [
-      ['attributeBonuses.conditionDamage', 'Condition Damage with quickness', tooltipDecimal],
-      ['attributeBonuses.healingPower', 'Healing Power with quickness', tooltipDecimal],
-      ['attributeBonuses.vitality', 'Vitality with quickness', tooltipDecimal]
-    ]),
-    [TRAIT.UNRELENTING_CRITICISM]: traitTooltip('Player axe strikes inflict bleeding.'),
-    [TRAIT.LIBERATORS_VOW]: traitTooltip('Using a healing skill grants quickness to the party.', [
-      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
-    ]),
-    [TRAIT.ARCHIVIST_OF_WHISPERS]: traitTooltip('Increase the shared tome-page capacity.', [
-      ['maximumStacks', 'Maximum pages']
-    ]),
-    [TRAIT.WEIGHTY_TERMS]: traitTooltip("Using a mantra's final charge grants pages and inflicts slow.", [
-      ['resourceGain', 'Pages gained']
-    ]),
-    [TRAIT.STALWART_SPEED]: traitTooltip('Applying aegis or stability grants quickness to the party.', [
-      ['internalCooldown', 'Internal cooldown', tooltipSeconds]
-    ]),
     [TRAIT.LEGENDARY_LORE]: virtueBoons('Using a tome page grants a boon according to the active tome.'),
-    [TRAIT.STOIC_DEMEANOR]: traitTooltip('Control, immobilize, or slow applications grant resistance and might.'),
-    [TRAIT.QUICKFIRE]: traitTooltip(
-      'Applying quickness grants an Ashes of the Just charge to a recipient. Justice retains its passive while dormant.',
-      [['internalCooldown', 'Charge-grant cooldown', tooltipSeconds]]
-    ),
-    [TRAIT.LOREMASTER]: traitTooltip('Tome pages regenerate faster.', [
-      ['pulseInterval', 'Page regeneration interval', tooltipSeconds]
-    ])
-  }
-} satisfies ProfessionTooltips<GuardianSkill>;
-
-/** Provisional facts always read selected values, so editing an assumption cannot leave stale tooltip numbers. */
-export const firebrandReworkTooltips = {
-  traits: {
     [TRAIT.PURITY_OF_WORD]: traitTooltip('Unlock tomes and their shared page resource.', (context) => [
       profileFact(context, TRAIT.PURITY_OF_WORD, 'maximumStacks', 'Shared page capacity'),
       profileFact(context, TRAIT.PURITY_OF_WORD, 'pulseInterval', 'Page regeneration interval', tooltipSeconds)
     ]),
     [TRAIT.IMBUED_HASTE]: traitTooltip(
-      'Provisional: assume Quickness still enables increased outgoing condition damage. The percentage is speculative. Healing and incoming damage are outside simulation scope.',
-      [['conditionDamageIncrease', 'Provisional condition damage', tooltipPercent]]
+      'Quickness increases outgoing condition damage. Healing and incoming damage are outside simulation scope.',
+      [['conditionDamageIncrease', 'Condition damage', tooltipPercent]]
     ),
-    [TRAIT.UNRELENTING_CRITICISM]: traitTooltip(
-      'Increase bleeding damage and duration. Both bonuses are provisional.',
-      [
-        ['conditionDamageIncrease', 'Provisional bleeding damage', tooltipPercent],
-        ['conditionDurationBonus', 'Provisional bleeding duration', tooltipPercent]
-      ]
-    ),
-    [REWORK.REVELATION]: traitTooltip('Final mantra charges grant pages.', [['resourceGain', 'Pages gained']]),
-    [REWORK.BASTION]: traitTooltip(
+    [TRAIT.UNRELENTING_CRITICISM]: traitTooltip('Increase bleeding damage and duration.', [
+      ['conditionDamageIncrease', 'Bleeding damage', tooltipPercent],
+      ['conditionDurationBonus', 'Bleeding duration', tooltipPercent]
+    ]),
+    [TRAIT.REVELATION]: traitTooltip('Final mantra charges restore an additional page.', [
+      ['resourceGain', 'Pages gained']
+    ]),
+    [TRAIT.BASTION]: traitTooltip(
       'Protection has increased effectiveness on you. Incoming damage is outside simulation scope.'
     ),
-    [REWORK.FERVID_CONVICTION]: traitTooltip(
-      'Swift Scholar page refunds grant Ashes to nearby allies. Provisional: includes self; charge count, lifetime, recipient limit and internal cooldown are assumptions.',
+    [TRAIT.FERVID_CONVICTION]: traitTooltip(
+      'Swift Scholar page refunds grant Ashes to you and nearby allies. The supplied two-self, one-per-ally split awaits independent tooltip confirmation.',
       [
-        ['maximumTargets', 'Provisional maximum recipients'],
-        ['internalCooldown', 'Provisional internal cooldown', tooltipSeconds]
+        ['allyStacks', 'Ashes charges per ally'],
+        ['maximumTargets', 'Maximum recipients'],
+        ['internalCooldown', 'Internal cooldown', tooltipSeconds]
       ],
-      'provisional grant per Swift Scholar refund'
+      'per Swift Scholar refund'
     ),
     [TRAIT.STALWART_SPEED]: traitTooltip(
-      'Swift Scholar page refunds grant party Quickness. Duration, recipient limit and internal cooldown are provisional.',
-      [['internalCooldown', 'Provisional internal cooldown', tooltipSeconds]],
-      'provisional grant per Swift Scholar refund'
+      'Swift Scholar page refunds grant party Quickness.',
+      [['internalCooldown', 'internal cooldown', tooltipSeconds]],
+      'per Swift Scholar refund'
     ),
     [TRAIT.STOIC_DEMEANOR]: traitTooltip(
-      'Retain Courage passive while dormant. Disabling or immobilizing enemies reduces Unbroken Lines recharge. Recharge reduction and internal cooldown are provisional.',
+      'Retain Courage passive while dormant. Disabling or immobilizing enemies reduces Unbroken Lines recharge, subject to its internal cooldown.',
       [
-        ['rechargeReduction', 'Provisional recharge reduction', tooltipSeconds],
-        ['internalCooldown', 'Provisional internal cooldown', tooltipSeconds]
+        ['rechargeReduction', 'Recharge reduction', tooltipSeconds],
+        ['internalCooldown', 'internal cooldown', tooltipSeconds]
       ]
     ),
-    [REWORK.RIGHTEOUS_FLAMES]: traitTooltip(
-      'When selected, retain Justice passive while dormant and replace Ashes Burning per charge with these values. Base duration and stacks are provisional; the final improvement is unknown.',
-      [],
-      'provisional per Ashes charge, before duration bonuses'
+    [TRAIT.RIGHTEOUS_FLAMES]: traitTooltip(
+      'Retain Justice passive while dormant and multiply Ashes burning duration for both self and allied charges.',
+      [['durationMultiplier', 'Ashes burning duration increase', tooltipFactorChange]]
     ),
-    [REWORK.DELIVERANCE]: traitTooltip(
+    [TRAIT.DELIVERANCE]: traitTooltip(
       'Retain Resolve passive while dormant. Passive healing is outside simulation scope.'
     )
   }
-} satisfies ProfessionTooltips;
+} satisfies ProfessionTooltips<GuardianSkill>;

@@ -1,6 +1,5 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 
-import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { boonActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -21,7 +20,6 @@ import {
   attributeBonusNumber,
   balanceNumber,
   balanceProfileNumber,
-  effectNumber,
   procChance,
   requireBalanceProfile,
   requireEffect
@@ -29,107 +27,16 @@ import {
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { isPetStrike, petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import {
-  bloodThirstApplied,
   criticalResolved,
-  dodged,
   packStrikeApplied,
   weaponSwapped
 } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
-import { shortbowConditionDuration } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
-import { activeBuff, qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
-/** Owns Light on your Feet's live tuning and trait behavior. */
-export const lightOnYourFeet = defineTrait({
-  id: TRAIT.LIGHT_ON_YOUR_FEET,
-  balance: {
-    damageMultiplier: 1.1,
-    conditionDurationBonus: 0.1,
-    durationExtension: 2,
-    immobilizeDurationExtension: 1,
-    rechargeMultiplier: 0.8,
-    effects: [
-      { name: 'light-on-your-feet', type: 'buff', kind: 'light-on-your-feet', duration: 6, stacks: 1 },
-      {
-        name: CONDITION.VULNERABILITY,
-        type: 'condition',
-        condition: CONDITION.VULNERABILITY,
-        duration: 10,
-        stacks: 10
-      }
-    ]
-  },
-  modifierRules: [
-    {
-      id: 'ranger.light-on-your-feet-base-duration',
-      order: 1,
-      target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
-      operation: 'multiply',
-      factor: (context) => {
-        const { skillId, base, intrinsic } = shortbowConditionDuration(context);
-
-        if (!(base > 0)) return 1;
-
-        const extension = balanceNumber(
-          context.catalog,
-          TRAIT.LIGHT_ON_YOUR_FEET,
-          skillId === ID.CRIPPLING_SHOT ? 'immobilizeDurationExtension' : 'durationExtension'
-        );
-        // The weapon already contributes intrinsic seconds; add the trait's seconds to that same base.
-        return Math.max(0, base + intrinsic + extension) / (base + intrinsic);
-      },
-      when: (context) => {
-        if (!qualifiesForFlankingBonuses(context)) return false;
-
-        const { skillId } = shortbowConditionDuration(context);
-        return (
-          (skillId === ID.CROSSFIRE && context.condition === CONDITION.BLEEDING) ||
-          (skillId === ID.POISON_VOLLEY && context.condition === CONDITION.POISONED) ||
-          (skillId === ID.CRIPPLING_SHOT && context.condition === CONDITION.IMMOBILIZED)
-        );
-      }
-    },
-    {
-      order: 3,
-      id: 'ranger.light-on-your-feet',
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: 'multiply',
-      factor: (context) => balanceNumber(context.catalog, TRAIT.LIGHT_ON_YOUR_FEET, 'damageMultiplier'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBuff(context, 'light-on-your-feet')
-    },
-    {
-      order: 4,
-      id: 'ranger.light-on-your-feet-condition-duration',
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: 'add',
-      amount: (context) => balanceNumber(context.catalog, TRAIT.LIGHT_ON_YOUR_FEET, 'conditionDurationBonus'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && activeBuff(context, 'light-on-your-feet')
-    }
-  ],
-  rechargeRules: [
-    {
-      order: 2,
-      when: (_runtime, skill) => skill.weapon === WEAPON.SHORTBOW,
-      multiplier: { profile: TRAIT.LIGHT_ON_YOUR_FEET, field: 'rechargeMultiplier' }
-    }
-  ],
-  triggers: [
-    onTriggerPoint(bloodThirstApplied, {
-      run: (runtime, input: TriggerPointInput<typeof bloodThirstApplied>) =>
-        triggerLightOnYourFeet(runtime, input.event)
-    }),
-    onTriggerPoint(dodged, {
-      run: (runtime, input: TriggerPointInput<typeof dodged>) => applyRangerDodgeTraits(runtime, input.at)
-    }),
-    {
-      // Bumble still grants this buff after its evade was removed; keep the exception trait-local.
-      on: 'castCommit',
-      when: (_runtime, cast) => cast.skill.id === ID.BUMBLE,
-      run: (runtime) => applyRangerDodgeTraits(runtime)
-    }
-  ]
-});
+/** Light on your Feet now grants movement speed, outside the combat model. */
+export const lightOnYourFeet = defineTrait({ id: TRAIT.LIGHT_ON_YOUR_FEET });
 
 /** Owns Tail Wind's live tuning and trait behavior. */
 export const tailWind = defineTrait({
@@ -418,36 +325,6 @@ const rangerCoreCriticalReactions = Object.freeze({
   }
 } satisfies RangerCriticalHitDefinition);
 
-function applyRangerDodgeTraits(context: RangerRuntime, at = context.time): void {
-  const profile = requireBalanceProfile(context.helpers, TRAIT.LIGHT_ON_YOUR_FEET);
-  const effect = requireEffect(profile, 'buff', 'light-on-your-feet');
-
-  if (!effect) return;
-
-  const kind = String(effect.kind);
-  const baseDuration = effectNumber(profile, effect, 'duration');
-  // Reapplications stack duration in game, so preserve the live remainder
-  // instead of replacing it with another six-second overlapping window.
-  const activeUntil = context.facts
-    .read()
-    .filter((event) => event.type === 'buff' && event.kind === kind && event.at <= at)
-    .reduce((maximum, event) => Math.max(maximum, gw2EffectExpiresAt(event.at, event.duration || 0)), at);
-  emitTraitProfile(context, TRAIT.LIGHT_ON_YOUR_FEET, TRAIT.LIGHT_ON_YOUR_FEET, undefined, {
-    at: at,
-    fullEnd: at,
-    effect: { type: 'buff', name: 'light-on-your-feet' },
-    attribution: {
-      source: 'Trait',
-      sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
-      actorType: ACTOR.EFFECT,
-      skillId: TRAIT.LIGHT_ON_YOUR_FEET,
-      skillName: 'Light on your Feet',
-      name: 'Light on your Feet'
-    },
-    transform: (packet) => ({ ...packet, duration: baseDuration + Math.max(0, activeUntil - at) })
-  });
-}
-
 /** Boon-only swap rewards claim their independent cooldown only when an authored payload survives. */
 function weaponSwapBoon(
   context: RangerRuntime,
@@ -528,33 +405,6 @@ function triggerTrappersExpertise(context: RangerResolverContext, event: Gw2Reso
       },
       transform: (packet) => ({ ...packet, fixedDuration: true })
     });
-  }
-}
-
-/** Apply the trait-selected shortbow condition upgrades after base on-hit effects. */
-function triggerLightOnYourFeet(context: RangerResolverContext, event: Gw2ResolverEvent): void {
-  const skill = skillForEvent(context.helpers, event);
-
-  // Crossfire gains duration through the base-duration hook, never an additional bleed stack.
-  if (skill?.id === ID.CONCUSSION_SHOT) {
-    const profile = requireBalanceProfile(context.helpers, TRAIT.LIGHT_ON_YOUR_FEET);
-    const vulnerability = requireEffect(profile, 'condition', CONDITION.VULNERABILITY);
-
-    if (vulnerability)
-      emitTraitProfile(context, TRAIT.LIGHT_ON_YOUR_FEET, TRAIT.LIGHT_ON_YOUR_FEET, undefined, {
-        at: event.at,
-        fullEnd: event.at,
-        effect: { type: 'condition', name: CONDITION.VULNERABILITY },
-        attribution: {
-          source: 'Trait',
-          sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
-          actorType: ACTOR.EFFECT,
-          skillId: TRAIT.LIGHT_ON_YOUR_FEET,
-          skillName: 'Light on your Feet',
-          name: 'Light on your Feet - Vulnerability',
-          triggeredBy: event.skillName
-        }
-      });
   }
 }
 

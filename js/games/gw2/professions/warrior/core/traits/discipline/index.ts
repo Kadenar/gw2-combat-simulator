@@ -309,3 +309,9 @@ function burstMasteryDragonSlash(
     effects: (effect) => effect.type === 'boon' || effect.type === 'buff'
   });
 }
+
+/** Keep the published enemy-boon scaling available; the current target model has no boons. */
+export const destructionOfTheEmpowered = defineTrait({
+  id: TRAIT.DESTRUCTION_OF_THE_EMPOWERED,
+  balance: { damagePerBoon: 0.04, maximumBoons: 5 }
+});

@@ -92,11 +92,7 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
         { atMs: 9480 },
         { atMs: 9840 },
         { atMs: 10240 },
-        { atMs: 10600 },
-        { atMs: 10960 },
-        { atMs: 11320 },
-        { atMs: 11680 },
-        { atMs: 12040 }
+        { atMs: 10600 }
       ]
     }
   },

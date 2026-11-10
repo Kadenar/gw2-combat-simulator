@@ -41,9 +41,9 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Skill
     ],
     sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.INTO_THE_VOID } }]
   },
-  [ID.PHANTASMAL_WARDEN]: {
-    name: 'Phantasmal Warden',
-    icon: 'https://render.guildwars2.com/file/4E08BB09C3E6BE013AE255D763A3EB7C99AE2644/103768.png',
+  [ID.PHANTASMAL_DISENCHANTER]: {
+    name: 'Phantasmal Disenchanter',
+    icon: 'https://render.guildwars2.com/file/9B227C21B3AFF40C222C9031EBE00995F9B43423/103764.png',
     type: 'Weapon',
     weapon: 'Focus',
     slot: 'Weapon_5',
@@ -51,33 +51,22 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 20,
     // The summon owns its attack and conversion timeline independently of the player cast.
     phantasmTiming: {
-      damageAtMs: 4880,
-      spawnAtMs: 7040
+      damageAtMs: 1240,
+      // The dedicated lifecycle converts Disenchanter about 1.92s after cast completion.
+      spawnAtMs: 1920
     },
     phantasm: true,
     resource: {
       mode: 'phantasm',
       count: 1
     },
-    castTimeMs: 440,
+    castTimeMs: 760,
     effects: [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 880, coefficient: 0.138 },
-          { atMs: 1240, coefficient: 0.138 },
-          { atMs: 1600, coefficient: 0.138 },
-          { atMs: 1960, coefficient: 0.138 },
-          { atMs: 2320, coefficient: 0.138 },
-          { atMs: 2680, coefficient: 0.138 },
-          { atMs: 3080, coefficient: 0.138 },
-          { atMs: 3440, coefficient: 0.138 },
-          { atMs: 3800, coefficient: 0.138 },
-          { atMs: 4160, coefficient: 0.138 },
-          { atMs: 4520, coefficient: 0.138 },
-          { atMs: 4880, coefficient: 0.138 }
-        ],
-        name: 'Damage',
+        coefficient: 1,
+        hits: 1,
+        name: 'Target without boons',
         actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
         weapon: 'phantasm medium'

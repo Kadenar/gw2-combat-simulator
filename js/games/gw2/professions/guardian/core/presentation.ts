@@ -148,6 +148,7 @@ export function bindGuardianCoreUi(catalog: Readonly<CanonicalCatalog<GuardianSk
       // Expose held combat bonuses to isolated damage calculations.
       preview.damageBuff('Inspiring Virtue', 'inspiringVirtue', 'guardian-inspiring-virtue');
       preview.boon(BOON.AEGIS, 'Unscathed Contender');
+      preview.playerHealth(['Unscathed Contender']);
 
       // Illumination changes spear payloads only in this isolated damage preview.
       if (context.weapons.includes(WEAPON.SPEAR))

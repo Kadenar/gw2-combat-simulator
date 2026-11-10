@@ -109,7 +109,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
               duration: 5
             },
             ...impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-              { type: 'strike', name: 'Galvanize - Additional Strike', coefficient: 2.6 }
+              { type: 'strike', name: 'Galvanize - Additional Strike', coefficient: 3.1 }
             ])
           ]
         }
@@ -150,7 +150,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
               {
                 type: 'strike',
                 name: 'Fiery Impact - Additional Strike',
-                coefficient: 1.75,
+                coefficient: 2.25,
                 comboFinishers: [
                   { attemptGroup: 'effect:1:tick:1', ownerId: 'elementalist', finisherType: COMBO_FINISHER.BLAST }
                 ]
@@ -302,7 +302,7 @@ export const WEAVER_SPEAR_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
               duration: 5
             },
             ...impactEffects({ atMs: 0, timingAnchor: 'castStart', timingScale: 'cast' }, [
-              { type: 'strike', name: 'Shale Storm - Additional Strike', coefficient: 1.5 },
+              { type: 'strike', name: 'Shale Storm - Additional Strike', coefficient: 2 },
               {
                 type: 'condition',
                 name: 'Shale Storm - Additional Strike - Blindness',

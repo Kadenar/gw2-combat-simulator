@@ -144,7 +144,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         ticks: [
           {
             atMs: 560,
-            coefficient: 2.7
+            coefficient: 3
           }
         ],
         timingAnchor: 'castStart',

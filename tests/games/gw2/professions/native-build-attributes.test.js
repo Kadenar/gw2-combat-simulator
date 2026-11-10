@@ -158,7 +158,7 @@ test('Guardian eligible flat traits feed attribute conversions', () => {
     {
       specialization: { name: 'Firebrand', traits: '1-1-1' },
       trait: 'Imbued Haste',
-      amount: 250
+      amount: 0
     },
     {
       specialization: { name: 'Luminary', traits: '1-1-1' },
@@ -337,7 +337,7 @@ test('Bolstered Bonds evaluates the live Cosmic Wisdom multiplier', () => {
   assert.equal(cosmic.ferocity, 300);
 });
 
-test('Empire Divided grants full-health Power regardless of legacy build health inputs', () => {
+test('Rise to the Occasion contributes no flat Power', () => {
   const build = createRevenantBuildDefaults();
   build.specializations = [{ name: 'Vindicator', traits: '1-1-1' }];
 
@@ -345,8 +345,8 @@ test('Empire Divided grants full-health Power regardless of legacy build health 
   for (const health of [undefined, 100, 51, 50, 25, 0]) {
     build.assumptions.playerHealthPercent = health;
     assert.equal(
-      traitDelta(calculateRevenantAttributes, build, 'Empire Divided', 'Power'),
-      240,
+      traitDelta(calculateRevenantAttributes, build, 'Rise to the Occasion', 'Power'),
+      0,
       `player health: ${health ?? 'default'}`
     );
   }

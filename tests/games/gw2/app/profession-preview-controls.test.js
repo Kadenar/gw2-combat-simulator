@@ -115,9 +115,9 @@ test('shipped presets compose preview controls for both equipped weapon sets', a
 });
 
 // Core weapon and elite trait dependencies must compose before either panel can render or save a build.
-test('Ranger shares one target-health input for Spear and Oppressive Superiority', () => {
+test('Ranger target-health preview follows Spear without retired Soulbeast bonuses', () => {
   for (const specialization of [null, 'Soulbeast']) {
-    for (const trait of specialization ? [[], ['Oppressive Superiority']] : [[]]) {
+    for (const trait of specialization ? [[], ['Apex Predator']] : [[]]) {
       for (const weapons of [
         ['Spear', ''],
         ['Axe', 'Axe']
@@ -125,7 +125,7 @@ test('Ranger shares one target-health input for Spear and Oppressive Superiority
         const app = previewApp('ranger', trait, specialization);
         app.build.weapons = weapons;
         app.build.alternateWeapons = ['', ''];
-        const expected = weapons[0] === 'Spear' || trait.length > 0;
+        const expected = weapons[0] === 'Spear';
         const controls = app.profession.ui.previewControls(attributePreviewContext(app, 1));
         assert.equal(controls.filter((control) => control.key === 'targetHealth').length, Number(expected));
         assert.equal(
@@ -411,7 +411,6 @@ for (const [profession, trait, key, value, attribute] of [
   ['engineer', 'Object in Motion', 'stability', 1, 'Strike Multiplier'],
   ['engineer', 'Object in Motion', 'swiftness', 1, 'Strike Multiplier'],
   ['guardian', 'Inspiring Virtue', 'inspiringVirtue', 1, 'Strike Multiplier'],
-  ['guardian', 'Unscathed Contender', 'aegis', 1, 'Strike Multiplier'],
   ['guardian', 'Big Game Hunter', 'bigGameHunter', 1, 'Strike Multiplier'],
   ['guardian', 'Empowered Armaments', 'empoweredArmaments', 1, 'Strike Multiplier'],
   ['mesmer', 'Compounding Power', 'compoundingPower', 5, 'Strike Multiplier'],
@@ -424,7 +423,6 @@ for (const [profession, trait, key, value, attribute] of [
   ['necromancer', 'Sand Sage', 'shade', 1, 'Expertise'],
   ['necromancer', 'Target the Weak', 'targetTheWeak', 3, 'Critical Chance'],
   ['necromancer', 'Cold Shoulder', 'condition:Chilled', 1, 'Strike Multiplier'],
-  ['ranger', 'Light on your Feet', 'lightOnYourFeet', 1, 'Strike Multiplier'],
   ['ranger', 'Natural Balance', 'naturalBalance', 1, 'Condition Multiplier'],
   ['ranger', 'Twice as Vicious', 'twiceAsVicious', 1, 'Strike Multiplier'],
   ['ranger', 'Ferocious Symbiosis', 'ferociousSymbiosis', 5, 'Strike Multiplier'],
@@ -723,4 +721,13 @@ test('Hidden Killer exposes Stealth without an ineffective Revealed control', ()
       true
     );
   }
+});
+
+// Damage previews use full health, so Aegis cannot add a second Unscathed Contender bonus.
+test('Unscathed Contender damage previews stay at full health and do not stack Aegis', () => {
+  const app = previewApp('guardian', ['Unscathed Contender']);
+  const saved = structuredClone(app.build);
+  assert.ok(!skillDamageControls(app).some(({ key }) => key === 'playerHealth'));
+  close(stats(app, { aegis: 1 })['Strike Multiplier'].final, stats(app)['Strike Multiplier'].final);
+  assert.deepEqual(app.build, saved);
 });

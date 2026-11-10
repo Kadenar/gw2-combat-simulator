@@ -988,7 +988,7 @@ test('Signet of Rage suspends passive adrenaline until its cooldown ends', () =>
   for (const result of [ready, cooling, recovered]) assert.deepEqual(result.warnings, []);
   assert.ok(ready.planningState.profession[STATE.ADRENALINE].value > 0);
   assert.ok(cooling.planningState.cooldownsBySkillId[ID.SIGNET_OF_RAGE].remainingMs > 0);
-  assert.equal(cooling.planningState.profession[STATE.ADRENALINE].value, 0);
+  assert.equal(cooling.planningState.profession[STATE.ADRENALINE].value, 10);
   assert.ok(recovered.planningState.profession[STATE.ADRENALINE].value > 0);
 });
 

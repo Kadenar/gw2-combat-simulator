@@ -7,6 +7,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import type { RevenantUpkeepState } from '#gw2/professions/revenant/core/state.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { isRevenantUpkeep, isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
@@ -58,7 +59,9 @@ export function removeRevenantUpkeep(runtime: RevenantRuntime, skillId: SkillId)
 /** Legend follow-ups belong to the invoked legend; weapon follow-ups keep their own lifetimes. */
 export function clearRevenantLegendFlips(runtime: RevenantRuntime): void {
   for (const id of Object.keys(runtime.flips))
-    if (runtime.helpers.skillsById.get(Number(id))?.type !== 'Weapon') runtime.clearFlip(Number(id));
+    // Energy depletion cannot despawn Ventari's tablet; leaving the legend still clears its control.
+    if (Number(id) === ID.VENTARIS_WILL && runtime.profession.core.activeLegendId === 'LegendaryCentaur') continue;
+    else if (runtime.helpers.skillsById.get(Number(id))?.type !== 'Weapon') runtime.clearFlip(Number(id));
 }
 
 /** Aggregate drain includes only upkeeps whose activation has completed. */

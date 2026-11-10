@@ -1,6 +1,5 @@
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR } from '#gw2/platform/constants.js';
-import { buildResolverCondition } from '#gw2/platform/effects/packet-builders.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type { NecromancerResolverContext, NecromancerResolverEvent } from '#gw2/professions/necromancer/types.js';
 
@@ -13,34 +12,9 @@ export function reactToNecromancerAxeHealth(
 
   const skill = skillForEvent(context.helpers, event);
 
-  if (!skill || (skill.id !== ID.RENDING_CLAWS && skill.id !== ID.UNHOLY_FEAST)) return;
+  if (!skill || skill.id !== ID.UNHOLY_FEAST) return;
 
   if (!context.combat.targetHealthBelow(0.5)) return;
-
-  if (skill.id === ID.RENDING_CLAWS) {
-    const vulnerability = skill.effects?.find((effect) => effect.type === 'condition')?.ticks?.[
-      Number(event.hitIndex || 1) - 1
-    ];
-
-    if (!vulnerability || !('condition' in vulnerability)) return;
-
-    // Duplicate only this hit's authored Vulnerability application below half health.
-    context.effects.emit({
-      kind: 'packet',
-      event: buildResolverCondition({
-        at: event.at,
-        source: 'necromancer',
-        sourceId: skill.id,
-        skillId: skill.id,
-        skillName: skill.name,
-        actorType: ACTOR.PLAYER,
-        condition: vulnerability.condition,
-        stacks: vulnerability.stacks,
-        duration: vulnerability.duration
-      })
-    });
-    return;
-  }
 
   const burst = context.helpers.skillsById.get(ID.UNHOLY_BURST);
 

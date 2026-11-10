@@ -155,7 +155,7 @@ const auguryOfDeath = defineTrait({
         coefficient: 0,
         hits: 1,
         // The simulator assumes melee range, doubling the base siphon and its power scaling.
-        flatStrikeBase: 344,
+        flatStrikeBase: 1500,
         flatStrikePowerCoeff: 0.025,
         actorType: ACTOR.EFFECT,
         canCrit: false,

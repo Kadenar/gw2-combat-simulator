@@ -5,7 +5,8 @@ import {
   chaoticTransference,
   illusionaryDefense,
   illusionaryMembrane,
-  methodOfMadness
+  methodOfMadness,
+  shaperOfChaos
 } from '#gw2/professions/mesmer/core/traits/chaos/index.js';
 import {
   bountifulBlades,
@@ -40,7 +41,7 @@ import {
   shatterStorm,
   thePledge
 } from '#gw2/professions/mesmer/core/traits/illusions/index.js';
-import { egoRestoration, wardensFeedback } from '#gw2/professions/mesmer/core/traits/inspiration/index.js';
+import { egoRestoration, focalFeedback } from '#gw2/professions/mesmer/core/traits/inspiration/index.js';
 
 /** Register each Core trait directly, preserving the execution order of its rules. */
 export const mesmerCoreTraits = [
@@ -67,6 +68,7 @@ export const mesmerCoreTraits = [
   illusionaryDefense,
   chaoticInterruption,
   chaoticTransference,
+  shaperOfChaos,
   methodOfMadness,
   compoundingPower,
   cryOfPain,
@@ -78,6 +80,6 @@ export const mesmerCoreTraits = [
   shatterStorm,
   thePledge,
   phantasmalForce,
-  wardensFeedback,
+  focalFeedback,
   egoRestoration
 ];

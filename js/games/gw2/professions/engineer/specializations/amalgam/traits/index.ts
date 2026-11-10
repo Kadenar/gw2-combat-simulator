@@ -39,12 +39,12 @@ import type {
 } from '#gw2/professions/engineer/types.js';
 
 /** Double Helix chooses the Evolved bonus without changing the shared pre-profession conversion pool. */
-export function evolveAttributeFactor(context: EngineerModifierContext): number {
+export function evolveAttributeBonus(context: EngineerModifierContext): number {
   if (hasTrait(context, TRAIT.DOUBLE_HELIX))
-    return balanceNumber(context.catalog, TRAIT.DOUBLE_HELIX, 'coefficientMultiplier');
+    return balanceNumber(context.catalog, TRAIT.DOUBLE_HELIX, 'attributeIncrease');
 
   const skill: AmalgamSkill = requireSkill(context.catalog, ID.EVOLVE_BASE);
-  return requireBalanceNumber(skill.attributeMultiplier, `${skill.name} attributeMultiplier`);
+  return requireBalanceNumber(skill.attributeMultiplier, `${skill.name} attributeMultiplier`) - 1;
 }
 
 /** Restrict Symbiotic Synergy to player-owned strikes from the registered protocol identities. */
@@ -77,8 +77,9 @@ const carbolicComposition = defineTrait({
 /** Owns Double Helix tuning and its existing Morph/Evolve contribution. */
 const doubleHelix = defineTrait({
   id: TRAIT.DOUBLE_HELIX,
-  // Trait-owned scaling keeps patch notes scoped to builds selecting the stronger Evolve bonus.
-  balance: { coefficientMultiplier: 1.2 },
+  // Double Helix increases the base 10% Evolve attribute bonus by 50%, producing a 15% bonus.
+  // Store the bonus directly so subtracting one cannot shift half-point attribute rounding.
+  balance: { attributeIncrease: 0.15 },
   hooks: {
     modifySkillId: (context, skillId) => resolveAmalgamSkillId(context.hasTrait(TRAIT.DOUBLE_HELIX), skillId)
   }

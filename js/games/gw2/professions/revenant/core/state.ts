@@ -33,6 +33,7 @@ export interface RevenantCoreState {
   activationClaims: ActivationClaims;
   energy: ResourceClock;
   activeLegendId: string;
+  tranquil: boolean;
   selectedLegendIds: string[];
   activeUpkeeps: RevenantUpkeepState[];
   endurance: ResourceClock;
@@ -67,6 +68,7 @@ export function createRevenantCoreState(config: RevenantConfig): RevenantCoreSta
     },
     activationClaims: {},
     activeLegendId,
+    tranquil: activeLegendId === 'LegendaryCentaur',
     selectedLegendIds,
     activeUpkeeps: [],
     endurance: createResourceClock(ENDURANCE.maximum),
@@ -92,6 +94,7 @@ export function projectRevenantPlanningState(input: Gw2PlanningStateInput) {
   return {
     [STATE.ENERGY]: state.energy,
     [STATE.ACTIVE_LEGEND_ID]: state.activeLegendId,
+    [STATE.TRANQUIL]: state.tranquil,
     [STATE.SELECTED_LEGEND_IDS]: state.selectedLegendIds,
     [STATE.ACTIVE_UPKEEPS]: state.activeUpkeeps,
     [STATE.ENDURANCE]: state.endurance,

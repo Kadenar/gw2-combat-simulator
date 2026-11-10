@@ -48,10 +48,11 @@ export const engineerExplosivesTooltips = {
     const effects = skill.effects || [];
     return {
       ...simulationEffectFacts(effects),
-      description: 'Using a healing skill triggers Lesser Grenade Barrage.',
+      description:
+        'Using a healing skill triggers Lesser Grenade Barrage. Grenadier now increases explosion damage, but the percentage is unknown and no damage bonus is applied yet. Grenade radius no longer depends on this trait.',
       facts: [
         { name: 'Base skill recharge', detail: tooltipSeconds(tooltipNumber(skill, 'cooldown')) },
-        // Show the selected preview's explosion bonus alongside Grenadier's existing proc.
+        // Show the selected explosion bonus alongside Grenadier's existing proc.
         profileFact(balanceContext, TRAIT.GRENADIER, 'damageIncrease', 'Explosion strike damage', tooltipPercent),
         ...simulationEffectFacts(effects).facts
       ]

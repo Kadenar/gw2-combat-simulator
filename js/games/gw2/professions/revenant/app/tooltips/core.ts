@@ -9,6 +9,7 @@ import {
   type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { fieldValue } from '#gw2/platform/skills/field-specs.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { revenantCorruptionTooltips } from '#gw2/professions/revenant/app/tooltips/corruption.js';
@@ -160,6 +161,29 @@ export const revenantCoreTooltips = {
       : [{ name: 'Energy exhaustion cooldown', detail: tooltipSeconds(tooltipNumber(entity, 'starvationCooldown')) }])
   ],
   skills: {
+    [ID.FRIGID_BLITZ]: skillTooltip(
+      'Pending rework values: teleport and area strike with Chilled and Torment. The simulator retains the previous two-hit payload until the new coefficients and timing are confirmed.'
+    ),
+    [ID.FORCED_ENGAGEMENT]: skillTooltip(
+      'Taunt is removed. Cripple duration, tether threshold, pull behavior, and added defiance damage remain pending. Existing strike and Slow values are retained.'
+    ),
+    [ID.PROJECT_TRANQUILITY]: skillTooltip(
+      'Summon the tablet and gain Tranquil, empowering the next qualifying Centaur skill.'
+    ),
+    [ID.NATURAL_HARMONY]: skillTooltip(
+      'Consume Tranquil when empowered; otherwise gain Tranquil after use. Healing is outside simulation scope. Empowered endurance is not yet modeled.'
+    ),
+    [ID.PURIFYING_ESSENCE]: skillTooltip(
+      'Consume Tranquil when empowered; otherwise gain Tranquil after use. Healing and cleansing are outside simulation scope.'
+    ),
+    [ID.ENERGY_EXPULSION]: skillTooltip(
+      'Knock down the target without destroying the tablet. Empowered casts grant Stability at cast commit and consume Tranquil; unempowered casts grant Tranquil.',
+      (context) =>
+        simulationEffectFacts(
+          requireSkillAction(context.catalog.skillsById.get(ID.ENERGY_EXPULSION)!, 'empowered').effects,
+          'when empowered'
+        ).facts
+    ),
     [SHARED_SKILL_IDS.SWAP_WEAPONS]: weaponSwapTooltip,
     [ID.SWAP_LEGENDS]: legendSwapTooltip,
     [SHARED_SKILL_IDS.DODGE]: dodgeTooltip,

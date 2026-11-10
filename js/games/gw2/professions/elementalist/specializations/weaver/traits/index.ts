@@ -184,8 +184,9 @@ const bolsteredElements = defineTrait({
 const elementsOfRage = defineTrait({
   id: TRAIT.ELEMENTS_OF_RAGE,
   balance: {
-    damageIncrease: 0.15,
-    conditionDamageIncrease: 0.1,
+    // Dual attunement grants the live strike and condition bonuses.
+    damageIncrease: 0.12,
+    conditionDamageIncrease: 0.07,
     duration: 8
   },
   modifierRules: [

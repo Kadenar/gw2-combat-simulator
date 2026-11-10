@@ -1,5 +1,5 @@
 /** Owns Legendary Dwarf Stance skill definitions and their alternate identities. */
-import { ACTOR, BOON, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -61,11 +61,6 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
         stacks: 1,
         duration: 4,
         actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'control',
-        actorType: ACTOR.PLAYER,
-        controlKind: CONTROL.TAUNT
       }
     ]
   },

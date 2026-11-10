@@ -5,7 +5,6 @@ import { timelineWeaponRows } from '#gw2/app/rotation/timeline/model.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { rangerCatalog } from '#gw2/professions/ranger/catalog.js';
 import { criticalResolved } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
-import { rangerCoreModule } from '#gw2/professions/ranger/core/module.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { druidModule } from '#gw2/professions/ranger/specializations/druid/module.js';
@@ -112,7 +111,7 @@ test('condition Druid weapon packets and cooldowns use configured profiles', () 
   );
 });
 
-test('Ranger evade skills and dodges trigger Light on Your Feet', () => {
+test('Ranger evades and dodges no longer emit the retired Light on Your Feet combat buff', () => {
   for (const id of [
     ID.STALKERS_STRIKE,
     ID.SERPENTS_STRIKE,
@@ -133,18 +132,15 @@ test('Ranger evade skills and dodges trigger Light on Your Feet', () => {
     selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
   });
 
-  assert.equal(result.events.filter((event) => event.type === 'buff' && event.kind === 'light-on-your-feet').length, 2);
+  assert.equal(result.events.filter((event) => event.type === 'buff' && event.kind === 'light-on-your-feet').length, 0);
 });
 
-test('Light on Your Feet and Natural Balance add condition duration', () => {
-  const lightOnYourFeet = rangerCoreModule.modifiers.modifierRules.find(
-    ({ id }) => id === 'ranger.light-on-your-feet-condition-duration'
-  );
+test('Natural Balance adds condition duration without the retired evade bonus', () => {
   const naturalBalance = druidModule.modifiers.modifierRules.find(
     ({ id }) => id === 'ranger.natural-balance-condition-duration'
   );
 
-  for (const rule of [lightOnYourFeet, naturalBalance]) {
+  for (const rule of [naturalBalance]) {
     assert.equal(rule.target, 'conditionDuration');
     assert.equal(rule.operation, 'add');
     assert.equal(rule.amount({ catalog: rangerCatalog }), 0.1);
@@ -164,7 +160,7 @@ test('Light on Your Feet and Natural Balance add condition duration', () => {
     .effects.find(({ condition }) => condition === 'Bleeding').duration;
 
   assert.ok(bleeding, JSON.stringify(result.warnings));
-  assert.ok(Math.abs(bleeding.effectiveDuration - baseDuration * 1.2) < 1e-9);
+  assert.ok(Math.abs(bleeding.effectiveDuration - baseDuration * 1.1) < 1e-9);
   assert.deepEqual(
     result.events
       .filter((event) => event.type === 'buff' && event.kind === 'natural-balance')
@@ -501,10 +497,10 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
       )
       .map(({ triggeredBy, stacks, duration }) => [triggeredBy, stacks, duration]),
     [
-      ['Lunar Impact', 1, 4],
-      ['Lunar Impact', 1, 4],
-      ['Eclipse', 1, 4],
-      ['Eclipse', 1, 4]
+      ['Lunar Impact', 1, 3],
+      ['Lunar Impact', 1, 3],
+      ['Eclipse', 1, 3],
+      ['Eclipse', 1, 3]
     ]
   );
   assert.equal(result.planningState.profession[STATE.CELESTIAL_AVATAR_ENDS_AT], null);
@@ -564,7 +560,7 @@ test('Druid Avatar traits grant alacrity, Eclipse conditions, and Blood Moon', (
   assert.ok(
     embraceBloodMoon.every(
       ({ actorType, ownerActorType, stacks, duration }) =>
-        actorType === 'effect' && ownerActorType === 'player' && stacks === 1 && duration === 4
+        actorType === 'effect' && ownerActorType === 'player' && stacks === 1 && duration === 3
     )
   );
 });
@@ -630,7 +626,7 @@ test('Seed of Life detonates with Eclipse after releasing Celestial Avatar', () 
     3
   );
   assert.ok(
-    poison.every((event) => event.at === blind.at && event.duration === 8 && event.ownerActorType === 'player')
+    poison.every((event) => event.at === blind.at && event.duration === 6 && event.ownerActorType === 'player')
   );
 });
 
@@ -670,7 +666,7 @@ test('Blood Moon requires player ownership for both disables and immobilizes', (
         bleeds.reduce((sum, event) => sum + event.stacks, 0),
         playerOwned ? 2 : 0
       );
-      assert.ok(bleeds.every((event) => event.ownerActorType === 'player' && event.duration === 4));
+      assert.ok(bleeds.every((event) => event.ownerActorType === 'player' && event.duration === 3));
     }
   }
 });

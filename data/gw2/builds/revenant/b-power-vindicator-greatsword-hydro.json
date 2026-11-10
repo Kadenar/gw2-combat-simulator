@@ -53,10 +53,7 @@
     },
     {
       "name": "Vindicator",
-      "traits": "1-1-1",
-      "patchTraits": {
-        "nov-10-balance-preview": "1-1-1"
-      }
+      "traits": "1-1-1"
     }
   ],
   "selectedSkillIds": {},

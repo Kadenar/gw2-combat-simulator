@@ -55,7 +55,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       { type: 'boon', boon: BOON.PROTECTION, duration: 3, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.RESOLUTION, duration: 3, audience: { recipients: RECIPIENT.PARTY } }
     ],
-    // Retirement fires the final-charge point, so Weighty Terms rewards precede it.
+    // Retirement fires the final-charge point, so page refunds precede it.
     sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_SOLACE}` } }]
   },
   [ID.MANTRA_OF_FLAME]: {
@@ -123,7 +123,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
         duration: 12
       }
     ],
-    // Retirement fires the final-charge point, so Weighty Terms rewards precede it.
+    // Retirement fires the final-charge point, so page refunds precede it.
     sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_FLAME}` } }]
   },
   [ID.MANTRA_OF_POTENCE]: {
@@ -155,7 +155,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     canCastConcurrently: true,
     effects: [
       { type: 'boon', boon: BOON.QUICKNESS, duration: 2.5, audience: { recipients: RECIPIENT.PARTY } },
-      { type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 6, audience: { recipients: RECIPIENT.PARTY } }
+      { type: 'boon', boon: BOON.MIGHT, stacks: 5, duration: 10, audience: { recipients: RECIPIENT.PARTY } }
     ],
     // This phase updates the shared charge controller.
     sideEffects: [{ on: 'castCommit', do: { type: `guardian.use-mantra-${ID.MANTRA_OF_POTENCE}` } }]
@@ -173,7 +173,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       { type: 'boon', boon: BOON.QUICKNESS, duration: 5, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.MIGHT, stacks: 8, duration: 10, audience: { recipients: RECIPIENT.PARTY } }
     ],
-    // Retirement fires the final-charge point, so Weighty Terms rewards precede it.
+    // Retirement fires the final-charge point, so page refunds precede it.
     sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_POTENCE}` } }]
   },
   [ID.MANTRA_OF_TRUTH]: {
@@ -232,7 +232,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 8 },
       { type: 'condition', condition: CONDITION.BLINDNESS, stacks: 1, duration: 8 }
     ],
-    // Retirement fires the final-charge point, so Weighty Terms rewards precede it.
+    // Retirement fires the final-charge point, so page refunds precede it.
     sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_TRUTH}` } }]
   },
   [ID.MANTRA_OF_LIBERATION]: {
@@ -283,7 +283,7 @@ export const FIREBRAND_MANTRA_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       { type: 'boon', boon: BOON.STABILITY, stacks: 5, duration: 8, audience: { recipients: RECIPIENT.PARTY } },
       { type: 'boon', boon: BOON.SWIFTNESS, duration: 5, audience: { recipients: RECIPIENT.PARTY } }
     ],
-    // Retirement fires the final-charge point, so Weighty Terms rewards precede it.
+    // Retirement fires the final-charge point, so page refunds precede it.
     sideEffects: [{ on: 'castCommit', do: { type: `guardian.finish-mantra-${ID.MANTRA_OF_LIBERATION}` } }]
   }
 };

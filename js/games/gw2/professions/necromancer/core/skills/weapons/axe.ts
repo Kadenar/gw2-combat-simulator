@@ -24,16 +24,7 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        // The selected landed strike owns this skill-specific transaction.
-        reactions: [
-          {
-            on: 'damage.resolved',
-            actor: ACTOR.PLAYER,
-            packets: 'each',
-            when: (_runtime, { event }) => Number(event.coefficient) > 0,
-            do: [{ type: 'necromancer.axe-health' }]
-          }
-        ],
+        // The retired low-health Vulnerability bonus is removed; recharge tuning remains pending.
         ticks: [400, 640].map((atMs) => ({ atMs, coefficient: 1.4 / 2 }))
       },
       {

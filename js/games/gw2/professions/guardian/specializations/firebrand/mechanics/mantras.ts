@@ -1,6 +1,7 @@
 import { selectedSkillIdSet } from '#gw2/platform/builds/selected-skills.js';
 import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { BOON } from '#gw2/platform/constants.js';
+import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import {
@@ -15,6 +16,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { MaximumAmmoContext } from '#gw2/platform/profession-definition/runtime-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
+import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { finalMantraChargeUsed } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import {
   MANTRAS,
@@ -181,6 +183,12 @@ const firebrandMantraActions: RuntimeHooks<GuardianRuntimeState, GuardianSkill>[
       [
         `guardian.finish-mantra-${definition.rootId}`,
         (runtime: GuardianRuntime, context: ActionContext) => {
+          // Every final charge refunds one page before Revelation adds its separate refund.
+          applySideEffect(runtime, context, {
+            type: 'resourceGrant',
+            resource: 'tomePages',
+            amount: { profile: TRAIT.PURITY_OF_WORD, field: 'resourceGain' }
+          });
           runtime.fireTrigger(finalMantraChargeUsed, { context });
           closePreparedMagazine(runtime, runtime.cooldownController, magazine(runtime, definition));
           const root = runtime.helpers.skillsById.get(definition.rootId)!;

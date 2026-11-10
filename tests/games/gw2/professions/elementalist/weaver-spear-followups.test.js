@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
+import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
@@ -272,8 +272,9 @@ test('removing a spear follow-up strike retains its conditions and consumes the 
   assert.equal(liveBuffs(result, WEAVER_SPEAR_BUFFS[skill.id], trigger.at), 0);
 });
 
-test('active balance preview changes deferred spear coefficients in combat and tooltips', () => {
-  const profession = withPatchPreview(elementalistProfession, activePatchPreview);
+// Live spear follow-ups expose the same coefficient to combat and tooltip consumers.
+test('live balance applies deferred spear coefficients in combat and tooltips', () => {
+  const profession = withActivePatchPreview(elementalistProfession);
   for (const [id, coefficient] of [
     [ID.SHALE_STORM, 2],
     [ID.FIERY_IMPACT, 2.25],
@@ -281,12 +282,11 @@ test('active balance preview changes deferred spear coefficients in combat and t
   ]) {
     const skill = elementalistCatalog.skillsById.get(id);
     const result = run(skill, [cast(id), wait(1000), cast(ID.ARCANE_BLAST)], {
-      profession,
-      patchId: activePatchPreview.id
+      profession
     });
     assert.deepEqual(result.warnings, [], skill.name);
     assert.equal(strikes(result, id)[0].coefficient, coefficient, skill.name);
-    const context = profession.resolvePatch({ id: activePatchPreview.id }).balanceContext;
+    const context = profession.resolvePatch().balanceContext;
     const model = describeSimulationSkill(context, context.catalog.skillsById.get(id), elementalistTooltips);
     assert.ok(
       model.facts.some(

@@ -1,564 +1,232 @@
-import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
-import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
-import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { applySideEffect } from '#gw2/platform/effects/action-dispatch.js';
-import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
-import {
-  balanceNumber,
-  balanceProfileNumber,
-  effectNumber,
-  requireBalanceProfile,
-  requireEffect
-} from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, effectNumber, requireBalanceProfile } from '#gw2/platform/skills/balance-profiles.js';
 import { guardianCastCause } from '#gw2/professions/guardian/core/mechanics/event-handlers.js';
-import { guardianTraitIcon } from '#gw2/professions/guardian/core/traits/metadata.js';
-import { GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
+import { guardianBoonActive } from '#gw2/professions/guardian/core/mechanics/modifier-queries.js';
+import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import {
   grantAshes,
   resolveAshesGrantData
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/ashes.js';
 import {
   finalMantraChargeUsed,
-  firebrandBuffApplied,
   firebrandControlAccepted,
-  firebrandStruck,
   swiftScholarPagesGranted,
-  tomeOpened,
-  tomeStowed,
   type FinalMantraCharge,
-  type FirebrandBuffApplication,
-  type FirebrandControl,
-  type FirebrandStrike,
-  type TomeOpening
+  type FirebrandControl
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
-import { MANTRAS } from '#gw2/professions/guardian/specializations/firebrand/skills/skill-flips.js';
-import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
+import { legendaryLore, swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/pages.js';
 import type { GuardianRuntime, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-/** Derived trait effects inherit attribution and causality, never the triggering buff's recipients or duration. */
-function attribution(event: Gw2ResolverEvent) {
-  return {
-    source: 'guardian',
-    actorType: ACTOR.PLAYER,
-    skillId: event.skillId,
-    skillName: event.skillName,
-    activationId: event.activationId,
-    causalOrder: event.causalOrder ?? event.eventOrder,
-    triggeredBy: event.skillName
-  };
-}
-
-const refundByCast = new WeakMap<RuntimeCast<GuardianSkill>, number>();
-
-/** Purity of Word introduces the shared page pool; the resource controller retains its accounting. */
-const purityOfWord = defineTrait({
-  id: TRAIT.PURITY_OF_WORD,
-  balance: {
-    maximumStacks: 5,
-    pulseInterval: 8,
-    capacityTrait: TRAIT.ARCHIVIST_OF_WHISPERS,
-    intervalTrait: TRAIT.LOREMASTER
-  }
-});
-
-/** Counts accepted pages and grants earned refunds even after the tome session ends. */
-export const swiftScholar = defineTrait({
-  id: TRAIT.SWIFT_SCHOLAR,
-  balance: {
-    minimumStacks: 3,
-    resourceGain: 1,
-    effects: [{ type: 'boon', name: BOON.QUICKNESS, boon: BOON.QUICKNESS, stacks: 1, duration: 3 }]
-  },
-  // The minor needs no explicit selection, but its rewards still obey trigger isolation; pages remain mechanic-owned.
-  triggers: [
-    onTriggerPoint(tomeOpened, { requiresSelection: false, run: openSwiftScholarSession }),
-    onTriggerPoint(tomeStowed, {
-      requiresSelection: false,
-      run: (runtime: GuardianRuntime) => resetSwiftScholar(runtime)
-    }),
-    {
-      on: 'castStart',
-      requiresSelection: false,
-      run(runtime, cast) {
-        if (!cast.skill.tome || cast.cancelledBeforeCommit) return;
-
-        const state = firebrandState.from(runtime.profession);
-
-        if (state.swiftScholarTome !== cast.skill.tome) {
-          state.swiftScholarTome = cast.skill.tome;
-          state.swiftScholarCount = 0;
-        }
-
-        const profile = requireBalanceProfile(runtime.helpers, TRAIT.SWIFT_SCHOLAR);
-        // Complete this tome's page cycle at acceptance while leaving the earned refund attached to its cast.
-        const progress = advanceCounter(
-          state.swiftScholarCount,
-          1,
-          balanceProfileNumber(profile, 'minimumStacks'),
-          'reset'
-        );
-        state.swiftScholarCount = progress.value;
-
-        if (progress.reached) {
-          // A later concurrent stow cannot revoke the refund already earned by this accepted page.
-          refundByCast.set(cast, balanceProfileNumber(profile, 'resourceGain'));
-        }
-      }
+/** Bleeding receives its own damage and duration bonuses without affecting other conditions. */
+const unrelentingCriticism = defineTrait({
+  id: TRAIT.UNRELENTING_CRITICISM,
+  balance: { conditionDamageIncrease: 0.05, conditionDurationBonus: 0.2 },
+  attributes: ({ balanceContext }) => ({
+    traitDurations: {
+      'Bleeding Duration':
+        100 * balanceNumber(balanceContext.catalog, TRAIT.UNRELENTING_CRITICISM, 'conditionDurationBonus')
     }
-  ],
-  lifetime: {
-    // Completing an admitted cycle remains available even when new trait producers are disabled.
-    onCastCommit(runtime, cast) {
-      const skill = cast.skill;
-
-      if (!skill.tome) return;
-
-      const refund = refundByCast.get(cast) ?? 0;
-
-      if (refund > 0) {
-        runtime.resourceController.grant('tomePages', refund);
-        // Dependent rewards share the earned refund's completion boundary, including after a stow.
-        runtime.fireTrigger(swiftScholarPagesGranted, { cast });
-
-        runtime.effects.emit({
-          kind: 'announcement',
-          announcement: {
-            type: 'trait',
-            name: 'Swift Scholar',
-            at: runtime.time,
-            sourceSkill: skill.name,
-            detail: `+${refund} tome pages`,
-            icon: guardianTraitIcon(TRAIT.SWIFT_SCHOLAR)
-          }
-        });
-      }
-    }
-  }
-});
-
-/** Each completed page grants the boon associated with its tome. */
-const legendaryLore = defineTrait<GuardianSkill>({
-  id: TRAIT.LEGENDARY_LORE,
-  balance: {
-    effects: [
-      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 2, duration: 10 },
-      { type: 'boon', name: BOON.REGENERATION, boon: BOON.REGENERATION, stacks: 1, duration: 6 },
-      { type: 'boon', name: BOON.PROTECTION, boon: BOON.PROTECTION, stacks: 1, duration: 4 }
-    ]
-  },
-  triggers: [
+  }),
+  modifierRules: [
     {
-      on: 'castCommit',
-      run(runtime, cast) {
-        const skill = cast.skill;
-
-        if (!skill.tome) return;
-
-        const boonProfile = requireBalanceProfile(runtime.helpers, TRAIT.LEGENDARY_LORE);
-        const selectedBoon = requireEffect(
-          boonProfile,
-          'boon',
-          skill.tome === 'justice' ? BOON.MIGHT : skill.tome === 'resolve' ? BOON.REGENERATION : BOON.PROTECTION
-        );
-        const boonCause = {
-          ...guardianCastCause(runtime, cast),
-          sourceId: TRAIT.LEGENDARY_LORE,
-          name: 'Legendary Lore'
-        };
-
-        if (selectedBoon) {
-          emitTraitProfile(runtime, boonProfile.id, boonProfile.id, boonCause, {
-            preserveName: true,
-            effects: (effect) => effect === selectedBoon,
-            attribution: boonCause,
-            transform: (event) => ({ ...boonCause, ...event, audience: { recipients: RECIPIENT.SELF } })
-          });
-        }
-      }
+      id: 'guardian.unrelenting-criticism',
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: 'multiply',
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.UNRELENTING_CRITICISM, 'conditionDamageIncrease'),
+      when: (context) => context.condition === CONDITION.BLEEDING
     }
   ]
 });
 
-/** Quickness enables the same attribute contribution in preview and live queries. */
+/** Quickness gates outgoing damage without contributing attributes or feeding attribute conversions. */
 const imbuedHaste = defineTrait({
   id: TRAIT.IMBUED_HASTE,
-  balance: {
-    attributeBonuses: { conditionDamage: 250, healingPower: 250, vitality: 250 }
-  },
-  attributes: ({ loadout, balanceContext }) => ({
-    attributeEffects: ownerAttributeEffects(requireBalanceProfile(balanceContext.catalog, TRAIT.IMBUED_HASTE)).map(
-      (effect) => ({ ...effect, feedsConversions: 'all', enabled: loadout.assumptions.quickness !== false })
-    )
-  })
+  balance: { conditionDamageIncrease: 0.1 },
+  modifierRules: [
+    {
+      id: 'guardian.imbued-haste',
+      target: MODIFIER_TARGET.CONDITION_DAMAGE,
+      operation: 'multiply',
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.IMBUED_HASTE, 'conditionDamageIncrease'),
+      when: (context) => guardianBoonActive(context, BOON.QUICKNESS)
+    }
+  ]
 });
 
-/** Accepted heals reserve the interval before delivering surviving party Quickness. */
-export const liberatorsVow = defineTrait({
-  id: TRAIT.LIBERATORS_VOW,
-  balance: {
-    internalCooldown: 7,
-    effects: [{ type: 'boon', name: BOON.QUICKNESS, boon: BOON.QUICKNESS, stacks: 1, duration: 2 }]
-  },
+/** Revelation keeps the final-mantra page refund, with no hostile Slow packet. */
+const revelation = defineTrait({
+  id: TRAIT.REVELATION,
+  balance: { resourceGain: 1 },
   triggers: [
-    {
-      on: 'castCommit',
-      run(runtime, cast) {
-        const skill = cast.skill;
-
-        if (skill.type !== 'Heal') return;
-
-        const boonProfile = requireBalanceProfile(runtime.helpers, TRAIT.LIBERATORS_VOW);
-        const selectedBoon = requireEffect(boonProfile, 'boon', BOON.QUICKNESS);
-
-        if (
-          !selectedBoon ||
-          !runtime.procs.claim(TRAIT.LIBERATORS_VOW, 'guardian.firebrand.liberatorsVow', runtime.time)
-        )
-          return;
-
-        const boonCause = guardianCastCause(runtime, cast);
-        emitTraitProfile(runtime, boonProfile.id, boonProfile.id, boonCause, {
-          preserveName: true,
-          effects: (effect) => effect === selectedBoon,
-          attribution: boonCause,
-          transform: (event) => ({ ...boonCause, ...event, audience: { recipients: RECIPIENT.PARTY } })
+    onTriggerPoint(finalMantraChargeUsed, {
+      run(runtime: GuardianRuntime, { context }: FinalMantraCharge) {
+        applySideEffect(runtime, context, {
+          type: 'resourceGrant',
+          resource: 'tomePages',
+          amount: { profile: TRAIT.REVELATION, field: 'resourceGain' }
         });
         runtime.effects.emit({
           kind: 'announcement',
           announcement: {
             type: 'trait',
-            name: "Liberator's Vow",
+            name: 'Revelation',
             at: runtime.time,
-            sourceSkill: skill.name,
-            detail: BOON.QUICKNESS,
-            icon: guardianTraitIcon(TRAIT.LIBERATORS_VOW)
+            detail: `+${balanceNumber(runtime.helpers, TRAIT.REVELATION, 'resourceGain')} tome pages`
           }
         });
       }
-    }
+    })
   ]
 });
 
-/** Final-charge rewards precede charge retirement; the compiled completion stage reports the selected reward. */
-const weightyTerms = defineTrait({
-  id: TRAIT.WEIGHTY_TERMS,
+/** One admitted Swift Scholar refund grants expiring Ashes to the player and eligible nearby allies. */
+function grantFervidAshes(runtime: GuardianRuntime, { cast }: { readonly cast: RuntimeCast<GuardianSkill> }): void {
+  const profile = requireBalanceProfile(runtime.helpers, TRAIT.FERVID_CONVICTION);
+
+  // Removing the grant effect also removes its proc admission.
+  if (!profile.effects?.some((effect) => effect.type === 'buff' && effect.name === 'ashes-of-the-just')) return;
+
+  const admission = resolveAshesGrantData({ catalog: runtime.helpers, traits: runtime.traits }, profile);
+
+  if (!admission || !runtime.procs.claim(TRAIT.FERVID_CONVICTION, 'guardian.firebrand.fervid-conviction', runtime.time))
+    return;
+
+  const { buff } = admission;
+
+  const stacks = effectNumber(profile, buff, 'stacks');
+  const duration = effectNumber(profile, buff, 'duration');
+  const maximumTargets = balanceNumber(runtime.helpers, TRAIT.FERVID_CONVICTION, 'maximumTargets');
+
+  if (stacks <= 0 || duration <= 0 || maximumTargets <= 0) return;
+
+  grantAshes(runtime, {
+    source: 'fervid-conviction',
+    cause: guardianCastCause(runtime, cast),
+    charges: stacks,
+    lifetimeSeconds: duration,
+    recipients: { includesSelf: true, maximumAllies: 0 }
+  });
+  // Self and allies share expiry and ownership, but receive separate charge counts.
+  const allyStacks = balanceNumber(runtime.helpers, TRAIT.FERVID_CONVICTION, 'allyStacks');
+
+  if (allyStacks > 0)
+    grantAshes(runtime, {
+      source: 'fervid-conviction',
+      cause: guardianCastCause(runtime, cast),
+      charges: allyStacks,
+      lifetimeSeconds: duration,
+      recipients: { includesSelf: false, maximumAllies: maximumTargets - 1 }
+    });
+
+  runtime.effects.emit({
+    kind: 'announcement',
+    announcement: {
+      type: 'trait',
+      name: 'Fervid Conviction',
+      at: runtime.time,
+      sourceSkill: cast.skill.name,
+      detail: `+${stacks} Ashes of the Just`
+    }
+  });
+}
+
+const fervidConviction = defineTrait({
+  id: TRAIT.FERVID_CONVICTION,
   balance: {
-    resourceGain: 2,
-    effects: [{ type: 'condition', name: CONDITION.SLOW, condition: CONDITION.SLOW, stacks: 1, duration: 1.5 }]
+    internalCooldown: 0,
+    maximumTargets: 5,
+    // Supplied tooltip values; the self/ally split still awaits independent confirmation.
+    allyStacks: 1,
+    effects: [{ type: 'buff', name: 'ashes-of-the-just', kind: 'ashes-of-the-just', stacks: 2, duration: 10 }]
   },
-  triggers: [
-    onTriggerPoint(finalMantraChargeUsed, { run: grantWeightyTerms }),
-    {
-      on: 'castCommit',
-      run(runtime, cast) {
-        const skill = cast.skill;
-
-        if (MANTRAS.some(({ finalId }) => finalId === skill.id)) {
-          const gain = balanceNumber(runtime.helpers, TRAIT.WEIGHTY_TERMS, 'resourceGain');
-          // The final-charge trigger owns the rewards; the completed cast retains the proc report.
-
-          runtime.effects.emit({
-            kind: 'announcement',
-            announcement: {
-              type: 'trait',
-              name: 'Weighty Terms',
-              at: runtime.time,
-              sourceSkill: skill.name,
-              detail: `+${gain} tome pages`,
-              icon: guardianTraitIcon(TRAIT.WEIGHTY_TERMS)
-            }
-          });
-        }
-      }
-    }
-  ]
+  triggers: [onTriggerPoint(swiftScholarPagesGranted, { run: grantFervidAshes })]
 });
 
-/** Delivered Aegis or Stability grants party Quickness on the existing shared interval. */
+/** Swift Scholar completion replaces Aegis/Stability as the only producer of Stalwart Speed Quickness. */
 const stalwartSpeed = defineTrait({
   id: TRAIT.STALWART_SPEED,
   balance: {
-    internalCooldown: 7,
-    effects: [{ type: 'boon', name: BOON.QUICKNESS, boon: BOON.QUICKNESS, stacks: 1, duration: 2 }]
+    internalCooldown: 0,
+    effects: [
+      {
+        type: 'boon',
+        name: BOON.QUICKNESS,
+        boon: BOON.QUICKNESS,
+        stacks: 1,
+        duration: 4.5,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 }
+      }
+    ]
   },
   triggers: [
-    onTriggerPoint(firebrandBuffApplied, {
-      when: (_runtime, { cause }: FirebrandBuffApplication) =>
-        sharedDelivery(cause) && (cause.kind === BOON.AEGIS || cause.kind === BOON.STABILITY),
-      run: grantStalwartSpeed
+    onTriggerPoint(swiftScholarPagesGranted, {
+      run(runtime: GuardianRuntime, { cast }: { readonly cast: RuntimeCast<GuardianSkill> }) {
+        if (!requireBalanceProfile(runtime.helpers, TRAIT.STALWART_SPEED).effects?.length) return;
+
+        if (!runtime.procs.claim(TRAIT.STALWART_SPEED, 'guardian.firebrand.stalwartSpeed', runtime.time)) return;
+
+        emitTraitProfile(runtime, TRAIT.STALWART_SPEED, TRAIT.STALWART_SPEED, guardianCastCause(runtime, cast), {
+          skillName: 'Stalwart Speed',
+          attribution: { actorType: ACTOR.PLAYER }
+        });
+      }
     })
   ]
 });
 
-/** Player controls grant boons while Courage retains its passive through dormancy. */
+/** Only accepted player disables or Immobilized reduce Unbroken Lines; Slow no longer qualifies. */
 const stoicDemeanor = defineTrait({
   id: TRAIT.STOIC_DEMEANOR,
-  balance: {
-    effects: [
-      { type: 'boon', name: BOON.RESISTANCE, boon: BOON.RESISTANCE, stacks: 1, duration: 2 },
-      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 3, duration: 10 }
-    ]
-  },
+  balance: { rechargeReduction: 3, internalCooldown: 0.25 },
   triggers: [
     onTriggerPoint(firebrandControlAccepted, {
-      when: (_runtime, { cause }: FirebrandControl) => cause.actorType === ACTOR.PLAYER,
-      run: grantStoicDemeanor
-    })
-  ]
-});
+      when: (_runtime, { cause }: FirebrandControl) =>
+        cause.actorType === ACTOR.PLAYER && cause.condition !== CONDITION.SLOW,
+      run(runtime: GuardianRuntime) {
+        const reduction = balanceNumber(runtime.helpers, TRAIT.STOIC_DEMEANOR, 'rechargeReduction');
 
-/** Accepted axe damage grants the surviving Bleeding packet after Ashes consumption. */
-const unrelentingCriticism = defineTrait({
-  id: TRAIT.UNRELENTING_CRITICISM,
-  balance: {
-    effects: [
-      {
-        type: 'condition',
-        name: CONDITION.BLEEDING,
-        condition: CONDITION.BLEEDING,
-        stacks: 1,
-        duration: 4.5
+        if (
+          reduction <= 0 ||
+          !runtime.procs.claim(TRAIT.STOIC_DEMEANOR, 'guardian.firebrand.stoicDemeanor', runtime.time)
+        )
+          return;
+
+        runtime.cooldownController.reduceSkillRecharge(
+          runtime.helpers.skillsById.get(SKILL.UNBROKEN_LINES)!,
+          reduction,
+          runtime.time
+        );
       }
-    ]
-  },
-  triggers: [
-    onTriggerPoint(firebrandStruck, {
-      when: (runtime, { cause }: FirebrandStrike) =>
-        cause.skillId != null && runtime.helpers.skillsById.get(cause.skillId)?.weapon === WEAPON.AXE,
-      run: applyUnrelentingCriticism
     })
   ]
 });
 
-/** Delivered Quickness grants authored allied or self Ashes charges and retains passive Justice. */
-export const quickfire = defineTrait({
-  id: TRAIT.QUICKFIRE,
+/** Tune each consumed Ashes charge before duration bonuses, preserving ownership for self and allied burns. */
+const righteousFlames = defineTrait({
+  id: TRAIT.RIGHTEOUS_FLAMES,
   balance: {
-    internalCooldown: 7,
-    effects: [
-      {
-        type: 'buff',
-        name: 'ashes-of-the-just',
-        kind: 'ashes-of-the-just',
-        stacks: 1,
-        duration: 10
-      }
-    ]
-  },
-  triggers: [
-    onTriggerPoint(firebrandBuffApplied, {
-      when: (_runtime, { cause }: FirebrandBuffApplication) => sharedDelivery(cause) && cause.kind === BOON.QUICKNESS,
-      run: grantQuickfireAshes
-    })
-  ]
-});
-
-/** Increases the shared page capacity and upgrades the untraited initial default. */
-const archivistOfWhispers = defineTrait({
-  id: TRAIT.ARCHIVIST_OF_WHISPERS,
-  balance: { maximumStacks: 8 }
-});
-
-/** Shortens the resource controller cadence without creating a second recovery clock. */
-const loremaster = defineTrait({
-  id: TRAIT.LOREMASTER,
-  balance: {
-    pulseInterval: 5
+    durationMultiplier: 1.5
   }
 });
 
+// Healing and incoming damage are outside simulation scope. Purity of Word owns all page tuning.
 export const firebrandTraits = [
-  purityOfWord,
-  archivistOfWhispers,
-  loremaster,
+  defineTrait({ id: TRAIT.PURITY_OF_WORD, balance: { maximumStacks: 8, pulseInterval: 6, resourceGain: 1 } }),
   swiftScholar,
   legendaryLore,
+  unrelentingCriticism,
   imbuedHaste,
-  liberatorsVow,
-  weightyTerms,
+  revelation,
+  fervidConviction,
   stalwartSpeed,
   stoicDemeanor,
-  unrelentingCriticism,
-  quickfire
+  righteousFlames,
+  defineTrait({ id: TRAIT.BASTION }),
+  defineTrait({ id: TRAIT.DELIVERANCE })
 ];
-
-/** Tome session changes reset only the counter, never refunds earned by accepted casts. */
-function resetSwiftScholar(runtime: GuardianRuntime, virtue?: string): void {
-  const state = firebrandState.from(runtime.profession);
-
-  if (virtue === undefined || state.swiftScholarTome !== virtue) {
-    state.swiftScholarTome = virtue ?? '';
-    state.swiftScholarCount = 0;
-  }
-}
-
-/** A new tome session restarts the count; a ready opening grants Quickness after the shared virtue rewards. */
-function openSwiftScholarSession(runtime: GuardianRuntime, { cast, virtue, ready }: TomeOpening): void {
-  resetSwiftScholar(runtime, virtue);
-
-  if (!ready) return;
-
-  const boonProfile = requireBalanceProfile(runtime.helpers, TRAIT.SWIFT_SCHOLAR);
-  const selectedBoon = requireEffect(boonProfile, 'boon', BOON.QUICKNESS);
-  const boonCause = guardianCastCause(runtime, cast);
-
-  if (!selectedBoon) return;
-
-  emitTraitProfile(runtime, boonProfile.id, boonProfile.id, boonCause, {
-    preserveName: true,
-    effects: (effect) => effect === selectedBoon,
-    attribution: boonCause,
-    transform: (event) => ({ ...boonCause, ...event, audience: { recipients: RECIPIENT.SELF } })
-  });
-  runtime.effects.emit({
-    kind: 'announcement',
-    announcement: {
-      type: 'trait',
-      name: 'Swift Scholar',
-      at: runtime.time,
-      sourceSkill: cast.skill.name,
-      detail: 'Tome activation',
-      icon: guardianTraitIcon(TRAIT.SWIFT_SCHOLAR)
-    }
-  });
-}
-
-/** Final mantra charges grant pages and the trait's Slow before the mechanic retires the charge. */
-function grantWeightyTerms(runtime: GuardianRuntime, { context }: FinalMantraCharge): void {
-  applySideEffect(runtime, context, {
-    type: 'resourceGrant',
-    resource: 'tomePages',
-    amount: { profile: TRAIT.WEIGHTY_TERMS, field: 'resourceGain' }
-  });
-  applySideEffect(runtime, context, {
-    type: 'emitProfile',
-    profileId: TRAIT.WEIGHTY_TERMS,
-    // Keep the granting trait visible while the shared profile preserves cast lineage.
-    attribution: { source: 'guardian', actorType: ACTOR.PLAYER, name: 'Weighty Terms - Slow' }
-  });
-}
-
-/** Delivered boons reach these traits only when the player or an ally received them. */
-function sharedDelivery(event: Gw2ResolverEvent): boolean {
-  return event.resolvedAudience?.includesSelf === true || (event.resolvedAudience?.alliedPlayerCount ?? 0) > 0;
-}
-
-/** Delivered Aegis or Stability claims the interval only when its derived boons survive. */
-function grantStalwartSpeed(runtime: GuardianRuntime, { cause: boonCause }: FirebrandBuffApplication): void {
-  const boonProfile = requireBalanceProfile(runtime.helpers, TRAIT.STALWART_SPEED);
-  const selectedBoons = (boonProfile.effects ?? []).filter((effect) => effect.type === 'boon');
-
-  // Reserve the interval before delivery, so derived boons cannot reenter the proc.
-  if (
-    !selectedBoons.length ||
-    !runtime.procs.claim(TRAIT.STALWART_SPEED, 'guardian.firebrand.stalwartSpeed', runtime.time)
-  )
-    return;
-
-  emitTraitProfile(runtime, TRAIT.STALWART_SPEED, boonProfile.id, boonCause, {
-    preserveName: true,
-    effects: (effect) => selectedBoons.some((candidate) => candidate === effect),
-    attribution: {
-      ...attribution(boonCause),
-      source: 'Trait',
-      sourceId: TRAIT.STALWART_SPEED,
-      skillId: TRAIT.STALWART_SPEED,
-      skillName: boonProfile.name
-    },
-    transform: (packet) => ({ ...packet, audience: { recipients: RECIPIENT.PARTY } })
-  });
-  runtime.effects.emit({
-    kind: 'announcement',
-    announcement: {
-      type: 'trait',
-      name: boonProfile.name,
-      at: runtime.time,
-      sourceSkill: boonCause.skillName,
-      detail: 'Boons',
-      icon: guardianTraitIcon(TRAIT.STALWART_SPEED)
-    }
-  });
-}
-
-/** Delivered Quickness grants the selected allied or self Ashes count once both the charge and Burning survive. */
-function grantQuickfireAshes(runtime: GuardianRuntime, { cause: event }: FirebrandBuffApplication): void {
-  const allies = event.resolvedAudience?.alliedPlayerCount ?? 0;
-  const profile = requireBalanceProfile(runtime.helpers, TRAIT.QUICKFIRE);
-  const admission = resolveAshesGrantData({ catalog: runtime.helpers, traits: runtime.traits }, profile);
-
-  if (!admission || !runtime.procs.claim(TRAIT.QUICKFIRE, 'guardian.firebrand.quickfire', runtime.time)) return;
-
-  const lifetimeSeconds = effectNumber(profile, admission.buff, 'duration');
-  const stacks = effectNumber(profile, admission.buff, 'stacks');
-  grantAshes(runtime, {
-    source: 'quickfire',
-    cause: event,
-    charges: stacks,
-    lifetimeSeconds,
-    recipients: { includesSelf: allies <= 0, maximumAllies: allies > 0 ? 1 : 0 }
-  });
-
-  runtime.effects.emit({
-    kind: 'announcement',
-    announcement: {
-      type: 'trait',
-      name: 'Quickfire',
-      at: runtime.time,
-      sourceSkill: event.skillName,
-      detail: `+${stacks} Ashes of the Just`,
-      icon: guardianTraitIcon(TRAIT.QUICKFIRE)
-    }
-  });
-}
-
-/** Accepted player controls grant the surviving Stoic Demeanor boons. */
-function grantStoicDemeanor(runtime: GuardianRuntime, { cause: boonCause }: FirebrandControl): void {
-  const boonProfile = requireBalanceProfile(runtime.helpers, TRAIT.STOIC_DEMEANOR);
-  const selectedBoons = (boonProfile.effects ?? []).filter((effect) => effect.type === 'boon');
-
-  if (!selectedBoons.length) return;
-
-  emitTraitProfile(runtime, TRAIT.STOIC_DEMEANOR, boonProfile.id, boonCause, {
-    preserveName: true,
-    effects: (effect) => selectedBoons.some((candidate) => candidate === effect),
-    attribution: {
-      ...attribution(boonCause),
-      source: 'Trait',
-      sourceId: TRAIT.STOIC_DEMEANOR,
-      skillId: TRAIT.STOIC_DEMEANOR,
-      skillName: boonProfile.name
-    },
-    transform: (packet) => ({ ...packet, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } })
-  });
-  runtime.effects.emit({
-    kind: 'announcement',
-    announcement: {
-      type: 'trait',
-      name: boonProfile.name,
-      at: runtime.time,
-      sourceSkill: boonCause.skillName,
-      detail: 'Boons',
-      icon: guardianTraitIcon(TRAIT.STOIC_DEMEANOR)
-    }
-  });
-}
-
-/** Accepted axe hits apply Bleeding after consuming any Ashes charge. */
-function applyUnrelentingCriticism(runtime: GuardianRuntime, { cause: event }: FirebrandStrike): void {
-  // Keep axe ownership and reaction settlement while the profile owns Bleeding's authored fields.
-  emitTraitProfile(runtime, TRAIT.UNRELENTING_CRITICISM, TRAIT.UNRELENTING_CRITICISM, undefined, {
-    at: runtime.time,
-    effect: { type: 'condition', name: CONDITION.BLEEDING },
-    settlement: 'reaction',
-    attribution: {
-      ...attribution(event),
-      sourceId: event.skillId!,
-      name: 'Unrelenting Criticism - Bleeding',
-      triggeredBy: 'Unrelenting Criticism'
-    }
-  });
-}

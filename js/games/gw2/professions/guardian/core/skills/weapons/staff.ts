@@ -1,5 +1,5 @@
 /** Canonical Core guardian skill definitions grouped by their GW2 owner. */
-import { COMBO_FIELD } from '#gw2/platform/constants.js';
+import { BOON, COMBO_FIELD, RECIPIENT } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
 
@@ -109,8 +109,22 @@ export const GUARDIAN_WEAPONS_STAFF_SKILL_MECHANICS: Readonly<Record<number, Ski
     weapon: 'Staff',
     slot: 'Weapon_4',
     cooldown: 20,
-    castTimeMs: 520,
-    effects: []
+    castTimeMs: 2520,
+    // Might pulses during the channel; interruption prevents the remaining grants.
+    effects: [
+      {
+        type: 'boon',
+        boon: BOON.MIGHT,
+        stacks: 4,
+        duration: 12,
+        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+        atMs: 500,
+        applications: 3,
+        intervalMs: 1000,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      }
+    ]
   },
   [ID.LINE_OF_WARDING]: {
     name: 'Line of Warding',

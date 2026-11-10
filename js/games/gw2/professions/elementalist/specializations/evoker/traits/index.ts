@@ -133,7 +133,7 @@ const specializedElements = defineTrait({
   id: TRAIT.SPECIALIZED_ELEMENTS,
   balance: {
     rechargeMultiplier: 0.9,
-    empoweredRechargeMultiplier: 0.67,
+    empoweredRechargeMultiplier: 0.8,
     maximumStacks: 6,
     playerStacks: 3
   },
@@ -308,7 +308,7 @@ const altruisticAspect = defineTrait({
 const familiarsFocus = defineTrait({
   id: TRAIT.FAMILIARS_FOCUS,
   balance: {
-    damageIncrease: 0.1,
+    damageIncrease: 0.12,
     conditionDamageIncrease: 0.1
   }
 });

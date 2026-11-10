@@ -5,13 +5,13 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 
 /** Focus recharge reduction applies through the shared cooldown controller, including Alacrity. */
-export const wardensFeedback = defineTrait<MesmerSkill>({
-  id: TRAIT.WARDENS_FEEDBACK,
+export const focalFeedback = defineTrait<MesmerSkill>({
+  id: TRAIT.FOCAL_FEEDBACK,
   balance: { rechargeMultiplier: 0.8 },
   rechargeRules: [
     {
       when: (_runtime, skill) => skill.weapon === WEAPON.FOCUS,
-      multiplier: { profile: TRAIT.WARDENS_FEEDBACK, field: 'rechargeMultiplier' }
+      multiplier: { profile: TRAIT.FOCAL_FEEDBACK, field: 'rechargeMultiplier' }
     }
   ]
 });

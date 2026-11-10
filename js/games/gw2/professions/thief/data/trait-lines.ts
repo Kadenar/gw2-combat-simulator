@@ -390,7 +390,7 @@ export const TRAIT_LINES: readonly Gw2SpecializationData[] = [
     minorTraits: [
       {
         id: 1240,
-        name: 'Expeditious Dodger',
+        name: 'Deft Initiation',
         icon: 'https://render.guildwars2.com/file/46E42E0D330FA8C60B6477BF6E206FDA98E114D6/1012723.png'
       },
       {
@@ -408,12 +408,12 @@ export const TRAIT_LINES: readonly Gw2SpecializationData[] = [
       [
         {
           id: 1112,
-          name: 'Instant Reflexes',
+          name: 'Opportune Opening',
           icon: 'https://render.guildwars2.com/file/E80BD3449E33470B1ECA0FF242CC6B031B459514/1012714.png'
         },
         {
           id: 1289,
-          name: 'Pumping Up',
+          name: 'Endurance Training',
           icon: 'https://render.guildwars2.com/file/F6031E3A99700AD327760C9D276F1A21A2EAF8BD/1012715.png'
         },
         {
@@ -424,9 +424,9 @@ export const TRAIT_LINES: readonly Gw2SpecializationData[] = [
       ],
       [
         {
-          id: 1241,
-          name: 'Guarded Initiation',
-          icon: 'https://render.guildwars2.com/file/DA7CF19FEA207C0809BEAF31B0F722EC32EC27B2/1012717.png'
+          id: 1238,
+          name: "Assassin's Reward",
+          icon: 'https://render.guildwars2.com/file/319EE2C0AC583CDBD7741BB23051FA026022F20A/1012720.png'
         },
         {
           id: 1192,
@@ -441,8 +441,8 @@ export const TRAIT_LINES: readonly Gw2SpecializationData[] = [
       ],
       [
         {
-          id: 1238,
-          name: "Assassin's Reward",
+          id: 'thief.acrobatics.sharp-initiation',
+          name: 'Sharp Initiation',
           icon: 'https://render.guildwars2.com/file/319EE2C0AC583CDBD7741BB23051FA026022F20A/1012720.png'
         },
         {

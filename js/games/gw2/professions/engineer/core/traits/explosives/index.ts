@@ -33,7 +33,7 @@ import {
 /** Grenadier owns its heal trigger and explosion modifier; the barrage owns its skill balance. */
 export const grenadier = defineTrait({
   id: TRAIT.GRENADIER,
-  // Store the bonus as a fraction so preview controls and tooltips share the same percentage convention.
+  // The final explosion-damage percentage is unpublished, so the modifier remains neutral.
   balance: { damageIncrease: 0 },
   modifierRules: [
     {
@@ -41,7 +41,7 @@ export const grenadier = defineTrait({
       order: -17,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
-      // Live remains neutral; preview tuning increases only player-owned explosion strikes with Grenadier selected.
+      // Only player-owned explosion strikes receive the selected Grenadier bonus.
       factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.GRENADIER, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && isExplosion(context.event)
     }

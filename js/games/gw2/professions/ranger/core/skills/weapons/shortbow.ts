@@ -12,11 +12,11 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { isPetStrike, isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { deliverChargedHit, grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
 import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
-import { qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
+import { rangerTargetImpaired } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
-/** Share the patched base and intrinsic extension so trait extensions add seconds without compounding them. */
+/** Poison Volley extends its base duration against impaired or defiant targets. */
 export function shortbowConditionDuration(context: Gw2ModifierContext) {
   const skill = skillForEvent<RangerSkill>(context.catalog, context.event, context.skillId);
   const base =
@@ -25,10 +25,8 @@ export function shortbowConditionDuration(context: Gw2ModifierContext) {
     )?.duration || 0;
   let intrinsic = 0;
 
-  if (qualifiesForFlankingBonuses(context)) {
-    if (skill?.id === ID.CROSSFIRE && context.condition === CONDITION.BLEEDING)
-      intrinsic = skill.durationExtension || 0;
-    else if (skill?.id === ID.POISON_VOLLEY && context.condition === CONDITION.POISONED)
+  if (rangerTargetImpaired(context)) {
+    if (skill?.id === ID.POISON_VOLLEY && context.condition === CONDITION.POISONED)
       intrinsic = skill.durationExtension || 0;
   }
 
@@ -51,21 +49,6 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
     // Infer commitment at 200 ms from pQEm-20260716-181334's connected arrows; retain the full 360 ms lockout.
     interruptCommitMs: 200,
     retainsCastLockoutAfterInterrupt: true,
-    // Intrinsic seconds precede Light on Your Feet so both extensions add to the same base.
-    durationExtension: 1,
-    modifiers: [
-      {
-        id: 'ranger.crossfire-base-duration',
-        order: 0,
-        target: MODIFIER_TARGET.CONDITION_BASE_DURATION,
-        operation: 'multiply',
-        factor: (context) => {
-          const { base, intrinsic } = shortbowConditionDuration(context);
-          return base > 0 ? (base + intrinsic) / base : 1;
-        },
-        when: (context) => context.condition === CONDITION.BLEEDING && qualifiesForFlankingBonuses(context)
-      }
-    ],
     effects: impactEffects(
       { atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
@@ -86,7 +69,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
           type: 'condition',
           condition: CONDITION.BLEEDING,
           stacks: 1,
-          duration: 2
+          duration: 5
         }
       ]
     )
@@ -97,11 +80,11 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Shortbow',
     slot: 'Weapon_2',
-    cooldown: 8,
+    cooldown: 6,
     castTimeMs: 560,
     interruptCommitMs: 280,
     retainsCastLockoutAfterInterrupt: true,
-    // Intrinsic seconds precede Light on Your Feet so both extensions add to the same base.
+    // Retain the intrinsic poison extension with the new impairment trigger.
     durationExtension: 2,
     modifiers: [
       {
@@ -113,7 +96,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
           const { base, intrinsic } = shortbowConditionDuration(context);
           return base > 0 ? (base + intrinsic) / base : 1;
         },
-        when: (context) => context.condition === CONDITION.POISONED && qualifiesForFlankingBonuses(context)
+        when: (context) => context.condition === CONDITION.POISONED && rangerTargetImpaired(context)
       }
     ],
     effects: impactEffects(
@@ -133,7 +116,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
           applications: 5,
           intervalMs: 0,
           stacks: 1,
-          duration: 5
+          duration: 7
         }
       ]
     )
@@ -144,7 +127,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Shortbow',
     slot: 'Weapon_3',
-    cooldown: 8,
+    cooldown: 6,
     evades: true,
     castTimeMs: 840,
     interruptCommitMs: 840,
@@ -181,7 +164,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Shortbow',
     slot: 'Weapon_4',
-    cooldown: 12,
+    cooldown: 10,
     // Unspent charges and their delivered conditions have independent lifetimes.
     charges: 3,
     duration: 12,
@@ -215,7 +198,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
           // Defiance is the simulation's supported proxy for the flank/behind bonus.
           when: (runtime) => Boolean(runtime.config.target?.defiant),
           stacks: 1,
-          duration: 1.5
+          duration: 2
         }
       ]
     ),
@@ -227,7 +210,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
           type: 'ranger.blood-thirst',
           id: 'blood-thirst',
           effects: [
-            { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 15 }
+            { name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, stacks: 2, duration: 7.5 }
           ]
         }
       }
@@ -239,7 +222,7 @@ export const RANGER_CORE_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, Skill
     type: 'Weapon',
     weapon: 'Shortbow',
     slot: 'Weapon_5',
-    cooldown: 20,
+    cooldown: 16,
     castTimeMs: 640,
     interruptCommitMs: 520,
     retainsCastLockoutAfterInterrupt: true,

@@ -14,6 +14,7 @@ import { thiefAvailability } from '#gw2/professions/thief/core/mechanics/availab
 import { thiefAxeLifecycle } from '#gw2/professions/thief/core/mechanics/axes.js';
 import { landedChannelRefundLifecycle } from '#gw2/professions/thief/core/mechanics/channel-refund.js';
 import { modifyThiefLifeSiphon } from '#gw2/professions/thief/core/mechanics/life-siphon.js';
+import { thiefMobilityLifecycle } from '#gw2/professions/thief/core/mechanics/mobility.js';
 import { activateTrap, prepareTrap } from '#gw2/professions/thief/core/mechanics/preparations.js';
 import {
   setThiefKneeling,
@@ -52,7 +53,7 @@ import {
   thiefConditionApplied,
   thiefDodgeStarted,
   thiefMobilityUsed,
-  thiefReworkStruck,
+  thiefPostVenomStruck,
   thiefStruck,
   thiefWeaponSwapped,
   venomsConsumed
@@ -92,7 +93,7 @@ function completeThiefCast(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>,
   if (committed) {
     runtime.fireTrigger(thiefCastCompleted, { cast, initiativeCost });
 
-    // Rework extension point (thief-core-rework): dual classification still admits only one mobility refresh.
+    // Dual movement/shadowstep classification still admits only one mobility refresh.
     if (skill.movementSkill || skill.shadowstepSkill) runtime.fireTrigger(thiefMobilityUsed, { cast, initiativeCost });
   }
 }
@@ -224,7 +225,8 @@ export const thiefCoreHooks = composeRuntimeHooks<ThiefRuntimeState, ThiefSkill>
   landedChannelRefundLifecycle(ID.ASHEN_ASSAULT),
   landedChannelRefundLifecycle(ID.UNLOAD),
   thiefAxeLifecycle,
-  coreLifecycle
+  coreLifecycle,
+  thiefMobilityLifecycle
 ]);
 
 /** Landed strikes reach critical and Deadly Arts traits, consume venoms, then reach the aggregate venom traits. */
@@ -236,6 +238,6 @@ export function reactThiefCoreDamage(
   runtime.fireTrigger(thiefStruck, { cause: event, details: details });
   // Multiple venom types consume their charges but share one siphon per player strike.
   runtime.fireTrigger(venomsConsumed, { cause: event, consumed: applyActiveVenoms(runtime, event) });
-  // Rework extension point (thief-core-rework): preserve all existing strike/venom order before preview rewards.
-  runtime.fireTrigger(thiefReworkStruck, { cause: event, details });
+  // Resolve mobility rewards after strike traits and venom consumption.
+  runtime.fireTrigger(thiefPostVenomStruck, { cause: event, details });
 }

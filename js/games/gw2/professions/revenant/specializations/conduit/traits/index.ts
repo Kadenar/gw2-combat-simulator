@@ -178,7 +178,7 @@ const mistfire = defineTrait({
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 1,
-        duration: 6,
+        duration: 8,
         actorType: ACTOR.EFFECT
       }
     ]

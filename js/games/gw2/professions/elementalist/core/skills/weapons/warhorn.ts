@@ -62,9 +62,8 @@ const LIGHTNING_ORB_STRIKE_TICK_LAYERS = [
 // Wildfire's two overlap pulses after its regular field pulses reach only large targets; strikes and Burning share them.
 const WILDFIRE_OVERLAP_TICKS = [8560, 9560].map((atMs) => ({ atMs, metadata: { largeHitboxOnly: true } }));
 
-// Dust Storm pulses eight times on roughly one-second intervals; strike, Bleeding, and blind
-// applications all reuse these offsets.
-const DUST_STORM_TICK_OFFSETS_MS = [1560, 2640, 3560, 4640, 5560, 6640, 7560, 8640] as const;
+// Each target receives one offensive pulse per attack interval across both storms.
+const DUST_STORM_TICK_OFFSETS_MS = [1560, 3560, 5560, 7560] as const;
 
 /**
  * Complete warhorn declarations own presentation, cast timelines, emitted packets, and combo participation.
@@ -117,7 +116,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 1,
-        duration: 3,
+        duration: 2.5,
         atMs: 1560,
         applications: 7,
         intervalMs: 1000
@@ -134,7 +133,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
           ...tick,
           condition: CONDITION.BURNING,
           stacks: 1,
-          duration: 3
+          duration: 2.5
         })),
         {}
       )
@@ -278,7 +277,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
       }
     ]
   },
-  // Eight pulses that each strike, bleed, and blind, with Resistance granted on the first pulse.
+  // Offensive pulses share the hitbox limit; Resistance remains an independent party grant.
   [ID.DUST_STORM]: withSmallHitboxCap(
     {
       name: 'Dust Storm',
@@ -328,7 +327,7 @@ export const ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS: Readonly<Record<number, 
         }
       ])
     },
-    6
+    3
   )
 };
 

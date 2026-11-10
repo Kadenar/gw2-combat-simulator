@@ -496,22 +496,23 @@ test('Firearms traits apply critical tiers, durations, procs, and Power bleeding
   assert.equal(chemicalBurn.effectiveDuration, Math.round(((baseBurn.duration * 4) / 3) * 1000) / 1000);
   assertRoundedDamageMultiplier(thermalBurn.damageTicks[0].damage, baseBurn.damageTicks[0].damage, 1.05);
 
+  // Six conditions exercise Modified Ammunition's five-condition cap.
   const ammunitionBase = simulate('Core', ['Puncturing Jab'], {
     target: {
-      conditions: { Bleeding: 1, Burning: 1, Poisoned: 1 }
+      conditions: { Bleeding: 1, Burning: 1, Poisoned: 1, Chilled: 1, Crippled: 1, Immobilized: 1 }
     }
   });
   const ammunition = simulate('Core', ['Puncturing Jab'], {
     selectedTraitIds: [TRAIT.MODIFIED_AMMUNITION],
     target: {
-      conditions: { Bleeding: 1, Burning: 1, Poisoned: 1 }
+      conditions: { Bleeding: 1, Burning: 1, Poisoned: 1, Chilled: 1, Crippled: 1, Immobilized: 1 }
     }
   });
 
   assertFlooredDamageMultiplier(
     ammunition.resolvedEvents.find((event) => event.type === 'damage').damage,
     ammunitionBase.resolvedEvents.find((event) => event.type === 'damage').damage,
-    1.03
+    1.1
   );
 });
 

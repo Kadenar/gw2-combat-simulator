@@ -1125,7 +1125,7 @@ test('Conduit grandmasters alter release, invocation, and Cosmic Wisdom', () => 
         event.type === 'condition' &&
         event.skillName === 'Mistfire' &&
         event.condition === 'Burning' &&
-        event.duration === 6
+        event.duration === 8
     )
   );
   assert.equal(

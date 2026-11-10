@@ -826,7 +826,7 @@ test('shroud strikes use their fixed or equipped weapon strengths', () => {
   );
 
   assert.ok(anguishHits.length > 0);
-  assert.ok(anguishHits.every((event) => event.coefficient === 0.36));
+  assert.ok(anguishHits.every((event) => event.coefficient === 0.15));
   assert.ok(anguishHits.every((event) => event.weaponStrengthProfileId === 'transform.ritualist-shroud'));
   assert.ok(anguishHits.every((event) => event.resolvedWeaponStrength === 1100));
   assert.equal(new Set(anguishHits.map((event) => event.activationId)).size, 1);

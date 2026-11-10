@@ -513,7 +513,7 @@ test('removed Willbender window components preserve independent fields and activ
   );
 });
 
-test('Willbender Phoenix Protocol shares only with Battle Presence', () => {
+test('Willbender Phoenix Protocol shares with or without Battle Presence', () => {
   for (const sharing of [false, true]) {
     const config = {
       ...willbender,
@@ -524,7 +524,7 @@ test('Willbender Phoenix Protocol shares only with Battle Presence', () => {
     const detailed = run(rotation, config);
     const alacrity = detailed.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'alacrity');
     assert.ok(alacrity.length >= 2);
-    assert.ok(alacrity.every((event) => event.resolvedAudience.alliedPlayerCount === (sharing ? 4 : 0)));
+    assert.ok(alacrity.every((event) => event.resolvedAudience.alliedPlayerCount === 4));
     assert.deepEqual(detailed.warnings, []);
   }
 });
@@ -532,10 +532,10 @@ test('Willbender Phoenix Protocol shares only with Battle Presence', () => {
 test('Firebrand pages recover before retrying a cast and zero pages leave the tome open', () => {
   const result = run([ID.TOME_OF_JUSTICE, ID.SEARING_SPELL], { ...firebrand, initialTomePages: 0 });
   assert.deepEqual(result.warnings, []);
-  assert.equal(result.steps[1].start, 8000);
+  assert.equal(result.steps[1].start, 6000);
   assert.equal(fb(result).tomePages.value, 0);
   assert.equal(fb(result).activeTome, 'justice');
-  const archivist = run([], { ...firebrand, selectedTraitIds: [TRAIT.ARCHIVIST_OF_WHISPERS] });
+  const archivist = run([], { ...firebrand, selectedTraitIds: [TRAIT.BASTION] });
   assert.equal(fb(archivist).tomePages.maximum, 8);
   assert.equal(fb(archivist).tomePages.value, 8);
 });
@@ -547,11 +547,11 @@ test('Firebrand page refunds survive concurrent stow while canceled pages spend 
     firebrand
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(fb(result).tomePages.value, 3);
+  assert.equal(fb(result).tomePages.value, 6);
   assert.equal(fb(result).activeTome, '');
   assert.equal(fb(result).swiftScholarCount, 0);
   const canceled = run([...opening, { type: 'cast', skillId: ID.SEARING_SPELL, interruptAfterMs: 1 }], firebrand);
-  assert.equal(fb(canceled).tomePages.value, 3);
+  assert.equal(fb(canceled).tomePages.value, 6);
   assert.equal(fb(canceled).swiftScholarCount, 2);
 });
 
@@ -567,7 +567,7 @@ test('Firebrand page exhaustion waits on the selected recovery policy and disabl
     id: 'no-pages',
     label: 'No page regeneration',
     professions: {
-      guardian: { balanceProfiles: { [TRAIT.PURITY_OF_WORD]: { fields: { pulseInterval: { from: 8, to: 0 } } } } }
+      guardian: { balanceProfiles: { [TRAIT.PURITY_OF_WORD]: { fields: { pulseInterval: { from: 6, to: 0 } } } } }
     }
   });
   const result = run(
@@ -719,78 +719,10 @@ test('Firebrand Ashes grants at application, ignores misses, and preserves hit l
     firebrand
   );
   assert.equal(fb(canceled).ashes.charges, 0);
-  assert.equal(fb(canceled).tomePages.value, 5);
+  assert.equal(fb(canceled).tomePages.value, 8);
   assert.equal(
     canceled.resolvedEvents.some((event) => event.kind === 'ashes-of-the-just'),
     false
-  );
-});
-
-test('Firebrand Quickfire refresh preserves charges past an older expiry and excludes ineligible recipients', () => {
-  const result = run(
-    [wait(11000)],
-    { ...firebrand, selectedTraitIds: [TRAIT.QUICKFIRE] },
-    {
-      initialize: (runtime) => {
-        boon(runtime, 'quickness', 0, 1, { audience: { recipients: 'self' } });
-        boon(runtime, 'quickness', 8, 1, { audience: { recipients: 'self' } });
-        strike(runtime, 10.5);
-      }
-    }
-  );
-  assert.equal(fb(result).ashes.charges, 1);
-  assert.equal(fb(result).ashes.expiresAt, 18);
-  const rejected = run(
-    [wait(1000)],
-    { ...firebrand, selectedTraitIds: [TRAIT.QUICKFIRE] },
-    {
-      initialize: (runtime) =>
-        boon(runtime, 'quickness', 0, 1, { audience: { recipients: 'summons', affectsSelf: false } })
-    }
-  );
-  assert.equal(observedRuntime(rejected).procs.deadline('guardian.firebrand.quickfire'), 0);
-  assert.equal(fb(rejected).ashes.charges, 0);
-});
-
-test('Firebrand axe and disable traits react to accepted player outcomes only', () => {
-  const result = run(
-    [wait(1000)],
-    { ...firebrand, selectedTraitIds: [TRAIT.UNRELENTING_CRITICISM, TRAIT.STOIC_DEMEANOR] },
-    {
-      initialize: (runtime) => {
-        strike(runtime, 0.1, { skillId: ID.BLAZING_EDGE, offTarget: true });
-        strike(runtime, 0.2, { skillId: ID.BLAZING_EDGE, actorType: 'summon' });
-        strike(runtime, 0.3, { skillId: ID.BLAZING_EDGE });
-        for (const [at, actorType, offTarget] of [
-          [0.4, 'player', true],
-          [0.5, 'summon', false],
-          [0.6, 'player', false]
-        ])
-          runtime.effects.emit({
-            kind: 'packet',
-            event: {
-              type: 'control',
-              at,
-              actorType,
-              offTarget,
-              source: 'fixture',
-              sourceId: 'control',
-              controlKind: 'daze',
-              activationId: `control-${at}`
-            }
-          });
-      }
-    }
-  );
-  const bleeds = result.resolvedEvents.filter((event) => event.type === 'condition' && event.condition === 'Bleeding');
-  assert.deepEqual(
-    bleeds.map((event) => event.activationId),
-    ['impact-0.3']
-  );
-  const resistance = result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'resistance');
-  assert.deepEqual(
-    resistance.map((event) => event.activationId),
-    ['control-0.6']
   );
 });
 
@@ -800,11 +732,7 @@ test('removed Firebrand components preserve independent page grants and Might wi
     label: 'Firebrand component removal',
     professions: {
       guardian: {
-        skills: { [ashesBurningSkill.id]: { removeEffects: [{ type: 'condition', all: true }] } },
-        balanceProfiles: {
-          [TRAIT.WEIGHTY_TERMS]: { removeEffects: [{ type: 'condition', all: true }] },
-          [TRAIT.STALWART_SPEED]: { removeEffects: [{ type: 'boon', all: true }] }
-        }
+        skills: { [ashesBurningSkill.id]: { removeEffects: [{ type: 'condition', all: true }] } }
       }
     }
   });
@@ -814,7 +742,7 @@ test('removed Firebrand components preserve independent page grants and Might wi
       ...firebrand,
       patchId: 'firebrand-components',
       initialTomePages: 1,
-      selectedTraitIds: [TRAIT.QUICKFIRE, TRAIT.WEIGHTY_TERMS, TRAIT.STALWART_SPEED]
+      selectedTraitIds: [TRAIT.RIGHTEOUS_FLAMES, TRAIT.REVELATION, TRAIT.STALWART_SPEED]
     },
     { initialize: () => {}, profession: patched }
   );

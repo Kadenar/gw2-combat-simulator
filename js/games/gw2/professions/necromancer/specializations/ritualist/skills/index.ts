@@ -139,11 +139,15 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
         order: 2,
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'damage-additive',
-        // Apply the condition bonus; temporary target-control bonuses are outside simulation scope.
+        // Defiant targets receive the capped bonus; ordinary targets count up to five conditions.
         parameters: {
-          damagePerCondition: 0.02
+          damagePerCondition: 0.04,
+          maximumConditions: 5
         },
-        amount: (context, _target, parameters) => targetConditionCount(context) * parameters.damagePerCondition,
+        amount: (context, _target, parameters) =>
+          (context.config?.target?.defiant
+            ? parameters.maximumConditions
+            : Math.min(targetConditionCount(context), parameters.maximumConditions)) * parameters.damagePerCondition,
         // Existing spirit ownership and attack type identify every non-Innervate Anguish attack, including Summon Spirits.
         when: (context) =>
           context.event?.summonOwner === 'spirit:anguish' && context.event.metadata?.spiritAttackType !== 'innervate'
@@ -159,16 +163,16 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
           id: 'opening',
           effects: [
             {
-              // EVTC calibration identifies each player-owned barrage packet as a 0.36 coefficient strike.
+              // The live patch defines each opening barrage hit independently of the old log calibration.
               type: 'strike',
               ticks: [
-                { atMs: 800, coefficient: 0.36 },
-                { atMs: 960, coefficient: 0.36 },
-                { atMs: 1000, coefficient: 0.36 },
-                { atMs: 1080, coefficient: 0.36 },
-                { atMs: 1120, coefficient: 0.36 },
-                { atMs: 1160, coefficient: 0.36 },
-                { atMs: 1200, coefficient: 0.36 }
+                { atMs: 800, coefficient: 0.15 },
+                { atMs: 960, coefficient: 0.15 },
+                { atMs: 1000, coefficient: 0.15 },
+                { atMs: 1080, coefficient: 0.15 },
+                { atMs: 1120, coefficient: 0.15 },
+                { atMs: 1160, coefficient: 0.15 },
+                { atMs: 1200, coefficient: 0.15 }
               ],
               timingAnchor: 'castStart',
               timingScale: 'fixed',
@@ -467,7 +471,7 @@ const RITUALIST_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Ne
           effects: [
             {
               type: 'strike',
-              ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 2.5 / 4 })),
+              ticks: Array.from({ length: 4 }, (_, index) => ({ atMs: 360 + index * 320, coefficient: 0.6 })),
               timingAnchor: 'castStart',
               timingScale: 'fixed',
               duration: 2,

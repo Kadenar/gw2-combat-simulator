@@ -6,7 +6,6 @@ import {
 } from '#gw2/professions/guardian/build/build.js';
 import { guardianNativeModules } from '#gw2/professions/guardian/catalog.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { firebrandReworkModule } from '#gw2/professions/guardian/specializations/firebrand/rework/module.js';
 
 export { guardianCatalog, guardianNativeModules } from '#gw2/professions/guardian/catalog.js';
 
@@ -20,7 +19,6 @@ export const guardianProfession = defineNativeProfession({
     validateBuild: validateGuardianBuild
   },
   modules: guardianNativeModules,
-  moduleVariants: { 'firebrand-rework': firebrandReworkModule },
   autoattackChains: {
     overrides: [
       {

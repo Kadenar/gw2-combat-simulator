@@ -6,19 +6,19 @@ import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-defini
 import { activeBoonStacks } from '#gw2/professions/engineer/core/traits/query-helpers.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { TRAIT_LINES } from '#gw2/professions/engineer/data/trait-lines.js';
-import { AMALGAM_SKILL_FIELDS } from '#gw2/professions/engineer/specializations/amalgam/catalog-fields.js';
+import {
+  AMALGAM_PROFILE_FIELDS,
+  AMALGAM_SKILL_FIELDS
+} from '#gw2/professions/engineer/specializations/amalgam/catalog-fields.js';
 import { amalgamHooks } from '#gw2/professions/engineer/specializations/amalgam/hooks.js';
 import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
 import { bindAmalgamUi } from '#gw2/professions/engineer/specializations/amalgam/presentation.js';
 import { AMALGAM_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/index.js';
 import { amalgamState, projectAmalgamPlanningState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
-import {
-  amalgamTraits,
-  evolveAttributeFactor
-} from '#gw2/professions/engineer/specializations/amalgam/traits/index.js';
+import { amalgamTraits, evolveAttributeBonus } from '#gw2/professions/engineer/specializations/amalgam/traits/index.js';
 import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
-// Evolved adds 10% of its eligible stat pool, or 20% with Double Helix.
+// Evolved adds 10% of its eligible stat pool, or 15% with Double Helix.
 // Round attribute conversions before deriving armor, critical chance, and duration percentages.
 const EVOLVE_ATTRIBUTES = Object.freeze([
   'Power',
@@ -40,6 +40,7 @@ export const amalgamModule = defineNativeModule({
     id: 'Amalgam',
     traitLines: TRAIT_LINES,
     skillFields: AMALGAM_SKILL_FIELDS,
+    profileFields: AMALGAM_PROFILE_FIELDS,
     skills: materializeSkillDefinitions(AMALGAM_SKILL_MECHANICS)
   }),
   state: { create: amalgamState.create, project: projectAmalgamPlanningState },
@@ -47,7 +48,7 @@ export const amalgamModule = defineNativeModule({
   /** Evolve scales conversion-eligible flat traits with equipment; Might and Titanic stay outside that pool. */
   attributes: (context) => {
     const evolved = activeAmalgamState(context, 'evolvedUntil');
-    const factor = evolved ? evolveAttributeFactor(context) - 1 : 0;
+    const factor = evolved ? evolveAttributeBonus(context) : 0;
     const titanic = activeAmalgamState(context, 'titanicUntil')
       ? activeBoonStacks(context, BOON.MIGHT) *
         skillNumber(

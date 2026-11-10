@@ -759,7 +759,7 @@ test('Radiant Armaments enhances hammer strikes and is replaced by staff', () =>
   );
   // Hammer gains its armament before the first impact; selecting staff removes it before any staff pulse.
   assertFlooredDamageMultiplier(dazzling.damage, damage(empowered, 'Dazzling Hammer').damage, 1.07);
-  assertFlooredDamageMultiplier(shining.damage, damage(empowered, 'Shining Spin').damage, 1.17 / 1.1);
+  assertFlooredDamageMultiplier(shining.damage, damage(empowered, 'Shining Spin').damage, 1.2 / 1.13);
   const armamentStaff = armaments.resolvedEvents.filter((event) => event.name === 'Luminous Staff - Symbol Damage');
   const empoweredStaff = empowered.resolvedEvents.filter((event) => event.name === 'Luminous Staff - Symbol Damage');
 
@@ -1512,7 +1512,7 @@ test('Luminary definitions preserve eligible build grants and applied armament w
   }));
   const timeline = createGw2TimelineIndex({ events });
   for (const [patchId, expected] of [
-    ['current', 117],
+    ['current', 120],
     ['s4-preview', 130]
   ]) {
     const runtime = family.runtimeFor({ specialization: 'Luminary', patchId });

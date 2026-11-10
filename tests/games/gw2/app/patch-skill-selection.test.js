@@ -6,6 +6,7 @@ import { ProfessionApp } from '#gw2/app/profession-app.js';
 import { resolveEntrySkill } from '#gw2/app/rotation/editing/actions.js';
 import { MESMER_SKILL_IDS } from '#gw2/professions/mesmer/data/ids.js';
 import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
+import { withTestPreviewAdapter } from '#tests/helpers/patch-preview.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
@@ -34,16 +35,27 @@ test('Mesmer comparison projects Warden and Disenchanter selections without muta
     if (previous) Object.defineProperty(globalThis, 'document', previous);
     else delete globalThis.document;
   });
-  const adapter = await loadProfessionAppAdapter('mesmer');
+  const adapter = withTestPreviewAdapter(await loadProfessionAppAdapter('mesmer'), {
+    id: 'role-swap-fixture',
+    label: 'Role swap fixture',
+    professions: {
+      mesmer: {
+        skills: {
+          [MESMER_SKILL_IDS.PHANTASMAL_WARDEN]: { placement: focus },
+          [MESMER_SKILL_IDS.PHANTASMAL_DISENCHANTER]: { placement: utility }
+        }
+      }
+    }
+  });
   const profession = adapter.profession;
   const build = adapter.toApplicationBuild(profession.createBuildDefaults());
   build.weapons = ['Sword', 'Focus'];
-  build.selectedSkillIds.Utility1 = MESMER_SKILL_IDS.PHANTASMAL_DISENCHANTER;
+  build.selectedSkillIds.Utility1 = MESMER_SKILL_IDS.PHANTASMAL_WARDEN;
   build.selectedSkillIds.Utility2 = null;
   build.selectedSkillIds.Utility3 = null;
   // Keep the observation window open for the summoned phantasm to deal damage.
   build.rotation = [
-    { type: 'cast', skillId: MESMER_SKILL_IDS.PHANTASMAL_WARDEN },
+    { type: 'cast', skillId: MESMER_SKILL_IDS.PHANTASMAL_DISENCHANTER },
     { type: 'wait', durationMs: 10000 }
   ];
   const app = {
@@ -76,13 +88,13 @@ test('Mesmer comparison projects Warden and Disenchanter selections without muta
   const target = profession.resolvePatch({ id: profession.preview.id });
   swapSelectedSkillsForPatch(app, target.catalog);
   app.patch = target;
-  assert.equal(build.selectedSkillIds.Utility1, MESMER_SKILL_IDS.PHANTASMAL_WARDEN);
+  assert.equal(build.selectedSkillIds.Utility1, MESMER_SKILL_IDS.PHANTASMAL_DISENCHANTER);
   const visited = adapter.calculateBaselineSimulation(
     captureAnalysisFixture(app, adapter).baseline({ collectChartData: false, comparePatch: true })
   );
   assert.equal(visited.result.dps, direct.comparisonResult.result.dps);
   assert.equal(visited.comparisonResult.result.dps, direct.result.dps);
-  assert.equal(build.selectedSkillIds.Utility1, MESMER_SKILL_IDS.PHANTASMAL_WARDEN);
+  assert.equal(build.selectedSkillIds.Utility1, MESMER_SKILL_IDS.PHANTASMAL_DISENCHANTER);
 });
 
 // Reciprocal role changes retain the same utility position and leave other selections and empty slots intact.

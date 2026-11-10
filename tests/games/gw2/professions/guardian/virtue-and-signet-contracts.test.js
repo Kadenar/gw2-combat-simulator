@@ -84,7 +84,7 @@ test('Firebrand owns dormancy and publishes a detached observation', () => {
 
 test('Renewed Focus restores Firebrand pages and dormancy only on completion', () => {
   // Both ordinary and trait-expanded pools retain their cap and recovery phase across the shared reset.
-  for (const selectedTraitIds of [[], [GUARDIAN_TRAIT_IDS.ARCHIVIST_OF_WHISPERS]]) {
+  for (const selectedTraitIds of [[], [GUARDIAN_TRAIT_IDS.BASTION]]) {
     for (const interrupted of [false, true]) {
       const result = createObservedProfessionSimulator(guardianProfession, {
         ...config,

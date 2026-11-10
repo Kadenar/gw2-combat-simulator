@@ -73,7 +73,7 @@ const flowOfTime = defineTrait<MesmerSkill>({
 const chronophantasma = defineTrait<MesmerSkill>({
   id: TRAIT.CHRONOPHANTASMA,
   balance: {
-    damageMultiplier: 1.05
+    damageMultiplier: 1
   },
   // Accepted repeat packets retain their captured bonus independently of later trait selection.
   modifierRules: [

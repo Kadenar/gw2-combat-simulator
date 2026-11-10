@@ -1,7 +1,7 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { boonActive, playerHealthFraction, targetHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
@@ -14,17 +14,7 @@ import { mergedBeastHit } from '#gw2/professions/ranger/core/mechanics/trigger-p
 import { activeBuff } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
 import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { beastmodeChanged } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
-import type {
-  RangerModifierContext,
-  RangerResolverContext,
-  RangerRuntime,
-  RangerSkill
-} from '#gw2/professions/ranger/types.js';
-
-function oppressiveSuperiorityActive(context: RangerModifierContext): boolean {
-  // Registration gates selection; the remaining condition compares player and target health.
-  return targetHealthFraction(context) < playerHealthFraction(context);
-}
+import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Owns Unstoppable Union's live tuning and trait behavior. */
 const unstoppableUnion = defineTrait({
@@ -169,32 +159,8 @@ const predatorsCunning = defineTrait({
   ]
 });
 
-/** Owns Oppressive Superiority's live tuning and trait behavior. */
-const oppressiveSuperiority = defineTrait({
-  id: TRAIT.OPPRESSIVE_SUPERIORITY,
-  balance: {
-    damageMultiplier: 1.1,
-    conditionDurationBonus: 0.1
-  },
-  modifierRules: [
-    {
-      order: 106,
-      id: 'ranger.oppressive-superiority',
-      target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: 'multiply',
-      factor: (context) => balanceNumber(context.catalog, TRAIT.OPPRESSIVE_SUPERIORITY, 'damageMultiplier'),
-      when: oppressiveSuperiorityActive
-    },
-    {
-      order: 107,
-      id: 'ranger.oppressive-superiority-condition-duration',
-      target: MODIFIER_TARGET.CONDITION_DURATION,
-      operation: 'add',
-      amount: (context) => balanceNumber(context.catalog, TRAIT.OPPRESSIVE_SUPERIORITY, 'conditionDurationBonus'),
-      when: oppressiveSuperiorityActive
-    }
-  ]
-});
+/** Apex Predator attack tuning is pending; retired health bonuses must not remain active. */
+const apexPredator = defineTrait({ id: TRAIT.APEX_PREDATOR });
 
 /** Owns Essence of Speed's live tuning and trait behavior. */
 const essenceOfSpeed = defineTrait({
@@ -230,7 +196,7 @@ export const soulbeastTraits = [
   liveFast,
   twiceAsVicious,
   predatorsCunning,
-  oppressiveSuperiority,
+  apexPredator,
   essenceOfSpeed,
   furiousStrength
 ];

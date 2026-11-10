@@ -154,7 +154,16 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        coefficient: 0.44
+        coefficient: 0.44,
+        // Only a landed arrow restores Fan of Fire; misses cannot clear its recharge.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: 'player',
+            packets: 'first',
+            do: [{ type: 'rechargeReset', skillIds: [ID.FAN_OF_FIRE] }]
+          }
+        ]
       },
       {
         type: 'condition',

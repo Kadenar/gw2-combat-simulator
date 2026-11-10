@@ -354,7 +354,7 @@ test('Bountiful Blades composes captured Berserker damage with Chronophantasma w
     assert.equal(event.bountifulBladesDamageFactor, 0.5);
     assertFlooredDamageMultiplier(event.damage, strike(baseline).damage, 0.5);
     const context = { event, config: { selectedTraitIds: [] }, catalog: mesmerCatalog, time: event.at + 100 };
-    assert.equal(hooks.modifyStrikeDamage(context, 100), repeated ? 52.5 : 50);
+    assert.equal(hooks.modifyStrikeDamage(context, 100), 50);
     assert.equal(hooks.modifyStrikeDamage({ ...context, event: { ...event, actorType: 'player' } }, 100), 100);
   }
 

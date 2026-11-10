@@ -6,8 +6,8 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { loadBuildContext } from '#gw2/build-context/load.js';
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { professionOptions } from '#gw2/profession-registry.js';
+import { testPatchPreview, withTestPreviewAdapter } from '#tests/helpers/patch-preview.js';
 
 import { simulateBenchmarkPreset } from '../../scripts/analysis/capture-supported-build-metrics.mjs';
 import {
@@ -75,20 +75,20 @@ test('benchmark loading derives professions from the registry and rejects invali
 });
 
 test('preparation detaches builds, rotations, and patch configurations without imposing measurement settings', async () => {
-  const adapter = await loadBuildContext('warrior');
+  const adapter = withTestPreviewAdapter(await loadBuildContext('warrior'));
   const savedBuild = adapter.profession.createBuildDefaults();
   const savedRotation = { rotation: [{ type: 'wait', durationMs: 100 }] };
   const identity = { id: 'fixture', profession: 'warrior' };
   const preset = { identity, adapter, savedBuild, savedRotation };
   const snapshot = structuredClone({ savedBuild, savedRotation });
   const current = prepareBenchmarkPreset(preset);
-  const preview = prepareBenchmarkPreset(preset, activePatchPreview.id);
+  const preview = prepareBenchmarkPreset(preset, testPatchPreview.id);
   const repeated = prepareBenchmarkPreset({ ...preset, savedRotation: savedRotation.rotation });
 
   assert.equal(current.identity, identity);
   assert.equal(current.profession, adapter.profession);
   assert.equal(current.config.patchId, 'current');
-  assert.equal(preview.config.patchId, activePatchPreview.id);
+  assert.equal(preview.config.patchId, testPatchPreview.id);
   assert.deepEqual(current.config, repeated.config);
   assert.deepEqual(current.rotation, repeated.rotation);
   assert.notEqual(current.build, repeated.build);

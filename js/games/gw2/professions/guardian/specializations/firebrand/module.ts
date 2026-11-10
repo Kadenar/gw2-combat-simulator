@@ -18,7 +18,7 @@ import {
 import { firebrandTraits } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
-// One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
+// The live Firebrand module owns the reworked trait layout and page mechanics.
 export const firebrandModule = defineNativeModule({
   id: 'Firebrand',
   data: createNativeModuleData<GuardianSkill>({

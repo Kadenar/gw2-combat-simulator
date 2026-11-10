@@ -528,7 +528,7 @@ export const TRAIT_LINES: readonly Gw2SpecializationData[] = [
         },
         {
           id: 2143,
-          name: 'Oppressive Superiority',
+          name: 'Apex Predator',
           icon: 'https://render.guildwars2.com/file/BBAE380FEB7F41CA1EDA96370F38FDBEE1FA0342/1769983.png'
         }
       ]

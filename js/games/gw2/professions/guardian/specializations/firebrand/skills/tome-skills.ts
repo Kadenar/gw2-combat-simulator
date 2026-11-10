@@ -1,8 +1,8 @@
 import { ACTOR, BOON, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
-import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { triggeredVirtueEffects } from '#gw2/professions/guardian/core/skills/virtue-payloads.js';
-import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import type { GuardianSkill } from '#gw2/professions/guardian/types.js';
 
 // The field and its pulses share an application time independent of the cast's page payment.
@@ -14,7 +14,8 @@ const scorchedAftermathApplicationMs = 440;
  */
 
 /** Tome and trait grants consume one shared triggered Burning skill, independent of their charge windows. */
-export const ashesBurningSkill: Skill = {
+export const ashesBurningSkill: GuardianSkill = {
+  burningOverrideTrait: TRAIT.RIGHTEOUS_FLAMES,
   name: 'Ashes of the Just: Burning per charge',
   icon: new URL('@images/wiki/epilogue-ashes-of-the-just.png', import.meta.url).href,
   // Match the emitted source so observed damage identifies this skill in patch notes.

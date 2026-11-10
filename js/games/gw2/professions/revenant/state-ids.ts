@@ -2,6 +2,7 @@
 export const REVENANT_STATE_IDS = Object.freeze({
   ENERGY: 'gw2.revenant.energy',
   ACTIVE_LEGEND_ID: 'gw2.revenant.active-legend-id',
+  TRANQUIL: 'gw2.revenant.tranquil',
   SELECTED_LEGEND_IDS: 'gw2.revenant.selected-legend-ids',
   ACTIVE_UPKEEPS: 'gw2.revenant.active-upkeeps',
   ENCHANTED_DAGGERS: 'gw2.revenant.enchanted-daggers',

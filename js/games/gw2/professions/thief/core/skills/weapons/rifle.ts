@@ -266,7 +266,7 @@ export const THIEF_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillD
     effects: [
       {
         type: 'strike',
-        ticks: [400, 560, 720].map((atMs) => ({ atMs, coefficient: 2.25 / 3 })),
+        ticks: [400, 560, 720].map((atMs) => ({ atMs, coefficient: 0.85 })),
         name: 'Three Round Burst',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',

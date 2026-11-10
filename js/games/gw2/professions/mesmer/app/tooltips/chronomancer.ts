@@ -73,7 +73,7 @@ export const chronomancerTooltips = {
       'base duration before tiers'
     ),
     [TRAIT.CHRONOPHANTASMA]: traitTooltip(
-      'Phantasms attack again before becoming clones, with increased strike damage.',
+      'Phantasms attack again before becoming clones. Resummoned phantasms deal normal strike damage. Their condition-duration reduction is unknown and not yet applied.',
       [['damageMultiplier', 'Phantasm strike damage', tooltipFactorChange]]
     )
   }

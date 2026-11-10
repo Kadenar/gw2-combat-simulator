@@ -9,10 +9,6 @@ import { hematicFocus } from '#gw2/professions/engineer/core/traits/firearms/ind
 import { ENGINEER_TRAIT_IDS as E, ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { appliedForce } from '#gw2/professions/engineer/specializations/scrapper/traits/index.js';
-import { GUARDIAN_TRAIT_IDS as G } from '#gw2/professions/guardian/data/ids.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { firebrandBuffApplied } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
-import { liberatorsVow } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
 import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
 import { captureEffectEmissions } from '#tests/helpers/effect-emission.js';
 import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
@@ -71,26 +67,6 @@ const cases = [
     key: 'highImpactDrivers',
     specialization: 'Mechanist',
     invoke: mechStrike
-  },
-  {
-    family: guardianProfession,
-    trait: G.STALWART_SPEED,
-    key: 'guardian.firebrand.stalwartSpeed',
-    specialization: 'Firebrand',
-    invoke: (r) =>
-      r.fireTrigger(firebrandBuffApplied, {
-        cause: hit(r, { type: 'buff', kind: 'aegis', resolvedAudience: { includesSelf: false, alliedPlayerCount: 2 } })
-      })
-  },
-  {
-    family: guardianProfession,
-    trait: G.LIBERATORS_VOW,
-    key: 'guardian.firebrand.liberatorsVow',
-    specialization: 'Firebrand',
-    invoke: (r) =>
-      compileProfessionRules({
-        traitTriggers: liberatorsVow.triggers.map((rule) => ({ ...rule, trait: liberatorsVow.id }))
-      }).onCastCommit(r.mechanics, { id: 'heal', skill: { id: 'heal', name: 'Fixture heal', type: 'Heal' } })
   }
 ];
 
@@ -124,7 +100,6 @@ function fixture(
   const result = observeGw2Runtime({ profession: { ...native, catalog }, config, rotation: [] });
   assert.deepEqual(result.warnings, []);
   const runtime = observedRuntime(result);
-  // Guardian's initial Aegis may proc Stalwart Speed; isolate the opportunities exercised below.
   runtime.procs.setDeadline(key, 0);
   runtime.time = 1;
   return runtime;

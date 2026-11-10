@@ -16,13 +16,38 @@ import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition
 import { engineerExplosivesTooltips } from '#gw2/professions/engineer/app/tooltips/explosives.js';
 import { grenadier } from '#gw2/professions/engineer/core/traits/explosives/index.js';
 import { guardianAppAdapter as adapter } from '#gw2/professions/guardian/app/app-definition.js';
-import { GUARDIAN_SKILL_IDS as SKILL } from '#gw2/professions/guardian/data/ids.js';
+import { GUARDIAN_SKILL_IDS as SKILL, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { FIREBRAND_REWORK_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/specializations/firebrand/ids.js';
 import { revenantAppAdapter } from '#gw2/professions/revenant/app/app-definition.js';
+import { firebrandTestProfession } from '#tests/helpers/firebrand-patch.js';
 
-const profession = adapter.profession;
+const profession = firebrandTestProfession;
 const preview = profession.preview;
+
+// Synthetic tuning tests percentage editing independently of the retired Engineer preview.
+const engineerTestProfession = withPatchPreview(engineerAppAdapter.profession, {
+  id: 'engineer-percentage-fixture',
+  label: 'Percentage fixture',
+  professions: {
+    engineer: {
+      provisional: [
+        {
+          id: 'grenadierExplosionDamage',
+          label: 'Explosion damage',
+          specialization: 'Explosives',
+          traitId: '514',
+          profileId: '514',
+          field: 'damageIncrease',
+          minimum: 0,
+          maximum: 1,
+          step: 0.01,
+          unit: '%'
+        }
+      ],
+      balanceProfiles: { 514: { fields: { damageIncrease: 0.05 } } }
+    }
+  }
+});
 
 // Capture content and event handlers without asserting browser layout, focus, or native input behavior.
 function element(tag) {
@@ -81,7 +106,7 @@ function appFor(patchId = 'current') {
     profession,
     contentId: 'guardian',
     build,
-    patch: profession.resolvePatch({ id: patchId, values: { fervidCharges: 3 } }),
+    patch: profession.resolvePatch({ id: patchId, values: { ashesStacks: 3 } }),
     get activeCatalog() {
       return this.patch.catalog;
     },
@@ -145,7 +170,7 @@ test('Preview comparison notes use preview trait positions and experimental tuni
   }
 
   const html = container.children[0].innerHTML;
-  assert.match(html, /Fervid Conviction/);
+
   assert.match(html, /Righteous Flames/);
   assert.doesNotMatch(html, /Stoic Demeanor/);
   assert.match(html, /[Ss]tacks set to 3/);
@@ -156,6 +181,14 @@ test('Preview comparison notes use preview trait positions and experimental tuni
 test('Preview comparison asks for relaid trait choices before reporting DPS', () => {
   const app = appFor(preview.id);
   delete app.build.specializations[0].patchTraits;
+  app.patch = {
+    ...app.patch,
+    catalog: {
+      ...app.patch.catalog,
+      balanceDataContext: { ...app.patch.catalog.balanceDataContext, relaidSpecializations: ['Firebrand'] }
+    }
+  };
+  app.profession = { ...profession, resolvePatch: () => app.patch };
   app.analysis.state.patchComparison = { current: { dps: 1000, events: [] }, preview: { dps: 500, events: [] } };
   const container = element('div');
   const previous = globalThis.document;
@@ -180,12 +213,12 @@ test('assumption counts include only equipped preview traits and their overrides
     ['Imbued Haste', 'Righteous Flames', 'Fervid Conviction']
   );
   assert.deepEqual(previewAssumptionCounts(groups), { total: 4, custom: 1 });
-  const ashes = groups.find(({ name }) => name === 'Righteous Flames').values;
+  const ashes = groups.find(({ name }) => name === 'Fervid Conviction').values;
   assert.deepEqual(
     ashes.map(({ parameter, value }) => [parameter.id, parameter.unit, value]),
     [
-      ['ashesDuration', 's', 3],
-      ['ashesStacks', 'stacks', 1]
+      ['ashesDuration', 's', 10],
+      ['ashesStacks', 'stacks', 3]
     ]
   );
   assert.match(previewAssumptionNotice(app), /1 user override/);
@@ -199,11 +232,16 @@ test('assumption counts include only equipped preview traits and their overrides
   const other = previewAssumptionGroups(app);
   assert.deepEqual(
     other.filter(({ selected }) => selected).map(({ name }) => name),
-    ['Unrelenting Criticism', 'Stalwart Speed']
+    ['Unrelenting Criticism']
   );
-  assert.deepEqual(previewAssumptionCounts(other), { total: 3, custom: 0 });
+  assert.deepEqual(previewAssumptionCounts(other), { total: 2, custom: 0 });
   assert.match(previewAssumptionNotice(app), /Preview defaults/);
-  assert.equal(other.find(({ name }) => name === 'Fervid Conviction').values[0].value, 3);
+  assert.equal(
+    other
+      .find(({ name }) => name === 'Fervid Conviction')
+      .values.find(({ parameter }) => parameter.id === 'ashesStacks').value,
+    3
+  );
 
   app.build.specializations = [];
   assert.deepEqual(previewAssumptionGroups(app), []);
@@ -212,10 +250,26 @@ test('assumption counts include only equipped preview traits and their overrides
 });
 
 // Removing a trait line hides all its controls, while selecting it retains alternate traits for tuning.
+test('released Vindicator traits have no remaining preview assumptions', () => {
+  const profession = revenantAppAdapter.profession;
+  const app = {
+    profession,
+    contentId: 'revenant',
+    patch: profession.resolvePatch({ id: 'current' }),
+    build: { specializations: [{ name: 'Vindicator', traits: '1-1-1' }] }
+  };
+  assert.deepEqual(previewAssumptionGroups(app), []);
+  assert.equal(previewAssumptionNotice(app), '');
+});
+
 for (const [testAdapter, contentId, equipped, unrelated] of [
-  [revenantAppAdapter, 'revenant', 'Vindicator', ['Corruption', 'Invocation', 'Renegade']],
-  [adapter, 'guardian', 'Firebrand', ['Radiance', 'Virtues', 'Dragonhunter']],
-  [engineerAppAdapter, 'engineer', 'Explosives', ['Firearms', 'Tools', 'Mechanist']]
+  [{ ...adapter, profession }, 'guardian', 'Firebrand', ['Radiance', 'Virtues', 'Dragonhunter']],
+  [
+    { ...engineerAppAdapter, profession: engineerTestProfession },
+    'engineer',
+    'Explosives',
+    ['Firearms', 'Tools', 'Mechanist']
+  ]
 ]) {
   test(`${contentId} preview assumptions follow equipped trait lines`, () => {
     const profession = testAdapter.profession;
@@ -262,7 +316,7 @@ test('Live clears overrides and does not show an assumptions result notice', () 
 
 // Engineer and Firebrand bonuses share fractional units through edits and resets.
 test('Grenadier edits percentage bonuses using the same fractional units as Firebrand', () => {
-  const profession = engineerAppAdapter.profession;
+  const profession = engineerTestProfession;
   const app = {
     analysis: {
       needsPatchComparison: () => false,
@@ -305,7 +359,7 @@ test('Grenadier edits percentage bonuses using the same fractional units as Fire
 });
 
 test('session effect edits preserve other fields and authored assumptions without duplicating selectors', () => {
-  const parameter = preview.professions.guardian.provisional.find(({ id }) => id === 'fervidCharges');
+  const parameter = preview.professions.guardian.provisional.find(({ id }) => id === 'ashesStacks');
   const unrelated = { type: 'boon', boon: 'quickness', duration: 9 };
   const edits = [{ ...parameter.effect, stacks: 1, duration: 7 }, unrelated];
   assert.deepEqual(replaceProvisionalEffect(edits, parameter, 3), [
@@ -317,7 +371,7 @@ test('session effect edits preserve other fields and authored assumptions withou
       specialization: 'Firebrand',
       patchId: preview.id,
       selectedTraitIds: [TRAIT.FERVID_CONVICTION],
-      previewValues: { fervidCharges: 3 }
+      previewValues: { ashesStacks: 3 }
     },
     []
   );
@@ -328,7 +382,7 @@ test('session effect edits preserve other fields and authored assumptions withou
 
 test('provisional declarations validate profiles, selectors and patched defaults during construction', () => {
   const source = preview.professions.guardian;
-  const parameter = source.provisional.find(({ id }) => id === 'fervidCharges');
+  const parameter = source.provisional.find(({ id }) => id === 'ashesStacks');
   const make = (control, balanceProfiles = source.balanceProfiles) => ({
     ...preview,
     professions: { guardian: { ...source, provisional: [control], balanceProfiles } }
@@ -358,7 +412,9 @@ test('provisional declarations validate profiles, selectors and patched defaults
     { ...parameter, effect: { type: 'buff' } },
     {
       ...source.balanceProfiles,
-      [parameter.profileId]: { addEffects: [{ type: 'buff', name: 'second', kind: 'second', stacks: 1, duration: 1 }] }
+      [parameter.profileId]: {
+        addEffects: [{ type: 'buff', name: 'second', kind: 'second', stacks: 1, duration: 1 }]
+      }
     }
   );
   assert.throws(() => withPatchPreview(guardianProfession, ambiguous), /select one effect/);
@@ -371,7 +427,6 @@ test('skill tooltip caches distinguish experimental balance contexts', () => {
     toApplicationBuild: adapter.toApplicationBuild,
     tooltips: {
       traits: {},
-      reworks: { 'firebrand-rework': { traits: {} } },
       skills: {
         [SKILL.SEARING_SPELL]: (context) => ({
           description: String(context.catalog.balanceProfilesById.get(TRAIT.FERVID_CONVICTION).effects[0].stacks),
@@ -383,12 +438,12 @@ test('skill tooltip caches distinguish experimental balance contexts', () => {
   const skill = profession.resolvePatch({ id: preview.id }).catalog.skillsById.get(SKILL.SEARING_SPELL);
   const initial = tunedAdapter.skillTooltip(
     skill,
-    tunedAdapter.profession.resolvePatch({ id: preview.id, values: { fervidCharges: 2 } }),
+    tunedAdapter.profession.resolvePatch({ id: preview.id, values: { ashesStacks: 2 } }),
     undefined
   );
   const updated = tunedAdapter.skillTooltip(
     skill,
-    tunedAdapter.profession.resolvePatch({ id: preview.id, values: { fervidCharges: 3 } }),
+    tunedAdapter.profession.resolvePatch({ id: preview.id, values: { ashesStacks: 3 } }),
     undefined
   );
   assert.equal(initial.description, '2');
@@ -396,7 +451,7 @@ test('skill tooltip caches distinguish experimental balance contexts', () => {
   assert.equal(
     tunedAdapter.skillTooltip(
       skill,
-      tunedAdapter.profession.resolvePatch({ id: preview.id, values: { fervidCharges: 2 } }),
+      tunedAdapter.profession.resolvePatch({ id: preview.id, values: { ashesStacks: 2 } }),
       undefined
     ),
     initial

@@ -1,8 +1,11 @@
 /** Owns Legendary Centaur Stance skill definitions and their alternate identities. */
 import { ACTOR, BOON, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.PROTECTIVE_SOLACE]: {
@@ -51,13 +54,25 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
         type: 'control',
         actorType: ACTOR.PLAYER,
         controlKind: CONTROL.KNOCKDOWN
-      },
+      }
+    ],
+    // Empowered Stability belongs to the cast, independently of the tablet's explosion.
+    sideEffects: [
       {
-        type: 'boon',
-        audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
-        boon: BOON.STABILITY,
-        duration: 5,
-        stacks: 3
+        on: 'castCommit',
+        do: {
+          type: 'revenant.expel-energy',
+          id: 'empowered',
+          effects: [
+            {
+              type: 'boon',
+              audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 },
+              boon: BOON.STABILITY,
+              duration: 5,
+              stacks: 3
+            }
+          ]
+        }
       }
     ]
   },
@@ -106,5 +121,56 @@ export const REVENANT_CENTAUR_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     legendId: 'LegendaryCentaur',
     castTimeMs: 0,
     effects: []
+  }
+};
+
+/** Invoking Ventari summons the tablet and empowers the next qualifying skill. */
+export function invokeCentaur(runtime: RevenantRuntime): void {
+  runtime.profession.core.tranquil = runtime.profession.core.activeLegendId === 'LegendaryCentaur';
+
+  if (runtime.profession.core.tranquil) runtime.armFlip(ID.VENTARIS_WILL);
+}
+
+/** Only unempowered Harmony, Essence, and Expulsion rearm Tranquil; the tablet survives every use. */
+export const centaurLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+  initialize: invokeCentaur,
+  sideEffectHandlers: {
+    'revenant.expel-energy'(runtime, context) {
+      if (context.kind !== 'cast') return;
+
+      const cast = context.cast;
+
+      if (runtime.profession.core.tranquil) {
+        const action = requireSkillAction(cast.skill, 'empowered');
+        runtime.effects.emit({
+          kind: 'profile',
+          profile: cast.skill,
+          effects: action.effects,
+          at: runtime.time,
+          attribution: {
+            source: 'revenant',
+            sourceId: cast.skill.id,
+            actorType: ACTOR.PLAYER,
+            skillId: cast.skill.id,
+            skillName: cast.skill.name,
+            activationId: cast.id
+          }
+        });
+      }
+
+      runtime.profession.core.tranquil = !runtime.profession.core.tranquil;
+    }
+  },
+  onCastCommit(runtime, cast) {
+    const state = runtime.profession.core;
+
+    if (cast.skill.id === ID.PROJECT_TRANQUILITY) {
+      state.tranquil = true;
+      runtime.armFlip(ID.VENTARIS_WILL);
+    } else if (cast.skill.id === ID.NATURAL_HARMONY || cast.skill.id === ID.PURIFYING_ESSENCE) {
+      state.tranquil = !state.tranquil;
+    } else if (cast.skill.id === ID.PROTECTIVE_SOLACE) {
+      state.tranquil = false;
+    }
   }
 };

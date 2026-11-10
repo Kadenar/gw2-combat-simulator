@@ -1,4 +1,3 @@
-import { GW2_STANDARD_BOONS } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { boonActive, countActiveBoons, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { grantCharges } from '#gw2/platform/combat/resources/charges.js';
@@ -157,8 +156,8 @@ const oneInTheChamber = defineTrait({
 const premeditation = defineTrait({
   id: TRAIT.PREMEDITATION,
   balance: {
-    damagePerBoon: 0.01,
-    maximumBoons: GW2_STANDARD_BOONS.length,
+    damagePerBoon: 0.02,
+    maximumBoons: 5,
     attributeBonuses: { concentration: 180 }
   },
   attributes({ balanceContext }) {

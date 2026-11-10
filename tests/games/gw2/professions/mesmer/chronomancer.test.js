@@ -157,6 +157,7 @@ test('Chronophantasma conversions preserve clone spends across a Continuum Split
   const result = simulateMesmer(
     [
       'Phantasmal Berserker',
+      'Swap Weapons',
       'Phantasmal Disenchanter',
       { name: '__wait', waitMs: 3980 },
       'Continuum Split',
@@ -171,12 +172,15 @@ test('Chronophantasma conversions preserve clone spends across a Continuum Split
     defaultSimulationConfig({
       specialization: 'Chronomancer',
       selectedTraitIds: [TRAIT.BOUNTIFUL_BLADES, TRAIT.CHRONOPHANTASMA],
-      selectedSkillIds: [10267, 10202],
+      selectedSkillIds: [10202],
       primaryWeapon: 'Greatsword',
       secondaryWeapon: '',
+      weaponSet2Primary: 'Dagger',
+      weaponSet2Secondary: 'Focus',
       initialResource: 2
     })
   );
+  assert.deepEqual(result.warnings, []);
   const spends = result.events
     .filter((event) => event.type === 'resource' && event.reason === 'profession mechanic')
     .map((event) => [result.steps.find((step) => step.activationId === event.activationId)?.skillName, -event.amount]);

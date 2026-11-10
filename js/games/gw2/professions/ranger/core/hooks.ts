@@ -16,7 +16,6 @@ import {
   buffApplied,
   castCompleted,
   criticalResolved,
-  dodged,
   petSwapped,
   rangerInitialized,
   weaponSwapped
@@ -85,17 +84,12 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
   onCombatStart(runtime) {
     releaseFrostTrap(runtime);
   },
-  onCastStart(runtime, cast) {
-    if (cast.skill.evades) runtime.fireTrigger(dodged, { at: runtime.time });
-  },
   onCastCommit(runtime, cast) {
     const skill = cast.skill;
 
     if (skill.id === ID.PET_SWAP) runtime.fireTrigger(petSwapped, { skill });
 
     if (skill.id === SHARED_SKILL_IDS.SWAP_WEAPONS) runtime.fireTrigger(weaponSwapped, { skill, at: runtime.time });
-
-    if (skill.id === SHARED_SKILL_IDS.DODGE) runtime.fireTrigger(dodged, { at: runtime.time });
 
     runtime.fireTrigger(castCompleted, { skill, at: runtime.time });
 

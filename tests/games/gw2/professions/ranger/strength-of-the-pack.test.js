@@ -4,7 +4,7 @@ import test from 'node:test';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
-// The same active shout routes on-hit Might to the live pet or to its merged Soulbeast owner.
+// Player hits grant both recipients Might, without duplicating the merged player grant.
 for (const specialization of ['Core', 'Soulbeast']) {
   test(`Strength of the Pack routes on-hit Might without requiring an absent pet (${specialization})`, () => {
     const result = runRanger(['"Strength of the Pack!"', 'Long Range Shot'], {
@@ -19,7 +19,7 @@ for (const specialization of ['Core', 'Soulbeast']) {
     );
     assert.ok(might.length > 0);
     for (const event of might) {
-      assert.equal(event.resolvedAudience.includesSelf, specialization === 'Soulbeast');
+      assert.equal(event.resolvedAudience.includesSelf, true);
       assert.equal(event.resolvedAudience.companionIds.length, specialization === 'Core' ? 1 : 0);
     }
   });

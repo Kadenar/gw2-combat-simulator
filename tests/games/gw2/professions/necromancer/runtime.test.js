@@ -482,7 +482,7 @@ test('axe half-health bonuses use the crossing impact and the burst keeps its de
     result.resolvedEvents
       .filter((event) => event.type === 'condition' && event.condition === 'Vulnerability')
       .reduce((sum, event) => sum + event.stacks, 0);
-  assert.equal(vulnerability(low), 2 * vulnerability(high));
+  assert.equal(vulnerability(low), vulnerability(high));
 });
 
 test('Oppressive Collapse observes conditions when its impact arrives and misses grant no Might', () => {
@@ -521,8 +521,8 @@ test('Augury of Death requires shout completion and survives removal of the shou
   const siphon = result.resolvedEvents.find(
     (event) => event.type === 'damage' && event.sourceId === TRAIT.AUGURY_OF_DEATH
   );
-  // Melee range doubles both terms of the current 172 + 0.0125 * Power siphon.
-  assert.equal(siphon.damage, 2 * (172 + 0.0125 * config.attributeInputs.weaponSets[0].commonTotals.power));
+  // Melee range doubles both terms of the current 750 + 0.0125 * Power siphon.
+  assert.equal(siphon.damage, 2 * (750 + 0.0125 * config.attributeInputs.weaponSets[0].commonTotals.power));
   const cancelled = simulate([{ ...cast(ID.NOTHING_CAN_SAVE_YOU), interruptAfterMs: 40 }], config, { profession });
   assert.equal(
     cancelled.resolvedEvents.some((event) => event.sourceId === TRAIT.AUGURY_OF_DEATH),

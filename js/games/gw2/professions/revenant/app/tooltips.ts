@@ -4,12 +4,11 @@ import { revenantCoreTooltips } from '#gw2/professions/revenant/app/tooltips/cor
 import { heraldTooltips } from '#gw2/professions/revenant/app/tooltips/herald.js';
 import { revenantModifierDescriptions } from '#gw2/professions/revenant/app/tooltips/modifiers.js';
 import { renegadeTooltips } from '#gw2/professions/revenant/app/tooltips/renegade.js';
-import { vindicatorReworkTooltips, vindicatorTooltips } from '#gw2/professions/revenant/app/tooltips/vindicator.js';
+import { vindicatorTooltips } from '#gw2/professions/revenant/app/tooltips/vindicator.js';
 
 /** Combine owner-local descriptions while keeping presentation separate from runtime behavior. */
 export const revenantTooltips: ProfessionTooltips = {
   modifiers: revenantModifierDescriptions,
-  reworks: { 'vindicator-rework': vindicatorReworkTooltips },
   skillFacts: revenantCoreTooltips.skillFacts,
   skills: {
     ...revenantCoreTooltips.skills,

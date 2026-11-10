@@ -254,27 +254,22 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     cooldown: 15,
     castTimeMs: 560,
     interruptCommitMs: 520,
-    // Each unleashed attack owns its defiant-target bonus and samples the target at impact.
+    // Defiance grants the capped condition bonus instead of a separate multiplier.
     modifiers: [
-      {
-        id: 'ranger.unleashed-savage-shock-wave-defiant',
-        label: 'Unleashed Savage Shock Wave',
-        target: MODIFIER_TARGET.STRIKE_DAMAGE,
-        operation: 'multiply',
-        factor: 1.2,
-        order: 15,
-        when: (context) => Boolean(context.config?.target?.defiant)
-      },
       {
         id: 'ranger.condition-count-skill-bonus',
         label: 'Unleashed Savage Shock Wave',
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',
-        parameters: { baseFactor: 1, damagePerCondition: 0.02 },
+        parameters: { baseFactor: 1, damagePerCondition: 0.04, maximumConditions: 5 },
         order: 18,
         // Count canonical active conditions once each, independently of their stack counts.
         factor: (context, _target, parameters) =>
-          parameters.baseFactor + targetConditionCount(context) * parameters.damagePerCondition
+          parameters.baseFactor +
+          (context.config?.target?.defiant
+            ? parameters.maximumConditions
+            : Math.min(targetConditionCount(context), parameters.maximumConditions)) *
+            parameters.damagePerCondition
       }
     ],
     effects: [
@@ -282,7 +277,7 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
         type: 'strike',
         ticks: [520, 800, 1080].map((atMs) => ({
           atMs,
-          coefficient: 0.8
+          coefficient: 0.96
         })),
         timingAnchor: 'castStart',
         timingScale: 'fixed',

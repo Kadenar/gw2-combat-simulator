@@ -1,6 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 import type { Gw2AttributeContext, Gw2AttributeContributions } from '#gw2/platform/attributes/types.js';
-import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { gw2EventOwnerActorType, isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, RECIPIENT, WEAPON, type BoonId } from '#gw2/platform/constants.js';
@@ -353,7 +353,7 @@ export const lingeringMagic = defineTrait({
 export const bountifulHunter = defineTrait({
   id: TRAIT.BOUNTIFUL_HUNTER,
   // Trait balance is the single tuning source for modifiers and presentation.
-  balance: { damageMultiplier: 1, damagePerBoon: 0.01, maximumBoons: GW2_STANDARD_BOONS.length },
+  balance: { damageMultiplier: 1, damagePerBoon: 0.02, maximumBoons: 5 },
   modifierRules: [
     {
       order: 7,

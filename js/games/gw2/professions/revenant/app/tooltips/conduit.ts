@@ -41,7 +41,7 @@ const hexEaterVortexTooltip: DescribeSimulationTooltip = (balanceContext, entity
 });
 
 const gladiatorsDefenseTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Strike, weaken the target, and gain the listed boons when this action completes. Shared Wisdom adds its matching boon. Incoming attacks are not required to produce these simulated effects.'
+  'Pending rework values: block, then retaliate; blocking an attack strengthens the retaliation and adds Weakness. Equipping Dwarf grants Aegis afterward. The simulator retains the previous strike and boons until block duration and retaliation values are confirmed.'
 );
 
 const twinMoonSweepTooltip: DescribeSimulationTooltip = (balanceContext, entity) => ({

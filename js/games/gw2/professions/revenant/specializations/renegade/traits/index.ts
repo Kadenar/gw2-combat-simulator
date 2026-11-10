@@ -266,7 +266,7 @@ const heartpiercer = defineTrait({
 const lastingLegacy = defineTrait({
   id: TRAIT.LASTING_LEGACY,
   balance: {
-    damageIncreasePerStack: 0.05,
+    damageIncreasePerStack: 0.04,
     conditionDamageIncreasePerStack: 0.03,
     variantBadge: 'Lasting Legacy',
     maximumStacks: 5,

@@ -5,7 +5,7 @@ import { skillEffectKey } from '#gw2/platform/effects/validation.js';
 import { compileProfessionRules } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { GUARDIAN_SKILL_IDS as ID, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
 import { guardianCatalog, guardianProfession } from '#gw2/professions/guardian/profession.js';
-import { swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/index.js';
+import { swiftScholar } from '#gw2/professions/guardian/specializations/firebrand/traits/pages.js';
 import { AURA_GRANT } from '#gw2/professions/guardian/specializations/luminary/mechanics/effects.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -50,7 +50,7 @@ test('Swift Scholar isolates implicit minor rewards while pages, dormancy, and s
         cast('Chapter 3: Heated Rebuke'),
         ID.STOW_TOME
       ],
-      { traitTriggers, selectedTraitIds: [TRAIT.ARCHIVIST_OF_WHISPERS] }
+      { traitTriggers, selectedTraitIds: [TRAIT.BASTION] }
     );
     const current = state(runtime);
     assert.equal(current.tomePages.maximum, 8);
@@ -94,7 +94,7 @@ test('an explicitly admitted Swift Scholar refund completes in isolation after t
       })
     }
   );
-  assert.equal(state(runtime).tomePages.value, 5);
+  assert.equal(state(runtime).tomePages.value, 8);
   assert.equal(result.procSteps.filter((step) => step.skill === 'Swift Scholar').length, 1);
 });
 
@@ -137,40 +137,7 @@ test('Legendary Lore selects only its tome boon, respects isolation and removal,
         }
 });
 
-test("Liberator's Vow isolates heal rewards and claims only surviving party Quickness", () => {
-  for (const selected of [false, true])
-    for (const traitTriggers of [false, true])
-      for (const removed of [false, true]) {
-        const { result, runtime } = run(
-          'Firebrand',
-          [cast('Shelter')],
-          {
-            traitTriggers,
-            selectedTraitIds: selected ? [TRAIT.LIBERATORS_VOW] : [],
-            allies: { count: 2 }
-          },
-          {
-            catalog: (catalog) =>
-              removed
-                ? withProfile(catalog, TRAIT.LIBERATORS_VOW, {
-                    effects: [],
-                    removedEffectKeys: [skillEffectKey('boon', 'quickness')]
-                  })
-                : catalog
-          }
-        );
-        const active = selected && traitTriggers && !removed;
-        const granted = result.resolvedEvents.filter((event) => event.type === 'buff' && event.kind === 'quickness');
-        assert.equal(granted.length, Number(active));
-        assert.equal(runtime.procs.deadline('guardian.firebrand.liberatorsVow') > 0, active);
-        for (const event of granted) {
-          assert.equal(event.resolvedAudience.includesSelf, true);
-          assert.equal(event.resolvedAudience.alliedPlayerCount, 2);
-        }
-      }
-});
-
-test('Weighty Terms isolates final-charge refunds and reports without preventing mantra retirement', () => {
+test('Revelation isolates final-charge refunds and reports without preventing mantra retirement', () => {
   for (const selected of [false, true])
     for (const traitTriggers of [false, true])
       for (const removed of [false, true]) {
@@ -181,12 +148,12 @@ test('Weighty Terms isolates final-charge refunds and reports without preventing
             traitTriggers,
             initialTomePages: 0,
             selectedSkillIds: [ID.MANTRA_OF_FLAME],
-            selectedTraitIds: selected ? [TRAIT.WEIGHTY_TERMS] : []
+            selectedTraitIds: selected ? [TRAIT.REVELATION] : []
           },
           {
             catalog: (catalog) =>
               removed
-                ? withProfile(catalog, TRAIT.WEIGHTY_TERMS, {
+                ? withProfile(catalog, TRAIT.REVELATION, {
                     effects: [],
                     removedEffectKeys: [skillEffectKey('condition', 'Slow')]
                   })
@@ -194,12 +161,12 @@ test('Weighty Terms isolates final-charge refunds and reports without preventing
           }
         );
         const active = selected && traitTriggers;
-        // The page refund is independent of the removable Slow component.
-        assert.equal(state(runtime).tomePages.value, active ? 2 : 0);
-        assert.equal(result.procSteps.filter((step) => step.skill === 'Weighty Terms').length, Number(active));
+        // Baseline refunds remain active when trait triggers are isolated.
+        assert.equal(state(runtime).tomePages.value, active ? 2 : 1);
+        assert.equal(result.procSteps.filter((step) => step.skill === 'Revelation').length, Number(active));
         assert.equal(
           result.resolvedEvents.some((event) => event.condition === 'Slow'),
-          active && !removed
+          false
         );
         assert.ok(runtime.cooldownController.readyAt(ID.MANTRA_OF_FLAME) > runtime.time);
       }

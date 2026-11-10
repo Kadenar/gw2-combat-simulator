@@ -1,4 +1,3 @@
-/** Canonical Core guardian skill definitions grouped by their GW2 owner. */
 import { BOON, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -23,7 +22,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 600, condition: CONDITION.BLEEDING, stacks: 2, duration: 1 }]
+        ticks: [{ atMs: 600, condition: CONDITION.BLEEDING, stacks: 2, duration: 2.5 }]
       }
     ])
   },
@@ -46,7 +45,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 640, condition: CONDITION.BLEEDING, stacks: 2, duration: 1 }]
+        ticks: [{ atMs: 640, condition: CONDITION.BLEEDING, stacks: 2, duration: 2.5 }]
       }
     ])
   },
@@ -68,7 +67,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 640, condition: CONDITION.BURNING, stacks: 2, duration: 2 }]
+        ticks: [{ atMs: 640, condition: CONDITION.BURNING, stacks: 2, duration: 2.5 }]
       }
     ])
   },
@@ -103,7 +102,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
           type: 'condition',
           condition: CONDITION.BLEEDING,
           stacks: 1,
-          duration: 3,
+          duration: 5,
           atMs: 680,
           applications: 5,
           intervalMs: 1000
@@ -153,7 +152,7 @@ export const GUARDIAN_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
           type: 'condition',
           condition: CONDITION.BURNING,
           stacks: 1,
-          duration: 3
+          duration: 5
         }
       ]),
       {

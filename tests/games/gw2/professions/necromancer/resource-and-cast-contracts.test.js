@@ -102,7 +102,7 @@ test('Cascading Corruption delays its packets while Meltdown applies to the trig
   assert.equal(packets.filter((event) => event.type === 'damage').length, 1);
   assert.equal(
     packets.filter((event) => event.type === 'condition').reduce((sum, event) => sum + event.stacks, 0),
-    6
+    3
   );
   assert.ok(
     result.events.some(
@@ -175,7 +175,7 @@ test('Meltdown adds overlapping grant durations and expires after the accumulate
   assert.equal(grants[1].expiresAt, grants[0].expiresAt + duration);
   assert.equal(runtime.combat.activeBuffStacks('meltdown', result.combatEndTime, 1), 1);
   assert.equal(runtime.combat.activeBuffStacks('meltdown', grants[1].expiresAt, 1), 0);
-  assert.equal(runtime.query.conditionMultiplier('Torment', result.combatEndTime, null, runtime), 1.1);
+  assert.equal(runtime.query.conditionMultiplier('Torment', result.combatEndTime, null, runtime), 1.07);
 });
 
 // A condition must follow later Blight consumption even when its cast carried an impact snapshot.

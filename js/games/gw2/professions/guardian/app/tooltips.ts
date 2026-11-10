@@ -1,7 +1,7 @@
 import type { ProfessionTooltips } from '#gw2/app/shared/simulation-tooltip.js';
 import { guardianCoreTooltips } from '#gw2/professions/guardian/app/tooltips/core.js';
 import { dragonhunterTooltips } from '#gw2/professions/guardian/app/tooltips/dragonhunter.js';
-import { firebrandReworkTooltips, firebrandTooltips } from '#gw2/professions/guardian/app/tooltips/firebrand.js';
+import { firebrandTooltips } from '#gw2/professions/guardian/app/tooltips/firebrand.js';
 import { luminaryTooltips } from '#gw2/professions/guardian/app/tooltips/luminary.js';
 import { guardianModifierDescriptions } from '#gw2/professions/guardian/app/tooltips/modifiers.js';
 import { willbenderTooltips } from '#gw2/professions/guardian/app/tooltips/willbender.js';
@@ -9,7 +9,6 @@ import { willbenderTooltips } from '#gw2/professions/guardian/app/tooltips/willb
 /** Combine owner-local descriptions while keeping presentation separate from runtime behavior. */
 export const guardianTooltips: ProfessionTooltips = {
   modifiers: guardianModifierDescriptions,
-  reworks: { 'firebrand-rework': firebrandReworkTooltips },
   skillFacts: firebrandTooltips.skillFacts,
   skills: {
     ...guardianCoreTooltips.skills,

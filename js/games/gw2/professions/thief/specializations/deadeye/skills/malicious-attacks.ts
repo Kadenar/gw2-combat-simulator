@@ -51,14 +51,14 @@ export const DEADEYE_MALICIOUS_ATTACKS: Readonly<Record<number, SkillDefinition<
         id: 'thief.malicious-deaths-judgment-malice',
         target: MODIFIER_TARGET.STRIKE_DAMAGE,
         operation: 'multiply',
-        // Malice scales the attack itself; additive equipment bonuses must not dilute its ten percent per stack.
+        // Full malice scaling applies to marked and unmarked hits; spending still requires a marked hit.
         // Snapshotting preserves the consumed value for the launched hit after the resource is spent.
         parameters: { damagePerMalice: 0.1 },
         factor: (context, _target, parameters) =>
           1 +
           Math.max(0, (context.event as ThiefSimulationEvent | undefined)?.deadeyeMaliceSnapshot || 0) *
             parameters.damagePerMalice,
-        when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && markedTarget(context)
+        when: (context) => isGw2PlayerModifierOwnedEvent(context.event)
       }
     ],
     effects: [

@@ -219,13 +219,13 @@ test('Soulbeast condition modifiers and duration bonuses use their actual target
     ...config,
     selectedTraitIds: [TRAIT.HUNTERS_TACTICS]
   });
-  const oppressive = simulate('Soulbeast', rotation, {
+  const apex = simulate('Soulbeast', rotation, {
     ...config,
-    selectedTraitIds: [TRAIT.OPPRESSIVE_SUPERIORITY]
+    selectedTraitIds: [TRAIT.APEX_PREDATOR]
   });
-  const oppressiveWithExpertise = simulate('Soulbeast', rotation, {
+  const apexWithExpertise = simulate('Soulbeast', rotation, {
     ...config,
-    selectedTraitIds: [TRAIT.OPPRESSIVE_SUPERIORITY],
+    selectedTraitIds: [TRAIT.APEX_PREDATOR],
     attributeInputs: baseAttributeInputs({ ...config.attributeInputs?.weaponSets[0].commonTotals, expertise: 150 })
   });
   const bleeding = (result) =>
@@ -241,8 +241,8 @@ test('Soulbeast condition modifiers and duration bonuses use their actual target
 
   assert.equal(bleeding(huntersTactics), bleeding(baseline));
   assert.ok(splitbladeStrike(huntersTactics) > splitbladeStrike(baseline));
-  assert.ok(Math.abs(splitbladeBleedDuration(oppressive) - 6.6) < 1e-9);
-  assert.ok(Math.abs(splitbladeBleedDuration(oppressiveWithExpertise) - 7.2) < 1e-9);
+  assert.ok(Math.abs(splitbladeBleedDuration(apex) - 6) < 1e-9);
+  assert.ok(Math.abs(splitbladeBleedDuration(apexWithExpertise) - 6.6) < 1e-9);
 });
 
 test('Twice as Vicious activates from a disable', () => {

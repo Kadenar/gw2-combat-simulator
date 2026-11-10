@@ -701,7 +701,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
 
   assert.equal(revenantModifiers.modifyStrikeDamage(modifierContext([]), 1), 1.1);
   assert.equal(revenantModifiers.modifyConditionDamage(modifierContext([], 'Burning'), 1), 1.1);
-  assert.equal(revenantModifiers.modifyStrikeDamage(modifierContext([TRAIT.LASTING_LEGACY]), 1), 1.25);
+  assert.equal(revenantModifiers.modifyStrikeDamage(modifierContext([TRAIT.LASTING_LEGACY]), 1), 1.2);
   assert.equal(revenantModifiers.modifyConditionDamage(modifierContext([TRAIT.LASTING_LEGACY], 'Burning'), 1), 1.15);
   const additiveContext = modifierContext([
     TRAIT.DESTRUCTIVE_IMPULSES,
@@ -712,7 +712,7 @@ test("Kalla's Fervor stacks, refreshes, and improves with Lasting Legacy", () =>
   additiveContext.config.boons.fury = true;
   additiveContext.config.secondaryWeapon = 'Sword';
   additiveContext.damageInputs = { strikeSigilBonus: 0.05, conditionSigilBonus: 0.05 };
-  assert.equal(revenantModifiers.modifyStrikeDamage(additiveContext, 1), 1.475);
+  assert.equal(revenantModifiers.modifyStrikeDamage(additiveContext, 1), 1.425);
   additiveContext.condition = 'Burning';
   assert.ok(Math.abs(revenantModifiers.modifyConditionDamage(additiveContext, 1) - 1.375) < 1e-12);
 });
@@ -1159,7 +1159,7 @@ test('Vindicator dodge traits apply current endurance and damage behavior', () =
   const config = {
     selectedLegends: [LEGEND.ALLIANCE, LEGEND.ASSASSIN],
     startingLegend: LEGEND.ALLIANCE,
-    selectedTraitIds: [TRAIT.LEVIATHAN_STRENGTH, TRAIT.REAVERS_CURSE, TRAIT.FORERUNNER_OF_DEATH],
+    selectedTraitIds: [TRAIT.REAVERS_CURSE, TRAIT.FORERUNNER_OF_DEATH],
     initialEnergy: 100,
     boons: { quickness: true, alacrity: true, vigor: true }
   };

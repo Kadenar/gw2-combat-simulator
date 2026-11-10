@@ -5,18 +5,12 @@ import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js'
 import { ELEMENTALIST_SKILL_IDS as ELEMENTALIST } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { catalystState } from '#gw2/professions/elementalist/specializations/catalyst/state.js';
-import { GUARDIAN_SKILL_IDS as GUARDIAN, GUARDIAN_TRAIT_IDS as TRAIT } from '#gw2/professions/guardian/data/ids.js';
-import { guardianProfession } from '#gw2/professions/guardian/profession.js';
 import { MESMER_SKILL_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
-import {
-  createObservedProfessionSimulator,
-  observedRuntime,
-  observeGw2Runtime
-} from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
 // Apply fixture tuning and state through the real profession lifecycle, retaining native task/reaction dispatch.
@@ -36,26 +30,6 @@ function migratedSkillRun(profession, config, rotation, { catalog = (value) => v
     rotation
   });
 }
-
-// The shared emitter must retain the trait's identity and cast lineage alongside the independent page refund.
-test('Weighty Terms side effects preserve Slow attribution and page restoration', () => {
-  const result = createObservedProfessionSimulator(guardianProfession, {
-    specialization: 'Firebrand',
-    primaryWeapon: 'Scepter',
-    selectedTraitIds: [TRAIT.WEIGHTY_TERMS],
-    initialTomePages: 0,
-    boons: {},
-    target: { armor: 2597 }
-  })(undefined, ['Flame Rush', 'Flame Rush', { type: 'wait', durationMs: 1000 }, 'Flame Surge']);
-  assert.deepEqual(result.warnings, []);
-  const slow = result.events.filter((event) => event.type === 'condition' && event.sourceId === TRAIT.WEIGHTY_TERMS);
-  const cast = result.events.find((event) => event.type === 'action' && event.skillId === GUARDIAN.FLAME_SURGE);
-  assert.equal(slow.length, 1);
-  assert.equal(slow[0].name, 'Weighty Terms - Slow');
-  assert.equal(slow[0].activationId, cast.activationId);
-  assert.equal(slow[0].at, cast.endsAt);
-  assert.equal(result.planningState.profession[STATE.TOME_PAGES].value, 2);
-});
 
 // Outcome selection must spend Luck once and preserve the selected skill's outcome payload even on cancelled uses.
 test('Cannon variants retain accepted outcomes, selected skill payloads, and cancelled-use packets', () => {

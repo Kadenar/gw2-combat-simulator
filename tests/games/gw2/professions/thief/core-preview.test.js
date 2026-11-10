@@ -2,18 +2,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import { thiefProfession } from '#gw2/professions/thief/profession.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { testPatchPreview } from '#tests/helpers/patch-preview.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
-const profession = withPatchPreview(thiefProfession, activePatchPreview);
+const profession = withPatchPreview(thiefProfession, testPatchPreview);
 
 test('Thief Core preview preserves live chain and flip ownership', () => {
   const live = profession.runtimeFor({ specialization: 'Core', patchId: 'current' }).catalog;
-  const preview = profession.runtimeFor({ specialization: 'Core', patchId: activePatchPreview.id }).catalog;
+  const preview = profession.runtimeFor({ specialization: 'Core', patchId: testPatchPreview.id }).catalog;
   assert.deepEqual(preview.autoattackChains, live.autoattackChains);
   assert.deepEqual(preview.skillFlips, live.skillFlips);
 });
@@ -34,7 +34,7 @@ for (const [prepareId, triggerId] of [
         { type: 'wait', durationMs: 3000 },
         triggerId
       ],
-      { patchId: activePatchPreview.id, selectedSkillIds: [prepareId] },
+      { patchId: testPatchPreview.id, selectedSkillIds: [prepareId] },
       { profession }
     );
     assert.deepEqual(result.warnings, []);

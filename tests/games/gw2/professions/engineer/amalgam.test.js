@@ -196,11 +196,11 @@ test("Sharpshooter derives bleeding damage from Evolve's Power bonus", () => {
     (event) => event.type === 'condition' && event.skillName === 'Shrapnel Grenade' && event.condition === 'Bleeding'
   );
 
-  // Double Helix raises eligible Power from 2000 to 2400; Sharpshooter then
+  // Double Helix raises eligible Power from 2000 to 2300; Sharpshooter then
   // replaces bleeding's condition damage with two-thirds of that final Power.
   assert.ok(bleed);
   // Select a complete interval because shared partial packets attribute rounded integer shares.
-  assert.equal(bleed.damageTicks.find((tick) => tick.fraction === 1).damage, 118 * bleed.stacks);
+  assert.equal(bleed.damageTicks.find((tick) => tick.fraction === 1).damage, 114 * bleed.stacks);
 });
 
 test('Evolve cannot raise condition duration above the global cap', () => {
@@ -730,7 +730,7 @@ test('Evolve scales only its eligible static attribute pool', () => {
   );
   assert.deepEqual(
     evaluateAttributeDeclarations(context([TRAIT.DOUBLE_HELIX]), resolved, amalgamModule.attributes),
-    Object.fromEntries(attributes.map((attribute) => [attribute, attribute === 'vitality' ? 1750 : 1700]))
+    Object.fromEntries(attributes.map((attribute) => [attribute, attribute === 'vitality' ? 1700 : 1650]))
   );
 });
 
@@ -739,7 +739,7 @@ test('Evolve includes eligible flat traits without scaling Might or conversion-i
   // while Hybrid Vigor, No Scope, and Might retain their own conversion exclusions.
   for (const [extraTraits, factor] of [
     [[], 0.1],
-    [[TRAIT.DOUBLE_HELIX], 0.2]
+    [[TRAIT.DOUBLE_HELIX], 0.15]
   ]) {
     const config = {
       selectedMorphSkillIds: [],
@@ -760,11 +760,11 @@ test('Evolve includes eligible flat traits without scaling Might or conversion-i
     const base = stats([{ type: 'wait', durationMs: 1000 }]);
     const evolved = stats(['Evolve', { type: 'wait', durationMs: 1000 }]);
 
-    assert.equal(evolved.conditionDamage - base.conditionDamage, 1120 * factor);
-    assert.equal(evolved.expertise - base.expertise, 150 * factor);
-    assert.equal(evolved.power - base.power, 2000 * factor);
-    assert.equal(evolved.vitality - base.vitality, 1000 * factor);
-    assert.equal(evolved.ferocity - base.ferocity, 500 * factor);
+    assert.equal(evolved.conditionDamage - base.conditionDamage, Math.round(1120 * factor));
+    assert.equal(evolved.expertise - base.expertise, Math.round(150 * factor));
+    assert.equal(evolved.power - base.power, Math.round(2000 * factor));
+    assert.equal(evolved.vitality - base.vitality, Math.round(1000 * factor));
+    assert.equal(evolved.ferocity - base.ferocity, Math.round(500 * factor));
   }
 });
 

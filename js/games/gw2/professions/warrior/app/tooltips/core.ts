@@ -57,6 +57,16 @@ export const warriorCoreTooltips = {
         ])
   ],
   skills: {
+    [ID.FAN_OF_FIRE]: skillTooltip(
+      'Pending first-hit and repeat-hit damage and Burning values. The simulator retains the previous three-arrow payload.'
+    ),
+    [ID.SMOLDERING_ARROW]: skillTooltip(
+      'Burning is pending its stack count and duration. The existing strike, Blindness, and Daze remain.'
+    ),
+    [ID.PIN_DOWN]: skillTooltip('A landed hit recharges Fan of Fire. Missing the target grants no recharge.'),
+    [ID.BREAK_ENCHANTMENTS]: skillTooltip(
+      'Two charges deal the PvE base strike. Removing a boon would add 50% damage; the simulated target has no boons, so that branch is inactive.'
+    ),
     // Read execute tiers from their owning modifiers, including balance patches.
     [ID.THROW_AXE]: skillTooltip('Throw your axe, dealing increased damage at low target health.', [
       fromModifier(

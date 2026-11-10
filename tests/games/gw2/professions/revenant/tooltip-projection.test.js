@@ -20,7 +20,7 @@ test('Vindicator dodge tooltips show only the selected landing and trait descrip
     [3, "Saint's Shield", ['Alacrity']],
     [1, 'Death Drop', ['Strike damage', 'Vulnerability']]
   ]) {
-    build.specializations[0].traits = `1-1-${choice}`;
+    build.specializations[0].traits = `1-${choice}-1`;
     const model = revenantAppAdapter.skillTooltip(
       skill,
       revenantAppAdapter.profession.resolvePatch({ id: 'current' }),
@@ -40,7 +40,7 @@ test('Vindicator dodge tooltips show only the selected landing and trait descrip
     );
   }
 
-  build.specializations[0].traits = '1-2-3';
+  build.specializations[0].traits = '2-3-1';
   assert.doesNotMatch(
     revenantAppAdapter.skillTooltip(skill, revenantAppAdapter.profession.resolvePatch({ id: 'current' }), build)
       .description,

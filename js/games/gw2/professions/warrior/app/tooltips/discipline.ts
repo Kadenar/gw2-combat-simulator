@@ -28,7 +28,13 @@ export const warriorDisciplineTooltips = {
   ]),
   [TRAIT.STALWART_FOCUS]: outsideScopeTooltip,
   [TRAIT.DOUBLED_STANDARDS]: outsideScopeTooltip,
-  [TRAIT.DESTRUCTION_OF_THE_EMPOWERED]: outsideScopeTooltip,
+  [TRAIT.DESTRUCTION_OF_THE_EMPOWERED]: traitTooltip(
+    'Increase damage per boon on the target, up to the cap. The simulated target has no boons, so this trait adds no damage.',
+    [
+      ['damagePerBoon', 'Damage per target boon', tooltipPercent],
+      ['maximumBoons', 'Maximum target boons']
+    ]
+  ),
   [TRAIT.BRAWLERS_RECOVERY]: outsideScopeTooltip,
   [TRAIT.AXE_MASTERY]: traitTooltip(
     'Gain ferocity, with an additional bonus while wielding an axe. Eligible axe critical hits grant adrenaline.',

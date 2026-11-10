@@ -1,6 +1,6 @@
 // Trait IDs own balance lookup and emission so patches and runtime share the same trait definition.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
+import { isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
@@ -159,8 +159,8 @@ const forcefulPersistence = defineTrait<RevenantSkill>({
 const reinforcedPotency = defineTrait({
   id: TRAIT.REINFORCED_POTENCY,
   balance: {
-    damagePerBoon: 0.01,
-    maximumBoons: GW2_STANDARD_BOONS.length,
+    damagePerBoon: 0.02,
+    maximumBoons: 5,
     attributeBonuses: { concentration: 240 }
   },
   attributes: traitAttributeEffects(TRAIT.REINFORCED_POTENCY, [

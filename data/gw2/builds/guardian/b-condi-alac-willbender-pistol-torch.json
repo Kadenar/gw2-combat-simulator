@@ -46,8 +46,7 @@
     },
     {
       "name": "Virtues",
-      "traits": "3-1-2",
-      "patchTraits": { "nov-10-balance-preview": "3-1-1" }
+      "traits": "3-1-1"
     },
     {
       "name": "Willbender",

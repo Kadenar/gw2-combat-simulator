@@ -72,7 +72,7 @@ const owners = [
   {
     name: 'Ranger',
     family: rangerProfession,
-    core: ['sic-em', 'paralyzing-venom', 'strength-of-the-pack', 'light-on-your-feet'],
+    core: ['sic-em', 'paralyzing-venom', 'strength-of-the-pack'],
     elites: {
       Druid: ['natural-balance'],
       Soulbeast: ['one-wolf-pack', 'vulture-stance', 'twice-as-vicious'],

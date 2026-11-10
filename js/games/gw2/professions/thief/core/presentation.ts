@@ -216,14 +216,8 @@ export const thiefCoreUi = Object.freeze({
     );
     preview.playerHealth(['Keen Observer', 'Twin Fangs'], preview.has('Keen Observer') ? 50 : 100);
 
-    if (preview.has('Twin Fangs'))
-      preview.add({
-        key: 'flanking',
-        label: 'Flanking',
-        group: 'Trait conditionals',
-        kind: 'special',
-        description: 'Positional Critical Chance'
-      });
+    preview.buff('Twin Fangs', 'twinFangs', 'twin-fangs', 'Earned critical-chance bonus active');
+    for (const condition of ['Crippled', 'Chilled', 'Immobilized']) preview.condition(condition, 'Opportune Opening');
 
     // Active replaces the passive; Off represents the signet's inactive recharge window.
     if (preview.skills.has(ID.ASSASSINS_SIGNET))

@@ -1184,7 +1184,7 @@ test('calibrated minion strikes ignore player Power and Signet of Spite', () => 
   });
 
   assertFlooredDamageMultiplier(totalMinionDamage(corruption), totalMinionDamage(base), 1.25);
-  assertFlooredDamageMultiplier(totalMinionDamage(strength), totalMinionDamage(base), 1.5);
+  assertFlooredDamageMultiplier(totalMinionDamage(strength), totalMinionDamage(base), 1.33);
 });
 
 // Only recipients accelerate; sharing and party caps must govern each creature's clock independently.

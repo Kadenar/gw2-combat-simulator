@@ -125,7 +125,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
         name: 'Beguiling Haze - Follow-Up',
         actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
-        ticks: [{ atMs: 200, coefficient: 0.6 }],
+        ticks: [{ atMs: 200, coefficient: 0.3 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -272,7 +272,7 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
         type: 'strike',
         name: 'Beguiling Haze',
         actorType: ACTOR.PLAYER,
-        ticks: [{ atMs: 480, coefficient: 2.2 }],
+        ticks: [{ atMs: 480, coefficient: 1 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }

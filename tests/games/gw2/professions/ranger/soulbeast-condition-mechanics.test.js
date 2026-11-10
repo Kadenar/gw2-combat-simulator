@@ -25,13 +25,13 @@ test('Bumble activates Twice as Vicious through its knockdown', () => {
   assert.ok(buff.at >= control.at);
 });
 
-// Bumble retains this observed trait interaction without granting an evade or making other disables qualify.
-test('Light on Your Feet handles Bumble separately from ordinary evades and disables', () => {
+// The movement-only trait no longer emits its retired combat buff.
+test('Light on Your Feet no longer grants combat buffs from Bumble', () => {
   const selectedTraitIds = [TRAIT.LIGHT_ON_YOUR_FEET];
   const run = (rotation, traits = selectedTraitIds) => runRanger(rotation, { ...config, selectedTraitIds: traits });
   const buffs = (result) =>
     result.events.filter((event) => event.type === 'buff' && event.kind === 'light-on-your-feet');
-  assert.equal(buffs(run([ID.BUMBLE, ID.CROSSFIRE])).length, 1);
+  assert.equal(buffs(run([ID.BUMBLE, ID.CROSSFIRE])).length, 0);
   assert.deepEqual(buffs(run([ID.BUMBLE, ID.CROSSFIRE], [])), []);
   assert.deepEqual(buffs(run([ID.CONCUSSION_SHOT, ID.CROSSFIRE])), []);
 });
@@ -93,7 +93,7 @@ for (const shared of [false, true]) {
     assert.equal(poisonMaster.ownerActorType, 'player');
     // Condition ticks round within a shared pool, so allow one point per settlement when comparing the multiplier.
     assert.ok(Math.abs(poisonMaster.damage - baseline.damage * 1.25) <= baseline.damageTicks.length);
-    assert.equal(lightOnYourFeet.effectiveDuration, baseline.effectiveDuration * 1.1);
+    assert.equal(lightOnYourFeet.effectiveDuration, baseline.effectiveDuration);
   });
 }
 
@@ -115,5 +115,5 @@ test('merged Poisonous Strikes inherits player poison and duration modifiers', (
   assert.equal(poisonMaster.ownerActorType, 'player');
   // Condition ticks round within a shared pool, so allow one point per settlement when comparing the multiplier.
   assert.ok(Math.abs(poisonMaster.damage - baseline.damage * 1.25) <= baseline.damageTicks.length);
-  assert.ok(Math.abs(lightOnYourFeet.effectiveDuration - baseline.effectiveDuration * 1.1) < 0.001);
+  assert.ok(Math.abs(lightOnYourFeet.effectiveDuration - baseline.effectiveDuration) < 0.001);
 });

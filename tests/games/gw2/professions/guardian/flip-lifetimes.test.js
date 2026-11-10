@@ -158,11 +158,11 @@ for (const { rootId, normalId, finalId } of MANTRAS) {
 }
 
 // Truth's final charge must reach the same trait trigger as the other mantra families.
-test('Voice of Truth refunds Weighty Terms pages only when the final charge is spent', () => {
+test('Voice of Truth refunds Revelation pages only when the final charge is spent', () => {
   const config = {
     specialization: 'Firebrand',
     selectedSkillIds: [ID.MANTRA_OF_TRUTH],
-    selectedTraitIds: [TRAIT.WEIGHTY_TERMS],
+    selectedTraitIds: [TRAIT.REVELATION],
     initialTomePages: 0
   };
   const normal = runGuardian([ID.ECHO_OF_TRUTH, ID.ECHO_OF_TRUTH], config);

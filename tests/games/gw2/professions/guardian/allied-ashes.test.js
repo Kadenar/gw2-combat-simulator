@@ -6,13 +6,13 @@ import { grantAshes } from '#gw2/professions/guardian/specializations/firebrand/
 import { ashesBurningSkill } from '#gw2/professions/guardian/specializations/firebrand/skills/tome-skills.js';
 import { observeGw2Runtime } from '#tests/helpers/observed-runtime.js';
 
-// A Quickfire-sized grant isolates allied charge retention from the player's tome and strike activity.
+// A Fervid Conviction-sized grant isolates allied charge retention from the player's tome and strike activity.
 function run({ duration = 5, charges = 1, combatStartTime = 3, output, secondGrantAt, end = 6 } = {}) {
   const config = { specialization: 'Firebrand', allies: { count: 2, strikesPerSecond: 2 } };
   const native = guardianProfession.runtimeFor(config);
   const grant = (runtime) =>
     grantAshes(runtime, {
-      source: 'quickfire',
+      source: 'fervid-conviction',
       cause: {
         type: 'buff',
         at: runtime.time,
@@ -20,7 +20,7 @@ function run({ duration = 5, charges = 1, combatStartTime = 3, output, secondGra
         sourceId: 'test.ashes',
         actorType: 'player',
         activationId: `grant:${runtime.time}`,
-        skillName: 'Quickfire'
+        skillName: 'Fervid Conviction'
       },
       charges,
       lifetimeSeconds: duration,
@@ -56,8 +56,8 @@ test('precast Ashes retains its charge for the first eligible allied strike and 
   assert.deepEqual(result.warnings, []);
   const [burn] = burns(result);
   assert.equal(burn.actorType, 'player');
-  assert.equal(burn.skillName, 'Quickfire');
-  assert.equal(burn.name, 'Quickfire - Ally 1 Burning');
+  assert.equal(burn.skillName, 'Fervid Conviction');
+  assert.equal(burn.name, 'Fervid Conviction - Ally 1 Burning');
   assert.equal(burn.procType, undefined);
   assert.equal(burn.icon, undefined);
   assert.match(burn.activationId, /^grant:0:ally:1:/);

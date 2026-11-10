@@ -49,6 +49,10 @@ export const rangerCoreTooltips = {
       : [])
   ],
   skills: {
+    [ID.CROSSFIRE]: skillTooltip('Apply Bleeding with the same duration regardless of flanking.'),
+    [ID.POISON_VOLLEY]: skillTooltip(
+      'Poison lasts longer against movement-impaired or defiant targets. Temporary disabled-target windows are not modeled.'
+    ),
     // Read execute tiers from their owning modifiers, including balance patches.
     [ID.PREDATORS_AMBUSH]: skillTooltip('Leap at your target, dealing increased damage at low target health.', [
       fromModifier(
@@ -105,14 +109,8 @@ export const rangerCoreTooltips = {
       )
     ]),
     [ID.UNLEASHED_SAVAGE_SHOCK_WAVE]: skillTooltip(
-      'Release shock waves that deal increased damage to defiant targets and gain additional damage for each distinct condition on the target.',
+      'Release shock waves with bonus damage for up to five distinct conditions. Defiant targets receive the maximum bonus instead. Temporary disabled-target windows are not modeled.',
       [
-        fromModifier(
-          'ranger.unleashed-savage-shock-wave-defiant',
-          'factor',
-          'Strike damage against defiant targets',
-          tooltipFactorChange
-        ),
         fromModifier(
           'ranger.condition-count-skill-bonus',
           'damagePerCondition',
@@ -258,11 +256,11 @@ export const rangerCoreTooltips = {
       "Copy your pet's current boons to yourself and your boons to the pet, using this skill's copy durations. While merged, copy your own boons to yourself. Healing is outside combat simulation scope."
     ),
     [ID.STRENGTH_OF_THE_PACK]: skillTooltip(
-      'Grant the listed boons and arm might generation for your active pet. While the buff lasts, your qualifying strikes grant might to that pet.',
+      'Your qualifying strikes grant Might to you and your active pet while the buff lasts. The new pet damage bonus is pending confirmed tuning, including its Beastmode behavior.',
       (balanceContext) =>
         simulationEffectFacts(
           requireSkillAction(requireSkill(balanceContext.catalog, ID.STRENGTH_OF_THE_PACK), 'triggered-might').effects,
-          'to your active pet per qualifying player hit'
+          'to you and your active pet per qualifying player hit'
         ).facts
     ),
     [ID.SIGNET_OF_THE_WILD]: skillTooltip(

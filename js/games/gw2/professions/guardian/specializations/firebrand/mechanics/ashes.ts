@@ -42,7 +42,7 @@ interface AshesGrantAdmission {
 }
 
 interface AshesGrantRequest {
-  readonly source: 'epilogue' | 'quickfire' | 'fervid-conviction';
+  readonly source: 'epilogue' | 'fervid-conviction';
   readonly cause: Gw2ResolverEvent;
   readonly charges: number;
   readonly lifetimeSeconds: number;
@@ -75,15 +75,13 @@ export function grantAshes(runtime: GuardianRuntime, request: AshesGrantRequest)
     runtime.schedule(FIREBRAND_ASHES_EXPIRE, expiresAt, undefined, undefined, 10);
   }
 
-  // Self-only grants (Quickfire without allied recipients) never touch the allied controller.
+  // Self-only grants never touch the allied controller.
   if (request.recipients.maximumAllies <= 0) return;
 
   const source =
     request.source === 'epilogue'
       ? { priority: 0, skillName: 'Epilogue: Ashes of the Just', name: 'Ashes of the Just' }
-      : request.source === 'quickfire'
-        ? { priority: 5, skillName: 'Quickfire', name: 'Quickfire' }
-        : { priority: 5, skillName: 'Fervid Conviction', name: 'Fervid Conviction' };
+      : { priority: 5, skillName: 'Fervid Conviction', name: 'Fervid Conviction' };
   const event = request.cause;
   // The controller only offers strikes; the native grant answers liveness. Each new grant replaces the ally's
   // registration, so later procs carry the latest source's attribution.

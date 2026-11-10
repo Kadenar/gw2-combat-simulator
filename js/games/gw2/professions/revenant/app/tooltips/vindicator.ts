@@ -1,6 +1,4 @@
 import {
-  fromProfile,
-  outsideScopeTooltip,
   profileFact,
   simulationEffectFacts,
   skillTooltip,
@@ -14,7 +12,6 @@ import {
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_DODGE_AUTO_ACTION } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
-import { VINDICATOR_REWORK_TRAIT_IDS as REWORK } from '#gw2/professions/revenant/specializations/vindicator/rework/ids.js';
 
 /** Describe vindicator tooltips from the selected balance data. */
 export const vindicatorTooltips = {
@@ -48,23 +45,23 @@ export const vindicatorTooltips = {
   },
   traits: {
     [TRAIT.TENACIOUS_RUIN]: traitTooltip('Replace the ordinary dodge with the selected Vindicator dodge attack.'),
-    [TRAIT.BALANCE_IN_DISCORD]: outsideScopeTooltip,
-    [TRAIT.EMPIRE_DIVIDED]: traitTooltip('Gain power at the full player health used by combat simulations.', [
-      ['attributeBonuses.power', 'Power', (value) => '+' + tooltipDecimal(value)]
-    ]),
-    [TRAIT.LEVIATHAN_STRENGTH]: traitTooltip(
-      'Player-owned strikes deal increased damage while endurance is below full.',
-      [
-        fromProfile(
-          TRAIT.LEVIATHAN_STRENGTH,
-          'damageMultiplier',
-          'Strike damage below full endurance',
-          tooltipFactorChange
-        )
-      ]
+    [TRAIT.BALANCE_IN_DISCORD]: traitTooltip(
+      'Gain endurance on successful legend swaps, including outside combat. The amount is unknown and currently contributes no endurance. Alliance Tactics is not implemented, so its endurance trigger is deferred.',
+      [['resourceGain', 'Endurance per legend swap, pending']]
     ),
-    [TRAIT.AMNESTY_OF_SHING_JEA]: outsideScopeTooltip,
-    [TRAIT.REDEMPTORS_SERMON]: outsideScopeTooltip,
+    [TRAIT.RISE_TO_THE_OCCASION]: traitTooltip(
+      'Player-owned strikes deal increased damage while endurance is below full. The percentage and stacking need confirmation. No damage bonus is applied yet. Outgoing healing is outside simulation scope.',
+      [['damageIncrease', 'Strike damage below full endurance, pending', tooltipPercent]]
+    ),
+    [TRAIT.FRIEND_OF_THE_LUXONS]: traitTooltip(
+      "Pending: Archemorus's Strike and the damage bonus after Luxon skills need confirmed values. This trait currently adds no simulated effects."
+    ),
+    [TRAIT.HEATED_RIVALRY]: traitTooltip(
+      'Deferred: Kurzick skills and Alliance Tactics are not implemented. The trigger requires two faction skills in PvE. Counters, Tactics recharge, and opposite-faction energy refunds remain pending.'
+    ),
+    [TRAIT.FRIEND_OF_THE_KURZICKS]: traitTooltip(
+      'Deferred: Shield of Saint Viktor is not implemented. Ally barrier, healing after Kurzick skills, and projectile blocking are outside simulation scope.'
+    ),
     [TRAIT.REAVERS_CURSE]: traitTooltip(
       'Energy Meld recharges faster and empowers the next dodge that lands within its buff window.',
       [
@@ -101,29 +98,6 @@ export const vindicatorTooltips = {
       "Dodge with Saint's Shield, granting alacrity to nearby allies. Incoming damage and healing are outside combat simulation scope.",
       (context) =>
         simulationEffectFacts(context.catalog.skillsById.get(ID.SAINTS_SHIELD)!.effects, "Saint's Shield").facts
-    )
-  }
-} satisfies ProfessionTooltips;
-
-/** Preview descriptions distinguish implemented provisional mechanics from deferred grandmaster skills. */
-export const vindicatorReworkTooltips = {
-  traits: {
-    [TRAIT.BALANCE_IN_DISCORD]: traitTooltip(
-      'Gain endurance on successful legend swaps, including outside combat. The amount is provisional. Alliance Tactics is not implemented, so its endurance trigger is deferred.',
-      [['resourceGain', 'Provisional endurance per legend swap']]
-    ),
-    [REWORK.RISE_TO_THE_OCCASION]: traitTooltip(
-      'Player-owned strikes deal increased damage while endurance is below full. The percentage and multiplicative stacking are provisional. Outgoing healing is outside simulation scope.',
-      [['damageIncrease', 'Provisional strike damage below full endurance', tooltipPercent]]
-    ),
-    [REWORK.FRIEND_OF_THE_LUXONS]: traitTooltip(
-      "Pending: Archemorus's Strike is not implemented in this first pass. This trait currently adds no simulated effects."
-    ),
-    [REWORK.HEATED_RIVALRY]: traitTooltip(
-      'Deferred: Kurzick skills and Alliance Tactics are not implemented. Faction counters, Tactics recharge, and opposite-faction energy refunds have no simulated effects.'
-    ),
-    [REWORK.FRIEND_OF_THE_KURZICKS]: traitTooltip(
-      'Deferred: Shield of Saint Viktor is not implemented. Ally barrier and projectile blocking are outside simulation scope.'
     )
   }
 } satisfies ProfessionTooltips;

@@ -45,7 +45,9 @@ export const mesmerChaosTooltips = {
       ['internalCooldown', 'Internal cooldown against defiant targets', tooltipSeconds]
     ]
   ),
-  [TRAIT.SHAPER_OF_CHAOS]: outsideScopeTooltip,
+  [TRAIT.SHAPER_OF_CHAOS]: traitTooltip(
+    'Using your first shatter or instrument detonates an active self Chaos Aura, consuming it and applying Confusion.'
+  ),
   [TRAIT.PRISMATIC_UNDERSTANDING]: outsideScopeTooltip,
   [TRAIT.BOUNTIFUL_DISILLUSIONMENT]: traitTooltip(
     'Using a shatter or instrument grants Stability to yourself. Its profession slot grants an additional boon to you and nearby allies: F1 Might, F2 Vigor, F3 Fury, or F4 Regeneration.'

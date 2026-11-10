@@ -36,6 +36,8 @@ export interface AlliedVenomBatch extends ChargeGrant {
 }
 
 export interface ThiefCoreState extends StealthState {
+  /** Mobility refreshes one pending attack reward instead of stacking charges. */
+  deftInitiationArmed: boolean;
   /** Same-tick hostile impacts must reveal a new stealth grant regardless of queue insertion order. */
   lastStealthBreakingStrike: { at: number; skillId: SkillId } | null;
   initiative: ResourceClock;
@@ -80,6 +82,7 @@ export function createThiefCoreState(
   const context = { ...preparation.balanceContext, config };
   const maximumInitiative = thiefInitiativeCapacity(context.catalog, context);
   return {
+    deftInitiationArmed: false,
     lastStealthBreakingStrike: null,
     initiative: {
       ...createResourceClock(thiefStartingInitiative(config, maximumInitiative)),

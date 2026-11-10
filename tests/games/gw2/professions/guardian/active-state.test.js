@@ -26,20 +26,20 @@ function activeState(result) {
   );
 }
 
-test('Purity of Word reads the live page deadline and Loremaster cadence at the cursor', () => {
+test('Purity of Word owns page recovery regardless of defensive trait selection', () => {
   // The same clock supplies both countdowns, including ticks that continue while the page pool is full.
   for (const [selectedTraitIds, interval] of [
-    [[], 8],
-    [[TRAIT.LOREMASTER], 5]
+    [[], 6],
+    [[TRAIT.DELIVERANCE], 6]
   ]) {
-    const config = { initialTomePages: 4, selectedTraitIds };
+    const config = { initialTomePages: 7, selectedTraitIds };
     const initial = activeState(simulate(undefined, [], config));
     assert.equal(initial['firebrand-purity-of-word'].value, `${interval.toFixed(1)}s`);
     const elapsed = activeState(simulate(undefined, [{ type: 'wait', durationMs: 1000 }], config));
     assert.equal(elapsed['firebrand-purity-of-word'].value, `${(interval - 1).toFixed(1)}s`);
     assert.match(elapsed['firebrand-purity-of-word'].title, new RegExp(`every ${interval}\\.0s`));
     const regenerated = simulate(undefined, [{ type: 'wait', durationMs: interval * 1000 }], config);
-    assert.equal(regenerated.planningState.profession[STATE.TOME_PAGES].value, 5);
+    assert.equal(regenerated.planningState.profession[STATE.TOME_PAGES].value, 8);
     assert.equal(activeState(regenerated)['firebrand-purity-of-word'].value, `${interval.toFixed(1)}s · Full`);
   }
 
@@ -63,7 +63,7 @@ test('Swift Scholar exposes current tome progress and clears it after a refund o
   assert.equal(activeState(cancelled)['firebrand-swift-scholar'].value, '2/3');
   const refunded = simulate(undefined, [...prefix, 'Chapter 4: Scorched Aftermath'], config);
   assert.equal(activeState(refunded)['firebrand-swift-scholar'].value, '0/3');
-  assert.equal(refunded.planningState.profession[STATE.TOME_PAGES].value, 3);
+  assert.equal(refunded.planningState.profession[STATE.TOME_PAGES].value, 6);
   const stowed = simulate(undefined, [...prefix, 'Stow Tome'], config);
   assert.equal(stowed.planningState.profession[STATE.SWIFT_SCHOLAR_COUNT], 0);
   assert.equal(activeState(stowed)['firebrand-swift-scholar'], undefined);

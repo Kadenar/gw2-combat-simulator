@@ -27,9 +27,6 @@ export const weaponSwapped = defineTriggerPoint<{ readonly skill: RangerSkill; r
   [TRAIT.TAIL_WIND, TRAIT.QUICK_DRAW, TRAIT.FURIOUS_GRIP]
 );
 
-/** Explicit dodge commitment and evading skill acceptance share the duration-stacking reward. */
-export const dodged = defineTriggerPoint<{ readonly at: number }>('ranger.dodged', [TRAIT.LIGHT_ON_YOUR_FEET]);
-
 /** The resolved Beast strike precedes the Lesser Sic Em buff it creates, then skill on-hit effects run. */
 export const strike = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>('ranger.strike', [
   TRAIT.OPENING_STRIKE,
@@ -48,12 +45,6 @@ export const strikeEffectsApplied = defineTriggerPoint<{ readonly event: Gw2Reso
 export const packStrikeApplied = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>(
   'ranger.pack-strike-applied',
   [TRAIT.TRAPPERS_EXPERTISE]
-);
-
-/** The shortbow upgrade follows its Blood Thirst skill effect. */
-export const bloodThirstApplied = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>(
-  'ranger.blood-thirst-applied',
-  [TRAIT.LIGHT_ON_YOUR_FEET]
 );
 
 /** Fury rearms opening strikes before stealth and pet venom state transitions. */

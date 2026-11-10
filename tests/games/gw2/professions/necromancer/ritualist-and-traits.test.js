@@ -186,7 +186,7 @@ test('Ritualist live spirit packets retain independent ownership and cadence', (
 
   assert.ok(anguish.length > 0);
   assert.equal(
-    anguish.every((event) => event.actorType === 'player' && event.coefficient === 0.36),
+    anguish.every((event) => event.actorType === 'player' && event.coefficient === 0.15),
     true
   );
   assert.ok(lingering.length > 0);
@@ -291,7 +291,7 @@ test("Spirit's Strength scales Ritualist minion strikes at the specialization bo
 
   assert.ok(baseline);
   assert.ok(strengthened);
-  assertFlooredDamageMultiplier(strengthened.damage, baseline.damage, 1.5);
+  assertFlooredDamageMultiplier(strengthened.damage, baseline.damage, 1.33);
 });
 
 test('Ritualist weapon spells consume stacks and Resilient Weapon is usable', () => {

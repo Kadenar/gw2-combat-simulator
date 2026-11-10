@@ -1,31 +1,27 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
 import { withActivePatchPreview } from '#gw2/integrations/patches/active-profession.js';
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { createDefaultConfig, runMesmer } from '#tests/helpers/mesmer-simulation.js';
 
-// Role changes must affect both catalog selection and runtime equipment checks without modifying live skills.
-test('preview swaps Disenchanter and Warden weapon and utility placement', () => {
+// Role changes must affect both catalog selection and runtime equipment checks in the released catalog.
+test('live Disenchanter and Warden enforce their new weapon and utility placement', () => {
   const profession = withActivePatchPreview(mesmerProfession);
   const live = profession.resolvePatch({ id: 'current' }).catalog;
-  const preview = profession.resolvePatch({ id: activePatchPreview.id }).catalog;
   for (const [id, type, weapon, slot] of [
     [ID.PHANTASMAL_DISENCHANTER, 'Weapon', 'Focus', 'Weapon_5'],
     [ID.PHANTASMAL_WARDEN, 'Utility', '', 'Utility']
   ]) {
-    const skill = preview.skillsById.get(id);
-    assert.deepEqual([skill.type, skill.weapon, skill.slot], [type, weapon, slot]);
-    assert.notEqual(live.skillsById.get(id).type, type);
+    const skill = live.skillsById.get(id);
+    assert.deepEqual([skill.type, skill.weapon || '', skill.slot], [type, weapon, slot]);
     const run = (secondaryWeapon, selectedSkillIds) =>
       runMesmer(
         [skill.name],
         {
           ...createDefaultConfig(),
-          patchId: activePatchPreview.id,
           specialization: 'Core',
           primaryWeapon: 'Sword',
           secondaryWeapon,

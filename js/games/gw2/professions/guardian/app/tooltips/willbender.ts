@@ -86,7 +86,7 @@ export const willbenderTooltips = {
     ),
     [TRAIT.VANGUARD_TACTICS]: outsideScopeTooltip,
     [TRAIT.PHOENIX_PROTOCOL]: traitTooltip(
-      'Activating Resolve grants alacrity; completed Resolve triggers grant the shorter application. Battle Presence shares these applications with the party.'
+      'Activating Resolve grants alacrity; completed Resolve triggers grant the shorter application. Both applications affect nearby allies.'
     ),
     [TRAIT.TYRANTS_MOMENTUM]: traitTooltip(
       'Lethal Tempo grants stronger damage bonuses with a shorter stack window. Rushing Justice uses the extended Justice window.',

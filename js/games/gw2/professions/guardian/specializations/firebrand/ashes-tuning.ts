@@ -1,6 +1,7 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { CONDITION } from '#gw2/platform/constants.js';
 import {
+  balanceProfileNumber,
   effectNumber,
   requireBalanceProfile,
   requireEffect,
@@ -54,15 +55,12 @@ export function resolveAshes(selection: AshesSelection): ResolvedAshes | undefin
 
   if (traitId !== undefined && hasTrait(selection, traitId)) {
     const trait = requireBalanceProfile(selection.catalog, traitId);
-    const replacement = requireEffect(trait, 'condition', CONDITION.BURNING);
-
-    if (replacement) {
-      burning = {
-        stacks: effectNumber(trait, replacement, 'stacks'),
-        baseDurationSeconds: effectNumber(trait, replacement, 'duration')
-      };
-      overrideTraitId = traitId;
-    }
+    // Multiply the selected base duration so skill edits and both recipients use the same increase.
+    burning = {
+      ...baseline,
+      baseDurationSeconds: baseline.baseDurationSeconds * balanceProfileNumber(trait, 'durationMultiplier')
+    };
+    overrideTraitId = traitId;
   }
 
   return {

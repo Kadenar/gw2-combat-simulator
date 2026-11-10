@@ -185,12 +185,12 @@ test('Silent Scope and Guitar replace bonus stealth attacks with selected counts
     runtime.time = 1;
     grant();
     const first = state.bonusStealthAttack;
-    assert.equal(first.charges, deadeye ? 1 : 3);
+    assert.equal(first.charges, deadeye ? 1 : 2);
     assert.equal(first.expiresAt, 8);
     runtime.time = 2;
     grant();
     assert.notEqual(state.bonusStealthAttack, first);
-    assert.equal(state.bonusStealthAttack.charges, deadeye ? 1 : 3);
+    assert.equal(state.bonusStealthAttack.charges, deadeye ? 1 : 2);
     assert.equal(state.bonusStealthAttack.expiresAt, 9);
     const before = structuredClone(state.bonusStealthAttack);
     for (const at of [8, 9, 10]) {

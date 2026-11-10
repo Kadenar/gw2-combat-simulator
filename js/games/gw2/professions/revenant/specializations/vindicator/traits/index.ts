@@ -1,6 +1,6 @@
 import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { buffActive, playerHealthFraction } from '#gw2/platform/combat/query/runtime-query.js';
+import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -8,9 +8,7 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
   balanceNumber,
-  balanceProfileNumber,
   effectNumber,
-  ownerAttributeBonusNumber,
   requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
@@ -30,26 +28,6 @@ const angsiyansTrust = defineTrait({
   id: TRAIT.ANGSIYANS_TRUST,
   balance: { resourceGain: 25, effects: [] },
   triggers: [onTriggerPoint(energyMeldCompleted, { run: grantAngsiyansTrustEnergy })]
-});
-
-const empireDivided = defineTrait({
-  id: TRAIT.EMPIRE_DIVIDED,
-  balance: { attributeBonuses: { power: 240 }, threshold: 0.5 },
-  attributes: (context) => {
-    const profile = requireBalanceProfile(context.balanceContext.catalog, TRAIT.EMPIRE_DIVIDED);
-    return {
-      attributeEffects: [
-        {
-          kind: 'flat',
-          to: 'Power',
-          amount: ownerAttributeBonusNumber(profile, 'power'),
-          // The full-health Power grant participates in utility and profession conversions.
-          feedsConversions: 'all',
-          enabled: playerHealthFraction(context) > balanceProfileNumber(profile, 'threshold')
-        }
-      ]
-    };
-  }
 });
 
 const forerunnerOfDeath = defineTrait({
@@ -91,18 +69,32 @@ const forerunnerOfDeath = defineTrait({
   ]
 });
 
-const leviathanStrength = defineTrait({
-  id: TRAIT.LEVIATHAN_STRENGTH,
-  // Trait balance is the single tuning source for modifiers and presentation.
-  balance: { damageMultiplier: 1.1 },
+/** Accepted legend swaps restore capped endurance, including outside combat; Alliance Tactics remains deferred. */
+const balanceInDiscord = defineTrait({
+  id: TRAIT.BALANCE_IN_DISCORD,
+  balance: { resourceGain: 0 },
+  triggers: [
+    {
+      on: 'castCommit',
+      when: (_runtime, cast) => cast.skill.id === ID.SWAP_LEGENDS,
+      run(runtime: RevenantRuntime) {
+        runtime.endurance.grant(balanceNumber(runtime.helpers, TRAIT.BALANCE_IN_DISCORD, 'resourceGain'));
+      }
+    }
+  ]
+});
+
+/** Replace the old Power grant with an endurance-gated multiplier; the missing percentage remains neutral until confirmed. */
+const riseToTheOccasion = defineTrait({
+  id: TRAIT.RISE_TO_THE_OCCASION,
+  balance: { damageIncrease: 0 },
   modifierRules: [
     {
-      id: 'revenant.leviathan-strength',
+      id: 'revenant.rise-to-the-occasion',
       order: 100,
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      // "multiply" runs after the damage-additive bucket, so Leviathan compounds on top of Forerunner.
       operation: 'multiply',
-      factor: (context) => balanceNumber(context.catalog, TRAIT.LEVIATHAN_STRENGTH, 'damageMultiplier'),
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.RISE_TO_THE_OCCASION, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && enduranceNotFull(context)
     }
   ]
@@ -190,9 +182,12 @@ export const traitDefinitions = [
   songOfArboreum,
   reaversCurse,
   angsiyansTrust,
-  empireDivided,
+  balanceInDiscord,
+  riseToTheOccasion,
+  defineTrait({ id: TRAIT.FRIEND_OF_THE_LUXONS }),
+  defineTrait({ id: TRAIT.HEATED_RIVALRY, balance: { minimumStacks: 2 } }),
+  defineTrait({ id: TRAIT.FRIEND_OF_THE_KURZICKS }),
   forerunnerOfDeath,
-  leviathanStrength,
   saintOfZuHeltzer,
   vassalsOfTheEmpire
 ];

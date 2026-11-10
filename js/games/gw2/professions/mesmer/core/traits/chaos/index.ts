@@ -1,7 +1,7 @@
 import { ownerAttributeEffects } from '#gw2/platform/attributes/passives.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive } from '#gw2/platform/combat/query/runtime-query.js';
-import { ACTOR, AURA, BOON, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
+import { ACTOR, AURA, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
@@ -422,3 +422,40 @@ function triggerMethodOfMadness(
   // Syncopate follows the accepted storm independently of diagnostic logging.
   if (context.profession.specialization.kind === 'Troubadour') context.schedule('mesmer.syncopate', at);
 }
+
+/** Track self Chaos Aura gains without detonating them; F1 consumes the active aura once. */
+export const shaperOfChaos = defineTrait<MesmerSkill>({
+  id: TRAIT.SHAPER_OF_CHAOS,
+  balance: {
+    effects: [{ type: 'condition', name: CONDITION.CONFUSION, condition: CONDITION.CONFUSION, stacks: 6, duration: 6 }]
+  },
+  triggers: [
+    {
+      on: 'aura.applied',
+      when: (_runtime, event) =>
+        event.aura === AURA.CHAOS &&
+        event.actorType === ACTOR.PLAYER &&
+        (event.recipient == null || event.recipient === RECIPIENT.SELF),
+      run(runtime: MesmerRuntime, event) {
+        runtime.profession.core.chaosAuraUntil = Math.max(
+          runtime.profession.core.chaosAuraUntil,
+          event.at + Number(event.duration)
+        );
+      }
+    },
+    onTriggerPoint(mesmerProfessionActionCommitted, {
+      run(runtime: MesmerRuntime, input: TriggerPointInput<typeof mesmerProfessionActionCommitted>) {
+        if (input.slot !== 1 || runtime.profession.core.chaosAuraUntil <= input.at) return;
+
+        runtime.profession.core.chaosAuraUntil = 0;
+        emitTraitProfile(runtime, TRAIT.SHAPER_OF_CHAOS, TRAIT.SHAPER_OF_CHAOS, undefined, {
+          ...input.delivery,
+          at: input.at,
+          skillId: TRAIT.SHAPER_OF_CHAOS,
+          skillName: 'Shaper of Chaos',
+          attribution: { actorType: ACTOR.PLAYER }
+        });
+      }
+    })
+  ]
+});

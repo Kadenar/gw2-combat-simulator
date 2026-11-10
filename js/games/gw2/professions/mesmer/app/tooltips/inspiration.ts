@@ -13,10 +13,13 @@ export const mesmerInspirationTooltips = {
   [TRAIT.ILLUSIONARY_INSPIRATION]: outsideScopeTooltip,
   [TRAIT.MEDICS_FEEDBACK]: outsideScopeTooltip,
   [TRAIT.RESTORATIVE_MANTRAS]: outsideScopeTooltip,
-  [TRAIT.SYMPATHETIC_VISAGE]: outsideScopeTooltip,
-  [TRAIT.WARDENS_FEEDBACK]: traitTooltip('Focus weapon skills have reduced recharge.', [
-    ['rechargeMultiplier', 'Focus recharge', tooltipFactorChange]
-  ]),
+  [TRAIT.SYMPATHETIC_VISAGE]: traitTooltip(
+    'Summoning a phantasm removes conditions from nearby allies. Allied condition removal is outside simulation scope.'
+  ),
+  [TRAIT.FOCAL_FEEDBACK]: traitTooltip(
+    'Focus weapon skills have reduced recharge. Phantasmal Disenchanter transfers removed enemy boons to you; enemy boons are outside simulation scope.',
+    [['rechargeMultiplier', 'Focus recharge', tooltipFactorChange]]
+  ),
   [TRAIT.EGO_RESTORATION]: traitTooltip(
     'Using a healing skill in combat creates a clone, stocks a blade as Virtuoso, or grants a note as Troubadour.'
   ),

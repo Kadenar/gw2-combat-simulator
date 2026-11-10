@@ -49,7 +49,7 @@ const cascadingCorruption = defineTrait({
   id: TRAIT.CASCADING_CORRUPTION,
   balance: {
     damageIncrease: 0.1,
-    conditionDamageIncrease: 0.1,
+    conditionDamageIncrease: 0.07,
     maximumStacks: 20,
     effects: [
       {
@@ -73,7 +73,7 @@ const cascadingCorruption = defineTrait({
         name: CONDITION.TORMENT,
         type: 'condition',
         condition: CONDITION.TORMENT,
-        stacks: 6,
+        stacks: 3,
         duration: 6,
         atMs: 680,
         actorType: ACTOR.EFFECT

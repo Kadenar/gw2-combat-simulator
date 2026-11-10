@@ -158,7 +158,7 @@ test('Necromancer active runtimes isolate their Discretize modifier buckets', ()
   assertClose(necromancerRules('Harbinger').calculations.modifyStrikeDamage(harbinger, 1), 1.28);
   assertClose(
     necromancerRules('Harbinger').calculations.modifyConditionDamage({ ...harbinger, condition: 'Bleeding' }, 1),
-    1.175
+    1.145
   );
 
   const reaper = modifierContext({

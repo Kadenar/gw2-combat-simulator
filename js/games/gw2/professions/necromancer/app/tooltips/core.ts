@@ -282,8 +282,17 @@ export const necromancerCoreTooltips = {
     [SHARED_SKILL_IDS.DODGE]: skillTooltip(
       'Spend 50 endurance to dodge. Mark of Evasion triggers Lesser Mark of Blood when the dodge finishes in combat.'
     ),
+    [ID.RENDING_CLAWS]: skillTooltip(
+      'Apply baseline Vulnerability. The new low-health recharge reduction is pending confirmed tuning.'
+    ),
+    [ID.GHASTLY_CLAWS]: skillTooltip(
+      'Strike repeatedly and gain life force. The additional low-health damage bonus is pending confirmed tuning.'
+    ),
+    [ID.SOUL_GRASP]: skillTooltip(
+      'The projectile-return rework is pending damage, bounce, and life-force values. The simulation currently retains the earlier Vulnerability and life-force model.'
+    ),
     [ID.LOCUST_SWARM]: skillTooltip(
-      "Pulse life siphon every half second, gaining life force on each landed impact, and grant party swiftness. Banshee's Wail increases siphon base damage, pulse count, and swiftness duration."
+      'The attached-swarm rework is pending strike damage and pulse tuning. The simulation currently retains the earlier life-siphon model and party swiftness.'
     ),
     // Passive signet tuning is selected from the same skill as its active effects.
     [ID.SIGNET_OF_SPITE]: skillTooltip(
@@ -298,7 +307,7 @@ export const necromancerCoreTooltips = {
       ]
     ),
     [ID.SIGNET_OF_VAMPIRISM]: skillTooltip(
-      'Periodically siphons life while its passive is available. Activation triggers the listed active life-siphon attacks. Healing is outside combat simulation scope.',
+      'The new self-charge activation is pending charge count, lifetime, and siphon tuning. The simulation currently retains the earlier active siphon model. Healing is outside combat simulation scope.',
       (balanceContext) => [
         skillFact(balanceContext, ID.SIGNET_OF_VAMPIRISM, 'pulseInterval', 'Passive pulse interval', tooltipSeconds)
       ]

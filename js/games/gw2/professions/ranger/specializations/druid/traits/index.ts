@@ -76,7 +76,7 @@ const naturalMender = defineTrait({
 const naturalBalance = defineTrait({
   id: TRAIT.NATURAL_BALANCE,
   balance: {
-    conditionDamageIncrease: 0.05,
+    conditionDamageIncrease: 0.15,
     conditionDurationBonus: 0.1,
     effects: [{ name: 'natural-balance', type: 'buff', kind: 'natural-balance', duration: 10, stacks: 1 }]
   },
@@ -156,7 +156,7 @@ const eclipse = defineTrait({
         duration: 8,
         stacks: 1
       },
-      { name: 'Seed of Life', type: 'condition', condition: CONDITION.POISONED, duration: 8, stacks: 3 },
+      { name: 'Seed of Life', type: 'condition', condition: CONDITION.POISONED, duration: 6, stacks: 3 },
       {
         name: 'Lunar Impact',
         type: 'condition',
@@ -165,12 +165,12 @@ const eclipse = defineTrait({
         stacks: 1
       },
       { name: 'Rejuvenating Tides', type: 'condition', condition: CONDITION.CHILLED, duration: 2, stacks: 1 },
-      { name: 'Natural Convergence', type: 'condition', condition: CONDITION.BURNING, duration: 5, stacks: 1 },
+      { name: 'Natural Convergence', type: 'condition', condition: CONDITION.BURNING, duration: 4, stacks: 1 },
       {
         name: 'Natural Convergence final pulse',
         type: 'condition',
         condition: CONDITION.BURNING,
-        duration: 5,
+        duration: 4,
         stacks: 3
       }
     ]
@@ -181,7 +181,7 @@ const eclipse = defineTrait({
 const bloodMoon = defineTrait({
   id: TRAIT.BLOOD_MOON,
   balance: {
-    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 4, stacks: 2 }]
+    effects: [{ name: CONDITION.BLEEDING, type: 'condition', condition: CONDITION.BLEEDING, duration: 3, stacks: 2 }]
   },
   triggers: [
     {

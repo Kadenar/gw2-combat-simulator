@@ -21,11 +21,7 @@ import {
   initializeFirebrandTomes,
   reactToTomeJusticeHit
 } from '#gw2/professions/guardian/specializations/firebrand/mechanics/tomes.js';
-import {
-  firebrandBuffApplied,
-  firebrandControlAccepted,
-  firebrandStruck
-} from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
+import { firebrandControlAccepted } from '#gw2/professions/guardian/specializations/firebrand/mechanics/trigger-points.js';
 import { firebrandState } from '#gw2/professions/guardian/specializations/firebrand/state.js';
 import type { GuardianRuntimeState, GuardianSkill } from '#gw2/professions/guardian/types.js';
 
@@ -70,20 +66,15 @@ export const firebrandHooks = composeRuntimeHooks<GuardianRuntimeState, Guardian
       'damage.resolved'(runtime, event, details) {
         if (event.actorType === ACTOR.PLAYER && details.hitContext.damage > 0) {
           reactToAshesHit(runtime, event);
-          runtime.fireTrigger(firebrandStruck, { cause: event });
         }
 
         reactToTomeJusticeHit(runtime, event);
-      },
-      'buff.applied'(runtime, event) {
-        runtime.fireTrigger(firebrandBuffApplied, { cause: event });
       },
       'control.resolved'(runtime, event) {
         runtime.fireTrigger(firebrandControlAccepted, { cause: event });
       },
       'condition.applied'(runtime, event) {
-        if (event.condition === CONDITION.IMMOBILIZED || event.condition === CONDITION.SLOW)
-          runtime.fireTrigger(firebrandControlAccepted, { cause: event });
+        if (event.condition === CONDITION.IMMOBILIZED) runtime.fireTrigger(firebrandControlAccepted, { cause: event });
       }
     }
   }

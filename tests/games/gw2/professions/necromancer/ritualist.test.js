@@ -526,7 +526,7 @@ test('creature traits observe actual Core minion and staggered horror creation w
       (event) =>
         event.type === 'damage' && event.actorType === 'summon' && event.parentSkillName === 'Summon Shadow Fiend'
     );
-  assertFlooredDamageMultiplier(strike(stronger).damage, strike(normal).damage, 1.5);
+  assertFlooredDamageMultiplier(strike(stronger).damage, strike(normal).damage, 1.33);
 });
 
 test('removed initial spirit attacks preserve the creature and independent effects without backdating live state', () => {

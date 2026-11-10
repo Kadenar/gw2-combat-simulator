@@ -519,7 +519,7 @@ test('matches Sharpened Edges with separate player and equipped-pet expertise', 
   });
 });
 
-test('matches Sharpened Edges before and during Light on Your Feet', () => {
+test('Sharpened Edges excludes the retired Light on Your Feet duration bonus', () => {
   const result = analyzeRangerSharpenedEdgesObservation(
     fixture([
       event({ time: 1_000, sourceInstance: 7 }),
@@ -536,8 +536,8 @@ test('matches Sharpened Edges before and during Light on Your Feet', () => {
   );
 
   assert.equal(result.playerCriticalHits, 2);
-  assert.equal(result.matchedApplications, 2);
-  assert.deepEqual(result.playerMatchedDurationsMs, [4_500, 4_800]);
+  assert.equal(result.matchedApplications, 1);
+  assert.deepEqual(result.playerMatchedDurationsMs, [4_500]);
 });
 
 test('does not infer profession trait procs when the active build omits each trait', () => {

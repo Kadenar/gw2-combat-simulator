@@ -117,6 +117,6 @@ test('creature summon listeners preserve reward order, captured attribution, and
       assert.equal(observed[0].event.parentSkillName, skill.name);
     }
 
-    assert.equal(spiritsStrengthCreatureMultiplier(runtime), selected ? 1.5 : 1);
+    assert.equal(spiritsStrengthCreatureMultiplier(runtime), selected ? 1.33 : 1);
   }
 });

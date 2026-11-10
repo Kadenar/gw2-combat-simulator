@@ -139,9 +139,9 @@ const evolveTooltip: DescribeSimulationTooltip = skillTooltip<AmalgamSkill>(
       ? profileFact(
           balanceContext,
           TRAIT.DOUBLE_HELIX,
-          'coefficientMultiplier',
+          'attributeIncrease',
           'Eligible attribute increase',
-          tooltipFactorChange
+          tooltipPercent
         )
       : {
           name: 'Eligible attribute increase',
@@ -218,9 +218,9 @@ export const amalgamTooltips = {
         profileFact(
           balanceContext,
           TRAIT.DOUBLE_HELIX,
-          'coefficientMultiplier',
+          'attributeIncrease',
           'Eligible attribute increase',
-          tooltipFactorChange
+          tooltipPercent
         )
       ]
     )

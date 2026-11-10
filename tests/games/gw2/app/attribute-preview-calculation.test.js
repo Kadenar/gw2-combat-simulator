@@ -194,7 +194,7 @@ test('Amalgam previews Titanic Might scaling and both Evolve variants without ch
       const evolved = stats(app, { might, titanic: 1, evolved: 1 });
       for (const name of ['Power', 'Condition Damage']) {
         assert.equal(titanic[name].final, base[name].final + might * 35);
-        assert.equal(evolved[name].final, titanic[name].final + Math.round(pool[name] * (doubleHelix ? 0.2 : 0.1)));
+        assert.equal(evolved[name].final, titanic[name].final + Math.round(pool[name] * (doubleHelix ? 0.15 : 0.1)));
       }
     }
 
@@ -424,7 +424,7 @@ test('Guardian previews Resolution, target Burning and Quickness without baked-i
   const base = stats(app);
   close(stats(app, { resolution: 1 })['Critical Chance'].final, base['Critical Chance'].final + 25);
   close(stats(app, { 'condition:Burning': 1 })['Critical Chance'].final, base['Critical Chance'].final + 10);
-  assert.ok(stats(app, { quickness: 1 }).Vitality.final > base.Vitality.final);
+  assert.equal(stats(app, { quickness: 1 }).Vitality.final, base.Vitality.final);
   assert.equal(stats(app).Vitality.final, base.Vitality.final);
 });
 
@@ -495,9 +495,9 @@ test('Target the Weak counts condition types without activating other condition-
     controls.filter((control) => control.kind === 'condition').map((control) => control.field),
     ['Vulnerability']
   );
-  close(stats(app, { targetTheWeak: 5 })['Critical Chance'].final, base + 10);
-  close(stats(app, { targetTheWeak: 5, 'condition:Vulnerability': 10 })['Critical Chance'].final, base + 32);
-  close(stats(app, { targetTheWeak: 99 })['Critical Chance'].final, base + 26);
+  close(stats(app, { targetTheWeak: 5 })['Critical Chance'].final, base + 20);
+  close(stats(app, { targetTheWeak: 5, 'condition:Vulnerability': 10 })['Critical Chance'].final, base + 40);
+  close(stats(app, { targetTheWeak: 99 })['Critical Chance'].final, base + 20);
   close(stats(app, { targetTheWeak: -1 })['Critical Chance'].final, base);
   assert.deepEqual(app.build, original);
 
@@ -505,7 +505,7 @@ test('Target the Weak counts condition types without activating other condition-
   close(stats(harbinger, { targetTheWeak: 5 })['Critical Damage'].final, stats(harbinger)['Critical Damage'].final);
   close(
     stats(harbinger, { targetTheWeak: 5, 'condition:Torment': 1 })['Critical Chance'].final,
-    stats(harbinger)['Critical Chance'].final + 12
+    stats(harbinger)['Critical Chance'].final + 20
   );
 });
 
@@ -555,10 +555,7 @@ test('Roiling Mists adds its critical chance only while the Fury preview is enab
 
 test('player health changes only the isolated stat preview', () => {
   // Preview health must affect conditional stats without leaking into builds or simulation configuration.
-  for (const [profession, traits] of [
-    ['thief', ['Twin Fangs', 'Keen Observer']],
-    ['revenant', ['Empire Divided']]
-  ]) {
+  for (const [profession, traits] of [['thief', ['Twin Fangs', 'Keen Observer']]]) {
     const app = previewApp(profession, traits);
     assert.ok(attributePreviewControls(app).some((control) => control.key === 'playerHealth'));
     const original = structuredClone({ build: app.build, attributes: app.attributeData });

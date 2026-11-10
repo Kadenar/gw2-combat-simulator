@@ -124,17 +124,8 @@ export function analyzeRangerSharpenedEdgesObservation(
     config,
     observationAttributeSets(config, catalog, rangerProfession.attributeContributions)
   );
-  // Light on Your Feet adds ten percentage points while active, so EVTC can
-  // contain both static and buffed Sharpened Edges durations in one encounter.
-  const playerMatchedDurationsMs = [
-    ...new Set(
-      staticPlayerDurationsMs.flatMap((duration) =>
-        hasSelectedTrait(config, TRAIT.LIGHT_ON_YOUR_FEET)
-          ? [duration, Math.min(baseDuration * 2_000, duration + baseDuration * 100)]
-          : [duration]
-      )
-    )
-  ].sort((left, right) => left - right);
+  // Current Sharpened Edges uses the configured attributes without the retired evade bonus.
+  const playerMatchedDurationsMs = staticPlayerDurationsMs;
   const playerMatchedApplications = playerCriticalHits
     ? matchingConditionApplications(log, playerAddress, targetAddress, EVTC_BLEEDING_SKILL_ID, playerMatchedDurationsMs)
         .length

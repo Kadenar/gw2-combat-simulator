@@ -3,10 +3,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { captureSkillDamageInput } from '#gw2/app/build/skill-damage/input.js';
-import { activePatchPreview } from '#gw2/integrations/patches/active-preview.js';
+import { testPatchPreview, withTestPreviewAdapter } from '#tests/helpers/patch-preview.js';
 import { firstPresetBuildPath, headlessApp, skillDamageFixture } from '#tests/helpers/skill-damage.js';
 
-const createApp = async () => headlessApp('guardian', await firstPresetBuildPath('guardian'));
+const createApp = async () => {
+  const app = await headlessApp('guardian', await firstPresetBuildPath('guardian'));
+  app.adapter = withTestPreviewAdapter(app.adapter);
+  app.profession = app.adapter.profession;
+  return app;
+};
+
 const evaluation = () => ({ occurrences: [] });
 
 test('captured inputs detach mutable build facts and retain calculation owners', async () => {
@@ -64,7 +70,7 @@ test('preparation follows mutable inputs and content identity while measurement 
       app.simulationSettings.transitionDelays.weaponSwapMs = 200;
     },
     () => {
-      app.patch = app.profession.resolvePatch({ id: activePatchPreview.id });
+      app.patch = app.profession.resolvePatch({ id: testPatchPreview.id });
     }
   ]) {
     const previous = lifecycle.state.preparation;

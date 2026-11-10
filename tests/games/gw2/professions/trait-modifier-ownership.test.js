@@ -100,11 +100,10 @@ test('Brutal Momentum adds only its selected full-endurance increase above the a
   }
 });
 
-test('shortbow intrinsic and selected trait extensions add seconds while traps retain their own factors', () => {
+test('Poison Volley intrinsic extension and selected trap factors use their active profiles', () => {
   const family = patched(
     rangerProfession,
     {
-      [RANGER.LIGHT_ON_YOUR_FEET]: { fields: { durationExtension: 3, immobilizeDurationExtension: 2 } },
       [RANGER.TRAPPERS_EXPERTISE]: { fields: { durationMultiplier: 1.9, coefficientMultiplier: 1.8 } }
     },
     {
@@ -113,18 +112,18 @@ test('shortbow intrinsic and selected trait extensions add seconds while traps r
       [RANGER_SKILL.CRIPPLING_SHOT]: { conditions: { Immobilized: { duration: 2.5 } } }
     }
   );
-  for (const [patchId, shortbow, immobilize, trap, flame] of [
-    ['current', 2, 1, 1.6, 1.66],
-    ['modifier-owners', 3, 2, 1.9, 1.8]
+  for (const [patchId, trap, flame] of [
+    ['current', 1.6, 1.66],
+    ['modifier-owners', 1.9, 1.8]
   ]) {
     const profession = family.runtimeFor({ specialization: 'Core', patchId });
     for (const selected of [false, true]) {
       for (const defiant of [false, true]) {
-        for (const [skillId, condition, base, intrinsic, extension] of [
-          [RANGER_SKILL.CROSSFIRE, 'Bleeding', patchId === 'current' ? 2 : 4, 1, shortbow],
-          [RANGER_SKILL.POISON_VOLLEY, 'Poisoned', patchId === 'current' ? 5 : 7, 2, shortbow],
-          [RANGER_SKILL.CRIPPLING_SHOT, 'Immobilized', patchId === 'current' ? 1.5 : 2.5, 0, immobilize],
-          [RANGER_SKILL.CROSSFIRE, 'Poisoned', 1, 0, 0]
+        for (const [skillId, condition, base, intrinsic] of [
+          [RANGER_SKILL.CROSSFIRE, 'Bleeding', patchId === 'current' ? 5 : 4, 0],
+          [RANGER_SKILL.POISON_VOLLEY, 'Poisoned', 7, 2],
+          [RANGER_SKILL.CRIPPLING_SHOT, 'Immobilized', patchId === 'current' ? 2 : 2.5, 0],
+          [RANGER_SKILL.CROSSFIRE, 'Poisoned', 1, 0]
         ]) {
           const context = {
             catalog: profession.catalog,
@@ -133,7 +132,7 @@ test('shortbow intrinsic and selected trait extensions add seconds while traps r
             condition,
             config: { target: { defiant }, selectedTraitIds: selected ? [RANGER.LIGHT_ON_YOUR_FEET] : [] }
           };
-          const expected = (2 * (base + (defiant ? intrinsic + (selected ? extension : 0) : 0))) / base;
+          const expected = (2 * (base + (defiant ? intrinsic : 0))) / base;
           assert.ok(
             Math.abs(profession.calculations.modifyConditionBaseDuration(context, 2) - expected) < 1e-12,
             `${patchId}, ${skillId}, ${condition}, selected=${selected}, defiant=${defiant}`
@@ -176,7 +175,7 @@ test('shortbow duration extensions cannot recreate a removed condition effect', 
     condition: 'Bleeding',
     config: { target: { defiant: true }, selectedTraitIds: [RANGER.LIGHT_ON_YOUR_FEET] }
   };
-  // Both owners leave an absent base alone instead of manufacturing a duration from their extensions.
+  // Removed conditions cannot regain a base duration through intrinsic bonuses.
   assert.equal(profession.calculations.modifyConditionBaseDuration(context, 2), 2);
 });
 

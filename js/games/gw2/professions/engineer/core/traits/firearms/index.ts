@@ -2,7 +2,6 @@ import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET, type Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
-import { CANONICAL_TARGET_CONDITIONS } from '#gw2/platform/combat/state/targets.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT, WEAPON } from '#gw2/platform/constants.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
 import type { NativeResolvedDamageDetails } from '#gw2/platform/profession-definition/module-types.js';
@@ -285,7 +284,7 @@ export const sharpshooter = defineTrait({
 export const modifiedAmmunition = defineTrait({
   id: TRAIT.MODIFIED_AMMUNITION,
   // The trait balance owns tuning consumed by damage rules and presentation.
-  balance: { damagePerCondition: 0.01, maximumConditions: CANONICAL_TARGET_CONDITIONS.length },
+  balance: { damagePerCondition: 0.02, maximumConditions: 5 },
   modifierRules: [
     {
       order: -17,
