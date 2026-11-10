@@ -18,7 +18,6 @@ import { necromancerHarbingerTraits } from '#gw2/professions/necromancer/special
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 export const harbingerModule = defineNativeModule({
-  traitDefinitions: necromancerHarbingerTraits,
   id: 'Harbinger',
   data: createNativeModuleData<NecromancerSkill>({
     id: 'Harbinger',
@@ -30,6 +29,7 @@ export const harbingerModule = defineNativeModule({
   }),
   // One state factory supplies the live combat owner.
   state: { create: harbingerState.create, project: projectHarbingerPlanningState },
+  traitDefinitions: necromancerHarbingerTraits,
   hooks: harbingerHooks,
   presentation: bindHarbingerUi
 });

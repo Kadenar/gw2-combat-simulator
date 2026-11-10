@@ -9,8 +9,8 @@ import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition
 import { createEngineerBuildDefaults, toApplicationBuild } from '#gw2/professions/engineer/build/build.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
 import { amalgamResolverEventReactions } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form-effects.js';
+import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { captureAnalysisFixture } from '#tests/helpers/analysis-requests.js';
@@ -725,11 +725,11 @@ test('Evolve scales only its eligible static attribute pool', () => {
   });
 
   assert.deepEqual(
-    evaluateAttributeDeclarations(context([]), resolved, amalgamAttributes),
+    evaluateAttributeDeclarations(context([]), resolved, amalgamModule.attributes),
     Object.fromEntries(attributes.map((attribute) => [attribute, attribute === 'vitality' ? 1650 : 1600]))
   );
   assert.deepEqual(
-    evaluateAttributeDeclarations(context([TRAIT.DOUBLE_HELIX]), resolved, amalgamAttributes),
+    evaluateAttributeDeclarations(context([TRAIT.DOUBLE_HELIX]), resolved, amalgamModule.attributes),
     Object.fromEntries(attributes.map((attribute) => [attribute, attribute === 'vitality' ? 1750 : 1700]))
   );
 });

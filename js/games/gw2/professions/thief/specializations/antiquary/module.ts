@@ -17,7 +17,6 @@ import { antiquaryTraits } from '#gw2/professions/thief/specializations/antiquar
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export const antiquaryModule = defineNativeModule({
-  traitDefinitions: antiquaryTraits,
   id: 'Antiquary',
   data: createNativeModuleData<ThiefSkill>({
     id: 'Antiquary',
@@ -29,6 +28,7 @@ export const antiquaryModule = defineNativeModule({
     skills: ANTIQUARY_SKILLS
   }),
   state: { create: antiquaryState.create, project: projectAntiquaryPlanningState },
+  traitDefinitions: antiquaryTraits,
   hooks: antiquaryHooks,
   presentation: antiquaryUi
 });

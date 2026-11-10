@@ -15,7 +15,6 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const conduitModule = defineNativeModule({
-  traitDefinitions,
   id: 'Conduit',
   data: createNativeModuleData<RevenantSkill>({
     id: 'Conduit',
@@ -25,6 +24,7 @@ export const conduitModule = defineNativeModule({
     skills: materializeSkillDefinitions(CONDUIT_BASE_SKILL_MECHANICS)
   }),
   state: { create: conduitState.create, project: projectConduitPlanningState },
+  traitDefinitions,
   // Copy the entity declarations at registration so module composition owns its rule list.
   hooks: conduitHooks,
   presentation: conduitUi

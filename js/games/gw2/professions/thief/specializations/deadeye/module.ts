@@ -14,7 +14,6 @@ import { deadeyeTraits } from '#gw2/professions/thief/specializations/deadeye/tr
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export const deadeyeModule = defineNativeModule({
-  traitDefinitions: deadeyeTraits,
   id: 'Deadeye',
   data: createNativeModuleData<ThiefSkill>({
     id: 'Deadeye',
@@ -28,6 +27,7 @@ export const deadeyeModule = defineNativeModule({
     create: () => deadeyeState.create(),
     project: projectDeadeyePlanningState
   },
+  traitDefinitions: deadeyeTraits,
   // The malicious variant uses the shared all-strikes refund contract with its own live tuning.
   hooks: composeRuntimeHooks([deadeyeHooks, landedChannelRefundLifecycle(ID.MALICIOUS_ASHEN_ASSAULT)]),
   presentation: deadeyeUi

@@ -30,7 +30,6 @@ const WEAPON_DATA = defineProfessionWeapons({
 export const engineerCoreModule = defineNativeModule({
   canSwapWeaponSetsInCombat: false,
   id: 'Core',
-  traitDefinitions: engineerCoreTraits,
   data: createNativeModuleData<EngineerSkill>({
     id: 'Core',
     traitLines: TRAIT_LINES,
@@ -47,6 +46,7 @@ export const engineerCoreModule = defineNativeModule({
     create: createEngineerCoreState,
     project: projectEngineerCorePlanningState
   },
+  traitDefinitions: engineerCoreTraits,
   hooks: engineerCoreHooks,
   presentation: bindEngineerCoreUi
 });

@@ -20,7 +20,6 @@ import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 export const holosmithModule = defineNativeModule({
   id: 'Holosmith',
-  traitDefinitions: holosmithTraits,
   data: createNativeModuleData<EngineerSkill>({
     id: 'Holosmith',
     traitLines: TRAIT_LINES,
@@ -32,6 +31,7 @@ export const holosmithModule = defineNativeModule({
   }),
   // Heat tasks and impact formulas read the same live specialization state.
   state: { create: holosmithState.create, project: projectHolosmithPlanningState },
+  traitDefinitions: holosmithTraits,
   hooks: holosmithHooks,
   presentation: bindHolosmithUi
 });

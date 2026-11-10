@@ -13,7 +13,6 @@ import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 /** The module registers one live mechanic owner beside its existing data and modifier formulas. */
 export const untamedModule = defineNativeModule({
   id: 'Untamed',
-  traitDefinitions: untamedTraits,
   data: createNativeModuleData<RangerSkill>({
     id: 'Untamed',
     traitLines: TRAIT_LINES,
@@ -21,6 +20,7 @@ export const untamedModule = defineNativeModule({
     skills: materializeSkillDefinitions(UNTAMED_BASE_SKILL_MECHANICS)
   }),
   state: { create: untamedState.create, project: projectUntamedPlanningState },
+  traitDefinitions: untamedTraits,
   hooks: untamedHooks,
   presentation: bindUntamedUi
 });

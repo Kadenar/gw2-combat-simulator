@@ -11,7 +11,6 @@ import { necromancerRitualistTraits } from '#gw2/professions/necromancer/special
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 export const ritualistModule = defineNativeModule({
-  traitDefinitions: necromancerRitualistTraits,
   id: 'Ritualist',
   data: createNativeModuleData<NecromancerSkill>({
     id: 'Ritualist',
@@ -23,6 +22,7 @@ export const ritualistModule = defineNativeModule({
   }),
   // One state factory supplies the live combat owner.
   state: { create: ritualistState.create, project: projectRitualistState },
+  traitDefinitions: necromancerRitualistTraits,
   hooks: ritualistHooks,
   presentation: bindRitualistUi
 });

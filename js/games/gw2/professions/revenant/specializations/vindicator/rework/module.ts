@@ -45,8 +45,8 @@ export const vindicatorReworkModule = defineNativeModule({
     traitLines: [traitLine],
     skills: VINDICATOR_SKILLS
   }),
-  traitDefinitions: vindicatorReworkTraits,
   state: { create: vindicatorState.create, project: projectVindicatorPlanningState },
+  traitDefinitions: vindicatorReworkTraits,
   hooks: vindicatorHooks,
   presentation: vindicatorUi
 });

@@ -17,7 +17,6 @@ import { necromancerScourgeTraits } from '#gw2/professions/necromancer/specializ
 import type { NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
 export const scourgeModule = defineNativeModule({
-  traitDefinitions: necromancerScourgeTraits,
   id: 'Scourge',
   data: createNativeModuleData<NecromancerSkill>({
     id: 'Scourge',
@@ -27,6 +26,7 @@ export const scourgeModule = defineNativeModule({
     skills: materializeSkillDefinitions(SCOURGE_BASE_SKILL_MECHANICS)
   }),
   state: { create: scourgeState.create, project: projectScourgePlanningState },
+  traitDefinitions: necromancerScourgeTraits,
   hooks: scourgeHooks,
 
   presentation: bindScourgeUi

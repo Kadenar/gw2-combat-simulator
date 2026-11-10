@@ -21,7 +21,6 @@ import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
  */
 export const catalystModule = defineNativeModule({
   id: 'Catalyst',
-  traitDefinitions: catalystTraits,
   data: createNativeModuleData<ElementalistSkill>({
     id: 'Catalyst',
     traitLines: TRAIT_LINES,
@@ -29,6 +28,7 @@ export const catalystModule = defineNativeModule({
     skills: materializeSkillDefinitions(CATALYST_SKILL_MECHANICS)
   }),
   state: { create: catalystState.create, project: projectCatalystPlanningState },
+  traitDefinitions: catalystTraits,
   hooks: catalystHooks,
   presentation: catalystUi
 });

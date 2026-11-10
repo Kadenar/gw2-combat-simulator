@@ -31,7 +31,6 @@ const WEAPON_DATA = defineProfessionWeapons({
 });
 
 export const mesmerCoreModule = defineNativeModule({
-  attributes: mesmerPassiveAttributes,
   id: 'Core',
   data: createNativeModuleData<MesmerSkill>({
     id: 'Core',
@@ -48,6 +47,7 @@ export const mesmerCoreModule = defineNativeModule({
     project: projectMesmerCorePlanningState
   },
   traitDefinitions: mesmerCoreTraits,
+  attributes: mesmerPassiveAttributes,
   modifiers: mesmerCoreModifiers,
   hooks: mesmerCoreHooks,
   presentation: mesmerCoreUi

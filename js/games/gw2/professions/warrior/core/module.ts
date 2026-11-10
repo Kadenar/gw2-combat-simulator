@@ -36,10 +36,6 @@ const WEAPON_DATA = defineProfessionWeapons({
 });
 
 export const warriorCoreModule = defineNativeModule({
-  attributes: (context) => [
-    ...warriorPassiveAttributes(context),
-    { attributeEffects: signetActiveAttributeEffects(context) }
-  ],
   id: 'Core',
   data: createNativeModuleData<WarriorSkill>({
     id: 'Core',
@@ -56,6 +52,10 @@ export const warriorCoreModule = defineNativeModule({
     project: projectWarriorCorePlanningState
   },
   traitDefinitions: warriorCoreTraits,
+  attributes: (context) => [
+    ...warriorPassiveAttributes(context),
+    { attributeEffects: signetActiveAttributeEffects(context) }
+  ],
   hooks: warriorCoreHooks,
   // Core presentation is catalog-independent and can be registered directly.
   presentation: warriorCoreUi

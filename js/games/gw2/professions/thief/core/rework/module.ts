@@ -56,7 +56,6 @@ const replaced = new Set<number | string>([TRAIT.PUMPING_UP, TRAIT.HARD_TO_CATCH
 /** Recompile raw shared declarations with replacement traits, state, and presentation; Live remains independent. */
 export const thiefCoreReworkModule = defineNativeModule({
   id: 'Core',
-  attributes: thiefPassiveAttributes,
   data: createNativeModuleData<ThiefSkill>({
     id: 'Core',
     traitLines,
@@ -68,16 +67,17 @@ export const thiefCoreReworkModule = defineNativeModule({
     skillFields: THIEF_CORE_SKILL_FIELDS,
     skills: THIEF_CORE_SKILLS
   }),
-  traitDefinitions: [
-    ...coreTraits.filter((trait) => !replaced.has(trait.id)),
-    ...acrobaticsReworkTraits,
-    twinFangsRework
-  ],
   state: {
     create: createThiefCoreReworkState,
     // Rework-only combat bookkeeping stays private; both Core variants expose the same observations.
     project: projectThiefCorePlanningState
   },
+  traitDefinitions: [
+    ...coreTraits.filter((trait) => !replaced.has(trait.id)),
+    ...acrobaticsReworkTraits,
+    twinFangsRework
+  ],
+  attributes: thiefPassiveAttributes,
   hooks: thiefCoreReworkHooks,
   presentation: thiefCoreReworkUi
 });

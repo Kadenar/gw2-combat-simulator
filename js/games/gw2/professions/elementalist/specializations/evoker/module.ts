@@ -22,7 +22,6 @@ import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
  */
 export const evokerModule = defineNativeModule({
   id: 'Evoker',
-  traitDefinitions: evokerTraits,
   data: createNativeModuleData<ElementalistSkill>({
     id: 'Evoker',
     traitLines: TRAIT_LINES,
@@ -35,6 +34,7 @@ export const evokerModule = defineNativeModule({
     )
   }),
   state: { create: evokerState.create, project: projectEvokerPlanningState },
+  traitDefinitions: evokerTraits,
   hooks: evokerHooks,
   presentation: evokerUi
 });

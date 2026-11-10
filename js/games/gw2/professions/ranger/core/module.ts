@@ -32,9 +32,7 @@ const WEAPON_DATA = defineProfessionWeapons({
 
 /** The module registers one live mechanic owner beside its existing data and modifier formulas. */
 export const rangerCoreModule = defineNativeModule({
-  attributes: rangerPassiveAttributes,
   id: 'Core',
-  traitDefinitions: rangerCoreTraits,
   data: createNativeModuleData<RangerSkill>({
     id: 'Core',
     traitLines: TRAIT_LINES,
@@ -46,6 +44,8 @@ export const rangerCoreModule = defineNativeModule({
     skills: RANGER_CORE_SKILLS
   }),
   state: { create: createRangerCoreState, project: projectRangerCoreState },
+  traitDefinitions: rangerCoreTraits,
+  attributes: rangerPassiveAttributes,
   modifiers: [rangerForceOfNatureModifier],
   hooks: rangerCoreHooks,
   presentation: bindRangerCoreUi

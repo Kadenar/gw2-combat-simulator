@@ -31,7 +31,6 @@ const WEAPON_DATA = defineProfessionWeapons({
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const revenantCoreModule = defineNativeModule({
-  traitDefinitions,
   id: 'Core',
   data: createNativeModuleData<RevenantSkill>({
     id: 'Core',
@@ -47,6 +46,7 @@ export const revenantCoreModule = defineNativeModule({
     create: createRevenantCoreState,
     project: projectRevenantPlanningState
   },
+  traitDefinitions,
   hooks: revenantCoreHooks,
   presentation: revenantCoreUi
 });

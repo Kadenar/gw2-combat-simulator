@@ -13,7 +13,6 @@ import {
   REVENANT_TRAIT_IDS as TRAIT
 } from '#gw2/professions/revenant/data/ids.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
-import { heraldAttributes } from '#gw2/professions/revenant/specializations/herald/attributes.js';
 import { heraldModule } from '#gw2/professions/revenant/specializations/herald/module.js';
 import { createHeraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
 import { draconicEcho } from '#gw2/professions/revenant/specializations/herald/traits/index.js';
@@ -304,7 +303,7 @@ test('Draconic Echo bonuses apply to active and retained facets only while selec
   core.activeUpkeeps = [{ skillId: SKILL.FACET_OF_NATURE, startsAt: 0 }];
   assert.equal(
     evaluateAttributeDeclarations(context, { boonDurationBonus: 5 }, (context) => [
-      ...heraldAttributes(context),
+      ...heraldModule.attributes(context),
       ...(hasTrait(context, TRAIT.DRACONIC_ECHO) ? [draconicEcho.attributes(context)] : [])
     ]).boonDurationBonus,
     25
@@ -365,7 +364,7 @@ test('Nature changes passive with the active legend without adding Concentration
   for (const legend of [LEGEND.DRAGON, LEGEND.ASSASSIN, LEGEND.DEMON, LEGEND.CENTAUR, LEGEND.DWARF]) {
     core.activeLegendId = legend;
     const stats = evaluateAttributeDeclarations(context, attributes, (context) => [
-      ...heraldAttributes(context),
+      ...heraldModule.attributes(context),
       ...(hasTrait(context, TRAIT.DRACONIC_ECHO) ? [draconicEcho.attributes(context)] : [])
     ]);
     assert.equal(stats.concentration, 1500);
@@ -384,7 +383,7 @@ test('Nature changes passive with the active legend without adding Concentration
     gw2BoonDurationMultiplier(
       'might',
       evaluateAttributeDeclarations(context, attributes, (context) => [
-        ...heraldAttributes(context),
+        ...heraldModule.attributes(context),
         ...(hasTrait(context, TRAIT.DRACONIC_ECHO) ? [draconicEcho.attributes(context)] : [])
       ])
     ),

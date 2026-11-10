@@ -13,7 +13,6 @@ import { daredevilTraits } from '#gw2/professions/thief/specializations/daredevi
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export const daredevilModule = defineNativeModule({
-  traitDefinitions: daredevilTraits,
   id: 'Daredevil',
   data: createNativeModuleData<ThiefSkill>({
     id: 'Daredevil',
@@ -23,6 +22,7 @@ export const daredevilModule = defineNativeModule({
     skills: DAREDEVIL_SKILLS
   }),
   state: { create: daredevilState.create, project: projectDaredevilPlanningState },
+  traitDefinitions: daredevilTraits,
   hooks: daredevilHooks,
   presentation: daredevilUi
 });

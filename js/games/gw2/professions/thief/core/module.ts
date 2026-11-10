@@ -28,8 +28,6 @@ const WEAPON_DATA = defineProfessionWeapons({
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const thiefCoreModule = defineNativeModule({
-  attributes: thiefPassiveAttributes,
-  traitDefinitions: coreTraits,
   id: 'Core',
   data: createNativeModuleData<ThiefSkill>({
     id: 'Core',
@@ -42,6 +40,8 @@ export const thiefCoreModule = defineNativeModule({
     skills: THIEF_CORE_SKILLS
   }),
   state: { create: createThiefCoreState, project: projectThiefCorePlanningState },
+  traitDefinitions: coreTraits,
+  attributes: thiefPassiveAttributes,
 
   hooks: thiefCoreHooks,
   presentation: thiefCoreUi

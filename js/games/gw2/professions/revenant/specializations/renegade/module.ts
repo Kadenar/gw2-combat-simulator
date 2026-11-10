@@ -15,7 +15,6 @@ import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const renegadeModule = defineNativeModule({
-  traitDefinitions,
   id: 'Renegade',
   data: createNativeModuleData<RevenantSkill>({
     id: 'Renegade',
@@ -25,6 +24,7 @@ export const renegadeModule = defineNativeModule({
     skills: RENEGADE_SKILLS
   }),
   state: { create: renegadeState.create, project: projectRenegadePlanningState },
+  traitDefinitions,
   hooks: renegadeHooks,
   presentation: renegadeUi
 });

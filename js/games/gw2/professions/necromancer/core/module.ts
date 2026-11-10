@@ -33,8 +33,6 @@ const WEAPON_DATA = defineProfessionWeapons({
 });
 
 export const necromancerCoreModule = defineNativeModule({
-  attributes: necromancerPassiveAttributes,
-  traitDefinitions: necromancerCoreTraits,
   id: 'Core',
   data: createNativeModuleData<NecromancerSkill>({
     id: 'Core',
@@ -51,6 +49,8 @@ export const necromancerCoreModule = defineNativeModule({
     create: createNecromancerCoreState,
     project: projectNecromancerPlanningState
   },
+  traitDefinitions: necromancerCoreTraits,
+  attributes: necromancerPassiveAttributes,
   hooks: necromancerCoreHooks,
   presentation: bindNecromancerCoreUi
 });

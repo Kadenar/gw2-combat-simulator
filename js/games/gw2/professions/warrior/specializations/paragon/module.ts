@@ -14,7 +14,6 @@ import { warriorParagonTraits } from '#gw2/professions/warrior/specializations/p
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export const paragonModule = defineNativeModule({
-  traitDefinitions: warriorParagonTraits,
   id: 'Paragon',
   data: createNativeModuleData<WarriorSkill>({
     id: 'Paragon',
@@ -24,6 +23,7 @@ export const paragonModule = defineNativeModule({
     skillFields: PARAGON_SKILL_FIELDS
   }),
   state: { create: paragonState.create, project: projectParagonPlanningState },
+  traitDefinitions: warriorParagonTraits,
   hooks: paragonHooks,
   presentation: paragonUi
 });

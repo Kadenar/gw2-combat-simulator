@@ -14,7 +14,6 @@ import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 /** The module registers one live mechanic owner beside its existing data and modifier formulas. */
 export const druidModule = defineNativeModule({
   id: 'Druid',
-  traitDefinitions: druidTraits,
   data: createNativeModuleData<RangerSkill>({
     id: 'Druid',
     traitLines: TRAIT_LINES,
@@ -23,6 +22,7 @@ export const druidModule = defineNativeModule({
     skills: materializeSkillDefinitions(DRUID_BASE_SKILL_MECHANICS)
   }),
   state: { create: druidState.create, project: projectDruidPlanningState },
+  traitDefinitions: druidTraits,
   hooks: druidHooks,
   presentation: bindDruidUi
 });

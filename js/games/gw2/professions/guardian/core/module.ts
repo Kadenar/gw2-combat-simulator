@@ -35,9 +35,7 @@ const WEAPON_DATA = defineProfessionWeapons({
 
 // One live declaration owns this slice's transitions; the catalog and modifier formulas remain shared.
 export const guardianCoreModule = defineNativeModule({
-  attributes: guardianPassiveAttributes,
   id: 'Core',
-  traitDefinitions: guardianCoreTraits,
   data: createNativeModuleData<GuardianSkill>({
     id: 'Core',
     traitLines: TRAIT_LINES,
@@ -50,6 +48,8 @@ export const guardianCoreModule = defineNativeModule({
     skillFields: GUARDIAN_CORE_SKILL_FIELDS
   }),
   state: { create: createGuardianCoreState, project: projectGuardianPlanningState },
+  traitDefinitions: guardianCoreTraits,
+  attributes: guardianPassiveAttributes,
   hooks: guardianCoreHooks,
   presentation: bindGuardianCoreUi
 });

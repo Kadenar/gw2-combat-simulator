@@ -12,7 +12,6 @@ import { warriorSpellbreakerTraits } from '#gw2/professions/warrior/specializati
 import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export const spellbreakerModule = defineNativeModule({
-  traitDefinitions: warriorSpellbreakerTraits,
   id: 'Spellbreaker',
   data: createNativeModuleData<WarriorSkill>({
     id: 'Spellbreaker',
@@ -23,6 +22,7 @@ export const spellbreakerModule = defineNativeModule({
     create: spellbreakerState.create,
     project: projectSpellbreakerPlanningState
   },
+  traitDefinitions: warriorSpellbreakerTraits,
   hooks: spellbreakerHooks,
   presentation: spellbreakerUi
 });

@@ -14,7 +14,6 @@ import { troubadourTraits } from '#gw2/professions/mesmer/specializations/trouba
 
 export const troubadourModule = defineNativeModule({
   id: 'Troubadour',
-  traitDefinitions: troubadourTraits,
   data: createNativeModuleData<MesmerSkill>({
     id: 'Troubadour',
     traitLines: TRAIT_LINES,
@@ -25,6 +24,7 @@ export const troubadourModule = defineNativeModule({
     create: troubadourState.create,
     project: projectTroubadourPlanningState
   },
+  traitDefinitions: troubadourTraits,
   hooks: troubadourHooks,
   presentation: troubadourUi
 });

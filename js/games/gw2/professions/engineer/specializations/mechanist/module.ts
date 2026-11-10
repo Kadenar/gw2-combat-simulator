@@ -21,7 +21,6 @@ import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 // hit-triggered traits; the engineer's own cast lane remains owned by Core.
 export const mechanistModule = defineNativeModule({
   id: 'Mechanist',
-  traitDefinitions: mechanistTraits,
   data: createNativeModuleData<EngineerSkill>({
     id: 'Mechanist',
     traitLines: TRAIT_LINES,
@@ -30,6 +29,7 @@ export const mechanistModule = defineNativeModule({
     skills: materializeSkillDefinitions(MECHANIST_SKILL_MECHANICS)
   }),
   state: { create: mechanistState.create, project: projectMechanistPlanningState },
+  traitDefinitions: mechanistTraits,
   attributes: mechanistAttributes,
   hooks: mechanistHooks,
   presentation: mechanistUi

@@ -11,7 +11,6 @@ import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 export const scrapperModule = defineNativeModule({
   id: 'Scrapper',
-  traitDefinitions: scrapperTraits,
   data: createNativeModuleData<EngineerSkill>({
     id: 'Scrapper',
     traitLines: TRAIT_LINES,
@@ -20,6 +19,7 @@ export const scrapperModule = defineNativeModule({
   }),
   // Scrapper traits share the live state with their actual combo and boon reactions.
   state: { create: scrapperState.create },
+  traitDefinitions: scrapperTraits,
 
   presentation: bindScrapperUi
 });

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
-import { elementalistSkillAttributes } from '#gw2/professions/elementalist/core/skills/attributes.js';
+import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -152,22 +152,22 @@ test('Lightning Hammer attributes follow the wielder through utility hits, drop,
   const runtime = { profession: { core } };
   const attributes = { precision: 1000, ferocity: 0 };
   const context = { runtime, config: { selectedTraitIds: [] }, event: { skillName: 'Arcane Wave' }, time: 1 };
-  const baseline = evaluateAttributeDeclarations(context, attributes, elementalistSkillAttributes);
+  const baseline = evaluateAttributeDeclarations(context, attributes, elementalistCoreModule.attributes);
   // Attribute queries read the live equipped bundle and its expiry.
   Object.assign(core, { conjureEquipped: 'Lightning Hammer', conjureExpiresAt: 31 });
   const held = evaluateAttributeDeclarations(
     { catalog: elementalistCatalog, ...context },
     attributes,
-    elementalistSkillAttributes
+    elementalistCoreModule.attributes
   );
   assert.equal(held.precision - baseline.precision, 180);
   assert.equal(held.ferocity - baseline.ferocity, 75);
   assert.deepEqual(
-    evaluateAttributeDeclarations({ ...context, time: 31 }, attributes, elementalistSkillAttributes),
+    evaluateAttributeDeclarations({ ...context, time: 31 }, attributes, elementalistCoreModule.attributes),
     baseline
   );
   Object.assign(core, { conjureEquipped: null, conjureExpiresAt: 0 });
-  assert.deepEqual(evaluateAttributeDeclarations(context, attributes, elementalistSkillAttributes), baseline);
+  assert.deepEqual(evaluateAttributeDeclarations(context, attributes, elementalistCoreModule.attributes), baseline);
 });
 
 test('Invoke Lightning uses linear per-hit falloff with the requested hitbox midpoint', () => {

@@ -17,7 +17,7 @@ import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import { elementalistRockBarrierLifecycle } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
-import { elementalistSkillAttributes } from '#gw2/professions/elementalist/core/skills/attributes.js';
+import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
@@ -73,7 +73,10 @@ test('skill patches own signet and conjure attributes in preview, runtime, and p
     const initial = { power: 1000, precision: 1000, conditionDamage: 0, ferocity: 0 };
     const core = createElementalistCoreState();
     const query = { catalog: context.catalog, config, time: 1, runtime: { profession: { core } } };
-    assert.equal(evaluateAttributeDeclarations(query, initial, elementalistSkillAttributes).precision, 1000 + signet);
+    assert.equal(
+      evaluateAttributeDeclarations(query, initial, elementalistCoreModule.attributes).precision,
+      1000 + signet
+    );
     assert.equal(facts(context, ID.SIGNET_OF_FIRE)['Passive precision'], String(signet));
     for (const [weapon, id, pickup, first, second, firstName, secondName] of [
       [
@@ -98,7 +101,7 @@ test('skill patches own signet and conjure attributes in preview, runtime, and p
       const firstValue = bonuses(id)[first];
       const secondValue = bonuses(id)[second];
       Object.assign(core, { conjureEquipped: weapon, conjureExpiresAt: 2 });
-      const attributes = evaluateAttributeDeclarations(query, initial, elementalistSkillAttributes);
+      const attributes = evaluateAttributeDeclarations(query, initial, elementalistCoreModule.attributes);
       assert.equal(attributes[first], initial[first] + firstValue + (first === 'precision' ? signet : 0));
       assert.equal(attributes[second], initial[second] + secondValue);
       for (const skillId of [id, pickup]) {
@@ -107,7 +110,7 @@ test('skill patches own signet and conjure attributes in preview, runtime, and p
       }
 
       // The bonus ends with the held bundle, even though its source skill still exists.
-      const expired = evaluateAttributeDeclarations({ ...query, time: 2 }, initial, elementalistSkillAttributes);
+      const expired = evaluateAttributeDeclarations({ ...query, time: 2 }, initial, elementalistCoreModule.attributes);
       assert.equal(expired[first], initial[first] + (first === 'precision' ? signet : 0));
     }
 

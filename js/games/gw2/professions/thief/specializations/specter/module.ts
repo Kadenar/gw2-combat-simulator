@@ -10,7 +10,6 @@ import { specterTraits } from '#gw2/professions/thief/specializations/specter/tr
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
 
 export const specterModule = defineNativeModule({
-  traitDefinitions: specterTraits,
   id: 'Specter',
   data: createNativeModuleData<ThiefSkill>({
     id: 'Specter',
@@ -20,6 +19,7 @@ export const specterModule = defineNativeModule({
     skills: SPECTER_SKILLS
   }),
   state: { create: specterState.create, project: projectSpecterPlanningState },
+  traitDefinitions: specterTraits,
   hooks: specterHooks,
   presentation: specterUi
 });

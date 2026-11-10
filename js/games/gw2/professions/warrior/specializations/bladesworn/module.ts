@@ -19,7 +19,6 @@ import type { WarriorSkill } from '#gw2/professions/warrior/types.js';
 
 export const bladeswornModule = defineNativeModule({
   canSwapWeaponSetsInCombat: false,
-  traitDefinitions: warriorBladeswornTraits,
   id: 'Bladesworn',
   data: createNativeModuleData<WarriorSkill>({
     id: 'Bladesworn',
@@ -35,6 +34,7 @@ export const bladeswornModule = defineNativeModule({
     create: bladeswornState.create,
     project: projectBladeswornPlanningState
   },
+  traitDefinitions: warriorBladeswornTraits,
   hooks: bladeswornHooks,
   presentation: bladeswornUi
 });

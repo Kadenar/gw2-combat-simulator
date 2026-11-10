@@ -9,7 +9,7 @@ import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles
 import { engineerTooltips } from '#gw2/professions/engineer/app/tooltips.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
 import { engineerCatalog, engineerProfession } from '#gw2/professions/engineer/profession.js';
-import { amalgamAttributes } from '#gw2/professions/engineer/specializations/amalgam/attributes.js';
+import { amalgamModule } from '#gw2/professions/engineer/specializations/amalgam/module.js';
 import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { holosmithSkillStrikeFactor } from '#gw2/professions/engineer/specializations/holosmith/mechanics/heat-tiers.js';
 import { overclockRechargeWork } from '#gw2/professions/engineer/specializations/mechanist/skills/signet-skills.js';
@@ -454,7 +454,7 @@ test('Obliterate owns Titanic scaling after protocol reselection and until strai
           runtime: { profession: { specialization: { kind: 'Amalgam', state } } }
         },
         { power: 1000, conditionDamage: 1000 },
-        amalgamAttributes
+        amalgamModule.attributes
       );
       assert.equal(actual.power, expected);
       assert.equal(actual.conditionDamage, expected);

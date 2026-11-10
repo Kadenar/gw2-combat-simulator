@@ -13,7 +13,6 @@ import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 /** The module registers one live mechanic owner beside its existing data and modifier formulas. */
 export const galeshotModule = defineNativeModule({
   id: 'Galeshot',
-  traitDefinitions: galeshotTraits,
   data: createNativeModuleData<RangerSkill>({
     id: 'Galeshot',
     traitLines: TRAIT_LINES,
@@ -21,6 +20,7 @@ export const galeshotModule = defineNativeModule({
     skills: materializeSkillDefinitions(GALESHOT_BASE_SKILL_MECHANICS)
   }),
   state: { create: galeshotState.create, project: projectGaleshotPlanningState },
+  traitDefinitions: galeshotTraits,
   hooks: galeshotHooks,
   presentation: bindGaleshotUi
 });
