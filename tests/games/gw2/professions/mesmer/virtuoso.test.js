@@ -231,8 +231,8 @@ test('Mesmer critical traits consume the same seeded hit outcomes in both modes'
       fury: false
     },
     sigilSets: [
-      { names: [], strike: 1, condition: 1 },
-      { names: [], strike: 1, condition: 1 }
+      { names: [], strikeAdd: 0, conditionAdd: 0 },
+      { names: [], strikeAdd: 0, conditionAdd: 0 }
     ]
   });
   const run = (mode, seed = 37) =>
@@ -295,8 +295,8 @@ test('Earth bleeding grants a scheduler-visible Bloodsong blade', () => {
           precision: 4000
         }),
         sigilSets: [
-          { names: ['Earth'], strike: 1, condition: 1 },
-          { names: [], strike: 1, condition: 1 }
+          { names: ['Earth'], strikeAdd: 0, conditionAdd: 0 },
+          { names: [], strikeAdd: 0, conditionAdd: 0 }
         ]
       })
     );
@@ -339,8 +339,8 @@ test('Geomancy crosses Bloodsong after four canonical trait bleeds', () => {
         precision: 4000
       }),
       sigilSets: [
-        { names: [], strike: 1, condition: 1 },
-        { names: ['Geomancy'], strike: 1, condition: 1 }
+        { names: [], strikeAdd: 0, conditionAdd: 0 },
+        { names: ['Geomancy'], strikeAdd: 0, conditionAdd: 0 }
       ]
     })
   );

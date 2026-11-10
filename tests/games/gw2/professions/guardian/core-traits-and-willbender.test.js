@@ -36,8 +36,8 @@ test('Guardian player strikes trigger shared player-owned sigils', () => {
     }),
     boons: { fury: true },
     sigilSets: [
-      { names: ['Air'], strike: 1, condition: 1 },
-      { names: [], strike: 1, condition: 1 }
+      { names: ['Air'], strikeAdd: 0, conditionAdd: 0 },
+      { names: [], strikeAdd: 0, conditionAdd: 0 }
     ]
   })(undefined, ['True Strike']);
 

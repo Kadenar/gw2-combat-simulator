@@ -1123,8 +1123,8 @@ test('precombat Kick cannot sample criticals or advance hit-dependent procs', ()
     attributeInputs: baseAttributeInputs({ precision: 1945 }),
     randomness: { mode: 'deterministic', seed: 7 },
     sigilSets: [
-      { names: ['Air'], strike: 1, condition: 1 },
-      { names: [], strike: 1, condition: 1 }
+      { names: ['Air'], strikeAdd: 0, conditionAdd: 0 },
+      { names: [], strikeAdd: 0, conditionAdd: 0 }
     ]
   };
   // Adding a precombat notification cannot change the next actual hit's seeded roll or equipment claim.

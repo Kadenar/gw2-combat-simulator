@@ -12,7 +12,7 @@ import {
 } from '#ui/results/event-log/model.js';
 import { escapeHtml } from '#ui/shared/html.js';
 
-export interface EventLogMountOptions {
+interface EventLogMountOptions {
   readonly title?: string;
   readonly filename?: string;
   /** Singular and plural names for the summed metric in group summaries. */
@@ -108,20 +108,16 @@ function badgesHtml(row: EventLogRow): string {
   return orphan + source;
 }
 
-interface TreeRenderContext<TRow extends EventLogRow> {
-  readonly matches: (row: TRow) => boolean;
+interface TreeRenderContext {
+  readonly matches: (row: EventLogRow) => boolean;
   readonly forceOpen: boolean;
   readonly state: LogViewState;
   readonly query: string;
-  readonly memo: Map<LogNode<TRow>, LogSummary>;
+  readonly memo: Map<LogNode<EventLogRow>, LogSummary>;
   readonly metricUnit: readonly [string, string];
 }
 
-function summaryHtml<TRow extends EventLogRow>(
-  node: LogNode<TRow>,
-  open: boolean,
-  context: TreeRenderContext<TRow>
-): string {
+function summaryHtml(node: LogNode<EventLogRow>, open: boolean, context: TreeRenderContext): string {
   if (!node.children.length || (node.depth > 0 && node.row.layout !== 'tree')) return '';
 
   const summary = summarize(node, context.memo);
@@ -156,14 +152,14 @@ function summaryHtml<TRow extends EventLogRow>(
   return parts.length ? `<span class="log-summary">${parts.join('')}</span>` : '';
 }
 
-function treeLineHtml<TRow extends EventLogRow>(
-  node: LogNode<TRow>,
+function treeLineHtml(
+  node: LogNode<EventLogRow>,
   trail: readonly boolean[],
   isLast: boolean,
   hasChildren: boolean,
   open: boolean,
   dimmed: boolean,
-  context: TreeRenderContext<TRow>
+  context: TreeRenderContext
 ): string {
   const { row } = node;
   const root = (node.root ?? node).row;
@@ -194,9 +190,9 @@ function treeLineHtml<TRow extends EventLogRow>(
 }
 
 /** Matching rows keep their ancestors visible but dimmed, so filtered results never lose their owner. */
-function treeLinesHtml<TRow extends EventLogRow>(model: LogModel<TRow>, context: TreeRenderContext<TRow>): string {
-  const visible = new Map<LogNode<TRow>, boolean>();
-  const isVisible = (node: LogNode<TRow>): boolean => {
+function treeLinesHtml(model: LogModel<EventLogRow>, context: TreeRenderContext): string {
+  const visible = new Map<LogNode<EventLogRow>, boolean>();
+  const isVisible = (node: LogNode<EventLogRow>): boolean => {
     let shown = visible.get(node);
 
     if (shown === undefined) {
@@ -208,7 +204,7 @@ function treeLinesHtml<TRow extends EventLogRow>(model: LogModel<TRow>, context:
   };
 
   const lines: string[] = [];
-  const emit = (node: LogNode<TRow>, trail: readonly boolean[], isLast: boolean): void => {
+  const emit = (node: LogNode<EventLogRow>, trail: readonly boolean[], isLast: boolean): void => {
     if (!isVisible(node)) return;
 
     const children = node.children.filter(isVisible);
@@ -227,11 +223,7 @@ function treeLinesHtml<TRow extends EventLogRow>(model: LogModel<TRow>, context:
   return lines.join('');
 }
 
-function flatLinesHtml<TRow extends EventLogRow>(
-  model: LogModel<TRow>,
-  matches: (row: TRow) => boolean,
-  query: string
-): string {
+function flatLinesHtml(model: LogModel<EventLogRow>, matches: (row: EventLogRow) => boolean, query: string): string {
   return model.nodes
     .filter((node) => node.row.layout !== 'tree' && matches(node.row))
     .map((node) => {

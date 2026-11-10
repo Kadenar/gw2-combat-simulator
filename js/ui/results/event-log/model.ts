@@ -1,7 +1,7 @@
 /** Builds causal event trees, descendant summaries, and CSV from game-neutral display rows. */
 
 /** One line of a calculation: what it is, how it was derived, and the value it contributes. */
-export interface EventLogCalculationStep {
+interface EventLogCalculationStep {
   readonly label: string;
   readonly explanation: string;
   readonly value: string;
@@ -53,7 +53,7 @@ export interface EventLogSource {
 }
 
 /** Short label collected from descendants into a group summary, such as an applied boon. */
-export interface EventLogTag {
+interface EventLogTag {
   readonly label: string;
   readonly className?: string;
 }

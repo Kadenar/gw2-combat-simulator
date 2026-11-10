@@ -183,8 +183,8 @@ test('critical sigils enqueue and resolve their own proc event', () => {
         fury: true
       },
       sigilSets: [
-        { names: ['Air'], strike: 1, condition: 1 },
-        { names: [], strike: 1, condition: 1 }
+        { names: ['Air'], strikeAdd: 0, conditionAdd: 0 },
+        { names: [], strikeAdd: 0, conditionAdd: 0 }
       ]
     })
   );
@@ -213,8 +213,8 @@ test("seeded critical sigils consume the hit's single sampled crit outcome", () 
       fury: false
     },
     sigilSets: [
-      { names: ['Earth', 'Torment'], strike: 1, condition: 1 },
-      { names: [], strike: 1, condition: 1 }
+      { names: ['Earth', 'Torment'], strikeAdd: 0, conditionAdd: 0 },
+      { names: [], strikeAdd: 0, conditionAdd: 0 }
     ]
   });
   const run = (mode, seed = 37) =>
@@ -359,8 +359,8 @@ test('weapon-swap sigils resolve locally on the destination weapon set', () => {
       weaponSet2Primary: 'Spear',
       weaponSet2Secondary: '',
       sigilSets: [
-        { names: [], strike: 1, condition: 1 },
-        { names: ['Doom', 'Geomancy'], strike: 1, condition: 1 }
+        { names: [], strikeAdd: 0, conditionAdd: 0 },
+        { names: ['Doom', 'Geomancy'], strikeAdd: 0, conditionAdd: 0 }
       ]
     })
   );
@@ -388,8 +388,8 @@ test('critical weapon-swap sigil strikes can trigger critical-hit sigils', () =>
       weaponSet2Secondary: '',
       attributeInputs: baseAttributeInputs({ ...defaults.attributeInputs.weaponSets[0].commonTotals, precision: 4000 }),
       sigilSets: [
-        { names: [], strike: 1, condition: 1 },
-        { names: ['Geomancy', 'Torment'], strike: 1, condition: 1 }
+        { names: [], strikeAdd: 0, conditionAdd: 0 },
+        { names: ['Geomancy', 'Torment'], strikeAdd: 0, conditionAdd: 0 }
       ]
     })
   );
@@ -437,8 +437,8 @@ test('Severance affects strikes after its control trigger', () => {
       ...config,
       procRateOverrides: { 'sigil.severance': chance },
       sigilSets: [
-        { names, strike: 1, condition: 1 },
-        { names: [], strike: 1, condition: 1 }
+        { names, strikeAdd: 0, conditionAdd: 0 },
+        { names: [], strikeAdd: 0, conditionAdd: 0 }
       ]
     });
   const base = run([]);
@@ -487,8 +487,8 @@ test('weapon swaps activate only the equipped set damage sigils', () => {
   const equipped = simulateMesmer(rotation, {
     ...config,
     sigilSets: [
-      { strike: 1.05, condition: 1 },
-      { strike: 1, condition: 1 }
+      { strikeAdd: 0.05, conditionAdd: 0 },
+      { strikeAdd: 0, conditionAdd: 0 }
     ]
   });
   // Compare packets individually so changing a skill's hit count does not change the rounding tolerance.
@@ -522,13 +522,13 @@ test('weapon swaps activate only the equipped set duration sigils', () => {
       attributeInputs: baseAttributeInputs({ expertise: 0 }),
       sigilSets: [
         {
-          strike: 1,
-          condition: 1,
+          strikeAdd: 0,
+          conditionAdd: 0,
           conditionDurationBonus: 10
         },
         {
-          strike: 1,
-          condition: 1,
+          strikeAdd: 0,
+          conditionAdd: 0,
           conditionDurationBonus: 0
         }
       ]
@@ -707,7 +707,7 @@ test('sigil rows report their recorded activations for hit counts and averages',
     ['Flying Cutter', { name: '__wait', waitMs: 5100 }, 'Flying Cutter', { name: '__wait', waitMs: 6000 }],
     defaultSimulationConfig({
       attributeInputs: baseAttributeInputs({ ...defaults.attributeInputs.weaponSets[0].commonTotals, precision: 4000 }),
-      sigilSets: [{ names: ['Earth', 'Torment'], strike: 1, condition: 1 }, { names: [] }]
+      sigilSets: [{ names: ['Earth', 'Torment'], strikeAdd: 0, conditionAdd: 0 }, { names: [] }]
     })
   );
   const doom = simulateMesmer(
@@ -717,7 +717,7 @@ test('sigil rows report their recorded activations for hit counts and averages',
       secondaryWeapon: 'Sword',
       weaponSet2Primary: 'Spear',
       weaponSet2Secondary: '',
-      sigilSets: [{ names: [] }, { names: ['Doom', 'Geomancy'], strike: 1, condition: 1 }]
+      sigilSets: [{ names: [] }, { names: ['Doom', 'Geomancy'], strikeAdd: 0, conditionAdd: 0 }]
     })
   );
 

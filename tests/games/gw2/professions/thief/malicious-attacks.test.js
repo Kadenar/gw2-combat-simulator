@@ -44,7 +44,7 @@ function maliciousAttack(
       ],
       attributeInputs: baseAttributeInputs({ power: 2000, precision: 5000 }),
       // Force and Impact must compose independently of the attack's malice multiplier.
-      sigilSets: [{ names: ['Force', 'Impact'], strike: 1.08, strikeAdd: 0.08 }],
+      sigilSets: [{ names: ['Force', 'Impact'], strikeAdd: 0.08 }],
       professionAssumptions: { permanentComboField: field }
     },
     {

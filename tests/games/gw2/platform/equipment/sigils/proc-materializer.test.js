@@ -313,7 +313,7 @@ test('sigils block a hit at the exact internal-cooldown boundary', () => {
     ],
     defaultSimulationConfig({
       attributeInputs: baseAttributeInputs({ ...defaults.attributeInputs.weaponSets[0].commonTotals, precision: 4000 }),
-      sigilSets: [{ names: ['Torment'], strike: 1, condition: 1 }, { names: [] }]
+      sigilSets: [{ names: ['Torment'], strikeAdd: 0, conditionAdd: 0 }, { names: [] }]
     })
   );
 

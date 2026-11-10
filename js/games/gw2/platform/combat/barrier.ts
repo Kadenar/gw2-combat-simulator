@@ -2,7 +2,7 @@ import { RECIPIENT } from '#gw2/platform/constants.js';
 import type { EffectAudience } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 
-export interface BarrierRecipient {
+interface BarrierRecipient {
   readonly key: string;
   readonly allyIndex?: number;
   readonly audience: EffectAudience;
@@ -45,7 +45,7 @@ export function barrierRecipients(event: Gw2ResolverEvent): readonly BarrierReci
 }
 
 /** Barrier can reach companions without boon sharing; its player-owned boon rewards must still honor that setting. */
-export function barrierBoonRecipients(
+function barrierBoonRecipients(
   event: Gw2ResolverEvent,
   config: { readonly sharePlayerBoonsWithSummons?: boolean }
 ): readonly BarrierRecipient[] {

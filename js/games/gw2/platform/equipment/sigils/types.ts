@@ -10,11 +10,9 @@ export interface Gw2SigilSet {
   readonly boonDurationBonus?: number;
   readonly criticalChanceBonus?: number;
   readonly strikeAdd?: number;
-  readonly strike?: number;
   readonly strikeMultiplier?: number;
   readonly nightStrikeMultiplier?: number;
   readonly conditionAdd?: number;
-  readonly condition?: number;
   readonly conditionDurationBonus?: number;
   readonly conditionDurationBonuses?: Readonly<Record<string, number>>;
 }

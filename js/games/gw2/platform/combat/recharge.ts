@@ -20,7 +20,7 @@ export function gw2BaseRecharge(skill: Pick<Skill, 'cooldown'>): number {
 export const GW2_ALACRITY_RECHARGE_RATE = 1.25;
 
 /** Player Alacrity is permanent; summons must actually receive the boon. */
-export function gw2RechargeRate(
+function gw2RechargeRate(
   skill: Skill,
   playerAlacrityRechargeRate = GW2_ALACRITY_RECHARGE_RATE,
   summonAlacrity = false

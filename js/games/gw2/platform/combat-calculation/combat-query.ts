@@ -583,13 +583,8 @@ export function createGw2CombatQuery({
       }
 
       const sigils = activeSigilSetAt(time, runtime);
-      const sigilFactor = event.summonUsesEquipmentModifiers === false ? 1 : sigils.strike || 1;
-      const sigilBonus =
-        event.summonUsesEquipmentModifiers === false
-          ? 0
-          : Number.isFinite(Number(sigils.strikeAdd))
-            ? Number(sigils.strikeAdd)
-            : sigilFactor - 1;
+      // Additive sigil bonuses have one representation; ineligible actors receive no contribution.
+      const sigilBonus = event.summonUsesEquipmentModifiers === false ? 0 : (sigils.strikeAdd ?? 0);
       const timeOfDayMultiplier = config.timeOfDay === 'night' ? sigils.nightStrikeMultiplier || 1 : 1;
       const utilityMultiplier = 1 + (UTILITY_STRIKE_DAMAGE_BONUSES[config.utility || ''] || 0) / 100;
       const playerMultiplier =
@@ -648,12 +643,7 @@ export function createGw2CombatQuery({
       const sigils = activeSigilSetAt(time, runtime);
       // Ordinary summon conditions use their player's bonuses; independent pet/mech owners never inherit Bursting.
       const usesSigil = usesEquipmentModifiers && !isIndependentConditionOwner(event);
-      const sigilFactor = usesSigil ? sigils.condition || 1 : 1;
-      const sigilBonus = usesSigil
-        ? Number.isFinite(Number(sigils.conditionAdd))
-          ? Number(sigils.conditionAdd)
-          : sigilFactor - 1
-        : 0;
+      const sigilBonus = usesSigil ? (sigils.conditionAdd ?? 0) : 0;
       const modifier = activeProfession.calculations.modifyConditionDamage;
       const vulnerability = 1 + (sample?.vulnerabilityStacks ?? vulnerabilityStacksAt(time, runtime)) / 100;
       // Equipment enters the canonical evaluator's additive bucket, separate from target and configured factors.

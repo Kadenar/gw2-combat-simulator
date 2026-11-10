@@ -71,9 +71,8 @@ test('strike and base-duration factors admit zero while rejecting negative and n
 
 function context({
   sigils = {
-    strike: 1.08,
     strikeAdd: 0.08,
-    condition: 1.05,
+
     conditionAdd: 0.05
   },
   active = true
@@ -82,8 +81,8 @@ function context({
     active,
     time: 1,
     damageInputs: {
-      strikeSigilBonus: sigils.strikeAdd ?? Number(sigils.strike || 1) - 1,
-      conditionSigilBonus: sigils.conditionAdd ?? Number(sigils.condition || 1) - 1
+      strikeSigilBonus: sigils.strikeAdd ?? 0,
+      conditionSigilBonus: sigils.conditionAdd ?? 0
     }
   };
 }
@@ -117,7 +116,7 @@ test('condition sample reuse is opt-in and preserves inactive, event-specific, a
     ]
   });
   const current = {
-    ...context({ sigils: { strike: 1, condition: 1 } }),
+    ...context({ sigils: { strikeAdd: 0, conditionAdd: 0 } }),
     bonus: 0.25,
     conditionSample: { vulnerabilityStacks: 0, modifierValues: new Map() },
     event: { factor: 2 }

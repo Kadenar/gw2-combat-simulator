@@ -30,9 +30,8 @@ function modifierContext({
   active = [],
   stacks = {},
   sigils = {
-    strike: 1.08,
     strikeAdd: 0.08,
-    condition: 1.05,
+
     conditionAdd: 0.05
   }
 } = {}) {
@@ -73,8 +72,8 @@ function modifierContext({
       vulnerabilityStacksAt
     },
     damageInputs: {
-      strikeSigilBonus: sigils.strikeAdd ?? Number(sigils.strike || 1) - 1,
-      conditionSigilBonus: sigils.conditionAdd ?? Number(sigils.condition || 1) - 1
+      strikeSigilBonus: sigils.strikeAdd ?? 0,
+      conditionSigilBonus: sigils.conditionAdd ?? 0
     },
     timeline: {
       vigorActiveAt: () => Boolean(config.boons?.vigor)
@@ -315,7 +314,7 @@ test('Mesmer Lute Playing damage excludes illusion attacks', () => {
   const shared = {
     config: { specialization: 'Troubadour' },
     events: [{ type: 'mesmer.instrument', instrument: 'Lute', at: 0, expiresAt: 10 }],
-    sigils: { strike: 1, strikeAdd: 0, condition: 1, conditionAdd: 0 }
+    sigils: { strikeAdd: 0, conditionAdd: 0 }
   };
   const player = modifierContext(shared);
   const phantasm = modifierContext({
@@ -478,7 +477,7 @@ test('Mesmer strike sigils apply to the player but not illusion sources', () => 
 test('Mental Focus, Soul Eater, and Reaper shouts always receive nearby bonuses', () => {
   const context = modifierContext({
     event: { actorType: 'player' },
-    sigils: { strike: 1, strikeAdd: 0, condition: 1, conditionAdd: 0 }
+    sigils: { strikeAdd: 0, conditionAdd: 0 }
   });
   assertClose(
     mesmerRules('Virtuoso').calculations.modifyStrikeDamage({ ...context, traits: new Set([MESMER.MENTAL_FOCUS]) }, 1),

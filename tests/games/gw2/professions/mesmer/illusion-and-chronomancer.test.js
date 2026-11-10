@@ -538,7 +538,7 @@ test('phantasm conditions use the summoner condition sigil modifiers', () => {
       sigilSets: [
         {
           names: ['Bursting', 'Demons'],
-          condition: 1.05,
+          conditionAdd: 0.05,
           conditionDurationBonuses: { Torment: 20 }
         },
         { names: [] }

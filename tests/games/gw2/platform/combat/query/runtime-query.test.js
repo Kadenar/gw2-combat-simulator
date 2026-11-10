@@ -178,8 +178,8 @@ test('additive damage uses the live weapon set before and after a same-time swap
     }),
     config: {
       sigilSets: [
-        { strike: 1.05, condition: 1.1 },
-        { strike: 1, condition: 1 }
+        { strikeAdd: 0.05, conditionAdd: 0.1 },
+        { strikeAdd: 0, conditionAdd: 0 }
       ]
     },
     events: [hit, swap]
@@ -203,8 +203,8 @@ test('empty profession rules retain equipment bonuses through the combat query',
     profession,
     config: {
       sigilSets: [
-        { strike: 1.5, strikeAdd: 0.5, condition: 1.25, conditionAdd: 0.25 },
-        { strike: 1.25, strikeAdd: 0.25, condition: 1.5, conditionAdd: 0.5 }
+        { strikeAdd: 0.5, conditionAdd: 0.25 },
+        { strikeAdd: 0.25, conditionAdd: 0.5 }
       ],
       modifiers: { strike: 2, condition: 3 },
       target: { conditions: { Vulnerability: 25 } }
@@ -257,7 +257,7 @@ test('Force and Bursting neither boost nor dilute independent companion damage',
   const query = createGw2CombatQuery({
     profession,
     config: {
-      sigilSets: [{ strike: 1.05, strikeAdd: 0.05, condition: 1.05, conditionAdd: 0.05 }, {}]
+      sigilSets: [{ strikeAdd: 0.05, conditionAdd: 0.05 }, {}]
     }
   });
   for (const summonUsesEquipmentModifiers of [true, false]) {

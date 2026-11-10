@@ -19,7 +19,7 @@ const config = {
     conditionDurationBonus: 10
   }),
   boons: { might: 10 },
-  sigilSets: [{ condition: 1.1, strike: 1.1, conditionDurationBonus: 10 }],
+  sigilSets: [{ conditionAdd: 0.1, strikeAdd: 0.1, conditionDurationBonus: 10 }],
   target: { conditions: {} }
 };
 function query() {

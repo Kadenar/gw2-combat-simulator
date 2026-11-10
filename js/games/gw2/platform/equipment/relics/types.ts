@@ -145,7 +145,7 @@ export interface Gw2RelicQueryOwner {
   readonly queries: Gw2RelicQueries;
 }
 
-export interface Gw2RelicQueries {
+interface Gw2RelicQueries {
   strikeMultiplier(context: Gw2RelicStrikeQueryContext, event: SimulationEvent): number;
   outgoingDamageBonus(context: Gw2RelicRuntimeContext, at: number): number;
   criticalChanceBonus(event: SimulationEvent, mightStacks: number): number;

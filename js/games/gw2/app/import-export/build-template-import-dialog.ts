@@ -4,6 +4,7 @@ import {
   BuildTemplateProfessionMismatchError,
   previewBuildTemplateCode
 } from '#gw2/app/import-export/build-template-import.js';
+import { requiredDialogPart } from '#gw2/app/import-export/import-dialog.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
 import type { ResolvedGw2BuildTemplate } from '#gw2/integrations/chat-code/codec.js';
 import { ensureDocumentStyles } from '#ui/shared/dom.js';
@@ -84,14 +85,6 @@ const BUILD_TEMPLATE_IMPORT_STYLES = `
       .build-template-preview-weapons { text-align:left; } }
   `;
 
-function required<T extends Element>(dialog: HTMLDialogElement, selector: string): T {
-  const element = dialog.querySelector<T>(selector);
-
-  if (!element) throw new Error('Build template dialog failed to initialize.');
-
-  return element;
-}
-
 function createDialog(document: Document): BuildTemplateDialogElements {
   ensureDocumentStyles(document, 'build-template-import-styles', BUILD_TEMPLATE_IMPORT_STYLES);
   const dialog = document.createElement('dialog');
@@ -145,18 +138,18 @@ function createDialog(document: Document): BuildTemplateDialogElements {
   document.body.append(dialog);
   return {
     dialog,
-    code: required(dialog, '[data-build-template-code]'),
-    previewButton: required(dialog, '[data-build-template-preview]'),
-    applyButton: required(dialog, '[data-build-template-apply]'),
-    error: required(dialog, '[data-build-template-error]'),
-    switchProfession: required(dialog, '[data-build-template-switch]'),
-    preview: required(dialog, '[data-build-template-result]'),
-    profession: required(dialog, '[data-build-template-profession]'),
-    weapons: required(dialog, '[data-build-template-weapons]'),
-    weaponSelect: required(dialog, '[data-build-template-weapon-select]'),
-    specializations: required(dialog, '[data-build-template-specializations]'),
-    skills: required(dialog, '[data-build-template-skills]'),
-    warnings: required(dialog, '[data-build-template-warnings]')
+    code: requiredDialogPart(dialog, '[data-build-template-code]'),
+    previewButton: requiredDialogPart(dialog, '[data-build-template-preview]'),
+    applyButton: requiredDialogPart(dialog, '[data-build-template-apply]'),
+    error: requiredDialogPart(dialog, '[data-build-template-error]'),
+    switchProfession: requiredDialogPart(dialog, '[data-build-template-switch]'),
+    preview: requiredDialogPart(dialog, '[data-build-template-result]'),
+    profession: requiredDialogPart(dialog, '[data-build-template-profession]'),
+    weapons: requiredDialogPart(dialog, '[data-build-template-weapons]'),
+    weaponSelect: requiredDialogPart(dialog, '[data-build-template-weapon-select]'),
+    specializations: requiredDialogPart(dialog, '[data-build-template-specializations]'),
+    skills: requiredDialogPart(dialog, '[data-build-template-skills]'),
+    warnings: requiredDialogPart(dialog, '[data-build-template-warnings]')
   };
 }
 
@@ -249,7 +242,8 @@ export function bindBuildTemplateImportDialog(app: ProfessionAppState, button: H
     elements.applyButton.disabled = true;
     elements.preview.hidden = true;
     elements.error.hidden = false;
-    required<HTMLElement>(elements.dialog, '[data-build-template-error-message]').textContent = errorMessage(error);
+    requiredDialogPart<HTMLElement>(elements.dialog, '[data-build-template-error-message]').textContent =
+      errorMessage(error);
 
     if (error instanceof BuildTemplateProfessionMismatchError) {
       elements.switchProfession.hidden = false;

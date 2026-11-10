@@ -114,27 +114,23 @@ interface MutableSigilSet {
   names: string[];
   criticalChanceBonus: number;
   strikeAdd: number;
-  strike: number;
   strikeMultiplier: number;
   nightStrikeMultiplier: number;
   conditionAdd: number;
-  condition: number;
   conditionDurationBonus: number;
   conditionDurationBonuses: Record<string, number>;
   boonDurationBonus: number;
 }
 
-/** Combines selected sigil effects into one runtime modifier set. */
+/** Combines sigil bonuses into additive amounts and separate multiplicative factors for combat queries. */
 export function aggregateSigilSet(sigilNames: readonly string[] | null | undefined): Gw2SigilSet {
   const effects: MutableSigilSet = {
     names: [...new Set(sigilNames || [])],
     criticalChanceBonus: 0,
     strikeAdd: 0,
-    strike: 1,
     strikeMultiplier: 1,
     nightStrikeMultiplier: 1,
     conditionAdd: 0,
-    condition: 1,
     conditionDurationBonus: 0,
     conditionDurationBonuses: {},
     boonDurationBonus: 0
@@ -168,7 +164,5 @@ export function aggregateSigilSet(sigilNames: readonly string[] | null | undefin
     }
   }
 
-  effects.strike = 1 + effects.strikeAdd;
-  effects.condition = 1 + effects.conditionAdd;
   return effects;
 }

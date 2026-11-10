@@ -36,7 +36,7 @@ function assertStage(value: string): asserts value is Gw2ResolverStage {
 }
 
 /** Validate authored keys before typed traversal so wrappers cannot silently discard unsupported stages. */
-export function gw2ReactionStages(value: object, label = 'GW2 reactions'): Gw2ResolverStage[] {
+function gw2ReactionStages(value: object, label = 'GW2 reactions'): Gw2ResolverStage[] {
   return Object.keys(value).map((stage) => {
     try {
       assertStage(stage);

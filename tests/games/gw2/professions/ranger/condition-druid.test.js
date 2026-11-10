@@ -773,8 +773,8 @@ test('Celestial Avatar transitions trigger swap mechanics and weapon lines', () 
     ['__combat_start', 'Celestial Avatar', { type: 'wait', durationMs: 10000 }, 'Release Celestial Avatar'],
     {
       sigilSets: [
-        { names: ['Hydromancy'], strike: 1, condition: 1 },
-        { names: [], strike: 1, condition: 1 }
+        { names: ['Hydromancy'], strikeAdd: 0, conditionAdd: 0 },
+        { names: [], strikeAdd: 0, conditionAdd: 0 }
       ]
     }
   );

@@ -465,7 +465,7 @@ test('Nourys recurring damage windows have exact starts and exclusive tick-align
     [65.000999, 0],
     [65.001, 0.25]
   ]) {
-    assert.equal(nourys.outgoingDamageBonus(context, {}, 'strike', at), bonus);
+    assert.equal(nourys.outgoingDamageBonus(context, {}, at), bonus);
   }
 });
 

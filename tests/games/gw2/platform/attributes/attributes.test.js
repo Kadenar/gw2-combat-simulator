@@ -467,9 +467,9 @@ test('simulation config aggregates each weapon set sigils independently', () => 
     })
     .simulationConfig();
 
-  assert.equal(config.sigilSets[0].strike, 1.05);
+  assert.equal(config.sigilSets[0].strikeAdd, 0.05);
   assert.equal(config.sigilSets[0].criticalChanceBonus, 7);
-  assert.equal(config.sigilSets[1].condition, 1.05);
+  assert.equal(config.sigilSets[1].conditionAdd, 0.05);
   assert.equal(config.sigilSets[1].conditionDurationBonus, 10);
   assert.equal(config.target.activatingSkills, false);
   assert.equal(config.target.confusionActivationsPerSecond, 0);
@@ -525,7 +525,6 @@ test('additive damage sigils sum into one modifier bucket', () => {
   const sigils = aggregateSigilSet(['Force', 'Impact']);
 
   assert.equal(sigils.strikeAdd, 0.08);
-  assert.equal(sigils.strike, 1.08);
 });
 
 test('Mesmer browser simulations allow weapons from other specializations', () => {
@@ -640,7 +639,7 @@ test('simulation config does not multiply duplicate sigil effects', () => {
     })
     .simulationConfig();
 
-  assert.equal(config.sigilSets[0].strike, 1.05);
+  assert.equal(config.sigilSets[0].strikeAdd, 0.05);
 });
 
 test('modifier contributions compare the active build against each modifier removed', () => {

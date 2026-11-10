@@ -515,8 +515,8 @@ test('legend swap replaces the fixed bar, resets energy, and triggers sigils', (
 
   const sigilResult = simulate('Core', ['__combat_start', 'Swap Legends'], {
     sigilSets: [
-      { names: ['Hydromancy', 'Geomancy'], strike: 1, condition: 1 },
-      { names: [], strike: 1, condition: 1 }
+      { names: ['Hydromancy', 'Geomancy'], strikeAdd: 0, conditionAdd: 0 },
+      { names: [], strikeAdd: 0, conditionAdd: 0 }
     ]
   });
 

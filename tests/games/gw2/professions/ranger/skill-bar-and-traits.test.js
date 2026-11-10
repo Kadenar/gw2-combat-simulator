@@ -537,8 +537,8 @@ test('Cyclone Bow transitions trigger swap sigils and dedicated weapon lines', (
     ['__combat_start', 'Summon Cyclone Bow', { type: 'wait', durationMs: 10000 }, 'Dismiss Cyclone Bow'],
     {
       sigilSets: [
-        { names: ['Hydromancy'], strike: 1, condition: 1 },
-        { names: [], strike: 1, condition: 1 }
+        { names: ['Hydromancy'], strikeAdd: 0, conditionAdd: 0 },
+        { names: [], strikeAdd: 0, conditionAdd: 0 }
       ]
     }
   );

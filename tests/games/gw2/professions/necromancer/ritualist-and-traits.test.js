@@ -1175,8 +1175,8 @@ test('critical sigils follow the active weapon set', () => {
       weaponSet2Secondary: 'Dagger',
       attributeInputs: baseAttributeInputs({ precision: 4000 }),
       sigilSets: [
-        { names: ['Torment'], strike: 1, condition: 1 },
-        { names: ['Earth'], strike: 1, condition: 1 }
+        { names: ['Torment'], strikeAdd: 0, conditionAdd: 0 },
+        { names: ['Earth'], strikeAdd: 0, conditionAdd: 0 }
       ]
     }
   );

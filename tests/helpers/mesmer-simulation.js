@@ -17,15 +17,15 @@ export function createDefaultConfig() {
     sigilSets: [
       {
         criticalChanceBonus: 0,
-        strike: 1,
-        condition: 1,
+        strikeAdd: 0,
+        conditionAdd: 0,
         conditionDurationBonus: 0,
         conditionDurationBonuses: {}
       },
       {
         criticalChanceBonus: 0,
-        strike: 1,
-        condition: 1,
+        strikeAdd: 0,
+        conditionAdd: 0,
         conditionDurationBonus: 0,
         conditionDurationBonuses: {}
       }

@@ -51,7 +51,6 @@ test('Night sigil uses an additive 3% strike bonus and a night-only 7% multiplie
   const unsigiledDamage = flyingCutterDamage(base);
 
   assert.equal(nightSigil.strikeAdd, 0.03);
-  assert.equal(nightSigil.strike, 1.03);
   assert.equal(nightSigil.nightStrikeMultiplier, 1.07);
   assertFlooredDamageMultiplier(dayDamage, unsigiledDamage, 1.03);
   assertFlooredDamageMultiplier(nightDamage, dayDamage, 1.07);

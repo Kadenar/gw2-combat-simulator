@@ -1101,8 +1101,8 @@ test('Assassin buffs trigger on hit and upkeep releases own their cooldowns', ()
       criticalChanceBonus: 45
     }),
     sigilSets: [
-      { names: ['Air'], strike: 1, condition: 1 },
-      { names: [], strike: 1, condition: 1 }
+      { names: ['Air'], strikeAdd: 0, conditionAdd: 0 },
+      { names: [], strikeAdd: 0, conditionAdd: 0 }
     ]
   });
 

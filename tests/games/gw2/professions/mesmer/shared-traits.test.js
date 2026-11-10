@@ -198,8 +198,8 @@ test('trait attacks trigger through their owning specialization and inherit play
       selectedTraitIds: [TRAIT.PHANTASMAL_BLADES],
       initialResource: 0,
       sigilSets: [
-        { strike: 1.1, condition: 1 },
-        { strike: 1, condition: 1 }
+        { strikeAdd: 0.1, conditionAdd: 0 },
+        { strikeAdd: 0, conditionAdd: 0 }
       ]
     })
   ).resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Phantasmal Blade');
