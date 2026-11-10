@@ -12,7 +12,7 @@ import {
   REVENANT_HERALD_PROFILE_FIELDS
 } from '#gw2/professions/revenant/specializations/herald/catalog-fields.js';
 import { heraldHooks } from '#gw2/professions/revenant/specializations/herald/hooks.js';
-import { heraldFacetPassive } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
+import { heraldFacetPassiveLegend } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import { heraldUi } from '#gw2/professions/revenant/specializations/herald/presentation.js';
 import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/index.js';
 import { REVENANT_HERALD_SKILL_FLIPS } from '#gw2/professions/revenant/specializations/herald/skills/skill-flips.js';
@@ -38,13 +38,13 @@ export const heraldModule = defineNativeModule({
     const core = revenantRuntimeCoreState(context);
     const state = revenantRuntimeSpecializationState(context, 'Herald');
 
-    const passive = heraldFacetPassive(core, state, ID.FACET_OF_NATURE, context.time);
+    const legend = heraldFacetPassiveLegend(core, state, ID.FACET_OF_NATURE, context.time);
 
-    if (!passive) return [];
+    if (legend === undefined) return [];
 
     return [
       {
-        uncappedBoonDuration: passive.legendId === LEGEND.DRAGON ? 20 : 0
+        uncappedBoonDuration: legend === LEGEND.DRAGON ? 20 : 0
       }
     ];
   },

@@ -1,17 +1,27 @@
 /** Nature emissions preserve their source, with Dragon extensions grouped under their accepted cast. */
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { buildResolverStrike } from '#gw2/platform/effects/packet-builders.js';
 import type { EffectAudience } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import {
+  balanceNumber,
+  effectNumber,
+  requireEffect,
+  requireSkill,
+  skillNumber
+} from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
-import { heraldFacetPassive } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
+import {
+  REVENANT_SKILL_IDS as ID,
+  REVENANT_LEGEND_IDS as LEGEND,
+  REVENANT_TRAIT_IDS as TRAIT
+} from '#gw2/professions/revenant/data/ids.js';
+import { heraldFacetPassiveLegend } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
-import { coreValueExtension } from '#gw2/professions/revenant/specializations/herald/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
 // Facet of Nature has one legend-dependent consume, but every variant occupies
@@ -219,6 +229,11 @@ export const HERALD_NATURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinit
   }
 };
 
+/** Adds Core Value after the skill-authored boon extension. */
+function coreValueExtension(runtime: RevenantRuntime): number {
+  return hasTrait(runtime, TRAIT.CORE_VALUE) ? balanceNumber(runtime.helpers, TRAIT.CORE_VALUE, 'duration') : 0;
+}
+
 /** True Nature (Dragon) extends boons when its authored proc lands; Core Value adds its patched extension. */
 export function trueNatureDragon(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const proc = cast.skill.effects?.find(
@@ -269,9 +284,9 @@ export function natureSiphon(runtime: RevenantRuntime, event: Gw2ResolverEvent):
 
   const core = runtime.profession.core;
   const state = heraldState.from(runtime.profession);
-  const passive = heraldFacetPassive(core, state, ID.FACET_OF_NATURE, runtime.time);
+  const legend = heraldFacetPassiveLegend(core, state, ID.FACET_OF_NATURE, runtime.time);
 
-  if (passive?.legendId !== LEGEND.ASSASSIN) return;
+  if (legend !== LEGEND.ASSASSIN) return;
 
   const profile = requireSkill(runtime.helpers, ID.FACET_OF_NATURE);
   const action = requireSkillAction(profile, 'assassin-siphon');

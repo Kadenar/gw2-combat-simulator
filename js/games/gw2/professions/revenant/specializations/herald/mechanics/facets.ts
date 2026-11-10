@@ -26,20 +26,21 @@ function scheduleFacetPulse(runtime: RevenantRuntime, skillId: SkillId, at: numb
   runtime.schedule(FACET_PULSE, at, { skillId });
 }
 
-/** Active facets follow the current legend; retained passives keep their captured legend until expiry. */
-export function heraldFacetPassive(
+/**
+ * Active facets follow the current legend; retained passives keep their captured legend until expiry.
+ * An active preview without a legend returns an empty string; only an inactive passive returns undefined.
+ */
+export function heraldFacetPassiveLegend(
   core: Partial<RevenantCoreState>,
   state: Partial<HeraldState>,
   skillId: SkillId,
   at: number
-): { readonly legendId: string | undefined } | undefined {
+): string | undefined {
   if (core.activeUpkeeps?.some((upkeep) => upkeep.skillId === skillId && upkeep.startsAt <= at))
-    return { legendId: core.activeLegendId };
+    return core.activeLegendId ?? '';
 
   const lingering = state.lingeringFacets?.[skillId];
-  return lingering && lingering.startsAt <= at && at < lingering.expiresAt
-    ? { legendId: lingering.legendId }
-    : undefined;
+  return lingering && lingering.startsAt <= at && at < lingering.expiresAt ? lingering.legendId : undefined;
 }
 
 /** Retention preserves the existing pulse phase without keeping an Energy-draining upkeep alive. */
@@ -73,7 +74,7 @@ function facetPulse(runtime: RevenantRuntime, data: unknown): void {
 
   if (state.facetPulseReadyAt[skillId] !== runtime.time) return;
 
-  if (!heraldFacetPassive(runtime.profession.core, state, skillId, runtime.time)) return;
+  if (heraldFacetPassiveLegend(runtime.profession.core, state, skillId, runtime.time) === undefined) return;
 
   const skill: RevenantSkill | undefined = runtime.helpers.skillsById.get(skillId);
   const pulse = skill?.upkeepPulse;
@@ -104,7 +105,8 @@ function facetPulse(runtime: RevenantRuntime, data: unknown): void {
   });
   const next = canonicalTime(runtime.time + canonicalInterval(skill.pulseInterval ?? 3));
 
-  if (heraldFacetPassive(runtime.profession.core, state, skillId, next)) scheduleFacetPulse(runtime, skillId, next);
+  if (heraldFacetPassiveLegend(runtime.profession.core, state, skillId, next) !== undefined)
+    scheduleFacetPulse(runtime, skillId, next);
   else state.facetPulseReadyAt[skillId] = next;
 }
 

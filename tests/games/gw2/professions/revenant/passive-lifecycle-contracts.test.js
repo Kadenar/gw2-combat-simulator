@@ -222,7 +222,8 @@ test('facet reactivation isolates active and newly retained passives from the ol
   const duration = revenantCatalog.balanceProfilesById.get(TRAIT.DRACONIC_ECHO).duration;
   const first = ['__combat_start', 'Facet of Strength', 'Burst of Strength'];
   const oldExpiry = run(first).rotationEndTime + duration;
-  const reactivation = [...first, wait(1500), 'Facet of Strength'];
+  // Let the old lifetime deliver a valid pulse before replacing it.
+  const reactivation = [...first, wait(2500), 'Facet of Strength'];
   const reactivatedAt = run(reactivation).rotationEndTime;
   const pulseInterval = revenantCatalog.skillsById.get(SKILL.FACET_OF_STRENGTH).pulseInterval;
 
@@ -238,7 +239,7 @@ test('facet reactivation isolates active and newly retained passives from the ol
       'old expiry must preserve the replacement passive'
     );
     assert.ok(
-      pulses.every((event) => event.at >= reactivatedAt + pulseInterval),
+      !pulses.some((event) => event.at > reactivatedAt && event.at < reactivatedAt + pulseInterval),
       'reactivation must invalidate pulse work queued by the previous lifetime'
     );
 
@@ -259,6 +260,41 @@ test('facet reactivation isolates active and newly retained passives from the ol
         )
       );
     }
+  }
+});
+
+// Detached previews can activate a facet without choosing a legend, so eligibility cannot use legend truthiness.
+test('active facet previews without a legend retain Echo bonuses until the facet is inactive', () => {
+  for (const legendFields of [{}, { activeLegendId: '' }]) {
+    const core = {
+      ...legendFields,
+      activeUpkeeps: [
+        { skillId: SKILL.FACET_OF_STRENGTH, startsAt: 0 },
+        { skillId: SKILL.FACET_OF_NATURE, startsAt: 0 }
+      ]
+    };
+    const context = {
+      config: { ...base, selectedTraitIds: [TRAIT.DRACONIC_ECHO] },
+      catalog: revenantCatalog,
+      time: 2,
+      event: { actorType: 'player' },
+      runtime: { profession: { core, specialization: { kind: 'Herald', state: createHeraldState() } } }
+    };
+    const strength = heraldPassiveModifierRules.find((rule) => rule.id === 'revenant.draconic-echo-strength');
+    const boonDuration = () =>
+      evaluateAttributeDeclarations(context, { boonDurationBonus: 0 }, (context) => [
+        ...heraldModule.attributes(context),
+        draconicEcho.attributes(context)
+      ]).boonDurationBonus;
+
+    assert.equal(strength.when(context), true);
+    assert.equal(boonDuration(), revenantCatalog.balanceProfilesById.get(TRAIT.DRACONIC_ECHO).boonDurationBonus);
+    assert.deepEqual(heraldModule.attributes(context), [{ uncappedBoonDuration: 0 }]);
+
+    core.activeUpkeeps = [];
+    assert.equal(strength.when(context), false);
+    assert.equal(boonDuration(), 0);
+    assert.deepEqual(heraldModule.attributes(context), []);
   }
 });
 

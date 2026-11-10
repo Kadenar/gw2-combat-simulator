@@ -2,6 +2,7 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { GW2_STANDARD_BOONS, isStandardBoon } from '#gw2/platform/combat/boons.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { countActiveBoons } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, RECIPIENT } from '#gw2/platform/constants.js';
@@ -14,17 +15,23 @@ import {
   requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { revenantRuntimeCoreState } from '#gw2/professions/revenant/core/state-queries.js';
+import {
+  revenantRuntimeCoreState,
+  revenantRuntimeSpecializationState
+} from '#gw2/professions/revenant/core/state-queries.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
-import { retainHeraldFacet } from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
+import {
+  heraldFacetPassiveLegend,
+  retainHeraldFacet
+} from '#gw2/professions/revenant/specializations/herald/mechanics/facets.js';
 import {
   facetConsumed,
   heraldUpkeepSettled
 } from '#gw2/professions/revenant/specializations/herald/mechanics/trigger-points.js';
 import { HERALD_BASE_SKILL_MECHANICS } from '#gw2/professions/revenant/specializations/herald/skills/index.js';
 import { heraldState } from '#gw2/professions/revenant/specializations/herald/state.js';
-import { draconicEchoActive } from '#gw2/professions/revenant/specializations/herald/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalInterval, canonicalTime } from '#kernel/core/clock.js';
 
@@ -221,6 +228,18 @@ export const traitDefinitions = [
   reinforcedPotency,
   forcefulPersistence
 ];
+
+/** Selected Draconic Echo attribute and modifier callbacks share the active or retained facet window. */
+function draconicEchoActive(context: Gw2ModifierContext, skillId: SkillId): boolean {
+  return (
+    heraldFacetPassiveLegend(
+      revenantRuntimeCoreState(context),
+      revenantRuntimeSpecializationState(context, 'Herald'),
+      skillId,
+      context.time
+    ) !== undefined
+  );
+}
 
 function elevatedCompassionActive(runtime: RevenantRuntime): boolean {
   const profile = requireBalanceProfile(runtime.helpers, TRAIT.ELEVATED_COMPASSION);
