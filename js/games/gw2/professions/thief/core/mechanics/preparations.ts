@@ -4,78 +4,59 @@ import type { AvailabilityResult } from '#gw2/platform/execution/availability.js
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { skillFlipVisible } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
-import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
-import { THIEF_SKILL_IDS as ID } from '#gw2/professions/thief/data/ids.js';
 import type { ThiefSkill } from '#gw2/professions/thief/types.js';
-
-interface TrapDefinition {
-  readonly prepareId: SkillId;
-  readonly triggerId: SkillId;
-  readonly name: string;
-  readonly reason: string;
-}
-
-const THIEF_PREPARATIONS: readonly TrapDefinition[] = Object.freeze([
-  {
-    prepareId: ID.PREPARE_THOUSAND_NEEDLES,
-    triggerId: ID.THOUSAND_NEEDLES,
-    name: 'Thousand Needles',
-    reason: 'thousand-needles'
-  },
-  { prepareId: ID.PREPARE_PITFALL, triggerId: ID.PITFALL, name: 'Pitfall', reason: 'pitfall' }
-]);
 
 /** Each preparation stays flipped until triggered; its trigger waits out the recharge-scaled arming delay. */
 export function thiefTrapAvailability(
   runtime: MechanicQueriesOf<ThiefRuntime>,
   skill: ThiefSkill
 ): AvailabilityResult | null {
-  const trap = THIEF_PREPARATIONS.find(
-    (candidate) => candidate.prepareId === skill.id || candidate.triggerId === skill.id
-  );
+  if (skill.skillFamily !== 'Preparation') return null;
 
-  if (!trap) return null;
+  const preparing = skill.flipSkillId != null;
+  const triggerId = skill.flipSkillId ?? skill.id;
+  const trigger = runtime.helpers.skillsById.get(triggerId)!;
+  const window = runtime.flips[triggerId];
 
-  const window = runtime.flips[trap.triggerId];
+  if (preparing && skillFlipVisible(window, runtime.time))
+    return denySkillCast(skill, 'thief.preparation-prepared', `activate ${trigger.name} before preparing it again.`);
 
-  if (skill.id === trap.prepareId && skillFlipVisible(window, runtime.time))
-    return denySkillCast(skill, `thief.${trap.reason}-prepared`, `activate ${trap.name} before preparing it again.`);
+  if (!preparing && !skillFlipVisible(window, runtime.time))
+    return denySkillCast(skill, 'thief.preparation', `prepare ${trigger.name} first.`);
 
-  if (skill.id === trap.triggerId && !skillFlipVisible(window, runtime.time))
-    return denySkillCast(skill, `thief.${trap.reason}`, `prepare ${trap.name} first.`);
-
-  if (skill.id === trap.triggerId && window.availableAt > runtime.time)
-    return denySkillCast(skill, `thief.${trap.reason}-arming`, 'the preparation is still arming.', window.availableAt);
+  if (!preparing && window.availableAt > runtime.time)
+    return denySkillCast(skill, 'thief.preparation-arming', 'the preparation is still arming.', window.availableAt);
 
   return null;
 }
 
 /** A committed placement exposes its trigger immediately; the trigger arms after a recharge-scaled delay. */
 export function prepareTrap(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const trap = THIEF_PREPARATIONS.find((candidate) => candidate.prepareId === cast.skill.id);
-
-  if (!trap) return;
-
   const skill = cast.skill;
+  const triggerId = skill.flipSkillId;
+
+  if (triggerId == null) return;
+
   // The placement owns its arming duration; missing selected tuning must never fall back to a default.
   const delay =
     requireBalanceNumber(skill.duration, `skill=${skill.id} field=duration`) / runtime.cooldownController.rate(skill);
-  runtime.armFlip(trap.triggerId, { availableAt: runtime.time + delay, expiresAt: Infinity, visibleAt: runtime.time });
+
+  runtime.armFlip(triggerId, { availableAt: runtime.time + delay, expiresAt: Infinity, visibleAt: runtime.time });
 }
 
 /** Triggering consumes the trap and mirrors its short rearm onto an already-recharged placement skill. */
 export function activateTrap(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
-  const trap = THIEF_PREPARATIONS.find((candidate) => candidate.triggerId === cast.skill.id);
+  const prepareId = cast.skill.flipParentId;
 
-  if (!trap) return;
+  if (prepareId == null) return;
 
-  runtime.consumeFlip(trap.triggerId);
-  const triggerReadyAt = runtime.cooldownController.readyAt(trap.triggerId);
+  runtime.consumeFlip(cast.skill.id);
+  const triggerReadyAt = runtime.cooldownController.readyAt(cast.skill.id);
 
-  if (triggerReadyAt == null || triggerReadyAt <= (runtime.cooldownController.readyAt(trap.prepareId) || 0)) return;
+  if (triggerReadyAt == null || triggerReadyAt <= (runtime.cooldownController.readyAt(prepareId) || 0)) return;
 
-  const placement = runtime.helpers.skillsById.get(trap.prepareId);
+  const placement = runtime.helpers.skillsById.get(prepareId);
 
   if (placement) runtime.cooldownController.startRecharge(placement, cast.rechargeStart, cast.rechargeWork);
 }

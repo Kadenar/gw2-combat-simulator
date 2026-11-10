@@ -30,6 +30,7 @@ const shred: Partial<SkillDefinition<AmalgamSkill>> = {
       finisherType: COMBO_FINISHER.PROJECTILE
     }
   ],
+  morphKind: 'shred',
   effects: [
     {
       type: 'strike',
@@ -90,6 +91,7 @@ const thorns: Partial<SkillDefinition<AmalgamSkill>> = {
   // Custom: Activates the selected morph, strain, and form-specific effects; see `amalgam/mechanics/evolved-form.ts`.
 
   castTimeMs: 0,
+  morphKind: 'thorns',
   effects: [
     {
       type: 'strike',
@@ -128,6 +130,7 @@ const demolish: Partial<SkillDefinition<AmalgamSkill>> = {
   castTimeMs: DEMOLISH_CAST_TIME_MS,
   // Commit after the smash so its remaining aftercast can be interrupted.
   interruptCommitMs: 1520,
+  morphKind: 'demolish',
   effects: [
     {
       type: 'strike',
@@ -188,6 +191,7 @@ const obliterate: Partial<SkillDefinition<AmalgamSkill>> = {
   interruptCommitMs: 680,
   retainsCastLockoutAfterInterrupt: true,
   // Share one impact timing while preserving independent payloads and declaration order.
+  morphKind: 'obliterate',
   effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'fixed' }, [
     {
       type: 'strike',
@@ -230,6 +234,7 @@ const cleanse: Partial<SkillDefinition<AmalgamSkill>> = {
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 0,
+  morphKind: 'cleanse',
   effects: [
     {
       type: 'boon',
@@ -263,6 +268,7 @@ const pierce: Partial<SkillDefinition<AmalgamSkill>> = {
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 680,
+  morphKind: 'pierce',
   effects: [
     {
       type: 'strike',
@@ -303,6 +309,7 @@ const protect: Partial<SkillDefinition<AmalgamSkill>> = {
   countsAsToolbeltSkill: true,
   cooldown: 20,
   castTimeMs: 1000,
+  morphKind: 'protect',
   effects: [],
   // This protocol's strain is consumed by Evolve or Silver Lining, never emitted unconditionally.
   sideEffects: [

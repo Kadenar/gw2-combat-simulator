@@ -198,6 +198,7 @@ test('Warrior modules register runtime hooks without scheduler or resolver repla
 test('Warrior F keys follow the selected primary weapons', () => {
   const groups = (specialization, weapons, alternateWeapons) => {
     const context = {
+      catalog: warriorCatalog,
       specialization,
       config: { specialization },
       build: {
@@ -260,7 +261,7 @@ test('Warrior rotation F keys follow the active weapon set', () => {
       [ID.ARCING_SLICE, 2]
     ]) {
       const override = warriorProfession.ui.paletteOverride(
-        { specialization: 'Core', build, activeWeaponSet },
+        { catalog: warriorCatalog, specialization: 'Core', build, activeWeaponSet },
         warriorCatalog.skillsById.get(skillId)
       );
       assert.equal(override.available === false, activeWeaponSet !== weaponSet);
@@ -419,13 +420,13 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
   assert.equal(flow.displayMode, 'bar');
   assert.equal(flow.pipStyle, 'compact-profession-resource-warrior-flow');
   assert.equal(
-    warriorProfession.ui.paletteGroups({ specialization: 'Bladesworn' })[0].className,
+    warriorProfession.ui.paletteGroups({ catalog: warriorCatalog, specialization: 'Bladesworn' })[0].className,
     'bladesworn-f-skills'
   );
   assert.equal(resource.displayMode, 'bar');
   assert.equal(resource.barSegments, 3);
   assert.equal(
-    warriorProfession.ui.paletteGroups({ specialization: 'Core' })[0].className,
+    warriorProfession.ui.paletteGroups({ catalog: warriorCatalog, specialization: 'Core' })[0].className,
     'compact-resource-palette warrior-f-skills'
   );
 
@@ -458,6 +459,7 @@ test('Warrior adrenaline renders one bar for each ten adrenaline', () => {
   const resourceHtml = activeResourceGroup(
     activeResourceDefinitions({
       ui: warriorProfession.ui,
+      catalog: warriorCatalog,
       build: { initialResource: 25 },
       specialization: 'Core',
       planning: result.planningState
@@ -1131,4 +1133,28 @@ test('precombat Kick cannot sample criticals or advance hit-dependent procs', ()
   const outcomes = (result) =>
     result.resolvedEvents.filter((event) => event.type === 'damage').map((event) => [event.skillId, event.didCrit]);
   assert.deepEqual(outcomes(withKick), outcomes(withoutKick));
+});
+
+// Palette ownership follows the selected skill data, including inactive weapon-set restrictions.
+test('Warrior burst palettes read weapon ownership from the selected catalog', () => {
+  const skills = warriorCatalog.skills.map((skill) =>
+    skill.id === ID.EVISCERATE
+      ? { ...skill, skillWeapon: 'Mace' }
+      : skill.id === ID.SKULL_CRACK
+        ? { ...skill, skillWeapon: 'Axe' }
+        : skill
+  );
+  const catalog = { ...warriorCatalog, skills, skillsById: new Map(skills.map((skill) => [skill.id, skill])) };
+  const context = {
+    catalog,
+    specialization: 'Core',
+    build: { ...createWarriorBuildDefaults(), weapons: ['Axe', 'Axe'], alternateWeapons: ['Mace', ''] },
+    activeWeaponSet: 1
+  };
+  assert.deepEqual(warriorProfession.ui.paletteGroups(context)[0].skillIds, [ID.SKULL_CRACK, ID.EVISCERATE]);
+  assert.equal(warriorProfession.ui.paletteOverride(context, catalog.skillsById.get(ID.EVISCERATE)).available, false);
+  assert.notEqual(
+    warriorProfession.ui.paletteOverride(context, catalog.skillsById.get(ID.SKULL_CRACK)).available,
+    false
+  );
 });

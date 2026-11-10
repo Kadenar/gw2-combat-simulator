@@ -22,12 +22,12 @@ import {
   warriorUiState
 } from '#gw2/professions/warrior/core/presentation.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
+import { maximumDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
 import {
   dragonSlashEditor,
   dragonSlashOccupiedInterval,
   dragonSlashTimelineAnnotation
 } from '#gw2/professions/warrior/specializations/bladesworn/presentation/dragon-slash.js';
-import { maximumDragonCharges } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorUiContext, WarriorUiSlice } from '#gw2/professions/warrior/types.js';
 
 const PROFESSION_SKILLS = Object.freeze([ID.UNSHEATHE_GUNSABER, ID.SHEATHE_GUNSABER, ID.DRAGON_TRIGGER]);
@@ -44,7 +44,6 @@ const GUNSABER_SKILLS = Object.freeze([
 ]);
 const GUNSABER_CHAIN = Object.freeze([ID.SWIFT_CUT, ID.STEEL_DIVIDE, ID.EXPLOSIVE_THRUST]);
 const PALETTE_STACK_ID = 'bladesworn-profession';
-const NO_WEAPON_BURSTS: Readonly<Record<string, number>> = Object.freeze({});
 
 function resources(context: WarriorUiContext): ProfessionResourceView[] {
   const state = warriorUiState(context);
@@ -192,7 +191,7 @@ export const bladeswornUi: WarriorUiSlice = Object.freeze({
   timelineAnnotation: dragonSlashTimelineAnnotation,
   timelineOccupiedInterval: dragonSlashOccupiedInterval,
   paletteGroups: (context: WarriorUiContext) => [
-    ...warriorPaletteGroups(context, PROFESSION_SKILLS, NO_WEAPON_BURSTS).map((group) =>
+    ...warriorPaletteGroups(context, PROFESSION_SKILLS).map((group) =>
       group.id === 'profession'
         ? {
             ...group,

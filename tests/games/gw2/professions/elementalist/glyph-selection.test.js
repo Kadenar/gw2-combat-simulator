@@ -19,7 +19,6 @@ import {
   validateElementalistBuild
 } from '#gw2/professions/elementalist/build/build.js';
 import { elementalistCoreHooks } from '#gw2/professions/elementalist/core/hooks.js';
-import { ELEMENTALIST_GLYPHS, validateElementalistGlyphs } from '#gw2/professions/elementalist/data/glyphs.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import { elementalistCatalog, elementalistProfession } from '#gw2/professions/elementalist/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -34,7 +33,9 @@ const selectedSkillIds = {
 };
 
 test('generic glyphs use primary attunement for both Core and Weaver', () => {
-  for (const [root, variants] of Object.entries(ELEMENTALIST_GLYPHS)) {
+  for (const [root, variants] of elementalistCatalog.skills
+    .filter((skill) => skill.skillFamily === 'Glyph' && skill.selector)
+    .map((skill) => [skill.id, skill.selector])) {
     for (const [element, variant] of Object.entries(variants)) {
       for (const specialization of ['Arcane', 'Weaver']) {
         const result = runNative({
@@ -107,7 +108,7 @@ test('the resolver reads live state on each attempt and uses the selected catalo
   assert.equal(elementalistCoreHooks.resolveCastSkill(context, root), patchedAir);
   assert.equal(resolveSkillSelector(catalog, patchedAir, 'Fire'), patchedAir);
   catalog.skillsById.delete(patchedAir.id);
-  assert.throws(() => validateElementalistGlyphs(catalog), /no valid Air choice/);
+  assert.throws(() => elementalistCoreHooks.resolveCastSkill(context, root), /no valid Air choice/);
 });
 
 test('a queued generic glyph resolves again after a state transition during recharge', () => {
@@ -117,7 +118,7 @@ test('a queued generic glyph resolves again after a state transition during rech
     {
       initialize(runtime) {
         // Force a real readiness retry so the driver must discard its earlier Fire resolution.
-        for (const id of Object.values(ELEMENTALIST_GLYPHS[ID.GLYPH_OF_STORMS]))
+        for (const id of Object.values(elementalistCatalog.skillsById.get(ID.GLYPH_OF_STORMS).selector))
           runtime.cooldownController.setReadyAt(id, 2);
       },
       timeline: [
@@ -138,7 +139,9 @@ test('a queued generic glyph resolves again after a state transition during rech
 });
 
 test('old saves migrate equipped glyphs, preserve explicit rotations, and round trip without mutation', () => {
-  for (const [root, variants] of Object.entries(ELEMENTALIST_GLYPHS)) {
+  for (const [root, variants] of elementalistCatalog.skills
+    .filter((skill) => skill.skillFamily === 'Glyph' && skill.selector)
+    .map((skill) => [skill.id, skill.selector])) {
     for (const variant of Object.values(variants)) {
       const saved = {
         ...createElementalistBuildDefaults(),
@@ -155,6 +158,13 @@ test('old saves migrate equipped glyphs, preserve explicit rotations, and round 
       assert.equal(validateElementalistBuild(migrated).valid, true);
       assert.deepEqual(migrateElementalistBuild(JSON.parse(JSON.stringify(migrated))), migrated);
       assert.equal(toApplicationBuild(saved).selectedSkillIds.Utility1, Number(root));
+      assert.equal(
+        migrateElementalistBuild({
+          ...saved,
+          selectedSkillIds: { ...saved.selectedSkillIds, Utility1: String(variant) }
+        }).selectedSkillIds.Utility1,
+        Number(root)
+      );
     }
   }
 
@@ -252,7 +262,9 @@ test('damage preview resolves generic glyph rows from detached state without dup
 
 // These assertions protect identity, migration, and reporting contracts rather than calibrating native cast times.
 test('generic and explicit glyphs report identical accepted activity', () => {
-  for (const [root, variants] of Object.entries(ELEMENTALIST_GLYPHS)) {
+  for (const [root, variants] of elementalistCatalog.skills
+    .filter((skill) => skill.skillFamily === 'Glyph' && skill.selector)
+    .map((skill) => [skill.id, skill.selector])) {
     const options = { lines, selectedSkillIds, startAttunement: 'Air' };
     const generic = runNative({ ...options, rotation: [{ type: 'cast', skillId: Number(root) }, 5000] });
     const explicit = runNative({ ...options, rotation: [{ type: 'cast', skillId: variants.Air }, 5000] });
@@ -272,14 +284,18 @@ test('pending editors resolve concrete choices while retaining the saved command
 
 test('glyph highlights group selector inputs and every explicit choice without grouping unrelated utilities', () => {
   const key = (id) => rotationSkillHighlightKey({ type: 'cast', skillId: id }, elementalistCatalog);
-  for (const [root, variants] of Object.entries(ELEMENTALIST_GLYPHS))
+  for (const [root, variants] of elementalistCatalog.skills
+    .filter((skill) => skill.skillFamily === 'Glyph' && skill.selector)
+    .map((skill) => [skill.id, skill.selector]))
     for (const id of Object.values(variants)) assert.equal(key(id), key(Number(root)));
   assert.notEqual(key(ID.GLYPH_OF_STORMS), key(ID.GLYPH_OF_ELEMENTAL_POWER));
 });
 
 test('root tooltip tabs retain each concrete payload facts and equipped selectors expose variant patches', () => {
   const { app } = createNativeApp({ lines, selectedSkillIds });
-  for (const [root, variants] of Object.entries(ELEMENTALIST_GLYPHS)) {
+  for (const [root, variants] of elementalistCatalog.skills
+    .filter((skill) => skill.skillFamily === 'Glyph' && skill.selector)
+    .map((skill) => [skill.id, skill.selector])) {
     const model = app.adapter.skillTooltip(app.activeCatalog.skillsById.get(Number(root)), app.patch, app.build);
     for (const [element, id] of Object.entries(variants)) {
       const expected = app.adapter.skillTooltip(app.activeCatalog.skillsById.get(id), app.patch, app.build);
@@ -347,24 +363,4 @@ test('future schema errors are owned by the shared codec before glyph selection 
       (error) =>
         !(error instanceof SelectedSkillMigrationError) && /Unsupported build schema version/.test(error.message)
     );
-});
-
-// Immutable catalog identity makes repeated optimizer initialization cheap without trusting another patch's validation.
-test('glyph validation caches successful catalogs and still rejects a distinct invalid catalog', () => {
-  let reads = 0;
-  class ObservedMap extends Map {
-    get(id) {
-      reads++;
-      return super.get(id);
-    }
-  }
-  const skillsById = new ObservedMap(elementalistCatalog.skillsById);
-  validateElementalistGlyphs({ skillsById });
-  const validatedReads = reads;
-  assert.ok(validatedReads > 0);
-  validateElementalistGlyphs({ skillsById });
-  assert.equal(reads, validatedReads);
-  const invalid = new Map(skillsById);
-  invalid.delete(ID.GLYPH_OF_STORMS_AIR);
-  assert.throws(() => validateElementalistGlyphs({ skillsById: invalid }), /no valid Air choice/);
 });

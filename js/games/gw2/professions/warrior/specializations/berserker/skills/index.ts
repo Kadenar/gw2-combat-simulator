@@ -80,6 +80,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<
     burst: true,
     primalBurst: true,
     castTimeMs: 500,
+    skillWeapon: WEAPON.RIFLE,
     effects: [
       {
         type: 'strike',
@@ -109,6 +110,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<
     burst: true,
     primalBurst: true,
     castTimeMs: 333,
+    skillWeapon: WEAPON.MACE,
     effects: [
       {
         type: 'strike',
@@ -554,6 +556,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<
         order: 100
       }
     ],
+    skillWeapon: WEAPON.DAGGER,
     effects: [
       {
         type: 'strike',
@@ -573,6 +576,7 @@ export const BERSERKER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<
     burst: true,
     primalBurst: true,
     castTimeMs: 333,
+    skillWeapon: WEAPON.STAFF,
     effects: [
       {
         type: 'strike',

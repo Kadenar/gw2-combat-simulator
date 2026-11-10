@@ -70,6 +70,8 @@ export interface WarriorSkill
   readonly dragonTriggerSkill?: boolean;
   readonly movementSkill?: boolean;
   readonly dragonSlash?: boolean;
+  /** Base action replaced by this Sharp as the Wind variant. */
+  readonly sharpAsTheWindParentId?: SkillId;
 }
 
 /** Shared full mechanic context; read-only and resolver consumers retain their narrower capabilities. */

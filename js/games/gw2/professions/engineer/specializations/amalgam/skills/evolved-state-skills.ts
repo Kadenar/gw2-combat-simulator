@@ -12,11 +12,10 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
-import { AMALGAM_MORPH_KIND_BY_SKILL_ID } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
-import type { EngineerRuntime, EngineerSkill } from '#gw2/professions/engineer/types.js';
+import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
 const PLASMATIC_STATE_CAST_TIME_MS = 480 + 480;
 const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;
@@ -285,14 +284,14 @@ export const AMALGAM_EVOLVED_STATE_SKILL_MECHANICS: Readonly<Record<string, Skil
 };
 
 /**
- * Applies the strain mapped to a Morph name, emitting status effects immediately
+ * Applies the strain owned by the selected protocol, emitting status effects immediately
  * while retaining timestamp-backed strains for later modifier and resolver checks.
  */
-export function applyAmalgamStrain(context: EngineerRuntime, skill: EngineerSkill, at: number): void {
+export function applyAmalgamStrain(context: EngineerRuntime, skill: AmalgamSkill, at: number): void {
   const state = amalgamState.from(context.profession);
-  const morphKind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id);
+  const morphKind = skill.morphKind;
   // Resolve shared strain tuning before granting it, independently of the triggering slot.
-  skill = requireSkill(context.helpers, amalgamStrainOwnerId(skill.id));
+  skill = requireSkill(context.helpers, amalgamStrainOwnerId(skill));
   const action = requireSkillAction(skill, 'strain');
 
   if (morphKind === 'thorns') {

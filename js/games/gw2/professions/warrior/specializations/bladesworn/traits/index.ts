@@ -10,7 +10,7 @@ import { gw2ConfiguredWeaponSet } from '#gw2/platform/equipment/weapons/loadout.
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
-import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
+import { defineTrait, traitSkillReplacement } from '#gw2/platform/profession-definition/traits.js';
 import type { TriggerPointInput } from '#gw2/platform/profession-definition/trigger-points.js';
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import {
@@ -29,8 +29,8 @@ import {
   ammunitionCommitted,
   explosionAccepted
 } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/trigger-points.js';
+import { BLADESWORN_SKILLS } from '#gw2/professions/warrior/specializations/bladesworn/skills/index.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import { resolveSharpAsTheWindSkillId } from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorRuntime, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -70,7 +70,16 @@ const sharpAsTheWind = defineTrait({
         gunsaberEntryReward(runtime, input.cast, TRAIT.SHARP_AS_THE_WIND)
     })
   ],
-  hooks: { modifySkillId: resolveSharpAsTheWindSkillId }
+  // Variant construction owns the pairing; the shared trait hook resolves either saved identity.
+  hooks: {
+    modifySkillId: traitSkillReplacement(
+      TRAIT.SHARP_AS_THE_WIND,
+      BLADESWORN_SKILLS.filter((skill) => skill.sharpAsTheWindParentId != null).map((skill) => [
+        skill.sharpAsTheWindParentId!,
+        skill.id
+      ])
+    )
+  }
 });
 
 /** Owns this trait's tuning and selected contributions. */

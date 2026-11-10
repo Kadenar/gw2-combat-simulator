@@ -6,7 +6,7 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { TRANSITION_LOCKOUT_EVENT } from '#gw2/platform/execution/transition-lockouts.js';
 import type { MechanicResourceSpend, ProfessionTimelineMarker } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2ProcStep, Gw2SimulationResult, SimulationStep } from '#gw2/platform/results/types.js';
-import { skillInputIdentity } from '#gw2/platform/skills/selectors.js';
+import { selectorRootSkillId } from '#gw2/platform/skills/selectors.js';
 import type { CanonicalCatalog, SkillId } from '#gw2/platform/skills/types.js';
 
 export interface TimelineCastOrdinal {
@@ -774,7 +774,7 @@ export function relicProcExpirationTimelineMarkers(
 export function rotationSkillHighlightKey(entry: RotationCommand, catalog?: CanonicalCatalog): string {
   // Selector roots and their explicit choices represent the same input family.
   const id =
-    entry.type === 'cast' ? (catalog ? skillInputIdentity(catalog, entry.skillId) : entry.skillId) : entry.type;
+    entry.type === 'cast' ? (catalog ? selectorRootSkillId(catalog, entry.skillId) : entry.skillId) : entry.type;
   return `skill:${id}`;
 }
 

@@ -31,19 +31,6 @@ import type {
   WarriorUiSlice
 } from '#gw2/professions/warrior/types.js';
 
-const WARRIOR_REGULAR_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
-  [WEAPON.AXE]: ID.EVISCERATE,
-  [WEAPON.DAGGER]: ID.BREACHING_STRIKE,
-  [WEAPON.GREATSWORD]: ID.ARCING_SLICE,
-  [WEAPON.HAMMER]: ID.EARTHSHAKER,
-  [WEAPON.LONGBOW]: ID.COMBUSTIVE_SHOT,
-  [WEAPON.MACE]: ID.SKULL_CRACK,
-  [WEAPON.RIFLE]: ID.KILL_SHOT,
-  [WEAPON.SPEAR]: ID.HARRIERS_TOSS,
-  [WEAPON.STAFF]: ID.PATH_TO_VICTORY_ID_71932,
-  [WEAPON.SWORD]: ID.BLOODTHIRSTER
-});
-
 export function warriorUiState(context: Pick<WarriorUiContext, 'professionState'>): Partial<WarriorPlanningState> {
   // Presentation callers supply the flat projection for the inspected rotation point.
   return context.professionState ?? {};
@@ -69,31 +56,35 @@ function selectedPrimaryWeapon(context: WarriorUiContext, weaponSet: 1 | 2): str
   return gw2PrimaryWeapon(context.config, weaponSet) || '';
 }
 
-function weaponSetBurstSkillId(
-  context: WarriorUiContext,
-  weaponSet: 1 | 2,
-  burstsByWeapon: Readonly<Record<string, number>>
-): number | undefined {
-  return burstsByWeapon[selectedPrimaryWeapon(context, weaponSet)];
+function weaponSetBurstSkillId(context: WarriorUiContext, weaponSet: 1 | 2): number | undefined {
+  // The specialization selects the burst form; Bladesworn uses its own profession actions.
+  const specialization = uiSpecialization(context);
+
+  if (specialization === 'Bladesworn') return undefined;
+
+  // Read the selected catalog so weapon ownership and burst form stay with the skill.
+  const weapon = selectedPrimaryWeapon(context, weaponSet);
+  const skill = context.catalog.skills.find(
+    (skill: WarriorSkill) =>
+      skill.burst &&
+      skill.skillWeapon === weapon &&
+      (specialization === 'Berserker' ? skill.primalBurst : !skill.specialization && !skill.primalBurst)
+  );
+  return skill == null ? undefined : Number(skill.id);
 }
 
-function warriorProfessionSkillIds(
-  context: WarriorUiContext,
-  professionSkillIds: readonly number[],
-  burstsByWeapon: Readonly<Record<string, number>>
-): number[] {
+function warriorProfessionSkillIds(context: WarriorUiContext, professionSkillIds: readonly number[]): number[] {
   const weaponBursts = ([1, 2] as const)
-    .map((weaponSet) => weaponSetBurstSkillId(context, weaponSet, burstsByWeapon))
+    .map((weaponSet) => weaponSetBurstSkillId(context, weaponSet))
     .filter((skillId): skillId is number => Number.isFinite(skillId));
   return [...new Set([...weaponBursts, ...professionSkillIds])];
 }
 
 export function warriorPaletteGroups(
   context: WarriorUiContext,
-  professionSkillIds: readonly number[] = [],
-  burstsByWeapon: Readonly<Record<string, number>> = WARRIOR_REGULAR_BURSTS_BY_WEAPON
+  professionSkillIds: readonly number[] = []
 ): ProfessionPaletteGroup[] {
-  const skillIds = warriorProfessionSkillIds(context, professionSkillIds, burstsByWeapon);
+  const skillIds = warriorProfessionSkillIds(context, professionSkillIds);
   return [
     {
       id: 'profession',
@@ -322,16 +313,10 @@ export const warriorCoreUi: WarriorUiSlice = Object.freeze({
 });
 
 /** Restricts a weapon burst to the weapon set that supplied it. */
-export function warriorBurstPaletteOverride(
-  context: WarriorUiContext,
-  skill: WarriorSkill,
-  burstsByWeapon: Readonly<Record<string, number>> = WARRIOR_REGULAR_BURSTS_BY_WEAPON
-): PaletteOverride {
+export function warriorBurstPaletteOverride(context: WarriorUiContext, skill: WarriorSkill): PaletteOverride {
   const activeWeaponSet = Number(context.activeWeaponSet) === 2 ? 2 : 1;
-  const activeBurstSkillId = weaponSetBurstSkillId(context, activeWeaponSet, burstsByWeapon);
-  const weaponSetBurstIds = ([1, 2] as const).map((weaponSet) =>
-    weaponSetBurstSkillId(context, weaponSet, burstsByWeapon)
-  );
+  const activeBurstSkillId = weaponSetBurstSkillId(context, activeWeaponSet);
+  const weaponSetBurstIds = ([1, 2] as const).map((weaponSet) => weaponSetBurstSkillId(context, weaponSet));
 
   if (weaponSetBurstIds.includes(Number(skill.id)) && activeBurstSkillId !== Number(skill.id)) {
     const requiredWeaponSet = weaponSetBurstIds.indexOf(Number(skill.id)) + 1;

@@ -28,10 +28,7 @@ import {
   type AmalgamMorph
 } from '#gw2/professions/engineer/specializations/amalgam/mechanics/evolved-form.js';
 import { activeAmalgamState } from '#gw2/professions/engineer/specializations/amalgam/mechanics/modifier-queries.js';
-import {
-  AMALGAM_MORPH_KIND_BY_SKILL_ID,
-  resolveAmalgamSkillId
-} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
+import { resolveAmalgamSkillId } from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
 import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
@@ -52,8 +49,8 @@ export function evolveAttributeFactor(context: EngineerModifierContext): number 
 
 /** Restrict Symbiotic Synergy to player-owned strikes from the registered protocol identities. */
 function morphStrike(context: EngineerModifierContext): boolean {
-  const skill = skillForEvent(context.catalog, context.event, context.skillId);
-  return Boolean(isGw2PlayerModifierOwnedEvent(context.event) && skill && AMALGAM_MORPH_KIND_BY_SKILL_ID.has(skill.id));
+  const skill: AmalgamSkill | undefined = skillForEvent(context.catalog, context.event, context.skillId);
+  return Boolean(isGw2PlayerModifierOwnedEvent(context.event) && skill && skill.morphKind != null);
 }
 
 /** Owns Carbolic Composition tuning and its existing Morph/Evolve contribution. */

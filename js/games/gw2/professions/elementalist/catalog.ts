@@ -1,6 +1,5 @@
 import { assembleNativeApplicationCatalog } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { elementalistCoreModule } from '#gw2/professions/elementalist/core/module.js';
-import { validateElementalistGlyphs } from '#gw2/professions/elementalist/data/glyphs.js';
 import { catalystModule } from '#gw2/professions/elementalist/specializations/catalyst/module.js';
 import { evokerModule } from '#gw2/professions/elementalist/specializations/evoker/module.js';
 import { tempestModule } from '#gw2/professions/elementalist/specializations/tempest/module.js';
@@ -26,5 +25,3 @@ export const elementalistNativeModules = Object.freeze([
  * import time and independent of the runtime catalog the simulation uses.
  */
 export const elementalistCatalog = assembleNativeApplicationCatalog(elementalistNativeModules);
-
-validateElementalistGlyphs(elementalistCatalog);

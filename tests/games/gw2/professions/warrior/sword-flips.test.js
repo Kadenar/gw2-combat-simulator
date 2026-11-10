@@ -30,7 +30,7 @@ function assertDisplayed(result, parentId, childId, expectedId) {
   const parent = catalog.skillsById.get(parentId);
   const child = catalog.skillsById.get(childId);
   assert.deepEqual(
-    displayedSkillTiles(app, [parent, child], { specialization: 'Core' }).map((skill) => skill.id),
+    displayedSkillTiles(app, [parent, child], { catalog, specialization: 'Core' }).map((skill) => skill.id),
     [expectedId]
   );
   assert.equal(

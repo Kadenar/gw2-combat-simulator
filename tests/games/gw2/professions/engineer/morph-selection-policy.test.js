@@ -6,10 +6,10 @@ import {
   migrateEngineerBuild,
   validateEngineerBuild
 } from '#gw2/professions/engineer/build/build.js';
+import { resolveSelectedAmalgamMorphId } from '#gw2/professions/engineer/build/morphs.js';
 import { engineerCatalog } from '#gw2/professions/engineer/catalog.js';
 import { bindAmalgamUi } from '#gw2/professions/engineer/specializations/amalgam/presentation.js';
 import {
-  AMALGAM_MORPH_KIND_BY_SKILL_ID,
   amalgamProtocolOptions,
   DEFAULT_AMALGAM_MORPHS,
   normalizeAmalgamMorphs,
@@ -23,14 +23,14 @@ test('rotation normalization binds every morph variant to its selected slot and 
   for (const slot of [2, 3, 4]) {
     for (const selected of amalgamProtocolOptions(engineerCatalog, slot)) {
       const selectedMorphSkillIds = selectAmalgamMorph(engineerCatalog, DEFAULT_AMALGAM_MORPHS, slot - 2, selected.id);
-      for (const [skillId, kind] of AMALGAM_MORPH_KIND_BY_SKILL_ID) {
+      for (const { id: skillId, morphKind: kind } of engineerCatalog.skills.filter((skill) => skill.morphKind)) {
         const command = { type: 'cast', skillId, concurrentOffsetMs: 80 };
         const build = migrateEngineerBuild({
           ...defaults,
           selectedMorphSkillIds,
           rotation: [command, { type: 'wait', durationMs: 100 }]
         });
-        const expectedId = selectedMorphSkillIds.find((id) => AMALGAM_MORPH_KIND_BY_SKILL_ID.get(id) === kind);
+        const expectedId = selectedMorphSkillIds.find((id) => engineerCatalog.skillsById.get(id)?.morphKind === kind);
         assert.deepEqual(build.rotation, [
           { ...command, skillId: expectedId ?? skillId },
           { type: 'wait', durationMs: 100 }
@@ -120,4 +120,20 @@ test('morph swaps round trip through the Engineer build codec', () => {
       assert.deepEqual(migrateEngineerBuild(build), build);
     }
   }
+});
+
+// Protocol kind and slot, rather than a fixed ID registry, govern selection and recorded-action rebinding.
+test('morph selection and rebinding support catalog-owned protocol identities', () => {
+  const remap = (id) => id + 1000000;
+  const skills = engineerCatalog.skills.map((skill) => (skill.morphKind ? { ...skill, id: remap(skill.id) } : skill));
+  const catalog = { ...engineerCatalog, skills, skillsById: new Map(skills.map((skill) => [skill.id, skill])) };
+  const selected = DEFAULT_AMALGAM_MORPHS.map(remap);
+  assert.equal(validAmalgamMorphs(catalog, selected), true);
+  assert.deepEqual(normalizeAmalgamMorphs(catalog, selected), selected);
+  const shred = amalgamProtocolOptions(catalog, 3).find((skill) => skill.morphKind === 'shred');
+  assert.equal(resolveSelectedAmalgamMorphId(catalog, shred.id, selected), selected[0]);
+  const changed = selectAmalgamMorph(catalog, selected, 1, shred.id);
+  assert.equal(validAmalgamMorphs(catalog, changed), true);
+  assert.equal(changed[1], shred.id);
+  assert.equal(catalog.skillsById.get(changed[0]).morphKind, 'protect');
 });

@@ -9,7 +9,6 @@ import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { wieldedConjure } from '#gw2/professions/elementalist/core/mechanics/modifier-queries.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
-import { ELEMENTALIST_GLYPHS } from '#gw2/professions/elementalist/data/glyphs.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
@@ -218,11 +217,16 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // The selectable glyph resolves to its live elemental payload before cast acceptance.
   [ID.GLYPH_OF_ELEMENTAL_POWER]: {
     name: 'Glyph of Elemental Power',
-    selector: ELEMENTALIST_GLYPHS[ID.GLYPH_OF_ELEMENTAL_POWER],
     icon: 'https://render.guildwars2.com/file/0805084EF739CEDD5C9678561C331D7F0B01590B/1424236.png',
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Glyph',
+    selector: {
+      Fire: ID.GLYPH_OF_ELEMENTAL_POWER_FIRE,
+      Water: ID.GLYPH_OF_ELEMENTAL_POWER_WATER,
+      Air: ID.GLYPH_OF_ELEMENTAL_POWER_AIR,
+      Earth: ID.GLYPH_OF_ELEMENTAL_POWER_EARTH
+    },
     patchAuthoringExcluded: true
   },
   [ID.GLYPH_OF_ELEMENTAL_POWER_FIRE]: {
@@ -303,11 +307,16 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
   // The selectable glyph resolves to its live elemental payload before cast acceptance.
   [ID.GLYPH_OF_STORMS]: {
     name: 'Glyph of Storms',
-    selector: ELEMENTALIST_GLYPHS[ID.GLYPH_OF_STORMS],
     icon: 'https://render.guildwars2.com/file/53207A9159611359DD9E4001F530F63CA7627FAD/103393.png',
     type: 'Utility',
     slot: 'Utility',
     skillFamily: 'Glyph',
+    selector: {
+      Fire: ID.GLYPH_OF_STORMS_FIRE,
+      Water: ID.GLYPH_OF_STORMS_WATER,
+      Air: ID.GLYPH_OF_STORMS_AIR,
+      Earth: ID.GLYPH_OF_STORMS_EARTH
+    },
     patchAuthoringExcluded: true
   },
   [ID.GLYPH_OF_STORMS_FIRE]: {

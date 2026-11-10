@@ -21,12 +21,9 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { ProfessionBalanceContext } from '#gw2/platform/profession-definition/balance-context.js';
 import type { SkillId, TooltipFact } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID, ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import {
-  AMALGAM_MORPH_KIND_BY_SKILL_ID,
-  type AmalgamMorphKind
-} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
+import { AMALGAM_PROTOCOL_SKILL_MECHANICS } from '#gw2/professions/engineer/specializations/amalgam/skills/protocol-skills.js';
 import { amalgamStrainOwnerId } from '#gw2/professions/engineer/specializations/amalgam/skills/strain-owner.js';
-import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
+import type { AmalgamMorphKind, AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 
 // Describe each protocol's purpose; section headings name the strain so individual facts need not repeat it.
 const protocolDescriptions: Record<AmalgamMorphKind, { description: string; strain: string }> = {
@@ -62,8 +59,9 @@ function protocolFacts(effects: readonly SkillEffect[] = []): readonly TooltipFa
 
 /** Section context owns the strain's name and trigger; numeric facts still read its simulation owner. */
 function strainFacts(balanceContext: ProfessionBalanceContext, skillId: SkillId): readonly TooltipFact[] {
-  const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skillId);
-  skillId = amalgamStrainOwnerId(skillId);
+  const selected: AmalgamSkill = balanceContext.catalog.skillsById.get(skillId)!;
+  const kind = selected.morphKind;
+  skillId = amalgamStrainOwnerId(selected);
   const skill = balanceContext.catalog.skillsById.get(skillId)!;
   const effects = requireSkillAction(skill, 'strain').effects;
   const facts = protocolFacts(effects).map((fact) => ({
@@ -92,8 +90,8 @@ function strainFacts(balanceContext: ProfessionBalanceContext, skillId: SkillId)
 }
 
 const amalgamMorphTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
-  const selected = balanceContext.catalog.skillsById.get(entity.id)!;
-  const kind = AMALGAM_MORPH_KIND_BY_SKILL_ID.get(entity.id)!;
+  const selected: AmalgamSkill = balanceContext.catalog.skillsById.get(entity.id)!;
+  const kind = selected.morphKind!;
   const { description, strain } = protocolDescriptions[kind];
   const facts = [...protocolFacts(selected.effects)];
 
@@ -164,7 +162,7 @@ const plasmaticStateTooltip: DescribeSimulationTooltip = skillTooltip(
 /** Describe amalgam tooltips from the selected balance data. */
 export const amalgamTooltips = {
   skills: {
-    ...Object.fromEntries([...AMALGAM_MORPH_KIND_BY_SKILL_ID.keys()].map((id) => [id, amalgamMorphTooltip])),
+    ...Object.fromEntries(Object.keys(AMALGAM_PROTOCOL_SKILL_MECHANICS).map((id) => [id, amalgamMorphTooltip])),
     ...Object.fromEntries([ID.EVOLVE_BASE, ID.EVOLVE_DOUBLE_HELIX].map((id) => [id, evolveTooltip])),
     [ID.PLASMATIC_STATE]: plasmaticStateTooltip
   },

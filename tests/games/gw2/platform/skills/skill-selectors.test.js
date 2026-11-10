@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
-import { displayedSkill, resolveSkillSelector, skillInputIdentity } from '#gw2/platform/skills/selectors.js';
+import { displayedSkill, resolveSkillSelector, selectorRootSkillId } from '#gw2/platform/skills/selectors.js';
 
 const catalog = createCanonicalCatalog({
   skills: [
@@ -34,9 +34,9 @@ test('displayed selectors use the first authored choice only without a selection
 
 // Highlights group a family through this back-reference, so a missing one must fail at catalog creation.
 test('selector choices must point back to their input', () => {
-  assert.equal(skillInputIdentity(catalog, 3), 1);
-  assert.equal(skillInputIdentity(catalog, 1), 1);
-  assert.equal(skillInputIdentity(catalog, 4), 4);
+  assert.equal(selectorRootSkillId(catalog, 3), 1);
+  assert.equal(selectorRootSkillId(catalog, 1), 1);
+  assert.equal(selectorRootSkillId(catalog, 4), 4);
   assert.throws(
     () =>
       createCanonicalCatalog({

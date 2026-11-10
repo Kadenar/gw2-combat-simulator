@@ -68,6 +68,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     adrenalineCost: 10,
     burst: true,
     castTimeMs: 480,
+    skillWeapon: WEAPON.GREATSWORD,
     effects: [
       {
         type: 'strike',
@@ -242,6 +243,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     ],
     pulseInterval: 3,
     durationPerTier: 3,
+    skillWeapon: WEAPON.LONGBOW,
     effects: [
       { name: 'Strike', type: 'strike', coefficient: 0.5, hits: 1 },
       { name: CONDITION.BURNING, type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 5 }
@@ -378,6 +380,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     adrenalineCost: 10,
     burst: true,
     castTimeMs: 333,
+    skillWeapon: WEAPON.STAFF,
     effects: [
       {
         type: 'strike',
@@ -454,6 +457,7 @@ export const WARRIOR_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number, 
     adrenalineCost: 10,
     burst: true,
     castTimeMs: 333,
+    skillWeapon: WEAPON.SPEAR,
     effects: [
       {
         type: 'strike',

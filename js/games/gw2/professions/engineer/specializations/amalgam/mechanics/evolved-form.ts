@@ -9,12 +9,9 @@ import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-
 import { effectNumber, requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { buildEngineerPackets } from '#gw2/professions/engineer/core/events.js';
 import { ENGINEER_TRAIT_IDS as TRAIT } from '#gw2/professions/engineer/data/ids.js';
-import {
-  AMALGAM_MORPH_KIND_BY_SKILL_ID,
-  type AmalgamMorphKind
-} from '#gw2/professions/engineer/specializations/amalgam/selection-policy.js';
 import { applyAmalgamStrain } from '#gw2/professions/engineer/specializations/amalgam/skills/evolved-state-skills.js';
 import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/state.js';
+import { type AmalgamMorphKind, type AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 import type { EngineerRuntime, EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** A committed Morph; its protocol kind is captured from the accepted skill. */
@@ -143,10 +140,10 @@ export const evolvedFormLifecycle: RuntimeHooks<EngineerRuntimeState, EngineerSk
       scheduleThornsRetaliation(runtime, (data as SkillTaskData<EngineerSkill>).cast.skill, runtime.time);
     },
     'engineer.morph-traits'(runtime, data) {
-      const { skill } = (data as SkillTaskData<EngineerSkill>).cast;
+      const { skill } = (data as SkillTaskData<AmalgamSkill>).cast;
       runtime.fireTrigger(amalgamMorphed, {
         skill,
-        morphKind: AMALGAM_MORPH_KIND_BY_SKILL_ID.get(skill.id),
+        morphKind: skill.morphKind,
         at: runtime.time
       });
     }

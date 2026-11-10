@@ -1,4 +1,4 @@
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
+import { hasTrait, type Gw2TraitLookupContext } from '#gw2/platform/builds/selected-traits.js';
 import { resourceAtLeast } from '#gw2/platform/combat/resources/pool.js';
 import type { ResourcePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
@@ -6,21 +6,24 @@ import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import { CAST_READY, denyCast, retryCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { balanceNumber, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { balanceNumber, requireSkill, skillNumber, type BalanceSource } from '#gw2/platform/skills/balance-profiles.js';
 import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { swapGunsaber } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/gunsaber.js';
 import { bladeswornState } from '#gw2/professions/warrior/specializations/bladesworn/state.js';
-import {
-  dragonFlowPerInterval,
-  maximumDragonCharges
-} from '#gw2/professions/warrior/specializations/bladesworn/traits/behavior.js';
 import type { WarriorRuntime, WarriorRuntimeState, WarriorSkill } from '#gw2/professions/warrior/types.js';
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
 import { clamp } from '#kernel/core/numeric.js';
 
 const CHARGE_TICK = 'warrior.dragon-charge';
 const TRIGGER_EXPIRY = 'warrior.dragon-trigger-expiry';
+
+/** Combat and preview share Dragon Trigger's capacity, including Daring Dragon's replacement cap. */
+export function maximumDragonCharges(source: BalanceSource, context: Gw2TraitLookupContext): number {
+  return hasTrait(context, TRAIT.DARING_DRAGON)
+    ? balanceNumber(source, TRAIT.DARING_DRAGON, 'maximumStacks')
+    : skillNumber(requireSkill(source, ID.DRAGON_TRIGGER), 'maximumCharges');
+}
 
 export const DRAGON_TRIGGER_ENTRY_RESOURCE_REASON = 'dragon trigger entry';
 
@@ -174,7 +177,16 @@ function chargeTick(runtime: WarriorRuntime, identity: unknown): void {
     return;
   }
 
-  const cost = state.dragonChargeTickCount === 0 ? 0 : dragonFlowPerInterval(runtime.helpers, runtime);
+  // The first charge is free; later ticks spend the skill's Flow cost with Daring Dragon's multiplier.
+  let cost = 0;
+
+  if (state.dragonChargeTickCount > 0) {
+    cost = skillNumber(requireSkill(runtime.helpers, ID.DRAGON_TRIGGER), 'resourceCost');
+
+    if (hasTrait(runtime, TRAIT.DARING_DRAGON))
+      cost *= balanceNumber(runtime.helpers, TRAIT.DARING_DRAGON, 'resourceCostMultiplier');
+  }
+
   // Use pool affordability so accepted charges cannot fail strict spending on a near-threshold fraction.
   const granted = resourceAtLeast(runtime.resourceController.value('flow'), cost);
   const before = state.dragonCharges.value;

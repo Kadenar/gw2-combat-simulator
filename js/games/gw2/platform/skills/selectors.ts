@@ -29,8 +29,8 @@ export function displayedSkill<TSkill extends Skill>(
   return resolveSkillSelector(catalog, skill, selection ?? first);
 }
 
-/** Only explicit selector families share highlights; ordinary loadout descendants retain separate identities. */
-export function skillInputIdentity(catalog: Pick<CanonicalCatalog, 'skillsById'>, id: SkillId): SkillId {
+/** Return the owning selector skill ID, or the original ID for skills without a selector owner. */
+export function selectorRootSkillId(catalog: Pick<CanonicalCatalog, 'skillsById'>, id: SkillId): SkillId {
   const owner = catalog.skillsById.get(id)?.loadoutSkillId;
   return owner != null && catalog.skillsById.get(owner)?.selector ? owner : id;
 }

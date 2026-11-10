@@ -1,4 +1,3 @@
-import { WEAPON } from '#gw2/platform/constants.js';
 import { readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
 import type {
   ProfessionAttributePreviewContext,
@@ -27,18 +26,6 @@ const SKILLS = Object.freeze([ID.BERSERK]);
 const BERSERKER_EFFECT_PRESENTATIONS: readonly ProfessionEffectPresentation[] = Object.freeze([
   { id: 'warrior-berserk', kind: 'berserk', name: 'Berserk' }
 ]);
-const PRIMAL_BURSTS_BY_WEAPON: Readonly<Record<string, number>> = Object.freeze({
-  [WEAPON.AXE]: ID.DECAPITATE,
-  [WEAPON.DAGGER]: ID.SLICING_MAELSTROM,
-  [WEAPON.GREATSWORD]: ID.ARC_DIVIDER,
-  [WEAPON.HAMMER]: ID.RUPTURING_SMASH,
-  [WEAPON.LONGBOW]: ID.SCORCHED_EARTH,
-  [WEAPON.MACE]: ID.SKULL_GRINDER,
-  [WEAPON.RIFLE]: ID.GUN_FLAME,
-  [WEAPON.SPEAR]: ID.WILD_THROW,
-  [WEAPON.STAFF]: ID.RAMPART_SPLITTER,
-  [WEAPON.SWORD]: ID.FLAMING_FLURRY
-});
 
 export const berserkerUi: WarriorUiSlice = Object.freeze({
   /** Declare this module's conditional inputs without adding simulation settings. */
@@ -75,11 +62,11 @@ export const berserkerUi: WarriorUiSlice = Object.freeze({
 
   // Burst tiles are authored for a specific weapon set; inactive-set insertion needs an explicit swap.
   paletteOverride: (context, skill) => {
-    return warriorBurstPaletteOverride(context, skill, PRIMAL_BURSTS_BY_WEAPON);
+    return warriorBurstPaletteOverride(context, skill);
   },
   // Berserk is a mode window, so overlapping activation records remain binary in result charts.
   effectPresentations: () => [...BERSERKER_EFFECT_PRESENTATIONS],
-  paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, SKILLS, PRIMAL_BURSTS_BY_WEAPON),
+  paletteGroups: (context: WarriorUiContext) => warriorPaletteGroups(context, SKILLS),
   resourceViews: warriorAdrenalineResourceViews,
   rotationStateSnapshot: (context: ProfessionStateSnapshotContext<WarriorUiContext['professionState']>) => {
     const state = warriorUiState(context);

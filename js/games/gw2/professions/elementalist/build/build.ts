@@ -10,13 +10,13 @@ import type { UnvalidatedBuildRecord } from '#gw2/platform/builds/types.js';
 import { WEAPON } from '#gw2/platform/constants.js';
 import { GEAR_SLOTS } from '#gw2/platform/equipment/gear/slots.js';
 import { DEFAULT_WEAPON_SIGILS, normalizeWeaponSigils } from '#gw2/platform/equipment/sigils/loadout.js';
+import { selectorRootSkillId } from '#gw2/platform/skills/selectors.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
 import { migrateElementalistGlyphSelections } from '#gw2/professions/elementalist/build/glyph-migration.js';
 import { migrateElementalistStance } from '#gw2/professions/elementalist/build/primordial-stance-migration.js';
 import type { ElementalistCanonicalBuild } from '#gw2/professions/elementalist/build/types.js';
 import { elementalistCatalog } from '#gw2/professions/elementalist/catalog.js';
 import { ELEMENTALIST_ATTUNEMENTS } from '#gw2/professions/elementalist/core/state.js';
-import { elementalistGlyphRoot } from '#gw2/professions/elementalist/data/glyphs.js';
 import { ELEMENTALIST_SKILL_IDS as SKILL } from '#gw2/professions/elementalist/data/ids.js';
 import { createProfessionBuildCodec } from '#gw2/professions/shared/build-codec.js';
 import { createCommonBuildDefaults } from '#gw2/professions/shared/build-defaults.js';
@@ -190,7 +190,11 @@ function upgradeSavedBuild(candidate: unknown): unknown {
 
       if (id == null) continue;
 
-      if ((typeof id === 'number' || typeof id === 'string') && elementalistGlyphRoot(id) !== id)
+      if (
+        (typeof id === 'number' || typeof id === 'string') &&
+        Number.isFinite(Number(id)) &&
+        selectorRootSkillId(elementalistCatalog, Number(id)) !== Number(id)
+      )
         throw new SelectedSkillMigrationError(
           'Current Elementalist builds must equip glyph roots, not elemental variants.'
         );

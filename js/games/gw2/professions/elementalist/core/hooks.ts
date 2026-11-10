@@ -47,7 +47,6 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { elementalistWeaponStateLifecycle } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import { shareHeatSyncBoon } from '#gw2/professions/elementalist/core/skills/weapons/warhorn.js';
-import { validateElementalistGlyphs } from '#gw2/professions/elementalist/data/glyphs.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistRuntimeState, ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
@@ -62,10 +61,6 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
   elementalistSpearLifecycle,
   elementalistPistolLifecycle,
   {
-    // Validate the selected runtime catalog, including patches, before any glyph can be cast.
-    initialize(context) {
-      validateElementalistGlyphs(context.helpers);
-    },
     buffPolicies: (runtime) => elementalistBuffPolicies(runtime.helpers),
     observeEffects: elementalistEffectStates,
     sideEffectHandlers: elementalistCoreSideEffectHandlers,

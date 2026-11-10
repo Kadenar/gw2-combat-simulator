@@ -13,7 +13,7 @@ import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { effectNumber, requireEffect, requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import { materializeSkillDefinitions } from '#gw2/platform/skills/compose-definitions.js';
-import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
+import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { warriorAmmunition } from '#gw2/professions/warrior/core/mechanics/ammunition.js';
 import { WARRIOR_SKILL_IDS as ID } from '#gw2/professions/warrior/data/ids.js';
 import { slashEffects } from '#gw2/professions/warrior/specializations/bladesworn/mechanics/dragon-trigger.js';
@@ -571,12 +571,13 @@ function sharpAsTheWindVariant(
     ...overrides,
     id,
     name,
-    slotSelectable: false
+    slotSelectable: false,
+    sharpAsTheWindParentId: parentId
   });
 }
 
 /** One complete module collection includes authored skills, generated attacks, and simulator actions. */
-export const BLADESWORN_SKILLS: readonly Skill[] = Object.freeze([
+export const BLADESWORN_SKILLS: readonly WarriorSkill[] = Object.freeze([
   ...materializeSkillDefinitions(BLADESWORN_SKILL_MECHANICS),
   sharpAsTheWindVariant(ID.SHARP_SWIFT_CUT, ID.SWIFT_CUT, 'Swift Cut', {
     effects: [

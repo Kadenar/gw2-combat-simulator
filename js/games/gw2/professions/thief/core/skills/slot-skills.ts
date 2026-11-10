@@ -40,6 +40,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     castTimeMs: 600,
     // Placement survives cancellation once the preparation commits.
     interruptCommitMs: 400,
+    skillFamily: 'Preparation',
     effects: [],
     // The skill owns this transition at successful commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.prepare-trap' } }]
@@ -233,6 +234,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     rechargeAnchor: 'castStart',
     duration: 3,
     castTimeMs: 360,
+    skillFamily: 'Preparation',
     effects: [],
     // The skill owns this transition at successful commitment.
     sideEffects: [{ on: 'castCommit', do: { type: 'thief.prepare-trap' } }]
@@ -467,6 +469,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     slot: 'Utility',
     cooldown: 3,
     castTimeMs: 0,
+    skillFamily: 'Preparation',
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: [
       {
@@ -513,6 +516,7 @@ export const THIEF_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDef
     cooldown: 0,
     castTimeMs: 0,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
+    skillFamily: 'Preparation',
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',

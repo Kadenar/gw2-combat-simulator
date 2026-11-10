@@ -31,6 +31,7 @@ export type SkillFamily =
   | 'Dodge'
   | 'Elixir'
   | 'Familiar'
+  | 'Preparation'
   | 'Gadget'
   | 'Glyph'
   | 'Jade Sphere'

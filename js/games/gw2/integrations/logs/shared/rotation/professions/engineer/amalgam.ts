@@ -35,19 +35,19 @@ export function normalizeAmalgamLogActions(context: LogActionNormalizationContex
     })
   );
   const selectedIds = context.professionConfig?.selectedMorphSkillIds;
+  const catalog = context.catalog;
 
-  if (!Array.isArray(selectedIds)) return merged;
+  if (!catalog || !Array.isArray(selectedIds)) return merged;
 
-  const selectedSkillIds =
-    context.catalog?.skills.filter((skill) => selectedIds.includes(skill.id)).map((skill) => skill.id) ?? [];
+  const selectedSkillIds = catalog.skills.filter((skill) => selectedIds.includes(skill.id)).map((skill) => skill.id);
   return merged.map((action) => {
     const recordedId = action.canonicalSkillId ?? action.rawSkillId;
-    const selectedId = resolveSelectedAmalgamMorphId(recordedId, selectedSkillIds);
+    const selectedId = resolveSelectedAmalgamMorphId(catalog, recordedId, selectedSkillIds);
 
     if (selectedId === recordedId) return action;
 
     // Only an explicitly selected instance of the same protocol can replace its recorded slot identity.
-    const selected = context.catalog?.skillsById.get(selectedId);
+    const selected = catalog.skillsById.get(selectedId);
     return selected && typeof selected.id === 'number'
       ? { ...action, canonicalSkillId: selected.id, canonicalName: selected.name }
       : action;

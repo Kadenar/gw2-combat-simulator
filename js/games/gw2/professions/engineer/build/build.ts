@@ -76,7 +76,7 @@ function normalizeMorphRotation(savedRotation: unknown, morphIds: readonly numbe
   return normalizeRotation(savedRotation, engineerCatalog).map((command) => {
     if (command.type !== 'cast') return command;
 
-    return { ...command, skillId: resolveSelectedAmalgamMorphId(command.skillId, morphIds) };
+    return { ...command, skillId: resolveSelectedAmalgamMorphId(engineerCatalog, command.skillId, morphIds) };
   });
 }
 
