@@ -45,18 +45,16 @@ Fervid's confirmation remains open.
 
 Current limitations are recorded in the [Core tooltips](../js/games/gw2/professions/necromancer/app/tooltips/core.ts).
 
-- [ ] **Rending Claws.** Add recharge reduction for other axe skills against low-health enemies. Need reduction amount
-      and the new trigger's health threshold and application rules. The obsolete extra Vulnerability is already removed.
-- [ ] **Ghastly Claws.** Add low-health bonus damage. Need the bonus amount and qualifying health threshold. Current
-      damage has no new execution bonus.
-- [ ] **Locust Swarm.** Replace the old life-siphon model with attached swarms dealing periodic strike damage. Need
-      strike coefficients, swarm lifetime, pulse timing, and repeat-hit/attachment rules. Confirm retained Swiftness
-      behavior. The simulator currently retains the earlier siphon and party Swiftness model.
-- [ ] **Soul Grasp.** Implement the bouncing projectile and life force on return. Need damage, bounce count and
-      repeat-target rules, return timing, and life force per enemy struck. The simulator currently retains its previous
-      Vulnerability and life-force model.
-- [ ] **Signet of Vampirism.** Replace the old active siphon model with consumable self charges. Need charge count,
-      lifetime, consumption interval/rules, and siphon damage tuning. Healing remains outside combat simulation scope.
+- [ ] **Soul Grasp.** Implement the bouncing projectile and life force on return using the
+      [live API](https://api.guildwars2.com/v2/skills/55050). `20261110-160106.zevtc` records one strike per cast
+      against the lone golem. `20261110-160650.zevtc` records one cast striking both bosses, with no return hit on the
+      first. Return timing and the maximum bounce behavior remain unverified. The simulator still uses its earlier
+      model.
+- [ ] **Signet of Vampirism.** Replace the old active siphon model with consumable self charges. The
+      [live API](https://api.guildwars2.com/v2/skills/21762) and `20261110-160650.zevtc` establish the self-charge
+      grant, lifetime, and consumption interval. Siphon Power scaling remains unverified; these logs contain no
+      separately identified Signet damage. The three supplied weapon golem logs record the passive, without activating
+      the signet. Healing remains outside combat simulation scope.
 - [ ] **Anguish against disabled, non-defiant targets.** The capped bonus and defiant-target maximum are implemented for
       Anguish and its Summon Spirits attacks. Temporary target disability is not tracked by this implementation, so the
       separate disabled-target route to the maximum remains unsupported. See

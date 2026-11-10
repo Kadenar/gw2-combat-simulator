@@ -41,6 +41,57 @@ const baseConfig = Object.freeze({
 
 const simulate = createObservedProfessionSimulator(necromancerProfession, baseConfig);
 
+// Each accepted claw reduces only axe cooldowns; misses and the exact health boundary grant no reduction.
+test('Rending Claws reduces other axe recharges per hit below half target health', () => {
+  const run = (fixedHealthFraction, offTarget = false) => {
+    const result = simulate(
+      'Core',
+      ['Wail of Doom', 'Ghastly Claws', 'Unholy Feast', { name: 'Rending Claws', offTarget }],
+      {
+        primaryWeapon: 'Axe',
+        secondaryWeapon: 'Warhorn',
+        selectedTraitIds: [],
+        target: { fixedHealthFraction }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    return observedRuntime(result).cooldownController;
+  };
+
+  const baseline = run(0.5);
+  const low = run(0.49);
+  const missed = run(0.49, true);
+  const high = run(1);
+
+  for (const id of [ID.GHASTLY_CLAWS, ID.UNHOLY_FEAST]) {
+    // Two half-second reductions remove 0.8 elapsed seconds under the simulator's permanent player Alacrity.
+    const reduction = baseline.readyAt(id) - low.readyAt(id);
+    assert.ok(Math.abs(reduction - 0.8) < 1e-9);
+    assert.equal(missed.readyAt(id), baseline.readyAt(id));
+    assert.equal(high.readyAt(id), baseline.readyAt(id));
+  }
+
+  assert.equal(low.readyAt(ID.WAIL_OF_DOOM), baseline.readyAt(ID.WAIL_OF_DOOM));
+});
+
+// Execution damage checks target health strictly below the threshold and multiplies existing Vulnerability scaling.
+test('Ghastly Claws gains its execution bonus only below half target health', () => {
+  const strike = (fraction, vulnerability) =>
+    simulate('Core', ['Ghastly Claws'], {
+      primaryWeapon: 'Axe',
+      selectedTraitIds: [],
+      target: { fixedHealthFraction: fraction, conditions: { Vulnerability: vulnerability } }
+    }).resolvedEvents.find((event) => event.type === 'damage' && event.skillId === ID.GHASTLY_CLAWS);
+
+  for (const vulnerability of [0, 25]) {
+    const normal = strike(1, vulnerability);
+    assert.equal(strike(0.5, vulnerability).damage, normal.damage);
+    assertFlooredDamageMultiplier(strike(0.49, vulnerability).damage, normal.damage, 1.2);
+  }
+
+  assertFlooredDamageMultiplier(strike(0.49, 25).damage, strike(1, 0).damage, 1.25 * 1.25 * 1.2);
+});
+
 // The unsupported boon-removal variants must not add extra damage packets.
 test('Spinal Shivers emits one zero-boon strike and one Chill application', () => {
   const result = simulate('Core', ['Spinal Shivers'], {

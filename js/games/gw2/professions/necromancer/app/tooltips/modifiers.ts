@@ -18,6 +18,15 @@ export const necromancerModifierDescriptions: ModifierDescriptions = {
       "Ghastly Claws gains additional damage per Vulnerability stack, multiplying separately from the target's ordinary Vulnerability bonus.",
     facts: [['damagePerStack', 'Additional strike damage per Vulnerability stack']]
   }),
+  'necromancer.ghastly-claws-target-health': modifierDescription({
+    name: 'Ghastly Claws low-health bonus',
+    skills: [ID.GHASTLY_CLAWS],
+    description: 'Below the target-health threshold, Ghastly Claws multiplies its damage by an additional bonus.',
+    facts: [
+      ['healthThreshold', 'Target-health threshold'],
+      ['damageIncrease', 'Additional strike damage']
+    ]
+  }),
   'necromancer.life-siphon-bleeding-target': modifierDescription({
     name: 'Life Siphon — bleeding target',
     skills: [ID.LIFE_SIPHON],

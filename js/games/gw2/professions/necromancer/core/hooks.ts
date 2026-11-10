@@ -1,7 +1,7 @@
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { anchorResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, WEAPON } from '#gw2/platform/constants.js';
 import { sideEffectAmount } from '#gw2/platform/effects/action-dispatch.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
@@ -203,6 +203,18 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
     },
     'necromancer.axe-health'(runtime, context) {
       if (context.kind === 'effect') reactToNecromancerAxeHealth(runtime, context.trigger.event);
+    },
+    // The recharge controller applies boon scaling and clamps reductions to the remaining cooldown.
+    'necromancer.axe-recharge'(runtime, context, action) {
+      if (context.kind !== 'effect') return;
+
+      if (action.type !== 'necromancer.axe-recharge' || action.amount == null)
+        throw new TypeError('Axe recharge reduction requires an amount.');
+
+      const reduction = sideEffectAmount(runtime, action.amount);
+      for (const skill of runtime.helpers.skillsById.values())
+        if (skill.weapon === WEAPON.AXE && skill.id !== context.skill.id)
+          runtime.cooldownController.reduceSkillRecharge(skill, reduction, runtime.time);
     },
     'necromancer.life-siphon'(runtime, context) {
       if (context.kind === 'effect') resolveNecromancerSkillConditions(runtime, context.trigger.event);

@@ -283,16 +283,16 @@ export const necromancerCoreTooltips = {
       'Spend 50 endurance to dodge. Mark of Evasion triggers Lesser Mark of Blood when the dodge finishes in combat.'
     ),
     [ID.RENDING_CLAWS]: skillTooltip(
-      'Apply baseline Vulnerability. The new low-health recharge reduction is pending confirmed tuning.'
+      "Apply Vulnerability. Each landed claw reduces other axe skills' recharge by 0.5 seconds against targets below 50% health."
     ),
     [ID.GHASTLY_CLAWS]: skillTooltip(
-      'Strike repeatedly and gain life force. The additional low-health damage bonus is pending confirmed tuning.'
+      'Strike repeatedly and gain life force. Vulnerability and low target health increase damage.'
     ),
     [ID.SOUL_GRASP]: skillTooltip(
       'The projectile-return rework is pending damage, bounce, and life-force values. The simulation currently retains the earlier Vulnerability and life-force model.'
     ),
     [ID.LOCUST_SWARM]: skillTooltip(
-      'The attached-swarm rework is pending strike damage and pulse tuning. The simulation currently retains the earlier life-siphon model and party swiftness.'
+      'Grant party swiftness and attach a swarm to your target. Its periodic strikes can critically hit and grant life force when they land.'
     ),
     // Passive signet tuning is selected from the same skill as its active effects.
     [ID.SIGNET_OF_SPITE]: skillTooltip(

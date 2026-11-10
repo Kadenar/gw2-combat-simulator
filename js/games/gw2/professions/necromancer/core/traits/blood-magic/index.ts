@@ -194,7 +194,7 @@ export const markOfEvasion = defineTrait({
   ]
 });
 
-/** Extend the swarm and its swiftness while increasing siphon base damage, leaving Power scaling unchanged. */
+/** Extend the attached swarm and party swiftness without changing individual strike damage. */
 export const bansheesWail = defineTrait({
   id: TRAIT.BANSHEES_WAIL,
   balance: { pulseInterval: 0.5, durationMultiplier: 1.5 },
@@ -214,7 +214,6 @@ export const bansheesWail = defineTrait({
         const last = ticks[ticks.length - 1]!;
         return {
           ...effect,
-          flatStrikeBase: Math.floor((effect.flatStrikeBase ?? 0) * multiplier),
           ticks: Array.from(
             { length: Math.round(ticks.length * multiplier) },
             (_, index) =>

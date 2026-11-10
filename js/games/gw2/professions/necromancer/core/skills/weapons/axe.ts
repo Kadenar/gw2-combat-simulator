@@ -1,6 +1,6 @@
 /** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
+import { targetHealthBelow, vulnerabilityStacks } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, CONDITION, WEAPON } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
@@ -24,7 +24,16 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
-        // The retired low-health Vulnerability bonus is removed; recharge tuning remains pending.
+        // Each landed claw reduces other axe recharges only while the target is below half health.
+        reactions: [
+          {
+            on: 'damage.resolved',
+            actor: ACTOR.PLAYER,
+            packets: 'each',
+            when: (runtime, { event }) => Number(event.coefficient) > 0 && runtime.combat.targetHealthBelow(0.5),
+            do: [{ type: 'necromancer.axe-recharge', amount: 0.5 }]
+          }
+        ],
         ticks: [400, 640].map((atMs) => ({ atMs, coefficient: 1.4 / 2 }))
       },
       {
@@ -54,6 +63,17 @@ export const NECROMANCER_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Sk
         parameters: { damagePerStack: 0.01 },
         factor: (context, _target, parameters) => 1 + vulnerabilityStacks(context) * parameters.damagePerStack,
         when: (context) => context.event?.actorType === ACTOR.PLAYER
+      },
+      {
+        // The execution bonus multiplies Vulnerability scaling and observes target health before each strike.
+        id: 'necromancer.ghastly-claws-target-health',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        parameters: { healthThreshold: 0.5, damageIncrease: 0.2 },
+        factor: (context, _target, parameters) =>
+          context.event?.actorType === ACTOR.PLAYER && targetHealthBelow(context, parameters.healthThreshold)
+            ? 1 + parameters.damageIncrease
+            : 1
       }
     ],
     effects: [

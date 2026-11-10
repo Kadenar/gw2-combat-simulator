@@ -28,7 +28,7 @@ export const necromancerBloodMagicTooltips = {
   [TRAIT.BLOOD_RENEWAL]: outsideScopeTooltip,
   [TRAIT.LIFE_FROM_DEATH]: outsideScopeTooltip,
   [TRAIT.BANSHEES_WAIL]: traitTooltip(
-    'Increase Locust Swarm siphon base damage, pulse count, and swiftness duration. Power scaling is unchanged.',
+    'Extend Locust Swarm with additional strikes and longer party swiftness. Individual strike damage is unchanged.',
     [
       ['durationMultiplier', 'Effectiveness', tooltipFactorChange],
       ['pulseInterval', 'Extended pulse interval', tooltipSeconds]

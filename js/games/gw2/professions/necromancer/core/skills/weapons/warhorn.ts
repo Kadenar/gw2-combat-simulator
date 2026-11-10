@@ -32,28 +32,24 @@ export const NECROMANCER_WEAPONS_WARHORN_SKILL_MECHANICS: Readonly<Record<number
     slot: 'Weapon_5',
     cooldown: 24,
     castTimeMs: 440,
-    // Each half-second siphon grants life force only when its impact lands.
+    // Attached swarms deal critical-capable strikes; only landed pulses grant life force.
     effects: [
       strikeTimeline(
-        Array.from({ length: 10 }, (_, index) => ({
-          atMs: quantizeGw2ActionDurationUp(index * 500),
-          coefficient: 0
+        Array.from({ length: 6 }, (_, index) => ({
+          atMs: index * quantizeGw2ActionDurationUp(500),
+          coefficient: 0.25
         })),
         {
-          name: 'Locust Swarm - Life Siphon',
-          flatStrikeBase: 117,
-          flatStrikePowerCoeff: 0.08,
+          name: 'Locust Swarm',
           reactions: [
             {
               on: 'damage.resolved',
               actor: ACTOR.PLAYER,
               packets: 'each',
-              do: [lifeForceGrant({ id: 'life-force', unit: 'pulse', grant: { percent: 1.5 } })]
+              do: [lifeForceGrant({ id: 'life-force', unit: 'pulse', grant: { percent: 0.5 } })]
             }
           ],
-          canCrit: false,
-          damageKind: 'life-steal',
-          timingAnchor: 'castStart',
+          timingAnchor: 'castEnd',
           timingScale: 'fixed'
         }
       ),
