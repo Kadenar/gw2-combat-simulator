@@ -343,6 +343,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 10,
     skillFamily: 'Weapon skill',
     castTimeMs: 360,
+    // Availability and consumption use the same declared aura.
+    transmuteAura: AURA.FROST,
     effects: impactEffects({ atMs: 840, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5 },
       {
@@ -467,6 +469,8 @@ export const ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS: Readonly<Record<number, S
     skillFamily: 'Weapon skill',
     castTimeMs: 360,
     interruptCommitMs: 280,
+    // Availability and consumption use the same declared aura.
+    transmuteAura: AURA.SHOCKING,
     effects: impactEffects(
       { atMs: 840, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [

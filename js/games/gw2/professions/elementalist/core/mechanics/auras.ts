@@ -8,7 +8,6 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import type { BalanceProfileSource } from '#gw2/platform/skills/balance-profiles.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { AURA_TRANSMUTE_SKILLS } from '#gw2/professions/elementalist/core/constants.js';
 import { ELEMENTALIST_TRAIT_IDS as TRAIT } from '#gw2/professions/elementalist/data/ids.js';
 import type {
   ElementalistRuntime,
@@ -64,7 +63,7 @@ export const elementalistAuraLifecycle = {
     'elementalist.transmute-aura'(context, trigger) {
       if (trigger.kind !== 'cast') throw new TypeError('Aura transmutation requires a cast trigger.');
 
-      const aura = AURA_TRANSMUTE_SKILLS[Number(trigger.skill.id)];
+      const aura = trigger.skill.transmuteAura;
       const state = context.profession.core;
       state.activeAuras = state.activeAuras.filter(
         (candidate) => candidate.type !== aura || candidate.expiresAt <= trigger.cast.effectiveEnd

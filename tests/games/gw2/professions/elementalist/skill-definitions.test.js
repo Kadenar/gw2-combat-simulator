@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { normalizeSkillEffects } from '#gw2/platform/effects/validation.js';
-import { AURA_TRANSMUTE_SKILLS, ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID,
@@ -34,9 +33,12 @@ function patchedProfession(changes, afterCommit) {
 }
 
 test('aura consumption and Arcane Echo arming belong to successful skill commitments', () => {
-  for (const id of [ID.ARCANE_ECHO, ...Object.keys(AURA_TRANSMUTE_SKILLS).map(Number)]) {
+  for (const id of [
+    ID.ARCANE_ECHO,
+    ...elementalistCatalog.skills.filter((skill) => skill.transmuteAura).map((skill) => skill.id)
+  ]) {
     const skill = elementalistCatalog.skillsById.get(id);
-    const aura = AURA_TRANSMUTE_SKILLS[id];
+    const aura = skill.transmuteAura;
     for (const mode of ['full', 'committed', 'cancelled', 'removed']) {
       const result = runElementalist(
         [
@@ -659,14 +661,13 @@ test('hammer definitions own single and dual orb grants', () => {
 });
 
 test('etching declarations open their window and release only their own state after three other commits', () => {
-  for (const chain of ETCHING_CHAINS)
+  for (const skill of elementalistCatalog.skills.filter((skill) => skill.etchingReleases))
     for (const mode of ['full', 'removed', 'released']) {
-      const skill = elementalistCatalog.skillsById.get(chain.etchingId);
       const result = runElementalist(
         [
           { type: 'cast', skillId: skill.id },
           ...Array.from({ length: 3 }, () => ({ type: 'cast', skillId: ID.ARCANE_ECHO })),
-          ...(mode === 'released' ? [{ type: 'cast', skillId: chain.fullId }] : [])
+          ...(mode === 'released' ? [{ type: 'cast', skillId: skill.etchingReleases.full }] : [])
         ],
         {
           specialization: 'Core',
@@ -683,7 +684,7 @@ test('etching declarations open their window and release only their own state af
         }
       );
       assert.deepEqual(result.warnings, []);
-      const progress = observedRuntime(result).profession.core.etchings[chain.etching];
+      const progress = observedRuntime(result).profession.core.etchings[skill.name];
 
       if (mode === 'full') {
         assert.equal(progress.stage, 'full');
@@ -740,7 +741,7 @@ test('overload declarations preserve full-channel eligibility and ordinary-befor
               [id, { castTimeMs: 1000, ...(mode === 'removed' ? { sideEffects: [] } : {}) }]
             ]),
             initialize(runtime) {
-              runtime.profession.core.etchings[ETCHING_CHAINS[0].etching] = {
+              runtime.profession.core.etchings[elementalistCatalog.skillsById.get(ID.ETCHING_VOLCANO).name] = {
                 stage: 'lesser',
                 otherCasts: initial,
                 expiresAt: 30
@@ -753,7 +754,10 @@ test('overload declarations preserve full-channel eligibility and ordinary-befor
         const runtime = observedRuntime(result);
         const ordinary = mode === 'cancelled' ? initial : initial + 1;
         const expected = mode === 'full' && id !== ID.OVERLOAD_WATER && ordinary < 3 ? ordinary + 2 : ordinary;
-        assert.equal(runtime.profession.core.etchings[ETCHING_CHAINS[0].etching].otherCasts, expected);
+        assert.equal(
+          runtime.profession.core.etchings[elementalistCatalog.skillsById.get(ID.ETCHING_VOLCANO).name].otherCasts,
+          expected
+        );
         assert.equal(runtime.cooldownController.readyAt(ELEMENTALIST_ATTUNEMENT_SKILL_IDS[skill.attunement]), 60);
         assert.equal(
           result.events.some((event) => event.type === 'damage' && event.skillId === ID.LIGHTNING_JOLT),

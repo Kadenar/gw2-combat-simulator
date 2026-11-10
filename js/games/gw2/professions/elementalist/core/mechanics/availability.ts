@@ -8,18 +8,14 @@ import {
 import { skillFlipReady } from '#gw2/platform/execution/skill-flips.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import {
-  AURA_TRANSMUTE_SKILLS,
-  CONJURE_PICKUP_WEAPONS,
-  CONJURED_WEAPONS
-} from '#gw2/professions/elementalist/core/constants.js';
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
-import { activeAura, etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { conjureSkill } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
+import { activeAura } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import { elementalistElementalAvailability } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import { coreHammerOrbAvailability } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { elementalExplosionAvailability } from '#gw2/professions/elementalist/core/mechanics/pistol.js';
 import { elementalistSlotSelectionPolicy } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
+import { etchingRoot } from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import { weaponAttunementAvailable } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
@@ -36,7 +32,7 @@ function ready(): AvailabilityResult {
 /** Attunement swaps preserve same-element denials and Fresh Air retry deadlines. */
 function attunementAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill
+  skill: ElementalistSkill
 ): AvailabilityResult | null {
   const state = professionCoreState(context.profession);
   // Attunement swaps: permanently denied while already attuned, otherwise retried
@@ -66,7 +62,7 @@ function attunementAvailability(
 /** Bundle commands require an equipped conjure or a live ground pickup. */
 function conjureCommandAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill
+  skill: ElementalistSkill
 ): AvailabilityResult | null {
   const state = professionCoreState(context.profession);
 
@@ -78,7 +74,10 @@ function conjureCommandAvailability(
       : unavailable(skill, 'elementalist.no-bundle', 'no conjured weapon is equipped.');
   }
 
-  const pickupWeapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
+  const pickupWeapon =
+    skill.type === 'Action' && skill.conjureSourceId != null
+      ? conjureSkill(context.helpers, skill)!.conjureWeapon
+      : undefined;
 
   if (pickupWeapon) {
     const weapon = pickupWeapon;
@@ -93,7 +92,10 @@ function conjureCommandAvailability(
 }
 
 /** Equipment selection follows elemental, attunement, and bundle command gates. */
-function slotAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
+function slotAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: ElementalistSkill
+): AvailabilityResult | null {
   // Keep selection here so elemental, attunement, and bundle denials retain precedence.
   if (
     selectedSlotSkillAvailability(
@@ -109,10 +111,13 @@ function slotAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill
 }
 
 /** Transmutes require their matching live aura. */
-function auraAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
+function auraAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: ElementalistSkill
+): AvailabilityResult | null {
   const state = professionCoreState(context.profession);
   // Transmute skills consume a matching aura that must currently be active.
-  const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)];
+  const aura = skill.transmuteAura;
 
   if (aura && !activeAura(state, aura, context.time)) {
     return unavailable(skill, 'elementalist.aura-transmute', `requires an active ${aura}.`);
@@ -124,7 +129,7 @@ function auraAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill
 /** Rock Barrier and Hurl share one live flip window and its expiry. */
 function rockBarrierAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill
+  skill: ElementalistSkill
 ): AvailabilityResult | null {
   // Hurl and Rock Barrier share one barrier: Hurl needs it live, while a second
   // Rock Barrier waits for the current one to be thrown or to expire.
@@ -145,23 +150,24 @@ function rockBarrierAvailability(
 }
 
 /** Spear payoffs require the stage reached by accepted casts. */
-function etchingAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
+function etchingAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: ElementalistSkill
+): AvailabilityResult | null {
   const state = professionCoreState(context.profession);
   // Spear etchings unlock their lesser and full payoffs by chain stage, which only
   // other casts can advance, so these denials are never retried on a timer.
-  const chain = etchingChain(skill.id);
+  const root = etchingRoot(context.helpers, skill);
 
-  if (chain && Number(skill.id) !== chain.etchingId) {
-    const progress = state.etchings[chain.etching];
-    const requiredStage = Number(skill.id) === chain.lesserId ? 'lesser' : 'full';
+  if (root && skill.etchingRootId != null) {
+    const progress = state.etchings[root.name];
+    const requiredStage = skill.id === root.etchingReleases!.lesser ? 'lesser' : 'full';
 
     if (progress?.stage !== requiredStage) {
       return unavailable(
         skill,
         'elementalist.spear-etching',
-        requiredStage === 'lesser'
-          ? `cast ${chain.etching} first.`
-          : `cast three other skills after ${chain.etching} first.`
+        requiredStage === 'lesser' ? `cast ${root.name} first.` : `cast three other skills after ${root.name} first.`
       );
     }
   }
@@ -170,15 +176,18 @@ function etchingAvailability(context: MechanicQueriesOf<ElementalistRuntime>, sk
 }
 
 /** Conjures replace the weapon bar before ordinary weapon attunement checks. */
-function weaponAvailability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult | null {
+function weaponAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: ElementalistSkill
+): AvailabilityResult | null {
   const state = professionCoreState(context.profession);
 
   // A conjure replaces the weapon bar, so bundle skills and normal weapon skills
   // exclude each other; otherwise the weapon skill is gated on its attunement.
   if (skill.type === 'Weapon') {
-    const weapon = skillWeapon(skill);
+    const weapon = conjureSkill(context.helpers, skill)?.conjureWeapon;
 
-    if (CONJURED_WEAPONS.has(weapon)) {
+    if (weapon) {
       if (state.conjureEquipped !== weapon) {
         return unavailable(skill, 'elementalist.conjure-required', `requires the ${weapon} bundle.`);
       }
@@ -216,7 +225,7 @@ function utilityAttunementAvailability(
 /** Preserve the first matching result, including ready short circuits and retry deadlines. */
 export function elementalistCoreAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: Skill
+  skill: ElementalistSkill
 ): AvailabilityResult {
   return (
     elementalistElementalAvailability(context, skill) ??

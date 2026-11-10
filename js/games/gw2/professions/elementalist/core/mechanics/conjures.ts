@@ -2,13 +2,8 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
-import {
-  CONJURE_PICKUP_WEAPONS,
-  CONJURE_SKILLS,
-  CONJURED_WEAPONS
-} from '#gw2/professions/elementalist/core/constants.js';
+import { requireSkill, skillNumber, type SkillSource } from '#gw2/platform/skills/balance-profiles.js';
+import type { CanonicalCatalog } from '#gw2/platform/skills/types.js';
 import { conjureEquipped } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import type {
   ElementalistRuntime,
@@ -16,25 +11,43 @@ import type {
   ElementalistSkill
 } from '#gw2/professions/elementalist/types.js';
 
-// Ground copies and pickup actions resolve the same selected conjuring skill's lifetime.
-const conjureSkillIds = new Map(Object.entries(CONJURE_SKILLS).map(([id, weapon]) => [weapon, Number(id)]));
+/** Pickups and attacks resolve the originating conjure in the selected catalog. */
+export function conjureSkill(
+  source: SkillSource<ElementalistSkill>,
+  skill: ElementalistSkill
+): ElementalistSkill | undefined {
+  return skill.conjureSourceId == null
+    ? skill.conjureWeapon
+      ? skill
+      : undefined
+    : requireSkill(source, skill.conjureSourceId);
+}
 
-function conjureDuration(context: ElementalistRuntime, weapon: string): number {
-  return skillNumber(requireSkill(context.helpers, conjureSkillIds.get(weapon)!), 'duration');
+/** Event attribution identifies bundle weapons through the selected conjuring declarations. */
+export function isConjuredWeapon(source: Pick<CanonicalCatalog<ElementalistSkill>, 'skills'>, weapon: string): boolean {
+  return source.skills.some((skill) => skill.conjureWeapon === weapon);
 }
 
 /** A conjure creates independent equipped and one-use ground copies before its trait and swap events. */
-function equipConjure(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
+function equipConjure(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: ElementalistSkill
+): void {
   const state = professionCoreState(context.profession);
-  const weapon = CONJURE_SKILLS[Number(skill.id)];
+  const weapon = skill.conjureWeapon!;
   state.conjureEquipped = weapon;
-  state.conjurePickups[weapon] = cast.effectiveEnd + conjureDuration(context, weapon);
+  state.conjurePickups[weapon] = cast.effectiveEnd + skillNumber(skill, 'duration');
   context.fireTrigger(conjureEquipped, { cast });
   finishConjureSwap(context, cast, skill);
 }
 
 /** Dropping reports a swap only when a real equipped bundle was removed. */
-function dropConjure(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
+function dropConjure(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: ElementalistSkill
+): void {
   const state = professionCoreState(context.profession);
 
   if (!state.conjureEquipped) return;
@@ -44,23 +57,33 @@ function dropConjure(context: ElementalistRuntime, cast: RuntimeCast<Elementalis
 }
 
 /** A successful pickup consumes the ground copy captured at acceptance, even if its deadline passed during the cast. */
-export function pickUpConjure(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
+export function pickUpConjure(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: ElementalistSkill
+): void {
   const expiresAt = pickupWindows.get(cast);
 
   if (typeof expiresAt !== 'number' || !Number.isFinite(expiresAt) || expiresAt <= cast.start) return;
 
   const state = professionCoreState(context.profession);
-  const weapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
+  const weapon = conjureSkill(context.helpers, skill)!.conjureWeapon!;
   state.conjureEquipped = weapon;
   delete state.conjurePickups[weapon];
   finishConjureSwap(context, cast, skill);
 }
 
 /** All real bundle swaps share lifetime scheduling, chain reset, and one sigil-swap notification. */
-function finishConjureSwap(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
+function finishConjureSwap(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: ElementalistSkill
+): void {
   const state = professionCoreState(context.profession);
   const at = cast.effectiveEnd;
-  state.conjureExpiresAt = state.conjureEquipped ? at + conjureDuration(context, state.conjureEquipped) : 0;
+  state.conjureExpiresAt = state.conjureEquipped
+    ? at + skillNumber(conjureSkill(context.helpers, skill)!, 'duration')
+    : 0;
   context.schedule('elementalist.conjure-expire', state.conjureExpiresAt || at, null);
   for (const deadline of Object.values(state.conjurePickups))
     context.schedule('elementalist.conjure-expire', deadline, null);
@@ -119,7 +142,8 @@ export const elementalistConjureLifecycle = {
   },
   // Isolated conjure attacks assume their bundle is equipped for damage and attribute queries.
   prepareDamageState(runtime, skill) {
-    if (skill?.weapon && CONJURED_WEAPONS.has(skill.weapon)) runtime.profession.core.conjureEquipped = skill.weapon;
+    if (skill?.type === 'Weapon' && skill.conjureSourceId != null)
+      runtime.profession.core.conjureEquipped = conjureSkill(runtime.helpers, skill)!.conjureWeapon!;
   },
   tasks: {
     'elementalist.conjure-expire'(runtime) {
@@ -139,7 +163,7 @@ export const elementalistConjureLifecycle = {
 
 /** A pickup accepted before ground expiry retains that copy through its animation. */
 export function captureConjurePickup(runtime: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
-  const weapon = CONJURE_PICKUP_WEAPONS[Number(cast.skill.id)];
+  const weapon = conjureSkill(runtime.helpers, cast.skill)?.conjureWeapon;
 
   if (weapon) pickupWindows.set(cast, runtime.profession.core.conjurePickups[weapon]);
 }

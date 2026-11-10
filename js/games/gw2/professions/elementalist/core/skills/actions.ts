@@ -4,8 +4,8 @@
  */
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
 import { createDodgeSkill, createWeaponSwapSkill, WEAPON_SWAP_ICON } from '#gw2/platform/skills/shared-actions.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 const CONJURE_ACTION_ICONS = Object.freeze({
   'Frost Bow': 'https://render.guildwars2.com/file/CC6D556B7C3F95C49E54D697CC2B4E79105DC594/103348.png',
@@ -14,7 +14,7 @@ const CONJURE_ACTION_ICONS = Object.freeze({
 });
 
 /** Supplies bundle controls so rotations can drop and recover conjures. */
-export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = [
+export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly ElementalistSkill[] = [
   // Complete shared actions carry their own IDs and contribute through the array boundary.
   createDodgeSkill({
     cost: {
@@ -43,16 +43,18 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = [
     // Dropping clears the equipped copy and reports one real bundle swap.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.drop-conjure' } }]
   },
-  ...[
-    ['Frost Bow', ID.PICK_UP_FROST_BOW],
-    ['Lightning Hammer', ID.PICK_UP_LIGHTNING_HAMMER],
-    ['Fiery Greatsword', ID.PICK_UP_FIERY_GREATSWORD]
-  ].map(([weapon, id]): Skill => ({
+  ...(
+    [
+      ['Frost Bow', ID.PICK_UP_FROST_BOW, ID.CONJURE_FROST_BOW],
+      ['Lightning Hammer', ID.PICK_UP_LIGHTNING_HAMMER, ID.CONJURE_LIGHTNING_HAMMER],
+      ['Fiery Greatsword', ID.PICK_UP_FIERY_GREATSWORD, ID.CONJURE_FIERY_GREATSWORD]
+    ] as const
+  ).map(([weapon, id, conjureSourceId]): ElementalistSkill => ({
     name: `__pickup_${weapon}`,
-    id: Number(id),
+    id,
     inputCategory: 'bar-swap',
     displayName: `Pick up ${weapon}`,
-    icon: CONJURE_ACTION_ICONS[weapon as keyof typeof CONJURE_ACTION_ICONS],
+    icon: CONJURE_ACTION_ICONS[weapon],
     type: 'Action',
 
     slot: 'Action',
@@ -60,6 +62,8 @@ export const ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS: readonly Skill[] = [
     cooldown: 0,
 
     castTimeMs: 300,
+    // Pickups share the originating skill's bundle and lifetime.
+    conjureSourceId,
     effects: [],
     // Capture an available ground copy before expiry, then consume that copy only on successful commitment.
     sideEffects: [

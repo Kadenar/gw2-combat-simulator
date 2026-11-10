@@ -95,6 +95,8 @@ export const ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Sk
     skillFamily: 'Weapon skill',
     castTimeMs: 360,
     interruptCommitMs: 280,
+    // Availability and consumption use the same declared aura.
+    transmuteAura: AURA.FIRE,
     effects: impactEffects(
       { atMs: 840, timingAnchor: 'castStart', timingScale: 'cast', persistsAfterInterrupt: true },
       [

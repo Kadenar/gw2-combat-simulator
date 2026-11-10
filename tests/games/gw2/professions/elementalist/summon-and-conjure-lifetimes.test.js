@@ -5,7 +5,6 @@ import { describeSimulationSkill, describeSimulationTrait } from '#gw2/app/share
 import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
-import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import {
   beginElementalistSpearCast,
   completeElementalistSpearProgression,
@@ -119,12 +118,11 @@ test('each conjure owns ground expiry and the fresh lifetime granted by its pick
 });
 
 test('selected spear owners preserve one-shot acceptance and independent etching thresholds', () => {
+  const roots = elementalistCatalog.skills.filter((skill) => skill.etchingReleases);
   const profession = preview({
     [ID.SEETHE]: { nextSkillDamageMultiplier: 1.7 },
     [ID.RIPPLE]: { nextSkillRechargeMultiplier: 0.4 },
-    ...Object.fromEntries(
-      ETCHING_CHAINS.map(({ etchingId }, index) => [etchingId, { etchingCompletionThreshold: index + 1 }])
-    )
+    ...Object.fromEntries(roots.map(({ id }, index) => [id, { etchingCompletionThreshold: index + 1 }]))
   });
   const balance = profession.resolvePatch({ id: 'mechanic-ownership' }).balanceContext;
   const core = createElementalistCoreState();
@@ -153,13 +151,13 @@ test('selected spear owners preserve one-shot acceptance and independent etching
   assert.equal(core.spearNextRechargeReduction, true);
   assert.equal(elementalistSpearLifecycle.reserveRecharge(context, skill, 10), 4);
   assert.equal(elementalistSpearLifecycle.reserveRecharge(context, skill, 10), 10);
-  for (const [index, chain] of ETCHING_CHAINS.entries()) {
-    const root = balance.catalog.skillsById.get(chain.etchingId);
+  for (const [index, entry] of roots.entries()) {
+    const root = balance.catalog.skillsById.get(entry.id);
     openElementalistEtching(context, root);
     for (let credit = 0; credit < index; credit++) completeElementalistSpearProgression(context, skill);
-    assert.equal(core.etchings[chain.etching].stage, 'lesser');
+    assert.equal(core.etchings[root.name].stage, 'lesser');
     completeElementalistSpearProgression(context, skill);
-    assert.equal(core.etchings[chain.etching].stage, 'full');
+    assert.equal(core.etchings[root.name].stage, 'full');
     assert.equal(facts(balance, root.id)['Completed actions to fully charge'], String(index + 1));
   }
 

@@ -5,7 +5,6 @@ import { gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { gw2BaseRecharge } from '#gw2/platform/combat/recharge.js';
 import { createAutoattackChainController } from '#gw2/platform/execution/autoattack-chains.js';
 import { createCooldownController } from '#gw2/platform/execution/cooldowns.js';
-import { CONJURE_PICKUP_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
 import { captureConjurePickup, pickUpConjure } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
@@ -410,8 +409,10 @@ test('elemental glyphs require equipment while matching command flips and summon
 
 test('conjure pickup availability and consumption require a finite, unexpired ground copy', () => {
   // Check both boundaries, including a pickup whose animation ends after expiry.
-  for (const [id, weapon] of Object.entries(CONJURE_PICKUP_WEAPONS)) {
-    const skill = elementalistCatalog.skillsById.get(Number(id));
+  for (const skill of elementalistCatalog.skills.filter(
+    (skill) => skill.type === 'Action' && skill.conjureSourceId != null
+  )) {
+    const weapon = elementalistCatalog.skillsById.get(skill.conjureSourceId).conjureWeapon;
     for (const expiry of [undefined, null, NaN, Infinity, -Infinity, -1, 0, 0.1, 1]) {
       const core = createElementalistCoreState();
 

@@ -9,6 +9,7 @@ import {
   tooltipFactorChange,
   tooltipNumber,
   tooltipSeconds,
+  type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
@@ -20,94 +21,115 @@ import { elementalistArcaneTooltips } from '#gw2/professions/elementalist/app/to
 import { elementalistEarthTooltips } from '#gw2/professions/elementalist/app/tooltips/earth.js';
 import { elementalistFireTooltips } from '#gw2/professions/elementalist/app/tooltips/fire.js';
 import { elementalistWaterTooltips } from '#gw2/professions/elementalist/app/tooltips/water.js';
-import {
-  AURA_TRANSMUTE_SKILLS,
-  CONJURE_PICKUP_WEAPONS,
-  CONJURE_SKILLS,
-  ETCHING_CHAINS
-} from '#gw2/professions/elementalist/core/constants.js';
 import { ARCANE_ECHO_REPLACEMENT_RECHARGE_SECONDS } from '#gw2/professions/elementalist/core/mechanics/arcane-echo.js';
+import { conjureSkill } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import {
   EARTH_ELEMENTAL_EVTC_PROFILE as EARTH_ELEMENTAL,
   FIRE_ELEMENTAL_EVTC_PROFILE as FIRE_ELEMENTAL
 } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 import { hammerOrbElements } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
+import { etchingRoot } from '#gw2/professions/elementalist/core/mechanics/spear.js';
+import { ELEMENTALIST_CORE_SKILLS } from '#gw2/professions/elementalist/core/skills/index.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID
 } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
+/** Explain the relationship declared by the selected skill, including patched bundle names and etching stages. */
+const mechanicSkillTooltip: DescribeSimulationTooltip<ElementalistSkill, ElementalistSkill> = (context, skill) => {
+  if (skill.conjureWeapon)
+    return skillTooltip(
+      `Conjure and equip ${skill.conjureWeapon}, replacing your weapon bar. Leave a second weapon available for a later pickup. Dropping the bundle restores your normal skills.`,
+      [fromSkill(skill.id, 'duration', 'Ground pickup lifetime', tooltipSeconds)]
+    )(context, skill);
+
+  if (skill.type === 'Action' && skill.conjureSourceId != null)
+    return skillTooltip(
+      `Pick up the available ${conjureSkill(context.catalog, skill)!.conjureWeapon} and replace your weapon bar with its skills.`
+    )(context, skill);
+
+  if (skill.transmuteAura)
+    return skillTooltip(
+      `Consume an active ${skill.transmuteAura} and apply the transmutation effects. Triggers applicable aura-transmutation traits.`
+    )(context, skill);
+
+  if (skill.etchingReleases)
+    return skillTooltip(
+      'Create an etching and unlock its lesser release while the field lasts. Completing other actions, including attunement swaps, upgrades it to the full release. Releasing either version consumes the etching.',
+      [fromSkill(skill.id, 'etchingCompletionThreshold', 'Completed actions to fully charge')]
+    )(context, skill);
+
+  return skillTooltip(
+    skill.id === etchingRoot(context.catalog, skill)!.etchingReleases!.lesser
+      ? 'Release the partially charged etching and consume it. This release is available only while that etching remains active.'
+      : 'Release the fully charged etching and consume it. This release is available only after the required charging actions.'
+  )(context, skill);
+};
+
 /** Compose core skills and trait-line tooltips from the selected balance data. */
 export const elementalistCoreTooltips = {
-  skillFacts: (balanceContext, entity) => [
-    ...(hammerOrbElements(entity)
-      ? [skillFact(balanceContext, entity.id, 'orbDuration', 'Refreshed orb duration', tooltipSeconds)]
-      : []),
-    ...(entity.resourceGain == null
-      ? []
-      : [{ name: 'Endurance gained', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) }]),
-    // Orb and conjure bonuses belong to their equipped state, including when created by a dual attack or pickup.
-    ...(hammerOrbElements(entity)?.includes('Fire')
-      ? [
-          modifierFact(
-            balanceContext,
-            'elementalist.hammer-fire-orb-strike',
-            'amount',
-            'Strike damage while Fire orb is active'
-          ),
-          modifierFact(
-            balanceContext,
-            'elementalist.hammer-fire-orb-condition',
-            'amount',
-            'Condition damage while Fire orb is active'
-          )
-        ]
-      : []),
-    ...(hammerOrbElements(entity)?.includes('Air')
-      ? [
-          modifierFact(
-            balanceContext,
-            'elementalist.hammer-air-orb',
-            'amount',
-            'Critical chance while Air orb is active'
-          )
-        ]
-      : []),
-    ...((CONJURE_SKILLS[Number(entity.id)] || CONJURE_PICKUP_WEAPONS[Number(entity.id)]) === 'Fiery Greatsword'
-      ? [
-          skillFact(balanceContext, ID.CONJURE_FIERY_GREATSWORD, 'attributeBonuses.power', 'Power while wielded'),
-          skillFact(
-            balanceContext,
-            ID.CONJURE_FIERY_GREATSWORD,
-            'attributeBonuses.conditionDamage',
-            'Condition damage while wielded'
-          )
-        ]
-      : []),
-    ...((CONJURE_SKILLS[Number(entity.id)] || CONJURE_PICKUP_WEAPONS[Number(entity.id)]) === 'Lightning Hammer'
-      ? [
-          skillFact(
-            balanceContext,
-            ID.CONJURE_LIGHTNING_HAMMER,
-            'attributeBonuses.precision',
-            'Precision while wielded'
-          ),
-          skillFact(balanceContext, ID.CONJURE_LIGHTNING_HAMMER, 'attributeBonuses.ferocity', 'Ferocity while wielded')
-        ]
-      : []),
-    ...((CONJURE_SKILLS[Number(entity.id)] || CONJURE_PICKUP_WEAPONS[Number(entity.id)]) === 'Frost Bow'
-      ? [
-          modifierFact(
-            balanceContext,
-            'elementalist.frost-bow-condition-duration',
-            'factor',
-            'Condition duration while wielded',
-            tooltipFactorChange
-          )
-        ]
-      : [])
-  ],
+  skillFacts: (balanceContext, entity) => {
+    const conjure = entity.type === 'Weapon' ? undefined : conjureSkill(balanceContext.catalog, entity);
+    const orbs = hammerOrbElements(entity);
+
+    return [
+      ...(orbs ? [skillFact(balanceContext, entity.id, 'orbDuration', 'Refreshed orb duration', tooltipSeconds)] : []),
+      ...(entity.resourceGain == null
+        ? []
+        : [{ name: 'Endurance gained', detail: tooltipDecimal(tooltipNumber(entity, 'resourceGain')) }]),
+      // Orb and conjure bonuses belong to their equipped state, including when created by a dual attack or pickup.
+      ...(orbs?.includes('Fire')
+        ? [
+            modifierFact(
+              balanceContext,
+              'elementalist.hammer-fire-orb-strike',
+              'amount',
+              'Strike damage while Fire orb is active'
+            ),
+            modifierFact(
+              balanceContext,
+              'elementalist.hammer-fire-orb-condition',
+              'amount',
+              'Condition damage while Fire orb is active'
+            )
+          ]
+        : []),
+      ...(orbs?.includes('Air')
+        ? [
+            modifierFact(
+              balanceContext,
+              'elementalist.hammer-air-orb',
+              'amount',
+              'Critical chance while Air orb is active'
+            )
+          ]
+        : []),
+      ...(conjure?.conjureWeapon === 'Fiery Greatsword'
+        ? [
+            skillFact(balanceContext, conjure.id, 'attributeBonuses.power', 'Power while wielded'),
+            skillFact(balanceContext, conjure.id, 'attributeBonuses.conditionDamage', 'Condition damage while wielded')
+          ]
+        : []),
+      ...(conjure?.conjureWeapon === 'Lightning Hammer'
+        ? [
+            skillFact(balanceContext, conjure.id, 'attributeBonuses.precision', 'Precision while wielded'),
+            skillFact(balanceContext, conjure.id, 'attributeBonuses.ferocity', 'Ferocity while wielded')
+          ]
+        : []),
+      ...(conjure?.conjureWeapon === 'Frost Bow'
+        ? [
+            modifierFact(
+              balanceContext,
+              'elementalist.frost-bow-condition-duration',
+              'factor',
+              'Condition duration while wielded',
+              tooltipFactorChange
+            )
+          ]
+        : [])
+    ];
+  },
   skills: {
     // Equipment selects the glyph; the accepted cast owns its elemental payload and recharge.
     [ID.GLYPH_OF_STORMS]: skillTooltip(
@@ -142,51 +164,16 @@ export const elementalistCoreTooltips = {
         )
       ])
     ),
+    // Authored relationships select descriptions; the callback reads the selected catalog's metadata and tuning.
     ...Object.fromEntries(
-      Object.entries(CONJURE_SKILLS).map(([id, weapon]) => [
-        id,
-        skillTooltip(
-          `Conjure and equip ${weapon}, replacing your weapon bar. Leave a second weapon available for a later pickup. Dropping the bundle restores your normal skills.`,
-          [fromSkill(Number(id), 'duration', 'Ground pickup lifetime', tooltipSeconds)]
-        )
-      ])
-    ),
-    ...Object.fromEntries(
-      Object.entries(CONJURE_PICKUP_WEAPONS).map(([id, weapon]) => [
-        id,
-        skillTooltip(`Pick up the available ${weapon} and replace your weapon bar with its skills.`)
-      ])
-    ),
-    ...Object.fromEntries(
-      Object.entries(AURA_TRANSMUTE_SKILLS).map(([id, aura]) => [
-        id,
-        skillTooltip(
-          `Consume an active ${aura} and apply the transmutation effects. Triggers applicable aura-transmutation traits.`
-        )
-      ])
-    ),
-    ...Object.fromEntries(
-      ETCHING_CHAINS.flatMap((chain) => [
-        [
-          chain.etchingId,
-          skillTooltip(
-            'Create an etching and unlock its lesser release while the field lasts. Completing other actions, including attunement swaps, upgrades it to the full release. Releasing either version consumes the etching.',
-            [fromSkill(chain.etchingId, 'etchingCompletionThreshold', 'Completed actions to fully charge')]
-          )
-        ],
-        [
-          chain.lesserId,
-          skillTooltip(
-            'Release the partially charged etching and consume it. This release is available only while that etching remains active.'
-          )
-        ],
-        [
-          chain.fullId,
-          skillTooltip(
-            'Release the fully charged etching and consume it. This release is available only after the required charging actions.'
-          )
-        ]
-      ])
+      ELEMENTALIST_CORE_SKILLS.filter(
+        (skill) =>
+          skill.conjureWeapon ||
+          (skill.type === 'Action' && skill.conjureSourceId != null) ||
+          skill.transmuteAura ||
+          skill.etchingReleases ||
+          skill.etchingRootId != null
+      ).map((skill) => [skill.id, mechanicSkillTooltip])
     ),
     [SHARED_SKILL_IDS.DODGE]: skillTooltip(
       'Spend endurance to dodge and trigger Evasive Arcana when selected. Incoming attacks are outside combat simulation scope.',

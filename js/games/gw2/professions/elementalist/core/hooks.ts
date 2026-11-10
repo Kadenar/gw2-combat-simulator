@@ -9,7 +9,6 @@ import {
   elementalistOnCastCommit,
   elementalistOnCastStart
 } from '#gw2/professions/elementalist/core/cast-lifecycle.js';
-import { CONJURED_WEAPONS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistBuffPolicies, elementalistEffectStates } from '#gw2/professions/elementalist/core/effect-state.js';
 import { resetElementalistAttunementCooldowns } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
 import {
@@ -18,7 +17,10 @@ import {
   prepareElementalistAura
 } from '#gw2/professions/elementalist/core/mechanics/auras.js';
 import { elementalistCoreAvailability } from '#gw2/professions/elementalist/core/mechanics/availability.js';
-import { elementalistConjureLifecycle } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
+import {
+  elementalistConjureLifecycle,
+  isConjuredWeapon
+} from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { elementalistElementalCompanionId } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
 import { elementalistElementalLifecycle } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
@@ -86,7 +88,7 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
       event = prepareElementalistAura(runtime.helpers, runtime, event);
       const elemental = runtime.profession.core.summonedElemental;
 
-      if (event.type === 'damage' && CONJURED_WEAPONS.has(String(event.skillWeapon)))
+      if (event.type === 'damage' && isConjuredWeapon(runtime.helpers, String(event.skillWeapon)))
         event = { ...event, weaponStrengthSource: 'equipped' };
 
       runtime.fireTrigger(elementalistEventPreparing, { event });

@@ -35,6 +35,7 @@ test('Fresh Air keeps only future strike wakes for selected builds', () => {
   for (const selected of [false, true]) {
     const core = createElementalistCoreState();
     const runtime = {
+      helpers: elementalistCatalog,
       profession: { core },
       time: 1,
       config: {},

@@ -27,12 +27,8 @@ import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { displayedSkill, resolveSkillSelector } from '#gw2/platform/skills/selectors.js';
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
-import {
-  AURA_TRANSMUTE_SKILLS,
-  CONJURE_PICKUP_WEAPONS,
-  CONJURE_SKILLS,
-  ETCHING_CHAINS
-} from '#gw2/professions/elementalist/core/constants.js';
+import { conjureSkill } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
+import { etchingRoot } from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   isElementalistAttunement,
@@ -172,14 +168,12 @@ function paletteWeaponSkills(
   // Each spear etching occupies slot 5 throughout its lesser/full progression;
   // expose only the stage represented by the live etching state.
   const projectedSkills = skills.filter((skill) => {
-    const chain = ETCHING_CHAINS.find((candidate) =>
-      [candidate.etchingId, candidate.lesserId, candidate.fullId].some((id) => id === skill.id)
-    );
+    const root = etchingRoot(catalog, skill);
 
-    if (!chain) return true;
+    if (!root) return true;
 
-    const progress = state[STATE.ETCHINGS]?.[chain.etching];
-    const displayedId = !progress ? chain.etchingId : progress.stage === 'full' ? chain.fullId : chain.lesserId;
+    const progress = state[STATE.ETCHINGS]?.[root.name];
+    const displayedId = !progress ? root.id : root.etchingReleases![progress.stage];
     return skill.id === displayedId;
   });
 
@@ -262,9 +256,9 @@ function elementalistPaletteGroups(
   const selectedSkillIds = selectedSkillIdSet(context.build?.selectedSkillIds || context.config?.selectedSkillIds);
   // Selected conjures keep a stable bar below utilities even when their bundle is not currently wielded.
   const conjures = new Set(
-    Object.entries(CONJURE_SKILLS)
-      .filter(([id]) => selectedSkillIds.has(Number(id)))
-      .map(([, weapon]) => weapon)
+    catalog.skills
+      .filter((skill) => skill.conjureWeapon && selectedSkillIds.has(skill.id))
+      .map((skill) => skill.conjureWeapon!)
   );
 
   if (conjureEquipped) conjures.add(conjureEquipped);
@@ -275,7 +269,7 @@ function elementalistPaletteGroups(
       label: weapon === 'Lightning Hammer' ? 'LH' : weapon,
       placement: 'utility',
       skillIds: catalog.skills
-        .filter((skill) => skill.type === 'Weapon' && (skill.weapon || skill.skillWeapon) === weapon)
+        .filter((skill) => skill.type === 'Weapon' && conjureSkill(catalog, skill)?.conjureWeapon === weapon)
         .map((skill) => skill.id),
       // Like Engineer kit stows, each conjure bar ends with its own Drop Bundle tile; the
       // entry's bundle tag lets the palette enable only the copy for the wielded conjure.
@@ -294,13 +288,20 @@ function elementalistPaletteGroups(
 
 // Keep pickups only while their ground copy exists. Drop Bundle normally renders in its conjure
 // row, so this gate only keeps it out of the action row when no conjure bar is shown.
-function paletteActionSkills(context: ElementalistUiContext, skills: readonly Skill[]): Skill[] {
+function paletteActionSkills(
+  catalog: Readonly<CanonicalCatalog<ElementalistSkill>>,
+  context: ElementalistUiContext,
+  skills: readonly ElementalistSkill[]
+): Skill[] {
   const state = elementalistUiState(context);
   const now = context.time || 0;
   return skills.filter((skill) => {
     if (Number(skill.id) === ID.DROP_BUNDLE) return Boolean(state[STATE.CONJURE_EQUIPPED]);
 
-    const pickupWeapon = CONJURE_PICKUP_WEAPONS[Number(skill.id)];
+    const pickupWeapon =
+      skill.type === 'Action' && skill.conjureSourceId != null
+        ? conjureSkill(catalog, skill)!.conjureWeapon
+        : undefined;
     return !pickupWeapon || (state[STATE.CONJURE_PICKUPS]?.[pickupWeapon] ?? 0) > now;
   });
 }
@@ -585,13 +586,15 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
         };
       }
 
-      const aura = AURA_TRANSMUTE_SKILLS[Number(skill.id)] || AURA_TRANSMUTE_SKILLS[Number(skill.flipSkillId)];
+      const aura =
+        skill.transmuteAura ??
+        (skill.flipSkillId == null ? undefined : catalog.skillsById.get(skill.flipSkillId)?.transmuteAura);
 
       if (aura) {
         const active = Boolean(
           state[STATE.ACTIVE_AURAS]?.some((entry) => entry.type === aura && entry.expiresAt > (context.time || 0))
         );
-        return { tileActive: Boolean(AURA_TRANSMUTE_SKILLS[Number(skill.id)]) === active };
+        return { tileActive: Boolean(skill.transmuteAura) === active };
       }
     },
     // Expose the shared seed control alongside Elementalist's own simulation assumptions.
@@ -601,7 +604,7 @@ export function bindElementalistCoreUi(catalog: Readonly<CanonicalCatalog<Elemen
       ...PERMANENT_COMBO_FIELD_ASSUMPTION_CONTROLS
     ],
     paletteGroups: (context: ElementalistUiContext) => elementalistPaletteGroups(catalog, context),
-    paletteActionSkills,
+    paletteActionSkills: (context, skills) => paletteActionSkills(catalog, context, skills),
     paletteWeaponSkills: (context: ElementalistUiContext, skills: readonly Skill[]) =>
       paletteWeaponSkills(catalog, context, skills),
     updatePaletteControl,

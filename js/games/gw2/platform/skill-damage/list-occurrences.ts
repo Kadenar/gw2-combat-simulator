@@ -41,7 +41,7 @@ export function damageOccurrences(profession: RuntimeProfession<object>, config:
   const sigils = (config.sigilSets ?? []).map((set) => set.names ?? []);
   for (const name of new Set(sigils.flat().filter(Boolean))) {
     const sigil = SIGIL_DATA[name];
-    const proc = sigil && SIGIL_PROCS[sigil.id as keyof typeof SIGIL_PROCS];
+    const proc = sigil && SIGIL_PROCS[sigil.id];
 
     if (!proc || !['strike', 'condition', 'strike-condition', 'next-hit-condition'].includes(proc.effect)) continue;
 

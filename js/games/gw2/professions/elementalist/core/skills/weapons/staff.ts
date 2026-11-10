@@ -564,6 +564,8 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 10,
     skillFamily: 'Weapon skill',
     castTimeMs: 360,
+    // Availability and consumption use the same declared aura.
+    transmuteAura: AURA.MAGNETIC,
     effects: [
       {
         type: 'strike',

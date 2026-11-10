@@ -14,10 +14,6 @@ import { effectNumber, requireEffect, skillNumber } from '#gw2/platform/skills/b
 import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import { elementalistBuffRequest } from '#gw2/professions/elementalist/core/events.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
-import {
-  BASIC_FAMILIARS,
-  FAMILIAR_ELEMENTS
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import {
   elementalProcessionEffects,
@@ -400,7 +396,7 @@ function flushPendingWeaponChargeGains(context: ElementalistRuntime, state: Evok
  * Waits for in-flight familiar casts and charge grants; missing resources without
  * a pending grant remain a final denial for this command.
  */
-function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Skill): AvailabilityResult {
+function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: ElementalistSkill): AvailabilityResult {
   const state = evokerState.from(context.profession);
   const execution = familiarExecution(state);
 
@@ -413,10 +409,10 @@ function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Sk
     );
   }
 
-  // anything that is not a familiar skill is unconstrained by Evoker state
-  const element = FAMILIAR_ELEMENTS.get(skill.id);
+  // Familiar admission follows the selected skill's family and element.
+  if (skill.skillFamily !== 'Familiar') return { ready: true };
 
-  if (!element) return { ready: true };
+  const element = skill.attunement;
 
   if (state.element !== element) {
     return denyCast(
@@ -426,7 +422,7 @@ function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Sk
   }
 
   // basic familiar requires a full charge bar and no empowered stack (empowered means the flip form is active)
-  if (BASIC_FAMILIARS.has(skill.id)) {
+  if (skill.flipSkillId != null) {
     const requiredEmpowered = state.empoweredCharges.maximum;
 
     // Recorded familiar inputs can precede the simulator's weapon completion; wait for real pending grants.
@@ -471,38 +467,24 @@ function availability(context: MechanicQueriesOf<ElementalistRuntime>, skill: Sk
       );
 }
 
-/** Basic-to-empowered identity; delays and replacement windows belong to the basic skills. */
-const FAMILIAR_EMPOWERED_BY_BASIC: ReadonlyMap<SkillId, SkillId> = new Map([
-  [ID.IGNITE, ID.CONFLAGRATION],
-  [ID.ZAP, ID.LIGHTNING_BLITZ],
-  [ID.SPLASH, ID.BUOYANT_DELUGE],
-  [ID.CALCIFY, ID.SEISMIC_IMPACT]
-]);
-
-/** Reverse index of the flip pairing: empowered familiar ID back to its basic form. */
-const FAMILIAR_BASIC_BY_EMPOWERED: ReadonlyMap<SkillId, SkillId> = new Map(
-  [...FAMILIAR_EMPOWERED_BY_BASIC].map(([basic, empowered]) => [empowered, basic])
-);
-
 /** A skill-declared start owns its reservation and the basic/empowered replacement window. */
 function beginFamiliarCast(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
   const state = evokerState.from(context.profession);
   const execution = familiarExecution(state);
-  const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
 
   // Familiar readiness blocks other actions until the reservation ends.
-  if (familiarElement) {
+  if (skill.skillFamily === 'Familiar') {
     execution.activeFamiliarCast = {
       reservationId: cast.id,
       endsAt: cast.effectiveEnd,
-      resetsCharges: BASIC_FAMILIARS.has(skill.id)
+      resetsCharges: skill.flipSkillId != null
     };
   }
 
   // if the empowered familiar was recently cast and the basic fires within the window, the empowered effects are retroactively cancelled
-  const empoweredSkill = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
+  const empoweredSkill = skill.flipSkillId;
 
-  if (empoweredSkill) {
+  if (empoweredSkill != null) {
     const window = skillNumber(skill, 'duration');
     const basicKey = String(skill.id);
     const recent = execution.lastEmpoweredFamiliarByBasic[basicKey];
@@ -514,9 +496,9 @@ function beginFamiliarCast(context: ElementalistRuntime, cast: RuntimeCast<Eleme
     }
   }
 
-  const basic = FAMILIAR_BASIC_BY_EMPOWERED.get(skill.id);
+  const basic = skill.flipParentId;
 
-  if (basic) {
+  if (basic != null) {
     execution.lastEmpoweredFamiliarByBasic[String(basic)] = {
       skillId: skill.id,
       activationId: cast.id,
@@ -564,10 +546,10 @@ function settleBasicFamiliar(context: ElementalistRuntime, cast: RuntimeCast<Ele
   context.resourceController.replace('familiarCharges', 0);
   // Complete the conversion before publishing its combined reading or flushing deferred rewards.
   context.resourceController.grant('empoweredCharges', 1);
-  const flip = FAMILIAR_EMPOWERED_BY_BASIC.get(skill.id);
-  const empowered = flip ? context.helpers.skillsById.get(flip) : undefined;
+  const flip = skill.flipSkillId;
+  const empowered = flip != null ? context.helpers.skillsById.get(flip) : undefined;
 
-  if (flip && empowered) {
+  if (empowered) {
     const delay = skillNumber(skill, 'empoweredUnlockDelay');
     context.cooldownController.setReadyAt(
       empowered.id,
@@ -583,9 +565,9 @@ export const evokerFamiliarLifecycle = {
   resources: { familiarCharges: familiarChargePolicy, empoweredCharges: empoweredChargePolicy },
   availability,
   // Familiar packets keep cancellable cast ownership without recursively resubmitting during preparation.
-  effectOwner(_runtime, event) {
+  effectOwner(runtime, event) {
     if (
-      FAMILIAR_ELEMENTS.has(event.skillId ?? event.sourceId) &&
+      runtime.skillFor(event.skillId ?? event.sourceId)?.skillFamily === 'Familiar' &&
       ['damage', 'condition', 'control'].includes(event.type)
     )
       return { id: String(event.activationId), generation: 0 };

@@ -176,6 +176,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         startAnchor: 'castEnd'
       }
     ],
+    etchingReleases: { lesser: ID.LESSER_VOLCANO, full: ID.VOLCANO },
     effects: [
       {
         type: 'boon',
@@ -202,6 +203,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 600,
+    etchingRootId: ID.ETCHING_VOLCANO,
     effects: [
       {
         type: 'strike',
@@ -286,6 +288,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 600,
+    etchingRootId: ID.ETCHING_VOLCANO,
     effects: [
       {
         type: 'strike',
@@ -425,6 +428,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         startAnchor: 'castEnd'
       }
     ],
+    etchingReleases: { lesser: ID.LESSER_JO_KULHLAUP, full: ID.JO_KULHLAUP },
     effects: [],
     // Roots open their field-length window; releases consume only their own etching.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }]
@@ -440,6 +444,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 600,
+    etchingRootId: ID.ETCHING_JO_KULHLAUP,
     effects: [
       {
         type: 'strike',
@@ -467,6 +472,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 600,
+    etchingRootId: ID.ETCHING_JO_KULHLAUP,
     effects: [
       {
         type: 'strike',
@@ -646,6 +652,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         startAnchor: 'castEnd'
       }
     ],
+    etchingReleases: { lesser: ID.LESSER_DERECHO, full: ID.DERECHO },
     effects: [
       {
         type: 'boon',
@@ -671,6 +678,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 600,
+    etchingRootId: ID.ETCHING_DERECHO,
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 2, canCrit: true },
       { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
@@ -689,6 +697,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 600,
+    etchingRootId: ID.ETCHING_DERECHO,
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 4, canCrit: true },
       { type: 'control', applications: 1, controlKind: CONTROL.DAZE }
@@ -804,6 +813,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
         startAnchor: 'castEnd'
       }
     ],
+    etchingReleases: { lesser: ID.LESSER_HABOOB, full: ID.HABOOB },
     effects: [],
     // Roots open their field-length window; releases consume only their own etching.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.open-etching' } }]
@@ -819,6 +829,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 600,
+    etchingRootId: ID.ETCHING_HABOOB,
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1.75 },
       {
@@ -845,6 +856,7 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 600,
+    etchingRootId: ID.ETCHING_HABOOB,
     effects: impactEffects({ atMs: 560, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 4.25 },
       {

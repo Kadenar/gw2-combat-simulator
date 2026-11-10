@@ -6,11 +6,10 @@ import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireEffect, requireSkill, skillNumber, type SkillSource } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import { elementalistControlRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
-import { etchingChain, skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type {
@@ -93,39 +92,46 @@ function empowerSpearPacket(
   };
 }
 
-/** Root/release declarations own their state; the observer below only grants ordinary cast credit. */
-export function openElementalistEtching(context: ElementalistRuntime, skill: Skill): void {
-  const chain = etchingChain(skill.id)!;
+/** Roots own release identities and tuning; either release resolves that same selected root. */
+export function etchingRoot(
+  source: SkillSource<ElementalistSkill>,
+  skill: ElementalistSkill
+): ElementalistSkill | undefined {
+  return skill.etchingRootId == null
+    ? skill.etchingReleases
+      ? skill
+      : undefined
+    : requireSkill(source, skill.etchingRootId);
+}
+
+/** Opening records the selected root's field window for both release stages. */
+export function openElementalistEtching(context: ElementalistRuntime, skill: ElementalistSkill): void {
   const expiresAt = context.time + Number(skill.comboFields?.[0]?.duration ?? 0);
-  professionCoreState(context.profession).etchings[chain.etching] = { stage: 'lesser', otherCasts: 0, expiresAt };
+  professionCoreState(context.profession).etchings[skill.name] = { stage: 'lesser', otherCasts: 0, expiresAt };
   context.schedule('elementalist.etching-expire', expiresAt, null);
 }
 
-/** The selected release spends its etching; the cast-progress observer must not credit that release toward another one. */
-export function consumeElementalistEtching(context: ElementalistRuntime, skill: Skill): void {
-  professionCoreState(context.profession).etchings[etchingChain(skill.id)!.etching] = null;
+/** A release consumes only the progress owned by its declared root. */
+export function consumeElementalistEtching(context: ElementalistRuntime, skill: ElementalistSkill): void {
+  professionCoreState(context.profession).etchings[etchingRoot(context.helpers, skill)!.name] = null;
 }
 
 /** Releases never credit another etching, and a root never credits itself. */
-export function completeElementalistSpearProgression(context: ElementalistRuntime, skill: Skill): void {
+export function completeElementalistSpearProgression(context: ElementalistRuntime, skill: ElementalistSkill): void {
   const state = professionCoreState(context.profession);
-  const chain = etchingChain(skill.id);
 
-  if (chain && Number(skill.id) !== chain.etchingId) return;
+  if (skill.etchingRootId != null) return;
 
-  for (const candidate of ETCHING_CHAINS) {
-    const progress = state.etchings[candidate.etching];
+  for (const root of context.helpers.skills) {
+    if (!root.etchingReleases || skill.id === root.id) continue;
 
-    if (!progress || progress.stage !== 'lesser' || Number(skill.id) === candidate.etchingId) continue;
+    const progress = state.etchings[root.name];
+
+    if (!progress || progress.stage !== 'lesser') continue;
 
     // Full etchings stop earning credit; retain the crossing count rather than consuming or clamping it.
-    const counter = advanceCounter(
-      progress.otherCasts,
-      1,
-      skillNumber(requireSkill(context.helpers, candidate.etchingId), 'etchingCompletionThreshold'),
-      'retain'
-    );
-    state.etchings[candidate.etching] = {
+    const counter = advanceCounter(progress.otherCasts, 1, skillNumber(root, 'etchingCompletionThreshold'), 'retain');
+    state.etchings[root.name] = {
       ...progress,
       stage: counter.reached ? 'full' : 'lesser',
       otherCasts: counter.value

@@ -9,6 +9,7 @@ import {
   tooltipPercent,
   tooltipSeconds,
   traitTooltip,
+  type DescribeSimulationTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
 import { RECIPIENT } from '#gw2/platform/constants.js';
@@ -19,37 +20,36 @@ import {
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import {
-  BASIC_FAMILIARS,
-  FAMILIAR_ELEMENTS
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
-import {
   elementalProcessionEffects,
   IGNITE_TIERS,
   igniteTierEffect,
   projectIgniteEffects
 } from '#gw2/professions/elementalist/specializations/evoker/mechanics/familiar-projection.js';
+import { EVOKER_FAMILIAR_SKILL_MECHANICS } from '#gw2/professions/elementalist/specializations/evoker/skills/familiar-skills.js';
 import { familiarBlessingEffects } from '#gw2/professions/elementalist/specializations/evoker/traits/familiar-blessing.js';
+
+/** Read the familiar form from the selected catalog so its charge requirements match combat. */
+const familiarTooltip: DescribeSimulationTooltip = (context, entity) => {
+  const skill = requireSkill(context.catalog, entity.id);
+  const basic = skill.flipSkillId != null;
+  return skillTooltip(
+    basic
+      ? 'Release the matching familiar, spend the full charge bar, and add an empowered stack. Reaching the stack threshold unlocks empowered familiars. Using this basic familiar too soon after its empowered version cancels the remaining empowered effects.'
+      : 'Release the empowered familiar and spend your empowered stacks. Its effects and eligible familiar traits apply while its sequence runs.',
+    [
+      fromProfile(
+        TRAIT.EVOCATION,
+        basic ? 'maximumStacks' : 'minimumStacks',
+        basic ? 'Familiar charges required' : 'Empowered stacks required'
+      )
+    ]
+  )(context, skill);
+};
 
 /** Describe evoker tooltips from the selected balance data. */
 export const evokerTooltips = {
   skills: {
-    ...Object.fromEntries(
-      [...FAMILIAR_ELEMENTS].map(([id]) => [
-        id,
-        skillTooltip(
-          BASIC_FAMILIARS.has(id)
-            ? 'Release the matching familiar, spend the full charge bar, and add an empowered stack. Reaching the stack threshold unlocks empowered familiars. Using this basic familiar too soon after its empowered version cancels the remaining empowered effects.'
-            : 'Release the empowered familiar and spend your empowered stacks. Its effects and eligible familiar traits apply while its sequence runs.',
-          [
-            fromProfile(
-              TRAIT.EVOCATION,
-              BASIC_FAMILIARS.has(id) ? 'maximumStacks' : 'minimumStacks',
-              BASIC_FAMILIARS.has(id) ? 'Familiar charges required' : 'Empowered stacks required'
-            )
-          ]
-        )
-      ])
-    ),
+    ...Object.fromEntries(Object.keys(EVOKER_FAMILIAR_SKILL_MECHANICS).map((id) => [id, familiarTooltip])),
     [ID.REJUVENATE]: skillTooltip('Refill the familiar charge bar. Healing is outside combat simulation scope.', [
       fromProfile(TRAIT.EVOCATION, 'maximumStacks', 'Base charges after use')
     ]),

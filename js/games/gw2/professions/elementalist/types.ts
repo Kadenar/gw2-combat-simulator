@@ -6,12 +6,13 @@
  * Elementalist-flavored context/event types every module's handlers are written against.
  */
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
+import type { AuraName } from '#gw2/platform/constants.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { MechanicCombatContext, MechanicContext } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { ProfessionUiCallbackContext, ProfessionUiContract } from '#gw2/platform/profession-presentation/types.js';
 import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { NumericSkillFields } from '#gw2/platform/skills/field-specs.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
+import type { Skill, SkillId } from '#gw2/platform/skills/types.js';
 import type { ElementalistCanonicalBuild, ElementalistConfig } from '#gw2/professions/elementalist/build/types.js';
 import type { ELEMENTALIST_CORE_SKILL_FIELDS } from '#gw2/professions/elementalist/core/catalog-fields.js';
 import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
@@ -85,6 +86,14 @@ export interface ElementalistSkill
       typeof ELEMENTALIST_CORE_SKILL_FIELDS & typeof WEAVER_SKILL_FIELDS & typeof EVOKER_SKILL_FIELDS
     > {
   readonly attunement?: string;
+  /** Conjuring skills own the bundle identity; pickups and attacks reference that skill for its selected tuning. */
+  readonly conjureWeapon?: string;
+  readonly conjureSourceId?: SkillId;
+  /** Transmutation consumes this aura regardless of which skill granted it. */
+  readonly transmuteAura?: AuraName;
+  /** Roots name both releases; releases point back to the root that owns their progress and tuning. */
+  readonly etchingReleases?: { readonly lesser: SkillId; readonly full: SkillId };
+  readonly etchingRootId?: SkillId;
   /** Marks the four overload skills that share overload readiness and dwell. */
   readonly overload?: boolean;
 }

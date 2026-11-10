@@ -12,19 +12,12 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
 import { requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { BalanceProfile, Skill } from '#gw2/platform/skills/types.js';
-import { ETCHING_CHAINS } from '#gw2/professions/elementalist/core/constants.js';
 import type { ElementalistAuraState, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import type { ElementalistRuntime } from '#gw2/professions/elementalist/types.js';
 
 /** Reads the weapon a skill belongs to, tolerating either catalog field spelling. */
 export function skillWeapon(skill: Skill): string {
   return skill.weapon || skill.skillWeapon || '';
-}
-
-/** Finds the spear etching chain a stable skill ID participates in, if any. */
-export function etchingChain(skillId: Skill['id']) {
-  const id = Number(skillId);
-  return ETCHING_CHAINS.find((chain) => id === chain.etchingId || id === chain.lesserId || id === chain.fullId);
 }
 
 /** Returns the tracked application of one aura still active at `at`, or null. */

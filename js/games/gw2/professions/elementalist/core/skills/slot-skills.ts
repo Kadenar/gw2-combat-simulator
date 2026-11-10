@@ -186,6 +186,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         when: (context) => wieldedConjure(context) === 'Frost Bow'
       }
     ],
+    conjureWeapon: 'Frost Bow',
     effects: [],
     // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }]
@@ -205,6 +206,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 60,
     skillFamily: 'Conjure',
     castTimeMs: 880,
+    conjureWeapon: 'Lightning Hammer',
     effects: [],
     // Equip this bundle and create its one-use ground copy on commitment, then emit the weapon-swap event.
     sideEffects: [{ on: 'castCommit', do: { type: 'elementalist.equip-conjure' } }]
@@ -585,6 +587,7 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
     cooldown: 180,
     skillFamily: 'Conjure',
     castTimeMs: 1160,
+    conjureWeapon: 'Fiery Greatsword',
     effects: impactEffects({ atMs: 1440, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 1 },
       { type: 'condition', condition: CONDITION.BURNING, stacks: 1, duration: 3 }

@@ -1,7 +1,7 @@
 /**
  * Owns Core Elementalist conjured-bundle weapon skill definitions.
  *
- * The table contains Frost Bow, Lightning Hammer, and Fiery Greatsword packet data only.
+ * Bundle attacks reference their conjuring skill for equipment identity and lifetime.
  * Equip, pickup, and recharge state lives in `core/mechanics/conjures.ts`.
  */
 import { BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, STATUS } from '#gw2/platform/constants.js';
@@ -9,10 +9,11 @@ import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hitbox.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /** Complete conjured-bundle weapon skill definitions keyed by GW2 skill ID. */
 // Shared impact timing keeps companion payloads independent and in their authored order.
-export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
+export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
   // --- Frost Bow (conjure) ---------------------------------------------------
   // `skillWeapon` is the bundle gate: availability blocks these unless the matching conjure is
   // equipped, and blocks normal weapon skills while it is (see core/mechanics/availability.ts).
@@ -28,6 +29,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 600,
+    conjureSourceId: ID.CONJURE_FROST_BOW,
     effects: [
       {
         type: 'strike',
@@ -52,6 +54,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 6,
     skillFamily: 'Weapon skill',
     castTimeMs: 1600,
+    conjureSourceId: ID.CONJURE_FROST_BOW,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -89,6 +92,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 15,
     skillFamily: 'Weapon skill',
     castTimeMs: 560,
+    conjureSourceId: ID.CONJURE_FROST_BOW,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
@@ -118,6 +122,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       cooldown: 20,
       skillFamily: 'Weapon skill',
       castTimeMs: 2360,
+      conjureSourceId: ID.CONJURE_FROST_BOW,
       // Share timing defaults while preserving each packet, effect order, and local schedule.
       effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
         strikeTimeline([
@@ -171,6 +176,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 30,
     skillFamily: 'Weapon skill',
     castTimeMs: 1120,
+    conjureSourceId: ID.CONJURE_FROST_BOW,
     effects: impactEffects({ atMs: 1120, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.8, canCrit: true },
       { type: 'condition', condition: CONDITION.CHILLED, stacks: 1, duration: 5 },
@@ -192,6 +198,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 480,
+    conjureSourceId: ID.CONJURE_LIGHTNING_HAMMER,
     effects: [
       {
         type: 'strike',
@@ -218,6 +225,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 640,
+    conjureSourceId: ID.CONJURE_LIGHTNING_HAMMER,
     effects: [
       {
         type: 'strike',
@@ -244,6 +252,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 440,
+    conjureSourceId: ID.CONJURE_LIGHTNING_HAMMER,
     effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -275,6 +284,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 8,
     skillFamily: 'Weapon skill',
     castTimeMs: 960,
+    conjureSourceId: ID.CONJURE_LIGHTNING_HAMMER,
     effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
       {
         type: 'strike',
@@ -300,6 +310,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 18,
     skillFamily: 'Weapon skill',
     castTimeMs: 960,
+    conjureSourceId: ID.CONJURE_LIGHTNING_HAMMER,
     effects: impactEffects({ atMs: 680, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.33, canCrit: true },
       { type: 'buff', kind: STATUS.SUPERSPEED, stacks: 1, duration: 3 },
@@ -318,6 +329,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       cooldown: 20,
       skillFamily: 'Weapon skill',
       castTimeMs: 920,
+      conjureSourceId: ID.CONJURE_LIGHTNING_HAMMER,
       effects: [
         strikeTimeline(
           [
@@ -367,6 +379,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
         startAnchor: 'castEnd'
       }
     ],
+    conjureSourceId: ID.CONJURE_LIGHTNING_HAMMER,
     effects: impactEffects({ atMs: 200, timingAnchor: 'castStart', timingScale: 'cast' }, [
       { type: 'strike', coefficient: 0.5, canCrit: true },
       { type: 'control', applications: 1, controlKind: CONTROL.STUN }
@@ -386,6 +399,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 0,
     skillFamily: 'Weapon skill',
     castTimeMs: 2160,
+    conjureSourceId: ID.CONJURE_FIERY_GREATSWORD,
     effects: [
       {
         type: 'strike',
@@ -445,6 +459,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 5,
     skillFamily: 'Weapon skill',
     castTimeMs: 720,
+    conjureSourceId: ID.CONJURE_FIERY_GREATSWORD,
     effects: [
       {
         type: 'condition',
@@ -503,6 +518,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
       cooldown: 5,
       skillFamily: 'Weapon skill',
       castTimeMs: 1320,
+      conjureSourceId: ID.CONJURE_FIERY_GREATSWORD,
       // Share timing defaults while preserving each packet, effect order, and local schedule.
       effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
         strikeTimeline(
@@ -547,6 +563,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 10,
     skillFamily: 'Weapon skill',
     castTimeMs: 1280,
+    conjureSourceId: ID.CONJURE_FIERY_GREATSWORD,
     effects: [
       {
         type: 'strike',
@@ -572,6 +589,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
     cooldown: 15,
     skillFamily: 'Weapon skill',
     castTimeMs: 760,
+    conjureSourceId: ID.CONJURE_FIERY_GREATSWORD,
     effects: [
       {
         type: 'strike',

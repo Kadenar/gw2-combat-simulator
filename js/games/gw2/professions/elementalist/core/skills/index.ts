@@ -19,31 +19,33 @@ import { ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS } from '#gw2/professions/elemen
 import { ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/weapons/staff.js';
 import { ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/weapons/sword.js';
 import { ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS } from '#gw2/professions/elementalist/core/skills/weapons/warhorn.js';
+import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
 /**
  * Composes physical-weapon definitions with Core attunements, utilities, conjures, and synthetic actions.
  *
  * Each keyed entry contributes its complete definition through the Core module.
  */
-const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = composeSkillDefinitions(
-  ELEMENTALIST_CONJURE_SKILL_MECHANICS,
-  ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS,
-  ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS,
-  ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS,
-  ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS,
-  ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS,
-  ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS,
-  ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS,
-  ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS,
-  ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS,
-  ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS,
-  ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS,
-  ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS
-);
+const ELEMENTALIST_CORE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> =
+  composeSkillDefinitions(
+    ELEMENTALIST_CONJURE_SKILL_MECHANICS,
+    ELEMENTALIST_CORE_TRAIT_SKILL_MECHANICS,
+    ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS,
+    ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS,
+    ELEMENTALIST_CORE_DAGGER_SKILL_MECHANICS,
+    ELEMENTALIST_CORE_FOCUS_SKILL_MECHANICS,
+    ELEMENTALIST_CORE_HAMMER_SKILL_MECHANICS,
+    ELEMENTALIST_CORE_PISTOL_SKILL_MECHANICS,
+    ELEMENTALIST_CORE_SCEPTER_SKILL_MECHANICS,
+    ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS,
+    ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS,
+    ELEMENTALIST_CORE_SWORD_SKILL_MECHANICS,
+    ELEMENTALIST_CORE_WARHORN_SKILL_MECHANICS
+  );
 
 /** Preserves the catalog's existing declaration order while families own their entries. */
 /** One complete module collection includes authored skills, generated attacks, and simulator actions. */
-export const ELEMENTALIST_CORE_SKILLS = Object.freeze([
+export const ELEMENTALIST_CORE_SKILLS: readonly ElementalistSkill[] = Object.freeze([
   ...materializeSkillDefinitions(ELEMENTALIST_CORE_SKILL_MECHANICS),
   ...ELEMENTALIST_CORE_ELEMENTAL_EXTRA_SKILLS,
   ...ELEMENTALIST_CORE_ACTION_EXTRA_SKILLS

@@ -38,15 +38,12 @@ import {
   refreshElementalistBuffs
 } from '#gw2/professions/elementalist/core/mechanics/resolution-helpers.js';
 import type { ElementalistCastCompleted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
+import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import {
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
 import { reenterEvokerAttunement } from '#gw2/professions/elementalist/specializations/evoker/mechanics/attunements.js';
-import {
-  BASIC_FAMILIARS,
-  FAMILIAR_ELEMENTS
-} from '#gw2/professions/elementalist/specializations/evoker/mechanics/constants.js';
 import { grantElectricEnchantments } from '#gw2/professions/elementalist/specializations/evoker/mechanics/electric-enchantment.js';
 import {
   evokerCastCompleted,
@@ -158,7 +155,7 @@ function applyGalvanicEnchantment(
   cast: RuntimeCast<ElementalistSkill>,
   skill: Skill
 ): void {
-  if (FAMILIAR_ELEMENTS.has(skill.id)) {
+  if (skill.skillFamily === 'Familiar') {
     const profile = requireBalanceProfile(context.helpers, TRAIT.GALVANIC_ENCHANTMENT);
     grantElectricEnchantments(context, {
       at: cast.effectiveEnd,
@@ -281,7 +278,7 @@ const familiarsProwess = defineTrait({
   ],
   triggers: [
     onTriggerPoint(evokerCastCompleted, {
-      when: (_runtime: unknown, { cast }: ElementalistCastCompleted) => FAMILIAR_ELEMENTS.has(cast.skill.id),
+      when: (_runtime: unknown, { cast }: ElementalistCastCompleted) => cast.skill.skillFamily === 'Familiar',
       run: (runtime: ElementalistRuntime, { cast }: ElementalistCastCompleted) =>
         grantFamiliarProwess(runtime, cast, cast.skill)
     })
@@ -483,14 +480,14 @@ function applyWeaponSkillRechargeMultiplier(
 function applySpecializedElementsTrait(
   context: ElementalistRuntime,
   cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill
+  skill: ElementalistSkill
 ): void {
-  const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
+  const familiarElement = skill.skillFamily === 'Familiar' ? (skill.attunement as ElementalistAttunement) : undefined;
 
   // Basic familiars retain 90% weapon recharge; empowered familiars retain
   // 67% and trigger the elemental entry effects.
   if (familiarElement) {
-    const basic = BASIC_FAMILIARS.has(skill.id);
+    const basic = skill.flipSkillId != null;
     applyWeaponSkillRechargeMultiplier(
       context,
       cast,
@@ -583,9 +580,13 @@ function grantFamiliarProwess(context: ElementalistRuntime, cast: RuntimeCast<El
 }
 
 /** Familiar's Blessing grants the completed familiar's element to the party after Prowess. */
-function grantFamiliarBlessing(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>, skill: Skill): void {
+function grantFamiliarBlessing(
+  context: ElementalistRuntime,
+  cast: RuntimeCast<ElementalistSkill>,
+  skill: ElementalistSkill
+): void {
   const at = cast.effectiveEnd;
-  const familiarElement = FAMILIAR_ELEMENTS.get(skill.id);
+  const familiarElement = skill.skillFamily === 'Familiar' ? (skill.attunement as ElementalistAttunement) : undefined;
 
   if (familiarElement) {
     // Blessing reaches the five-person party so ally boon generation and uptime include familiar grants.
