@@ -33,7 +33,7 @@ import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/pro
 import {
   activeInstrumentCount,
   hasLute
-} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
+} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-windows.js';
 import { afterimageInstrumentAttack } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import {
   troubadourCrescendoResolved,

@@ -1,9 +1,18 @@
+/** Own instrument commitments, playing windows, preview state, and scheduled performance work. */
+import { ENDURANCE, enduranceRegenerationRate } from '#gw2/platform/combat/resources/endurance-rules.js';
+import type { EndurancePolicy } from '#gw2/platform/combat/resources/resource-policy.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import { castWasInterrupted } from '#gw2/platform/execution/cast-timing.js';
-import { balanceProfileNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import {
+  balanceNumber,
+  balanceProfileNumber,
+  requireBalanceProfile,
+  requireEffect
+} from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import {
   buildMesmerConditions,
@@ -22,6 +31,12 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { consumeMesmerResources } from '#gw2/professions/mesmer/shatter-lifecycle.js';
 import { mesmerSelectedInstrument } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-projection.js';
 import {
+  assumedTroubadourInstruments,
+  playingTroubadourInstruments,
+  replaceTroubadourInstrumentWindow,
+  troubadourFluteTransitions
+} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-windows.js';
+import {
   troubadourCrescendoResolved,
   troubadourInstrumentAnnounced,
   troubadourInstrumentCommitted,
@@ -30,11 +45,8 @@ import {
   troubadourInstrumentStrike
 } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
-import {
-  activeTroubadourInstrumentsAt,
-  troubadourState
-} from '#gw2/professions/mesmer/specializations/troubadour/state.js';
-import type { MesmerInstrument, MesmerRuntime } from '#gw2/professions/mesmer/types.js';
+import { troubadourState } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
+import type { MesmerInstrument, MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
 /** Resolve selected instrument tuning for the performance handlers that consume it. */
@@ -173,8 +185,9 @@ export function startTroubadourInstrument(
   expiresAt: number,
   delivery: EffectDelivery = {}
 ): void {
-  troubadourState.from(context.profession).instruments[instrument] = expiresAt;
-  const packet = buildMesmerPacket({ type: 'mesmer.instrument', at, instrument, expiresAt });
+  const packet = buildMesmerPacket(
+    replaceTroubadourInstrumentWindow(troubadourState.from(context.profession).instruments, instrument, at, expiresAt)
+  );
   context.effects.emit({
     ...delivery,
     kind: 'packet',
@@ -225,7 +238,7 @@ function commitInstrument(
   context.fireTrigger(troubadourInstrumentAnnounced, { spent, at });
 }
 
-/** Resolves Crescendo against the instruments active at its cast-start packet timestamp. */
+/** Capture playing instruments at Crescendo's impact so delayed packets retain the same bonus. */
 export function resolveCrescendo(
   context: MesmerRuntime,
   cast: RuntimeCast<MesmerSkill>,
@@ -234,10 +247,7 @@ export function resolveCrescendo(
   delivery: EffectDelivery = {}
 ): void {
   const damageAt = canonicalTime(cast.start + (skill.damageAtMs ?? 0) / 1000);
-  const activeInstruments = activeTroubadourInstrumentsAt(
-    context.facts.read().filter((event) => event.type === 'mesmer.instrument'),
-    damageAt
-  );
+  const activeInstruments = playingTroubadourInstruments(context.facts, damageAt);
   const strike = requireEffect(skill, 'strike', 'Strike', requireSkillAction(skill, 'crescendo'));
   // Fragmentation replaces Crescendo's per-instrument effectiveness with the trait's improved value.
   const effectiveness = masterOfFragmentationCrescendo(context, skill);
@@ -321,3 +331,89 @@ export function completeTroubadourPerformance(
   const at = skill.interruptMode === 'per-packet' ? (interrupted ? cast.effectiveEnd : cast.fullEnd) : context.time;
   commitInstrument(context, cast, skill, instrument, at, mesmerCastDelivery(cast, skill));
 }
+
+/** Flute recovery integrates its committed history independently of current trait selection. */
+export const troubadourEndurance: EndurancePolicy<MesmerRuntime> = {
+  state: (context) => troubadourState.from(context.profession).endurance,
+  maximum: () => ENDURANCE.maximum,
+  regenerationBoundaries: (context) => troubadourFluteTransitions(context.facts),
+  regenerationRate: (context, vigor, at) => {
+    const flutePlaying = playingTroubadourInstruments(context.facts, at).has('Flute');
+    const fluteBonus = flutePlaying
+      ? balanceNumber(context.helpers, TRAIT.SYMPHONIC_RESONANCE, 'enduranceRegenerationMultiplier') - 1
+      : 0;
+    return Math.min(ENDURANCE.maximumRegenerationPerSecond, enduranceRegenerationRate(vigor, fluteBonus));
+  }
+};
+
+/** Keep window preparation, action admission, and scheduled commitments with the instrument owner. */
+export const troubadourInstrumentLifecycle: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
+  prepareDamageState(runtime, _skill, inputs) {
+    const windows = troubadourState.from(runtime.profession).instruments;
+    for (const event of assumedTroubadourInstruments(
+      Number(inputs.instruments ?? 0),
+      runtime.time,
+      Infinity,
+      'assumption.instruments'
+    )) {
+      replaceTroubadourInstrumentWindow(windows, event.instrument, event.at, event.expiresAt);
+      runtime.observations.record(event);
+    }
+  },
+  endurance: troubadourEndurance,
+  sideEffectHandlers: {
+    // Harp grants protection at performance start, before its playing-state commitment.
+    'mesmer.troubadour.harp-distortion'(runtime, context) {
+      runtime.effects.emit({
+        kind: 'profile',
+        profile: context.skill,
+        effects: requireSkillAction(context.skill, 'distortion').effects,
+        at: runtime.time,
+        fullEnd: runtime.time,
+        attribution: {
+          source: 'Player',
+          sourceId: context.skill.id,
+          skillId: context.skill.id,
+          skillName: context.skill.name,
+          activationId: context.kind === 'cast' ? context.cast.id : context.trigger.event.activationId,
+          actorType: ACTOR.PLAYER
+        }
+      });
+    },
+    'mesmer.troubadour.performance-traits'(runtime, context) {
+      if (context.kind === 'cast') scheduleTroubadourPerformance(runtime, context.cast, context.skill);
+    },
+    'mesmer.troubadour.commit-instrument'(runtime, context) {
+      if (context.kind === 'cast') completeTroubadourPerformance(runtime, context.cast, context.skill);
+    },
+    'mesmer.troubadour.schedule-lute-playing'(runtime, context) {
+      if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
+
+      // Lute starts playing at wave launch, before its first impact.
+      runtime.scheduleForCast('mesmer.troubadour.lute-playing', context.cast.start + 0.36, context.cast);
+    },
+    'mesmer.troubadour.schedule-crescendo'(runtime, context) {
+      if (context.kind !== 'cast' || context.cast.cancelledBeforeCommit) return;
+
+      runtime.scheduleForCast(
+        'mesmer.crescendo',
+        context.cast.start + (context.skill.damageAtMs ?? 0) / 1000,
+        context.cast
+      );
+    }
+  },
+  tasks: {
+    'mesmer.troubadour.lute-playing'(runtime, data) {
+      const { cast } = data as { cast: RuntimeCast<MesmerSkill> };
+      completeTroubadourPerformance(runtime, cast, cast.skill);
+    },
+    'mesmer.crescendo'(runtime, data) {
+      const { cast } = data as { cast: RuntimeCast<MesmerSkill> };
+      resolveCrescendo(runtime, cast, cast.skill, cast.fullEnd, mesmerCastDelivery(cast, cast.skill));
+    }
+  },
+  eventHandlers: {
+    // Executed commitments support historical queries in detailed and score output.
+    'mesmer.instrument': (runtime, event) => runtime.observations.record(event)
+  }
+};

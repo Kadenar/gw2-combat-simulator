@@ -1,16 +1,18 @@
+/** Tales own their accepted instrument eligibility while the instrument owner interprets committed windows. */
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import type { StatusEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
+import { playingTroubadourInstruments } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-windows.js';
 import { startTroubadourInstrument } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import { troubadourTaleResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { MESMER_TROUBADOUR_INSTRUMENTS } from '#gw2/professions/mesmer/specializations/troubadour/skills/index.js';
-import { activeTroubadourInstrumentsAt } from '#gw2/professions/mesmer/specializations/troubadour/state.js';
 import type { MesmerRuntime, MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -21,6 +23,8 @@ interface TroubadourTaleInvocation {
   readonly eligible: boolean;
   readonly delivery: EffectDelivery;
 }
+
+const taleEligibility = new WeakMap<RuntimeCast<MesmerSkill>, boolean>();
 
 /** Resolves a Tale's profile boons, eligible performance notes, and Troubadour trait effects together. */
 function resolveTroubadourTale({ context, skill, at, eligible, delivery }: TroubadourTaleInvocation): void {
@@ -66,7 +70,7 @@ const troubadourTaleActions: NonNullable<RuntimeHooks<MesmerRuntimeState, Mesmer
 
     // Capture the pre-grant count once so starting one instrument cannot lengthen the next one's window.
     const at = runtime.time;
-    const playing = activeTroubadourInstrumentsAt(runtime.facts.read(), at).size;
+    const playing = playingTroubadourInstruments(runtime.facts, at).size;
     const duration =
       skillNumber(context.skill, 'baseDuration') + playing * skillNumber(context.skill, 'durationPerTier');
     const expiresAt = canonicalTime(at + duration);
@@ -82,36 +86,37 @@ const troubadourTaleActions: NonNullable<RuntimeHooks<MesmerRuntimeState, Mesmer
     if (context.kind !== 'cast') return;
 
     const tale = context.skill.tale;
-    const action = runtime.facts
-      .read()
-      .find((event) => event.type === 'action' && event.activationId === context.cast.id);
-    const instruments = activeTroubadourInstrumentsAt(
-      runtime.facts.read().filter((event) => event.type === 'mesmer.instrument'),
-      context.cast.start,
-      action
-    );
+    const instruments = playingTroubadourInstruments(runtime.facts, context.cast.start, context.cast.id);
     // Count distinct playing instruments at acceptance so expiry during recitation cannot revoke earned notes.
-    runtime.profession.core.castDetails.get(context.cast.id)!.taleEligible = Boolean(
-      tale &&
-      (tale.minimumInstruments !== undefined
-        ? instruments.size >= tale.minimumInstruments
-        : instruments.has(tale.instrument))
+    taleEligibility.set(
+      context.cast,
+      Boolean(
+        tale &&
+        (tale.minimumInstruments !== undefined
+          ? instruments.size >= tale.minimumInstruments
+          : instruments.has(tale.instrument))
+      )
     );
   },
   'mesmer.troubadour.resolve-tale'(runtime, context) {
     if (context.kind !== 'cast') return;
 
+    const eligible = taleEligibility.get(context.cast) === true;
+    taleEligibility.delete(context.cast);
     resolveTroubadourTale({
       context: runtime,
       skill: context.skill,
       at: runtime.time,
       delivery: mesmerCastDelivery(context.cast),
-      eligible: Boolean(runtime.profession.core.castDetails.get(context.cast.id)?.taleEligible)
+      eligible
     });
   }
 };
 
 /** Registers tale commitment actions with the Troubadour hook assembly. */
 export const troubadourTaleLifecycle = {
-  sideEffectHandlers: troubadourTaleActions
+  sideEffectHandlers: troubadourTaleActions,
+  onCastCancel(_runtime, cast) {
+    taleEligibility.delete(cast);
+  }
 } satisfies RuntimeHooks<MesmerRuntimeState, MesmerSkill>;

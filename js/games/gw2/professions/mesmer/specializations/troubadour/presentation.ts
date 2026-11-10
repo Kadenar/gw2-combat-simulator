@@ -1,9 +1,5 @@
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import { ACTOR } from '#gw2/platform/constants.js';
-import type {
-  ProfessionAttributePreviewContext,
-  ProfessionAttributePreviewPreparation
-} from '#gw2/platform/profession-presentation/attribute-preview.js';
+import type { ProfessionAttributePreviewContext } from '#gw2/platform/profession-presentation/attribute-preview.js';
 import type {
   ProfessionEffectPresentation,
   ProfessionEventLogDescriptor
@@ -15,6 +11,7 @@ import {
   mesmerUiState
 } from '#gw2/professions/mesmer/core/presentation.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
+import { prepareTroubadourInstrumentPreview } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-windows.js';
 import type { MesmerResolverEvent, MesmerUiContext, MesmerUiSlice } from '#gw2/professions/mesmer/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
@@ -66,19 +63,7 @@ export const troubadourUi: MesmerUiSlice = Object.freeze({
     });
     return preview.controls;
   },
-  /** Seed only the detached attribute query; combat state and saved builds remain untouched. */
-  prepareAttributePreview(context: ProfessionAttributePreviewPreparation) {
-    for (let index = 0; index < Number(context.values.instruments || 0); index++)
-      context.events.push({
-        type: 'mesmer.instrument',
-        at: 0,
-        expiresAt: 60,
-        instrument: ['Lute', 'Flute', 'Harp', 'Drum'][index],
-        source: 'Fortissimo',
-        actorType: ACTOR.PLAYER,
-        sourceId: 'stat-preview'
-      });
-  },
+  prepareAttributePreview: prepareTroubadourInstrumentPreview,
 
   // Altered Chord remains a binary effect when its activation window is refreshed.
   effectPresentations: () => [...TROUBADOUR_EFFECT_PRESENTATIONS],

@@ -1,14 +1,13 @@
 import { createResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import type { ResourceClock } from '#gw2/platform/combat/resources/clock.js';
 import { ENDURANCE } from '#gw2/platform/combat/resources/endurance-rules.js';
-import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import {
   defineProfessionSpecializationState,
   type SpecializationRuntimeState
 } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import { projectTroubadourInstruments } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-windows.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export interface MesmerTroubadourState {
   notes: ResourceClock;
@@ -29,50 +28,12 @@ function createTroubadourState(): MesmerTroubadourState {
 
 export const troubadourState = defineProfessionSpecializationState('Troubadour', createTroubadourState);
 
-/** Replays the latest committed window per instrument, so shorter replacements cannot revive older performances. */
-export function activeTroubadourInstrumentsAt(
-  events: readonly SimulationEvent[],
-  at: number,
-  currentEvent?: SimulationEvent | null
-): Map<string, number> {
-  at = canonicalTime(at);
-  const latest = new Map<string, SimulationEvent>();
-  for (const event of events) {
-    if (event.type !== 'mesmer.instrument' || event.at > at) continue;
-
-    // A same-time performance cannot affect an event that preceded its commitment.
-    if (event.at === at && Number(event.eventOrder) > Number(currentEvent?.eventOrder)) continue;
-
-    const name = String(event.instrument);
-    const previous = latest.get(name);
-
-    if (
-      !previous ||
-      event.at > previous.at ||
-      (event.at === previous.at && (event.eventOrder || 0) >= (previous.eventOrder || 0))
-    )
-      latest.set(name, event);
-  }
-
-  return new Map(
-    [...latest]
-      .filter(([, event]) => Number(event.expiresAt) > at)
-      .map(([name, event]) => [name, Number(event.expiresAt)])
-  );
-}
-
 /** Select public clocks and derive active instrument names and remaining time for the status display. */
 export function projectTroubadourPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
   const state = troubadourState.from(input.profession);
-  const at = canonicalTime(input.time);
   return {
     [STATE.ENDURANCE]: state.endurance,
     [STATE.NOTES]: state.notes,
-    [STATE.ACTIVE_INSTRUMENTS]: Object.entries(state.instruments)
-      .filter(([, expiresAt]) => expiresAt > at)
-      .map(([name, expiresAt]) => ({
-        name,
-        remaining: Math.max(0, Math.round((expiresAt - at) * 1000))
-      }))
+    [STATE.ACTIVE_INSTRUMENTS]: projectTroubadourInstruments(state.instruments, input.time)
   };
 }

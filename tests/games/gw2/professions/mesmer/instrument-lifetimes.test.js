@@ -14,9 +14,14 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { troubadourHooks } from '#gw2/professions/mesmer/specializations/troubadour/hooks.js';
-import { troubadourEndurance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/endurance.js';
-import { hasLute } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-queries.js';
-import { completeTroubadourPerformance } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
+import {
+  activeInstrumentCount,
+  hasLute
+} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instrument-windows.js';
+import {
+  completeTroubadourPerformance,
+  troubadourEndurance
+} from '#gw2/professions/mesmer/specializations/troubadour/mechanics/instruments.js';
 import { troubadourCrescendoResolved } from '#gw2/professions/mesmer/specializations/troubadour/mechanics/trigger-points.js';
 import { troubadourModule } from '#gw2/professions/mesmer/specializations/troubadour/module.js';
 import { troubadourUi } from '#gw2/professions/mesmer/specializations/troubadour/presentation.js';
@@ -130,6 +135,34 @@ function modifierContext(context, time, event) {
   return { config: context.config, helpers: context.helpers, events: [...context.events], time, event };
 }
 
+// Detached damage preparation must seed both the live projection and the history read by attributes and modifiers.
+test('instrument preview assumptions agree across history and planning state without performing instruments', () => {
+  for (const count of [0, 1, 2, 3, 4]) {
+    const context = instrumentContext();
+    context.time = 2;
+    context.resourceController.replace('notes', 3);
+    troubadourHooks.prepareDamageState(context, undefined, { instruments: count });
+    const projected = projectObservedState(mesmerProfession, context)[STATE.ACTIVE_INSTRUMENTS];
+    assert.equal(projected.length, count);
+    assert.equal(activeInstrumentCount(modifierContext(context, context.time)), count);
+    assert.equal(context.profession.specialization.state.notes.value, 3);
+    assert.equal(context.profession.specialization.state.lastInstrument, '');
+    assert.equal(
+      context.events.some((event) => event.type === 'damage'),
+      false
+    );
+
+    const preview = { values: { instruments: count }, events: [] };
+    troubadourUi.prepareAttributePreview(preview);
+    assert.equal(activeInstrumentCount({ ...modifierContext(context, 0), events: preview.events }), count);
+    assert.deepEqual(
+      preview.events.map((event) => event.instrument),
+      projected.map(({ name }) => name)
+    );
+    assert.ok(preview.events.every((event) => event.actorType === 'player'));
+  }
+});
+
 test('instrument commitment, damage bonuses, projection, and UI share exact exclusive deadlines', () => {
   for (const at of [5.300999, 5.301, 5.301001]) {
     const context = instrumentContext();
@@ -170,6 +203,7 @@ test('shorter instrument replays replace their own window without reviving old b
   play(context, ID.LIVELY_LUTE, 2.301);
   const state = context.profession.specialization.state;
   assert.deepEqual(state.instruments, { Lute: 7.301, Flute: 21.301 });
+  assert.equal(activeInstrumentCount(modifierContext(context, 1.301)), 2, 'Historical queries retain earlier windows');
   const query = modifierContext(context, 7.301);
   assert.equal(hasLute(query), false);
   assert.equal(
@@ -218,7 +252,6 @@ function beginTale(context, at) {
     kind: 'packet',
     event: { type: 'action', at, activationId: cast.id, actorType: 'player', source: 'Player', sourceId: cast.skill.id }
   });
-  context.profession.core.castDetails.set(cast.id, {});
   applySkillSideEffects(context, cast, 'castStart', troubadourHooks.sideEffectHandlers);
   return cast;
 }
@@ -250,6 +283,20 @@ test('a same-time instrument committed after a Tale starts cannot grant that Tal
   );
 });
 
+// Cancellation retires the Tale's accepted reward even while its instrument remains active.
+test('cancelled Tales discard accepted instrument eligibility', () => {
+  const context = instrumentContext();
+  play(context, ID.FLUSTERING_FLUTE, 0);
+  const cast = beginTale(context, 1);
+  troubadourHooks.onCastCancel(context, cast);
+  context.time = 2;
+  applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);
+  assert.equal(
+    context.events.some((event) => event.type === 'resource' && event.amount > 0),
+    false
+  );
+});
+
 test('Tale rewards commit before recovery and are available to the next instrument', () => {
   const context = instrumentContext();
   play(context, ID.LIVELY_LUTE, 0);
@@ -262,7 +309,6 @@ test('Tale rewards commit before recovery and are available to the next instrume
     command: {}
   };
   context.time = cast.start;
-  context.profession.core.castDetails.set(cast.id, {});
   applySkillSideEffects(context, cast, 'castStart', troubadourHooks.sideEffectHandlers);
   context.time = cast.effectiveEnd;
   applySkillSideEffects(context, cast, 'castCommit', troubadourHooks.sideEffectHandlers);

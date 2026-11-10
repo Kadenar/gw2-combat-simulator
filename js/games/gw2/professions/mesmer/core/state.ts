@@ -9,7 +9,6 @@ import { canonicalTime } from '#kernel/core/clock.js';
 /** Keep accepted cast facts with Core state for later settlement and trait queries. */
 interface MesmerCastDetails {
   clarityConsumed?: boolean;
-  taleEligible?: boolean;
   earlyResourceAt?: number | null;
   earlyResourceOwnerId?: string;
   resourceScheduledDuringCast?: boolean;
