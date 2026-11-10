@@ -438,7 +438,8 @@ function triggerSharperImages(context: MesmerRuntime, event: SimulationEvent, ch
       name: `${event.name} - Sharper Images`,
       skillName: event.skillName,
       condition: CONDITION.BLEEDING,
-      duration: Number(payload.duration),
+      // Chronophantasma halves these bleeds even though Sharper Images remains player-owned.
+      duration: Number(payload.duration) * Number(event.chronophantasmaConditionDurationFactor ?? 1),
       stacks: procCount * Number(payload.stacks),
       source: 'Player',
       sourceId: TRAIT.SHARPER_IMAGES,

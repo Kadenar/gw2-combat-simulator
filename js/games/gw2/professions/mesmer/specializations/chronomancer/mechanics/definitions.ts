@@ -81,18 +81,19 @@ export const MESMER_CHRONOMANCER_PHANTASM_ATTACK_TIMINGS: Readonly<
     repeatSpawnAtMs: 4080
   },
   [ID.PHANTASMAL_WARDEN]: {
-    repeatDamageAtMs: 12040,
-    repeatSpawnAtMs: 14180,
+    // The utility Warden's logged repeat cycle also determines when its clone becomes available.
+    repeatDamageAtMs: 9160,
+    repeatSpawnAtMs: 11160,
     repeatDamageTicks: {
       Damage: [
+        { atMs: 6600 },
+        { atMs: 6960 },
+        { atMs: 7320 },
+        { atMs: 7680 },
         { atMs: 8040 },
         { atMs: 8400 },
-        { atMs: 8760 },
-        { atMs: 9120 },
-        { atMs: 9480 },
-        { atMs: 9840 },
-        { atMs: 10240 },
-        { atMs: 10600 }
+        { atMs: 8800 },
+        { atMs: 9160 }
       ]
     }
   },

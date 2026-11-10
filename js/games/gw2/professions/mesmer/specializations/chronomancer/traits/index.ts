@@ -69,11 +69,12 @@ const flowOfTime = defineTrait<MesmerSkill>({
   })
 });
 
-/** Chronophantasma retains its active profile, selection, and original execution boundary. */
+/** Capture repeat tuning at summon acceptance, including the reduced duration of triggered conditions. */
 const chronophantasma = defineTrait<MesmerSkill>({
   id: TRAIT.CHRONOPHANTASMA,
   balance: {
-    damageMultiplier: 1
+    damageMultiplier: 1,
+    conditionDurationMultiplier: 0.5
   },
   // Accepted repeat packets retain their captured bonus independently of later trait selection.
   modifierRules: [
@@ -95,7 +96,12 @@ const chronophantasma = defineTrait<MesmerSkill>({
           label: 'Chronophantasma',
           traitId: TRAIT.CHRONOPHANTASMA,
           traitName: 'Chronophantasma',
-          damageMultiplier: balanceNumber(runtime.helpers, TRAIT.CHRONOPHANTASMA, 'damageMultiplier')
+          damageMultiplier: balanceNumber(runtime.helpers, TRAIT.CHRONOPHANTASMA, 'damageMultiplier'),
+          conditionDurationMultiplier: balanceNumber(
+            runtime.helpers,
+            TRAIT.CHRONOPHANTASMA,
+            'conditionDurationMultiplier'
+          )
         };
       }
     })

@@ -10,5 +10,6 @@ export const MESMER_CORE_SKILL_FLIPS: SkillFlips = Object.freeze([
   { parentId: ID.INSPIRING_IMAGERY, followUpId: ID.ABSTRACTION },
   { parentId: ID.TEMPORAL_CURTAIN, followUpId: ID.INTO_THE_VOID },
   { parentId: ID.ILLUSIONARY_RIPOSTE, followUpId: ID.COUNTER_BLADE },
-  { parentId: ID.ILLUSIONARY_LEAP, followUpId: ID.SWAP }
+  { parentId: ID.ILLUSIONARY_LEAP, followUpId: ID.SWAP },
+  { parentId: ID.SWAP, followUpId: ID.DISENCHANT }
 ]);

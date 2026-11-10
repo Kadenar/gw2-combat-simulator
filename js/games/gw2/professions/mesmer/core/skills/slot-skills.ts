@@ -196,29 +196,30 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDe
     slot: 'Utility',
 
     cooldown: 20,
-    // The summon owns its attack and conversion timeline independently of the player cast.
+    // Post-patch conversion follows the eight-hit attack, so clone availability no longer uses the old twelve-hit cycle.
     phantasmTiming: {
-      damageAtMs: 4880,
-      spawnAtMs: 7040
+      damageAtMs: 3640,
+      spawnAtMs: 5680
     },
     phantasm: true,
     resource: {
       mode: 'phantasm',
       count: 1
     },
-    castTimeMs: 440,
+    // The utility version's full activation is 1160 ms in the post-patch log.
+    castTimeMs: 1160,
     effects: [
       {
         type: 'strike',
         ticks: [
-          { atMs: 880, coefficient: 0.138 },
-          { atMs: 1240, coefficient: 0.138 },
-          { atMs: 1600, coefficient: 0.138 },
-          { atMs: 1960, coefficient: 0.138 },
-          { atMs: 2320, coefficient: 0.138 },
-          { atMs: 2680, coefficient: 0.138 },
-          { atMs: 3080, coefficient: 0.138 },
-          { atMs: 3440, coefficient: 0.138 }
+          { atMs: 1080, coefficient: 0.138 },
+          { atMs: 1440, coefficient: 0.138 },
+          { atMs: 1800, coefficient: 0.138 },
+          { atMs: 2160, coefficient: 0.138 },
+          { atMs: 2520, coefficient: 0.138 },
+          { atMs: 2880, coefficient: 0.138 },
+          { atMs: 3280, coefficient: 0.138 },
+          { atMs: 3640, coefficient: 0.138 }
         ],
         name: 'Damage',
         actorType: ACTOR.SUMMON,

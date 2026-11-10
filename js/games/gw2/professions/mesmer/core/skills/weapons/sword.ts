@@ -135,8 +135,18 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         atMs: 920,
         persistsAfterInterrupt: true,
         name: 'Damage',
-        actorType: ACTOR.PLAYER,
+        actorType: ACTOR.SUMMON,
+        summonKind: 'clone',
         weapon: WEAPON.SWORD.toLowerCase()
+      },
+      // The leap applies immobilize on impact; Swap no longer applies it.
+      {
+        type: 'condition',
+        condition: CONDITION.IMMOBILIZED,
+        stacks: 1,
+        duration: 1.5,
+        atMs: 920,
+        persistsAfterInterrupt: true
       }
     ]),
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }]
@@ -158,9 +168,35 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         fieldSelectionAnchor: 'castStart'
       }
     ],
-    // Swap no longer immobilizes; its Disenchant follow-up awaits confirmed tuning.
+    // The logged Swap buff grants a fresh five-second Disenchant window.
+    flipArm: { skillId: ID.DISENCHANT, duration: 5, delay: 0, anchor: 'castCommit' },
     effects: [],
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SWAP } }]
+    sideEffects: [
+      { on: 'castCommit', do: { type: 'flipConsume', skillId: ID.SWAP } },
+      { on: 'castCommit', do: { type: 'mesmer.arm-flip' } }
+    ]
+  },
+  [ID.DISENCHANT]: {
+    name: 'Disenchant',
+    icon: 'https://render.guildwars2.com/file/E4DD21B30CB0C1B6BD05582C7CBFF4073C74206B/3833325.png',
+    type: 'Weapon',
+    weapon: 'Sword',
+    slot: 'Weapon_3',
+    cooldown: 0,
+    castTimeMs: 720,
+    // The simulated target has no boons, so the live 20% bonus applies to its base coefficient.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
+      {
+        type: 'strike',
+        coefficient: 2.17 * 1.2,
+        hits: 1,
+        atMs: 520,
+        name: 'Damage',
+        actorType: ACTOR.PLAYER,
+        weapon: WEAPON.SWORD.toLowerCase()
+      }
+    ]),
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipConsume', skillId: ID.DISENCHANT } }]
   },
   [ID.BLADE_LEAP]: {
     name: 'Blade Leap',

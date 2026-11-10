@@ -176,7 +176,8 @@ export function schedulePhantasmStrike(
         },
         {
           name: `${repeatAttackName} - ${repeatPolicy.label}`,
-          chronophantasmaDamageFactor: repeatPolicy.damageMultiplier
+          chronophantasmaDamageFactor: repeatPolicy.damageMultiplier,
+          chronophantasmaConditionDurationFactor: repeatPolicy.conditionDurationMultiplier
         }
       ).forEach((packet) => {
         emitAttackPacket(state, execution, packet);
@@ -207,7 +208,8 @@ export function schedulePhantasmStrike(
           },
           {
             name: `${repeatAttackName} - ${repeatPolicy.label}`,
-            chronophantasmaDamageFactor: repeatPolicy.damageMultiplier
+            chronophantasmaDamageFactor: repeatPolicy.damageMultiplier,
+            chronophantasmaConditionDurationFactor: repeatPolicy.conditionDurationMultiplier
           }
         ).forEach((packet) => {
           emitAttackPacket(state, execution, packet);
@@ -345,7 +347,11 @@ export function schedulePhantasmStatuses(
         `${execution.skill.name} - ${repeatPolicy.label}`,
         conditionEventExtra
       ).forEach((packet) => {
-        emitAttackPacket(state, execution, packet);
+        // Scale each materialized duration so authored ticks and ordinary conditions share the repeat penalty.
+        emitAttackPacket(state, execution, {
+          ...packet,
+          duration: Number(packet.duration) * repeatPolicy.conditionDurationMultiplier
+        });
       });
     } else {
       buildMesmerConditions(
@@ -357,7 +363,10 @@ export function schedulePhantasmStatuses(
         `${execution.skill.name} - ${repeatPolicy.label}`,
         conditionEventExtra
       ).forEach((packet) => {
-        emitAttackPacket(state, execution, packet);
+        emitAttackPacket(state, execution, {
+          ...packet,
+          duration: Number(packet.duration) * repeatPolicy.conditionDurationMultiplier
+        });
       });
     }
   }

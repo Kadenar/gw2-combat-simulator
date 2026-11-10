@@ -22,6 +22,7 @@ export interface MesmerPhantasmPolicy {
     readonly traitId: number;
     readonly traitName: string;
     readonly damageMultiplier: number;
+    readonly conditionDurationMultiplier: number;
   };
   readonly bonusStrike?: {
     readonly name: string;

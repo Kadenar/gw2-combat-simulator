@@ -46,6 +46,8 @@ export interface MesmerEventExtra {
   readonly count?: number;
   /** Repeat damage retains the Chronophantasma factor accepted with this phantasm batch. */
   readonly chronophantasmaDamageFactor?: number;
+  /** Repeat strikes carry their accepted duration factor into player-owned Sharper Images procs. */
+  readonly chronophantasmaConditionDurationFactor?: number;
   /** Initial and repeated phantasm attacks retain Bountiful Blades' accepted spawn factor. */
   readonly bountifulBladesDamageFactor?: number;
   /** Crescendo samples its active instruments and selected effectiveness together at its scheduled strike. */

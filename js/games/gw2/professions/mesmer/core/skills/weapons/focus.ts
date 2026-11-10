@@ -60,8 +60,20 @@ export const MESMER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, Skill
       mode: 'phantasm',
       count: 1
     },
-    castTimeMs: 760,
+    castTimeMs: 640,
     effects: [
+      // The player fires the new initial projectile once; only the phantasm attack repeats.
+      {
+        type: 'strike',
+        coefficient: 0.8,
+        hits: 1,
+        name: 'Initial projectile',
+        actorType: ACTOR.PLAYER,
+        weapon: 'focus',
+        atMs: 640,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
+      },
       {
         type: 'strike',
         coefficient: 1,
