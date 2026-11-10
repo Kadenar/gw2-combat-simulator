@@ -79,6 +79,28 @@ const hasEvent = (result, predicate) => allEvents(result).some(predicate);
 const criticalRotation = ['Updraft', 'Charged Strike', 'Polaric Slash', 'Call Lightning'];
 const criticalStats = { precision: 10_000 };
 
+// The saved percentage must reach native trait gates even when target damage cannot cause death.
+test('Bolt to the Heart uses the configured percentage on an unbounded target', () => {
+  for (const percent of [0, 40, 50, 100]) {
+    const run = (traits) =>
+      simulate(['Fireball'], {
+        traits,
+        weapons: ['Staff', ''],
+        targetHealth: 0,
+        targetStartingHealthPercent: percent
+      });
+    const baseline = run([]);
+    const modified = run([TRAIT.BOLT_TO_THE_HEART]);
+    assert.deepEqual(baseline.warnings, []);
+    assert.deepEqual(modified.warnings, []);
+    assert.equal(modified.deathTime, null);
+    assert.ok(baseline.strikeDamage > 0);
+
+    if (percent < 50) assert.ok(Math.abs(modified.strikeDamage - baseline.strikeDamage * 1.2) <= 1);
+    else assert.equal(modified.strikeDamage, baseline.strikeDamage);
+  }
+});
+
 const traitCases = [
   {
     name: 'Electric Discharge',

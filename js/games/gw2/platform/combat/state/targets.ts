@@ -234,7 +234,7 @@ export function targetHasCondition(
 }
 
 export interface Gw2TargetConfig {
-  /** Detached previews hold this target-health state while retaining an unbounded damage recipient. */
+  /** Holds target health at a declared percentage for unbounded targets and isolated previews. */
   readonly fixedHealthFraction?: number;
   readonly conditions?: Readonly<Record<string, number | boolean>>;
   readonly health?: number;

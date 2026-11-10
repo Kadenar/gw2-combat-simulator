@@ -7,6 +7,7 @@ import { bindBuildContext } from '#gw2/build-context/create.js';
 import { loadBuildContext } from '#gw2/build-context/load.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
+import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
 import { normalizeTransitionDelays } from '#gw2/platform/execution/transition-lockouts.js';
 import { professionRegistry } from '#gw2/profession-registry.js';
 import { ENGINEER_ASSUMPTION_CONTROLS } from '#gw2/professions/engineer/build/assumptions.js';
@@ -77,6 +78,35 @@ for (const { id } of professionRegistry) {
     assert.throws(() => module.createBuildContext(input(module.profession, build)).attributes(0), /Weapon set/);
   });
 }
+
+// Unbounded targets hold the chosen percentage; finite targets still lose health to every damage owner.
+test('target configuration preserves starting health for unbounded and finite targets', async () => {
+  const module = await loadBuildContext('mesmer');
+  const afterDamage = { totals: { strike: 100, condition: 50 }, environmentDamage: 100 };
+  const configFor = (targetHealth, targetStartingHealthPercent) => {
+    const build = module.toApplicationBuild({
+      ...module.profession.createBuildDefaults(),
+      targetHealth,
+      targetStartingHealthPercent
+    });
+    return module.createBuildContext(input(module.profession, build)).simulationConfig();
+  };
+
+  for (const percent of [0, 40, 50, 100]) {
+    const config = configFor(0, percent);
+    assert.equal(remainingTargetHealthFraction(config), percent / 100);
+    assert.equal(remainingTargetHealthFraction(config, afterDamage), percent / 100);
+    assert.equal(remainingTargetHealthBelow(config, afterDamage, 0.5), percent < 50);
+  }
+
+  const defaultHealth = configFor(0, undefined);
+  assert.equal(remainingTargetHealthFraction(defaultHealth, afterDamage), 1);
+  const finite = configFor(1000, 50);
+  assert.equal(remainingTargetHealthFraction(finite), 0.5);
+  assert.equal(remainingTargetHealthBelow(finite, undefined, 0.5), false);
+  assert.equal(remainingTargetHealthFraction(finite, afterDamage), 0.25);
+  assert.equal(remainingTargetHealthBelow(finite, afterDamage, 0.5), true);
+});
 
 test('a selected preview supplies both the attribute catalog and balance context', async () => {
   const module = await loadBuildContext('mesmer');

@@ -69,6 +69,8 @@ export function createGw2SimulationConfig({
   const targetSkillActivationsPerSecond = Math.max(0, Number(assumptions.targetSkillActivationsPerSecond) || 0);
   const alliedPlayerCount = boundedInteger(assumptions.alliedPlayerCount || 0, 0, 0, 4);
   const targetConditions = { ...(assumptions.targetConditions || {}) };
+  const targetHealth = Math.max(0, Number(build.targetHealth) || 0);
+  const startingHealthFraction = boundedNumber(Number(build.targetStartingHealthPercent ?? 100) / 100, 1, 0, 1);
 
   if (disabled?.type === 'Target' && disabled.name === CONDITION.VULNERABILITY) {
     delete targetConditions.Vulnerability;
@@ -145,9 +147,10 @@ export function createGw2SimulationConfig({
     },
     target: {
       armor: build.targetArmor,
-      health: Math.max(0, Number(build.targetHealth) || 0),
-      // Starting target health is a fraction of maximum health. Low-health gates and death use that same value.
-      startingHealthFraction: boundedNumber(Number(build.targetStartingHealthPercent ?? 100) / 100, 1, 0, 1),
+      health: targetHealth,
+      startingHealthFraction,
+      // Unbounded targets hold the chosen percentage so health-gated modifiers use the saved setting.
+      ...(targetHealth === 0 ? { fixedHealthFraction: startingHealthFraction } : {}),
       // Existing professions retain the historical defiant-golem default.
       // Defiant doubles as the positional proxy: a defiant golem never rotates,
       // so flanking/behind bonuses always apply and need no separate control.

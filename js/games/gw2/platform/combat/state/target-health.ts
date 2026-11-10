@@ -39,7 +39,7 @@ export function targetHealthLoss(
 
   const maximum = config?.target?.health || 0;
 
-  // Isolated measurements hold a declared target state; ordinary simulations still subtract all resolved damage.
+  // Fixed target states ignore damage; dynamic targets subtract damage from every owner.
   if (config?.target?.fixedHealthFraction != null)
     return maximum * (1 - clamp(config.target.fixedHealthFraction, 0, 1));
 
@@ -48,7 +48,7 @@ export function targetHealthLoss(
   return maximum * (1 - startingFraction) + combinedTargetDamage(state);
 }
 
-/** Resolves remaining target health from every damage owner, or null when health is unbounded. */
+/** Resolves fixed or damage-driven target health, or null for unbounded targets without a declared percentage. */
 export function remainingTargetHealthFraction(
   config: Pick<Gw2Config, 'target'> | null | undefined,
   state: Gw2TargetDamageState | null | undefined
@@ -67,7 +67,7 @@ export function remainingTargetHealthFraction(
 
 /**
  * Owns the "target below X% health" contract: strictly below, so a target sitting exactly at the threshold does not
- * qualify, and an unbounded target never does. Every health-gated rule uses this so the boundary cannot drift.
+ * qualify, and an unspecified health fraction never does. Every health-gated rule shares this boundary.
  */
 export function remainingTargetHealthBelow(
   config: Pick<Gw2Config, 'target'> | null | undefined,
