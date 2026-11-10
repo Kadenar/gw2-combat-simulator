@@ -113,12 +113,11 @@ test('each conjure owns ground expiry and the fresh lifetime granted by its pick
   }
 });
 
-test('selected spear owners preserve one-shot acceptance and independent etching thresholds', () => {
+test('selected spear bonuses preserve one-shot acceptance while etchings always require three credits', () => {
   const roots = elementalistCatalog.skills.filter((skill) => skill.etchingReleases);
   const profession = preview({
     [ID.SEETHE]: { nextSkillDamageMultiplier: 1.7 },
-    [ID.RIPPLE]: { nextSkillRechargeMultiplier: 0.4 },
-    ...Object.fromEntries(roots.map(({ id }, index) => [id, { etchingCompletionThreshold: index + 1 }]))
+    [ID.RIPPLE]: { nextSkillRechargeMultiplier: 0.4 }
   });
   const balance = profession.resolvePatch({ id: 'mechanic-ownership' }).balanceContext;
   const core = createElementalistCoreState();
@@ -145,14 +144,15 @@ test('selected spear owners preserve one-shot acceptance and independent etching
   assert.equal(core.spearNextRechargeReduction, true);
   assert.equal(lifecycle.reserveRecharge(context, skill, 10), 4);
   assert.equal(lifecycle.reserveRecharge(context, skill, 10), 10);
-  for (const [index, entry] of roots.entries()) {
+  // Balance previews can change spear bonuses without changing etching progression or its displayed requirement.
+  for (const entry of roots) {
     const root = balance.catalog.skillsById.get(entry.id);
     openElementalistEtching(context, root);
-    for (let credit = 0; credit < index; credit++) lifecycle.onCastCommit(context, { id: 'credit', skill });
+    for (let credit = 0; credit < 2; credit++) lifecycle.onCastCommit(context, { id: 'credit', skill });
     assert.equal(core.etchings[root.name].stage, 'lesser');
     lifecycle.onCastCommit(context, { id: 'credit', skill });
     assert.equal(core.etchings[root.name].stage, 'full');
-    assert.equal(facts(balance, root.id)['Completed actions to fully charge'], String(index + 1));
+    assert.equal(facts(balance, root.id)['Completed actions to fully charge'], '3');
   }
 
   assert.equal(facts(balance, ID.SEETHE)["Next eligible skill's strike damage"], '+70%');

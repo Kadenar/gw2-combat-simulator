@@ -27,7 +27,8 @@ function migratedSkillRun(profession, config, rotation, { catalog = (value) => v
       ...native,
       catalog: catalog(native.catalog),
       initialize(runtime) {
-        native.initialize(runtime);
+        // Native initialization is optional; fixture setup still runs for every profession.
+        native.initialize?.(runtime);
         initialize(runtime);
       }
     },

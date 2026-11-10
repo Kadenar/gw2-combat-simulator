@@ -75,10 +75,17 @@ test('Engineer kit and toolbelt projections follow IDs when catalog labels chang
 });
 
 test('Engineer Forge and protocol controls retain their local skill lists and lookups', () => {
-  // Protocol eligibility uses authored identities, so vary two legal options while retaining isolated catalogs.
+  // Protocol eligibility requires an authored kind and slot in each isolated catalog.
   const ids = [ENGINEER_ID.OFFENSIVE_PROTOCOL_SHRED_ID_77103, ENGINEER_ID.DEFENSIVE_PROTOCOL_THORNS_ID_77163];
   const catalogs = ids.map((id) =>
-    catalogOf(skill(id, 'Protocol', { forgeSkill: true, specialization: 'Amalgam', mechanicSlot: 2 }))
+    catalogOf(
+      skill(id, 'Protocol', {
+        forgeSkill: true,
+        specialization: 'Amalgam',
+        mechanicSlot: 2,
+        morphKind: id === ids[0] ? 'shred' : 'thorns'
+      })
+    )
   );
   assertIsolated(
     bindHolosmithUi,
@@ -86,11 +93,13 @@ test('Engineer Forge and protocol controls retain their local skill lists and lo
     (ui, catalog) => groupIds(ui, { catalog }, 'engineer-forge'),
     ids.map((id) => [id])
   );
-  const context = { build: { selectedMorphSkillIds: [ids[0]] } };
   assertIsolated(
     bindAmalgamUi,
     catalogs,
-    (ui, catalog) => ui.skillBarGroups({ ...context, catalog })[0].selections[0].optionSkillIds,
+    // Each build selects its own catalog's protocol so the selector exists in both instances.
+    (ui, catalog) =>
+      ui.skillBarGroups({ build: { selectedMorphSkillIds: [catalog.skills[0].id] }, catalog })[0].selections[0]
+        .optionSkillIds,
     ids.map((id) => [id])
   );
 });

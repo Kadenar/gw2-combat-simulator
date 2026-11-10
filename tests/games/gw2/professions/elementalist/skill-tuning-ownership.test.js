@@ -326,6 +326,22 @@ const ELEMENTALIST_FIELDS = combineFields([
   { owner: 'Evoker', fields: EVOKER_SKILL_FIELDS }
 ]);
 
+// Etching charge requirements are mechanic rules, so authoring must reject threshold edits.
+test('etching charge requirements are not patchable skill tuning', () => {
+  const skill = elementalistCatalog.skillsById.get(ID.ETCHING_VOLCANO);
+  assert.equal(
+    'etchingCompletionThreshold' in skillPatchableNumericFields(skill, elementalistCatalog.skillFields),
+    false
+  );
+  assert.throws(
+    () =>
+      applySkillPatch(elementalistCatalog, {
+        skills: { [skill.id]: { fields: { etchingCompletionThreshold: 5 } } }
+      }),
+    /unsupported patch field/
+  );
+});
+
 // Selected mechanic tuning must reject malformed data before runtime uses it.
 test('skill-owned mechanic tuning validates explicit zero and numeric bounds', () => {
   for (const [id, field] of [
@@ -338,8 +354,7 @@ test('skill-owned mechanic tuning validates explicit zero and numeric bounds', (
     [ID.GLYPH_OF_ELEMENTALS, 'rechargeAfterExpiry'],
     [ID.GLYPH_OF_ELEMENTALS, 'summonStartupDelay'],
     [ID.SEETHE, 'nextSkillDamageMultiplier'],
-    [ID.RIPPLE, 'nextSkillRechargeMultiplier'],
-    [ID.ETCHING_VOLCANO, 'etchingCompletionThreshold']
+    [ID.RIPPLE, 'nextSkillRechargeMultiplier']
   ]) {
     const zero = applySkillPatch(elementalistCatalog, { skills: { [id]: { fields: { [field]: 0 } } } });
     assert.equal(zero.skillsById.get(id)[field], 0);

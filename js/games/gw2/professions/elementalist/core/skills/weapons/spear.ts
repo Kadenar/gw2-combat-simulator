@@ -158,8 +158,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.ETCHING_VOLCANO]: {
     name: 'Etching: Volcano',
     icon: 'https://render.guildwars2.com/file/037DCBFCCD3BA4C3ACC7B73DF4965D3A170F0F3E/3379099.png',
-    // Other completed actions upgrade only this root's live etching.
-    etchingCompletionThreshold: 3,
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
@@ -410,8 +408,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.ETCHING_JO_KULHLAUP]: {
     name: 'Etching: Jökulhlaup',
     icon: 'https://render.guildwars2.com/file/7B61A40CFC6F2A9DE5A5414C50E87BD9D9711E43/3379102.png',
-    // Other completed actions upgrade only this root's live etching.
-    etchingCompletionThreshold: 3,
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
@@ -634,8 +630,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.ETCHING_DERECHO]: {
     name: 'Etching: Derecho',
     icon: 'https://render.guildwars2.com/file/F1B3331AB23F37964BE8D6A91F43FF066BE970AA/3379093.png',
-    // Other completed actions upgrade only this root's live etching.
-    etchingCompletionThreshold: 3,
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,
@@ -795,8 +789,6 @@ export const ELEMENTALIST_CORE_SPEAR_SKILL_MECHANICS: Readonly<Record<number, Sk
   [ID.ETCHING_HABOOB]: {
     name: 'Etching: Haboob',
     icon: 'https://render.guildwars2.com/file/7C7339E9EA33F7CD05806CE20066DF0EC4673767/3379096.png',
-    // Other completed actions upgrade only this root's live etching.
-    etchingCompletionThreshold: 3,
     type: 'Weapon',
     slot: 'Weapon_5',
     weapon: WEAPON.SPEAR,

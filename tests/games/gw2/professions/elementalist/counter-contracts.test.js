@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
+import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
   consumeElementalistEtching,
   createElementalistSpearLifecycle,
@@ -154,17 +154,10 @@ test('Elemental Balance resets after one reward for nonpositive patched threshol
 });
 
 test('etching counters retain independent crossing values and reset only with their owned lifecycle', () => {
-  // Real root/release identities protect credit exclusions while a fractional threshold exposes accidental clamping.
+  // Real root/release identities protect independent progress and the fixed three-credit requirement.
   const core = createElementalistCoreState();
   const context = {
-    helpers: applySkillPatch(elementalistCatalog, {
-      skills: Object.fromEntries(
-        [ID.ETCHING_VOLCANO, ID.ETCHING_DERECHO].map((id) => [
-          id,
-          { fields: { etchingCompletionThreshold: { from: 3, to: 2.5 } } }
-        ])
-      )
-    }),
+    helpers: elementalistCatalog,
     time: 0,
     profession: { core },
     schedule() {}

@@ -28,7 +28,7 @@ import {
   FIRE_ELEMENTAL_EVTC_PROFILE as FIRE_ELEMENTAL
 } from '#gw2/professions/elementalist/core/mechanics/elementals/profiles.js';
 import { hammerOrbElements } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
-import { etchingRoot } from '#gw2/professions/elementalist/core/mechanics/spear.js';
+import { ELEMENTALIST_ETCHING_CHARGES, etchingRoot } from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import { ELEMENTALIST_CORE_SKILLS } from '#gw2/professions/elementalist/core/skills/index.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
@@ -57,7 +57,8 @@ const mechanicSkillTooltip: DescribeSimulationTooltip<ElementalistSkill, Element
   if (skill.etchingReleases)
     return skillTooltip(
       'Create an etching and unlock its lesser release while the field lasts. Completing other actions, including attunement swaps, upgrades it to the full release. Releasing either version consumes the etching.',
-      [fromSkill(skill.id, 'etchingCompletionThreshold', 'Completed actions to fully charge')]
+      // The mechanic owns this fixed requirement; it is not selected balance tuning.
+      () => [{ name: 'Completed actions to fully charge', detail: String(ELEMENTALIST_ETCHING_CHARGES) }]
     )(context, skill);
 
   return skillTooltip(

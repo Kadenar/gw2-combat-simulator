@@ -22,6 +22,9 @@ import type {
 } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
+/** Etchings always unlock their full release after three credits, including completed overload grants. */
+export const ELEMENTALIST_ETCHING_CHARGES = 3;
+
 /** Prepared packets use the activation's accepted bonus after shared filtering has settled. */
 function prepareElementalistSpearEvent(context: ElementalistRuntime, event: SimulationEventBase): SimulationEventBase {
   return empowerSpearPacket(
@@ -158,8 +161,12 @@ export function consumeElementalistEtching(context: ElementalistRuntime, skill: 
   professionCoreState(context.profession).etchings[etchingRoot(context.helpers, skill)!.name] = null;
 }
 
-/** Releases never credit another etching, and a root never credits itself. */
-function completeElementalistSpearProgression(context: ElementalistRuntime, skill: ElementalistSkill): void {
+/** Casts and deferred overload grants share progression; releases never credit etchings, and roots exclude themselves. */
+export function advanceElementalistEtchings(
+  context: ElementalistRuntime,
+  skill: ElementalistSkill,
+  credits: number
+): void {
   const state = professionCoreState(context.profession);
 
   if (skill.etchingRootId != null) return;
@@ -172,7 +179,7 @@ function completeElementalistSpearProgression(context: ElementalistRuntime, skil
     if (!progress || progress.stage !== 'lesser') continue;
 
     // Full etchings stop earning credit; retain the crossing count rather than consuming or clamping it.
-    const counter = advanceCounter(progress.otherCasts, 1, skillNumber(root, 'etchingCompletionThreshold'), 'retain');
+    const counter = advanceCounter(progress.otherCasts, credits, ELEMENTALIST_ETCHING_CHARGES, 'retain');
     state.etchings[root.name] = {
       ...progress,
       stage: counter.reached ? 'full' : 'lesser',
@@ -201,7 +208,7 @@ const elementalistSpearMechanicHandlers = Object.freeze({
 const spearActions = {
   onCastCancel(context, cast) {
     // An activated, cancelled cast still earns etching credit; zero-length cancellations do not.
-    if (cast.effectiveEnd > cast.start) completeElementalistSpearProgression(context, cast.skill);
+    if (cast.effectiveEnd > cast.start) advanceElementalistEtchings(context, cast.skill, 1);
 
     finishElementalistSpearCast(context, cast);
   },
@@ -260,7 +267,7 @@ export function createElementalistSpearLifecycle(
         beginElementalistSpearCast(context, cast);
       },
       onCastCommit(context, cast) {
-        completeElementalistSpearProgression(context, cast.skill);
+        advanceElementalistEtchings(context, cast.skill, 1);
         shared.onCastCommit?.(context, cast);
         finishElementalistSpearCast(context, cast);
       },

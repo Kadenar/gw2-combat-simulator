@@ -5,6 +5,7 @@ import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mech
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { ElementalistTransitionDelivery } from '#gw2/professions/elementalist/core/mechanics/attunement-transition.js';
+import { advanceElementalistEtchings } from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import { attunementInvoked, attunementReleased } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
 import { isElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import {
@@ -143,14 +144,10 @@ const tempestOverloadActions = {
 
 /** Extra overload credits follow Core credit settlement before another cast can observe the etching. */
 const tempestOverloadTasks = {
-  'elementalist.tempest.etching-credits'(context) {
-    const state = professionCoreState(context.profession);
-    for (const [name, progress] of Object.entries(state.etchings)) {
-      if (!progress || progress.stage !== 'lesser') continue;
-
-      const otherCasts = progress.otherCasts + 2;
-      state.etchings[name] = { ...progress, stage: otherCasts >= 3 ? 'full' : 'lesser', otherCasts };
-    }
+  'elementalist.tempest.etching-credits'(context, data) {
+    const { cast } = data as { cast: RuntimeCast<ElementalistSkill> };
+    // Preserve the simulated overload behavior: two extra credits after Core's ordinary credit, without capping progress.
+    advanceElementalistEtchings(context, cast.skill, 2);
   }
 } satisfies NonNullable<RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>['tasks']>;
 

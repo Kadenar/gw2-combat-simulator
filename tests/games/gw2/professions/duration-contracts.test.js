@@ -72,6 +72,8 @@ test('patched preparation duration governs recharge-scaled availability without 
       const catalog = applySkillPatch(thiefCatalog, { skills: { [placement]: { fields: { duration: 5 } } } });
       const skill = catalog.skillsById.get(placement);
       const runtime = {
+        // Availability resolves the trigger from the same patched catalog as its placement.
+        helpers: catalog,
         time: 10,
         flips: {},
         armFlip(id, { availableAt, expiresAt = Infinity, visibleAt = availableAt }) {
