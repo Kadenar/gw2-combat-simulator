@@ -1,3 +1,4 @@
+// Entity skills use live damage observed in https://dps.report/OJcO-20261110-150018_golem.
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
@@ -125,7 +126,8 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
         name: 'Beguiling Haze - Follow-Up',
         actorType: ACTOR.PLAYER,
         persistsAfterInterrupt: true,
-        ticks: [{ atMs: 200, coefficient: 0.3 }],
+        // The November 10 live log retains this damage despite the announced 0.3 coefficient.
+        ticks: [{ atMs: 200, coefficient: 0.6 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
@@ -142,6 +144,8 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     affinityOnHit: true,
     legendId: 'LegendaryEntity',
     castTimeMs: 920,
+    // The attack lands before recovery ends, so cancelling recovery must retain the hit.
+    interruptCommitMs: 880,
     // Assassin resonance scales every strike owned by this skill.
     modifiers: [
       {
@@ -272,7 +276,8 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
         type: 'strike',
         name: 'Beguiling Haze',
         actorType: ACTOR.PLAYER,
-        ticks: [{ atMs: 480, coefficient: 1 }],
+        // Match observed November 10 damage; the announced 1.0 coefficient is not reflected in the supplied log.
+        ticks: [{ atMs: 480, coefficient: 2.2 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed'
       }
