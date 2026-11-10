@@ -923,6 +923,7 @@ test('optimizer requirements validate numeric bounds and reject inverted toughne
     'minToughness',
     'maxToughness',
     'minVitality',
+    'minCritChancePercent',
     'minBoonDurationPercent',
     'minQuicknessDurationPercent',
     'minQuicknessOvercapPercent',
@@ -932,8 +933,11 @@ test('optimizer requirements validate numeric bounds and reject inverted toughne
     assert.doesNotThrow(() => request({ [key]: 0 }));
   }
 
-  for (const key of ['minBoonDurationPercent', 'minQuicknessDurationPercent'])
+  for (const key of ['minBoonDurationPercent', 'minQuicknessDurationPercent', 'minCritChancePercent']) {
     assert.throws(() => request({ [key]: 100.1 }), /Invalid/);
+    assert.doesNotThrow(() => request({ [key]: 100 }));
+  }
+
   assert.throws(() => request({ minToughness: 1200, maxToughness: 1100 }), /must not exceed/);
 });
 
@@ -1028,6 +1032,7 @@ for (const create of [createGroupedOptimizer, createFastOptimizer]) {
 
 test('requirements use inclusive finalized stats and reject before simulation config preparation', () => {
   const overrides = {
+    alternateWeapons: ['', ''],
     rune: 'Firebrand',
     food: '',
     utility: '',
@@ -1052,6 +1057,7 @@ test('requirements use inclusive finalized stats and reject before simulation co
     .attributes(app.attributeWeaponSet === 2 ? 2 : 1);
   const toughness = app.attributeData.attributes.Toughness.final;
   const vitality = app.attributeData.attributes.Vitality.final;
+  const critChance = app.attributeData.attributes['Critical Chance'].final;
   const boon = app.attributeData.attributes['Boon Duration'].final;
   const quickness = boon + 30;
   const inclusive = request(
@@ -1059,6 +1065,7 @@ test('requirements use inclusive finalized stats and reject before simulation co
       minToughness: toughness,
       maxToughness: toughness,
       minVitality: vitality,
+      minCritChancePercent: critChance,
       minBoonDurationPercent: boon,
       minQuicknessDurationPercent: quickness
     },
@@ -1082,6 +1089,7 @@ test('requirements use inclusive finalized stats and reject before simulation co
     { minToughness: toughness + 1 },
     { maxToughness: toughness - 1 },
     { minVitality: vitality + 1 },
+    { minCritChancePercent: critChance + 0.01 },
     { minBoonDurationPercent: boon + 0.01 },
     { minQuicknessDurationPercent: quickness + 0.01 }
   ]) {
@@ -1093,6 +1101,99 @@ test('requirements use inclusive finalized stats and reject before simulation co
       null
     );
   }
+});
+
+// Crit requirements use each set's finalized stats and reject before preparing combat.
+test('minimum crit chance checks alternate sigils even when the starting set qualifies', () => {
+  const initial = request(
+    {},
+    {
+      weapons: ['Axe', 'Axe'],
+      alternateWeapons: ['Axe', 'Axe'],
+      startingWeaponSet: 1,
+      weaponSigils: [
+        ['Force', 'Accuracy'],
+        ['Force', 'Impact']
+      ]
+    }
+  );
+  const context = adapter.createBuildContext({
+    build: initial.build,
+    patch: adapter.profession.resolvePatch(initial.patch),
+    transitionDelays: normalizeTransitionDelays()
+  });
+  const minCritChancePercent = context.attributes(1).attributes['Critical Chance'].final;
+  assert.ok(context.attributes(2).attributes['Critical Chance'].final < minCritChancePercent);
+  const captured = { ...initial, selections: { minCritChancePercent } };
+  const rejectingAdapter = {
+    ...adapter,
+    createBuildContext(input) {
+      return {
+        ...adapter.createBuildContext(input),
+        simulationConfig() {
+          assert.fail('Rejected crit chance must not prepare combat');
+        }
+      };
+    }
+  };
+  assert.equal(
+    createOptimizerEvaluator(createOptimizerSpace(captured, rejectingAdapter), rejectingAdapter).prepare(
+      captured.build,
+      true
+    ),
+    null
+  );
+  const allowed = {
+    ...captured,
+    build: {
+      ...captured.build,
+      weaponSigils: [
+        ['Force', 'Accuracy'],
+        ['Force', 'Accuracy']
+      ]
+    }
+  };
+  assert.ok(createOptimizerEvaluator(createOptimizerSpace(allowed, adapter), adapter).prepare(allowed.build, true));
+});
+
+// Every search must discard low-crit gear before retaining winners or display groups.
+test('minimum crit chance filters ordinary, exact, and fast search results', () => {
+  const initial = request(
+    { sigils: [[['Force'], ['Accuracy', 'Impact']]] },
+    {
+      weapons: ['Axe', 'Axe'],
+      alternateWeapons: ['', ''],
+      weaponSigils: [
+        ['Force', 'Accuracy'],
+        ['Force', 'Accuracy']
+      ]
+    }
+  );
+  const context = adapter.createBuildContext({
+    build: initial.build,
+    patch: adapter.profession.resolvePatch(initial.patch),
+    transitionDelays: normalizeTransitionDelays()
+  });
+  const captured = {
+    ...initial,
+    selections: {
+      ...initial.selections,
+      minCritChancePercent: context.attributes(1).attributes['Critical Chance'].final
+    }
+  };
+  for (const create of [createGroupedOptimizer, createFastOptimizer]) {
+    const job = create(captured, adapter);
+    const result = job.evaluateRange(0n, job.space.count);
+    assert.equal(result.simulations, '1');
+    assert.equal(result.winners.length, 1);
+    assert.equal(result.winners[0].equipment.weaponSigils[0][1], 'Accuracy');
+    for (const candidates of Object.values(result.groups))
+      assert.ok(candidates.every(({ equipment }) => equipment.weaponSigils[0][1] === 'Accuracy'));
+  }
+
+  const ordinary = runOrdinaryOptimizer(captured, adapter);
+  assert.equal(ordinary.length, 1);
+  assert.equal(ordinary[0].equipment.weaponSigils[0][1], 'Accuracy');
 });
 
 test('requirements check alternate weapon stats even when the starting set qualifies', () => {

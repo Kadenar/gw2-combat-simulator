@@ -520,7 +520,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   grid-template-columns: subgrid;
   align-items: center;
 }
-/* Wide enough for two pairs per line: toughness bounds, then the duration minimums, then vitality. */
+/* Wide containers pair the stat requirements while keeping each label beside its input. */
 @container optimizer-requirements (min-width: 540px) {
   .optimizer-requirement-grid {
     grid-template-columns: repeat(2, max-content minmax(80px, 120px));

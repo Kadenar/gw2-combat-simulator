@@ -32,6 +32,7 @@ export interface GearOptimizerSelections {
   minToughness?: number;
   maxToughness?: number;
   minVitality?: number;
+  minCritChancePercent?: number;
   minBoonDurationPercent?: number;
   minQuicknessDurationPercent?: number;
   minQuicknessOvercapPercent?: number;
@@ -44,13 +45,14 @@ export const OPTIMIZER_OVERCAP_REQUIREMENTS = {
   minAlacrityOvercapPercent: 'Minimum alacrity overcap (%)'
 } as const;
 
-// Display order: the form pairs the toughness bounds and the two duration minimums, then vitality.
+// Keep related bounds together in the requirements form.
 export const OPTIMIZER_REQUIREMENTS = {
   minToughness: 'Minimum toughness',
   maxToughness: 'Maximum toughness',
   minBoonDurationPercent: 'Minimum boon duration (%)',
   minQuicknessDurationPercent: 'Minimum quickness duration (%)',
   minVitality: 'Minimum vitality',
+  minCritChancePercent: 'Minimum crit chance (%)',
   ...OPTIMIZER_OVERCAP_REQUIREMENTS
 } as const;
 
@@ -254,7 +256,7 @@ export function createOptimizerSpace(request: GearOptimizerRequest, adapter: Opt
       (typeof value !== 'number' ||
         !Number.isFinite(value) ||
         value < 0 ||
-        (key.endsWith('DurationPercent') && value > 100))
+        ((key.endsWith('DurationPercent') || key === 'minCritChancePercent') && value > 100))
     )
       throw new RangeError(`Invalid ${OPTIMIZER_REQUIREMENTS[key].toLowerCase()}.`);
   }
@@ -490,6 +492,9 @@ export function createOptimizerEvaluator(space: OptimizerSpace, adapter: Optimiz
           (limits.minToughness !== undefined && toughness < limits.minToughness) ||
           (limits.maxToughness !== undefined && toughness > limits.maxToughness) ||
           (limits.minVitality !== undefined && attributes.Vitality.final < limits.minVitality) ||
+          // Use finalized crit chance so precision, traits, and sigils all contribute to the minimum.
+          (limits.minCritChancePercent !== undefined &&
+            Math.min(100, attributes['Critical Chance'].final) < limits.minCritChancePercent) ||
           (limits.minBoonDurationPercent !== undefined &&
             Math.min(100, boonDuration) < limits.minBoonDurationPercent) ||
           (limits.minQuicknessDurationPercent !== undefined &&

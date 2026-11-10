@@ -546,7 +546,7 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
         .filter(([key]) => key in OPTIMIZER_OVERCAP_REQUIREMENTS === overcap)
         .map(
           ([key, label]) =>
-            `<label class="optimizer-field">${label}<input name="${key}" data-constraint-label="${label}" type="number" min="0" ${key.endsWith('DurationPercent') ? 'max="100"' : ''} step="any" placeholder="No limit"></label>`
+            `<label class="optimizer-field">${label}<input name="${key}" data-constraint-label="${label}" type="number" min="0" ${key.endsWith('DurationPercent') || key === 'minCritChancePercent' ? 'max="100"' : ''} step="any" placeholder="No limit"></label>`
         )
         .join('');
     const forcedFields = slots
