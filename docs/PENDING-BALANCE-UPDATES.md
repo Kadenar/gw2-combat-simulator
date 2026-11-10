@@ -61,6 +61,11 @@ Current limitations are recorded in the [Core tooltips](../js/games/gw2/professi
       Anguish and its Summon Spirits attacks. Temporary target disability is not tracked by this implementation, so the
       separate disabled-target route to the maximum remains unsupported. See
       [Ritualist skills](../js/games/gw2/professions/necromancer/specializations/ritualist/skills/index.ts).
+- [ ] **Anguish opening barrage validation.** The supplied power Ritualist log `20261110-102344.zevtc` records opening
+      hits substantially above the current model, while commanded Anguish attacks are close. Isolate the opening
+      coefficient and modifiers before replacing the patch-note value in
+      [Ritualist skills](../js/games/gw2/professions/necromancer/specializations/ritualist/skills/index.ts). This golem
+      log does not resolve the disabled, non-defiant target case above.
 
 ## Ranger
 
@@ -206,34 +211,13 @@ old preview assumptions. See [Acrobatics traits](../js/games/gw2/professions/thi
 
 ## Mesmer
 
-- [ ] **Illusionary Leap.** Need the clone attack's Immobilized duration. Its previous initial strike still has no
-      control payload, so the new Immobilized application remains unimplemented. See
-      [sword skills](../js/games/gw2/professions/mesmer/core/skills/weapons/sword.ts).
-- [ ] **Disenchant.** Need the official ID, cast time, strike coefficient, boonless-target bonus, boon-removal count,
-      and flip duration/consumption rules. Swap's retired Immobilized application is removed; its Disenchant follow-up
-      is not yet implemented. Enemy boon removal is outside the current model.
-- [ ] **Phantasmal Disenchanter.** Focus placement is live. Need the new initial player projectile's damage and impact
-      timing; it is not yet added. Enemy boon removal and Focal Feedback's boon transfer are outside the target model.
-      See [focus skills](../js/games/gw2/professions/mesmer/core/skills/weapons/focus.ts).
-- [ ] **Phantasmal Warden.** Utility placement and eight attacks are live. Confirm its new attack cadence and clone
-      conversion timing, including Chronophantasma repeats. The eight retained attacks use the old cadence, and old
-      conversion clocks remain. Spawning at the player is not distinguished by the positional model. See
-      [utility skills](../js/games/gw2/professions/mesmer/core/skills/slot-skills.ts).
-- [ ] **Chronophantasma.** Need the resummoned phantasm condition-duration reduction and whether it covers triggered
-      conditions as well as native payloads. The strike multiplier is updated; condition durations remain unchanged. See
-      [Chronomancer traits](../js/games/gw2/professions/mesmer/specializations/chronomancer/traits/index.ts).
 - [ ] **Inspiration support effects.** Focal Feedback and Sympathetic Visage use the new tiers. Enemy-boon transfer and
       allied cleansing are outside the current combat model. The existing Focus recharge reduction is retained; confirm
       whether the new Focal Feedback retains it.
-- [ ] **Mesmer presets.** Builds affected by unresolved sword, Focus, Warden, or Chronophantasma mechanics remain not up
-      to date. Three preserved power rotations emit 56 warnings after the placement swap. Disenchanter requires Focus;
-      skipped casts also leave later Power Spike uses without an active Mantra of Pain. These warnings are retained, and
-      the results are not validated final benchmarks. Loadout and rotation review remains pending. See
-      [Mesmer manifest](../data/gw2/builds/mesmer/manifest.json).
-
-- Chronomancer, Power (Greatsword-Dagger/Sword): 21 warnings.
-- Chronomancer, Power (Spear-Dagger/Sword): 19 warnings.
-- Virtuoso, Power (Spear / Greatsword): 16 warnings.
+- [ ] **Mesmer presets.** The current skill IDs resolve the previous equipment and mantra warnings. Preserved rotations
+      now simulate without warnings, but affected presets still need post-patch loadout and rotation review. Their
+      metrics describe the current model. See the [Mesmer manifest](../data/gw2/builds/mesmer/manifest.json) and
+      [patch contracts](../tests/games/gw2/professions/mesmer/patch-contracts.test.js).
 
 ## Unresolved details outside the current combat model
 
