@@ -8,7 +8,6 @@ import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-bud
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { createRelicRuntime } from '#gw2/platform/equipment/relics/runtime.js';
-import { selectSkillEffects } from '#gw2/platform/execution/cast-effects.js';
 import { createGw2ConditionResolution } from '#gw2/platform/resolver/condition-resolution.js';
 import { createGw2EquipmentReactionContributions } from '#gw2/platform/resolver/equipment-reactions.js';
 import { createGw2ResolverReactionRegistry } from '#gw2/platform/resolver/reaction-registry.js';
@@ -17,7 +16,6 @@ import { effectStateAt, effectSummary } from '#gw2/platform/results/effect-repor
 import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { elementalistConditionEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
-import { THIEF_SKILL_IDS as THIEF } from '#gw2/professions/thief/data/ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { testProfession } from '#tests/fixtures/profession.js';
@@ -240,19 +238,13 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
     necromancer: { 62655: 3 },
     ranger: { 12597: 3 },
     revenant: { 62962: 2, 27162: 2, 46857: 2 },
-    thief: { 76895: 2 },
     warrior: { 14519: 3, 42803: 2, 80226: 2 }
   };
   for (const [profession, skills] of Object.entries(skillsByProfession)) {
     const module = await import(`#gw2/professions/${profession}/catalog.js`);
     for (const [id, totalStacks] of Object.entries(skills)) {
       const skill = module[`${profession}Catalog`].skillsById.get(Number(id));
-      // Sun Crystal selects its ordinary cast payload separately from the Meticulous trait template.
-      const effects =
-        profession === 'thief' && skill.id === THIEF.ZEPHYRITE_SUN_CRYSTAL
-          ? selectSkillEffects({ queries: {} }, { skill })
-          : skill.effects;
-      const packets = effects
+      const packets = skill.effects
         .flatMap((effect) =>
           materializeSkillEffectApplications({
             skill,

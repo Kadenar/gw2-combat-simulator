@@ -220,7 +220,7 @@ test('Amalgam damage previews apply Willing Host, Evolve and Titanic Strain inde
     for (const name of ['Power', 'Condition Damage'])
       assert.equal(
         strip[name].final,
-        base[name].final + (bonuses.evolved ? Math.round(pool[name] * 0.2) : 0) + (bonuses.titanic ? 125 : 0)
+        base[name].final + (bonuses.evolved ? Math.round(pool[name] * 0.15) : 0) + (bonuses.titanic ? 125 : 0)
       );
     for (const name of ['Strike Multiplier', 'Condition Multiplier'])
       assert.ok(Math.abs(strip[name].final - base[name].final - (bonuses.willingHost ? 0.05 : 0)) < 1e-8);

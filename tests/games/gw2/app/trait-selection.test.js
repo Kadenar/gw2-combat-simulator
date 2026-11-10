@@ -5,18 +5,19 @@ import { selectSpecialization, toggleMajorTrait } from '#gw2/app/build/panels/tr
 import { createDefaultBuild } from '#gw2/app/build/state/persistence.js';
 import { professionOptions } from '#gw2/profession-registry.js';
 import { missingPatchTraits, selectedTraits, traitPositions } from '#gw2/professions/shared/trait-data.js';
+import { testPatchPreview, withTestPreviewAdapter } from '#tests/helpers/patch-preview.js';
 import { patchSelectionFixture } from '#tests/helpers/patch-selection.js';
 import { loadProfessionAppAdapter } from '#tests/helpers/profession-app-adapter.js';
 
 // A preview may choose different traits without moving their slots; editing those choices must preserve Live.
 test('explicit preview traits resolve and edit independently on unchanged layouts', async () => {
-  const adapter = await loadProfessionAppAdapter('guardian');
+  const adapter = withTestPreviewAdapter(await loadProfessionAppAdapter('guardian'));
   const live = adapter.profession.resolvePatch({ id: 'current' }).catalog;
-  const preview = adapter.profession.resolvePatch({ id: 'nov-10-balance-preview' }).catalog;
+  const preview = adapter.profession.resolvePatch({ id: testPatchPreview.id }).catalog;
   const selection = {
     name: 'Virtues',
     traits: '3-1-2',
-    patchTraits: { 'nov-10-balance-preview': '3-1-1' }
+    patchTraits: { [testPatchPreview.id]: '3-1-1' }
   };
   assert.equal(traitPositions(live, selection), '3-1-2');
   assert.equal(traitPositions(preview, selection), '3-1-1');

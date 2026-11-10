@@ -53,7 +53,7 @@ test('simulation entry points validate IDs before running selected skills', () =
 for (const [profession, names, simulate = simulateGw2] of [
   [necromancerProfession, ['Summon Blood Fiend', 'Blood Is Power', 'Lich Form'], simulateRuntime],
   [engineerProfession, ['Healing Turret', 'Throw Mine', 'Supply Crate'], simulateRuntime],
-  [mesmerProfession, ['Ether Feast', 'Phantasmal Disenchanter', 'Time Warp'], simulateRuntime],
+  [mesmerProfession, ['Ether Feast', 'Phantasmal Warden', 'Time Warp'], simulateRuntime],
   [warriorProfession, ['Healing Signet', 'Throw Bolas', 'Signet of Rage'], simulateRuntime],
   [rangerProfession, ['Troll Unguent', 'Sharpening Stone', '"Strength of the Pack!"'], simulateRuntime],
   [thiefProfession, ['Hide in Shadows', 'Spider Venom', 'Thieves Guild'], simulateRuntime]

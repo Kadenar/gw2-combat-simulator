@@ -4,7 +4,7 @@
 // in one profession's presets never prevents another profession's regressions
 // from running. They all funnel through `assertManifestRegressions`, which walks
 // a profession's `data/gw2/builds/<profession>/manifest.json`, loads every saved build
-// and rotation through the shared app shell, and verifies warning-free, stable
+// and rotation through the shared app shell, and verifies scoped warnings and stable
 // DPS results without pinning rotation composition or EVTC details.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
@@ -21,7 +21,8 @@ export function relativeError(actual, expected) {
 
 export async function assertManifestRegressions(
   professionId,
-  simulate = (adapter, rotation, config) => simulateGw2({ profession: adapter.profession, rotation, config })
+  simulate = (adapter, rotation, config) => simulateGw2({ profession: adapter.profession, rotation, config }),
+  { pendingWarnings = new Map(), diagnostic } = {}
 ) {
   const manifest = JSON.parse(await readFile(repoUrl(`data/gw2/builds/${professionId}/manifest.json`), 'utf8'));
   const adapter = await loadBuildContext(professionId);
@@ -40,6 +41,7 @@ export async function assertManifestRegressions(
 
   const mismatches = [];
   const unexpectedWarnings = [];
+  const reviewedPresets = new Set();
 
   for (const section of manifest) {
     for (const preset of section.presets) {
@@ -78,8 +80,22 @@ export async function assertManifestRegressions(
       const result = simulate(adapter, build.rotation, config);
       const dpsError = relativeError(result.dps, preset.benchmarkDps);
 
-      // Every maintained preset must replay without hidden or exempted warnings.
-      if (result.warnings.length) unexpectedWarnings.push({ label, warnings: result.warnings });
+      // Preserve documented rotation warnings only for the named outdated preset and exact messages.
+      const expectedWarnings = pendingWarnings.get(preset.build);
+
+      if (expectedWarnings) {
+        reviewedPresets.add(preset.build);
+        assert.equal(preset.upToDate, false, label);
+        assert.ok(result.warnings.length > 0, `${label}: remove the resolved warning exception`);
+        const unexpected = result.warnings.filter(({ message }) => !expectedWarnings.has(message));
+
+        if (unexpected.length) unexpectedWarnings.push({ label, warnings: unexpected });
+
+        diagnostic(
+          `${label}: ${result.warnings.length} pending warnings; see docs/PENDING-BALANCE-UPDATES.md.\n` +
+            [...new Set(result.warnings.map(({ message }) => message))].join('\n')
+        );
+      } else if (result.warnings.length) unexpectedWarnings.push({ label, warnings: result.warnings });
 
       if (!Number.isFinite(result.dps) || dpsError > 0.01) {
         mismatches.push({
@@ -92,6 +108,7 @@ export async function assertManifestRegressions(
     }
   }
 
+  assert.deepEqual(reviewedPresets, new Set(pendingWarnings.keys()), `${professionId} unused warning exceptions`);
   assert.deepEqual(unexpectedWarnings, [], `${professionId} preset warnings`);
   assert.deepEqual(mismatches, [], `${professionId} preset regression`);
 }

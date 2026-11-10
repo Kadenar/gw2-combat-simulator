@@ -971,7 +971,7 @@ test('Revenant modules contribute disjoint runtime slices', () => {
 
   assert.equal(modifierRuleOwners.get('revenant.reinforced-potency'), 'Herald');
   assert.equal(modifierRuleOwners.get('revenant.heartpiercer-strike'), 'Renegade');
-  assert.equal(modifierRuleOwners.get('revenant.leviathan-strength'), 'Vindicator');
+  assert.equal(modifierRuleOwners.get('revenant.rise-to-the-occasion'), 'Vindicator');
   assert.equal(modifierRuleOwners.get('revenant.release-warrior-affinity'), 'Conduit');
 });
 

@@ -35,8 +35,7 @@ const preview = {
         'ranger.pounce-defiant': { factor: 1.3 },
         'ranger.falcons-stoop-disabled': { factor: 1.4 },
         'ranger.unleashed-wild-swing-defiant': { factor: 1.5 },
-        'ranger.unleashed-savage-shock-wave-defiant': { factor: 1.6 },
-        'ranger.condition-count-skill-bonus': { parameters: { damagePerCondition: 0.03 } },
+        'ranger.condition-count-skill-bonus': { parameters: { damagePerCondition: 0.03, maximumConditions: 3 } },
         'ranger.consuming-bite-condition-count': { parameters: { maximumConditions: 2, coefficientPerCondition: 0.05 } }
       }
     },
@@ -70,7 +69,8 @@ test('Ranger intrinsic rules retain target predicates, condition formulas, and s
             [RANGER.UNLEASHED_WILD_SWING, defiant ? (patched ? 1.5 : 1.2) : 1],
             [
               RANGER.UNLEASHED_SAVAGE_SHOCK_WAVE,
-              (defiant ? (patched ? 1.6 : 1.2) : 1) * (1 + count * (patched ? 0.03 : 0.02))
+              // Defiance selects the cap; ordinary targets count distinct conditions up to that cap.
+              1 + (defiant ? (patched ? 3 : 5) : Math.min(count, patched ? 3 : 5)) * (patched ? 0.03 : 0.04)
             ],
             [RANGER.CONSUMING_BITE, (0.45 + Math.min(count, patched ? 2 : 5) * (patched ? 0.05 : 0.025)) / 0.45],
             [RANGER.SLASH, 1],
@@ -129,11 +129,10 @@ test('intrinsic modifier references reuse skill cards and selected numeric facts
           [RANGER.POUNCE, 'Strike damage against defiant targets', patched ? '+30%' : '+20%'],
           [RANGER.FALCONS_STOOP, 'Strike damage against defiant or immobilized targets', patched ? '+40%' : '+20%'],
           [RANGER.UNLEASHED_WILD_SWING, 'Strike damage against defiant targets', patched ? '+50%' : '+20%'],
-          [RANGER.UNLEASHED_SAVAGE_SHOCK_WAVE, 'Strike damage against defiant targets', patched ? '+60%' : '+20%'],
           [
             RANGER.UNLEASHED_SAVAGE_SHOCK_WAVE,
             'Additional strike damage per target condition',
-            patched ? '+3%' : '+2%'
+            patched ? '+3%' : '+4%'
           ],
           [RANGER.CONSUMING_BITE, 'Additional coefficient per target condition', patched ? '0.05' : '0.025'],
           [RANGER.CONSUMING_BITE, 'Maximum target conditions counted', patched ? '2' : '5']
@@ -169,7 +168,7 @@ test('intrinsic modifier references reuse skill cards and selected numeric facts
 
         if (id === WARRIOR.SLICING_MAELSTROM) assert.match(tooltip.description, /Spend adrenaline.*primal burst/);
 
-        if (id === RANGER.UNLEASHED_SAVAGE_SHOCK_WAVE) assert.equal(owned[0].rules.length, 2);
+        if (id === RANGER.UNLEASHED_SAVAGE_SHOCK_WAVE) assert.equal(owned[0].rules.length, 1);
       }
     }
   }
@@ -260,7 +259,7 @@ test('Piercing Gales samples live vulnerability only for its own damage after Ga
   }
 });
 
-// Splitting shared IDs must make patch values independent without changing mark or captured-malice eligibility.
+// Independent skill tuning preserves each attack's mark requirement and captured malice.
 test('Deadeye skill-owned modifiers retain independent patch tuning and captured malice', () => {
   const family = withPatchPreview(thiefProfession, {
     id: 'deadeye-owned-rules',
@@ -296,7 +295,11 @@ test('Deadeye skill-owned modifiers retain independent patch tuning and captured
       event: { skillId, actorType: 'player', deadeyeMaliceSnapshot: 3 }
     };
     assert.equal(runtime.calculations.modifyStrikeDamage(context, 100), factor * 100);
-    assert.equal(runtime.calculations.modifyStrikeDamage({ ...context, time: 10 }, 100), 100);
+    // Judgment retains its captured-malice bonus after the mark expires.
+    assert.equal(
+      runtime.calculations.modifyStrikeDamage({ ...context, time: 10 }, 100),
+      skillId === THIEF.MALICIOUS_DEATHS_JUDGMENT ? 130 : 100
+    );
     assert.equal(
       runtime.calculations.modifyStrikeDamage(
         { ...context, event: { ...context.event, actorType: 'environment' } },

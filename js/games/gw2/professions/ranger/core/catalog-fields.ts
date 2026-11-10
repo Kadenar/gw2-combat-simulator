@@ -21,8 +21,5 @@ export const RANGER_CORE_PROFILE_FIELDS = defineFields({
   vigorRegenerationMultiplier: numberField({ patch: 'primary', unit: 'factor' }),
 
   // Strike, condition, and general damage scaling.
-  playerDamageMultiplier: numberField({ patch: 'primary', unit: 'factor' }),
-
-  // Durations, extensions, and recurring effects.
-  immobilizeDurationExtension: numberField({ patch: 'primary', unit: 'seconds' })
+  playerDamageMultiplier: numberField({ patch: 'primary', unit: 'factor' })
 });

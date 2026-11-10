@@ -6,11 +6,12 @@ import { createBossScenario } from '#gw2/app/boss-scenarios/model.js';
 import { captureAnalysisRequestSnapshot } from '#gw2/app/simulation/analysis-request-snapshot.js';
 import { mesmerAppAdapter } from '#gw2/professions/mesmer/app/app-definition.js';
 import { analysisFixture } from '#tests/helpers/analysis-lifecycle.js';
+import { withTestPreviewAdapter } from '#tests/helpers/patch-preview.js';
 
 const editorIntent = { collectChartData: false, comparePatch: false };
 
-function fixture() {
-  const build = mesmerAppAdapter.toApplicationBuild(mesmerAppAdapter.profession.createBuildDefaults());
+function fixture(adapter = mesmerAppAdapter) {
+  const build = adapter.toApplicationBuild(adapter.profession.createBuildDefaults());
   build.rotation = [{ type: 'wait', durationMs: 1000 }];
   build.assumptions.might = 25;
   const input = {
@@ -22,10 +23,10 @@ function fixture() {
   let prepared = 0;
   const capture = () =>
     captureAnalysisRequestSnapshot(input, {
-      profession: mesmerAppAdapter.profession,
+      profession: adapter.profession,
       createBuildContext: (context) => {
         prepared++;
-        return mesmerAppAdapter.createBuildContext(context);
+        return adapter.createBuildContext(context);
       }
     });
   return { input, capture, prepared: () => prepared };
@@ -146,7 +147,8 @@ test('lifecycle enrichment and restored sampling prepare against their baseline 
 });
 
 test('request intent controls charts and opposite-patch preparation without consulting the DOM', () => {
-  const f = fixture();
+  // Synthetic preview ownership keeps comparison coverage after a balance preview retires.
+  const f = fixture(withTestPreviewAdapter(mesmerAppAdapter));
   const snapshot = f.capture();
   assert.ok(snapshot.identity.previewId, 'fixture must exercise opposite-patch capture');
   const baseline = snapshot.baseline(editorIntent);
