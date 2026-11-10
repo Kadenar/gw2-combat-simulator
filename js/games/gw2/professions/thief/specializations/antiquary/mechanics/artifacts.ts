@@ -5,6 +5,7 @@ import type { AvailabilityResult } from '#gw2/platform/execution/availability.js
 import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { ThiefRuntime } from '#gw2/professions/thief/core/events.js';
 import { thiefInitiativeCost } from '#gw2/professions/thief/core/mechanics/resources.js';
@@ -15,13 +16,17 @@ import {
   THIEF_ARTIFACT_IDS,
   THIEF_TRAIT_IDS as TRAIT
 } from '#gw2/professions/thief/data/ids.js';
-import { artifactsPilfered } from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
+import {
+  artifactActivated,
+  artifactCompleted,
+  artifactsPilfered
+} from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
 import type { ThiefArtifactSlot } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
-import type { ThiefSkill } from '#gw2/professions/thief/types.js';
+import type { ThiefConfig, ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 
 /** The slot each accepted artifact cast spent, which selects its Possessive Hoarder family boon. */
-export const artifactSlotsUsed = new WeakMap<RuntimeCast<ThiefSkill>, ThiefArtifactSlot | undefined>();
+const artifactSlotsUsed = new WeakMap<RuntimeCast<ThiefSkill>, ThiefArtifactSlot | undefined>();
 
 export function allArtifactChoices(): ThiefArtifactSlot[] {
   return [
@@ -31,7 +36,7 @@ export function allArtifactChoices(): ThiefArtifactSlot[] {
 }
 
 /** Replace inventory with trait-derived uses; starting artifacts must not trigger live pilfer effects. */
-export function storeAntiquaryArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initiative' | 'scuffle'): void {
+function storeAntiquaryArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initiative' | 'scuffle'): void {
   const state = antiquaryState.from(runtime.profession);
   state.artifactSlots = allArtifactChoices();
 
@@ -60,7 +65,7 @@ export function pilferArtifacts(runtime: ThiefRuntime, source: 'swipe' | 'initia
  * Activating an artifact spends its slot and one use immediately, so a pilfer during a long artifact cast supplies
  * the next pool instead of being consumed by the cast that was already underway.
  */
-export function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const state = antiquaryState.from(runtime.profession);
   artifactSlotsUsed.set(
     cast,
@@ -71,7 +76,7 @@ export function spendArtifact(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkil
 }
 
 /** Gross initiative spending feeds Prodigious Pincher; each live Chak Shield charge refunds one paid weapon use. */
-export function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   const cost = thiefInitiativeCost(cast.skill);
 
   if (!(cost > 0)) return;
@@ -89,7 +94,7 @@ export function spendAntiquaryInitiative(runtime: ThiefRuntime, cast: RuntimeCas
 }
 
 /** Swipe alone grants its steal package and swipe-only pilfer policies. */
-export function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
+function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast<ThiefSkill>): void {
   runtime.fireTrigger(stealAccepted, { cast });
   pilferArtifacts(runtime, 'swipe');
   // Swipe's pilfer also reaches Core Improvisation before Kleptomaniac.
@@ -97,7 +102,7 @@ export function completeSkrittSwipe(runtime: ThiefRuntime, cast: RuntimeCast<Thi
 }
 
 /** Artifacts require a held slot; backfire variants are internal; Reshuffle rerolls only an existing pool. */
-export function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
+function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, skill: ThiefSkill): AvailabilityResult {
   const state = antiquaryState.from(runtime.profession);
 
   if (
@@ -124,7 +129,7 @@ export function antiquaryAvailability(runtime: MechanicQueriesOf<ThiefRuntime>, 
 }
 
 /** Reads accumulated spending without consuming it; only an in-combat threshold check can request a pilfer. */
-export function prodigiousPincherReady(runtime: ThiefRuntime): boolean {
+function prodigiousPincherReady(runtime: ThiefRuntime): boolean {
   return (
     runtime.engagement.combatMechanicsAllowed() &&
     hasTrait(runtime, TRAIT.PRODIGIOUS_PINCHER) &&
@@ -143,3 +148,39 @@ function prolificPlundererUses(runtime: ThiefRuntime, source: string): number {
     ? balanceNumber(runtime.helpers, TRAIT.PROLIFIC_PLUNDERER, 'resourceGain')
     : 0;
 }
+
+/** Own inventory transitions and accepted-slot lifetime while authored actions retain reward and effect ordering. */
+export const antiquaryArtifactLifecycle: RuntimeHooks<ThiefRuntimeState, ThiefSkill> = {
+  initialize(runtime) {
+    // Starting inventory grants Swipe's uses without firing live pilfer rewards.
+    if ((runtime.config as ThiefConfig).initialPreSteal === 1) storeAntiquaryArtifacts(runtime, 'swipe');
+  },
+  availability: antiquaryAvailability,
+  onCastStart: spendAntiquaryInitiative,
+  onCastCommit(_runtime, cast) {
+    artifactSlotsUsed.delete(cast);
+  },
+  onCastCancel(_runtime, cast) {
+    artifactSlotsUsed.delete(cast);
+  },
+  sideEffectHandlers: {
+    'thief.artifact-spend'(runtime, context) {
+      if (context.kind === 'cast') spendArtifact(runtime, context.cast);
+    },
+    'thief.artifact-activated'(runtime, context) {
+      // Family rewards use the accepted slot even if another pilfer has replaced the inventory.
+      if (context.kind === 'cast')
+        runtime.fireTrigger(artifactActivated, { cast: context.cast, slot: artifactSlotsUsed.get(context.cast) });
+    },
+    'thief.artifact-completed'(runtime, context) {
+      if (context.kind === 'cast') runtime.fireTrigger(artifactCompleted);
+    },
+    'thief.skritt-swipe'(runtime, context) {
+      if (context.kind === 'cast') completeSkrittSwipe(runtime, context.cast);
+    },
+    'thief.reshuffle'(runtime) {
+      // Reroll choices without restoring uses or triggering a pilfer.
+      antiquaryState.from(runtime.profession).artifactSlots = allArtifactChoices();
+    }
+  }
+};

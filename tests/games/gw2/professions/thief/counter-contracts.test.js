@@ -3,7 +3,6 @@ import test from 'node:test';
 
 import { THIEF_SKILL_IDS as ID, THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import { antiquaryHooks } from '#gw2/professions/thief/specializations/antiquary/hooks.js';
-import { prodigiousPincherReady } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { antiquaryState } from '#gw2/professions/thief/specializations/antiquary/state.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
@@ -46,7 +45,6 @@ test('Prodigious Pincher retains precombat gross spending, checks after Chak ref
             skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 10 } }
           });
           assert.equal(state.initiativeSpentSincePilfer, at < 1 ? 10 : 0);
-          assert.equal(prodigiousPincherReady(context), false);
         }
       }))
     }

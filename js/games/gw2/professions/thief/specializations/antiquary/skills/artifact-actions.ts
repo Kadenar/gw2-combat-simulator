@@ -6,16 +6,6 @@ import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-h
 import { requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
 import {
-  allArtifactChoices,
-  artifactSlotsUsed,
-  completeSkrittSwipe,
-  spendArtifact
-} from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
-import {
-  artifactActivated,
-  artifactCompleted
-} from '#gw2/professions/thief/specializations/antiquary/mechanics/trigger-points.js';
-import {
   coinInitiative,
   startDoubleEdge,
   tossCanachCoins
@@ -30,26 +20,9 @@ import {
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-/** This skill family owns its actions; hooks retain registration and cross-owner ordering. */
+/** Artifact skills own their effects; the inventory lifecycle owns spending and reward ordering. */
 export const antiquaryArtifactActions: NonNullable<RuntimeHooks<ThiefRuntimeState, ThiefSkill>['sideEffectHandlers']> =
   {
-    'thief.artifact-spend'(runtime, context) {
-      if (context.kind === 'cast') spendArtifact(runtime, context.cast);
-    },
-    'thief.artifact-activated'(runtime, context) {
-      // Family rewards use the spent slot before the skill grants its identity window.
-      if (context.kind === 'cast')
-        runtime.fireTrigger(artifactActivated, { cast: context.cast, slot: artifactSlotsUsed.get(context.cast) });
-    },
-    'thief.artifact-completed'(runtime, context) {
-      if (context.kind === 'cast') runtime.fireTrigger(artifactCompleted);
-    },
-    'thief.skritt-swipe'(runtime, context) {
-      if (context.kind === 'cast') completeSkrittSwipe(runtime, context.cast);
-    },
-    'thief.reshuffle'(runtime) {
-      antiquaryState.from(runtime.profession).artifactSlots = allArtifactChoices();
-    },
     'thief.double-edge'(runtime, context) {
       if (context.kind === 'cast') startDoubleEdge(runtime, context.cast);
     },

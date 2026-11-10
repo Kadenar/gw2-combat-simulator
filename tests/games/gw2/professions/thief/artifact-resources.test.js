@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { THIEF_TRAIT_IDS as TRAIT } from '#gw2/professions/thief/data/ids.js';
-import { spendAntiquaryInitiative } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
+import { antiquaryArtifactLifecycle } from '#gw2/professions/thief/specializations/antiquary/mechanics/artifacts.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runThief } from '#tests/helpers/thief-simulation.js';
 
@@ -22,11 +22,17 @@ test('Chak Shield refunds three paid weapon uses and preserves charges for free 
   };
   const state = runtime.profession.specialization.state;
   assert.equal(state.chakInitiativeRefunds[0].charges, 3);
-  spendAntiquaryInitiative(runtime, { skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 0 } } });
-  spendAntiquaryInitiative(runtime, { skill: { type: 'Profession', cost: { resource: 'initiative', amount: 2 } } });
+  antiquaryArtifactLifecycle.onCastStart(runtime, {
+    skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 0 } }
+  });
+  antiquaryArtifactLifecycle.onCastStart(runtime, {
+    skill: { type: 'Profession', cost: { resource: 'initiative', amount: 2 } }
+  });
   assert.equal(state.chakInitiativeRefunds[0].charges, 3);
   for (let use = 0; use < 4; use++) {
-    spendAntiquaryInitiative(runtime, { skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 4 } } });
+    antiquaryArtifactLifecycle.onCastStart(runtime, {
+      skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 4 } }
+    });
   }
 
   assert.deepEqual(refunds, [
@@ -79,6 +85,8 @@ test('Chak Shield caps stacked refunds at four and expired grants cannot fund we
     4
   );
   for (const grant of state.chakInitiativeRefunds) grant.expiresAt = runtime.time;
-  spendAntiquaryInitiative(runtime, { skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 4 } } });
+  antiquaryArtifactLifecycle.onCastStart(runtime, {
+    skill: { type: 'Weapon', cost: { resource: 'initiative', amount: 4 } }
+  });
   assert.deepEqual(refunds, []);
 });
