@@ -4,7 +4,7 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { CONDITION } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
-import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 export const mirage = defineRelic({
@@ -22,7 +22,7 @@ export const mirage = defineRelic({
       return;
 
     state.readyAt = dodge.at + 1;
-    emitDamagePayload(ctx, state, dodge);
+    emitDamagePayload(ctx, dodge);
   },
   condition(ctx, _state, application) {
     if (application.sourceId === `relic.${RELIC_IDS.MIRAGE}`) {
@@ -35,7 +35,7 @@ export const mirage = defineRelic({
 });
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
-function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, dodge: SimulationEvent): void {
+function emitDamagePayload(ctx: Gw2RelicContext, dodge: SimulationEvent): void {
   ctx.effects.emit({
     kind: 'packet',
     event: {

@@ -506,11 +506,11 @@ test('Nourys owns its generic stack cadence and additive damage window', () => {
   );
   assert.deepEqual(result.warnings, []);
 
-  assert.equal(relicOutgoingDamageBonus(context, 'strike', 31.999), 0);
-  assert.equal(relicOutgoingDamageBonus(context, 'strike', 32), 0.25);
-  assert.equal(relicOutgoingDamageBonus(context, 'condition', 36.999), 0.25);
-  assert.equal(relicOutgoingDamageBonus(context, 'condition', 37), 0);
-  assert.equal(relicOutgoingDamageBonus(context, 'strike', 67), 0.25);
+  assert.equal(relicOutgoingDamageBonus(context, 31.999), 0);
+  assert.equal(relicOutgoingDamageBonus(context, 32), 0.25);
+  assert.equal(relicOutgoingDamageBonus(context, 36.999), 0.25);
+  assert.equal(relicOutgoingDamageBonus(context, 37), 0);
+  assert.equal(relicOutgoingDamageBonus(context, 67), 0.25);
   assert.deepEqual(
     result.procSteps.filter(({ skill }) => skill === 'Relic of Nourys').map(({ start }) => start / 1000),
     [32, 67]

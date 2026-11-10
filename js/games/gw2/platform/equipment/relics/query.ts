@@ -15,22 +15,17 @@ export function relicStrikeMultiplier(ctx: Gw2RelicStrikeQueryContext, event: Si
 }
 
 /** Returns the selected relic's contribution to the additive damage bucket. */
-export function relicOutgoingDamageBonus(
-  ctx: Gw2RelicRuntimeContext,
-  damageType: 'strike' | 'condition',
-  at: number,
-  event: SimulationEvent | null = null
-): number {
-  return ctx.relic?.queries.outgoingDamageBonus(ctx, damageType, at, event) ?? 0;
+export function relicOutgoingDamageBonus(ctx: Gw2RelicRuntimeContext, at: number): number {
+  return ctx.relic?.queries.outgoingDamageBonus(ctx, at) ?? 0;
 }
 
 /** Returns the selected relic's additive critical-strike chance bonus. */
 export function relicCriticalChanceBonus(
-  ctx: Gw2RelicRuntimeContext,
+  ctx: Pick<Gw2RelicRuntimeContext, 'relic'>,
   event: SimulationEvent,
   mightStacks: number
 ): number {
-  return ctx.relic?.queries.criticalChanceBonus(ctx, event, mightStacks) ?? 0;
+  return ctx.relic?.queries.criticalChanceBonus(event, mightStacks) ?? 0;
 }
 
 /**
@@ -49,6 +44,6 @@ export function relicConditionDamageBonus(ctx: Gw2RelicAttributeQueryContext, at
 }
 
 /** Samples earned concentration before a new boon application claims its own relic stack. */
-export function relicConcentrationBonus(ctx: Gw2RelicAttributeQueryContext, at: number): number {
-  return ctx.relic?.queries.concentrationBonus(ctx, at) ?? 0;
+export function relicConcentrationBonus(ctx: Pick<Gw2RelicRuntimeContext, 'relic'>, at: number): number {
+  return ctx.relic?.queries.concentrationBonus(at) ?? 0;
 }

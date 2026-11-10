@@ -25,7 +25,7 @@ function createInstance(name: unknown): RelicInstance {
   return { id, rules, state: rules.createState?.() || {} };
 }
 
-/** Queries share the equipped relic's state. Strike multipliers also include precast relics. */
+/** Queries receive only consumed observations; stateful rules share equipped state and strike multipliers include precasts. */
 function queryOwner(equipped: RelicInstance, precasts: readonly RelicInstance[] = []): Gw2RelicQueryOwner {
   const { rules, state } = equipped;
   return Object.freeze({
@@ -36,13 +36,11 @@ function queryOwner(equipped: RelicInstance, precasts: readonly RelicInstance[] 
           (multiplier, relic) => multiplier * (relic.rules.strikeMultiplier?.(context, relic.state, event) ?? 1),
           rules.strikeMultiplier?.(context, state, event) ?? 1
         ),
-      outgoingDamageBonus: (context, damageType, at, event) =>
-        rules.outgoingDamageBonus?.(context, state, damageType, at, event) ?? 0,
-      criticalChanceBonus: (context, event, mightStacks) =>
-        rules.criticalChanceBonus?.(context, state, event, mightStacks) ?? 0,
+      outgoingDamageBonus: (context, at) => rules.outgoingDamageBonus?.(context, state, at) ?? 0,
+      criticalChanceBonus: (event, mightStacks) => rules.criticalChanceBonus?.(event, mightStacks) ?? 0,
       conditionDurationBonus: (context, at) => rules.conditionDurationBonus?.(context, state, at) ?? 0,
-      conditionDamageBonus: (context, at) => rules.conditionDamageBonus?.(context, state, at) ?? 0,
-      concentrationBonus: (context, at) => rules.concentrationBonus?.(context, state, at) ?? 0
+      conditionDamageBonus: (context, at) => rules.conditionDamageBonus?.(context, at) ?? 0,
+      concentrationBonus: (at) => rules.concentrationBonus?.(state, at) ?? 0
     } satisfies Gw2RelicQueryOwner['queries'])
   });
 }
@@ -85,7 +83,7 @@ export function createRelicRuntime(name: unknown, precastNames: readonly string[
       // Resolve delayed activations by source ID so precast relics can still activate after combat starts.
       const relic = instances.find((entry) => entry.id === event.sourceId);
 
-      if (relic) relic.rules.activate?.(context, relic.state, event);
+      if (relic) relic.rules.activate?.(context, event);
     },
     passiveTimeline: (context, end) => {
       rules.passiveTimeline?.(context, state, end);
@@ -99,14 +97,14 @@ export function createRelicRuntime(name: unknown, precastNames: readonly string[
       rules.combo?.(context, state, event);
     },
     damageResolved: (context, event) => {
-      rules.damageResolved?.(context, state, event);
+      rules.damageResolved?.(context, event);
     },
     damagePayload(context, event, inputs) {
       const relic = instances.find((entry) => entry.id === event.sourceId);
 
       if (!relic?.rules.damagePayload) return false;
 
-      relic.rules.damagePayload(context, relic.state, event, inputs);
+      relic.rules.damagePayload(context, event, inputs);
       return true;
     }
   } satisfies Gw2RelicRuntime);

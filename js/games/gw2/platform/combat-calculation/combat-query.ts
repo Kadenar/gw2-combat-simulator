@@ -562,9 +562,7 @@ export function createGw2CombatQuery({
     ) {
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
       const relicBonus =
-        event.summonUsesEquipmentModifiers === false
-          ? 0
-          : relicOutgoingDamageBonus(relicContext, 'strike', time, event);
+        event.summonUsesEquipmentModifiers === false ? 0 : relicOutgoingDamageBonus(relicContext, time);
       const modifier = activeProfession.calculations.modifyStrikeDamage;
       const vulnerability = 1 + vulnerabilityStacksAt(time, runtime) / 100;
 
@@ -646,7 +644,7 @@ export function createGw2CombatQuery({
       event = conditionOwnerEvent(event);
       const relicContext = runtime?.relic ? runtime : historicalRelicContext;
       const usesEquipmentModifiers = event?.summonUsesEquipmentModifiers !== false;
-      const relicBonus = usesEquipmentModifiers ? relicOutgoingDamageBonus(relicContext, 'condition', time, event) : 0;
+      const relicBonus = usesEquipmentModifiers ? relicOutgoingDamageBonus(relicContext, time) : 0;
       const sigils = activeSigilSetAt(time, runtime);
       // Ordinary summon conditions use their player's bonuses; independent pet/mech owners never inherit Bursting.
       const usesSigil = usesEquipmentModifiers && !isIndependentConditionOwner(event);

@@ -65,7 +65,7 @@ export const thorns = defineRelic({
     }
   },
   // Flat Condition Damage is sampled at tick time, including configured opening stacks and every assumed refresh.
-  conditionDamageBonus(ctx, _state, at) {
+  conditionDamageBonus(ctx, at) {
     return (
       activeRefreshedStacks(thornsBuffAt(at, ctx.config.initialThornsStacks), at, 'exclusive') *
       THORNS_CONDITION_DAMAGE_PER_STACK

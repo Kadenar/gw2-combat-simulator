@@ -8,7 +8,7 @@ import { ACTOR, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { AnnouncementEmission } from '#gw2/platform/effects/emission.js';
 import { relicIdForName } from '#gw2/platform/equipment/relics/catalog.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
-import type { Gw2RelicContext, Gw2RelicRule, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2RelicContext, Gw2RelicRule } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 interface TimedBuffProcOptions {
@@ -132,7 +132,7 @@ export function skillUseStrikeRelic(skillType: 'Heal' | 'Elite'): Readonly<Gw2Re
   const relicId = director ? RELIC_IDS.DIRECTOR : RELIC_IDS.MOUNT_BALRIOR;
   const name = director ? 'Relic of the Director' : 'Relic of Mount Balrior';
   const kind = director ? 'relic-director' : 'relic-mount-balrior';
-  function activate(ctx: Gw2RelicContext, _state: Gw2RelicState, event: SimulationEvent) {
+  function activate(ctx: Gw2RelicContext, event: SimulationEvent) {
     const at = event.at;
     recordTimedBuffProc(ctx, event, { relicId, kind, duration: 6, name });
 

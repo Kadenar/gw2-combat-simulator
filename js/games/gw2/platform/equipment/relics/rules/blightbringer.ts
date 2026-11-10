@@ -5,7 +5,7 @@ import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownershi
 import { CONDITION } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
-import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 // Combat counts distinct poison activations before triggering the payload.
@@ -42,12 +42,12 @@ export const blightbringer = defineRelic({
 
     state.count = 0;
     state.readyAt = application.at + 8;
-    emitDamagePayload(ctx, state, application);
+    emitDamagePayload(ctx, application);
   }
 });
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
-function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, application: SimulationEvent): void {
+function emitDamagePayload(ctx: Gw2RelicContext, application: SimulationEvent): void {
   announceRelic(ctx, application, 'Relic of Blightbringer');
   for (const [condition, stacks, duration] of [
     [CONDITION.POISONED, 3, 10],

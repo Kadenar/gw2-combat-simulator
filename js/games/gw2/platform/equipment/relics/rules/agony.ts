@@ -1,7 +1,7 @@
 import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js';
 import { RELIC_BY_ID, RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
-import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 /** Resolved interrupts share Severance's control trigger; each proc adds five independent, unmodified damage ticks. */
@@ -15,12 +15,12 @@ export const agony = defineRelic({
     if (!isInternalCooldownReady(event.at, state.readyAt)) return;
 
     state.readyAt = event.at + RELIC_BY_ID[RELIC_IDS.AGONY].cooldown;
-    emitDamagePayload(ctx, state, event);
+    emitDamagePayload(ctx, event);
   }
 });
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
-function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: SimulationEvent): void {
+function emitDamagePayload(ctx: Gw2RelicContext, event: SimulationEvent): void {
   announceRelic(ctx, event, 'Relic of Agony', { detail: '', icon: RELIC_BY_ID[RELIC_IDS.AGONY].icon });
   // This effect is not a condition: fixed ticks bypass duration, vulnerability, and outgoing damage modifiers.
   for (let second = 1; second <= 5; second += 1) {

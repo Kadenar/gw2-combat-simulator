@@ -44,7 +44,7 @@ export const herald = defineRelic({
       effectState: { stacks: buff.stacks, maximumStacks: MAXIMUM_STACKS }
     });
   },
-  concentrationBonus(_ctx, state, at) {
+  concentrationBonus(state, at) {
     const time = canonicalTime(at);
     const activations = state.activations!;
     for (let index = activations.length - 1; index >= 0; index -= 1) {

@@ -56,7 +56,7 @@ export const mistburn = defineRelic({
 
     announceRelic(ctx, event, 'Relic of Mistburn', { sourceSkill: event.triggeredBy || event.skillName });
   },
-  criticalChanceBonus(_ctx, _state, event, mightStacks) {
+  criticalChanceBonus(event, mightStacks) {
     return isGw2PlayerActorEvent(event) && mightStacks >= 10 ? 0.1 : 0;
   }
 });

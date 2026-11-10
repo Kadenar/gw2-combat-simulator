@@ -23,7 +23,7 @@ test('relic queries return neutral contributions without an applicable rule', ()
     const context = { relic, config: {}, totals: { strike: 0, condition: 0 } };
     const event = { type: 'damage', at: 0, actorType: 'player' };
     assert.equal(relicStrikeMultiplier(context, event), 1);
-    assert.equal(relicOutgoingDamageBonus(context, 'strike', 0, event), 0);
+    assert.equal(relicOutgoingDamageBonus(context, 0), 0);
     assert.equal(relicCriticalChanceBonus(context, event, 0), 0);
     assert.equal(relicConditionDurationBonus(context, 0), 0);
     assert.equal(relicConditionDamageBonus(context, 0), 0);

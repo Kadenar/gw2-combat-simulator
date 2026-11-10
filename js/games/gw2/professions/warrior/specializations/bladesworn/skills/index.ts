@@ -386,7 +386,7 @@ const BLADESWORN_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<Warrio
     effectVariants: [
       {
         when: () => true,
-        transform: (runtime, cast) => artilleryEffects(runtime, cast, false)
+        transform: (_runtime, cast) => artilleryEffects(cast, false)
       }
     ],
     // Capture every round before shared commitment spends the last reserved round.
@@ -681,7 +681,7 @@ export const BLADESWORN_SKILLS: readonly WarriorSkill[] = Object.freeze([
     effectVariants: [
       {
         when: () => true,
-        transform: (runtime, cast) => artilleryEffects(runtime, cast, true)
+        transform: (_runtime, cast) => artilleryEffects(cast, true)
       }
     ]
   }),
@@ -755,11 +755,7 @@ export const BLADESWORN_SKILLS: readonly WarriorSkill[] = Object.freeze([
 ]);
 
 /** Artillery spends every captured round while the shared completion consumes its final reserved round. */
-function artilleryEffects(
-  _runtime: WarriorRuntime,
-  cast: RuntimeCast<WarriorSkill>,
-  sharp: boolean
-): readonly SkillEffect[] {
+function artilleryEffects(cast: RuntimeCast<WarriorSkill>, sharp: boolean): readonly SkillEffect[] {
   const rounds = warriorAmmunition.get(cast)!.rounds;
   const profile = cast.skill;
   const strike = requireEffect(profile, 'strike', sharp ? 'Strike' : rounds >= 2 ? 'Two rounds' : 'One round');

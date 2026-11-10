@@ -3,7 +3,7 @@ import { isInternalCooldownReady } from '#gw2/platform/combat/procs/registry.js'
 import { CONDITION } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
-import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 // Combat activation checks this condition threshold.
@@ -23,12 +23,12 @@ export const akeem = defineRelic({
     }
 
     state.readyAt = event.at + 10;
-    emitDamagePayload(ctx, state, event);
+    emitDamagePayload(ctx, event);
   }
 });
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
-function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: SimulationEvent): void {
+function emitDamagePayload(ctx: Gw2RelicContext, event: SimulationEvent): void {
   announceRelic(ctx, event, 'Relic of Akeem');
   // Relic conditions remain effect-sourced while inheriting the player's outgoing condition modifiers.
   ctx.effects.emit({

@@ -77,6 +77,6 @@ test('Visionary publishes its consumed counter before its reward and resumes bui
   assert.equal(state.stacks, 0);
   visionary.combo(ctx, state, { ...combo, at: until });
   assert.equal(state.stacks, 1);
-  assert.equal(visionary.outgoingDamageBonus(ctx, state, 'condition', 2), 0.1);
-  assert.equal(visionary.outgoingDamageBonus(ctx, state, 'condition', until + 1), 0);
+  assert.equal(visionary.outgoingDamageBonus(ctx, state, 2), 0.1);
+  assert.equal(visionary.outgoingDamageBonus(ctx, state, until + 1), 0);
 });

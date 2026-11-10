@@ -18,7 +18,7 @@ const relic = createRelicRuntime('Thorns');
 relicConditionDamageBonus({ config: { initialThornsStacks: 2 }, relic }, 0);
 relicConditionDurationBonus({ relic, buffs: new Map() }, 0);
 relicCriticalChanceBonus({ relic }, event, 0);
-relicOutgoingDamageBonus({ relic }, 'condition', 0);
+relicOutgoingDamageBonus({ relic }, 0);
 relicStrikeMultiplier(
   { relic, config: {}, totals: { strike: 0, condition: 0 }, helpers: effectContext.helpers },
   event

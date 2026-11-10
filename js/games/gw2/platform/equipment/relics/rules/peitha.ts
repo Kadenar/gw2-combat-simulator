@@ -4,7 +4,7 @@ import { isGw2PlayerActorEvent, isGw2PlayerModifierOwnedEvent } from '#gw2/platf
 import { CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
-import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
@@ -26,7 +26,7 @@ export const peitha = defineRelic({
     state.readyAt = event.at + 4;
     const anchorOffsetMs =
       skill.peithaImpactAnchor === 'castEnd' ? (Number(event.fullEndsAt ?? event.at) - event.at) * 1000 : 0;
-    emitDamagePayload(ctx, state, event, {
+    emitDamagePayload(ctx, event, {
       impactDelayMs: anchorOffsetMs + (skill.peithaImpactDelayMs ?? PEITHA_DEFAULT_IMPACT_DELAY_MS)
     });
   },
@@ -55,7 +55,6 @@ export const peitha = defineRelic({
 /** Torment and the player's damage buff arrive together, including in isolated damage calculations. */
 function emitDamagePayload(
   ctx: Pick<Gw2RelicContext, 'effects' | 'engagement'>,
-  _state: Gw2RelicState,
   event: SimulationEvent,
   inputs: import('#gw2/platform/skill-damage/types.js').DamageInputs = {}
 ): void {

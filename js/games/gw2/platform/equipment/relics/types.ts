@@ -77,7 +77,6 @@ export interface Gw2RelicRule {
   /** The same per-occurrence payload is called after combat eligibility or directly by the damage calculator. */
   readonly damagePayload?: (
     context: Gw2RelicContext,
-    state: Gw2RelicState,
     event: SimulationEvent,
     inputs?: import('#gw2/platform/skill-damage/types.js').DamageInputs
   ) => void;
@@ -103,7 +102,7 @@ export interface Gw2RelicRule {
   /** Live actions and completions trigger equipment at their actual semantic boundary. */
   readonly action?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
   readonly completed?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
-  readonly activate?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
+  readonly activate?: (context: Gw2RelicContext, event: SimulationEvent) => unknown;
   readonly passiveTimeline?: (context: Gw2RelicContext, state: Gw2RelicState, end: number) => unknown;
   readonly boon?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
   readonly combo?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
@@ -112,19 +111,8 @@ export interface Gw2RelicRule {
     state: Gw2RelicState,
     event: SimulationEvent
   ) => number;
-  readonly outgoingDamageBonus?: (
-    context: Gw2RelicRuntimeContext,
-    state: Gw2RelicState,
-    damageType: 'strike' | 'condition',
-    at: number,
-    event: SimulationEvent | null
-  ) => number;
-  readonly criticalChanceBonus?: (
-    context: Gw2RelicRuntimeContext,
-    state: Gw2RelicState,
-    event: SimulationEvent,
-    mightStacks: number
-  ) => number;
+  readonly outgoingDamageBonus?: (context: Gw2RelicRuntimeContext, state: Gw2RelicState, at: number) => number;
+  readonly criticalChanceBonus?: (event: SimulationEvent, mightStacks: number) => number;
   readonly afterHit?: (
     context: Gw2RelicContext,
     state: Gw2RelicState,
@@ -139,16 +127,16 @@ export interface Gw2RelicRule {
     skill: Skill | null | undefined
   ) => unknown;
   readonly conditionDurationBonus?: (context: Gw2RelicDurationQueryContext, state: Gw2RelicState, at: number) => number;
-  readonly conditionDamageBonus?: (context: Gw2RelicAttributeQueryContext, state: Gw2RelicState, at: number) => number;
+  readonly conditionDamageBonus?: (context: Gw2RelicAttributeQueryContext, at: number) => number;
   /** Earned concentration scales subsequent boon grants, including grants made by companions. */
-  readonly concentrationBonus?: (context: Gw2RelicAttributeQueryContext, state: Gw2RelicState, at: number) => number;
+  readonly concentrationBonus?: (state: Gw2RelicState, at: number) => number;
   readonly condition?: (
     context: Gw2RelicContext,
     state: Gw2RelicState,
     application: SimulationEvent,
     helpers: Gw2ConditionHelpers & { readonly stacksBeforeApplication: number }
   ) => unknown;
-  readonly damageResolved?: (context: Gw2RelicContext, state: Gw2RelicState, event: SimulationEvent) => unknown;
+  readonly damageResolved?: (context: Gw2RelicContext, event: SimulationEvent) => unknown;
 }
 
 /** Query owners expose no mutable instances or gameplay operations. */
@@ -159,16 +147,11 @@ export interface Gw2RelicQueryOwner {
 
 export interface Gw2RelicQueries {
   strikeMultiplier(context: Gw2RelicStrikeQueryContext, event: SimulationEvent): number;
-  outgoingDamageBonus(
-    context: Gw2RelicRuntimeContext,
-    damageType: 'strike' | 'condition',
-    at: number,
-    event: SimulationEvent | null
-  ): number;
-  criticalChanceBonus(context: Gw2RelicRuntimeContext, event: SimulationEvent, mightStacks: number): number;
+  outgoingDamageBonus(context: Gw2RelicRuntimeContext, at: number): number;
+  criticalChanceBonus(event: SimulationEvent, mightStacks: number): number;
   conditionDurationBonus(context: Gw2RelicDurationQueryContext, at: number): number;
   conditionDamageBonus(context: Gw2RelicAttributeQueryContext, at: number): number;
-  concentrationBonus(context: Gw2RelicAttributeQueryContext, at: number): number;
+  concentrationBonus(at: number): number;
 }
 
 /**

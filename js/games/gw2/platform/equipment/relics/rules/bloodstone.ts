@@ -12,7 +12,7 @@ import {
   relicBuffActive,
   timedStrikeBuff
 } from '#gw2/platform/equipment/relics/rules/shared.js';
-import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 // Display progress toward the fourth blast, which consumes the three stored stacks.
@@ -59,14 +59,14 @@ export const bloodstone = defineRelic({
       expiresAt: event.at,
       effectState: { stacks: 0, maximumStacks: VOLATILITY_TRIGGER_STACKS }
     });
-    emitDamagePayload(ctx, state, event);
+    emitDamagePayload(ctx, event);
   },
   // Fervor follows outgoing modifier ownership and also affects the delayed explosion that activated it.
   strikeMultiplier: timedStrikeBuff('bloodstone-fervor', 1.07, isGw2PlayerModifierOwnedEvent)
 });
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
-function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, event: SimulationEvent): void {
+function emitDamagePayload(ctx: Gw2RelicContext, event: SimulationEvent): void {
   recordTimedBuffProc(ctx, event, {
     relicId: RELIC_IDS.BLOODSTONE,
     kind: 'bloodstone-fervor',

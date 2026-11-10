@@ -4,7 +4,7 @@ import { gw2EventActorType } from '#gw2/platform/combat/state/event-ownership.js
 import { ACTOR, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { defineRelic, playerOwnedRelicSource, relicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
-import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 export const shackles = defineRelic({
@@ -22,9 +22,9 @@ export const shackles = defineRelic({
     }
 
     state.readyAt = application.at + 10;
-    emitDamagePayload(ctx, state, application);
+    emitDamagePayload(ctx, application);
   },
-  damageResolved(ctx, _state, event) {
+  damageResolved(ctx, event) {
     // The relic emits exactly one damage packet under its source ID, so the ID alone identifies it.
     if (event.type !== 'damage' || event.sourceId !== `relic.${RELIC_IDS.SHACKLES}`) return;
 
@@ -42,11 +42,7 @@ export const shackles = defineRelic({
 });
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
-function emitDamagePayload(
-  ctx: Pick<Gw2RelicContext, 'effects'>,
-  _state: Gw2RelicState,
-  application: SimulationEvent
-): void {
+function emitDamagePayload(ctx: Pick<Gw2RelicContext, 'effects'>, application: SimulationEvent): void {
   // The tether marker reports the activation without consuming a combat packet identity.
   ctx.effects.emit({
     kind: 'announcement',

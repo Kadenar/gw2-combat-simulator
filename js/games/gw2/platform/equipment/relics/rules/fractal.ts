@@ -4,7 +4,7 @@ import { isIndependentConditionOwner } from '#gw2/platform/combat/state/event-ow
 import { CONDITION } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
-import type { Gw2RelicContext, Gw2RelicState } from '#gw2/platform/equipment/relics/types.js';
+import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 
 // Five existing bleeds qualify because the incoming application supplies the sixth.
@@ -28,12 +28,12 @@ export const fractal = defineRelic({
     // The resolver snapshots the threshold before the whole application; sibling stacks cannot qualify each other.
     // Relic damage stays effect-sourced while explicitly inheriting the player's outgoing modifiers.
     state.readyAt = application.at + 20;
-    emitDamagePayload(ctx, state, application);
+    emitDamagePayload(ctx, application);
   }
 });
 
 /** One occurrence shares its payload with simulation after activation checks have succeeded. */
-function emitDamagePayload(ctx: Gw2RelicContext, _state: Gw2RelicState, application: SimulationEvent): void {
+function emitDamagePayload(ctx: Gw2RelicContext, application: SimulationEvent): void {
   announceRelic(ctx, application, 'Relic of the Fractal');
   ctx.effects.emit({
     kind: 'packet',

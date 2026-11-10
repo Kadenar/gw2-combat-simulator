@@ -75,7 +75,7 @@ export const nourys = defineRelic({
       }
     }
   },
-  outgoingDamageBonus(ctx, state, _damageType, at) {
+  outgoingDamageBonus(ctx, state, at) {
     // nourysActiveAt uses modulo arithmetic on elapsed time from combat start
     // to determine the current phase without tracking events.
     return nourysActiveAt(ctx, state, at) ? NOURYS_DAMAGE_BONUS : 0;

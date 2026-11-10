@@ -54,7 +54,7 @@ export const visionary = defineRelic({
     });
   },
   // Windows are retained so out-of-order condition tick queries still see the buff active at their own time.
-  outgoingDamageBonus(_ctx, state, _damageType, at) {
+  outgoingDamageBonus(_ctx, state, at) {
     const windows = state.windows || [];
     return windows.some((window) => isTimeInWindow(at, window.from, window.until)) ? VISIONARY_DAMAGE_BONUS : 0;
   }

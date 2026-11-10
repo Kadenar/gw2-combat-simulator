@@ -293,15 +293,15 @@ function downloadCsv(rows: readonly EventLogRow[], filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-/** Renders every row immediately; callers keep collapsed logs idle by mounting only when the log opens. */
-export function mountEventLog<TRow extends EventLogRow>(
+/** Renders shared event-log fields immediately; callers mount only when the log opens to keep collapsed logs idle. */
+export function mountEventLog(
   container: HTMLElement | null | undefined,
-  rows: readonly TRow[],
+  rows: readonly EventLogRow[],
   options: EventLogMountOptions = {}
 ): void {
   if (!container) return;
 
-  const resolvedRows: readonly TRow[] = rows || [];
+  const resolvedRows: readonly EventLogRow[] = rows || [];
   const model = buildLogModel(resolvedRows);
   const metricUnit = options.metricUnit || ['value', 'values'];
   const state = viewStates.get(container) || {
@@ -312,7 +312,7 @@ export function mountEventLog<TRow extends EventLogRow>(
     toggledGroups: new Set<string>()
   };
   viewStates.set(container, state);
-  const summaryMemo = new Map<LogNode<TRow>, LogSummary>();
+  const summaryMemo = new Map<LogNode<EventLogRow>, LogSummary>();
   const previousDetails = container.querySelector<HTMLDetailsElement>('[data-role="event-log-details"]');
   const previousLog = container.querySelector<HTMLElement>('[data-role="event-log-rows"]');
   const scrollTop = previousLog?.scrollTop || 0;
@@ -329,7 +329,7 @@ export function mountEventLog<TRow extends EventLogRow>(
   const filename = options.filename || 'event-log.csv';
   const treeView = (): boolean => model.hasTree && state.view === 'tree';
 
-  const rowMatches = (row: TRow): boolean => {
+  const rowMatches = (row: EventLogRow): boolean => {
     const query = searchQuery.trim().toLowerCase();
     return (
       (!query || String(row.description).toLowerCase().includes(query)) &&
@@ -518,27 +518,28 @@ export function mountEventLog<TRow extends EventLogRow>(
 
   if (!logElement) return;
 
-  const nodeFrom = (target: EventTarget | null, attribute: string): LogNode<TRow> | undefined => {
+  const nodeFrom = (target: EventTarget | null, attribute: string): LogNode<EventLogRow> | undefined => {
     const element = (target as Element | null)?.closest?.<HTMLElement>(`[${attribute}]`);
     const key = Number(element?.getAttribute(attribute));
     return element && Number.isInteger(key) ? model.nodes[key] : undefined;
   };
 
   // Highlight the hovered row's whole group and ancestor chain directly in the log.
-  const trace = (node: LogNode<TRow>): void => {
+  const trace = (node: LogNode<EventLogRow>): void => {
     for (const line of logElement.querySelectorAll('.log-family, .log-chain')) {
       line.classList.remove('log-family', 'log-chain');
     }
 
     const chain = new Set<string>();
-    for (let current: LogNode<TRow> | null = node; current; current = current.parent) chain.add(String(current.key));
+    for (let current: LogNode<EventLogRow> | null = node; current; current = current.parent)
+      chain.add(String(current.key));
     const rootKey = String((node.root ?? node).key);
     for (const line of logElement.querySelectorAll<HTMLElement>(`[data-root="${rootKey}"]`)) {
       line.classList.add(chain.has(line.dataset.key || '') ? 'log-chain' : 'log-family');
     }
   };
 
-  const toggle = (node: LogNode<TRow>): void => {
+  const toggle = (node: LogNode<EventLogRow>): void => {
     const id = node.row.id;
 
     if (!id) return;
@@ -549,7 +550,7 @@ export function mountEventLog<TRow extends EventLogRow>(
   };
 
   // Reveal a row inside the tree from the chronological layout, expanding its ancestors first.
-  const reveal = (node: LogNode<TRow>): void => {
+  const reveal = (node: LogNode<EventLogRow>): void => {
     for (let current = node.parent; current; current = current.parent) {
       if (current.row.id && !isGroupOpen(state, current.row.id)) toggleGroup(state, current.row.id);
     }
