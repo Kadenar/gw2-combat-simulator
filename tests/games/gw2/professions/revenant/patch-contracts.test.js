@@ -165,6 +165,7 @@ test('removed Cosmic Wisdom leaves no Mesmer discount and zero-duration patches 
   assert.deepEqual(result.warnings, []);
   assert.equal(state.conduitForm, '');
   assert.equal(state.cosmicWisdomUntil, 0);
+  assert.ok(result.events.some((event) => event.traitId === TRAIT.NUMINOUS_GIFT));
   const skill = runtime.helpers.skillsById.get(ID.EMPOWERING_MISERY);
   assert.equal(revenantEnergyCost(runtime, skill), skill.energyCost);
   assert.throws(
@@ -269,6 +270,34 @@ test('legend swaps preserve extended Cosmic Wisdom and select Mesmer costs', () 
   assert.equal(runtime.profession.specialization.state.conduitForm, 'Mesmer');
   assert.ok(runtime.profession.specialization.state.cosmicWisdomUntil > runtime.time);
   assert.equal(revenantEnergyCost(runtime, runtime.helpers.skillsById.get(ID.EMPOWERING_MISERY)), 1);
+});
+
+// Removing the selected extension preserves the original deadline and its expiry across a legend swap.
+test('removed Enhanced Embodiment extension leaves the form deadline and expiry unchanged', () => {
+  const config = { ...conduitConfig, selectedTraitIds: [TRAIT.ENHANCED_EMBODIMENT] };
+  const catalog = (base) =>
+    applyBalanceProfilePatch(
+      applySkillPatch(base, {
+        skills: { [ID.COSMIC_WISDOM]: { effects: [{ type: 'buff', name: 'cosmic-wisdom', duration: 2 }] } }
+      }),
+      {
+        balanceProfiles: {
+          [TRAIT.ENHANCED_EMBODIMENT]: {
+            removeEffects: [{ type: 'buff', name: 'cosmic-wisdom-extension' }]
+          }
+        }
+      }
+    );
+  const entry = runRevenant(['Cosmic Wisdom'], config, { catalog });
+  const swapped = runRevenant(['Cosmic Wisdom', 'Swap Legends'], config, { catalog });
+  const expired = runRevenant(['Cosmic Wisdom', 'Swap Legends', wait(2500)], config, { catalog });
+  for (const result of [entry, swapped, expired]) assert.deepEqual(result.warnings, []);
+
+  const form = (result) => observedRuntime(result).profession.specialization.state;
+  assert.equal(form(swapped).cosmicWisdomUntil, form(entry).cosmicWisdomUntil);
+  assert.equal(form(swapped).conduitForm, 'Dervish');
+  assert.equal(form(expired).cosmicWisdomUntil, 0);
+  assert.equal(form(expired).conduitForm, '');
 });
 
 // Ordinary declarations consume the patched profile once per query.

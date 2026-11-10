@@ -2,12 +2,8 @@ import { denySkillCast } from '#gw2/platform/execution/availability.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_LEGEND_IDS as LEGEND } from '#gw2/professions/revenant/data/ids.js';
-import {
-  REVENANT_CONDUIT_FORM_BY_LEGEND,
-  REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND
-} from '#gw2/professions/revenant/data/legends.js';
+import { REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { conduitBuffPolicies } from '#gw2/professions/revenant/specializations/conduit/effect-state.js';
 import { costAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-gains.js';
 import {
@@ -15,12 +11,7 @@ import {
   gainAffinity
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
 import { beguilingHazeLifecycle } from '#gw2/professions/revenant/specializations/conduit/mechanics/beguiling-haze.js';
-import { FORM_EXPIRY } from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
-import {
-  cosmicWisdom,
-  formExpiry,
-  swapLegend
-} from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
+import { conduitFormLifecycle } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
 import {
   entityBoonCompleted,
   entityCastCompleted
@@ -47,14 +38,6 @@ import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/reven
 const RELEASE_POTENTIAL_IDS = new Set<SkillId>(Object.values(REVENANT_RELEASE_POTENTIAL_SKILL_ID_BY_LEGEND));
 
 const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
-  /** Hold the selected preview state while evaluating detached damage queries. */
-  prepareDamageState(runtime, _skill, inputs) {
-    const state = conduitState.from(runtime.profession);
-    state.cosmicWisdomUntil = inputs.cosmicWisdom ? Infinity : 0;
-    state.conduitForm = inputs.cosmicWisdom
-      ? REVENANT_CONDUIT_FORM_BY_LEGEND[runtime.profession.core.activeLegendId] || ''
-      : '';
-  },
   resources: { affinity: conduitAffinityPolicy },
   buffPolicies: conduitBuffPolicies,
   // Control-triggered Burning shares Mistfire's profile, excluding its own Twin Moon chain.
@@ -111,8 +94,6 @@ const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
 
     // Shared Wisdom Swiftness belongs only to Entity legend skills.
     if (skill.legendId === LEGEND.ENTITY) runtime.fireTrigger(entityCastCompleted, { cast });
-
-    if (skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
   },
   sideEffectHandlers: {
     'revenant.entity-boon-completed'(runtime, context) {
@@ -126,19 +107,11 @@ const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     'revenant.mesmer-release'(runtime, context) {
       if (context.kind === 'cast') scheduleMesmerReleaseConditions(runtime, context.cast);
     },
-    'revenant.cosmic-wisdom'(runtime, context) {
-      if (context.kind !== 'cast') return;
-
-      // Core cast traits must see the pre-form attributes before Cosmic Wisdom opens its form.
-      completeRevenantCast(runtime, context.cast);
-      cosmicWisdom(runtime, context.cast);
-    },
     'revenant.entity-hit-affinity'(runtime, context) {
       if (context.kind === 'effect') gainAffinity(runtime, (context.skill.energyCost || 0) >= 25 ? 2 : 1);
     }
   },
   tasks: {
-    [FORM_EXPIRY]: formExpiry,
     [MESMER_RELEASE]: mesmerRelease
   }
 };
@@ -147,5 +120,6 @@ const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
 export const conduitHooks = composeRuntimeHooks<RevenantRuntimeState, RevenantSkill>([
   beguilingHazeLifecycle,
   conduitLifecycle,
+  conduitFormLifecycle,
   conduitUpkeepLifecycle
 ]);

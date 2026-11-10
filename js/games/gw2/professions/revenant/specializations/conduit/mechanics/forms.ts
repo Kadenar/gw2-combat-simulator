@@ -1,14 +1,35 @@
+/** Own Conduit form transitions and expiry so trait rewards cannot separate deadline changes from scheduling. */
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { effectNumber, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
-import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
+import { completeRevenantCast } from '#gw2/professions/revenant/core/mechanics/completion.js';
+import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_CONDUIT_FORM_BY_LEGEND } from '#gw2/professions/revenant/data/legends.js';
 import { validateConduitMesmerEnergyCosts } from '#gw2/professions/revenant/specializations/conduit/mechanics/energy-cost.js';
-import { scheduleFormExpiry } from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
 import { conduitState, revenantConduitFormIsActive } from '#gw2/professions/revenant/specializations/conduit/state.js';
-import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
+import type { RevenantRuntimeState, RevenantSkill } from '#gw2/professions/revenant/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
+
+const FORM_EXPIRY = 'revenant.conduit-form-expiry';
+
+/** Changed form deadlines schedule their own wakes; older wakes cannot expire a later extension. */
+function scheduleFormExpiry(runtime: RevenantRuntime): void {
+  const until = conduitState.from(runtime.profession).cosmicWisdomUntil;
+
+  if (until > runtime.time) runtime.schedule(FORM_EXPIRY, until, { until }, undefined, -200);
+}
+
+/** Apply a selected trait's extension and arm its expiry together, without reviving an expired form. */
+export function extendConduitForm(runtime: RevenantRuntime, duration: number): void {
+  const state = conduitState.from(runtime.profession);
+
+  if (state.cosmicWisdomUntil <= runtime.time) return;
+
+  state.cosmicWisdomUntil += duration;
+  scheduleFormExpiry(runtime);
+}
 
 /** Clear expired or removed windows; otherwise select the current legend's form and validate its costs. */
 function updateConduitForm(runtime: RevenantRuntime): void {
@@ -26,7 +47,7 @@ function updateConduitForm(runtime: RevenantRuntime): void {
 }
 
 /** Form expiry clears the form and restores native Energy costs, unless an extension moved the deadline. */
-export function formExpiry(runtime: RevenantRuntime, data: unknown): void {
+function formExpiry(runtime: RevenantRuntime, data: unknown): void {
   const state = conduitState.from(runtime.profession);
 
   if (state.cosmicWisdomUntil !== (data as { until: number }).until) return;
@@ -36,7 +57,7 @@ export function formExpiry(runtime: RevenantRuntime, data: unknown): void {
 }
 
 /** Cosmic Wisdom resolves Mistfire, then opens the current legend's form and grants Numinous Gift. */
-export function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const state = conduitState.from(runtime.profession);
   runtime.fireTrigger(cosmicWisdomEntering, { cast });
 
@@ -51,7 +72,7 @@ export function cosmicWisdom(runtime: RevenantRuntime, cast: RuntimeCast<Revenan
 }
 
 /** Legend swaps reset affinity, extend and re-select the form, and share Found Purpose. */
-export function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
   const state = conduitState.from(runtime.profession);
   const combat = runtime.engagement.combatMechanicsAllowed();
   // The form state before the reset decides Enhanced Embodiment and the form update.
@@ -64,6 +85,30 @@ export function swapLegend(runtime: RevenantRuntime, cast: RuntimeCast<RevenantS
   // Found Purpose shares invocation boons only once combat has started.
   runtime.fireTrigger(conduitLegendSettled, { cast, combat });
 }
+
+/** Register the complete form lifecycle after immediate cast rewards and before upkeep contributions. */
+export const conduitFormLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
+  prepareDamageState(runtime, _skill, inputs) {
+    const state = conduitState.from(runtime.profession);
+    state.cosmicWisdomUntil = inputs.cosmicWisdom ? Infinity : 0;
+    state.conduitForm = inputs.cosmicWisdom
+      ? REVENANT_CONDUIT_FORM_BY_LEGEND[runtime.profession.core.activeLegendId] || ''
+      : '';
+  },
+  onCastCommit(runtime, cast) {
+    if (cast.skill.id === ID.SWAP_LEGENDS) swapLegend(runtime, cast);
+  },
+  sideEffectHandlers: {
+    'revenant.cosmic-wisdom'(runtime, context) {
+      if (context.kind !== 'cast') return;
+
+      // Core cast traits observe the old form before Cosmic Wisdom opens its replacement.
+      completeRevenantCast(runtime, context.cast);
+      cosmicWisdom(runtime, context.cast);
+    }
+  },
+  tasks: { [FORM_EXPIRY]: formExpiry }
+};
 
 /** Mistfire captures the old form attributes before Cosmic Wisdom opens the new form. */
 export const cosmicWisdomEntering = defineTriggerPoint<{ readonly cast: RuntimeCast<RevenantSkill> }>(

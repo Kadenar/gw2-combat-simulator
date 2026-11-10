@@ -270,13 +270,14 @@ test('Heroic Command without Fervor grants no Might', () => {
   );
 });
 
-test('Cosmic Wisdom grants Core traits once before form activation', () => {
+// Core rewards and Mistfire use the old form; Numinous Gift observes the completed transition.
+test('Cosmic Wisdom grants Core rewards and Mistfire before form activation, then Numinous Gift', () => {
   const order = [];
   const result = runRevenant(
     ['__combat_start', { skillId: ID.COSMIC_WISDOM }],
     {
       specialization: 'Conduit',
-      selectedTraitIds: [TRAIT.NOTORIETY],
+      selectedTraitIds: [TRAIT.NOTORIETY, TRAIT.MISTFIRE],
       selectedLegends: [LEGEND.DEMON, LEGEND.ENTITY],
       startingLegend: LEGEND.DEMON
     },
@@ -288,7 +289,10 @@ test('Cosmic Wisdom grants Core traits once before form activation', () => {
           emit(request) {
             const event = request.kind === 'packet' ? request.event : request.attribution;
 
-            if (event?.sourceId === TRAIT.NOTORIETY) order.push(conduitState.from(runtime.profession).conduitForm);
+            const trait = request.kind === 'profile' ? request.profile.id : event?.sourceId;
+
+            if ([TRAIT.NOTORIETY, TRAIT.MISTFIRE, TRAIT.NUMINOUS_GIFT].includes(trait))
+              order.push([trait, conduitState.from(runtime.profession).conduitForm]);
 
             return effects.emit(request);
           }
@@ -297,7 +301,11 @@ test('Cosmic Wisdom grants Core traits once before form activation', () => {
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.deepEqual(order, ['']);
+  assert.deepEqual(order, [
+    [TRAIT.NOTORIETY, ''],
+    [TRAIT.MISTFIRE, ''],
+    [TRAIT.NUMINOUS_GIFT, 'Mesmer']
+  ]);
   assert.equal(result.events.filter((event) => event.sourceId === TRAIT.NOTORIETY).length, 1);
   assert.equal(conduitState.from(observedRuntime(result).profession).conduitForm, 'Mesmer');
 });

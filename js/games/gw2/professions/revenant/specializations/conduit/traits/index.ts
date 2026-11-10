@@ -28,18 +28,17 @@ import {
 } from '#gw2/professions/revenant/data/ids.js';
 import { energyCostAccepted } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity-gains.js';
 import { affinityGranted, gainAffinity } from '#gw2/professions/revenant/specializations/conduit/mechanics/affinity.js';
-import { scheduleFormExpiry } from '#gw2/professions/revenant/specializations/conduit/mechanics/form-expiry.js';
 import {
   conduitLegendReset,
   conduitLegendSettled,
   cosmicWisdomEntered,
-  cosmicWisdomEntering
+  cosmicWisdomEntering,
+  extendConduitForm
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/forms.js';
 import {
   entityBoonCompleted,
   entityCastCompleted
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/trigger-points.js';
-import { conduitState } from '#gw2/professions/revenant/specializations/conduit/state.js';
 import { bolsteredBondsBonuses } from '#gw2/professions/revenant/specializations/conduit/traits/behavior.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
@@ -392,17 +391,14 @@ function grantConductiveArmaments(runtime: RevenantRuntime, skill: RevenantSkill
   if (skill.type === 'Weapon') gainAffinity(runtime, 1);
 }
 
-/** Applies the trait at the mechanic's existing execution boundary. */
+/** Select the trait's patched extension while the form owner keeps deadline changes and expiry together. */
 function extendEnhancedEmbodiment(runtime: RevenantRuntime, formActive: boolean): void {
-  const state = conduitState.from(runtime.profession);
-
   if (formActive) {
     const enhanced = requireBalanceProfile(runtime.helpers, TRAIT.ENHANCED_EMBODIMENT);
     const extension = requireEffect(enhanced, 'buff', 'cosmic-wisdom-extension');
 
     if (extension) {
-      state.cosmicWisdomUntil += Math.max(0, effectNumber(enhanced, extension, 'duration'));
-      scheduleFormExpiry(runtime);
+      extendConduitForm(runtime, Math.max(0, effectNumber(enhanced, extension, 'duration')));
     }
   }
 }
