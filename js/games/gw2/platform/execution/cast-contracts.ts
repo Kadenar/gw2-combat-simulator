@@ -9,7 +9,13 @@ export interface RuntimeCast<TSkill extends Skill = Skill> {
   readonly command: CastCommand;
   readonly start: number;
   readonly fullEnd: number;
+  /** Timestamp when the cast stops executing, including an early interruption. */
   readonly effectiveEnd: number;
+  /**
+   * Timestamp when this cast stops blocking the next cast in its lane. Usually equals effectiveEnd; a retained
+   * lockout after interruption keeps it at fullEnd instead. Scheduling, output, and mechanics share this timestamp.
+   */
+  readonly laneEnd: number;
   readonly rechargeStart: number;
   readonly rechargeWork: number;
   /** Recharge follows the accepted companion incarnation through delayed completion and replacement. */

@@ -10,11 +10,11 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { mirageHooks } from '#gw2/professions/mesmer/specializations/mirage/hooks.js';
-import { mirageAvailability } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import {
   createMirageMechanics,
-  mesmerAmbushAttacks
-} from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
+  mesmerAmbushAttacks,
+  mirageAvailability
+} from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import {
   mirageInitialized,
   mirageResourcesGained
@@ -90,6 +90,28 @@ function complete(context, cast) {
     applySkillSideEffects(context, cast, 'castCommit', mesmerCoreHooks.sideEffectHandlers);
 
   completeMimicCast(context, cast);
+}
+
+// Exercise creation admission through the real owner while leaving the shared scheduler outside this fixture.
+function queueMirror(context, activationId, at) {
+  const taskDefinition = {
+    type: 'mesmer.mirage.create-mirror',
+    count: 1,
+    atMs: at * 1000,
+    timingAnchor: 'castStart',
+    timingScale: 'fixed'
+  };
+  const cast = {
+    id: activationId,
+    skill: { ...context.catalog.skillsById.get(ID.CRYSTAL_SANDS), tasks: [taskDefinition] },
+    command: {},
+    start: 0,
+    fullEnd: 0,
+    effectiveEnd: 0,
+    laneEnd: 0
+  };
+  mirageHooks.onCastCommit(context, cast);
+  return { cast, taskDefinition };
 }
 
 test('Mimic accepts utility starts through its exact deadline and consumes the reduction once', () => {
@@ -319,6 +341,7 @@ test('pending mirrors use task anchors, cast scaling, and the live-clock clamp',
     const context = lifetimeContext();
     context.time = 2;
     mirageHooks.onCastCommit(context, {
+      id: 'mirror-cast',
       start: 1,
       fullEnd: 5,
       effectiveEnd: 2,
@@ -327,17 +350,20 @@ test('pending mirrors use task anchors, cast scaling, and the live-clock clamp',
         tasks: [{ type: 'mesmer.mirage.create-mirror', timingAnchor, timingScale, atMs }]
       }
     });
-    assert.deepEqual(context.profession.specialization.state.pendingMirrorAts, [expected]);
+    assert.deepEqual(context.profession.specialization.state.pendingMirrors, [
+      { activationId: 'mirror-cast', at: expected }
+    ]);
   }
 });
 
 test('Mirror retry retains pending creation and overlapping mirrors expire independently', () => {
   const context = lifetimeContext();
   const skill = context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR);
-  context.profession.specialization.state.pendingMirrorAts.push(0.301);
+  const pending = queueMirror(context, 'mirror-cast', 0.301);
   assert.equal(mirageAvailability(context, skill).retryAt, 0.301);
   const controller = createMirageMechanics(context);
-  controller.createMirrors(0.301, 1);
+  context.time = 0.301;
+  mirageHooks.tasks['mesmer.mirage.create-mirror'](context, pending);
   controller.createMirrors(1.301, 1);
   context.time = 8.301;
   assert.equal(mirageAvailability(context, skill).ready, true);
@@ -346,6 +372,40 @@ test('Mirror retry retains pending creation and overlapping mirrors expire indep
   controller.createMirrors(8.301, 1);
   // Replacement leaves only its own pickup window after older mirrors expire or are consumed.
   assert.deepEqual(context.profession.specialization.state.mirrors, [{ availableAt: 8.301, expiresAt: 16.301 }]);
+});
+
+// Same-time work must consume only its own activation, and replaying a retired task cannot create another mirror.
+test('mirror creation consumes its own pending activation and pickup cannot reuse a consumed mirror', () => {
+  const context = lifetimeContext();
+  const first = queueMirror(context, 'first', 1);
+  const second = queueMirror(context, 'second', 1);
+  context.time = 1;
+  const create = mirageHooks.tasks['mesmer.mirage.create-mirror'];
+  const controller = createMirageMechanics(context);
+  const pickup = context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR);
+  create(context, first);
+  assert.deepEqual(context.profession.specialization.state.pendingMirrors, [{ activationId: 'second', at: 1 }]);
+  assert.equal(controller.pickUpMirror(1, pickup), true);
+  assert.equal(controller.pickUpMirror(1, pickup), false);
+  create(context, first);
+  assert.equal(controller.pickUpMirror(1, pickup), false);
+  create(context, second);
+  assert.deepEqual(context.profession.specialization.state.pendingMirrors, []);
+  assert.equal(controller.pickUpMirror(1, pickup), true);
+});
+
+// Retiring one admission must preserve unrelated pending work and prevent its own stale task from granting a mirror.
+test('cancelled mirror admissions cannot supply retry readiness or create mirrors', () => {
+  const context = lifetimeContext();
+  const first = queueMirror(context, 'cancelled', 1);
+  queueMirror(context, 'surviving', 2);
+  mirageHooks.onCastCancel(context, first.cast);
+  const pickup = context.catalog.skillsById.get(ID.PICK_UP_MIRAGE_MIRROR);
+  assert.equal(mirageAvailability(context, pickup).retryAt, 2);
+  context.time = 1;
+  mirageHooks.tasks['mesmer.mirage.create-mirror'](context, first);
+  assert.deepEqual(context.profession.specialization.state.mirrors, []);
+  assert.equal(mirageAvailability(context, pickup).retryAt, 2);
 });
 
 test('player ambush availability and projection preserve the final live microsecond and refresh exactly', () => {
@@ -377,17 +437,48 @@ test('player ambush availability and projection preserve the final live microsec
   assert.equal(mirageAvailability(context, skill).ready, false);
 });
 
-test('queued ambushes require a preceding cast that began before expiry and still occupies the lane', () => {
+test('queued ambush admission uses accepted cast occupancy without consulting action history', () => {
   for (const castStart of [1.800999, 1.801, 1.801001]) {
     const context = lifetimeContext();
     const skill = mesmerAmbushAttacks(context).Sword;
     createMirageMechanics(context).grantMirageCloak(0.301, 'test');
-    context.events.push({ type: 'action', actorType: 'player', at: castStart, castLockoutEndsAt: 2.5 });
+    context.time = castStart;
+    mirageHooks.onCastStart(context, {
+      id: 'preceding',
+      skill: context.catalog.skillsById.get(ID.CRYSTAL_SANDS),
+      command: {},
+      start: castStart,
+      fullEnd: 2.5,
+      effectiveEnd: 2.5,
+      laneEnd: 2.5
+    });
+    context.facts = { read: () => assert.fail('Mirage admission must use its accepted state.') };
     context.time = 2.5;
     assert.equal(mirageAvailability(context, skill).ready, castStart < 1.801);
     context.time = 2.501;
     assert.equal(mirageAvailability(context, skill).ready, false);
   }
+});
+
+// Cloak may arrive after a cast starts; its entitlement still ends with that accepted occupancy.
+test('cloak granted during an accepted cast preserves ambush admission without extending idle time', () => {
+  const context = lifetimeContext();
+  mirageHooks.onCastStart(context, {
+    id: 'preceding',
+    skill: context.catalog.skillsById.get(ID.CRYSTAL_SANDS),
+    command: {},
+    start: 0,
+    fullEnd: 3,
+    effectiveEnd: 3,
+    laneEnd: 3
+  });
+  context.time = 1;
+  createMirageMechanics(context).grantMirageCloak(1, 'test');
+  const ambush = mesmerAmbushAttacks(context).Sword;
+  context.time = 3;
+  assert.equal(mirageAvailability(context, ambush).ready, true);
+  context.time = 3.1;
+  assert.equal(mirageAvailability(context, ambush).ready, false);
 });
 
 test('Infinite Horizon clone gains include exact cloak expiry but reject later gains and the unarmed sentinel', () => {

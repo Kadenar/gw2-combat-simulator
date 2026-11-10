@@ -15,7 +15,7 @@ import { elementalistElementalAvailability } from '#gw2/professions/elementalist
 import { coreHammerOrbAvailability } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { elementalExplosionAvailability } from '#gw2/professions/elementalist/core/mechanics/pistol.js';
 import { elementalistSlotSelectionPolicy } from '#gw2/professions/elementalist/core/mechanics/selection-policy.js';
-import { etchingRoot } from '#gw2/professions/elementalist/core/mechanics/spear.js';
+import { elementalistEtchingAvailability } from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import { weaponAttunementAvailable } from '#gw2/professions/elementalist/core/mechanics/weapon-state.js';
 import {
   ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
@@ -149,32 +149,6 @@ function rockBarrierAvailability(
   return null;
 }
 
-/** Spear payoffs require the stage reached by accepted casts. */
-function etchingAvailability(
-  context: MechanicQueriesOf<ElementalistRuntime>,
-  skill: ElementalistSkill
-): AvailabilityResult | null {
-  const state = professionCoreState(context.profession);
-  // Spear etchings unlock their lesser and full payoffs by chain stage, which only
-  // other casts can advance, so these denials are never retried on a timer.
-  const root = etchingRoot(context.helpers, skill);
-
-  if (root && skill.etchingRootId != null) {
-    const progress = state.etchings[root.name];
-    const requiredStage = skill.id === root.etchingReleases!.lesser ? 'lesser' : 'full';
-
-    if (progress?.stage !== requiredStage) {
-      return unavailable(
-        skill,
-        'elementalist.spear-etching',
-        requiredStage === 'lesser' ? `cast ${root.name} first.` : `cast three other skills after ${root.name} first.`
-      );
-    }
-  }
-
-  return null;
-}
-
 /** Conjures replace the weapon bar before ordinary weapon attunement checks. */
 function weaponAvailability(
   context: MechanicQueriesOf<ElementalistRuntime>,
@@ -235,7 +209,7 @@ export function elementalistCoreAvailability(
     slotAvailability(context, skill) ??
     auraAvailability(context, skill) ??
     rockBarrierAvailability(context, skill) ??
-    etchingAvailability(context, skill) ??
+    elementalistEtchingAvailability(context, skill) ??
     coreHammerOrbAvailability(context, skill) ??
     weaponAvailability(context, skill) ??
     utilityAttunementAvailability(context, skill) ??

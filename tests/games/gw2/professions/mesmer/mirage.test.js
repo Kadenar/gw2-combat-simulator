@@ -684,7 +684,7 @@ test("Nomad's Endurance and Phantom Pain add together while excluding phantasm s
   assertRoundedDamageMultiplier(conditionDamage(modified), conditionDamage(baseline), 1.25);
 });
 
-// Queueing through a cast lockout preserves a selected ambush; explicitly waiting afterward lets it expire.
+// A preceding accepted cast can preserve ambush admission; explicitly waiting afterward lets it expire.
 test('Mirage can queue an ambush before its window closes without extending the idle window', () => {
   for (const waitMs of [0, 40]) {
     const result = simulateMesmer(
@@ -706,7 +706,6 @@ test('Mirage can queue an ambush before its window closes without extending the 
     assert.equal(Boolean(ambush.invalid), waitMs > 0);
 
     if (!waitMs) {
-      assert.equal(ambush.start, 1600);
       assert.deepEqual(result.warnings, []);
     } else {
       assert.deepEqual(

@@ -1,111 +1,11 @@
-/** Mirage actions grant cloak and admit skill-owned clone ambushes independently of Infinite Horizon. */
-import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
-import type { SkillTaskData } from '#gw2/platform/execution/cast-contracts.js';
-import { skillTaskAt } from '#gw2/platform/execution/cast-timing.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { mesmerCastDelivery } from '#gw2/professions/mesmer/core/execution/cast-lifecycle.js';
-import { mesmerEvaded } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
-import { MESMER_CORE_CLONE_ATTACKS } from '#gw2/professions/mesmer/core/skills/weapons/clone-attacks.js';
-import { MESMER_SKILL_IDS, MESMER_TRAIT_IDS } from '#gw2/professions/mesmer/data/ids.js';
+/** Register Mirage's action owner alongside its buff projections. */
+import { composeRuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
-import { createMesmerIllusionRewards, mesmerActivePrimaryWeapon } from '#gw2/professions/mesmer/family-resources.js';
 import { mirageBuffPolicies } from '#gw2/professions/mesmer/specializations/mirage/effect-state.js';
-import {
-  executeMirageCloneAmbushPackets,
-  mirageAvailability,
-  mirageEndurance
-} from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
-import {
-  createMirageMechanics,
-  mesmerAmbushAttacks
-} from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
-import {
-  mirageCastCommitted,
-  mirageInitialized
-} from '#gw2/professions/mesmer/specializations/mirage/mechanics/trigger-points.js';
-import { mirageState } from '#gw2/professions/mesmer/specializations/mirage/state.js';
+import { mirageActionLifecycle } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
-/** Cloak, mirror pickup, and endurance execute at actual command and owned-task boundaries. */
-export const mirageHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = {
-  buffPolicies: (runtime) => mirageBuffPolicies(runtime.helpers),
-  resolveInputControl(_context, skill) {
-    // Walking through a mirror is simulated as a command, but adds no discrete key press.
-    return skill.id === MESMER_SKILL_IDS.PICK_UP_MIRAGE_MIRROR ? null : undefined;
-  },
-  initialize(runtime) {
-    runtime.fireTrigger(mirageInitialized);
-  },
-  endurance: mirageEndurance,
-  availability: mirageAvailability,
-  onCastStart(runtime, cast) {
-    const skill = cast.skill;
-
-    if (!skill.ambush || cast.cancelledBeforeCommit) return;
-
-    createMirageMechanics(runtime).acceptPlayerAmbush(skill, cast.fullEnd, cast.start, mesmerCastDelivery(cast, skill));
-  },
-  onCastCommit(runtime, cast) {
-    // IA commands the existing clones before Self-Deception creates its replacement. At the clone cap,
-    // replacement cancels the oldest owner's queued ambush, leaving the two surviving clones to attack.
-    // Infinite Horizon separately commands clones through cloak and clone-gain reactions when selected.
-    if (
-      cast.skill.id === MESMER_SKILL_IDS.ILLUSIONARY_AMBUSH &&
-      !hasTrait(runtime, MESMER_TRAIT_IDS.INFINITE_HORIZON)
-    ) {
-      executeMirageCloneAmbushPackets(runtime, {
-        at: runtime.time,
-        clones: [...professionCoreState(runtime.profession).clones],
-        weapon: mesmerActivePrimaryWeapon(runtime),
-        delivery: mesmerCastDelivery(cast, cast.skill),
-        ambushAttacks: mesmerAmbushAttacks(runtime),
-        cloneAttacks: MESMER_CORE_CLONE_ATTACKS
-      });
-    }
-
-    runtime.fireTrigger(mirageCastCommitted, {
-      cast,
-      at: runtime.time,
-      currentResource: professionCoreState(runtime.profession).clones.length,
-      weapon: mesmerActivePrimaryWeapon(runtime)
-    });
-    for (const taskDefinition of cast.skill.tasks ?? [])
-      if (taskDefinition.type === 'mesmer.mirage.create-mirror') {
-        // Readiness uses an actual queued creation deadline, without creating or spending a future mirror.
-        mirageState.from(runtime.profession).pendingMirrorAts.push(skillTaskAt(cast, taskDefinition, runtime.time));
-      }
-  },
-  tasks: {
-    'mesmer.mirage.ambush-clone'(runtime, data) {
-      const cast = (data as SkillTaskData<MesmerSkill>).cast;
-      createMesmerIllusionRewards(runtime).queueResources(
-        runtime.time,
-        1,
-        cast.skill.weapon || mesmerActivePrimaryWeapon(runtime),
-        cast.skill.name,
-        { sourceSkillId: cast.skill.id }
-      );
-    },
-    'mesmer.mirage.create-mirror'(runtime, data) {
-      const { taskDefinition } = data as SkillTaskData<MesmerSkill>;
-      const state = mirageState.from(runtime.profession);
-      state.pendingMirrorAts = state.pendingMirrorAts.filter((at) => at > runtime.time);
-      createMirageMechanics(runtime).createMirrors(runtime.time, taskDefinition.count ?? 1);
-    },
-    'mesmer.mirage.grant-cloak'(runtime, data) {
-      const { cast } = data as SkillTaskData<MesmerSkill>;
-      createMirageMechanics(runtime).grantMirageCloak(runtime.time, cast.skill.name);
-    },
-    'mesmer.mirage.pick-up-mirror'(runtime, data) {
-      createMirageMechanics(runtime).pickUpMirror(runtime.time, (data as SkillTaskData<MesmerSkill>).cast.skill);
-    },
-    'mesmer.mirage.dodge'(runtime, data) {
-      const { cast } = data as SkillTaskData<MesmerSkill>;
-      createMirageMechanics(runtime).grantMirageCloak(runtime.time, cast.skill.name);
-      runtime.fireTrigger(mesmerEvaded, {
-        at: runtime.time
-      });
-    }
-  }
-};
+export const mirageHooks = composeRuntimeHooks<MesmerRuntimeState, MesmerSkill>([
+  mirageActionLifecycle,
+  { buffPolicies: (runtime) => mirageBuffPolicies(runtime.helpers) }
+]);

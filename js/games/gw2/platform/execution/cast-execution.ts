@@ -235,7 +235,6 @@ export function createCastExecution<T extends object>(
       interruptAfterMs == null ? fullEnd : Math.min(fullEnd, gw2CooldownReadyAt(start + interruptAfterMs / 1000));
     const cancelled = cancelledBeforeInterruptCommit(skill, start, fullEnd, effectiveEnd);
     const interrupted = castWasInterrupted({ fullEnd, effectiveEnd });
-    const laneEnd = retainsInterruptedCastLockout(skill, cancelled) ? fullEnd : effectiveEnd;
     const baseWork = rechargeWorkFor(skill);
     const rechargeWork = cancelled
       ? baseWork
@@ -256,6 +255,7 @@ export function createCastExecution<T extends object>(
       start,
       fullEnd,
       effectiveEnd,
+      laneEnd: retainsInterruptedCastLockout(skill, cancelled) ? fullEnd : effectiveEnd,
       rechargeStart: canonicalTime(Math.max(start, rechargeStart)),
       // Reserve one-shot recharge entitlements at acceptance, querying only the current live instant.
       rechargeWork,
@@ -298,7 +298,7 @@ export function createCastExecution<T extends object>(
         activationId: cast.id,
         fullCastMs: Math.round((fullEnd - start) * 1000),
         interrupted,
-        ...(laneEnd > effectiveEnd ? { castLockoutEnd: Math.round(laneEnd * 1000) } : {}),
+        ...(cast.laneEnd > effectiveEnd ? { castLockoutEnd: Math.round(cast.laneEnd * 1000) } : {}),
         ...(cancelled ? { cancelledBeforeCommit: true } : {}),
         ...(interrupted && skill.interruptMode !== 'per-packet' && interruptCommitCutoffs(skill).length === 0
           ? { missingInterruptCommit: true }
@@ -306,7 +306,7 @@ export function createCastExecution<T extends object>(
         ...(detail == null ? {} : { detail })
       });
 
-    cursor.acceptCast(skill, command, start, effectiveEnd, laneEnd);
+    cursor.acceptCast(skill, command, start, effectiveEnd, cast.laneEnd);
     const attribution = {
       source: profession.id,
       sourceId: skill.id,
@@ -337,7 +337,7 @@ export function createCastExecution<T extends object>(
         fullEndsAt: fullEnd,
         endsAt: effectiveEnd,
         // Queued mechanic windows can extend through a retained animation lockout, independently of packet completion.
-        castLockoutEndsAt: laneEnd,
+        castLockoutEndsAt: cast.laneEnd,
         ...(detail == null ? {} : { detail }),
         ...(comboFields ? { comboFields } : {}),
         cancelled

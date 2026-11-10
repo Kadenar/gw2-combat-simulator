@@ -3,11 +3,13 @@ import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { ACTOR, CONTROL, WEAPON } from '#gw2/platform/constants.js';
 import type { CustomSideEffectAction } from '#gw2/platform/effects/actions.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
+import { denySkillCast, type AvailabilityResult } from '#gw2/platform/execution/availability.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
-import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
+import type { ReadonlyMechanicState } from '#gw2/platform/profession-definition/runtime-context.js';
+import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
 import { requireEffect, requireSkill, skillNumber, type SkillSource } from '#gw2/platform/skills/balance-profiles.js';
-import type { Skill } from '#gw2/platform/skills/types.js';
 import { elementalistControlRequest, elementalistStrikeRequest } from '#gw2/professions/elementalist/core/events.js';
 import { skillWeapon } from '#gw2/professions/elementalist/core/mechanics/effects.js';
 import type { ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
@@ -20,11 +22,8 @@ import type {
 } from '#gw2/professions/elementalist/types.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 
-/** Core prepares packets after hitbox filtering; spear resolves the cast's accepted snapshot internally. */
-export function prepareElementalistSpearEvent(
-  context: ElementalistRuntime,
-  event: SimulationEventBase
-): SimulationEventBase {
+/** Prepared packets use the activation's accepted bonus after shared filtering has settled. */
+function prepareElementalistSpearEvent(context: ElementalistRuntime, event: SimulationEventBase): SimulationEventBase {
   return empowerSpearPacket(
     context,
     event as ElementalistSimulationEvent,
@@ -32,18 +31,15 @@ export function prepareElementalistSpearEvent(
   );
 }
 
-/** Core calls this after shared commit observers; delayed Fulgor work already owns its snapshot. */
-export function finishElementalistSpearCast(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
+/** Retire cast bookkeeping after shared commit observers; delayed Fulgor work retains its own snapshot. */
+function finishElementalistSpearCast(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   delete context.profession.core.spearFollowups[cast.id];
 }
 
 /** Snapshots armed one-shot bonuses for the next eligible spear activation. */
-export function beginElementalistSpearCast(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill
-): void {
+function beginElementalistSpearCast(context: ElementalistRuntime, cast: RuntimeCast<ElementalistSkill>): void {
   const state = professionCoreState(context.profession);
+  const skill = cast.skill;
 
   if (skillWeapon(skill) !== WEAPON.SPEAR || String(skill.slot || '') === 'Weapon_1') return;
 
@@ -104,6 +100,52 @@ export function etchingRoot(
     : requireSkill(source, skill.etchingRootId);
 }
 
+/** Runtime admission and palette readers select the same release from the root's current stage. */
+function etchingSelection(
+  source: SkillSource<ElementalistSkill>,
+  skill: ElementalistSkill,
+  etchings: ReadonlyMechanicState<ElementalistCoreState['etchings']> | undefined
+) {
+  const root = etchingRoot(source, skill);
+
+  if (!root) return undefined;
+
+  const progress = etchings?.[root.name];
+  return { root, stage: progress?.stage, skillId: progress ? root.etchingReleases![progress.stage] : root.id };
+}
+
+/** Roots remain recastable; releases require the stage reached by other accepted activations. */
+export function elementalistEtchingAvailability(
+  context: MechanicQueriesOf<ElementalistRuntime>,
+  skill: ElementalistSkill
+): AvailabilityResult | null {
+  const selection = etchingSelection(context.helpers, skill, context.profession.core.etchings);
+
+  if (selection && skill.etchingRootId != null) {
+    const lesser = skill.id === selection.root.etchingReleases!.lesser;
+
+    if (selection.stage === (lesser ? 'lesser' : 'full')) return null;
+
+    return denySkillCast(
+      skill,
+      'elementalist.spear-etching',
+      lesser ? `cast ${selection.root.name} first.` : `cast three other skills after ${selection.root.name} first.`
+    );
+  }
+
+  return null;
+}
+
+/** Show only the root or release occupying the etching's palette slot, without mutating its progress. */
+export function elementalistEtchingSkillVisible(
+  source: SkillSource<ElementalistSkill>,
+  skill: ElementalistSkill,
+  etchings: ReadonlyMechanicState<ElementalistCoreState['etchings']> | undefined
+): boolean {
+  const selection = etchingSelection(source, skill, etchings);
+  return !selection || selection.skillId === skill.id;
+}
+
 /** Opening records the selected root's field window for both release stages. */
 export function openElementalistEtching(context: ElementalistRuntime, skill: ElementalistSkill): void {
   const expiresAt = context.time + Number(skill.comboFields?.[0]?.duration ?? 0);
@@ -117,7 +159,7 @@ export function consumeElementalistEtching(context: ElementalistRuntime, skill: 
 }
 
 /** Releases never credit another etching, and a root never credits itself. */
-export function completeElementalistSpearProgression(context: ElementalistRuntime, skill: ElementalistSkill): void {
+function completeElementalistSpearProgression(context: ElementalistRuntime, skill: ElementalistSkill): void {
   const state = professionCoreState(context.profession);
 
   if (skill.etchingRootId != null) return;
@@ -155,8 +197,8 @@ const elementalistSpearMechanicHandlers = Object.freeze({
   }
 });
 
-/** Spear actions and scheduled work share their snapshots while Core retains shared cast sequencing. */
-export const elementalistSpearLifecycle = {
+/** Intrinsic spear work shares the same owner as the surrounding shared cast observers. */
+const spearActions = {
   onCastCancel(context, cast) {
     // An activated, cancelled cast still earns etching credit; zero-length cancellations do not.
     if (cast.effectiveEnd > cast.start) completeElementalistSpearProgression(context, cast.skill);
@@ -202,6 +244,33 @@ export const elementalistSpearLifecycle = {
     }
   }
 } satisfies RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>;
+
+/** Keep spear sequencing behind the existing hook interface while Core supplies its shared observers. */
+export function createElementalistSpearLifecycle(
+  shared: RuntimeHooks<ElementalistRuntimeState, ElementalistSkill>
+): RuntimeHooks<ElementalistRuntimeState, ElementalistSkill> {
+  return composeRuntimeHooks([
+    spearActions,
+    {
+      ...shared,
+      onCastStart(context, cast) {
+        if (cast.cancelledBeforeCommit) return;
+
+        shared.onCastStart?.(context, cast);
+        beginElementalistSpearCast(context, cast);
+      },
+      onCastCommit(context, cast) {
+        completeElementalistSpearProgression(context, cast.skill);
+        shared.onCastCommit?.(context, cast);
+        finishElementalistSpearCast(context, cast);
+      },
+      prepareEvent(context, event) {
+        const prepared = shared.prepareEvent ? shared.prepareEvent(context, event) : event;
+        return prepared === null ? null : prepareElementalistSpearEvent(context, prepared);
+      }
+    }
+  ]);
+}
 
 const FULGOR_OWNER = { id: 'elementalist.fulgor', generation: 0 };
 

@@ -412,13 +412,25 @@ test('a surviving Shredding note is independent of the removed Lute attack', () 
   assert.ok(result.events.some((event) => event.type === 'mesmer.instrument' && event.instrument === 'Lute'));
 });
 
-test('removed mirror window never creates pickup state and zero forge interval disables recurrence', () => {
+// The selected mirror window controls real delayed creation, not merely a cloak-granting skill.
+test('removed mirror window retires pending creation without creating pickup state', () => {
+  const rotation = ['Crystal Sands', { type: 'wait', durationMs: 2000 }];
+  const config = { selectedSkillIds: [ID.CRYSTAL_SANDS] };
+  const baseline = run({}, 'Mirage', rotation, config);
+  assert.ok(observedRuntime(baseline).profession.specialization.state.mirrors.length > 0);
   const mirage = run(
     { skills: { [ID.MIRAGE_MIRROR_DAMAGE]: { removeEffects: [{ type: 'buff', name: 'mirage-mirror' }] } } },
     'Mirage',
-    ['Sand through Glass', { type: 'wait', durationMs: 1000 }]
+    rotation,
+    config
   );
   assert.equal(observedRuntime(mirage).profession.specialization.state.mirrors.length, 0);
+  assert.deepEqual(observedRuntime(mirage).profession.specialization.state.pendingMirrors, []);
+  assert.equal(mirage.planningState.availability[ID.PICK_UP_MIRAGE_MIRROR].ready, false);
+  assert.equal(mirage.planningState.availability[ID.PICK_UP_MIRAGE_MIRROR].retryAt, null);
+});
+
+test('zero forge interval disables recurrence', () => {
   const virtuoso = run(
     { balanceProfiles: { [TRAIT.INFINITE_FORGE]: { fields: { pulseInterval: 0 } } } },
     'Virtuoso',

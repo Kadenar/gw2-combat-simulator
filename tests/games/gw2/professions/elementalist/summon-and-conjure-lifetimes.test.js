@@ -6,12 +6,8 @@ import { applyBalanceProfilePatch } from '#gw2/integrations/patches/authoring/pa
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { elementalistTooltips } from '#gw2/professions/elementalist/app/tooltips.js';
 import {
-  beginElementalistSpearCast,
-  completeElementalistSpearProgression,
-  elementalistSpearLifecycle,
-  finishElementalistSpearCast,
-  openElementalistEtching,
-  prepareElementalistSpearEvent
+  createElementalistSpearLifecycle,
+  openElementalistEtching
 } from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import { createElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import {
@@ -128,35 +124,33 @@ test('selected spear owners preserve one-shot acceptance and independent etching
   const core = createElementalistCoreState();
   const context = { helpers: balance.catalog, profession: { core }, time: 0, schedule() {} };
   const skill = balance.catalog.skillsById.get(ID.BLAZING_BARRAGE);
+  const lifecycle = createElementalistSpearLifecycle({});
   core.spearNextDamageBonus = true;
-  const first = { id: 'first' };
-  beginElementalistSpearCast(context, first, skill);
-  beginElementalistSpearCast(context, { id: 'second' }, skill);
+  const first = { id: 'first', skill };
+  lifecycle.onCastStart(context, first);
+  lifecycle.onCastStart(context, { id: 'second', skill });
   assert.equal(core.spearNextDamageBonus, false);
   assert.equal(core.spearFollowups.second, undefined);
   // Preparation selects its activation's accepted bonus; retiring that cast cannot erase an already prepared packet.
   const packet = { type: 'damage', coefficient: 2, activationId: first.id };
-  const prepared = prepareElementalistSpearEvent(context, packet);
+  const prepared = lifecycle.prepareEvent(context, packet);
   assert.equal(prepared.coefficient, 2);
   assert.equal(prepared.metadata.elementalistSeetheDamageFactor, 1.7);
-  assert.equal(prepareElementalistSpearEvent(context, { ...packet, activationId: 'second' }).metadata, undefined);
-  finishElementalistSpearCast(context, first);
-  assert.equal(prepareElementalistSpearEvent(context, packet).metadata, undefined);
+  assert.equal(lifecycle.prepareEvent(context, { ...packet, activationId: 'second' }).metadata, undefined);
+  lifecycle.onCastCommit(context, first);
+  assert.equal(lifecycle.prepareEvent(context, packet).metadata, undefined);
   assert.equal(prepared.metadata.elementalistSeetheDamageFactor, 1.7);
   core.spearNextRechargeReduction = true;
-  assert.equal(
-    elementalistSpearLifecycle.reserveRecharge(context, balance.catalog.skillsById.get(ID.FLAME_SPEAR), 10),
-    10
-  );
+  assert.equal(lifecycle.reserveRecharge(context, balance.catalog.skillsById.get(ID.FLAME_SPEAR), 10), 10);
   assert.equal(core.spearNextRechargeReduction, true);
-  assert.equal(elementalistSpearLifecycle.reserveRecharge(context, skill, 10), 4);
-  assert.equal(elementalistSpearLifecycle.reserveRecharge(context, skill, 10), 10);
+  assert.equal(lifecycle.reserveRecharge(context, skill, 10), 4);
+  assert.equal(lifecycle.reserveRecharge(context, skill, 10), 10);
   for (const [index, entry] of roots.entries()) {
     const root = balance.catalog.skillsById.get(entry.id);
     openElementalistEtching(context, root);
-    for (let credit = 0; credit < index; credit++) completeElementalistSpearProgression(context, skill);
+    for (let credit = 0; credit < index; credit++) lifecycle.onCastCommit(context, { id: 'credit', skill });
     assert.equal(core.etchings[root.name].stage, 'lesser');
-    completeElementalistSpearProgression(context, skill);
+    lifecycle.onCastCommit(context, { id: 'credit', skill });
     assert.equal(core.etchings[root.name].stage, 'full');
     assert.equal(facts(balance, root.id)['Completed actions to fully charge'], String(index + 1));
   }

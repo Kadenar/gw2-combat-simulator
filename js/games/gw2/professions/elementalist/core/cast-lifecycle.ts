@@ -6,13 +6,8 @@ import { armArcaneEcho, completeArcaneEcho } from '#gw2/professions/elementalist
 import { targetAttunement } from '#gw2/professions/elementalist/core/mechanics/attunements.js';
 import {
   completeElementalistElementalCommand,
-  completeElementalistGlyphCast,
-  ensureElementalistElemental
+  completeElementalistGlyphCast
 } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
-import {
-  beginElementalistSpearCast,
-  completeElementalistSpearProgression
-} from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import {
   elementalistCastCompleted,
   elementalistDodgeCompleted
@@ -25,21 +20,8 @@ import type {
 } from '#gw2/professions/elementalist/types.js';
 
 /**
- * Shared cast-start observers ensure the automatic companion,
- * and capture armed spear empowerments for this activation.
- */
-export function elementalistOnCastStart(
-  context: ElementalistRuntime,
-  cast: RuntimeCast<ElementalistSkill>,
-  skill: Skill
-): void {
-  ensureElementalistElemental(context, skill);
-  beginElementalistSpearCast(context, cast, skill);
-}
-
-/**
- * Shared completion observers settle attunement swaps, advance etchings and recharge,
- * consume Arcane Echo on weapons, and apply cross-skill traits.
+ * Shared completion observers link variant recharge, consume Arcane Echo on weapons, and apply cross-skill traits.
+ * Attunement swaps retain their separate family-owned rewards.
  */
 export function elementalistOnCastCommit(
   context: ElementalistRuntime,
@@ -49,14 +31,8 @@ export function elementalistOnCastCommit(
   // The family hook settles the selected transition before Core advances weapon progression.
   const target = targetAttunement(skill);
 
-  if (target) {
-    // Elementalist spear etchings count attunement swaps among the three
-    // completed casts required to upgrade their release skill.
-    completeElementalistSpearProgression(context, skill);
-    return;
-  }
+  if (target) return;
 
-  completeElementalistSpearProgression(context, skill);
   shareAttunementVariantRecharge(context, skill);
 
   // The runtime has already paid the committed dodge's declared endurance cost.

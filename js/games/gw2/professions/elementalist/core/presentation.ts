@@ -28,7 +28,7 @@ import { displayedSkill, resolveSkillSelector } from '#gw2/platform/skills/selec
 import type { CanonicalCatalog, Skill } from '#gw2/platform/skills/types.js';
 import { ELEMENTALIST_ASSUMPTION_CONTROLS } from '#gw2/professions/elementalist/build/assumptions.js';
 import { conjureSkill } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
-import { etchingRoot } from '#gw2/professions/elementalist/core/mechanics/spear.js';
+import { elementalistEtchingSkillVisible } from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import {
   ELEMENTALIST_ATTUNEMENTS,
   isElementalistAttunement,
@@ -167,15 +167,9 @@ function paletteWeaponSkills(
   const state = elementalistUiState(context);
   // Each spear etching occupies slot 5 throughout its lesser/full progression;
   // expose only the stage represented by the live etching state.
-  const projectedSkills = skills.filter((skill) => {
-    const root = etchingRoot(catalog, skill);
-
-    if (!root) return true;
-
-    const progress = state[STATE.ETCHINGS]?.[root.name];
-    const displayedId = !progress ? root.id : root.etchingReleases![progress.stage];
-    return skill.id === displayedId;
-  });
+  const projectedSkills = skills.filter((skill) =>
+    elementalistEtchingSkillVisible(catalog, skill, state[STATE.ETCHINGS])
+  );
 
   if (!elementalistPistolEquipped(context)) return projectedSkills;
 

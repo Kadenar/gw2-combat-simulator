@@ -17,7 +17,9 @@ interface MesmerMirageMirror {
 }
 
 export interface MesmerMirageState {
-  pendingMirrorAts: number[];
+  pendingMirrors: { activationId: string; at: number }[];
+  /** Only accepted cast occupancy can preserve an ambush after its ordinary window expires. */
+  ambushCastWindows: { start: number; laneEnd: number }[];
   endurance: ResourceClock;
   ambushUntil: number;
   ambushSource: string;
@@ -29,7 +31,8 @@ export interface MesmerMirageState {
 /** Seeds fresh Mirage resources and windows independently of build configuration. */
 function createMirageState(): MesmerMirageState {
   return {
-    pendingMirrorAts: [],
+    pendingMirrors: [],
+    ambushCastWindows: [],
     // Mirage starts with two dodges' worth of continuously regenerating endurance.
     endurance: createResourceClock(ENDURANCE.maximum),
     ambushUntil: 0,

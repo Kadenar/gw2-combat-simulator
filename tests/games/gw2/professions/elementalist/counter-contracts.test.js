@@ -3,8 +3,8 @@ import test from 'node:test';
 
 import { applyBalanceProfilePatch, applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import {
-  completeElementalistSpearProgression,
   consumeElementalistEtching,
+  createElementalistSpearLifecycle,
   openElementalistEtching
 } from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import { attunementsCounted } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
@@ -173,23 +173,25 @@ test('etching counters retain independent crossing values and reset only with th
   const air = elementalistCatalog.skillsById.get(ID.ETCHING_DERECHO);
   const release = elementalistCatalog.skillsById.get(ID.VOLCANO);
   const ordinary = elementalistCatalog.skillsById.get(73137);
+  const lifecycle = createElementalistSpearLifecycle({});
+  const credit = (skill) => lifecycle.onCastCommit(context, { id: 'etching-credit', skill });
   openElementalistEtching(context, fire);
-  completeElementalistSpearProgression(context, fire);
+  credit(fire);
   assert.equal(core.etchings[fire.name].otherCasts, 0);
   openElementalistEtching(context, air);
-  completeElementalistSpearProgression(context, air);
+  credit(air);
   assert.equal(core.etchings[fire.name].otherCasts, 1);
   assert.equal(core.etchings[air.name].otherCasts, 0);
 
-  completeElementalistSpearProgression(context, ordinary);
-  completeElementalistSpearProgression(context, release);
+  credit(ordinary);
+  credit(release);
   assert.equal(core.etchings[fire.name].otherCasts, 2);
   assert.equal(core.etchings[air.name].otherCasts, 1);
-  completeElementalistSpearProgression(context, ordinary);
+  credit(ordinary);
   assert.equal(core.etchings[fire.name].stage, 'full');
   assert.equal(core.etchings[fire.name].otherCasts, 3);
   assert.equal(core.etchings[air.name].stage, 'lesser');
-  completeElementalistSpearProgression(context, ordinary);
+  credit(ordinary);
   assert.equal(core.etchings[fire.name].otherCasts, 3);
   assert.equal(core.etchings[air.name].stage, 'full');
 

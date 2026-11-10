@@ -8,7 +8,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { mesmerTooltips } from '#gw2/professions/mesmer/app/tooltips.js';
 import { MESMER_SKILL_IDS as MESMER } from '#gw2/professions/mesmer/data/ids.js';
 import { mesmerProfession } from '#gw2/professions/mesmer/profession.js';
-import { createMirageActionController } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
+import { createMirageMechanics } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import { necromancerTooltips } from '#gw2/professions/necromancer/app/tooltips.js';
 import { minionDefinitionForSkill } from '#gw2/professions/necromancer/core/mechanics/minion-profiles.js';
 import { necromancerShroudDrain } from '#gw2/professions/necromancer/core/mechanics/shroud-tuning.js';
@@ -229,12 +229,7 @@ for (const removal of [null, 'strike', 'condition'])
       },
       {
         initialize(owner) {
-          controller = createMirageActionController({
-            state: owner.mechanics,
-            ambushAttacks: {},
-            cloneAttacks: {},
-            activePrimaryWeapon: () => 'Axe'
-          });
+          controller = createMirageMechanics(owner.mechanics);
           controller.createMirrors(0, 2);
         },
         timeline: [1, 2, 3].map((at) => ({

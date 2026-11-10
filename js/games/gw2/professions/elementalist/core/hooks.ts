@@ -6,8 +6,7 @@ import { resolveSkillSelector } from '#gw2/platform/skills/selectors.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import {
   elementalistCoreSideEffectHandlers,
-  elementalistOnCastCommit,
-  elementalistOnCastStart
+  elementalistOnCastCommit
 } from '#gw2/professions/elementalist/core/cast-lifecycle.js';
 import { elementalistBuffPolicies, elementalistEffectStates } from '#gw2/professions/elementalist/core/effect-state.js';
 import { resetElementalistAttunementCooldowns } from '#gw2/professions/elementalist/core/mechanics/attunement-cooldowns.js';
@@ -22,7 +21,10 @@ import {
   isConjuredWeapon
 } from '#gw2/professions/elementalist/core/mechanics/conjures.js';
 import { elementalistElementalCompanionId } from '#gw2/professions/elementalist/core/mechanics/elementals/queries.js';
-import { elementalistElementalLifecycle } from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
+import {
+  elementalistElementalLifecycle,
+  ensureElementalistElemental
+} from '#gw2/professions/elementalist/core/mechanics/elementals/runtime.js';
 import { elementalistEndurance } from '#gw2/professions/elementalist/core/mechanics/endurance.js';
 import { elementalistHammerOrbLifecycle } from '#gw2/professions/elementalist/core/mechanics/hammer-orbs.js';
 import { prepareElementalistHitboxEvent } from '#gw2/professions/elementalist/core/mechanics/hitbox.js';
@@ -33,11 +35,7 @@ import {
 } from '#gw2/professions/elementalist/core/mechanics/pistol.js';
 import { elementalistRechargeWork } from '#gw2/professions/elementalist/core/mechanics/recharge.js';
 import { elementalistRockBarrierLifecycle } from '#gw2/professions/elementalist/core/mechanics/rock-barrier.js';
-import {
-  elementalistSpearLifecycle,
-  finishElementalistSpearCast,
-  prepareElementalistSpearEvent
-} from '#gw2/professions/elementalist/core/mechanics/spear.js';
+import { createElementalistSpearLifecycle } from '#gw2/professions/elementalist/core/mechanics/spear.js';
 import {
   auraAccepted,
   controlAccepted,
@@ -58,9 +56,8 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
   elementalistAuraLifecycle,
   elementalistConjureLifecycle,
   elementalistHammerOrbLifecycle,
-  elementalistSpearLifecycle,
   elementalistPistolLifecycle,
-  {
+  createElementalistSpearLifecycle({
     buffPolicies: (runtime) => elementalistBuffPolicies(runtime.helpers),
     observeEffects: elementalistEffectStates,
     sideEffectHandlers: elementalistCoreSideEffectHandlers,
@@ -87,21 +84,19 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
         event = { ...event, weaponStrengthSource: 'equipped' };
 
       runtime.fireTrigger(elementalistEventPreparing, { event });
-      let prepared = prepareGw2BuffCompanionCandidates(
+      const prepared = prepareGw2BuffCompanionCandidates(
         event,
         elemental.element && elemental.activeUntil >= event.at
           ? [elementalistElementalCompanionId(elemental.summonGeneration)]
           : []
       );
-      prepared = prepareElementalistHitboxEvent(runtime, prepared);
-      return prepareElementalistSpearEvent(runtime, prepared);
+      return prepareElementalistHitboxEvent(runtime, prepared);
     },
     onCastStart(runtime, cast) {
-      if (!cast.cancelledBeforeCommit) elementalistOnCastStart(runtime, cast, cast.skill);
+      ensureElementalistElemental(runtime, cast.skill);
     },
     onCastCommit(runtime, cast) {
       elementalistOnCastCommit(runtime, cast, cast.skill);
-      finishElementalistSpearCast(runtime, cast);
     },
     onCooldownReset: resetElementalistAttunementCooldowns,
     eventHandlers: {
@@ -129,5 +124,5 @@ export const elementalistCoreHooks = composeRuntimeHooks<ElementalistRuntimeStat
         if (acceptElementalistAuraReaction(runtime, event)) runtime.fireTrigger(auraAccepted, { cause: event });
       }
     }
-  }
+  })
 ]);

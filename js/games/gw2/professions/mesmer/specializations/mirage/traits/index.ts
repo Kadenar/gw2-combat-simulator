@@ -19,8 +19,10 @@ import { mesmerShatterCompleted } from '#gw2/professions/mesmer/core/mechanics/p
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { createMesmerIllusionRewards } from '#gw2/professions/mesmer/family-resources.js';
-import { executeMirageCloneAmbushPackets } from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
-import { createMirageMechanics } from '#gw2/professions/mesmer/specializations/mirage/mechanics/runtime.js';
+import {
+  createMirageMechanics,
+  executeMirageCloneAmbushPackets
+} from '#gw2/professions/mesmer/specializations/mirage/mechanics/cloak-and-ambushes.js';
 import {
   mirageAmbushAccepted,
   mirageCastCommitted,
