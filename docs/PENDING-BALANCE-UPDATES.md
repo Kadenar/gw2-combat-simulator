@@ -43,9 +43,6 @@ Current limitations are recorded in the [Core tooltips](../js/games/gw2/professi
 - [ ] **Frigid Blitz.** The November 10 combat log establishes a single impact with both conditions and replaces the
       previous two-hit timing. Need the new strike coefficient; the previous final-strike coefficient remains. See
       [axe skills](../js/games/gw2/professions/revenant/core/skills/weapons/axe.ts).
-- [ ] **Forced Engagement.** Taunt is removed. Need Cripple duration, tether duration and distance threshold, pull
-      rules, and additional defiance damage. Existing strike and Slow remain until their retention is confirmed. See
-      [Dwarf skills](../js/games/gw2/professions/revenant/core/skills/legends/dwarf.ts).
 - [ ] **Balance in Discord.** Combat legend swaps now grant endurance. Alliance Tactics and its separate endurance grant
       remain absent.
 - [ ] **Friend of the Luxons.** The damage bonus and Archemorus's Strike are implemented from the supplied tooltips.
@@ -57,11 +54,6 @@ Current limitations are recorded in the [Core tooltips](../js/games/gw2/professi
       block damage simulation. Its light combo field and any interaction with Heated Rivalry remain unimplemented.
 - [ ] **New Vindicator identities.** Grandmasters and Archemorus's Strike use local IDs and placeholder icons until
       official IDs and icons are confirmed. See [trait IDs](../js/games/gw2/professions/revenant/data/ids.ts).
-- [ ] **Gladiator's Defense.** The new log establishes the channel and finishing strike, with no strike after early
-      interruption. The previous Resolution, Resistance, and unconditional Weakness are removed. Need the
-      finishing-strike coefficient and Dwarf Aegis duration. Incoming attacks and successful-block bonuses are outside
-      simulation scope. See
-      [Entity skills](../js/games/gw2/professions/revenant/specializations/conduit/skills/entity-skills.ts).
 - [ ] **Centaur empowerment coverage.** Tranquil consumption/replenishment and empowered Energy Expulsion Stability are
       implemented. Existing gaps remain for empowered Natural Harmony endurance and Protective Solace Protection.
       Release Potential: Monk's tablet/Tranquil interaction also needs implementation. See
@@ -91,7 +83,6 @@ old preview assumptions. See [Acrobatics traits](../js/games/gw2/professions/thi
 ## Unresolved details outside the current combat model
 
 These are coverage limits or missing reference values, not requests to add player-health or incoming-damage simulation.
-
 
 | Change                        | Remaining limitation                                                                                                                                                                               |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

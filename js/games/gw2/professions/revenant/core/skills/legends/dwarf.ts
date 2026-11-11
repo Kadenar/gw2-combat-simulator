@@ -47,6 +47,7 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     energyCost: 10,
     legendId: 'LegendaryDwarf',
     castTimeMs: 360,
+    // The live chain retains its strike and replaces Slow with Cripple; target distance is not simulated.
     effects: [
       {
         type: 'strike',
@@ -57,9 +58,9 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
       },
       {
         type: 'condition',
-        condition: CONDITION.SLOW,
+        condition: CONDITION.CRIPPLED,
         stacks: 1,
-        duration: 4,
+        duration: 5,
         actorType: ACTOR.PLAYER
       }
     ]

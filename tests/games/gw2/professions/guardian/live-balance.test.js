@@ -52,13 +52,14 @@ test('final mantra charges refund a baseline page and Revelation adds one indepe
     }
 });
 
-test('Unscathed Contender grants one bonus for health or Aegis, including isolated previews', () => {
+// Aegis adds its own bonus while the health-or-Aegis multiplier applies only once.
+test('Unscathed Contender combines its Aegis bonus with the health-or-Aegis multiplier', () => {
   const native = guardianProfession.runtimeFor({ specialization: 'Core' });
   for (const [health, aegis, expected] of [
     [1, false, 112],
-    [1, true, 112],
+    [1, true, 117.6],
     [0.75, false, 100],
-    [0.75, true, 112]
+    [0.75, true, 117.6]
   ]) {
     const context = {
       catalog: native.catalog,
@@ -70,7 +71,25 @@ test('Unscathed Contender grants one bonus for health or Aegis, including isolat
     };
     assert.ok(Math.abs(native.calculations.modifyStrikeDamage(context, 100) - expected) < 1e-9);
     delete context.attributePreviewPlayerHealthFraction;
-    assert.ok(Math.abs(native.calculations.modifyStrikeDamage(context, 100) - 112) < 1e-9);
+    assert.ok(Math.abs(native.calculations.modifyStrikeDamage(context, 100) - (aegis ? 117.6 : 112)) < 1e-9);
+  }
+});
+
+// Other additive bonuses share the Aegis bucket; unselected traits and condition damage receive neither bonus.
+test('Unscathed Contender adds Aegis damage to the existing strike bucket only when selected', () => {
+  const native = guardianProfession.runtimeFor({ specialization: 'Core' });
+  for (const selected of [false, true]) {
+    const context = {
+      catalog: native.catalog,
+      config: { selectedTraitIds: selected ? [TRAIT.UNSCATHED_CONTENDER] : [], boons: { aegis: true } },
+      runtime: { boons: new Map(), buffs: new Map() },
+      time: 0,
+      event: { actorType: 'player' },
+      damageInputs: { strikeSigilBonus: 0.1 }
+    };
+    const expected = selected ? 128.8 : 110;
+    assert.ok(Math.abs(native.calculations.modifyStrikeDamage(context, 100) - expected) < 1e-9);
+    assert.equal(native.calculations.modifyConditionDamage(context, 100), 100);
   }
 });
 

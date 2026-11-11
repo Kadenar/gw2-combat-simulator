@@ -388,13 +388,27 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
       {
         type: 'strike',
         name: "Gladiator's Defense",
-        // The log establishes the finishing strike; its coefficient still needs confirmation.
+        // The November 11 isolated casts and live API confirm the unblocked finishing strike.
         coefficient: 1.5,
         hits: 1,
         actorType: ACTOR.PLAYER,
         atMs: 720,
         timingAnchor: 'castStart',
         timingScale: 'cast'
+      },
+      {
+        // Dwarf resonance grants self Aegis when the block finishes, even though Dwarf is inactive.
+        type: 'boon',
+        boon: BOON.AEGIS,
+        duration: 5,
+        stacks: 1,
+        actorType: ACTOR.PLAYER,
+        atMs: 720,
+        timingAnchor: 'castStart',
+        timingScale: 'cast',
+        metadata: { legendId: LEGEND.DWARF },
+        when: (runtime: MechanicQueriesOf<RevenantRuntime>) =>
+          runtime.profession.core.selectedLegendIds.includes(LEGEND.DWARF)
       }
     ],
     // Blocking starts immediately; Shared Wisdom requires the finishing strike to commit.

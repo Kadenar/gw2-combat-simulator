@@ -14,6 +14,8 @@ export const GUARDIAN_CORE_SKILL_FIELDS = defineFields(
 
 /** Declares guardian core profile tuning once for validation, patch controls, and labels. */
 export const GUARDIAN_CORE_PROFILE_FIELDS = defineFields({
+  // Keep the separate Aegis strike bonus tunable without changing the health-or-Aegis multiplier.
+  aegisDamageIncrease: numberField({ patch: 'primary', label: 'Additional strike damage with Aegis' }),
   // Stacks, targets, and proc gates.
   maximumDamageStacks: numberField({ patch: 'primary' })
 });

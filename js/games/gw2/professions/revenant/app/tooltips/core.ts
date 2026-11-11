@@ -165,7 +165,7 @@ export const revenantCoreTooltips = {
       'Teleport and strike, applying Chilled and Torment together. Timing follows the November 10 combat log. The strike coefficient remains unconfirmed and uses the previous final-strike value.'
     ),
     [ID.FORCED_ENGAGEMENT]: skillTooltip(
-      'Taunt is removed. Cripple duration, tether threshold, pull behavior, and added defiance damage remain pending. Existing strike and Slow values are retained.'
+      'Strike and cripple one target. In game, targets beyond 600 range are pulled immediately; nearer targets are tethered for 5 seconds, revealed for 6 seconds, and pulled if they cross that threshold. The skill has 900 range and deals 200 bonus defiance damage to defiant foes. Target distance, tether movement, Revealed, and defiance-bar damage are not simulated.'
     ),
     [ID.PROJECT_TRANQUILITY]: skillTooltip(
       'Summon the tablet and gain Tranquil, empowering the next qualifying Centaur skill.'

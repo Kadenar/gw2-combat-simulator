@@ -56,9 +56,10 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 3,
     energyCost: 4,
     castTimeMs: 760,
-    interruptMode: 'per-packet',
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+    // The log retains the full volley after a 638 ms cast, rounded to the simulator's 640 ms frame.
+    interruptCommitMs: 640,
+    // Released projectiles and their Bleeding continue after the remaining animation is interrupted.
+    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         name: 'Bloodbane Path',
@@ -67,7 +68,7 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
       },
       {
         type: 'condition',
-        // Each Bloodbane projectile owns its Bleeding so partial casts retain only landed packets.
+        // Each projectile applies its own Bleeding when it lands.
         ticks: [600, 720, 840].map((atMs) => ({ atMs, condition: CONDITION.BLEEDING, stacks: 1, duration: 6 })),
         actorType: ACTOR.PLAYER
       }
@@ -120,6 +121,8 @@ export const REVENANT_WEAPONS_SHORTBOW_SKILL_MECHANICS: Readonly<Record<number, 
     cooldown: 9,
     energyCost: 12,
     castTimeMs: 400,
+    // Commit before cast end so later interrupts preserve the skill.
+    interruptCommitMs: 320,
     comboFields: [
       {
         ownerId: 'revenant',

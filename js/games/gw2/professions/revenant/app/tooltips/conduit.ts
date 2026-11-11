@@ -40,9 +40,12 @@ const hexEaterVortexTooltip: DescribeSimulationTooltip = (balanceContext, entity
   ).facts
 });
 
-const gladiatorsDefenseTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Block while channeling, then strike. Interrupting before the block ends prevents the strike. Timing follows the November 10 combat log; the strike coefficient and Dwarf Aegis duration remain unconfirmed. Incoming attacks and successful-block bonuses are outside simulation scope.'
-);
+// Keep Dwarf's conditional Aegis separate from the finishing strike's shared facts.
+const gladiatorsDefenseTooltip: DescribeSimulationTooltip = (balanceContext, entity) => ({
+  description:
+    'Block while channeling, then strike. Equipping Dwarf also grants self Aegis when blocking finishes. Early interruption prevents both effects. Incoming attacks and successful-block bonuses are outside simulation scope.',
+  ...variantEffects(balanceContext.catalog.skillsById.get(entity.id)!.effects)
+});
 
 const twinMoonSweepTooltip: DescribeSimulationTooltip = (balanceContext, entity) => ({
   description:

@@ -181,8 +181,8 @@ export const powerOfTheVirtuous = defineTrait<GuardianSkill>({
 /** Owns Unscathed Contender tuning and behavior at its existing mechanic boundaries. */
 export const unscathedContender = defineTrait({
   id: GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER,
-  // Full simulated health or Aegis enables one bonus; satisfying both never doubles it.
-  balance: { damageIncrease: 0.12, threshold: 0.75 },
+  // Aegis adds to outgoing strike bonuses independently of the health-or-Aegis multiplier.
+  balance: { damageIncrease: 0.12, aegisDamageIncrease: 0.05, threshold: 0.75 },
   modifierRules: [
     {
       order: -12,
@@ -194,6 +194,15 @@ export const unscathedContender = defineTrait({
         playerHealthFraction(context) >
           balanceNumber(context.catalog, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'threshold') ||
         guardianBoonActive(context, BOON.AEGIS)
+    },
+    {
+      order: -11,
+      id: 'guardian.unscathed-contender-aegis',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'damage-additive',
+      amount: (context) =>
+        balanceNumber(context.catalog, GUARDIAN_TRAIT_IDS.UNSCATHED_CONTENDER, 'aegisDamageIncrease'),
+      when: (context) => guardianBoonActive(context, BOON.AEGIS)
     }
   ]
 });

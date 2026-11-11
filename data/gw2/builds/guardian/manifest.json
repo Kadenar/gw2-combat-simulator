@@ -7,15 +7,15 @@
         "build": "data/gw2/builds/guardian/b-power-willbender-spear-greatsword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-willbender-spear-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-willbender-spear-greatsword",
-        "benchmarkDps": 44714,
+        "benchmarkDps": 46294,
         "upToDate": true,
-        "benchmarkApm": 76.4,
+        "benchmarkApm": 78.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 49047, "phase": 49047 },
-          "80-60": { "cumulative": 46202, "phase": 43648 },
-          "60-40": { "cumulative": 45467, "phase": 44020 },
-          "40-20": { "cumulative": 44339, "phase": 41265 },
-          "20-0": { "cumulative": 44714, "phase": 46287 }
+          "100-80": { "cumulative": 48572, "phase": 48572 },
+          "80-60": { "cumulative": 47146, "phase": 45767 },
+          "60-40": { "cumulative": 46693, "phase": 45810 },
+          "40-20": { "cumulative": 45668, "phase": 42820 },
+          "20-0": { "cumulative": 46294, "phase": 48959 }
         }
       },
       {
@@ -55,15 +55,15 @@
         "build": "data/gw2/builds/guardian/b-power-alac-willbender-greatsword-sword-sword.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-sword",
-        "benchmarkDps": 35863,
+        "benchmarkDps": 36905,
         "upToDate": true,
         "benchmarkApm": 70,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 36064, "phase": 36064 },
-          "80-60": { "cumulative": 35643, "phase": 35220 },
-          "60-40": { "cumulative": 36134, "phase": 37156 },
-          "40-20": { "cumulative": 35454, "phase": 33552 },
-          "20-0": { "cumulative": 35863, "phase": 37591 }
+          "100-80": { "cumulative": 37162, "phase": 37162 },
+          "80-60": { "cumulative": 37656, "phase": 38164 },
+          "60-40": { "cumulative": 37027, "phase": 35828 },
+          "40-20": { "cumulative": 37258, "phase": 37961 },
+          "20-0": { "cumulative": 36905, "phase": 35566 }
         }
       },
       {
@@ -71,15 +71,15 @@
         "build": "data/gw2/builds/guardian/b-power-alac-willbender-greatsword-sword-focus.json",
         "rotation": "data/gw2/rotations/guardian/r-power-alac-willbender-greatsword-sword-focus-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/power-alacrity-willbender-greatsword-sword-focus",
-        "benchmarkDps": 35719,
+        "benchmarkDps": 37110,
         "upToDate": true,
         "benchmarkApm": 69.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 36760, "phase": 36760 },
-          "80-60": { "cumulative": 36166, "phase": 35591 },
-          "60-40": { "cumulative": 36231, "phase": 36364 },
-          "40-20": { "cumulative": 35847, "phase": 34743 },
-          "20-0": { "cumulative": 35719, "phase": 35218 }
+          "100-80": { "cumulative": 37596, "phase": 37596 },
+          "80-60": { "cumulative": 37959, "phase": 38327 },
+          "60-40": { "cumulative": 37267, "phase": 35947 },
+          "40-20": { "cumulative": 36640, "phase": 34880 },
+          "20-0": { "cumulative": 37110, "phase": 39124 }
         }
       },
       {
@@ -123,15 +123,15 @@
         "build": "data/gw2/builds/guardian/b-condi-qfb-ritualists.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-qfb-ritualists-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-quickness-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 37764,
+        "benchmarkDps": 37836,
         "upToDate": true,
         "benchmarkApm": 126,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35344, "phase": 35344 },
-          "80-60": { "cumulative": 36993, "phase": 38888 },
-          "60-40": { "cumulative": 37495, "phase": 38523 },
-          "40-20": { "cumulative": 37830, "phase": 38904 },
-          "20-0": { "cumulative": 37764, "phase": 37512 }
+          "100-80": { "cumulative": 35486, "phase": 35486 },
+          "80-60": { "cumulative": 37128, "phase": 39017 },
+          "60-40": { "cumulative": 37631, "phase": 38659 },
+          "40-20": { "cumulative": 37966, "phase": 39041 },
+          "20-0": { "cumulative": 37836, "phase": 37316 }
         }
       }
     ]

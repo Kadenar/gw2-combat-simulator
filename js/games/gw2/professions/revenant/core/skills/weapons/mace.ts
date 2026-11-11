@@ -114,7 +114,8 @@ export const REVENANT_WEAPONS_MACE_SKILL_MECHANICS: Readonly<Record<number, Skil
     cooldown: 3,
     energyCost: 5,
     castTimeMs: 600,
-    interruptCommitMs: 480,
+    // Commit before cast end so later interrupts preserve the skill.
+    interruptCommitMs: 440,
     comboFields: [
       {
         ownerId: 'revenant',
