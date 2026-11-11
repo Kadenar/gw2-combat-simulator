@@ -10,7 +10,6 @@ import { denySkillCast as deny } from '#gw2/platform/execution/availability.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState } from '#gw2/platform/profession-definition/state.js';
-import { defineTriggerPoint } from '#gw2/platform/profession-definition/trigger-points.js';
 import { effectNumber, requireEffect, requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { setRangerPetActive } from '#gw2/professions/ranger/core/mechanics/pets.js';
@@ -19,15 +18,16 @@ import {
   rangerProfileEffectRequest
 } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import {
+  beastmodeChanged,
   beastSkillUsed,
   mergedBeastHit,
   mergedCommandApplied
 } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { triggerMergedPoisonousStrikes } from '#gw2/professions/ranger/core/skills/weapons/dagger.js';
-import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import { rangerPetForState } from '#gw2/professions/ranger/data/pets.js';
 import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
-import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
+import { essenceOfSpeedExtension } from '#gw2/professions/ranger/specializations/soulbeast/traits/index.js';
 import type {
   RangerResolverContext,
   RangerRuntime,
@@ -309,11 +309,6 @@ export function soulbeastCastAvailability(
 
   return { ready: true };
 }
-
-/** The selected trait observes this accepted transition before subsequent mechanic work. */
-export const beastmodeChanged = defineTriggerPoint<{ readonly skill: RangerSkill }>('ranger.beastmode-changed', [
-  TRAIT.UNSTOPPABLE_UNION
-]);
 
 /** Keep merge, pet lifetime, and Unstoppable Union in one ordered transition. */
 export function setBeastmode(runtime: RangerRuntime, skill: Skill, active: boolean): void {

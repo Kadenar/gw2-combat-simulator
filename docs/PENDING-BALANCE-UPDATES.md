@@ -3,8 +3,6 @@
 Status as of November 10, 2026, after the supplied Elementalist, Guardian, Necromancer, Ranger, Revenant, Thief,
 Warrior, Engineer, and Mesmer final notes and the follow-up Firebrand values.
 
-PvE changes only. PvP/WvW-only changes are excluded.
-
 This tracks unresolved work and confirmations. Code remains the source of truth. All nine professions have received
 final notes. The active balance preview is retired; unresolved mechanics remain listed below.
 
@@ -30,10 +28,6 @@ Current limitations are recorded in the [Core tooltips](../js/games/gw2/professi
 
 ## Ranger
 
-- [ ] **Apex Predator.** Renamed in the catalog and retired Oppressive Superiority bonuses removed. Need frenzy
-      coefficients, hit count/timing, the stronger Beast-skill variant, and trigger limits before implementing its
-      attacks. Soulbeast presets remain marked not up to date. See
-      [Soulbeast traits](../js/games/gw2/professions/ranger/specializations/soulbeast/traits/index.ts).
 - [ ] **Hunter's Tactics damage bug.** The refreshing 8-second critical-chance window is implemented. The damage
       multiplier remains neutral to match the supplied November 10 reports. Recheck after a game fix. See
       [Skirmishing traits](../js/games/gw2/professions/ranger/core/traits/skirmishing/index.ts).
@@ -98,9 +92,6 @@ old preview assumptions. See [Acrobatics traits](../js/games/gw2/professions/thi
 
 These are coverage limits or missing reference values, not requests to add player-health or incoming-damage simulation.
 
-Warrior's Destruction of the Empowered and Break Enchantments enemy-boon effects are outside scope because simulated
-enemies have no boons. See [Discipline traits](../js/games/gw2/professions/warrior/core/traits/discipline/index.ts) and
-[Spellbreaker skills](../js/games/gw2/professions/warrior/specializations/spellbreaker/skills/index.ts).
 
 | Change                        | Remaining limitation                                                                                                                                                                               |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

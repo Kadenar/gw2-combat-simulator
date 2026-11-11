@@ -90,3 +90,8 @@ export const rangerInitialized = defineTriggerPoint<Record<string, never>>('rang
   TRAIT.FORTIFYING_BOND,
   TRAIT.NATURAL_MENDER
 ]);
+
+/** The selected trait observes this accepted transition before subsequent mechanic work. */
+export const beastmodeChanged = defineTriggerPoint<{ readonly skill: RangerSkill }>('ranger.beastmode-changed', [
+  TRAIT.UNSTOPPABLE_UNION
+]);

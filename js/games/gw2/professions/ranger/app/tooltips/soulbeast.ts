@@ -85,7 +85,7 @@ export const soulbeastTooltips = {
       ]
     ),
     [TRAIT.APEX_PREDATOR]: traitTooltip(
-      'Merged abilities trigger a frenzy, with stronger attacks from Beast skills. Attack coefficients, count, timing, and trigger limits are pending. The retired health-based bonuses no longer apply.'
+      'Merged damaging abilities trigger a frenzy. Beast abilities trigger a longer frenzy. Feline Maul and Primal Cry trigger on each hit; other skills trigger once per use. Poison Gas also triggers a frenzy; Undead Plague does not.'
     )
   }
 } satisfies ProfessionTooltips;

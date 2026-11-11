@@ -59,15 +59,15 @@
         "build": "data/gw2/builds/ranger/b-power-soulbeast-hammer-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-axe-axe",
-        "benchmarkDps": 35421,
+        "benchmarkDps": 37565,
         "upToDate": false,
         "benchmarkApm": 55.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39020, "phase": 39020 },
-          "80-60": { "cumulative": 36345, "phase": 33957 },
-          "60-40": { "cumulative": 36134, "phase": 35713 },
-          "40-20": { "cumulative": 35315, "phase": 33077 },
-          "20-0": { "cumulative": 35421, "phase": 35421 }
+          "100-80": { "cumulative": 42944, "phase": 42944 },
+          "80-60": { "cumulative": 39632, "phase": 36767 },
+          "60-40": { "cumulative": 38537, "phase": 36511 },
+          "40-20": { "cumulative": 38215, "phase": 37270 },
+          "20-0": { "cumulative": 37565, "phase": 37565 }
         }
       },
       {
@@ -75,31 +75,31 @@
         "build": "data/gw2/builds/ranger/b-power-soulbeast-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-sword-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-sword-axe",
-        "benchmarkDps": 35551,
+        "benchmarkDps": 37708,
         "upToDate": false,
         "benchmarkApm": 54.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39194, "phase": 39194 },
-          "80-60": { "cumulative": 36304, "phase": 33774 },
-          "60-40": { "cumulative": 36614, "phase": 37257 },
-          "40-20": { "cumulative": 35678, "phase": 33136 },
-          "20-0": { "cumulative": 35551, "phase": 35551 }
+          "100-80": { "cumulative": 43310, "phase": 43310 },
+          "80-60": { "cumulative": 39972, "phase": 37122 },
+          "60-40": { "cumulative": 38893, "phase": 36893 },
+          "40-20": { "cumulative": 38270, "phase": 36485 },
+          "20-0": { "cumulative": 37708, "phase": 37708 }
         }
       },
       {
         "label": "Power (Spear / Axe-Axe)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-spear-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-spear-axe-evtc.json",
-        "benchmarkDps": 34067,
+        "benchmarkDps": 36514,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-spear-axe-axe",
         "benchmarkApm": 63.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 37201, "phase": 37201 },
-          "80-60": { "cumulative": 34085, "phase": 31437 },
-          "60-40": { "cumulative": 34739, "phase": 36108 },
-          "40-20": { "cumulative": 34313, "phase": 33046 },
-          "20-0": { "cumulative": 34067, "phase": 34067 }
+          "100-80": { "cumulative": 40230, "phase": 40230 },
+          "80-60": { "cumulative": 38271, "phase": 36490 },
+          "60-40": { "cumulative": 38174, "phase": 37975 },
+          "40-20": { "cumulative": 37123, "phase": 34285 },
+          "20-0": { "cumulative": 36514, "phase": 36514 }
         }
       },
       {
@@ -107,13 +107,13 @@
         "build": "data/gw2/builds/ranger/b-power-soulbeast-axe-axe-sword-mace.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-axe-axe-sword-mace-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-sword-mace-axe-axe",
-        "benchmarkDps": 34713,
+        "benchmarkDps": 37595,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35072, "phase": 35072 },
-          "80-60": { "cumulative": 34237, "phase": 33447 },
-          "60-40": { "cumulative": 34523, "phase": 35108 },
-          "40-20": { "cumulative": 34303, "phase": 33647 },
-          "20-0": { "cumulative": 34713, "phase": 34713 }
+          "100-80": { "cumulative": 41135, "phase": 41135 },
+          "80-60": { "cumulative": 38215, "phase": 35680 },
+          "60-40": { "cumulative": 38063, "phase": 37768 },
+          "40-20": { "cumulative": 37391, "phase": 35425 },
+          "20-0": { "cumulative": 37595, "phase": 37595 }
         },
         "benchmarkApm": 60.2,
         "upToDate": false
@@ -122,14 +122,14 @@
         "label": "Power (Mace-Mace / Axe-Axe)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-mace-mace-axe-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-mace-mace-axe-axe-evtc.json",
-        "benchmarkDps": 34280,
+        "benchmarkDps": 36472,
         "benchmarkApm": 64.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35578, "phase": 35578 },
-          "80-60": { "cumulative": 33895, "phase": 32352 },
-          "60-40": { "cumulative": 33621, "phase": 33084 },
-          "40-20": { "cumulative": 33872, "phase": 34644 },
-          "20-0": { "cumulative": 34280, "phase": 34280 }
+          "100-80": { "cumulative": 39800, "phase": 39800 },
+          "80-60": { "cumulative": 37118, "phase": 34786 },
+          "60-40": { "cumulative": 36459, "phase": 35190 },
+          "40-20": { "cumulative": 36491, "phase": 36585 },
+          "20-0": { "cumulative": 36472, "phase": 36472 }
         },
         "upToDate": false
       }

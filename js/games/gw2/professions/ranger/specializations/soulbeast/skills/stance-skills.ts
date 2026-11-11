@@ -4,7 +4,7 @@ import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
-import { leaderOfThePackStance } from '#gw2/professions/ranger/specializations/soulbeast/traits/behavior.js';
+import { leaderOfThePackStance } from '#gw2/professions/ranger/specializations/soulbeast/traits/index.js';
 import type { RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /**

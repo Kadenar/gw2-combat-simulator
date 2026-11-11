@@ -1,8 +1,11 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 
+import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
+import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { boonActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import type { ProfileEmission } from '#gw2/platform/effects/emission.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { emitTraitProfile } from '#gw2/platform/profession-definition/trait-emission.js';
 import { defineTrait } from '#gw2/platform/profession-definition/traits.js';
@@ -10,10 +13,10 @@ import type { TriggerPointInput } from '#gw2/platform/profession-definition/trig
 import { onTriggerPoint } from '#gw2/platform/profession-definition/trigger-rules.js';
 import { balanceNumber, requireBalanceProfile, requireEffect } from '#gw2/platform/skills/balance-profiles.js';
 import { rangerProfileEffectRequest } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
-import { mergedBeastHit } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
+import { beastmodeChanged, mergedBeastHit } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { activeBuff } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
-import { RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
-import { beastmodeChanged } from '#gw2/professions/ranger/specializations/soulbeast/mechanics/beastmode-effects.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
+import { soulbeastState } from '#gw2/professions/ranger/specializations/soulbeast/state.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 /** Owns Unstoppable Union's live tuning and trait behavior. */
@@ -159,8 +162,39 @@ const predatorsCunning = defineTrait({
   ]
 });
 
-/** Apex Predator attack tuning is pending; retired health bonuses must not remain active. */
-const apexPredator = defineTrait({ id: TRAIT.APEX_PREDATOR });
+// Merged impacts launch independent frenzies, including Feline Maul and Primal Cry repeats.
+const apexPredator = defineTrait({
+  id: TRAIT.APEX_PREDATOR,
+  balance: {
+    effects: [
+      {
+        name: 'Apex Predator',
+        type: 'strike',
+        weapon: 'Unequipped',
+        ticks: Array.from({ length: 6 }, (_, index) => ({ atMs: index * 200, coefficient: 0.3 }))
+      },
+      {
+        name: 'Apex Predator (Beast)',
+        type: 'strike',
+        weapon: 'Unequipped',
+        ticks: Array.from({ length: 9 }, (_, index) => ({ atMs: index * 200, coefficient: 0.3 }))
+      }
+    ]
+  },
+  triggers: [
+    {
+      on: 'damage.resolved',
+      when: (_runtime, event) => Number(event.coefficient) > 0 && event.skillId !== ID.UNDEAD_PLAGUE,
+      run: triggerApexPredator
+    },
+    {
+      // Poison Gas triggers on its poison application despite having no strike.
+      on: 'condition.applied',
+      when: (_runtime, event) => event.skillId === ID.POISON_GAS && event.condition === CONDITION.POISONED,
+      run: triggerApexPredator
+    }
+  ]
+});
 
 /** Owns Essence of Speed's live tuning and trait behavior. */
 const essenceOfSpeed = defineTrait({
@@ -233,4 +267,90 @@ function applyUnstoppableUnion(context: RangerRuntime, skill: RangerSkill): void
       name: 'Unstoppable Union'
     }
   });
+}
+
+// Claim eligible merged impacts before emitting player-owned frenzies.
+function triggerApexPredator(runtime: RangerResolverContext, event: Gw2ResolverEvent): void {
+  const state = soulbeastState.from(runtime.profession);
+  const skill: RangerSkill | undefined =
+    event.skillId == null ? undefined : runtime.helpers.skillsById.get(event.skillId);
+
+  if (!state.beastmodeActive || event.actorType !== ACTOR.PLAYER || !skill?.beastmodeSkill || !event.activationId)
+    return;
+
+  // Most skills claim one frenzy per activation. These two skills claim one per landed hit instead.
+  const repeated = skill.id === ID.MAUL_ID_44514 || skill.id === ID.PRIMAL_CRY;
+  const scope = repeated ? `ranger.apex-predator:${event.hitIndex}` : 'ranger.apex-predator';
+
+  if (!claimActivation(state.soulbeastActivationClaims, scope, event.activationId)) return;
+
+  const beast = skill.slot === 'Profession_3';
+  const name = beast ? 'Apex Predator (Beast)' : 'Apex Predator';
+  const sourceId = beast ? ID.APEX_PREDATOR_BEAST : ID.APEX_PREDATOR;
+  emitTraitProfile(runtime, TRAIT.APEX_PREDATOR, TRAIT.APEX_PREDATOR, event, {
+    effect: { type: 'strike', name },
+    attribution: {
+      sourceId,
+      skillId: sourceId,
+      skillName: name,
+      name,
+      actorType: ACTOR.EFFECT,
+      ownerActorType: ACTOR.PLAYER,
+      // Separate repeats sample their own strength while each frenzy retains its roll across all hits.
+      activationId: `${event.activationId}:apex:${repeated ? event.hitIndex : 1}`,
+      triggeredBy: event.skillName
+    }
+  });
+}
+
+/** Leader of the Pack extends the personal stance and shares half of that extended window. */
+export function leaderOfThePackStance(
+  context: RangerRuntime,
+  baseDuration: number
+): { duration: number; sharedDuration?: number } {
+  if (!hasTrait(context, TRAIT.LEADER_OF_THE_PACK)) return { duration: baseDuration };
+
+  const duration = baseDuration * balanceNumber(context.helpers, TRAIT.LEADER_OF_THE_PACK, 'durationMultiplier');
+  return {
+    duration,
+    sharedDuration: duration * balanceNumber(context.helpers, TRAIT.LEADER_OF_THE_PACK, 'sharedDurationMultiplier')
+  };
+}
+
+/** Each eligible Quickness grant emits a trait-owned extension profile that excludes Quickness itself. */
+export function essenceOfSpeedExtension(
+  context: RangerResolverContext,
+  event: Gw2ResolverEvent
+): ProfileEmission | null {
+  if (
+    event.kind !== BOON.QUICKNESS ||
+    !event.resolvedAudience?.includesSelf ||
+    !hasTrait(context, TRAIT.ESSENCE_OF_SPEED) ||
+    !context.procs.claim(TRAIT.ESSENCE_OF_SPEED, 'ranger.soulbeast.essenceOfSpeed', event.at)
+  ) {
+    return null;
+  }
+
+  return {
+    kind: 'profile',
+    profile: requireBalanceProfile(context.helpers, TRAIT.ESSENCE_OF_SPEED),
+    at: event.at,
+    attribution: {
+      source: 'Trait',
+      sourceId: TRAIT.ESSENCE_OF_SPEED,
+      actorType: ACTOR.EFFECT,
+      skillId: TRAIT.ESSENCE_OF_SPEED,
+      skillName: 'Essence of Speed'
+    },
+    effects: [
+      {
+        type: 'custom',
+        eventType: 'boon_extension',
+        event: {
+          duration: balanceNumber(context.helpers, TRAIT.ESSENCE_OF_SPEED, 'duration'),
+          excludedKind: BOON.QUICKNESS
+        }
+      }
+    ]
+  };
 }
