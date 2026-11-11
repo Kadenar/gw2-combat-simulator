@@ -6,30 +6,30 @@
         "label": "Power (Greatsword-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-bench.json",
-        "benchmarkDps": 36514,
+        "benchmarkDps": 43125,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-greatsword-dagger-sword",
-        "upToDate": false,
-        "benchmarkApm": 83.8,
+        "upToDate": true,
+        "benchmarkApm": 98.9,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 25977,
-            "phase": 25977
+            "cumulative": 51184,
+            "phase": 51184
           },
           "80-60": {
-            "cumulative": 31247,
-            "phase": 39194
+            "cumulative": 44461,
+            "phase": 39222
           },
           "60-40": {
-            "cumulative": 33305,
-            "phase": 38355
+            "cumulative": 41936,
+            "phase": 37648
           },
           "40-20": {
-            "cumulative": 35039,
-            "phase": 41505
+            "cumulative": 41671,
+            "phase": 40894
           },
           "20-0": {
-            "cumulative": 36514,
-            "phase": 36514
+            "cumulative": 43125,
+            "phase": 43125
           }
         }
       },
@@ -231,30 +231,30 @@
         "label": "Condition (Dagger/Sword-Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-virtuoso.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-virtuoso-bench.json",
-        "benchmarkDps": 39758,
+        "benchmarkDps": 40753,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-virtuoso-dagger-sword-pistol",
         "upToDate": true,
-        "benchmarkApm": 58.1,
+        "benchmarkApm": 60.8,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 40394,
-            "phase": 40394
+            "cumulative": 41045,
+            "phase": 41045
           },
           "80-60": {
-            "cumulative": 39847,
-            "phase": 39299
+            "cumulative": 41256,
+            "phase": 41479
           },
           "60-40": {
-            "cumulative": 39939,
-            "phase": 40125
+            "cumulative": 40418,
+            "phase": 38781
           },
           "40-20": {
-            "cumulative": 39882,
-            "phase": 39709
+            "cumulative": 41112,
+            "phase": 43262
           },
           "20-0": {
-            "cumulative": 39758,
-            "phase": 39261
+            "cumulative": 40753,
+            "phase": 40753
           }
         }
       }

@@ -610,3 +610,39 @@ test('Pin Down resets Fan of Fire only after a landed strike', () => {
     assert.equal((runtime.cooldownController.readyAt(ID.FAN_OF_FIRE) ?? 0) > runtime.time, offTarget);
   }
 });
+
+// Longbow burns keep their base durations, scale once with Expertise, and require a landed attack.
+test('longbow burning uses distinct base lifetimes and respects misses', () => {
+  for (const [skillId, baseDurations] of [
+    [ID.FAN_OF_FIRE, [5, 2, 2]],
+    [ID.SMOLDERING_ARROW, [3]]
+  ]) {
+    for (const expertise of [0, 118]) {
+      for (const offTarget of [false, true]) {
+        const result = run(
+          [
+            { skillId, offTarget },
+            { type: 'wait', durationMs: 8000 }
+          ],
+          {
+            primaryWeapon: 'Longbow',
+            attributeInputs: baseAttributeInputs({ power: 1000, precision: 1000, expertise })
+          }
+        );
+        assert.deepEqual(result.warnings, []);
+        const burns = result.resolvedEvents.filter(
+          (event) => event.skillId === skillId && event.type === 'condition' && event.condition === 'Burning'
+        );
+        assert.deepEqual(
+          burns.map((event) => event.duration),
+          offTarget ? [] : baseDurations
+        );
+        for (const burn of burns) {
+          const duration = Math.round(burn.duration * (1 + expertise / 1500) * 1000) / 1000;
+          assert.equal(burn.effectiveDuration, duration);
+          assert.ok(Math.abs(burn.naturalExpiresAt - burn.at - duration) < 1e-9);
+        }
+      }
+    }
+  }
+});

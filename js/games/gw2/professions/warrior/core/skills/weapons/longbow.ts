@@ -51,18 +51,32 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
     // remaining animation as aftercast for ordinary cast-time skills.
     interruptCommitMs: 240,
     retainsCastLockoutAfterInterrupt: true,
-    // Share impact timing while preserving independent payloads and declaration order.
+    // The first arrow carries the stronger payload; both additional arrows hit the same simulated target.
     effects: impactEffects({ atMs: 240, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        coefficient: 1.32,
-        hits: 3
+        name: 'First hit',
+        coefficient: 0.88
+      },
+      {
+        type: 'strike',
+        name: 'Additional hits',
+        coefficient: 0.44,
+        hits: 2
       },
       {
         type: 'condition',
+        name: 'First hit burning',
         condition: CONDITION.BURNING,
-        stacks: 3,
-        duration: 3
+        stacks: 1,
+        duration: 5
+      },
+      {
+        type: 'condition',
+        name: 'Additional hit burning',
+        condition: CONDITION.BURNING,
+        stacks: 2,
+        duration: 2
       }
     ])
   },
@@ -123,6 +137,13 @@ export const WARRIOR_WEAPONS_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, Sk
         hits: 1,
         // The impact is an explosion so explosion-triggered Bladesworn effects can observe it.
         damageKind: 'explosion'
+      },
+      {
+        // Store the base duration so equipped Expertise extends Burning once.
+        type: 'condition',
+        condition: CONDITION.BURNING,
+        stacks: 1,
+        duration: 3
       },
       {
         type: 'condition',

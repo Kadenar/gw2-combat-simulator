@@ -35,11 +35,11 @@ export const thiefCriticalStrikesTooltips = {
     ['resourceGain', 'Initiative restored']
   ]),
   [TRAIT.TWIN_FANGS]: traitTooltip(
-    'A direct hit against a defiant target grants critical chance to later hits. Refresh replaces the window; its duration is unknown, so no critical-chance window is granted yet. Full-health critical damage is unchanged.',
+    'A direct hit against a defiant target grants critical chance to later hits. Further qualifying hits refresh the window. Flanking non-defiant targets is not modeled. Combat simulation always applies the full-health critical-damage bonus.',
     [
       ['criticalDamage', 'Critical damage at full health', tooltipFactorChange],
       ['criticalChance', 'Critical chance while active', tooltipPercent],
-      ['duration', 'Bonus duration, pending', tooltipSeconds]
+      ['duration', 'Bonus duration', tooltipSeconds]
     ]
   ),
   [TRAIT.SUNDERING_SHADE]: traitTooltip('Completing a stealth attack inflicts vulnerability.'),

@@ -1,3 +1,4 @@
+// Describe confirmed Acrobatics values and distinguish successful-evade effects from simulated dodges.
 import {
   fromProfile,
   outsideScopeTooltip,
@@ -15,44 +16,45 @@ export const thiefAcrobaticsTooltips = {
     ['duration', 'Bonus duration', tooltipSeconds]
   ]),
   [TRAIT.PAIN_RESPONSE]: outsideScopeTooltip,
-  [TRAIT.SWINDLERS_EQUILIBRIUM]: traitTooltip('Gain power and additional power while wielding a sword.', [
-    ['attributeBonuses.power', 'Power'],
-    ['conditionalAttributeBonuses.power', 'Total power while wielding a sword']
-  ]),
-  [TRAIT.UPPER_HAND]: traitTooltip('Completing a dodge restores initiative.', [
-    ['resourceGain', 'Initiative restored'],
-    ['internalCooldown', 'Internal cooldown', tooltipSeconds]
-  ]),
+  [TRAIT.SWINDLERS_EQUILIBRIUM]: traitTooltip(
+    'Gain power and additional power while wielding a sword. Successful evades while wielding a sword reduce Steal recharge by 2 seconds, with a 1-second cooldown. Incoming attacks are outside scope.',
+    [
+      ['attributeBonuses.power', 'Power'],
+      ['conditionalAttributeBonuses.power', 'Total power while wielding a sword']
+    ]
+  ),
+  [TRAIT.UPPER_HAND]: traitTooltip(
+    'Every completed dodge restores initiative. Successful evades also grant initiative and 6 seconds of Regeneration, but incoming attacks and healing are outside scope.',
+    [
+      ['resourceGain', 'Initiative restored'],
+      ['internalCooldown', 'Successful-evade interval', tooltipSeconds]
+    ]
+  ),
 
   [TRAIT.DEFT_INITIATION]: traitTooltip(
-    'Combat entry arms your next direct strike. Completing movement or a shadowstep rearms it once. Might, Vulnerability, and cooldown values are unknown; no bonus is applied until confirmed.',
-    [['internalCooldown', 'Pending internal cooldown', tooltipSeconds]]
+    'Combat entry arms your next direct strike to grant Might and inflict Vulnerability. Completing movement or a shadowstep rearms it once.'
   ),
   [TRAIT.FELINE_GRACE]: traitTooltip(
-    'Movement or shadowsteps grant Swiftness. Duration and cooldown are pending, so no Swiftness is granted yet. Improved movement speed is outside scope.',
-    [['internalCooldown', 'Pending internal cooldown', tooltipSeconds]]
+    'Movement or shadowsteps grant Swiftness. The improved 40% movement speed is outside scope.'
   ),
   [TRAIT.OPPORTUNE_OPENING]: traitTooltip(
-    'Deft Initiation inflicts cripple. Damage increases against movement-impaired targets. Percentage, stacking, and condition-damage coverage remain unknown. No damage bonus is applied yet.',
-    [['damageIncrease', 'Pending strike damage', tooltipPercent]]
+    'Deft Initiation inflicts Cripple. Strike damage increases against targets with Cripple, Chill, or Immobilize. Condition-damage coverage remains unconfirmed.',
+    [['damageIncrease', 'Strike damage', tooltipPercent]]
   ),
   [TRAIT.ENDURANCE_TRAINING]: traitTooltip(
-    'Successful evades grant vigor. Incoming attacks and successful evades are outside simulation scope.'
+    'Successful evades grant 5 seconds of Vigor. Incoming attacks and successful evades are outside simulation scope.'
   ),
   [TRAIT.ASSASSINS_REWARD]: traitTooltip(
     'Deft Initiation heals you. Healing is outside simulation scope; player health stays full.'
   ),
   [TRAIT.HARD_TO_CATCH]: traitTooltip(
-    'Steal or a replacement grants Resistance. Its duration is pending, so no Resistance is granted yet. Defensive benefits are outside scope.'
+    'Steal or a replacement grants Resistance. Defensive benefits are outside scope.'
   ),
   [TRAIT.SHARP_INITIATION]: traitTooltip(
-    'Deft Initiation deals an extra strike. Coefficient, strength profile, critical-hit eligibility, and cooldown rules are unknown; no bonus is applied until confirmed.'
+    'Deft Initiation deals an extra strike. The coefficient is inferred from the supplied tooltip and Power using unequipped strength. Critical hits are currently enabled but remain unconfirmed.'
   ),
   [TRAIT.DONT_STOP]: traitTooltip(
-    'Each actual self-swiftness application restores capped endurance. Amount and cooldown remain unknown. No endurance is granted until confirmed. Player condition removal is outside scope.',
-    [
-      ['resourceGain', 'Pending endurance'],
-      ['internalCooldown', 'Pending internal cooldown', tooltipSeconds]
-    ]
+    'Each actual self-swiftness application restores capped endurance. Player condition removal is outside scope.',
+    [['resourceGain', 'Endurance restored']]
   )
 } satisfies NonNullable<ProfessionTooltips['traits']>;

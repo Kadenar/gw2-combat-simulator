@@ -76,7 +76,7 @@ test('Lesser Grenade Barrage owns proc balance and damage breakdown identity', (
     }
   );
   assert.deepEqual(result.warnings, []);
-  assert.equal(catalog.balanceProfilesById.get(TRAIT.GRENADIER).damageIncrease, 0);
+  assert.equal(catalog.balanceProfilesById.get(TRAIT.GRENADIER).damageIncrease, 0.05);
   const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.sourceId === barrageId);
   assert.equal(
     hits.reduce((sum, event) => sum + event.coefficient, 0),
@@ -108,6 +108,7 @@ test('Lesser Grenade Barrage owns proc balance and damage breakdown identity', (
   const trait = catalog.traits.find((entry) => entry.id === TRAIT.GRENADIER);
   const tooltip = describeSimulationTrait(context, trait, engineerTooltips);
   assert.equal(tooltip.facts.find((fact) => fact.name === 'Base skill recharge').detail, '8s');
+  assert.equal(tooltip.facts.find((fact) => fact.name === 'Explosion strike damage').detail, '+5%');
 });
 
 // Explosion modifiers must apply to the canonical barrage in combat and in its isolated damage preview.
@@ -118,7 +119,7 @@ test('barrage skill patches and explosion modifiers reach both damage paths', ()
     professions: {
       engineer: {
         skills: { [barrageId]: { effects: [{ type: 'strike', coefficient: 3 }] } },
-        balanceProfiles: { 514: { fields: { damageIncrease: { from: 0, to: 1 } } } }
+        balanceProfiles: { [TRAIT.GRENADIER]: { fields: { damageIncrease: { from: 0.05, to: 1 } } } }
       }
     }
   });
@@ -149,7 +150,8 @@ test('barrage skill patches and explosion modifiers reach both damage paths', ()
     assertFlooredDamageMultiplier(
       patched.reduce((sum, event) => sum + event.damage, 0),
       baseline.reduce((sum, event) => sum + event.damage, 0),
-      4,
+      // Doubling the coefficient and applying a 100% bonus replaces the baseline 5% bonus.
+      4 / 1.05,
       patched.length
     );
   }

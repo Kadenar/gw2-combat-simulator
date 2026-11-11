@@ -108,43 +108,17 @@ not promoted to live values. Vindicator mechanics are owned by
 The Acrobatics layout and Twin Fangs trigger now belong to live Core. Unknown bonuses use neutral values instead of the
 old preview assumptions. See [Acrobatics traits](../js/games/gw2/professions/thief/core/traits/acrobatics/index.ts).
 
-- [ ] **Deft Initiation.** Need Might/Vulnerability stacks and durations, cooldown, and confirmation of refresh and
-      consumption rules. Combat entry and movement arm one direct-strike reward, but its payload remains inactive.
-- [ ] **Feline Grace.** Need Swiftness duration, cooldown, and qualifying movement skills. Specter well classification
-      and Daredevil dodge variants need confirmation. Improved movement-speed tuning is also unspecified and outside
-      combat scope. No Swiftness is granted until duration is confirmed.
-- [ ] **Opportune Opening.** Need damage percentage, stacking, condition-damage coverage, and Cripple duration. The
-      movement-impairment predicate is implemented, but damage and Cripple remain inactive.
-- [ ] **Don't Stop.** Need endurance per actual Swiftness application and cooldown. Resource handling exists, but its
-      grant remains zero. Player condition removal is outside scope.
-- [ ] **Twin Fangs.** Need critical-chance window duration and confirmation of refresh rules. The trigger uses defiance
-      as the existing flanking proxy. No critical-chance window is granted until duration is confirmed. The unchanged
-      critical-damage bonus still applies. See
-      [Critical Strikes](../js/games/gw2/professions/thief/core/traits/critical-strikes/index.ts).
-- [ ] **Hard to Catch.** Need Resistance duration on Steal and replacements. The old movement-endurance reward is
-      removed. No Resistance is granted until duration is confirmed.
-- [ ] **Sharp Initiation.** Need coefficient, weapon-strength basis, critical-hit eligibility, damage ownership, and
-      cooldown relationship with Deft Initiation. The extra strike remains neutral. Official trait ID and icon also need
-      confirmation.
-- [ ] **Endurance Training and Assassin's Reward.** Need Vigor duration and evade-trigger rules, plus healing tuning.
-      Successful incoming evades and healing remain outside combat scope.
+- [ ] **Deft Initiation.** Confirm refresh and consumption edge cases against combat logs.
+- [ ] **Feline Grace.** Daredevil dodge variants need confirmation. Specter wells qualify as shadowsteps.
+- [ ] **Opportune Opening.** Confirm damage stacking and condition-damage coverage.
+- [ ] **Sharp Initiation.** Confirm weapon strength basis, critical-hit eligibility, damage ownership, and cooldown
+      relationship with Deft Initiation against combat logs. Official trait ID and icon also need confirmation.
 - [ ] **Axe flight calibration.** The known velocity increase scales the existing release-to-landing flight time.
       Confirm flight endpoints against a post-patch recording; outgoing melee impacts retain their action-tick timings.
       See [axe lifecycle](../js/games/gw2/professions/thief/core/mechanics/axes.ts).
 - [ ] **Deadeye coverage.** Melee Mark pathing and simultaneous secondary targets are outside the positional and
       single-target model. Malicious Death's Judgment uses full captured-malice damage regardless of mark eligibility;
       the resource-spend path still requires a hit on the marked target.
-
-## Warrior
-
-- [ ] **Fan of Fire.** Need first-hit and repeat-hit coefficients and Burning payloads. The previous three-arrow model
-      remains until exact values are supplied. See
-      [longbow skills](../js/games/gw2/professions/warrior/core/skills/weapons/longbow.ts).
-- [ ] **Smoldering Arrow.** Need new Burning stacks and duration. Burning is not yet added.
-- [ ] **Enemy boons.** Destruction of the Empowered's published scaling and cap are recorded. Break Enchantments uses
-      its updated base strike and charges. Their enemy-boon branches remain inactive because targets have no simulated
-      boons. See [Discipline traits](../js/games/gw2/professions/warrior/core/traits/discipline/index.ts) and
-      [Spellbreaker skills](../js/games/gw2/professions/warrior/specializations/spellbreaker/skills/index.ts).
 
 ## Mesmer
 
@@ -159,6 +133,10 @@ old preview assumptions. See [Acrobatics traits](../js/games/gw2/professions/thi
 ## Unresolved details outside the current combat model
 
 These are coverage limits or missing reference values, not requests to add player-health or incoming-damage simulation.
+
+Warrior's Destruction of the Empowered and Break Enchantments enemy-boon effects are outside scope because simulated
+enemies have no boons. See [Discipline traits](../js/games/gw2/professions/warrior/core/traits/discipline/index.ts) and
+[Spellbreaker skills](../js/games/gw2/professions/warrior/specializations/spellbreaker/skills/index.ts).
 
 | Change                        | Remaining limitation                                                                                                                                                                               |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

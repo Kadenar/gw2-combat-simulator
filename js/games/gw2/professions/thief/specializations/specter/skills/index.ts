@@ -232,6 +232,8 @@ const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSkil
     slot: 'Utility',
     skillFamily: 'Well',
     movementSkill: true,
+    // Well placement shadowsteps the player, so shadowstep rewards also apply.
+    shadowstepSkill: true,
     cooldown: 25,
     castTimeMs: 360,
     effects: [
@@ -302,6 +304,9 @@ const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSkil
     type: 'Elite',
     slot: 'Elite',
     skillFamily: 'Well',
+    // The elite well also shadowsteps, qualifying for movement and shadowstep rewards.
+    movementSkill: true,
+    shadowstepSkill: true,
     cooldown: 75,
     castTimeMs: 360,
     effects: [
@@ -365,6 +370,8 @@ const SPECTER_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ThiefSkil
     slot: 'Heal',
     skillFamily: 'Well',
     movementSkill: true,
+    // Healing wells retain the same shadowstep classification as utility wells.
+    shadowstepSkill: true,
     cooldown: 20,
     castTimeMs: 680,
     effects: [

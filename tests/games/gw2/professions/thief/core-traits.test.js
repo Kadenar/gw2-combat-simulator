@@ -10,7 +10,6 @@ import { activeStackCount } from '#gw2/platform/combat/resources/timed-stacks.js
 import { createEffectEmissionService } from '#gw2/platform/effects/emission.js';
 import { createEffectExpansionBudget } from '#gw2/platform/effects/expansion-budget.js';
 import { createMechanicCombatServices } from '#gw2/platform/resolver/mechanic-services.js';
-import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { reactThiefCoreDamage, thiefCoreHooks } from '#gw2/professions/thief/core/hooks.js';
 import { thiefConditionApplied, thiefStruck } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
@@ -73,7 +72,7 @@ function internalCooldownClaims(traitId, action, duration, catalog) {
     [wait(1000), action, wait(duration * 1000), action, wait(1), action, wait(1)],
     { selectedTraitIds: traitId == null ? [] : [traitId], initialEndurance: 100 },
     {
-      catalog: (live) => withProfile(catalog(live), traitId ?? TRAIT.UPPER_HAND, { internalCooldown: duration }),
+      catalog: (live) => withProfile(catalog(live), traitId ?? TRAIT.HIDDEN_THIEF, { internalCooldown: duration }),
       initialize(runtime) {
         runtime.procs.setDeadline('unrelated', 99);
       },
@@ -100,13 +99,6 @@ for (const [name, traitId, action, catalog, procs] of [
     (live) => withSkill(live, ID.STEAL, { cooldown: 0 }),
     (result) =>
       result.events.filter((event) => event.sourceId === TRAIT.HIDDEN_THIEF && event.condition === 'Blindness').length
-  ],
-  [
-    'Upper Hand',
-    TRAIT.UPPER_HAND,
-    'Dodge',
-    (live) => withSkill(live, SHARED_SKILL_IDS.DODGE, { castTimeMs: 0, cost: { resource: 'endurance', amount: 0 } }),
-    null
   ]
 ]) {
   test(`${name} preserves eligibility, scoped claims, strict boundaries and zero overrides`, () => {

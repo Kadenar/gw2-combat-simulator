@@ -266,10 +266,10 @@ export const sunderingShade = defineTrait({
   ]
 });
 
-/** Owns Twin Fangs tuning and behavior at the existing execution boundaries. */
+/** Qualifying hits grant an eight-second critical-chance window; full-health critical damage remains unconditional. */
 export const twinFangs = defineTrait({
   id: TRAIT.TWIN_FANGS,
-  balance: { duration: 0, threshold: 0.5, criticalDamage: 1.07, lowHealthCriticalDamage: 1.05, criticalChance: 0.07 },
+  balance: { duration: 8, threshold: 0.5, criticalDamage: 1.07, lowHealthCriticalDamage: 1.05, criticalChance: 0.07 },
   modifierRules: [
     {
       order: 4,

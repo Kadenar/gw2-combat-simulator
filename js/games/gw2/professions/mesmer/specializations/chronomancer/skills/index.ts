@@ -121,8 +121,9 @@ const MESMER_CHRONOMANCER_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefinit
     skillFamily: 'Well',
     cooldown: 60,
     castTimeMs: 1080,
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+    // Once the well commits, its damage and control pulses survive cancellation of the remaining recovery.
+    interruptCommitMs: 1040,
+    effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true }, [
       {
         type: 'strike',
         ticks: [0, 1000, 2000].map((atMs) => ({ atMs, coefficient: 1.1 })),

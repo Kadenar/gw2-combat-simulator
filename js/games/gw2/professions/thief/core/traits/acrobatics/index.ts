@@ -1,3 +1,4 @@
+// Acrobatics uses the supplied base durations; the resolver applies boon and condition duration bonuses.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { buffActive, targetConditionActive } from '#gw2/platform/combat/query/runtime-query.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
@@ -99,27 +100,25 @@ function applyFluidStrikes(runtime: ThiefRuntime): void {
   );
 }
 
-/** Upper Hand claims its cooldown when a dodge completes, before its initiative can re-enter the trait. */
+/** Every completed dodge grants initiative; the interval limits successful evades, which are outside scope. */
 function applyUpperHand(runtime: ThiefRuntime): void {
-  const profile = requireBalanceProfile(runtime.helpers, TRAIT.UPPER_HAND);
+  const initiativeGain = balanceNumber(runtime.helpers, TRAIT.UPPER_HAND, 'resourceGain');
 
-  if (runtime.procs.claimCooldown(TRAIT.UPPER_HAND, runtime.time, balanceProfileNumber(profile, 'internalCooldown'))) {
-    const initiativeGain = balanceProfileNumber(profile, 'resourceGain');
-
-    if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
-  }
+  if (initiativeGain > 0) runtime.resourceController.grant('initiative', initiativeGain);
 }
 
 /** Mark remains a Steal replacement, but its existing movement flag does not represent actual mobility. */
 const mobilityEligible = (_runtime: unknown, { cast }: ThiefCastCompletion) => cast.skill.id !== SKILL.DEADEYES_MARK;
 
-/** Combat entry and mobility arm one next-hit payload; unknown numbers stay in the selected profiles. */
+/** Combat entry and mobility arm one next-hit Might and Vulnerability payload. */
 export const deftInitiation = defineTrait({
   id: TRAIT.DEFT_INITIATION,
   balance: {
     internalCooldown: 0,
-    // Leave the payload empty until its Might and Vulnerability tuning is confirmed.
-    effects: []
+    effects: [
+      { type: 'boon', name: BOON.MIGHT, boon: BOON.MIGHT, stacks: 2, duration: 10, audience: { recipients: 'self' } },
+      { type: 'condition', name: CONDITION.VULNERABILITY, condition: CONDITION.VULNERABILITY, stacks: 3, duration: 8 }
+    ]
   },
   triggers: [
     onTriggerPoint(thiefMobilityUsed, {
@@ -137,8 +136,16 @@ export const felineGrace = defineTrait({
   id: TRAIT.FELINE_GRACE,
   balance: {
     internalCooldown: 0,
-    // Swiftness stays absent until its duration is confirmed.
-    effects: []
+    effects: [
+      {
+        type: 'boon',
+        name: BOON.SWIFTNESS,
+        boon: BOON.SWIFTNESS,
+        stacks: 1,
+        duration: 5,
+        audience: { recipients: 'self' }
+      }
+    ]
   },
   triggers: [
     onTriggerPoint(thiefMobilityUsed, {
@@ -168,9 +175,8 @@ export const felineGrace = defineTrait({
 export const opportuneOpening = defineTrait({
   id: TRAIT.OPPORTUNE_OPENING,
   balance: {
-    damageIncrease: 0,
-    // Cripple stays absent until its duration is confirmed.
-    effects: []
+    damageIncrease: 0.05,
+    effects: [{ type: 'condition', name: CONDITION.CRIPPLED, condition: CONDITION.CRIPPLED, stacks: 1, duration: 3 }]
   },
   modifierRules: [
     {
@@ -188,12 +194,20 @@ export const opportuneOpening = defineTrait({
   ]
 });
 
-/** Steal replaces the retired movement-endurance reward; Resistance duration remains pending. */
+/** Steal and its replacements grant self Resistance. */
 export const hardToCatch = defineTrait({
   id: TRAIT.HARD_TO_CATCH,
   balance: {
-    // Resistance stays absent until its duration is confirmed.
-    effects: []
+    effects: [
+      {
+        type: 'boon',
+        name: BOON.RESISTANCE,
+        boon: BOON.RESISTANCE,
+        stacks: 1,
+        duration: 4,
+        audience: { recipients: 'self' }
+      }
+    ]
   },
   triggers: [
     onTriggerPoint(thiefCastCompleted, {
@@ -213,7 +227,7 @@ export const hardToCatch = defineTrait({
 /** Each actual self swiftness application can grant endurance; permanent boon assumptions are not producers. */
 export const dontStop = defineTrait({
   id: TRAIT.DONT_STOP,
-  balance: { resourceGain: 0, internalCooldown: 0 },
+  balance: { resourceGain: 8, internalCooldown: 0 },
   triggers: [
     {
       on: 'buff.applied',
@@ -240,7 +254,7 @@ export const sharpInitiation = defineTrait({
       {
         type: 'strike',
         name: 'Sharp Initiation',
-        coefficient: 0,
+        coefficient: 1.25,
         weaponStrengthProfileId: 'nonweapon.unequipped',
         canCrit: true
       }
