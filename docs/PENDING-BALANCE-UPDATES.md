@@ -12,14 +12,6 @@ final notes. The active balance preview is retired; unresolved mechanics remain 
 
 Owner: [staff skills](../js/games/gw2/professions/elementalist/core/skills/weapons/staff.ts).
 
-- [ ] **Fire Blast.** Replace and rename Flame Burst. Need the new strike coefficient, Burning stacks and duration, and
-      cast/impact timing. Confirm which old effects survive. The catalog still contains Flame Burst and its old payload.
-- [ ] **Lightning Surge.** Implement the ground-targeted initial bolt and delayed stronger strike. Need both
-      coefficients, the repeat delay, and Blindness duration. The simulator still uses the old single strike.
-- [ ] **Shock Wave.** Implement the ground-targeted impact and Daze. Need damage and control durations, plus
-      confirmation of retained Bleeding and combo behavior. The simulator still uses the old projectile payload.
-- [ ] **Eruption.** Add Cripple pulses before detonation. Need pulse interval, first pulse, number of applications, and
-      Cripple duration. Current Cripple applies only at detonation.
 - [ ] **Baseline attunement boons.** Add the new innate boon grant for each element and change Elemental Attunement to
       extend/share those grants. Need baseline boon identities, stacks, durations, and the trait's duration increase.
       The [Arcane trait implementation](../js/games/gw2/professions/elementalist/core/traits/arcane/index.ts) still owns
@@ -110,20 +102,6 @@ old preview assumptions. See [Acrobatics traits](../js/games/gw2/professions/thi
 - [ ] **Deadeye coverage.** Melee Mark pathing and simultaneous secondary targets are outside the positional and
       single-target model. Malicious Death's Judgment uses full captured-malice damage regardless of mark eligibility;
       the resource-spend path still requires a hit on the marked target.
-- [ ] **Power Quickness Deadeye Rifle rotation.** The current model kills the target before the saved rotation ends.
-      Later attacks cannot earn malice, so the final Malicious Death's Judgment reports missing stealth. The preset
-      remains not up to date; its benchmark test allows only that warning. The rotation succeeds without warnings when
-      the target survives. See the [preset test](../tests/games/gw2/app/benchmarks/thief.test.js).
-
-## Mesmer
-
-- [ ] **Inspiration support effects.** Focal Feedback and Sympathetic Visage use the new tiers. Enemy-boon transfer and
-      allied cleansing are outside the current combat model. The existing Focus recharge reduction is retained; confirm
-      whether the new Focal Feedback retains it.
-- [ ] **Mesmer presets.** The current skill IDs resolve the previous equipment and mantra warnings. Preserved rotations
-      now simulate without warnings, but affected presets still need post-patch loadout and rotation review. Their
-      metrics describe the current model. See the [Mesmer manifest](../data/gw2/builds/mesmer/manifest.json) and
-      [patch contracts](../tests/games/gw2/professions/mesmer/patch-contracts.test.js).
 
 ## Unresolved details outside the current combat model
 

@@ -15,6 +15,25 @@ import { rotationCatalog } from '#tests/helpers/rotation-catalog.js';
 
 const skill = (id, name, extras = {}) => ({ id, name, ...extras });
 
+// Current staff IDs must load directly instead of resolving to retired skills with matching names.
+test('replacement staff IDs reconstruct as current Elementalist weapon skills', () => {
+  for (const [id, name] of [
+    [81423, 'Fire Blast'],
+    [81440, 'Lightning Surge'],
+    [81444, 'Shock Wave']
+  ]) {
+    const report = reportFixture('Weaver', [{ id, skills: [{ castTime: 0, duration: 600, timeGained: 0 }] }], {
+      [`s${id}`]: { name }
+    });
+    const result = reconstructDpsReportRotation(report, elementalistCatalog);
+    const action = result.actions.find((candidate) => candidate.rawSkillId === id);
+    assert.equal(action.skillId, id);
+    assert.equal(action.name, name);
+    assert.equal(action.supportedByCatalog, true);
+    assert.ok(result.rotation.some((command) => command.type === 'cast' && command.skillId === id));
+  }
+});
+
 // These fixtures isolate the EI signals needed for each Elementalist recovery rule.
 function reportFixture(profession, rotation, skillMap, extras = {}) {
   const end = extras.end ?? 10_000;

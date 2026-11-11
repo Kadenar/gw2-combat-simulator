@@ -117,8 +117,9 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ])
   },
-  [ID.FLAME_BURST]: {
-    name: 'Flame Burst',
+  // The replacement projectile burns on impact without the retired Blindness application.
+  [ID.FIRE_BLAST]: {
+    name: 'Fire Blast',
     icon: 'https://render.guildwars2.com/file/610424237E18EA90F0D824454104355309FF5DDA/102959.png',
     type: 'Weapon',
     slot: 'Weapon_3',
@@ -127,21 +128,14 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
 
     cooldown: 10,
     skillFamily: 'Weapon skill',
-    castTimeMs: 360,
-    effects: impactEffects({ atMs: 320, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1 },
+    castTimeMs: 600,
+    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 2.75, projectile: true },
       {
         type: 'condition',
         condition: CONDITION.BURNING,
         stacks: 3,
         duration: 6
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.BLINDNESS,
-        stacks: 1,
-        duration: 3,
-        applications: 1
       }
     ])
   },
@@ -400,17 +394,26 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
 
     cooldown: 10,
     skillFamily: 'Weapon skill',
-    castTimeMs: 1000,
-    effects: impactEffects({ atMs: 800, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      { type: 'strike', coefficient: 1.8 },
+    castTimeMs: 400,
+    // The first bolt blinds; the stronger bolt follows after a fixed ground-effect delay.
+    effects: [
+      strikeTimeline(
+        [
+          { atMs: 400, coefficient: 0.5 },
+          { atMs: 1400, coefficient: 1.75 }
+        ],
+        { timingAnchor: 'castStart', timingScale: 'cast', intervalTimingScale: 'fixed' }
+      ),
       {
         type: 'condition',
         condition: CONDITION.BLINDNESS,
         stacks: 1,
-        duration: 5,
-        applications: 1
+        duration: 3,
+        atMs: 400,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
-    ])
+    ]
   },
   [ID.GUST]: {
     name: 'Gust',
@@ -512,7 +515,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       { type: 'condition', condition: CONDITION.WEAKNESS, stacks: 1, duration: 3 }
     ])
   },
-  // Long fuse: the blast finisher, six Bleeding stacks, and Cripple all land at 4000ms.
+  // Cripple holds the target before the delayed blast applies Bleeding and a longer Cripple.
   [ID.ERUPTION]: {
     name: 'Eruption',
     icon: 'https://render.guildwars2.com/file/2F1CF7CA4E58215911CF5797F7939FEF51D9CB45/102977.png',
@@ -524,21 +527,34 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
     cooldown: 6,
     skillFamily: 'Weapon skill',
     castTimeMs: 840,
-    effects: impactEffects({ atMs: 4000, timingAnchor: 'castStart', timingScale: 'cast' }, [
+    effects: [
       {
-        type: 'strike',
-        coefficient: 1.5,
-        comboFinishers: [
-          {
-            attemptGroup: 'effect:1:tick:1',
-            ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.BLAST
-          }
-        ]
+        type: 'condition',
+        condition: CONDITION.CRIPPLED,
+        stacks: 1,
+        duration: 1,
+        atMs: 160,
+        applications: 2,
+        intervalMs: 1000,
+        timingAnchor: 'castEnd',
+        timingScale: 'fixed'
       },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 6, duration: 12 },
-      { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 3 }
-    ])
+      ...impactEffects({ atMs: 2160, timingAnchor: 'castEnd', timingScale: 'fixed' }, [
+        {
+          type: 'strike',
+          coefficient: 1.5,
+          comboFinishers: [
+            {
+              attemptGroup: 'effect:1:tick:1',
+              ownerId: 'elementalist',
+              finisherType: COMBO_FINISHER.BLAST
+            }
+          ]
+        },
+        { type: 'condition', condition: CONDITION.BLEEDING, stacks: 6, duration: 12 },
+        { type: 'condition', condition: CONDITION.CRIPPLED, stacks: 1, duration: 3 }
+      ])
+    ]
   },
   // Aura/transmute flip pair: Magnetic Aura grants the aura and flips to Transmute Earth, which
   // is only available while that aura is active and consumes it for a blast finisher.
@@ -612,7 +628,7 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
       }
     ]
   },
-  // Projectile finisher carrying a 20s Bleeding stack plus a short Immobilize.
+  // The ground impact dazes and immobilizes; it no longer bleeds or finishes projectile combos.
   [ID.SHOCK_WAVE]: {
     name: 'Shock Wave',
     icon: 'https://render.guildwars2.com/file/69CFF22DD8599E35164720AC02A5F2044C33C7DD/103136.png',
@@ -623,21 +639,12 @@ export const ELEMENTALIST_CORE_STAFF_SKILL_MECHANICS: Readonly<Record<number, Sk
 
     cooldown: 25,
     skillFamily: 'Weapon skill',
-    castTimeMs: 680,
-    effects: impactEffects({ atMs: 600, timingAnchor: 'castStart', timingScale: 'cast' }, [
-      {
-        type: 'strike',
-        coefficient: 2.5,
-        comboFinishers: [
-          {
-            attemptGroup: 'effect:1:tick:1',
-            ownerId: 'elementalist',
-            finisherType: COMBO_FINISHER.PROJECTILE
-          }
-        ]
-      },
-      { type: 'condition', condition: CONDITION.BLEEDING, stacks: 1, duration: 20 },
-      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 2 }
+    castTimeMs: 760,
+    effects: impactEffects({ atMs: 640, timingAnchor: 'castStart', timingScale: 'cast' }, [
+      { type: 'strike', coefficient: 2.5 },
+      // Both supplied PvE casts apply 3s; the API currently lists 2s.
+      { type: 'condition', condition: CONDITION.IMMOBILIZED, stacks: 1, duration: 3 },
+      { type: 'control', controlKind: CONTROL.DAZE }
     ])
   }
 };

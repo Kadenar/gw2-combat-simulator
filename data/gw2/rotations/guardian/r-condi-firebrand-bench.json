@@ -5,7 +5,7 @@
     "player": "Dr Kuchenmeister",
     "parser": "guardian:firebrand",
     "timingSource": "EVTC animation activations, state changes, and instant-skill effects",
-    "note": "Last Tyrant relic with the existing gear and traits. Four allied recipients represent the Mesmer and three clones. The opening wait preserves their earlier combat entry."
+    "note": "Last Tyrant relic with the existing gear and Unrelenting Criticism. Four allied recipients represent the Mesmer and three clones. The opening wait preserves their earlier combat entry."
   },
   "rotation": [
     {
