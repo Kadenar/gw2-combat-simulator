@@ -1,7 +1,22 @@
 /** Canonical Core elementalist skill definitions grouped by their GW2 owner. */
+import { BOON, type BoonId } from '#gw2/platform/constants.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import { readProfessionCoreState } from '#gw2/platform/profession-definition/state.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
+import type { ElementalistAttunement, ElementalistCoreState } from '#gw2/professions/elementalist/core/state.js';
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
+
+// Capture the departing element before commitment so Weaver double-attuning cannot repeat an entry boon.
+function attunementBoon(element: ElementalistAttunement, boon: BoonId, duration: number): SkillEffect {
+  return {
+    type: 'boon',
+    boon,
+    stacks: 1,
+    duration,
+    when: (runtime) => readProfessionCoreState<ElementalistCoreState>(runtime.profession).primaryAttunement !== element
+  };
+}
 
 /**
  * Catalog definitions for the four attunement profession skills.
@@ -25,7 +40,7 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<
     skillFamily: 'Attunement',
     castTimeMs: 0,
     canCastConcurrently: true,
-    effects: []
+    effects: [attunementBoon('Fire', BOON.MIGHT, 10)]
   },
   [ID.WATER_ATTUNEMENT]: {
     name: 'Water Attunement',
@@ -39,7 +54,7 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<
     skillFamily: 'Attunement',
     castTimeMs: 0,
     canCastConcurrently: true,
-    effects: []
+    effects: [attunementBoon('Water', BOON.REGENERATION, 3)]
   },
   [ID.AIR_ATTUNEMENT]: {
     name: 'Air Attunement',
@@ -53,7 +68,7 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<
     skillFamily: 'Attunement',
     castTimeMs: 0,
     canCastConcurrently: true,
-    effects: []
+    effects: [attunementBoon('Air', BOON.SWIFTNESS, 5)]
   },
   [ID.EARTH_ATTUNEMENT]: {
     name: 'Earth Attunement',
@@ -67,6 +82,6 @@ export const ELEMENTALIST_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<
     skillFamily: 'Attunement',
     castTimeMs: 0,
     canCastConcurrently: true,
-    effects: []
+    effects: [attunementBoon('Earth', BOON.PROTECTION, 3)]
   }
 };

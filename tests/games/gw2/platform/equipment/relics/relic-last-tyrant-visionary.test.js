@@ -16,6 +16,7 @@ import { effectStateAt, effectSummary } from '#gw2/platform/results/effect-repor
 import { ProcStepRecorder } from '#gw2/platform/results/proc-steps.js';
 import { createCanonicalCatalog } from '#gw2/platform/skills/catalog.js';
 import { elementalistConditionEffectRequest } from '#gw2/professions/elementalist/core/mechanics/effects.js';
+import { ELEMENTALIST_SKILL_IDS } from '#gw2/professions/elementalist/data/ids.js';
 import { canonicalTime } from '#kernel/core/clock.js';
 import { StableEventQueue } from '#kernel/events/queue.js';
 import { testProfession } from '#tests/fixtures/profession.js';
@@ -232,7 +233,18 @@ test('Last Tyrant reports zero stacks after its explosion and through cooldown',
 // Actual skill packets must finish a four-stack Fury cycle at one impact without multiplying Burning damage.
 test('one-time multi-stack Burning skills expose each stack to Last Tyrant at the same impact', async () => {
   const skillsByProfession = {
-    elementalist: { 5679: 3, 5675: 2, 5691: 2, 34736: 3, 5542: 2, 30662: 2, 76585: 2, 71907: 2, 5535: 2 },
+    elementalist: {
+      // Fire Blast owns the staff's multi-stack Burning impact after replacing Flame Burst.
+      [ELEMENTALIST_SKILL_IDS.FIRE_BLAST]: 3,
+      5675: 2,
+      5691: 2,
+      34736: 3,
+      5542: 2,
+      30662: 2,
+      76585: 2,
+      71907: 2,
+      5535: 2
+    },
     engineer: { 72974: 3, 43630: 2 },
     guardian: { 9088: 2, 9089: 3, 9151: 3, 43826: 2, 71817: 5, 42924: 3 },
     necromancer: { 62655: 3 },
@@ -244,6 +256,7 @@ test('one-time multi-stack Burning skills expose each stack to Last Tyrant at th
     const module = await import(`#gw2/professions/${profession}/catalog.js`);
     for (const [id, totalStacks] of Object.entries(skills)) {
       const skill = module[`${profession}Catalog`].skillsById.get(Number(id));
+      assert.ok(skill, `${profession} catalog is missing skill ${id}`);
       const packets = skill.effects
         .flatMap((effect) =>
           materializeSkillEffectApplications({

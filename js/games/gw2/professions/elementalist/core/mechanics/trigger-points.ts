@@ -115,7 +115,6 @@ export const attunementChanged = defineTriggerPoint<ElementalistAttunementChange
   TRAIT.EARTHEN_BLAST,
   TRAIT.ROCK_SOLID,
   TRAIT.ARCANE_PROWESS,
-  TRAIT.ELEMENTAL_ATTUNEMENT,
   TRAIT.BOUNTIFUL_POWER
 ]);
 

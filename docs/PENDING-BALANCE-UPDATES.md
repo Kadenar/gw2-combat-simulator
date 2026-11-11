@@ -8,15 +8,6 @@ PvE changes only. PvP/WvW-only changes are excluded.
 This tracks unresolved work and confirmations. Code remains the source of truth. All nine professions have received
 final notes. The active balance preview is retired; unresolved mechanics remain listed below.
 
-## Elementalist
-
-Owner: [staff skills](../js/games/gw2/professions/elementalist/core/skills/weapons/staff.ts).
-
-- [ ] **Baseline attunement boons.** Add the new innate boon grant for each element and change Elemental Attunement to
-      extend/share those grants. Need baseline boon identities, stacks, durations, and the trait's duration increase.
-      The [Arcane trait implementation](../js/games/gw2/professions/elementalist/core/traits/arcane/index.ts) still owns
-      the previous trait-only grants.
-
 ## Necromancer
 
 Current limitations are recorded in the [Core tooltips](../js/games/gw2/professions/necromancer/app/tooltips/core.ts).

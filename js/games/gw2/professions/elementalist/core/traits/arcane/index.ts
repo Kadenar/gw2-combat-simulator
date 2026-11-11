@@ -6,6 +6,7 @@ import { advanceCounter } from '#gw2/platform/combat/resources/counters.js';
 import { ACTOR, BOON, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
 import type { EffectDelivery } from '#gw2/platform/effects/emission.js';
 import { resolverSourceSkill } from '#gw2/platform/effects/packet-builders.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { SimulationEvent } from '#gw2/platform/events/events.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import { criticalProcHandler } from '#gw2/platform/profession-definition/critical-proc-handler.js';
@@ -41,9 +42,9 @@ import {
   type ElementalistDamageResolved,
   type ElementalistReaction
 } from '#gw2/professions/elementalist/core/mechanics/trigger-points.js';
-import type { ElementalistAttunement } from '#gw2/professions/elementalist/core/state.js';
 import { criticalTraitEligible } from '#gw2/professions/elementalist/core/traits/critical-eligibility.js';
 import {
+  ELEMENTALIST_ATTUNEMENT_SKILL_IDS,
   ELEMENTALIST_SKILL_IDS as ID,
   ELEMENTALIST_TRAIT_IDS as TRAIT
 } from '#gw2/professions/elementalist/data/ids.js';
@@ -143,14 +144,36 @@ export const elementalAttunement = defineTrait({
       }
     ]
   },
-  triggers: [
-    onTriggerPoint(attunementChanged, {
-      when: (_runtime: unknown, input: ElementalistAttunementChanged) =>
-        !input.dualAttunement || input.target !== input.previous,
-      run: (runtime: ElementalistRuntime, input: ElementalistAttunementChanged) =>
-        grantElementalAttunementBoon(runtime, input.at, input.target, input.skill.id, input.emissionCast)
-    })
-  ]
+  hooks: {
+    // Extend and share the skill's single entry grant, preserving its same-element eligibility.
+    modifyEffects(runtime, cast, effects) {
+      if (!hasTrait(runtime, TRAIT.ELEMENTAL_ATTUNEMENT)) return effects;
+
+      const element = Object.entries(ELEMENTALIST_ATTUNEMENT_SKILL_IDS).find(([, id]) => id === cast.skill.id)?.[0];
+
+      if (!element) return effects;
+
+      const profile = requireBalanceProfile(runtime.helpers, TRAIT.ELEMENTAL_ATTUNEMENT);
+      const grant = requireEffect(profile, 'boon', element);
+      return effects.flatMap<SkillEffect>((effect) => {
+        if (effect.type !== 'boon') return [effect];
+
+        if (!grant) return [];
+
+        return [
+          {
+            ...effect,
+            duration: grant.duration,
+            audience: grant.audience,
+            source: 'Trait',
+            sourceId: TRAIT.ELEMENTAL_ATTUNEMENT,
+            name: 'Elemental Attunement',
+            skillName: 'Elemental Attunement'
+          }
+        ];
+      });
+    }
+  }
 });
 
 export const elementalLockdown = defineTrait({
@@ -555,32 +578,6 @@ function applyArcaneProwess(
       sourceId: TRAIT.ARCANE_PROWESS,
       actorType: ACTOR.PLAYER,
       name: 'Arcane Prowess',
-      priority: 0
-    }
-  });
-}
-
-/** Grants Elemental Attunement's boon matching the element just entered. */
-function grantElementalAttunementBoon(
-  context: ElementalistRuntime,
-  at: number,
-  attunement: ElementalistAttunement,
-  sourceId: Skill['id'],
-  emissionCast?: EffectDelivery['cast']
-): void {
-  emitTraitProfile(context, TRAIT.ELEMENTAL_ATTUNEMENT, TRAIT.ELEMENTAL_ATTUNEMENT, undefined, {
-    at: at,
-    fullEnd: at,
-    effect: { type: 'boon', name: attunement },
-    skillId: sourceId,
-    skillName: 'Elemental Attunement',
-    cast: emissionCast,
-    priority: 0,
-    attribution: {
-      source: 'Trait',
-      sourceId: TRAIT.ELEMENTAL_ATTUNEMENT,
-      actorType: ACTOR.PLAYER,
-      name: 'Elemental Attunement',
       priority: 0
     }
   });
