@@ -65,6 +65,37 @@
         "benchmarkApm": 114
       },
       {
+        "label": "Power (Rifle + Dagger / Dagger)",
+        "build": "data/gw2/builds/thief/b-power-deadeye-rifle-dagger-dagger.json",
+        "rotation": "data/gw2/rotations/thief/r-power-deadeye-rifle-dagger-dagger-bench.json",
+        "snowCrowsUrl": "https://snowcrows.com/builds/raids/thief/power-deadeye-m7-rifle-dagger-dagger",
+        "upToDate": true,
+        "benchmarkDps": 42717,
+        "benchmarkDpsByHealth": {
+          "100-80": {
+            "cumulative": 41283,
+            "phase": 41283
+          },
+          "80-60": {
+            "cumulative": 39646,
+            "phase": 38133
+          },
+          "60-40": {
+            "cumulative": 40515,
+            "phase": 42408
+          },
+          "40-20": {
+            "cumulative": 40942,
+            "phase": 42235
+          },
+          "20-0": {
+            "cumulative": 42717,
+            "phase": 42717
+          }
+        },
+        "benchmarkApm": 95.5
+      },
+      {
         "label": "Power Quickness (Axe / Pistol + Dagger / Pistol)",
         "build": "data/gw2/builds/thief/b-power-quick-deadeye-axe-pistol-dagger-pistol.json",
         "rotation": "data/gw2/rotations/thief/r-power-quick-deadeye-axe-pistol-dagger-pistol-bench.json",
