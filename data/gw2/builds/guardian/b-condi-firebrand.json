@@ -53,7 +53,7 @@
     },
     {
       "name": "Firebrand",
-      "traits": "2-1-1"
+      "traits": "1-1-1"
     }
   ],
   "selectedSkillIds": {
@@ -91,7 +91,7 @@
     },
     "targetSkillActivationsPerSecond": 0
   },
-  "initialTomePages": 5,
+  "initialTomePages": 8,
   "startingWeaponSet": 2,
   "targetHealth": 4000000,
   "targetArmor": 2597
