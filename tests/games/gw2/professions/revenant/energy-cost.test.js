@@ -6,8 +6,34 @@ import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/p
 import { effectiveRevenantEnergyCost, revenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { revenantCatalog, revenantProfession } from '#gw2/professions/revenant/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { planningFixture } from '#tests/helpers/observed-runtime.js';
+import { observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
+
+// Cancelling the block still pays its activation cost without entering combat through the finishing strike.
+test("interrupted Gladiator's Defense requires and spends 20 energy without attacking", () => {
+  const config = {
+    specialization: 'Conduit',
+    selectedLegends: ['LegendaryEntity', 'LegendaryAssassin'],
+    startingLegend: 'LegendaryEntity'
+  };
+  for (const initialEnergy of [19, 20]) {
+    const planning = planningFixture(revenantProfession, { ...config, initialEnergy });
+    assert.equal(planning.availability[SKILL.GLADIATORS_DEFENSE].ready, initialEnergy === 20);
+  }
+
+  const result = runRevenant([{ name: "Gladiator's Defense", interruptMs: 200 }], { ...config, initialEnergy: 50 });
+  assert.deepEqual(result.warnings, []);
+  assert.equal(
+    result.events.some((event) => event.type === 'damage' || event.type === 'condition'),
+    false
+  );
+  assert.equal(result.planningState.profession[STATE.COMBAT_BEGAN_AT], null);
+  const block = result.events.find((event) => event.kind === 'blocking');
+  const cast = result.steps.find((step) => step.skillId === SKILL.GLADIATORS_DEFENSE);
+  assert.equal(block.duration, (cast.end - cast.start) / 1000);
+  assert.equal(observedRuntime(result).combat.activeBuffStacks('blocking', cast.end / 1000, 1), 0);
+  assert.ok(Math.abs(result.planningState.profession[STATE.ENERGY].value - (30 + 5 * result.rotationEndTime)) < 1e-9);
+});
 
 // Cost policies consume explicit inputs regardless of where the state originated.
 test('Conduit costs preserve follow-up charges, unmapped skills, and free active upkeep toggles', () => {
@@ -127,6 +153,20 @@ test('Vindicator palette uses resolved traits for Energy Meld affordability', ()
       selectedTraitIds
     });
     assert.equal(state.availability[SKILL.ENERGY_MELD].ready, selectedTraitIds.length > 0);
+  }
+});
+
+// Combat-only refunds require actual combat entry even when the rotation has no explicit marker.
+test("Angsiyan's Trust grants energy only after combat has begun", () => {
+  for (const combat of [false, true]) {
+    const result = runRevenant([...(combat ? ['__combat_start'] : []), { skillId: SKILL.ENERGY_MELD }], {
+      specialization: 'Vindicator',
+      selectedTraitIds: [TRAIT.ANGSIYANS_TRUST],
+      initialEnergy: 0
+    });
+    assert.deepEqual(result.warnings, []);
+    const expected = 5 * result.rotationEndTime + (combat ? 25 : 0);
+    assert.ok(Math.abs(result.planningState.profession[STATE.ENERGY].value - expected) < 1e-9);
   }
 });
 

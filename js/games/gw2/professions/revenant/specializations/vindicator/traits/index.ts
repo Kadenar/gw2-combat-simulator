@@ -69,14 +69,15 @@ const forerunnerOfDeath = defineTrait({
   ]
 });
 
-/** Accepted legend swaps restore capped endurance, including outside combat; Alliance Tactics remains deferred. */
+/** Accepted combat legend swaps restore capped endurance; Alliance Tactics remains deferred. */
 const balanceInDiscord = defineTrait({
   id: TRAIT.BALANCE_IN_DISCORD,
-  balance: { resourceGain: 0 },
+  balance: { resourceGain: 50 },
   triggers: [
     {
       on: 'castCommit',
-      when: (_runtime, cast) => cast.skill.id === ID.SWAP_LEGENDS,
+      when: (runtime, cast) =>
+        cast.skill.id === ID.SWAP_LEGENDS && runtime.engagement.active && runtime.engagement.combatMechanicsAllowed(),
       run(runtime: RevenantRuntime) {
         runtime.endurance.grant(balanceNumber(runtime.helpers, TRAIT.BALANCE_IN_DISCORD, 'resourceGain'));
       }
@@ -84,10 +85,10 @@ const balanceInDiscord = defineTrait({
   ]
 });
 
-/** Replace the old Power grant with an endurance-gated multiplier; the missing percentage remains neutral until confirmed. */
+/** Player strikes gain the confirmed bonus only while endurance is below its cap. */
 const riseToTheOccasion = defineTrait({
   id: TRAIT.RISE_TO_THE_OCCASION,
-  balance: { damageIncrease: 0 },
+  balance: { damageIncrease: 0.1 },
   modifierRules: [
     {
       id: 'revenant.rise-to-the-occasion',
@@ -178,13 +179,47 @@ const songOfArboreum = defineTrait({
 
 const vassalsOfTheEmpire = defineTrait({ id: TRAIT.VASSALS_OF_THE_EMPIRE });
 
+const LUXON_SKILLS = new Set<SkillId>([
+  ID.SELFISH_SPIRIT,
+  ID.NOMADS_ADVANCE,
+  ID.REAVERS_RAGE,
+  ID.SCAVENGER_BURST,
+  ID.SPEAR_OF_ARCHEMORUS,
+  ID.ARCHEMORUS_STRIKE
+]);
+
+/** Completed Luxon skills refresh one damage bonus; cancelled casts cannot grant it. */
+const friendOfTheLuxons = defineTrait({
+  id: TRAIT.FRIEND_OF_THE_LUXONS,
+  balance: {
+    damageIncrease: 0.1,
+    effects: [{ type: 'buff', name: 'friend-of-the-luxons', kind: 'friend-of-the-luxons', duration: 10, stacks: 1 }]
+  },
+  triggers: [
+    {
+      emit: TRAIT.FRIEND_OF_THE_LUXONS,
+      on: 'castCommit',
+      when: (_runtime, cast) => LUXON_SKILLS.has(cast.skill.id)
+    }
+  ],
+  modifierRules: [
+    {
+      id: 'revenant.friend-of-the-luxons',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.FRIEND_OF_THE_LUXONS, 'damageIncrease'),
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'friend-of-the-luxons')
+    }
+  ]
+});
+
 export const traitDefinitions = [
   songOfArboreum,
   reaversCurse,
   angsiyansTrust,
   balanceInDiscord,
   riseToTheOccasion,
-  defineTrait({ id: TRAIT.FRIEND_OF_THE_LUXONS }),
+  friendOfTheLuxons,
   defineTrait({ id: TRAIT.HEATED_RIVALRY, balance: { minimumStacks: 2 } }),
   defineTrait({ id: TRAIT.FRIEND_OF_THE_KURZICKS }),
   forerunnerOfDeath,
@@ -194,7 +229,7 @@ export const traitDefinitions = [
 
 /** Applies the trait at the mechanic's existing execution boundary. */
 function grantAngsiyansTrustEnergy(runtime: RevenantRuntime): void {
-  if (runtime.engagement.combatMechanicsAllowed())
+  if (runtime.engagement.active && runtime.engagement.combatMechanicsAllowed())
     runtime.resourceController.grant(
       'energy',
       Math.max(0, balanceNumber(runtime.helpers, TRAIT.ANGSIYANS_TRUST, 'resourceGain'))

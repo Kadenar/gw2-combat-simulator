@@ -63,44 +63,35 @@ Current limitations are recorded in the [Core tooltips](../js/games/gw2/professi
 
 ## Revenant
 
-- [ ] **Frigid Blitz.** Need the new area-strike coefficient, Chilled and Torment payloads, and teleport/impact timing.
-      The simulator retains the previous two-hit model. See
+- [ ] **Frigid Blitz.** The November 10 combat log establishes a single impact with both conditions and replaces the
+      previous two-hit timing. Need the new strike coefficient; the previous final-strike coefficient remains. See
       [axe skills](../js/games/gw2/professions/revenant/core/skills/weapons/axe.ts).
 - [ ] **Forced Engagement.** Taunt is removed. Need Cripple duration, tether duration and distance threshold, pull
       rules, and additional defiance damage. Existing strike and Slow remain until their retention is confirmed. See
       [Dwarf skills](../js/games/gw2/professions/revenant/core/skills/legends/dwarf.ts).
-- [ ] **Balance in Discord.** Need endurance per trigger and confirmation of any combat restriction. The legend-swap
-      trigger exists but grants zero until confirmed. Alliance Tactics is still absent.
-- [ ] **Rise to the Occasion.** Need strike-damage percentage and stacking. The old Empire Divided Power and Leviathan
-      Strength bonuses are removed. The new endurance-gated damage rule remains neutral until confirmed.
-- [ ] **Friend of the Luxons.** Need damage bonus, duration, stacking/refresh rules after Luxon skills, plus
-      Archemorus's Strike coefficient, cooldown, energy cost, cast/impact timing, and knockdown duration. Neither effect
-      is implemented.
-- [ ] **Heated Rivalry.** The two-skill PvE threshold is recorded. Faction counters, Alliance Tactics recharge, and the
-      next opposite-faction skill's energy refund still need implementation with the missing Kurzick bar and Alliance
-      Tactics. Confirm counter reset and refund consumption rules.
-- [ ] **Friend of the Kurzicks.** Shield of Saint Viktor is absent. Need its cooldown, energy cost, cast time, barrier,
-      and dome duration, plus the heal after Kurzick skills. Barrier, incoming projectiles, and healing are outside the
-      combat model, but any resource and activation behavior still needs implementation.
-- [ ] **New Vindicator identities.** Grandmasters use local IDs and the specialization icon until official IDs and icons
-      are confirmed. See [trait IDs](../js/games/gw2/professions/revenant/data/ids.ts).
-- [ ] **Vindicator presets.** Saved trait choices now use the live layout. Both presets remain marked not up to date
-      while the new mechanics and tuning are incomplete. Recorded rotations are preserved. See
-      [Revenant manifest](../data/gw2/builds/revenant/manifest.json).
-- [ ] **Gladiator's Defense.** Need block duration, retaliation coefficient, successful-block bonus, Weakness duration,
-      and Dwarf Aegis duration. The previous strike and boon model remains. Incoming attacks are outside scope, so the
-      successful-block branch cannot be inferred from an ordinary simulation. See
+- [ ] **Balance in Discord.** Combat legend swaps now grant endurance. Alliance Tactics and its separate endurance grant
+      remain absent.
+- [ ] **Friend of the Luxons.** The damage bonus and Archemorus's Strike are implemented from the supplied tooltips.
+      Confirm damage stacking and refresh behavior against combat logs, and calibrate the new attack's impact timing.
+- [ ] **Heated Rivalry.** The two-skill PvE threshold and combat restriction are confirmed. Faction counters, Alliance
+      Tactics recharge, and the next opposite-faction skill's energy refund still need implementation with the missing
+      Kurzick bar and Alliance Tactics. Confirm counter reset and refund consumption rules.
+- [ ] **Shield of Saint Viktor integration.** Its healing, barrier, and projectile blocking are outside scope and do not
+      block damage simulation. Its light combo field and any interaction with Heated Rivalry remain unimplemented.
+- [ ] **New Vindicator identities.** Grandmasters and Archemorus's Strike use local IDs and placeholder icons until
+      official IDs and icons are confirmed. See [trait IDs](../js/games/gw2/professions/revenant/data/ids.ts).
+- [ ] **Gladiator's Defense.** The new log establishes the channel and finishing strike, with no strike after early
+      interruption. The previous Resolution, Resistance, and unconditional Weakness are removed. Need the
+      finishing-strike coefficient and Dwarf Aegis duration. Incoming attacks and successful-block bonuses are outside
+      simulation scope. See
       [Entity skills](../js/games/gw2/professions/revenant/specializations/conduit/skills/entity-skills.ts).
-- [ ] **Other Revenant presets.** Presets whose recorded rotations use Frigid Blitz, Forced Engagement, or Gladiator's
-      Defense remain marked not up to date until those reworks are complete. Their metrics reflect the disclosed
-      incomplete model, not validated post-patch benchmarks.
 - [ ] **Centaur empowerment coverage.** Tranquil consumption/replenishment and empowered Energy Expulsion Stability are
       implemented. Existing gaps remain for empowered Natural Harmony endurance and Protective Solace Protection.
       Release Potential: Monk's tablet/Tranquil interaction also needs implementation. See
       [Centaur skills](../js/games/gw2/professions/revenant/core/skills/legends/centaur.ts).
 
-Missing Revenant values were not supplied in the follow-up. The old preview's assumed endurance and damage bonuses were
-not promoted to live values. Vindicator mechanics are owned by
+The supplied Vindicator tooltips resolve the endurance and damage-bonus values. Healing and barrier values are outside
+simulation scope. Vindicator mechanics are owned by
 [live traits](../js/games/gw2/professions/revenant/specializations/vindicator/traits/index.ts).
 
 ## Thief
@@ -119,6 +110,10 @@ old preview assumptions. See [Acrobatics traits](../js/games/gw2/professions/thi
 - [ ] **Deadeye coverage.** Melee Mark pathing and simultaneous secondary targets are outside the positional and
       single-target model. Malicious Death's Judgment uses full captured-malice damage regardless of mark eligibility;
       the resource-spend path still requires a hit on the marked target.
+- [ ] **Power Quickness Deadeye Rifle rotation.** The current model kills the target before the saved rotation ends.
+      Later attacks cannot earn malice, so the final Malicious Death's Judgment reports missing stealth. The preset
+      remains not up to date; its benchmark test allows only that warning. The rotation succeeds without warnings when
+      the target survives. See the [preset test](../tests/games/gw2/app/benchmarks/thief.test.js).
 
 ## Mesmer
 

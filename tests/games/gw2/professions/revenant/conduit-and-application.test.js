@@ -796,7 +796,7 @@ test('Conduit entity skills apply follow-ups and Shared Wisdom effects', () => {
       .filter((event) => event.type === 'buff')
       .map((event) => event.kind)
       .sort(),
-    ['resistance', 'resolution', 'stability', 'swiftness']
+    ['blocking', 'stability', 'swiftness']
   );
 
   const vortex = simulate(

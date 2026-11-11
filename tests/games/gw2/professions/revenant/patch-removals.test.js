@@ -209,7 +209,7 @@ test('Shared Wisdom boons stay bound to their triggering entity after a sibling 
       .map((event) => event.kind)
       .sort();
   const native = buffs([]);
-  assert.deepEqual(native, ['resistance', 'resolution']);
+  assert.deepEqual(native, ['blocking']);
   assert.deepEqual(
     buffs([TRAIT.SHARED_WISDOM], patched({ [TRAIT.SHARED_WISDOM]: remove('boon', 'beguiling-haze') })).filter(
       (kind) => !native.includes(kind)
@@ -218,7 +218,7 @@ test('Shared Wisdom boons stay bound to their triggering entity after a sibling 
   );
   assert.deepEqual(
     buffs([TRAIT.SHARED_WISDOM], patched({ [TRAIT.SHARED_WISDOM]: remove('boon', 'gladiators-defense') })),
-    ['resistance', 'resolution', 'swiftness']
+    ['blocking', 'swiftness']
   );
 });
 
@@ -252,7 +252,7 @@ test("Gladiator's Defense uses live Stability tuning only for successful casts",
     );
     assert.equal(
       packets.some((event) => event.type === 'condition' && event.condition === 'Weakness'),
-      !cancelled
+      false
     );
   }
 });

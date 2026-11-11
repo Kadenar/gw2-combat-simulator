@@ -162,7 +162,7 @@ export const revenantCoreTooltips = {
   ],
   skills: {
     [ID.FRIGID_BLITZ]: skillTooltip(
-      'Pending rework values: teleport and area strike with Chilled and Torment. The simulator retains the previous two-hit payload until the new coefficients and timing are confirmed.'
+      'Teleport and strike, applying Chilled and Torment together. Timing follows the November 10 combat log. The strike coefficient remains unconfirmed and uses the previous final-strike value.'
     ),
     [ID.FORCED_ENGAGEMENT]: skillTooltip(
       'Taunt is removed. Cripple duration, tether threshold, pull behavior, and added defiance damage remain pending. Existing strike and Slow values are retained.'

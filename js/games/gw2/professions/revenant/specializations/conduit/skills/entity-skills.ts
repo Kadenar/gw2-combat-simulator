@@ -2,12 +2,14 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import type { Gw2ModifierContext } from '#gw2/platform/combat/modifiers.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
-import { ACTOR, BOON, COMBO_FINISHER, CONDITION, RECIPIENT } from '#gw2/platform/constants.js';
+import { ACTOR, BOON, COMBO_FINISHER, CONDITION } from '#gw2/platform/constants.js';
+import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import { conditionEffectTicks, impactEffects, strikeEffectTicks } from '#gw2/platform/effects/authoring.js';
 import { effectApplicationCount } from '#gw2/platform/effects/expansion-budget.js';
 import { effectFirstAt } from '#gw2/platform/effects/materializer.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
+import { projectCastRelativeEffectTimingMs } from '#gw2/platform/execution/cast-timing.js';
 import type { MechanicQueriesOf } from '#gw2/platform/profession-definition/mechanic-context.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
@@ -46,6 +48,43 @@ const hexEaterCleanses = new WeakMap<
   RuntimeCast<RevenantSkill>,
   RevenantRuntime['profession']['core']['selfConditions']
 >();
+
+/** Blocking belongs to the active channel and must not commit its finishing attack or trait rewards. */
+export function startGladiatorsDefense(runtime: RevenantRuntime, cast: RuntimeCast<RevenantSkill>): void {
+  const action = requireSkillAction(cast.skill, 'blocking');
+  runtime.effects.emit({
+    kind: 'profile',
+    profile: cast.skill,
+    effects: action.effects,
+    at: cast.start,
+    attribution: {
+      source: 'revenant',
+      sourceId: cast.skill.id,
+      actorType: ACTOR.PLAYER,
+      skillId: cast.skill.id,
+      skillName: cast.skill.name,
+      activationId: cast.id
+    },
+    transform: (event) =>
+      event.type === 'buff'
+        ? {
+            ...event,
+            duration: Math.max(
+              0,
+              Math.min(
+                cast.effectiveEnd - cast.start,
+                projectCastRelativeEffectTimingMs(
+                  cast.skill,
+                  (cast.fullEnd - cast.start) * 1000,
+                  event.duration! * 1000
+                ) / 1000
+              )
+            ),
+            fixedDuration: true
+          }
+        : event
+  });
+}
 
 /** Select projectiles now; defer removal of the selected conditions until commitment. */
 function hexEaterEffects(
@@ -339,45 +378,37 @@ export const CONDUIT_ENTITY_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     type: 'Utility',
     slot: 'Utility',
     cooldown: 5,
-    energyCost: 10,
+    energyCost: 20,
     legendId: 'LegendaryEntity',
-    // The default input cancels the remaining animation after the committed impact.
-    castTimeMs: 240,
-    defaultInterruptMs: 40,
-    interruptCommitMs: 40,
-    // Explicit impact timing lets the ordinary scheduler retain the packets when the animation is cancelled.
-    effects: impactEffects({ atMs: 40, timingAnchor: 'castStart', timingScale: 'fixed' }, [
+    // Completed channels strike when blocking ends; early interruption suppresses that attack.
+    castTimeMs: 800,
+    interruptCommitMs: 720,
+    stunbreak: true,
+    effects: [
       {
         type: 'strike',
+        name: "Gladiator's Defense",
+        // The log establishes the finishing strike; its coefficient still needs confirmation.
         coefficient: 1.5,
         hits: 1,
-        name: "Gladiator's Defense",
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'condition',
-        condition: CONDITION.WEAKNESS,
-        stacks: 1,
-        duration: 5,
-        actorType: ACTOR.PLAYER
-      },
-      { type: 'boon', boon: BOON.RESOLUTION, duration: 3, stacks: 1 },
-      { type: 'boon', boon: BOON.RESISTANCE, duration: 3, stacks: 1 }
-    ]),
-    // Dwarf resonance broadens only this skill's boons; other equipped legends keep them personal.
-    effectVariants: [
-      {
-        when: (runtime) => runtime.profession.core.selectedLegendIds.includes(LEGEND.DWARF),
-        transform: (_runtime, _cast, effects) =>
-          effects.map((effect) =>
-            effect.type === 'boon'
-              ? { ...effect, audience: { recipients: RECIPIENT.PARTY, maximumRecipients: 5 } }
-              : effect
-          )
+        actorType: ACTOR.PLAYER,
+        atMs: 720,
+        timingAnchor: 'castStart',
+        timingScale: 'cast'
       }
     ],
-    // Shared Wisdom grants only this skill's Stability on a successful cast, using the live trait profile.
-    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } }]
+    // Blocking starts immediately; Shared Wisdom requires the finishing strike to commit.
+    sideEffects: [
+      {
+        on: 'castStart',
+        do: {
+          type: 'revenant.gladiators-block',
+          id: 'blocking',
+          effects: [{ type: 'buff', kind: 'blocking', duration: 0.72, stacks: 1 }]
+        }
+      },
+      { on: 'castCommit', do: { type: 'revenant.entity-boon-completed' } }
+    ]
   },
   [ID.LEGENDARY_ENTITY_STANCE]: {
     name: 'Legendary Entity Stance',

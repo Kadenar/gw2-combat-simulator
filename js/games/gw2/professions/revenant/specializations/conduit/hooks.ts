@@ -17,7 +17,10 @@ import {
   entityCastCompleted
 } from '#gw2/professions/revenant/specializations/conduit/mechanics/trigger-points.js';
 import { conduitUpkeepLifecycle } from '#gw2/professions/revenant/specializations/conduit/mechanics/upkeep.js';
-import { cleanseHexEater } from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
+import {
+  cleanseHexEater,
+  startGladiatorsDefense
+} from '#gw2/professions/revenant/specializations/conduit/skills/entity-skills.js';
 import {
   dervishAttack,
   dervishCasts,
@@ -96,6 +99,9 @@ const conduitLifecycle: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
     if (skill.legendId === LEGEND.ENTITY) runtime.fireTrigger(entityCastCompleted, { cast });
   },
   sideEffectHandlers: {
+    'revenant.gladiators-block'(runtime, context) {
+      if (context.kind === 'cast') startGladiatorsDefense(runtime, context.cast);
+    },
     'revenant.entity-boon-completed'(runtime, context) {
       if (context.kind === 'cast') runtime.fireTrigger(entityBoonCompleted, { cast: context.cast });
     },

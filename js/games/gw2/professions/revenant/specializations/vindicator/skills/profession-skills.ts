@@ -1,4 +1,4 @@
-import { ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, COMBO_FINISHER, CONTROL } from '#gw2/platform/constants.js';
 import type { SkillSideEffect } from '#gw2/platform/effects/actions.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
@@ -15,7 +15,31 @@ const energyMeldRewards: readonly SkillSideEffect[] = [
   { on: 'castCommit', do: { type: 'revenant.energy-meld-endurance' } }
 ];
 
-export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
+export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<RevenantSkill>>> = {
+  // Friend of the Luxons grants this attack independently of the equipped legends.
+  [ID.ARCHEMORUS_STRIKE]: {
+    name: "Archemorus's Strike",
+    icon: 'https://render.guildwars2.com/file/75E2F0423C74594E045AF6A10A55065E3CE61037/2491622.png',
+    type: 'Profession',
+    slot: 'Profession_4',
+    cooldown: 25,
+    energyCost: 0,
+    // Tooltip activation, expressed on the authored Quickness timeline; impact awaits log calibration.
+    castTimeMs: 500,
+    comboFinishers: [{ ownerId: 'revenant', finisherType: COMBO_FINISHER.BLAST }],
+    effects: [
+      {
+        type: 'strike',
+        name: "Archemorus's Strike",
+        // Matching-build tooltip damage agrees with Death Drop's coefficient.
+        coefficient: 3.3,
+        weaponStrengthProfileId: 'nonweapon.unequipped',
+        hits: 1,
+        actorType: ACTOR.PLAYER
+      },
+      { type: 'control', controlKind: CONTROL.KNOCKDOWN, actorType: ACTOR.PLAYER }
+    ]
+  },
   [ID.LEGENDARY_ALLIANCE_STANCE_ID_62749]: {
     name: 'Legendary Alliance Stance',
     icon: 'https://render.guildwars2.com/file/E1910F4C5C74E0B00AB262D2D3DBA3FB51BE90CA/2491626.png',

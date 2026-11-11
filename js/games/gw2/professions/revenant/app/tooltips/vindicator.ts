@@ -16,6 +16,9 @@ import { VINDICATOR_DODGE_AUTO_ACTION } from '#gw2/professions/revenant/speciali
 /** Describe vindicator tooltips from the selected balance data. */
 export const vindicatorTooltips = {
   skills: {
+    [ID.ARCHEMORUS_STRIKE]: skillTooltip(
+      'Strike nearby foes, knock them down for 3 seconds, and finish a combo with a blast. Requires Friend of the Luxons and works with any equipped legends. Activation uses the tooltip duration; impact timing awaits combat-log confirmation.'
+    ),
     [VINDICATOR_DODGE_AUTO_ACTION]: () => ({
       description:
         'Start a Vindicator dodge and the current autoattack together. Endurance is spent at takeoff; the trait-selected landing occurs after the airborne phase.',
@@ -46,21 +49,22 @@ export const vindicatorTooltips = {
   traits: {
     [TRAIT.TENACIOUS_RUIN]: traitTooltip('Replace the ordinary dodge with the selected Vindicator dodge attack.'),
     [TRAIT.BALANCE_IN_DISCORD]: traitTooltip(
-      'Gain endurance on successful legend swaps, including outside combat. The amount is unknown and currently contributes no endurance. Alliance Tactics is not implemented, so its endurance trigger is deferred.',
-      [['resourceGain', 'Endurance per legend swap, pending']]
+      'Gain endurance on successful legend swaps in combat. Alliance Tactics is not implemented, so its separate endurance grant remains deferred.',
+      [['resourceGain', 'Endurance per combat legend swap']]
     ),
     [TRAIT.RISE_TO_THE_OCCASION]: traitTooltip(
-      'Player-owned strikes deal increased damage while endurance is below full. The percentage and stacking need confirmation. No damage bonus is applied yet. Outgoing healing is outside simulation scope.',
-      [['damageIncrease', 'Strike damage below full endurance, pending', tooltipPercent]]
+      'Player-owned strikes deal increased damage while endurance is below full. Outgoing healing is outside simulation scope.',
+      [['damageIncrease', 'Strike damage below full endurance', tooltipPercent]]
     ),
     [TRAIT.FRIEND_OF_THE_LUXONS]: traitTooltip(
-      "Pending: Archemorus's Strike and the damage bonus after Luxon skills need confirmed values. This trait currently adds no simulated effects."
+      "Unlock Archemorus's Strike with any equipped legends. Completing a Luxon skill grants a temporary player strike-damage bonus. Further Luxon skills refresh the bonus.",
+      [['damageIncrease', 'Strike damage during the bonus', tooltipPercent]]
     ),
     [TRAIT.HEATED_RIVALRY]: traitTooltip(
-      'Deferred: Kurzick skills and Alliance Tactics are not implemented. The trigger requires two faction skills in PvE. Counters, Tactics recharge, and opposite-faction energy refunds remain pending.'
+      'Deferred: Kurzick skills and Alliance Tactics are not implemented. The trigger requires two faction skills in combat in PvE. Counters, Tactics recharge, and opposite-faction energy refunds remain pending.'
     ),
     [TRAIT.FRIEND_OF_THE_KURZICKS]: traitTooltip(
-      'Deferred: Shield of Saint Viktor is not implemented. Ally barrier, healing after Kurzick skills, and projectile blocking are outside simulation scope.'
+      'Healing after Kurzick skills, ally barrier, and projectile blocking are outside simulation scope. Shield of Saint Viktor and its light combo field are not implemented.'
     ),
     [TRAIT.REAVERS_CURSE]: traitTooltip(
       'Energy Meld recharges faster and empowers the next dodge that lands within its buff window.',

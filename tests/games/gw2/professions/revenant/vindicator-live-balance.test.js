@@ -11,7 +11,8 @@ import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/p
 import { effectiveRevenantEnergyCost } from '#gw2/professions/revenant/energy-cost.js';
 import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { withProfile } from '#tests/helpers/catalog-overrides.js';
+import { withProfile, withSkill } from '#tests/helpers/catalog-overrides.js';
+import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const patchId = 'current';
@@ -58,7 +59,7 @@ test('Balance in Discord grants selected endurance once per swap and respects th
       assert.equal(result.planningState.profession[STATE.COMBAT_BEGAN_AT] !== null, combat);
       assert.equal(
         result.planningState.profession[STATE.ENDURANCE].value,
-        Math.min(100, baseline.planningState.profession[STATE.ENDURANCE].value + amount)
+        Math.min(100, baseline.planningState.profession[STATE.ENDURANCE].value + (combat ? amount : 0))
       );
     }
 
@@ -69,7 +70,7 @@ test('Balance in Discord grants selected endurance once per swap and respects th
     });
     assert.equal(
       liveResult.planningState.profession[STATE.ENDURANCE].value,
-      baseline.planningState.profession[STATE.ENDURANCE].value
+      Math.min(100, baseline.planningState.profession[STATE.ENDURANCE].value + (combat ? 50 : 0))
     );
   }
 
@@ -109,7 +110,7 @@ test('Rise to the Occasion follows endurance, ownership and its selected profile
   }
 });
 
-// Master-row choices still select the native landing and its boons; no grandmaster skill is synthesized.
+// Master-row choices still select the native landing and its boons independently of the new grandmasters.
 test('moved dodge traits and adept Energy Meld traits remain functional in live data', () => {
   for (const [choices, landing] of [
     ['1-1-1', 'Death Drop'],
@@ -147,7 +148,7 @@ test('moved dodge traits and adept Energy Meld traits remain functional in live 
   }
 });
 
-test('unknown Vindicator values stay neutral and deferred effects are disclosed', () => {
+test('confirmed Vindicator tuning replaces neutral values and deferred effects are disclosed', () => {
   const describe = (id) =>
     describeSimulationTrait(
       live.balanceContext,
@@ -155,9 +156,87 @@ test('unknown Vindicator values stay neutral and deferred effects are disclosed'
       revenantTooltips,
       'Vindicator'
     );
-  assert.equal(live.catalog.balanceProfilesById.get(TRAIT.BALANCE_IN_DISCORD).resourceGain, 0);
-  assert.equal(live.catalog.balanceProfilesById.get(TRAIT.RISE_TO_THE_OCCASION).damageIncrease, 0);
+  assert.equal(live.catalog.balanceProfilesById.get(TRAIT.BALANCE_IN_DISCORD).resourceGain, 50);
+  assert.equal(live.catalog.balanceProfilesById.get(TRAIT.RISE_TO_THE_OCCASION).damageIncrease, 0.1);
   assert.equal(live.catalog.balanceProfilesById.get(TRAIT.HEATED_RIVALRY).minimumStacks, 2);
-  for (const id of [TRAIT.FRIEND_OF_THE_LUXONS, TRAIT.HEATED_RIVALRY, TRAIT.FRIEND_OF_THE_KURZICKS])
-    assert.match(describe(id).description, /Pending|Deferred/);
+  assert.match(describe(TRAIT.HEATED_RIVALRY).description, /Deferred/);
+  assert.match(describe(TRAIT.FRIEND_OF_THE_KURZICKS).description, /outside simulation scope/);
+});
+
+// The grandmaster unlock is independent of Alliance, including with no energy, and cancellation grants no bonus.
+test("Archemorus's Strike requires Friend of the Luxons and works outside Alliance", () => {
+  for (const selected of [false, true]) {
+    const groups = profession.ui.paletteGroups({
+      specialization: 'Vindicator',
+      catalog: live.catalog,
+      build: { specializations: [{ name: 'Vindicator', traits: selected ? '1-1-1' : '1-1-2' }] }
+    });
+    assert.equal(
+      groups.some((group) => group.skillIds.includes(SKILL.ARCHEMORUS_STRIKE)),
+      selected
+    );
+    const result = run(["Archemorus's Strike"], {
+      initialEnergy: 0,
+      selectedTraitIds: selected ? [TRAIT.FRIEND_OF_THE_LUXONS] : []
+    });
+    assert.equal(result.warnings.length, selected ? 0 : 1);
+    assert.equal(
+      result.events.some((event) => event.controlKind === 'knockdown'),
+      selected
+    );
+    assert.equal(
+      result.events.some((event) => event.kind === 'friend-of-the-luxons'),
+      selected
+    );
+
+    if (!selected) assert.match(result.warnings[0].message, /Friend of the Luxons/);
+  }
+
+  const cancelled = run([{ name: "Archemorus's Strike", interruptMs: 0 }], {
+    selectedTraitIds: [TRAIT.FRIEND_OF_THE_LUXONS]
+  });
+  assert.deepEqual(cancelled.warnings, []);
+  assert.equal(
+    cancelled.events.some((event) => event.kind === 'friend-of-the-luxons'),
+    false
+  );
+});
+
+// Short fixture casts isolate bonus refresh and expiry from native animation and recharge tuning.
+test('Luxon activations refresh one bonus and unrelated skills leave its expiry unchanged', () => {
+  const readings = [];
+  const selected = { ...config, selectedTraitIds: [TRAIT.FRIEND_OF_THE_LUXONS] };
+  const native = profession.resolveProfession(selected);
+  const result = runRevenant(
+    [
+      "Archemorus's Strike",
+      { type: 'wait', durationMs: 5000 },
+      "Archemorus's Strike",
+      { skillId: SKILL.ENERGY_MELD },
+      { type: 'wait', durationMs: 11000 }
+    ],
+    selected,
+    {
+      catalog: (catalog) => withSkill(catalog, SKILL.ARCHEMORUS_STRIKE, { cooldown: 0, castTimeMs: 0 }),
+      probes: [1, 6, 11, 15].map((at) => [
+        at,
+        (runtime) => {
+          for (const actorType of ['player', 'summon']) {
+            const context = {
+              catalog: live.catalog,
+              config: selected,
+              time: runtime.time,
+              runtime,
+              event: { actorType }
+            };
+            readings.push(native.calculations.modifyStrikeDamage(context, 1));
+            assert.equal(native.calculations.modifyConditionDamage({ ...context, condition: 'Burning' }, 1), 1);
+          }
+        }
+      ])
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(readings, [1.1, 1, 1.1, 1, 1.1, 1, 1, 1]);
+  assert.equal(observedRuntime(result).combat.activeBuffStacks('friend-of-the-luxons', 16), 0);
 });

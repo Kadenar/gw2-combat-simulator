@@ -265,29 +265,29 @@
         "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-energy.json",
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-vindicator-greatsword-sword-sword",
-        "benchmarkDps": 37459,
+        "benchmarkDps": 43894,
         "upToDate": false,
         "benchmarkApm": 66.8,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 49199,
-            "phase": 49199
+            "cumulative": 58204,
+            "phase": 58204
           },
           "80-60": {
-            "cumulative": 38026,
-            "phase": 30914
+            "cumulative": 44897,
+            "phase": 36198
           },
           "60-40": {
-            "cumulative": 37190,
-            "phase": 35655
+            "cumulative": 43250,
+            "phase": 40290
           },
           "40-20": {
-            "cumulative": 37160,
-            "phase": 37067
+            "cumulative": 44043,
+            "phase": 46458
           },
           "20-0": {
-            "cumulative": 37459,
-            "phase": 37459
+            "cumulative": 43894,
+            "phase": 43261
           }
         }
       },
@@ -295,29 +295,29 @@
         "label": "Power (Greatsword - Sword/Sword - Hydro)",
         "build": "data/gw2/builds/revenant/b-power-vindicator-greatsword-hydro.json",
         "rotation": "data/gw2/rotations/revenant/r-power-vindicator-greatsword-hydro-bench.json",
-        "benchmarkDps": 36284,
+        "benchmarkDps": 42400,
         "upToDate": false,
         "benchmarkApm": 65.1,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 45318,
-            "phase": 45318
+            "cumulative": 56118,
+            "phase": 56118
           },
           "80-60": {
-            "cumulative": 36594,
-            "phase": 30657
+            "cumulative": 43722,
+            "phase": 36012
           },
           "60-40": {
-            "cumulative": 35502,
-            "phase": 33530
+            "cumulative": 41626,
+            "phase": 37753
           },
           "40-20": {
-            "cumulative": 35679,
-            "phase": 36235
+            "cumulative": 40520,
+            "phase": 37531
           },
           "20-0": {
-            "cumulative": 36284,
-            "phase": 36284
+            "cumulative": 42400,
+            "phase": 52102
           }
         }
       }
@@ -331,29 +331,29 @@
         "build": "data/gw2/builds/revenant/b-power-conduit.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
-        "benchmarkDps": 44625,
+        "benchmarkDps": 40560,
         "upToDate": false,
-        "benchmarkApm": 83.2,
+        "benchmarkApm": 78.1,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 50530,
-            "phase": 50530
+            "cumulative": 49342,
+            "phase": 49342
           },
           "80-60": {
-            "cumulative": 43979,
-            "phase": 38905
+            "cumulative": 40369,
+            "phase": 34034
           },
           "60-40": {
-            "cumulative": 44136,
-            "phase": 44451
+            "cumulative": 38482,
+            "phase": 35071
           },
           "40-20": {
-            "cumulative": 44354,
-            "phase": 45026
+            "cumulative": 40338,
+            "phase": 47123
           },
           "20-0": {
-            "cumulative": 44625,
-            "phase": 45744
+            "cumulative": 40560,
+            "phase": 40560
           }
         }
       },
@@ -362,29 +362,29 @@
         "build": "data/gw2/builds/revenant/b-power-conduit-greatsword-scepter-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-greatsword-scepter-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-scepter-sword",
-        "benchmarkDps": 44266,
+        "benchmarkDps": 38921,
         "upToDate": false,
-        "benchmarkApm": 93.2,
+        "benchmarkApm": 84.2,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 49178,
-            "phase": 49178
+            "cumulative": 43975,
+            "phase": 43975
           },
           "80-60": {
-            "cumulative": 43435,
-            "phase": 38523
+            "cumulative": 39222,
+            "phase": 35160
           },
           "60-40": {
-            "cumulative": 44013,
-            "phase": 45181
+            "cumulative": 38144,
+            "phase": 36138
           },
           "40-20": {
-            "cumulative": 44153,
-            "phase": 44608
+            "cumulative": 38350,
+            "phase": 38969
           },
           "20-0": {
-            "cumulative": 44266,
-            "phase": 44698
+            "cumulative": 38921,
+            "phase": 41437
           }
         }
       },
@@ -424,29 +424,29 @@
         "build": "data/gw2/builds/revenant/b-power-quick-conduit-staff-sword-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-quick-conduit-staff-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-quickness-conduit-staff-sword-sword",
-        "benchmarkDps": 37647,
+        "benchmarkDps": 36806,
         "upToDate": false,
-        "benchmarkApm": 58.5,
+        "benchmarkApm": 57.7,
         "benchmarkDpsByHealth": {
           "100-80": {
-            "cumulative": 44205,
-            "phase": 44205
+            "cumulative": 39197,
+            "phase": 39197
           },
           "80-60": {
-            "cumulative": 37538,
-            "phase": 32347
+            "cumulative": 35637,
+            "phase": 32765
           },
           "60-40": {
-            "cumulative": 36852,
-            "phase": 35519
+            "cumulative": 35598,
+            "phase": 35514
           },
           "40-20": {
-            "cumulative": 37337,
-            "phase": 38879
+            "cumulative": 36499,
+            "phase": 39464
           },
           "20-0": {
-            "cumulative": 37647,
-            "phase": 38905
+            "cumulative": 36806,
+            "phase": 38098
           }
         }
       },

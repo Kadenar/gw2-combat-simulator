@@ -3,6 +3,8 @@
 
 export const REVENANT_SKILL_IDS = Object.freeze({
   SWAP_LEGENDS: -4,
+  // Local identity until a combat log supplies the new F4 skill's official ID.
+  ARCHEMORUS_STRIKE: 'revenant.vindicator.archemorus-strike',
   PAIN_ABSORPTION_ID_78505: 78505, // Pain Absorption
   BANISH_ENCHANTMENT_ID_78587: 78587, // Banish Enchantment
   EMPOWERING_MISERY_ID_78681: 78681, // Empowering Misery

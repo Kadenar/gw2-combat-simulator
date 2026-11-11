@@ -14,31 +14,31 @@ export const REVENANT_WEAPONS_AXE_SKILL_MECHANICS: Readonly<Record<number, Skill
     slot: 'Weapon_4',
     cooldown: 10,
     energyCost: 10,
-    // Keep the axe hit when only the opening phase completes; the follow-up needs the remaining cast.
-    castTimeMs: 1000,
-    interruptMode: 'per-packet',
-    // Share timing defaults while preserving each packet, effect order, and local schedule.
-    effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
+    shadowstepSkill: true,
+    // The November 10 log shows one impact after teleporting, with both conditions applied together.
+    castTimeMs: 440,
+    interruptCommitMs: 400,
+    effects: impactEffects({ atMs: 400, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
         type: 'strike',
-        ticks: [{ atMs: 680, coefficient: 0.15 }],
-        name: 'Pass-Through Damage',
-        actorType: ACTOR.PLAYER
-      },
-      {
-        type: 'strike',
-        ticks: [{ atMs: 1000, coefficient: 1.5 }],
-        name: 'Final Damage',
+        // Retain the previous final-strike coefficient until the new coefficient is confirmed.
+        coefficient: 1.5,
+        hits: 1,
+        name: 'Frigid Blitz',
         actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 680, condition: CONDITION.CHILLED, stacks: 1, duration: 2 }],
+        condition: CONDITION.CHILLED,
+        stacks: 1,
+        duration: 2,
         actorType: ACTOR.PLAYER
       },
       {
         type: 'condition',
-        ticks: [{ atMs: 1000, condition: CONDITION.TORMENT, stacks: 3, duration: 6 }],
+        condition: CONDITION.TORMENT,
+        stacks: 3,
+        duration: 6,
         actorType: ACTOR.PLAYER
       }
     ])

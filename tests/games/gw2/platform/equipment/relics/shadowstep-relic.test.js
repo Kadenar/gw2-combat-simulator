@@ -60,6 +60,7 @@ const groups = [
     cases: [
       [R.UNRELENTING_ASSAULT],
       [R.DEATHSTRIKE],
+      [R.FRIGID_BLITZ, { secondaryWeapon: 'Axe' }],
       [R.PHASE_SMASH, { primaryWeapon: 'Hammer', secondaryWeapon: '' }],
       [R.BEGUILING_HAZE]
     ]
@@ -78,6 +79,10 @@ const groups = [
       [T.THIEVES_GUILD],
       [T.DEATHS_RETREAT, { specialization: 'Deadeye', primaryWeapon: 'Rifle', secondaryWeapon: '' }],
       [T.MEASURED_SHOT, { specialization: 'Specter', primaryWeapon: 'Scepter', secondaryWeapon: 'Pistol' }],
+      // All Specter wells shadowstep, including healing, control, and elite skills.
+      [T.WELL_OF_SILENCE, { specialization: 'Specter' }],
+      [T.SHADOWFALL, { specialization: 'Specter' }],
+      [T.WELL_OF_GLOOM, { specialization: 'Specter' }],
       [T.WELL_OF_SORROW, { specialization: 'Specter' }],
       [T.WELL_OF_TEARS, { specialization: 'Specter' }],
       [T.WELL_OF_BOUNTY, { specialization: 'Specter' }],

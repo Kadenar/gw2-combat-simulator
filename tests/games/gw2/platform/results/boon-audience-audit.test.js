@@ -358,7 +358,7 @@ test('Pain Absorption shares resistance while resolution remains personal', () =
   }
 });
 
-test('Gladiator boons share only with Dwarf resonance', () => {
+test('Gladiator no longer grants Resolution or Resistance with either resonance', () => {
   for (const legend of [L.DWARF, L.ASSASSIN]) {
     const result = run('revenant', ["Gladiator's Defense"], {
       specialization: 'Conduit',
@@ -368,8 +368,7 @@ test('Gladiator boons share only with Dwarf resonance', () => {
     assert.deepEqual(result.warnings, []);
     for (const kind of ['resolution', 'resistance']) {
       const events = grants(result, "Gladiator's Defense", kind);
-      assert.ok(events.length);
-      assert.ok(events.every((event) => event.resolvedAudience.alliedPlayerCount === (legend === L.DWARF ? 4 : 0)));
+      assert.deepEqual(events, []);
     }
   }
 });

@@ -41,7 +41,7 @@ const hexEaterVortexTooltip: DescribeSimulationTooltip = (balanceContext, entity
 });
 
 const gladiatorsDefenseTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Pending rework values: block, then retaliate; blocking an attack strengthens the retaliation and adds Weakness. Equipping Dwarf grants Aegis afterward. The simulator retains the previous strike and boons until block duration and retaliation values are confirmed.'
+  'Block while channeling, then strike. Interrupting before the block ends prevents the strike. Timing follows the November 10 combat log; the strike coefficient and Dwarf Aegis duration remain unconfirmed. Incoming attacks and successful-block bonuses are outside simulation scope.'
 );
 
 const twinMoonSweepTooltip: DescribeSimulationTooltip = (balanceContext, entity) => ({

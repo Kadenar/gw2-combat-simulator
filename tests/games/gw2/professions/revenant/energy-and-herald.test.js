@@ -208,6 +208,7 @@ test('profession palette deduplicates actions and shows only active Conduit rele
     revenantProfession.ui
       .paletteGroups({
         specialization,
+        catalog: revenantCatalog,
         build: {
           ...baseConfig,
           selectedLegends,

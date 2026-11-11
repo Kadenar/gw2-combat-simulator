@@ -414,7 +414,7 @@ test('Revenant trait tooltips show bonuses, resource icons, and excluded traits'
     [traits.REINFORCED_POTENCY, 'Concentration', '+240'],
     [traits.REINFORCED_POTENCY, 'Strike damage per unique boon', '+2%'],
     [traits.CORE_VALUE, 'Additional boon extension', '1s'],
-    [traits.RISE_TO_THE_OCCASION, 'Strike damage below full endurance, pending', '0%'],
+    [traits.RISE_TO_THE_OCCASION, 'Strike damage below full endurance', '+10%'],
     [traits.FORCEFUL_PERSISTENCE, 'Strike damage per active facet', '+10%'],
     [traits.FORCEFUL_PERSISTENCE, 'Strike damage per other active upkeep skill', '+25%']
   ]) {

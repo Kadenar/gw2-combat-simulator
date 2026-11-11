@@ -1,6 +1,7 @@
 import { hasTrait } from '#gw2/platform/builds/selected-traits.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { strikeEffectCoefficient } from '#gw2/platform/effects/authoring.js';
+import { CAST_READY, denySkillCast } from '#gw2/platform/execution/availability.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { balanceNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
@@ -97,6 +98,11 @@ function energyMeld(runtime: RevenantRuntime): void {
 /** Vindicator owns its dodge landings, Energy Meld, and Alliance invocation on the shared live state. */
 export const vindicatorHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   buffPolicies: vindicatorBuffPolicies,
+  // The F4 attack needs its grandmaster, but never requires Alliance to be equipped or active.
+  availability: (runtime, skill) =>
+    skill.id === ID.ARCHEMORUS_STRIKE && !hasTrait(runtime, TRAIT.FRIEND_OF_THE_LUXONS)
+      ? denySkillCast(skill, 'revenant.friend-of-the-luxons-required', 'select Friend of the Luxons.')
+      : CAST_READY,
   // Saved Jump commands keep their identity while display and execution use the shared endurance-paying input.
   modifySkillId: (_context, skillId) => (skillId === VINDICATOR_DODGE_INPUT.id ? SHARED_SKILL_IDS.DODGE : skillId),
   // Resolve before admission so the shared input occupies the full jump's non-instant execution lane.

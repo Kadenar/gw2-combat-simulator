@@ -9,7 +9,7 @@ import type {
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
 import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
-import { REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
+import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
   VINDICATOR_AIRBORNE_MS,
   VINDICATOR_DODGE_MS,
@@ -17,6 +17,7 @@ import {
 } from '#gw2/professions/revenant/data/vindicator-dodge.js';
 import type { RevenantUiContext, RevenantUiSlice } from '#gw2/professions/revenant/types.js';
 import { createPreviewControls } from '#gw2/professions/shared/attribute-preview.js';
+import { selectedTraits } from '#gw2/professions/shared/trait-data.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 // Sentinel string used as a skill ID/name for the synthetic palette entry; never maps to a real skill.
@@ -129,12 +130,19 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
   },
 
   rotationStateSnapshot: vindicatorStateSnapshot,
-  // Alliance has one supported skill bar; the specialization group only adds Energy Meld.
-  paletteGroups: () => [
+  // The selected Luxon grandmaster adds its F4 skill even when neither legend is Alliance.
+  paletteGroups: (context) => [
     {
       id: 'revenant-profession-specialization',
       label: 'F',
-      skillIds: [SKILL.ENERGY_MELD],
+      skillIds: [
+        SKILL.ENERGY_MELD,
+        ...(selectedTraits(context.catalog, context.build?.specializations).some(
+          (trait) => trait.id === TRAIT.FRIEND_OF_THE_LUXONS
+        )
+          ? [SKILL.ARCHEMORUS_STRIKE]
+          : [])
+      ],
       color: '#a84f54',
       resourceAnchor: true
     }
