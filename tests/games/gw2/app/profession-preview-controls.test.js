@@ -723,11 +723,11 @@ test('Hidden Killer exposes Stealth without an ineffective Revealed control', ()
   }
 });
 
-// Damage previews use full health, so Aegis cannot add a second Unscathed Contender bonus.
-test('Unscathed Contender damage previews stay at full health and do not stack Aegis', () => {
+// Full-health previews retain the multiplier and add the separate Aegis bonus without changing the saved build.
+test('Unscathed Contender damage previews add the Aegis bonus at full health', () => {
   const app = previewApp('guardian', ['Unscathed Contender']);
   const saved = structuredClone(app.build);
   assert.ok(!skillDamageControls(app).some(({ key }) => key === 'playerHealth'));
-  close(stats(app, { aegis: 1 })['Strike Multiplier'].final, stats(app)['Strike Multiplier'].final);
+  close(stats(app, { aegis: 1 })['Strike Multiplier'].final - stats(app)['Strike Multiplier'].final, 0.05 * 1.12);
   assert.deepEqual(app.build, saved);
 });
