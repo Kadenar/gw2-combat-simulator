@@ -74,7 +74,10 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
     cooldown: 5,
     resource: {
       mode: 'add',
-      count: 1
+      count: 1,
+      // Grant the clone with the outgoing daggers so mid-cast shatters can consume it.
+      timingAnchor: 'castStart',
+      atMs: 200
     },
     castTimeMs: 440,
     // Launched daggers survive cancellation while the committed cast keeps its recovery lockout.

@@ -6,16 +6,16 @@
         "label": "Power (Greatsword-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-bench.json",
-        "benchmarkDps": 43125,
+        "benchmarkDps": 43273,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-greatsword-dagger-sword",
         "upToDate": true,
         "benchmarkApm": 98.9,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 51184, "phase": 51184 },
-          "80-60": { "cumulative": 44461, "phase": 39222 },
-          "60-40": { "cumulative": 41936, "phase": 37648 },
-          "40-20": { "cumulative": 41671, "phase": 40894 },
-          "20-0": { "cumulative": 43125, "phase": 43125 }
+          "80-60": { "cumulative": 44777, "phase": 39713 },
+          "60-40": { "cumulative": 41942, "phase": 37228 },
+          "40-20": { "cumulative": 41747, "phase": 41171 },
+          "20-0": { "cumulative": 43273, "phase": 43273 }
         }
       },
       {
@@ -28,9 +28,9 @@
         "benchmarkApm": 97.6,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 48917, "phase": 48917 },
-          "80-60": { "cumulative": 41910, "phase": 36635 },
-          "60-40": { "cumulative": 41197, "phase": 39852 },
-          "40-20": { "cumulative": 42557, "phase": 47276 },
+          "80-60": { "cumulative": 41906, "phase": 36628 },
+          "60-40": { "cumulative": 41192, "phase": 39846 },
+          "40-20": { "cumulative": 42578, "phase": 47387 },
           "20-0": { "cumulative": 42606, "phase": 42606 }
         }
       },
@@ -75,13 +75,13 @@
         "build": "data/gw2/builds/mesmer/b-power-mirage-spear-dagger-sword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-dagger-sword-bench.json",
         "upToDate": true,
-        "benchmarkDps": 42796,
+        "benchmarkDps": 42791,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42069, "phase": 42069 },
-          "80-60": { "cumulative": 41899, "phase": 41730 },
-          "60-40": { "cumulative": 41702, "phase": 41321 },
-          "40-20": { "cumulative": 41269, "phase": 39980 },
-          "20-0": { "cumulative": 42796, "phase": 50130 }
+          "100-80": { "cumulative": 42070, "phase": 42070 },
+          "80-60": { "cumulative": 41900, "phase": 41732 },
+          "60-40": { "cumulative": 41702, "phase": 41319 },
+          "40-20": { "cumulative": 41262, "phase": 39953 },
+          "20-0": { "cumulative": 42791, "phase": 50131 }
         },
         "benchmarkApm": 110.1
       },
