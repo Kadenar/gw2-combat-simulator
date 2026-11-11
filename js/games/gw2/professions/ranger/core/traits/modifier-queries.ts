@@ -62,6 +62,6 @@ export function activePetFamily(context: RangerModifierContext): string {
 }
 
 /** Defiant targets qualify for flanking/behind bonuses because simulated golems never rotate. */
-export function qualifiesForFlankingBonuses(context: Gw2ModifierContext): boolean {
+export function qualifiesForFlankingBonuses(context: Pick<Gw2ModifierContext, 'config'>): boolean {
   return Boolean(context.config?.target?.defiant);
 }

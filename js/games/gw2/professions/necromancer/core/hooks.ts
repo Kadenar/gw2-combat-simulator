@@ -54,6 +54,7 @@ import {
   necromancerStrikePreparing
 } from '#gw2/professions/necromancer/core/mechanics/trigger-points.js';
 import { emitVampirismPassive } from '#gw2/professions/necromancer/core/skills/slot-skills.js';
+import { focusLifecycle } from '#gw2/professions/necromancer/core/skills/weapons/focus.js';
 import { torchLifecycle } from '#gw2/professions/necromancer/core/skills/weapons/torch.js';
 import { necromancerLifeForceCapacity } from '#gw2/professions/necromancer/core/state.js';
 import { NECROMANCER_SKILL_IDS as DAMAGE_SKILL } from '#gw2/professions/necromancer/data/ids.js';
@@ -295,6 +296,7 @@ const coreLifecycle: RuntimeHooks<NecromancerRuntimeState, NecromancerSkill> = {
 export const necromancerCoreHooks = composeRuntimeHooks<NecromancerRuntimeState, NecromancerSkill>([
   coreLifecycle,
   torchLifecycle,
+  focusLifecycle,
   necromancerSwordLifecycle,
   soulShardLifecycle,
   necromancerConditionLifecycle,

@@ -184,7 +184,7 @@ export const firebrandTooltips = {
       'Protection has increased effectiveness on you. Incoming damage is outside simulation scope.'
     ),
     [TRAIT.FERVID_CONVICTION]: traitTooltip(
-      'Swift Scholar page refunds grant Ashes to you and nearby allies. The supplied two-self, one-per-ally split awaits independent tooltip confirmation.',
+      'Swift Scholar page refunds grant two Ashes charges to you and one to each nearby ally.',
       [
         ['allyStacks', 'Ashes charges per ally'],
         ['maximumTargets', 'Maximum recipients'],

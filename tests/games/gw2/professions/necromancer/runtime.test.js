@@ -223,10 +223,7 @@ test('repeated Summon Madness casts retain distinct creature owners', () => {
 });
 
 test('condition-only hands grant spendable life force at their accepted target application', () => {
-  for (const [skillId, percent] of [
-    [ID.SPECTRAL_GRASP, 15],
-    [ID.SOUL_GRASP, 11]
-  ]) {
+  for (const [skillId, percent] of [[ID.SPECTRAL_GRASP, 15]]) {
     const native = necromancerProfession.runtimeFor(base);
     const skill = native.catalog.skillsById.get(skillId);
     const landed = simulate([cast(skillId)]);
@@ -256,6 +253,73 @@ test('condition-only hands grant spendable life force at their accepted target a
       0
     );
     assert.deepEqual(simulate([cast(skillId), cast(ID.REAPERS_SHROUD)]).warnings, []);
+  }
+});
+
+// Return travel defers resource availability; only a landed strike can start that return.
+test('Soul Grasp makes life force spendable after its accepted hit returns', () => {
+  const native = necromancerProfession.runtimeFor(base);
+  const beforeReturn = [];
+  const action = 'necromancer.soul-grasp-return';
+  const profession = {
+    ...native,
+    sideEffectHandlers: {
+      ...native.sideEffectHandlers,
+      [action](runtime, context, declaration) {
+        native.sideEffectHandlers[action](runtime, context, declaration);
+        beforeReturn.push(lifeForcePercent(runtime.profession.core.lifeForce));
+        runtime.schedule('test.before-return', runtime.time + 0.05);
+      }
+    },
+    tasks: {
+      ...native.tasks,
+      'test.before-return'(runtime) {
+        beforeReturn.push(lifeForcePercent(runtime.profession.core.lifeForce));
+      }
+    }
+  };
+  const result = simulate([cast(ID.SOUL_GRASP), wait(1000)], base, { profession });
+  assert.deepEqual(beforeReturn, [0, 0]);
+  assert.equal(lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]), 8);
+  assert.deepEqual(result.warnings, []);
+
+  const missed = simulate([cast(ID.SOUL_GRASP, { offTarget: true }), wait(1000)]);
+  assert.equal(lifeForcePercent(missed.planningState.profession[STATE.LIFE_FORCE]), 0);
+  const withoutStrike = {
+    ...native,
+    catalog: applySkillPatch(native.catalog, {
+      skills: { [ID.SOUL_GRASP]: { removeEffects: [{ type: 'strike', effectIndex: 0 }] } }
+    })
+  };
+  const removed = simulate([cast(ID.SOUL_GRASP), wait(1000)], base, { profession: withoutStrike });
+  assert.equal(lifeForcePercent(removed.planningState.profession[STATE.LIFE_FORCE]), 0);
+
+  const entry = simulate([cast(ID.SOUL_GRASP), wait(200), cast(ID.REAPERS_SHROUD)], {
+    ...base,
+    initialResource: 2
+  });
+  assert.equal(entry.planningState.profession[STATE.ACTIVE_SHROUD], 'reaper');
+  assert.deepEqual(entry.warnings, []);
+});
+
+// Return rewards retain selected tuning, trait scaling, and the pool's live capacity cap.
+test('Soul Grasp return uses patched life force and applies Gluttony once', () => {
+  for (const initialResource of [0, 99]) {
+    const config = { ...base, initialResource, selectedTraitIds: [TRAIT.GLUTTONY] };
+    const native = necromancerProfession.runtimeFor(config);
+    const profession = {
+      ...native,
+      catalog: applySkillPatch(native.catalog, { skills: { [ID.SOUL_GRASP]: { fields: { lifeForceGain: 4 } } } })
+    };
+    const result = simulate([cast(ID.SOUL_GRASP), wait(1000)], config, { profession });
+    const multiplier = native.catalog.balanceProfilesById.get(TRAIT.GLUTTONY).lifeForceGainMultiplier;
+    assert.ok(
+      Math.abs(
+        lifeForcePercent(result.planningState.profession[STATE.LIFE_FORCE]) -
+          Math.min(100, initialResource + 4 * multiplier)
+      ) < 1e-8
+    );
+    assert.deepEqual(result.warnings, []);
   }
 });
 

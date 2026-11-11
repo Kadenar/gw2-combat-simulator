@@ -193,6 +193,8 @@ const EXPECTED = {
       // Active spirits scale Essence Blast independently of additive outgoing damage bonuses.
       'necromancer.essence-blast-active-spirits': { strike: 'multiplier' },
       'necromancer.ghastly-claws-vulnerability': { strike: 'multiplier' },
+      // The execution bonus multiplies Ghastly Claws' separate Vulnerability bonus.
+      'necromancer.ghastly-claws-target-health': { strike: 'multiplier' },
       'necromancer.life-siphon-bleeding-target': { strike: 'multiplier' },
       'necromancer.you-are-all-weaklings-melee': { strike: 'multiplier' },
       'necromancer.nothing-can-save-you-melee': { strike: 'multiplier' },
@@ -238,6 +240,8 @@ const EXPECTED = {
       'ranger.pounce-defiant': { strike: 'multiplier' },
       'ranger.sic-em-pet': { strike: 'multiplier' },
       'ranger.sic-em-player': { strike: 'multiplier' },
+      'ranger.strength-of-the-pack-pet': { strike: 'multiplier' },
+      'ranger.strength-of-the-pack-merged': { strike: 'multiplier' },
       'ranger.stalkers-strike-movement-impaired': { strike: 'multiplier' }
     }
   },

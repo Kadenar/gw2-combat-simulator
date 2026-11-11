@@ -33,8 +33,7 @@ import {
 /** Grenadier owns its heal trigger and explosion modifier; the barrage owns its skill balance. */
 export const grenadier = defineTrait({
   id: TRAIT.GRENADIER,
-  // The final explosion-damage percentage is unpublished, so the modifier remains neutral.
-  balance: { damageIncrease: 0 },
+  balance: { damageIncrease: 5 },
   modifierRules: [
     {
       id: 'engineer.grenadier-explosion-damage',

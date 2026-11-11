@@ -240,7 +240,7 @@ test('Soulbeast condition modifiers and duration bonuses use their actual target
   };
 
   assert.equal(bleeding(huntersTactics), bleeding(baseline));
-  assert.ok(splitbladeStrike(huntersTactics) > splitbladeStrike(baseline));
+  assert.equal(splitbladeStrike(huntersTactics), splitbladeStrike(baseline));
   assert.ok(Math.abs(splitbladeBleedDuration(apex) - 6) < 1e-9);
   assert.ok(Math.abs(splitbladeBleedDuration(apexWithExpertise) - 6.6) < 1e-9);
 });

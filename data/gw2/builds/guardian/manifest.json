@@ -108,7 +108,7 @@
         "rotation": "data/gw2/rotations/guardian/r-condi-firebrand-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-firebrand-axe-torch-pistol-pistol",
         "benchmarkDps": 45713,
-        "upToDate": false,
+        "upToDate": true,
         "benchmarkApm": 107.4,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 40954, "phase": 40954 },

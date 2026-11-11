@@ -256,7 +256,7 @@ export const rangerCoreTooltips = {
       "Copy your pet's current boons to yourself and your boons to the pet, using this skill's copy durations. While merged, copy your own boons to yourself. Healing is outside combat simulation scope."
     ),
     [ID.STRENGTH_OF_THE_PACK]: skillTooltip(
-      'Your qualifying strikes grant Might to you and your active pet while the buff lasts. The new pet damage bonus is pending confirmed tuning, including its Beastmode behavior.',
+      'Your qualifying strikes grant Might to you and your active pet while the buff lasts. The active pet gains 25% strike damage. Casting while merged instead grants you 10% strike damage.',
       (balanceContext) =>
         simulationEffectFacts(
           requireSkillAction(requireSkill(balanceContext.catalog, ID.STRENGTH_OF_THE_PACK), 'triggered-might').effects,

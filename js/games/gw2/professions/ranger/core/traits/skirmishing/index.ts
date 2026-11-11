@@ -2,7 +2,7 @@
 
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
-import { boonActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
+import { boonActive, buffActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
 import { activeChargeCount, consumeCharge, grantCharges } from '#gw2/platform/combat/resources/charges.js';
 import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import { ACTOR, BOON, CONDITION, WEAPON, type BoonId } from '#gw2/platform/constants.js';
@@ -25,10 +25,15 @@ import {
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
-import { isPetStrike, petDerivedConditionMetadata } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
+import {
+  isPetStrike,
+  isPlayerStrike,
+  petDerivedConditionMetadata
+} from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import {
   criticalResolved,
   packStrikeApplied,
+  strike,
   weaponSwapped
 } from '#gw2/professions/ranger/core/mechanics/trigger-points.js';
 import { qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits/modifier-queries.js';
@@ -235,12 +240,14 @@ export const viciousQuarry = defineTrait({
   ]
 });
 
-/** Owns Hunter's Tactics's live tuning and trait behavior. */
+/** Qualifying player hits refresh the bonus window after their own damage resolves. */
 export const huntersTactics = defineTrait({
   id: TRAIT.HUNTERS_TACTICS,
   balance: {
-    damageMultiplier: 1.1,
-    criticalChance: 0.1
+    // Supplied November 10 reports show no strike bonus while the live trait is bugged.
+    damageMultiplier: 1,
+    criticalChance: 0.1,
+    effects: [{ name: 'hunters-tactics', type: 'buff', kind: 'hunters-tactics', duration: 8, stacks: 1 }]
   },
   modifierRules: [
     {
@@ -249,7 +256,7 @@ export const huntersTactics = defineTrait({
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'multiply',
       factor: (context) => balanceNumber(context.catalog, TRAIT.HUNTERS_TACTICS, 'damageMultiplier'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && qualifiesForFlankingBonuses(context)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'hunters-tactics')
     },
     {
       order: 2,
@@ -257,8 +264,21 @@ export const huntersTactics = defineTrait({
       target: MODIFIER_TARGET.CRITICAL_CHANCE,
       operation: 'add',
       amount: (context) => balanceNumber(context.catalog, TRAIT.HUNTERS_TACTICS, 'criticalChance'),
-      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && qualifiesForFlankingBonuses(context)
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'hunters-tactics')
     }
+  ],
+  triggers: [
+    onTriggerPoint(strike, {
+      run(runtime, { event }: TriggerPointInput<typeof strike>) {
+        if (!isPlayerStrike(event) || !qualifiesForFlankingBonuses({ config: runtime.config })) return;
+
+        emitTraitProfile(runtime, TRAIT.HUNTERS_TACTICS, TRAIT.HUNTERS_TACTICS, undefined, {
+          at: event.at,
+          skillId: TRAIT.HUNTERS_TACTICS,
+          skillName: "Hunter's Tactics"
+        });
+      }
+    })
   ]
 });
 

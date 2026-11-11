@@ -32,6 +32,7 @@ export const strike = defineTriggerPoint<{ readonly event: Gw2ResolverEvent }>('
   TRAIT.OPENING_STRIKE,
   TRAIT.GO_FOR_THE_THROAT,
   TRAIT.HUNTERS_GAZE,
+  TRAIT.HUNTERS_TACTICS,
   TRAIT.POISON_MASTER
 ]);
 

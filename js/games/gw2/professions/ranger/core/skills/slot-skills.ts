@@ -1,6 +1,7 @@
 // Verified skill icons use ArenaNet render URLs directly so they share the simulator's CDN fallback handling.
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { appendChargeGrant, consumeChargeBatch, grantCharges } from '#gw2/platform/combat/resources/charges.js';
+import { isGw2PlayerModifierOwnedEvent } from '#gw2/platform/combat/state/event-ownership.js';
 import type { BoonId } from '#gw2/platform/constants.js';
 import { ACTOR, BOON, COMBO_FIELD, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
@@ -387,6 +388,26 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
       }
     ],
     duration: 10,
+    // Paired November 10 logs isolate a 25% pet bonus and a 10% merged-player bonus at 25 Might.
+    modifiers: [
+      {
+        id: 'ranger.strength-of-the-pack-pet',
+        scope: 'profession',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.25,
+        when: (context) => rangerPetEvent(context) && activeBuff(context, 'strength-of-the-pack-pet')
+      },
+      {
+        id: 'ranger.strength-of-the-pack-merged',
+        scope: 'profession',
+        target: MODIFIER_TARGET.STRIKE_DAMAGE,
+        operation: 'multiply',
+        factor: 1.1,
+        when: (context) =>
+          isGw2PlayerModifierOwnedEvent(context.event) && activeBuff(context, 'strength-of-the-pack-merged')
+      }
+    ],
     effects: [
       {
         type: 'boon',

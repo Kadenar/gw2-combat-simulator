@@ -1,4 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+
+import { test } from '#tests/helpers/browser-benchmarks.js';
 
 // Metric, phase, and build-scope controls keep the plot, point inspection, and sortable values table in sync.
 test('health chart switches metric, phase, and scope with point inspection and sortable values', async ({ page }) => {

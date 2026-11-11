@@ -1,4 +1,21 @@
-import { expect } from '@playwright/test';
+import { test as base, expect } from '@playwright/test';
+
+// Interaction tests use every saved benchmark regardless of live freshness flags.
+// Tests of freshness filtering supply their own manifest rows; Node tests cover the filter rules.
+export const test = base.extend({
+  page: async ({ page }, use) => {
+    await page.route(/\/data\/gw2\/builds\/[^/]+\/manifest\.json(?:\?.*)?$/, async (route) => {
+      const response = await route.fetch();
+      const sections = await response.json();
+      for (const section of sections) {
+        for (const preset of section.presets) preset.upToDate = true;
+      }
+
+      await route.fulfill({ response, json: sections });
+    });
+    await use(page);
+  }
+});
 
 export async function openDashboard(page, path = '/mesmer.html#benchmarks') {
   await page.goto(path);

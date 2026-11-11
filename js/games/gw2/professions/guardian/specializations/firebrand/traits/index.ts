@@ -141,7 +141,7 @@ const fervidConviction = defineTrait({
   balance: {
     internalCooldown: 0,
     maximumTargets: 5,
-    // Supplied tooltip values; the self/ally split still awaits independent confirmation.
+    // Allies receive one charge while the self grant receives two.
     allyStacks: 1,
     effects: [{ type: 'buff', name: 'ashes-of-the-just', kind: 'ashes-of-the-just', stacks: 2, duration: 10 }]
   },

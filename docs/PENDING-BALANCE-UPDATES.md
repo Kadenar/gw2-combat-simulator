@@ -25,36 +25,16 @@ Owner: [staff skills](../js/games/gw2/professions/elementalist/core/skills/weapo
       The [Arcane trait implementation](../js/games/gw2/professions/elementalist/core/traits/arcane/index.ts) still owns
       the previous trait-only grants.
 
-## Guardian
-
-- [ ] **Fervid Conviction confirmation.** The supplied two Ashes charges for self, one per ally, and 10-second lifetime
-      are implemented. The self/ally split still needs independent confirmation. See
-      [Firebrand traits](../js/games/gw2/professions/guardian/specializations/firebrand/traits/index.ts).
-- [ ] **Condition Firebrand preset.** Its [manifest entry](../data/gw2/builds/guardian/manifest.json) remains marked not
-      up to date while the Fervid split is provisional. Reassess that flag and its generated results after confirmation
-      or correction.
-- [ ] **Smite Condition.** The skill is absent from the
-      [Core slot-skill catalog](../js/games/gw2/professions/guardian/core/skills/slot-skills.ts). Its new cast time is
-      unspecified. The supplied conditional damage coefficient is known, but the skill and its condition-removal trigger
-      still need implementation if supported.
-
-The six supplied Firebrand follow-up values are implemented. Their numerical implementation is no longer pending;
-Fervid's confirmation remains open.
-
 ## Necromancer
 
 Current limitations are recorded in the [Core tooltips](../js/games/gw2/professions/necromancer/app/tooltips/core.ts).
 
-- [ ] **Soul Grasp.** Implement the bouncing projectile and life force on return using the
-      [live API](https://api.guildwars2.com/v2/skills/55050). `20261110-160106.zevtc` records one strike per cast
-      against the lone golem. `20261110-160650.zevtc` records one cast striking both bosses, with no return hit on the
-      first. Return timing and the maximum bounce behavior remain unverified. The simulator still uses its earlier
-      model.
 - [ ] **Signet of Vampirism.** Replace the old active siphon model with consumable self charges. The
       [live API](https://api.guildwars2.com/v2/skills/21762) and `20261110-160650.zevtc` establish the self-charge
       grant, lifetime, and consumption interval. Siphon Power scaling remains unverified; these logs contain no
-      separately identified Signet damage. The three supplied weapon golem logs record the passive, without activating
-      the signet. Healing remains outside combat simulation scope.
+      separately identified Signet damage. `20261110-165650.zevtc` adds three active golem casts with all charges
+      consumed; target-health loss supports siphon damage despite the missing damage events. The earlier three weapon
+      golem logs record only the passive. Healing remains outside combat simulation scope.
 - [ ] **Anguish against disabled, non-defiant targets.** The capped bonus and defiant-target maximum are implemented for
       Anguish and its Summon Spirits attacks. Temporary target disability is not tracked by this implementation, so the
       separate disabled-target route to the maximum remains unsupported. See
@@ -71,14 +51,9 @@ Current limitations are recorded in the [Core tooltips](../js/games/gw2/professi
       coefficients, hit count/timing, the stronger Beast-skill variant, and trigger limits before implementing its
       attacks. Soulbeast presets remain marked not up to date. See
       [Soulbeast traits](../js/games/gw2/professions/ranger/specializations/soulbeast/traits/index.ts).
-- [ ] **Hunter's Tactics.** Need the duration and refresh rules for the new bonus after a flanking hit. The simulator
-      retains the previous continuous flanking check, using defiance as its proxy. See
+- [ ] **Hunter's Tactics damage bug.** The refreshing 8-second critical-chance window is implemented. The damage
+      multiplier remains neutral to match the supplied November 10 reports. Recheck after a game fix. See
       [Skirmishing traits](../js/games/gw2/professions/ranger/core/traits/skirmishing/index.ts).
-- [ ] **Strength of the Pack.** Player strikes now grant Might to both player and active pet. Need the pet damage bonus
-      and confirmation of how it transfers in Beastmode. The damage bonus is not yet applied. See
-      [Core slot skills](../js/games/gw2/professions/ranger/core/skills/slot-skills.ts).
-- [ ] **Disabled targets.** Poison Volley's impairment/defiance extension and Unleashed Savage Shock Wave's capped
-      defiance bonus are implemented. Temporary generic disabled-target windows remain unsupported.
 
 - [ ] **Untamed benchmark rotations.** Original recorded rotations are preserved. The new pet cooldowns cause four
       unavailable-ambush warnings in power Hawk/Beastmastery Hammer-Sword/Axe and one in condition Quickness
@@ -159,14 +134,6 @@ old preview assumptions. See [Acrobatics traits](../js/games/gw2/professions/thi
 - [ ] **Deadeye coverage.** Melee Mark pathing and simultaneous secondary targets are outside the positional and
       single-target model. Malicious Death's Judgment uses full captured-malice damage regardless of mark eligibility;
       the resource-spend path still requires a hit on the marked target.
-- [ ] **Thief presets.** Builds using Twin Fangs or other unresolved new traits cannot be treated as validated final
-      benchmarks. Antiquary's existing artifact/rotation review remains open. Recorded rotations are preserved. See
-      [Thief manifest](../data/gw2/builds/thief/manifest.json).
-- [ ] **Antiquary rotation warnings.** Four preserved presets emit 12 warnings after the update. Power Sword/Pistol
-      attempts three Tactical Strikes without stealth; Condition Dagger/Dagger attempts one Backstab without stealth.
-      Condition Scepter/Dagger has one unavailable artifact and three broken-chain actions. Condition Alacrity
-      Scepter/Dagger has three unavailable artifacts and one broken-chain action. These presets remain not up to date;
-      their warnings are not suppressed.
 
 ## Warrior
 
@@ -174,38 +141,10 @@ old preview assumptions. See [Acrobatics traits](../js/games/gw2/professions/thi
       remains until exact values are supplied. See
       [longbow skills](../js/games/gw2/professions/warrior/core/skills/weapons/longbow.ts).
 - [ ] **Smoldering Arrow.** Need new Burning stacks and duration. Burning is not yet added.
-- [ ] **Imminent Threat.** The skill is absent. Need adrenaline and barrier for the first and subsequent foes, plus
-      offensive-boon removal count and selection rules. Barrier and multi-enemy scaling are outside current combat
-      scope; the single-target adrenaline grant still needs implementation.
-- [ ] **Featherfoot Grace.** The skill is absent. Need added Resolution duration before supporting its boon grant.
-- [ ] **Sight Beyond Sight.** The skill is absent. Defensive-boon removal and player cleansing are outside current
-      scope. No old guaranteed-critical-hit bonus is implemented to remove.
 - [ ] **Enemy boons.** Destruction of the Empowered's published scaling and cap are recorded. Break Enchantments uses
       its updated base strike and charges. Their enemy-boon branches remain inactive because targets have no simulated
       boons. See [Discipline traits](../js/games/gw2/professions/warrior/core/traits/discipline/index.ts) and
       [Spellbreaker skills](../js/games/gw2/professions/warrior/specializations/spellbreaker/skills/index.ts).
-- [ ] **Call of Valor.** Party/squad prioritization is not distinguished by the current allied-recipient model.
-- [ ] **Longbow Berserker and Paragon presets.** Remain not up to date until Fan of Fire and Smoldering Arrow are
-      complete. Recorded rotations are unchanged. See [Warrior manifest](../data/gw2/builds/warrior/manifest.json).
-
-## Engineer
-
-- [ ] **Rocket Burst.** Need its official skill ID, coefficient, rocket count, cast time, and the duration and
-      consumption rules for the Rifle Burst flip granted by Net Shot and Overcharged Shot. The rifle still uses its
-      previous attacks; the new flip and volley are not implemented. See
-      [rifle skills](../js/games/gw2/professions/engineer/core/skills/weapons/rifle.ts).
-- [ ] **Grenadier.** Need the explosion-damage percentage and confirmation of damage-type coverage. The existing
-      explosion modifier remains neutral; the preview's assumed 5% was not promoted. The healing-triggered barrage
-      remains. See [Explosives traits](../js/games/gw2/professions/engineer/core/traits/explosives/index.ts).
-- [ ] **Grenade radius.** The baseline increase to 180 is known. The single-target model does not represent explosion
-      radii or additional targets, so it has no simulated effect.
-- [ ] **Rocket Kick.** The skill is absent. Its confirmed PvE cooldown is 20 seconds. Need the remaining skill data and
-      evade duration before adding it; backward movement, incoming attacks, and stun breaks are outside current scope.
-- [ ] **Toss Elixir S, Elixir X, and Hard Light Arena.** These skills are absent. Their confirmed cooldowns are 30, 60,
-      and 30 seconds, respectively. Supporting their full behavior remains pending. Elixir X's final cooldown is 60,
-      replacing the struck-through 75-second preview value.
-- [ ] **Engineer presets.** Builds selecting Grenadier or using rifle remain not up to date while these reworks are
-      incomplete. Recorded rotations are unchanged. See [Engineer manifest](../data/gw2/builds/engineer/manifest.json).
 
 ## Mesmer
 

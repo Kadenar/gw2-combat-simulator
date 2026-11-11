@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
-import { openDashboard } from '#tests/helpers/browser-benchmarks.js';
+import { openDashboard, test } from '#tests/helpers/browser-benchmarks.js';
 
 // Home-page users can reach the all-profession tool directly, including in an embedded host.
 test('home page links directly to benchmarks and preserves hosting modes', async ({ page }) => {
@@ -144,7 +144,7 @@ test('benchmark loading skeleton follows cards and table views until manifests r
   });
   await page.route('**/data/gw2/builds/*/manifest.json', async (route) => {
     await pending;
-    await route.continue();
+    await route.fallback();
   });
   try {
     await page.emulateMedia({ reducedMotion: 'reduce' });

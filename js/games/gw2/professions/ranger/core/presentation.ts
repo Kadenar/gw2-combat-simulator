@@ -202,6 +202,9 @@ export function bindRangerCoreUi(catalog: Readonly<CanonicalCatalog<RangerSkill>
       const { player } = readProfessionCoreState<RangerCoreState>(context.professionState);
 
       if (player) player.openingStrikeReady = false;
+
+      // The isolated flanking preview represents an already active Hunter's Tactics window.
+      if (context.config.target?.defiant) context.addBuff('hunters-tactics', 1, "Hunter's Tactics");
     },
 
     // Tile identity follows the active bar even when the visible skill cannot currently be cast.

@@ -289,7 +289,8 @@ export const necromancerCoreTooltips = {
       'Strike repeatedly and gain life force. Vulnerability and low target health increase damage.'
     ),
     [ID.SOUL_GRASP]: skillTooltip(
-      'The projectile-return rework is pending damage, bounce, and life-force values. The simulation currently retains the earlier Vulnerability and life-force model.'
+      'Strike the target once and apply Vulnerability. Gain life force on projectile return, provisionally modeled 100 ms after the hit.',
+      (context) => [skillFact(context, ID.SOUL_GRASP, 'lifeForceGain', 'Life force on return', lifeForce)]
     ),
     [ID.LOCUST_SWARM]: skillTooltip(
       'Grant party swiftness and attach a swarm to your target. Its periodic strikes can critically hit and grant life force when they land.'

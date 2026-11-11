@@ -18,7 +18,7 @@ export const rangerSkirmishingTooltips = {
     ['internalCooldown', 'Internal cooldown', tooltipSeconds]
   ]),
   [TRAIT.HUNTERS_TACTICS]: traitTooltip(
-    'The new post-flanking bonus window is pending its duration. The simulation retains the earlier continuous flanking check, treating defiant targets as flanked.',
+    'Qualifying player hits refresh the critical-chance bonus for 8 seconds. Defiant targets count as flanked. The strike-damage bonus is inactive to match the reported live bug.',
     [
       fromProfile(TRAIT.HUNTERS_TACTICS, 'damageMultiplier', 'Strike damage', tooltipFactorChange),
       ['criticalChance', 'Critical chance', tooltipPercent]

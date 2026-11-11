@@ -1,5 +1,5 @@
 import { createStealthLifecycle, endStealth, stealthActive } from '#gw2/platform/combat/stealth.js';
-import { ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
 import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
@@ -44,6 +44,7 @@ import { hammerLifecycle } from '#gw2/professions/ranger/core/skills/weapons/ham
 import { maceLifecycle } from '#gw2/professions/ranger/core/skills/weapons/mace.js';
 import { bloodThirstLifecycle } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
 import { spearLifecycle } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
+import { rangerMerged } from '#gw2/professions/ranger/core/state.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
@@ -65,6 +66,33 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
           'buff'
         )
       });
+      // Bind the damage grant to the current pet, or to the player when cast in Beastmode.
+      const pet = runtime.profession.core.pet;
+      const merged = rangerMerged(runtime.profession);
+
+      if (pet || merged)
+        runtime.effects.emit({
+          kind: 'packet',
+          event: buildRangerPacket(
+            {
+              at: runtime.time,
+              skillId: context.skill.id,
+              skillName: context.skill.name,
+              kind: merged ? 'strength-of-the-pack-merged' : 'strength-of-the-pack-pet',
+              duration: skillNumber(context.skill, 'duration'),
+              stacks: 1,
+              audience: merged
+                ? { recipients: RECIPIENT.SELF }
+                : {
+                    recipients: RECIPIENT.SUMMONS,
+                    affectsSelf: false,
+                    maximumRecipients: 1,
+                    eligibleCompanionIds: [pet!.id]
+                  }
+            },
+            'buff'
+          )
+        });
     },
     'ranger.paralyzing-venom'(runtime, context) {
       if (context.kind === 'effect') armParalyzingVenom(runtime, context.trigger.event);

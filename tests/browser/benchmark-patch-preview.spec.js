@@ -28,7 +28,8 @@ async function previewFixtures(page, state = { active: true, removePreview: fals
     const response = await route.fetch();
     const sections = await response.json();
     const section = sections.find((entry) => entry.presets.some((preset) => preset.rotation));
-    const preset = { ...section.presets.find((entry) => entry.rotation) };
+    // Captured preview fixtures must remain visible when the source benchmark becomes outdated.
+    const preset = { ...section.presets.find((entry) => entry.rotation), upToDate: true };
     delete preset.patchPreview;
 
     if (!state.removePreview)

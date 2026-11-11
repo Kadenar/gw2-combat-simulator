@@ -3,6 +3,7 @@ import type { SkillFlips } from '#gw2/platform/skills/skill-flip-definitions.js'
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
 
 export const ENGINEER_CORE_SKILL_FLIPS: SkillFlips = Object.freeze([
+  { parentId: ID.RIFLE_BURST, followUpId: ID.ROCKET_BURST },
   { parentId: ID.HEALING_TURRET, followUpId: ID.DETONATE_HEALING_TURRET },
   { parentId: ID.STATIC_SHIELD, followUpId: ID.THROW_SHIELD },
   { parentId: ID.MED_KIT, followUpId: ID.STOW_MED_KIT },

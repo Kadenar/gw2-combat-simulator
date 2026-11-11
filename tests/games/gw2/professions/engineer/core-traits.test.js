@@ -348,7 +348,8 @@ test('Aim-Assisted Rocket calls an orbital strike after four rockets', () => {
 
   const rifleProjectiles = simulate(
     'Core',
-    ['Overcharged Shot', { type: 'wait', durationMs: 2600 }, 'Rifle Burst', { type: 'wait', durationMs: 4000 }],
+    // Overcharged Shot replaces the next rifle attack with Rocket Burst.
+    ['Overcharged Shot', { type: 'wait', durationMs: 2600 }, 'Rocket Burst', { type: 'wait', durationMs: 4000 }],
     {
       selectedTraitIds: [TRAIT.AIM_ASSISTED_ROCKET],
       target: { conditions: {} }
@@ -357,16 +358,17 @@ test('Aim-Assisted Rocket calls an orbital strike after four rockets', () => {
   const overcharged = rifleProjectiles.resolvedEvents.find(
     (event) => event.type === 'damage' && event.name === 'Overcharged Shot'
   );
-  const rifleGrenade = rifleProjectiles.resolvedEvents.find(
-    (event) => event.type === 'damage' && event.name === 'Rifle Burst Grenade'
+  const rifleVolley = rifleProjectiles.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.name === 'Rocket Burst'
   );
   const rifleRockets = rifleProjectiles.resolvedEvents.filter(
     (event) => event.type === 'damage' && event.name === 'Aim-Assisted Rocket'
   );
 
+  assert.deepEqual(rifleProjectiles.warnings, []);
   assert.equal(rifleRockets.length, 2);
   assert.ok(rifleRockets[0].at > overcharged.at);
-  assert.ok(rifleRockets[1].at > rifleGrenade.at);
+  assert.ok(rifleRockets[1].at > rifleVolley.at);
 
   for (const command of ['Spark Revolver', 'Core Reactor Shot', 'Jade Mortar']) {
     const mechProjectile = simulate('Mechanist', [command, { type: 'wait', durationMs: 4000 }], {

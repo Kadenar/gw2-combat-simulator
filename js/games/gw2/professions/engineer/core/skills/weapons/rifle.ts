@@ -3,9 +3,10 @@ import { ACTOR, BOON, COMBO_FINISHER, CONDITION, CONTROL, RECIPIENT } from '#gw2
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { ENGINEER_SKILL_IDS as ID } from '#gw2/professions/engineer/data/ids.js';
+import type { EngineerSkill } from '#gw2/professions/engineer/types.js';
 
 /** Defines Engineer rifle packet timing, projectile, movement, damage, and control behavior. */
-export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
+export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<EngineerSkill>>> = {
   [ID.RIFLE_BURST]: {
     name: 'Rifle Burst',
     icon: 'https://render.guildwars2.com/file/30F4477E57FFF65C3302F5380D5FCB654CA2E95F/102815.png',
@@ -71,6 +72,35 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
       }
     ]
   },
+  [ID.ROCKET_BURST]: {
+    name: 'Rocket Burst',
+    icon: 'https://render.guildwars2.com/file/C7595DEF03CB2EFEFB5FD1DE9599166524725E4E/103938.png',
+    type: 'Weapon',
+    weapon: 'Rifle',
+    slot: 'Weapon_1',
+    requiresArmedFlip: true,
+    cooldown: 0,
+    castTimeMs: 840,
+    interruptMode: 'per-packet',
+    effects: [
+      {
+        type: 'strike',
+        ticks: [
+          { atMs: 360, coefficient: 0.65 },
+          { atMs: 520, coefficient: 0.65 },
+          { atMs: 680, coefficient: 0.65 }
+        ],
+        timingAnchor: 'castStart',
+        timingScale: 'fixed',
+        name: 'Rocket Burst',
+        actorType: ACTOR.PLAYER,
+        damageKind: 'explosion',
+        projectile: true
+      }
+    ],
+    // Starting the volley spends the single use even if the player interrupts it.
+    sideEffects: [{ on: 'castStart', do: { type: 'flipConsume', skillId: ID.ROCKET_BURST } }]
+  },
   [ID.BLUNDERBUSS]: {
     name: 'Blunderbuss',
     icon: 'https://render.guildwars2.com/file/FC0C5A43332CBCEEFB32EF5331F89650FC0AF310/103111.png',
@@ -114,6 +144,8 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 600,
     // Commit Net Shot at 560 ms so later interruptions keep the activation.
     interruptCommitMs: 560,
+    // Either rifle trigger refreshes one five-second Rocket Burst opportunity.
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.ROCKET_BURST, durationSec: 5 } }],
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -148,6 +180,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     slot: 'Weapon_4',
     cooldown: 14,
     castTimeMs: 400,
+    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.ROCKET_BURST, durationSec: 5 } }],
     effects: [
       {
         type: 'strike',

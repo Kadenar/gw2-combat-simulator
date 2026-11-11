@@ -1,4 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+
+import { test } from '#tests/helpers/browser-benchmarks.js';
 
 async function openComparison(page) {
   await page.goto('/benchmarks.html');

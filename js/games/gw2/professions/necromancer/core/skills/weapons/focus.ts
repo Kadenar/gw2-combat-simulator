@@ -1,37 +1,45 @@
 /** Canonical Core necromancer skill definitions grouped by their GW2 owner. */
 import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
-import { lifeForceGrant } from '#gw2/professions/necromancer/core/skills/life-force-grants.js';
+import { grantNecromancerLifeForce } from '#gw2/professions/necromancer/core/mechanics/life-force.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
+import type { NecromancerRuntimeState, NecromancerSkill } from '#gw2/professions/necromancer/types.js';
 
-export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
+export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<NecromancerSkill>>> = {
   [ID.SOUL_GRASP]: {
     name: 'Soul Grasp',
     icon: 'https://render.guildwars2.com/file/FA5ADFEE0A3C38BC6B9A0E301E6DEFFF9C763A54/103137.png',
     type: 'Weapon',
     weapon: 'Focus',
     slot: 'Weapon_4',
-    cooldown: 10,
-    ammoCastLockout: 3,
-    ammo: 3,
+    cooldown: 12,
+    lifeForceGain: 8,
 
     castTimeMs: 520,
     effects: [
       {
-        type: 'condition',
-        // Only this selected application owns its accepted-impact reward.
+        type: 'strike',
+        coefficient: 2,
+        hits: 1,
+        projectile: true,
+        // One accepted golem hit starts the projectile's resource return.
         reactions: [
           {
-            on: 'condition.applied',
+            on: 'damage.resolved',
             actor: ACTOR.PLAYER,
             packets: 'first',
-            when: (_runtime, { event }) => event.sourceId === event.skillId,
-            do: [lifeForceGrant({ id: 'life-force', unit: 'application', grant: { percent: 11 } })]
+            when: (_runtime, { event }) => Number(event.coefficient) > 0,
+            do: [{ type: 'necromancer.soul-grasp-return' }]
           }
-        ],
+        ]
+      },
+      {
+        type: 'condition',
         condition: CONDITION.VULNERABILITY,
         duration: 6,
-        stacks: 5
+        stacks: 8
       }
     ]
   },
@@ -60,3 +68,22 @@ export const NECROMANCER_WEAPONS_FOCUS_SKILL_MECHANICS: Readonly<Record<number, 
     ]
   }
 };
+
+/** Approximate projectile return with a short delay; life force becomes spendable only on return. */
+export const focusLifecycle = {
+  sideEffectHandlers: {
+    'necromancer.soul-grasp-return'(runtime, context) {
+      // Provisional travel offset until return timing can be measured.
+      runtime.schedule(
+        'necromancer.soul-grasp-return',
+        runtime.time + 0.1,
+        skillNumber(context.skill, 'lifeForceGain')
+      );
+    }
+  },
+  tasks: {
+    'necromancer.soul-grasp-return'(runtime, percent) {
+      grantNecromancerLifeForce(runtime, Number(percent));
+    }
+  }
+} satisfies RuntimeHooks<NecromancerRuntimeState, NecromancerSkill>;

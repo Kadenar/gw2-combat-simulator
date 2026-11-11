@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
-import { openDashboard, selectProfessions } from '#tests/helpers/browser-benchmarks.js';
+import { openDashboard, selectProfessions, test } from '#tests/helpers/browser-benchmarks.js';
 
 // Clicking either chart opens the same cached build details. Hovering never changes a pinned build.
 test('APM rows and points open a persistent build inspector with a workspace link', async ({ page }) => {

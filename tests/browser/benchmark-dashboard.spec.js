@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 
-import { openDashboard, selectProfessions } from '#tests/helpers/browser-benchmarks.js';
+import { openDashboard, selectProfessions, test } from '#tests/helpers/browser-benchmarks.js';
 
 // A single additive profession selection and shared filters must describe every benchmark view.
 test('shared header combines profession toggles and retains damage and role filters across every view', async ({

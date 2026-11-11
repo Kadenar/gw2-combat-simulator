@@ -117,10 +117,11 @@ test('skill choices support word search and keyboard selection', async ({ page }
   });
   expect(await results.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   expect(await menu.evaluate((element) => element.scrollTop)).toBe(0);
-  await search.fill('disen phant');
+  // Warden is a utility skill; reversed word fragments exercise the shared search.
+  await search.fill('ward phant');
   await expect(menu.locator('.dd-item:visible')).toHaveCount(1);
   await search.press('ArrowDown');
-  await expect(menu.getByRole('button', { name: 'Phantasmal Disenchanter', exact: true })).toBeFocused();
+  await expect(menu.getByRole('button', { name: 'Phantasmal Warden', exact: true })).toBeFocused();
   await menu.locator('.dd-item:visible').press('Enter');
   expect(await page.evaluate(() => window.professionApp.build.selectedSkillIds.Utility1)).toBe(10267);
   await expect(trigger).toBeFocused();
