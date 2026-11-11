@@ -11,26 +11,11 @@
         "upToDate": true,
         "benchmarkApm": 98.9,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 51184,
-            "phase": 51184
-          },
-          "80-60": {
-            "cumulative": 44461,
-            "phase": 39222
-          },
-          "60-40": {
-            "cumulative": 41936,
-            "phase": 37648
-          },
-          "40-20": {
-            "cumulative": 41671,
-            "phase": 40894
-          },
-          "20-0": {
-            "cumulative": 43125,
-            "phase": 43125
-          }
+          "100-80": { "cumulative": 51184, "phase": 51184 },
+          "80-60": { "cumulative": 44461, "phase": 39222 },
+          "60-40": { "cumulative": 41936, "phase": 37648 },
+          "40-20": { "cumulative": 41671, "phase": 40894 },
+          "20-0": { "cumulative": 43125, "phase": 43125 }
         }
       },
       {
@@ -42,26 +27,11 @@
         "upToDate": false,
         "benchmarkApm": 97.6,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 48917,
-            "phase": 48917
-          },
-          "80-60": {
-            "cumulative": 41910,
-            "phase": 36635
-          },
-          "60-40": {
-            "cumulative": 41197,
-            "phase": 39852
-          },
-          "40-20": {
-            "cumulative": 42557,
-            "phase": 47276
-          },
-          "20-0": {
-            "cumulative": 42606,
-            "phase": 42606
-          }
+          "100-80": { "cumulative": 48917, "phase": 48917 },
+          "80-60": { "cumulative": 41910, "phase": 36635 },
+          "60-40": { "cumulative": 41197, "phase": 39852 },
+          "40-20": { "cumulative": 42557, "phase": 47276 },
+          "20-0": { "cumulative": 42606, "phase": 42606 }
         }
       },
       {
@@ -73,26 +43,11 @@
         "upToDate": false,
         "benchmarkApm": 94.4,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 42458,
-            "phase": 42458
-          },
-          "80-60": {
-            "cumulative": 39344,
-            "phase": 36656
-          },
-          "60-40": {
-            "cumulative": 39669,
-            "phase": 40365
-          },
-          "40-20": {
-            "cumulative": 40194,
-            "phase": 41858
-          },
-          "20-0": {
-            "cumulative": 41652,
-            "phase": 41652
-          }
+          "100-80": { "cumulative": 42458, "phase": 42458 },
+          "80-60": { "cumulative": 39344, "phase": 36656 },
+          "60-40": { "cumulative": 39669, "phase": 40365 },
+          "40-20": { "cumulative": 40194, "phase": 41858 },
+          "20-0": { "cumulative": 41652, "phase": 41652 }
         }
       }
     ]
@@ -108,26 +63,11 @@
         "upToDate": true,
         "benchmarkApm": 111.3,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 41753,
-            "phase": 41753
-          },
-          "80-60": {
-            "cumulative": 40786,
-            "phase": 39820
-          },
-          "60-40": {
-            "cumulative": 40866,
-            "phase": 41026
-          },
-          "40-20": {
-            "cumulative": 41139,
-            "phase": 42008
-          },
-          "20-0": {
-            "cumulative": 40912,
-            "phase": 40008
-          }
+          "100-80": { "cumulative": 41753, "phase": 41753 },
+          "80-60": { "cumulative": 40786, "phase": 39820 },
+          "60-40": { "cumulative": 40866, "phase": 41026 },
+          "40-20": { "cumulative": 41139, "phase": 42008 },
+          "20-0": { "cumulative": 40912, "phase": 40008 }
         }
       },
       {
@@ -137,26 +77,11 @@
         "upToDate": true,
         "benchmarkDps": 42796,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 42069,
-            "phase": 42069
-          },
-          "80-60": {
-            "cumulative": 41899,
-            "phase": 41730
-          },
-          "60-40": {
-            "cumulative": 41702,
-            "phase": 41321
-          },
-          "40-20": {
-            "cumulative": 41269,
-            "phase": 39980
-          },
-          "20-0": {
-            "cumulative": 42796,
-            "phase": 50130
-          }
+          "100-80": { "cumulative": 42069, "phase": 42069 },
+          "80-60": { "cumulative": 41899, "phase": 41730 },
+          "60-40": { "cumulative": 41702, "phase": 41321 },
+          "40-20": { "cumulative": 41269, "phase": 39980 },
+          "20-0": { "cumulative": 42796, "phase": 50130 }
         },
         "benchmarkApm": 110.1
       },
@@ -169,26 +94,11 @@
         "upToDate": true,
         "benchmarkApm": 105.9,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 39787,
-            "phase": 39787
-          },
-          "80-60": {
-            "cumulative": 40863,
-            "phase": 41995
-          },
-          "60-40": {
-            "cumulative": 40022,
-            "phase": 38462
-          },
-          "40-20": {
-            "cumulative": 39717,
-            "phase": 38800
-          },
-          "20-0": {
-            "cumulative": 40362,
-            "phase": 40362
-          }
+          "100-80": { "cumulative": 39787, "phase": 39787 },
+          "80-60": { "cumulative": 40863, "phase": 41995 },
+          "60-40": { "cumulative": 40022, "phase": 38462 },
+          "40-20": { "cumulative": 39717, "phase": 38800 },
+          "20-0": { "cumulative": 40362, "phase": 40362 }
         }
       }
     ]
@@ -205,26 +115,11 @@
         "upToDate": false,
         "benchmarkApm": 80,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 47017,
-            "phase": 47017
-          },
-          "80-60": {
-            "cumulative": 41461,
-            "phase": 36926
-          },
-          "60-40": {
-            "cumulative": 42710,
-            "phase": 45432
-          },
-          "40-20": {
-            "cumulative": 40664,
-            "phase": 35515
-          },
-          "20-0": {
-            "cumulative": 42379,
-            "phase": 50764
-          }
+          "100-80": { "cumulative": 47017, "phase": 47017 },
+          "80-60": { "cumulative": 41461, "phase": 36926 },
+          "60-40": { "cumulative": 42710, "phase": 45432 },
+          "40-20": { "cumulative": 40664, "phase": 35515 },
+          "20-0": { "cumulative": 42379, "phase": 50764 }
         }
       },
       {
@@ -236,26 +131,11 @@
         "upToDate": true,
         "benchmarkApm": 60.8,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 41045,
-            "phase": 41045
-          },
-          "80-60": {
-            "cumulative": 41256,
-            "phase": 41479
-          },
-          "60-40": {
-            "cumulative": 40418,
-            "phase": 38781
-          },
-          "40-20": {
-            "cumulative": 41112,
-            "phase": 43262
-          },
-          "20-0": {
-            "cumulative": 40753,
-            "phase": 40753
-          }
+          "100-80": { "cumulative": 41045, "phase": 41045 },
+          "80-60": { "cumulative": 41256, "phase": 41479 },
+          "60-40": { "cumulative": 40418, "phase": 38781 },
+          "40-20": { "cumulative": 41112, "phase": 43262 },
+          "20-0": { "cumulative": 40753, "phase": 40753 }
         }
       }
     ]
@@ -272,26 +152,11 @@
         "upToDate": true,
         "benchmarkApm": 74.7,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 42136,
-            "phase": 42136
-          },
-          "80-60": {
-            "cumulative": 39368,
-            "phase": 36944
-          },
-          "60-40": {
-            "cumulative": 40643,
-            "phase": 43474
-          },
-          "40-20": {
-            "cumulative": 39931,
-            "phase": 37936
-          },
-          "20-0": {
-            "cumulative": 41580,
-            "phase": 41580
-          }
+          "100-80": { "cumulative": 42136, "phase": 42136 },
+          "80-60": { "cumulative": 39368, "phase": 36944 },
+          "60-40": { "cumulative": 40643, "phase": 43474 },
+          "40-20": { "cumulative": 39931, "phase": 37936 },
+          "20-0": { "cumulative": 41580, "phase": 41580 }
         }
       },
       {
@@ -302,26 +167,11 @@
         "upToDate": true,
         "benchmarkDps": 32454,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 29825,
-            "phase": 29825
-          },
-          "80-60": {
-            "cumulative": 30654,
-            "phase": 31516
-          },
-          "60-40": {
-            "cumulative": 31172,
-            "phase": 32271
-          },
-          "40-20": {
-            "cumulative": 31601,
-            "phase": 32985
-          },
-          "20-0": {
-            "cumulative": 32454,
-            "phase": 32454
-          }
+          "100-80": { "cumulative": 29825, "phase": 29825 },
+          "80-60": { "cumulative": 30654, "phase": 31516 },
+          "60-40": { "cumulative": 31172, "phase": 32271 },
+          "40-20": { "cumulative": 31601, "phase": 32985 },
+          "20-0": { "cumulative": 32454, "phase": 32454 }
         },
         "benchmarkApm": 74.2
       },
@@ -333,26 +183,11 @@
         "upToDate": true,
         "benchmarkDps": 31776,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 31646,
-            "phase": 31646
-          },
-          "80-60": {
-            "cumulative": 30733,
-            "phase": 29850
-          },
-          "60-40": {
-            "cumulative": 30940,
-            "phase": 31374
-          },
-          "40-20": {
-            "cumulative": 31700,
-            "phase": 34215
-          },
-          "20-0": {
-            "cumulative": 31776,
-            "phase": 31776
-          }
+          "100-80": { "cumulative": 31646, "phase": 31646 },
+          "80-60": { "cumulative": 30733, "phase": 29850 },
+          "60-40": { "cumulative": 30940, "phase": 31374 },
+          "40-20": { "cumulative": 31700, "phase": 34215 },
+          "20-0": { "cumulative": 31776, "phase": 31776 }
         },
         "benchmarkApm": 75.5
       }

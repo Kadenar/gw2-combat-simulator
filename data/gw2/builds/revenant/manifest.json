@@ -11,26 +11,11 @@
         "upToDate": true,
         "benchmarkApm": 54.9,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 55385,
-            "phase": 55385
-          },
-          "80-60": {
-            "cumulative": 42879,
-            "phase": 34980
-          },
-          "60-40": {
-            "cumulative": 42548,
-            "phase": 41903
-          },
-          "40-20": {
-            "cumulative": 42745,
-            "phase": 43348
-          },
-          "20-0": {
-            "cumulative": 42293,
-            "phase": 42293
-          }
+          "100-80": { "cumulative": 55385, "phase": 55385 },
+          "80-60": { "cumulative": 42879, "phase": 34980 },
+          "60-40": { "cumulative": 42548, "phase": 41903 },
+          "40-20": { "cumulative": 42745, "phase": 43348 },
+          "20-0": { "cumulative": 42293, "phase": 42293 }
         }
       },
       {
@@ -42,26 +27,11 @@
         "upToDate": true,
         "benchmarkApm": 48.9,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 48580,
-            "phase": 48580
-          },
-          "80-60": {
-            "cumulative": 37842,
-            "phase": 30802
-          },
-          "60-40": {
-            "cumulative": 38048,
-            "phase": 38467
-          },
-          "40-20": {
-            "cumulative": 39063,
-            "phase": 42414
-          },
-          "20-0": {
-            "cumulative": 39255,
-            "phase": 39255
-          }
+          "100-80": { "cumulative": 48580, "phase": 48580 },
+          "80-60": { "cumulative": 37842, "phase": 30802 },
+          "60-40": { "cumulative": 38048, "phase": 38467 },
+          "40-20": { "cumulative": 39063, "phase": 42414 },
+          "20-0": { "cumulative": 39255, "phase": 39255 }
         }
       },
       {
@@ -73,26 +43,11 @@
         "upToDate": true,
         "benchmarkApm": 42.1,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 39418,
-            "phase": 39418
-          },
-          "80-60": {
-            "cumulative": 34073,
-            "phase": 29953
-          },
-          "60-40": {
-            "cumulative": 33667,
-            "phase": 32890
-          },
-          "40-20": {
-            "cumulative": 33776,
-            "phase": 34110
-          },
-          "20-0": {
-            "cumulative": 34469,
-            "phase": 37566
-          }
+          "100-80": { "cumulative": 39418, "phase": 39418 },
+          "80-60": { "cumulative": 34073, "phase": 29953 },
+          "60-40": { "cumulative": 33667, "phase": 32890 },
+          "40-20": { "cumulative": 33776, "phase": 34110 },
+          "20-0": { "cumulative": 34469, "phase": 37566 }
         }
       },
       {
@@ -102,26 +57,11 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-alacrity-renegade-greatsword-sword-sword",
         "benchmarkDps": 35486,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 44559,
-            "phase": 44559
-          },
-          "80-60": {
-            "cumulative": 35745,
-            "phase": 29753
-          },
-          "60-40": {
-            "cumulative": 34808,
-            "phase": 33091
-          },
-          "40-20": {
-            "cumulative": 35257,
-            "phase": 36692
-          },
-          "20-0": {
-            "cumulative": 35486,
-            "phase": 36441
-          }
+          "100-80": { "cumulative": 44559, "phase": 44559 },
+          "80-60": { "cumulative": 35745, "phase": 29753 },
+          "60-40": { "cumulative": 34808, "phase": 33091 },
+          "40-20": { "cumulative": 35257, "phase": 36692 },
+          "20-0": { "cumulative": 35486, "phase": 36441 }
         },
         "benchmarkApm": 54.1,
         "upToDate": true
@@ -135,26 +75,11 @@
         "upToDate": true,
         "benchmarkApm": 69.5,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 38792,
-            "phase": 38792
-          },
-          "80-60": {
-            "cumulative": 39944,
-            "phase": 41216
-          },
-          "60-40": {
-            "cumulative": 40680,
-            "phase": 42229
-          },
-          "40-20": {
-            "cumulative": 40922,
-            "phase": 41673
-          },
-          "20-0": {
-            "cumulative": 40791,
-            "phase": 40791
-          }
+          "100-80": { "cumulative": 38792, "phase": 38792 },
+          "80-60": { "cumulative": 39944, "phase": 41216 },
+          "60-40": { "cumulative": 40680, "phase": 42229 },
+          "40-20": { "cumulative": 40922, "phase": 41673 },
+          "20-0": { "cumulative": 40791, "phase": 40791 }
         }
       },
       {
@@ -166,26 +91,11 @@
         "upToDate": true,
         "benchmarkApm": 68.6,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 40076,
-            "phase": 40076
-          },
-          "80-60": {
-            "cumulative": 41336,
-            "phase": 42663
-          },
-          "60-40": {
-            "cumulative": 41193,
-            "phase": 40901
-          },
-          "40-20": {
-            "cumulative": 41024,
-            "phase": 40524
-          },
-          "20-0": {
-            "cumulative": 41158,
-            "phase": 41158
-          }
+          "100-80": { "cumulative": 40076, "phase": 40076 },
+          "80-60": { "cumulative": 41336, "phase": 42663 },
+          "60-40": { "cumulative": 41193, "phase": 40901 },
+          "40-20": { "cumulative": 41024, "phase": 40524 },
+          "20-0": { "cumulative": 41158, "phase": 41158 }
         }
       }
     ]
@@ -202,26 +112,11 @@
         "upToDate": true,
         "benchmarkApm": 77.3,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 36859,
-            "phase": 36859
-          },
-          "80-60": {
-            "cumulative": 31476,
-            "phase": 27470
-          },
-          "60-40": {
-            "cumulative": 31448,
-            "phase": 31391
-          },
-          "40-20": {
-            "cumulative": 32044,
-            "phase": 33977
-          },
-          "20-0": {
-            "cumulative": 32163,
-            "phase": 32163
-          }
+          "100-80": { "cumulative": 36859, "phase": 36859 },
+          "80-60": { "cumulative": 31476, "phase": 27470 },
+          "60-40": { "cumulative": 31448, "phase": 31391 },
+          "40-20": { "cumulative": 32044, "phase": 33977 },
+          "20-0": { "cumulative": 32163, "phase": 32163 }
         }
       },
       {
@@ -233,26 +128,11 @@
         "upToDate": true,
         "benchmarkApm": 87.9,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 28617,
-            "phase": 28617
-          },
-          "80-60": {
-            "cumulative": 30900,
-            "phase": 33498
-          },
-          "60-40": {
-            "cumulative": 31069,
-            "phase": 31427
-          },
-          "40-20": {
-            "cumulative": 31538,
-            "phase": 33007
-          },
-          "20-0": {
-            "cumulative": 31781,
-            "phase": 31781
-          }
+          "100-80": { "cumulative": 28617, "phase": 28617 },
+          "80-60": { "cumulative": 30900, "phase": 33498 },
+          "60-40": { "cumulative": 31069, "phase": 31427 },
+          "40-20": { "cumulative": 31538, "phase": 33007 },
+          "20-0": { "cumulative": 31781, "phase": 31781 }
         }
       }
     ]
@@ -269,26 +149,11 @@
         "upToDate": false,
         "benchmarkApm": 66.8,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 58204,
-            "phase": 58204
-          },
-          "80-60": {
-            "cumulative": 44897,
-            "phase": 36198
-          },
-          "60-40": {
-            "cumulative": 43250,
-            "phase": 40290
-          },
-          "40-20": {
-            "cumulative": 44043,
-            "phase": 46458
-          },
-          "20-0": {
-            "cumulative": 43894,
-            "phase": 43261
-          }
+          "100-80": { "cumulative": 58204, "phase": 58204 },
+          "80-60": { "cumulative": 44897, "phase": 36198 },
+          "60-40": { "cumulative": 43250, "phase": 40290 },
+          "40-20": { "cumulative": 44043, "phase": 46458 },
+          "20-0": { "cumulative": 43894, "phase": 43261 }
         }
       },
       {
@@ -299,26 +164,11 @@
         "upToDate": false,
         "benchmarkApm": 65.1,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 56118,
-            "phase": 56118
-          },
-          "80-60": {
-            "cumulative": 43722,
-            "phase": 36012
-          },
-          "60-40": {
-            "cumulative": 41626,
-            "phase": 37753
-          },
-          "40-20": {
-            "cumulative": 40520,
-            "phase": 37531
-          },
-          "20-0": {
-            "cumulative": 42400,
-            "phase": 52102
-          }
+          "100-80": { "cumulative": 56118, "phase": 56118 },
+          "80-60": { "cumulative": 43722, "phase": 36012 },
+          "60-40": { "cumulative": 41626, "phase": 37753 },
+          "40-20": { "cumulative": 40520, "phase": 37531 },
+          "20-0": { "cumulative": 42400, "phase": 52102 }
         }
       }
     ]
@@ -335,26 +185,11 @@
         "upToDate": false,
         "benchmarkApm": 78.1,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 49342,
-            "phase": 49342
-          },
-          "80-60": {
-            "cumulative": 40369,
-            "phase": 34034
-          },
-          "60-40": {
-            "cumulative": 38482,
-            "phase": 35071
-          },
-          "40-20": {
-            "cumulative": 40338,
-            "phase": 47123
-          },
-          "20-0": {
-            "cumulative": 40560,
-            "phase": 40560
-          }
+          "100-80": { "cumulative": 49342, "phase": 49342 },
+          "80-60": { "cumulative": 40369, "phase": 34034 },
+          "60-40": { "cumulative": 38482, "phase": 35071 },
+          "40-20": { "cumulative": 40338, "phase": 47123 },
+          "20-0": { "cumulative": 40560, "phase": 40560 }
         }
       },
       {
@@ -366,26 +201,11 @@
         "upToDate": false,
         "benchmarkApm": 84.2,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 43975,
-            "phase": 43975
-          },
-          "80-60": {
-            "cumulative": 39222,
-            "phase": 35160
-          },
-          "60-40": {
-            "cumulative": 38144,
-            "phase": 36138
-          },
-          "40-20": {
-            "cumulative": 38350,
-            "phase": 38969
-          },
-          "20-0": {
-            "cumulative": 38921,
-            "phase": 41437
-          }
+          "100-80": { "cumulative": 43975, "phase": 43975 },
+          "80-60": { "cumulative": 39222, "phase": 35160 },
+          "60-40": { "cumulative": 38144, "phase": 36138 },
+          "40-20": { "cumulative": 38350, "phase": 38969 },
+          "20-0": { "cumulative": 38921, "phase": 41437 }
         }
       },
       {
@@ -393,30 +213,15 @@
         "build": "data/gw2/builds/revenant/b-power-conduit-staff-sword-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-staff-sword-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-staff-sword-sword",
-        "benchmarkDps": 43532,
+        "benchmarkDps": 43572,
         "upToDate": true,
         "benchmarkApm": 66.7,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 46630,
-            "phase": 46630
-          },
-          "80-60": {
-            "cumulative": 43082,
-            "phase": 40116
-          },
-          "60-40": {
-            "cumulative": 42128,
-            "phase": 40426
-          },
-          "40-20": {
-            "cumulative": 42992,
-            "phase": 46065
-          },
-          "20-0": {
-            "cumulative": 43532,
-            "phase": 45894
-          }
+          "100-80": { "cumulative": 46654, "phase": 46654 },
+          "80-60": { "cumulative": 43234, "phase": 40258 },
+          "60-40": { "cumulative": 42022, "phase": 39849 },
+          "40-20": { "cumulative": 43112, "phase": 46918 },
+          "20-0": { "cumulative": 43572, "phase": 43572 }
         }
       },
       {
@@ -428,26 +233,11 @@
         "upToDate": false,
         "benchmarkApm": 57.7,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 39197,
-            "phase": 39197
-          },
-          "80-60": {
-            "cumulative": 35637,
-            "phase": 32765
-          },
-          "60-40": {
-            "cumulative": 35598,
-            "phase": 35514
-          },
-          "40-20": {
-            "cumulative": 36499,
-            "phase": 39464
-          },
-          "20-0": {
-            "cumulative": 36806,
-            "phase": 38098
-          }
+          "100-80": { "cumulative": 39197, "phase": 39197 },
+          "80-60": { "cumulative": 35637, "phase": 32765 },
+          "60-40": { "cumulative": 35598, "phase": 35514 },
+          "40-20": { "cumulative": 36499, "phase": 39464 },
+          "20-0": { "cumulative": 36806, "phase": 38098 }
         }
       },
       {
@@ -457,28 +247,13 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/condition-conduit-mistfire-spear-mace-axe",
         "benchmarkDps": 40825,
         "upToDate": false,
-        "benchmarkApm": 94,
+        "benchmarkApm": 94.6,
         "benchmarkDpsByHealth": {
-          "100-80": {
-            "cumulative": 39209,
-            "phase": 39209
-          },
-          "80-60": {
-            "cumulative": 40187,
-            "phase": 41267
-          },
-          "60-40": {
-            "cumulative": 40635,
-            "phase": 41579
-          },
-          "40-20": {
-            "cumulative": 40929,
-            "phase": 41842
-          },
-          "20-0": {
-            "cumulative": 40825,
-            "phase": 40416
-          }
+          "100-80": { "cumulative": 39209, "phase": 39209 },
+          "80-60": { "cumulative": 40187, "phase": 41267 },
+          "60-40": { "cumulative": 40635, "phase": 41579 },
+          "40-20": { "cumulative": 40929, "phase": 41842 },
+          "20-0": { "cumulative": 40825, "phase": 40416 }
         }
       }
     ]
