@@ -88,7 +88,7 @@ export const ENGINEER_FLAMETHROWER_SKILL_MECHANICS: Readonly<Record<string, Skil
     type: 'Weapon',
     slot: 'Weapon_2',
 
-    cooldown: 8,
+    cooldown: 6,
     kitId: ID.FLAMETHROWER,
     castTimeMs: 800,
     // The blast lands at 520 ms after its earlier commit while the cast keeps its full lockout.
