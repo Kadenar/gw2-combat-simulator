@@ -218,6 +218,8 @@ const EXPECTED = {
       'Go for the Throat': { strike: 'multiplier' },
       'Hidden Barbs': { condition: 'multiplier' },
       "Hunter's Tactics": { strike: 'multiplier' },
+      // The evade-triggered strike bonus multiplies outgoing damage.
+      'Light on your Feet': { strike: 'multiplier' },
       'Loud Whistle': { strike: 'multiplier' },
       'Natural Balance': { condition: 'additive' },
       'Poison Master': { condition: 'multiplier' },

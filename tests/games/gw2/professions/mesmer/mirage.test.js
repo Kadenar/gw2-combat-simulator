@@ -524,7 +524,7 @@ test('Elusive Mind reports no simulated effect without a balance profile', () =>
   assert.match(
     mesmerAppAdapter.traitTooltip(trait, mesmerAppAdapter.profession.resolvePatch({ id: 'current' }), 'Mirage')
       .description,
-    /no simulated effect/
+    /no effect in the simulation/
   );
   assert.equal(mesmerCatalog.balanceProfilesById.has(TRAIT.ELUSIVE_MIND), false);
 });

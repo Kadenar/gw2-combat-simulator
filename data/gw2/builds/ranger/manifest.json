@@ -7,14 +7,14 @@
         "build": "data/gw2/builds/ranger/b-condi-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-druid-dagger-torch-axe-dagger-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-druid-dagger-torch-axe-dagger",
-        "benchmarkDps": 42111,
+        "benchmarkDps": 44489,
         "benchmarkApm": 103.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40094, "phase": 40094 },
-          "80-60": { "cumulative": 41529, "phase": 43041 },
-          "60-40": { "cumulative": 41181, "phase": 40466 },
-          "40-20": { "cumulative": 42136, "phase": 45212 },
-          "20-0": { "cumulative": 42111, "phase": 42111 }
+          "100-80": { "cumulative": 42019, "phase": 42019 },
+          "80-60": { "cumulative": 43259, "phase": 44567 },
+          "60-40": { "cumulative": 43353, "phase": 43546 },
+          "40-20": { "cumulative": 43618, "phase": 44433 },
+          "20-0": { "cumulative": 44489, "phase": 48206 }
         },
         "upToDate": true
       },
@@ -23,15 +23,15 @@
         "build": "data/gw2/builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-alacrity-druid-dagger-torch-axe-dagger",
-        "benchmarkDps": 35096,
+        "benchmarkDps": 36753,
         "upToDate": true,
         "benchmarkApm": 106.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 33205, "phase": 33205 },
-          "80-60": { "cumulative": 34749, "phase": 36432 },
-          "60-40": { "cumulative": 35004, "phase": 35537 },
-          "40-20": { "cumulative": 35225, "phase": 35878 },
-          "20-0": { "cumulative": 35096, "phase": 35096 }
+          "100-80": { "cumulative": 33741, "phase": 33741 },
+          "80-60": { "cumulative": 35404, "phase": 37320 },
+          "60-40": { "cumulative": 36103, "phase": 37584 },
+          "40-20": { "cumulative": 36586, "phase": 38105 },
+          "20-0": { "cumulative": 36753, "phase": 36753 }
         }
       }
     ]
@@ -43,14 +43,14 @@
         "label": "Condition (Shortbow / Dagger-Dagger)",
         "build": "data/gw2/builds/ranger/b-condi-soulbeast-shortbow-dagger-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-soulbeast-shortbow-dagger-dagger.json",
-        "benchmarkDps": 35145,
+        "benchmarkDps": 36586,
         "benchmarkApm": 63.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 34205, "phase": 34205 },
-          "80-60": { "cumulative": 35463, "phase": 36802 },
-          "60-40": { "cumulative": 35532, "phase": 35673 },
-          "40-20": { "cumulative": 35385, "phase": 34956 },
-          "20-0": { "cumulative": 35145, "phase": 35145 }
+          "100-80": { "cumulative": 35236, "phase": 35236 },
+          "80-60": { "cumulative": 36923, "phase": 38862 },
+          "60-40": { "cumulative": 36811, "phase": 36592 },
+          "40-20": { "cumulative": 36727, "phase": 36481 },
+          "20-0": { "cumulative": 36586, "phase": 36586 }
         },
         "upToDate": false
       },
