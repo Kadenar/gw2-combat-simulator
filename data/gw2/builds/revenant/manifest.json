@@ -7,15 +7,15 @@
         "build": "data/gw2/builds/revenant/b-power-renegade-greatsword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-renegade-greatsword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-renegade-greatsword-sword-sword",
-        "benchmarkDps": 42293,
+        "benchmarkDps": 42425,
         "upToDate": true,
         "benchmarkApm": 54.9,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 55385, "phase": 55385 },
           "80-60": { "cumulative": 42879, "phase": 34980 },
-          "60-40": { "cumulative": 42548, "phase": 41903 },
-          "40-20": { "cumulative": 42745, "phase": 43348 },
-          "20-0": { "cumulative": 42293, "phase": 42293 }
+          "60-40": { "cumulative": 42760, "phase": 42527 },
+          "40-20": { "cumulative": 42904, "phase": 43349 },
+          "20-0": { "cumulative": 42425, "phase": 42425 }
         }
       },
       {

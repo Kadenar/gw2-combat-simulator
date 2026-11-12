@@ -451,7 +451,7 @@ test('Poison Master remains player-scaled and Poisonous Strikes inherits its att
   );
 });
 
-// Compiled critical listeners reread the selected profile and keep player/pet admission before secondary rolls.
+// Critical listeners use patched proc chances and admit player-owned effects before secondary rolls.
 test('Sharpened Edges observes patched critical chance and packets through its selected trigger', () => {
   const selectedTraitIds = [TRAIT.SHARPENED_EDGES],
     queued = [],
@@ -483,18 +483,29 @@ test('Sharpened Edges observes patched critical chance and packets through its s
       effects: [{ name: 'Bleeding', type: 'condition', condition: 'Bleeding', duration, stacks: 2 }]
     });
     const event = { type: 'damage', at: 1, actorType: 'player', skillName: 'Test' };
-    context.fireTrigger(criticalResolved, { event: { ...event, actorType: 'effect' }, details });
-    context.fireTrigger(criticalResolved, {
-      event,
-      details: { hitContext: { critical: { chance: 1, didCrit: false } } }
-    });
-    context.fireTrigger(criticalResolved, { event, details });
-    assert.equal(chances.at(-1), override ?? chance);
-    assert.equal(queued.at(-1).duration, duration);
-    assert.equal(queued.at(-1).stacks, 2);
+    for (const ownership of [
+      { actorType: 'effect' },
+      { actorType: 'effect', ownerActorType: 'summon' },
+      { actorType: 'effect', ownerActorType: 'ally' },
+      { actorType: 'summon', ownerActorType: 'player' }
+    ]) {
+      context.fireTrigger(criticalResolved, { event: { ...event, ...ownership }, details });
+    }
+
+    for (const ownedEvent of [event, { ...event, actorType: 'effect', ownerActorType: 'player' }]) {
+      context.fireTrigger(criticalResolved, {
+        event: ownedEvent,
+        details: { hitContext: { critical: { chance: 1, didCrit: false } } }
+      });
+      context.fireTrigger(criticalResolved, { event: ownedEvent, details });
+      assert.equal(chances.at(-1), override ?? chance);
+      assert.equal(queued.at(-1).duration, duration);
+      assert.equal(queued.at(-1).stacks, 2);
+      assert.equal(queued.at(-1).ownerActorType, 'player');
+    }
   }
 
-  assert.deepEqual(chances, [0.33, 0.75, 0.25, 0.75]);
+  assert.deepEqual(chances, [0.33, 0.33, 0.75, 0.75, 0.25, 0.25, 0.75, 0.75]);
 });
 
 // Grace follows the native boon applications across Avatar exit and uses the player's boon duration.

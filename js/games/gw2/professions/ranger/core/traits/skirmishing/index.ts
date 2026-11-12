@@ -370,9 +370,14 @@ const rangerCoreCriticalReactions = Object.freeze({
   id: 'ranger.sharpened-edges',
   chanceOnCriticalHit: (context: RangerResolverContext) =>
     procChance(context.helpers, TRAIT.SHARPENED_EDGES, context.config.procRateOverrides),
-  actorTypes: [ACTOR.PLAYER, ACTOR.SUMMON] as const,
+  actorTypes: [ACTOR.PLAYER, ACTOR.SUMMON, ACTOR.EFFECT] as const,
   when(_context: RangerResolverContext, event: Gw2ResolverEvent): boolean {
-    return event.actorType === ACTOR.PLAYER || isPetStrike(event);
+    // Player-owned effects can grant player bleeds without changing their effect attribution.
+    return (
+      event.actorType === ACTOR.PLAYER ||
+      (event.actorType === ACTOR.SUMMON && isPetStrike(event)) ||
+      (event.actorType === ACTOR.EFFECT && event.ownerActorType === ACTOR.PLAYER)
+    );
   },
   handler(context, event, _details, application): void {
     // Reuse this invocation's authored effect, emitting one bleeding application per threshold proc.
