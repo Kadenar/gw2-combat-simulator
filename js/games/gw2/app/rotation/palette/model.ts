@@ -1,11 +1,7 @@
 /** Project palette selection, readiness, resources, and placement from captured facts without reading application state. */
 import type { ProfessionIsSkillAvailable } from '#gw2/app/build/types.js';
 import type { RotationProfessionState } from '#gw2/app/rotation/context.js';
-import {
-  rotationHotkeyActionForSkillName,
-  rotationLoadoutHotkeyActions,
-  rotationUtilityHotkeyAction
-} from '#gw2/app/rotation/hotkeys.js';
+import { rotationHotkeyActionForSkillName, rotationLoadoutHotkeyActions } from '#gw2/app/rotation/hotkeys.js';
 import {
   activeResourceDefinitions,
   paletteSkillResourceView,
@@ -18,6 +14,7 @@ import { PLACEHOLDER_ICON } from '#gw2/app/shared/placeholder-icon.js';
 import type { SimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
 import type { ProfessionAppContract } from '#gw2/app/types.js';
 import { isBuildSkillAvailable } from '#gw2/platform/builds/selected-skills.js';
+import { resolveSelectedSkillLoadout } from '#gw2/platform/builds/skill-loadout.js';
 import type { FixedSlotLoadout, SlotLoadoutContext } from '#gw2/platform/builds/slot-loadout.js';
 import type { Gw2CanonicalBuild } from '#gw2/platform/builds/types.js';
 import { defaultWeaponSkillMatchesSet } from '#gw2/platform/equipment/weapons/skill-matcher.js';
@@ -871,6 +868,8 @@ export function paletteSkillView(
     skillId: skill.inputSkillId ?? skill.id,
     ...(skill.inputSkillId == null ? {} : { displaySkillId: skill.id }),
     hotkeyAction:
+      // Preserve the selected bar position through rendering, including utility and elite replacements.
+      skill.hotkeyAction ||
       String(skill.inputControl || '') ||
       inputControlForSkillSlot(skill.slot) ||
       rotationHotkeyActionForSkillName(skill.name),
@@ -940,11 +939,13 @@ export function projectPalette(input: PaletteInput) {
   const professionState = paletteContext.professionState as RotationProfessionState;
   const { renderedProfessionGroups, renderedLoadoutGroups } = paletteSkillGroups(input, paletteContext);
   const selected = rotationSelectedSlotSkills(input, paletteContext);
+  const selectedHotkeys = rotationLoadoutHotkeyActions(resolveSelectedSkillLoadout(input.build).bars);
   // The shared projector discovers and selects descendants from the catalog;
   // selected utilities only need to contribute their root tile and hotkey.
-  const selectedWithFlipChains = uniqueById(selected).map((skill, index) => ({
+  const selectedWithFlipChains = uniqueById(selected).map((skill) => ({
     ...skill,
-    hotkeyAction: rotationUtilityHotkeyAction(index)
+    // Empty slots and transformed faces retain the binding of the selected skill.
+    hotkeyAction: selectedHotkeys.get(Number(skill.inputSkillId ?? skill.id)) || ''
   }));
   const groupedActionSkillIds = new Set(
     [...renderedProfessionGroups, ...renderedLoadoutGroups].flatMap((group) =>
