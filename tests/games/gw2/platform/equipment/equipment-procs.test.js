@@ -912,3 +912,29 @@ test('Mist Stranger submits its flat siphon through shared damage resolution', (
   assert.equal(result.deathTime, 1);
   assert.equal(resolveTestGw2Events({ events: [{ ...hit, offTarget: true }], endTime: 2, config }).totalDamage, 0);
 });
+
+// Only player strikes and player-owned effect strikes qualify, even when other actors inherit player stats.
+test('Mist Stranger filters damage ownership and prevents siphon recursion', () => {
+  for (const [metadata, eligible] of [
+    [{ actorType: 'player' }, true],
+    [{ actorType: 'effect', ownerActorType: 'player' }, true],
+    [{ actorType: 'effect' }, false],
+    [{ actorType: 'summon', ownerActorType: 'player' }, false],
+    [{ actorType: 'unknown' }, false],
+    [{ actorType: 'player', damageKind: 'life-steal' }, false],
+    [{ actorType: 'effect', ownerActorType: 'player', damageKind: 'life-steal' }, false],
+    [{ actorType: 'effect', ownerActorType: 'player', damageKind: 'condition' }, false]
+  ]) {
+    const result = resolveTestGw2Events({
+      events: [
+        { type: 'damage', at: 1, source: 'Fixture', sourceId: 'mist-trigger', flatDamage: 10, hits: 3, ...metadata }
+      ],
+      endTime: 2,
+      config: { relic: 'Mist Stranger' }
+    });
+    const siphons = result.resolvedEvents.filter((event) => event.skillName === 'Relic of the Mist Stranger');
+    assert.equal(siphons.length, eligible ? 1 : 0, JSON.stringify(metadata));
+
+    if (eligible) assert.equal(siphons[0].damage, 315);
+  }
+});

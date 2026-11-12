@@ -82,3 +82,30 @@ test('admitted frenzies survive leaving Beastmode', () => {
   assert.equal(activations(events).size, 1);
   assert.ok(events.some((event) => event.at > leave.at));
 });
+
+// Every frenzy strike must cause its own siphon, including overlapping Beast frenzies.
+for (const [pet, skill] of [
+  ['Tiger', ID.BITE],
+  ['Lynx', ID.PRIMAL_CRY]
+]) {
+  test(`Mist Stranger siphons from each Apex Predator strike for ${pet}`, () => {
+    const result = runRanger([skill, wait], {
+      specialization: 'Soulbeast',
+      selectedPet: pet,
+      selectedTraitIds: [TRAIT.APEX_PREDATOR],
+      primaryWeapon: 'Shortbow',
+      relic: 'Mist Stranger'
+    });
+    assert.deepEqual(result.warnings, []);
+    const strikes = apexEvents(result);
+    assert.ok(strikes.length > 1);
+    for (const strike of strikes) {
+      const siphons = result.resolvedEvents.filter(
+        (event) => event.skillName === 'Relic of the Mist Stranger' && event.parentEventOrder === strike.eventOrder
+      );
+      assert.equal(siphons.length, 1);
+      assert.equal(siphons[0].damage, 105 * strike.hits);
+      assert.equal(siphons[0].at, strike.at);
+    }
+  });
+}

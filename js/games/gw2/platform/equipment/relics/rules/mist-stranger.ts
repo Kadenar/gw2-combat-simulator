@@ -1,5 +1,6 @@
 /** Mist Stranger relic rules. */
 import { isGw2PlayerActorEvent } from '#gw2/platform/combat/state/event-ownership.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { RELIC_IDS } from '#gw2/platform/equipment/relics/data.js';
 import { announceRelic, defineRelic, playerOwnedRelicSource } from '#gw2/platform/equipment/relics/rules/shared.js';
 import type { Gw2RelicContext } from '#gw2/platform/equipment/relics/types.js';
@@ -8,7 +9,11 @@ import type { SimulationEvent } from '#gw2/platform/events/events.js';
 export const mistStranger = defineRelic({
   damagePayload: emitDamagePayload,
   damageResolved(ctx, event) {
-    if (!isGw2PlayerActorEvent(event)) return;
+    // Player-owned strikes such as Apex Predator trigger siphons; conditions and life steal cannot retrigger them.
+    const playerStrike =
+      isGw2PlayerActorEvent(event) || (event.actorType === ACTOR.EFFECT && event.ownerActorType === ACTOR.PLAYER);
+
+    if (!playerStrike || event.damageKind === 'life-steal' || event.damageKind === 'condition') return;
 
     emitDamagePayload(ctx, event);
   }
