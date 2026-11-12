@@ -2,7 +2,7 @@
  * Owns Soulbeast merged-pet skill definitions for the Rock Gazelle family.
  * Pet identity and family membership remain in `data/ranger-pet-data.ts`.
  */
-import { CONDITION } from '#gw2/platform/constants.js';
+import { CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerSkill } from '#gw2/professions/ranger/types.js';
@@ -15,18 +15,25 @@ export const SOULBEAST_ROCK_GAZELLE_BEAST_SKILL_MECHANICS: Readonly<Record<numbe
     slot: 'Profession_1',
     cooldown: 8,
     beastmodeSkill: true,
-    castTimeMs: 0,
+    // The supplied Gazelle log places Kick's impact before its recovery ends.
+    castTimeMs: 480,
     effects: [
       {
         type: 'strike',
         coefficient: 0.94,
-        hits: 1
+        hits: 1,
+        atMs: 320,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'condition',
         condition: CONDITION.VULNERABILITY,
         stacks: 3,
-        duration: 6
+        duration: 6,
+        atMs: 320,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },
@@ -37,20 +44,29 @@ export const SOULBEAST_ROCK_GAZELLE_BEAST_SKILL_MECHANICS: Readonly<Record<numbe
     slot: 'Profession_2',
     cooldown: 12,
     beastmodeSkill: true,
-    castTimeMs: 0,
+    // Charge includes its startup and follow-up animation before releasing the cast lane.
+    castTimeMs: 680,
     effects: [
       {
         type: 'strike',
         coefficient: 0.565,
         hits: 1,
-        name: 'Charge - Travel Damage'
+        name: 'Charge - Travel Damage',
+        atMs: 0,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       },
       {
         type: 'strike',
         coefficient: 1.13,
         hits: 1,
-        name: 'Charge - Impact Damage'
-      }
+        name: 'Charge - Impact Damage',
+        atMs: 600,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
+      },
+      // The impact dazes the target and activates disable-triggered traits.
+      { type: 'control', controlKind: CONTROL.DAZE, atMs: 600, timingAnchor: 'castStart', timingScale: 'fixed' }
     ]
   }
 };

@@ -86,7 +86,7 @@ These are coverage limits or missing reference values, not requests to add playe
 | Firebrand, Deliverance        | Resolve passive retention concerns healing. Eternal Oasis healing over time has no supplied amount, duration, or interval and is not simulated.                                                    |
 | Necromancer, Locust Swarm     | Healing allies around the user is not simulated; its new healing tuning was not supplied.                                                                                                          |
 | Ranger, Hidden Barbs          | Shortbow piercing additional enemies is outside the single-target model.                                                                                                                           |
-| Ranger, Light on your Feet    | Movement-speed amount and duration are unspecified and outside combat scope. The retired shortbow and evade combat bonuses have been removed.                                                      |
+| Ranger, Light on your Feet    | Movement speed is outside combat scope. The evade-triggered strike damage and condition duration bonuses remain; shortbow-specific bonuses have been removed.                                      |
 | Reaper, Augury of Death       | Healing changes are outside scope. The amount of healing reduction for each additional target was not supplied.                                                                                    |
 
 ## Existing preset flags needing review

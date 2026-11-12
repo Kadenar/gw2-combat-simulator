@@ -1,5 +1,6 @@
 // Profile materialization owns ordinary payload fields; local handlers retain admission and delivery context.
 
+import { gw2EffectExpiresAt } from '#gw2/platform/combat/effect-timing.js';
 import { MODIFIER_TARGET } from '#gw2/platform/combat/modifiers.js';
 import { claimActivation } from '#gw2/platform/combat/procs/activation-claims.js';
 import { boonActive, buffActive, skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
@@ -20,10 +21,12 @@ import {
   attributeBonusNumber,
   balanceNumber,
   balanceProfileNumber,
+  effectNumber,
   procChance,
   requireBalanceProfile,
   requireEffect
 } from '#gw2/platform/skills/balance-profiles.js';
+import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import {
   isPetStrike,
@@ -40,8 +43,65 @@ import { qualifiesForFlankingBonuses } from '#gw2/professions/ranger/core/traits
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import type { RangerResolverContext, RangerRuntime, RangerSkill } from '#gw2/professions/ranger/types.js';
 
-/** Light on your Feet now grants movement speed, outside the combat model. */
-export const lightOnYourFeet = defineTrait({ id: TRAIT.LIGHT_ON_YOUR_FEET });
+/** Dodges and evading skills extend the player's strike and condition-duration bonus window. */
+export const lightOnYourFeet = defineTrait({
+  id: TRAIT.LIGHT_ON_YOUR_FEET,
+  balance: {
+    damageMultiplier: 1.1,
+    conditionDurationBonus: 0.1,
+    effects: [{ name: 'light-on-your-feet', type: 'buff', kind: 'light-on-your-feet', duration: 6, stacks: 1 }]
+  },
+  modifierRules: [
+    {
+      order: 3,
+      id: 'ranger.light-on-your-feet',
+      target: MODIFIER_TARGET.STRIKE_DAMAGE,
+      operation: 'multiply',
+      factor: (context) => balanceNumber(context.catalog, TRAIT.LIGHT_ON_YOUR_FEET, 'damageMultiplier'),
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'light-on-your-feet')
+    },
+    {
+      order: 4,
+      id: 'ranger.light-on-your-feet-condition-duration',
+      target: MODIFIER_TARGET.CONDITION_DURATION,
+      operation: 'add',
+      amount: (context) => balanceNumber(context.catalog, TRAIT.LIGHT_ON_YOUR_FEET, 'conditionDurationBonus'),
+      when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'light-on-your-feet')
+    }
+  ],
+  triggers: [
+    {
+      on: 'castCommit',
+      // Bumble retains the trait trigger even though the skill no longer evades.
+      when: (_runtime, { skill }) =>
+        skill.id === SHARED_SKILL_IDS.DODGE || skill.evades === true || skill.id === ID.BUMBLE,
+      run: (runtime) => {
+        const profile = requireBalanceProfile(runtime.helpers, TRAIT.LIGHT_ON_YOUR_FEET);
+        const effect = requireEffect(profile, 'buff', 'light-on-your-feet');
+
+        if (!effect) return;
+
+        // Reapplications add duration to the remaining window.
+        const activeUntil = runtime.facts
+          .read()
+          .filter((event) => event.type === 'buff' && event.kind === 'light-on-your-feet' && event.at <= runtime.time)
+          .reduce(
+            (maximum, event) => Math.max(maximum, gw2EffectExpiresAt(event.at, event.duration || 0)),
+            runtime.time
+          );
+        emitTraitProfile(runtime, TRAIT.LIGHT_ON_YOUR_FEET, TRAIT.LIGHT_ON_YOUR_FEET, undefined, {
+          at: runtime.time,
+          effect: { type: 'buff', name: 'light-on-your-feet' },
+          attribution: { skillId: TRAIT.LIGHT_ON_YOUR_FEET, skillName: 'Light on your Feet' },
+          transform: (packet) => ({
+            ...packet,
+            duration: effectNumber(profile, effect, 'duration') + activeUntil - runtime.time
+          })
+        });
+      }
+    }
+  ]
+});
 
 /** Owns Tail Wind's live tuning and trait behavior. */
 export const tailWind = defineTrait({

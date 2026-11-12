@@ -56,7 +56,11 @@ export const rangerSkirmishingTooltips = {
     ]
   ),
   [TRAIT.LIGHT_ON_YOUR_FEET]: traitTooltip(
-    'Dodging or using an evading ranger skill briefly increases movement speed. The amount and duration are unspecified; movement speed is outside combat simulation scope.'
+    'Dodging or using a ranger skill that evades increases strike damage and condition duration.',
+    [
+      ['damageMultiplier', 'Strike damage', tooltipFactorChange],
+      ['conditionDurationBonus', 'Condition duration', tooltipPercent]
+    ]
   ),
   [TRAIT.VICIOUS_QUARRY]: traitTooltip('Gain ferocity and additional critical-strike chance while fury is active.', [
     ['attributeBonuses.ferocity', 'Ferocity'],

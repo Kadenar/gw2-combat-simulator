@@ -11,6 +11,8 @@ export function rangerBuffPolicies(): BuffStatePolicy[] {
     { kind: 'strength-of-the-pack-pet', maximumStacks: 1 },
     { kind: 'strength-of-the-pack-merged', maximumStacks: 1 },
     { kind: 'hunters-tactics', maximumStacks: 1 },
+    // Evade grants share one active damage and duration bonus window.
+    { kind: 'light-on-your-feet', maximumStacks: 1 },
     { kind: 'paralyzing-venom', maximumStacks: 1 },
     { kind: 'pet-sharpen-spines', maximumStacks: 5 },
     { kind: 'lesser-sic-em-pet', maximumStacks: 1 },

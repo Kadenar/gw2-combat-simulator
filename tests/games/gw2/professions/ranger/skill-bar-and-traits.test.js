@@ -659,7 +659,7 @@ test('Ranger trait rules affect their owned damage and attributes', () => {
 
   const rapidFireHit = (result) =>
     result.resolvedEvents.find((event) => event.type === 'damage' && event.skillName === 'Rapid Fire').damage;
-  assertFlooredDamageMultiplier(rapidFireHit(lightOnYourFeet), rapidFireHit(dodgeBaseline), 1);
+  assertFlooredDamageMultiplier(rapidFireHit(lightOnYourFeet), rapidFireHit(dodgeBaseline), 1.1);
 
   const cycloneRotation = ['Summon Cyclone Bow', 'Bluster', 'Fleeting Zephyr', "Quarry's Peril", 'Pelt'];
   const cyclone = simulate('Galeshot', cycloneRotation);

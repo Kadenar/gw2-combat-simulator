@@ -111,7 +111,7 @@ test('condition Druid weapon packets and cooldowns use configured profiles', () 
   );
 });
 
-test('Ranger evades and dodges no longer emit the retired Light on Your Feet combat buff', () => {
+test('Ranger evades and dodges extend the Light on Your Feet combat buff', () => {
   for (const id of [
     ID.STALKERS_STRIKE,
     ID.SERPENTS_STRIKE,
@@ -132,10 +132,83 @@ test('Ranger evades and dodges no longer emit the retired Light on Your Feet com
     selectedTraitIds: [TRAIT.LIGHT_ON_YOUR_FEET]
   });
 
-  assert.equal(result.events.filter((event) => event.type === 'buff' && event.kind === 'light-on-your-feet').length, 0);
+  const buffs = result.events.filter((event) => event.type === 'buff' && event.kind === 'light-on-your-feet');
+  assert.equal(buffs.length, 2);
+  assert.equal(buffs[0].duration, 6);
+  assert.ok(Math.abs(buffs[1].at + buffs[1].duration - (buffs[0].at + 12)) < 1e-9);
 });
 
-test('Natural Balance adds condition duration without the retired evade bonus', () => {
+// The temporary bonus belongs to the player, expires at its boundary, and respects the duration cap.
+test('Light on Your Feet respects ownership, expiry, and the condition duration cap', () => {
+  for (const expertise of [0, 1500]) {
+    for (const ownership of [
+      { actorType: 'player' },
+      { actorType: 'effect', ownerActorType: 'player' },
+      { actorType: 'summon', independentConditionOwner: true }
+    ]) {
+      const playerOwned = (ownership.ownerActorType ?? ownership.actorType) === 'player';
+      const run = (selectedTraitIds) =>
+        resolveTestGw2Events({
+          profession: rangerProfession,
+          config: { specialization: 'Core', selectedTraitIds, attributeInputs: baseAttributeInputs({ expertise }) },
+          endTime: 7,
+          events: [
+            {
+              type: 'buff',
+              at: 0,
+              source: 'Trait',
+              sourceId: TRAIT.LIGHT_ON_YOUR_FEET,
+              actorType: 'effect',
+              kind: 'light-on-your-feet',
+              duration: 6,
+              stacks: 1
+            },
+            ...[1, 6].flatMap((at) => [
+              {
+                type: 'damage',
+                at,
+                source: 'fixture',
+                sourceId: 'fixture.strike',
+                ...ownership,
+                coefficient: 1,
+                weaponStrength: 1000,
+                canCrit: false
+              },
+              {
+                type: 'condition',
+                at,
+                source: 'fixture',
+                sourceId: 'fixture.condition',
+                ...ownership,
+                condition: 'Bleeding',
+                duration: 10,
+                stacks: 1,
+                summonBaseExpertise: expertise
+              }
+            ])
+          ]
+        });
+      const baseline = run([]);
+      const boosted = run([TRAIT.LIGHT_ON_YOUR_FEET]);
+      for (const at of [1, 6]) {
+        const strike = (result) =>
+          result.resolvedEvents.find((event) => event.sourceId === 'fixture.strike' && event.at === at);
+        const condition = boosted.resolvedEvents.find(
+          (event) => event.sourceId === 'fixture.condition' && event.at === at
+        );
+        const active = playerOwned && at < 6;
+        assert.ok(Math.abs(strike(boosted).damage - strike(baseline).damage * (active ? 1.1 : 1)) < 2);
+        assert.equal(
+          condition.effectiveDuration,
+          expertise === 1500 ? 20 : active ? 11 : 10,
+          JSON.stringify({ expertise, ownership, at })
+        );
+      }
+    }
+  }
+});
+
+test('Natural Balance adds condition duration alongside Light on Your Feet', () => {
   const naturalBalance = druidModule.modifiers.modifierRules.find(
     ({ id }) => id === 'ranger.natural-balance-condition-duration'
   );
@@ -160,7 +233,7 @@ test('Natural Balance adds condition duration without the retired evade bonus', 
     .effects.find(({ condition }) => condition === 'Bleeding').duration;
 
   assert.ok(bleeding, JSON.stringify(result.warnings));
-  assert.ok(Math.abs(bleeding.effectiveDuration - baseDuration * 1.1) < 1e-9);
+  assert.ok(Math.abs(bleeding.effectiveDuration - baseDuration * 1.2) < 1e-9);
   assert.deepEqual(
     result.events
       .filter((event) => event.type === 'buff' && event.kind === 'natural-balance')

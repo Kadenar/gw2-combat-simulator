@@ -69,6 +69,41 @@ test('Apex Predator requires selection and ignores weapon attacks and independen
   assert.deepEqual(apexEvents(run('Tiger', [ID.LEAVE_BEASTMODE, { type: 'combat-start' }])), []);
 });
 
+// Charge's travel strike cannot claim the frenzy before the final impact lands.
+test('Gazelle Charge triggers Apex Predator from its impact and publishes a daze', () => {
+  const result = run('Rock Gazelle', [ID.CHARGE]);
+  const impact = result.resolvedEvents.find((event) => event.name === 'Charge - Impact Damage');
+  const travel = result.resolvedEvents.find((event) => event.name === 'Charge - Travel Damage');
+  const frenzy = apexEvents(result);
+  assert.ok(impact && travel);
+  assert.ok(frenzy.length > 0);
+  assert.ok(frenzy.every((event) => event.parentEventOrder === impact.eventOrder && event.at >= impact.at));
+  assert.ok(frenzy.every((event) => event.parentEventOrder !== travel.eventOrder));
+  const control = result.events.find((event) => event.type === 'control' && event.skillId === ID.CHARGE);
+  assert.equal(control.controlKind, 'daze');
+  assert.equal(control.at, impact.at);
+});
+
+// Every frenzy hit must see the damage buff granted by its own triggering skill.
+for (const [pet, skill] of [
+  ['Warthog', ID.BRUTAL_CHARGE_ID_46432],
+  ['Rock Gazelle', ID.CHARGE]
+]) {
+  test(`Apex Predator receives Twice as Vicious from its first hit for ${pet}`, () => {
+    const baseline = apexEvents(run(pet, [skill]));
+    const result = run(pet, [skill], [TRAIT.APEX_PREDATOR, TRAIT.TWICE_AS_VICIOUS]);
+    const buff = result.events.find((event) => event.kind === 'twice-as-vicious');
+    const frenzy = apexEvents(result);
+    assert.ok(buff);
+    assert.ok(frenzy.length > 0);
+    assert.equal(frenzy.length, baseline.length);
+    frenzy.forEach((event, index) => {
+      assert.ok(event.at >= buff.at);
+      assert.ok(Math.abs(event.damage - baseline[index].damage * 1.07) < 2);
+    });
+  });
+}
+
 test('overlapping merged abilities keep independent frenzies without recursively triggering', () => {
   const events = apexEvents(run('Tiger', [ID.BITE, ID.MAUL_ID_44514]));
   assert.equal(activations(events).size, 3);

@@ -118,14 +118,26 @@ export function analyzeRangerSharpenedEdgesObservation(
     ).length;
 
   const playerCriticalHits = criticalHitsFor(playerAddress);
-  const staticPlayerDurationsMs = expectedConditionDurationsMs(
-    baseDuration,
-    CONDITION.BLEEDING,
-    config,
-    observationAttributeSets(config, catalog, rangerProfession.attributeContributions)
-  );
-  // Current Sharpened Edges uses the configured attributes without the retired evade bonus.
-  const playerMatchedDurationsMs = staticPlayerDurationsMs;
+  const attributes = observationAttributeSets(config, catalog, rangerProfession.attributeContributions);
+  // Logs can contain both active and inactive evade-bonus windows, capped by the ordinary duration formula.
+  const durationBonus = hasSelectedTrait(config, TRAIT.LIGHT_ON_YOUR_FEET)
+    ? balanceProfileNumber(requireBalanceProfile(catalog, TRAIT.LIGHT_ON_YOUR_FEET), 'conditionDurationBonus')
+    : 0;
+  const playerMatchedDurationsMs = [
+    ...new Set(
+      [0, durationBonus].flatMap((bonus) =>
+        expectedConditionDurationsMs(
+          baseDuration,
+          CONDITION.BLEEDING,
+          config,
+          attributes.map((stats) => ({
+            ...stats,
+            conditionDurationBonus: (stats.conditionDurationBonus || 0) + bonus * 100
+          }))
+        )
+      )
+    )
+  ].sort((left, right) => left - right);
   const playerMatchedApplications = playerCriticalHits
     ? matchingConditionApplications(log, playerAddress, targetAddress, EVTC_BLEEDING_SKILL_ID, playerMatchedDurationsMs)
         .length
