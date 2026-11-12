@@ -889,7 +889,8 @@ test('Devastation boon procs respect combat intervals and skill categories', () 
     )
   );
 
-  const reprisal = simulate('Core', ['Unrelenting Assault'], {
+  // One landed strike isolates the boon trigger from a channel spanning multiple cooldown windows.
+  const reprisal = simulate('Core', ['Preparation Thrust'], {
     selectedTraitIds: [TRAIT.VICIOUS_REPRISAL],
     boons: { resolution: true },
     initialEnergy: 100

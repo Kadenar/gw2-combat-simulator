@@ -141,25 +141,23 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     type: 'Weapon',
     weapon: 'Sword',
     slot: 'Weapon_3',
-    // The opening shadowstep triggers one relic attack; impact follows the first strike (260 ms) by 680 ms.
+    // The opening shadowstep triggers one relic attack.
     shadowstepSkill: true,
     peithaImpactDelayMs: 940,
     cooldown: 12,
     energyCost: 15,
-    // Represent both activation phases with their reviewed total Quickness duration.
-    castTimeMs: 840,
+    castTimeMs: 2000,
     effects: [
       {
         type: 'strike',
-        ticks: Array.from({ length: 5 }, (_, index) => ({
-          // Preserve the supplied first impact and equal spacing through the final cast frame.
-          atMs: 260 + index * ((840 - 260) / 4),
+        ticks: [760, 1040, 1320, 1600, 1880].map((atMs) => ({
+          atMs,
           coefficient: 3.9325 / 5
         })),
         name: 'Unrelenting Assault',
         actorType: ACTOR.PLAYER,
         timingAnchor: 'castStart',
-        timingScale: 'cast'
+        timingScale: 'fixed'
       },
       {
         type: 'boon',

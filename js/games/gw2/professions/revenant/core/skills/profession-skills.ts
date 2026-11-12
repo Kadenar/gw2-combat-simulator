@@ -54,8 +54,7 @@ export const REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS: Readonly<Record<number,
     cooldown: 20,
     energyCost: 0,
     resourceGain: 25,
-    // Select the channeled legend at acceptance and refund Energy only when the cast commits.
-    castTimeMs: 360,
+    castTimeMs: 440,
     effects: [
       {
         type: 'boon',

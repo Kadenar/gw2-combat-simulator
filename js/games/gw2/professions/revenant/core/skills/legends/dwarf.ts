@@ -5,7 +5,6 @@ import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
-import { canonicalTime } from '#kernel/core/clock.js';
 
 export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.VENGEFUL_HAMMERS]: {
@@ -17,15 +16,16 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
     cooldown: 0,
     energyCost: 5,
     upkeepCost: 6,
-    pulseInterval: 1 / 3,
+    // Orbiting hammers hit one at a time, 360 ms apart in the supplied EVTC.
+    pulseInterval: 0.36,
     legendId: 'LegendaryDwarf',
     // The upkeep lifecycle owns drain and scheduling; this legend owns the pulse payload below.
     castTimeMs: 0,
     effects: [
       {
         type: 'strike',
-        coefficient: 0.6,
-        hits: 3,
+        coefficient: 0.2,
+        hits: 1,
         atMs: 0,
         name: 'Vengeful Hammers',
         actorType: ACTOR.EFFECT
@@ -159,32 +159,26 @@ export const REVENANT_DWARF_SKILL_MECHANICS: Readonly<Record<number, SkillDefini
   }
 };
 
-/** Vengeful Hammers divides one pulse's coefficient across its simultaneous hammers. */
+/** Each upkeep deadline lands one hammer; the lifecycle cancels later hits when upkeep ends. */
 export function hammerPulse(runtime: RevenantRuntime, skill: RevenantSkill, at: number): void {
   const strike = skill.effects?.find((effect) => effect.type === 'strike');
 
   if (strike?.type !== 'strike') throw new Error('Vengeful Hammers is missing its strike effect.');
 
-  const hammers = Math.max(1, Math.trunc(strike.hits ?? 1));
-
-  if (!(Number(strike.atMs) >= 0))
-    throw new Error('Vengeful Hammers requires one explicit simultaneous-hit timestamp.');
-
-  for (let index = 1; index <= hammers; index += 1)
-    runtime.effects.emit({
-      kind: 'packet',
-      event: buildResolverStrike({
-        at: canonicalTime(at + Number(strike.atMs) / 1000),
-        source: 'revenant',
-        sourceId: skill.id,
-        actorType: ACTOR.PLAYER,
-        skillId: skill.id,
-        skillName: skill.name,
-        name: `Vengeful Hammers - Hammer ${index}`,
-        coefficient: (strike.coefficient || 0) / hammers,
-        hitIndex: index,
-        totalHits: hammers,
-        skillWeapon: 'Unequipped'
-      })
-    });
+  runtime.effects.emit({
+    kind: 'packet',
+    event: buildResolverStrike({
+      at,
+      source: 'revenant',
+      sourceId: skill.id,
+      actorType: ACTOR.PLAYER,
+      skillId: skill.id,
+      skillName: skill.name,
+      name: skill.name,
+      coefficient: strike.coefficient || 0,
+      hitIndex: 1,
+      totalHits: 1,
+      skillWeapon: 'Unequipped'
+    })
+  });
 }

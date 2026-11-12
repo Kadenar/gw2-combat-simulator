@@ -115,8 +115,9 @@ const coreCadences: readonly RevenantUpkeepCadence[] = [
     name: 'revenant.upkeep-pulse',
     accepts: (skill) => skill.id === ID.EMBRACE_THE_DARKNESS || skill.id === ID.VENGEFUL_HAMMERS,
     interval: (skill) => Math.max(0, skill.pulseInterval ?? 1),
+    // Hammers hit on activation; Embrace rejoins the next whole-second pulse boundary.
     firstAt: (runtime, skill) =>
-      skill.id === ID.EMBRACE_THE_DARKNESS ? Math.floor(canonicalTime(runtime.time)) + 1 : undefined,
+      skill.id === ID.EMBRACE_THE_DARKNESS ? Math.floor(canonicalTime(runtime.time)) + 1 : runtime.time,
     pulse(runtime, skill, active) {
       if (skill.id === ID.EMBRACE_THE_DARKNESS) {
         embracePulse(runtime, skill, runtime.time, active.empoweredNextPulse);

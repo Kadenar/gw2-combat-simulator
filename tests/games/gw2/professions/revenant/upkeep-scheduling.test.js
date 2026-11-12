@@ -169,6 +169,24 @@ test('only actual Core pulse producers emit Core upkeep pulses', () => {
   }
 });
 
+test('Hammers enters combat on activation and release retires its pending damage', () => {
+  // Opening damage must enter combat even when release happens before the next orbiting hammer.
+  const config = {
+    ...baseConfig,
+    specialization: 'Core',
+    selectedLegends: [LEGEND.DWARF, LEGEND.ASSASSIN],
+    startingLegend: LEGEND.DWARF
+  };
+  const result = simulate('Core', [wait(1000), 'Vengeful Hammers', wait(100), 'Release Hammers', wait(1000)], config);
+  assert.deepEqual(result.warnings, []);
+  assert.equal(result.combatStartTime, 1, 'activation damage starts combat before release');
+  const hits = result.events.filter((event) => event.type === 'damage' && event.skillId === SKILL.VENGEFUL_HAMMERS);
+  const release = result.steps.find((step) => step.skillName === 'Release Hammers');
+  assert.ok(hits.length > 0);
+  assert.ok(hits.every((event) => event.at <= release.end / 1000));
+  assert.deepEqual(result.planningState.profession[STATE.ACTIVE_UPKEEPS], []);
+});
+
 test('releasing Conduit upkeep ends both specialization cadences', () => {
   // The release terminates every cadence attached to this upkeep before its next deadline.
   const result = simulate('Conduit', ['Cosmic Wisdom', 'Impossible Odds', wait(100), 'Relinquish Power', wait(5000)]);
