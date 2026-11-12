@@ -25,7 +25,7 @@ export const soulbeastTooltips = {
       "Leave Beastmode, restore your pet's independent actions and command skills, and remove the merged archetype attributes. Trigger applicable Beastmode traits."
     ),
     [ID.ONE_WOLF_PACK]: skillTooltip(
-      'Qualifying player strikes trigger a delayed additional strike during the stance. The echo cannot trigger itself. Leader of the Pack extends the stance and shares it with configured allies for 50% of your duration.',
+      'During the stance, qualifying player strikes trigger an extra strike after a delay. This extra strike cannot trigger itself. Leader of the Pack extends the stance and shares it with the allies set in your build for half your duration.',
       (balanceContext) => [
         skillFact(balanceContext, ID.ONE_WOLF_PACK, 'duration', 'Base stance duration', tooltipSeconds),
         skillFact(balanceContext, ID.ONE_WOLF_PACK, 'internalCooldown', 'Minimum echo interval', tooltipSeconds),
@@ -36,7 +36,7 @@ export const soulbeastTooltips = {
       ]
     ),
     [ID.VULTURE_STANCE]: skillTooltip(
-      'Qualifying player strikes inflict poison and grant might during the stance, subject to its trigger interval. Leader of the Pack extends the stance and shares it with configured allies for 50% of your duration.',
+      'During the stance, qualifying player strikes inflict poison and grant might, limited by the trigger interval. Leader of the Pack extends the stance and shares it with the allies set in your build for half your duration.',
       (balanceContext) => [
         skillFact(balanceContext, ID.VULTURE_STANCE, 'duration', 'Base stance duration', tooltipSeconds),
         skillFact(balanceContext, ID.VULTURE_STANCE, 'internalCooldown', 'Trigger interval', tooltipSeconds),

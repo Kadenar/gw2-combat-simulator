@@ -38,7 +38,7 @@ const mineFieldTooltip: DescribeSimulationTooltip = skillTooltip(
 );
 
 const dodgeTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Spend endurance to dodge and refresh Explosive Entrance. Power Wrench and Adrenal Implant reduce their supported skill recharges. Thermal Release Valve triggers Vent Exhaust while in Photon Forge.',
+  'Spend endurance to dodge and refresh Explosive Entrance. Power Wrench reduces elite-skill cooldowns. Adrenal Implant reduces toolbelt cooldowns. Thermal Release Valve triggers Vent Exhaust while in Photon Forge.',
   (balanceContext) => [
     { name: 'Endurance cost', detail: String(ENDURANCE.dodgeCost) },
     ...simulationEffectFacts(
@@ -51,7 +51,7 @@ const dodgeTooltip: DescribeSimulationTooltip = skillTooltip(
 // Focused templates are selected at impact, so presentation lists both branches explicitly.
 const conduitSurgeTooltip: DescribeSimulationTooltip = (context) => ({
   description:
-    'Strike and burn the target, establishing Focused for subsequent spear attacks. Refreshing Focused preserves a longer existing window.',
+    'Strike and burn the target. Gain Focused for later spear attacks. Refreshing Focused never shortens its remaining duration.',
   facts: [
     ...simulationEffectFacts(requireSkillAction(requireSkill(context.catalog, ID.CONDUIT_SURGE), 'payload').effects)
       .facts,
@@ -73,7 +73,7 @@ const lightningRodTooltip: DescribeSimulationTooltip = (context) => ({
 });
 const electricArtilleryTooltip: DescribeSimulationTooltip = (context) => ({
   description:
-    "Release the projectile and consume Lightning Rod's unexpired charges and follow-up. Charges are snapshotted on release; Focused is checked at impact. Charges extend burning and determine vulnerability stacks. Vulnerability duration is fixed.",
+    "Fire a projectile and consume Lightning Rod's remaining charges and follow-up. The attack uses your charge count at release and checks Focused on impact. Charges increase burning duration and vulnerability stacks. Vulnerability duration stays fixed.",
   facts: [false, true].flatMap((focused) => {
     const qualifier = focused ? 'while Focused' : 'without Focused';
     return [
@@ -116,7 +116,7 @@ const roilingSkiesTooltip: DescribeSimulationTooltip = skillTooltip(
 );
 
 const devastatorTooltip: DescribeSimulationTooltip = skillTooltip(
-  'Strike and burn the target. If Focused remains active at the end of the full cast, emit the delayed Focused Devastation follow-up.',
+  'Strike and burn the target. If Focused is still active when the full cast ends, trigger Focused Devastation after a delay.',
   (balanceContext) =>
     simulationEffectFacts(
       balanceContext.catalog.skillsById.get(ID.FOCUSED_DEVASTATION)!.effects,
@@ -152,7 +152,7 @@ export const engineerCoreTooltips = {
     [ID.MINE_FIELD]: mineFieldTooltip,
     // The modifier reference uses the proc's skill card, so expose its selected critical multiplier here too.
     [ID.STATIC_DISCHARGE_TRAIT_SKILL]: skillTooltip(
-      'An additional strike triggered by completing a toolbelt skill. Its critical damage is amplified independently of ordinary strike damage.',
+      'Completing a toolbelt skill triggers an extra strike. Its critical damage bonus applies separately from strike damage bonuses.',
       (context) => [
         skillFact(
           context,

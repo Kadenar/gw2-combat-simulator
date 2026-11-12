@@ -33,7 +33,7 @@ const beguilingHazeTooltip: DescribeSimulationTooltip = (balanceContext, entity)
 
 const hexEaterVortexTooltip: DescribeSimulationTooltip = (balanceContext, entity) => ({
   description:
-    'Remove conditions from yourself and fire a tormenting projectile for each removed condition, up to the authored projectile limit. Equipping Demon fires the full salvo even without self-conditions. Shared Wisdom grants its matching boon.',
+    'Remove conditions from yourself. Fire one tormenting projectile per condition removed, up to the projectile limit. With Demon equipped, fire all projectiles even if you have no conditions. Shared Wisdom grants its matching boon.',
   facts: simulationEffectFacts(
     balanceContext.catalog.skillsById.get(entity.id)!.effects,
     'maximum salvo; fewer projectiles without Demon or enough self-conditions'
@@ -49,7 +49,7 @@ const gladiatorsDefenseTooltip: DescribeSimulationTooltip = (balanceContext, ent
 
 const twinMoonSweepTooltip: DescribeSimulationTooltip = (balanceContext, entity) => ({
   description:
-    'You and a fragment strike together, applying bleeding and might. Both attacks are player-owned. Equipped Assassin adds immobilization; equipped Demon adds later shatter and confusion packets. Gain affinity once from the main hit; Shared Wisdom adds might.',
+    'You and a fragment strike together, inflicting bleeding and granting might. Both count as your attacks. With Assassin equipped, also immobilize the target. With Demon equipped, also trigger a delayed shatter and confusion. The main hit grants affinity once. Shared Wisdom adds might.',
   ...variantEffects(balanceContext.catalog.skillsById.get(entity.id)!.effects)
 });
 

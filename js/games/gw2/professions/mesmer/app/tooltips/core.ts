@@ -130,7 +130,7 @@ export const mesmerCoreTooltips = {
         .facts
     }),
     [ID.CHAOS_STORM]: skillTooltip(
-      'Create a storm that strikes repeatedly, dazes on its opening pulse, and poisons the target on the subsequent condition pulses.',
+      'Create a storm that strikes repeatedly. The first pulse dazes the target. Later condition pulses apply poison.',
       (context) =>
         simulationEffectFacts(requireSkillAction(requireSkill(context.catalog, ID.CHAOS_STORM), 'poison').effects).facts
     ),
@@ -177,7 +177,7 @@ export const mesmerCoreTooltips = {
       "Arm a window for your next completed utility skill. If its cast begins within the window, reduce its recharge to 1 second and add its original recharge to Mimic's base 20-second recharge, before Alacrity. Continuum Split does not restore Mimic's recharge. Follow-up skills do not consume Mimic; ammunition charges are not replenished.",
       [fromSkill(ID.MIMIC, 'duration', 'Mimic window', tooltipSeconds)]
     ),
-    [ID.MIND_THE_GAP]: skillTooltip('Strike, generate a resource, and gain Clarity for a subsequent spear skill.'),
+    [ID.MIND_THE_GAP]: skillTooltip('Strike, generate a resource, and gain Clarity for a later spear skill.'),
     [ID.IMAGINARY_INVERSION]: skillTooltip(
       "Strike your target and consume Clarity if present. Healing and incoming-damage avoidance do not change the simulated player's health."
     ),

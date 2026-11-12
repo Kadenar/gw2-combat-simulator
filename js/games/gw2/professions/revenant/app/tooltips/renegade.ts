@@ -26,7 +26,7 @@ const bandTogetherTooltip: DescribeSimulationTooltip = (balanceContext, entity) 
   const enhanced = balanceContext.catalog.skillsById.get(RENEGADE_ENHANCED_SKILL_BY_ID[Number(entity.id)])!;
   return {
     description:
-      'Call a warband member. An ordinary cast primes Band Together; the next supported warband skill within its window consumes the enhancement and uses its enhanced package instead. Enhanced casts do not prime another enhancement.' +
+      'Call a warband member. A normal cast activates Band Together. Your next eligible warband skill before it expires consumes it and uses its enhanced effects. Enhanced casts do not activate Band Together again.' +
       (selected.id === ID.RAZORCLAWS_RAGE
         ? ' Razorclaw grants finite bleeding charges to you and the assumed attacking allies.'
         : ''),

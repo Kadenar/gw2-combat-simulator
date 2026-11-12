@@ -33,50 +33,50 @@ test('equipment dropdown labels expose their effects without hover text', () => 
   );
   assert.equal(
     relicOptionLabel('Brawler'),
-    'Brawler - Grant yourself Protection or Resolution (+10% strike damage for 4s) (8s ICD)'
+    'Brawler - Granting yourself Protection or Resolution grants 10% more strike damage for 4s. (8s ICD)'
   );
-  assert.equal(relicOptionLabel('Claw'), 'Claw - CC enemy (+7% strike damage for 8s)');
+  assert.equal(relicOptionLabel('Claw'), 'Claw - Disabling an enemy grants 7% more strike damage for 8s.');
   assert.equal(
     relicOptionLabel('Peitha'),
-    'Peitha - Use shadowstep or deception skill (+10% strike damage for 4s, 2 Torment for 7s) (4s ICD)'
+    'Peitha - Using a shadowstep or deception skill grants 10% more strike damage for 4s and applies 2 stacks of Torment for 7s. (4s ICD)'
   );
-  assert.equal(relicOptionLabel('Eagle'), 'Eagle - +10% strike damage against foes below 50% health');
+  assert.equal(relicOptionLabel('Eagle'), 'Eagle - Deal 10% more strike damage to foes below 50% health.');
   assert.equal(
     relicOptionLabel('Fractal'),
-    'Fractal - Apply Bleeding to a foe with 6+ Bleeding (2 Burning for 8s, 3 Torment for 8s) (20s ICD)'
+    'Fractal - Applying Bleeding to a foe with at least 6 stacks of Bleeding also applies 2 stacks of Burning and 3 stacks of Torment for 8s. (20s ICD)'
   );
-  assert.equal(relicOptionLabel('Thorns'), 'Thorns - Hit by a poisoned foe (+30 Condition Damage) (5s ICD)');
+  assert.equal(relicOptionLabel('Thorns'), 'Thorns - Being hit by a poisoned foe grants 30 Condition Damage. (5s ICD)');
   assert.equal(
     relicOptionLabel('Thief'),
-    'Thief - Use a weapon skill with recharge or resource cost (+1% strike damage for 6s, up to 5 stacks)'
+    'Thief - Using a weapon skill with a recharge or resource cost grants 1% more strike damage for 6s, up to 5 stacks.'
   );
   assert.equal(
     relicOptionLabel('Aristocracy'),
-    'Aristocracy - Inflict Weakness or Vulnerability (+3% condition duration per stack for 8s, up to 5 stacks) (1s ICD)'
+    'Aristocracy - Inflicting Weakness or Vulnerability grants 3% condition duration for 8s, up to 5 stacks. (1s ICD)'
   );
   assert.equal(
     relicOptionLabel('Steamshrieker'),
-    'Steamshrieker - Combo a water field with a leap or blast finisher (1 Burning for 5s)'
+    'Steamshrieker - Completing a leap or blast finisher in a water field applies 1 stack of Burning for 5s.'
   );
   assert.equal(
     relicOptionLabel('Fireworks'),
-    'Fireworks - Deal strike damage with a skill with recharge ≥20s (+7% strike damage for 6s)'
+    'Fireworks - Dealing strike damage with a skill whose recharge is at least 20s grants 7% more strike damage for 6s.'
   );
   assert.equal(
     relicOptionLabel('Akeem'),
-    'Akeem - CC a foe with 5+ Torment or Confusion (2 Confusion for 10s, 2 Torment for 10s) (10s ICD)'
+    'Akeem - Disabling a foe with at least 5 stacks of Torment or Confusion applies 2 stacks each of Confusion and Torment for 10s. (10s ICD)'
   );
   assert.equal(
     relicOptionLabel('Last Tyrant'),
-    "Last Tyrant - Inflict Burning at 5 Tyrant's Fury stacks (explosion: 3.0 strike placeholder, 2 Burning for 8s) (12s ICD)"
+    "Last Tyrant - Inflicting Burning at 5 Tyrant's Fury stacks triggers an explosion and applies 2 stacks of Burning for 8s. The explosion uses a placeholder damage coefficient of 3.0. (12s ICD)"
   );
   assert.equal(
     relicOptionLabel('Visionary'),
-    'Visionary - Finish 8 combos (+10% strike and condition damage for 8s; whirls count once per 3s)'
+    'Visionary - Completing 8 combos grants 10% more strike and condition damage for 8s. Whirl finishers count once every 3s.'
   );
   assert.equal(
     relicOptionLabel('Blightbringer'),
-    'Blightbringer - Apply Poison with six distinct skill activations (3 Poison for 10s) (8s ICD)'
+    'Blightbringer - Applying Poison through six separate skill activations applies 3 extra stacks of Poison for 10s. (8s ICD)'
   );
 });
 

@@ -260,10 +260,12 @@ function elementalistPaletteGroups(
   for (const weapon of conjures) {
     groups.push({
       id: `elementalist-conjure-weapon-${weapon.toLowerCase().replaceAll(' ', '-')}`,
-      label: weapon === 'Lightning Hammer' ? 'LH' : weapon,
+      label: weapon === 'Lightning Hammer' ? 'LH' : weapon === 'Fiery Greatsword' ? 'FGS' : weapon,
       placement: 'utility',
       skillIds: catalog.skills
         .filter((skill) => skill.type === 'Weapon' && conjureSkill(catalog, skill)?.conjureWeapon === weapon)
+        // Conjure bars follow weapon slots, independent of catalog order.
+        .sort((left, right) => String(left.slot).localeCompare(String(right.slot)))
         .map((skill) => skill.id),
       // Like Engineer kit stows, each conjure bar ends with its own Drop Bundle tile; the
       // entry's bundle tag lets the palette enable only the copy for the wielded conjure.

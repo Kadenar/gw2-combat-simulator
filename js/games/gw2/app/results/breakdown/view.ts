@@ -251,7 +251,7 @@ export function mountDamageBreakdown(
             (group) => `<div class="res-condition-group${group.damaging ? '' : ' res-condition-group-utility'}">
           <div class="res-condition-group-title">${group.label}</div>
           <div class="res-hdr cond-hdr">
-            <span>Condition</span>${group.damaging ? '<span>Damage</span><span>Share</span><span>DPS</span>' : ''}<span>Avg Stacks</span>${group.damaging ? '<span title="DPS divided by average stacks: average damage per second from one stack">Avg dmg / stack</span>' : ''}
+            <span>Condition</span>${group.damaging ? '<span>Damage</span><span>Share</span><span>DPS</span>' : ''}<span>Avg Stacks</span>${group.damaging ? '<span title="Average damage per second from one stack. Calculated as DPS divided by average stacks.">Avg dmg / stack</span>' : ''}
           </div>
           ${group.conditions
             .map((condition) => {

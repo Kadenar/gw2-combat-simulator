@@ -289,7 +289,7 @@ export const necromancerCoreTooltips = {
       'Strike repeatedly and gain life force. Vulnerability and low target health increase damage.'
     ),
     [ID.SOUL_GRASP]: skillTooltip(
-      'Strike the target once and apply Vulnerability. Gain life force on projectile return, provisionally modeled 100 ms after the hit.',
+      'Strike once and apply Vulnerability. Gain life force when the projectile returns. The simulator currently estimates the return at 100 ms after the hit.',
       (context) => [skillFact(context, ID.SOUL_GRASP, 'lifeForceGain', 'Life force on return', lifeForce)]
     ),
     [ID.LOCUST_SWARM]: skillTooltip(

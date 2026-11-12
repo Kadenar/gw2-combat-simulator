@@ -15,7 +15,7 @@ import { REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.
 /** Describe corruption tooltips from the selected balance data. */
 export const revenantCorruptionTooltips = {
   [TRAIT.INVOKING_TORMENT]: (balanceContext, entity) => ({
-    description: 'Invoking a legend triggers Invoke Torment. Diabolic Inferno adds its separate condition packets.',
+    description: 'Invoking a legend triggers Invoke Torment. Diabolic Inferno applies additional conditions.',
     ...variantEffects(tooltipProfile(balanceContext, entity.id).effects)
   }),
   [TRAIT.SEETHING_MALICE]: traitTooltip('Gain condition damage.', [

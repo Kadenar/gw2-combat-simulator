@@ -81,7 +81,7 @@ const enchantedDaggersTooltip: DescribeSimulationTooltip = (balanceContext, enti
 });
 
 const spearRechargeTooltip: DescribeSimulationTooltip = skillTooltip(
-  "Attack and reduce Abyssal Raze's ammunition recharge when this skill's first damage packet lands.",
+  "Attack and reduce Abyssal Raze's ammunition recharge when this skill first deals damage.",
   (_c, entity) => [
     { name: 'Abyssal Raze recharge reduction', detail: tooltipSeconds(tooltipNumber(entity, 'rechargeReduction')) }
   ]
@@ -244,7 +244,7 @@ export const revenantCoreTooltips = {
       'Apply the supported bond effects and open the temporary scepter follow-up window.'
     ),
     [ID.ETERNITYS_REQUIEM]: (balanceContext, entity) => ({
-      description: 'Strike repeatedly, with additional hits against targets configured with a large hitbox.',
+      description: 'Strike repeatedly. Hit more times when the target uses the large hitbox setting.',
       // The separately gated strike owns the large-target component in both the tooltip and simulation.
       facts: (balanceContext.catalog.skillsById.get(entity.id)!.effects || []).flatMap((effect) =>
         effect.type === 'strike'

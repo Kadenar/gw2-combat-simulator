@@ -17,7 +17,27 @@ import { VINDICATOR_DODGE_AUTO_ACTION } from '#gw2/professions/revenant/speciali
 export const vindicatorTooltips = {
   skills: {
     [ID.ARCHEMORUS_STRIKE]: skillTooltip(
-      'Strike nearby foes, knock them down for 3 seconds, and finish a combo with a blast. Requires Friend of the Luxons and works with any equipped legends. Activation uses the tooltip duration; impact timing awaits combat-log confirmation.'
+      'Strike nearby foes, knock them down for 3 seconds, and finish a combo with a blast. Requires Friend of the Luxons and works with any equipped legends.'
+    ),
+    [ID.ALLIANCE_TACTICS]: skillTooltip(
+      'Switch between Luxon and Kurzick skills without swapping legends. Balance in Discord grants endurance in combat. Each faction keeps its own cooldowns.',
+      (_context, skill) => [
+        { name: 'Endurance with Balance in Discord', detail: tooltipDecimal(tooltipNumber(skill, 'resourceGain')) }
+      ]
+    ),
+    [ID.SELFLESS_SPIRIT]: skillTooltip('Spend Energy to heal nearby allies. Healing is outside simulation scope.'),
+    [ID.BATTLE_DANCE]: skillTooltip('Evade backward and grant resistance and regeneration to nearby allies.'),
+    [ID.TREE_SONG]: skillTooltip(
+      'Grant regeneration and gain endurance for affecting the player. Additional allies, condition cleansing, and healing are outside simulation scope.'
+    ),
+    [ID.AWAKENING]: skillTooltip(
+      'Grant protection to nearby allies and initial stability to yourself. Incoming stuns are outside simulation scope.'
+    ),
+    [ID.URN_OF_SAINT_VIKTOR]: skillTooltip(
+      'Maintain the Urn with Energy upkeep until released, starved of Energy, or a legend swap. Healing and self-damage are outside simulation scope.'
+    ),
+    [ID.DROP_URN_OF_SAINT_VIKTOR]: skillTooltip(
+      'End the Urn upkeep. Player health is fixed at full, so no health-threshold boons apply.'
     ),
     [VINDICATOR_DODGE_AUTO_ACTION]: () => ({
       description:
@@ -49,7 +69,7 @@ export const vindicatorTooltips = {
   traits: {
     [TRAIT.TENACIOUS_RUIN]: traitTooltip('Replace the ordinary dodge with the selected Vindicator dodge attack.'),
     [TRAIT.BALANCE_IN_DISCORD]: traitTooltip(
-      'Gain endurance on successful legend swaps in combat. Alliance Tactics is not implemented, so its separate endurance grant remains deferred.',
+      'Gain endurance on successful legend swaps in combat. Alliance Tactics grants its separate endurance reward in combat.',
       [['resourceGain', 'Endurance per combat legend swap']]
     ),
     [TRAIT.RISE_TO_THE_OCCASION]: traitTooltip(
@@ -61,7 +81,7 @@ export const vindicatorTooltips = {
       [['damageIncrease', 'Strike damage during the bonus', tooltipPercent]]
     ),
     [TRAIT.HEATED_RIVALRY]: traitTooltip(
-      'Deferred: Kurzick skills and Alliance Tactics are not implemented. The trigger requires two faction skills in combat in PvE. Counters, Tactics recharge, and opposite-faction energy refunds remain pending.'
+      'Deferred: the trigger requires two faction skills in combat in PvE. Counter reset and refund consumption rules still need confirmation before implementing the counters, Tactics recharge, and opposite-faction energy refunds.'
     ),
     [TRAIT.FRIEND_OF_THE_KURZICKS]: traitTooltip(
       'Healing after Kurzick skills, ally barrier, and projectile blocking are outside simulation scope. Shield of Saint Viktor and its light combo field are not implemented.'

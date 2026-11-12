@@ -88,7 +88,7 @@ function randomDistributionRangeHtml(distribution: RandomDistributionSummary): s
     </div>
     <div class="rng-range-summary">
       <span>Likely range: <strong>${number(distribution.p10)}&ndash;${number(distribution.p90)}</strong></span>
-      <span title="Half the P10–P90 interval, not standard deviation">Typical spread: <b>&plusmn;${number(halfRange)} DPS (&plusmn;${percent.toFixed(1)}%)</b></span>
+      <span title="Half the gap between the 10th and 90th percentile DPS values. This is not the standard deviation.">Typical spread: <b>&plusmn;${number(halfRange)} DPS (&plusmn;${percent.toFixed(1)}%)</b></span>
     </div>
   </div>`;
 }

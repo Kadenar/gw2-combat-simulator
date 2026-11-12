@@ -23,7 +23,10 @@ export function skillTooltipAttributes(
   tooltip: SimulationTooltip,
   { details = '', detailsTitle = '', notice = '' }: { details?: string; detailsTitle?: string; notice?: string } = {}
 ): string {
-  const description = [tooltip.description, tooltip.incomplete ? 'Some simulation details are not yet described.' : '']
+  const description = [
+    tooltip.description,
+    tooltip.incomplete ? 'This tooltip does not yet describe every simulated effect.' : ''
+  ]
     .filter(Boolean)
     .join('\n');
   const recharge = tooltip.facts.find(
@@ -56,7 +59,10 @@ export function skillTooltipAttributes(
 
 /** Trait presentation has its own identity namespace and never merges imported fact strings. */
 export function traitTooltipAttributes(trait: CatalogEntity, tooltip: SimulationTooltip): string {
-  const description = [tooltip.description, tooltip.incomplete ? 'Some simulation details are not yet described.' : '']
+  const description = [
+    tooltip.description,
+    tooltip.incomplete ? 'This tooltip does not yet describe every simulated effect.' : ''
+  ]
     .filter(Boolean)
     .join('\n');
   return wikiTooltipAttributes(

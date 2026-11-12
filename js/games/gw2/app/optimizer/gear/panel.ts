@@ -259,7 +259,7 @@ function renderResultsTable(
         if (measured === undefined || measured <= 0) return [];
 
         return [
-          `<button type="button" class="optimizer-boon-link" data-boon-preview aria-haspopup="dialog" title="View chart: generated duration for one ally as a percentage of the benchmark window">${kind === 'quickness' ? 'Quickness' : 'Alacrity'} ${measured.toFixed(2)}%</button>`
+          `<button type="button" class="optimizer-boon-link" data-boon-preview aria-haspopup="dialog" title="View boon duration generated for allies as a percentage of benchmark duration">${kind === 'quickness' ? 'Quickness' : 'Alacrity'} ${measured.toFixed(2)}%</button>`
         ];
       })
       .join('');

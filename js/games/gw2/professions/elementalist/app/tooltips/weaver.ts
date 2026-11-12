@@ -28,7 +28,7 @@ export const weaverTooltips = {
       Object.keys(WEAVER_SPEAR_BUFFS).map((id) => [
         id,
         skillTooltip(
-          'Gain the immediate benefits and arm a follow-up. Your next successful player strike consumes the armed buff, applying this skill’s additional strike and conditions. Different spear follow-ups can share the same triggering strike.',
+          "Gain this skill's immediate effects and prepare a follow-up. Your next successful player strike consumes the buff and triggers the extra strike and conditions. One strike can trigger several different spear follow-ups.",
           (_balanceContext, skill) => {
             const action = requireSkillAction(skill, 'additional-strike');
 
@@ -82,7 +82,7 @@ export const weaverTooltips = {
         (id) => [
           id,
           skillTooltip(
-            "Apply this dual attack's effects. For each of its elements, consume a stocked bullet for the corresponding enhancement or stock a bullet when none is available. Air bullets can additionally shorten Purblinding Plasma's recharge or add control to Enervating Earth.",
+            "Apply this dual attack's effects. For each element, consume a stored bullet for its bonus. If none is stored, gain a bullet instead. Air bullets also shorten Purblinding Plasma's recharge or add a control effect to Enervating Earth.",
             (balanceContext, skill) => [
               ...simulationEffectFacts(
                 // Name the required bullet directly; the description already explains consumption.
@@ -105,7 +105,7 @@ export const weaverTooltips = {
       )
     ),
     [ID.ECHOING_EROSION]: skillTooltip(
-      "Apply the dual attack's effects and update its Water and Earth bullets: consume each stocked bullet, or stock it when absent. The bullet enhancements add no separate damage payload in this simulation."
+      "Apply the dual attack's effects. Consume each stored Water and Earth bullet, or gain a bullet for any missing element. These bullet bonuses add no extra damage in the simulation."
     ),
     [ID.WEAVE_SELF]: skillTooltip(
       `Begin Weave Self and rapidly cycle attunements; attunements recharge in ${WEAVE_SELF_ATTUNEMENT_RECHARGE_SECONDS} seconds while it is active. Fire increases condition damage; Air increases strike damage. Visiting every element grants Perfect Weave and unlocks Tailored Victory. Recharge begins when Weave Self activates.`,

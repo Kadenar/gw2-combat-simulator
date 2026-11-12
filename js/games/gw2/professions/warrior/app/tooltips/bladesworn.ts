@@ -107,7 +107,7 @@ export const bladeswornTooltips = {
       );
       return {
         description:
-          'Empower your explosions and add Burning to qualifying player explosions. Casting again during the ordinary window replaces it with Supercharged Cartridges. Further casts while supercharged spend ammunition without extending the window.',
+          'Increase explosion damage and add Burning to qualifying player explosions. Cast again while Overcharged Cartridges is active to replace it with Supercharged Cartridges. Further casts while supercharged spend ammunition without extending the duration.',
         facts: [
           ...simulationEffectFacts(
             selected.effects.filter((effect) =>

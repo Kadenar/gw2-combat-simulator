@@ -173,7 +173,9 @@ export const ritualistTooltips = {
     [TRAIT.SPIRITS_GIFT]: outsideScopeTooltip,
     [TRAIT.EXPLOSIVE_GROWTH]: traitTooltip('Summoning a creature triggers a strike.'),
     [TRAIT.SPIRITS_REMEDY]: outsideScopeTooltip,
-    [TRAIT.EMPOWERING_SPIRITS]: traitTooltip('Spirit interactions grant the modeled party boons.'),
+    [TRAIT.EMPOWERING_SPIRITS]: traitTooltip(
+      'Summoning a spirit grants party Quickness and a boon based on the spirit. Anguish grants Might, Wanderlust grants Fury, and Preservation grants Resolution.'
+    ),
     [TRAIT.SPIRITS_STRENGTH]: traitTooltip('Increase autonomous creature damage. Innervate attacks are excluded.', [
       ['damageMultiplier', 'Creature strike damage', tooltipFactorChange]
     ]),
@@ -193,7 +195,7 @@ export const ritualistTooltips = {
         })
     ),
     [TRAIT.LINGERING_SPIRITS]: traitTooltip(
-      'Spirits persist through the modeled shroud transition. Active Anguish increases strike damage.',
+      'Spirits remain active when you leave shroud. Gain strike damage while Anguish is active.',
       [fromProfile(TRAIT.LINGERING_SPIRITS, 'damageIncrease', 'Strike damage with Anguish active', tooltipPercent)]
     ),
     [TRAIT.SOUL_TWISTING]: traitTooltip(

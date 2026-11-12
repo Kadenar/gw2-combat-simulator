@@ -35,7 +35,7 @@ export const thiefModifierDescriptions: ModifierDescriptions = {
       `thief.${skill}`,
       modifierDescription({
         description:
-          'The attack gains strike damage per captured malice against the active mark. Its launched packet retains that value after malice is consumed.',
+          'Against your active mark, the attack gains strike damage per malice held when the cast starts. Consuming malice does not change this bonus for an attack already launched.',
         facts: [['damagePerMalice', 'Strike damage per captured malice']]
       })
     ])

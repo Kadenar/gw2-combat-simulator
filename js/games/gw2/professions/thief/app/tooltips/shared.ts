@@ -27,7 +27,7 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
 
   if (selected.malicious)
     description +=
-      ' Snapshots malice when the cast starts. The first hit against your active mark consumes malice; Malicious Intent can then seed the next cycle.';
+      ' Uses your malice at the start of the cast. The first hit against your active mark consumes malice. Malicious Intent can then grant new malice.';
 
   // Each Backstab owns an independent selected positional modifier.
   if (selected.id === ID.BACKSTAB)
@@ -82,7 +82,8 @@ export const stealthAttack: DescribeSimulationTooltip = (balanceContext, entity)
   }
 
   if (selected.id === ID.MALICIOUS_HOOK_STRIKE) {
-    description += ' Quickness duration scales with snapshotted malice; no malice grants no quickness.';
+    description +=
+      ' Quickness duration scales with your malice at the start of the cast. Zero malice grants no quickness.';
     effects = effects.filter((effect) => effect.type !== 'boon');
     facts.push(
       ...simulationEffectFacts(

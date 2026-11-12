@@ -18,29 +18,30 @@ export const chronomancerTooltips = {
   skills: {
     ...Object.fromEntries(Object.keys(MESMER_CHRONOMANCER_SHATTERS).map((id) => [Number(id), shatterTooltip])),
     [ID.CONTINUUM_SPLIT]: skillTooltip(
-      'Spend your clones to open a window whose duration counts yourself and each clone spent. At expiry, restore the captured cooldown and ammunition state. Autoattack chains continue normally. Clones, damage, and boons are not rewound. Fragmentation extends the window.',
+      'Spend your clones to start Continuum Split. Its duration increases for you and each clone spent. When it ends, restore your starting cooldowns and ammunition. Autoattack chains continue normally. Clones, damage, and boons are not restored. Fragmentation extends the duration.',
       [fromSkill(ID.CONTINUUM_SPLIT, 'durationPerTier', 'Window per shatter source', tooltipSeconds)]
     ),
     [ID.CONTINUUM_SHIFT]: skillTooltip(
-      'End the active Continuum Split and restore its captured cooldown and ammunition state immediately. Autoattack chains continue normally.'
+      'End Continuum Split and restore the cooldowns and ammunition recorded when it began. Autoattack chains continue normally.'
     )
   },
   traits: {
+    // Continuum restores cooldowns and ammunition. It does not restore spent clones.
     [TRAIT.TIME_SPLITTER]: traitTooltip(
-      'Unlock Chronomancer, shield, wells, and its shatters. Continuum Split temporarily records cooldowns and illusion resources for restoration.'
+      'Unlock Chronomancer, shield, wells, and its shatters. Continuum Split records your cooldowns and ammunition and restores them when it ends.'
     ),
     [TRAIT.FLOW_OF_TIME]: traitTooltip(
       'Gain critical-strike chance while alacrity is active, including for illusions.',
       [['criticalChance', 'Critical chance with alacrity', tooltipPercent]]
     ),
     [TRAIT.TIME_MARCHES_ON]: traitTooltip(
-      'Alacrity applied to you is stronger: it increases your recharge rate by 50% instead of 25%. Movement speed is not simulated.'
+      'Alacrity increases your recharge rate by 50% instead of 25%. Movement speed is not simulated.'
     ),
     [TRAIT.DELAYED_REACTIONS]: traitTooltip(
       'Control effects from other skills can activate Danger Time, in addition to Time Sink.'
     ),
     [TRAIT.TIME_CATCHES_UP]: traitTooltip(
-      'Eligible shatter packets deal increased damage against chilled, crippled, immobilized, or slowed targets.',
+      'Eligible shatter hits deal increased damage against chilled, crippled, immobilized, or slowed targets.',
       [fromProfile(TRAIT.TIME_CATCHES_UP, 'damageMultiplier', 'Shatter strike damage', tooltipFactorChange)]
     ),
     [TRAIT.ALLS_WELL_THAT_ENDS_WELL]: outsideScopeTooltip,

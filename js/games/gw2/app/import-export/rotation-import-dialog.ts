@@ -464,7 +464,7 @@ export function bindRotationImportDialog(
 ): HTMLDialogElement {
   fileInput.accept = ROTATION_IMPORT_ACCEPT;
   button.setAttribute('aria-haspopup', 'dialog');
-  button.title = 'Load a rotation JSON or reconstruct one from an EVTC/dps.report/gw2wingman log';
+  button.title = 'Load a rotation JSON file or import a rotation from an EVTC, dps.report, or gw2wingman log';
 
   const elements = createDialog(button.ownerDocument, destination);
   let manifestRotations: BuildTemplatePreset[] = [];

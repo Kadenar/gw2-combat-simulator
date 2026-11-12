@@ -5,9 +5,9 @@ import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js'
 
 export const guardianModifierDescriptions: ModifierDescriptions = {
   'guardian.glaring-burst-hammer': modifierDescription({
-    name: 'Glaring Burst — radiant hammer bonus',
+    name: 'Glaring Burst, radiant hammer bonus',
     skills: [ID.GLARING_BURST],
-    description: 'Glaring Burst deals increased strike damage when its packet uses the radiant hammer variant.',
+    description: 'The radiant hammer version of Glaring Burst deals increased strike damage.',
     facts: [['factor', 'Strike damage with the radiant hammer', tooltipFactorChange]]
   })
 };

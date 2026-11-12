@@ -72,7 +72,7 @@ function calculationHtml(calculation: EventLogCalculation, classes: string, quer
     )
     .join('');
   const factors = calculation.factors.length
-    ? `<table class="log-calc-factors"><thead><tr><th scope="col" colspan="2" class="log-calc-title">Modifiers</th><th scope="col" class="log-calc-title log-calc-value" title="How this result alone would change without only this modifier; not a rerun of the simulation.">If removed</th></tr></thead><tbody>${calculation.factors
+    ? `<table class="log-calc-factors"><thead><tr><th scope="col" colspan="2" class="log-calc-title">Modifiers</th><th scope="col" class="log-calc-title log-calc-value" title="Change to this hit's damage if only this modifier were removed. All other values stay fixed.">If removed</th></tr></thead><tbody>${calculation.factors
         .map(
           (factor) =>
             `<tr><th scope="row">${escapeHtml(factor.label)}</th><td title="${escapeHtml(factor.exact)}">${escapeHtml(factor.value)}</td><td class="log-calc-value">${escapeHtml(factor.impact)}</td></tr>`

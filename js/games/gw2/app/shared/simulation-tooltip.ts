@@ -297,9 +297,7 @@ export function traitSkillTooltip(
 }
 
 /** State the simulation outcome without guessing why an unmodeled trait was excluded. */
-export const outsideScopeTooltip = traitTooltip(
-  'This trait has no simulated effect. Its bonuses and triggers are not included in the simulation.'
-);
+export const outsideScopeTooltip = traitTooltip('This trait has no effect in the simulation.');
 
 /**
  * Skill-specific wording can augment the selected skill's ordinary declarative payload. The selected catalog supplies
@@ -573,12 +571,12 @@ function ordinarySkillDescription(skill: Skill): string {
   }
 
   if (effects.some((effect) => effect.type === 'boon'))
-    sentences.push('Grant the listed boons to their indicated recipients.');
+    sentences.push('Grant the listed boons to the recipients shown below.');
 
   if (effects.some((effect) => effect.type === 'buff')) sentences.push('Apply the listed combat effects.');
 
   if (effects.some((effect) => effect.type === 'aura'))
-    sentences.push('Grant the listed auras to their indicated recipients.');
+    sentences.push('Grant the listed auras to the recipients shown below.');
 
   // Name each declared disable so the description explains the action rather than its internal event category.
   const controls = [...new Set(effects.flatMap((effect) => (effect.type === 'control' ? [effect.controlKind] : [])))];
@@ -605,7 +603,7 @@ function ordinarySkillDescription(skill: Skill): string {
   if (effects.some((effect) => effect.type === 'custom' && effect.eventType === 'resource'))
     sentences.push('Gain the listed resources.');
 
-  return sentences.join(' ') || 'This action has no direct damage or status effects described by the simulator.';
+  return sentences.join(' ') || 'The simulator lists no direct damage or status effects for this action.';
 }
 
 /** Generic skills describe only modeled payloads; profession functions supply conditional and skill-specific prose. */

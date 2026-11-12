@@ -435,7 +435,7 @@ test('Revenant trait tooltips show bonuses, resource icons, and excluded traits'
   }
 
   const excluded = describe(traits.CONTAINED_TEMPER);
-  assert.match(excluded.description, /no simulated effect/);
+  assert.match(excluded.description, /no effect in the simulation/);
   assert.deepEqual(excluded.facts, []);
 });
 
