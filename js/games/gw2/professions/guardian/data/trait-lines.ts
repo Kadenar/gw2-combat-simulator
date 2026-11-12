@@ -490,7 +490,8 @@ export const TRAIT_LINES: readonly Gw2SpecializationData[] = [
         {
           id: 2063,
           name: 'Revelation',
-          icon: 'https://render.guildwars2.com/file/2EF42105F7B45367AB72AD737250E014597708A5/1769940.png'
+          // Use the hand artwork for Revelation in the trait picker.
+          icon: 'https://render.guildwars2.com/file/3D80FCC2D64D10B566185CFA94CE681FE73BD237/1769942.png'
         },
         {
           id: 2086,
@@ -502,7 +503,7 @@ export const TRAIT_LINES: readonly Gw2SpecializationData[] = [
         {
           id: 'guardian.firebrand.fervid-conviction',
           name: 'Fervid Conviction',
-          icon: 'https://render.guildwars2.com/file/3D80FCC2D64D10B566185CFA94CE681FE73BD237/1769942.png'
+          icon: 'https://render.guildwars2.com/file/2EF42105F7B45367AB72AD737250E014597708A5/1769940.png'
         },
         {
           id: 2076,

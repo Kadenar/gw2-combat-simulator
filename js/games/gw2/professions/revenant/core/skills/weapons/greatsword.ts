@@ -25,8 +25,7 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 400,
-    // Recorded 365 ms casts land their strike and advance to Mist Slash on the 360 ms action frame.
-    interruptCommitMs: 360,
+    interruptCommitMs: 320,
     effects: [
       {
         type: 'strike',

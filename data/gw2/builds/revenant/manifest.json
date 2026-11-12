@@ -181,15 +181,15 @@
         "build": "data/gw2/builds/revenant/b-power-conduit.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
-        "benchmarkDps": 40560,
-        "upToDate": false,
-        "benchmarkApm": 78.1,
+        "benchmarkDps": 43855,
+        "upToDate": true,
+        "benchmarkApm": 80.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 49342, "phase": 49342 },
-          "80-60": { "cumulative": 40369, "phase": 34034 },
-          "60-40": { "cumulative": 38482, "phase": 35071 },
-          "40-20": { "cumulative": 40338, "phase": 47123 },
-          "20-0": { "cumulative": 40560, "phase": 40560 }
+          "100-80": { "cumulative": 50006, "phase": 50006 },
+          "80-60": { "cumulative": 43696, "phase": 38998 },
+          "60-40": { "cumulative": 42197, "phase": 39285 },
+          "40-20": { "cumulative": 42880, "phase": 45067 },
+          "20-0": { "cumulative": 43855, "phase": 48190 }
         }
       },
       {

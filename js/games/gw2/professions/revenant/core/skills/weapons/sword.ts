@@ -79,7 +79,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 480,
-    interruptCommitMs: 440,
+    interruptCommitMs: 400,
     effects: [
       {
         type: 'strike',
@@ -235,7 +235,7 @@ export const REVENANT_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Ski
     rechargeOffsetMs: 420,
     energyCost: 10,
     castTimeMs: 720,
-    interruptCommitMs: 680,
+    interruptCommitMs: 640,
     // Share timing defaults while preserving each packet, effect order, and local schedule.
     effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
