@@ -8,7 +8,7 @@ import type {
 } from '#gw2/platform/profession-presentation/types.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
+import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
   VINDICATOR_AIRBORNE_MS,
@@ -130,13 +130,14 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
   },
 
   rotationStateSnapshot: vindicatorStateSnapshot,
-  // The selected Luxon grandmaster adds its F4 skill even when neither legend is Alliance.
+  // F3 belongs to the active Alliance legend; the selected grandmaster adds F4 with any legend.
   paletteGroups: (context) => [
     {
       id: 'revenant-profession-specialization',
       label: 'F',
       skillIds: [
         SKILL.ENERGY_MELD,
+        ...(activeRevenantLegend(context) === 'LegendaryAlliance' ? [SKILL.ALLIANCE_TACTICS] : []),
         ...(selectedTraits(context.catalog, context.build?.specializations).some(
           (trait) => trait.id === TRAIT.FRIEND_OF_THE_LUXONS
         )

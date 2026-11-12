@@ -69,7 +69,7 @@ const forerunnerOfDeath = defineTrait({
   ]
 });
 
-/** Accepted combat legend swaps restore capped endurance; Alliance Tactics remains deferred. */
+/** Accepted combat legend and Alliance faction swaps restore their separate capped endurance rewards. */
 const balanceInDiscord = defineTrait({
   id: TRAIT.BALANCE_IN_DISCORD,
   balance: { resourceGain: 50 },
@@ -80,6 +80,16 @@ const balanceInDiscord = defineTrait({
         cast.skill.id === ID.SWAP_LEGENDS && runtime.engagement.active && runtime.engagement.combatMechanicsAllowed(),
       run(runtime: RevenantRuntime) {
         runtime.endurance.grant(balanceNumber(runtime.helpers, TRAIT.BALANCE_IN_DISCORD, 'resourceGain'));
+      }
+    },
+    {
+      on: 'castCommit',
+      when: (runtime, cast) =>
+        cast.skill.id === ID.ALLIANCE_TACTICS &&
+        runtime.engagement.active &&
+        runtime.engagement.combatMechanicsAllowed(),
+      run(runtime: RevenantRuntime, cast) {
+        runtime.endurance.grant(cast.skill.resourceGain ?? 0);
       }
     }
   ]

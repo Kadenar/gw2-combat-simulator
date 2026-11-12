@@ -3,8 +3,14 @@
 
 export const REVENANT_SKILL_IDS = Object.freeze({
   SWAP_LEGENDS: -4,
-  // Local identity until a combat log supplies the new F4 skill's official ID.
-  ARCHEMORUS_STRIKE: 'revenant.vindicator.archemorus-strike',
+  ARCHEMORUS_STRIKE: 81369,
+  ALLIANCE_TACTICS: 62729,
+  SELFLESS_SPIRIT: 62680,
+  BATTLE_DANCE: 62702,
+  TREE_SONG: 62941,
+  AWAKENING: 62796,
+  URN_OF_SAINT_VIKTOR: 62687,
+  DROP_URN_OF_SAINT_VIKTOR: 62738,
   PAIN_ABSORPTION_ID_78505: 78505, // Pain Absorption
   BANISH_ENCHANTMENT_ID_78587: 78587, // Banish Enchantment
   EMPOWERING_MISERY_ID_78681: 78681, // Empowering Misery

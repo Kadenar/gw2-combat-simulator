@@ -16,28 +16,42 @@ const energyMeldRewards: readonly SkillSideEffect[] = [
 ];
 
 export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<string, SkillDefinition<RevenantSkill>>> = {
+  [ID.ALLIANCE_TACTICS]: {
+    name: 'Alliance Tactics',
+    icon: 'https://render.guildwars2.com/file/DE01C14360F2E7E81C336241C7D6ED6FA14DA005/2491605.png',
+    type: 'Profession',
+    slot: 'Profession_3',
+    resourceGain: 10,
+    legendId: 'LegendaryAlliance',
+    cooldown: 3,
+    energyCost: 0,
+    castTimeMs: 0,
+    effects: [],
+    // Switching faction changes access without invoking another legend or resetting Energy.
+    sideEffects: [{ on: 'castCommit', do: { type: 'revenant.alliance-tactics' } }]
+  },
   // Friend of the Luxons grants this attack independently of the equipped legends.
   [ID.ARCHEMORUS_STRIKE]: {
     name: "Archemorus's Strike",
-    icon: 'https://render.guildwars2.com/file/75E2F0423C74594E045AF6A10A55065E3CE61037/2491622.png',
+    icon: 'https://render.guildwars2.com/file/223954AEBBECE555910FB16CE15073239CEDCC60/3833327.png',
     type: 'Profession',
     slot: 'Profession_4',
     cooldown: 25,
     energyCost: 0,
-    // Tooltip activation, expressed on the authored Quickness timeline; impact awaits log calibration.
-    castTimeMs: 500,
+    castTimeMs: 680,
     comboFinishers: [{ ownerId: 'revenant', finisherType: COMBO_FINISHER.BLAST }],
     effects: [
       {
         type: 'strike',
         name: "Archemorus's Strike",
-        // Matching-build tooltip damage agrees with Death Drop's coefficient.
-        coefficient: 3.3,
+        coefficient: 3,
+        atMs: 600,
+        timingAnchor: 'castStart',
         weaponStrengthProfileId: 'nonweapon.unequipped',
         hits: 1,
         actorType: ACTOR.PLAYER
       },
-      { type: 'control', controlKind: CONTROL.KNOCKDOWN, actorType: ACTOR.PLAYER }
+      { type: 'control', controlKind: CONTROL.KNOCKDOWN, actorType: ACTOR.PLAYER, atMs: 600, timingAnchor: 'castStart' }
     ]
   },
   [ID.LEGENDARY_ALLIANCE_STANCE_ID_62749]: {

@@ -3,16 +3,20 @@ import {
   type SpecializationRuntimeState
 } from '#gw2/platform/profession-definition/state.js';
 import type { Gw2PlanningStateInput } from '#gw2/platform/results/types.js';
+import type { AllianceFaction } from '#gw2/professions/revenant/data/alliance.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 
 export interface VindicatorState {
   reaversCurseUntil: number;
+  allianceFaction: AllianceFaction;
 }
 
 function createVindicatorState(): VindicatorState {
   return {
     // Timestamp-based flags: 0 means inactive; compared against event.at so 0 is safely "never".
-    reaversCurseUntil: 0
+    reaversCurseUntil: 0,
+    // Alliance remembers its selected faction across ordinary legend swaps.
+    allianceFaction: 'Luxon'
   };
 }
 
@@ -23,6 +27,7 @@ export const vindicatorState = defineProfessionSpecializationState('Vindicator',
 export function projectVindicatorPlanningState(input: Gw2PlanningStateInput<SpecializationRuntimeState>) {
   const state = vindicatorState.from(input.profession);
   return {
-    [STATE.REAVERS_CURSE_UNTIL]: state.reaversCurseUntil
+    [STATE.REAVERS_CURSE_UNTIL]: state.reaversCurseUntil,
+    [STATE.ALLIANCE_FACTION]: state.allianceFaction
   };
 }

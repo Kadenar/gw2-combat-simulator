@@ -8,6 +8,7 @@ import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import type { RevenantRuntime } from '#gw2/professions/revenant/core/events.js';
 import { eliteLegendInvoked } from '#gw2/professions/revenant/core/mechanics/trigger-points.js';
+import { allianceBarFaction } from '#gw2/professions/revenant/data/alliance.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
   VINDICATOR_AIRBORNE_MS,
@@ -99,16 +100,32 @@ function energyMeld(runtime: RevenantRuntime): void {
 export const vindicatorHooks: RuntimeHooks<RevenantRuntimeState, RevenantSkill> = {
   buffPolicies: vindicatorBuffPolicies,
   // The F4 attack needs its grandmaster, but never requires Alliance to be equipped or active.
-  availability: (runtime, skill) =>
-    skill.id === ID.ARCHEMORUS_STRIKE && !hasTrait(runtime, TRAIT.FRIEND_OF_THE_LUXONS)
-      ? denySkillCast(skill, 'revenant.friend-of-the-luxons-required', 'select Friend of the Luxons.')
-      : CAST_READY,
+  availability(runtime, skill) {
+    if (skill.id === ID.ARCHEMORUS_STRIKE && !hasTrait(runtime, TRAIT.FRIEND_OF_THE_LUXONS))
+      return denySkillCast(skill, 'revenant.friend-of-the-luxons-required', 'select Friend of the Luxons.');
+
+    // Both factions retain their own cooldowns, but only the selected bar accepts casts.
+    const faction = allianceBarFaction(skill.id);
+
+    if (faction && faction !== vindicatorState.from(runtime.profession).allianceFaction)
+      return denySkillCast(
+        skill,
+        'revenant.inactive-alliance-faction',
+        `use Alliance Tactics to select ${faction} skills.`
+      );
+
+    return CAST_READY;
+  },
   // Saved Jump commands keep their identity while display and execution use the shared endurance-paying input.
   modifySkillId: (_context, skillId) => (skillId === VINDICATOR_DODGE_INPUT.id ? SHARED_SKILL_IDS.DODGE : skillId),
   // Resolve before admission so the shared input occupies the full jump's non-instant execution lane.
   resolveCastSkill: (_runtime, skill) =>
     skill.id === SHARED_SKILL_IDS.DODGE ? { ...skill, castTimeMs: VINDICATOR_DODGE_MS } : skill,
   sideEffectHandlers: {
+    'revenant.alliance-tactics'(runtime) {
+      const state = vindicatorState.from(runtime.profession);
+      state.allianceFaction = state.allianceFaction === 'Luxon' ? 'Kurzick' : 'Luxon';
+    },
     'revenant.energy-meld-endurance'(runtime, context) {
       if (context.kind === 'cast') runtime.fireTrigger(energyMeldEnduranceGranted);
     }

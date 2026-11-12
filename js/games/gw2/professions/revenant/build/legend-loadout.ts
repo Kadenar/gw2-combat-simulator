@@ -4,6 +4,7 @@ import type { Gw2SlotLoadout } from '#gw2/platform/builds/types.js';
 import type { Gw2SharedProfessionPlanningState } from '#gw2/platform/results/types.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 import { REVENANT_PROFESSION_SKILLS_SKILL_MECHANICS } from '#gw2/professions/revenant/core/skills/profession-skills.js';
+import { KURZICK_SKILL_BY_LUXON, type AllianceFaction } from '#gw2/professions/revenant/data/alliance.js';
 import { REVENANT_LEGEND_IDS as LEGEND, REVENANT_SKILL_IDS as SKILL } from '#gw2/professions/revenant/data/ids.js';
 import { REVENANT_LEGEND_SPECIALIZATIONS } from '#gw2/professions/revenant/data/legends.js';
 import { revenantUpkeepConsumeId } from '#gw2/professions/revenant/data/upkeep-skills.js';
@@ -26,6 +27,7 @@ interface RevenantLegend {
 interface RevenantLegendLoadoutContext extends SlotLoadoutContext {
   professionState?: Partial<Gw2SharedProfessionPlanningState> & {
     [STATE.ACTIVE_LOADOUT_ID]?: string;
+    [STATE.ALLIANCE_FACTION]?: AllianceFaction;
   };
 }
 
@@ -164,6 +166,12 @@ export const revenantLegendLoadout = Object.freeze({
     if (!context.catalog) throw new Error('Revenant loadout children require the selected catalog.');
 
     const skill: RevenantSkill | undefined = context.catalog.skillsById.get(skillId);
+    // Faction replacements remain selectable children of the same saved utility slots.
+    const kurzick = KURZICK_SKILL_BY_LUXON.get(skillId);
+
+    if (kurzick != null)
+      return kurzick === SKILL.URN_OF_SAINT_VIKTOR ? [kurzick, SKILL.DROP_URN_OF_SAINT_VIKTOR] : [kurzick];
+
     const consumeId = skill?.facet ? revenantUpkeepConsumeId(skill, skill.legendId ?? '') : undefined;
 
     if (consumeId != null) return [consumeId];
@@ -181,6 +189,17 @@ export const revenantLegendLoadout = Object.freeze({
       className: group.active ? 'compact-resource-palette revenant-legend-skills' : 'revenant-legend-skills-inactive',
       resourceAnchor: group.active,
       skillIds: group.skillIds.flatMap((skillId) => {
+        if (context.professionState?.[STATE.ALLIANCE_FACTION] === 'Kurzick') {
+          const kurzick = KURZICK_SKILL_BY_LUXON.get(skillId);
+
+          if (kurzick != null)
+            return [
+              kurzick === SKILL.URN_OF_SAINT_VIKTOR && availableFlips[SKILL.DROP_URN_OF_SAINT_VIKTOR]
+                ? SKILL.DROP_URN_OF_SAINT_VIKTOR
+                : kurzick
+            ];
+        }
+
         const skill: RevenantSkill | undefined = catalog.skillsById.get(skillId);
         const heraldFlipId = skill?.facet ? revenantUpkeepConsumeId(skill, skill.legendId ?? '') : undefined;
 

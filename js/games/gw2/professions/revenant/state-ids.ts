@@ -15,5 +15,6 @@ export const REVENANT_STATE_IDS = Object.freeze({
   BEGUILING_HAZE_READY_AT: 'gw2.conduit.beguiling-haze-ready-at',
   KALLAS_FERVOR: 'gw2.renegade.kallas-fervor',
   RAZORCLAWS_RAGE: 'gw2.renegade.razorclaws-rage',
-  REAVERS_CURSE_UNTIL: 'gw2.vindicator.reavers-curse-until'
+  REAVERS_CURSE_UNTIL: 'gw2.vindicator.reavers-curse-until',
+  ALLIANCE_FACTION: 'gw2.vindicator.alliance-faction'
 } as const);

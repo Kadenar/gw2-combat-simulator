@@ -1,11 +1,11 @@
-/** Owns Legendary Alliance stance skill definitions. */
+/** Owns the Luxon skills of Legendary Alliance Stance. */
 import { ACTOR, BOON, CONDITION, CONTROL } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import type { RevenantSkill } from '#gw2/professions/revenant/types.js';
 
-export const VINDICATOR_ALLIANCE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
+export const VINDICATOR_LUXON_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<RevenantSkill>>> = {
   [ID.SELFISH_SPIRIT]: {
     name: 'Selfish Spirit',
     icon: 'https://render.guildwars2.com/file/5D42213C0E779954D393D190FF62D6F2EADBA03D/2491620.png',

@@ -30,6 +30,7 @@ import {
 } from '#gw2/professions/revenant/data/legends.js';
 import { isRevenantUpkeepRelease } from '#gw2/professions/revenant/data/upkeep-skills.js';
 import { revenantProfession } from '#gw2/professions/revenant/profession.js';
+import { vindicatorState } from '#gw2/professions/revenant/specializations/vindicator/state.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { createCalculateAttributes, createProfessionBuildAttributeRules } from '#tests/helpers/build-attributes.js';
 import { withProfile } from '#tests/helpers/catalog-overrides.js';
@@ -267,6 +268,10 @@ test('Revenant upkeep releases require an armed flip in the active legend', () =
         { specialization: release.specialization || 'Core', initialEnergy: 0 },
         (runtime) => {
           runtime.profession.core.activeLegendId = release.legendId || runtime.profession.core.activeLegendId;
+
+          // Urn release additionally requires the Kurzick half of the Alliance bar.
+          if (release.id === SKILL.DROP_URN_OF_SAINT_VIKTOR)
+            vindicatorState.from(runtime.profession).allianceFaction = 'Kurzick';
 
           if (armed) runtime.armFlip(release.id, { availableAt: 0 });
         }

@@ -1,5 +1,6 @@
 import { createNativeModuleData } from '#gw2/platform/profession-definition/assemble-module-catalog.js';
 import { defineNativeModule } from '#gw2/platform/profession-definition/profession.js';
+import { REVENANT_SKILL_IDS as ID } from '#gw2/professions/revenant/data/ids.js';
 import { TRAIT_LINES } from '#gw2/professions/revenant/data/trait-lines.js';
 import { vindicatorHooks } from '#gw2/professions/revenant/specializations/vindicator/hooks.js';
 import { vindicatorUi } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
@@ -17,6 +18,7 @@ export const vindicatorModule = defineNativeModule({
   data: createNativeModuleData<RevenantSkill>({
     id: 'Vindicator',
     traitLines: TRAIT_LINES,
+    skillFlips: [{ parentId: ID.URN_OF_SAINT_VIKTOR, followUpId: ID.DROP_URN_OF_SAINT_VIKTOR }],
     skills: VINDICATOR_SKILLS
   }),
   state: { create: vindicatorState.create, project: projectVindicatorPlanningState },

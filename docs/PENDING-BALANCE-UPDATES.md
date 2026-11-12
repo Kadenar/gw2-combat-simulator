@@ -40,28 +40,18 @@ Current limitations are recorded in the [Core tooltips](../js/games/gw2/professi
 
 ## Revenant
 
-- [ ] **Frigid Blitz.** The November 10 combat log establishes a single impact with both conditions and replaces the
-      previous two-hit timing. Need the new strike coefficient; the previous final-strike coefficient remains. See
+- [ ] **Frigid Blitz.** Confirm the new strike coefficient; the previous final-strike coefficient remains. See
       [axe skills](../js/games/gw2/professions/revenant/core/skills/weapons/axe.ts).
-- [ ] **Balance in Discord.** Combat legend swaps now grant endurance. Alliance Tactics and its separate endurance grant
-      remain absent.
-- [ ] **Friend of the Luxons.** The damage bonus and Archemorus's Strike are implemented from the supplied tooltips.
-      Confirm damage stacking and refresh behavior against combat logs, and calibrate the new attack's impact timing.
-- [ ] **Heated Rivalry.** The two-skill PvE threshold and combat restriction are confirmed. Faction counters, Alliance
-      Tactics recharge, and the next opposite-faction skill's energy refund still need implementation with the missing
-      Kurzick bar and Alliance Tactics. Confirm counter reset and refund consumption rules.
-- [ ] **Shield of Saint Viktor integration.** Its healing, barrier, and projectile blocking are outside scope and do not
-      block damage simulation. Its light combo field and any interaction with Heated Rivalry remain unimplemented.
-- [ ] **New Vindicator identities.** Grandmasters and Archemorus's Strike use local IDs and placeholder icons until
-      official IDs and icons are confirmed. See [trait IDs](../js/games/gw2/professions/revenant/data/ids.ts).
-- [ ] **Centaur empowerment coverage.** Tranquil consumption/replenishment and empowered Energy Expulsion Stability are
-      implemented. Existing gaps remain for empowered Natural Harmony endurance and Protective Solace Protection.
-      Release Potential: Monk's tablet/Tranquil interaction also needs implementation. See
+- [ ] **Friend of the Luxons.** Confirm damage stacking and refresh behavior against combat logs. See
+      [live traits](../js/games/gw2/professions/revenant/specializations/vindicator/traits/index.ts).
+- [ ] **Heated Rivalry.** Faction counters, Alliance Tactics recharge, and the next opposite-faction skill's energy
+      refund still need implementation. Confirm counter reset and refund consumption rules.
+- [ ] **Shield of Saint Viktor integration.** Its light combo field and any interaction with Heated Rivalry remain
+      unimplemented.
+- [ ] **Vindicator trait identities.** Replace local grandmaster IDs and update moved trait IDs from the live API.
+- [ ] **Centaur empowerment coverage.** Implement empowered Natural Harmony endurance, empowered Protective Solace
+      Protection, and Release Potential: Monk's tablet/Tranquil interaction. See
       [Centaur skills](../js/games/gw2/professions/revenant/core/skills/legends/centaur.ts).
-
-The supplied Vindicator tooltips resolve the endurance and damage-bonus values. Healing and barrier values are outside
-simulation scope. Vindicator mechanics are owned by
-[live traits](../js/games/gw2/professions/revenant/specializations/vindicator/traits/index.ts).
 
 ## Thief
 
