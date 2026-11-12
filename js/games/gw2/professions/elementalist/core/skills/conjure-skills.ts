@@ -11,6 +11,9 @@ import { withSmallHitboxCap } from '#gw2/professions/elementalist/core/skills/hi
 import { ELEMENTALIST_SKILL_IDS as ID } from '#gw2/professions/elementalist/data/ids.js';
 import type { ElementalistSkill } from '#gw2/professions/elementalist/types.js';
 
+// Whirl's strikes and Cripple share the measured offsets; small targets receive only the first four packets.
+const FIERY_WHIRL_HIT_OFFSETS_MS = [280, 400, 520, 640, 760, 880, 1000, 1120] as const;
+
 /** Complete conjured-bundle weapon skill definitions keyed by GW2 skill ID. */
 // Shared impact timing keeps companion payloads independent and in their authored order.
 export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<ElementalistSkill>>> = {
@@ -517,21 +520,13 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
 
       cooldown: 5,
       skillFamily: 'Weapon skill',
-      castTimeMs: 1320,
+      // Both hitbox recordings finish the movement at about 1.44 seconds.
+      castTimeMs: 1440,
       conjureSourceId: ID.CONJURE_FIERY_GREATSWORD,
       // Share timing defaults while preserving each packet, effect order, and local schedule.
       effects: impactEffects({ timingAnchor: 'castStart', timingScale: 'cast' }, [
         strikeTimeline(
-          [
-            { atMs: 280, coefficient: 0.688 },
-            { atMs: 400, coefficient: 0.688 },
-            { atMs: 520, coefficient: 0.688 },
-            { atMs: 640, coefficient: 0.688 },
-            { atMs: 760, coefficient: 0.688 },
-            { atMs: 880, coefficient: 0.688 },
-            { atMs: 1000, coefficient: 0.688 },
-            { atMs: 1120, coefficient: 0.688 }
-          ],
+          FIERY_WHIRL_HIT_OFFSETS_MS.map((atMs) => ({ atMs, coefficient: 0.688 })),
           {
             comboFinishers: [
               {
@@ -542,7 +537,7 @@ export const ELEMENTALIST_CONJURE_SKILL_MECHANICS: Readonly<Record<number, Skill
           }
         ),
         conditionTimeline(
-          [280, 400, 520, 640, 760, 880, 1000, 1120].map((atMs) => ({
+          FIERY_WHIRL_HIT_OFFSETS_MS.map((atMs) => ({
             atMs,
             condition: CONDITION.CRIPPLED,
             stacks: 1,
