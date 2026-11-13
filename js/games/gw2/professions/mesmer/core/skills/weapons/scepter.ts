@@ -8,6 +8,9 @@ import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerResourceDefinition } from '#gw2/professions/mesmer/family-state.js';
 import type { MesmerRuntimeState } from '#gw2/professions/mesmer/types.js';
 
+// Each channel hit applies its Confusion at the same impact, including when the channel is interrupted.
+const CONFUSING_IMAGES_IMPACTS_MS = [920, 1080, 1200, 1440, 1560, 1680, 1840];
+
 /** At impact, full clones or notes replace the resource reward with torment; blades keep their own reward. */
 function atEtherCloneLimit(runtime: MechanicQueryContext<MesmerRuntimeState>): boolean {
   const definition = mesmerResourceDefinition(runtime.profession.specialization.kind, runtime.helpers);
@@ -196,15 +199,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
     effects: [
       {
         type: 'strike',
-        ticks: [
-          { atMs: 920, coefficient: 0.76 },
-          { atMs: 1080, coefficient: 0.76 },
-          { atMs: 1200, coefficient: 0.76 },
-          { atMs: 1440, coefficient: 0.76 },
-          { atMs: 1560, coefficient: 0.76 },
-          { atMs: 1680, coefficient: 0.76 },
-          { atMs: 1840, coefficient: 0.76 }
-        ],
+        ticks: CONFUSING_IMAGES_IMPACTS_MS.map((atMs) => ({ atMs, coefficient: 0.76 })),
         name: 'Damage',
         actorType: ACTOR.PLAYER,
         weapon: WEAPON.SCEPTER.toLowerCase(),
@@ -213,8 +208,7 @@ export const MESMER_WEAPONS_SCEPTER_SKILL_MECHANICS: Readonly<Record<number, Ski
       },
       {
         type: 'condition',
-        // Confusion applies once per channel pulse, independently of the strike packet cadence.
-        ticks: [280, 560, 840, 1080, 1360, 1640, 1920].map((atMs) => ({
+        ticks: CONFUSING_IMAGES_IMPACTS_MS.map((atMs) => ({
           atMs,
           condition: CONDITION.CONFUSION,
           duration: 7,
