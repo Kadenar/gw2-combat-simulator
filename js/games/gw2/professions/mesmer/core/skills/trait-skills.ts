@@ -1,6 +1,10 @@
-import { impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
+import { COMBO_FIELD, CONDITION } from '#gw2/platform/constants.js';
+import { conditionTimeline, impactEffects, strikeTimeline } from '#gw2/platform/effects/authoring.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
+
+// Strikes and random poison applications share the invoked storm's pulse schedule.
+const LESSER_CHAOS_STORM_PULSES_MS = Array.from({ length: 6 }, (_, index) => index * 1000);
 
 /** Invoked skills own their payloads and recharge; fixed pulse timelines preserve their independent impact timing. */
 export const MESMER_CORE_TRAIT_SKILLS: readonly MesmerSkill[] = [
@@ -14,10 +18,20 @@ export const MESMER_CORE_TRAIT_SKILLS: readonly MesmerSkill[] = [
     slotSelectable: false,
     cooldown: 28,
     castTimeMs: 0,
+    comboFields: [{ ownerId: 'mesmer', fieldType: COMBO_FIELD.ETHEREAL, duration: 5, startAnchor: 'event' }],
     effects: impactEffects({ timingAnchor: 'castEnd', timingScale: 'fixed' }, [
       strikeTimeline(
-        Array.from({ length: 6 }, (_, index) => ({ atMs: index * 1000, coefficient: 0.33 })),
+        LESSER_CHAOS_STORM_PULSES_MS.map((atMs) => ({ atMs, coefficient: 0.33 })),
         { name: 'Strike', weaponStrengthProfileId: 'nonweapon.unequipped' }
+      ),
+      conditionTimeline(
+        LESSER_CHAOS_STORM_PULSES_MS.map((atMs) => ({
+          atMs,
+          condition: CONDITION.POISONED,
+          duration: 2,
+          stacks: 1
+        })),
+        { name: 'Poison' }
       )
     ])
   }

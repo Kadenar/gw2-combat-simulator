@@ -413,6 +413,17 @@ function triggerMethodOfMadness(
     {
       cast: delivery.cast,
       attribution: { actorType: ACTOR.PLAYER },
+      // Invoked storms place their field once and independently roll each authored poison application.
+      transform: (event) => {
+        if (
+          event.type === 'condition' &&
+          event.condition === CONDITION.POISONED &&
+          !context.random.roll(1 / 3, 'mesmer.lesser-chaos-storm.poison')
+        )
+          return null;
+
+        return event.type === 'damage' && event.hitIndex === 1 ? { ...event, comboFields: storm.comboFields } : event;
+      },
       announce: true,
       announcementName: 'Method of Madness',
       logAnnouncement: true

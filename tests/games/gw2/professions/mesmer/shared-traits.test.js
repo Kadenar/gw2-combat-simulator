@@ -37,7 +37,12 @@ test('Method of Madness commits Syncopate independently of its proc marker', () 
                   ? {
                       catalog: applySkillPatch(native.catalog, {
                         skills: {
-                          [ID.LESSER_CHAOS_STORM]: { removeEffects: [{ type: 'strike', all: true }] }
+                          [ID.LESSER_CHAOS_STORM]: {
+                            removeEffects: [
+                              { type: 'strike', all: true },
+                              { type: 'condition', all: true }
+                            ]
+                          }
                         }
                       })
                     }

@@ -184,7 +184,14 @@ for (const [specialization, trait, skill, attack] of [
       [skill, { type: 'wait', durationMs: 7000 }],
       { selectedTraitIds: [trait] },
       trait === TRAIT.METHOD_OF_MADNESS
-        ? { [ID.LESSER_CHAOS_STORM]: { removeEffects: [{ type: 'strike', name: 'Strike' }] } }
+        ? {
+            [ID.LESSER_CHAOS_STORM]: {
+              removeEffects: [
+                { type: 'strike', name: 'Strike' },
+                { type: 'condition', name: 'Poison' }
+              ]
+            }
+          }
         : {}
     );
     assert.equal(
@@ -199,7 +206,7 @@ for (const [specialization, trait, skill, attack] of [
             (attack === 'Phantasmal Blade'
               ? 'Phantasmal Blades'
               : attack === 'Lesser Chaos Storm'
-                ? 'Lesser Chaos Storm'
+                ? 'Method of Madness'
                 : attack)
       ),
       false
