@@ -36,7 +36,18 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
       if (Number(event.priority) === FLIP_EXPIRY_PRIORITY)
         throw new RangeError('Priority is reserved for flip expiry.');
 
-      const packet = canonicalEvent(identify(event));
+      let packet = canonicalEvent(identify(event));
+
+      // Immediate buff reactions keep their grant ahead of tied strikes, including further buff reactions.
+      if (
+        !causeIsScheduled &&
+        currentCause?.type === 'buff' &&
+        packet.type === 'buff' &&
+        packet.at === currentCause.at &&
+        Number(currentCause.priority ?? 0) < Number(packet.priority ?? 0)
+      )
+        packet = { ...packet, priority: currentCause.priority };
+
       queue.enqueue(packet);
       return packet;
     },
