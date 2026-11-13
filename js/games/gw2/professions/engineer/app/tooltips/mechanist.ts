@@ -122,7 +122,15 @@ export const mechanistTooltips = {
     ),
     [TRAIT.MECH_CORE_J_DRIVE]: traitTooltip(
       "Select Sky Circus as the third mech command. Supported signet passives remain active during recharge and gain their enhanced bonuses; Overclock Signet's recharge changes.",
-      [fromProfile(TRAIT.MECH_CORE_J_DRIVE, 'damageIncrease', 'Force Signet strike bonus', tooltipPercent)]
+      [
+        fromProfile(TRAIT.MECH_CORE_J_DRIVE, 'damageIncrease', 'Force Signet strike bonus', tooltipPercent),
+        fromProfile(
+          TRAIT.MECH_CORE_J_DRIVE,
+          'conditionDamageIncrease',
+          'Superconducting Signet condition bonus',
+          tooltipPercent
+        )
+      ]
     )
   }
 } satisfies ProfessionTooltips;

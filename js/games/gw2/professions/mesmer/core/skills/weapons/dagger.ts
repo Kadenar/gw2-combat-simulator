@@ -40,7 +40,9 @@ export const MESMER_WEAPONS_DAGGER_SKILL_MECHANICS: Readonly<Record<number, Skil
       ]
     },
     castTimeMs: 440,
-    interruptCommitMs: 360,
+    interruptCommitMs: 320,
+    retainsCastLockoutAfterInterrupt: true,
+    interruptLockoutReleaseMs: 400,
     effects: [
       {
         type: 'strike',

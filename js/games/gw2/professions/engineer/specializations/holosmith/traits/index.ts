@@ -66,6 +66,7 @@ const crystalConfigurationStorm = defineTrait({
 
 const enhancedCapacityStorageUnit = defineTrait({
   id: TRAIT.ENHANCED_CAPACITY_STORAGE_UNIT,
+  modifierReferences: [{ ruleId: 'engineer.lasers-edge', qualifier: "Raises Laser's Edge maximum bonus" }],
   balance: {
     maximumDamageIncrease: 0.225,
     maximumStacks: 150,
@@ -109,6 +110,7 @@ const enhancedCapacityStorageUnit = defineTrait({
 
 const photonicBlastingModule = defineTrait({
   id: TRAIT.PHOTONIC_BLASTING_MODULE,
+  modifierReferences: [{ ruleId: 'engineer.lasers-edge', qualifier: "Retains Laser's Edge during overheating" }],
   balance: {
     cooldown: 5,
     effects: [

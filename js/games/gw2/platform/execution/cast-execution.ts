@@ -255,7 +255,9 @@ export function createCastExecution<T extends object>(
       start,
       fullEnd,
       effectiveEnd,
-      laneEnd: retainsInterruptedCastLockout(skill, cancelled) ? fullEnd : effectiveEnd,
+      laneEnd: retainsInterruptedCastLockout(skill, { start, effectiveEnd, cancelledBeforeCommit: cancelled })
+        ? fullEnd
+        : effectiveEnd,
       rechargeStart: canonicalTime(Math.max(start, rechargeStart)),
       // Reserve one-shot recharge entitlements at acceptance, querying only the current live instant.
       rechargeWork,

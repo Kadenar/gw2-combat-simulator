@@ -311,7 +311,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
         name: 'Mesmer strike',
         actorType: ACTOR.PLAYER,
         weapon: WEAPON.SWORD.toLowerCase(),
-        atMs: 760,
+        // The player strike requires continuing past the earlier phantasm summon commitment.
+        atMs: 800,
         timingAnchor: 'castStart',
         timingScale: 'cast'
       },

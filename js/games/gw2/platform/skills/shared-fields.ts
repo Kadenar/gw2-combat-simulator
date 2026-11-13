@@ -23,6 +23,8 @@ export const SHARED_SKILL_FIELDS = defineFields(
     quicknessCastTimeMs: numberField({ label: 'Summon Quickness cast time', unit: 'milliseconds', runtimeOnly: true }),
     defaultInterruptMs: numberField({ unit: 'milliseconds' }),
     interruptCommitMs: numberField({ unit: 'milliseconds', runtimeOnly: true }),
+    /** Fixed time from cast start at which an interruption releases retained lockout; requires retention enabled. */
+    interruptLockoutReleaseMs: numberField({ unit: 'milliseconds', runtimeOnly: true }),
     /**
      * Self-inflicted stun applied to the player when this serial cast completes (e.g. Berserker Head Butt). The
      * player's cast lane is blocked for this many milliseconds after the cast unless the next serial skill is a

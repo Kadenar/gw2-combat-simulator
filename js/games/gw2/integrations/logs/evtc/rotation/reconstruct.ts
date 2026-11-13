@@ -19,6 +19,10 @@ import {
   type EvtcPlayerEvidence
 } from '#gw2/integrations/logs/evtc/rotation/players.js';
 import { restoreConduitHazeOpener } from '#gw2/integrations/logs/evtc/rotation/professions/conduit.js';
+import {
+  elementalistBlindingFlashActions,
+  elementalistFrostAuraActions
+} from '#gw2/integrations/logs/evtc/rotation/professions/elementalist.js';
 import { reconstructProfessionActions } from '#gw2/integrations/logs/evtc/rotation/professions/index.js';
 import {
   antiquaryChakShieldActions,
@@ -118,8 +122,24 @@ function applyObservedInterruptTiming(
       action.end === action.start &&
       packets.allObserved &&
       packets.allObservedTimingExplicit;
+    // Preserve a valid post-commit cancel. Complete strike evidence only repairs an otherwise uncommitted atomic cast.
+    const reachedCommit =
+      interruptMs != null &&
+      [skill?.interruptCommitMs, ...(skill?.effects ?? []).map((effect) => effect.interruptCommitMs)].some(
+        (cutoff) => cutoff != null && Number.isFinite(cutoff) && interruptMs >= cutoff
+      );
+    const observedAtomicCompletion =
+      interruptMs != null &&
+      !reachedCommit &&
+      action.status === 'reduced' &&
+      skill?.interruptMode !== 'per-packet' &&
+      packets.allObserved &&
+      packets.allObservedTimingExplicit;
 
-    if (runtimeDuration > 0 && (packets.observedCommittedDelayedPacket || falseZeroDurationCancellation)) {
+    if (
+      runtimeDuration > 0 &&
+      (packets.observedCommittedDelayedPacket || falseZeroDurationCancellation || observedAtomicCompletion)
+    ) {
       // Proven packets override a false stop marker so replay retains the complete cast and its damage.
       return {
         ...action,
@@ -313,6 +333,9 @@ function reconstructWithProfile(
   playerActions.push(...antiquaryChakShieldActions({ ...professionContext, recordedActions: playerActions }));
   // Owned damage corroborates delayed preparation visuals without relaxing the upstream EI rules.
   playerActions.push(...thiefThousandNeedlesActions({ ...professionContext, recordedActions: playerActions }));
+  // Paired owned conditions identify Blinding Flash even when the log has no activation or visual finder.
+  playerActions.push(...elementalistBlindingFlashActions({ ...professionContext, recordedActions: playerActions }));
+  playerActions.push(...elementalistFrostAuraActions({ ...professionContext, recordedActions: playerActions }));
   const sourceActions = [
     ...playerActions.filter(
       (action) =>

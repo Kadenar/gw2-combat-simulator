@@ -8,10 +8,8 @@ import {
 import type { Skill } from '#gw2/platform/skills/types.js';
 
 /** A shortened atomic input cancels unless a declared skill or effect cutoff has been reached. */
-function isUncommittedCast(skill: Skill | null, durationMs: number): boolean {
+function isUncommittedCast(skill: Skill | null, elapsedMs: number): boolean {
   if (skill?.interruptMode === 'per-packet') return false;
-
-  const elapsedMs = quantizeGw2ActionTimingMs(durationMs);
 
   if (elapsedMs >= referenceCastTimeMs(skill)) return false;
 
@@ -19,9 +17,14 @@ function isUncommittedCast(skill: Skill | null, durationMs: number): boolean {
   return !cutoffs.some((cutoff) => cutoff != null && Number.isFinite(cutoff) && elapsedMs >= cutoff);
 }
 
-/** Keeps imported occupancy consistent with the scheduler's commitment-dependent aftercast. */
+/** Quantize once so imported commitment and lockout release use the same replay duration. */
 export function retainsReplayCastLockout(skill: Skill | null, durationMs: number): boolean {
-  return retainsInterruptedCastLockout(skill, isUncommittedCast(skill, durationMs));
+  const elapsedMs = quantizeGw2ActionTimingMs(durationMs);
+  return retainsInterruptedCastLockout(skill, {
+    start: 0,
+    effectiveEnd: elapsedMs / 1000,
+    cancelledBeforeCommit: isUncommittedCast(skill, elapsedMs)
+  });
 }
 
 export { referenceCastTimeMs } from '#gw2/platform/execution/cast-timing.js';

@@ -6,10 +6,138 @@ import { createModifierReference } from '#gw2/app/modifier-reference/model.js';
 import { filterModifiers, referenceListHtml } from '#gw2/app/modifier-reference/view.js';
 import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession.js';
 import { engineerAppAdapter } from '#gw2/professions/engineer/app/app-definition.js';
-import { ENGINEER_SKILL_IDS as ENGINEER } from '#gw2/professions/engineer/data/ids.js';
+import { ENGINEER_SKILL_IDS as ENGINEER, ENGINEER_TRAIT_IDS } from '#gw2/professions/engineer/data/ids.js';
 import { engineerProfession } from '#gw2/professions/engineer/profession.js';
 import { warriorAppAdapter } from '#gw2/professions/warrior/app/app-definition.js';
 import { warriorProfession } from '#gw2/professions/warrior/profession.js';
+
+// Shared bonuses must remain discoverable under each contributing trait without duplicating combat rules.
+for (const [profession, name, specialization, bucket, qualifiers] of [
+  [
+    'elementalist',
+    "Familiar's Focus",
+    'Evoker',
+    'additive',
+    {
+      Strike: "Improves Familiar's Prowess",
+      Condition: "Improves Familiar's Prowess"
+    }
+  ],
+  [
+    'guardian',
+    "Tyrant's Momentum",
+    'Willbender',
+    'additive',
+    {
+      Strike: 'Improves Lethal Tempo',
+      Condition: 'Improves Lethal Tempo'
+    }
+  ],
+  [
+    'engineer',
+    'Enhanced Capacity Storage Unit',
+    'Holosmith',
+    'multiplier',
+    {
+      Strike: "Raises Laser's Edge maximum bonus"
+    }
+  ],
+  [
+    'engineer',
+    'Photonic Blasting Module',
+    'Holosmith',
+    'multiplier',
+    {
+      Strike: "Retains Laser's Edge during overheating"
+    }
+  ],
+  [
+    'engineer',
+    'Mech Core: J-Drive',
+    'Mechanist',
+    'additive',
+    {
+      Strike: 'Improves Force Signet',
+      Condition: 'Improves Superconducting Signet'
+    }
+  ],
+  [
+    'revenant',
+    'Ambush Commander',
+    'Renegade',
+    'additive',
+    {
+      Strike: "Base Kalla's Fervor bonus",
+      Condition: "Base Kalla's Fervor bonus"
+    }
+  ]
+]) {
+  test(`${name}: shared modifier references retain trait identity and damage filters`, async () => {
+    const adapter = (await import(`#gw2/professions/${profession}/app/app-definition.js`))[`${profession}AppAdapter`];
+    for (const id of ['current', ...(adapter.profession.preview ? [adapter.profession.preview.id] : [])]) {
+      const entries = createModifierReference(adapter, adapter.profession.resolvePatch({ id }));
+      assert.equal(entries.filter((entry) => entry.name === name).length, 1);
+      for (const [target, qualifier] of Object.entries(qualifiers)) {
+        const matches = filterModifiers(entries, { profession, specialization, target, bucket, q: name });
+        assert.equal(matches.length, 1);
+        assert.equal(matches[0].source, 'trait');
+        assert.ok(matches[0].icons.length > 0);
+        assert.ok(matches[0].rules.some((rule) => rule.targets.includes(target) && rule.qualifier === qualifier));
+        assert.match(referenceListHtml(matches, false), /modifier-reference-entry/);
+        assert.equal(
+          filterModifiers(entries, { profession, specialization, target: 'Critical', bucket, q: name }).length,
+          0
+        );
+      }
+    }
+  });
+}
+
+test('shared modifier references use patched trait facts without claiming the combined rule value', () => {
+  const profession = withPatchPreview(engineerProfession, {
+    id: 'shared-modifier-reference',
+    label: 'Shared modifier reference',
+    professions: {
+      engineer: {
+        balanceProfiles: {
+          [ENGINEER_TRAIT_IDS.MECH_CORE_J_DRIVE]: { fields: { damageIncrease: 0.25, conditionDamageIncrease: 0.2 } }
+        }
+      }
+    }
+  });
+  const patch = profession.resolvePatch({ id: profession.preview.id });
+  // A shared rule can resolve to a constant; only its owner should present that combined value.
+  const modifierRulesById = new Map(patch.balanceContext.modifierRulesById);
+  modifierRulesById.set('engineer.lasers-edge', { ...modifierRulesById.get('engineer.lasers-edge'), factor: 1.5 });
+  const entries = createModifierReference(engineerAppAdapter, {
+    ...patch,
+    balanceContext: { ...patch.balanceContext, modifierRulesById }
+  });
+  const drive = entries.find((entry) => entry.name === 'Mech Core: J-Drive');
+  assert.equal(drive.tooltip.facts.find((fact) => fact.name === 'Force Signet strike bonus').detail, '+25%');
+  assert.equal(
+    drive.tooltip.facts.find((fact) => fact.name === 'Superconducting Signet condition bonus').detail,
+    '+20%'
+  );
+  assert.equal(entries.find((entry) => entry.name === "Laser's Edge").rules[0].value, '1.5×');
+  for (const name of ['Enhanced Capacity Storage Unit', 'Photonic Blasting Module']) {
+    assert.equal(entries.find((entry) => entry.name === name).rules[0].value, undefined);
+  }
+});
+
+test('shared modifier references reject unresolved rule ids', () => {
+  const patch = engineerAppAdapter.profession.resolvePatch({ id: 'current' });
+  const modifierRulesById = new Map(patch.balanceContext.modifierRulesById);
+  modifierRulesById.delete('engineer.lasers-edge');
+  assert.throws(
+    () =>
+      createModifierReference(engineerAppAdapter, {
+        ...patch,
+        balanceContext: { ...patch.balanceContext, modifierRulesById }
+      }),
+    /Missing reference modifier: engineer.lasers-edge/
+  );
+});
 
 // Dynamic modifier factors need a numeric fact from the selected skill data in both tooltip and reference.
 test('Static Discharge reports its selected critical-damage amplification', () => {

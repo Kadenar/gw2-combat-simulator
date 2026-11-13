@@ -43,6 +43,7 @@ export function createDodgeSkill(
       | 'castTimeMs'
       | 'interruptCommitMs'
       | 'retainsCastLockoutAfterInterrupt'
+      | 'interruptLockoutReleaseMs'
       | 'rechargeAnchor'
       | 'specialization'
       | 'skillFamily'

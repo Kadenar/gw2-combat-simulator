@@ -102,6 +102,10 @@ export const lethalTempo = defineTrait({
 /** Selects longer Justice and shorter Tempo windows while the shared stack rules retain live tuning. */
 const tyrantsMomentum = defineTrait({
   id: TRAIT.TYRANTS_MOMENTUM,
+  modifierReferences: [
+    { ruleId: 'guardian.willbender.lethal-tempo-strike', qualifier: 'Improves Lethal Tempo' },
+    { ruleId: 'guardian.willbender.lethal-tempo-condition', qualifier: 'Improves Lethal Tempo' }
+  ],
   balance: {
     damageIncreasePerStack: 0.05,
     conditionDamageIncreasePerStack: 0.03,

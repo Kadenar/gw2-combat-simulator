@@ -233,6 +233,8 @@ export const MESMER_VIRTUOSO_SKILL_MECHANICS: Readonly<Record<SkillId, SkillDefi
     ],
     blade: true,
     castTimeMs: 480,
+    // Commit Sorrow before the cast ends so later interrupts preserve its effects.
+    interruptCommitMs: 400,
     effects: []
   },
   [ID.BLADESONG_HARMONY]: {

@@ -31,9 +31,17 @@ export function castReachedFullDuration(cast: Gw2CastEndTimes): boolean {
   );
 }
 
-/** Cancelled attempts release the cast lane; only committed skills retain their aftercast. */
-export function retainsInterruptedCastLockout(skill: Skill | null, cancelledBeforeCommit: boolean): boolean {
-  return skill?.retainsCastLockoutAfterInterrupt === true && !cancelledBeforeCommit;
+/** Use accepted clock instants so an interruption at the release threshold immediately frees the cast lane. */
+export function retainsInterruptedCastLockout(
+  skill: Skill | null,
+  cast: Pick<RuntimeCast, 'start' | 'effectiveEnd' | 'cancelledBeforeCommit'>
+): boolean {
+  if (skill?.retainsCastLockoutAfterInterrupt !== true || cast.cancelledBeforeCommit) return false;
+
+  return (
+    skill.interruptLockoutReleaseMs == null ||
+    canonicalTime(cast.effectiveEnd) < canonicalTime(cast.start + skill.interruptLockoutReleaseMs / 1000)
+  );
 }
 
 /**

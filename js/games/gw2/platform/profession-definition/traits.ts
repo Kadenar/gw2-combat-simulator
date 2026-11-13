@@ -116,6 +116,11 @@ export interface TraitDefinition<TSkill extends Skill = Skill> {
     /** Applied effects may outlive selection; their predicate owns eligibility instead. */
     readonly requiresSelection?: boolean;
   })[];
+  /** Reference shared damage rules this trait supplies or improves without compiling them a second time. */
+  readonly modifierReferences?: readonly {
+    readonly ruleId: string;
+    readonly qualifier: string;
+  }[];
   readonly rechargeRules?: readonly Omit<RechargeRule<never, TSkill>, 'trait'>[];
   readonly triggers?: readonly OwnedTrigger<TraitTrigger<never, TSkill>>[];
   readonly hooks?: TraitHooks<TSkill>;
@@ -277,6 +282,7 @@ export function defineTrait<TSkill extends Skill>(
         'attributes',
         'grantedAttributes',
         'modifierRules',
+        'modifierReferences',
         'rechargeRules',
         'triggers',
         'hooks',
@@ -287,6 +293,15 @@ export function defineTrait<TSkill extends Skill>(
   for (const rule of [...(definition.triggers ?? []), ...(definition.rechargeRules ?? [])])
     if ('trait' in rule) throw new TypeError(`Trait ${definition.id} owns its rule selection gate.`);
   for (const rule of definition.triggers ?? []) assertTraitTrigger(rule, `Trait ${definition.id}`);
+
+  for (const reference of definition.modifierReferences ?? [])
+    if (
+      typeof reference.ruleId !== 'string' ||
+      !reference.ruleId.trim() ||
+      typeof reference.qualifier !== 'string' ||
+      !reference.qualifier.trim()
+    )
+      throw new TypeError(`Trait ${definition.id} modifier reference requires a rule id and qualifier.`);
 
   if (definition.balance && 'name' in definition.balance)
     throw new TypeError(`Trait ${definition.id}.balance cannot override name.`);

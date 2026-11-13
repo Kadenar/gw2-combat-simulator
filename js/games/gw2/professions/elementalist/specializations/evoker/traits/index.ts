@@ -245,11 +245,12 @@ const familiarsProwess = defineTrait({
     damageIncrease: 0.05,
     conditionDamageIncrease: 0.05
   },
-  // Applied Prowess supplies the window; the selected trait's balance owns each damage bonus.
+  // Prowess applies the selected bonus once; Focus references these rules for its separate landing-page entry.
   modifierRules: [
     {
       requiresSelection: false,
       id: 'elementalist.familiars-prowess-strike',
+      label: "Familiar's Prowess",
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
       operation: 'damage-additive',
       amount: (context) =>
@@ -264,6 +265,7 @@ const familiarsProwess = defineTrait({
     {
       requiresSelection: false,
       id: 'elementalist.familiars-prowess-condition',
+      label: "Familiar's Prowess",
       target: MODIFIER_TARGET.CONDITION_DAMAGE,
       operation: 'damage-additive',
       amount: (context) =>
@@ -304,9 +306,13 @@ const altruisticAspect = defineTrait({
   ]
 });
 
-/** Focus owns its replacement bonuses; Prowess modifiers consume them during the applied window. */
+/** Focus supplies the improved Prowess values and references its shared damage rules. */
 const familiarsFocus = defineTrait({
   id: TRAIT.FAMILIARS_FOCUS,
+  modifierReferences: [
+    { ruleId: 'elementalist.familiars-prowess-strike', qualifier: "Improves Familiar's Prowess" },
+    { ruleId: 'elementalist.familiars-prowess-condition', qualifier: "Improves Familiar's Prowess" }
+  ],
   balance: {
     damageIncrease: 0.12,
     conditionDamageIncrease: 0.1

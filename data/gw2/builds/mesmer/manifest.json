@@ -6,7 +6,7 @@
         "label": "Power (Greatsword-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-bench.json",
-        "benchmarkDps": 43273,
+        "benchmarkDps": 43327,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-greatsword-dagger-sword",
         "upToDate": true,
         "benchmarkApm": 98.9,
@@ -14,8 +14,8 @@
           "100-80": { "cumulative": 51184, "phase": 51184 },
           "80-60": { "cumulative": 44777, "phase": 39713 },
           "60-40": { "cumulative": 41942, "phase": 37228 },
-          "40-20": { "cumulative": 41747, "phase": 41171 },
-          "20-0": { "cumulative": 43273, "phase": 43273 }
+          "40-20": { "cumulative": 41874, "phase": 41672 },
+          "20-0": { "cumulative": 43327, "phase": 43327 }
         }
       },
       {
@@ -27,10 +27,10 @@
         "upToDate": false,
         "benchmarkApm": 97.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 48917, "phase": 48917 },
+          "100-80": { "cumulative": 48916, "phase": 48916 },
           "80-60": { "cumulative": 41906, "phase": 36628 },
           "60-40": { "cumulative": 41192, "phase": 39846 },
-          "40-20": { "cumulative": 42578, "phase": 47387 },
+          "40-20": { "cumulative": 42578, "phase": 47388 },
           "20-0": { "cumulative": 42606, "phase": 42606 }
         }
       },
@@ -78,8 +78,8 @@
         "benchmarkDps": 42791,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 42070, "phase": 42070 },
-          "80-60": { "cumulative": 41900, "phase": 41732 },
-          "60-40": { "cumulative": 41702, "phase": 41319 },
+          "80-60": { "cumulative": 41901, "phase": 41732 },
+          "60-40": { "cumulative": 41703, "phase": 41319 },
           "40-20": { "cumulative": 41262, "phase": 39953 },
           "20-0": { "cumulative": 42791, "phase": 50131 }
         },
@@ -89,16 +89,16 @@
         "label": "Condition (Staff-Axe/Torch) - Dune Cloak",
         "build": "data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
-        "benchmarkDps": 40362,
+        "benchmarkDps": 40392,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-mirage-dune-cloak-staff-axe-torch",
         "upToDate": true,
-        "benchmarkApm": 105.9,
+        "benchmarkApm": 106,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 39787, "phase": 39787 },
           "80-60": { "cumulative": 40863, "phase": 41995 },
-          "60-40": { "cumulative": 40022, "phase": 38462 },
-          "40-20": { "cumulative": 39717, "phase": 38800 },
-          "20-0": { "cumulative": 40362, "phase": 40362 }
+          "60-40": { "cumulative": 40030, "phase": 38483 },
+          "40-20": { "cumulative": 39734, "phase": 38845 },
+          "20-0": { "cumulative": 40392, "phase": 40392 }
         }
       }
     ]
@@ -110,32 +110,32 @@
         "label": "Power (Spear / Greatsword)",
         "build": "data/gw2/builds/mesmer/b-power-virtuoso-spear-greatsword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-virtuoso-spear-greatsword-bench.json",
-        "benchmarkDps": 42379,
+        "benchmarkDps": 42436,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-virtuoso-spear-greatsword",
         "upToDate": false,
-        "benchmarkApm": 80,
+        "benchmarkApm": 80.1,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 47017, "phase": 47017 },
-          "80-60": { "cumulative": 41461, "phase": 36926 },
-          "60-40": { "cumulative": 42710, "phase": 45432 },
-          "40-20": { "cumulative": 40664, "phase": 35515 },
-          "20-0": { "cumulative": 42379, "phase": 50764 }
+          "80-60": { "cumulative": 41505, "phase": 36997 },
+          "60-40": { "cumulative": 42772, "phase": 45538 },
+          "40-20": { "cumulative": 40707, "phase": 35519 },
+          "20-0": { "cumulative": 42436, "phase": 50896 }
         }
       },
       {
         "label": "Condition (Dagger/Sword-Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-virtuoso.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-virtuoso-bench.json",
-        "benchmarkDps": 40753,
+        "benchmarkDps": 41288,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-virtuoso-dagger-sword-pistol",
         "upToDate": true,
-        "benchmarkApm": 60.8,
+        "benchmarkApm": 60.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 41045, "phase": 41045 },
-          "80-60": { "cumulative": 41256, "phase": 41479 },
-          "60-40": { "cumulative": 40418, "phase": 38781 },
-          "40-20": { "cumulative": 41112, "phase": 43262 },
-          "20-0": { "cumulative": 40753, "phase": 40753 }
+          "100-80": { "cumulative": 41969, "phase": 41969 },
+          "80-60": { "cumulative": 41599, "phase": 41248 },
+          "60-40": { "cumulative": 41278, "phase": 40620 },
+          "40-20": { "cumulative": 41426, "phase": 41876 },
+          "20-0": { "cumulative": 41288, "phase": 40736 }
         }
       }
     ]

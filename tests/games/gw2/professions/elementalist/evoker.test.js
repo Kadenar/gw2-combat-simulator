@@ -797,3 +797,61 @@ test('Familiar Prowess retains its applied window and patched Focus scaling afte
   );
   assert.equal(runtime.calculations.modifyStrikeDamage({ ...context, time: 2 }, 100), 100);
 });
+
+test('Familiar Focus replaces the shared Prowess bonus only while selected and the buff is active', () => {
+  // The reference entry must not apply Focus twice or change buff eligibility, including patched tuning.
+  for (const [prowess, focusStrike, focusCondition] of [
+    [0.05, 0.12, 0.1],
+    [0.2, 0.3, 0.4]
+  ]) {
+    const family = patchTraitProfession(elementalistProfession, {
+      balanceProfiles: {
+        [TRAIT.FAMILIARS_PROWESS]: {
+          fields: { damageIncrease: prowess, conditionDamageIncrease: prowess }
+        },
+        [TRAIT.FAMILIARS_FOCUS]: {
+          fields: { damageIncrease: focusStrike, conditionDamageIncrease: focusCondition }
+        }
+      }
+    });
+    const runtime = family.runtimeFor({ specialization: 'Evoker', patchId: 's4-preview' });
+    for (const [element, method, bonus] of [
+      ['Air', 'modifyStrikeDamage', focusStrike],
+      ['Fire', 'modifyConditionDamage', focusCondition]
+    ]) {
+      for (const selected of [false, true]) {
+        for (const time of [1, 2]) {
+          const damageContributors = [];
+          const context = {
+            time,
+            catalog: runtime.catalog,
+            event: { actorType: 'player' },
+            config: { evokerElement: element, selectedTraitIds: selected ? [TRAIT.FAMILIARS_FOCUS] : [] },
+            runtime: {
+              boons: new Map(),
+              buffs: new Map([
+                ['familiars-prowess', [{ resolvedAudience: { includesSelf: true }, at: 0, expiresAt: 2, stacks: 1 }]]
+              ])
+            },
+            damageContributors
+          };
+          assert.equal(
+            runtime.calculations[method](context, 100),
+            100 * (1 + (time < 2 ? (selected ? bonus : prowess) : 0))
+          );
+          assert.deepEqual(
+            damageContributors.map(({ label, bucket, value }) => ({ label, bucket, value })),
+            time < 2 ? [{ label: "Familiar's Prowess", bucket: 'additive', value: selected ? bonus : prowess }] : []
+          );
+          const otherMethod = element === 'Air' ? 'modifyConditionDamage' : 'modifyStrikeDamage';
+          const otherContributors = [];
+          assert.equal(
+            runtime.calculations[otherMethod]({ ...context, damageContributors: otherContributors }, 100),
+            100
+          );
+          assert.deepEqual(otherContributors, []);
+        }
+      }
+    }
+  }
+});

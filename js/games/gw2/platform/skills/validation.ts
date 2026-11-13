@@ -66,6 +66,10 @@ function normalizeLockouts(lockouts: unknown, skillId: SkillId): readonly SkillL
 function validateSkillDeclarations(catalog: CanonicalCatalog, skill: Skill): void {
   validateSkillTuning(skill, catalogSkillFields(catalog), `skill=${skill.id}`);
 
+  // A release threshold only has meaning for skills that retain lockout after commitment.
+  if (skill.interruptLockoutReleaseMs != null && skill.retainsCastLockoutAfterInterrupt !== true)
+    throw new TypeError(`Skill ${skill.id} interruptLockoutReleaseMs requires retainsCastLockoutAfterInterrupt.`);
+
   // Selector metadata is a cross-catalog contract, never a second source of executable packets.
   if (skill.selector) {
     const choices = Object.values(skill.selector);

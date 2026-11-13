@@ -52,6 +52,43 @@ test('Mesmer skill tooltip resources follow specialization changes through the a
   }
 });
 
+// Blade-count alternatives stay separate while identical effects appear only once.
+test('bladesong tooltips group alternative blade counts and collapse shared effects', async () => {
+  const { mesmerProfession } = await import('#gw2/professions/mesmer/profession.js');
+  const { mesmerTooltips } = await import('#gw2/professions/mesmer/app/tooltips.js');
+  const { MESMER_SKILL_IDS: skills } = await import('#gw2/professions/mesmer/data/ids.js');
+  const context = withPatchPreview(mesmerProfession, null).resolvePatch().balanceContext;
+  const describe = (id) => describeSimulationSkill(context, context.catalog.skillsById.get(id), mesmerTooltips);
+  for (const id of [skills.BLADESONG_HARMONY, skills.BLADESONG_SORROW, skills.BLADETURN_REQUIEM]) {
+    const model = describe(id);
+    assert.deepEqual(
+      model.factTabs.map(({ label }) => label),
+      ['1 blade', '2 blades', '3 blades', '4 blades', '5 blades']
+    );
+    assert.ok(!model.facts.some(({ name }) => name === 'Strike damage' || name === 'Confusion'));
+    assert.doesNotMatch(model.description, /distortion/i);
+    for (const { facts } of model.factTabs) {
+      assert.ok(facts.some(({ name }) => name === 'Strike damage'));
+      assert.equal(
+        facts.some(({ name }) => name === 'Confusion'),
+        id === skills.BLADESONG_SORROW
+      );
+      assert.ok(facts.every(({ detail }) => !detail.includes('blades spent')));
+    }
+  }
+
+  const dissonance = describe(skills.BLADESONG_DISSONANCE);
+  assert.equal(dissonance.factTabs, undefined);
+  assert.deepEqual(
+    dissonance.facts.filter(({ name }) => name !== 'Base recharge').map(({ name }) => name),
+    ['Strike damage', 'Daze']
+  );
+  const distortion = describe(skills.BLADESONG_DISTORTION);
+  assert.equal(distortion.factTabs, undefined);
+  assert.ok(!distortion.facts.some(({ name }) => name === 'Strike damage'));
+  assert.match(distortion.description, /no direct damage/);
+});
+
 // Patched absolute rates keep percentage units without borrowing the sign used for additive bonuses.
 test('trait tooltip rates distinguish conversions, thresholds, and chances from bonuses', async () => {
   const { guardianProfession } = await import('#gw2/professions/guardian/profession.js');

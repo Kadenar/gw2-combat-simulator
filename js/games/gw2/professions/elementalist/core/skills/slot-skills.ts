@@ -490,7 +490,8 @@ export const ELEMENTALIST_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, S
         ])
       ]
     },
-    20
+    // Average strikes against a small target; larger hitboxes retain the full storm.
+    21
   ),
   // Earth (Sandstorm) trades damage for control: a near-zero strike coefficient plus eleven
   // one-second blind applications expressed as a single repeating packet.

@@ -531,6 +531,32 @@ test('module registration normalizes modifier rule collections', () => {
   );
 });
 
+test('modifier references preserve execution and require a named relationship', () => {
+  // A reference explains shared work without installing another rule or changing its selection gate.
+  const reference = { ruleId: 'fixture.damage', qualifier: 'Improves the shared bonus' };
+  const referringTrait = defineTrait({ id: 102, name: 'Improvement', modifierReferences: [reference] });
+  const family = familyWith(moduleWith([trait, referringTrait]));
+  const runtime = family.runtimeFor({});
+  for (const [selectedTraitIds, expected] of [
+    [[], 10],
+    [[102], 10],
+    [[101], 20],
+    [[101, 102], 20]
+  ]) {
+    assert.equal(
+      runtime.calculations.modifyStrikeDamage({ catalog: runtime.catalog, config: { selectedTraitIds } }, 10),
+      expected
+    );
+  }
+
+  for (const invalid of [
+    { ...reference, ruleId: '' },
+    { ...reference, qualifier: '' }
+  ]) {
+    assert.throws(() => defineTrait({ id: 102, modifierReferences: [invalid] }), /requires a rule id and qualifier/);
+  }
+});
+
 // Registration and reconstruction both reject unsupported fields, including on an inactive elite module.
 test('native modules reject unsupported modifier declarations before composition', () => {
   const core = moduleWith([]);

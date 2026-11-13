@@ -62,6 +62,10 @@ const allForOne = defineTrait({
 
 const ambushCommander = defineTrait({
   id: TRAIT.AMBUSH_COMMANDER,
+  modifierReferences: [
+    { ruleId: 'revenant.kallas-fervor-strike', qualifier: "Base Kalla's Fervor bonus" },
+    { ruleId: 'revenant.kallas-fervor-condition', qualifier: "Base Kalla's Fervor bonus" }
+  ],
   balance: {
     damageIncreasePerStack: 0.02,
     conditionDamageIncreasePerStack: 0.02,

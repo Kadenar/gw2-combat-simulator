@@ -137,6 +137,10 @@ const jadeDynamo = defineTrait({
 /** Owns Mech Core: J-Drive command selection and existing trait behavior. */
 const jDrive = defineTrait({
   id: TRAIT.MECH_CORE_J_DRIVE,
+  modifierReferences: [
+    { ruleId: 'engineer.force-signet', qualifier: 'Improves Force Signet' },
+    { ruleId: 'engineer.superconducting-signet', qualifier: 'Improves Superconducting Signet' }
+  ],
   balance: { rechargeMultiplier: 0.76, damageIncrease: 0.18, conditionDamageIncrease: 0.12, effects: [] },
   rechargeRules: [
     {

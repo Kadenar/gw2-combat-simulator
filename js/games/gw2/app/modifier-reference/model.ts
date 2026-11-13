@@ -93,7 +93,15 @@ export function createModifierReference(
           owned.add(rule.id);
           return selectedRule(rule.id);
         })
-        .filter(damageRule);
+        .filter(damageRule)
+        .map((rule) => describeRule(rule));
+
+      // Shared rules supply damage categories; each referring trait supplies its own facts and relationship.
+      for (const reference of trait.modifierReferences ?? []) {
+        const rule = selectedRule(reference.ruleId);
+
+        if (damageRule(rule)) rules.push({ ...describeRule(rule, reference.qualifier), value: undefined });
+      }
 
       if (!rules.length) continue;
 
@@ -114,7 +122,7 @@ export function createModifierReference(
         group: line?.name ?? module.id,
         source: 'trait',
         tooltip: adapter.traitTooltip(entity, patch, module.id),
-        rules: rules.map((rule) => describeRule(rule))
+        rules
       });
     }
 
