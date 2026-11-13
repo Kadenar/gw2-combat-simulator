@@ -38,16 +38,16 @@
         "label": "Condition (Staff-Scepter/Pistol)",
         "build": "data/gw2/builds/mesmer/b-condi-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-chronomancer-bench.json",
-        "benchmarkDps": 41652,
+        "benchmarkDps": 41680,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-chronomancer-staff-scepter-pistol",
         "upToDate": false,
         "benchmarkApm": 94.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42458, "phase": 42458 },
-          "80-60": { "cumulative": 39344, "phase": 36656 },
-          "60-40": { "cumulative": 39669, "phase": 40365 },
-          "40-20": { "cumulative": 40194, "phase": 41858 },
-          "20-0": { "cumulative": 41652, "phase": 41652 }
+          "100-80": { "cumulative": 42435, "phase": 42435 },
+          "80-60": { "cumulative": 39351, "phase": 36688 },
+          "60-40": { "cumulative": 39735, "phase": 40564 },
+          "40-20": { "cumulative": 40225, "phase": 41772 },
+          "20-0": { "cumulative": 41680, "phase": 41680 }
         }
       }
     ]
