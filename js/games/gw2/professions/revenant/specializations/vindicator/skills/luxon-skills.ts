@@ -113,6 +113,9 @@ export const VINDICATOR_LUXON_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     castTimeMs: 600,
     interruptCommitMs: 400,
     // Strike and torment land together after the summon windup, including when the cast is interrupted after commit.
+    // In-game testing indicates Rise to the Occasion snapshots endurance when the spear is thrown.
+    // We intentionally check endurance at impact instead, so crossing full endurance during flight can change the bonus.
+    // A separate launch snapshot added complexity without resolving the observed damage discrepancy.
     effects: impactEffects(
       { atMs: 2840, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true },
       [

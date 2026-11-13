@@ -123,7 +123,7 @@
         "build": "data/gw2/builds/warrior/b-condi-berserker-longbow-sword-torch.json",
         "rotation": "data/gw2/rotations/warrior/r-condi-berserker-longbow-sword-torch-bench.json",
         "benchmarkDps": 44309,
-        "upToDate": false,
+        "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/warrior/condition-berserker-longbow-sword-torch",
         "benchmarkApm": 93.6,
         "benchmarkDpsByHealth": {

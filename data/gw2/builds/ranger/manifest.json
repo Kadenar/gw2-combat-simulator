@@ -3,7 +3,7 @@
     "section": "Druid",
     "presets": [
       {
-        "label": "Condition (Dagger-Torch / Axe-Dagger)",
+        "label": "Condition (Dagger-Torch / Axe-Dagger) (Carrion Devourer / Jacaranda)",
         "build": "data/gw2/builds/ranger/b-condi-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-druid-dagger-torch-axe-dagger-evtc.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-druid-dagger-torch-axe-dagger",
@@ -19,7 +19,7 @@
         "upToDate": true
       },
       {
-        "label": "Condition Alacrity (Dagger-Torch / Axe-Dagger)",
+        "label": "Condition Alacrity (Dagger-Torch / Axe-Dagger) (Carrion Devourer / Jacaranda)",
         "build": "data/gw2/builds/ranger/b-condi-alac-druid-dagger-torch-axe-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-alac-druid-dagger-torch-axe-dagger-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/condition-alacrity-druid-dagger-torch-axe-dagger",
@@ -40,7 +40,7 @@
     "section": "Soulbeast",
     "presets": [
       {
-        "label": "Condition (Shortbow / Dagger-Dagger)",
+        "label": "Condition (Shortbow / Dagger-Dagger) (Janthiri Bee)",
         "build": "data/gw2/builds/ranger/b-condi-soulbeast-shortbow-dagger-dagger.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-soulbeast-shortbow-dagger-dagger.json",
         "benchmarkDps": 37108,
@@ -55,7 +55,7 @@
         "upToDate": false
       },
       {
-        "label": "Power (Hammer / Axe-Axe)",
+        "label": "Power (Hammer / Axe-Axe) (Tiger)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-hammer-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-axe-axe",
@@ -71,7 +71,7 @@
         }
       },
       {
-        "label": "Power (Hammer / Sword-Axe)",
+        "label": "Power (Hammer / Sword-Axe) (Rock Gazelle)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-hammer-sword-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-hammer-sword-axe",
@@ -87,7 +87,7 @@
         }
       },
       {
-        "label": "Power (Spear / Axe-Axe)",
+        "label": "Power (Spear / Axe-Axe) (Pig)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-spear-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-spear-axe-evtc.json",
         "benchmarkDps": 40256,
@@ -103,7 +103,7 @@
         }
       },
       {
-        "label": "Power (Axe-Axe / Sword-Mace)",
+        "label": "Power (Axe-Axe / Sword-Mace) (Tiger)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-axe-axe-sword-mace.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-axe-axe-sword-mace-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-soulbeast-sword-mace-axe-axe",
@@ -119,7 +119,7 @@
         "upToDate": true
       },
       {
-        "label": "Power (Mace-Mace / Axe-Axe)",
+        "label": "Power (Mace-Mace / Axe-Axe) (Pig)",
         "build": "data/gw2/builds/ranger/b-power-soulbeast-mace-mace-axe-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-soulbeast-mace-mace-axe-axe-evtc.json",
         "benchmarkDps": 40140,
@@ -154,7 +154,7 @@
         }
       },
       {
-        "label": "Power (Hammer / Sword-Axe) (Beastmastery)",
+        "label": "Power (Hammer / Sword-Axe) (Beastmastery, Tiger)",
         "build": "data/gw2/builds/ranger/b-power-untamed-hammer-sword-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-untamed-hammer-sword-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-untamed-beastmastery-hammer-sword-axe",
@@ -170,7 +170,7 @@
         }
       },
       {
-        "label": "Power Quickness (Hammer / Mace-Mace) (Beastmastery)",
+        "label": "Power Quickness (Hammer / Mace-Mace) (Beastmastery, Wallow)",
         "build": "data/gw2/builds/ranger/b-power-quick-untamed-beastmastery-hammer-mace-mace.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-beastmastery-hammer-mace-mace-bench.json",
         "benchmarkDps": 34596,
@@ -185,7 +185,7 @@
         "upToDate": true
       },
       {
-        "label": "Power Quickness (Sword-Axe / Hammer) (Beastmastery)",
+        "label": "Power Quickness (Sword-Axe / Hammer) (Beastmastery, Wallow)",
         "build": "data/gw2/builds/ranger/b-power-quick-untamed-beastmastery-sword-axe-hammer.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-beastmastery-sword-axe-hammer-bench.json",
         "benchmarkDps": 34809,
@@ -201,7 +201,7 @@
         }
       },
       {
-        "label": "Power Quickness (Sword-Axe / Hammer) (Nature Magic)",
+        "label": "Power Quickness (Sword-Axe / Hammer) (Nature Magic, Tiger)",
         "build": "data/gw2/builds/ranger/b-power-quick-untamed-nature-magic-sword-axe-hammer.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-untamed-nature-magic-sword-axe-hammer-bench.json",
         "benchmarkDps": 33873,
@@ -217,7 +217,7 @@
         }
       },
       {
-        "label": "Condition Quickness (Axe-Dagger / Dagger-Torch)",
+        "label": "Condition Quickness (Axe-Dagger / Dagger-Torch) (Carrion Devourer)",
         "build": "data/gw2/builds/ranger/b-condi-quick-untamed-axe-dagger-dagger-torch.json",
         "rotation": "data/gw2/rotations/ranger/r-condi-quick-untamed-axe-dagger-dagger-torch-bench.json",
         "benchmarkDps": 28908,
@@ -237,7 +237,7 @@
     "section": "Galeshot",
     "presets": [
       {
-        "label": "Power (Longbow / Axe-Axe)",
+        "label": "Power (Longbow / Axe-Axe) (Carrion Devourer / Fanged Iboga)",
         "build": "data/gw2/builds/ranger/b-power-galeshot-longbow-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-galeshot-longbow-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-galeshot-longbow-axe-axe",
@@ -253,7 +253,7 @@
         }
       },
       {
-        "label": "Power Quickness (Longbow / Axe-Axe)",
+        "label": "Power Quickness (Longbow / Axe-Axe) (Carrion Devourer / Fanged Iboga)",
         "build": "data/gw2/builds/ranger/b-power-quick-galeshot-longbow-axe.json",
         "rotation": "data/gw2/rotations/ranger/r-power-quick-galeshot-longbow-axe-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/ranger/power-quickness-galeshot-longbow-axe-axe",
