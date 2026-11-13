@@ -1,6 +1,6 @@
 /* Owns wiki cards and chart tooltips so their presentation stays in one place. */
 
-/* Match the game's compact gold-and-slate cards, with a subtle procedural grain instead of a downloaded texture. */
+/* Keep the game's gold-and-slate cards readable with brighter text and subdued grain. */
 .wiki-tooltip {
   position: fixed;
   inset: auto;
@@ -10,17 +10,17 @@
   max-width: calc(100vw - 16px);
   max-height: calc(100dvh - 16px);
   overflow: auto;
-  padding: 7px;
+  padding: 10px;
   border: 2px solid #30312e;
   border-radius: 0;
   background-color: #192327;
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cpath fill='%23fff' opacity='.16' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Cpath fill='%23fff' opacity='.06' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E"),
     radial-gradient(ellipse at 80% 10%, #39443a60, transparent 65%),
     linear-gradient(125deg, #11212bbb, #13191dc9 65%, #30424799);
-  color: #a7a9a6;
+  color: #c5cbc9;
   font:
-    13px/1.2 Arial,
+    13px/1.35 Arial,
     sans-serif;
   text-shadow: 0 1px 1px #000b;
   box-shadow:
