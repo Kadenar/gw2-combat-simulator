@@ -122,7 +122,10 @@ const MESMER_EVENT_ROWS: Readonly<Record<string, (event: MesmerResolverEvent) =>
 function mesmerEventLogRow(
   _context: MesmerUiContext,
   event: MesmerResolverEvent
-): ProfessionEventLogDescriptor | undefined {
+): ProfessionEventLogDescriptor | null | undefined {
+  // Internal field checks are represented by their resolved combo outcomes in the log.
+  if (event.type === 'mesmer.warden-whirl') return null;
+
   const present = MESMER_EVENT_ROWS[event.type];
   return present ? present(event) : undefined;
 }

@@ -455,6 +455,32 @@ test('event log calculation names the critical outcome and packets that skip arm
   assert.equal(explanation(crit({ damage: 40 }), 'Damage'), '100.00, floored, limited by health gate');
 });
 
+test('event log hides Warden field checks while retaining phantasm and combo effects', (t) => {
+  const warnings = t.mock.method(console, 'warn', () => {});
+  const result = simulateMesmer(
+    ['Phantasmal Warden', { type: 'wait', durationMs: 7000 }],
+    defaultSimulationConfig({
+      specialization: 'Core',
+      primaryWeapon: 'Sword',
+      secondaryWeapon: 'Focus',
+      initialResource: 0,
+      professionAssumptions: { permanentComboField: 'Ethereal' }
+    })
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.events.some(({ type }) => type === 'mesmer.warden-whirl'));
+  assert.ok(result.resolvedEvents.some((event) => event.type === 'condition' && event.comboId));
+  const log = simulationEventLogRows(result, null, {
+    profession: withPatchPreview(mesmerProfession),
+    catalog: mesmerProfession.catalog
+  });
+  assert.equal(warnings.mock.callCount(), 0);
+  assert.ok(!log.some(({ type }) => type === 'diagnostic' || type === 'mesmer.warden-whirl'));
+  assert.ok(log.some(({ type }) => type === 'mesmer.phantasm-summoned'));
+  assert.ok(log.some(({ type }) => type === 'mesmer.phantasm-attack'));
+  assert.ok(log.some(({ type, description }) => type === 'condition' && description.includes('Confusion')));
+});
+
 test('event log distinguishes phantasm summon, attack, and clone conversion', () => {
   const result = simulateMesmer(
     ['Phantasmal Duelist', { name: '__wait', waitMs: 7000 }],
