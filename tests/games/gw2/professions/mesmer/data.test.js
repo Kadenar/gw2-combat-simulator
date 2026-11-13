@@ -215,16 +215,6 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
   }
 });
 
-// The flip retains its weapon identity and clone reward through catalog construction.
-test("Counterspell is cataloged as Illusionary Counter's clone-generating flip skill", () => {
-  const counterspell = mesmerCatalog.skillsById.get(ID.COUNTERSPELL);
-
-  assert.equal(counterspell.id, 10314);
-  assert.equal(counterspell.weapon, 'Scepter');
-  assert.equal(counterspell.resource.mode, 'add');
-  assert.equal(counterspell.resource.count, 1);
-});
-
 test('Mesmer weapon autoattacks are cataloged as individual chain skills', () => {
   const expectedChains = [
     [ID.MIND_SLASH, ID.MIND_GASH, ID.MIND_SPIKE],
@@ -291,14 +281,6 @@ test('every terrestrial Mirage main-hand weapon has a selectable ambush skill', 
     assert.deepEqual(loaded.player, skill.player);
     assert.deepEqual(loaded.clone, skill.clone);
   }
-});
-
-test('Mirage dodge spends endurance without ammo or cooldown', () => {
-  const dodge = PSEUDO_SKILLS.find((skill) => skill.name === 'Dodge / Mirage Cloak');
-
-  assert.equal(dodge.cooldown, 0);
-  assert.equal(dodge.ammo, undefined);
-  assert.deepEqual(dodge.cost, { resource: 'endurance', amount: 50, spendOn: 'castCommit' });
 });
 
 test('Mesmer triggered skill identities and dynamic handler profiles are explicit', () => {

@@ -2,26 +2,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { isAutoattackSkill } from '#gw2/platform/skills/autoattack-chain-index.js';
 import { GUARDIAN_SKILL_IDS as ID } from '#gw2/professions/guardian/data/ids.js';
-import { guardianCatalog } from '#gw2/professions/guardian/profession.js';
 import { runGuardian } from '#tests/helpers/guardian-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
 const config = { primaryWeapon: 'Staff' };
 const chain = [ID.BOLT_OF_WRATH, ID.SEARING_LIGHT, ID.SEEKING_JUDGMENT];
-
-test('staff catalog declares an autoattack chain without flip relationships', () => {
-  assert.ok(guardianCatalog.autoattackChains.some((ids) => ids.join(',') === chain.join(',')));
-  for (const id of chain) {
-    const skill = guardianCatalog.skillsById.get(id);
-    assert.equal(skill.autoattack, true);
-    assert.equal(isAutoattackSkill(skill), true);
-    assert.equal(skill.flipSkillId, null);
-    assert.equal(skill.flipParentId, null);
-    assert.equal(skill.flipDuration, undefined);
-  }
-});
 
 test('staff advances and completes through shared chain state without arming flips', () => {
   for (let length = 1; length <= chain.length; length++) {

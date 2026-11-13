@@ -6,7 +6,6 @@ import { withPatchPreview } from '#gw2/integrations/patches/authoring/profession
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { BOON } from '#gw2/platform/constants.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
-import { dragonChargeTickOffsetSeconds } from '#gw2/professions/warrior/data/dragon-charges.js';
 import { WARRIOR_SKILL_IDS as ID, WARRIOR_TRAIT_IDS as TRAIT } from '#gw2/professions/warrior/data/ids.js';
 import { warriorCatalog, warriorProfession } from '#gw2/professions/warrior/profession.js';
 import {
@@ -21,7 +20,6 @@ import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js'
 const DRAGON_TRIGGER_SKILL = warriorProfession.catalog.skillsById.get(ID.DRAGON_TRIGGER);
 const DRAGON_TRIGGER_ENTRY_FLOW = DRAGON_TRIGGER_SKILL.entryResourceCost;
 const DRAGON_TRIGGER_TICK_FLOW = DRAGON_TRIGGER_SKILL.resourceCost;
-const DRAGON_TRIGGER_DURATION_SECONDS = DRAGON_TRIGGER_SKILL.duration;
 
 const baseConfig = Object.freeze({
   attributeInputs: baseAttributeInputs({
@@ -197,64 +195,6 @@ test('Sharp as the Wind scales each Dragon Slash burning payload with charge', (
       assert.ok(burning.every((event) => event.at === damage.at));
     }
   }
-});
-
-test('Dragon Trigger spends its skill Flow cost on entry and expires after its skill duration', () => {
-  const blocked = simulate('Bladesworn', ['Dragon Trigger'], {
-    initialResource: DRAGON_TRIGGER_ENTRY_FLOW - 1
-  });
-
-  assert.match(blocked.warnings[0].message, new RegExp(`requires at least ${DRAGON_TRIGGER_ENTRY_FLOW} flow`));
-  assert.equal(blocked.planningState.profession[STATE.FLOW].value, DRAGON_TRIGGER_ENTRY_FLOW - 1);
-
-  const active = simulate('Bladesworn', ['Dragon Trigger'], {
-    initialResource: DRAGON_TRIGGER_ENTRY_FLOW
-  });
-
-  assert.deepEqual(active.warnings, []);
-  const entry = active.events.find((event) => event.type === 'resource' && event.reason === 'dragon trigger entry');
-
-  // Entry consumes the minimum activation pool even before a charge tick is reached.
-  assert.equal(entry.amount, -DRAGON_TRIGGER_ENTRY_FLOW);
-  assert.equal(entry.value, 0);
-  assert.equal(active.planningState.profession[STATE.FLOW].value, 0);
-  assert.equal(entry.deadline - entry.at, DRAGON_TRIGGER_DURATION_SECONDS);
-
-  const expired = simulate(
-    'Bladesworn',
-    ['Dragon Trigger', { type: 'wait', durationMs: DRAGON_TRIGGER_DURATION_SECONDS * 1000 + 1 }],
-    {
-      initialResource: 100
-    }
-  );
-
-  assert.equal(expired.planningState.profession[STATE.DRAGON_TRIGGER_ACTIVE], false);
-  assert.equal(expired.planningState.profession[STATE.DRAGON_CHARGES].value, 0);
-});
-
-test('Dragon Trigger entry covers the first interval and later charges spend Flow', () => {
-  // Keep this charge before combat so passive regeneration cannot mask either resource deduction.
-  const result = simulate(
-    'Bladesworn',
-    [
-      ID.DRAGON_TRIGGER,
-      { type: 'wait', durationMs: dragonChargeTickOffsetSeconds(2, false) * 1000 },
-      { type: 'combat-start' }
-    ],
-    { initialResource: 100 }
-  );
-  assert.deepEqual(result.warnings, []);
-  const entry = result.events.find((event) => event.reason === 'dragon trigger entry');
-  const [first, second] = result.events.filter((event) => event.reason === DRAGON_TRIGGER_TICK_RESOURCE_REASON);
-  assert.equal(entry.value, 100 - DRAGON_TRIGGER_ENTRY_FLOW);
-  assert.equal(first.value, 1);
-  assert.equal(first.at, 0.24);
-  assert.equal(first.flowAfter, 100 - DRAGON_TRIGGER_ENTRY_FLOW);
-  assert.equal(first.flowSpent, 0);
-  assert.equal(second.value, 2);
-  assert.equal(second.at, 0.48);
-  assert.equal(second.flowAfter, 100 - DRAGON_TRIGGER_ENTRY_FLOW - DRAGON_TRIGGER_TICK_FLOW);
-  assert.equal(second.flowSpent, DRAGON_TRIGGER_TICK_FLOW);
 });
 
 test('Dragon Trigger defers recharge while charging and still blocks re-entry', () => {

@@ -376,6 +376,7 @@ test('Dragon Trigger admits its exact deadline then expires autonomously and sta
   assert.ok(stalled.warnings.some(({ message: warning }) => warning.includes('reached 2')));
 });
 
+// Accepting a cast-bar skill closes charging and rejects later slashes even if that cast is canceled.
 test('cast-bar skills exit charging at acceptance, while instant skills retain the active charge window', () => {
   const instant = run(['Dragon Trigger', 'Flow Stabilizer', wait(480), combat], {
     initialResource: 30,
@@ -385,13 +386,18 @@ test('cast-bar skills exit charging at acceptance, while instant skills retain t
   assert.equal(state(instant).dragonTriggerActive, true);
   assert.equal(state(instant).dragonCharges.value, 2);
   const exited = run(
-    ['Dragon Trigger', wait(240), { name: 'Combat Stimulant', interruptAfterMs: 1 }, wait(500), combat],
+    ['Dragon Trigger', wait(240), { name: 'Combat Stimulant', interruptAfterMs: 1 }, wait(500), slash(1), combat],
     {
       initialResource: 30,
       selectedSkillIds: [62978]
     }
   );
-  assert.deepEqual(exited.warnings, []);
+  const rejectedSlash = exited.steps.find((step) => step.skillId === ID.DRAGON_SLASH_FORCE);
+  assert.equal(rejectedSlash.invalid, true);
+  assert.match(rejectedSlash.invalidReason, /Enter Dragon Trigger/);
+  assert.equal(exited.warnings.length, 1);
+  assert.match(exited.warnings[0].message, /Enter Dragon Trigger/);
+  assert.equal(state(exited).gunsaberActive, true);
   assert.equal(state(exited).dragonTriggerActive, false);
   close(state(exited).flow.value, 15);
   assert.equal(exited.events.filter((event) => event.reason === 'dragon trigger charge').length, 1);
