@@ -189,17 +189,22 @@ export const mesmerCoreTooltips = {
           'instead of creating a clone at the clone limit'
         ).facts
     ),
-    [ID.FLYING_CUTTER]: skillTooltip(
-      'Strike your target. Repeated qualifying hits within the tracking window trigger an additional Cutter Burst.',
-      (_c, entity) => {
-        const tracked = (entity as MesmerSkill).trackedHitDamage!;
-        return [
-          ...simulationEffectFacts([{ ...tracked, type: 'strike' }], 'additional Cutter Burst').facts,
-          { name: 'Hits required', detail: tooltipDecimal(tracked.hitsRequired) },
-          { name: 'Hit tracking window', detail: tooltipSeconds(tracked.duration) }
-        ];
-      }
-    ),
+    [ID.FLYING_CUTTER]: (context, entity) => {
+      // Separate the triggered burst from the projectile, using the selected patch for its trigger and damage.
+      const skill = requireSkill(context.catalog, entity.id) as MesmerSkill;
+      const tracked = skill.trackedHitDamage!;
+      const projectile = simulationEffectFacts(skill.effects?.map((effect) => ({ ...effect, name: undefined })));
+      const burst = simulationEffectFacts([{ ...tracked, type: 'strike', name: undefined }]);
+      return {
+        description: `Throw a blade at your target. Land ${tooltipDecimal(tracked.hitsRequired)} Flying Cutter hits within ${tooltipSeconds(tracked.duration)} to trigger ${tracked.name}.`,
+        facts: projectile.facts.map((fact) => ({
+          ...fact,
+          name: fact.name === 'Strike damage' ? 'Projectile' : fact.name
+        })),
+        factSections: [{ label: tracked.name, facts: burst.facts.map((fact) => ({ ...fact, name: 'Damage' })) }],
+        incomplete: projectile.incomplete || burst.incomplete
+      };
+    },
     [ID.AXES_OF_SYMMETRY_NON_MIRAGE]: skillTooltip(
       'Strike and confuse your target. Add further player-owned confusion for each clone present when this cast begins.'
     ),

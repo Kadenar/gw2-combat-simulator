@@ -44,6 +44,9 @@ interface ElementalImpactTaskPayload {
 
 const ELEMENTAL_IMPACT_TASK = 'elementalist.elemental-impact';
 
+// Flame Burst owns its artwork even when the player weapon catalog has no matching name.
+const FLAME_BURST_ICON = 'https://render.guildwars2.com/file/610424237E18EA90F0D824454104355309FF5DDA/102959.png';
+
 // Only Alacrity received by this elemental accelerates its autonomous recharge.
 function rechargeRate(context: ElementalistRuntime, at: number): number {
   return elementalBoonActive(context, BOON.ALACRITY, at) ? GW2_ALACRITY_RECHARGE_RATE : 1;
@@ -257,6 +260,7 @@ function emitStrike(
       skillName,
       name: skillName,
       coefficient,
+      ...(skillId === ID.FIRE_ELEMENTAL_FLAME_BURST ? { icon: FLAME_BURST_ICON } : {}),
       hits: 1,
       hitIndex,
       totalHits,
@@ -287,6 +291,7 @@ function emitPlayerOwnedCondition(
       skillId,
       skillName,
       name: `${skillName} - ${condition}`,
+      ...(skillId === ID.FIRE_ELEMENTAL_FLAME_BURST ? { icon: FLAME_BURST_ICON } : {}),
       condition,
       stacks,
       duration

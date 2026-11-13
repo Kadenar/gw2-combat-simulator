@@ -294,7 +294,8 @@ export function bindWikiTooltips(): void {
       element.dataset.wikiEffectSections || '[]'
     );
     effects.hidden = !facts.length && !factTabs.length && !factSections.length;
-    effects.innerHTML = `${facts.length && !factTabs.length && !element.dataset.wikiEquipment ? '<div class="wiki-tooltip-effects-label">Base effects</div>' : ''}${renderFacts(facts)}${
+    // Named sections provide the hierarchy without an extra heading above the ordinary effect rows.
+    effects.innerHTML = `${facts.length && !factTabs.length && !factSections.length && !element.dataset.wikiEquipment ? '<div class="wiki-tooltip-effects-label">Base effects</div>' : ''}${renderFacts(facts)}${
       factTabs.length
         ? `
       <div class="wiki-tooltip-tabs" role="tablist" aria-label="Skill effects">${factTabs.map((tab, index) => `<button type="button" role="tab" id="wiki-tooltip-tab-${index}" aria-controls="wiki-tooltip-tabpanel-${index}" aria-selected="${index === 0}" tabindex="${index === 0 ? 0 : -1}">${esc(tab.label)}</button>`).join('')}</div>

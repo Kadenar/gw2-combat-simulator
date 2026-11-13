@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { capturePaletteInput } from '#gw2/app/rotation/palette/input.js';
 import { queryPaletteActions } from '#gw2/app/rotation/palette/model.js';
 import { renderPalette } from '#gw2/app/rotation/palette/view.js';
@@ -596,6 +597,14 @@ test('Fire Elemental resumes autonomous attacks after Flame Burst recovery', () 
   assert.equal(fireball.summonInheritsAttributes, false);
   assert.notEqual(flameBurst.summonUsesMight, false);
   assert.notEqual(fireball.summonUsesEquipmentModifiers, false);
+  // Both ownership rows retain Flame Burst's artwork without a player skill name lookup.
+  const burstRows = skillBreakdownRows(result).filter((row) => row.name === 'Flame Burst');
+  assert.deepEqual(new Set(burstRows.map((row) => row.group)), new Set(['Player', 'Entities']));
+  assert.ok(
+    burstRows.every(
+      (row) => row.icon === 'https://render.guildwars2.com/file/610424237E18EA90F0D824454104355309FF5DDA/102959.png'
+    )
+  );
   assert.equal(
     result.planningState.profession[STATE.AVAILABLE_FLIPS][elementalistCatalog.skillsById.get(2662).id]?.expiresAt,
     result.planningState.profession[STATE.SUMMONED_ELEMENTAL].activeUntil

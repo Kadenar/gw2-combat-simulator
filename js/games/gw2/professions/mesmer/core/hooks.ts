@@ -38,6 +38,7 @@ import {
   mesmerCritical,
   mesmerStrikeResolved
 } from '#gw2/professions/mesmer/core/mechanics/trigger-points.js';
+import { resolveWardenWhirl } from '#gw2/professions/mesmer/core/mechanics/warden.js';
 import { completeAxesConfusion, scheduleAxesClones } from '#gw2/professions/mesmer/core/skills/weapons/axe.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { mesmerShatterLifecycle } from '#gw2/professions/mesmer/shatter-lifecycle.js';
@@ -171,6 +172,7 @@ export const mesmerCoreHooks: RuntimeHooks<MesmerRuntimeState, MesmerSkill> = co
     },
     // Phantasm markers remain observable without applying resolver mutations.
     eventHandlers: {
+      'mesmer.warden-whirl': resolveWardenWhirl,
       'mesmer.phantasm-summoned': OBSERVABLE_EVENT_HANDLER,
       'mesmer.phantasm-attack': OBSERVABLE_EVENT_HANDLER
     },

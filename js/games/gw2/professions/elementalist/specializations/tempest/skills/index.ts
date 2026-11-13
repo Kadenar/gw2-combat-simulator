@@ -36,8 +36,9 @@ export const TEMPEST_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition<El
       {
         ownerId: 'elementalist',
         fieldType: COMBO_FIELD.FIRE,
-        duration: 9,
-        startAnchor: 'castEnd'
+        // Cover the channel's own whirl finishers and the five-second lingering tornado.
+        duration: 8.32,
+        startAnchor: 'castStart'
       }
     ],
     effects: TEMPEST_OVERLOAD_EFFECTS[ID.OVERLOAD_FIRE],

@@ -1,5 +1,14 @@
 /** Canonical Core mesmer skill definitions grouped by their GW2 owner. */
-import { ACTOR, BOON, COMBO_FIELD, CONDITION, CONTROL, RECIPIENT, STATUS } from '#gw2/platform/constants.js';
+import {
+  ACTOR,
+  BOON,
+  COMBO_FIELD,
+  COMBO_FINISHER,
+  CONDITION,
+  CONTROL,
+  RECIPIENT,
+  STATUS
+} from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -227,7 +236,9 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDe
         name: 'Damage',
         actorType: ACTOR.SUMMON,
         summonKind: 'phantasm',
-        weapon: 'phantasm medium'
+        weapon: 'phantasm medium',
+        // Each attack whirls; the Warden mechanic adds the first-contact bolt for each field.
+        comboFinishers: [{ ownerId: 'mesmer', finisherType: COMBO_FINISHER.WHIRL }]
       }
     ],
     sideEffects: [{ on: 'castStart', do: { type: 'mesmer.summon-phantasm' } }]
@@ -346,6 +357,8 @@ export const MESMER_SLOT_SKILLS_SKILL_MECHANICS: Readonly<Record<number, SkillDe
       }
     ],
     castTimeMs: 920,
+    // Commit the phantasm reset before the cast finishes.
+    interruptCommitMs: 880,
     effects: [],
     // Reset phantasms at commitment; the delayed self-relock remains independent.
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.signet-reset' } }]

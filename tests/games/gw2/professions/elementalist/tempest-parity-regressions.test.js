@@ -13,6 +13,33 @@ import { tempestHooks } from '#gw2/professions/elementalist/specializations/temp
 import { runElementalist, runNative } from '#tests/helpers/elementalist-simulation.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 
+// An isolated overload must generate Burning Bolts from its own field while channeling.
+test('Overload Fire supplies its own field for channel finishers', () => {
+  const id = ELEMENTALIST_OVERLOAD_SKILL_IDS.Fire;
+  const result = runElementalist([{ type: 'cast', skillId: id }], {
+    specialization: 'Tempest',
+    startAttunement: 'Fire',
+    selectedTraitIds: [],
+    permanentComboField: 'none'
+  });
+  const action = result.events.find((event) => event.type === 'action' && event.skillId === id);
+  const combos = result.resolvedEvents.filter((event) => event.type === 'combo' && event.skillId === id);
+
+  assert.deepEqual(result.warnings, []);
+  assert.ok(combos.length > 0);
+  assert.ok(
+    combos.every(
+      (event) =>
+        event.name === 'Burning Bolts' &&
+        event.fieldSourceId === id &&
+        event.activationId === action.activationId &&
+        event.at >= action.at &&
+        event.at < action.endsAt
+    )
+  );
+  assert.ok(result.breakdown.some((entry) => entry.name === 'Burning Bolts' && entry.conditionDamage > 0));
+});
+
 // Overload and attunement hold the same remaining work as actual Alacrity applications change.
 test('Tempest attunement lockouts keep overload recharge unchanged by temporary Alacrity', () => {
   for (const element of ['Fire', 'Water', 'Air', 'Earth']) {

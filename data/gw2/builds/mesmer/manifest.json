@@ -6,32 +6,32 @@
         "label": "Power (Greatsword-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-bench.json",
-        "benchmarkDps": 43327,
+        "benchmarkDps": 43541,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-greatsword-dagger-sword",
         "upToDate": true,
         "benchmarkApm": 98.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 51184, "phase": 51184 },
-          "80-60": { "cumulative": 44777, "phase": 39713 },
-          "60-40": { "cumulative": 41942, "phase": 37228 },
-          "40-20": { "cumulative": 41874, "phase": 41672 },
-          "20-0": { "cumulative": 43327, "phase": 43327 }
+          "100-80": { "cumulative": 51628, "phase": 51628 },
+          "80-60": { "cumulative": 44973, "phase": 39713 },
+          "60-40": { "cumulative": 42207, "phase": 37521 },
+          "40-20": { "cumulative": 41947, "phase": 41183 },
+          "20-0": { "cumulative": 43541, "phase": 51224 }
         }
       },
       {
         "label": "Power (Spear-Dagger/Sword)",
         "build": "data/gw2/builds/mesmer/b-power-chronomancer-dagger-sword-spear.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-chronomancer-dagger-sword-spear-bench.json",
-        "benchmarkDps": 42606,
+        "benchmarkDps": 42708,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/power-chronomancer-spear-dagger-sword",
         "upToDate": false,
         "benchmarkApm": 97.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 48916, "phase": 48916 },
-          "80-60": { "cumulative": 41906, "phase": 36628 },
-          "60-40": { "cumulative": 41192, "phase": 39846 },
-          "40-20": { "cumulative": 42578, "phase": 47388 },
-          "20-0": { "cumulative": 42606, "phase": 42606 }
+          "100-80": { "cumulative": 49002, "phase": 49002 },
+          "80-60": { "cumulative": 41943, "phase": 36629 },
+          "60-40": { "cumulative": 41003, "phase": 39228 },
+          "40-20": { "cumulative": 42684, "phase": 48501 },
+          "20-0": { "cumulative": 42708, "phase": 42708 }
         }
       },
       {

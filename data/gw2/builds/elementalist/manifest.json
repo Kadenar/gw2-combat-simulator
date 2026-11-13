@@ -203,64 +203,64 @@
         "label": "Condition (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-pistol-warhorn.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-pistol-warhorn.json",
-        "benchmarkDps": 40878,
+        "benchmarkDps": 40710,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-pistol-warhorn",
         "benchmarkApm": 78.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35166, "phase": 35166 },
-          "80-60": { "cumulative": 40062, "phase": 46686 },
-          "60-40": { "cumulative": 40017, "phase": 39926 },
-          "40-20": { "cumulative": 40160, "phase": 40609 },
-          "20-0": { "cumulative": 40878, "phase": 40878 }
+          "100-80": { "cumulative": 35099, "phase": 35099 },
+          "80-60": { "cumulative": 40019, "phase": 46675 },
+          "60-40": { "cumulative": 39880, "phase": 39603 },
+          "40-20": { "cumulative": 40144, "phase": 40934 },
+          "20-0": { "cumulative": 40710, "phase": 40710 }
         }
       },
       {
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-scepter.json",
-        "benchmarkDps": 39204,
+        "benchmarkDps": 39165,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-scepter-warhorn",
         "benchmarkApm": 63.2,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 38212, "phase": 38212 },
-          "80-60": { "cumulative": 40834, "phase": 43892 },
-          "60-40": { "cumulative": 39681, "phase": 37528 },
-          "40-20": { "cumulative": 39842, "phase": 40323 },
-          "20-0": { "cumulative": 39204, "phase": 39204 }
+          "80-60": { "cumulative": 40818, "phase": 43858 },
+          "60-40": { "cumulative": 40304, "phase": 39351 },
+          "40-20": { "cumulative": 39796, "phase": 38273 },
+          "20-0": { "cumulative": 39165, "phase": 39165 }
         }
       },
       {
         "label": "Condition Alacrity (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-alac-tempest-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-tempest-pistol.json",
-        "benchmarkDps": 31669,
+        "benchmarkDps": 31620,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-tempest-pistol-warhorn",
         "benchmarkApm": 73.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 30480, "phase": 30480 },
-          "80-60": { "cumulative": 31564, "phase": 32739 },
-          "60-40": { "cumulative": 31984, "phase": 32843 },
-          "40-20": { "cumulative": 32045, "phase": 32236 },
-          "20-0": { "cumulative": 31669, "phase": 31669 }
+          "100-80": { "cumulative": 30424, "phase": 30424 },
+          "80-60": { "cumulative": 31505, "phase": 32678 },
+          "60-40": { "cumulative": 31925, "phase": 32783 },
+          "40-20": { "cumulative": 31942, "phase": 31993 },
+          "20-0": { "cumulative": 31620, "phase": 31620 }
         }
       },
       {
         "label": "Condition Alacrity (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-alac-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-tempest-scepter.json",
-        "benchmarkDps": 32628,
+        "benchmarkDps": 32559,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-tempest-scepter-warhorn",
         "benchmarkApm": 61,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 28062, "phase": 28062 },
-          "80-60": { "cumulative": 31101, "phase": 34837 },
-          "60-40": { "cumulative": 31678, "phase": 32904 },
+          "80-60": { "cumulative": 31035, "phase": 34688 },
+          "60-40": { "cumulative": 31593, "phase": 32780 },
           "40-20": { "cumulative": null, "phase": null },
-          "20-0": { "cumulative": 32628, "phase": 32628 }
+          "20-0": { "cumulative": 32559, "phase": 32559 }
         }
       },
       {
@@ -298,15 +298,15 @@
         "label": "Inferno Alacrity (Scepter/Focus)",
         "build": "data/gw2/builds/elementalist/b-inferno-alac-tempest.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-alac-tempest.json",
-        "benchmarkDps": 35459,
+        "benchmarkDps": 35665,
         "upToDate": true,
-        "benchmarkApm": 53.3,
+        "benchmarkApm": 56.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35020, "phase": 35020 },
-          "80-60": { "cumulative": 35330, "phase": 35650 },
-          "60-40": { "cumulative": 35662, "phase": 36355 },
-          "40-20": { "cumulative": 35173, "phase": 33749 },
-          "20-0": { "cumulative": 35459, "phase": 35459 }
+          "100-80": { "cumulative": 33699, "phase": 33699 },
+          "80-60": { "cumulative": 34647, "phase": 35682 },
+          "60-40": { "cumulative": 35343, "phase": 36837 },
+          "40-20": { "cumulative": 35280, "phase": 35095 },
+          "20-0": { "cumulative": 35665, "phase": 35665 }
         }
       }
     ]

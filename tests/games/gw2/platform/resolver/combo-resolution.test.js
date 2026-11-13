@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { buildChartSeries } from '#gw2/app/results/charts/time-series-model.js';
 import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import {
@@ -181,6 +182,77 @@ test('Dark projectile and whirl siphons own their hits without inflating the fin
     assert.equal(rows.find((row) => row.name === 'Fixture Finisher').hits, 1);
     assert.equal(rows.find((row) => row.name === siphonName).hits, 1);
     assert.equal(rows.find((row) => row.name === siphonName).casts, 0);
+  }
+});
+
+// Whirl burning shares one outcome row while each payout retains its triggering skill and actor.
+test('Burning Bolts separates combo damage and preserves trigger attribution', () => {
+  for (const actor of [{ actorType: 'player' }, { actorType: 'summon', entityName: 'Fixture Summon' }]) {
+    const skills = ['First Whirl', 'Second Whirl'];
+    const nativeBurning = {
+      ...actor,
+      type: 'condition',
+      at: 1,
+      source: skills[0],
+      sourceId: 'whirl:0',
+      skillName: skills[0],
+      name: skills[0],
+      condition: 'Burning',
+      stacks: 1,
+      duration: 1
+    };
+    const result = resolve([
+      field('fire:whirls', 'Fire'),
+      nativeBurning,
+      ...skills.map((skillName, index) =>
+        finisher(`whirl:${index}`, 'fire:whirls', {
+          ...actor,
+          sourceId: `whirl:${index}`,
+          skillName,
+          damageBreakdownName: 'Finisher Variant',
+          applications: index + 1,
+          finisherType: 'Whirl'
+        })
+      )
+    ]);
+    const bolts = result.resolvedEvents.filter((event) => event.type === 'condition' && event.comboId);
+    assert.equal(bolts.length, 3);
+    assert.deepEqual(new Set(bolts.map((event) => event.triggeredBy)), new Set(skills));
+    assert.ok(
+      bolts.every(
+        (event) =>
+          event.skillName === 'Burning Bolts' &&
+          event.damageBreakdownName === 'Burning Bolts' &&
+          event.parentSkillName === event.triggeredBy &&
+          event.actorType === actor.actorType &&
+          event.entityName === actor.entityName
+      )
+    );
+    const rows = skillBreakdownRows(result);
+    const boltRow = rows.find((row) => row.name === 'Burning Bolts');
+    assert.ok(boltRow.condition > 0);
+    assert.equal(boltRow.casts, 0);
+    assert.equal(boltRow.hits, bolts.length);
+    assert.equal(boltRow.strike, 0);
+    assert.equal(
+      boltRow.icon,
+      'https://render.guildwars2.com/file/B47BF5803FED2718D7474EAF9617629AD068EE10/102849.png'
+    );
+    assert.equal(boltRow.entityName, actor.entityName || '');
+    assert.deepEqual(new Set(boltRow.procDamage.map((entry) => entry.sourceSkill)), new Set(skills));
+    assert.equal(
+      boltRow.procDamage.reduce((sum, entry) => sum + entry.total, 0),
+      boltRow.total
+    );
+    const native = result.resolvedEvents.find((event) => event.type === 'condition' && !event.comboId);
+    assert.equal(rows.find((row) => row.name === skills[0]).condition, native.damage);
+    const hits = buildChartSeries(result).skillDamage[boltRow.key];
+    assert.ok(hits.length > 0);
+    assert.deepEqual(new Set(hits.map((hit) => hit.triggeredBy)), new Set(skills));
+    assert.equal(
+      hits.reduce((sum, hit) => sum + hit.v, 0),
+      boltRow.total
+    );
   }
 });
 

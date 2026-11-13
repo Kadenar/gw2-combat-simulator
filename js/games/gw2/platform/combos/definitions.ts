@@ -20,7 +20,7 @@ import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { SkillId } from '#gw2/platform/skills/types.js';
 
 const COMBO_COMBAT_METADATA_FIELDS = Object.freeze([
-  // Combo conditions share the finisher's damage row even when its cast uses a variant name.
+  // Combo conditions inherit the finisher's row unless the outcome owns a separate row.
   'damageBreakdownName',
   // A missed finisher can still grant self effects, but its hostile outcomes must also miss.
   'offTarget'
@@ -447,6 +447,17 @@ export function comboOutcomeRequests(combo: ComboEvent): readonly (PacketEmissio
     case 'condition':
       return packets({
         ...base,
+        // Burning Bolts owns its condition damage; retain the finisher for trigger attribution.
+        ...(combo.fieldType === COMBO_FIELD.FIRE && combo.finisherType === COMBO_FINISHER.WHIRL
+          ? {
+              skillName: outcome.name,
+              damageBreakdownName: outcome.name,
+              parentSkillName: combo.skillName || combo.parentSkillName,
+              icon: 'https://render.guildwars2.com/file/B47BF5803FED2718D7474EAF9617629AD068EE10/102849.png',
+              // Count each bolt application once, independently of its condition payouts.
+              metadata: { procCount: 1 }
+            }
+          : {}),
         type: 'condition',
         condition: outcome.condition,
         stacks: outcome.stacks,

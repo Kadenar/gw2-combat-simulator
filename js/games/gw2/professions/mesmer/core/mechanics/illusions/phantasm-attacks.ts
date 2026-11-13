@@ -1,4 +1,4 @@
-import { ACTOR } from '#gw2/platform/constants.js';
+import { ACTOR, COMBO_FINISHER } from '#gw2/platform/constants.js';
 import { materializeSkillEffectApplications } from '#gw2/platform/effects/materializer.js';
 import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { MesmerPhantasmExecution } from '#gw2/professions/mesmer/core/mechanics/illusions/types.js';
@@ -7,6 +7,7 @@ import {
   buildMesmerPacket,
   buildMesmerStrikes
 } from '#gw2/professions/mesmer/core/mechanics/packets.js';
+import { scheduleWardenWhirl } from '#gw2/professions/mesmer/core/mechanics/warden.js';
 import type { MesmerConditionEffect, MesmerStrikeEffect } from '#gw2/professions/mesmer/data/types.js';
 import type { MesmerRuntime } from '#gw2/professions/mesmer/types.js';
 
@@ -180,7 +181,7 @@ export function schedulePhantasmStrike(
           chronophantasmaConditionDurationFactor: repeatPolicy.conditionDurationMultiplier
         }
       ).forEach((packet) => {
-        emitAttackPacket(state, execution, packet);
+        emitAttackPacket(state, execution, packet, 'repeat');
       });
     } else {
       // Without dedicated repeat ticks, shift each initial hit forward by the same offset.
@@ -212,7 +213,7 @@ export function schedulePhantasmStrike(
             chronophantasmaConditionDurationFactor: repeatPolicy.conditionDurationMultiplier
           }
         ).forEach((packet) => {
-          emitAttackPacket(state, execution, packet);
+          emitAttackPacket(state, execution, packet, 'repeat');
         });
       }
     }
@@ -400,10 +401,28 @@ function schedulePhantasmControls(state: MesmerRuntime, execution: MesmerPhantas
 }
 
 /** Every attack packet retains the accepted delivery, actor ownership, and authored scheduling priority. */
-function emitAttackPacket(state: MesmerRuntime, execution: MesmerPhantasmExecution, packet: SimulationEventBase): void {
+function emitAttackPacket(
+  state: MesmerRuntime,
+  execution: MesmerPhantasmExecution,
+  packet: SimulationEventBase,
+  cycle: 'initial' | 'repeat' = 'initial'
+): void {
+  scheduleWardenWhirl(state, execution, packet, cycle);
+  // Each summoned whirl pulse gets its own attempt, including co-summoned entities and repeated attacks.
+  const comboFinishers = packet.comboFinishers?.map((finisher) =>
+    finisher.finisherType === COMBO_FINISHER.WHIRL
+      ? {
+          ...finisher,
+          attemptGroup: JSON.stringify([finisher.attemptGroup, execution.entityIndex, cycle, packet.hitIndex])
+        }
+      : finisher
+  );
   state.effects.emit({
     ...execution.delivery,
     kind: 'packet',
-    event: packet.type === 'damage' ? { ...packet, bountifulBladesDamageFactor: execution.damageMultiplier } : packet
+    event:
+      packet.type === 'damage'
+        ? { ...packet, comboFinishers, bountifulBladesDamageFactor: execution.damageMultiplier }
+        : packet
   });
 }

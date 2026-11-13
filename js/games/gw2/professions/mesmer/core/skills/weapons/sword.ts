@@ -244,7 +244,8 @@ export const MESMER_WEAPONS_SWORD_SKILL_MECHANICS: Readonly<Record<number, Skill
     flipArm: { skillId: ID.COUNTER_BLADE, duration: 3, delay: 0, anchor: 'castStart' },
     castTimeMs: 1480,
     defaultInterruptMs: 120,
-    interruptCommitMs: 100,
+    // Commit the flip early so a later interruption still enables Counter Blade.
+    interruptCommitMs: 80,
     // No incoming attacks are simulated, so blocking grants neither a clone nor a counterattack.
     effects: [],
     sideEffects: [{ on: 'castCommit', do: { type: 'mesmer.arm-flip' } }]

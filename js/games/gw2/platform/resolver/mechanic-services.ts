@@ -6,6 +6,7 @@ import { liveBoonSnapshot } from '#gw2/platform/combat/query/effect-stacks.js';
 import { activeBoonStacks, activeBuffStacks, targetConditionCount } from '#gw2/platform/combat/query/runtime-query.js';
 import type { CompanionEffects } from '#gw2/platform/combat/state/companion.js';
 import { remainingTargetHealthBelow, remainingTargetHealthFraction } from '#gw2/platform/combat/state/target-health.js';
+import { isComboFieldActiveAt } from '#gw2/platform/combos/resolution.js';
 import type { ComboFieldEvent } from '#gw2/platform/combos/types.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
@@ -16,6 +17,8 @@ import type { SkillId } from '#gw2/platform/skills/types.js';
 
 /** Query views observe accepted combat facts without granting mutation. */
 export interface MechanicCombatQueries {
+  /** Returns owned fields eligible at this instant using the resolver's expiry rules. */
+  activeComboFields(ownerId: string, at: number): readonly Readonly<ComboFieldEvent>[];
   activeBoonStacks(kind: string, at: number, maximum?: number, recipient?: EffectRecipient): number;
   activeBuffStacks(kind: string, at: number, maximum?: number, recipient?: EffectRecipient): number;
   buffApplications(kind: string): readonly Readonly<Gw2TimedBuffApplication>[];
@@ -68,6 +71,10 @@ export function createMechanicCombatServices(
       activeBoonStacks({ config: runtime.config, runtime, time: at }, kind, maximum, recipient),
     activeBuffStacks: (kind: string, at: number, maximum = 25, recipient: EffectRecipient = { actor: ACTOR.PLAYER }) =>
       activeBuffStacks({ runtime, time: at }, kind, maximum, recipient),
+    activeComboFields: (ownerId: string, at: number): readonly Readonly<ComboFieldEvent>[] =>
+      [...runtime.combo.fields.values()].filter(
+        (field) => field.ownerId === ownerId && isComboFieldActiveAt(field, at)
+      ),
     buffApplications: (kind: string): readonly Readonly<Gw2TimedBuffApplication>[] => runtime.buffs.get(kind) ?? [],
     targetHasCondition: (condition: string, at: number) => runtime.query.targetHasCondition(condition, at, runtime),
     targetConditionStacks: (condition: string, at: number) =>
@@ -150,6 +157,7 @@ export function createMechanicCombatServices(
   };
   // Owner-selected observations expose no resolver mutation or aggregate service reference.
   const queries = Object.freeze({
+    activeComboFields: operations.activeComboFields,
     activeBoonStacks: operations.activeBoonStacks,
     boonApplications: operations.boonApplications,
     buffApplications: operations.buffApplications,
