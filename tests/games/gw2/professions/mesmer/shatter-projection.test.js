@@ -15,7 +15,19 @@ function scenario(profession, patchId, specialization, skillId, spent, selectedT
   const skill = context.catalog.skillsById.get(skillId);
   const tooltip = describeSimulationSkill(context, skill, mesmerTooltips);
   assert.ok(!tooltip.incomplete);
-  const qualifier = `${spent} ${specialization === 'Virtuoso' ? 'blades' : 'clones'} spent`;
+  const resource = specialization === 'Virtuoso' ? 'blade' : 'clone';
+  const tierLabel = `${spent} ${resource}${spent === 1 ? '' : 's'}`;
+  let facts;
+
+  if (specialization === 'Virtuoso') {
+    // Blade tiers use tabs unless every tier shares the same effects.
+    const tab = tooltip.factTabs?.find(({ label }) => label === tierLabel);
+
+    if (tooltip.factTabs) assert.ok(tab, `Missing ${tierLabel} tooltip tab`);
+
+    facts = tab ? tab.facts : tooltip.facts;
+  } else facts = tooltip.facts.filter(({ detail }) => detail.includes(`${tierLabel} spent`));
+
   const result = runMesmer(
     [skill.name, { type: 'wait', durationMs: 2000 }],
     { ...createDefaultConfig(), patchId, specialization, initialResource: spent, selectedTraitIds },
@@ -23,7 +35,7 @@ function scenario(profession, patchId, specialization, skillId, spent, selectedT
   );
   assert.deepEqual(result.warnings, []);
   return {
-    facts: tooltip.facts.filter(({ detail }) => detail.includes(qualifier)),
+    facts,
     events: result.events.filter((event) => event.skillId === skillId),
     result
   };
@@ -96,7 +108,7 @@ test('clone shatter Confusion uses the same selected stack budget in tooltips an
     ['current', 1],
     ['shatter-projection', 2]
   ]) {
-    for (const spent of [0, 2]) {
+    for (const spent of [0, 1, 2]) {
       const { facts, events } = scenario(profession, patchId, 'Core', ID.CRY_OF_FRUSTRATION, spent);
       const expected = stacksPerSource * (spent + 1);
       const fact = facts.find(({ name }) => name === 'Confusion');
@@ -151,10 +163,7 @@ test('Bladesong Confusion tooltips follow selected packet cadence rather than bl
         events.filter(({ type }) => type === 'damage').map(({ coefficient }) => coefficient),
         [0.2, 0.3, 0.5]
       );
-      assert.equal(
-        facts.find(({ name }) => name === 'Strike damage').detail,
-        '1 coefficient total · 3 hits - 2 blades spent'
-      );
+      assert.equal(facts.find(({ name }) => name === 'Strike damage').detail, '1 coefficient total · 3 hits');
     }
   }
 });

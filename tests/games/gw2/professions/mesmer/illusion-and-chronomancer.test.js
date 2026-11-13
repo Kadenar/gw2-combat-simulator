@@ -496,7 +496,8 @@ test('Confusing Images starts its cooldown after its channel ends', () => {
 
 test('Phantasmal Swordsman registers its player hit before a later overlapping action', () => {
   const result = simulateMesmer(
-    ['Phantasmal Swordsman', { name: 'Signet of Midnight', offset: 800 }],
+    // The player strike lands at 800 ms; the later instant still overlaps the 880 ms cast.
+    ['Phantasmal Swordsman', { name: 'Signet of Midnight', offset: 840 }],
     defaultSimulationConfig({
       specialization: 'Core',
       primaryWeapon: 'Sword',
