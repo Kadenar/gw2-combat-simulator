@@ -20,7 +20,10 @@ export const SOULBEAST_FELINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Ski
       {
         type: 'strike',
         coefficient: 0.98,
-        hits: 1
+        hits: 1,
+        atMs: 360,
+        timingAnchor: 'castStart',
+        timingScale: 'fixed'
       }
     ]
   },

@@ -111,10 +111,16 @@ test('overlapping merged abilities keep independent frenzies without recursively
 });
 
 test('admitted frenzies survive leaving Beastmode', () => {
-  const result = run('Tiger', [ID.BITE, ID.LEAVE_BEASTMODE]);
+  // Leave after admission so the test exercises an active frenzy rather than Bite's windup.
+  const admittedAt = apexEvents(run('Tiger', [ID.BITE]))[0].at;
+  const result = run('Tiger', [
+    ID.BITE,
+    { type: 'cast', skillId: ID.LEAVE_BEASTMODE, concurrentOffsetMs: Math.ceil((admittedAt * 1000) / 40) * 40 + 40 }
+  ]);
   const leave = result.events.find((event) => event.skillId === ID.LEAVE_BEASTMODE && event.type === 'action');
   const events = apexEvents(result);
   assert.equal(activations(events).size, 1);
+  assert.ok(events.some((event) => event.at < leave.at));
   assert.ok(events.some((event) => event.at > leave.at));
 });
 
