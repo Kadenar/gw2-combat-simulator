@@ -1,11 +1,21 @@
 import { simulationEffectFacts, skillFact, tooltipSeconds } from '#gw2/app/shared/simulation-tooltip.js';
 import type { DescribeSimulationTooltip } from '#gw2/app/shared/simulation-tooltip.js';
+import type { TooltipFact } from '#gw2/platform/skills/types.js';
 import { mesmerSelectedShatter } from '#gw2/professions/mesmer/core/mechanics/selected-shatter.js';
 import { cloneShatterEffects } from '#gw2/professions/mesmer/core/mechanics/shatter-projection.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
 import type { MesmerSkill } from '#gw2/professions/mesmer/data/types.js';
 import { bladesongEffects } from '#gw2/professions/mesmer/specializations/virtuoso/mechanics/bladesong-projection.js';
 import { MESMER_VIRTUOSO_SHATTERS } from '#gw2/professions/mesmer/specializations/virtuoso/skills/index.js';
+
+/** Storm poison packets are independent chances, so their facts must not promise a fixed application count. */
+export function chaosStormPoisonFacts(facts: readonly TooltipFact[]): readonly TooltipFact[] {
+  return facts.map((fact) =>
+    fact.name === 'Poisoned'
+      ? { ...fact, applications: undefined, detail: `${fact.detail} · 1/3 chance per pulse` }
+      : fact
+  );
+}
 
 // Describe each bladesong's own effects without attaching defensive notes to damaging skills.
 const bladesongDescriptions: Readonly<Record<number, string>> = {

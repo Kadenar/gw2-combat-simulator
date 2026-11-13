@@ -7,6 +7,7 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import { chaosStormPoisonFacts } from '#gw2/professions/mesmer/app/tooltips/shared.js';
 import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professions/mesmer/data/ids.js';
 
 /** Describe chaos tooltips from the selected balance data. */
@@ -24,10 +25,13 @@ export const mesmerChaosTooltips = {
     ['attributeBonuses.expertise', 'Expertise'],
     ['attributeBonuses.concentration', 'Concentration']
   ]),
-  [TRAIT.METHOD_OF_MADNESS]: traitSkillTooltip(
-    [ID.LESSER_CHAOS_STORM],
-    'Completing a healing skill invokes Lesser Chaos Storm, repeatedly striking the target.'
-  ),
+  [TRAIT.METHOD_OF_MADNESS]: (context, entity) => {
+    const tooltip = traitSkillTooltip(
+      [ID.LESSER_CHAOS_STORM],
+      'Completing a healing skill invokes Lesser Chaos Storm, an ethereal combo field that repeatedly strikes the target. Each pulse has a one-in-three chance to apply Poisoned.'
+    )(context, entity);
+    return { ...tooltip, facts: chaosStormPoisonFacts(tooltip.facts) };
+  },
   [TRAIT.ILLUSIONARY_DEFENSE]: traitTooltip(
     'Using your second shatter or Flustering Flute grants Protection to yourself and nearby allies. Duration increases per clone, blade, or note spent, up to three resources, and scales with boon duration.',
     [['durationPerTier', 'Additional Protection per resource', tooltipSeconds]]

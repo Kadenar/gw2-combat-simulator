@@ -20,7 +20,7 @@ import { mesmerDominationTooltips } from '#gw2/professions/mesmer/app/tooltips/d
 import { mesmerDuelingTooltips } from '#gw2/professions/mesmer/app/tooltips/dueling.js';
 import { mesmerIllusionsTooltips } from '#gw2/professions/mesmer/app/tooltips/illusions.js';
 import { mesmerInspirationTooltips } from '#gw2/professions/mesmer/app/tooltips/inspiration.js';
-import { shatterTooltip } from '#gw2/professions/mesmer/app/tooltips/shared.js';
+import { chaosStormPoisonFacts, shatterTooltip } from '#gw2/professions/mesmer/app/tooltips/shared.js';
 import { MESMER_CORE_PHANTASM_ATTACK_TIMINGS } from '#gw2/professions/mesmer/core/skills/index.js';
 import { MESMER_CORE_SHATTERS } from '#gw2/professions/mesmer/core/skills/profession-skills.js';
 import { MESMER_SKILL_IDS as ID } from '#gw2/professions/mesmer/data/ids.js';
@@ -130,9 +130,12 @@ export const mesmerCoreTooltips = {
         .facts
     }),
     [ID.CHAOS_STORM]: skillTooltip(
-      'Create a storm that strikes repeatedly. The first pulse dazes the target. Later condition pulses apply poison.',
+      'Create a storm that strikes repeatedly. The first pulse dazes the target. Each pulse has a one-in-three chance to apply Poisoned.',
       (context) =>
-        simulationEffectFacts(requireSkillAction(requireSkill(context.catalog, ID.CHAOS_STORM), 'poison').effects).facts
+        chaosStormPoisonFacts(
+          simulationEffectFacts(requireSkillAction(requireSkill(context.catalog, ID.CHAOS_STORM), 'poison').effects)
+            .facts
+        )
     ),
     [ID.SIGNET_OF_ILLUSIONS]: (context, entity, _specialization, build) => {
       const resource = tooltipResource(build);
