@@ -17,11 +17,12 @@
     "Weapon1": "Berserker's",
     "Weapon2": "Berserker's"
   },
+  "alternateWeaponPrefixes": ["Berserker's", "Berserker's"],
   "weapons": ["Axe", "Axe"],
   "alternateWeapons": ["Sword", "Mace"],
   "rune": "Scholar",
   "weaponSigils": [
-    ["Force", "Air"],
+    ["Force", "Impact"],
     ["Force", "Impact"]
   ],
   "relic": "Claw",
@@ -35,10 +36,6 @@
     },
     {
       "stat": "Precision",
-      "count": 0
-    },
-    {
-      "stat": "Condition Damage",
       "count": 0
     }
   ],
@@ -61,12 +58,22 @@
     "Utility1": 12633,
     "Utility2": 12492,
     "Utility3": 12491,
-    "Elite": 45717
+    "Elite": 12516
   },
-  "selectedPet": "Pig",
+  "selectedPet": "Tiger",
+  "selectedPet2": "Lynx",
   "selectedHammerSkillIds": [63335, 69262, 63131, 63208],
   "initialUntamedState": "Pet",
   "assumptions": {
+    "simulationMode": "deterministic",
+    "simulationSeed": 1,
+    "criticalDamageMode": "rolled",
+    "permanentComboField": "none",
+    "fractal": {
+      "enabled": false,
+      "agonyResistance": 150,
+      "augmentation": "none"
+    },
     "might": 25,
     "fury": true,
     "quickness": true,
@@ -89,11 +96,15 @@
       "Slow": true,
       "Weakness": true,
       "Vulnerability": 25
-    }
+    },
+    "targetDefiant": true
   },
-  "initialAstralForce": 100,
-  "initialArrows": 8,
   "startingWeaponSet": 1,
   "targetHealth": 4000000,
-  "targetArmor": 2597
+  "targetStartingHealthPercent": 100,
+  "targetArmor": 2597,
+  "initialAstralForce": 100,
+  "initialArrows": 8,
+  "precastRelics": [],
+  "initialThornsStacks": 0
 }
