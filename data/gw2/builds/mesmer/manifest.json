@@ -75,13 +75,13 @@
         "build": "data/gw2/builds/mesmer/b-power-mirage-spear-dagger-sword.json",
         "rotation": "data/gw2/rotations/mesmer/r-power-mirage-spear-dagger-sword-bench.json",
         "upToDate": true,
-        "benchmarkDps": 42791,
+        "benchmarkDps": 42805,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 42070, "phase": 42070 },
-          "80-60": { "cumulative": 41901, "phase": 41732 },
-          "60-40": { "cumulative": 41703, "phase": 41319 },
-          "40-20": { "cumulative": 41262, "phase": 39953 },
-          "20-0": { "cumulative": 42791, "phase": 50131 }
+          "80-60": { "cumulative": 41905, "phase": 41742 },
+          "60-40": { "cumulative": 41706, "phase": 41319 },
+          "40-20": { "cumulative": 41264, "phase": 39953 },
+          "20-0": { "cumulative": 42805, "phase": 50201 }
         },
         "benchmarkApm": 110.1
       },
@@ -89,16 +89,16 @@
         "label": "Condition (Staff-Axe/Torch) - Dune Cloak",
         "build": "data/gw2/builds/mesmer/b-condi-mirage-dune-cloak.json",
         "rotation": "data/gw2/rotations/mesmer/r-condi-mirage-dune-cloak-bench.json",
-        "benchmarkDps": 40392,
+        "benchmarkDps": 40393,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/mesmer/condition-mirage-dune-cloak-staff-axe-torch",
         "upToDate": true,
         "benchmarkApm": 106,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 39787, "phase": 39787 },
-          "80-60": { "cumulative": 40863, "phase": 41995 },
-          "60-40": { "cumulative": 40030, "phase": 38483 },
-          "40-20": { "cumulative": 39734, "phase": 38845 },
-          "20-0": { "cumulative": 40392, "phase": 40392 }
+          "80-60": { "cumulative": 40866, "phase": 42001 },
+          "60-40": { "cumulative": 40032, "phase": 38483 },
+          "40-20": { "cumulative": 39735, "phase": 38845 },
+          "20-0": { "cumulative": 40393, "phase": 40393 }
         }
       }
     ]

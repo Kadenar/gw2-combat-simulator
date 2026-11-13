@@ -912,10 +912,16 @@ export function paletteSkillGroups(input: PaletteInput, paletteContext: PaletteC
             : [];
         })
       ];
+      // Project sequence families before ordering the skills currently occupying the live tiles.
+      const tiles = displayedSkillTiles(input, skills, paletteContext);
+
+      // Profession rows follow F-slot order, including dynamic legend icons and projected replacement skills.
+      if (tiles.every((skill) => /^Profession_[1-7]$/.test(String(skill.slot))))
+        tiles.sort((left, right) => String(left.slot).localeCompare(String(right.slot)));
+
       return {
         ...group,
-        // Project sequence families to the skill currently occupying each live palette tile.
-        skills: displayedSkillTiles(input, skills, paletteContext)
+        skills: tiles
       };
     });
   const renderedProfessionGroups = renderGroups(professionGroups);

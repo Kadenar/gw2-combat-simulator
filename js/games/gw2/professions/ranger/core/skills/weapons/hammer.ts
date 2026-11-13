@@ -195,7 +195,8 @@ export const RANGER_CORE_HAMMER_SKILL_MECHANICS: Readonly<Record<number, SkillDe
       {
         type: 'strike',
         sourceId: ID.OVERBEARING_SMASH_SECOND_STRIKE,
-        ticks: [{ atMs: 960, coefficient: 1.5 }],
+        // The follow-up lands before the remaining cast recovery ends.
+        ticks: [{ atMs: 800, coefficient: 1.5 }],
         timingAnchor: 'castStart',
         timingScale: 'fixed',
         name: 'Unleashed Overbearing Smash - Follow-Up Damage'

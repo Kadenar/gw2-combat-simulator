@@ -794,7 +794,7 @@ test('Peitha preserves expiry-boundary damage without extending buff lifetimes o
     const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.priority === 10);
     assert.equal(
       result.resolvedEvents.find((event) => event.type === 'damage' && event.priority === -10).damage,
-      hits[0].damage
+      hits.find((event) => event.at === 0.24).damage
     );
     assert.deepEqual(
       hits.map((event) => event.damage > hits[0].damage),

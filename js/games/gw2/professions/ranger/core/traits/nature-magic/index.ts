@@ -84,10 +84,11 @@ export const fortifyingBond = defineTrait({
   triggers: [
     onTriggerPoint(rangerInitialized, {
       run(runtime: RangerRuntime) {
+        // Console refreshes grant pet boons before tied companion strikes.
         if (
           Object.entries(runtime.config.boons ?? {}).some(([kind, value]) => isStandardBoon(kind) && Number(value) > 0)
         )
-          runtime.schedule('ranger.fortifying-bond-console', 0, null);
+          runtime.schedule('ranger.fortifying-bond-console', 0, null, undefined, 0, 'buffs');
       }
     }),
     {
@@ -118,7 +119,8 @@ export const fortifyingBond = defineTrait({
           if (isStandardBoon(kind) && Number(value) > 0) shareFortifyingBond(runtime, kind, Number(value));
         const interval = balanceNumber(runtime.helpers, TRAIT.FORTIFYING_BOND, 'pulseInterval');
 
-        if (interval > 0) runtime.schedule('ranger.fortifying-bond-console', runtime.time + interval, null);
+        if (interval > 0)
+          runtime.schedule('ranger.fortifying-bond-console', runtime.time + interval, null, undefined, 0, 'buffs');
       }
     }
   }

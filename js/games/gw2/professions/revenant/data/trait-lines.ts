@@ -595,17 +595,17 @@ export const TRAIT_LINES: readonly Gw2SpecializationData[] = [
         {
           id: 'revenant.vindicator.friend-of-the-luxons',
           name: 'Friend of the Luxons',
-          icon: 'https://render.guildwars2.com/file/4FE40FD1ECD6C4EC45A32A2A740AC2E2A147E04F/2491508.png'
+          icon: 'https://render.guildwars2.com/file/5863F212529A39973D0ABB76010DAA11AADF2E5F/2491531.png'
         },
         {
           id: 'revenant.vindicator.heated-rivalry',
           name: 'Heated Rivalry',
-          icon: 'https://render.guildwars2.com/file/4FE40FD1ECD6C4EC45A32A2A740AC2E2A147E04F/2491508.png'
+          icon: 'https://render.guildwars2.com/file/DCD8F1EB01943B0F3F40FAD0E5E708EDB3B91B7D/2491532.png'
         },
         {
           id: 'revenant.vindicator.friend-of-the-kurzicks',
           name: 'Friend of the Kurzicks',
-          icon: 'https://render.guildwars2.com/file/4FE40FD1ECD6C4EC45A32A2A740AC2E2A147E04F/2491508.png'
+          icon: 'https://render.guildwars2.com/file/2FE60DE76D79B54EB1911ED896020C183BD2C878/2491533.png'
         }
       ]
     ]

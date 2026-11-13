@@ -46,16 +46,8 @@ export const SOULBEAST_ROCK_GAZELLE_BEAST_SKILL_MECHANICS: Readonly<Record<numbe
     beastmodeSkill: true,
     // Charge includes its startup and follow-up animation before releasing the cast lane.
     castTimeMs: 680,
+    // The selected target takes the impact; travel damage belongs to enemies passed through.
     effects: [
-      {
-        type: 'strike',
-        coefficient: 0.565,
-        hits: 1,
-        name: 'Charge - Travel Damage',
-        atMs: 0,
-        timingAnchor: 'castStart',
-        timingScale: 'fixed'
-      },
       {
         type: 'strike',
         coefficient: 1.13,

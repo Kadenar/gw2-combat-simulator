@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { paletteSkillGroups } from '#gw2/app/rotation/palette/model.js';
 import { controlOnSkillBar } from '#gw2/platform/skills/input-controls.js';
 import { profession } from '#gw2/professions/revenant/build/context.js';
 import { revenantLegendLoadout } from '#gw2/professions/revenant/build/legend-loadout.js';
@@ -9,6 +10,7 @@ import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/p
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { withSkill } from '#tests/helpers/catalog-overrides.js';
 import { observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { runRevenant } from '#tests/helpers/revenant-simulation.js';
 
 const config = {
@@ -138,12 +140,12 @@ test('Urn starvation removes its upkeep and release', () => {
   assert.equal(Boolean(result.planningState.profession[STATE.AVAILABLE_FLIPS][SKILL.DROP_URN_OF_SAINT_VIKTOR]), false);
 });
 
-test('palette replacements retain utility controls and F3 appears only in Alliance', () => {
+test('palette replacements retain utility controls and equipped Alliance keeps F1 through F4 in order', () => {
   const catalog = profession.resolvePatch({ id: 'current' }).catalog;
   const context = {
     catalog,
     specialization: 'Vindicator',
-    build: config,
+    build: { ...config, specializations: [{ name: 'Vindicator', traits: '1-1-1' }] },
     professionState: { [STATE.ALLIANCE_FACTION]: 'Kurzick' }
   };
   const group = revenantLegendLoadout.paletteGroups(context).find((entry) => entry.active);
@@ -161,10 +163,20 @@ test('palette replacements retain utility controls and F3 appears only in Allian
   assert.equal(controlOnSkillBar(catalog, catalog.skillsById.get(SKILL.BATTLE_DANCE), bar), 'slot-7');
   assert.equal(controlOnSkillBar(catalog, catalog.skillsById.get(SKILL.DROP_URN_OF_SAINT_VIKTOR), bar), 'slot-10');
   for (const active of ['LegendaryAlliance', 'LegendaryAssassin']) {
-    const groups = profession.ui.paletteGroups({ ...context, professionState: { [STATE.ACTIVE_LEGEND_ID]: active } });
-    assert.equal(
-      groups.some((entry) => entry.skillIds.includes(SKILL.ALLIANCE_TACTICS)),
-      active === 'LegendaryAlliance'
+    // Project the actual tiles so custom legend icons cannot move F1 behind the specialization skills.
+    const input = paletteInputFixture({ catalog, ui: profession.ui, build: context.build });
+    const { renderedProfessionGroups } = paletteSkillGroups(input, {
+      ...context,
+      professionState: { [STATE.ACTIVE_LEGEND_ID]: active }
+    });
+    const skills = renderedProfessionGroups.find((entry) => entry.id === 'revenant-profession').skills;
+    assert.deepEqual(
+      skills.map((skill) => skill.id),
+      [SKILL.SWAP_LEGENDS, SKILL.ENERGY_MELD, SKILL.ALLIANCE_TACTICS, SKILL.ARCHEMORUS_STRIKE]
+    );
+    assert.deepEqual(
+      skills.map((skill) => skill.slot),
+      ['Profession_1', 'Profession_2', 'Profession_3', 'Profession_4']
     );
   }
 });

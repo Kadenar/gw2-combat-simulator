@@ -14,6 +14,12 @@ export function createInternalWorkFactory<TWork extends InternalWork>(
 
     if (!Number.isFinite(input.priority)) throw new RangeError('Internal work priority must be finite.');
 
+    // Only declared grant tasks may request early settlement; completions and cleanup retain their own ordering.
+    const timing: unknown = input.timing;
+
+    if (timing != null && (timing !== 'buffs' || (input.type !== 'runtime.task' && input.type !== 'runtime.cast-task')))
+      throw new TypeError('Buff timing requires a named task.');
+
     if (input.activationId != null && (typeof input.activationId !== 'string' || !input.activationId)) {
       throw new TypeError('Internal work activation id must be a nonempty string.');
     }
@@ -44,6 +50,7 @@ export function createInternalWorkFactory<TWork extends InternalWork>(
       type: input.type,
       at,
       priority: input.priority,
+      ...(input.timing == null ? {} : { timing: input.timing }),
       payload,
       ...(input.activationId == null ? {} : { activationId: input.activationId }),
       ...(input.causalOrder == null ? {} : { causalOrder: input.causalOrder }),

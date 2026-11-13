@@ -99,6 +99,8 @@ export const MODIFIER_EFFECT_ICONS: Readonly<Record<string, string>> = {
   // Vindicator buff rows use Death Drop and the Reaver's Curse effect icons from the game CDN.
   'Forerunner of Death': 'https://render.guildwars2.com/file/2864D963D3FC9156E6F52FA95DD34C2DE30306BE/2491537.png',
   "Reaver's Curse": 'https://render.guildwars2.com/file/00B56F050D44B6690427AFF77901E3074FF221AD/2491534.png',
+  // The Luxon duration fact uses the buff artwork published with the trait.
+  'Friend of the Luxons': 'https://render.guildwars2.com/file/5863F212529A39973D0ABB76010DAA11AADF2E5F/2491531.png',
   // Razorclaw's party buff shares its originating skill's icon in both base and enhanced tooltips.
   "Razorclaw's Rage": 'https://render.guildwars2.com/file/2449F064B1D3427FF311D3B4C101009C52250A0C/1770606.png',
   // Match the command's canonical name so both pet and merged effect facts use its icon.

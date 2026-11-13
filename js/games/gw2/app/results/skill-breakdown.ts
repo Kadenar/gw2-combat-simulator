@@ -266,7 +266,8 @@ export function skillBreakdownRows(
   // Actions and damage use the same owner scope, including commands shared by two pets.
   const actionKey = (name: string, entityName: string): string => JSON.stringify([entityName, name]);
   for (const event of result.events || []) {
-    if (event.type !== 'action') continue;
+    // Exclude casts aimed away so counts and damage averages describe casts aimed at the target.
+    if (event.type !== 'action' || event.offTarget === true) continue;
 
     // Renamed contributions match accepted actions by ID, then event display name;
     // derive these counts here instead of transporting them on every contribution.

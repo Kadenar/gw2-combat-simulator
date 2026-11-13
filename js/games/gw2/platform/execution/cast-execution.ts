@@ -206,7 +206,7 @@ export function createCastExecution<T extends object>(
   }
 
   /** Enqueue basic authored packets at acceptance; only dispatch can change combat state. */
-  function acceptCast(skill: Skill, command: CastCommand): void {
+  function acceptCast(skill: Skill, command: CastCommand, grantPriority?: number): void {
     const start = runtime.time;
     // Resolve before recharge reservations or cast effects can mutate the active bar.
     const manualInput = runtime.output === 'detailed' && activationInputKind(skill) === 'manual';
@@ -331,6 +331,7 @@ export function createCastExecution<T extends object>(
         activationId: cast.id,
         type: 'action',
         at: start,
+        ...(grantPriority == null ? {} : { priority: grantPriority }),
         name: skill.name,
         skillType: skill.type,
         offTarget: command.offTarget,
@@ -347,7 +348,7 @@ export function createCastExecution<T extends object>(
     });
     host.recordAction(cast.id, action);
     // Acceptance work runs for the cast: its own packets keep their activation, other effects become its reactions.
-    host.withCause(action, () => acceptCastWork(cast, action, attribution, interrupted));
+    host.withCause(action, () => acceptCastWork(cast, action, attribution, interrupted, grantPriority));
     host.captureEffects();
   }
 
@@ -356,7 +357,8 @@ export function createCastExecution<T extends object>(
     cast: RuntimeCast,
     action: SimulationEvent,
     attribution: Pick<SimulationEventBase, 'source' | 'sourceId' | 'actorType' | 'skillId' | 'skillName'>,
-    interrupted: boolean
+    interrupted: boolean,
+    grantPriority?: number
   ): void {
     const { skill, start, fullEnd, effectiveEnd } = cast;
     host.enqueueWork(
@@ -407,7 +409,11 @@ export function createCastExecution<T extends object>(
           return {
             ...event,
             // Authored boons settle before sibling impacts, preserving the owning activation's queue position.
-            ...(event.type === 'buff' ? { causalOrder: action.eventOrder } : {})
+            ...(event.type === 'buff' ? { causalOrder: action.eventOrder } : {}),
+            // Only this activation's immediate declared grants overtake the pending strike.
+            ...(grantPriority != null && event.type === 'buff' && event.at === runtime.time
+              ? { priority: grantPriority }
+              : {})
           };
         }
       };

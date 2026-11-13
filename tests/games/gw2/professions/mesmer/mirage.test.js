@@ -9,12 +9,55 @@ import { MESMER_SKILL_IDS as ID, MESMER_TRAIT_IDS as TRAIT } from '#gw2/professi
 import { mesmerCatalog, mesmerProfession } from '#gw2/professions/mesmer/profession.js';
 import { PROFESSION_STATE_IDS as STATE } from '#gw2/professions/state-ids.js';
 import { defaultSimulationConfig } from '#tests/helpers/fixture-harness-core.js';
-import { simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
+import { createDefaultConfig, runMesmer, simulateMesmer } from '#tests/helpers/mesmer-simulation.js';
 import { observedRuntime, planningFixture } from '#tests/helpers/observed-runtime.js';
 import { paletteInputFixture } from '#tests/helpers/palette.js';
 import { assertFlooredDamageMultiplier, assertRoundedDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 // Mirage tests cover endurance, cloak, ambushes, mirrors, and specialization traits.
+test('a tied independent hit does not move Phantom Pain ahead of the player shatter', () => {
+  const firstHits = [];
+  for (const concurrentOffsetMs of [760, 800, 840]) {
+    const result = runMesmer(
+      [
+        { type: 'cast', skillId: ID.MIND_WRACK, concurrentOffsetMs },
+        { type: 'wait', durationMs: 1000 }
+      ],
+      {
+        ...createDefaultConfig(),
+        specialization: 'Mirage',
+        initialResource: 3,
+        selectedTraitIds: [TRAIT.PHANTOM_PAIN]
+      },
+      {
+        initialize(runtime) {
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'damage',
+              at: 0.8,
+              source: 'fixture',
+              sourceId: 'independent',
+              actorType: 'player',
+              flatDamage: 1
+            }
+          });
+        }
+      }
+    );
+    assert.deepEqual(result.warnings, []);
+    const hits = result.resolvedEvents.filter((event) => event.type === 'damage' && event.skillId === ID.MIND_WRACK);
+    firstHits.push(hits[0].damage);
+    assert.ok(
+      hits.slice(1).every((event) => event.damage > hits[0].damage),
+      'later shatters benefit from Phantom Pain'
+    );
+  }
+
+  assert.equal(firstHits[1], firstHits[0]);
+  assert.equal(firstHits[2], firstHits[0]);
+});
+
 test('Mirage dodge spends 50 endurance and waits for continuous regeneration', () => {
   const result = simulateMesmer(
     ['Dodge / Mirage Cloak', 'Dodge / Mirage Cloak', 'Dodge / Mirage Cloak'],

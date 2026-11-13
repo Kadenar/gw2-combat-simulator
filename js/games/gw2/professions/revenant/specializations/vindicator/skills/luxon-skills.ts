@@ -112,9 +112,9 @@ export const VINDICATOR_LUXON_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     legendId: 'LegendaryAlliance',
     castTimeMs: 600,
     interruptCommitMs: 400,
-    // Share one impact timing while preserving independent payloads and declaration order.
+    // Strike and torment land together after the summon windup, including when the cast is interrupted after commit.
     effects: impactEffects(
-      { atMs: 2960, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true },
+      { atMs: 2840, timingAnchor: 'castEnd', timingScale: 'fixed', persistsAfterInterrupt: true },
       [
         {
           type: 'strike',

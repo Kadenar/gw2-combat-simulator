@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { GW2_RESOLVER_PHASE } from '#gw2/platform/resolver/event-phase.js';
 import { HandlerRegistry } from '#gw2/platform/resolver/handler-registry.js';
 import { createExecutionCoordinator } from '#gw2/platform/simulation/coordinator.js';
 import { createInternalWorkFactory } from '#gw2/platform/simulation/internal-work.js';
@@ -43,8 +44,17 @@ test('internal work validates its boundary and dispatches renewed owners without
   assert.throws(() => create({ ...input, type: 'missing' }), /handler registered/);
   assert.throws(() => create({ ...input, at: Infinity }), /microseconds/);
   assert.throws(() => create({ ...input, priority: NaN }), /priority/);
+  assert.throws(() => create({ ...input, timing: 'buffs' }), /named task/);
   assert.throws(() => create({ ...input, payload: { callback() {} } }), /serializable/);
   assert.throws(() => create({ ...input, owner: { id: 'pet', generation: -1 } }), /generation/);
+});
+
+test('named grant tasks retain validated timing through the work factory', () => {
+  const handlers = new HandlerRegistry().register('runtime.task', () => {});
+  const create = createInternalWorkFactory(handlers);
+  const input = { type: 'runtime.task', at: 1, priority: 0, payload: { name: 'grant', data: null } };
+  assert.equal(create({ ...input, timing: 'buffs' }).timing, 'buffs');
+  assert.throws(() => create({ ...input, timing: 'damage' }), /named task/);
 });
 
 // Mixed scheduling retains work causes and packet cancellation handles without giving work a public identity.
@@ -125,9 +135,9 @@ test('work and packet scheduling share the current settlement phase and causal o
   });
   assert.equal(hit.causalOrder, 7);
   assert.equal(coordinator.queue.dequeue(), work);
-  assert.equal(coordinator.packets.currentPhase, 1);
+  assert.equal(coordinator.packets.currentPhase, GW2_RESOLVER_PHASE.Settle);
   assert.equal(coordinator.queue.dequeue(), hit);
-  assert.equal(coordinator.packets.currentPhase, 2);
+  assert.equal(coordinator.packets.currentPhase, GW2_RESOLVER_PHASE.Ordinary);
 });
 
 // Reserving the highest finite priority prevents gameplay from tying or overtaking shared retirement.
@@ -177,5 +187,5 @@ test('current-time flip expiry skips settlement inheritance and follows ordinary
   coordinator.enqueueWork(consequence);
   assert.equal(coordinator.queue.dequeue(), consequence);
   assert.equal(coordinator.queue.dequeue(), expiry);
-  assert.equal(coordinator.queue.currentPhase, 2);
+  assert.equal(coordinator.queue.currentPhase, GW2_RESOLVER_PHASE.Ordinary);
 });

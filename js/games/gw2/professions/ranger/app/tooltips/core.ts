@@ -178,7 +178,6 @@ export const rangerCoreTooltips = {
     [ID.SIC_EM]: skillTooltip(
       "Temporarily increase your active pet's strike damage. Soulbeast applies the separate player bonus while merged.",
       [
-        fromSkill(ID.SIC_EM, 'duration', 'Base duration', tooltipSeconds),
         fromModifier('ranger.sic-em-pet', 'factor', 'Pet strike damage', tooltipFactorChange),
         fromModifier('ranger.sic-em-player', 'factor', 'Merged player strike damage', tooltipFactorChange)
       ]

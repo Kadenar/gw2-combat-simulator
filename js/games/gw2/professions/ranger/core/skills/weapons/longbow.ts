@@ -1,8 +1,11 @@
 /** Canonical Core ranger skill definitions grouped by their GW2 owner. */
-import { COMBO_FINISHER, CONDITION, CONTROL, STATUS } from '#gw2/platform/constants.js';
+import { ACTOR, COMBO_FINISHER, CONDITION, CONTROL, STATUS } from '#gw2/platform/constants.js';
 import { impactEffects } from '#gw2/platform/effects/authoring.js';
+import type { SkillEffect } from '#gw2/platform/effects/types.js';
+import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import type { SkillDefinition } from '#gw2/platform/skills/types.js';
 import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import type { RangerRuntime, RangerRuntimeState, RangerSkill } from '#gw2/professions/ranger/types.js';
 
 // Projectile flags belong to strikes so Mistral and Shrike count impacts independently of combo success.
 export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillDefinition>> = {
@@ -87,12 +90,7 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillD
           }
         ]
       },
-      {
-        type: 'buff',
-        kind: STATUS.STEALTH,
-        duration: 3,
-        stacks: 1
-      }
+      { type: 'buff', kind: STATUS.STEALTH, duration: 3, stacks: 1 }
     ]
   },
   [ID.POINT_BLANK_SHOT]: {
@@ -150,5 +148,59 @@ export const RANGER_CORE_LONGBOW_SKILL_MECHANICS: Readonly<Record<number, SkillD
         }))
       }
     ])
+  }
+};
+
+// Keep selected declarations until their activation lands; misses never consume a stealth grant.
+const huntersShotGrants = new WeakMap<
+  RangerRuntime,
+  Map<string, { skill: RangerSkill; effects: readonly SkillEffect[] }>
+>();
+
+/** Declared stealth retains its tooltip and patch ownership, but only a landed Hunter's Shot applies it. */
+export const huntersShotLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
+  modifyEffects(runtime, cast, effects) {
+    if (cast.skill.id !== ID.HUNTERS_SHOT) return effects;
+
+    const stealth = effects.filter(
+      (effect) =>
+        effect.type === 'buff' && effect.kind === STATUS.STEALTH && (!effect.when || effect.when(runtime.queries, cast))
+    );
+    let grants = huntersShotGrants.get(runtime);
+
+    if (!grants) huntersShotGrants.set(runtime, (grants = new Map()));
+
+    grants.set(cast.id, { skill: cast.skill, effects: stealth });
+    return effects.filter((effect) => effect.type !== 'buff' || effect.kind !== STATUS.STEALTH);
+  },
+  reactions: {
+    'damage.resolved'(runtime, event) {
+      if (event.skillId !== ID.HUNTERS_SHOT || event.actorType !== ACTOR.PLAYER || !event.activationId) return;
+
+      const grant = huntersShotGrants.get(runtime)?.get(event.activationId);
+
+      if (!grant) return;
+
+      huntersShotGrants.get(runtime)!.delete(event.activationId);
+      runtime.effects.emit({
+        kind: 'profile',
+        settlement: 'reaction',
+        profile: grant.skill,
+        effects: grant.effects.map((effect) => ({
+          ...effect,
+          atMs: 0,
+          timingAnchor: 'castStart' as const,
+          when: undefined
+        })),
+        attribution: {
+          source: 'ranger',
+          sourceId: grant.skill.id,
+          skillId: grant.skill.id,
+          skillName: grant.skill.name,
+          actorType: ACTOR.PLAYER,
+          activationId: event.activationId
+        }
+      });
+    }
   }
 };

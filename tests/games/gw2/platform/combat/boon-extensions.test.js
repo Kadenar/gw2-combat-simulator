@@ -233,7 +233,7 @@ test('extended Vigor preserves Elementalist and Mirage endurance through the new
   }
 });
 
-test('No Quarter cannot consume Fury authored after its hit at the same timestamp', () => {
+test('No Quarter consumes scheduled Fury before a tied hit regardless of insertion order', () => {
   const result = runThief(
     [{ type: 'wait', durationMs: 1000 }],
     {
@@ -258,7 +258,7 @@ test('No Quarter cannot consume Fury authored after its hit at the same timestam
       }
     }
   );
-  assert.equal(result.resolvedEvents.filter((event) => event.type === 'boon_extension').length, 0);
+  assert.equal(result.resolvedEvents.filter((event) => event.type === 'boon_extension').length, 1);
 });
 
 test('forced critical hits preserve the Fury fact needed by No Quarter', () => {

@@ -1,4 +1,9 @@
-import { createStealthLifecycle, endStealth, stealthActive } from '#gw2/platform/combat/stealth.js';
+import {
+  createStealthLifecycle,
+  endStealth,
+  isStealthGrantingImpact,
+  stealthActive
+} from '#gw2/platform/combat/stealth.js';
 import { ACTOR, RECIPIENT } from '#gw2/platform/constants.js';
 import { composeRuntimeHooks, type RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { OBSERVABLE_EVENT_HANDLER } from '#gw2/platform/resolver/handler-registry.js';
@@ -41,6 +46,7 @@ import {
   reactToRangerGreatswordDamage
 } from '#gw2/professions/ranger/core/skills/weapons/greatsword.js';
 import { hammerLifecycle } from '#gw2/professions/ranger/core/skills/weapons/hammer.js';
+import { huntersShotLifecycle } from '#gw2/professions/ranger/core/skills/weapons/longbow.js';
 import { maceLifecycle } from '#gw2/professions/ranger/core/skills/weapons/mace.js';
 import { bloodThirstLifecycle } from '#gw2/professions/ranger/core/skills/weapons/shortbow.js';
 import { spearLifecycle } from '#gw2/professions/ranger/core/skills/weapons/spear.js';
@@ -139,6 +145,7 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
 
       if (
         (event.actorType === ACTOR.PLAYER || event.ownerActorType === ACTOR.PLAYER) &&
+        !isStealthGrantingImpact(state, event) &&
         stealthActive(state, runtime.time)
       ) {
         endStealth(state, runtime.time);
@@ -155,8 +162,8 @@ const coreLifecycle: RuntimeHooks<RangerRuntimeState, RangerSkill> = {
  * trait ordering. Weapon recharge synchronization precedes Core's completion triggers on every commit and cancel.
  */
 export const rangerCoreHooks = composeRuntimeHooks<RangerRuntimeState, RangerSkill>([
-  // Ranger's granting impacts settle before the shared status becomes active.
-  createStealthLifecycle<RangerRuntimeState, RangerSkill>({ applicationPriority: 10 }),
+  createStealthLifecycle<RangerRuntimeState, RangerSkill>({ preserveOnGrantTimestamp: true }),
+  huntersShotLifecycle,
   hammerLifecycle,
   maceLifecycle,
   spearLifecycle,

@@ -21,7 +21,7 @@
   "alternateWeapons": ["Axe", "Axe"],
   "rune": "Scholar",
   "weaponSigils": [
-    ["Force", "Air"],
+    ["Force", "Impact"],
     ["Force", "Impact"]
   ],
   "relic": "Claw",
@@ -61,10 +61,10 @@
     "Utility1": 12633,
     "Utility2": 12492,
     "Utility3": 12491,
-    "Elite": 45717
+    "Elite": 12516
   },
-  "selectedPet": "Pig",
-  "selectedHammerSkillIds": [63335, 69262, 63131, 63208],
+  "selectedPet": "Tiger",
+  "selectedHammerSkillIds": [63335, 69262, 63131, 69212],
   "initialUntamedState": "Pet",
   "assumptions": {
     "might": 25,

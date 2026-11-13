@@ -383,6 +383,248 @@ test('condition settlement and its reactions precede command readiness and same-
   assert.ok(result.strikeDamage > 0);
 });
 
+// Tied instant grants affect damage in both output modes without shifting either command or impact.
+test('instant grants apply before same-time strikes in detailed and score execution', () => {
+  const baseline = run([cast(990001), wait(40)]);
+  const rotation = [cast(990001), cast(990004, { concurrentOffsetMs: 1000 }), wait(40)];
+  const detailed = run(rotation);
+  const score = run(rotation, { output: 'score' });
+  assert.deepEqual(detailed.warnings, []);
+  assert.ok(detailed.strikeDamage > baseline.strikeDamage);
+  assert.equal(detailed.totalDamage, score.totalDamage);
+  const hit = detailed.resolvedEvents.find((event) => event.type === 'damage');
+  const grant = detailed.resolvedEvents.find((event) => event.type === 'buff' && event.kind === 'might');
+  assert.ok(grant);
+  assert.equal(grant.at, hit.at);
+  assert.ok(detailed.resolvedEvents.indexOf(grant) < detailed.resolvedEvents.indexOf(hit));
+});
+
+// Grant admission must not overtake completion, including when that completion has no damage payload.
+test('tied instant grants preserve the preceding cast completion', () => {
+  for (const skillId of [990001, 990003]) {
+    const order = [];
+    const duration = catalog.skillsById.get(skillId).castTimeMs;
+    run([cast(skillId), cast(990004, { concurrentOffsetMs: duration })], {
+      profession: fixture({
+        onCastStart(_runtime, activation) {
+          order.push(['start', activation.skill.id]);
+        },
+        onCastCommit(_runtime, activation) {
+          order.push(['commit', activation.skill.id]);
+        }
+      })
+    });
+    assert.deepEqual(order, [
+      ['start', skillId],
+      ['commit', skillId],
+      ['start', 990004],
+      ['commit', 990004]
+    ]);
+  }
+});
+
+// Empty instant transitions and damaging commands must observe the preceding hit and its state changes.
+test('concurrent transitions and attacks retain ordinary hit ordering', () => {
+  for (const skillId of [990002, 990008]) {
+    const order = [];
+    run([cast(990001), cast(skillId, { concurrentOffsetMs: 1000 })], {
+      profession: fixture({
+        onCastStart(_runtime, activation) {
+          order.push(['start', activation.skill.id]);
+        },
+        reactions: {
+          'damage.resolved'(_runtime, event) {
+            order.push(['hit', event.skillId]);
+          }
+        }
+      })
+    });
+    assert.ok(
+      order.findIndex(([kind, id]) => kind === 'hit' && id === 990001) <
+        order.findIndex(([kind, id]) => kind === 'start' && id === skillId)
+    );
+  }
+});
+
+// Post-strike rewards retain causal placement even when an instant attack ties an older queued hit.
+test('instant attacks do not promote their post-strike buffs, conditions, or tasks', () => {
+  const trace = [];
+  const result = run([cast(990001), cast(990008, { concurrentOffsetMs: 1000 })], {
+    profession: fixture({
+      catalog: createCanonicalCatalog({
+        skills: [...catalog.skillsById.values()].map((skill) =>
+          skill.id === 990008 ? { ...skill, effects: [] } : skill
+        )
+      }),
+      onCastCommit(runtime, activation) {
+        if (activation.skill.id !== 990008) return;
+
+        // Shatter-style owners emit the player strike followed by its reward within one commit.
+        runtime.effects.emit({ kind: 'packet', event: packet(runtime.time, { skillId: 990008 }) });
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'buff',
+            at: runtime.time,
+            source: 'fixture',
+            sourceId: 'reward',
+            actorType: 'player',
+            kind: 'might',
+            stacks: 1,
+            duration: 5
+          }
+        });
+        runtime.effects.emit({
+          kind: 'packet',
+          event: {
+            type: 'condition',
+            at: runtime.time,
+            source: 'fixture',
+            sourceId: 'reward',
+            actorType: 'player',
+            condition: 'Vulnerability',
+            stacks: 1,
+            duration: 5
+          }
+        });
+        runtime.schedule('reward', runtime.time);
+      },
+      tasks: {
+        reward() {
+          trace.push('task');
+        }
+      },
+      reactions: {
+        'damage.resolved'(_runtime, event) {
+          trace.push(event.skillId);
+        },
+        'buff.applied'(_runtime, event) {
+          if (event.sourceId === 'reward') trace.push('buff');
+        },
+        'condition.applied'(_runtime, event) {
+          if (event.sourceId === 'reward') trace.push('condition');
+        }
+      }
+    })
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(trace, [990001, 990008, 'buff', 'condition', 'task']);
+});
+
+// A task must declare grant timing because arbitrary callbacks can remove buffs or complete other actions.
+test('scheduled grant tasks and direct grants expose the same buffs to tied damage', () => {
+  const damages = [];
+  for (const mode of ['packet', 'task', 'cast-task']) {
+    const grant = (runtime, at = runtime.time) =>
+      runtime.effects.emit({
+        kind: 'packet',
+        event: {
+          type: 'buff',
+          at,
+          source: 'fixture',
+          sourceId: 'grant',
+          actorType: 'player',
+          kind: 'might',
+          stacks: 1,
+          duration: 5
+        }
+      });
+    const result = run([cast(990003)], {
+      profession: fixture({
+        onCastStart(runtime, activation) {
+          runtime.effects.emit({
+            kind: 'packet',
+            event: packet(1, { flatDamage: undefined, coefficient: 1, weaponStrength: 1000 })
+          });
+
+          if (mode === 'packet') grant(runtime, 1);
+          else if (mode === 'task') runtime.schedule('grant', 1, null, undefined, 0, 'buffs');
+          else runtime.scheduleForCast('grant', 1, activation, {}, undefined, 0, 'buffs');
+        },
+        tasks: { grant: (runtime) => grant(runtime) }
+      })
+    });
+    damages.push(result.strikeDamage);
+  }
+
+  assert.deepEqual(damages, [1030, 1030, 1030]);
+});
+
+// Grants already scheduled for impact time use the same ordering as grants from instant commands.
+test('a scheduled boon changes tied strike damage without changing its timestamp', () => {
+  const profession = (grant) =>
+    fixture({
+      onCastStart(runtime, activation) {
+        fixture().onCastStart(runtime, activation);
+        runtime.effects.emit({
+          kind: 'packet',
+          event: packet(1, { flatDamage: undefined, coefficient: 1, weaponStrength: 1000 })
+        });
+
+        if (grant)
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'buff',
+              at: 1,
+              source: 'fixture',
+              sourceId: 'scheduled-might',
+              actorType: 'player',
+              kind: 'might',
+              stacks: 1,
+              duration: 5
+            }
+          });
+      }
+    });
+  const baseline = run([cast(990003)], { profession: profession(false) });
+  const active = run([cast(990003)], { profession: profession(true) });
+  assert.deepEqual(active.warnings, []);
+  assert.ok(active.strikeDamage > baseline.strikeDamage);
+  assert.equal(active.firstHitTime, baseline.firstHitTime);
+});
+
+// Immediate grants use the same buff-before-damage rule even when authored after the strike in one skill.
+test('an instant skill resolves its own buff before its strike', () => {
+  const skill = {
+    id: 990021,
+    name: 'Strike and might',
+    weapon: 'Sword',
+    castTimeMs: 0,
+    effects: [
+      { type: 'strike', coefficient: 1 },
+      { type: 'boon', boon: 'might', stacks: 1, duration: 5 }
+    ]
+  };
+  const profession = { ...fixture(), catalog: createCanonicalCatalog({ skills: [skill] }) };
+  const result = run([cast(skill.id)], { profession });
+  assert.deepEqual(result.warnings, []);
+  const hit = result.resolvedEvents.find((event) => event.type === 'damage');
+  const buff = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === 'might');
+  assert.equal(buff.at, hit.at);
+  assert.ok(result.resolvedEvents.indexOf(buff) < result.resolvedEvents.indexOf(hit));
+});
+
+// A failed early readiness probe must leave the overlap available to consume a gain from the queued hit.
+test('blocked concurrent commands retry after same-time hit gains', () => {
+  const result = run([cast(990001), cast(990004, { concurrentOffsetMs: 1000 })], {
+    profession: fixture({
+      reactions: {
+        'damage.resolved': (runtime) => {
+          runtime.profession.energy.value++;
+        }
+      },
+      availability(runtime, skill) {
+        return skill.id !== 990004 || runtime.profession.energy.value > 0
+          ? { ready: true }
+          : { ready: false, retryAt: null, reason: 'No hit gain', code: 'resource' };
+      }
+    })
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.deepEqual(result.planningState.profession.accepted.at(-1), ['Instant', 1]);
+});
+
 test('explicit and inherited combat starts gate early hostile effects even before a marker is reached', () => {
   const result = run([cast(990006), wait(1000), { type: 'combat-start' }, cast(990006), wait(1000)]);
   assert.equal(result.firstHitTime, 2);

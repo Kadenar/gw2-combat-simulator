@@ -48,22 +48,25 @@ export interface InternalWork<TType extends string = string, TPayload = unknown>
   readonly payload: TPayload;
   readonly activationId?: string;
   readonly owner?: WorkOwner;
+  /** Explicit grant tasks settle before tied strikes; arbitrary callbacks retain ordinary causality. */
+  readonly timing?: 'buffs';
 }
 
 export type WorkInput<TWork extends InternalWork> = TWork extends InternalWork
-  ? Pick<TWork, 'type' | 'at' | 'priority' | 'payload' | 'activationId' | 'owner' | 'causalOrder'>
+  ? Pick<TWork, 'type' | 'at' | 'priority' | 'payload' | 'activationId' | 'owner' | 'causalOrder' | 'timing'>
   : never;
 
 /** Mechanics schedule owned work without obtaining the queue or advancing its clock. */
 export interface TaskScheduling<TSkill extends Skill = Skill> {
-  schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number): void;
+  schedule(name: string, at: number, data?: unknown, owner?: WorkOwner, priority?: number, timing?: 'buffs'): void;
   scheduleForCast(
     name: string,
     at: number,
     cast: RuntimeCast<TSkill>,
     data?: Record<string, unknown>,
     owner?: WorkOwner,
-    priority?: number
+    priority?: number,
+    timing?: 'buffs'
   ): void;
   cancelOwner(owner: WorkOwner): void;
 }

@@ -258,8 +258,7 @@ const EXPECTED = {
       'Ferocious Aggression': { strike: 'additive', condition: 'additive' },
       'Forceful Persistence': { strike: 'additive' },
       'Forerunner of Death': { strike: 'additive' },
-      // The Luxon skill bonus multiplies player strike damage outside the additive bucket.
-      'Friend of the Luxons': { strike: 'multiplier' },
+      'Friend of the Luxons': { strike: 'additive' },
       Heartpiercer: { strike: 'multiplier', condition: 'multiplier' },
       'Lasting Legacy': { strike: 'additive', condition: 'additive' },
       'Rise to the Occasion': { strike: 'multiplier' },

@@ -35,16 +35,8 @@
       "skillId": 40625
     },
     {
-      "type": "wait",
-      "durationMs": 520
-    },
-    {
       "type": "cast",
       "skillId": 44514
-    },
-    {
-      "type": "wait",
-      "durationMs": 400
     },
     {
       "type": "cast",
@@ -79,10 +71,6 @@
     {
       "type": "cast",
       "skillId": 40625
-    },
-    {
-      "type": "wait",
-      "durationMs": 520
     },
     {
       "type": "cast",
@@ -142,16 +130,8 @@
       "skillId": 44514
     },
     {
-      "type": "wait",
-      "durationMs": 320
-    },
-    {
       "type": "cast",
       "skillId": 40625
-    },
-    {
-      "type": "wait",
-      "durationMs": 520
     },
     {
       "type": "cast",
@@ -164,7 +144,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 200
+      "durationMs": 120
     },
     {
       "type": "cast",
@@ -217,10 +197,6 @@
       "skillId": 40625
     },
     {
-      "type": "wait",
-      "durationMs": 520
-    },
-    {
       "type": "cast",
       "skillId": 12466,
       "interruptAfterMs": 200
@@ -263,10 +239,6 @@
       "skillId": 44514
     },
     {
-      "type": "wait",
-      "durationMs": 400
-    },
-    {
       "type": "cast",
       "skillId": 12471,
       "interruptAfterMs": 40
@@ -274,10 +246,6 @@
     {
       "type": "cast",
       "skillId": 40625
-    },
-    {
-      "type": "wait",
-      "durationMs": 520
     },
     {
       "type": "cast",
@@ -333,10 +301,6 @@
       "skillId": 40625
     },
     {
-      "type": "wait",
-      "durationMs": 480
-    },
-    {
       "type": "cast",
       "skillId": 12482
     },
@@ -351,7 +315,7 @@
     },
     {
       "type": "wait",
-      "durationMs": 200
+      "durationMs": 160
     },
     {
       "type": "cast",
@@ -396,16 +360,8 @@
       "concurrentOffsetMs": 320
     },
     {
-      "type": "wait",
-      "durationMs": 80
-    },
-    {
       "type": "cast",
       "skillId": 40625
-    },
-    {
-      "type": "wait",
-      "durationMs": 520
     },
     {
       "type": "cast",
@@ -454,10 +410,6 @@
       "skillId": 40625
     },
     {
-      "type": "wait",
-      "durationMs": 520
-    },
-    {
       "type": "cast",
       "skillId": 71903
     },
@@ -502,10 +454,6 @@
       "skillId": 44514
     },
     {
-      "type": "wait",
-      "durationMs": 400
-    },
-    {
       "type": "cast",
       "skillId": 12471
     },
@@ -520,11 +468,8 @@
     },
     {
       "type": "cast",
-      "skillId": 40625
-    },
-    {
-      "type": "wait",
-      "durationMs": 400
+      "skillId": 40625,
+      "interruptAfterMs": 480
     },
     {
       "type": "cast",
@@ -537,10 +482,6 @@
     {
       "type": "cast",
       "skillId": -3
-    },
-    {
-      "type": "wait",
-      "durationMs": 40
     },
     {
       "type": "cast",
@@ -599,24 +540,16 @@
       "skillId": 40625
     },
     {
-      "type": "wait",
-      "durationMs": 520
-    },
-    {
       "type": "cast",
       "skillId": 12639
     },
     {
       "type": "wait",
-      "durationMs": 120
+      "durationMs": 80
     },
     {
       "type": "cast",
       "skillId": 44514
-    },
-    {
-      "type": "wait",
-      "durationMs": 400
     },
     {
       "type": "cast",
@@ -650,10 +583,6 @@
     {
       "type": "cast",
       "skillId": 40625
-    },
-    {
-      "type": "wait",
-      "durationMs": 520
     },
     {
       "type": "cast",
@@ -713,11 +642,12 @@
     },
     {
       "type": "cast",
-      "skillId": 40625
+      "skillId": 40625,
+      "interruptAfterMs": 400
     },
     {
       "type": "wait",
-      "durationMs": 520
+      "durationMs": 120
     },
     {
       "type": "cast",
@@ -774,10 +704,6 @@
       "skillId": 44514
     },
     {
-      "type": "wait",
-      "durationMs": 400
-    },
-    {
       "type": "cast",
       "skillId": 12466,
       "interruptAfterMs": 40
@@ -790,10 +716,6 @@
       "type": "cast",
       "skillId": 12633,
       "concurrentOffsetMs": 280
-    },
-    {
-      "type": "wait",
-      "durationMs": 240
     },
     {
       "type": "cast",
@@ -814,7 +736,7 @@
   },
   "metadata": {
     "log": "https://dps.report/avdZ-20261113-162039_golem",
-    "timingSource": "User-provided EVTC reconstruction. Combat start moved to Frost Trap contact; Sic Em offsets preserved.",
+    "timingSource": "Standard dps.report importer with the supplied opener restored. Recorded overlaps and shortened casts retained.",
     "equipmentNotes": "Axe-Axe uses Force/Impact, confirmed by the log owner."
   }
 }

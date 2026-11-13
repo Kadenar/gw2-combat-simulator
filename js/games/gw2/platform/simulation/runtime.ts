@@ -529,6 +529,22 @@ export function runRuntime<T extends object>(
     resetCooldowns: casts.resetCooldowns,
     advanceFrontier: (reason) => queue.advanceFrontier(runtime.time, GW2_RESOLVER_PHASE.Ordinary, reason),
     acceptCast: casts.acceptCast,
+    acceptBuffCast(skill, command) {
+      const strike = queue.peek();
+
+      if (strike?.type !== 'damage' || strike.at !== runtime.time)
+        throw new Error('A concurrent grant requires a queued same-time strike.');
+
+      // Earlier completions may already have entered Ordinary. Insert only this grant ahead of the pending strike,
+      // retaining the live phase and leaving its completion hooks, conditions, and tasks in ordinary causal order.
+      const priority = Number(strike.priority ?? 0) - 1;
+      const phase =
+        queue.currentTime === runtime.time
+          ? Math.max(queue.currentPhase, GW2_RESOLVER_PHASE.Buffs)
+          : GW2_RESOLVER_PHASE.Buffs;
+      queue.advanceFrontier(runtime.time, phase, 'concurrent buff grant', priority);
+      casts.acceptCast(skill, command, priority);
+    },
     reject: casts.reject
   };
   // Phase 8: one occurrence policy governs both execution termination and result observation.

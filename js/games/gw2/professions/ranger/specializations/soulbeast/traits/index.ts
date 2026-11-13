@@ -278,9 +278,6 @@ function triggerApexPredator(runtime: RangerResolverContext, event: Gw2ResolverE
   if (!state.beastmodeActive || event.actorType !== ACTOR.PLAYER || !skill?.beastmodeSkill || !event.activationId)
     return;
 
-  // Gazelle Charge grants its frenzy on the final impact, never its travel strike.
-  if (skill.id === ID.CHARGE && event.name !== 'Charge - Impact Damage') return;
-
   // Most skills claim one frenzy per activation. These two skills claim one per landed hit instead.
   const repeated = skill.id === ID.MAUL_ID_44514 || skill.id === ID.PRIMAL_CRY;
   const scope = repeated ? `ranger.apex-predator:${event.hitIndex}` : 'ranger.apex-predator';

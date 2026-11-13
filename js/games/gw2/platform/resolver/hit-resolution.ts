@@ -216,7 +216,7 @@ export function createGw2HitResolution({
       const healthFraction = hitContext.targetHealthFractionBefore;
       const damageCalculation: Gw2DamageCalculation = {
         activeBuffs: activeBuffs(),
-        phase: (['Sample', 'Settle', 'Ordinary'] as const)[ctx.queue.currentPhase] ?? 'Ordinary',
+        phase: (['Sample', 'Settle', 'Buffs', 'Ordinary'] as const)[ctx.queue.currentPhase] ?? 'Ordinary',
         targetHealthBefore: healthFraction == null || !Number.isFinite(maximum) ? null : maximum * healthFraction,
         targetHealthFractionBefore: healthFraction,
         power: hitContext.stats.power,

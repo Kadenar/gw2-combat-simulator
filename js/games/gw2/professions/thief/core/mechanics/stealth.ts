@@ -1,5 +1,11 @@
 import { activeChargeCount, consumeCharge } from '#gw2/platform/combat/resources/charges.js';
-import { createStealthLifecycle, endStealth, revealedActive, stealthActive } from '#gw2/platform/combat/stealth.js';
+import {
+  createStealthLifecycle,
+  endStealth,
+  isStealthGrantingImpact,
+  revealedActive,
+  stealthActive
+} from '#gw2/platform/combat/stealth.js';
 import { ACTOR, STATUS } from '#gw2/platform/constants.js';
 import type { ActionContext } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
@@ -11,9 +17,6 @@ import { thiefSkill } from '#gw2/professions/thief/core/events.js';
 import { stealthEntered, stealthExited } from '#gw2/professions/thief/core/mechanics/trigger-points.js';
 import { hiddenKillerLinger } from '#gw2/professions/thief/core/traits/critical-strikes/index.js';
 import type { ThiefRuntimeState, ThiefSkill } from '#gw2/professions/thief/types.js';
-
-// Smoke outcomes precede their finisher's damage; only that same-instant impact is protected from revealing its grant.
-const comboStealthImpacts = new WeakMap<ThiefRuntime, { at: number; activations: Set<string> }>();
 
 /** A specialization-granted stealth-attack charge is usable outside stealth until it expires at the live clock. */
 export function thiefBonusStealthAttack(runtime: MechanicQueriesOf<ThiefRuntime>): boolean {
@@ -31,14 +34,6 @@ function reactToStealthGrant(runtime: ThiefRuntime, event: Gw2ResolverEvent, ent
   const core = runtime.profession.core;
   // Natural and forced exits use the same selected Hidden Killer linger.
   core.hiddenKillerUntil = core.stealthUntil + hiddenKillerLinger(runtime);
-
-  if (event.comboId && event.activationId) {
-    let impacts = comboStealthImpacts.get(runtime);
-
-    if (impacts?.at !== at) comboStealthImpacts.set(runtime, (impacts = { at, activations: new Set() }));
-
-    impacts.activations.add(event.activationId);
-  }
 
   if (!entering) return;
 
@@ -92,9 +87,7 @@ export function reactThiefStealthBreakingStrike(runtime: ThiefRuntime, event: Gw
 
   if (stealthGrantActivations.get(runtime)?.has(String(event.activationId))) return;
 
-  const combo = comboStealthImpacts.get(runtime);
-
-  if (combo?.at === runtime.time && combo.activations.has(String(event.activationId))) return;
+  if (isStealthGrantingImpact(runtime.profession.core, event)) return;
 
   runtime.profession.core.lastStealthBreakingStrike = { at: runtime.time, skillId: skill.id };
 

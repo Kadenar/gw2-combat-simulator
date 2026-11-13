@@ -80,6 +80,8 @@ export function createDamageExecution<T extends object>(
     ),
     driver: {
       cursor: new RotationCursor([]),
+      // Isolated occurrences have no concurrent rotation command to admit.
+      advanceBuff: () => false,
       advance({ runtime, acceptCast }) {
         if (started) return Infinity;
 

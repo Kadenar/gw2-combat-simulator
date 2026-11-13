@@ -934,7 +934,7 @@ for (const [specialization, skillId, selectedPet, buffKind, multiplier] of [
   ['Soulbeast', ID.WORLDLY_IMPACT, 'Pig', 'sic-em', 1.25],
   ['Core', ID.FURIOUS_POUNCE, 'Tiger', 'sic-em-pet', 1.4]
 ]) {
-  test(`${specialization} Sic 'Em cannot retroactively buff an impact already dispatched`, () => {
+  test(`${specialization} concurrent Sic 'Em buffs same-time impacts but cannot buff earlier hits`, () => {
     const config = { selectedPet, selectedTraitIds: [TRAIT.GO_FOR_THE_THROAT] };
     const attack = { type: 'cast', skillId };
     const strike = (result) =>
@@ -963,7 +963,7 @@ for (const [specialization, skillId, selectedPet, buffKind, multiplier] of [
       assert.ok(buff);
       assert.equal(Math.round(buff.at * 1000), Math.ceil((impactOffsetMs + offsetMs) / 40) * 40);
 
-      if (offsetMs < 0) {
+      if (offsetMs <= 0) {
         assertFlooredDamageMultiplier(hit.damage, baselineHit.damage, multiplier);
         assert.ok(result.resolvedEvents.indexOf(buff) < result.resolvedEvents.indexOf(hit));
       } else {

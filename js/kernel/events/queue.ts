@@ -1,6 +1,6 @@
 /**
  * Stable event queue helpers used by both scheduling and resolution. Events are
- * ordered by timestamp, priority, causal placement (untagged last), then stable
+ * ordered by timestamp, phase, priority, causal placement (untagged last), then stable
  * insertion order. Missing or nonfinite causal metadata shares the untagged tier.
  */
 import { canonicalTime, timeKey } from '#kernel/core/clock.js';
@@ -91,6 +91,12 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     return this.current?.at ?? null;
   }
 
+  /** Inspect the next event's assigned phase without recomputing inherited ordering. */
+  get nextPhase(): number | undefined {
+    this.peek();
+    return this.heap[0]?.phase;
+  }
+
   /** Observe live deadlines without consuming work or exposing cancelled insertions. */
   pending(): readonly T[] {
     return this.heap.filter((entry) => !entry.cancelled).map((entry) => entry.event);
@@ -173,12 +179,27 @@ export class StableEventQueue<T extends QueuedEvent = QueuedEvent> {
     for (const entry of this.heap) if (!entry.cancelled && matches(entry.event)) entry.cancelled = true;
   }
 
-  /** Commands share the event frontier and safety budget, and begin without the previous handler's causal context. */
-  advanceFrontier(at: number, phase = 0, source = 'command'): void {
+  /**
+   * Commands share the frontier and safety budget. A supplied priority inserts a transaction before lower-priority
+   * work in the same phase; the default requires that phase to drain. Neither form can bypass an earlier timestamp.
+   */
+  advanceFrontier(at: number, phase = 0, source = 'command', priority = Infinity): void {
     at = canonicalTime(at);
+
+    if (!Number.isFinite(priority) && priority !== Infinity)
+      throw new RangeError('Command priority must be finite or the draining boundary.');
+
     this.peek();
 
-    if (this.heap[0] && this.heap[0].timeKeyMicroseconds <= timeKey(at)) {
+    const first = this.heap[0];
+    const key = timeKey(at);
+
+    if (
+      first &&
+      (first.timeKeyMicroseconds < key ||
+        (first.timeKeyMicroseconds === key &&
+          (first.phase < phase || (first.phase === phase && first.priority <= priority))))
+    ) {
       throw new RangeError(`Cannot advance past pending work at ${at}s from ${source}.`);
     }
 

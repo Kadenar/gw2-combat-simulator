@@ -65,6 +65,8 @@ function land(runtime: RevenantRuntime, data: unknown): void {
       transform: (event) => ({
         ...event,
         name: profile.name,
+        // Damage rows show the selected landing while cast accounting retains the shared Dodge input.
+        icon: profile.icon,
         reaversCurseDamageFactor,
         skillWeapon: 'Unequipped',
         forerunnerOfDeathActive: forerunnerActive

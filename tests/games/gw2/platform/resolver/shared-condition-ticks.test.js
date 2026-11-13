@@ -874,7 +874,7 @@ test('ordinary priorities cannot outrank condition settlement', () => {
 });
 
 // Settlement commits health and derived state before every ordinary attack, including condition-kind direct procs.
-test('settlement reactions inherit their phase while direct hits and future buffs remain ordinary', () => {
+test('settlement reactions inherit their phase while future buffs use the buff phase', () => {
   const observed = [];
   resolve(
     [
@@ -953,7 +953,7 @@ test('settlement reactions inherit their phase while direct hits and future buff
     ['settled', GW2_RESOLVER_PHASE.Settle],
     ['strike', GW2_RESOLVER_PHASE.Ordinary],
     ['proc', GW2_RESOLVER_PHASE.Ordinary],
-    ['future', GW2_RESOLVER_PHASE.Ordinary]
+    ['future', GW2_RESOLVER_PHASE.Buffs]
   ]);
 });
 

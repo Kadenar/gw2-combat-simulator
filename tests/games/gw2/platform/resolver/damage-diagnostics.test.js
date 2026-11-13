@@ -191,7 +191,7 @@ test('diagnostics capture settlement and environment health before the following
 });
 
 // Hit snapshots must preserve executed order, recipient filtering, and state before on-hit consumption or grants.
-test('active buff diagnostics preserve player stacks before same-time grants and after-hit reactions', () => {
+test('active buff diagnostics include tied grants and preserve state before after-hit reactions', () => {
   let charges = 2;
   const profession = defineTestProfession({
     id: 'diagnostic-buffs',
@@ -258,7 +258,7 @@ test('active buff diagnostics preserve player stacks before same-time grants and
         Object.fromEntries(event.damageCalculation.activeBuffs.map(({ kind, stacks }) => [kind, stacks]))
       ])
   );
-  assert.deepEqual(snapshots.Before, { alacrity: 1, might: 25, quickness: 1, charge: 2, 'native-charge': 2 });
+  assert.deepEqual(snapshots.Before, { alacrity: 1, might: 25, quickness: 1, charge: 2, later: 1, 'native-charge': 2 });
   assert.deepEqual(snapshots.After, {
     alacrity: 1,
     might: 25,

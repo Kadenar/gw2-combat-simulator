@@ -160,6 +160,7 @@ effectNames.set('kallas-fervor', "Kalla's Fervor");
 // Resolve Vindicator's internal buff names to the named CDN icons used in trait tooltips.
 effectNames.set('forerunner-of-death', 'Forerunner of Death');
 effectNames.set('reavers-curse', "Reaver's Curse");
+effectNames.set('friend-of-the-luxons', 'Friend of the Luxons');
 effectNames.set('razorclaws-rage', "Razorclaw's Rage");
 effectNames.set('battle-scars', 'Battle Scars');
 // Resolve the form-window buff to Cosmic Wisdom's display name and skill icon.

@@ -366,3 +366,52 @@ test('both log adapters merge a spear follow-through without inventing another i
     assert.equal(result.rotation.filter((command) => command.skillId === 73030).length, 1);
   }
 });
+
+test('both log adapters merge Charge travel and impact into one input per activation', () => {
+  // A follow-up cannot start a new command; a later travel remains a distinct activation even without its impact.
+  const rows = [
+    {
+      id: 45743,
+      skills: [
+        { castTime: 1000, duration: 250 },
+        { castTime: 4000, duration: 250 }
+      ]
+    },
+    {
+      id: 43995,
+      skills: [
+        { castTime: 1250, duration: 430 },
+        { castTime: 3000, duration: 430 }
+      ]
+    }
+  ];
+  const skills = { s45743: { name: 'Charge (Travel)' }, s43995: { name: 'Charge (Impact)' } };
+  const fixture = log({
+    agents: [{ ...log().agents[0], profession: 4, elite: 55 }],
+    skills: [
+      { id: 45743, name: 'Charge' },
+      { id: 43995, name: 'Charge' }
+    ],
+    events: rows
+      .flatMap(({ id, skills: casts }) =>
+        casts.flatMap(({ castTime, duration }) => [
+          event({ time: castTime, stateChange: 67, skillId: id, value: duration }),
+          event({ time: castTime + duration, stateChange: 68, skillId: id, value: duration, activation: 5 })
+        ])
+      )
+      .sort((left, right) => left.time - right.time)
+  });
+  for (const result of [
+    reconstructDpsReportRotation(reportFixture('Soulbeast', rows, skills), rangerCatalog),
+    reconstructEvtcRotation(fixture, rangerCatalog)
+  ]) {
+    assert.deepEqual(
+      result.actions.map((action) => action.skillId),
+      [45743, 45743]
+    );
+    assert.deepEqual(
+      result.rotation.filter((command) => command.type === 'cast').map((command) => command.skillId),
+      [45743, 45743]
+    );
+  }
+});

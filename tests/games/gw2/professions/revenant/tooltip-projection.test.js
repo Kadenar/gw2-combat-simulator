@@ -73,6 +73,17 @@ test('Vindicator trait facts follow the selected patch landing payload', () => {
     }
   });
   const context = profession.resolvePatch({ id: 'landing-tooltip' }).balanceContext;
+  // Trait-owned descriptions omit redundant landing names while keeping the selected patch's effects.
+  for (const id of [TRAIT.FORERUNNER_OF_DEATH, TRAIT.VASSALS_OF_THE_EMPIRE, TRAIT.SAINT_OF_ZU_HELTZER]) {
+    const tooltip = describeSimulationTrait(
+      context,
+      context.catalog.traits.find((trait) => trait.id === id),
+      revenantTooltips,
+      'Vindicator'
+    );
+    assert.doesNotMatch(JSON.stringify(tooltip), /Death Drop|Imperial Impact|Saint's Shield/);
+  }
+
   const facts = (id) =>
     describeSimulationTrait(
       context,
@@ -82,4 +93,11 @@ test('Vindicator trait facts follow the selected patch landing payload', () => {
     ).facts;
   assert.ok(!facts(TRAIT.VASSALS_OF_THE_EMPIRE).some(({ name }) => name === 'Chilled'));
   assert.match(facts(TRAIT.SAINT_OF_ZU_HELTZER).find(({ name }) => name === 'Alacrity').detail, /^7s/);
+  // Named buff facts preserve their artwork instead of falling back to a generic duration glyph.
+  const luxonBuff = facts(TRAIT.FRIEND_OF_THE_LUXONS).find(({ name }) => name === 'Friend of the Luxons');
+  assert.match(luxonBuff.detail, /^10s/);
+  assert.equal(
+    luxonBuff.icon,
+    'https://render.guildwars2.com/file/5863F212529A39973D0ABB76010DAA11AADF2E5F/2491531.png'
+  );
 });

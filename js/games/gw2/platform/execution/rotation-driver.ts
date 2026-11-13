@@ -1,7 +1,7 @@
 import { normalizeRotation } from '#gw2/platform/builds/rotation.js';
 import { GW2_ACTION_TICK_MS, gw2CooldownReadyAt } from '#gw2/platform/combat/action-tick.js';
 import { ACTOR } from '#gw2/platform/constants.js';
-import type { RuntimeDriver } from '#gw2/platform/execution/driver-contract.js';
+import type { RuntimeDriver, RuntimeDriverContext } from '#gw2/platform/execution/driver-contract.js';
 import { RotationCursor } from '#gw2/platform/execution/rotation-cursor.js';
 import {
   createSkillSelectionContext,
@@ -18,156 +18,197 @@ export function createRotationDriver<T extends object>(
   const cursor = new RotationCursor(normalizeRotation(rotation, profession.catalog, { strict: true }));
   // One driver belongs to one execution; bind selected trait queries on its first live boundary.
   let selectionContext: TraitSelectionContext | undefined;
-  return {
-    cursor,
-    advance({ runtime, evaluateReadiness, resetCooldowns, advanceFrontier, acceptCast, reject }) {
-      selectionContext ??= createSkillSelectionContext(runtime.traits);
-      const command = cursor.command;
-      let nextCommandAt = Infinity;
+  function advance(
+    {
+      runtime,
+      evaluateReadiness,
+      resetCooldowns,
+      advanceFrontier,
+      acceptCast,
+      acceptBuffCast,
+      reject
+    }: RuntimeDriverContext<T>,
+    buffsOnly: boolean
+  ): number | 'handled' {
+    selectionContext ??= createSkillSelectionContext(runtime.traits);
+    const command = cursor.command;
+    let nextCommandAt = Infinity;
 
-      if (command) {
-        const resumeAt = runtime.encounter?.rotationResumeAt;
+    if (command) {
+      const resumeAt = runtime.encounter?.rotationResumeAt;
 
-        // Keep all authored inputs queued while encounter work, cooldowns, and resources advance normally.
-        if (resumeAt != null && resumeAt > runtime.time) {
-          cursor.deferUntil(resumeAt);
-          return resumeAt;
-        }
-
-        // Reevaluate transformed actions after every actual boundary, before accepting their reservation.
-        let skill =
-          command.type === 'cast'
-            ? profession.catalog.skillsById.get(
-                profession.modifySkillId?.(selectionContext, command.skillId) ?? command.skillId
-              )
-            : undefined;
-
-        if (skill) skill = profession.resolveCastSkill?.(runtime.mechanicQueries, skill) ?? skill;
-
-        // Selector inputs must resolve before lane reservation; their empty declarations are never executable.
-        if (skill?.selector) throw new Error('Unresolved skill selector: ' + skill.name);
-
-        // A forbidden overlap is permanently invalid, so it cannot reserve a lane or wait for cooldown readiness.
-        if (command.type === 'cast' && command.concurrentOffsetMs != null && skill?.canCastConcurrently === false) {
-          advanceFrontier('command rejection');
-          reject(`${skill.name} cannot be cast concurrently.`);
-          return 'handled';
-        }
-
-        const requested = cursor.requestAt(runtime.time, skill);
-
-        if (requested < runtime.time || (command.type === 'cast' && !skill)) {
-          advanceFrontier('command rejection');
-          reject(skill ? 'Concurrent command cannot backdate the clock.' : 'Unknown skill.');
-          return 'handled';
-        }
-
-        nextCommandAt = Math.max(
-          requested,
-          command.type === 'cast' ? runtime.inputReadyAt : 0,
-          skill && !skill.independentCast && Number(skill.castTimeMs) > 0 && !skill.stunbreak ? cursor.selfStunUntil : 0
-        );
-
-        // Every cast enters on an absolute action tick, even after an off-grid wait, overlap, or resource wake.
-        if (command.type === 'cast') nextCommandAt = gw2CooldownReadyAt(nextCommandAt);
-
-        if (nextCommandAt <= runtime.time) {
-          advanceFrontier('command');
-
-          if (command.type === 'wait') {
-            const end = canonicalTime(runtime.time + command.durationMs / 1000);
-
-            // Every authored command retains its timeline row, including waits and environment controls.
-            if (runtime.output !== 'score')
-              runtime.steps.push({
-                rotationCommandIndex: cursor.index,
-                skillName: 'Wait',
-                start: Math.round(runtime.time * 1000),
-                end: Math.round(end * 1000)
-              });
-
-            cursor.acceptWait(end);
-            return 'handled';
-          }
-
-          if (command.type === 'combat-start') {
-            if (runtime.output !== 'score')
-              runtime.steps.push({
-                rotationCommandIndex: cursor.index,
-                skillName: 'Combat Start',
-                start: Math.round(runtime.time * 1000),
-                end: Math.round(runtime.time * 1000)
-              });
-
-            runtime.engagementController.consumeMarker(runtime.time);
-            runtime.effects.emit({
-              kind: 'packet',
-              event: {
-                type: 'combat_start',
-                at: runtime.time,
-                source: 'Runtime',
-                sourceId: 'combat-start',
-                actorType: ACTOR.ENVIRONMENT
-              }
-            });
-            cursor.consume();
-            return 'handled';
-          }
-
-          if (command.type === 'cooldown-reset') {
-            if (runtime.output !== 'score')
-              runtime.steps.push({
-                rotationCommandIndex: cursor.index,
-                skillName: 'Cooldown Reset',
-                start: Math.round(runtime.time * 1000),
-                end: Math.round(runtime.time * 1000)
-              });
-
-            resetCooldowns();
-            profession.onCooldownReset?.(runtime.mechanics);
-            // Publish the accepted reset after its resource and recharge transitions.
-            runtime.effects.emit({
-              kind: 'packet',
-              event: {
-                type: 'marker',
-                at: runtime.time,
-                source: 'platform',
-                sourceId: 'cooldown-reset',
-                actorType: ACTOR.ENVIRONMENT,
-                action: 'cooldown-reset',
-                name: 'Cooldown Reset'
-              }
-            });
-            cursor.consume();
-            return 'handled';
-          }
-
-          if (!skill) throw new Error('Cast has no skill.');
-
-          const availability = evaluateReadiness(skill, command);
-
-          if (!availability.ready) {
-            if (availability.retryAt == null) {
-              reject(availability.reason);
-              return 'handled';
-            }
-
-            if (!Number.isFinite(availability.retryAt) || availability.retryAt <= runtime.time) {
-              reject(`${availability.reason} (no future retry boundary).`);
-              return 'handled';
-            }
-
-            // GW2 retries wait for an absolute action tick, including deadlines less than a microsecond after a tick.
-            const tickAt = gw2CooldownReadyAt(availability.retryAt);
-            nextCommandAt = tickAt < availability.retryAt ? canonicalTime(tickAt + GW2_ACTION_TICK_MS / 1000) : tickAt;
-          } else {
-            acceptCast(skill, command);
-            return 'handled';
-          }
-        }
+      // Keep all authored inputs queued while encounter work, cooldowns, and resources advance normally.
+      if (resumeAt != null && resumeAt > runtime.time) {
+        cursor.deferUntil(resumeAt);
+        return resumeAt;
       }
 
-      return nextCommandAt;
+      // Reevaluate transformed actions after every actual boundary, before accepting their reservation.
+      let skill =
+        command.type === 'cast'
+          ? profession.catalog.skillsById.get(
+              profession.modifySkillId?.(selectionContext, command.skillId) ?? command.skillId
+            )
+          : undefined;
+
+      if (skill) skill = profession.resolveCastSkill?.(runtime.mechanicQueries, skill) ?? skill;
+
+      // Selector inputs must resolve before lane reservation; their empty declarations are never executable.
+      if (skill?.selector) throw new Error('Unresolved skill selector: ' + skill.name);
+
+      // Only declared grant-only activations may precede a strike; mixed effects and state transitions keep ordinary ordering.
+      if (
+        buffsOnly &&
+        (command.type !== 'cast' ||
+          command.concurrentOffsetMs == null ||
+          !skill ||
+          Number(skill.castTimeMs) !== 0 ||
+          skill.independentCast ||
+          skill.canCastConcurrently === false ||
+          !skill.effects?.length ||
+          !skill.effects.every((effect) => effect.type === 'buff' || effect.type === 'boon') ||
+          skill.tasks?.length ||
+          skill.sideEffects?.length ||
+          skill.effectVariants?.length)
+      )
+        return Infinity;
+
+      // A forbidden overlap is permanently invalid, so it cannot reserve a lane or wait for cooldown readiness.
+      if (command.type === 'cast' && command.concurrentOffsetMs != null && skill?.canCastConcurrently === false) {
+        advanceFrontier('command rejection');
+        reject(`${skill.name} cannot be cast concurrently.`);
+        return 'handled';
+      }
+
+      const requested = cursor.requestAt(runtime.time, skill);
+
+      if (requested < runtime.time || (command.type === 'cast' && !skill)) {
+        if (buffsOnly) return Infinity;
+
+        advanceFrontier('command rejection');
+        reject(skill ? 'Concurrent command cannot backdate the clock.' : 'Unknown skill.');
+        return 'handled';
+      }
+
+      nextCommandAt = Math.max(
+        requested,
+        command.type === 'cast' ? runtime.inputReadyAt : 0,
+        skill && !skill.independentCast && Number(skill.castTimeMs) > 0 && !skill.stunbreak ? cursor.selfStunUntil : 0
+      );
+
+      // Every cast enters on an absolute action tick, even after an off-grid wait, overlap, or resource wake.
+      if (command.type === 'cast') nextCommandAt = gw2CooldownReadyAt(nextCommandAt);
+
+      if (nextCommandAt <= runtime.time) {
+        if (buffsOnly) {
+          // A blocked overlap must still observe queued gains before normal readiness can reject or retry it.
+          if (command.type !== 'cast' || !skill || !evaluateReadiness(skill, command).ready) return Infinity;
+
+          acceptBuffCast(skill, command);
+          return 'handled';
+        }
+
+        advanceFrontier('command');
+
+        if (command.type === 'wait') {
+          const end = canonicalTime(runtime.time + command.durationMs / 1000);
+
+          // Every authored command retains its timeline row, including waits and environment controls.
+          if (runtime.output !== 'score')
+            runtime.steps.push({
+              rotationCommandIndex: cursor.index,
+              skillName: 'Wait',
+              start: Math.round(runtime.time * 1000),
+              end: Math.round(end * 1000)
+            });
+
+          cursor.acceptWait(end);
+          return 'handled';
+        }
+
+        if (command.type === 'combat-start') {
+          if (runtime.output !== 'score')
+            runtime.steps.push({
+              rotationCommandIndex: cursor.index,
+              skillName: 'Combat Start',
+              start: Math.round(runtime.time * 1000),
+              end: Math.round(runtime.time * 1000)
+            });
+
+          runtime.engagementController.consumeMarker(runtime.time);
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'combat_start',
+              at: runtime.time,
+              source: 'Runtime',
+              sourceId: 'combat-start',
+              actorType: ACTOR.ENVIRONMENT
+            }
+          });
+          cursor.consume();
+          return 'handled';
+        }
+
+        if (command.type === 'cooldown-reset') {
+          if (runtime.output !== 'score')
+            runtime.steps.push({
+              rotationCommandIndex: cursor.index,
+              skillName: 'Cooldown Reset',
+              start: Math.round(runtime.time * 1000),
+              end: Math.round(runtime.time * 1000)
+            });
+
+          resetCooldowns();
+          profession.onCooldownReset?.(runtime.mechanics);
+          // Publish the accepted reset after its resource and recharge transitions.
+          runtime.effects.emit({
+            kind: 'packet',
+            event: {
+              type: 'marker',
+              at: runtime.time,
+              source: 'platform',
+              sourceId: 'cooldown-reset',
+              actorType: ACTOR.ENVIRONMENT,
+              action: 'cooldown-reset',
+              name: 'Cooldown Reset'
+            }
+          });
+          cursor.consume();
+          return 'handled';
+        }
+
+        if (!skill) throw new Error('Cast has no skill.');
+
+        const availability = evaluateReadiness(skill, command);
+
+        if (!availability.ready) {
+          if (availability.retryAt == null) {
+            reject(availability.reason);
+            return 'handled';
+          }
+
+          if (!Number.isFinite(availability.retryAt) || availability.retryAt <= runtime.time) {
+            reject(`${availability.reason} (no future retry boundary).`);
+            return 'handled';
+          }
+
+          // GW2 retries wait for an absolute action tick, including deadlines less than a microsecond after a tick.
+          const tickAt = gw2CooldownReadyAt(availability.retryAt);
+          nextCommandAt = tickAt < availability.retryAt ? canonicalTime(tickAt + GW2_ACTION_TICK_MS / 1000) : tickAt;
+        } else {
+          acceptCast(skill, command);
+          return 'handled';
+        }
+      }
     }
+
+    return nextCommandAt;
+  }
+
+  return {
+    cursor,
+    advance: (context) => advance(context, false),
+    advanceBuff: (context) => advance(context, true) === 'handled'
   };
 }

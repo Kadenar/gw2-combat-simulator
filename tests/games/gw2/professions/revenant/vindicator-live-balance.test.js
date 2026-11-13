@@ -127,6 +127,16 @@ test('moved dodge traits and adept Energy Meld traits remain functional in live 
     const tooltip = revenantAppAdapter.skillTooltip(live.catalog.skillsById.get(SHARED_SKILL_IDS.DODGE), live, build);
     assert.ok(tooltip.description.includes(landing));
 
+    // Landing damage retains the shared input identity but carries the selected attack's artwork.
+    const damage = result.breakdown.find((entry) => entry.name === landing && entry.strikeDamage > 0);
+
+    if (landing !== "Saint's Shield") {
+      assert.ok(damage);
+      const profile = live.catalog.skills.find((skill) => skill.name === landing);
+      assert.equal(damage.skillId, SHARED_SKILL_IDS.DODGE);
+      assert.equal(damage.icon, profile.icon);
+    }
+
     if (choices.startsWith('1')) assert.equal(result.planningState.profession[STATE.REAVERS_CURSE_UNTIL], 0);
 
     if (choices.startsWith('2'))
@@ -190,6 +200,11 @@ test("Archemorus's Strike requires Friend of the Luxons and works outside Allian
     );
 
     if (!selected) assert.match(result.warnings[0].message, /Friend of the Luxons/);
+    else {
+      // The F4 attack uses profession strength even outside Alliance with no equipped weapon supplied.
+      const strike = result.resolvedEvents.find((event) => event.type === 'damage');
+      assert.equal(strike.weaponStrengthProfileId, 'nonweapon.profession-mechanic');
+    }
   }
 
   const cancelled = run([{ name: "Archemorus's Strike", interruptMs: 0 }], {
@@ -200,6 +215,37 @@ test("Archemorus's Strike requires Friend of the Luxons and works outside Allian
     cancelled.events.some((event) => event.kind === 'friend-of-the-luxons'),
     false
   );
+});
+
+// The Luxon bonus adds to Forerunner before Rise multiplies the combined strike bonus.
+test('Friend of the Luxons shares additive damage while Rise to the Occasion stays multiplicative', () => {
+  const selected = {
+    ...config,
+    selectedTraitIds: [TRAIT.FRIEND_OF_THE_LUXONS, TRAIT.FORERUNNER_OF_DEATH, TRAIT.RISE_TO_THE_OCCASION]
+  };
+  const native = profession.resolveProfession(selected);
+  let multiplier;
+  const result = runRevenant(['Dodge', "Archemorus's Strike", { type: 'wait', durationMs: 1000 }], selected, {
+    probes: [
+      [
+        2,
+        (runtime) => {
+          multiplier = native.calculations.modifyStrikeDamage(
+            {
+              catalog: live.catalog,
+              config: selected,
+              time: runtime.time,
+              runtime,
+              event: { actorType: 'player' }
+            },
+            1
+          );
+        }
+      ]
+    ]
+  });
+  assert.deepEqual(result.warnings, []);
+  assert.ok(Math.abs(multiplier - (1 + 0.25 + 0.1) * 1.1) < 1e-12);
 });
 
 // Short fixture casts isolate bonus refresh and expiry from native animation and recharge tuning.

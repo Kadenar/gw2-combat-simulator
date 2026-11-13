@@ -22,6 +22,37 @@ test('breakdown name attribution preserves skill-name hyphens', () => {
   assert.equal(baseBreakdownName('Mech Arms: Single-Edge Cutters - Bleeding'), 'Mech Arms: Single-Edge Cutters');
 });
 
+// Targeting filters apply before every cast lookup, including renamed damage contributions.
+test('breakdown cast attribution excludes actions aimed away from the target', () => {
+  for (const attribution of [
+    { sourceSkill: 'Attack' },
+    { sourceSkill: 'Renamed attack', skillId: 1 },
+    { sourceSkill: 'Renamed attack', name: 'Attack action' }
+  ]) {
+    const action = {
+      type: 'action',
+      actorType: 'player',
+      skillId: 1,
+      skillName: 'Attack',
+      name: 'Attack action',
+      at: 0,
+      endsAt: 1
+    };
+    const result = {
+      events: [action, { ...action, offTarget: false }, { ...action, offTarget: true }],
+      breakdown: [{ name: 'Attack', actorType: 'player', strikeDamage: 120, ...attribution }],
+      dpsWindow: 3
+    };
+    const [row] = skillBreakdownRows(result);
+    assert.equal(row.casts, 2);
+    assert.equal(row.average, 60);
+
+    const [offTargetRow] = skillBreakdownRows({ ...result, events: [{ ...action, offTarget: true }] });
+    assert.equal(offTargetRow.casts, 0);
+    assert.equal(offTargetRow.average, null);
+  }
+});
+
 // The condition composition uses resolved payouts, isolates owners, and shares the report's observation window.
 test('condition contributions combine skills within player and named entity ownership', () => {
   const condition = (entityName, name, damage, extra = {}) => ({

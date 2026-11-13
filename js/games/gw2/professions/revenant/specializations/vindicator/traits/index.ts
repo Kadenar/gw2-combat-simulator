@@ -216,8 +216,9 @@ const friendOfTheLuxons = defineTrait({
     {
       id: 'revenant.friend-of-the-luxons',
       target: MODIFIER_TARGET.STRIKE_DAMAGE,
-      operation: 'multiply',
-      factor: (context) => 1 + balanceNumber(context.catalog, TRAIT.FRIEND_OF_THE_LUXONS, 'damageIncrease'),
+      // Luxon damage shares the additive bucket; Rise to the Occasion remains a separate multiplier.
+      operation: 'damage-additive',
+      amount: (context) => balanceNumber(context.catalog, TRAIT.FRIEND_OF_THE_LUXONS, 'damageIncrease'),
       when: (context) => isGw2PlayerModifierOwnedEvent(context.event) && buffActive(context, 'friend-of-the-luxons')
     }
   ]

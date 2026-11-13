@@ -17,6 +17,14 @@ export interface StealthState {
   revealedUntil: number;
 }
 
+const stealthGrantImpacts = new WeakMap<StealthState, { at: number; activations: Set<string>; allImpacts: boolean }>();
+
+/** Grant owners may protect tied impacts; smoke finishers otherwise protect only their own activation. */
+export function isStealthGrantingImpact(state: StealthState, event: Gw2ResolverEvent): boolean {
+  const grant = stealthGrantImpacts.get(state);
+  return grant?.at === event.at && (grant.allImpacts || grant.activations.has(String(event.activationId)));
+}
+
 /** Every profession starts without stealth or a Revealed lockout. */
 export function createStealthState(): StealthState {
   return { stealthStartedAt: 0, stealthUntil: 0, revealedUntil: 0 };
@@ -43,13 +51,11 @@ export function endStealth(state: StealthState, at: number, reveal = true): void
 }
 
 interface StealthPolicy<T extends { core: StealthState }, TSkill extends Skill> {
-  /** Some granting strikes must settle before their new stealth window becomes usable. */
-  readonly applicationPriority?: number;
+  /** Ranger grants survive quantized ties while subsequent impacts still reveal. */
+  readonly preserveOnGrantTimestamp?: boolean;
   /** Profession reactions observe the accepted status, without duplicating grant arithmetic. */
   readonly onGranted?: (runtime: MechanicContext<T, TSkill>, event: Gw2ResolverEvent, entered: boolean) => void;
 }
-
-const APPLY_STEALTH = 'gw2.apply-stealth';
 
 /** All sources enter through accepted self buff applications; local policies retain same-time reaction ordering. */
 export function createStealthLifecycle<T extends { core: StealthState }, TSkill extends Skill>(
@@ -68,6 +74,18 @@ export function createStealthLifecycle<T extends { core: StealthState }, TSkill 
     state.stealthUntil = canonicalTime(
       Math.min(runtime.time + MAXIMUM_STEALTH_DURATION, Math.max(runtime.time, state.stealthUntil) + duration)
     );
+
+    if (policy.preserveOnGrantTimestamp || (event.comboId && event.activationId)) {
+      let impacts = stealthGrantImpacts.get(state);
+
+      if (impacts?.at !== runtime.time)
+        stealthGrantImpacts.set(state, (impacts = { at: runtime.time, activations: new Set(), allImpacts: false }));
+
+      impacts.allImpacts ||= Boolean(policy.preserveOnGrantTimestamp);
+
+      if (event.activationId) impacts.activations.add(event.activationId);
+    }
+
     policy.onGranted?.(runtime, event, entered);
   }
 
@@ -88,17 +106,8 @@ export function createStealthLifecycle<T extends { core: StealthState }, TSkill 
       'buff.applied'(runtime, event) {
         if (event.kind !== STATUS.STEALTH || !event.resolvedAudience?.includesSelf) return;
 
-        if (policy.applicationPriority === undefined) apply(runtime, event);
-        else runtime.schedule(APPLY_STEALTH, runtime.time, event, undefined, policy.applicationPriority);
+        apply(runtime, event);
       }
-    },
-    ...(policy.applicationPriority === undefined
-      ? {}
-      : {
-          tasks: {
-            [APPLY_STEALTH]: (runtime: MechanicContext<T, TSkill>, data: unknown) =>
-              apply(runtime, data as Gw2ResolverEvent)
-          }
-        })
+    }
   };
 }

@@ -15,7 +15,8 @@ export const SOULBEAST_FELINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Ski
     slot: 'Profession_1',
     cooldown: 8,
     beastmodeSkill: true,
-    castTimeMs: 0,
+    castTimeMs: 520,
+    interruptCommitMs: 360,
     effects: [
       {
         type: 'strike',
@@ -34,7 +35,7 @@ export const SOULBEAST_FELINE_BEAST_SKILL_MECHANICS: Readonly<Record<number, Ski
     slot: 'Profession_2',
     cooldown: 16,
     beastmodeSkill: true,
-    castTimeMs: 0,
+    castTimeMs: 400,
     effects: [
       {
         type: 'strike',

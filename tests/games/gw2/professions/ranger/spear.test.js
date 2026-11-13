@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { describeSimulationSkill } from '#gw2/app/shared/simulation-tooltip.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { SHARED_STATE_IDS as STATE } from '#gw2/platform/results/state-ids.js';
-import { RANGER_SKILL_IDS as ID } from '#gw2/professions/ranger/data/ids.js';
+import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { rangerCatalog, rangerProfession } from '#gw2/professions/ranger/profession.js';
 import { wait } from '#tests/helpers/commands.js';
 import { createObservedProfessionSimulator, observedRuntime } from '#tests/helpers/observed-runtime.js';
+import { runRanger } from '#tests/helpers/ranger-simulation.js';
 import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const simulate = createObservedProfessionSimulator(rangerProfession, {
@@ -130,6 +132,50 @@ test('ordinary stealth unlocks spear and outgoing strikes apply Revealed without
   assert.ok(strike(prowess, ID.WOLFS_ONSLAUGHT));
   const expired = simulate('Soulbeast', [ID.PANTHERS_PROWL, wait(3100), ID.WOLFS_ONSLAUGHT]);
   assert.ok(expired.warnings.some(({ message: warning }) => warning.includes('gain stealth first')));
+});
+
+// Hunter's Shot owns a hit-triggered grant; the global buff phase must not make it reveal itself or reward a miss.
+test("Hunter's Shot grants stealth after landing and grants none on a miss", () => {
+  for (const offTarget of [false, true]) {
+    const result = simulate('Soulbeast', [{ type: 'cast', skillId: ID.HUNTERS_SHOT, offTarget }], {
+      primaryWeapon: 'Longbow'
+    });
+    assert.deepEqual(result.warnings, []);
+    const grant = result.resolvedEvents.find((event) => event.type === 'buff' && event.kind === 'stealth');
+    assert.equal(Boolean(grant), !offTarget);
+
+    if (grant)
+      assert.ok(result.resolvedEvents.indexOf(strike(result, ID.HUNTERS_SHOT)) < result.resolvedEvents.indexOf(grant));
+  }
+});
+
+// Follow-up projectiles from the granting hit must preserve the stealth needed by the next weapon set.
+test("Hunter's Shot retains declared stealth and survives its Shrike follow-up", () => {
+  const result = runRanger(
+    [ID.HUNTERS_SHOT, -3, ID.WOLFS_ONSLAUGHT],
+    {
+      specialization: 'Galeshot',
+      primaryWeapon: 'Longbow',
+      secondaryWeapon: '',
+      weaponSet2Primary: 'Spear',
+      weaponSet2Secondary: '',
+      selectedTraitIds: [TRAIT.SHRIKE]
+    },
+    {
+      initialize(runtime) {
+        runtime.profession.specialization.state.missileHits = 11;
+      }
+    }
+  );
+  assert.deepEqual(result.warnings, []);
+  assert.ok(strike(result, ID.WOLFS_ONSLAUGHT));
+  assert.ok(result.resolvedEvents.some((event) => event.type === 'damage' && event.sourceId === TRAIT.SHRIKE));
+  const tooltip = describeSimulationSkill(
+    { catalog: rangerCatalog },
+    rangerCatalog.skillsById.get(ID.HUNTERS_SHOT),
+    {}
+  );
+  assert.ok(tooltip.facts.some((fact) => fact.name === 'Stealth' && fact.detail === '3s'));
 });
 
 test('spear finishers consume Smoke Cloud and Spider grants superspeed to the pet', () => {

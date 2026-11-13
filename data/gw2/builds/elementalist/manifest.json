@@ -6,32 +6,32 @@
         "label": "Power (Sword)",
         "build": "data/gw2/builds/elementalist/b-power-weaver-sword.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-weaver-sword.json",
-        "benchmarkDps": 42650,
+        "benchmarkDps": 42645,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-weaver-sword-dagger",
         "benchmarkApm": 90.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 48891, "phase": 48891 },
-          "80-60": { "cumulative": 41321, "phase": 35805 },
-          "60-40": { "cumulative": 40127, "phase": 37891 },
-          "40-20": { "cumulative": 41437, "phase": 45923 },
-          "20-0": { "cumulative": 42650, "phase": 42650 }
+          "100-80": { "cumulative": 48884, "phase": 48884 },
+          "80-60": { "cumulative": 41326, "phase": 35819 },
+          "60-40": { "cumulative": 40124, "phase": 37873 },
+          "40-20": { "cumulative": 41431, "phase": 45906 },
+          "20-0": { "cumulative": 42645, "phase": 42645 }
         }
       },
       {
         "label": "Power (Spear)",
         "build": "data/gw2/builds/elementalist/b-power-weaver-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-weaver-spear.json",
-        "benchmarkDps": 42395,
+        "benchmarkDps": 42374,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-weaver-spear",
         "benchmarkApm": 122.4,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 47713, "phase": 47713 },
-          "80-60": { "cumulative": 40952, "phase": 35598 },
-          "60-40": { "cumulative": 40384, "phase": 39310 },
-          "40-20": { "cumulative": 41306, "phase": 44426 },
-          "20-0": { "cumulative": 42395, "phase": 42395 }
+          "80-60": { "cumulative": 40905, "phase": 35514 },
+          "60-40": { "cumulative": 40354, "phase": 39310 },
+          "40-20": { "cumulative": 41280, "phase": 44419 },
+          "20-0": { "cumulative": 42374, "phase": 42374 }
         }
       },
       {
@@ -43,10 +43,10 @@
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-pistol-warhorn",
         "benchmarkApm": 90.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43759, "phase": 43759 },
-          "80-60": { "cumulative": 43654, "phase": 43543 },
-          "60-40": { "cumulative": 41210, "phase": 36904 },
-          "40-20": { "cumulative": 41266, "phase": 41437 },
+          "100-80": { "cumulative": 43748, "phase": 43748 },
+          "80-60": { "cumulative": 43648, "phase": 43543 },
+          "60-40": { "cumulative": 41208, "phase": 36909 },
+          "40-20": { "cumulative": 41265, "phase": 41437 },
           "20-0": { "cumulative": 42483, "phase": 42483 }
         }
       },
@@ -54,23 +54,23 @@
         "label": "Condition (Pistol/Dagger)",
         "build": "data/gw2/builds/elementalist/b-condi-weaver-pistol-dagger.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-pistol-dagger.json",
-        "benchmarkDps": 42586,
+        "benchmarkDps": 42622,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-pistol-dagger",
         "benchmarkApm": 100.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42542, "phase": 42542 },
-          "80-60": { "cumulative": 41814, "phase": 41085 },
-          "60-40": { "cumulative": 41575, "phase": 41122 },
-          "40-20": { "cumulative": 40907, "phase": 38937 },
-          "20-0": { "cumulative": 42586, "phase": 42586 }
+          "100-80": { "cumulative": 42528, "phase": 42528 },
+          "80-60": { "cumulative": 41896, "phase": 41265 },
+          "60-40": { "cumulative": 41628, "phase": 41118 },
+          "40-20": { "cumulative": 41248, "phase": 40093 },
+          "20-0": { "cumulative": 42622, "phase": 42622 }
         }
       },
       {
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-weaver-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-scepter.json",
-        "benchmarkDps": 41087,
+        "benchmarkDps": 41088,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-scepter-warhorn",
         "benchmarkApm": 86.5,
@@ -79,7 +79,7 @@
           "80-60": { "cumulative": 43119, "phase": 43109 },
           "60-40": { "cumulative": 40547, "phase": 36221 },
           "40-20": { "cumulative": 40011, "phase": 38506 },
-          "20-0": { "cumulative": 41087, "phase": 41087 }
+          "20-0": { "cumulative": 41088, "phase": 41088 }
         }
       }
     ]
@@ -91,64 +91,64 @@
         "label": "Power (Sword/Dagger) - Fresh Air",
         "build": "data/gw2/builds/elementalist/b-power-tempest-sword.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-sword.json",
-        "benchmarkDps": 42169,
+        "benchmarkDps": 42203,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-sword-dagger",
         "benchmarkApm": 67.7,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 45954, "phase": 45954 },
-          "80-60": { "cumulative": 43863, "phase": 41943 },
-          "60-40": { "cumulative": 42097, "phase": 38986 },
-          "40-20": { "cumulative": 42567, "phase": 44073 },
-          "20-0": { "cumulative": 42169, "phase": 42169 }
+          "100-80": { "cumulative": 45967, "phase": 45967 },
+          "80-60": { "cumulative": 43876, "phase": 41957 },
+          "60-40": { "cumulative": 42105, "phase": 38986 },
+          "40-20": { "cumulative": 42573, "phase": 44073 },
+          "20-0": { "cumulative": 42203, "phase": 42203 }
         }
       },
       {
         "label": "Power (Scepter/Dagger) - Fresh Air",
         "build": "data/gw2/builds/elementalist/b-power-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-scepter.json",
-        "benchmarkDps": 41823,
+        "benchmarkDps": 41820,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-scepter-dagger",
         "benchmarkApm": 82.1,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 47731, "phase": 47731 },
-          "80-60": { "cumulative": 43077, "phase": 39121 },
-          "60-40": { "cumulative": 42249, "phase": 40679 },
-          "40-20": { "cumulative": 41423, "phase": 39118 },
-          "20-0": { "cumulative": 41823, "phase": 43504 }
+          "80-60": { "cumulative": 43070, "phase": 39108 },
+          "60-40": { "cumulative": 42244, "phase": 40679 },
+          "40-20": { "cumulative": 41420, "phase": 39118 },
+          "20-0": { "cumulative": 41820, "phase": 43504 }
         }
       },
       {
         "label": "Power (Spear) - Fresh Air",
         "build": "data/gw2/builds/elementalist/b-power-tempest-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-spear.json",
-        "benchmarkDps": 42198,
+        "benchmarkDps": 42207,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-spear",
         "benchmarkApm": 83.1,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 42959, "phase": 42959 },
-          "80-60": { "cumulative": 41898, "phase": 40878 },
-          "60-40": { "cumulative": 42483, "phase": 43705 },
-          "40-20": { "cumulative": 42052, "phase": 40812 },
-          "20-0": { "cumulative": 42198, "phase": 42782 }
+          "80-60": { "cumulative": 41919, "phase": 40920 },
+          "60-40": { "cumulative": 42497, "phase": 43705 },
+          "40-20": { "cumulative": 42063, "phase": 40812 },
+          "20-0": { "cumulative": 42207, "phase": 42782 }
         }
       },
       {
         "label": "Power (Hammer) - Fresh Air",
         "build": "data/gw2/builds/elementalist/b-power-tempest-hammer.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-tempest-hammer.json",
-        "benchmarkDps": 42674,
+        "benchmarkDps": 42692,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-tempest-hammer",
         "benchmarkApm": 73.8,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 45221, "phase": 45221 },
-          "80-60": { "cumulative": 42689, "phase": 40424 },
-          "60-40": { "cumulative": 43250, "phase": 44423 },
-          "40-20": { "cumulative": 43172, "phase": 42940 },
-          "20-0": { "cumulative": 42674, "phase": 40786 }
+          "80-60": { "cumulative": 42704, "phase": 40452 },
+          "60-40": { "cumulative": 43260, "phase": 44423 },
+          "40-20": { "cumulative": 43187, "phase": 42970 },
+          "20-0": { "cumulative": 42692, "phase": 40815 }
         }
       },
       {
@@ -171,16 +171,16 @@
         "label": "Power Alacrity (Sword/Dagger) - Fresh Air",
         "build": "data/gw2/builds/elementalist/b-power-alac-tempest-sword.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-alac-tempest-sword.json",
-        "benchmarkDps": 32794,
+        "benchmarkDps": 32795,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-alacrity-tempest-sword-dagger",
         "benchmarkApm": 68,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 32433, "phase": 32433 },
-          "80-60": { "cumulative": 33259, "phase": 34140 },
-          "60-40": { "cumulative": 33379, "phase": 33623 },
-          "40-20": { "cumulative": 32359, "phase": 29622 },
-          "20-0": { "cumulative": 32794, "phase": 34645 }
+          "80-60": { "cumulative": 33263, "phase": 34149 },
+          "60-40": { "cumulative": 33382, "phase": 33623 },
+          "40-20": { "cumulative": 32361, "phase": 29622 },
+          "20-0": { "cumulative": 32795, "phase": 34645 }
         }
       },
       {
@@ -219,32 +219,32 @@
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-tempest-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-tempest-scepter.json",
-        "benchmarkDps": 39165,
+        "benchmarkDps": 39163,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-tempest-scepter-warhorn",
         "benchmarkApm": 63.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38212, "phase": 38212 },
-          "80-60": { "cumulative": 40818, "phase": 43858 },
-          "60-40": { "cumulative": 40304, "phase": 39351 },
-          "40-20": { "cumulative": 39796, "phase": 38273 },
-          "20-0": { "cumulative": 39165, "phase": 39165 }
+          "100-80": { "cumulative": 38200, "phase": 38200 },
+          "80-60": { "cumulative": 40811, "phase": 43858 },
+          "60-40": { "cumulative": 40301, "phase": 39352 },
+          "40-20": { "cumulative": 39794, "phase": 38273 },
+          "20-0": { "cumulative": 39163, "phase": 39163 }
         }
       },
       {
         "label": "Condition Alacrity (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-alac-tempest-pistol.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-tempest-pistol.json",
-        "benchmarkDps": 31620,
+        "benchmarkDps": 31621,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-tempest-pistol-warhorn",
         "benchmarkApm": 73.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 30424, "phase": 30424 },
-          "80-60": { "cumulative": 31505, "phase": 32678 },
-          "60-40": { "cumulative": 31925, "phase": 32783 },
-          "40-20": { "cumulative": 31942, "phase": 31993 },
-          "20-0": { "cumulative": 31620, "phase": 31620 }
+          "100-80": { "cumulative": 30425, "phase": 30425 },
+          "80-60": { "cumulative": 31506, "phase": 32678 },
+          "60-40": { "cumulative": 31927, "phase": 32787 },
+          "40-20": { "cumulative": 31943, "phase": 31993 },
+          "20-0": { "cumulative": 31621, "phase": 31621 }
         }
       },
       {
@@ -258,7 +258,7 @@
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 28062, "phase": 28062 },
           "80-60": { "cumulative": 31035, "phase": 34688 },
-          "60-40": { "cumulative": 31593, "phase": 32780 },
+          "60-40": { "cumulative": 31594, "phase": 32782 },
           "40-20": { "cumulative": null, "phase": null },
           "20-0": { "cumulative": 32559, "phase": 32559 }
         }
@@ -283,15 +283,15 @@
         "label": "Inferno (Dagger/Dagger) - Bolt to the Heart",
         "build": "data/gw2/builds/elementalist/b-inferno-tempest-dagger.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-tempest-dagger.json",
-        "benchmarkDps": 42415,
+        "benchmarkDps": 42413,
         "upToDate": true,
         "benchmarkApm": 78.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43829, "phase": 43829 },
-          "80-60": { "cumulative": 41864, "phase": 40066 },
-          "60-40": { "cumulative": 41287, "phase": 40191 },
-          "40-20": { "cumulative": 41753, "phase": 43240 },
-          "20-0": { "cumulative": 42415, "phase": 45275 }
+          "100-80": { "cumulative": 43819, "phase": 43819 },
+          "80-60": { "cumulative": 41860, "phase": 40066 },
+          "60-40": { "cumulative": 41284, "phase": 40191 },
+          "40-20": { "cumulative": 41750, "phase": 43240 },
+          "20-0": { "cumulative": 42413, "phase": 45275 }
         }
       },
       {
@@ -319,30 +319,30 @@
         "build": "data/gw2/builds/elementalist/b-power-catalyst-sword-btth.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-catalyst-sword-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-sword-btth.json",
-        "benchmarkDps": 41624,
+        "benchmarkDps": 41626,
         "upToDate": true,
         "benchmarkApm": 84.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42284, "phase": 42284 },
-          "80-60": { "cumulative": 39375, "phase": 36811 },
-          "60-40": { "cumulative": 38792, "phase": 37660 },
-          "40-20": { "cumulative": 39871, "phase": 43407 },
-          "20-0": { "cumulative": 41624, "phase": 50388 }
+          "100-80": { "cumulative": 42285, "phase": 42285 },
+          "80-60": { "cumulative": 39380, "phase": 36819 },
+          "60-40": { "cumulative": 38795, "phase": 37660 },
+          "40-20": { "cumulative": 39874, "phase": 43407 },
+          "20-0": { "cumulative": 41626, "phase": 50388 }
         }
       },
       {
         "label": "Power (Sword/Dagger) - Fresh Air",
         "build": "data/gw2/builds/elementalist/b-power-catalyst-sword-fa.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-sword-fa.json",
-        "benchmarkDps": 39335,
+        "benchmarkDps": 39337,
         "upToDate": true,
         "benchmarkApm": 95.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 45469, "phase": 45469 },
-          "80-60": { "cumulative": 39257, "phase": 34504 },
-          "60-40": { "cumulative": 40193, "phase": 42178 },
-          "40-20": { "cumulative": 39152, "phase": 36263 },
-          "20-0": { "cumulative": 39335, "phase": 40087 }
+          "100-80": { "cumulative": 45477, "phase": 45477 },
+          "80-60": { "cumulative": 39261, "phase": 34504 },
+          "60-40": { "cumulative": 40197, "phase": 42183 },
+          "40-20": { "cumulative": 39155, "phase": 36263 },
+          "20-0": { "cumulative": 39337, "phase": 40087 }
         }
       },
       {
@@ -350,15 +350,15 @@
         "build": "data/gw2/builds/elementalist/b-power-catalyst-scepter-btth.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-catalyst-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-scepter-btth.json",
-        "benchmarkDps": 41374,
+        "benchmarkDps": 41372,
         "upToDate": true,
         "benchmarkApm": 117,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40714, "phase": 40714 },
-          "80-60": { "cumulative": 38114, "phase": 35814 },
-          "60-40": { "cumulative": 39392, "phase": 42111 },
-          "40-20": { "cumulative": 40833, "phase": 46141 },
-          "20-0": { "cumulative": 41374, "phase": 41374 }
+          "100-80": { "cumulative": 40657, "phase": 40657 },
+          "80-60": { "cumulative": 38106, "phase": 35850 },
+          "60-40": { "cumulative": 39387, "phase": 42111 },
+          "40-20": { "cumulative": 40829, "phase": 46141 },
+          "20-0": { "cumulative": 41372, "phase": 41372 }
         }
       },
       {
@@ -366,15 +366,15 @@
         "build": "data/gw2/builds/elementalist/b-power-catalyst-spear.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-catalyst-spear",
         "rotation": "data/gw2/rotations/elementalist/r-power-catalyst-spear.json",
-        "benchmarkDps": 41851,
+        "benchmarkDps": 41852,
         "upToDate": true,
         "benchmarkApm": 102.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 42736, "phase": 42736 },
-          "80-60": { "cumulative": 38719, "phase": 35387 },
-          "60-40": { "cumulative": 39413, "phase": 40894 },
-          "40-20": { "cumulative": 40694, "phase": 44944 },
-          "20-0": { "cumulative": 41851, "phase": 47446 }
+          "100-80": { "cumulative": 42740, "phase": 42740 },
+          "80-60": { "cumulative": 38721, "phase": 35387 },
+          "60-40": { "cumulative": 39415, "phase": 40894 },
+          "40-20": { "cumulative": 40695, "phase": 44944 },
+          "20-0": { "cumulative": 41852, "phase": 47446 }
         }
       },
       {
@@ -388,9 +388,9 @@
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 36265, "phase": 36265 },
           "80-60": { "cumulative": 35203, "phase": 34195 },
-          "60-40": { "cumulative": 34636, "phase": 33562 },
-          "40-20": { "cumulative": 34646, "phase": 34676 },
-          "20-0": { "cumulative": 34563, "phase": 34240 }
+          "60-40": { "cumulative": 34635, "phase": 33559 },
+          "40-20": { "cumulative": 34642, "phase": 34665 },
+          "20-0": { "cumulative": 34563, "phase": 34250 }
         }
       },
       {
@@ -398,15 +398,15 @@
         "build": "data/gw2/builds/elementalist/b-power-quick-catalyst-scepter-btth.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-quickness-catalyst-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-catalyst-scepter-btth.json",
-        "benchmarkDps": 35596,
+        "benchmarkDps": 35601,
         "upToDate": true,
         "benchmarkApm": 114.8,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35408, "phase": 35408 },
-          "80-60": { "cumulative": 33779, "phase": 32266 },
-          "60-40": { "cumulative": 34262, "phase": 35244 },
-          "40-20": { "cumulative": 35186, "phase": 38412 },
-          "20-0": { "cumulative": 35596, "phase": 37322 }
+          "100-80": { "cumulative": 35417, "phase": 35417 },
+          "80-60": { "cumulative": 33789, "phase": 32277 },
+          "60-40": { "cumulative": 34269, "phase": 35244 },
+          "40-20": { "cumulative": 35191, "phase": 38412 },
+          "20-0": { "cumulative": 35601, "phase": 37326 }
         }
       },
       {
@@ -430,15 +430,15 @@
         "build": "data/gw2/builds/elementalist/b-condi-quick-catalyst-pistol-warhorn.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-quickness-catalyst-pistol-warhorn",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-catalyst-pistol-warhorn.json",
-        "benchmarkDps": 33228,
+        "benchmarkDps": 33229,
         "upToDate": false,
         "benchmarkApm": 102.5,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 30246, "phase": 30246 },
-          "80-60": { "cumulative": 32609, "phase": 35509 },
-          "60-40": { "cumulative": 33210, "phase": 34491 },
-          "40-20": { "cumulative": 33570, "phase": 34698 },
-          "20-0": { "cumulative": 33228, "phase": 33228 }
+          "80-60": { "cumulative": 32611, "phase": 35514 },
+          "60-40": { "cumulative": 33212, "phase": 34491 },
+          "40-20": { "cumulative": 33572, "phase": 34698 },
+          "20-0": { "cumulative": 33229, "phase": 33229 }
         }
       },
       {
@@ -446,30 +446,30 @@
         "build": "data/gw2/builds/elementalist/b-condi-quick-catalyst-pistol-dagger.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-quickness-catalyst-pistol-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-condi-quick-catalyst-pistol-dagger.json",
-        "benchmarkDps": 32796,
+        "benchmarkDps": 32797,
         "upToDate": true,
         "benchmarkApm": 117.9,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 30685, "phase": 30685 },
           "80-60": { "cumulative": 32106, "phase": 33645 },
           "60-40": { "cumulative": 32504, "phase": 33333 },
-          "40-20": { "cumulative": 32835, "phase": 33898 },
-          "20-0": { "cumulative": 32796, "phase": 32796 }
+          "40-20": { "cumulative": 32836, "phase": 33903 },
+          "20-0": { "cumulative": 32797, "phase": 32797 }
         }
       },
       {
         "label": "Inferno (Scepter/Dagger)",
         "build": "data/gw2/builds/elementalist/b-inferno-catalyst.json",
         "rotation": "data/gw2/rotations/elementalist/r-inferno-catalyst.json",
-        "benchmarkDps": 40717,
+        "benchmarkDps": 40723,
         "upToDate": false,
         "benchmarkApm": 112,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40522, "phase": 40522 },
-          "80-60": { "cumulative": 38522, "phase": 36730 },
-          "60-40": { "cumulative": 39110, "phase": 40344 },
-          "40-20": { "cumulative": 40714, "phase": 46561 },
-          "20-0": { "cumulative": 40717, "phase": 40717 }
+          "100-80": { "cumulative": 40584, "phase": 40584 },
+          "80-60": { "cumulative": 38513, "phase": 36651 },
+          "60-40": { "cumulative": 39119, "phase": 40389 },
+          "40-20": { "cumulative": 40720, "phase": 46561 },
+          "20-0": { "cumulative": 40723, "phase": 40723 }
         }
       }
     ]
@@ -481,7 +481,7 @@
         "label": "Power Hare (Spear)",
         "build": "data/gw2/builds/elementalist/b-power-evoker-spear.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-evoker-spear-evtc.json",
-        "benchmarkDps": 39983,
+        "benchmarkDps": 39975,
         "upToDate": true,
         "benchmarkApm": 122.2,
         "benchmarkDpsByHealth": {
@@ -489,7 +489,7 @@
           "80-60": { "cumulative": 37943, "phase": 33596 },
           "60-40": { "cumulative": 39395, "phase": 42605 },
           "40-20": { "cumulative": 39715, "phase": 40734 },
-          "20-0": { "cumulative": 39983, "phase": 41090 }
+          "20-0": { "cumulative": 39975, "phase": 41049 }
         }
       },
       {
@@ -497,31 +497,31 @@
         "build": "data/gw2/builds/elementalist/b-power-evoker-hare.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-evoker-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-evoker-hare.json",
-        "benchmarkDps": 41908,
+        "benchmarkDps": 41912,
         "upToDate": true,
         "benchmarkApm": 146.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 46340, "phase": 46340 },
-          "80-60": { "cumulative": 39807, "phase": 34726 },
-          "60-40": { "cumulative": 40195, "phase": 40997 },
-          "40-20": { "cumulative": 41246, "phase": 44732 },
-          "20-0": { "cumulative": 41908, "phase": 44798 }
+          "100-80": { "cumulative": 46374, "phase": 46374 },
+          "80-60": { "cumulative": 39819, "phase": 34721 },
+          "60-40": { "cumulative": 40203, "phase": 40997 },
+          "40-20": { "cumulative": 41251, "phase": 44726 },
+          "20-0": { "cumulative": 41912, "phase": 44798 }
         }
       },
       {
         "label": "Power Quickness Hare (Scepter/Dagger)",
         "build": "data/gw2/builds/elementalist/b-power-quick-evoker-hare.json",
         "rotation": "data/gw2/rotations/elementalist/r-power-quick-evoker-hare.json",
-        "benchmarkDps": 32880,
+        "benchmarkDps": 32882,
         "upToDate": false,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-quickness-evoker-scepter-dagger",
         "benchmarkApm": 138.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 33815, "phase": 33815 },
-          "80-60": { "cumulative": 32361, "phase": 31015 },
-          "60-40": { "cumulative": 32618, "phase": 33136 },
-          "40-20": { "cumulative": 32508, "phase": 32180 },
-          "20-0": { "cumulative": 32880, "phase": 32880 }
+          "100-80": { "cumulative": 33820, "phase": 33820 },
+          "80-60": { "cumulative": 32364, "phase": 31015 },
+          "60-40": { "cumulative": 32619, "phase": 33136 },
+          "40-20": { "cumulative": 32509, "phase": 32180 },
+          "20-0": { "cumulative": 32882, "phase": 32882 }
         }
       },
       {
@@ -529,15 +529,15 @@
         "build": "data/gw2/builds/elementalist/b-power-alac-evoker-toad.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/power-alacrity-evoker-scepter-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-power-alac-evoker-toad.json",
-        "benchmarkDps": 34351,
+        "benchmarkDps": 34338,
         "upToDate": true,
         "benchmarkApm": 124.3,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 38471, "phase": 38471 },
-          "80-60": { "cumulative": 34909, "phase": 31966 },
-          "60-40": { "cumulative": 34463, "phase": 33585 },
-          "40-20": { "cumulative": 33976, "phase": 32604 },
-          "20-0": { "cumulative": 34351, "phase": 35937 }
+          "100-80": { "cumulative": 38442, "phase": 38442 },
+          "80-60": { "cumulative": 34884, "phase": 31945 },
+          "60-40": { "cumulative": 34446, "phase": 33585 },
+          "40-20": { "cumulative": 33953, "phase": 32564 },
+          "20-0": { "cumulative": 34338, "phase": 35963 }
         }
       },
       {
@@ -545,45 +545,45 @@
         "build": "data/gw2/builds/elementalist/b-condi-evoker-pistol-dagger.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-evoker-pistol-dagger",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-dagger.json",
-        "benchmarkDps": 42984,
+        "benchmarkDps": 42982,
         "upToDate": true,
         "benchmarkApm": 150.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 39582, "phase": 39582 },
-          "80-60": { "cumulative": 41791, "phase": 44145 },
-          "60-40": { "cumulative": 42566, "phase": 44343 },
-          "40-20": { "cumulative": 42799, "phase": 43488 },
-          "20-0": { "cumulative": 42984, "phase": 43753 }
+          "100-80": { "cumulative": 39585, "phase": 39585 },
+          "80-60": { "cumulative": 41792, "phase": 44145 },
+          "60-40": { "cumulative": 42562, "phase": 44328 },
+          "40-20": { "cumulative": 42797, "phase": 43488 },
+          "20-0": { "cumulative": 42982, "phase": 43753 }
         }
       },
       {
         "label": "Condition Fox - (Pistol/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-evoker-pistol-warhorn.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-warhorn.json",
-        "benchmarkDps": 41132,
+        "benchmarkDps": 41130,
         "upToDate": true,
         "benchmarkApm": 131.2,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 38014, "phase": 38014 },
           "80-60": { "cumulative": 40325, "phase": 42879 },
           "60-40": { "cumulative": 40686, "phase": 41447 },
-          "40-20": { "cumulative": 40811, "phase": 41199 },
-          "20-0": { "cumulative": 41132, "phase": 41132 }
+          "40-20": { "cumulative": 40808, "phase": 41187 },
+          "20-0": { "cumulative": 41130, "phase": 41130 }
         }
       },
       {
         "label": "Condition Fox - (Pistol/Focus)",
         "build": "data/gw2/builds/elementalist/b-condi-evoker-pistol-focus.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-evoker-pistol-focus.json",
-        "benchmarkDps": 43356,
+        "benchmarkDps": 43355,
         "upToDate": true,
         "benchmarkApm": 137.5,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 38126, "phase": 38126 },
           "80-60": { "cumulative": 41753, "phase": 45985 },
-          "60-40": { "cumulative": 42936, "phase": 45650 },
-          "40-20": { "cumulative": 43077, "phase": 43515 },
-          "20-0": { "cumulative": 43356, "phase": 44506 }
+          "60-40": { "cumulative": 42934, "phase": 45642 },
+          "40-20": { "cumulative": 43075, "phase": 43513 },
+          "20-0": { "cumulative": 43355, "phase": 44507 }
         }
       },
       {
@@ -623,15 +623,15 @@
         "build": "data/gw2/builds/elementalist/b-condi-alac-evoker-pistol-warhorn.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-evoker-pistol-warhorn",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-evoker-pistol-warhorn.json",
-        "benchmarkDps": 36565,
+        "benchmarkDps": 36567,
         "upToDate": true,
         "benchmarkApm": 131.1,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 31897, "phase": 31897 },
-          "80-60": { "cumulative": 34650, "phase": 37953 },
-          "60-40": { "cumulative": 35861, "phase": 38485 },
-          "40-20": { "cumulative": 36276, "phase": 37601 },
-          "20-0": { "cumulative": 36565, "phase": 36565 }
+          "80-60": { "cumulative": 34651, "phase": 37956 },
+          "60-40": { "cumulative": 35864, "phase": 38491 },
+          "40-20": { "cumulative": 36278, "phase": 37601 },
+          "20-0": { "cumulative": 36567, "phase": 36567 }
         }
       },
       {
@@ -639,15 +639,15 @@
         "build": "data/gw2/builds/elementalist/b-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-alacrity-evoker-pistol-warhorn-elemental-balance",
         "rotation": "data/gw2/rotations/elementalist/r-condi-alac-evoker-pistol-warhorn-elemental-balance.json",
-        "benchmarkDps": 37288,
+        "benchmarkDps": 37289,
         "upToDate": true,
         "benchmarkApm": 129,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 31684, "phase": 31684 },
-          "80-60": { "cumulative": 35177, "phase": 39349 },
-          "60-40": { "cumulative": 36533, "phase": 39652 },
-          "40-20": { "cumulative": 36845, "phase": 37825 },
-          "20-0": { "cumulative": 37288, "phase": 37288 }
+          "80-60": { "cumulative": 35177, "phase": 39350 },
+          "60-40": { "cumulative": 36534, "phase": 39655 },
+          "40-20": { "cumulative": 36846, "phase": 37825 },
+          "20-0": { "cumulative": 37289, "phase": 37289 }
         }
       },
       {

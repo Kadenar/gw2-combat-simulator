@@ -6,9 +6,10 @@ import type {
   ProfessionStateSnapshotContext,
   RotationStateSnapshotItem
 } from '#gw2/platform/profession-presentation/types.js';
+import { planningBuffAt } from '#gw2/platform/results/result-queries.js';
 import { SHARED_SKILL_IDS } from '#gw2/platform/skills/shared-actions.js';
 import type { Skill } from '#gw2/platform/skills/types.js';
-import { activeRevenantLegend, revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
+import { revenantUiState } from '#gw2/professions/revenant/core/presentation.js';
 import { REVENANT_SKILL_IDS as SKILL, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import {
   VINDICATOR_AIRBORNE_MS,
@@ -101,23 +102,34 @@ function resolveVindicatorPaletteAction(
   return action.name === VINDICATOR_DODGE_AUTO_ACTION ? vindicatorDodgeAutoRotationEntries(context) : undefined;
 }
 
-/** Shows the armed Reaver's Curse window until the next dodge consumes it. */
+/** Shows the armed dodge charge and the accepted Forerunner buff at the inspected cursor. */
 function vindicatorStateSnapshot(
   context: ProfessionStateSnapshotContext<RevenantUiContext['professionState']>
 ): RotationStateSnapshotItem[] {
+  const items: RotationStateSnapshotItem[] = [];
   const expiresAt = revenantUiState(context)[STATE.REAVERS_CURSE_UNTIL] || 0;
   const remaining = expiresAt - Math.max(0, context.atSeconds || 0);
+
   // A landing exactly at expiry can still consume the armed charge.
-  return expiresAt > 0 && remaining >= 0
-    ? [
-        {
-          id: 'vindicator-reavers-curse',
-          label: "Reaver's Curse",
-          value: `${remaining.toFixed(1)}s`,
-          title: "Time remaining to consume Reaver's Curse with a dodge"
-        }
-      ]
-    : [];
+  if (expiresAt > 0 && remaining >= 0)
+    items.push({
+      id: 'vindicator-reavers-curse',
+      label: "Reaver's Curse",
+      value: `${remaining.toFixed(1)}s`,
+      title: "Time remaining to consume Reaver's Curse with a dodge"
+    });
+
+  const forerunner = planningBuffAt(context.planningState, 'forerunner-of-death');
+
+  if (forerunner)
+    items.push({
+      id: 'vindicator-forerunner-of-death',
+      label: 'Forerunner of Death',
+      value: `${forerunner.remaining.toFixed(1)}s`,
+      title: 'Forerunner of Death damage bonus time remaining'
+    });
+
+  return items;
 }
 
 export const vindicatorUi: RevenantUiSlice = Object.freeze({
@@ -130,14 +142,14 @@ export const vindicatorUi: RevenantUiSlice = Object.freeze({
   },
 
   rotationStateSnapshot: vindicatorStateSnapshot,
-  // F3 belongs to the active Alliance legend; the selected grandmaster adds F4 with any legend.
+  // Keep F3 visible for an equipped Alliance legend; availability disables it while the other legend is active.
   paletteGroups: (context) => [
     {
       id: 'revenant-profession-specialization',
       label: 'F',
       skillIds: [
         SKILL.ENERGY_MELD,
-        ...(activeRevenantLegend(context) === 'LegendaryAlliance' ? [SKILL.ALLIANCE_TACTICS] : []),
+        ...(context.build?.selectedLegends?.includes('LegendaryAlliance') ? [SKILL.ALLIANCE_TACTICS] : []),
         ...(selectedTraits(context.catalog, context.build?.specializations).some(
           (trait) => trait.id === TRAIT.FRIEND_OF_THE_LUXONS
         )

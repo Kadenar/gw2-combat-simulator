@@ -47,7 +47,8 @@ export const VINDICATOR_PROFESSION_SKILL_MECHANICS: Readonly<Record<string, Skil
         coefficient: 3,
         atMs: 600,
         timingAnchor: 'castStart',
-        weaponStrengthProfileId: 'nonweapon.unequipped',
+        // Use the profession-mechanic strength profile for the F4 attack.
+        weaponStrengthProfileId: 'nonweapon.profession-mechanic',
         hits: 1,
         actorType: ACTOR.PLAYER
       },

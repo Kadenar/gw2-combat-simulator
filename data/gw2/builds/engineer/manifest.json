@@ -326,15 +326,15 @@
         "build": "data/gw2/builds/engineer/b-power-scrapper-hammer.json",
         "rotation": "data/gw2/rotations/engineer/r-power-scrapper-hammer-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-scrapper-hammer",
-        "benchmarkDps": 40902,
+        "benchmarkDps": 40926,
         "upToDate": true,
         "benchmarkApm": 107.7,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 44930, "phase": 44930 },
           "80-60": { "cumulative": 41559, "phase": 38542 },
           "60-40": { "cumulative": 40919, "phase": 39699 },
-          "40-20": { "cumulative": 40716, "phase": 40124 },
-          "20-0": { "cumulative": 40902, "phase": 40902 }
+          "40-20": { "cumulative": 40722, "phase": 40148 },
+          "20-0": { "cumulative": 40926, "phase": 40926 }
         }
       }
     ]

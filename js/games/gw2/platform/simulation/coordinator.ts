@@ -2,7 +2,7 @@ import { ACTOR } from '#gw2/platform/constants.js';
 import type { PacketIdentity } from '#gw2/platform/events/identity.js';
 import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeDriverContext } from '#gw2/platform/execution/driver-contract.js';
-import { gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
+import { GW2_RESOLVER_PHASE, gw2ResolverPhase } from '#gw2/platform/resolver/event-phase.js';
 import type { Gw2EventQueue } from '#gw2/platform/resolver/types.js';
 import type { RuntimeExecution } from '#gw2/platform/simulation/run-contract.js';
 import type { Gw2Runtime } from '#gw2/platform/simulation/runtime-state.js';
@@ -213,6 +213,17 @@ export function createExecutionCoordinator<T extends object>(getRuntime: () => G
         runtime.engagementController.discoverBoundary(cursor.requestAt(runtime.time));
 
       const due = queue.peek();
+
+      // Only a strike can admit an early grant. Completions and other earlier work retain their queue position.
+      if (
+        cursor.command?.type === 'cast' &&
+        cursor.command.concurrentOffsetMs != null &&
+        due?.at === runtime.time &&
+        due.type === 'damage' &&
+        queue.nextPhase === GW2_RESOLVER_PHASE.Ordinary &&
+        execution.driver.advanceBuff(driverContext)
+      )
+        continue;
 
       if (due && due.at <= runtime.time) {
         try {

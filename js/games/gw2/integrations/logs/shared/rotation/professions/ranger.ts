@@ -9,6 +9,7 @@ import { rangerPetSkillCommandable } from '#gw2/professions/ranger/data/pet-comm
 import type { RangerSkill } from '#gw2/professions/ranger/types.js';
 
 const UNLEASHED_OVERBEARING_SMASH_FINISH_ID = 63_224;
+const SOULBEAST_CHARGE_IMPACT_ID = 43_995;
 const RANGER_PET_SPAWNED_ID = -28;
 const CARRION_DEVOURER_REGENERATE_ID = 12_703;
 const SIMULATOR_OWNED_SKILL_IDS: ReadonlySet<number> = new Set([ID.LESSER_SIC_EM, ID.WUTHERING_WIND]);
@@ -25,11 +26,17 @@ function actionId(action: RecordedLogAction): number {
   return action.canonicalSkillId ?? action.rawSkillId;
 }
 
-/** Collapses split hammer and spear animations before either importer interprets their cancellations. */
-function mergeWeaponAnimations(actions: readonly RecordedLogAction[]): RecordedLogAction[] {
+/** Collapses split weapon and merged-pet animations into one input for both log importers. */
+function mergeSkillAnimations(actions: readonly RecordedLogAction[]): RecordedLogAction[] {
   return mergeCompositeActions(
     actions,
     [
+      {
+        startId: ID.CHARGE,
+        finishId: SOULBEAST_CHARGE_IMPACT_ID,
+        maximumGapMs: SIGNAL_WINDOW_MS,
+        dropUnmatchedFinish: true
+      },
       {
         startId: ID.OVERBEARING_SMASH,
         finishId: ID.OVERBEARING_SMASH_SECOND_STRIKE,
@@ -66,7 +73,7 @@ function normalizeRangerSignals(
   context: LogActionNormalizationContext,
   actions: readonly RecordedLogAction[]
 ): RecordedLogAction[] {
-  const normalized = mergeWeaponAnimations(actions)
+  const normalized = mergeSkillAnimations(actions)
     .filter((action) => {
       if (SIMULATOR_OWNED_SKILL_IDS.has(action.rawSkillId)) return false;
 

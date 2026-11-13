@@ -11,9 +11,9 @@ import type { Gw2ResolverEvent } from '#gw2/platform/events/resolver-event.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
 import { professionCoreState, readProfessionSpecializationState } from '#gw2/platform/profession-definition/state.js';
-import { requireSkill, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { requireSkill } from '#gw2/platform/skills/balance-profiles.js';
 import type { Skill, SkillDefinition } from '#gw2/platform/skills/types.js';
-import { buildRangerPacket, emitRangerAction, emitRangerProfile } from '#gw2/professions/ranger/core/events.js';
+import { emitRangerAction, emitRangerProfile } from '#gw2/professions/ranger/core/events.js';
 import { rangerPetCompanionId } from '#gw2/professions/ranger/core/mechanics/pet-attributes.js';
 import { isPlayerStrike } from '#gw2/professions/ranger/core/mechanics/resolution-helpers.js';
 import { deliverChargedHit, grantSkillCharges } from '#gw2/professions/ranger/core/skills/charge-grants.js';
@@ -628,8 +628,6 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     type: 'Utility',
     slot: 'Utility',
     cooldown: 28,
-    // Command duration belongs to the selected command skill for either recipient.
-    duration: 10,
     skillFamily: 'Command',
     castTimeMs: 0,
     // Accepted player grants retain Soulbeast eligibility independently of the command skill.
@@ -657,9 +655,17 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
             : context.config?.specialization === 'Soulbeast') && activeBuff(context, 'sic-em')
       }
     ],
-    effects: [],
-    // Instant activation selects the current pet or merged recipient before subsequent impacts.
-    sideEffects: [{ on: 'castStart', do: { type: 'ranger.sic-em' } }]
+    // Declare both grants so command scheduling and tooltips can identify their payloads.
+    effects: [
+      {
+        type: 'buff',
+        kind: 'sic-em-pet',
+        duration: 10,
+        stacks: 1,
+        when: (runtime) => Boolean(runtime.profession.core.pet)
+      },
+      { type: 'buff', kind: 'sic-em', duration: 10, stacks: 1, when: (runtime) => rangerMerged(runtime.profession) }
+    ]
   },
   [ID.WATER_SPIRIT]: {
     name: 'Water Spirit',
@@ -822,37 +828,6 @@ export function emitStormSpiritSlam(
   });
 }
 
-/** Select the live recipient at activation; Core always registers this action, including unmerged builds. */
-function activateSicEm(runtime: RangerRuntime, skill: Skill): void {
-  const merged = rangerMerged(runtime.profession);
-  for (const kind of [...(runtime.profession.core.pet ? ['sic-em-pet'] : []), ...(merged ? ['sic-em'] : [])])
-    runtime.effects.emit({
-      kind: 'packet',
-      event: buildRangerPacket(
-        {
-          at: runtime.time,
-          skillId: skill.id,
-          skillName: skill.name,
-          kind,
-          // Pet commands bind the active companion incarnation; merged commands belong to the player.
-          audience:
-            kind === 'sic-em-pet'
-              ? {
-                  recipients: RECIPIENT.SUMMONS,
-                  affectsSelf: false,
-                  maximumRecipients: 1,
-                  eligibleCompanionIds: [rangerPetCompanionId(runtime)]
-                }
-              : { recipients: RECIPIENT.SELF },
-          priority: -20,
-          stacks: 1,
-          duration: skillNumber(skill, 'duration')
-        },
-        'buff'
-      )
-    });
-}
-
 /** Hold deployed trap packets until explicit engagement, preserving their relative pulses and field lifetime. */
 export function prepareFrostTrapEvent(runtime: RangerRuntime, event: SimulationEventBase): SimulationEventBase | null {
   if (
@@ -985,12 +960,24 @@ export const spiritLifecycle = {
   }
 } satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;
 
-/** Command recipients are selected at activation, before subsequent impacts. */
+/** Pet grants bind the companion incarnation selected at acceptance; player grants keep the default self audience. */
 export const sicEmLifecycle = {
-  sideEffectHandlers: {
-    'ranger.sic-em'(runtime, context) {
-      activateSicEm(runtime, context.skill);
-    }
+  modifyEffects(runtime, cast, effects) {
+    if (cast.skill.id !== ID.SIC_EM) return effects;
+
+    return effects.map((effect) =>
+      effect.type === 'buff' && effect.kind === 'sic-em-pet' && runtime.profession.core.pet
+        ? {
+            ...effect,
+            audience: {
+              recipients: RECIPIENT.SUMMONS,
+              affectsSelf: false,
+              maximumRecipients: 1,
+              eligibleCompanionIds: [rangerPetCompanionId(runtime)]
+            }
+          }
+        : effect
+    );
   }
 } satisfies RuntimeHooks<RangerRuntimeState, RangerSkill>;
 

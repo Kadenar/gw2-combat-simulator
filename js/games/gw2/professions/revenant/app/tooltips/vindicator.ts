@@ -10,8 +10,16 @@ import {
   traitTooltip,
   type ProfessionTooltips
 } from '#gw2/app/shared/simulation-tooltip.js';
+import type { Skill } from '#gw2/platform/skills/types.js';
 import { REVENANT_SKILL_IDS as ID, REVENANT_TRAIT_IDS as TRAIT } from '#gw2/professions/revenant/data/ids.js';
 import { VINDICATOR_DODGE_AUTO_ACTION } from '#gw2/professions/revenant/specializations/vindicator/presentation.js';
+
+/** The trait identifies the landing; its facts retain payload details without repeating that skill name. */
+function dodgeTraitFacts(skill: Skill) {
+  return simulationEffectFacts(
+    skill.effects?.map((effect) => (effect.name === skill.name ? { ...effect, name: undefined } : effect))
+  ).facts;
+}
 
 /** Describe vindicator tooltips from the selected balance data. */
 export const vindicatorTooltips = {
@@ -101,9 +109,9 @@ export const vindicatorTooltips = {
     ]),
     // Dodge traits expose their landing payload directly from the same skill definitions as dodge.
     [TRAIT.FORERUNNER_OF_DEATH]: traitTooltip(
-      'Dodge with Death Drop, then gain a temporary player strike-damage bonus after the landing damage resolves.',
+      'Dodge to strike nearby foes, then gain a temporary strike-damage bonus after landing.',
       (context) => [
-        ...simulationEffectFacts(context.catalog.skillsById.get(ID.DEATH_DROP)!.effects, 'Death Drop').facts,
+        ...dodgeTraitFacts(context.catalog.skillsById.get(ID.DEATH_DROP)!),
         profileFact(
           context,
           TRAIT.FORERUNNER_OF_DEATH,
@@ -114,14 +122,12 @@ export const vindicatorTooltips = {
       ]
     ),
     [TRAIT.VASSALS_OF_THE_EMPIRE]: traitTooltip(
-      'Dodge with Imperial Impact, striking and chilling foes while granting might and protection to nearby allies.',
-      (context) =>
-        simulationEffectFacts(context.catalog.skillsById.get(ID.IMPERIAL_IMPACT)!.effects, 'Imperial Impact').facts
+      'Dodge to strike and chill foes while granting might and protection to nearby allies.',
+      (context) => dodgeTraitFacts(context.catalog.skillsById.get(ID.IMPERIAL_IMPACT)!)
     ),
     [TRAIT.SAINT_OF_ZU_HELTZER]: traitTooltip(
-      "Dodge with Saint's Shield, granting alacrity to nearby allies. Incoming damage and healing are outside combat simulation scope.",
-      (context) =>
-        simulationEffectFacts(context.catalog.skillsById.get(ID.SAINTS_SHIELD)!.effects, "Saint's Shield").facts
+      'Dodge to grant alacrity to nearby allies. Incoming damage and healing are outside combat simulation scope.',
+      (context) => dodgeTraitFacts(context.catalog.skillsById.get(ID.SAINTS_SHIELD)!)
     )
   }
 } satisfies ProfessionTooltips;

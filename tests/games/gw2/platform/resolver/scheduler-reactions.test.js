@@ -9,47 +9,49 @@ import { observedRuntime } from '#tests/helpers/observed-runtime.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
 
 // Real profession selection and execution must preserve same-time ordering and replacement eligibility.
-test('Ranger stealth follows its granting strike and ignores off-target impacts', () => {
-  const result = runRanger(
-    [{ type: 'wait', durationMs: 2500 }],
-    {},
-    {
-      initialize(runtime) {
-        runtime.effects.emit({
-          kind: 'packet',
-          event: {
-            type: 'buff',
-            source: 'probe',
-            sourceId: 'stealth',
-            actorType: 'player',
-            at: 1,
-            kind: 'stealth',
-            duration: 5,
-            stacks: 1
-          }
-        });
-        for (const [at, extra] of [
-          [1, {}],
-          [2, { offTarget: true }]
-        ])
+test('scheduled Ranger stealth survives tied strikes and reveals only on a later landed hit', () => {
+  for (const offTarget of [false, true]) {
+    const result = runRanger(
+      [{ type: 'wait', durationMs: 2500 }],
+      {},
+      {
+        initialize(runtime) {
           runtime.effects.emit({
             kind: 'packet',
             event: {
-              type: 'damage',
+              type: 'buff',
               source: 'probe',
-              sourceId: 'hit',
+              sourceId: 'stealth',
               actorType: 'player',
-              at,
-              coefficient: 1,
-              weaponStrength: 1000,
-              ...extra
+              at: 1,
+              kind: 'stealth',
+              duration: 5,
+              stacks: 1
             }
           });
+          for (const [at, extra] of [
+            [1, { offTarget }],
+            [2, { offTarget }]
+          ])
+            runtime.effects.emit({
+              kind: 'packet',
+              event: {
+                type: 'damage',
+                source: 'probe',
+                sourceId: 'hit',
+                actorType: 'player',
+                at,
+                coefficient: 1,
+                weaponStrength: 1000,
+                ...extra
+              }
+            });
+        }
       }
-    }
-  );
-  assert.equal(observedRuntime(result).profession.core.stealthUntil, 6);
-  assert.equal(observedRuntime(result).profession.core.revealedUntil, 0);
+    );
+    assert.equal(observedRuntime(result).profession.core.stealthUntil, offTarget ? 6 : 2);
+    assert.equal(observedRuntime(result).profession.core.revealedUntil, offTarget ? 0 : 5);
+  }
 });
 
 // Pending hits wake availability without predicting a reset; only the accepted critical clears recharge.
