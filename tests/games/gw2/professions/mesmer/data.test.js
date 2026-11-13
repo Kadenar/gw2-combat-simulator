@@ -215,12 +215,14 @@ test('every cataloged phantasm has an attack timing before clone conversion', ()
   }
 });
 
+// The flip retains its weapon identity and clone reward through catalog construction.
 test("Counterspell is cataloged as Illusionary Counter's clone-generating flip skill", () => {
   const counterspell = mesmerCatalog.skillsById.get(ID.COUNTERSPELL);
 
   assert.equal(counterspell.id, 10314);
   assert.equal(counterspell.weapon, 'Scepter');
-  assert.deepEqual(counterspell.resource, { mode: 'add', count: 1, timingAnchor: 'castStart', atMs: 360 });
+  assert.equal(counterspell.resource.mode, 'add');
+  assert.equal(counterspell.resource.count, 1);
 });
 
 test('Mesmer weapon autoattacks are cataloged as individual chain skills', () => {

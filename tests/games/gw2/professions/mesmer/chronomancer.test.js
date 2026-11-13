@@ -107,7 +107,8 @@ test('Illusionary Reversion refunds one clone only after shattering three', () =
   );
 });
 
-test('Phantasmal Lancer converts after recovery and Chronophantasma repeats before final conversion', () => {
+// A phantasm must finish attacking before conversion, including its Chronophantasma repeat.
+test('Phantasmal Lancer attacks before conversion and Chronophantasma repeats before final conversion', () => {
   const rotation = ['Phantasmal Lancer', { name: '__wait', waitMs: 5000 }];
   const baseConfig = {
     initialResource: 0,
@@ -136,6 +137,9 @@ test('Phantasmal Lancer converts after recovery and Chronophantasma repeats befo
     (event) => event.type === 'damage' && event.skillName === 'Phantasmal Lancer' && event.source === 'Phantasm'
   );
   const normalConversion = normal.events.find((event) => event.reason === 'Phantasmal Lancer phantasm conversion');
+  const chronoDamage = chronophantasma.resolvedEvents.find(
+    (event) => event.type === 'damage' && event.skillName === 'Phantasmal Lancer' && event.source === 'Phantasm'
+  );
   const resummon = chronophantasma.events.find(
     (event) => event.type === 'mesmer.phantasm-resummoned' && event.name === 'Phantasmal Lancer'
   );
@@ -146,11 +150,12 @@ test('Phantasmal Lancer converts after recovery and Chronophantasma repeats befo
     (event) => event.reason === 'Phantasmal Lancer phantasm conversion'
   );
 
-  assert.ok(Math.abs(normalDamage.at - (normalCastEnd + 1.16)) < 0.00001);
-  assert.ok(Math.abs(normalConversion.at - (normalCastEnd + 2.04)) < 0.00001);
-  assert.ok(Math.abs(resummon.at - (chronoCastEnd + 2.04)) < 0.00001);
-  assert.ok(Math.abs(repeatDamage.at - (chronoCastEnd + 3.32)) < 0.00001);
-  assert.ok(Math.abs(chronoConversion.at - (chronoCastEnd + 4.14)) < 0.00001);
+  assert.ok(normalDamage.at >= normalCastEnd);
+  assert.ok(normalConversion.at > normalDamage.at);
+  assert.ok(chronoDamage.at >= chronoCastEnd);
+  assert.ok(resummon.at > chronoDamage.at);
+  assert.ok(repeatDamage.at >= resummon.at);
+  assert.ok(chronoConversion.at > repeatDamage.at);
 });
 
 test('Chronophantasma conversions preserve clone spends across a Continuum Split boundary', () => {

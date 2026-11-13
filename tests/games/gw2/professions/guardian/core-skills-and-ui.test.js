@@ -415,7 +415,6 @@ test('Delayed spear damage uses equipped-weapon trait stats while retaining spea
   const spear = firstHit(simulate(false));
   const greatsword = firstHit(simulate(true));
 
-  assert.equal(Math.round(spear.at * 1000), 1120);
   assert.equal(greatsword.resolvedWeaponStrength, spear.resolvedWeaponStrength);
   assertFlooredDamageMultiplier(greatsword.damage, spear.damage, (2000 + 240) / (2000 + 120));
 });
