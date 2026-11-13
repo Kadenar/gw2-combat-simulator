@@ -208,8 +208,9 @@ test('template skeleton preserves the populated builder dimensions', async ({ pa
       };
     });
     expect(during.height).toBeCloseTo(before.height, 0);
-    expect(dimensions.skeletonHeight).toBeCloseTo(dimensions.height, 0);
-    expect(dimensions.skeletonWidth).toBeCloseTo(dimensions.width, 0);
+    // clientHeight/clientWidth round to integer CSS pixels; DOMRect retains fractional pixels.
+    expect(Math.round(dimensions.skeletonHeight)).toBe(dimensions.height);
+    expect(Math.round(dimensions.skeletonWidth)).toBe(dimensions.width);
     const bars = await skeleton
       .locator(':scope > div')
       .evaluateAll((rows) => rows.map((row) => row.getBoundingClientRect().height));
