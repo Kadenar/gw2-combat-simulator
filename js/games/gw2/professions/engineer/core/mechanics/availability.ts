@@ -21,9 +21,9 @@ export function engineerCoreCastAvailability(
 
   if (!kit.ready) return kit;
 
-  // Rocket Burst replaces the ordinary rifle attack until used or expired.
+  // Rocket Burst replaces the ordinary rifle attack while any unexpired charge remains.
   if (skill.id === ID.RIFLE_BURST && skillFlipReady(context.flips[ID.ROCKET_BURST], context.time)) {
-    return denyEngineerCast(skill, 'engineer.rocket-burst-ready', 'use Rocket Burst while its window is active.');
+    return denyEngineerCast(skill, 'engineer.rocket-burst-ready', 'spend the remaining Rocket Burst charges first.');
   }
 
   if (

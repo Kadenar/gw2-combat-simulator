@@ -98,8 +98,8 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
         projectile: true
       }
     ],
-    // Starting the volley spends the single use even if the player interrupts it.
-    sideEffects: [{ on: 'castStart', do: { type: 'flipConsume', skillId: ID.ROCKET_BURST } }]
+    // Starting the volley spends one charge even if the player interrupts it.
+    sideEffects: [{ on: 'castStart', do: { type: 'engineer.rocket-burst-consume' } }]
   },
   [ID.BLUNDERBUSS]: {
     name: 'Blunderbuss',
@@ -144,8 +144,8 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     castTimeMs: 600,
     // Commit Net Shot at 560 ms so later interruptions keep the activation.
     interruptCommitMs: 560,
-    // Either rifle trigger refreshes one five-second Rocket Burst opportunity.
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.ROCKET_BURST, durationSec: 5 } }],
+    // Each trigger adds one charge with its own five-second deadline.
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.rocket-burst-grant', amount: 5 } }],
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 520, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {
@@ -180,7 +180,7 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     slot: 'Weapon_4',
     cooldown: 14,
     castTimeMs: 400,
-    sideEffects: [{ on: 'castCommit', do: { type: 'flipArm', skillId: ID.ROCKET_BURST, durationSec: 5 } }],
+    sideEffects: [{ on: 'castCommit', do: { type: 'engineer.rocket-burst-grant', amount: 5 } }],
     effects: [
       {
         type: 'strike',

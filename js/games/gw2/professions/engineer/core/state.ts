@@ -11,6 +11,7 @@ export interface EngineerCoreState {
   endurance: ResourceClock;
   /** The equip skill identifies the active bundle independently of its display name. */
   activeKit: SkillId | null;
+  rocketBurstChargeExpiries: number[];
   lightningRodChargeExpiries: number[];
   lightningRodGeneration: number;
   healingTurretGeneration: number;
@@ -31,6 +32,7 @@ export function createEngineerCoreState(): EngineerCoreState {
   return {
     endurance: createResourceClock(ENDURANCE.maximum),
     activeKit: null,
+    rocketBurstChargeExpiries: [],
     lightningRodChargeExpiries: [],
     lightningRodGeneration: 0,
     healingTurretGeneration: 0,

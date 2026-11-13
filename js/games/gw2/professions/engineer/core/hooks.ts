@@ -10,6 +10,7 @@ import { engineerCoreCastAvailability } from '#gw2/professions/engineer/core/mec
 import { engineerKitLifecycle } from '#gw2/professions/engineer/core/mechanics/kits.js';
 import { reduceEngineerRecharge } from '#gw2/professions/engineer/core/mechanics/recharge.js';
 import { engineerEndurance } from '#gw2/professions/engineer/core/mechanics/resources.js';
+import { engineerRifleLifecycle } from '#gw2/professions/engineer/core/mechanics/rifle.js';
 import { engineerSpearLifecycle } from '#gw2/professions/engineer/core/mechanics/spear.js';
 import { notifyToolbeltActivation } from '#gw2/professions/engineer/core/mechanics/toolbelt.js';
 import { dodgeAccepted } from '#gw2/professions/engineer/core/mechanics/trigger-points.js';
@@ -20,6 +21,7 @@ import type { EngineerRuntimeState, EngineerSkill } from '#gw2/professions/engin
 
 /** Registers toolbelt, dodge, and recharge callbacks with the callbacks from each Core mechanic and skill. */
 export const engineerCoreHooks = composeRuntimeHooks<EngineerRuntimeState, EngineerSkill>([
+  engineerRifleLifecycle,
   engineerSpearLifecycle,
   engineerTurretLifecycle,
   engineerKitLifecycle,
