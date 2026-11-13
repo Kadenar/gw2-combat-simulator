@@ -374,8 +374,8 @@ export const RANGER_CORE_SLOT_SKILL_MECHANICS: Readonly<Record<number, SkillDefi
     slot: 'Elite',
     cooldown: 60,
     skillFamily: 'Command',
-    // The command completes on the 840 ms action tick before its buffs and command traits apply.
     castTimeMs: 840,
+    interruptCommitMs: 800,
     // Opening the command window owns the Might emitted by later qualifying strikes.
     sideEffects: [
       {

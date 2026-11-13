@@ -304,8 +304,7 @@ export const viciousQuarry = defineTrait({
 export const huntersTactics = defineTrait({
   id: TRAIT.HUNTERS_TACTICS,
   balance: {
-    // Supplied November 10 reports show no strike bonus while the live trait is bugged.
-    damageMultiplier: 1,
+    damageMultiplier: 1.1,
     criticalChance: 0.1,
     effects: [{ name: 'hunters-tactics', type: 'buff', kind: 'hunters-tactics', duration: 8, stacks: 1 }]
   },

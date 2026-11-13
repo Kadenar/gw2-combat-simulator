@@ -230,7 +230,6 @@ test('Soulbeast condition modifiers and duration bonuses use their actual target
   });
   const bleeding = (result) =>
     result.breakdown.filter((row) => row.name.includes('Bleeding')).reduce((total, row) => total + row.damage, 0);
-  const splitbladeStrike = (result) => result.breakdown.find((row) => row.name === 'Splitblade').damage;
   const splitbladeBleedDuration = (result) => {
     const application = result.resolvedEvents.find(
       (event) => event.type === 'condition' && event.skillId === ID.SPLITBLADE && event.condition === 'Bleeding'
@@ -240,7 +239,6 @@ test('Soulbeast condition modifiers and duration bonuses use their actual target
   };
 
   assert.equal(bleeding(huntersTactics), bleeding(baseline));
-  assert.equal(splitbladeStrike(huntersTactics), splitbladeStrike(baseline));
   assert.ok(Math.abs(splitbladeBleedDuration(apex) - 6) < 1e-9);
   assert.ok(Math.abs(splitbladeBleedDuration(apexWithExpertise) - 6.6) < 1e-9);
 });

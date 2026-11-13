@@ -6,6 +6,7 @@ import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { RANGER_SKILL_IDS as ID, RANGER_TRAIT_IDS as TRAIT } from '#gw2/professions/ranger/data/ids.js';
 import { wait } from '#tests/helpers/commands.js';
 import { runRanger } from '#tests/helpers/ranger-simulation.js';
+import { assertFlooredDamageMultiplier } from '#tests/helpers/rounded-damage.js';
 
 const config = {
   specialization: 'Soulbeast',
@@ -82,7 +83,8 @@ test("Hunter's Tactics ignores pet hits and non-flanking player hits", () => {
   }
 });
 
-test("Hunter's Tactics does not increase strike damage when critical chance is already capped", () => {
+// Capped critical chance isolates the restored strike bonus from the trait's critical chance bonus.
+test("Hunter's Tactics increases subsequent strike damage even when critical chance is capped", () => {
   const capped = { ...config, attributeInputs: baseAttributeInputs({ power: 2000, precision: 4000, ferocity: 0 }) };
   const rotation = [ID.LONG_RANGE_SHOT, ID.LONG_RANGE_SHOT];
   const baseline = runRanger(rotation, { ...capped, selectedTraitIds: [] });
@@ -90,5 +92,7 @@ test("Hunter's Tactics does not increase strike damage when critical chance is a
   assert.ok(active.events.some((event) => event.kind === 'hunters-tactics'));
   const damage = (result) =>
     result.resolvedEvents.filter((event) => event.type === 'damage').map((event) => event.damage);
-  assert.deepEqual(damage(active), damage(baseline));
+  assert.deepEqual(active.warnings, []);
+  assert.equal(damage(active)[0], damage(baseline)[0]);
+  assertFlooredDamageMultiplier(damage(active)[1], damage(baseline)[1], 1.1);
 });
