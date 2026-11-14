@@ -73,15 +73,15 @@
         "label": "Power (Rifle - Double Helix)",
         "build": "data/gw2/builds/engineer/b-power-amalgam-rifle-double-helix.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-rifle-double-helix-bench.json",
-        "benchmarkDps": 42077,
+        "benchmarkDps": 42417,
         "upToDate": true,
-        "benchmarkApm": 120.9,
+        "benchmarkApm": 121.9,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44164, "phase": 44164 },
-          "80-60": { "cumulative": 43499, "phase": 42859 },
-          "60-40": { "cumulative": 43375, "phase": 43128 },
-          "40-20": { "cumulative": 42422, "phase": 39794 },
-          "20-0": { "cumulative": 42077, "phase": 42077 }
+          "100-80": { "cumulative": 45639, "phase": 45639 },
+          "80-60": { "cumulative": 44042, "phase": 42470 },
+          "60-40": { "cumulative": 43517, "phase": 42513 },
+          "40-20": { "cumulative": 42479, "phase": 39622 },
+          "20-0": { "cumulative": 42417, "phase": 42417 }
         }
       },
       {
@@ -304,15 +304,15 @@
         "build": "data/gw2/builds/engineer/b-power-mechanist-rifle.json",
         "rotation": "data/gw2/rotations/engineer/r-power-mechanist-rifle-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-mechanist-rifle",
-        "benchmarkDps": 40576,
+        "benchmarkDps": 41154,
         "upToDate": true,
-        "benchmarkApm": 89.8,
+        "benchmarkApm": 91.6,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 40542, "phase": 40542 },
-          "80-60": { "cumulative": 40425, "phase": 40309 },
-          "60-40": { "cumulative": 39839, "phase": 38716 },
-          "40-20": { "cumulative": 40054, "phase": 40719 },
-          "20-0": { "cumulative": 40576, "phase": 42803 }
+          "100-80": { "cumulative": 40857, "phase": 40857 },
+          "80-60": { "cumulative": 40548, "phase": 40241 },
+          "60-40": { "cumulative": 40661, "phase": 40887 },
+          "40-20": { "cumulative": 40901, "phase": 41639 },
+          "20-0": { "cumulative": 41154, "phase": 42195 }
         }
       }
     ]
