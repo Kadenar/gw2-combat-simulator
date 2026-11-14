@@ -284,7 +284,7 @@ test('optimizer checks potion attributes and verifies scores under the captured 
   const job = createGroupedOptimizer(request, warrior);
   const result = job.evaluateRange(0n, job.space.count);
   assert.equal(result.winners.length, 1);
-  verifyOptimizerScore(result.winners[0].score, score);
+  verifyOptimizerScore(result.winners[0].score, optimizerScore(score));
   applyOptimizerCandidate(app, request, result.winners[0]);
   assert.deepEqual(build.assumptions, savedBuild.assumptions);
   assert.equal(buildContext(warrior, build).simulationConfig().modifiers.playerStrike, damageFactor('god'));

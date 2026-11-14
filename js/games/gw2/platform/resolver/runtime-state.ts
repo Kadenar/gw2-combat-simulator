@@ -21,6 +21,7 @@ import type { createBoonGenerationCollector } from '#gw2/platform/results/boon-g
 import type { DamageReportObserver } from '#gw2/platform/results/damage-report.js';
 import type { Gw2SimulationDiagnostic } from '#gw2/platform/results/diagnostics.js';
 import type { EffectReportObserver } from '#gw2/platform/results/effect-report.js';
+import { createHealthCheckpointRecorder } from '#gw2/platform/results/health-checkpoints.js';
 import type { ProcStepObserver } from '#gw2/platform/results/proc-steps.js';
 import type { Gw2Config } from '#gw2/platform/simulation/config.js';
 import type { SimulationRandom } from '#kernel/core/simulation-random.js';
@@ -80,6 +81,7 @@ export function createGw2ResolverRuntimeState({
     // Each resolution pass collects its own warnings without sharing mutable state with another run.
     warnings: [],
     environmentDamage: 0,
+    healthCheckpointRecorder: createHealthCheckpointRecorder(config),
     conditionState: conditions.state,
     resolved: [],
     procs: createProcRegistry(() => runtime),
@@ -122,6 +124,7 @@ export function createGw2ResolverRuntimeState({
       }
 
       this.lastHitTime = at;
+      this.healthCheckpointRecorder?.observe(at, this.totals.strike + this.totals.condition, this.environmentDamage);
     }
   };
   const combat = createMechanicCombatServices(runtime, conditions);
@@ -150,6 +153,7 @@ export interface Gw2ResolverRuntime {
   readonly effects: EffectEmissionService;
   warnings: Gw2SimulationDiagnostic[];
   environmentDamage: number;
+  readonly healthCheckpointRecorder: ReturnType<typeof createHealthCheckpointRecorder>;
   readonly conditionState: ReadonlyMap<string, Gw2ResolverConditionState>;
   resolved: Gw2ResolverEvent[];
   boons: Map<string, Gw2TimedBuffApplication[]>;

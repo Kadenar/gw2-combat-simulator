@@ -120,15 +120,15 @@
         "label": "Condition Alacrity (Pistol / Pistol - Tools)",
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-pistol-pistol-tools.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-pistol-pistol-tools-bench.json",
-        "benchmarkDps": 37430,
+        "benchmarkDps": 37594,
         "upToDate": true,
-        "benchmarkApm": 110.2,
+        "benchmarkApm": 110.4,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 35709, "phase": 35709 },
-          "80-60": { "cumulative": 37963, "phase": 40499 },
-          "60-40": { "cumulative": 37600, "phase": 36907 },
-          "40-20": { "cumulative": 37848, "phase": 38641 },
-          "20-0": { "cumulative": 37430, "phase": 37430 }
+          "100-80": { "cumulative": 35789, "phase": 35789 },
+          "80-60": { "cumulative": 38038, "phase": 40560 },
+          "60-40": { "cumulative": 37688, "phase": 37019 },
+          "40-20": { "cumulative": 37931, "phase": 38708 },
+          "20-0": { "cumulative": 37594, "phase": 37594 }
         }
       },
       {

@@ -226,12 +226,18 @@ test('optimizer runs on demand, verifies candidates, and applies equipment once'
   await expect(results.getByRole('cell', { name: 'Food: None', exact: true })).toBeVisible();
   await expect(results.getByRole('columnheader', { name: 'Helm', exact: true })).toBeVisible();
   // Group headers span their columns; weapon names say which hand each prefix fills.
-  await expect(results.locator('thead th[scope="colgroup"]')).toHaveText(['Armor', 'Trinkets', 'Weapons', 'Infusions']);
+  await expect(results.locator('thead th[scope="colgroup"]')).toHaveText([
+    'Cumulative DPS',
+    'Armor',
+    'Trinkets',
+    'Weapons',
+    'Infusions'
+  ]);
   expect(
     await results
       .locator('thead th[scope="colgroup"]')
-      .evaluateAll((headers) => headers.slice(0, 3).map(({ colSpan }) => colSpan))
-  ).toEqual([6, 6, 3]);
+      .evaluateAll((headers) => headers.slice(0, 4).map(({ colSpan }) => colSpan))
+  ).toEqual([4, 6, 6, 3]);
   for (const name of ['Dagger MH', 'Sword OH', 'Spear 2H'])
     await expect(results.getByRole('columnheader', { name, exact: true })).toBeVisible();
   // Two-line weapon names stay inside the same header row as the other column labels.
@@ -360,7 +366,12 @@ async function showOptimizerResults(page) {
     const equipment = optimizerEquipment(request.build);
     const baseline = {
       dps: 1000,
+      rankingDps: 1000,
       totalDamage: 1000,
+      effectiveDamage: 1000,
+      healthCheckpoints: null,
+      dpsStartTime: 0,
+      dpsWindow: 1,
       rotationEndTime: 1,
       observationEndTime: 1,
       combatEndTime: 1,
@@ -369,7 +380,7 @@ async function showOptimizerResults(page) {
     const winners = [{ food: '', utility: '' }, { food: '' }, { utility: '' }, {}].map((changes, index) => ({
       key: String(index),
       equipment: { ...structuredClone(equipment), ...changes },
-      score: { ...baseline, dps: 1030 - index * 10 },
+      score: { ...baseline, dps: 1030 - index * 10, rankingDps: 1030 - index * 10 },
       representedCombinationCount: '1'
     }));
     runner.request = request;
@@ -394,7 +405,7 @@ async function showOptimizerResults(page) {
 
 // Render candidate changes in the visible grid and keep it scrollable on mobile.
 test('results expose every equipment choice without expanding rows', async ({ page }) => {
-  await page.setViewportSize({ width: 1180, height: 1100 });
+  await page.setViewportSize({ width: 1600, height: 1100 });
   await page.goto('/mesmer.html', { waitUntil: 'domcontentloaded' });
   await expect(page.locator('#loading-overlay')).toHaveClass(/hidden/);
   await page.evaluate(() => {

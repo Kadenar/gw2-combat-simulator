@@ -167,7 +167,7 @@
           "100-80": { "cumulative": 59139, "phase": 59139 },
           "80-60": { "cumulative": 47514, "phase": 39670 },
           "60-40": { "cumulative": 44684, "phase": 40170 },
-          "40-20": { "cumulative": 45222, "phase": 47063 },
+          "40-20": { "cumulative": 45248, "phase": 47182 },
           "20-0": { "cumulative": 45711, "phase": 45711 }
         }
       }
@@ -181,15 +181,15 @@
         "build": "data/gw2/builds/revenant/b-power-conduit.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-sword-sword",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-bench.json",
-        "benchmarkDps": 43866,
+        "benchmarkDps": 43802,
         "upToDate": true,
-        "benchmarkApm": 80.2,
+        "benchmarkApm": 80.1,
         "benchmarkDpsByHealth": {
           "100-80": { "cumulative": 50006, "phase": 50006 },
-          "80-60": { "cumulative": 43707, "phase": 39018 },
-          "60-40": { "cumulative": 42205, "phase": 39285 },
-          "40-20": { "cumulative": 42886, "phase": 45067 },
-          "20-0": { "cumulative": 43866, "phase": 48223 }
+          "80-60": { "cumulative": 43599, "phase": 38847 },
+          "60-40": { "cumulative": 42135, "phase": 39284 },
+          "40-20": { "cumulative": 42832, "phase": 45068 },
+          "20-0": { "cumulative": 43802, "phase": 48105 }
         }
       },
       {
@@ -197,15 +197,15 @@
         "build": "data/gw2/builds/revenant/b-power-conduit-greatsword-scepter-sword.json",
         "rotation": "data/gw2/rotations/revenant/r-power-conduit-greatsword-scepter-sword-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/revenant/power-conduit-greatsword-scepter-sword",
-        "benchmarkDps": 38921,
-        "upToDate": false,
-        "benchmarkApm": 84.2,
+        "benchmarkDps": 43536,
+        "upToDate": true,
+        "benchmarkApm": 89,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43975, "phase": 43975 },
-          "80-60": { "cumulative": 39222, "phase": 35160 },
-          "60-40": { "cumulative": 38144, "phase": 36138 },
-          "40-20": { "cumulative": 38350, "phase": 38969 },
-          "20-0": { "cumulative": 38921, "phase": 41437 }
+          "100-80": { "cumulative": 48645, "phase": 48645 },
+          "80-60": { "cumulative": 42753, "phase": 37911 },
+          "60-40": { "cumulative": 42980, "phase": 43445 },
+          "40-20": { "cumulative": 43422, "phase": 44835 },
+          "20-0": { "cumulative": 43536, "phase": 43995 }
         }
       },
       {

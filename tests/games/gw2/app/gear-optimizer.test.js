@@ -82,7 +82,11 @@ test('display groups retain weaker options outside the overall top twenty and ca
   const winners = [];
   const groups = createOptimizerResultGroups();
   for (let index = 0; index < 25; index++) {
-    const candidate = { ...base, key: `strong-${index}`, score: { ...base.score, dps: 100 - index } };
+    const candidate = {
+      ...base,
+      key: `strong-${index}`,
+      score: { ...base.score, dps: 100 - index, rankingDps: 100 - index }
+    };
     retainOptimizerCandidate(winners, candidate);
     retainOptimizerGroup(groups.food, candidate, 'food', [0]);
   }
@@ -91,7 +95,7 @@ test('display groups retain weaker options outside the overall top twenty and ca
     ...base,
     key: 'weaker',
     equipment: { ...base.equipment, food: '' },
-    score: { ...base.score, dps: 1 }
+    score: { ...base.score, dps: 1, rankingDps: 1 }
   };
   retainOptimizerCandidate(winners, weaker);
   retainOptimizerGroup(groups.food, weaker, 'food', [0]);
@@ -101,12 +105,16 @@ test('display groups retain weaker options outside the overall top twenty and ca
     groups.food.map(({ score }) => score.dps),
     [100, 1]
   );
-  retainOptimizerGroup(groups.food, { ...weaker, score: { ...weaker.score, dps: 101 } }, 'food', [0]);
+  retainOptimizerGroup(groups.food, { ...weaker, score: { ...weaker.score, dps: 101, rankingDps: 101 } }, 'food', [0]);
   assert.equal(groups.food[0].score.dps, 101);
   for (let index = 0; index < 101; index++)
     retainOptimizerGroup(
       groups.food,
-      { ...base, equipment: { ...base.equipment, food: `option-${index}` }, score: { ...base.score, dps: index } },
+      {
+        ...base,
+        equipment: { ...base.equipment, food: `option-${index}` },
+        score: { ...base.score, dps: index, rankingDps: index }
+      },
       'food',
       [0]
     );
@@ -185,7 +193,7 @@ test('local top twenty merging deduplicates before truncation and uses unrounded
   const candidates = Array.from({ length: 25 }, (_, index) => ({
     ...base,
     key: String(index).padStart(2, '0'),
-    score: { ...base.score, dps: index / 1000 },
+    score: { ...base.score, dps: index / 1000, rankingDps: index / 1000 },
     representedCombinationCount: '1'
   }));
   const left = [],
@@ -798,6 +806,36 @@ function request(selections = {}, overrides = {}) {
   };
   return captureGearOptimizerRequest(app, selections);
 }
+
+// Both search modes retain final scores and threshold data for later inspection.
+test('exact and fast searches rank final effective DPS and preserve health checkpoints', () => {
+  const captured = request(
+    { food: ['', 'Fishy Rice Bowl'] },
+    {
+      weapons: ['Axe', 'Axe'],
+      targetHealth: 12000,
+      rotation: adapter.toApplicationBuild({
+        rotation: ['Chop', { type: 'wait', durationMs: 2000 }, 'Chop', { type: 'wait', durationMs: 2000 }, 'Chop']
+      }).rotation
+    }
+  );
+  const reference = runOrdinaryOptimizer(captured, adapter);
+  for (const create of [createGroupedOptimizer, createFastOptimizer]) {
+    const job = create(captured, adapter);
+    const { winners } = job.evaluateRange(0n, job.space.count);
+    assert.deepEqual(
+      winners.map(({ score }) => score),
+      reference.map(({ score }) => score)
+    );
+    for (const candidate of winners) {
+      const detailed = job.evaluator.evaluate(candidate.equipment);
+      verifyOptimizerScore(candidate.score, optimizerScore(detailed));
+      assert.equal(candidate.score.rankingDps, detailed.effectiveDamage / detailed.dpsWindow);
+      assert.ok(candidate.score.healthCheckpoints.length > 0);
+      assert.deepEqual(candidate.score.healthCheckpoints, detailed.healthCheckpoints);
+    }
+  }
+});
 
 test('snapshot is immutable; empty selections retain current equipment', () => {
   const captured = request();

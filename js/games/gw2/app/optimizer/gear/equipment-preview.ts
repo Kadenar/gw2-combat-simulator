@@ -1,7 +1,9 @@
 import { readAttributePreviewValues, renderAttributeStats } from '#gw2/app/build/panels/attributes.js';
 import { optimizerEquipmentIdentity } from '#gw2/app/optimizer/gear/candidate-results.js';
+import { optimizerDpsSnapshots } from '#gw2/app/optimizer/gear/checkpoints.js';
 import {
   isOptimizerRequestCurrent,
+  optimizerAppliedCandidate,
   type GearOptimizerRequest,
   type OptimizerCandidate
 } from '#gw2/app/optimizer/gear/search.js';
@@ -131,9 +133,35 @@ export function renderOptimizerPreview(
     ['complete', 'canceled'].includes(runner.state.status) &&
     isOptimizerRequestCurrent(app, runner.request);
   const title = currentGear ? 'Current gear' : 'Result character';
+  // Compare cumulative DPS with the equipped gear at each health threshold.
+  const baseline = runner?.request
+    ? (optimizerAppliedCandidate(app, runner.request)?.score ?? runner.state.baseline)
+    : null;
+  const baselineRows = baseline ? optimizerDpsSnapshots(baseline) : [];
+  const number = (value: number | null): string => (value === null ? '-' : Math.round(value).toLocaleString());
+  const checkpoints = candidate
+    ? `<section class="optimizer-checkpoints" aria-label="Health checkpoints">
+    <h4>Health checkpoints</h4>
+    <p>DPS from your first hit to each checkpoint.</p>
+    <div class="optimizer-checkpoint-scroll" tabindex="0" role="region" aria-label="Checkpoint comparison"><table>
+      <thead><tr><th scope="col">Health</th><th scope="col">Elapsed</th><th scope="col">Cumulative damage</th><th scope="col">Cumulative DPS</th><th scope="col">vs equipped</th></tr></thead>
+      <tbody>${optimizerDpsSnapshots(candidate.score)
+        .map((row, index) => {
+          if (!row.reached) return `<tr><th scope="row">${row.label}</th><td colspan="4">Not reached</td></tr>`;
+
+          const base = baselineRows[index];
+          const delta =
+            base?.reached && base.cumulativeDps !== null && row.cumulativeDps !== null
+              ? row.cumulativeDps - base.cumulativeDps
+              : null;
+          return `<tr><th scope="row">${row.label}</th><td>${row.elapsed.toFixed(3)}s</td><td>${number(row.damage)}</td><td>${number(row.cumulativeDps)}</td><td>${delta === null ? '-' : `${delta >= 0 ? '+' : ''}${number(delta)}`}</td></tr>`;
+        })
+        .join('')}</tbody></table></div></section>`
+    : '';
   container.setAttribute('aria-label', title);
-  container.innerHTML = `<div class="optimizer-preview-heading"><div class="optimizer-preview-title"><h3>${title}</h3><span>${currentGear ? 'Equipped' : 'Preview only'}</span></div><div class="optimizer-preview-actions">${candidate ? `<strong>${candidate.score.dps.toFixed(2)} DPS</strong>` : ''}${!currentGear && onApply ? `<button type="button" data-apply${canApply ? '' : ' disabled'}>Apply gear</button>` : ''}</div></div>
+  container.innerHTML = `<div class="optimizer-preview-heading"><div class="optimizer-preview-title"><h3>${title}</h3><span>${currentGear ? 'Equipped' : 'Preview only'}</span></div><div class="optimizer-preview-actions">${candidate ? `<strong>${candidate.score.rankingDps.toFixed(2)} final effective DPS</strong>` : ''}${!currentGear && onApply ? `<button type="button" data-apply${canApply ? '' : ' disabled'}>Apply gear</button>` : ''}</div></div>
     <p class="optimizer-preview-note">Click a result row to preview its gear and stats.</p>
+    ${checkpoints}
     ${candidate?.score.warnings.length ? `<p class="optimizer-preview-note" role="status">${candidate.score.warnings.map((warning) => escapeHtml(formatSimulationDiagnostic(warning))).join('<br>')}</p>` : ''}
     <div class="optimizer-character">
       <div class="optimizer-preview-equipment">${card('Armor', armor)}${card('Weapon sets', weapons)}</div>

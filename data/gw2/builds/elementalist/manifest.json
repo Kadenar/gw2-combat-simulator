@@ -70,16 +70,31 @@
         "label": "Condition (Scepter/Warhorn)",
         "build": "data/gw2/builds/elementalist/b-condi-weaver-scepter.json",
         "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-scepter.json",
-        "benchmarkDps": 41088,
+        "benchmarkDps": 40716,
         "upToDate": true,
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/elementalist/condition-weaver-scepter-warhorn",
-        "benchmarkApm": 86.5,
+        "benchmarkApm": 83.2,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 43129, "phase": 43129 },
-          "80-60": { "cumulative": 43119, "phase": 43109 },
-          "60-40": { "cumulative": 40547, "phase": 36221 },
-          "40-20": { "cumulative": 40011, "phase": 38506 },
-          "20-0": { "cumulative": 41088, "phase": 41088 }
+          "100-80": { "cumulative": 42662, "phase": 42662 },
+          "80-60": { "cumulative": 42344, "phase": 42018 },
+          "60-40": { "cumulative": 40798, "phase": 38090 },
+          "40-20": { "cumulative": 39830, "phase": 37110 },
+          "20-0": { "cumulative": 40716, "phase": 44654 }
+        }
+      },
+      {
+        "label": "Condition (Scepter/Dagger)",
+        "build": "data/gw2/builds/elementalist/b-condi-weaver-scepter-dagger.json",
+        "rotation": "data/gw2/rotations/elementalist/r-condi-weaver-scepter-dagger.json",
+        "benchmarkDps": 41550,
+        "upToDate": true,
+        "benchmarkApm": 93.9,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 40898, "phase": 40898 },
+          "80-60": { "cumulative": 42574, "phase": 44336 },
+          "60-40": { "cumulative": 41134, "phase": 38398 },
+          "40-20": { "cumulative": 40823, "phase": 39921 },
+          "20-0": { "cumulative": 41550, "phase": 44773 }
         }
       }
     ]

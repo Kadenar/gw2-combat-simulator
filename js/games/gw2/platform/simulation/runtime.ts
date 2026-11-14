@@ -14,7 +14,7 @@ import {
 } from '#gw2/platform/combat/resources/resource-policy.js';
 import { createAlliedStrikeController } from '#gw2/platform/combat/state/allied-strikes.js';
 import { createEncounter, initialEncounterTarget } from '#gw2/platform/combat/state/encounter.js';
-import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
+import { targetHealthReached } from '#gw2/platform/combat/state/target-health.js';
 import { canonicalTargetConditionName } from '#gw2/platform/combat/state/targets.js';
 import { permanentComboFieldAssumption } from '#gw2/platform/combos/permanent-field-assumption.js';
 import { ACTOR } from '#gw2/platform/constants.js';
@@ -433,9 +433,8 @@ export function runRuntime<T extends object>(
   runtime.resourceController.initialize();
 
   // Phase 7: initial combat boundaries and facts precede profession and execution initialization.
-  const targetHealth = Number(config.target?.health) > 0 ? Number(config.target?.health) : Infinity;
 
-  if (!runtime.encounter && targetHealthLoss(config, runtime) >= targetHealth) runtime.deathTime = 0;
+  if (!runtime.encounter && targetHealthReached(config, runtime, 0)) runtime.deathTime = 0;
 
   if (combatStartTime != null) {
     const marker = assertSimulationEvent({

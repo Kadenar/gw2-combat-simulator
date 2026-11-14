@@ -102,6 +102,8 @@ export type Gw2SimulationScore = Pick<
   | 'lastHitTime'
   | 'deathTime'
   | 'totalDamage'
+  | 'effectiveDamage'
+  | 'healthCheckpoints'
   | 'dps'
   | 'strikeDamage'
   | 'conditionDamage'
@@ -147,6 +149,10 @@ export interface Gw2ResolverResult {
   readonly lastHitTime: number | null;
   readonly deathTime: number | null;
   readonly totalDamage: number;
+  /** Player damage credited only up to a finite golem's remaining health. */
+  readonly effectiveDamage: number;
+  /** Null for encounters and targets without damage-driven finite health. */
+  readonly healthCheckpoints: readonly import('#gw2/platform/results/health-checkpoints.js').HealthCheckpoint[] | null;
   readonly dps: number;
   readonly strikeDamage: number;
   readonly conditionDamage: number;

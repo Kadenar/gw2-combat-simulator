@@ -1,3 +1,4 @@
+import { optimizerEffectiveDps } from '#gw2/app/optimizer/gear/checkpoints.js';
 import type { OptimizerContext } from '#gw2/app/optimizer/gear/context.js';
 import type { SimulationSettings } from '#gw2/app/simulation/settings.js';
 import type { ProfessionAppState } from '#gw2/app/types.js';
@@ -86,10 +87,12 @@ export interface OptimizerSpace {
   readonly rawCount: bigint;
 }
 
-export type OptimizerScore = Pick<
+type OptimizerResultScore = Pick<
   Gw2SimulationResult,
   | 'dps'
   | 'totalDamage'
+  | 'effectiveDamage'
+  | 'healthCheckpoints'
   | 'strikeDamage'
   | 'conditionDamage'
   | 'rotationEndTime'
@@ -102,6 +105,8 @@ export type OptimizerScore = Pick<
   | 'warnings'
   | 'boonCoverage'
 >;
+
+export type OptimizerScore = OptimizerResultScore & { readonly rankingDps: number };
 
 export interface OptimizerCandidate {
   readonly key: string;
@@ -519,7 +524,7 @@ export function createOptimizerEvaluator(space: OptimizerSpace, adapter: Optimiz
       collectBoonCoverage: true,
       observationPolicy: { kind: 'rotation' }
     });
-  const score = (equipment: OptimizerEquipment): OptimizerScore | null => {
+  const score = (equipment: OptimizerEquipment): OptimizerResultScore | null => {
     const config = prepare(equipment, true);
 
     if (!config) return null;
@@ -539,7 +544,10 @@ export function createOptimizerEvaluator(space: OptimizerSpace, adapter: Optimiz
 }
 
 /** An unset minimum disables its check; zero still requires full generated coverage. */
-export function meetsOptimizerOvercapRequirements(score: OptimizerScore, limits: GearOptimizerSelections): boolean {
+export function meetsOptimizerOvercapRequirements(
+  score: Pick<OptimizerScore, 'boonCoverage'>,
+  limits: GearOptimizerSelections
+): boolean {
   return (['quickness', 'alacrity'] as const).every((kind) => {
     const minimum = kind === 'quickness' ? limits.minQuicknessOvercapPercent : limits.minAlacrityOvercapPercent;
     return minimum === undefined || (score.boonCoverage?.[kind].allyPercent ?? -Infinity) >= 100 + minimum;
@@ -547,11 +555,13 @@ export function meetsOptimizerOvercapRequirements(score: OptimizerScore, limits:
 }
 
 /** Retain just ranking fields and reject invalid arithmetic instead of treating errors as zero damage. */
-export function optimizerScore(result: OptimizerScore): OptimizerScore {
+export function optimizerScore(result: OptimizerResultScore): OptimizerScore {
   // Skipped casts remain warnings: baseline and detailed verification must accept the same outcomes as candidate scoring.
   const {
     dps,
     totalDamage,
+    effectiveDamage,
+    healthCheckpoints,
     strikeDamage,
     conditionDamage,
     rotationEndTime,
@@ -569,6 +579,7 @@ export function optimizerScore(result: OptimizerScore): OptimizerScore {
     [
       dps,
       totalDamage,
+      effectiveDamage,
       strikeDamage,
       conditionDamage,
       rotationEndTime,
@@ -594,6 +605,9 @@ export function optimizerScore(result: OptimizerScore): OptimizerScore {
     ...(boonCoverage ? { boonCoverage: structuredClone(boonCoverage) } : {}),
     dps,
     totalDamage,
+    effectiveDamage,
+    healthCheckpoints: healthCheckpoints?.map((point) => ({ ...point })) ?? null,
+    rankingDps: optimizerEffectiveDps(result),
     strikeDamage,
     conditionDamage,
     rotationEndTime,
@@ -608,7 +622,8 @@ export function optimizerScore(result: OptimizerScore): OptimizerScore {
 }
 
 export function compareOptimizerCandidates(a: OptimizerCandidate, b: OptimizerCandidate): number {
-  return b.score.dps - a.score.dps || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
+  // Rank by final effective DPS; checkpoint values remain available for inspection.
+  return b.score.rankingDps - a.score.rankingDps || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
 }
 
 export function retainOptimizerCandidate(

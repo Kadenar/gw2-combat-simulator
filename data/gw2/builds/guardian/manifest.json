@@ -107,15 +107,15 @@
         "build": "data/gw2/builds/guardian/b-condi-firebrand.json",
         "rotation": "data/gw2/rotations/guardian/r-condi-firebrand-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/guardian/condition-firebrand-axe-torch-pistol-pistol",
-        "benchmarkDps": 48621,
+        "benchmarkDps": 48613,
         "upToDate": true,
         "benchmarkApm": 138.5,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 44538, "phase": 44538 },
-          "80-60": { "cumulative": 47248, "phase": 50254 },
-          "60-40": { "cumulative": 48383, "phase": 50795 },
-          "40-20": { "cumulative": 48459, "phase": 48697 },
-          "20-0": { "cumulative": 48621, "phase": 49296 }
+          "100-80": { "cumulative": 46868, "phase": 46868 },
+          "80-60": { "cumulative": 47286, "phase": 47703 },
+          "60-40": { "cumulative": 48434, "phase": 50874 },
+          "40-20": { "cumulative": 48503, "phase": 48720 },
+          "20-0": { "cumulative": 48613, "phase": 49069 }
         }
       },
       {

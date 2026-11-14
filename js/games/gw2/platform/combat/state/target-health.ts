@@ -48,6 +48,16 @@ export function targetHealthLoss(
   return maximum * (1 - startingFraction) + combinedTargetDamage(state);
 }
 
+/** Milestones use the same health-loss arithmetic as death, including partially depleted starting health. */
+export function targetHealthReached(
+  config: Pick<Gw2Config, 'target'>,
+  state: Gw2TargetDamageState,
+  healthPercent: number
+): boolean {
+  const maximum = config.target?.health || 0;
+  return maximum > 0 && targetHealthLoss(config, state) >= maximum * (1 - healthPercent / 100);
+}
+
 /** Resolves fixed or damage-driven target health, or null for unbounded targets without a declared percentage. */
 export function remainingTargetHealthFraction(
   config: Pick<Gw2Config, 'target'> | null | undefined,

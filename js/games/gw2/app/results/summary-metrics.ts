@@ -1,6 +1,7 @@
 /** Composes result summary metrics and target-health snapshots for presentation. */
 import { timelineIdleTimeMetric } from '#gw2/app/results/idle-time-metric.js';
 import type { TimelineOccupancySource } from '#gw2/app/rotation/timeline/occupancy.js';
+import { targetHealthReached } from '#gw2/platform/combat/state/target-health.js';
 import { ACTOR } from '#gw2/platform/constants.js';
 import { recordedDamageTicks } from '#gw2/platform/results/damage-packets.js';
 import type { Gw2ResolverResult, Gw2SimulationResult } from '#gw2/platform/results/types.js';
@@ -222,11 +223,8 @@ export function targetHealthBreakpointSnapshots(
     .map(Number)
     // Milestones already passed before combat do not belong on the damage timeline.
     .filter((percent) => percent > 0 && percent < startingPercent)
-    .sort((left, right) => right - left)
-    .map((healthPercent) => ({
-      healthPercent,
-      damageThreshold: health * ((startingPercent - healthPercent) / 100)
-    }));
+    .sort((left, right) => right - left);
+  const config = { target: { health, startingHealthFraction: startingPercent / 100 } };
   const snapshots: TargetHealthBreakpointSnapshot[] = [];
   const dpsStartTime = Math.max(0, Number(result?.dpsStartTime ?? result?.firstHitTime ?? 0));
   let playerDamage = 0;
@@ -236,12 +234,12 @@ export function targetHealthBreakpointSnapshots(
   for (const [at, damage] of [...damageByTime.entries()].sort((left, right) => left[0] - right[0])) {
     playerDamage += damage.player;
     environmentDamage += damage.environment;
-    const targetDamage = playerDamage + environmentDamage;
-    while (milestoneIndex < milestones.length && targetDamage >= milestones[milestoneIndex]!.damageThreshold) {
+    const state = { totals: { strike: playerDamage }, environmentDamage };
+    while (milestoneIndex < milestones.length && targetHealthReached(config, state, milestones[milestoneIndex]!)) {
       const milestone = milestones[milestoneIndex]!;
       const elapsed = Math.max(0, at - dpsStartTime);
       snapshots.push({
-        healthPercent: milestone.healthPercent,
+        healthPercent: milestone,
         at,
         elapsed,
         damage: playerDamage,

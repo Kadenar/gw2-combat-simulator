@@ -1,7 +1,7 @@
 /** Retain planned boon yields for reports while admission and resolution keep their existing combat rules. */
 import { isStandardBoon, normalizeBoonDuration } from '#gw2/platform/combat/boons.js';
 import { skillForEvent } from '#gw2/platform/combat/query/runtime-query.js';
-import { targetHealthLoss } from '#gw2/platform/combat/state/target-health.js';
+import { targetHealthReached } from '#gw2/platform/combat/state/target-health.js';
 import {
   isCombatEntryEvent,
   isHostileTargetEvent,
@@ -81,7 +81,6 @@ export function createEffectDelivery<T extends object>(
   // Duration policy is sampled at application through selected-content queries, never a mutable resolver context.
   const boonDurationContext = createSelectedContentContext(runtime.traits, profession.catalog);
   const { makeWork, enqueueWork, identify, reactionParent, withCause } = host;
-  const targetHealth = Number(config.target?.health) > 0 ? Number(config.target?.health) : Infinity;
   const executed: Gw2ResolverEvent[] = [];
   const scheduledBoons: ScheduledBoonApplication[] = [];
   const scheduledBoonByPacket = new WeakMap<Gw2ResolverEvent, ScheduledBoonApplication>();
@@ -489,7 +488,7 @@ export function createEffectDelivery<T extends object>(
 
     if (
       runtime.deathTime == null &&
-      (runtime.encounter ? runtime.encounter.deathTime !== null : targetHealthLoss(config, runtime) >= targetHealth)
+      (runtime.encounter ? runtime.encounter.deathTime !== null : targetHealthReached(config, runtime, 0))
     ) {
       runtime.deathTime = event.at;
       lethalActivation = event.activationId;

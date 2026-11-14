@@ -79,8 +79,10 @@ export const REVENANT_WEAPONS_GREATSWORD_SKILL_MECHANICS: Readonly<Record<number
     cooldown: 0,
     energyCost: 0,
     castTimeMs: 680,
-    // A committed cancel retains the strike and conditions during the remaining aftercast.
     interruptCommitMs: 480,
+    retainsCastLockoutAfterInterrupt: true,
+    // Cancels at 600 ms or later release recovery; earlier committed cancels retain it.
+    interruptLockoutReleaseMs: 600,
     // Share one impact timing while preserving independent payloads and declaration order.
     effects: impactEffects({ atMs: 440, timingAnchor: 'castStart', timingScale: 'fixed' }, [
       {

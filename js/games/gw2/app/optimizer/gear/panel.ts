@@ -1,9 +1,11 @@
+/** Rank gear by final effective DPS and compare cumulative DPS at each health threshold. */
 import { openOptimizerBoonChart } from '#gw2/app/optimizer/gear/boon-chart.js';
 import {
   OPTIMIZER_RESULT_FILTERS,
   optimizerEquipmentIdentity,
   type OptimizerResultFilter
 } from '#gw2/app/optimizer/gear/candidate-results.js';
+import { OPTIMIZER_DPS_CHECKPOINTS, optimizerDpsSnapshots } from '#gw2/app/optimizer/gear/checkpoints.js';
 import { renderOptimizerPreview } from '#gw2/app/optimizer/gear/equipment-preview.js';
 import { MAX_OPTIMIZER_WORKERS } from '#gw2/app/optimizer/gear/runner.js';
 import {
@@ -204,15 +206,64 @@ function renderResultsTable(
     return source ? `<img src="${escapeHtml(source)}" alt="${escapeHtml(alt)}" width="${size}" height="${size}">` : '';
   };
 
-  const baseline = equippedScore?.dps || 0;
-  const largestGain = Math.max(0, ...candidates.map(({ score }) => score.dps - baseline)) || 1;
+  const baseline = equippedScore?.rankingDps ?? null;
+  const largestGain = Math.max(0, ...candidates.map(({ score }) => score.rankingDps - (baseline ?? 0))) || 1;
+  // Compare cumulative DPS with equipped gear at the same target-health threshold.
+  const bands = new Map(
+    [...candidates.map(({ score }) => score), ...(equippedScore ? [equippedScore] : [])].map((score) => [
+      score,
+      optimizerDpsSnapshots(score)
+    ])
+  );
+  const baselineBands = equippedScore ? bands.get(equippedScore) : undefined;
+  const bandDifference = (score: OptimizerScore, index: number): number | null => {
+    const band = bands.get(score)?.[index];
+    const base = baselineBands?.[index];
+    return band?.reached && base?.reached && band.cumulativeDps !== null && base.cumulativeDps !== null
+      ? band.cumulativeDps - base.cumulativeDps
+      : null;
+  };
+
+  const largestBandDifference =
+    Math.max(
+      0,
+      ...candidates.flatMap(({ score }) =>
+        bands.get(score)!.map((_, index) => Math.abs(bandDifference(score, index) ?? 0))
+      )
+    ) || 1;
+  const bandCells = (score: OptimizerScore, pinned: boolean): string =>
+    bands
+      .get(score)!
+      .map((band, index) => {
+        const value = band.reached ? band.cumulativeDps : null;
+        const delta = bandDifference(score, index);
+        const rounded = delta === null ? null : Math.round(delta);
+        const display =
+          pinned || delta === null
+            ? value === null
+              ? '-'
+              : Math.round(value).toLocaleString()
+            : rounded === 0
+              ? '±0'
+              : `${rounded! > 0 ? '+' : ''}${rounded!.toLocaleString()}`;
+        const label = `${OPTIMIZER_DPS_CHECKPOINTS[index].endHealth}% target health`;
+        const description = !band.reached
+          ? `${label} was not reached.`
+          : value === null
+            ? `${label} was reached before any DPS time elapsed.`
+            : `${label}: ${value.toFixed(2)} cumulative DPS at ${band.elapsed.toFixed(3)}s${!pinned && delta !== null ? `; ${delta >= 0 ? '+' : ''}${delta.toFixed(2)} vs equipped` : ''}`;
+        const shade = !pinned && rounded !== null && rounded !== 0;
+        return `<td class="optimizer-band${index === 0 ? ' optimizer-group-start' : ''}${shade ? (rounded > 0 ? ' optimizer-band-gain' : ' optimizer-band-loss') : ''}"${shade ? ` style="--optimizer-band-strength: ${(10 + (35 * Math.abs(delta!)) / largestBandDifference).toFixed(1)}%"` : ''} title="${escapeHtml(description)}" aria-label="${escapeHtml(description)}">${display}</td>`;
+      })
+      .join('');
   const row = (candidate: OptimizerCandidate, index: number, pinned = false): string => {
     const equipment = candidate.equipment;
-    const difference = candidate.score.dps - baseline;
-    const percent = baseline ? (candidate.score.dps / baseline - 1) * 100 : 0;
-    const gain = pinned
-      ? ''
-      : `<span class="optimizer-gain${difference < 0 ? ' optimizer-loss' : ''}" style="--optimizer-gain: ${((Math.max(0, difference) / largestGain) * 100).toFixed(1)}%"><strong>${difference >= 0 ? '+' : ''}${difference.toFixed(2)}</strong><small>${percent >= 0 ? '+' : ''}${percent.toFixed(1)}%</small></span>`;
+    const difference = candidate.score.rankingDps - (baseline ?? 0);
+    const percent = baseline ? (candidate.score.rankingDps / baseline - 1) * 100 : 0;
+    const gain =
+      pinned || baseline === null
+        ? ''
+        : `<span class="optimizer-gain${difference < 0 ? ' optimizer-loss' : ''}" style="--optimizer-gain: ${((Math.max(0, difference) / largestGain) * 100).toFixed(1)}%"><strong>${difference >= 0 ? '+' : ''}${difference.toFixed(2)}</strong><small>${percent >= 0 ? '+' : ''}${percent.toFixed(1)}%</small></span>`;
     const prefix = (slot: string, groupStart: boolean): string => {
       const value = slotPrefix(equipment, slot);
       return equipmentCell(
@@ -263,7 +314,7 @@ function renderResultsTable(
         ];
       })
       .join('');
-    return `<tr tabindex="0" data-preview="${index}"${pinned ? ' class="optimizer-equipped" aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><strong>${candidate.score.dps.toFixed(2)}</strong>${pinned ? '<span class="optimizer-equipped-label">Equipped</span>' : ''}${coverage ? `<div class="optimizer-boon-coverage">${coverage}</div>` : ''}</td><td class="optimizer-gain-cell">${gain}</td>${cells}<td class="optimizer-apply">${pinned ? '' : '<button type="button" data-apply-row hidden>Apply</button>'}</td></tr>`;
+    return `<tr tabindex="0" data-preview="${index}"${pinned ? ' class="optimizer-equipped" aria-label="Equipped setup"' : ''}><td class="optimizer-damage"><strong>${candidate.score.rankingDps.toFixed(2)}</strong>${pinned ? '<span class="optimizer-equipped-label">Equipped</span>' : ''}${coverage ? `<div class="optimizer-boon-coverage">${coverage}</div>` : ''}</td><td class="optimizer-gain-cell">${gain}</td>${bandCells(candidate.score, pinned)}${cells}<td class="optimizer-apply">${pinned ? '' : '<button type="button" data-apply-row hidden>Apply</button>'}</td></tr>`;
   };
 
   const group = (label: string, span: number): string =>
@@ -295,14 +346,14 @@ function renderResultsTable(
     : '';
 
   // The equipped row lives in the sticky header so every result below reads as a change from it.
-  return `${sharedStrip}<div class="optimizer-table-scroll" tabindex="0" role="region" aria-label="Gear optimizer results"><table aria-label="Gear comparison"><thead><tr class="optimizer-column-groups"><th scope="col" rowspan="2" class="optimizer-damage">DPS</th><th scope="col" rowspan="2" class="optimizer-gain-cell">vs equipped</th>${group('Armor', armor.length)}${group('Trinkets', trinkets.length)}${group('Weapons', weapons.length)}${group('Infusions', infusionStats.length)}${varying
+  return `<p class="optimizer-checkpoint-label">Cumulative DPS at each health threshold. Results show the difference from equipped gear.</p>${sharedStrip}<div class="optimizer-table-scroll" tabindex="0" role="region" aria-label="Gear optimizer results"><table aria-label="Gear comparison"><thead><tr class="optimizer-column-groups"><th scope="col" rowspan="2" class="optimizer-damage" title="Player DPS for the full fight or rotation, excluding overkill">Final effective DPS</th><th scope="col" rowspan="2" class="optimizer-gain-cell">vs equipped</th>${group('Cumulative DPS', OPTIMIZER_DPS_CHECKPOINTS.length)}${group('Armor', armor.length)}${group('Trinkets', trinkets.length)}${group('Weapons', weapons.length)}${group('Infusions', infusionStats.length)}${varying
     .map(
       (upgrade, index) =>
         `<th scope="col" rowspan="2"${index === 0 ? ' class="optimizer-group-start"' : ''}>${upgrade.header}</th>`
     )
     .join(
       ''
-    )}<td rowspan="2" class="optimizer-apply"></td></tr><tr>${armor.map((slot, index) => column(SLOT_LABELS[slot], index)).join('')}${trinkets.map((slot, index) => column(SLOT_LABELS[slot], index)).join('')}${weaponColumns.join('')}${infusionStats.map((stat, index) => column(INFUSION_NAMES[stat] || stat, index)).join('')}</tr>${equippedScore ? row({ key: 'equipped', equipment: equipped, score: equippedScore, representedCombinationCount: '1' }, -1, true) : ''}</thead><tbody>${candidates.map((candidate, index) => row(candidate, index)).join('')}</tbody></table></div>`;
+    )}<td rowspan="2" class="optimizer-apply"></td></tr><tr>${OPTIMIZER_DPS_CHECKPOINTS.map((band, index) => column(`${band.label.replace('%', '')}<span class="optimizer-weapon-hand">% HP</span>`, index)).join('')}${armor.map((slot, index) => column(SLOT_LABELS[slot], index)).join('')}${trinkets.map((slot, index) => column(SLOT_LABELS[slot], index)).join('')}${weaponColumns.join('')}${infusionStats.map((stat, index) => column(INFUSION_NAMES[stat] || stat, index)).join('')}</tr>${equippedScore ? row({ key: 'equipped', equipment: equipped, score: equippedScore, representedCombinationCount: '1' }, -1, true) : ''}</thead><tbody>${candidates.map((candidate, index) => row(candidate, index)).join('')}</tbody></table></div>`;
 }
 
 /** Identifies every input to the rendered equipment controls, so rotation-only edits can retain user search choices. */
@@ -659,11 +710,11 @@ export function renderGearOptimizer(app: ProfessionAppState): void {
   const signature = JSON.stringify([
     state.status,
     runner.request?.revision,
-    equippedScore?.dps,
+    equippedScore?.rankingDps,
     applied?.key,
     state.winners[0]?.key,
     filter,
-    candidates.map((winner) => [winner.key, winner.equipment, winner.score.dps])
+    candidates.map((winner) => [winner.key, winner.equipment, winner.score.rankingDps])
   ]);
 
   if (list.dataset.signature !== signature) {

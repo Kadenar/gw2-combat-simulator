@@ -20,6 +20,7 @@ export function buildSimulationScore(ctx: Gw2ResolverRuntime, rotationEndTime: n
 
   const hasExplicitCombatStart = ctx.engagement.explicit;
   const totalDamage = playerDamageTotal(ctx);
+  const progress = ctx.healthCheckpointRecorder?.finish();
   const effectiveEnd = ctx.deathTime ?? ctx.horizon;
   const explicitCombatStart = ctx.engagement.startTime ?? 0;
   // DPS always begins with the first surviving positive damage event. An
@@ -50,6 +51,8 @@ export function buildSimulationScore(ctx: Gw2ResolverRuntime, rotationEndTime: n
     lastHitTime: ctx.lastHitTime,
     deathTime: ctx.deathTime,
     totalDamage,
+    effectiveDamage: progress?.effectiveDamage ?? totalDamage,
+    healthCheckpoints: progress?.checkpoints ?? null,
     dps: damagePerSecond(totalDamage),
     strikeDamage: ctx.totals.strike,
     conditionDamage: ctx.totals.condition,

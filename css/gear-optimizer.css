@@ -733,7 +733,7 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 }
 .optimizer-run-controls {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: 8px;
   flex-shrink: 0;
@@ -747,6 +747,8 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   gap: 8px;
   font-size: 11px;
   color: var(--text-dim);
+  min-height: 32px;
+  white-space: nowrap;
 }
 .optimizer-worker-count input {
   width: 56px;
@@ -1049,6 +1051,27 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
 .optimizer-gain.optimizer-loss strong {
   color: var(--condi);
 }
+/* Signed band differences remain readable without color; shading shows their relative size. */
+.gear-optimizer .optimizer-band {
+  min-width: 58px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+}
+.optimizer-equipped .optimizer-band {
+  color: var(--text-bright);
+  font-weight: 600;
+}
+.gear-optimizer .optimizer-band-gain {
+  color: #b5f3ee;
+  background: color-mix(in srgb, #62d4ca var(--optimizer-band-strength), var(--optimizer-row-bg));
+}
+.gear-optimizer .optimizer-band-loss {
+  color: #ffd1ad;
+  background: color-mix(in srgb, #c6814a var(--optimizer-band-strength), var(--optimizer-row-bg));
+}
 /* Cells matching the equipped setup recede; changed cells stand out as accent chips. */
 .optimizer-equipment {
   text-align: center;
@@ -1218,4 +1241,33 @@ body:not([data-simulator-view='gear-optimizer']) .gear-optimizer {
   .optimizer-run-controls {
     justify-content: flex-end;
   }
+}
+
+/* Keep checkpoint comparisons readable without widening the equipment preview. */
+.optimizer-checkpoints {
+  min-width: 0;
+  margin-block: 16px;
+}
+.optimizer-checkpoints p,
+.optimizer-checkpoint-label {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+.optimizer-checkpoint-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.optimizer-checkpoints table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.optimizer-checkpoints th,
+.optimizer-checkpoints td {
+  padding: 8px 10px;
+  text-align: right;
+  white-space: nowrap;
+}
+.optimizer-checkpoints th:first-child {
+  text-align: left;
 }

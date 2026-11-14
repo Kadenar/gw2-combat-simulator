@@ -696,6 +696,8 @@ export function createGw2ConditionResolution({
     if (!(damage > 0)) return;
 
     ctx.environmentDamage += damage;
+    // Ambient damage can cross a checkpoint without starting the player's damage clock.
+    ctx.healthCheckpointRecorder?.observe(event.at, ctx.totals.strike + ctx.totals.condition, ctx.environmentDamage);
     // Environment reporting never starts the player damage clock or owns scheduling state.
     ctx.damageRecorder?.recordEnvironmentDamage({ name: condition, at: event.at, damage });
   }

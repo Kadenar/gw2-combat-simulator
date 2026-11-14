@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { optimizerDpsSnapshots } from '#gw2/app/optimizer/gear/checkpoints.js';
+import { createHealthCheckpointRecorder } from '#gw2/platform/results/health-checkpoints.js';
+
 import { targetHealthBandDps } from '../../scripts/analysis/health-band-dps.mjs';
 
 const phases = (values) => Object.fromEntries(Object.entries(values).map(([band, metrics]) => [band, metrics.phase]));
@@ -8,6 +11,43 @@ const cumulative = (values) =>
   Object.fromEntries(Object.entries(values).map(([band, metrics]) => [band, metrics.cumulative]));
 
 const empty = { '100-80': null, '80-60': null, '60-40': null, '40-20': null, '20-0': null };
+
+// Whole crossing hits, simultaneous payouts, and environment damage must produce the same cumulative DPS in every view.
+test('optimizer snapshots match Analysis benchmark cumulative DPS without changing effective final damage', () => {
+  const recorder = createHealthCheckpointRecorder({ target: { health: 1000 } });
+  const payouts = [
+    [1, 100, 0],
+    [2, 150, 0],
+    [2, 25, 0],
+    [3, 0, 100],
+    [4, 250, 0],
+    [5, 200, 0],
+    [6, 300, 0]
+  ];
+  let player = 0;
+  let environment = 0;
+  for (const [at, playerDamage, environmentDamage] of payouts) {
+    player += playerDamage;
+    environment += environmentDamage;
+    recorder.observe(at, player, environment);
+  }
+
+  const progress = recorder.finish();
+  const result = {
+    dpsStartTime: 1,
+    dpsWindow: 5,
+    deathTime: 6,
+    totalDamage: player,
+    effectiveDamage: progress.effectiveDamage,
+    healthCheckpoints: progress.checkpoints,
+    resolvedEvents: payouts.filter(([, damage]) => damage > 0).map(([at, damage]) => ({ type: 'damage', at, damage })),
+    environmentConditionBreakdown: [{ damageTicks: [{ at: 3, damage: 100 }] }]
+  };
+  assert.equal(result.effectiveDamage, 900);
+  assert.equal(result.healthCheckpoints[0].playerDamage, 275);
+  const optimizer = optimizerDpsSnapshots(result).map((row) => row.cumulativeDps);
+  assert.deepEqual(optimizer, Object.values(cumulative(targetHealthBandDps(result, 1000))).slice(0, 4));
+});
 
 // Minimal damage histories verify phase-local damage and elapsed time, independently of skill packet schedules.
 test('health-band DPS reports both cumulative and phase-local averages', () => {
