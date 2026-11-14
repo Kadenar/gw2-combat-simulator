@@ -88,6 +88,30 @@ test('raw effect presence is independent of resolved GUID evidence', () => {
   assert.deepEqual(evidence.effects, []);
 });
 
+// Effect removal owns the latest preceding creation, with separate tracking namespaces and one recorded end.
+test('effect lifetimes follow EI tracking ownership and preserve the first removal', () => {
+  const mapping = event({ stateChange: 46, skillId: 77, source: 1n, target: 2n });
+  for (const [createState, removeState, tracking] of [
+    [51, 51, { buffRemove: 7, ninety: 2, fifty: 3, moving: 128 }],
+    [60, 61, { pad: 7 }],
+    [62, 63, { pad: 7 }]
+  ]) {
+    const create = (time, extras = {}) =>
+      event({ time, stateChange: createState, skillId: 77, ...tracking, ...extras });
+    const remove = (time, extras = {}) => event({ time, stateChange: removeState, skillId: 0, ...tracking, ...extras });
+    const ends = (events) =>
+      prepareEvtcEvidence(log({ events: [mapping, ...events] })).effects.map((e) => e.dynamicEndTime);
+    assert.deepEqual(ends([create(100), remove(200), remove(300)]), [200]);
+    assert.deepEqual(ends([create(100), create(150), remove(200)]), [undefined, 200]);
+    assert.deepEqual(ends([create(100), create(300), remove(200)]), [200, undefined]);
+    assert.deepEqual(ends([create(100), create(150, { skillId: 88 }), remove(200)]), [undefined]);
+    assert.deepEqual(ends([create(100), remove(200, { pad: 0, buffRemove: 0, ninety: 0, fifty: 0, moving: 0 })]), [
+      undefined
+    ]);
+    assert.deepEqual(ends([create(100), remove(200, { stateChange: createState === 60 ? 63 : 61 })]), [undefined]);
+  }
+});
+
 // Custom casts are suppressed by relevant animations from any actor, including another cached player.
 test('custom animation suppression retains other actors when sharing player evidence', () => {
   const other = 0x2000n;

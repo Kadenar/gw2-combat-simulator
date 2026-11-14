@@ -9,9 +9,14 @@ export interface IndexedEvent {
   readonly eventIndex: number;
 }
 
+export interface EffectEvidence extends IndexedEvent {
+  readonly guid: string;
+  readonly dynamicEndTime?: number;
+}
+
 export interface EvtcReconstructionEvidence {
   readonly owners: ReadonlyMap<bigint, bigint>;
-  readonly effects: readonly (IndexedEvent & { readonly guid: string })[];
+  readonly effects: readonly EffectEvidence[];
   readonly hasEffects: boolean;
   readonly names: ReadonlyMap<number, string>;
   readonly eventsBySkill: ReadonlyMap<number, readonly IndexedEvent[]>;
@@ -124,16 +129,56 @@ function guidPart(value: bigint): string {
 }
 
 /** IDToGUID namespaces are independent; only effect mappings identify effect creations. */
-function effectEvidence(log: ParsedEvtc): { event: ParsedEvtcEvent; eventIndex: number; guid: string }[] {
+function effectEvidence(log: ParsedEvtc): EffectEvidence[] {
   const guids = new Map(
     log.events
       .filter((e) => e.stateChange === 46 && (e.overstackValue & 255) === 0)
       .map((e) => [e.skillId, guidPart(e.source) + guidPart(e.target)])
   );
-  return log.events.flatMap((event, eventIndex) => {
+  const effects: (IndexedEvent & { guid: string; dynamicEndTime?: number })[] = [];
+  const tracked = new Map<string, typeof effects>();
+  // EI's EffectEndEvent classes select the last creation at or before removal; SetDynamicEndTime keeps its first end.
+  log.events.forEach((event, eventIndex) => {
+    if (![45, 51, 60, 61, 62, 63, 79].includes(event.stateChange)) return;
+
+    const namespace = event.stateChange === 51 ? 51 : [60, 61].includes(event.stateChange) ? 60 : 62;
+    const trackingId =
+      event.stateChange === 51
+        ? (event.buffRemove | (event.ninety << 8) | (event.fifty << 16) | (event.moving << 24)) >>> 0
+        : [60, 61, 62, 63].includes(event.stateChange)
+          ? event.pad
+          : 0;
+    const key = `${namespace}:${trackingId}`;
+    const removal =
+      event.stateChange === 61 || event.stateChange === 63 || (event.stateChange === 51 && event.skillId === 0);
+
+    if (removal) {
+      const creation = trackingId
+        ? tracked
+            .get(key)
+            ?.filter((effect) => effect.event.time <= event.time)
+            .at(-1)
+        : undefined;
+
+      if (creation && creation.dynamicEndTime == null) creation.dynamicEndTime = event.time;
+
+      return;
+    }
+
     const guid = guids.get(event.skillId);
-    return guid && event.skillId !== 0 && [45, 51, 60, 62, 79].includes(event.stateChange)
-      ? [{ event, eventIndex, guid }]
-      : [];
+
+    if (event.skillId === 0) return;
+
+    const effect = { event, eventIndex, guid: guid ?? '' };
+
+    if (guid) effects.push(effect);
+
+    // Unmapped creations still claim their tracking ID, so a later removal cannot end an older mapped effect.
+    if (trackingId) {
+      const creations = tracked.get(key) ?? [];
+      creations.push(effect);
+      tracked.set(key, creations);
+    }
   });
+  return effects;
 }

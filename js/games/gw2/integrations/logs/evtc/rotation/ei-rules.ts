@@ -20,6 +20,7 @@ export interface EiInstantRule {
     | 'minion-cast'
     | 'minion-command';
   readonly rule: string;
+  readonly name?: string;
   readonly origin?: 'skill' | 'trait' | 'gear' | 'unconditional';
   readonly notAccurate?: boolean;
   readonly disableWithEffects?: boolean;
@@ -32,6 +33,8 @@ export interface EiInstantRule {
   readonly secondary?: readonly string[];
   /** Delay from the primary visual to its required same-source corroborating effects. */
   readonly secondaryTimeOffset?: number;
+  /** EI mine finders identify the source from same-caster effects ending beside the explosion. */
+  readonly relatedEffectEnd?: { readonly guids: readonly string[]; readonly present: boolean };
   readonly relatedHit?: number;
   readonly absentRelatedHits?: readonly number[];
   readonly gainedBuff?: number;
@@ -696,6 +699,37 @@ export const EI_INSTANT_RULES: readonly EiInstantRule[] = [
     signal: 'B02D3D0FF0A4FC47B23B1478D8E770AE',
     kind: 'effect-dst',
     rule: 'EngineerHelper.EffectCastFinderByDst(HealingMistOrSoothingDetonation)'
+  },
+  {
+    profession: 'engineer',
+    skillId: -37,
+    name: 'Detonate (Throw Mine / Mine Field)',
+    signal: '885B7AAA68F09E48A926BFFE488DB5AD',
+    kind: 'effect',
+    rule: 'EngineerHelper.EffectCastFinder(DetonateThrowMineOrMineField)',
+    secondary: ['1B3ACEE36F61DE42AB1C24BD33B5B5AD'],
+    relatedEffectEnd: {
+      guids: ['997750CA2636154E9FFBFEE4AA51A970', '2EE26B8656BD424B9BF9A7EA4CB0AA06'],
+      present: false
+    }
+  },
+  {
+    profession: 'engineer',
+    skillId: 6166,
+    signal: '885B7AAA68F09E48A926BFFE488DB5AD',
+    kind: 'effect',
+    rule: 'EngineerHelper.EffectCastFinder(DetonateMineField)',
+    secondary: ['1B3ACEE36F61DE42AB1C24BD33B5B5AD'],
+    relatedEffectEnd: { guids: ['997750CA2636154E9FFBFEE4AA51A970'], present: true }
+  },
+  {
+    profession: 'engineer',
+    skillId: 6162,
+    signal: '885B7AAA68F09E48A926BFFE488DB5AD',
+    kind: 'effect',
+    rule: 'EngineerHelper.EffectCastFinder(DetonateThrowMine)',
+    secondary: ['1B3ACEE36F61DE42AB1C24BD33B5B5AD'],
+    relatedEffectEnd: { guids: ['2EE26B8656BD424B9BF9A7EA4CB0AA06'], present: true }
   },
   {
     profession: 'engineer',

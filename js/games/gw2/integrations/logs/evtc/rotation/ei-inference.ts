@@ -221,6 +221,7 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
   );
   for (const rule of rules) {
     const selfAppliedBuffs = rule.selfAppliedBuffs;
+    const relatedEffectEnd = rule.relatedEffectEnd;
     const finalOwner = rule.minions || rule.kind === 'buff-give' || rule.kind === 'minion-command';
     const owns = (address: bigint): boolean =>
       (finalOwner ? (owners.get(address) ?? address) : address) === playerAddress;
@@ -232,6 +233,15 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
         (e) =>
           e.guid === rule.signal &&
           owns(caster(e.event)) &&
+          // EngineerHelper.MineDetonationInstantCastChecker requires an actual dynamic end, never a nominal duration.
+          (relatedEffectEnd == null ||
+            effects.some(
+              (other) =>
+                relatedEffectEnd.guids.includes(other.guid) &&
+                other.event.source === e.event.source &&
+                other.dynamicEndTime != null &&
+                Math.abs(other.dynamicEndTime - e.event.time) < 10
+            ) === relatedEffectEnd.present) &&
           (rule.kind !== 'effect-dst' || ![60, 79].includes(e.event.stateChange)) &&
           (rule.relatedHit == null || hasRelatedHit(rule.relatedHit, e.event.time)) &&
           (rule.absentRelatedHits ?? []).every((skillId) => !hasRelatedHit(skillId, e.event.time)) &&
@@ -347,6 +357,7 @@ export function eiInstantActions(context: EvtcProfessionReconstructionContext): 
         rawSkillId: rule.skillId,
         rawName:
           names.get(rule.skillId) ??
+          rule.name ??
           (rule.skillId === MUSHROOM_KINGS_BLESSING_SKILL_ID
             ? MUSHROOM_KINGS_BLESSING_NAME
             : 'Unknown ' + rule.skillId),

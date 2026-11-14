@@ -17,7 +17,8 @@ import { amalgamState } from '#gw2/professions/engineer/specializations/amalgam/
 import type { AmalgamSkill } from '#gw2/professions/engineer/specializations/amalgam/types.js';
 import type { EngineerRuntime } from '#gw2/professions/engineer/types.js';
 
-const PLASMATIC_STATE_CAST_TIME_MS = 480 + 480;
+// Replay both Plasmatic animations as one cast; recharge starts after the first part.
+const PLASMATIC_STATE_CAST_TIME_MS = 480 + 440;
 const PLASMATIC_STATE_RECHARGE_OFFSET_MS = 480;
 // Flux State lands at 520 ms, then its field strikes and Bleeding recur together every 520 ms.
 const FLUX_STATE_FIELD_TICK_OFFSETS_MS = Array.from({ length: 12 }, (_, index) => 1040 + index * 520);
