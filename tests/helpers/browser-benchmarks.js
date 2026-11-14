@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { test as base, expect } from '@playwright/test';
 
 // Interaction tests use every saved benchmark regardless of live freshness flags.
@@ -5,13 +6,15 @@ import { test as base, expect } from '@playwright/test';
 export const test = base.extend({
   page: async ({ page }, use) => {
     await page.route(/\/data\/gw2\/builds\/[^/]+\/manifest\.json(?:\?.*)?$/, async (route) => {
-      const response = await route.fetch();
-      const sections = await response.json();
+      // Read fixture data locally so freshness overrides do not depend on a second HTTP request.
+      const pathname = new URL(route.request().url()).pathname;
+      const manifest = new URL(`../..${pathname}`, import.meta.url);
+      const sections = JSON.parse(await readFile(manifest, 'utf8'));
       for (const section of sections) {
         for (const preset of section.presets) preset.upToDate = true;
       }
 
-      await route.fulfill({ response, json: sections });
+      await route.fulfill({ json: sections });
     });
     await use(page);
   }
