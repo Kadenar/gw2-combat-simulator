@@ -192,6 +192,13 @@ export const SCOURGE_BASE_SKILL_MECHANICS: Readonly<Record<number, SkillDefiniti
           id: 'garishPillar',
           effects: [
             {
+              name: 'Strike',
+              type: 'strike',
+              coefficient: 0.333,
+              hits: 1,
+              actorType: ACTOR.PLAYER
+            },
+            {
               name: CONDITION.FEAR,
               type: 'condition',
               condition: CONDITION.FEAR,

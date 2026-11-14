@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { skillBreakdownRows } from '#gw2/app/results/skill-breakdown.js';
 import { applySkillPatch } from '#gw2/integrations/patches/authoring/patches.js';
 import { baseAttributeInputs } from '#gw2/platform/attributes/inputs.js';
 import { NECROMANCER_SKILL_IDS as ID, NECROMANCER_TRAIT_IDS as TRAIT } from '#gw2/professions/necromancer/data/ids.js';
@@ -60,8 +61,8 @@ test('Manifest owns an exact shade lifetime and cancelled casts create no shade 
   assert.ok(noLifetime.totalDamage > 0);
 });
 
-// Shared attacks belong to the triggering command so each profession skill owns its damage row.
-test('shade attacks retain their shared source and attribute damage to the triggering command', () => {
+// Shared attacks keep Manifest's damage row while retaining the triggering command as their parent.
+test('shade attacks attribute damage to Manifest Sand Shade and retain their triggering cast', () => {
   for (const skillId of [
     ID.MANIFEST_SAND_SHADE,
     ID.NEFARIOUS_FAVOR,
@@ -73,19 +74,98 @@ test('shade attacks retain their shared source and attribute damage to the trigg
     const config = { ...base, selectedTraitIds: skillId === ID.SANDSTORM_SHROUD ? [TRAIT.HERALD_OF_SORROW] : [] };
     const catalog = necromancerProfession.runtimeFor(config).catalog;
     const command = catalog.skillsById.get(skillId);
+    const manifest = catalog.skillsById.get(ID.MANIFEST_SAND_SHADE);
     const result = run([cast(skillId), wait(1000)], config);
     assert.deepEqual(result.warnings, []);
     const attacks = result.resolvedEvents.filter(
       (event) => event.sourceId === ID.MANIFEST_SAND_SHADE && ['damage', 'condition'].includes(event.type)
     );
     assert.ok(attacks.length > 0);
+    const strikes = attacks.filter((event) => event.type === 'damage');
+    assert.equal(strikes.length, 1);
+    assert.equal(strikes[0].coefficient, 0.666);
     for (const event of attacks) {
-      assert.equal(event.skillName, command.name);
-      assert.equal(event.icon, command.icon);
-      assert.equal(event.skillId, skillId);
+      assert.equal(event.skillName, manifest.name);
+      assert.equal(event.icon, manifest.icon);
+      assert.equal(event.skillId, ID.MANIFEST_SAND_SHADE);
       assert.equal(event.parentSkillName, command.name);
+      assert.ok(event.activationId);
     }
+
+    const rows = skillBreakdownRows(result);
+    assert.equal(rows.find((row) => row.name === manifest.name).strike, strikes[0].damage);
+
+    if ([ID.NEFARIOUS_FAVOR, ID.SAND_CASCADE].includes(skillId))
+      assert.equal(
+        rows.some((row) => row.name === command.name),
+        false
+      );
   }
+});
+
+test('Garish Pillar adds its own half-strength strike alongside the shared shade attack and Fear', () => {
+  const result = run([cast(ID.GARISH_PILLAR), wait(1000)]);
+  const strikes = result.resolvedEvents.filter((event) => event.type === 'damage');
+  assert.equal(strikes.length, 2);
+  const shared = strikes.find((event) => event.sourceId === ID.MANIFEST_SAND_SHADE);
+  const pillar = strikes.find((event) => event.sourceId === ID.GARISH_PILLAR);
+  assert.equal(shared.coefficient, 0.666);
+  assert.equal(pillar.coefficient, 0.333);
+  // Damage packets round independently to whole points.
+  assert.ok(Math.abs(pillar.damage - shared.damage / 2) <= 1);
+  assert.equal(pillar.at, shared.at);
+  assert.equal(pillar.activationId, shared.activationId);
+  assert.equal(pillar.skillId, ID.GARISH_PILLAR);
+  assert.equal(pillar.skillName, 'Garish Pillar');
+  const rows = skillBreakdownRows(result);
+  assert.equal(rows.find((row) => row.name === 'Garish Pillar').strike, pillar.damage);
+  assert.equal(rows.find((row) => row.name === 'Manifest Sand Shade').strike, shared.damage);
+  assert.ok(result.resolvedEvents.some((event) => event.type === 'condition' && event.condition === 'Fear'));
+  assert.ok(result.resolvedEvents.some((event) => event.type === 'condition' && event.condition === 'Torment'));
+  assert.deepEqual(result.warnings, []);
+});
+
+test('Garish Pillar strike and Fear remain independently patchable without changing the shared attack', () => {
+  for (const [type, name] of [
+    ['strike', 'Strike'],
+    ['condition', 'Fear']
+  ]) {
+    const profession = patched(base, {
+      [ID.GARISH_PILLAR]: { sideEffects: { garishPillar: { removeEffects: [{ type, name }] } } }
+    });
+    const result = run([cast(ID.GARISH_PILLAR), wait(1000)], base, { profession });
+    const strikes = result.resolvedEvents.filter((event) => event.type === 'damage');
+    assert.equal(strikes.find((event) => event.sourceId === ID.MANIFEST_SAND_SHADE).coefficient, 0.666);
+    assert.equal(
+      strikes.some((event) => event.sourceId === ID.GARISH_PILLAR),
+      type !== 'strike'
+    );
+    assert.equal(
+      result.resolvedEvents.some((event) => event.type === 'condition' && event.condition === 'Fear'),
+      type !== 'condition'
+    );
+  }
+});
+
+test('Garish Pillar delays or misses both strikes and only the shared hit triggers Dhuumfire', () => {
+  const config = { ...base, selectedTraitIds: [TRAIT.DHUUMFIRE] };
+  const result = run([{ ...cast(ID.GARISH_PILLAR), impactDelayMs: 500 }, wait(1000)], config);
+  const strikes = result.resolvedEvents.filter((event) => event.type === 'damage');
+  assert.equal(strikes.length, 2);
+  assert.ok(strikes.every((event) => event.at === 0.5));
+  assert.equal(strikes.filter((event) => event.metadata?.necromancerShroudSkillOne).length, 1);
+  const burning = result.resolvedEvents.filter(
+    (event) => event.type === 'condition' && event.sourceId === TRAIT.DHUUMFIRE
+  );
+  assert.equal(burning.length, 1);
+  assert.equal(burning[0].at, 0.5);
+
+  const missed = run([{ ...cast(ID.GARISH_PILLAR), offTarget: true }, wait(1000)], config);
+  assert.equal(missed.totalDamage, 0);
+  assert.equal(
+    missed.resolvedEvents.some((event) => ['damage', 'condition'].includes(event.type)),
+    false
+  );
 });
 
 test('Sand Savant selects the live ammo cap and modified recharge work', () => {

@@ -1,11 +1,10 @@
 import { isHostileTargetEvent } from '#gw2/platform/combat/state/targets.js';
-import { ACTOR, CONDITION } from '#gw2/platform/constants.js';
+import { ACTOR } from '#gw2/platform/constants.js';
 import { requireSkillAction } from '#gw2/platform/effects/actions.js';
 import type { SkillEffect } from '#gw2/platform/effects/types.js';
-import type { SimulationEventBase } from '#gw2/platform/events/events.js';
 import type { RuntimeCast } from '#gw2/platform/execution/cast-contracts.js';
 import type { RuntimeHooks } from '#gw2/platform/profession-definition/runtime-hooks.js';
-import { requireEffect, skillNumber } from '#gw2/platform/skills/balance-profiles.js';
+import { skillNumber } from '#gw2/platform/skills/balance-profiles.js';
 import { cleanseNecromancerSelfCondition } from '#gw2/professions/necromancer/core/mechanics/condition-management.js';
 import { NECROMANCER_SKILL_IDS as ID } from '#gw2/professions/necromancer/data/ids.js';
 import type {
@@ -56,42 +55,8 @@ const scourgeShroudActions = {
     cleanseNecromancerSelfCondition(runtime);
   },
   'scourge.garish-pillar'(runtime, context) {
-    if (context.kind !== 'cast') return;
-
-    const profile = context.skill;
-    const action = requireSkillAction(profile, 'garishPillar');
-    const fear = requireEffect(profile, 'condition', CONDITION.FEAR, action);
-
-    if (fear) {
-      // Shared emission owns transport; the mechanic selects attribution and delivery.
-      const emissionRuntime: NecromancerRuntime = runtime;
-      const emissionCast: RuntimeCast<NecromancerSkill> = context.cast;
-      const emissionEvent: SimulationEventBase = {
-        type: 'condition',
-        condition: CONDITION.FEAR,
-        stacks: Number(fear.stacks),
-        duration: Number(fear.duration),
-        at: runtime.time,
-        source: 'necromancer',
-        sourceId: context.skill.id,
-        actorType: ACTOR.PLAYER,
-        skillId: context.skill.id,
-        skillName: context.skill.name
-      };
-
-      emissionRuntime.effects.emit({
-        kind: 'packet',
-        event: {
-          ...emissionEvent,
-          activationId: emissionCast.id,
-          offTarget: emissionCast.command.offTarget,
-          at: canonicalTime(
-            emissionEvent.at +
-              (isHostileTargetEvent(emissionEvent) ? (emissionCast.command.impactDelayMs ?? 0) / 1000 : 0)
-          )
-        }
-      });
-    }
+    if (context.kind === 'cast')
+      emitShroudEffects(runtime, context.cast, requireSkillAction(context.skill, 'garishPillar').effects);
   },
   'scourge.desert-shroud'(runtime, context) {
     if (context.kind === 'cast')

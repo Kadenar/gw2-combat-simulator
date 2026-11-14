@@ -53,10 +53,10 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
     source: 'necromancer',
     sourceId: ID.MANIFEST_SAND_SHADE,
     actorType: ACTOR.PLAYER,
-    skillId: cast.skill.id,
-    // Attribute the shared strike and Torment to the shade command that triggered them.
-    skillName: cast.skill.name,
-    icon: cast.skill.icon,
+    // Combat logs record the shared strike under Manifest Sand Shade; retain the triggering cast as its parent.
+    skillId: profile.id,
+    skillName: profile.name,
+    icon: profile.icon,
     parentSkillName: cast.skill.name
   };
   const strike = requireEffect(profile, 'strike', 'Strike', action);

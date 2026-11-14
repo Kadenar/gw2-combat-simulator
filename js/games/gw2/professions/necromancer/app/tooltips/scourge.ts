@@ -26,12 +26,12 @@ const shadeTooltip: DescribeSimulationTooltip = (balanceContext, entity) => {
   const description = (
     {
       [ID.MANIFEST_SAND_SHADE]:
-        'Manifest a sand shade, striking your target and inflicting torment. Every shade skill, F1 through F5, triggers this shared attack. Its damage appears under the skill that triggered it. Sand Savant replaces normal shades with a greater shade.',
+        'Manifest a sand shade, striking your target and inflicting torment. Every shade skill, F1 through F5, triggers this shared attack. Its damage appears under Manifest Sand Shade. Sand Savant replaces normal shades with a greater shade.',
       [ID.NEFARIOUS_FAVOR]:
         'Trigger the shared shade attack and remove an active self-condition type. Sadistic Searing adds its Burning effect.',
       [ID.SAND_CASCADE]:
         'Trigger the shared shade attack and applicable barrier traits. Barrier absorption is outside simulation scope.',
-      [ID.GARISH_PILLAR]: 'Trigger the shared shade attack and fear your target.',
+      [ID.GARISH_PILLAR]: 'Trigger the shared shade attack, then strike and fear your target.',
       [ID.DESERT_SHROUD]:
         'Trigger the shared shade attack, followed by repeated strikes and Torment. Activates applicable shroud and barrier traits.',
       [ID.SANDSTORM_SHROUD]:
