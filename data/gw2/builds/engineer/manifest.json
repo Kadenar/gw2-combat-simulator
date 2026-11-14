@@ -23,7 +23,7 @@
     "section": "Amalgam",
     "presets": [
       {
-        "label": "Power (Hammer - Symbiotic)",
+        "label": "Power (Hammer - 2 Kits - Symbiotic)",
         "build": "data/gw2/builds/engineer/b-power-amalgam-hammer-symbiotic.json",
         "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-symbiotic-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/power-amalgam-hammer",
@@ -36,6 +36,21 @@
           "60-40": { "cumulative": 42863, "phase": 42979 },
           "40-20": { "cumulative": 41087, "phase": 36508 },
           "20-0": { "cumulative": 41788, "phase": 41788 }
+        }
+      },
+      {
+        "label": "Power (Hammer - 1 Kit - Symbiotic)",
+        "build": "data/gw2/builds/engineer/b-power-amalgam-hammer-1kit-symbiotic.json",
+        "rotation": "data/gw2/rotations/engineer/r-power-amalgam-hammer-1kit-symbiotic-bench.json",
+        "benchmarkDps": 41515,
+        "upToDate": true,
+        "benchmarkApm": 75.9,
+        "benchmarkDpsByHealth": {
+          "100-80": { "cumulative": 45220, "phase": 45220 },
+          "80-60": { "cumulative": 37800, "phase": 32426 },
+          "60-40": { "cumulative": 40528, "phase": 47267 },
+          "40-20": { "cumulative": 40033, "phase": 38621 },
+          "20-0": { "cumulative": 41515, "phase": 41515 }
         }
       },
       {
@@ -90,15 +105,15 @@
         "build": "data/gw2/builds/engineer/b-condi-alac-amalgam-2kit.json",
         "rotation": "data/gw2/rotations/engineer/r-condi-alac-amalgam-2kit-bench.json",
         "snowCrowsUrl": "https://snowcrows.com/builds/raids/engineer/condition-alacrity-amalgam-two-kits-spear",
-        "benchmarkDps": 35759,
+        "benchmarkDps": 35298,
         "upToDate": true,
-        "benchmarkApm": 114.8,
+        "benchmarkApm": 113.1,
         "benchmarkDpsByHealth": {
-          "100-80": { "cumulative": 34991, "phase": 34991 },
-          "80-60": { "cumulative": 35341, "phase": 35700 },
-          "60-40": { "cumulative": 35868, "phase": 36967 },
-          "40-20": { "cumulative": 36249, "phase": 37426 },
-          "20-0": { "cumulative": 35759, "phase": 35759 }
+          "100-80": { "cumulative": 34874, "phase": 34874 },
+          "80-60": { "cumulative": 35573, "phase": 36291 },
+          "60-40": { "cumulative": 35709, "phase": 35989 },
+          "40-20": { "cumulative": 35922, "phase": 36571 },
+          "20-0": { "cumulative": 35298, "phase": 35298 }
         }
       },
       {
