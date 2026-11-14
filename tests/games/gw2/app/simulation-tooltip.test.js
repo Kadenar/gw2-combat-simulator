@@ -270,6 +270,24 @@ test('Combustive Shot tooltip tabs own their patched field durations', async () 
   }
 });
 
+test('Garish Pillar tooltip separates its own strike from the shared shade attack', () => {
+  const context = withPatchPreview(necromancerProfession, null).resolvePatch().balanceContext;
+  const tooltip = describeSimulationSkill(
+    context,
+    context.catalog.skillsById.get(ID.GARISH_PILLAR),
+    necromancerTooltips
+  );
+  const strikes = tooltip.facts.filter(({ name }) => name === 'Strike damage');
+  assert.equal(strikes.length, 2);
+  assert.ok(
+    strikes.some(({ detail }) => detail.includes('0.666 coefficient') && detail.includes('shared shade attack'))
+  );
+  assert.ok(
+    strikes.some(({ detail }) => detail.includes('0.333 coefficient') && !detail.includes('shared shade attack'))
+  );
+  assert.ok(tooltip.facts.some(({ name }) => name === 'Fear'));
+});
+
 // Raw Scourge costs are rounded only for display, with the same digit grouping as the in-game facts.
 test('Scourge life-force tooltip costs display whole points', () => {
   const context = withPatchPreview(necromancerProfession, null).resolvePatch().balanceContext;

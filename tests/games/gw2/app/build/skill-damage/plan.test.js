@@ -513,6 +513,10 @@ test('trait proc preview toggles Dhuumfire and Sadistic Searing on their qualify
   }
 
   const [off, on, reset] = measurements;
+  assert.equal(off.get('Manifest Sand Shade').hits, 1);
+  assert.equal(off.get('Manifest Sand Shade').coefficient, 0.666);
+  assert.equal(off.get('Garish Pillar').hits, 2);
+  assert.ok(Math.abs(off.get('Garish Pillar').coefficient - 0.999) < 1e-8);
   const burning = (measurement) => measurement.conditions.filter((entry) => entry.condition === 'Burning');
   assert.deepEqual(
     burning(on.get('Nefarious Favor'))
@@ -521,12 +525,18 @@ test('trait proc preview toggles Dhuumfire and Sadistic Searing on their qualify
     ['Dhuumfire', 'Sadistic Searing']
   );
   assert.equal(burning(off.get('Nefarious Favor')).length, 0);
-  // Every shade preview includes its shared Torment under the triggering skill, while trait Burning stays separate.
+  // Each activation includes shared Torment attributed to Manifest; F5 also has its own Torment pulses.
   for (const name of shadeSkills) {
     assert.ok(on.get(name).total > off.get(name).total);
     const torment = off.get(name).conditions.filter((entry) => entry.condition === 'Torment');
     assert.ok(torment.length > 0);
-    assert.ok(torment.every((entry) => entry.damage > 0 && entry.attribution === name));
+    assert.ok(torment.every((entry) => entry.damage > 0));
+    assert.ok(torment.some((entry) => entry.attribution === 'Manifest Sand Shade'));
+    assert.ok(
+      torment.every((entry) =>
+        ['Manifest Sand Shade', ...(name === 'Desert Shroud' ? [name] : [])].includes(entry.attribution)
+      )
+    );
     assert.ok(burning(on.get(name)).some((entry) => entry.attribution === 'Dhuumfire'));
   }
 
@@ -552,8 +562,7 @@ test('Sand Sage preserves Alacrity Scourge shade previews and optional Dhuumfire
         const conditions = result.measurement.conditions;
         assert.ok(
           conditions.some(
-            (entry) =>
-              entry.condition === 'Torment' && entry.attribution === occurrences[index].name && entry.damage > 0
+            (entry) => entry.condition === 'Torment' && entry.attribution === 'Manifest Sand Shade' && entry.damage > 0
           )
         );
         assert.equal(
