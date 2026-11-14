@@ -81,7 +81,6 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     requiresArmedFlip: true,
     cooldown: 0,
     castTimeMs: 840,
-    interruptCommitMs: 680,
     defaultInterruptMs: 680,
     interruptMode: 'per-packet',
     effects: [
