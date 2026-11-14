@@ -16,8 +16,8 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     autoattack: true,
     // Ordinary repeatable attack; excluded from player-input metrics.
     cooldown: 0,
-    // Rifle Burst occupies an 840 ms channel; interruption retains landed packets and cancels future packets.
     castTimeMs: 840,
+    defaultInterruptMs: 600,
     interruptMode: 'per-packet',
     effects: [
       {
@@ -81,6 +81,8 @@ export const ENGINEER_WEAPONS_RIFLE_SKILL_MECHANICS: Readonly<Record<number, Ski
     requiresArmedFlip: true,
     cooldown: 0,
     castTimeMs: 840,
+    interruptCommitMs: 680,
+    defaultInterruptMs: 680,
     interruptMode: 'per-packet',
     effects: [
       {
