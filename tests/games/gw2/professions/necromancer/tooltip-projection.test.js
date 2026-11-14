@@ -234,6 +234,13 @@ test('Dhuumfire tooltip and combat agree on selected stacks and specialization d
       );
       assert.ok(applications.length > 0);
       assert.ok(applications.every((event) => event.duration === duration));
+      // Stack splitting preserves one activation marker per accepted proc, even with patched stack counts.
+      const activations = result.procSteps.filter((step) => step.skill === 'Dhuumfire');
+      assert.ok(activations.length > 0);
+      assert.equal(
+        applications.reduce((total, event) => total + Number(event.metadata?.procCount || 0), 0),
+        activations.length
+      );
       // Resolution splits intensity stacks into individual entries; each isolated hit has its own timestamp.
       const stacksByImpact = new Map();
       for (const event of applications)

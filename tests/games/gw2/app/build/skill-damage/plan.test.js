@@ -500,11 +500,12 @@ test('trait proc preview toggles Dhuumfire and Sadistic Searing on their qualify
   assert.ok(!attributePreviewControls(app).some((control) => control.key === 'includeTraitProcs'));
   const cache = new Map();
   const measurements = [];
+  const shadeSkills = ['Manifest Sand Shade', 'Nefarious Favor', 'Sand Cascade', 'Garish Pillar', 'Desert Shroud'];
   for (const includeTraitProcs of [0, 1, 0]) {
     const plan = createSkillDamagePlan(app, controls, { ...clearedValues(controls), includeTraitProcs });
     assert.equal(plan.request.config.includeTraitProcs, undefined);
     const occurrences = plan.request.occurrences.filter((entry) =>
-      ['Nefarious Favor', 'Manifest Sand Shade', 'Weeping Shots'].includes(entry.name)
+      [...shadeSkills, 'Weeping Shots'].includes(entry.name)
     );
     const results = evaluateSkillDamage({ ...plan.request, occurrences }, app.profession, cache).occurrences;
     assert.ok(results.every((entry) => entry.status === 'measured'));
@@ -519,18 +520,52 @@ test('trait proc preview toggles Dhuumfire and Sadistic Searing on their qualify
       .sort(),
     ['Dhuumfire', 'Sadistic Searing']
   );
-  assert.equal(
-    off.get('Nefarious Favor').conditions.find((entry) => entry.condition === 'Torment').attribution,
-    'Manifest Sand Shade'
-  );
   assert.equal(burning(off.get('Nefarious Favor')).length, 0);
-  for (const name of ['Nefarious Favor', 'Manifest Sand Shade']) {
+  // Every shade preview includes its shared Torment under the triggering skill, while trait Burning stays separate.
+  for (const name of shadeSkills) {
     assert.ok(on.get(name).total > off.get(name).total);
-    assert.ok(off.get(name).conditions.some((entry) => entry.condition === 'Torment'));
+    const torment = off.get(name).conditions.filter((entry) => entry.condition === 'Torment');
+    assert.ok(torment.length > 0);
+    assert.ok(torment.every((entry) => entry.damage > 0 && entry.attribution === name));
+    assert.ok(burning(on.get(name)).some((entry) => entry.attribution === 'Dhuumfire'));
   }
 
   assert.deepEqual(on.get('Weeping Shots'), off.get('Weeping Shots'));
   assert.deepEqual(reset, off);
+  assert.deepEqual(app.build, saved);
+});
+
+// Holding Sand Sage must preserve shade previews after their newly created finite shade expires.
+test('Sand Sage preserves Alacrity Scourge shade previews and optional Dhuumfire attribution', async () => {
+  const app = await headlessApp('necromancer', 'data/gw2/builds/necromancer/b-condi-alac-scourge.json');
+  const controls = skillDamageControls(app);
+  const saved = structuredClone(app.build);
+  const names = ['Manifest Sand Shade', 'Nefarious Favor', 'Sand Cascade', 'Garish Pillar', 'Sandstorm Shroud'];
+  for (const shade of [0, 1, 0]) {
+    for (const includeTraitProcs of [0, 1]) {
+      const plan = createSkillDamagePlan(app, controls, { ...clearedValues(controls), shade, includeTraitProcs });
+      const occurrences = plan.request.occurrences.filter((entry) => names.includes(entry.name));
+      assert.deepEqual(new Set(occurrences.map((entry) => entry.name)), new Set(names));
+      const results = evaluateSkillDamage({ ...plan.request, occurrences }, app.profession).occurrences;
+      for (const [index, result] of results.entries()) {
+        assert.equal(result.status, 'measured', `${occurrences[index].name}: ${result.reason}`);
+        const conditions = result.measurement.conditions;
+        assert.ok(
+          conditions.some(
+            (entry) =>
+              entry.condition === 'Torment' && entry.attribution === occurrences[index].name && entry.damage > 0
+          )
+        );
+        assert.equal(
+          conditions.some(
+            (entry) => entry.condition === 'Burning' && entry.attribution === 'Dhuumfire' && entry.damage > 0
+          ),
+          Boolean(includeTraitProcs)
+        );
+      }
+    }
+  }
+
   assert.deepEqual(app.build, saved);
 });
 

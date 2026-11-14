@@ -202,14 +202,14 @@ function strikeBreakdown(strikes: readonly StrikeHit[]): SkillDamageStrikeBreakd
   };
 }
 
-/** Trait ownership takes precedence over the triggering skill's display attribution. */
+/** Keep trait ownership explicit; shared skill effects use their emitted attribution before the source profile name. */
 function conditionAttribution(application: ConditionApplication, catalog: CanonicalCatalog): string {
   const traitId = application.traitId ?? (application.source === 'Trait' ? application.sourceId : undefined);
   const trait = traitId == null ? undefined : catalog.traits.find((entry) => entry.id === traitId);
   return (
     trait?.name ??
-    catalog.skillsById.get(application.sourceId)?.name ??
     application.skillName ??
+    catalog.skillsById.get(application.sourceId)?.name ??
     String(application.sourceId)
   );
 }

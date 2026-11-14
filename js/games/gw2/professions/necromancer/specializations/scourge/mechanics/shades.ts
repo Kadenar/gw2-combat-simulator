@@ -35,8 +35,11 @@ function refreshShadeExpiry(runtime: NecromancerRuntime): void {
   runtime.cancelOwner({ id: EXPIRE, generation: state.shadeGeneration });
   state.shadeGeneration++;
 
-  if (state.shades.length)
-    runtime.schedule(EXPIRE, Math.min(...state.shades), null, { id: EXPIRE, generation: state.shadeGeneration }, -20);
+  // Preview-held shades never expire, so only finite shade deadlines need a scheduler wake.
+  const nextExpiry = Math.min(...state.shades);
+
+  if (Number.isFinite(nextExpiry))
+    runtime.schedule(EXPIRE, nextExpiry, null, { id: EXPIRE, generation: state.shadeGeneration }, -20);
 }
 
 /** Every shade command owns one common strike and Torment application, independent of the number of active shades. */
@@ -51,7 +54,9 @@ function shadeStrike(runtime: NecromancerRuntime, cast: RuntimeCast<NecromancerS
     sourceId: ID.MANIFEST_SAND_SHADE,
     actorType: ACTOR.PLAYER,
     skillId: cast.skill.id,
-    skillName: cast.skill.id === ID.NEFARIOUS_FAVOR ? 'Manifest Sand Shade' : 'Manifest Sand Shade (F1/F5)',
+    // Attribute the shared strike and Torment to the shade command that triggered them.
+    skillName: cast.skill.name,
+    icon: cast.skill.icon,
     parentSkillName: cast.skill.name
   };
   const strike = requireEffect(profile, 'strike', 'Strike', action);

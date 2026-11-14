@@ -362,7 +362,13 @@ function applyDhuumfire(
       at: event.at,
       effect: { type: 'condition', name: CONDITION.BURNING },
       settlement: 'reaction',
-      attribution: { skillName: 'Dhuumfire', triggeredBy: event.skillName, ownerActorType: ACTOR.PLAYER },
+      attribution: {
+        skillName: 'Dhuumfire',
+        triggeredBy: event.skillName,
+        ownerActorType: ACTOR.PLAYER,
+        // Count accepted procs independently of Burning stacks and damage ticks.
+        metadata: { procCount: 1 }
+      },
       // Shroud skills may supply a duration variant; all remaining fields stay authored.
       transform: (packet) => ({ ...packet, name: 'Dhuumfire - ' + packet.condition, duration: effect.duration })
     }

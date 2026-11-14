@@ -60,6 +60,34 @@ test('Manifest owns an exact shade lifetime and cancelled casts create no shade 
   assert.ok(noLifetime.totalDamage > 0);
 });
 
+// Shared attacks belong to the triggering command so each profession skill owns its damage row.
+test('shade attacks retain their shared source and attribute damage to the triggering command', () => {
+  for (const skillId of [
+    ID.MANIFEST_SAND_SHADE,
+    ID.NEFARIOUS_FAVOR,
+    ID.SAND_CASCADE,
+    ID.GARISH_PILLAR,
+    ID.DESERT_SHROUD,
+    ID.SANDSTORM_SHROUD
+  ]) {
+    const config = { ...base, selectedTraitIds: skillId === ID.SANDSTORM_SHROUD ? [TRAIT.HERALD_OF_SORROW] : [] };
+    const catalog = necromancerProfession.runtimeFor(config).catalog;
+    const command = catalog.skillsById.get(skillId);
+    const result = run([cast(skillId), wait(1000)], config);
+    assert.deepEqual(result.warnings, []);
+    const attacks = result.resolvedEvents.filter(
+      (event) => event.sourceId === ID.MANIFEST_SAND_SHADE && ['damage', 'condition'].includes(event.type)
+    );
+    assert.ok(attacks.length > 0);
+    for (const event of attacks) {
+      assert.equal(event.skillName, command.name);
+      assert.equal(event.icon, command.icon);
+      assert.equal(event.skillId, skillId);
+      assert.equal(event.parentSkillName, command.name);
+    }
+  }
+});
+
 test('Sand Savant selects the live ammo cap and modified recharge work', () => {
   const config = { ...base, selectedTraitIds: [TRAIT.SAND_SAVANT, TRAIT.SINISTER_SHROUD] };
   const one = run([cast(ID.MANIFEST_SAND_SHADE)], config);
