@@ -21,8 +21,8 @@
   "alternateWeapons": ["Pistol", "Pistol"],
   "rune": "Balthazar",
   "weaponSigils": [
-    ["Doom", "Bursting"],
-    ["Geomancy", "Bursting"]
+    ["Geomancy", "Bursting"],
+    ["Doom", "Bursting"]
   ],
   "relic": "Last Tyrant",
   "food": "Cilantro and Cured Meat Flatbread",
